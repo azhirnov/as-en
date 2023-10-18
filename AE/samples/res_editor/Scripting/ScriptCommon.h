@@ -32,6 +32,8 @@ namespace AE::ResEditor
     class IController;
     class IPass;
 
+    using ScriptRCBase                  = ScriptRC< EnableScriptRC >;
+
     using ScriptBufferPtr               = ScriptRC< class ScriptBuffer >;
     using ScriptImagePtr                = ScriptRC< class ScriptImage >;
     using ScriptVideoImagePtr           = ScriptRC< class ScriptVideoImage >;
@@ -62,6 +64,7 @@ namespace AE::ResEditor
     using ScriptGeomSourcePtr           = ScriptRC< class ScriptGeomSource >;
 
     using ScriptSceneGraphicsPassPtr    = ScriptRC< class ScriptSceneGraphicsPass >;
+    using ScriptSceneRayTracingPassPtr  = ScriptRC< class ScriptSceneRayTracingPass >;
     using ScriptScenePtr                = ScriptRC< class ScriptScene >;
 
 
@@ -95,3 +98,27 @@ namespace AE::ResEditor
 
 
 } // AE::ResEditor
+
+
+// resources
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptImage,                     "Image"             );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptVideoImage,                "VideoImage"        );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBuffer,                    "Buffer"            );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRTGeometry,                "RTGeometry"        );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRTScene,                   "RTScene"           );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicDim,                "DynamicDim"        );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt,               "DynamicUInt"       );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt2,              "DynamicUInt2"      );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt3,              "DynamicUInt3"      );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt4,              "DynamicUInt4"      );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt,                "DynamicInt"        );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt2,               "DynamicInt2"       );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt3,               "DynamicInt3"       );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt4,               "DynamicInt4"       );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat,              "DynamicFloat"      );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat2,             "DynamicFloat2"     );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat3,             "DynamicFloat3"     );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat4,             "DynamicFloat4"     );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicULong,              "DynamicULong"      );
+//AE_DECL_SCRIPT_OBJ_RC(AE::ResEditor::ScriptDynamicMatrix4x4,          "DynamicMat4x4"     );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptCollection,                "Collection"        );

@@ -840,7 +840,7 @@ namespace AE::PipelineCompiler
         BindingTable_t              miss;
         BindingTable_t              hit;
         BindingTable_t              callable;
-        uint                        hitGroupStride  = 0;
+        uint                        numRayTypes = 0;
 
 
     // methods

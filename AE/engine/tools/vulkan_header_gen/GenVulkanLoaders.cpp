@@ -26,7 +26,7 @@ namespace AE::Vulkan
         StaticArray< Group, 3 >     groups;
         const auto                  feats       = _GetFeatures( minVer );
         HashSet<StringView>         include_fn  = { "vkGetRayTracingShaderGroupHandlesKHR" };
-        HashSet<StringView>         exclude_fn  = { "vkGetInstanceProcAddr" };
+        HashSet<StringView>         exclude_fn  = { "vkGetInstanceProcAddr", "vkDeviceWaitIdle" };
 
 
         for (auto& g : groups)
@@ -57,6 +57,13 @@ namespace AE::Vulkan
 
         // Vulkan 1.1 core
         #if 1
+          // VK_KHR_device_group
+            exclude_fn.erase( "vkCmdSetDeviceMaskKHR" );
+            exclude_fn.erase( "vkGetDeviceGroupPeerMemoryFeaturesKHR" );
+            exclude_fn.erase( "vkGetDeviceGroupPresentCapabilitiesKHR" );
+            exclude_fn.erase( "vkGetDeviceGroupSurfacePresentModesKHR" );
+            exclude_fn.erase( "vkGetPhysicalDevicePresentRectanglesKHR" );
+
           // VK_KHR_get_physical_device_properties2
             exclude_fn.erase( "vkGetPhysicalDeviceFeatures2" );
             exclude_fn.erase( "vkGetPhysicalDeviceProperties2" );
@@ -126,6 +133,8 @@ namespace AE::Vulkan
             exclude_fn.erase( "vkCmdWaitEvents2" );
             exclude_fn.erase( "vkCmdWriteTimestamp2" );
             exclude_fn.erase( "vkQueueSubmit2" );
+            exclude_fn.erase( "vkCmdWriteBufferMarker2AMD" );
+            exclude_fn.erase( "vkGetQueueCheckpointData2NV" );
 
           // VK_KHR_maintenance4
             exclude_fn.erase( "vkGetDeviceBufferMemoryRequirements" );
@@ -482,8 +491,8 @@ namespace AE::Vulkan
             { "shaderViewportIndexLayer",       VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME,          NoVer,  {1,0},  {} },
 
         // 1.3 //
-            { "copyCmds2",                      VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME,                      {1,3},  {1,0},  {} },
-            { "formatFaet2",                    VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME,               {1,3},  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+        //  { "copyCmds2",                      VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME,                      {1,3},  {1,0},  {} },
+            { "formatFeat2",                    VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME,               {1,3},  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
             { "texelBufferAlignment",           VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME,               {1,3},  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
         // optional 1.3 //
@@ -515,6 +524,7 @@ namespace AE::Vulkan
             { "meshShader",                     VK_EXT_MESH_SHADER_EXTENSION_NAME,                          NoVer,  {1,1},  {VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
             { "rasterOrderAttachment",          VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
         //  { "maintenance5",                   VK_KHR_MAINTENANCE_5_EXTENSION_NAME,                        NoVer,  {1,1},  {VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+            { "cooperativeMatrix",              VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME,                   NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
         // shaders //
             { "fragShaderInterlock",            VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,            NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -547,7 +557,7 @@ namespace AE::Vulkan
             { "rayTracingPipeline",             VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,                 NoVer,  {1,1},  {VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
             { "rayQuery",                       VK_KHR_RAY_QUERY_EXTENSION_NAME,                            NoVer,  {1,1},  {VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
             { "rayTracingMaintenance1",         VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME,            NoVer,  {1,1},  {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
-            // VK_KHR_ray_tracing_position_fetch
+            { "rayTracingPositionFetch",        VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME,           NoVer,  {1,1},  {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
             // VK_NV_displacement_micromap
             // VK_NV_ray_tracing_invocation_reorder
 
@@ -579,7 +589,7 @@ namespace AE::Vulkan
         //  { "compShaderDerivativesNV",        VK_NV_COMPUTE_SHADER_DERIVATIVES_EXTENSION_NAME,            NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
         //  { "rayTracingMotionBlurNV",         VK_NV_RAY_TRACING_MOTION_BLUR_EXTENSION_NAME,               NoVer,  {1,0},  {VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
             { "deviceGeneratedCmdsNV",          VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,             NoVer,  {1,1},  {} },
-            { "cooperativeMatrixNV",            VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME,                    NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+        //  { "cooperativeMatrixNV",            VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME,                    NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
             { "shaderSMBuiltinsNV",             VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME,                    NoVer,  {1,1},  {} },
         //  { "dedicatedAllocImageAliasingNV",  VK_NV_DEDICATED_ALLOCATION_IMAGE_ALIASING_EXTENSION_NAME,   NoVer,  {1,0},  {VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME} },
         //  { "framebufferMixedSamplesNV",      VK_NV_FRAMEBUFFER_MIXED_SAMPLES_EXTENSION_NAME,             NoVer,  {1,0},  {} },

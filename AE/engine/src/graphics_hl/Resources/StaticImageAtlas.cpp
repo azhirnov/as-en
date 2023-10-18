@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "graphics_hl/Resources/LoadableImage.h"
 #include "graphics_hl/Resources/StaticImageAtlas.h"
 #include "AssetPackerImpl.h"
 
@@ -15,8 +16,8 @@ namespace AE::Graphics
 */
     StaticImageAtlas::~StaticImageAtlas () __NE___
     {
-        if ( _imageAndView )
-            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageAndView.image, _imageAndView.view );
+        if ( _imageId )
+            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
     }
 
 /*
@@ -55,45 +56,24 @@ namespace AE::Graphics
     {
         CHECK_ERR( stream and stream->IsOpen() );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
         ImageAtlasPacker    unpacker;
         {
             Serializing::Deserializer   des{ MakeRC<BufferedRStream>( stream )};
             CHECK_ERR( unpacker.Deserialize( des ));
         }
-        ASSERT( unpacker.header.viewType == EImage_2D );
 
-        auto    img_id = res_mngr.CreateImage( ImageDesc{}
-                            .SetDimension( uint3{unpacker.header.dimension} ).SetArrayLayers( unpacker.header.arrayLayers ).SetMaxMipmaps( unpacker.header.mipmaps )
-                            .SetType( unpacker.header.viewType ).SetFormat( unpacker.header.format ).SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ),
-                            Default, alloc );
-        CHECK_ERR( img_id );
+        auto    atlas       = MakeRC<StaticImageAtlas>();
+        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
 
-        auto    view_id = res_mngr.CreateImageView( ImageViewDesc{ unpacker.header.viewType }, img_id, Default );
-        CHECK_ERR( view_id );
+        atlas->_imageId = res_mngr.CreateImage( unpacker.Header().ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
+        CHECK_ERR( atlas->_imageId );
 
-        ImagePacker::ImageData  img_data;
-        CHECK_ERR( unpacker.ReadImage( *stream, INOUT img_data ));
+        atlas->_viewId = res_mngr.CreateImageView( unpacker.Header().ToViewDesc(), atlas->_imageId, Default );
+        CHECK_ERR( atlas->_viewId );
 
-        // copy to staging buffer
-        {
-            ctx.ImageBarrier( img_id, EResourceState::Unknown, EResourceState::CopyDst );
-            ctx.CommitBarriers();
+        CHECK_ERR( LoadableImage::Loader::_Load( *stream, atlas->_imageId, &unpacker.Header(), ctx ));
 
-            UploadImageDesc desc;
-            desc.heapType   = EStagingHeapType::Dynamic;
-
-            ImageMemView    dst_mem;
-            ctx.UploadImage( img_id, desc, OUT dst_mem );
-
-            CHECK_ERR( dst_mem.Copy( img_data.memView ));
-        }
-
-        auto    atlas = MakeRC<StaticImageAtlas>();
-
-        atlas->_imageAndView = StrongImageAndViewID{ RVRef(img_id), RVRef(view_id) };
-        atlas->_invImgSize   = 1.0f / float2{unpacker.header.dimension};
+        atlas->_invImgSize   = 1.0f / float2{unpacker.Header().dimension};
         atlas->_nameToIdx    = RVRef(unpacker.map);
         atlas->_imageRects   = RVRef(unpacker.rects);
 

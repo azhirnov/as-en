@@ -6,6 +6,7 @@
     DevIL   = internal mutex for all instances, single threaded
     STB     - without locks (only for allocations)
     KTX     - without locks (only for allocations)
+    AE      - without locks
 */
 
 #pragma once
@@ -30,6 +31,8 @@ namespace AE::ResLoader
 
     // methods
     public:
+        virtual ~IImageLoader ()                                            __NE___ {}
+
         virtual bool  LoadImage (INOUT IntermImage& image,
                                  RStream &          stream,
                                  Bool               flipY       = False{},

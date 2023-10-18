@@ -31,12 +31,12 @@ namespace
         using Millisecond       = DefaultPhysicalQuantity<float>::Millisecond;
         using Accel             = DefaultPhysicalQuantity<float>::MeterPerSquareSecond;
 
-        Meter           a1 = Meter{1.0f} + Meter{2.0f};                     TEST(Equals( a1.GetNonScaled(), 3.0f ));
-        auto            a2 = Meter{10.0f} / Second{2.0f};                   TEST(Equals( a2.GetNonScaled(), 5.0f ));
-        MeterPerSecond  a3 = Meter{14.0f} / Millisecond{7.0f};              TEST(Equals( a3.GetNonScaled(), 2000.0f, 0.001f ));
-        Accel           a4 = Meter{100.0f} / Second{2.0f} / Second{5.0f};   TEST(Equals( a4.GetNonScaled(), 10.0f ));
-        SquareMeter     a5 = Meter{22.0f} * Meter{33.0f};                   TEST(Equals( a5.GetNonScaled(), 726.0f ));
-        SquareMeter     a6 = Meter{22.0f}.Pow<2>();                         TEST(Equals( a6.GetNonScaled(), 484.0f ));
+        Meter           a1 = Meter{1.0f} + Meter{2.0f};                     TEST(BitEqual( a1.GetNonScaled(), 3.0f ));
+        auto            a2 = Meter{10.0f} / Second{2.0f};                   TEST(BitEqual( a2.GetNonScaled(), 5.0f ));
+        MeterPerSecond  a3 = Meter{14.0f} / Millisecond{7.0f};              TEST(BitEqual( a3.GetNonScaled(), 2000.0f ));
+        Accel           a4 = Meter{100.0f} / Second{2.0f} / Second{5.0f};   TEST(BitEqual( a4.GetNonScaled(), 10.0f ));
+        SquareMeter     a5 = Meter{22.0f} * Meter{33.0f};                   TEST(BitEqual( a5.GetNonScaled(), 726.0f ));
+        SquareMeter     a6 = Meter{22.0f}.Pow<2>();                         TEST(BitEqual( a6.GetNonScaled(), 484.0f ));
 
         TEST_Eq( ToString( a2, 2, False{} ), "5.00[m / s^-1]" );
         TEST_Eq( ToString( a3, 2, False{} ), "2000.00[m / s^-1]" );
@@ -51,9 +51,9 @@ namespace
         using Kilogram      = DefaultPhysicalQuantity<double>::Kilogram;
         using Accel         = DefaultPhysicalQuantity<double>::MeterPerSquareSecond;
 
-        Kilogram    a1 = SolarMass{3.0e+6};                     TEST(Equals( a1.GetNonScaled(), 1.98847e+30 * 3.0e+6 ));
-        auto        a2 = GConstant{1.0} * SolarMass{3.0e+6};    TEST(Equals( a2.GetScaled(), 6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
-        Accel       a3 = a2 / LightYear{26000.0}.Pow<2>();      TEST(Equals( a3.GetScaled(), 6.58e-15 ));
+        Kilogram    a1 = SolarMass{3.0e+6};                     TEST(BitEqual( a1.GetNonScaled(),   1.98847e+30 * 3.0e+6 ));
+        auto        a2 = GConstant{1.0} * SolarMass{3.0e+6};    TEST(BitEqual( a2.GetScaled(),      6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
+        Accel       a3 = a2 / LightYear{26000.0}.Pow<2>();      TEST(Equals( a3.GetScaled(),        6.58e-15,  10_pct ));
 
         TEST_Eq( ToString( GConstant{1.0},  2, True{"exponent"} ), "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
         TEST_Eq( ToString( a2,              2, True{"exponent"} ), "3.98e+26[m^3 / s^-2]" );
@@ -77,14 +77,14 @@ namespace
 
         float               b2 = Distance( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
         LightYear           a2 = Distance( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
-        TEST(Equals( a2.GetNonScaled(), b2 ));
+        TEST(BitEqual( a2.GetNonScaled(), b2 ));
 
         float               b3 = DistanceSq( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
         auto                a3 = DistanceSq( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
-        TEST(Equals( a3.GetNonScaled(), b3 ));
+        TEST(BitEqual( a3.GetNonScaled(), b3 ));
 
         LightYear           a4 = Min( a2, LightYear{1.0f} + LightYear{2.0f} );
-        TEST(Equals( a4.GetNonScaled(), 3.0f ));
+        TEST(BitEqual( a4.GetNonScaled(), 3.0f ));
     }
 
 

@@ -75,7 +75,7 @@ namespace AE::ResLoader
             stbi__vertical_flip( data_ptr, x, y, comp * ri.bits_per_channel );
 
         if ( not allocator )
-            allocator = SharedMem::CreateAllocator();
+            allocator = AE::GetDefaultAllocator();
 
         IntermImage::Mipmaps_t  image_data;
         image_data.resize( 1 );

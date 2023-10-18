@@ -39,47 +39,6 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    ScriptBasePass::Constant::Constant ()
-    {}
-
-    ScriptBasePass::Constant::Constant (const Constant &other) :
-        name{ other.name },
-        index{ other.index },
-        type{ other.type }
-    {
-        switch ( type ) {
-            case ESlider::Float :   this->f4 = other.f4;    break;
-            case ESlider::Int :     this->i4 = other.i4;    break;
-        }
-    }
-
-    ScriptBasePass::Constant::Constant (Constant && other) :
-        name{ RVRef(other.name) },
-        index{ other.index },
-        type{ other.type }
-    {
-        switch ( type ) {
-            case ESlider::Float :   this->f4 = RVRef(other.f4); break;
-            case ESlider::Int :     this->i4 = RVRef(other.i4); break;
-        }
-    }
-
-    ScriptBasePass::Constant::~Constant ()
-    {
-        switch ( type ) {
-            case ESlider::Float :   f4 = null;  break;
-            case ESlider::Int :     i4 = null;  break;
-        }
-    }
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-    constructor
-=================================================
-*/
     ScriptBasePass::ScriptBasePass (EFlags flags) __Th___ :
         _baseFlags{flags},
         _dynamicDim{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint2{1} )}},
@@ -332,7 +291,8 @@ namespace AE::ResEditor
 */
     void  ScriptBasePass::_CopyConstants (OUT IPass::Constants &dst) const
     {
-        for (auto& c : _constants)
+        // TODO
+        /*for (auto& c : _constants)
         {
             switch ( c.type )
             {
@@ -344,7 +304,7 @@ namespace AE::ResEditor
                     dst.i[ c.index ] = c.i4->Get();
                     break;
             }
-        }
+        }*/
     }
 
 /*
@@ -479,6 +439,71 @@ namespace AE::ResEditor
                 header << ToString( c.index ) << "]\n";
             }
         }
+    }
+
+/*
+=================================================
+    EnableIf*
+=================================================
+*/
+    void  ScriptBasePass::EnableIfEqual (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
+    {
+        CHECK_THROW_MSG( dyn );
+        CHECK_THROW_MSG( not _enablePass.dynamic, "EnableIf is already used" );
+
+        _enablePass.dynamic = dyn;
+        _enablePass.ref     = ref;
+        _enablePass.op      = ECompareOp::Equal;
+    }
+
+    void  ScriptBasePass::EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
+    {
+        CHECK_THROW_MSG( dyn );
+        CHECK_THROW_MSG( not _enablePass.dynamic, "EnableIf is already used" );
+
+        _enablePass.dynamic = dyn;
+        _enablePass.ref     = ref;
+        _enablePass.op      = ECompareOp::Less;
+    }
+
+    void  ScriptBasePass::EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
+    {
+        CHECK_THROW_MSG( dyn );
+        CHECK_THROW_MSG( not _enablePass.dynamic, "EnableIf is already used" );
+
+        _enablePass.dynamic = dyn;
+        _enablePass.ref     = ref;
+        _enablePass.op      = ECompareOp::Greater;
+    }
+
+/*
+=================================================
+    _Init
+=================================================
+*/
+    void  ScriptBasePass::_Init (IPass &dst) C_Th___
+    {
+        _CopyConstants( OUT dst._shConst );
+        _AddSlidersToUIInteraction( &dst );
+
+        dst._dbgName    = this->_dbgName;
+        dst._dbgColor   = this->_dbgColor;
+
+        if ( this->_controller )
+        {
+            this->_controller->SetDimensionIfNotSet( _dynamicDim );
+            dst._controller = this->_controller->ToController();  // throw
+            CHECK_THROW( dst._controller );
+        }
+
+        if ( this->_enablePass.dynamic )
+        {
+            dst._enablePass.dynamic = this->_enablePass.dynamic->Get();
+            dst._enablePass.ref     = this->_enablePass.ref;
+            dst._enablePass.op      = this->_enablePass.op;
+        }
+
+        AE_LOGI( "Compiled: "s << this->_dbgName );
     }
 
 

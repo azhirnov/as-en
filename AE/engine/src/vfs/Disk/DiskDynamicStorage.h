@@ -20,18 +20,23 @@ namespace AE::VFS
 
         static constexpr seconds    _UpdateInterval {10};
 
+        struct SyncData
+        {
+            FileMap_t       map;
+            TimePoint_t     lastUpdate;
+
+            DEBUG_ONLY(
+              NamedID_HashCollisionCheck    hashCollisionCheck;
+            )
+        };
+        using SyncData_t = Threading::Synchronized< SharedMutex, SyncData >;
+
 
     // variables
     private:
-        mutable SharedMutex     _mapGuard;
-        mutable FileMap_t       _map;
-        mutable TimePoint_t     _lastUpdate;
-        Path                    _folder;
-        String                  _prefix;
-
-        DEBUG_ONLY(
-          mutable NamedID_HashCollisionCheck    _hashCollisionCheck;
-        )
+        Path                _folder;
+        String              _prefix;
+        mutable SyncData_t  _fileMap;
 
 
     // methods
@@ -43,27 +48,35 @@ namespace AE::VFS
 
 
       // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, const FileName &name)                  C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, const FileName &name)                  C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)             C_NE_OV;
+        bool  Open (OUT RC<RStream> &stream, FileNameRef name)                      C_NE_OV;
+        bool  Open (OUT RC<RDataSource> &ds, FileNameRef name)                      C_NE_OV;
+        bool  Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name)                 C_NE_OV;
 
-        bool  Exists (const FileName &name)                                         C_NE_OV;
-        bool  Exists (const FileGroupName &name)                                    C_NE_OV;
+        bool  Open (OUT RC<WStream> &stream, FileNameRef name)                      C_NE_OV;
+        bool  Open (OUT RC<WDataSource> &ds, FileNameRef name)                      C_NE_OV;
+        bool  Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name)                 C_NE_OV;
+
+        bool  CreateFile (OUT FileName &name, const Path &path)                     C_NE_OV;
+        bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)               C_NE_OV;
+
+        bool  Exists (FileNameRef name)                                             C_NE_OV;
+        bool  Exists (FileGroupNameRef name)                                        C_NE_OV;
+
 
     private:
         void  _Append (INOUT GlobalFileMap_t &)                                     C_Th_OV {}
 
-        bool  _OpenByIter (OUT RC<RStream>&, const FileName &, const void*)         C_NE_OV { DBG_WARNING("not supported");  return false; }
-        bool  _OpenByIter (OUT RC<RDataSource>&, const FileName &, const void*)     C_NE_OV { DBG_WARNING("not supported");  return false; }
-        bool  _OpenByIter (OUT RC<AsyncRDataSource>&, const FileName &, const void*)C_NE_OV { DBG_WARNING("not supported");  return false; }
+        bool  _OpenByIter (OUT RC<RStream>&, FileNameRef, const void*)              C_NE_OV { DBG_WARNING("not supported");  return false; }
+        bool  _OpenByIter (OUT RC<RDataSource>&, FileNameRef, const void*)          C_NE_OV { DBG_WARNING("not supported");  return false; }
+        bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileNameRef, const void*)     C_NE_OV { DBG_WARNING("not supported");  return false; }
+
+        using IVirtualFileStorage::_OpenByIter;
 
         template <typename ImplType, typename ResultType>
-        ND_ bool  _Open (OUT ResultType &, const FileName &name)                    C_NE___;
+        ND_ bool  _Open (OUT ResultType &, FileNameRef name)                        C_NE___;
 
         template <typename ImplType, typename ResultType>
-        ND_ bool  _Open2 (OUT ResultType &, const FileName &name)                   C_NE___;
-
-        ND_ bool  _Exists (const FileName &name)                                    C_NE___;
+        ND_ bool  _Open2 (OUT ResultType &, FileNameRef name)                       C_NE___;
 
         ND_ bool  _Update ()                                                        C_NE___;
     };

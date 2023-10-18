@@ -9,7 +9,7 @@
 #include "res_editor/_data/cpp/types.h"
 #include "res_editor/_ui_data/cpp/types.h"
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 #include "res_loaders/Intermediate/IntermScene.h"
 #include "res_loaders/Assimp/AssimpLoader.h"
@@ -196,7 +196,7 @@ namespace
 =================================================
     _FindPipelinesBySampledImage
 =================================================
-*/
+*
     template <typename PplnSpec>
     static void  _FindPipelinesBySampledImage (StringView dsName, StringView imgName, EImageType imgType, uint arraySize, INOUT Array<PplnSpec> &inPipelines) __Th___
     {
@@ -242,7 +242,7 @@ namespace
 =================================================
     _FindPipelinesBySampler
 =================================================
-*/
+*
     template <typename PplnSpec>
     static void  _FindPipelinesBySampler (StringView dsName, StringView uniformName, INOUT Array<PplnSpec> &inPipelines) __Th___
     {
@@ -285,7 +285,7 @@ namespace
 =================================================
     _FindPipelinesByPC
 =================================================
-*/
+*
     template <typename PplnSpec>
     static void  _FindPipelinesByPC (StringView pcTypeName, INOUT Array<PplnSpec> &inPipelines) __Th___
     {
@@ -350,6 +350,9 @@ namespace
                 [&] (ScriptRTScenePtr) {
                     rtas_names.insert( UniformName::Optimized_t{arg.name} );
                 },
+                [] (const Array<ScriptImagePtr> &) {
+                    // skip
+                },
                 [] (NullUnion) {
                     CHECK_THROW_MSG( false, "unsupported argument type" );
                 }
@@ -375,6 +378,8 @@ namespace
 
                 for (auto& [un_name, un] : dsl->GetUniforms())
                 {
+                    if ( un.arraySize )
+
                     // storage image
                     if ( un.type == EDescriptorType::StorageImage ) {
                         img_counter += usize(img_names.contains( un_name ));
@@ -464,6 +469,9 @@ namespace
                     [&] (ScriptRTScenePtr) {
                         str << "\n  RayTracingScene '" << arg.name << "'";
                     },
+                    [] (const Array<ScriptImagePtr> &) {
+                        // skip
+                    },
                     [] (NullUnion) {
                         CHECK_THROW_MSG( false, "unsupported argument type" );
                     }
@@ -481,62 +489,73 @@ namespace
 =================================================
 */
     template <typename PplnSpec>
-    static void  _FindPipelinesByMaterial (StringView dsName, const ResLoader::IntermMaterial &mtr, INOUT Array<PplnSpec> &inPipelines) __Th___
+    static void  _FindPipelinesByMaterial (const ResLoader::IntermMaterial &mtr, INOUT Array<PplnSpec> &inPipelines) __Th___
     {
-        using MtrTexture = ResLoader::IntermMaterial::MtrTexture;
-
-        Array<PplnSpec>                         out_pplns;
-        const DescriptorSetName                 req_ds_name {dsName};
-        FlatHashSet<UniformName::Optimized_t>   tex_names;
-
-        for (auto& param : mtr.GetSettings().GetParams())
-        {
-            if ( auto* tex = UnionGet<MtrTexture>( param ))
-                tex_names.emplace( UniformName::Optimized_t{tex->name} );
-        }
+        Array<PplnSpec>     out_pplns;
+        const auto          settings    = mtr.GetSettings();
 
         for (auto& ppln : inPipelines)
         {
-            auto    ppln_layout = ppln->GetBase()->GetLayout();
-            if ( not ppln_layout )
+            const auto& rs = ppln->renderState;
+
+            if ( not ((settings.wireframe and rs.rasterization.polygonMode == EPolygonMode::Line) or
+                      (not settings.wireframe and rs.rasterization.polygonMode == EPolygonMode::Fill) ))
                 continue;
 
-            for (auto& [dsl, ds_name] : ppln_layout->Layouts())
+            if ( not (rs.rasterization.cullMode == settings.cullMode) )
+                continue;
+
+            if ( settings.blendMode )
             {
-                if ( ds_name != req_ds_name )
+                if ( not (rs.color.buffers[0].blend                                             and
+                          rs.color.buffers[0].srcBlendFactor.color  == settings.blendMode.src   and
+                          rs.color.buffers[0].dstBlendFactor.color  == settings.blendMode.dst   and
+                          rs.color.buffers[0].blendOp.color         == settings.blendMode.op)   )
                     continue;
-
-                usize   counter = 0;
-                for (auto& [un_name, un] : dsl->GetUniforms())
-                {
-                    if ( un.type != EDescriptorType::CombinedImage_ImmutableSampler and
-                         un.type != EDescriptorType::SampledImage )
-                    {
-                        CHECK( not tex_names.contains( un_name ));
-                        continue;
-                    }
-                    counter += usize(tex_names.contains( un_name ));
-                }
-
-                if ( counter == tex_names.size() ) {
-                    out_pplns.push_back( ppln );
-                    break;
-                }
             }
+            else
+            {
+                if ( rs.color.buffers[0].blend )
+                    continue;
+            }
+
+            out_pplns.push_back( ppln );
         }
 
         if ( out_pplns.empty() )
         {
-            String  str = "Can't find pipelines with DS '"s << dsName << "' and all resources:";
-
-            for (auto& param : mtr.GetSettings().GetParams())
-            {
-                if ( auto* tex = UnionGet<MtrTexture>( param ))
-                    str << "\n  SampledImage '" << tex->name << "'";
-            }
-
+            String  str = "Can't find pipelines with states:";
+            str << "\n  wireframe: " << ToString(settings.wireframe);
+            str << "\n  cullMode:  " << ToString(settings.cullMode);
+            str << "\n  blendMode: " << (settings.blendMode ?
+                                         (String{ToString(settings.blendMode.src)} << " (" << ToString(settings.blendMode.op) << ") " << ToString(settings.blendMode.dst)) :
+                                         "none"s);
             CHECK_THROW_MSG( false, str );
         }
+        inPipelines = RVRef(out_pplns);
+    }
+
+/*
+=================================================
+    _FindPipelinesByLayout
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _FindPipelinesByLayout (StringView plName, INOUT Array<PplnSpec> &inPipelines) __Th___
+    {
+        Array<PplnSpec>     out_pplns;
+
+        for (auto& ppln : inPipelines)
+        {
+            if ( auto pl = ppln->GetBase()->GetLayout() )
+            {
+                if ( pl->Name() == plName )
+                    out_pplns.push_back( ppln );
+            }
+        }
+
+        CHECK_THROW_MSG( not out_pplns.empty(),
+            "Can't find pipelines with layout '"s << plName << "'" );
 
         inPipelines = RVRef(out_pplns);
     }
@@ -549,11 +568,14 @@ namespace
     template <typename PplnSpec>
     ND_ static ScriptGeomSource::PipelineNames_t  _GetSuitablePipeline (Array<PplnSpec> &pipelines)
     {
+        CHECK_THROW_MSG( not pipelines.empty(),
+            "Failed to find suitable pipeline" );
+
         if ( pipelines.size() > 1 )
             AE_LOGI( "More than one pipeline are match the requirements" );
 
         if ( not pipelines.empty() )
-            return ScriptGeomSource::PipelineNames_t{ pipelines.front()->Name() };
+            return ScriptGeomSource::PipelineNames_t{ ScriptGeomSource::PplnNameAndObjectId{ pipelines.front()->Name() }};
 
         return Default;
     }
@@ -567,12 +589,15 @@ namespace
     static void  _GetSuitablePipelineAndDS (Array<PplnSpec> &pipelines, StringView dsName,
                                             OUT ScriptGeomSource::PipelineNames_t &name, OUT DSLayoutName &dslName)
     {
+        CHECK_THROW_MSG( not pipelines.empty(),
+            "Failed to find suitable pipeline" );
+
         if ( pipelines.size() > 1 )
             AE_LOGI( "More than one pipeline are match the requirements" );
 
         if ( not pipelines.empty() )
         {
-            name = ScriptGeomSource::PipelineNames_t{ pipelines.front()->Name() };
+            name = ScriptGeomSource::PipelineNames_t{ ScriptGeomSource::PplnNameAndObjectId{ pipelines.front()->Name() }};
 
             auto    pl = pipelines.front()->GetBase()->GetLayout();
             CHECK_THROW( pl );
@@ -650,6 +675,17 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptSphericalCube::~ScriptSphericalCube ()
+    {
+        if ( not _geomSrc )
+            AE_LOG_SE( "Unused SphericalCube" );
+    }
 
 /*
 =================================================
@@ -743,11 +779,13 @@ namespace
 
 /*
 =================================================
-    FindMaterialPipeline
+    FindMaterialGraphicsPipelines
 =================================================
 */
-    ScriptGeomSource::PipelineNames_t  ScriptSphericalCube::FindMaterialPipeline () C_Th___
+    ScriptGeomSource::PipelineNames_t  ScriptSphericalCube::FindMaterialGraphicsPipelines (ERenderLayer layer) C_Th___
     {
+        CHECK_THROW( layer == ERenderLayer::Opaque );
+
         Array<GraphicsPipelineSpecPtr>  pipelines;
         _FindPipelinesByVB( "VB{SphericalCubeVertex}", OUT pipelines );             // throw
         _FindPipelinesByUB( c_MtrDS, "SphericalCubeMaterialUB", INOUT pipelines );  // throw
@@ -760,24 +798,25 @@ namespace
     ToMaterial
 =================================================
 */
-    RC<IGSMaterials>  ScriptSphericalCube::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    RC<IGSMaterials>  ScriptSphericalCube::ToMaterial (const ERenderLayer layer, RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
     {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
         CHECK_THROW( names.size() == 1 );
+        CHECK_THROW( layer == ERenderLayer::Opaque );
 
         auto        result      = MakeRC<SphericalCube::Material>();
         auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
 
-        auto    ppln = rtech->GetGraphicsPipeline( names[0] );
+        auto    ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
         CHECK_THROW( ppln );
 
         result->rtech   = rtech;
         result->ppln    = ppln;
 
-        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                    ppln, DescriptorSetName{c_MtrDS} ));
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
 
         result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
 
@@ -838,6 +877,8 @@ namespace
         CHECK_THROW_MSG( ibuf );
         CHECK_THROW_MSG( not cmd._indexBuffer );
         CHECK_THROW_MSG( type == EIndex::UShort or type == EIndex::UInt );
+        CHECK_THROW_MSG( (type == EIndex::UShort and IsMultipleOf( offset, 2 )) or
+                         (type == EIndex::UInt   and IsMultipleOf( offset, 4 )) );
 
         ibuf->AddUsage( EResourceUsage::VertexInput );
 
@@ -933,6 +974,9 @@ namespace
     {
         CHECK_THROW_MSG( ibuf );
         CHECK_THROW_MSG( not cmd._indirectBuffer );
+
+        ibuf->AddUsage( EResourceUsage::IndirectBuffer );
+
         cmd._indirectBuffer         = ibuf;
         cmd._indirectBufferOffset   = offset;
     }
@@ -949,6 +993,9 @@ namespace
         CHECK_THROW_MSG( ibuf );
         CHECK_THROW_MSG( not cmd._indirectBuffer );
         CHECK_THROW_MSG( not field.empty() );
+
+        ibuf->AddUsage( EResourceUsage::IndirectBuffer );
+
         cmd._indirectBuffer         = ibuf;
         cmd._indirectBufferOffset   = 0;
         cmd._indirectBufferField    = field;
@@ -964,6 +1011,7 @@ namespace
     {
         CHECK_THROW_MSG( cmd._indirectBuffer );
 
+        Bytes   result;
         if ( not cmd._indirectBufferField.empty() )
         {
             CHECK_THROW_MSG( cmd._indirectBufferOffset == 0 );
@@ -973,10 +1021,13 @@ namespace
                 "Buffer '"s << cmd._indirectBuffer->GetName() << "' field '" << cmd._indirectBufferField <<
                 "' must have '" << cmdName << "' type to use it as IndirectBuffer" );
 
-            return cmd._indirectBuffer->GetFieldOffset( cmd._indirectBufferField );
+            result = cmd._indirectBuffer->GetFieldOffset( cmd._indirectBufferField );
         }
         else
-            return Bytes{cmd._indirectBufferOffset};
+            result = Bytes{cmd._indirectBufferOffset};
+
+        CHECK_THROW_MSG( IsMultipleOf( result, 4 ));
+        return result;
     }
 
 /*
@@ -989,6 +1040,9 @@ namespace
     {
         CHECK_THROW_MSG( cbuf );
         CHECK_THROW_MSG( not cmd._countBuffer );
+
+        cbuf->AddUsage( EResourceUsage::IndirectBuffer );
+
         cmd._countBuffer        = cbuf;
         cmd._countBufferOffset  = offset;
     }
@@ -1000,12 +1054,15 @@ namespace
     }
 
     template <typename DrawCmd>
-    void  DrawCmd_SetCountBuffer3 (DrawCmd &cmd, const ScriptBufferPtr &ibuf, const String &field) __Th___
+    void  DrawCmd_SetCountBuffer3 (DrawCmd &cmd, const ScriptBufferPtr &cbuf, const String &field) __Th___
     {
-        CHECK_THROW_MSG( ibuf );
+        CHECK_THROW_MSG( cbuf );
         CHECK_THROW_MSG( not cmd._countBuffer );
         CHECK_THROW_MSG( not field.empty() );
-        cmd._countBuffer        = ibuf;
+
+        cbuf->AddUsage( EResourceUsage::IndirectBuffer );
+
+        cmd._countBuffer        = cbuf;
         cmd._countBufferOffset  = 0;
         cmd._countBufferField   = field;
     }
@@ -1020,6 +1077,7 @@ namespace
     {
         CHECK_THROW_MSG( cmd._countBuffer );
 
+        Bytes   result;
         if ( not cmd._countBufferField.empty() )
         {
             CHECK_THROW_MSG( cmd._countBufferOffset == 0 );
@@ -1029,10 +1087,13 @@ namespace
                 "Buffer '"s << cmd._countBuffer->GetName() << "' field '" << cmd._countBufferField <<
                 "' must have 'Uint32' type to use it as CountBuffer" );
 
-            return cmd._countBuffer->GetFieldOffset( cmd._countBufferField );
+            result = cmd._countBuffer->GetFieldOffset( cmd._countBufferField );
         }
         else
-            return Bytes{cmd._countBufferOffset};
+            result = Bytes{cmd._countBufferOffset};
+
+        CHECK_THROW_MSG( IsMultipleOf( result, 4 ));
+        return result;
     }
 
 
@@ -1220,7 +1281,7 @@ namespace
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
     }
@@ -1233,7 +1294,7 @@ namespace
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndexedIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndexedIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
     }
@@ -1242,7 +1303,7 @@ namespace
     {
         CHECK_THROW_MSG( not _geomSrc );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
         CHECK_THROW_MSG( fs.meshShader == EFeature::RequireTrue );
 
         CHECK_THROW_MSG( All( uint3{cmd.taskCount} > uint3{0} ));
@@ -1254,13 +1315,13 @@ namespace
     {
         CHECK_THROW_MSG( not _geomSrc );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
         CHECK_THROW_MSG( fs.meshShader == EFeature::RequireTrue );
 
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawMeshTasksIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawMeshTasksIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
     }
@@ -1269,14 +1330,14 @@ namespace
     {
         CHECK_THROW_MSG( not _geomSrc );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue );
 
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd._countBuffer );
         CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
     }
@@ -1285,7 +1346,7 @@ namespace
     {
         CHECK_THROW_MSG( not _geomSrc );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue );
 
         CHECK_THROW_MSG( cmd._indexBuffer );
@@ -1293,7 +1354,7 @@ namespace
         CHECK_THROW_MSG( cmd._countBuffer );
         CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndexedIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndexedIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
     }
@@ -1302,16 +1363,27 @@ namespace
     {
         CHECK_THROW_MSG( not _geomSrc );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue and fs.meshShader == EFeature::RequireTrue );
 
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd._countBuffer );
         CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawMeshTasksIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawMeshTasksIndirectCommand)) );
-        CHECK_THROW_MSG( IsAligned( cmd.stride, 4 ), "Stride must be multiple of 4" );
+        CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
         _drawCommands.push_back( cmd );
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptUniGeometry::~ScriptUniGeometry ()
+    {
+        if ( not _geomSrc )
+            AE_LOG_SE( "Unused UnifiedGeometry" );
     }
 
 /*
@@ -1362,6 +1434,7 @@ namespace
         binder.CreateClassValue();
         binder.AddMethod( &DrawIndexedCmd3::SetDynIndexCount,                       "IndexCount",       {} );
         binder.AddMethod( &DrawIndexedCmd3::SetDynInstanceCount,                    "InstanceCount",    {} );
+        binder.Comment( "Set buffer which contains array of 'ushort/uint' (2/4 bytes) indices, array size must be at least 'indexCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedCmd3>,      "IndexBuffer",      {"type", "buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedCmd3>,      "IndexBuffer",      {"type", "buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedCmd3>,      "IndexBuffer",      {"buffer", "field"} );
@@ -1377,11 +1450,13 @@ namespace
         Scripting::ClassBinder<DrawIndirectCmd3>    binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawIndirectCmd3::SetDynDrawCount,                       "DrawCount",        {} );
+        binder.Comment( "Set buffer which contains array of 'DrawIndirectCommand' (16 bytes) structs, array size must be at least 'drawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer", "field"} );
-        binder.AddProperty( &DrawIndirectCmd3::drawCount,                           "drawCount"         );
+        binder.Comment( "Stride must be at least 16 bytes and multiple of 4." );
         binder.AddProperty( &DrawIndirectCmd3::stride,                              "stride"            );
+        binder.AddProperty( &DrawIndirectCmd3::drawCount,                           "drawCount"         );
     }
 
     void  ScriptUniGeometry::DrawIndexedIndirectCmd3::Bind (const ScriptEnginePtr &se) __Th___
@@ -1389,14 +1464,17 @@ namespace
         Scripting::ClassBinder<DrawIndexedIndirectCmd3> binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawIndexedIndirectCmd3::SetDynDrawCount,                        "DrawCount",        {} );
+        binder.Comment( "Set buffer which contains array of 'ushort/uint' (2/4 bytes) indices, array size must be at least 'indexCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"type", "buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"type", "buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"buffer", "field"} );
+        binder.Comment( "Set buffer which contains array of 'DrawIndexedIndirectCommand' (20 bytes) structs, array size must be at least 'drawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer", "field"} );
-        binder.AddProperty( &DrawIndexedIndirectCmd3::drawCount,                            "drawCount"         );
+        binder.Comment( "Stride must be at least 20 bytes and multiple of 4." );
         binder.AddProperty( &DrawIndexedIndirectCmd3::stride,                               "stride"            );
+        binder.AddProperty( &DrawIndexedIndirectCmd3::drawCount,                            "drawCount"         );
     }
 
     void  ScriptUniGeometry::DrawMeshTasksCmd3::Bind (const ScriptEnginePtr &se) __Th___
@@ -1412,11 +1490,13 @@ namespace
         Scripting::ClassBinder<DrawMeshTasksIndirectCmd3>   binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawMeshTasksIndirectCmd3::SetDynDrawCount,                      "DrawCount",        {} );
+        binder.Comment( "Set buffer which contains array of 'DrawMeshTasksIndirectCommand' (12 bytes) structs, array size must be at least 'drawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer", "field"} );
-        binder.AddProperty( &DrawMeshTasksIndirectCmd3::drawCount,                          "drawCount"         );
+        binder.Comment( "Stride must be at least 12 bytes and multiple of 4." );
         binder.AddProperty( &DrawMeshTasksIndirectCmd3::stride,                             "stride"            );
+        binder.AddProperty( &DrawMeshTasksIndirectCmd3::drawCount,                          "drawCount"         );
     }
 
     void  ScriptUniGeometry::DrawIndirectCountCmd3::Bind (const ScriptEnginePtr &se) __Th___
@@ -1424,14 +1504,17 @@ namespace
         Scripting::ClassBinder<DrawIndirectCountCmd3>   binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawIndirectCountCmd3::SetDynMaxDrawCount,                       "MaxDrawCount",     {} );
+        binder.Comment( "Set buffer which contains array of 'DrawIndirectCommand' (16 bytes) structs, array size must be at least 'maxDrawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer", "field"} );
+        binder.Comment( "Set buffer which contains single 'uint' (4 bytes) value." );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer", "field"} );
-        binder.AddProperty( &DrawIndirectCountCmd3::maxDrawCount,                           "maxDrawCount"      );
+        binder.Comment( "Stride must be at least 16 bytes and multiple of 4." );
         binder.AddProperty( &DrawIndirectCountCmd3::stride,                                 "stride"            );
+        binder.AddProperty( &DrawIndirectCountCmd3::maxDrawCount,                           "maxDrawCount"      );
     }
 
     void  ScriptUniGeometry::DrawIndexedIndirectCountCmd3::Bind (const ScriptEnginePtr &se) __Th___
@@ -1439,17 +1522,21 @@ namespace
         Scripting::ClassBinder<DrawIndexedIndirectCountCmd3>    binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawIndexedIndirectCountCmd3::SetDynMaxDrawCount,                    "MaxDrawCount",     {} );
+        binder.Comment( "Set buffer which contains array of 'ushort/uint' (2/4 bytes) indices, array size must be at least 'indexCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"type", "buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"type", "buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"buffer", "field"} );
+        binder.Comment( "Set buffer which contains array of 'DrawIndexedIndirectCommand' (20 bytes) structs, array size must be at least 'maxDrawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer", "field"} );
+        binder.Comment( "Set buffer which contains single 'uint' (4 bytes) value." );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer", "field"} );
-        binder.AddProperty( &DrawIndexedIndirectCountCmd3::maxDrawCount,                        "maxDrawCount"      );
+        binder.Comment( "Stride must be at least 20 bytes and multiple of 4." );
         binder.AddProperty( &DrawIndexedIndirectCountCmd3::stride,                              "stride"            );
+        binder.AddProperty( &DrawIndexedIndirectCountCmd3::maxDrawCount,                        "maxDrawCount"      );
     }
 
     void  ScriptUniGeometry::DrawMeshTasksIndirectCountCmd3::Bind (const ScriptEnginePtr &se) __Th___
@@ -1457,14 +1544,17 @@ namespace
         Scripting::ClassBinder<DrawMeshTasksIndirectCountCmd3>  binder{ se };
         binder.CreateClassValue();
         binder.AddMethod( &DrawMeshTasksIndirectCountCmd3::SetDynMaxDrawCount,                      "MaxDrawCount",     {} );
+        binder.Comment( "Set buffer which contains array of 'DrawMeshTasksIndirectCommand' (12 bytes) structs, array size must be at least 'maxDrawCount'." );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer", "field"} );
+        binder.Comment( "Set buffer which contains single 'uint' (4 bytes) value." );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer", "offset"} );
         binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer", "field"} );
-        binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::maxDrawCount,                          "maxDrawCount"      );
+        binder.Comment( "Stride must be at least 12 bytes and multiple of 4." );
         binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::stride,                                "stride"            );
+        binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::maxDrawCount,                          "maxDrawCount"      );
     }
 
 /*
@@ -1483,6 +1573,44 @@ namespace
         DrawIndirectCountCmd3::Bind( se );
         DrawIndexedIndirectCountCmd3::Bind( se );
         DrawMeshTasksIndirectCountCmd3::Bind( se );
+
+        #if 0
+        {
+            Scripting::ClassBinder<Graphics::DispatchIndirectCommand>   binder{ se, "DispatchIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::DispatchIndirectCommand::groupCount, "groupCount" );
+        }{
+            Scripting::ClassBinder<Graphics::DrawIndirectCommand>   binder{ se, "DrawIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::DrawIndirectCommand::vertexCount,    "vertexCount" );
+            binder.AddProperty( &Graphics::DrawIndirectCommand::instanceCount,  "instanceCount" );
+            binder.AddProperty( &Graphics::DrawIndirectCommand::firstVertex,    "firstVertex" );
+            binder.AddProperty( &Graphics::DrawIndirectCommand::firstInstance,  "firstInstance" );
+        }{
+            Scripting::ClassBinder<Graphics::DrawIndexedIndirectCommand>    binder{ se, "DrawIndexedIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::DrawIndexedIndirectCommand::indexCount,      "indexCount" );
+            binder.AddProperty( &Graphics::DrawIndexedIndirectCommand::instanceCount,   "instanceCount" );
+            binder.AddProperty( &Graphics::DrawIndexedIndirectCommand::firstIndex,      "firstIndex" );
+            binder.AddProperty( &Graphics::DrawIndexedIndirectCommand::vertexOffset,    "vertexOffset" );
+            binder.AddProperty( &Graphics::DrawIndexedIndirectCommand::firstInstance,   "firstInstance" );
+        }{
+            Scripting::ClassBinder<Graphics::DrawMeshTasksIndirectCommand>  binder{ se, "DrawMeshTasksIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::DrawMeshTasksIndirectCommand::taskCount, "taskCount" );
+        }{
+            Scripting::ClassBinder<Graphics::TraceRayIndirectCommand>   binder{ se, "TraceRayIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::TraceRayIndirectCommand::dim, "dim" );
+        }{
+            Scripting::ClassBinder<Graphics::ASBuildIndirectCommand>    binder{ se, "ASBuildIndirectCommand" };
+            binder.CreatePodValue( 0 );
+            binder.AddProperty( &Graphics::ASBuildIndirectCommand::primitiveCount,  "primitiveCount" );
+            binder.AddProperty( &Graphics::ASBuildIndirectCommand::primitiveOffset, "primitiveOffset" );
+            binder.AddProperty( &Graphics::ASBuildIndirectCommand::firstVertex,     "firstVertex" );
+            binder.AddProperty( &Graphics::ASBuildIndirectCommand::transformOffset, "transformOffset" );
+        }
+        #endif
 
         Scripting::ClassBinder<ScriptUniGeometry>   binder{ se };
         binder.CreateRef();
@@ -1667,11 +1795,12 @@ namespace
 
 /*
 =================================================
-    FindMaterialPipeline
+    FindMaterialGraphicsPipelines
 =================================================
 */
-    ScriptGeomSource::PipelineNames_t  ScriptUniGeometry::FindMaterialPipeline () C_Th___
+    ScriptGeomSource::PipelineNames_t  ScriptUniGeometry::FindMaterialGraphicsPipelines (ERenderLayer layer) C_Th___
     {
+        CHECK_THROW_MSG( layer == ERenderLayer::Opaque );
         CHECK_THROW_MSG( not _drawCommands.empty() );
 
         const auto  GetMeshPipeline = [this] () -> PipelineName
@@ -1682,7 +1811,7 @@ namespace
             _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
             auto    tmp = _GetSuitablePipeline( pipelines );
             CHECK_THROW_MSG( not tmp.empty() );
-            return tmp.front();
+            return tmp.front().pplnName;
         }};
 
         const auto  GetGraphicsPipeline = [this] () -> PipelineName
@@ -1693,24 +1822,24 @@ namespace
             _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
             auto    tmp = _GetSuitablePipeline( pipelines );
             CHECK_THROW_MSG( not tmp.empty() );
-            return tmp.front();
+            return tmp.front().pplnName;
         }};
 
         PipelineNames_t     result;
         result.reserve( _drawCommands.size() );
 
-        for (auto& src : _drawCommands)
+        for (const auto& [src, idx] : WithIndex( _drawCommands ))
         {
             Visit( src,
-                [&] (const DrawCmd3 &)                          { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawIndexedCmd3 &)                   { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawIndirectCmd3 &)                  { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawIndexedIndirectCmd3 &)           { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawIndirectCountCmd3 &)             { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawIndexedIndirectCountCmd3 &)      { result.push_back( GetGraphicsPipeline() ); },
-                [&] (const DrawMeshTasksCmd3 &)                 { result.push_back( GetMeshPipeline() ); },
-                [&] (const DrawMeshTasksIndirectCmd3 &)         { result.push_back( GetMeshPipeline() ); },
-                [&] (const DrawMeshTasksIndirectCountCmd3 &)    { result.push_back( GetMeshPipeline() ); }
+                [&] (const DrawCmd3 &)                          { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawIndexedCmd3 &)                   { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawIndirectCmd3 &)                  { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawIndexedIndirectCmd3 &)           { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawIndirectCountCmd3 &)             { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawIndexedIndirectCountCmd3 &)      { result.emplace_back( GetGraphicsPipeline(), idx ); },
+                [&] (const DrawMeshTasksCmd3 &)                 { result.emplace_back( GetMeshPipeline(), idx ); },
+                [&] (const DrawMeshTasksIndirectCmd3 &)         { result.emplace_back( GetMeshPipeline(), idx ); },
+                [&] (const DrawMeshTasksIndirectCountCmd3 &)    { result.emplace_back( GetMeshPipeline(), idx ); }
             );
         }
         return result;
@@ -1721,16 +1850,18 @@ namespace
     ToMaterial
 =================================================
 */
-    RC<IGSMaterials>  ScriptUniGeometry::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    RC<IGSMaterials>  ScriptUniGeometry::ToMaterial (const ERenderLayer layer, RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
     {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
         CHECK_THROW( names.size() == _drawCommands.size() );
+        CHECK_THROW( layer == ERenderLayer::Opaque );
 
-        auto        result          = MakeRC<UnifiedGeometry::Material>();
-        auto&       res_mngr        = RenderTaskScheduler().GetResourceManager();
-        Renderer&   renderer        = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
-        bool        ds_inited       = false;
+        auto        result      = MakeRC<UnifiedGeometry::Material>();
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        bool        ds_inited   = false;
 
         const auto  FindMeshPpln    = [&] (const PipelineName &name)
         {{
@@ -1742,8 +1873,7 @@ namespace
                 CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} ));
             }else{
                 ds_inited = true;
-                CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                            ppln, DescriptorSetName{c_MtrDS} ));
+                CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
             result->pplns.push_back( ppln );
@@ -1759,8 +1889,7 @@ namespace
                 CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} ));
             }else{
                 ds_inited = true;
-                CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                            ppln, DescriptorSetName{c_MtrDS} ));
+                CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
             result->pplns.push_back( ppln );
@@ -1770,7 +1899,7 @@ namespace
 
         for (usize i = 0; i < _drawCommands.size(); ++i)
         {
-            const auto  name = names[i];
+            const auto  name = names[i].pplnName;
             Visit( _drawCommands[i],
                 [&] (const DrawCmd3 &)                      { FindGraphicsPpln( name ); },
                 [&] (const DrawIndexedCmd3 &)               { FindGraphicsPpln( name ); },
@@ -1793,6 +1922,15 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+namespace {
+    static constexpr const char*    c_RTGeometrySuffix [] = {
+        "-Opaque",
+        "-OpaqueDS",
+        "-Translucent",
+        "-Volumetric"
+    };
+    STATIC_ASSERT( CountOf(c_RTGeometrySuffix) == uint(ScriptGeomSource::EGeometryType::_Count) );
+}
 
 /*
 =================================================
@@ -1814,7 +1952,10 @@ namespace
 =================================================
 */
     ScriptModelGeometrySrc::~ScriptModelGeometrySrc ()
-    {}
+    {
+        if ( not _geomSrc )
+            AE_LOG_SE( "Unused Model '"s << _dbgName << "'" );
+    }
 
 /*
 =================================================
@@ -1828,11 +1969,11 @@ namespace
 
         _dbgName = name;
 
-        if ( _opaqueRTGeom )
-            _opaqueRTGeom->Name( name + "-Opaque" );
-
-        if ( _translucentRTGeom )
-            _translucentRTGeom->Name( _dbgName + "-Translucent" );
+        for (auto i : IndicesOnly( _rtGeometries ))
+        {
+            if ( _rtGeometries[i] )
+                _rtGeometries[i]->Name( name + c_RTGeometrySuffix[i] );
+        }
     }
 
 /*
@@ -1853,48 +1994,26 @@ namespace
 
 /*
 =================================================
-    GetOpaqueRTGeometry
+    GetRTGeometry
 =================================================
 */
-    ScriptRTGeometry*  ScriptModelGeometrySrc::GetOpaqueRTGeometry () __Th___
+    ScriptRTGeometryPtr  ScriptModelGeometrySrc::GetRTGeometry (EGeometryType type) __Th___
     {
-        CHECK_THROW_MSG( not _geomSrc,
-            "resource is already created, can not create RTGeometry for Model" );
+        CHECK_THROW_MSG( type < EGeometryType::_Count );
 
-        if ( not _opaqueRTGeom )
+        auto&   rt_geom = _rtGeometries[ uint(type) ];
+
+        if ( _geomSrc and not rt_geom )
+            return null;
+
+        if ( not rt_geom )
         {
-            _opaqueRTGeom.Attach( new ScriptRTGeometry{} );
-            _opaqueRTGeom->Name( _dbgName + "-Opaque" );
-
-            // TODO
-
-            _opaqueRTGeom->MakeImmutable();
+            rt_geom = ScriptRTGeometryPtr{new ScriptRTGeometry{ True{"dummy"} }};
+            rt_geom->Name( _dbgName + c_RTGeometrySuffix[uint(type)] );
+            rt_geom->MakeImmutable();
         }
 
-        return ScriptRTGeometryPtr{_opaqueRTGeom}.Detach();
-    }
-
-/*
-=================================================
-    GetTranslucentRTGeometry
-=================================================
-*/
-    ScriptRTGeometry*  ScriptModelGeometrySrc::GetTranslucentRTGeometry () __Th___
-    {
-        CHECK_THROW_MSG( not _geomSrc,
-            "resource is already created, can not create RTGeometry for Model" );
-
-        if ( not _translucentRTGeom )
-        {
-            _translucentRTGeom.Attach( new ScriptRTGeometry{} );
-            _translucentRTGeom->Name( _dbgName + "-Translucent" );
-
-            // TODO
-
-            _translucentRTGeom->MakeImmutable();
-        }
-
-        return ScriptRTGeometryPtr{_translucentRTGeom}.Detach();
+        return rt_geom;
     }
 
 /*
@@ -1902,12 +2021,61 @@ namespace
     SetInitialTransform
 =================================================
 */
-    void  ScriptModelGeometrySrc::SetInitialTransform (const packed_float4x4 &value) __Th___
+    void  ScriptModelGeometrySrc::SetInitialTransform1 (const packed_float4x4 &value) __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
             "resource is already created, can not set initial transform" );
 
-        _initialTransform = float4x4{value};
+        _initialTransform = Transformation{ float4x4{ value }};
+    }
+
+    void  ScriptModelGeometrySrc::SetInitialTransform2 (const packed_float3 &position, const packed_float3 &rotation, float scale) __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not set initial transform" );
+
+        _initialTransform = Transformation{ -position, Quat::Rotate2( RadianVec<float,3>{ rotation }), scale };
+    }
+
+/*
+=================================================
+    AddOmniLight
+=================================================
+*/
+    void  ScriptModelGeometrySrc::AddOmniLight (const packed_float3 &pos, const packed_float3 &atten, const RGBA32f &color) __Th___
+    {
+        auto&   dst = _omiLights.emplace_back();
+        dst.pos     = pos;
+        dst.atten   = atten;
+        dst.color   = color;
+    }
+
+/*
+=================================================
+    AddConeLight
+=================================================
+*/
+    void  ScriptModelGeometrySrc::AddConeLight (const packed_float3 &pos, const packed_float3 &dir, const packed_float3 &atten, const packed_float2 &cone, const RGBA32f &color) __Th___
+    {
+        auto&   dst = _coneLights.emplace_back();
+        dst.pos     = pos;
+        dst.dir     = dir;
+        dst.atten   = atten;
+        dst.cone    = cone;
+        dst.color   = color;
+    }
+
+/*
+=================================================
+    AddDirLight
+=================================================
+*/
+    void  ScriptModelGeometrySrc::AddDirLight (const packed_float3 &dir, const packed_float3 &atten, const RGBA32f &color) __Th___
+    {
+        auto&   dst = _dirLights.emplace_back();
+        dst.dir     = dir;
+        dst.atten   = atten;
+        dst.color   = color;
     }
 
 /*
@@ -1939,11 +2107,12 @@ namespace
         binder.AddMethod( &ScriptModelGeometrySrc::AddTextureSearchDir,         "TextureSearchDir",     {"folder"} );
 
         binder.Comment( "Set transformation for model root node." );
-        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform,         "InitialTransform",     {} );
+        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform1,        "InitialTransform",     {} );
+        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform2,        "InitialTransform",     {"position", "rotation", "scale"} );
 
-        binder.Comment( "Returns RTGeometry to use it in ray tracing." );
-        binder.AddMethod( &ScriptModelGeometrySrc::GetOpaqueRTGeometry,         "OpaqueRTGeometry",     {} );
-        binder.AddMethod( &ScriptModelGeometrySrc::GetTranslucentRTGeometry,    "TranslucentRTGeometry",{} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddOmniLight,                "AddOmniLight",         {"position", "attenuation", "color"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddConeLight,                "AddConeLight",         {"position", "direction", "coneAngle", "attenuation", "color"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddDirLight,                 "AddDirLight",          {"direction", "attenuation", "color"} );
     }
 
 /*
@@ -1977,62 +2146,223 @@ namespace
                 "failed to load model from '"s << ToString(_scenePath) << "'" );
         #endif
 
+        const bool          has_rtas = [this](){ bool b = false;  for (auto& g : _rtGeometries) b |= (g != null);  return b; }();
+        RTGeometryTypes_t   geom_types;
+
+        for (auto& src : _omiLights)
+        {
+            auto    light   = MakeRC<IntermLight>();
+            auto&   dst     = light->Edit();
+
+            dst.type        = IntermLight::ELightType::Point;
+            dst.position    = src.pos;
+            dst.attenuation = src.atten;
+            dst.diffuseColor= float3{float4{src.color}};
+
+            CHECK( _intermScene->EditLights().emplace( RVRef(light), uint(_intermScene->EditLights().size()) ).second );
+        }
+        for (auto& src : _coneLights)
+        {
+            auto    light   = MakeRC<IntermLight>();
+            auto&   dst     = light->Edit();
+
+            dst.type                = IntermLight::ELightType::Spot;
+            dst.position            = src.pos;
+            dst.direction           = src.dir;
+            dst.attenuation         = src.atten;
+            dst.coneAngleInnerOuter = src.cone;
+            dst.diffuseColor        = float3{float4{src.color}};
+
+            CHECK( _intermScene->EditLights().emplace( RVRef(light), uint(_intermScene->EditLights().size()) ).second );
+        }
+        for (auto& src : _dirLights)
+        {
+            auto    light   = MakeRC<IntermLight>();
+            auto&   dst     = light->Edit();
+
+            dst.type        = IntermLight::ELightType::Directional;
+            dst.direction   = src.dir;
+            dst.attenuation = src.atten;
+            dst.diffuseColor= float3{float4{src.color}};
+
+            CHECK( _intermScene->EditLights().emplace( RVRef(light), uint(_intermScene->EditLights().size()) ).second );
+        }
+
+        if ( has_rtas )
+        {
+            EnumBitSet<EGeometryType>   enabled;
+            _intermScene->ForEachModel(
+                [&enabled] (const ResLoader::IntermScene::ModelData &model)
+                {
+                    auto    mesh    = model.levels[ uint(ResLoader::EDetailLevel::High) ].mesh;
+                    auto    mtr     = model.levels[ uint(ResLoader::EDetailLevel::High) ].mtr;
+                    CHECK_THROW( mesh and mtr );
+
+                    const bool  translucent     = mtr->GetSettings().IsTranslucent();
+                    const bool  dual_sided      = mtr->GetSettings().cullMode == ECullMode::None;
+
+                    if ( translucent ) {
+                        enabled.insert( EGeometryType::Translucent );
+                        return;
+                    }
+
+                    if ( dual_sided )
+                        enabled.insert( EGeometryType::OpaqueDualSided );
+                    else
+                        enabled.insert( EGeometryType::Opaque );
+                });
+
+            for (auto i : IndicesOnly( geom_types ))
+            {
+                auto&   src = _rtGeometries[i];
+                auto&   dst = geom_types[i];
+
+                if ( enabled.contains( EGeometryType(i) ))
+                    dst = src->ToResource();  // throw
+                else{
+                    ASSERT( src.UseCount() == 1 );
+                    src = null;
+                }
+            }
+        }
+
         Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
 
         // search in scene dir
         _texSearchDirs.push_back( _scenePath.parent_path() );
 
-        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform, _texSearchDirs, _maxTextures );
+        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform,
+                                            _texSearchDirs, _maxTextures, RVRef(geom_types) );
         return _geomSrc;
     }
 
 /*
 =================================================
-    FindMaterialPipeline
+    _FindPostProcessPipelines
 =================================================
 */
-    ScriptGeomSource::PipelineNames_t  ScriptModelGeometrySrc::FindMaterialPipeline () C_Th___
+    ScriptGeomSource::PipelineNames_t  ScriptModelGeometrySrc::_FindPostProcessPipelines () C_Th___
+    {
+        auto&   storage = *ObjectStorage::Instance();
+
+        CHECK_THROW_MSG( storage.gpipelines.size() == 1 );
+        CHECK_THROW_MSG( storage.gpipelines.begin()->second->GetSpecializations().size() == 1 );
+
+        PipelineNames_t result;
+        result.emplace_back( storage.gpipelines.begin()->second->GetSpecializations()[0]->Name() );
+        return result;
+    }
+
+/*
+=================================================
+    _ToPostProcessMaterial
+=================================================
+*/
+    RC<IGSMaterials>  ScriptModelGeometrySrc::_ToPostProcessMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    {
+        CHECK_THROW( names.size() == 1 );
+
+        auto        result      = MakeRC<ModelGeomSource::Material>();
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+
+        result->rtech = rtech;
+
+        GraphicsPipelineID  ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
+        CHECK_THROW( ppln );
+
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
+
+        result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );  // throw
+        CHECK_THROW( result->passDSIndex );
+
+        auto&   draw_groups = result->drawGroups.emplace< ModelGeomSource::Material::GPplnGroups_t >();
+        draw_groups.emplace( ppln, ~0u );
+
+        return result;
+    }
+
+/*
+=================================================
+    FindMaterialGraphicsPipelines
+=================================================
+*/
+    ScriptGeomSource::PipelineNames_t  ScriptModelGeometrySrc::FindMaterialGraphicsPipelines (const ERenderLayer layer) C_Th___
     {
         CHECK_THROW_MSG( _intermScene );
 
-        ScriptGeomSource::PipelineNames_t   ppln_per_mtr;
+        BEGIN_ENUM_CHECKS();
+        switch ( layer )
+        {
+            case ERenderLayer::Opaque :         break;
+            case ERenderLayer::Translucent :    break;
+            case ERenderLayer::PostProcess :    return _FindPostProcessPipelines();
+            default :                           CHECK_THROW_MSG( false, "unknown layer" );  break;
+        }
+        END_ENUM_CHECKS();
+
+        using EKey = ResLoader::IntermMaterial::EKey;
+
+        ScriptGeomSource::PipelineNames_t   ppln_per_obj;
         DSLayoutName                        shared_mtr_dsl;
+        usize                               obj_id          = 0;
 
         _intermScene->ForEachModel(
-            [&ppln_per_mtr, this, &shared_mtr_dsl] (const ResLoader::IntermScene::ModelData &model)
+            [&ppln_per_obj, this, &shared_mtr_dsl, layer, &obj_id] (const ResLoader::IntermScene::ModelData &model)
             {
+                ++obj_id;
+
                 auto    mesh    = model.levels[ uint(ResLoader::EDetailLevel::High) ].mesh;
                 auto    mtr     = model.levels[ uint(ResLoader::EDetailLevel::High) ].mtr;
+                CHECK_THROW( mesh and mtr );
 
-                CHECK_THROW_MSG( mesh and mtr );
-                CHECK_THROW_MSG( mesh->Attribs() != null );
-                CHECK_THROW_MSG( mesh->Topology() == EPrimitive::TriangleList );
+                const bool  is_translucent  = mtr->GetSettings().IsTranslucent();
+
+                // skip model
+                if ( (layer == ERenderLayer::Opaque) and is_translucent )           return;
+                if ( (layer == ERenderLayer::Translucent) and not is_translucent )  return;
+
+                CHECK_THROW( mesh->Attribs() != null );
+                CHECK_THROW( mesh->Topology() == EPrimitive::TriangleList );
 
                 Array<GraphicsPipelineSpecPtr>  pipelines;
-                _FindPipelinesByVB( _AttribsToVBName( *mesh->Attribs() ), OUT pipelines );                              // throw
-                _FindPipelinesByPC( "model.pc", INOUT pipelines );                                                      // throw
-                _FindPipelinesBySB( c_MtrDS, "ModelNodeArray", INOUT pipelines );                                       // throw
-                _FindPipelinesBySampledImage( c_MtrDS, "un_AlbedoMaps",
-                                              EImageType::Img2D | EImageType::Float, _maxTextures, INOUT pipelines );   // throw
-                _FindPipelinesBySampler( c_MtrDS, "un_AlbedoSampler", INOUT pipelines );                                // throw
-                _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );                                    // throw
+                for (uint i = 0; i < 2; ++i)
+                {
+                    try {
+                        String  attribs_name;
+                        switch ( i ) {
+                            case 0 :    attribs_name = _AttribsToVBName( *mesh->Attribs() );    break;
+                            default :   attribs_name = "VB{Posf3}";                             break;  // flat shading
+                        }
+                        _FindPipelinesByVB( attribs_name, OUT pipelines );                      // throw
+                        _FindPipelinesByLayout( "model.pl", INOUT pipelines );                  // throw
+
+                        _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );    // throw
+                        _FindPipelinesByMaterial( *mtr, INOUT pipelines );                      // throw
+
+                        if ( not pipelines.empty() )
+                            break;
+                    }
+                    catch (...)
+                    {}
+                }
 
                 ScriptGeomSource::PipelineNames_t   ppln_name;
                 DSLayoutName                        mtr_dsl;
-                _GetSuitablePipelineAndDS( pipelines, c_MtrDS, OUT ppln_name, OUT mtr_dsl );                            // throw
+                _GetSuitablePipelineAndDS( pipelines, c_MtrDS, OUT ppln_name, OUT mtr_dsl );  // throw
 
                 if ( shared_mtr_dsl == Default )
                     shared_mtr_dsl = mtr_dsl;   // init
                 else
-                    CHECK_THROW_MSG( shared_mtr_dsl == mtr_dsl, "All pipelines must use same DescriptorSetLayout" );
+                    CHECK_THROW_MSG( shared_mtr_dsl == mtr_dsl, "All pipelines must use the same DescriptorSetLayout" );
 
-                ppln_per_mtr.push_back( ppln_name[0] );
+                ppln_per_obj.emplace_back( ppln_name[0].pplnName, obj_id-1 );
             });
 
-        CHECK_THROW_MSG( shared_mtr_dsl.IsDefined() );
-        CHECK_THROW_MSG( not ppln_per_mtr.empty() );
+        if ( not ppln_per_obj.empty() )
+            CHECK_THROW_MSG( shared_mtr_dsl.IsDefined() );
 
-        return ppln_per_mtr;
+        return ppln_per_obj;
     }
 
 /*
@@ -2040,43 +2370,68 @@ namespace
     ToMaterial
 =================================================
 */
-    RC<IGSMaterials>  ScriptModelGeometrySrc::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    RC<IGSMaterials>  ScriptModelGeometrySrc::ToMaterial (const ERenderLayer layer, RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
     {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
-        CHECK_THROW( names.size() > 0 );
 
-        auto    result      = MakeRC<ModelGeomSource::Material>();
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        BEGIN_ENUM_CHECKS();
+        switch ( layer )
+        {
+            case ERenderLayer::Opaque :         break;
+            case ERenderLayer::Translucent :    break;
+            case ERenderLayer::PostProcess :    return _ToPostProcessMaterial( rtech, names );
+            default :                           CHECK_THROW_MSG( false, "unknown layer" );  break;
+        }
+        END_ENUM_CHECKS();
 
-        result->rtech   = rtech;
-        result->pplns.reserve( names.size() );
+        auto        result      = MakeRC<ModelGeomSource::Material>();
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+
+        result->rtech = rtech;
+
+        if ( names.empty() )
+            return result;
+
+        Array<GraphicsPipelineID>   pipelines;
 
         _intermScene->ForEachModel(
-            [&, i = 0u, init_ds = true] (const ResLoader::IntermScene::ModelData &) mutable
+            [&, i = 0u, obj_id = 0u, init_ds = true] (const ResLoader::IntermScene::ModelData &model) mutable
             {
-                CHECK_THROW_MSG( i < names.size() );
+                ++obj_id;
 
-                auto    ppln = rtech->GetGraphicsPipeline( names[i++] );
+                auto    mesh    = model.levels[ uint(ResLoader::EDetailLevel::High) ].mesh;
+                auto    mtr     = model.levels[ uint(ResLoader::EDetailLevel::High) ].mtr;
+                CHECK_THROW( mesh and mtr );
+
+                if ( i >= names.size() or names[i].objId != obj_id-1 )
+                    return;
+
+                auto    ppln = rtech->GetGraphicsPipeline( names[i].pplnName );
                 CHECK_THROW( ppln );
 
                 if ( init_ds )
                 {
                     init_ds = false;
-                    CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                                ppln, DescriptorSetName{c_MtrDS} ));
+                    CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
 
                     result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );  // throw
-                    result->pcIndex     = res_mngr.GetPushConstantIndex< ShaderTypes::model_pc >( ppln, PushConstantName{"pc"} );
-                    CHECK_THROW( result->pcIndex );
                 }
 
-                result->pplns.push_back( ppln );
+                pipelines.push_back( ppln );
+                ++i;
             });
 
-        CHECK_THROW( result->pplns.size() == names.size() );
+        CHECK_THROW( pipelines.size() == names.size() );
         CHECK_THROW( result->passDSIndex );
         CHECK_THROW( result->descSets[0] );
+
+        auto&   draw_groups = result->drawGroups.emplace< ModelGeomSource::Material::GPplnGroups_t >();
+
+        for (usize i = 0; i < names.size(); ++i) {
+            draw_groups[ pipelines[i] ].push_back( uint(names[i].objId) );
+        }
 
         return result;
     }
@@ -2101,6 +2456,9 @@ namespace
 
         if ( has_position and has_normal and has_uv0_2 )
             return "VB{Posf3, Normf3, UVf2}";
+
+        if ( has_position and has_uv0_2 )
+            return "VB{Posf3, UVf2}";
 
         if ( has_position and has_normal )
             return "VB{Posf3, Normf3}";

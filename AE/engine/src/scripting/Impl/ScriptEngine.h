@@ -158,7 +158,8 @@ namespace AE::Scripting
         ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})            __NE___;
 
         ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource>  src,
-                                           ArrayView<StringView>    defines = Default)              __NE___;
+                                           ArrayView<StringView>    defines     = Default,
+                                           ArrayView<Path>          includeDirs = Default)          __NE___;
 
         template <typename Fn>
         ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module)         __NE___;
@@ -204,12 +205,20 @@ namespace AE::Scripting
     // utils //
         ND_ static bool  _CheckError (int err, StringView asFunc, StringView func, const SourceLoc &loc)__NE___;
 
-        ND_ static bool  _Preprocessor (StringView, OUT String &, ArrayView<StringView> defines)        __NE___;
+        ND_ static bool  _Preprocessor2 (StringView str,
+                                         OUT String &,
+                                         ArrayView<StringView> defines,
+                                         ArrayView<Path> includeDirs)                               __NE___;
 
     private:
         ND_ bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);
 
-        static void  _MessageCallback (const AngelScript::asSMessageInfo *msg, void *param);
+            static void  _MessageCallback (const AngelScript::asSMessageInfo *msg, void *param);
+
+        ND_ static bool  _Preprocessor (StringView str,
+                                        OUT String &,
+                                        OUT Array<Pair< StringView, usize >> &,
+                                        ArrayView<StringView> defines)                              __Th___;
     };
 
 

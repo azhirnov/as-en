@@ -16,14 +16,18 @@ void ASmain ()
         // ui pipelines
         {
             RC<PipelineCompiler>    ppln = PipelineCompiler();
+
             ppln.AddPipelineFolder( GetSharedFeatureSetPath(), EPathParamsFlags::Recursive );
             ppln.AddPipeline( "config_" + suffix[i] + ".as" );
             ppln.AddPipeline( GetCanvasVerticesPath() );
             ppln.AddPipeline( "../_data/pipelines/VertexInput.as" );
             ppln.AddPipeline( "../_data/pipelines/ModelReflection.as" );
             ppln.AddPipelineFolder( "pipelines" );
+            ppln.PipelineIncludeDir( "../_data/pipelines/include" );
+
             ppln.AddShaderFolder( "shaders" );
-            ppln.IncludeDir( GetSharedShadersPath() );
+            ppln.ShaderIncludeDir( GetSharedShadersPath() );
+
             ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
             ppln.CompileWithNameMapping( output + suffix[i] + "/ui_pipelines.bin" );
         }

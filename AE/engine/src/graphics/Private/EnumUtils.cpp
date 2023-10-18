@@ -28,6 +28,11 @@ namespace AE::Graphics
         write -> read
         read  -> read (if different image layouts)
 ----
+    'relaxedStateTransition' -  if transitioned from initial state to new state or from current state to final
+                                then if 'srcState' and 'dstState' are the same (has same layouts for images)
+                                then barrier is not issued, even if it is 'write -> write' hazard,
+                                because initial and final states in render task are the transient states.
+----
     usage: in RG, should be optimized
 =================================================
 */
@@ -197,6 +202,9 @@ namespace AE::Graphics
                 case EShaderStages::MeshStages :
                 case EShaderStages::AllGraphics :
                 case EShaderStages::AllRayTracing :
+                case EShaderStages::VertexProcessingStages :
+                case EShaderStages::PreRasterizationStages :
+                case EShaderStages::PostRasterizationStages :
                 case EShaderStages::Unknown :
                 default_unlikely :              RETURN_ERR( "unknown shader type" );
             }
@@ -553,20 +561,20 @@ namespace AE::Graphics
         return Default;
     }
 
-    EPixelFormat  EPixelFormat_ToASTC (EPixelFormat srcFormat, const uint2 &blockSize) __NE___
+    EPixelFormat  EPixelFormat_ToASTC (EPixelFormat srcFormat, const uint2 &blockDim) __NE___
     {
         switch ( srcFormat )
         {
             case EPixelFormat::RGB8_UNorm :
             case EPixelFormat::RGBA8_UNorm :
-                return EPixelFormat_ToASTC_UNorm( blockSize );
+                return EPixelFormat_ToASTC_UNorm( blockDim );
 
             case EPixelFormat::sRGB8 :
             case EPixelFormat::sRGB8_A8 :
-                return EPixelFormat_ToASTC_sRGB( blockSize );
+                return EPixelFormat_ToASTC_sRGB( blockDim );
 
             case EPixelFormat::RGBA16F :
-                return EPixelFormat_ToASTC_16F( blockSize );
+                return EPixelFormat_ToASTC_16F( blockDim );
         }
         return Default;
     }
@@ -576,9 +584,9 @@ namespace AE::Graphics
     EPixelFormat_ToASTC_***
 =================================================
 */
-    EPixelFormat  EPixelFormat_ToASTC_UNorm (const uint2 &blockSize) __NE___
+    EPixelFormat  EPixelFormat_ToASTC_UNorm (const uint2 &blockDim) __NE___
     {
-        switch ( (blockSize.x << 4) | blockSize.y )
+        switch ( (blockDim.x << 4) | blockDim.y )
         {
             case 0x44 : return EPixelFormat::ASTC_RGBA_4x4;
             case 0x54 : return EPixelFormat::ASTC_RGBA_5x4;
@@ -598,9 +606,9 @@ namespace AE::Graphics
         return Default;
     }
 
-    EPixelFormat  EPixelFormat_ToASTC_sRGB (const uint2 &blockSize) __NE___
+    EPixelFormat  EPixelFormat_ToASTC_sRGB (const uint2 &blockDim) __NE___
     {
-        switch ( (blockSize.x << 4) | blockSize.y )
+        switch ( (blockDim.x << 4) | blockDim.y )
         {
             case 0x44 : return EPixelFormat::ASTC_sRGB8_A8_4x4;
             case 0x54 : return EPixelFormat::ASTC_sRGB8_A8_5x4;
@@ -620,9 +628,9 @@ namespace AE::Graphics
         return Default;
     }
 
-    EPixelFormat  EPixelFormat_ToASTC_16F (const uint2 &blockSize) __NE___
+    EPixelFormat  EPixelFormat_ToASTC_16F (const uint2 &blockDim) __NE___
     {
-        switch ( (blockSize.x << 4) | blockSize.y )
+        switch ( (blockDim.x << 4) | blockDim.y )
         {
             case 0x44 : return EPixelFormat::ASTC_RGBA16F_4x4;
             case 0x54 : return EPixelFormat::ASTC_RGBA16F_5x4;

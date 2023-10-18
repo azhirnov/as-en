@@ -248,13 +248,8 @@ namespace AE::Graphics::_hidden_
 
         String  dbg_name;
         DBG_GRAPHICS_ONLY(
-            if ( dbg.label.empty() ){
-                dbg_name += this->_mngr.GetRenderTask().DbgFullName();
-                dbg_name += " - ";
-                dbg_name += "RP";
-            }else{
-                dbg_name = dbg.label;
-            })
+            if ( dbg.label.empty() )    dbg_name << this->_mngr.GetRenderTask().DbgFullName() << " - " << "RP";
+            else                        dbg_name = dbg.label; )
 
         CHECK_THROW( RawCtx::_BeginRenderPass( desc, _primaryState, VK_SUBPASS_CONTENTS_INLINE, DebugLabel{ dbg_name, dbg.color }));
         RawCtx::_InitViewports( desc ); // throw
@@ -289,10 +284,10 @@ namespace AE::Graphics::_hidden_
 
         DBG_GRAPHICS_ONLY(
             String  dbg_name;
+            dbg_name << this->_mngr.GetRenderTask().DbgFullName() << " - ";
 
-            dbg_name += this->_mngr.GetRenderTask().DbgFullName();
-            dbg_name += " - ";
-            dbg_name += (dbg.label.empty() ? StringView{String{"Sp-"} + char('0' + _primaryState.subpassIndex)} : dbg.label);
+            if ( dbg.label.empty() )    dbg_name << "Sp-" << ToString(_primaryState.subpassIndex);
+            else                        dbg_name << dbg.label;
 
             prevPassCtx.PushDebugGroup( DebugLabel{ dbg_name, dbg.color });
         )

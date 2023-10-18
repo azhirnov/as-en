@@ -264,6 +264,9 @@ namespace AE::RG::_hidden_
         if ( AllBits( newState, EResourceState::Invalidate ))
             return;  // skip barrier
 
+        if ( EResourceState_IsUnnecessaryBarrier( old_state, newState ))
+            return;  // skip barrier
+
         if constexpr( IsSameTypes< ID, ImageID >){
             if ( EResourceState_RequireImageBarrier( old_state, newState, False{"strict"} ))
                 ctx.ImageBarrier( id, old_state, newState );    // throw
@@ -297,8 +300,8 @@ namespace AE::RG::_hidden_
 
         for (auto& [id, state] : rs.map)
         {
-            // skip write -> write barrier here,
-            // it will be added in batch to batch transition or
+            // skip 'write -> write' barrier here,
+            // it will be added in 'batch to batch' transition or
             // in first 'ResourceState()' call in next render task.
             if_unlikely( not EResourceState_IsSameStates( state.current, state.final ))
             {
@@ -323,7 +326,7 @@ namespace AE::RG::_hidden_
         ASSERT( AnyEqual( dstState, EResourceState::VertexBuffer, EResourceState::IndexBuffer, EResourceState::CopySrc ));
         Unused( dstState );
 
-        // memory barrier 'Host -> Vertex|Index|Copy' is valid if used in previous tasks too
+        // memory barrier 'Host -> Vertex|Index|Copy' is already issued if added in previous tasks too
 
         constexpr   uint    mask    = ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
         const       uint    bits    = (_uploadMemory.load() & mask) & ToBitMask<uint>( taskIdx+1 );
@@ -353,7 +356,7 @@ namespace AE::RG::_hidden_
         ASSERT( AnyEqual( srcState, EResourceState::CopyDst ));
         Unused( srcState );
 
-        // memory barrier 'Copy -> Host' is valid if used in subsequent tasks too
+        // memory barrier 'Copy -> Host' is already issued if added in subsequent tasks too
 
         constexpr   uint    mask    = ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
         const       uint    bits    = (_readbackMemory.load() & mask) & ~ToBitMask<uint>( taskIdx+1 );

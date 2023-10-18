@@ -1,14 +1,6 @@
 //> gl_LaunchIDEXT: uint3 {64, 64, 0}
 no source
 
-//> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-6. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
-
-//---------------------------
-
-//> gl_LaunchIDEXT: uint3 {64, 64, 0}
-no source
-
 //> uv: float2 {0.503906, 0.503906}
 //  gl_LaunchIDEXT: uint3 {64, 64, 0}
 8. uv = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
@@ -25,12 +17,12 @@ no source
 15.                  /*direction*/direction, /*Tmax*/10.0f,
 16.                  /*payload*/PAYLOAD_LOC );
 
-//> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//> payload: float4 {0.246094, 0.261719, 0.492188, 1.000000}
 16. C );
 
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {64, 64, 0}
-//  payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//  payload: float4 {0.246094, 0.261719, 0.492188, 1.000000}
 18.     imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
 
 //---------------------------

@@ -90,45 +90,45 @@ namespace AE::Base
     // interface
     public:
         // returns remaining size
-        ND_ virtual Bytes   Reserve (Bytes additionalSize)                              __NE___ = 0;
+        ND_ virtual Bytes   Reserve (Bytes additionalSize)                                      __NE___ = 0;
 
-        ND_ virtual Bytes   Position ()                                                 C_NE___ = 0;        // same as 'Size()'
+        ND_ virtual Bytes   Position ()                                                         C_NE___ = 0;    // same as 'Size()'
 
-            virtual bool    SeekFwd (Bytes offset)                                      __NE___ = 0;
+            virtual bool    SeekFwd (Bytes offset)                                              __NE___ = 0;
 
         // returns size of written data
-        ND_ virtual Bytes   WriteSeq (const void *buffer, Bytes size)                   __NE___ = 0;
+        ND_ virtual Bytes   WriteSeq (const void *buffer, Bytes size)                           __NE___ = 0;
 
-            virtual void    Flush ()                                                    __NE___ = 0;
+            virtual void    Flush ()                                                            __NE___ = 0;
 
             virtual void    UpdateFastStream (OUT void* &begin, OUT const void* &end,
-                                              Bytes reserve = DefaultAllocationSize)    __NE___;
-            virtual void    EndFastStream (const void* ptr)                             __NE___;
-        ND_ virtual Bytes   GetFastStreamPosition (const void* ptr)                     __NE___;
+                                              Bytes reserve = DefaultAllocationSize)            __NE___;
+            virtual void    EndFastStream (const void* ptr)                                     __NE___;
+        ND_ virtual Bytes   GetFastStreamPosition (const void* ptr)                             __NE___;
 
 
     // methods
     public:
-        WStream ()                                                                      __NE___ {}
+        WStream ()                                                                              __NE___ {}
 
 
         // IDataSource //
-        ESourceType     GetSourceType ()                                                C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+        ESourceType     GetSourceType ()                                                        C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
 
 
-        ND_ bool  Write (const void *buffer, Bytes size)                                __NE___;
+        ND_ bool  Write (const void *buffer, Bytes size)                                        __NE___;
 
         template <typename T>
-        ND_ EnableIf<IsTrivial<T>, bool>  Write (ArrayView<T> buf)                      __NE___;
+        ND_ EnableIf<IsTrivial<T>, bool>  Write (ArrayView<T> buf)                              __NE___;
 
         template <typename T, typename A>
-        ND_ EnableIf<IsTrivial<T>, bool>  Write (const BasicString<T,A> str)            __NE___;
+        ND_ EnableIf<IsTrivial<T>, bool>  Write (const BasicString<T,A> str)                    __NE___;
 
         template <typename T>
-        ND_ EnableIf<IsTrivial<T>, bool>  Write (BasicStringView<T> str)                __NE___;
+        ND_ EnableIf<IsTrivial<T>, bool>  Write (BasicStringView<T> str)                        __NE___;
 
         template <typename T>
-        ND_ EnableIf<IsTrivial<T>, bool>  Write (const T &data)                         __NE___;
+        ND_ EnableIf<IsTrivial<T>, bool>  Write (const T &data)                                 __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -195,7 +195,7 @@ namespace AE::Base
     template <typename T, typename A>
     EnableIf<IsTrivial<T>, bool>  RStream::Read (Bytes size, OUT BasicString<T,A> &str) __NE___
     {
-        ASSERT( IsAligned( size, sizeof(T) ));
+        ASSERT( IsMultipleOf( size, sizeof(T) ));
         return Read( usize(size) / sizeof(T), OUT str );
     }
 
@@ -215,7 +215,7 @@ namespace AE::Base
     template <typename T, typename A>
     EnableIf<IsTrivial<T>, bool>  RStream::Read (Bytes size, OUT Array<T,A> &arr) __NE___
     {
-        ASSERT( IsAligned( size, sizeof(T) ));
+        ASSERT( IsMultipleOf( size, sizeof(T) ));
         return Read( usize(size) / sizeof(T), OUT arr );
     }
 

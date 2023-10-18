@@ -52,7 +52,7 @@ namespace AE::GeometryTools
                         _indices.push_back( Index( (y + 0) * vertsPerEdge  + (x + 0) ));
                     }
                     else
-                    if ( patchSize == 16 and IsAligned( x, 3 ) and IsAligned( y, 3 ))
+                    if ( patchSize == 16 and IsMultipleOf( x, 3 ) and IsMultipleOf( y, 3 ))
                     {
                         for (uint i = 0; i < 4; ++i)
                         for (uint j = 0; j < 4; ++j)

@@ -2,7 +2,8 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "Abseil-main" LANGUAGES CXX )
 
-include( "../../../config.cmake" )
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
 file( GLOB_RECURSE HEADERS "*.h" )
 set( SOURCES

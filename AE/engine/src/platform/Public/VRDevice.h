@@ -35,7 +35,6 @@ namespace AE::App
         public:
             virtual ~IVRDeviceEventListener ()                          __NE___ {}
 
-            virtual void  OnUpdate (IVRDevice &vr)                      __NE___ = 0;
             virtual void  OnStateChanged (IVRDevice &vr, EState state)  __NE___ = 0;
         };
 

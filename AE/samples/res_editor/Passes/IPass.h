@@ -17,6 +17,8 @@ namespace AE::ResEditor
 
     class IPass : public EnableRC< IPass >
     {
+        friend class ScriptBasePass;
+
     // types
     public:
         using TransferCtx_t = RG::DirectCtx::Transfer;
@@ -30,7 +32,7 @@ namespace AE::ResEditor
             Present             = 1 << 2,
             //SeparateBatch     = 1 << 3,   // for async compute
             Update              = 1 << 16,
-            //Input             = 1 << 17,
+            Export              = 1 << 17,  // will pause rendering
         };
 
         enum class EDebugMode : uint
@@ -38,7 +40,7 @@ namespace AE::ResEditor
             Unknown         = 0,
             Trace,
             FnProfiling,        // function profiling
-            TimeHeatMap,        // per fragment/thread profiling
+            TimeHeatMap,        // profiling for the whole pass
             _Count
         };
 
@@ -86,12 +88,12 @@ namespace AE::ResEditor
         {
             secondsf        totalTime;
             secondsf        frameTime;
-            uint            frameId     = 0;
-            uint            seed        = 0;
+            uint            frameId         = 0;
+            uint            seed            = 0;
 
-            float2          cursorPos;              // unorm
-            bool            pressed     = false;    // mouse down or touch pressed
-            CustomKeys_t    customKeys  = {};
+            float2          unormCursorPos;
+            bool            pressed         = false;    // mouse down or touch pressed
+            CustomKeys_t    customKeys      = {};
         };
 
 
@@ -122,26 +124,43 @@ namespace AE::ResEditor
         };
 
 
+    // variables
+    protected:
+        RC<IController>         _controller;
+        Constants               _shConst;
+
+        String                  _dbgName;
+        RGBA8u                  _dbgColor;
+
+        struct {
+            RC<DynamicUInt>     dynamic;
+            uint                ref         = 0;
+            ECompareOp          op          = ECompareOp::Always;
+        }                   _enablePass;
+
+
     // interface
     public:
         ~IPass () override;
 
 
+        ND_ StringView          GetName ()                                                  C_NE___ { return _dbgName; }
+        ND_ RC<IController>     GetController ()                                            C_NE___ { return _controller; }
+
         ND_ virtual EPassType   GetType ()                                                  C_NE___ = 0;
-        ND_ virtual StringView  GetName ()                                                  C_NE___ = 0;
 
-        ND_ virtual RC<IController> GetController ()                                        C_NE___ { return null; }
-
-        ND_ virtual bool        Update (TransferCtx_t &, const UpdatePassData &)            __NE___ { DBG_WARNING("Update");  return false; }
+        // EPassType::Update    - returns 'false' on error
+        // EPassType::Export    - returns 'false' if not complete
+        ND_ virtual bool        Update (TransferCtx_t &, const UpdatePassData &)            __Th___ { DBG_WARNING("Update");  return false; }
 
         // EPassType::Sync
-        ND_ virtual bool        Execute (SyncPassData &)                                    __NE___ { DBG_WARNING("Execute");  return false; }
+        ND_ virtual bool        Execute (SyncPassData &)                                    __Th___ { DBG_WARNING("Execute");  return false; }
 
         // EPassType::Async
-        ND_ virtual AsyncTask   ExecuteAsync (const AsyncPassData &)                        __NE___ { DBG_WARNING("ExecuteAsync");  return null; }
+        ND_ virtual AsyncTask   ExecuteAsync (const AsyncPassData &)                        __Th___ { DBG_WARNING("ExecuteAsync");  return null; }
 
         // EPassType::Present
-        ND_ virtual AsyncTask   PresentAsync (const PresentPassData &)                      __NE___ { DBG_WARNING("PresentAsync");  return null; }
+        ND_ virtual AsyncTask   PresentAsync (const PresentPassData &)                      __Th___ { DBG_WARNING("PresentAsync");  return null; }
 
         // EPassType::SeparateBatch
         //ND_ virtual Tuple< CommandBatchPtr, AsyncTask >  SeparateBatch (const PassData &) { DBG_WARNING("SeparateBatch");  return Default; }
@@ -150,8 +169,15 @@ namespace AE::ResEditor
 
 
     protected:
-        void  _CopySliders (OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &, OUT StaticArray<float4,4> &)    const;
-        void  _CopyConstants (const Constants &, OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &)            const;
+        IPass ();
+        explicit IPass (StringView dbgName, RGBA8u dbgColor = Default);
+
+        void  _CopySliders (OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &,
+                            OUT StaticArray<float4,4> &)                                    const;
+        void  _CopyConstants (const Constants &, OUT StaticArray<float4,4> &,
+                              OUT StaticArray<int4,4> &)                                    const;
+
+        ND_ bool  _IsEnabled ()                                                             const;
     };
 
     AE_BIT_OPERATORS( IPass::EPassType );

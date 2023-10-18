@@ -334,23 +334,32 @@ namespace AE::Math
 
 /*
 =================================================
-    IsVec
+    IsVec / IsSimdVec
 =================================================
 */
     namespace _hidden_
     {
         template <typename T>
         struct _IsVec {
-            static constexpr bool   value = false;
+            static constexpr bool   value   = false;
+            static constexpr bool   is_simd = false;
         };
 
         template <typename T, int I, glm::qualifier Q>
         struct _IsVec< TVec<T,I,Q> > {
-            static constexpr bool   value = true;
+            static constexpr bool   value   = true;
+            static constexpr bool   is_simd = false;
+        };
+
+        template <typename T, int I>
+        struct _IsVec< TVec<T,I,GLMSimdQualifier> > {
+            static constexpr bool   value   = true;
+            static constexpr bool   is_simd = true;
         };
 
         template <typename T>
         struct _VecType {
+            using type = void;
         };
 
         template <typename T, int I, glm::qualifier Q>
@@ -363,6 +372,14 @@ namespace AE::Math
     template <typename T>
     static constexpr bool   IsVec = Math::_hidden_::_IsVec<T>::value;
 
+    template <typename T>
+    static constexpr bool   IsSimdVec = Math::_hidden_::_IsVec<T>::is_simd;
+
+/*
+=================================================
+    IsIntegerVec / IsFloatPointVec
+=================================================
+*/
     template <typename T>
     static constexpr bool   IsIntegerVec = IsVec<T> and IsInteger< typename Math::_hidden_::_VecType<T>::type >;
 
@@ -399,8 +416,6 @@ namespace AE::Math
 /*
 =================================================
     All
-----
-    should be faster than glm implementation
 =================================================
 */
     template <typename T, glm::qualifier Q>
@@ -424,8 +439,6 @@ namespace AE::Math
 /*
 =================================================
     Any
-----
-    should be faster than glm implementation
 =================================================
 */
     template <typename T, glm::qualifier Q>
@@ -580,11 +593,46 @@ namespace AE::Math
 =================================================
 */
     template <typename T, int I, glm::qualifier Q>
-    ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  Equals (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  Equals (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T err = Epsilon<T>()) __NE___
     {
         TVec<bool,I,Q>  res;
         for (int i = 0; i < I; ++i) {
             res[i] = Equals( lhs[i], rhs[i], err );
+        }
+        return res;
+    }
+
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  Equals (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const Percent err) __NE___
+    {
+        TVec<bool,I,Q>  res;
+        for (int i = 0; i < I; ++i) {
+            res[i] = Equals( lhs[i], rhs[i], err );
+        }
+        return res;
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, TVec<bool,I,Q>>  BitEqual (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        TVec<bool,I,Q>  res;
+        for (int i = 0; i < I; ++i) {
+            res[i] = BitEqual( lhs[i], rhs[i], bitCount );
+        }
+        return res;
+    }
+
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, TVec<bool,I,Q>>  BitEqual (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+    {
+        TVec<bool,I,Q>  res;
+        for (int i = 0; i < I; ++i) {
+            res[i] = BitEqual( lhs[i], rhs[i] );
         }
         return res;
     }
@@ -644,8 +692,8 @@ namespace AE::Math
         }
         else
         {
-            using T = decltype(lhs + rhs);
-            return T(lhs) > T(rhs) ? T(rhs) : T(lhs);
+            using T2 = decltype(lhs + rhs);
+            return T2(lhs) > T2(rhs) ? T2(rhs) : T2(lhs);
         }
     }
 
@@ -1481,11 +1529,11 @@ namespace AE::Math
 
 /*
 =================================================
-    IsAligned
+    IsMultipleOf
 =================================================
 */
     template <typename T0, typename T1, int I, glm::qualifier Q>
-    ND_ EnableIf<IsInteger<T0>, TVec<bool,I,Q>>  IsAligned (const TVec<T0,I,Q> &value, const T1 &align) __NE___
+    ND_ EnableIf<IsInteger<T0>, TVec<bool,I,Q>>  IsMultipleOf (const TVec<T0,I,Q> &value, const T1 &align) __NE___
     {
         STATIC_ASSERT( IsEnum<T0> or IsInteger<T0> );
         STATIC_ASSERT( IsEnum<T1> or IsInteger<T1> or IsIntegerVec<T1> );
@@ -1557,6 +1605,42 @@ namespace AE::Math
         return t * t * (T(3) - T(2) * t);
     }
 
+/*
+=================================================
+    IsNormalized
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, bool>  IsNormalized (const TVec<T,I,Q> &v) __NE___
+    {
+        return Abs( Dot( v, v ) - T{1} ) < T{1.0e-4};
+    }
+
+/*
+=================================================
+    Refract
+----
+    'eta' - relative index of refraction (etaI / etaT)
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Refract (const TVec<T,I,Q> &incident, const TVec<T,I,Q> &normal, const T eta) __NE___
+    {
+        ASSERT( IsNormalized( normal ));
+        return glm::refract( incident, normal, eta );
+    }
+
+/*
+=================================================
+    Reflect
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Reflect (const TVec<T,I,Q> &incident, const TVec<T,I,Q> &normal) __NE___
+    {
+        ASSERT( IsNormalized( normal ));
+        return glm::reflect( incident, normal );
+    }
 
 } // AE::Math
 

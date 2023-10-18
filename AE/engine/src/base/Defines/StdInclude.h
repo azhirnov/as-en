@@ -2,6 +2,13 @@
 
 #pragma once
 
+// contains '__has_cpp_attribute', '__cpp_lib_*' and other
+#ifdef __has_include
+# if __has_include(<version>)
+#   include <version>
+# endif
+#endif
+
 #include "base/Defines/Config.h"
 #include "base/Defines/Attribs.h"
 #include "base/Defines/Errors.h"
@@ -37,7 +44,7 @@
 #include <exception>
 #include <cstdlib>
 
-#include <stdio.h>
+#include <cstdio>
 #include <streambuf>
 #include <sstream>
 
@@ -70,6 +77,3 @@
 # endif
 #endif
 
-#ifdef AE_COMPILER_MSVC
-# include <excpt.h>
-#endif

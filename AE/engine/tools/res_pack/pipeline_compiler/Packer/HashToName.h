@@ -39,7 +39,7 @@ namespace AE::Base
 
     // methods
     public:
-        HashToName () {}
+        HashToName () __NE___ {}
 
 
         template <usize Size, uint UID, bool Opt, uint Seed>

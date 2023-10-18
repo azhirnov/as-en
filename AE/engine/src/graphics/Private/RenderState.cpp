@@ -335,10 +335,10 @@ namespace AE::Graphics
 */
     void  RenderState::SetDefault (EPipelineDynamicState dstate) __NE___
     {
-        while ( dstate != Zero )
+        for (auto t : BitfieldIterate( dstate ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT dstate ))
+            switch ( t )
             {
                 case EPipelineDynamicState::StencilCompareMask :
                     stencil.front.compareMask   = 0xFF;

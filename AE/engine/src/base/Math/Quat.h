@@ -14,14 +14,14 @@ namespace AE::Math
 {
 
     template <typename T, glm::qualifier Q>
-    struct Quat final
+    struct TQuat final
     {
         STATIC_ASSERT( IsScalar<T> and IsFloatPoint<T> );
 
     // types
     public:
         using Value_t       = T;
-        using Self          = Quat< T, Q >;
+        using Self          = TQuat< T, Q >;
         using _GLM_Quat_t   = glm::qua< T, Q >;
         using Vec2_t        = TVec< T, 2, Q >;
         using Vec3_t        = TVec< T, 3, Q >;
@@ -44,22 +44,22 @@ namespace AE::Math
 
     // methods
     public:
-        Quat ()                                                     __NE___ : _value{} {}
-        Quat (const Self &other)                                    __NE___ : _value{other._value} {}
+        TQuat ()                                                    __NE___ : _value{} {}
+        TQuat (const Self &other)                                   __NE___ : _value{other._value} {}
 
-        explicit Quat (const _GLM_Quat_t &val)                      __NE___ : _value{val} {}
+        explicit TQuat (const _GLM_Quat_t &val)                     __NE___ : _value{val} {}
 
         template <typename B>
-        explicit Quat (const Quat<B,Q> &other)                      __NE___ : _value{other._value} {}
+        explicit TQuat (const TQuat<B,Q> &other)                    __NE___ : _value{other._value} {}
 
-        Quat (Self &&other)                                         __NE___ : _value{other._value} {} 
+        TQuat (Self &&other)                                        __NE___ : _value{other._value} {} 
 
-        Quat (T w, T x, T y, T z)                                   __NE___ : _value{ w, x, y, z } {}
+        TQuat (T w, T x, T y, T z)                                  __NE___ : _value{ w, x, y, z } {}
 
-        explicit Quat (const Rad3_t &eulerAngles)                   __NE___ : _value{ Vec3_t{ T(eulerAngles.x), T(eulerAngles.y), T(eulerAngles.z) }} {}
+        explicit TQuat (const Rad3_t &eulerAngles)                  __NE___ : _value{ Vec3_t{ T(eulerAngles.x), T(eulerAngles.y), T(eulerAngles.z) }} {}
 
-        explicit Quat (const Mat3_t &m)                             __NE___;
-        explicit Quat (const Mat4_t &m)                             __NE___;
+        explicit TQuat (const Mat3_t &m)                            __NE___;
+        explicit TQuat (const Mat4_t &m)                            __NE___;
 
             Self&   Inverse ()                                      __NE___ { _value = glm::inverse( _value );  return *this; }
         ND_ Self    Inversed ()                                     C_NE___ { return Self{ glm::inverse( _value )}; }
@@ -124,8 +124,8 @@ namespace AE::Math
         ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___;
     };
 
-    using QuatF         = Quat< float, GLMSimdQualifier >;
-    using PackedQuatF   = Quat< float, GLMPackedQualifier >;
+    using Quat          = TQuat< float, GLMSimdQualifier >;
+    using PackedQuat    = TQuat< float, GLMPackedQualifier >;
 
 
 /*
@@ -134,7 +134,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    ND_ T  Dot (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs) __NE___
+    ND_ T  Dot (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs) __NE___
     {
         return glm::dot( lhs._value, rhs._value );
     }
@@ -145,9 +145,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    ND_ Quat<T,Q>  Cross (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs) __NE___
+    ND_ TQuat<T,Q>  Cross (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs) __NE___
     {
-        return Quat<T,Q>{ glm::cross( lhs._value, rhs._value )};
+        return TQuat<T,Q>{ glm::cross( lhs._value, rhs._value )};
     }
 
 /*
@@ -156,7 +156,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    bool4  Quat<T,Q>::operator == (const Self &rhs) C_NE___
+    bool4  TQuat<T,Q>::operator == (const Self &rhs) C_NE___
     {
         return bool4{ x == rhs.x, y == rhs.y, z == rhs.z, w == rhs.w };
     }
@@ -167,7 +167,17 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    ND_ bool4  Equals (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool4  Equals (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const T err = Epsilon<T>()) __NE___
+    {
+        return bool4{
+                Math::Equals( lhs.x, rhs.x, err ),
+                Math::Equals( lhs.y, rhs.y, err ),
+                Math::Equals( lhs.z, rhs.z, err ),
+                Math::Equals( lhs.w, rhs.w, err )};
+    }
+
+    template <typename T, glm::qualifier Q>
+    ND_ bool4  Equals (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const Percent err) __NE___
     {
         return bool4{
                 Math::Equals( lhs.x, rhs.x, err ),
@@ -178,11 +188,36 @@ namespace AE::Math
 
 /*
 =================================================
+    BitEqual
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    ND_ bool4  BitEqual (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        return bool4{
+                Math::BitEqual( lhs.x, rhs.x, bitCount ),
+                Math::BitEqual( lhs.y, rhs.y, bitCount ),
+                Math::BitEqual( lhs.z, rhs.z, bitCount ),
+                Math::BitEqual( lhs.w, rhs.w, bitCount )};
+    }
+
+    template <typename T, glm::qualifier Q>
+    ND_ bool4  BitEqual (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs) __NE___
+    {
+        return bool4{
+                Math::BitEqual( lhs.x, rhs.x ),
+                Math::BitEqual( lhs.y, rhs.y ),
+                Math::BitEqual( lhs.z, rhs.z ),
+                Math::BitEqual( lhs.w, rhs.w )};
+    }
+
+/*
+=================================================
     ToDirection
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    typename Quat<T,Q>::Vec3_t  Quat<T,Q>::ToDirection () C_NE___
+    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::ToDirection () C_NE___
     {
         return Vec3_t{  T{2} * x * z + T{2} * y * w,
                         T{2} * z * y - T{2} * x * w,
@@ -195,7 +230,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    Quat<T,Q>  Quat<T,Q>::FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___
+    TQuat<T,Q>  TQuat<T,Q>::FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___
     {
         Vec3_t  hor = Math::Normalize( Cross( up, dir ));
         Vec3_t  ver = Math::Normalize( Cross( dir, hor ));
@@ -209,7 +244,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    Quat<T,Q>  Quat<T,Q>::Rotate2 (const Rad3_t &angle) __NE___
+    TQuat<T,Q>  TQuat<T,Q>::Rotate2 (const Rad3_t &angle) __NE___
     {
         const Vec2_t    scr  = SinCos( angle.x * T(0.5) );
         const Vec2_t    scp  = SinCos( angle.y * T(0.5) );

@@ -327,7 +327,7 @@ namespace AE::ECS
         }
 
         if ( old_mem != null )
-            _allocator.Deallocate( old_mem, SizeAndAlign{ Bytes{old_size}, Bytes{_maxAlign} });
+            _allocator.Deallocate( old_mem, SizeAndAlign{ old_size, Bytes{_maxAlign} });
     }
 
 

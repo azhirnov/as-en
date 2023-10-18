@@ -19,6 +19,7 @@ namespace AE::ResEditor
 
         // pipelines
         Array<Path>     pipelineSearchDirs;
+        Array<Path>     pipelineIncludeDirs;
 
         // shaders
         Array<Path>     shaderSearchDirs;
@@ -26,7 +27,8 @@ namespace AE::ResEditor
 
         // script config
         Path            scriptFolder;
-        Path            scriptSecondaryFolder;
+        Path            scriptCallableFolder;
+        Array<Path>     scriptIncludeDirs;
         Path            cppTypesFolder;
         Path            scriptHeaderOutFolder;
 
@@ -34,9 +36,11 @@ namespace AE::ResEditor
         Path            shaderTraceFolder;
         Path            screenshotFolder;
         Path            videoFolder;
+        Path            exportFolder;
 
         // graphics settings
         bool            setStableGPUClock   = false;
+        bool            enableRenderDoc     = false;
 
 
         ResEditorAppConfig ()                                   = default;
@@ -73,7 +77,7 @@ namespace AE::ResEditor
     private:
         bool  _InitVFS ();
 
-        ND_ ResEditorCore&  _Core ()                            __NE___ { return *Cast<ResEditorCore>( _impl.get() ); }
+        ND_ ResEditorCore&  _Core ()                            __NE___ { return RefCast<ResEditorCore>( GetBaseApp() ); }
     };
 
 
@@ -139,11 +143,14 @@ namespace AE::ResEditor
 
     // IBaseApp //
     private:
-        bool  OnSurfaceCreated (IOutputSurface &)                                   __NE_OV;
+        bool  OnSurfaceCreated (IWindow &)                                          __NE_OV;
         void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
         void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray &)                           __NE_OV;
+
         void  RenderFrame ()                                                        __NE_OV;
+        void  WaitFrame (const Threading::EThreadArray  &threadMask,
+                         Ptr<IWindow>                   window,
+                         Ptr<IVRDevice>                 vrDevice)                   __NE_OV;
 
         void  _InitInputActions (IInputActions &)                                   __NE___;
     };

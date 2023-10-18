@@ -18,7 +18,6 @@ class WndListener final : public IWindow::IWndListener
 {
 private:
     IApplication&   _app;
-    uint            _counter    = 0;
 
 public:
     WndListener (IApplication &app) __NE___ : _app{app} {}
@@ -36,19 +35,6 @@ public:
             case EState::Stopped :      AE_LOGI( "State: Stopped" );        break;
             case EState::Destroyed :    AE_LOGI( "State: Destroyed" );      break;
         }
-    }
-
-    void OnUpdate (IWindow &wnd) __NE_OV
-    {
-        if ( ++_counter == 100 )
-        {
-            wnd.Close();
-        }
-    }
-
-    void OnResize (IWindow &, const uint2 &) __NE_OV
-    {
-        AE_LOGI( "OnResize" );
     }
 
     void OnSurfaceCreated (IWindow &wnd) __NE_OV
@@ -94,6 +80,7 @@ class AppListener final : public IApplication::IAppListener
 {
 private:
     WindowPtr  _window;
+    uint        _counter    = 0;
 
 public:
     AppListener ()                          __NE___ {}
@@ -107,7 +94,11 @@ public:
     void OnStop (IApplication &)            __NE_OV {}
 
     void BeforeWndUpdate (IApplication &a)  __NE_OV {}
-    void AfterWndUpdate (IApplication &a)   __NE_OV {}
+    void AfterWndUpdate (IApplication &a)   __NE_OV
+    {
+        if ( ++_counter > 100 )
+            a.Terminate();
+    }
 };
 
 

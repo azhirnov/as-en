@@ -64,14 +64,14 @@ namespace
     #undef AE_FEATURE_SET_VISIT
 
     #define AE_FEATURE_SET_PER_DS( _visitor_ ) \
-        _visitor_( uint,    minInputAttachments );\
-        _visitor_( uint,    minSampledImages    );\
-        _visitor_( uint,    minSamplers         );\
-        _visitor_( uint,    minStorageBuffers   );\
-        _visitor_( uint,    minStorageImages    );\
-        _visitor_( uint,    minUniformBuffers   );\
-        _visitor_( uint,    minAccelStructures  );\
-        _visitor_( uint,    minTotalResources   );\
+        _visitor_( uint,    maxInputAttachments );\
+        _visitor_( uint,    maxSampledImages    );\
+        _visitor_( uint,    maxSamplers         );\
+        _visitor_( uint,    maxStorageBuffers   );\
+        _visitor_( uint,    maxStorageImages    );\
+        _visitor_( uint,    maxUniformBuffers   );\
+        _visitor_( uint,    maxAccelStructures  );\
+        _visitor_( uint,    maxTotalResources   );\
 
     #define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )   static void  Set_FS_perDescrSet_ ## _name_ (ScriptFeatureSet *ptr, const _type_ val) { ptr->fs.perDescrSet._name_ = val; }
     AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
@@ -198,11 +198,11 @@ namespace
     }
 
     static void  FS_minSpirvVersion (ScriptFeatureSet *ptr, uint val) {
-        ptr->fs.minShaderVersion.spirv = CheckCast<ushort>(val);
+        ptr->fs.maxShaderVersion.spirv = CheckCast<ushort>(val);
     }
 
     static void  FS_minMetalVersion (ScriptFeatureSet *ptr, uint val) {
-        ptr->fs.minShaderVersion.metal = CheckCast<ushort>(val);
+        ptr->fs.maxShaderVersion.metal = CheckCast<ushort>(val);
     }
 
     static void  FS_supportedQueues (ScriptFeatureSet *ptr, EQueueMask val) {
@@ -422,7 +422,7 @@ namespace
                 &Set_FS_storageTexBufferAtomicFormats, &Set_FS_linearSampledFormats,
                 &Set_FS_framebufferColorSampleCounts, &Set_FS_framebufferDepthSampleCounts,
                 &Set_FS_surfaceFormats, &Set_FS_vendorIds, &Set_FS_devicesIds, &Set_FS_accelStructVertexFormats,
-                &Set_FS_minShaderVersion, &Set_FS_queues, &Set_FS_hwCompressedAttachmentFormats,
+                &Set_FS_maxShaderVersion, &Set_FS_queues, &Set_FS_hwCompressedAttachmentFormats,
                 &Set_FS_lossyCompressedAttachmentFormats, &Set_FS_fragmentShadingRates, &Set_FS_fragmentShadingRateTexelSize );
     }
 

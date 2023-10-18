@@ -132,7 +132,7 @@ namespace AE::AssetPacker
         ImageMemView    src{ tmp->ToView() };
         RWImageMemView  dst{ img->ToView() };
 
-        CHECK_THROW_MSG( dst.Copy( uint3{}, uint3{region.Min(), 0}, src, dst.Dimension() ));
+        CHECK_THROW_MSG( dst.CopyFrom( uint3{}, uint3{region.Min(), 0}, src, dst.Dimension() ));
 
         return img;
     }
@@ -234,7 +234,7 @@ namespace AE::AssetPacker
 
         CHECK_THROW_MSG( dst.Fill( RGBA32f{0.f} ) or dst.Fill( RGBA32u{0} ));
 
-        CHECK_THROW_MSG( dst.Copy( uint3{}, uint3{}, src, Min( src.Dimension(), dst.Dimension() )));
+        CHECK_THROW_MSG( dst.CopyFrom( uint3{}, uint3{}, src, Min( src.Dimension(), dst.Dimension() )));
     }
 
 /*
@@ -316,32 +316,16 @@ namespace AE::AssetPacker
 
         // serialize
         {
-            ImagePacker     packer;
-            packer.header.version       = ImagePacker::Version;
-            packer.header.dimension     = ushort3{dst_image.Dimension()};
-            packer.header.arrayLayers   = CheckCast<ushort>(dst_image.ArrayLayers());
-            packer.header.mipmaps       = CheckCast<ushort>(dst_image.MipLevels());
-            packer.header.format        = _dstFormat;
-            packer.header.viewType      = dst_image.GetType();
-            packer.header.flags         = 0;
-            packer.header.rowSize       = uint(dst_image.RowPitch());
+            ImagePacker::Header img_hdr;
+            img_hdr.dimension   = ushort3{dst_image.Dimension()};
+            img_hdr.arrayLayers = CheckCast<ushort>(dst_image.ArrayLayers());
+            img_hdr.mipmaps     = CheckCast<ushort>(dst_image.MipLevels());
+            img_hdr.format      = _dstFormat;
+            img_hdr.viewType    = dst_image.GetType();
 
+            ImagePacker     packer {img_hdr};
             CHECK_ERR( packer.SaveHeader( *stream ));
-
-            const auto& img_data = dst_image.GetData();
-
-            for (usize mip = 0; mip < img_data.size(); ++mip)
-            {
-                const auto& layers = img_data[mip];
-
-                for (usize layer = 0; layer < layers.size(); ++layer)
-                {
-                    ImageMemView    dst_view = dst_image.ToView( MipmapLevel{mip}, ImageLayer{layer} );
-
-                    CHECK_ERR( packer.SaveImage( *stream, dst_view ));
-                    // TODO: validate
-                }
-            }
+            CHECK_ERR( packer.SaveImage( *stream, dst_image ));
         }
         return true;
     }

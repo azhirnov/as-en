@@ -25,7 +25,7 @@ namespace AE::Graphics
         DRC_EXLOCK( _drCheck );
 
         CATCH_ERR(
-            _sbtAllocator = MakeRC<VLinearMemAllocator>();
+            _sbtAllocator = desc.sbtAllocator;
 
             return _Create( resMngr, desc );
         )
@@ -325,6 +325,7 @@ namespace AE::Graphics
 
         VulkanMemoryObjInfo     mem_info;
         CHECK_ERR( resMngr.GetMemoryInfo( buf_id.Get(), OUT mem_info ));
+        CHECK_ERR( mem_info.mappedPtr != null );
 
         RTShaderBindingTable    sbt;
         Bytes                   offset;
@@ -365,21 +366,21 @@ namespace AE::Graphics
         sbt.callable.stride         = VkDeviceSize(handle_stride);
         offset                      = AlignUp( offset + desc.callable.size() * handle_stride, offset_align );
 
-        ASSERT( IsAligned( sbt.raygen.deviceAddress, offset_align ));
-        ASSERT( IsAligned( sbt.miss.deviceAddress, offset_align ));
-        ASSERT( IsAligned( sbt.hit.deviceAddress, offset_align ));
-        ASSERT( IsAligned( sbt.callable.deviceAddress, offset_align ));
+        ASSERT( IsMultipleOf( sbt.raygen.deviceAddress, offset_align ));
+        ASSERT( IsMultipleOf( sbt.miss.deviceAddress, offset_align ));
+        ASSERT( IsMultipleOf( sbt.hit.deviceAddress, offset_align ));
+        ASSERT( IsMultipleOf( sbt.callable.deviceAddress, offset_align ));
         CHECK_ERR( offset == sbt_size );
 
         RTShaderBindingDesc     sbt_desc;
-        sbt_desc.hitGroupStride = desc.hitGroupStride;
-        sbt_desc.maxMissShaders = desc.miss.size();
-        sbt_desc.maxInstances   = uint(SafeDiv( desc.hit.size(), desc.hitGroupStride ));
+        sbt_desc.maxRayTypes    = Max( desc.numRayTypes, desc.miss.size() );
+        sbt_desc.maxInstances   = uint(SafeDiv( desc.hit.size(), desc.numRayTypes ));
+        sbt_desc.maxCallable    = desc.callable.size();
 
-        ASSERT( IsAligned( desc.hit.size(), desc.hitGroupStride ));
-        ASSERT( sbt_desc.hitGroupStride == desc.hitGroupStride );                   // overflow
-        ASSERT( sbt_desc.maxMissShaders == desc.miss.size() );                      // overflow
-        ASSERT( sbt_desc.maxInstances * desc.hitGroupStride == desc.hit.size() );   // overflow
+        ASSERT( desc.hit.empty() or IsMultipleOf( desc.hit.size(), desc.numRayTypes ));
+        ASSERT( sbt_desc.maxRayTypes == Max( desc.numRayTypes, desc.miss.size() )); // overflow
+        ASSERT( sbt_desc.maxCallable == desc.callable.size() );                     // overflow
+        ASSERT( sbt_desc.maxInstances * desc.numRayTypes == desc.hit.size() );      // overflow
 
         auto    id = resMngr.CreateRTShaderBinding( VRTShaderBindingTable::CreateInfo{
                                                         sbt, buf_id, ppln_id, sbt_desc, dbgName

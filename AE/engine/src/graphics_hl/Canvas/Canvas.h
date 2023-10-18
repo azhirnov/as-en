@@ -131,7 +131,7 @@ namespace AE::Graphics
         ~Canvas ()                                                                                                      __NE___ {}
 
         void  SetDimensions (const SurfaceDimensions &dim)                                                              __NE___ { _surfDim = dim; }
-        void  SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel)                                   __NE___ { _surfDim.SetDimensions( surfaceSizeInPix, mmPerPixel ); }
+        void  SetDimensions (const uint2 &surfaceSizeInPix, float mmPerPixel)                                           __NE___ { _surfDim.SetDimensions( surfaceSizeInPix, mmPerPixel ); }
         void  SetDimensions (const App::IOutputSurface::RenderTarget &rt)                                               __NE___ { _surfDim.SetDimensions( rt ); }
 
         ND_ SurfaceDimensions const&  Dimensions ()                                                                     C_NE___ { return _surfDim; }

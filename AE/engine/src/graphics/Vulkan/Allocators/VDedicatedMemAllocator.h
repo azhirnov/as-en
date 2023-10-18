@@ -1,5 +1,17 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    From [NV blog post](https://developer.nvidia.com/whats-your-vulkan-memory-type):
 
+    Advanced memory features - such as memory aliasing or sparse binding - could interfere with optimizations
+    like framebuffer compression or efficient page table usage. These optimizations are important for performance
+    of render targets and very large resources, which typically do not use memory aliasing or sparse binding.
+
+    On some devices this can significantly improve the performance of that resource.
+    Where the application was more memory bandwidth limited, we've seen performance improvements of ~15%.
+    Additionally, dedicated allocations improve the opportunities for the OS/driver to handle
+    global video memory oversubscription by paging allocations between video memory to system memory,
+    e.g. when another resource demanding application is running concurrently and thus competing for device local memory.
+*/
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
@@ -31,7 +43,6 @@ namespace AE::Graphics
         alignas(AE_CACHE_LINE)
           Atomic<int>           _counter {0};
 
-        VDevice const&          _device;
         const bool              _supportDedicated;
 
 
@@ -55,8 +66,8 @@ namespace AE::Graphics
 
 
     private:
-        ND_ static Data &       _CastStorage (Storage_t &data)          { return *data.Ptr<Data>(); }
-        ND_ static Data const&  _CastStorage (const Storage_t &data)    { return *data.Ptr<Data>(); }
+        ND_ static Data &       _CastStorage (Storage_t &data)          __NE___ { return *data.Ptr<Data>(); }
+        ND_ static Data const&  _CastStorage (const Storage_t &data)    __NE___ { return *data.Ptr<Data>(); }
     };
 
 

@@ -54,8 +54,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  RayTracingPass::Execute (SyncPassData &pd) __NE___
+    bool  RayTracingPass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
 
@@ -93,11 +96,27 @@ namespace AE::ResEditor
         DescriptorSetID         ds  = _descSets[ ctx.GetFrameId().Index() ];
 
         _resources.SetStates( ctx, Default );
+        ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
         ctx.CommitBarriers();
 
         ctx.BindPipeline( ppln );
         ctx.BindDescriptorSet( _dsIndex, ds );
         if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+        // from Vulkan specs:
+        // https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#ray-tracing-pipeline-stack
+        {
+            const int   max_ray_recursion   = _maxRayRecursion ? _maxRayRecursion->Get() : 31;
+            const uint  max_call_recursion  = _maxCallRecursion ? _maxCallRecursion->Get() : 2;
+
+            const Bytes stack_size =
+                    uint(Min( 1, max_ray_recursion )) * Bytes{Max( _closestHitStackMax, _missStackMax, _intersectionStackMax, _anyHitStackMax )} +
+                    uint(Max( 0, max_ray_recursion-1 )) * Bytes{Max( _closestHitStackMax, _missStackMax )} +
+                    Max( 2u, max_call_recursion ) * Bytes{_callableStackMax} +
+                    _rayGenStackMax;
+
+            ctx.SetStackSize( stack_size );
+        }
 
         for (const auto& it : _iterations)
         {
@@ -123,7 +142,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  RayTracingPass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  RayTracingPass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
     {
         CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
@@ -135,7 +154,7 @@ namespace AE::ResEditor
             ub_data.timeDelta   = pd.frameTime.count();
             ub_data.frame       = _dynData.frame;
             ub_data.seed        = pd.seed;
-            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+            ub_data.mouse       = pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
             ub_data.customKeys  = pd.customKeys[0];
 
             if ( _controller )

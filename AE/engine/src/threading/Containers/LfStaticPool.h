@@ -24,7 +24,7 @@ namespace AE::Threading
              >
     class LfStaticPool final : public Noncopyable
     {
-        STATIC_ASSERT( Count > 0 and IsAligned( Count, 32 ));
+        STATIC_ASSERT( Count > 0 and IsMultipleOf( Count, 32 ));
 
     // types
     public:
@@ -37,7 +37,7 @@ namespace AE::Threading
         static constexpr usize  ChunkSize   = Count < 32*12 ? 32 : 64;
         static constexpr usize  ChunksCount = Count / ChunkSize;
 
-        STATIC_ASSERT( IsAligned( Count, ChunkSize ));
+        STATIC_ASSERT( IsMultipleOf( Count, ChunkSize ));
 
         using Bitfield_t    = Conditional< (ChunkSize <= 32), uint, ulong >;
 

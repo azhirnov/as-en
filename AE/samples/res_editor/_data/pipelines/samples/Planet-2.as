@@ -162,7 +162,7 @@
 
         Out.texcoord = texc;
         pos.xyz      = surf_n * (1.0 + height);
-        gl.Position  = LocalPosToScreenSpace( pos );
+        gl.Position  = LocalPosToClipSpace( pos );
     }
 
 #endif

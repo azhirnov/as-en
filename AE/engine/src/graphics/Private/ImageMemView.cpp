@@ -514,8 +514,8 @@ namespace
 
         const auto& fmt_info = EPixelFormat_GetInfo( format );
 
-        _texBlockSize = CheckCast<ubyte2>( fmt_info.blockSize );
-        ASSERT( All( _texBlockSize > ubyte2{0} ));
+        _texBlockDim = fmt_info.blockDim;
+        ASSERT( All( _texBlockDim > ubyte2{0} ));
 
         if ( _aspect == EImageAspect::Stencil )
         {
@@ -636,33 +636,33 @@ namespace
 
 /*
 =================================================
-    Copy
+    CopyFrom
 =================================================
 */
-    bool  ImageMemView::Copy (const ImageMemView &src) __NE___
+    bool  ImageMemView::CopyFrom (const ImageMemView &src) __NE___
     {
         if_unlikely( Any( Dimension() != src.Dimension() ))
             return false;
 
         Bytes   data_size;
-        return Copy( uint3{}, uint3{}, src, Dimension(), OUT data_size );
+        return CopyFrom( uint3{}, uint3{}, src, Dimension(), OUT data_size );
     }
 
-    bool  ImageMemView::Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim) __NE___
+    bool  ImageMemView::CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim) __NE___
     {
         Bytes   data_size;
-        return Copy( dstOffset, srcOffset, srcImage, dim, OUT data_size );
+        return CopyFrom( dstOffset, srcOffset, srcImage, dim, OUT data_size );
     }
 
-    bool  ImageMemView::Copy (const ImageMemView &src, OUT Bytes &dataSize) __NE___
+    bool  ImageMemView::CopyFrom (const ImageMemView &src, OUT Bytes &written) __NE___
     {
         if_unlikely( Any( Dimension() != src.Dimension() ))
             return false;
 
-        return Copy( uint3{}, uint3{}, src, Dimension(), OUT dataSize );
+        return CopyFrom( uint3{}, uint3{}, src, Dimension(), OUT written );
     }
 
-    bool  ImageMemView::Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &written) __NE___
+    bool  ImageMemView::CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &written) __NE___
     {
         written = 0_b;
 
@@ -682,7 +682,7 @@ namespace
 
         ASSERT( this->_bitsPerBlock == srcImage._bitsPerBlock );
 
-        const Bytes     row_size        = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexelBlockSize() );
+        const Bytes     row_size        = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexBlockDim() );
         const Bytes     dst_row_pitch   = this->RowPitch();
         const Bytes     src_row_pitch   = srcImage.RowPitch();
         const Bytes     dst_slice_pitch = this->SlicePitch();
@@ -740,6 +740,25 @@ namespace
 
 /*
 =================================================
+    CopyTo
+=================================================
+*/
+    bool  ImageMemView::CopyTo (OUT void* data, const Bytes size) C_NE___
+    {
+        CHECK_ERR( size == ContentSize() );
+
+        Bytes   offset;
+        for (auto& part : _content.Parts())
+        {
+            MemCopy( OUT data + offset, part.ptr, part.size );
+            offset += part.size;
+        }
+        ASSERT( offset == size );
+        return true;
+    }
+
+/*
+=================================================
     Compare
 =================================================
 */
@@ -766,7 +785,7 @@ namespace
 
         ASSERT( this->_bitsPerBlock == rhsImage._bitsPerBlock );
 
-        const Bytes     row_size        = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexelBlockSize() );
+        const Bytes     row_size        = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexBlockDim() );
         const Bytes     lhs_row_pitch   = this->RowPitch();
         const Bytes     rhs_row_pitch   = rhsImage.RowPitch();
         const Bytes     lhs_slice_pitch = this->SlicePitch();
@@ -1385,7 +1404,7 @@ namespace
         }
 
         if ( this->_format == srcImage._format )
-            return Copy( dstOffset, srcOffset, srcImage, dim );
+            return CopyFrom( dstOffset, srcOffset, srcImage, dim );
 
         LoadPixelFn_t   load    = null;
         StorePixelFn_t  store   = null;
@@ -1418,8 +1437,8 @@ namespace
         }
         CHECK_ERR( load != null and store != null );
 
-        const Bytes     src_row_size    = ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexelBlockSize() );
-        const Bytes     dst_row_size    = ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexelBlockSize() );
+        const Bytes     src_row_size    = ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
+        const Bytes     dst_row_size    = ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexBlockDim() );
 
         for (uint z = 0; z < dim.z; ++z)
         {
@@ -1527,8 +1546,8 @@ namespace
             return false;
         }
 
-        const Bytes     src_row_size    = ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexelBlockSize() );
-        const Bytes     dst_row_size    = ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexelBlockSize() );
+        const Bytes     src_row_size    = ImageUtils::RowSize( dim.x, srcImage._bitsPerBlock, srcImage.TexBlockDim() );
+        const Bytes     dst_row_size    = ImageUtils::RowSize( dim.x, this->_bitsPerBlock, this->TexBlockDim() );
 
         for (uint z = 0; z < dim.z; ++z)
         {
@@ -1606,7 +1625,7 @@ namespace
         CHECK_ERR( All( offset + dim <= Dimension() ));
 
         const auto&     fmt_info    = EPixelFormat_GetInfo( _format );
-        const Bytes     row_size    = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexelBlockSize() );
+        const Bytes     row_size    = ImageUtils::RowSize( dim.x, _bitsPerBlock, TexBlockDim() );
         const Bytes     pix_size    = Bytes{fmt_info.BitsPerPixel() / 8};
 
         CHECK_ERR( not fmt_info.IsCompressed() );

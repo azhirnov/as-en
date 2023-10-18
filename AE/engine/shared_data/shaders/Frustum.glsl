@@ -13,6 +13,11 @@ ND_ bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, cons
 //-----------------------------------------------------------------------------
 
 
+/*
+=================================================
+    Frustum_TestSphere
+=================================================
+*/
 bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, const float radius)
 {
     bool  is_visible = true;

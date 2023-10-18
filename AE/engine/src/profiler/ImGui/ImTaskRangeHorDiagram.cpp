@@ -175,7 +175,7 @@ namespace AE::Profiler
             f.sortedThreads.push_back( CheckCast<InfoIndex>(f.threadInfos.size()) );
 
             RGBA8u  tcolor;
-            PseudoRandom::IntToColor( OUT tcolor, threadId );
+            IntToColor( OUT tcolor, threadId );
 
             f.threadInfos.push_back( ThreadInfo{ threadCaption, tcolor });
         }

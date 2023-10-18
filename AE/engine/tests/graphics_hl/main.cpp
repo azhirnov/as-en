@@ -42,8 +42,6 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
         ~WndListener () override {}
 
         void OnStateChanged (IWindow &, EState)     __NE_OV {}
-        void OnResize (IWindow &, const uint2 &)    __NE_OV {}
-        void OnUpdate (IWindow &)                   __NE_OV {}
         void OnSurfaceDestroyed (IWindow &)         __NE_OV {}
 
         void OnSurfaceCreated (IWindow &wnd)        __NE_OV

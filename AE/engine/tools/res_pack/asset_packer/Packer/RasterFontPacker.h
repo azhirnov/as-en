@@ -79,35 +79,46 @@ namespace AE::AssetPacker
         using GlyphMap_t    = FlatHashMap< GlyphKey, Glyph, DefaultHasher_CalcHash<GlyphKey> >;
         using SizeArr_t     = FixedArray< ubyte, 16 >;      // size in pixels which is supported
 
-        using ImageData     = ImagePacker::ImageData;
-
         static constexpr ushort     Version     = 2;
-        static constexpr uint       Magic       = uint("gr.RFnt"_StringToID);
+        static constexpr uint       Magic       = "gr.RFnt"_Hash;
+
+        struct Header2
+        {
+            uint                magic       = Magic;
+            ushort              version     = Version;
+            ImagePacker::Header hdr;
+
+            Header2 ()                                      __NE___ = default;
+            explicit Header2 (const ImagePacker::Header &h) __NE___ : hdr{h} {}
+        };
+        STATIC_ASSERT( sizeof(Header2) == 24 );
 
 
     // variables
+    private:
+        Header2             _header;
     public:
-        uint                    magic       = Magic;
-        ushort                  version     = Version;
-        ImagePacker::Header     header;
+        SDFConfig           sdfConfig;
 
-        SDFConfig               sdfConfig;
-
-        GlyphMap_t              glyphMap;
-        SizeArr_t               fontHeight;
+        GlyphMap_t          glyphMap;
+        SizeArr_t           fontHeight;
 
 
     // methods
     public:
+        RasterFontPacker ()                                                         __NE___ {}
+        explicit RasterFontPacker (const ImagePacker::Header &h)                    __NE___ : _header{h} {}
 
-        ND_ bool  IsValid ()                                            const;
+        ND_ bool  IsValid ()                                                        C_NE___;
 
-            bool  SaveImage (WStream &stream, const ImageMemView &src);
-            bool  ReadImage (RStream &stream, INOUT ImageData &)        const;
+            bool  SaveImage (WStream &stream, const ResLoader::IntermImage &src)    C_NE___;
+
+        ND_ ImagePacker::Header const&  Header ()                                   C_NE___ { return _header.hdr; }
+
 
         // ISerializable
-            bool  Serialize (Serializing::Serializer &)                 C_NE_OV;
-            bool  Deserialize (Serializing::Deserializer &)             __NE_OV;
+            bool  Serialize (Serializing::Serializer &)                             C_NE_OV;
+            bool  Deserialize (Serializing::Deserializer &)                         __NE_OV;
     };
 
 
@@ -115,6 +126,7 @@ namespace AE::AssetPacker
 
 namespace AE::Base
 {
+    template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Header2 >     { static constexpr bool  value = true; };
     template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::SDFConfig >   { static constexpr bool  value = true; };
     template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::GlyphKey >    { static constexpr bool  value = true; };
     template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Glyph >       { static constexpr bool  value = true; };

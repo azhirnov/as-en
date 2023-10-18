@@ -15,7 +15,7 @@ namespace
         AsyncTask                   result;
         CommandBatchPtr             batch;
         bool                        isOK        = false;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
 
@@ -46,7 +46,7 @@ namespace
             ctx.UploadImage( t.img_1, upload, OUT upload_mem );
 
             Bytes   copied;
-            CHECK_TE( upload_mem.Copy( t.img_view, OUT copied ) and
+            CHECK_TE( upload_mem.CopyFrom( t.img_view, OUT copied ) and
                       copied == t.img_view.Image2DSize() );
 
             ctx.AccumBarriers()
@@ -95,7 +95,7 @@ namespace
         const Bytes     src_row_pitch   = src_dim.x * bpp;
         const auto      format          = EPixelFormat::RGBA8_UNorm;
 
-        t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         t.img_1 = res_mngr.CreateImage( ImageDesc{}.SetDimension( src_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "SrcImage", t.gfxAlloc );
         t.img_2 = res_mngr.CreateImage( ImageDesc{}.SetDimension( dst_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "DstImage", t.gfxAlloc );

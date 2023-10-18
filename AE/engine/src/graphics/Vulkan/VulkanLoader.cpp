@@ -329,7 +329,7 @@ namespace {
             VK_COMPAT( vkCmdDispatchBaseKHR,                    vkCmdDispatchBase                   );
             */
         }
-        
+
         if ( version >= Version2{1,2} )
         {
           // VK_KHR_draw_indirect_count

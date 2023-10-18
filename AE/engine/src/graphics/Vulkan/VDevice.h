@@ -8,6 +8,7 @@
 # include "graphics/Public/FeatureSet.h"
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Vulkan/VQueue.h"
+# include "graphics/Vulkan/Utils/RenderDocApi.h"
 # include "VulkanExtEmulation.h"
 
 namespace AE::Graphics
@@ -21,9 +22,9 @@ namespace AE::Graphics
     {
     // types
     public:
-        using InstanceVersion   = TVersion2< "VkInstance"_StringToID >;
-        using DeviceVersion     = TVersion2< "VkDevice"_StringToID >;
-        using SpirvVersion      = TVersion2< "SPIRV"_StringToID >;
+        using InstanceVersion   = TVersion2< "VkInstance"_Hash >;
+        using DeviceVersion     = TVersion2< "VkDevice"_Hash >;
+        using SpirvVersion      = TVersion2< "SPIRV"_Hash >;
 
         #define VKFEATS_STRUCT
         #include "vulkan_loader/vk_features.h"
@@ -44,10 +45,19 @@ namespace AE::Graphics
         using QueueFamilyProperties_t   = FixedArray< VkQueueFamilyProperties, MaxQueueFamilies >;
         using QueueCount_t              = FixedArray< uint, MaxQueueFamilies >;
 
+        using MemTypeToTypeBits_t   = FixedMap< EMemoryType, uint, 8 >;
+        using MemHeapToMemType_t    = StaticArray< ubyte, VK_MAX_MEMORY_HEAPS >;
+
 
     // variables
     protected:
         VkDevice                _vkLogicalDevice        = Default;
+
+        DeviceProperties        _devProps;              // platform independent
+        ResourceFlags           _resFlags;
+
+        MemTypeToTypeBits_t     _memTypeToBits;
+        MemHeapToMemType_t      _memHeapToType;
 
         EQueueMask              _queueMask              = Default;
         QueueTypes_t            _queueTypes             = {};
@@ -59,23 +69,22 @@ namespace AE::Graphics
         DeviceVersion           _vkDeviceVersion;
         SpirvVersion            _spirvVersion;
 
-        DeviceProperties        _devProps;              // platform independent
-        VExtensions             _extensions;            // large
-
-        VulkanDeviceFnTable     _deviceFnTable;         // large
-        ResourceFlags           _resFlags;
-
-        ExtensionSet_t          _instanceExtensions;
-        ExtensionSet_t          _deviceExtensions;
-
-        VProperties             _properties;            // very large
+        // tools
+        RenderDocApi            _rdc;
 
         NO_UNIQUE_ADDRESS
           VulkanExtEmulation    _extEmulation;
 
         DRC_ONLY(
-            RWDataRaceCheck     _drCheck;
-        )
+            RWDataRaceCheck     _drCheck;)
+
+        VExtensions             _extensions;            // large
+        VulkanDeviceFnTable     _deviceFnTable;         // large
+
+        ExtensionSet_t          _instanceExtensions;
+        ExtensionSet_t          _deviceExtensions;
+
+        VProperties             _properties;            // very large
 
 
     // methods
@@ -102,6 +111,9 @@ namespace AE::Graphics
 
         ND_ bool                    IsInitialized ()                                C_NE___ { return GetVkDevice() != Default; }
 
+        ND_ RenderDocApi const&     GetRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc; }
+        ND_ bool                    HasRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }
+
         ND_ DevMemoryInfoOpt        GetMemoryUsage ()                               C_NE___;
 
         ND_ bool                    IsUnderDebugger ()                              C_NE___;
@@ -125,6 +137,8 @@ namespace AE::Graphics
                                       OUT uint &memoryTypeIndex)                    C_NE___;
         ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType,
                                       OUT uint &memoryTypeIndex)                    C_NE___;
+
+        ND_ uint  GetMemoryTypeBits (EMemoryType)                                   C_NE___;
 
         ND_ bool  CheckConstantLimits ()                                            C_NE___;
         ND_ bool  CheckExtensions ()                                                C_NE___;
@@ -222,6 +236,10 @@ namespace AE::Graphics
 
         ND_ InstanceVersion  GetMaxInstanceVersion ()                                               C_NE___;
 
+            bool  LoadNvPerf ()                                                                     __NE___;
+            bool  LoadArmProfiler ()                                                                __NE___;
+            bool  LoadRenderDoc ()                                                                  __NE___;
+
         ND_ bool  CreateInstance (const InstanceCreateInfo &ci)                                     __NE___;
 
         //ND_ bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)                    __NE___;
@@ -272,6 +290,8 @@ namespace AE::Graphics
         void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion)                     C_NE___;
         void  _SetResourceFlags (OUT ResourceFlags &)                                                                   C_NE___;
         void  _OnCreateInstance (ArrayView<const char*> instanceExtensions, ArrayView<const char*> instanceLayers)      __Th___;
+        void  _InitMemoryTypeToTypeBits (OUT MemTypeToTypeBits_t &)                                                     C_Th___;
+        void  _InitMemHeapToMemType (OUT MemHeapToMemType_t &)                                                          C_Th___;
 
         void  _LogInstance (ArrayView<const char*> instanceLayers)                                                      C_Th___;
         void  _LogPhysicalDevices ()                                                                                    C_NE___;

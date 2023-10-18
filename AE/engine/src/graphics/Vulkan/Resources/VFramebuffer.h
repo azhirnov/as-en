@@ -79,9 +79,6 @@ namespace AE::Graphics
         ND_ ArrayView<ImageID>      Images ()           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _images; }
 
         DEBUG_ONLY( ND_ StringView  GetDebugName ()     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
-
-    private:
-        ND_ bool  _Create (VResourceManager &, const RenderPassDesc &desc, StringView dbgName) __NE___;
     };
 
 

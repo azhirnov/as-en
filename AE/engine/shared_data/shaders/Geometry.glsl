@@ -30,6 +30,7 @@ ND_ bool  IsInsideCircle (const float2 pos, const float3 center_radius)         
 
 ND_ float2  Rect_Center (const float4 rect)                                                 { return (rect.xy * 0.5f) + (rect.zw * 0.5f); }
 ND_ float2  Rect_Size (const float4 rect)                                                   { return rect.zw - rect.xy; }
+ND_ float2  Rect_HalfSize (const float4 rect)                                               { return (rect.zw - rect.xy) * 0.5; }
 //-----------------------------------------------------------------------------
 
 

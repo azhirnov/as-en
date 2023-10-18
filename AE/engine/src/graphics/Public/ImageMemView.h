@@ -34,7 +34,7 @@ namespace AE::Graphics
         ushort3             _offset;
         ushort3             _dimension;
         ushort              _bitsPerBlock   = 0;
-        ubyte2              _texBlockSize;
+        ubyte2              _texBlockDim;
         EPixelFormat        _format         = Default;
         EImageAspect        _aspect         = Default;
 
@@ -49,55 +49,55 @@ namespace AE::Graphics
         ImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
             ImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect } {}
 
-        ImageMemView (const ImageMemView &)             __NE___ = default;
-        ImageMemView (ImageMemView &&)                  __NE___ = default;
+        ImageMemView (const ImageMemView &)                 __NE___ = default;
+        ImageMemView (ImageMemView &&)                      __NE___ = default;
 
-        ImageMemView&  operator = (const ImageMemView &)__NE___ = default;
-        ImageMemView&  operator = (ImageMemView &&)     __NE___ = default;
+        ImageMemView&  operator = (const ImageMemView &)    __NE___ = default;
+        ImageMemView&  operator = (ImageMemView &&)         __NE___ = default;
 
-        ND_ uint3           Offset ()                   C_NE___ { return uint3{ _offset }; }
-        ND_ uint3           Dimension ()                C_NE___ { return uint3{ _dimension }; }
-        ND_ Bytes           RowPitch ()                 C_NE___ { return Bytes(_rowPitch); }
-        ND_ Bytes           SlicePitch ()               C_NE___ { return Bytes(_slicePitch); }
-        ND_ uint            BitsPerBlock ()             C_NE___ { return _bitsPerBlock; }
-        ND_ Bytes           BytesPerBlock ()            C_NE___ { return ImageUtils::BytesPerBlock( _bitsPerBlock, TexelBlockSize() ); }
-        ND_ Bytes           MinRowSize ()               C_NE___ { return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexelBlockSize() ); };
-        ND_ Bytes           MinSliceSize ()             C_NE___ { return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexelBlockSize() ); }
-        ND_ Bytes           Image2DSize ()              C_NE___ { return RowPitch() * _dimension.y; }
-        ND_ Bytes           Image3DSize ()              C_NE___ { return SlicePitch() * _dimension.z; }
-        ND_ Bytes           ContentSize ()              C_NE___ { return _content.DataSize(); }
-        ND_ EPixelFormat    Format ()                   C_NE___ { return _format; }
-        ND_ EImageAspect    Aspect ()                   C_NE___ { return _aspect; }
-        ND_ auto            Parts ()                    __NE___ { return _content.Parts(); }
-        ND_ auto            Parts ()                    C_NE___ { return _content.Parts(); }
-        ND_ bool            Empty ()                    C_NE___ { return _content.Empty(); }
-        ND_ uint2           TexelBlockSize ()           C_NE___ { return uint2{_texBlockSize}; }
-        ND_ uint2           TexelBlocks ()              C_NE___ { return uint2{_dimension.x, _dimension.y} / TexelBlockSize(); }
+        ND_ uint3           Offset ()                       C_NE___ { return uint3{ _offset }; }
+        ND_ uint3           Dimension ()                    C_NE___ { return uint3{ _dimension }; }
+        ND_ Bytes           RowPitch ()                     C_NE___ { return Bytes(_rowPitch); }
+        ND_ Bytes           SlicePitch ()                   C_NE___ { return Bytes(_slicePitch); }
+        ND_ uint            BitsPerBlock ()                 C_NE___ { return _bitsPerBlock; }
+        ND_ Bytes           BytesPerBlock ()                C_NE___ { return ImageUtils::BytesPerBlock( _bitsPerBlock, TexBlockDim() ); }
+        ND_ Bytes           MinRowSize ()                   C_NE___ { return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexBlockDim() ); };
+        ND_ Bytes           MinSliceSize ()                 C_NE___ { return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexBlockDim() ); }
+        ND_ Bytes           Image2DSize ()                  C_NE___ { return RowPitch() * _dimension.y; }
+        ND_ Bytes           Image3DSize ()                  C_NE___ { return SlicePitch() * _dimension.z; }
+        ND_ Bytes           ContentSize ()                  C_NE___ { return _content.DataSize(); }
+        ND_ EPixelFormat    Format ()                       C_NE___ { return _format; }
+        ND_ EImageAspect    Aspect ()                       C_NE___ { return _aspect; }
+        ND_ auto            Parts ()                        __NE___ { return _content.Parts(); }
+        ND_ auto            Parts ()                        C_NE___ { return _content.Parts(); }
+        ND_ bool            Empty ()                        C_NE___ { return _content.Empty(); }
+        ND_ uint2           TexBlockDim ()                  C_NE___ { return uint2{_texBlockDim}; }
+        ND_ uint2           TexelBlocks ()                  C_NE___ { return uint2{_dimension.x, _dimension.y} / TexBlockDim(); }
 
+            bool    PushBack (void *ptr, Bytes size)        __NE___ { return _content.PushBack( ptr, size ); }
 
-        bool  PushBack (void *ptr, Bytes size)          __NE___
-        {
-            return _content.PushBack( ptr, size );
-        }
+        ND_ Row_t   GetRow (uint y, uint z = 0)             __NE___;
+        ND_ CRow_t  GetRow (uint y, uint z = 0)             C_NE___;
 
-        ND_ Row_t   GetRow (uint y, uint z = 0)         __NE___;
-        ND_ CRow_t  GetRow (uint y, uint z = 0)         C_NE___;
+        ND_ Slice_t GetSlice (uint z)                       __NE___;
+        ND_ Slice_t GetSlice (uint z)                       C_NE___;
 
-        ND_ Slice_t  GetSlice (uint z)                  __NE___;
-        ND_ Slice_t  GetSlice (uint z)                  C_NE___;
+        ND_ Pixel_t GetPixel (const uint3 &point)           C_NE___;
 
-        ND_ Pixel_t  GetPixel (const uint3 &point)      C_NE___;
-
-        ND_ bool  operator == (const ImageMemView &rhs) C_NE___ { return Compare( rhs ) == 0_b; }
+        ND_ bool    operator == (const ImageMemView &rhs)   C_NE___ { return Compare( rhs ) == 0_b; }
 
 
-        // returns number of copied bytes
-            bool  Copy (const ImageMemView &src, OUT Bytes &dataSize)                                                                           __NE___;
-            bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize)    __NE___;
-        ND_ bool  Copy (const ImageMemView &src)                                                                                                __NE___;
-        ND_ bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim)                         __NE___;
+        // 'dataSize' - number of copied bytes.
+        // Returns 'true' if all required data are copied.
+            bool  CopyFrom (const ImageMemView &src, OUT Bytes &dataSize)                                                                           __NE___;
+            bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize)    __NE___;
+        ND_ bool  CopyFrom (const ImageMemView &src)                                                                                                __NE___;
+        ND_ bool  CopyFrom (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim)                         __NE___;
 
-        // returns how much bytes are different
+        // Returns 'true' if all required data are copied.
+        ND_ bool  CopyTo (OUT void* data, Bytes size)       C_NE___;
+
+        // Returns how much bytes are different.
         ND_ Bytes  Compare (const ImageMemView &rhs)                                                                        C_NE___;
         ND_ Bytes  Compare (const uint3 &lhsOffset, const uint3 &rhsOffset, const ImageMemView &rhsImage, const uint3 &dim) C_NE___;
     };
@@ -165,54 +165,15 @@ namespace AE::Graphics
         RWImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
             RWImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect } {}
 
-        void  Load (const uint3 &point, OUT RGBA32f &col)           C_NE___
-        {
-            ASSERT( _loadF4 );
-            _loadF4( GetRow( point.y, point.z ), point.x, OUT col );
-        }
+        void  Load (const uint3 &point, OUT RGBA32f &col)           C_NE___ { ASSERT( _loadF4 != null );    _loadF4( GetRow( point.y, point.z ), point.x, OUT col ); }
+        void  Load (const uint3 &point, OUT RGBA32u &col)           C_NE___ { ASSERT( _loadU4 != null );    _loadU4( GetRow( point.y, point.z ), point.x, OUT col ); }
+        void  Load (const uint3 &point, OUT RGBA32i &col)           C_NE___ { ASSERT( _loadI4 != null );    _loadI4( GetRow( point.y, point.z ), point.x, OUT col ); }
+        void  Load (const uint3 &point, OUT DepthStencil &ds)       C_NE___ { ASSERT( _loadDS != null );    _loadDS( GetRow( point.y, point.z ), point.x, OUT ds ); }
 
-        void  Load (const uint3 &point, OUT RGBA32u &col)           C_NE___
-        {
-            ASSERT( _loadU4 );
-            return _loadU4( GetRow( point.y, point.z ), point.x, OUT col );
-        }
-
-        void  Load (const uint3 &point, OUT RGBA32i &col)           C_NE___
-        {
-            ASSERT( _loadI4 );
-            return _loadI4( GetRow( point.y, point.z ), point.x, OUT col );
-        }
-
-        void  Load (const uint3 &point, OUT DepthStencil &ds)       C_NE___
-        {
-            ASSERT( _loadDS );
-            return _loadDS( GetRow( point.y, point.z ), point.x, OUT ds );
-        }
-
-
-        void  Store (const uint3 &point, const RGBA32f &col)        __NE___
-        {
-            ASSERT( _storeF4 );
-            _storeF4( GetRow( point.y, point.z ), point.x, col );
-        }
-
-        void  Store (const uint3 &point, const RGBA32u &col)        __NE___
-        {
-            ASSERT( _storeU4 );
-            return _storeU4( GetRow( point.y, point.z ), point.x, col );
-        }
-
-        void  Store (const uint3 &point, const RGBA32i &col)        __NE___
-        {
-            ASSERT( _storeI4 );
-            return _storeI4( GetRow( point.y, point.z ), point.x, col );
-        }
-
-        void  Store (const uint3 &point, const DepthStencil &ds)    __NE___
-        {
-            ASSERT( _storeDS );
-            return _storeDS( GetRow( point.y, point.z ), point.x, ds );
-        }
+        void  Store (const uint3 &point, const RGBA32f &col)        __NE___ { ASSERT( _storeF4 != null );   _storeF4( GetRow( point.y, point.z ), point.x, col ); }
+        void  Store (const uint3 &point, const RGBA32u &col)        __NE___ { ASSERT( _storeU4 != null );   _storeU4( GetRow( point.y, point.z ), point.x, col ); }
+        void  Store (const uint3 &point, const RGBA32i &col)        __NE___ { ASSERT( _storeI4 != null );   _storeI4( GetRow( point.y, point.z ), point.x, col ); }
+        void  Store (const uint3 &point, const DepthStencil &ds)    __NE___ { ASSERT( _storeDS != null );   _storeDS( GetRow( point.y, point.z ), point.x, ds ); }
 
         // convert between different formats without filtering
         ND_ bool  Blit (const RWImageMemView &src)                                                                          __NE___;

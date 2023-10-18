@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Default signed distance fields.
 */
@@ -54,6 +55,8 @@ ND_ float  SDF_OpExtrusion (const float posZ, const float dist, const float heig
 #if 0 // macros
 ND_ float  SDF_OpRevolution (const float3 position, float (*sdf)(float2), float offset);
 #endif
+ND_ float2  SDF_OpBlend (const float2 d1, const float2 d2);
+
 
 ND_ float  SDF_Length2 (float3 position);
 ND_ float  SDF_Length6 (float3 position);
@@ -84,14 +87,12 @@ ND_ float  SDF_InfRepetition (const float3 position, const float3 center, float 
 
 ND_ float  SDF_Repetition (const float2 position, const float step, const float2 count, float (*sdf)(float2));
 ND_ float  SDF_Repetition (const float3 position, const float step, const float3 count, float (*sdf)(float3));
-
-ND_ float  SDF_Glow (const float2 position, float (*sdf)(float2));
-ND_ float  SDF_Glow (const float3 position, float (*sdf)(float3));
 #endif
 
 
 // Anti-aliased shapes
 ND_ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx);
+ND_ float  AA_Lines (float x, const float invStep, const float thicknessPx);
 
 // multi-channel SDF
 ND_ float  MCSDF_Median (const float3 msd);
@@ -100,7 +101,9 @@ ND_ float  MCSDF_Median (const float3 msd);
 
 
 #include "../3party_shaders/SDF-1.glsl"
+#include "../3party_shaders/SDF-2.glsl"
 //-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -109,6 +112,9 @@ ND_ float  MCSDF_Median (const float3 msd);
     anti-aliased SDF-based grid.
     'invGridSize' - 1.0 / grid_size_in_px
     'thicknessPx' - line thickness, must be >= 1.5
+----
+    example:
+        fragColor = float4(AA_QuadGrid( fragCoord, float2(1.0/100.0), 1.5 ));  // 100px grid
 =================================================
 */
 float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx)
@@ -123,6 +129,20 @@ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx
 
 /*
 =================================================
+    AA_Lines
+=================================================
+*/
+float  AA_Lines (float x, const float invStep, const float thicknessPx)
+{
+    // triangle wave
+    x = Fract( x * invStep );
+    x = Min( x, 1.0 - x ) * 2.0;
+    // lines
+    return SmoothStep( 0.0, invStep * thicknessPx, x );
+}
+
+/*
+=================================================
     MCSDF_Median
 =================================================
 */
@@ -130,3 +150,5 @@ float  MCSDF_Median (const float3 msd)
 {
     return Max( Min( msd.r, msd.g ), Min( Max( msd.r, msd.g ), msd.b ));
 }
+
+

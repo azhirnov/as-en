@@ -12,20 +12,18 @@
     void ASmain ()
     {
         // initialize
-        RC<Image>               rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
-        RC<Image>               ds          = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
-        RC<Image>               color_map   = Image( EImageType::FImage2D, "res/tex/rocks_color_rgba.ktx" );
-        RC<Image>               norm_h_map  = Image( EImageType::FImage2D, "res/tex/rocks_normal_height_rgba.ktx" );
-
-        RC<FPVCamera>           camera      = FPVCamera();
-        RC<Buffer>              geom_data   = Buffer();
-        RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
-        RC<Scene>               scene       = Scene();
+        RC<Image>       rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
+        RC<Image>       ds          = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
+        RC<Image>       color_map   = Image( EImageType::FImage2D, "res/tex/rocks_color_rgba.ktx" );
+        RC<Image>       norm_h_map  = Image( EImageType::FImage2D, "res/tex/rocks_normal_height_rgba.ktx" );
+        RC<Scene>       scene       = Scene();
 
         norm_h_map.SetSwizzle( "ARGB" );    // R - height, GBA - normal
 
         // setup camera
         {
+            RC<FPVCamera>   camera = FPVCamera();
+
             camera.ClipPlanes( 0.1f, 100.f );
             camera.FovY( 50.f );
 
@@ -33,10 +31,15 @@
             camera.ForwardBackwardScale( s );
             camera.UpDownScale( s );
             camera.SideMovementScale( s );
+
+            scene.Set( camera );
         }
 
         // create cube
         {
+            RC<Buffer>              geom_data   = Buffer();
+            RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
+
             array<float3>   positions;
             array<float3>   normals;
             array<float3>   tangents;
@@ -57,7 +60,7 @@
             geom_data.FloatArray(   "bitangents",   bitangents );
             geom_data.UIntArray(    "indices",      indices );
             geom_data.Float(        "lightDir",     Normalize(float3( 0.f, -1.f, 0.f )) );
-            geom_data.Layout( "GeometrySBlock" );
+            geom_data.LayoutName( "GeometrySBlock" );
 
             UnifiedGeometry_DrawIndexed cmd;
             cmd.indexCount = indices.size();
@@ -67,10 +70,9 @@
             geometry.ArgIn( "un_Geometry",          geom_data );
             geometry.ArgIn( "un_ColorMap",          color_map,  Sampler_LinearMipmapRepeat );
             geometry.ArgIn( "un_HeightNormalMap",   norm_h_map, Sampler_LinearMipmapRepeat );
-        }
 
-        scene.Set( camera );
-        scene.Add( geometry, float3(0.f, 0.f, 4.f) );
+            scene.Add( geometry, float3(0.f, 0.f, 4.f) );
+        }
 
         // render loop
         {

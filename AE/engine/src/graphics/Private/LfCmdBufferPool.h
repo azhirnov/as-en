@@ -230,10 +230,7 @@ namespace AE::Graphics
 
         #ifdef AE_DEBUG
         {
-            uint    types = _cmdTypes.load();
-            while ( types != 0 )
-            {
-                int i = ExtractBitLog2( INOUT types );
+            for (auto i : BitIndexIterate( _cmdTypes.load() )) {
                 ASSERT( not _pool[i].baked.IsValid() );
             }
         }

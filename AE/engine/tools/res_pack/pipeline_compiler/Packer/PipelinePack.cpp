@@ -1429,7 +1429,7 @@ namespace {
                 miss            == rhs.miss         and
                 hit             == rhs.hit          and
                 callable        == rhs.callable     and
-                hitGroupStride  == rhs.hitGroupStride;
+                numRayTypes     == rhs.numRayTypes;
     }
 
 /*
@@ -1439,7 +1439,7 @@ namespace {
 */
     HashVal  SerializableRTShaderBindingTable::CalcHash () const
     {
-        return HashOf(pplnName) + HashOf(raygen) + HashOf(miss) + HashOf(hit) + HashOf(callable) + HashOf(hitGroupStride);
+        return HashOf(pplnName) + HashOf(raygen) + HashOf(miss) + HashOf(hit) + HashOf(callable) + HashOf(numRayTypes);
     }
 
 /*
@@ -1449,7 +1449,7 @@ namespace {
 */
     bool  SerializableRTShaderBindingTable::Serialize (Serializing::Serializer &ser) C_NE___
     {
-        return ser( pplnName, raygen, miss, hit, callable, hitGroupStride );
+        return ser( pplnName, raygen, miss, hit, callable, numRayTypes );
     }
 //-----------------------------------------------------------------------------
 

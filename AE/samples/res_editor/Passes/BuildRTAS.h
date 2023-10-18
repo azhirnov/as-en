@@ -18,23 +18,20 @@ namespace AE::ResEditor
     private:
         RC<RTGeometry>          _dstGeometry;
         RTGeometry::EBuildMode  _mode;
-        const String            _dbgName;
 
 
     // methods
     public:
         BuildRTGeometry (RC<RTGeometry> dstGeometry,
                          bool           indirect,
-                         StringView     dbgName)                            __Th___;
-        ~BuildRTGeometry ()                                                 {}
+                         StringView     dbgName)                        __Th___;
+        ~BuildRTGeometry ()                                             {}
 
     // IPass //
-        EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
-        RC<IController> GetController ()                                    C_NE_OV { return null; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
-        bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
-        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
+        EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
+        bool        Execute (SyncPassData &)                            __Th_OV;
+        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 
 
@@ -49,23 +46,20 @@ namespace AE::ResEditor
     private:
         RC<RTScene>             _dstScene;
         RTScene::EBuildMode     _mode;
-        const String            _dbgName;
 
 
     // methods
     public:
         BuildRTScene (RC<RTScene>   dstScene,
                       bool          indirect,
-                      StringView    dbgName)                                __Th___;
-        ~BuildRTScene ()                                                    {}
+                      StringView    dbgName)                            __Th___;
+        ~BuildRTScene ()                                                {}
 
     // IPass //
-        EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
-        RC<IController> GetController ()                                    C_NE_OV { return null; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
-        bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
-        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
+        EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
+        bool        Execute (SyncPassData &)                            __Th_OV;
+        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 
 

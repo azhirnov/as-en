@@ -106,7 +106,9 @@ namespace AE::RG::_hidden_
         auto    [it, inserted] = _outSurfaces.emplace( surface, OutSurfaceInfo{} );
         if ( inserted )
         {
-            CHECK_ERR( batch.AsBatch()->CurrentCmdBufIndex() == 0 );
+            CHECK_ERR_MSG( batch.AsBatch()->CurrentCmdBufIndex() == 0,
+                "cmd batch must not start rendering until it acquire surface image" );
+
             batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately );
 
             it->second.acquireImageTask = surface->Begin( batch.AsBatchRC(), batch.AsBatchRC(), {_beginFrame} );

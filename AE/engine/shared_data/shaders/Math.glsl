@@ -35,20 +35,17 @@
 #define FusedMulAdd     fma             // (a * b) + c
 #define IsNaN           isnan
 #define IsInfinity      isinf
-#define IsFinite( x )   (! IsInfinity( x ) && ! IsNaN( x ))
 #define InvSqrt         inversesqrt
 #define IntLog2         BitScanReverse
 #define Length          length
 #define Lerp            mix
 #define Ln              log
 #define Log2            log2
-#define Log( x, base )  (Ln(x) / Ln(base))
-#define Log10( x )      (Ln(x) * 0.4342944819032518)
+#define Log( x, base )  (Ln( x ) / Ln( base ))
+#define Log10( x )      (Ln( x ) * 0.4342944819032518)
 #define Min             min
 #define Max             max
 #define Mod             mod
-#define MatInverse      inverse
-#define MatTranspose    transpose
 #define Normalize       normalize
 #define Pow             pow
 #define Round           round
@@ -56,7 +53,7 @@
 #define Refract         refract
 #define Step            step
 #define SmoothStep      smoothstep
-#define Saturate( x )   clamp( x, 0.0f, 1.0f )
+#define Saturate( x )   (clamp( (x), 0.0f, 1.0f ))
 #define Sqrt            sqrt
 #define Sin             sin
 #define SinH            sinh
@@ -69,6 +66,10 @@
 #define BitCount        bitCount
 #define ToDeg           degrees
 #define ToRad           radians
+
+#define MatInverse      inverse
+#define MatTranspose    transpose
+#define MatDeterminant  determinant
 //-----------------------------------------------------------------------------
 
 
@@ -83,8 +84,7 @@
 #define Greater         greaterThan         // >
 #define LessEqual       lessThanEqual       // <=
 #define GreaterEqual    greaterThanEqual    // >=
-#define Not             not
-//#define not               !
+//#define not           !
 
 ND_ bool   Equals (const float  lhs, const float  rhs)      { return lhs == rhs; }
 ND_ bool2  Equals (const float2 lhs, const float2 rhs)      { return equal( lhs, rhs ); }
@@ -106,6 +106,11 @@ ND_ bool2  Equals (const double2 lhs, const double2 rhs)    { return equal( lhs,
 ND_ bool3  Equals (const double3 lhs, const double3 rhs)    { return equal( lhs, rhs ); }
 ND_ bool4  Equals (const double4 lhs, const double4 rhs)    { return equal( lhs, rhs ); }
 
+ND_ bool   Not (const bool  value)                          { return !value; }
+ND_ bool2  Not (const bool2 value)                          { return not(value); }
+ND_ bool3  Not (const bool3 value)                          { return not(value); }
+ND_ bool4  Not (const bool4 value)                          { return not(value); }
+
 #define AllLess( a, b )         All( Less( (a), (b) ))
 #define AllLessEqual( a, b )    All( LessEqual( (a), (b) ))
 
@@ -124,9 +129,8 @@ ND_ bool4  Equals (const double4 lhs, const double4 rhs)    { return equal( lhs,
 #define AllNotEqual( a, b )     All( Not( Equals( (a), (b) )))
 #define AnyNotEqual( a, b )     Any( Not( Equals( (a), (b) )))
 
-#define NotAllEqual( a, b )     !All( Equals( (a), (b) ))
-#define NotAnyEqual( a, b )     !Any( Equals( (a), (b) ))
-
+#define NotAllEqual( a, b )     Not( All( Equals( (a), (b) )))
+#define NotAnyEqual( a, b )     Not( Any( Equals( (a), (b) )))
 //-----------------------------------------------------------------------------
 
 
@@ -169,20 +173,47 @@ ND_ uint4   Square (const uint4 x)      { return x * x; }
 //-----------------------------------------------------------------------------
 // Same as 'condition ? ifTrue : ifFalse'
 
-ND_ float2  Select (const bool2 condition, const float2 ifTrue, const float2 ifFalse)       { return Lerp( ifFalse, ifTrue, float2(condition) ); }
-ND_ float3  Select (const bool3 condition, const float3 ifTrue, const float3 ifFalse)       { return Lerp( ifFalse, ifTrue, float3(condition) ); }
-ND_ float4  Select (const bool4 condition, const float4 ifTrue, const float4 ifFalse)       { return Lerp( ifFalse, ifTrue, float4(condition) ); }
+#define Gen_SELECT( _vtype_, _btype_ )\
+    ND_ _vtype_  Select (const _btype_ condition, const _vtype_ ifTrue, const _vtype_ ifFalse)  { return (ifFalse * _vtype_(Not(condition)))  + (ifTrue * _vtype_(condition)); }
 
-ND_ int2    Select (const bool2 condition, const int2 ifTrue, const int2 ifFalse)           { return (ifFalse * int2(Not(condition))) + (ifTrue * int2(condition)); }
-ND_ int3    Select (const bool3 condition, const int3 ifTrue, const int3 ifFalse)           { return (ifFalse * int3(Not(condition))) + (ifTrue * int3(condition)); }
-ND_ int4    Select (const bool4 condition, const int4 ifTrue, const int4 ifFalse)           { return (ifFalse * int4(Not(condition))) + (ifTrue * int4(condition)); }
+Gen_SELECT( float,  bool  )
+Gen_SELECT( float2, bool2 )
+Gen_SELECT( float3, bool3 )
+Gen_SELECT( float4, bool4 )
+
+Gen_SELECT( int,    bool  )
+Gen_SELECT( int2,   bool2 )
+Gen_SELECT( int3,   bool3 )
+Gen_SELECT( int4,   bool4 )
+
+#undef Gen_SELECT
+
+
+//-----------------------------------------------------------------------------
+// BranchLess
+// same as 'condition ? ifTrue : ifFalse'
+
+#define Gen_BRANCHLESS( _vtype_ )\
+    ND_ _vtype_  BranchLess (bool condition, const _vtype_ ifTrue, const _vtype_ ifFalse)   { _vtype_ tmp[2] = {ifTrue, ifFalse};  return tmp[int(condition)]; }
+
+Gen_BRANCHLESS( float  )
+Gen_BRANCHLESS( float2 )
+Gen_BRANCHLESS( float3 )
+Gen_BRANCHLESS( float4 )
+
+Gen_BRANCHLESS( int  )
+Gen_BRANCHLESS( int2 )
+Gen_BRANCHLESS( int3 )
+Gen_BRANCHLESS( int4 )
+
+#undef Gen_BRANCHLESS
 
 
 //-----------------------------------------------------------------------------
 // square length and distance
 
-ND_ float  LengthSq (const float2 x)        { return Dot( x, x ); }
-ND_ float  LengthSq (const float3 x)        { return Dot( x, x ); }
+ND_ float  LengthSq (const float2 x)                    { return Dot( x, x ); }
+ND_ float  LengthSq (const float3 x)                    { return Dot( x, x ); }
 
 ND_ float  DistanceSq (const float2 x, const float2 y)  { float2 r = x - y;  return Dot( r, r ); }
 ND_ float  DistanceSq (const float3 x, const float3 y)  { float3 r = x - y;  return Dot( r, r ); }
@@ -197,10 +228,10 @@ ND_ float2  Sign (const float2 v)       { return Select( Less( v, float2(0.f) ),
 ND_ float3  Sign (const float3 v)       { return Select( Less( v, float3(0.f) ), float3(-1.0f), float3(1.0f) ); }
 ND_ float4  Sign (const float4 v)       { return Select( Less( v, float4(0.f) ), float4(-1.0f), float4(1.0f) ); }
 
-ND_ int   Sign (const int  x)           { return  x < 0 ? -1 : 1; }
-ND_ int2  Sign (const int2 v)           { return Select( Less( v, int2(0) ), int2(-1), int2(1) ); }
-ND_ int3  Sign (const int3 v)           { return Select( Less( v, int3(0) ), int3(-1), int3(1) ); }
-ND_ int4  Sign (const int4 v)           { return Select( Less( v, int4(0) ), int4(-1), int4(1) ); }
+ND_ int     Sign (const int  x)         { return  x < 0 ? -1 : 1; }
+ND_ int2    Sign (const int2 v)         { return Select( Less( v, int2(0) ), int2(-1), int2(1) ); }
+ND_ int3    Sign (const int3 v)         { return Select( Less( v, int3(0) ), int3(-1), int3(1) ); }
+ND_ int4    Sign (const int4 v)         { return Select( Less( v, int4(0) ), int4(-1), int4(1) ); }
 
 ND_ float2  SinCos (const float x)      { return float2(sin(x), cos(x)); }
 
@@ -362,6 +393,11 @@ ND_ uint  BitRotateRight (const uint x, uint shift)
     return (x >> shift) | (x << ( ~(shift-1u) & mask ));
 }
 
+ND_ bool  HasBit (const uint value, const uint index)
+{
+    return (value & (1u << index)) != 0;
+}
+
 
 //-----------------------------------------------------------------------------
 // interpolation
@@ -371,6 +407,7 @@ ND_ float2  BaryLerp (const float2 v0, const float2 v1, const float2 v2, const f
 ND_ float3  BaryLerp (const float3 v0, const float3 v1, const float3 v2, const float3 barycentrics)  { return v0 * barycentrics.x + v1 * barycentrics.y + v2 * barycentrics.z; }
 ND_ float4  BaryLerp (const float4 v0, const float4 v1, const float4 v2, const float3 barycentrics)  { return v0 * barycentrics.x + v1 * barycentrics.y + v2 * barycentrics.z; }
 
+// has much precision
 ND_ float   BaryLerp (const float  v0, const float  v1, const float  v2, const float2 barycentrics)  { return v0 + FusedMulAdd( barycentrics.x,    (v1 - v0), barycentrics.y * (v2 - v0)); }
 ND_ float2  BaryLerp (const float2 v0, const float2 v1, const float2 v2, const float2 barycentrics)  { return v0 + FusedMulAdd( barycentrics.xx,   (v1 - v0), barycentrics.y * (v2 - v0)); }
 ND_ float3  BaryLerp (const float3 v0, const float3 v1, const float3 v2, const float2 barycentrics)  { return v0 + FusedMulAdd( barycentrics.xxx,  (v1 - v0), barycentrics.y * (v2 - v0)); }
@@ -409,16 +446,25 @@ ND_ float4  RemapClamped (const float4 src0, const float4 src1, const float4 dst
 //-----------------------------------------------------------------------------
 
 
-ND_ float2  SampleArray_Helper (const int len, const float f)
-{
-    float a = Clamp( f * (len - 1), 0.0, float(len-1) );
-    float b = Floor( a );
-    return float2( b, a - b );
-}
-#define SampleArray( _array_, _factor_ )                                            \
-    Lerp(   _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x)],       \
-            _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x) + 1],   \
-            SampleArray_Helper( _array_.length(), _factor_ ).y )
+#define NearestSampleArray( _result_, _array_, _factor_ )                           \
+    {                                                                               \
+        int     lll = (_array_).length() - 1;                                       \
+        float   aaa = RemapClamped( float2(0.0, 1.0), float2(0, lll), (_factor_) ); \
+        int     iii = int(aaa + 0.5f);                                              \
+        _result_ = (_array_)[iii];                                                  \
+    }
+
+#define LinearSampleArray2( _result_, _array_, _factor_, _lerp_ )                   \
+    {                                                                               \
+        int     lll = (_array_).length() - 1;                                       \
+        float   aaa = RemapClamped( float2(0.0, 1.0), float2(0, lll), (_factor_) ); \
+        int     iii = int(aaa);                                                     \
+        int     jjj = Min( int(aaa) + 1, lll );                                     \
+        _result_ = _lerp_( (_array_)[iii], (_array_)[jjj], Fract(aaa) );            \
+    }
+
+#define LinearSampleArray( _result_, _array_, _factor_ )\
+    LinearSampleArray2( (_result_), (_array_), (_factor_), Lerp )
 //-----------------------------------------------------------------------------
 
 
@@ -443,4 +489,22 @@ ND_ bool   IsNotZero (const float  x)   { return Abs(x) > Epsilon(); }
 ND_ bool2  IsNotZero (const float2 v)   { return Greater( Abs(v), float2(Epsilon()) ); }
 ND_ bool3  IsNotZero (const float3 v)   { return Greater( Abs(v), float3(Epsilon()) ); }
 ND_ bool4  IsNotZero (const float4 v)   { return Greater( Abs(v), float4(Epsilon()) ); }
+
+#define AllZeros( v )                   All( IsZero( v ))
+#define AnyNotZero( v )                 Any( IsNotZero( v ))
+
+#define IsFinite( v )                   All(Equals( (v), (v) ))
+
+ND_ bool  IsNormalized (const float2 v, const float err)    { float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
+ND_ bool  IsNormalized (const float3 v, const float err)    { float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
+ND_ bool  IsNormalized (const float2 v)                     { return IsNormalized( v, Epsilon() ); }
+ND_ bool  IsNormalized (const float3 v)                     { return IsNormalized( v, Epsilon() ); }
+//-----------------------------------------------------------------------------
+
+
+#define SWAP_Impl( _type_ )     void  Swap (inout _type_ lhs, inout _type_ rhs) { _type_ tmp = lhs;  lhs = rhs;  rhs = tmp; }
+
+SWAP_Impl( float )
+
+#undef SWAP_Impl
 //-----------------------------------------------------------------------------

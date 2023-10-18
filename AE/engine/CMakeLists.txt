@@ -24,6 +24,7 @@ endif()
 
 include( "cmake/config.cmake" )
 include( "cmake/utils.cmake" )
+add_subdirectory( "cmake/deps" )
 add_subdirectory( "cmake/project_template" )
 
 #----------------------------------------------------------

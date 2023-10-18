@@ -4,6 +4,7 @@
 
 
 extern void UnitTest_Array ();
+extern void UnitTest_Atomic ();
 extern void UnitTest_Color ();
 extern void UnitTest_Cast ();
 extern void UnitTest_Date ();
@@ -38,7 +39,6 @@ extern void UnitTest_RC ();
 extern void UnitTest_StackAllocator ();
 extern void UnitTest_DataSource ();
 extern void UnitTest_Parser ();
-extern void UnitTest_StringToID ();
 extern void UnitTest_StructView ();
 extern void UnitTest_ToString ();
 extern void UnitTest_TypeList ();
@@ -62,6 +62,7 @@ int main ()
              "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
 
     UnitTest_Array();
+    UnitTest_Atomic();
     UnitTest_Color();
     UnitTest_Cast();
     UnitTest_Date();
@@ -97,7 +98,6 @@ int main ()
     UnitTest_StackAllocator();
     UnitTest_Parser();
     UnitTest_StructView();
-    UnitTest_StringToID();
     UnitTest_ToString();
     UnitTest_TypeList();
     UnitTest_TypeTraits();

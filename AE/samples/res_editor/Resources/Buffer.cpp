@@ -62,7 +62,7 @@ namespace
 
         if ( not _loadOp.IsDefined() )
         {
-            _uploadStatus.store( EUploadStatus::Complete );
+            _uploadStatus.store( EUploadStatus::Completed );
 
             auto&   res_mngr = RenderGraph().GetStateTracker();
             for (auto& id : _ids) {
@@ -81,7 +81,7 @@ namespace
                 CHECK_THROW( _loadOp.request );
             }
 
-            _ResQueue().EnqueueForUpload( GetRC() );
+            _DtTrQueue().EnqueueForUpload( GetRC() );
         }
 
         if ( AnyBits( desc.usage, c_DevAddrUsage ))
@@ -224,7 +224,7 @@ namespace
             else
                 ctx.FillBuffer( _ids[0].Get(), 0_b, _bufDesc->size, 0 );
 
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
             return _uploadStatus.load();
         }
 
@@ -234,7 +234,7 @@ namespace
             CopyHistory( ArraySizeOf(_loadOp.data) );
 
             _loadOp.data = {};
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
             return _uploadStatus.load();
         }
 
@@ -271,7 +271,7 @@ namespace
         if ( _loadOp.stream.IsCompleted() )
         {
             _loadOp = Default;
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
         }
 
         return _uploadStatus.load();

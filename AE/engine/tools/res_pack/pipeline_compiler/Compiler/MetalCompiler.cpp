@@ -92,7 +92,7 @@ namespace
     SetPreprocessor
 =================================================
 */
-    void  MetalCompiler::SetPreprocessor (IShaderProprocessor* ptr)
+    void  MetalCompiler::SetPreprocessor (IShaderPreprocessor* ptr)
     {
         _preprocessor.reset( ptr );
     }
@@ -267,7 +267,7 @@ namespace
 
             if ( not output.empty() )
             {
-                if ( not _ParseOutput( in, output, tmp_shader_name, OUT log ) or not FileSystem::Exists( out_name ))
+                if ( not _ParseOutput( in, output, tmp_shader_name, OUT log ) or not FileSystem::IsFile( out_name ))
                     return false;
             }
         }
@@ -388,7 +388,7 @@ namespace
             else
             // find in include directories
             {
-                ASSERT( FileSystem::Exists( Path{tokens[0]} ));
+                ASSERT( FileSystem::IsFile( Path{tokens[0]} ));
                 ASSERT( Path{tokens[0]}.is_absolute() );
 
                 log << tokens[0] << '(' << tokens[1] << "):\n" << message << '\n';

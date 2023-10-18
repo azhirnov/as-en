@@ -172,7 +172,8 @@ namespace _hidden_
         // Allocate memory block using internal allocator.
         // Returns 'null' on error.
         //
-        ND_ virtual RC<SharedMem>  Alloc (Bytes size)                                       __NE___ = 0;
+        ND_ virtual RC<SharedMem>   Alloc (SizeAndAlign)                                    __NE___ = 0;
+        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, 4_b }); }
 
 
         // Write data to the file.
@@ -219,6 +220,7 @@ namespace _hidden_
     public:
         using ReadRequestPtr    = AsyncDSRequest;
         using Result_t          = AsyncDSRequest::Value_t::ResultWithRC;
+        using PosAndSize        = RStream::PosAndSize;
 
 
     // interface
@@ -226,6 +228,8 @@ namespace _hidden_
         AsyncRStream ()                                                                     __NE___ {}
 
         ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+
+        ND_ virtual PosAndSize  PositionAndSize ()                                          C_NE___ = 0;
 
 
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
@@ -237,6 +241,14 @@ namespace _hidden_
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ virtual ReadRequestPtr  ReadSeq (Bytes size)                                    __NE___ = 0;
+
+
+        // Cancel all pending IO requests.
+        // Returns:
+        //  'true'  if cancelled
+        //  'false' if all requests already completed/cancelled or on other error.
+        //
+            virtual bool    CancelAllRequests ()                                            __NE___ = 0;
     };
 
 
@@ -258,11 +270,14 @@ namespace _hidden_
 
         ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
+        ND_ virtual Bytes   Position ()                                                     C_NE___ = 0;    // same as 'Size()'
+
 
         // Allocate memory block using internal allocator.
         // Returns 'null' on error.
         //
-        ND_ virtual RC<SharedMem>  Alloc (Bytes size)                                       __NE___ = 0;
+        ND_ virtual RC<SharedMem>   Alloc (SizeAndAlign)                                    __NE___ = 0;
+        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, 4_b }); }
 
 
         // Write data to the file.
@@ -285,6 +300,14 @@ namespace _hidden_
             const void* data = mem->Data();
             return WriteSeq( data, size, RVRef(mem) );
         }
+
+
+        // Cancel all pending IO requests.
+        // Returns:
+        //  'true'  if cancelled
+        //  'false' if all requests already completed/cancelled or on other error.
+        //
+            virtual bool    CancelAllRequests ()                                            __NE___ = 0;
     };
 
 

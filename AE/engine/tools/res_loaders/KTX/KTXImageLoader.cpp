@@ -122,8 +122,8 @@ namespace
                 {
                     const uint3     dim         { ktx_tex->baseWidth, ktx_tex->baseHeight, ktx_tex->baseDepth };
                     const uint3     mip_dim     = Max( dim >> mm, uint3{1} );
-                    const uint3     block_dim   { (mip_dim.x + info.TexBlockSize().x-1) / info.TexBlockSize().x,
-                                                  (mip_dim.y + info.TexBlockSize().y-1) / info.TexBlockSize().y,
+                    const uint3     block_dim   { (mip_dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x,
+                                                  (mip_dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y,
                                                    mip_dim.z };
 
                     IntermImage::Level  image_level;
@@ -172,8 +172,8 @@ namespace
 
         const auto  Load = [&] (uint miplevel, uint layer, const uint3 mipDim, ArrayView<ubyte> pixels) -> bool
         {{
-            const uint3     block_dim   { (mipDim.x + info.TexBlockSize().x-1) / info.TexBlockSize().x,
-                                          (mipDim.y + info.TexBlockSize().y-1) / info.TexBlockSize().y,
+            const uint3     block_dim   { (mipDim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x,
+                                          (mipDim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y,
                                            mipDim.z };
             IntermImage::Level  image_level;
 
@@ -283,7 +283,7 @@ namespace
         CHECK_ERR( temp_tex1 != null or temp_tex2 != null );
 
         if ( not allocator )
-            allocator = SharedMem::CreateAllocator();
+            allocator = AE::GetDefaultAllocator();
 
         Unique< ktxTexture, Function< void (ktxTexture*) >> ktx_tex;
 

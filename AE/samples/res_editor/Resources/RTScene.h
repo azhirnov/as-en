@@ -3,7 +3,7 @@
 #pragma once
 
 #include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DataTransferQueue.h"
 #include "res_editor/Resources/ContentVersion.h"
 
 namespace AE::ResEditor
@@ -26,7 +26,6 @@ namespace AE::ResEditor
             IndirectEmulated,
         };
 
-    private:
         struct TriangleMesh : RTGeometryBuild::TrianglesInfo
         {
             RC<Buffer>      vbuffer;
@@ -34,20 +33,19 @@ namespace AE::ResEditor
             Bytes32u        vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
-            bool            isMutable       = false;
 
             void  operator = (const RTGeometryBuild::TrianglesInfo &rhs)    { TrianglesInfo::operator = (rhs); }
         };
         using TriangleMeshes_t  = Array< TriangleMesh >;
 
+    private:
         using Allocator_t       = LinearAllocator<>;
 
 
     // variables
     private:
-        Strong<RTGeometryID>            _geomId;
-        DeviceAddress                   _address;
-        Strong<BufferID>                _scratchBuffer;
+        StrongAtom<RTGeometryID>        _geomId;
+        Strong<BufferID>                _scratchBuffer;         // can be null
 
         RC<Buffer>                      _indirectBuffer;
         Strong<BufferID>                _indirectBufferHostVis; // ASBuildIndirectCommand [GeometryCount * MaxFrames]
@@ -56,7 +54,7 @@ namespace AE::ResEditor
         TriangleMeshes_t                _triangleMeshes;
 
         ContentVersion                  _version;
-        bool                            _isMutable              = false;
+        const bool                      _isMutable              = false;
         const ERTASOptions              _options                = ERTASOptions::PreferFastBuild;
 
         const String                    _dbgName;
@@ -67,17 +65,23 @@ namespace AE::ResEditor
         RTGeometry (TriangleMeshes_t    triangleMeshes,
                     RC<Buffer>          indirectBuffer,
                     Renderer &          renderer,
+                    StringView          dbgName,
+                    Bool                allowUpdate)                                __Th___;
+
+        RTGeometry (Renderer &          renderer,
                     StringView          dbgName)                                    __Th___;
 
         ~RTGeometry () override;
 
-        ND_ RTGeometryID    GetGeometryId (FrameUID)                                const   { return _geomId; }
-        ND_ DeviceAddress   GetDeviceAddress (FrameUID)                             const   { return _address; }
+        ND_ RTGeometryID    GetGeometryId (FrameUID)                                const   { return _geomId.Get(); }
 
         ND_ ulong           GetVersion (uint fid)                                   const   { return _version.Get( fid ); }
         ND_ ulong           GetVersion (FrameUID fid)                               const   { return _version.Get( fid ); }
 
         ND_ bool            Build (DirectCtx::ASBuild &, EBuildMode)                __Th___;
+
+            void            Reset (Strong<RTGeometryID> geomId);
+            void            CompleteUploading ();
 
         ND_ bool            IsMutable ()                                            const   { return _isMutable; }
 
@@ -86,7 +90,7 @@ namespace AE::ResEditor
         bool                Resize (TransferCtx_t &)                                __Th_OV { return true; }
         bool                RequireResize ()                                        C_Th_OV { return false; }
         EUploadStatus       Upload (TransferCtx_t &)                                __Th_OV;
-        EUploadStatus       Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Complete; }
+        EUploadStatus       Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Completed; }
 
 
     private:
@@ -113,7 +117,7 @@ namespace AE::ResEditor
         struct Instance
         {
             RC<RTGeometry>      geometry;
-            float3x4            transform;
+            RTMatrixStorage     transform;
             uint                instanceCustomIndex;
             uint                mask;
             uint                instanceSBTOffset;
@@ -138,6 +142,7 @@ namespace AE::ResEditor
         GeomVerMap_t                    _uniqueGeometries;
 
         const ERTASOptions              _options                = ERTASOptions::PreferFastBuild;
+        const bool                      _isMutable              = false;
 
         const String                    _dbgName;
 
@@ -148,7 +153,8 @@ namespace AE::ResEditor
                  RC<Buffer>     instanceBuffer,
                  RC<Buffer>     indirectBuffer,
                  Renderer &     renderer,
-                 StringView     dbgName)                                        __Th___;
+                 StringView     dbgName,
+                 Bool           allowUpdate)                                    __Th___;
 
         ~RTScene () override;
 
@@ -162,7 +168,7 @@ namespace AE::ResEditor
         bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
         bool            RequireResize ()                                        C_Th_OV { return false; }
         EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
-        EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Complete; }
+        EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Completed; }
 
     private:
         ND_ bool        _Resize ();

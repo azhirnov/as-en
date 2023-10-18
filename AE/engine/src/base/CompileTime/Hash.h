@@ -78,5 +78,14 @@ namespace AE::Base
         return HashVal32{ Base::_hidden_::crc32_hash( str, len, seed )};
     }
 
+/*
+=================================================
+    _Hash
+=================================================
+*/
+    ND_ inline constexpr uint  operator "" _Hash (char const * const str, const usize size) __NE___
+    {
+        return uint(CT_Hash( str, size, 0x8732'9805u ));
+    }
 
 } // AE::Base

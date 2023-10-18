@@ -78,10 +78,10 @@ namespace AE::Samples::Demo
         _scale = scale * DefaultScale;
     }
 
-    void  ImGuiRenderer::_UpdateScale (float2 pixToMm)
+    void  ImGuiRenderer::_UpdateScale (float pixToMm)
     {
-        _uiToPix = _scale / Max( pixToMm.x, pixToMm.y );
-        _pixToUI = 1.f / _uiToPix;
+        _uiToPix = _scale / pixToMm;
+        _pixToUI = pixToMm / _scale;
     }
 
 /*

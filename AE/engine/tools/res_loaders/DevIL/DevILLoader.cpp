@@ -306,7 +306,7 @@ namespace {
             img_type = EImage_1D;
 
         if ( not allocator )
-            allocator = SharedMem::CreateAllocator();
+            allocator = AE::GetDefaultAllocator();
 
         IntermImage::Mipmaps_t  image_data;
 

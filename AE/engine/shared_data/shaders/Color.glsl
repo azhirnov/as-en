@@ -54,6 +54,15 @@ float4  RainbowWrap (const float factor)
 //-----------------------------------------------------------------------------
 
 
+float3  ColorLerpHSV (float3 a, float3 b, float factor)
+{
+    a = RGBtoHSV( a );
+    b = RGBtoHSV( b );
+    return HSVtoRGB( LerpHSV( a, b, factor ));
+}
+//-----------------------------------------------------------------------------
+
+
 float  RGBtoLuminance (const float3 linear)
 {
     return Dot( linear, float3(0.212671f, 0.715160f, 0.072169f) );

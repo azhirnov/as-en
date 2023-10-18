@@ -225,27 +225,27 @@ namespace AE::Graphics::_hidden_
         void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
         void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
 
-        void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
-        void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds);
-        void  _SetBlendConstants (const RGBA32f &color);
+        void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)       __Th___;
+        void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds)                                          __Th___;
+        void  _SetBlendConstants (const RGBA32f &color)                                                             __Th___;
 
         void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
-                                       VkFragmentShadingRateCombinerOpKHR textureOp);
+                                       VkFragmentShadingRateCombinerOpKHR textureOp)                                __Th___;
 
-        void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets);
+        void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)  __Th___;
 
         void  _Draw (uint vertexCount,
                      uint instanceCount,
                      uint firstVertex,
-                     uint firstInstance);
+                     uint firstInstance)                                                                            __Th___;
 
         void  _DrawIndexed (uint indexCount,
                             uint instanceCount,
                             uint firstIndex,
                             int  vertexOffset,
-                            uint firstInstance);
+                            uint firstInstance)                                                                     __Th___;
 
-        void  _DrawMeshTasks (const uint3 &taskCount);
+        void  _DrawMeshTasks (const uint3 &taskCount)                                                               __Th___;
 
         void  _DispatchTile ()                                                                                      __Th___;
 
@@ -384,7 +384,7 @@ namespace AE::Graphics::_hidden_
                                  uint       maxDrawCount,
                                  Bytes      stride)                                                                         __Th___;
 
-        void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___ { DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+        void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___ { DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
         void  DrawIndexedIndirectCount (BufferID    indirectBuffer,
                                         Bytes       indirectBufferOffset,
                                         BufferID    countBuffer,
@@ -395,7 +395,7 @@ namespace AE::Graphics::_hidden_
         using RawCtx::DrawMeshTasksIndirect;
         using RawCtx::DrawMeshTasksIndirectCount;
 
-        void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___ { DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+        void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___ { DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
         void  DrawMeshTasksIndirectCount (BufferID  indirectBuffer,
                                           Bytes     indirectBufferOffset,
                                           BufferID  countBuffer,
@@ -532,6 +532,7 @@ namespace AE::Graphics::_hidden_
     void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
+        Unused( typeName );
 
         RawCtx::_PushGraphicsConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }

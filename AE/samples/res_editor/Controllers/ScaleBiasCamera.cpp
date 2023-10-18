@@ -28,8 +28,8 @@ namespace AE::ResEditor
         constexpr auto& IA      = InputActions::Controller_ScaleBias;
         constexpr auto& BaseIA  = InputActions::SwitchInputMode;
 
-        const uint2 dim = _dynDim ? _dynDim->Dimension2() : uint2{1};
-        float2      bias;
+        const uint2 dim     = _dynDim ? _dynDim->Dimension2() : uint2{1};
+        float2      bias    {0.f};
         float       scale   = 0.f;
         bool        reset   = false;
 
@@ -40,13 +40,13 @@ namespace AE::ResEditor
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Bias :
-                    bias = reader.Data<packed_float2>( hdr.offset );    break;
+                    bias += reader.DataCopy<float2>( hdr.offset );          break;
 
                 case IA.Camera_Scale :
-                    scale = reader.Data<packed_float2>( hdr.offset ).y; break;
+                    scale += reader.Data<packed_float2>( hdr.offset ).y;    break;
 
                 case IA.Camera_Reset :
-                    reset = true;                                       break;
+                    reset = true;                                           break;
             }
         }
 

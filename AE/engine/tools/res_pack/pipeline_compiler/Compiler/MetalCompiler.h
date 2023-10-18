@@ -42,7 +42,7 @@ namespace AE::PipelineCompiler
     private:
         Array< String >             _directories;
 
-        Unique<IShaderProprocessor> _preprocessor;
+        Unique<IShaderPreprocessor> _preprocessor;
 
 
     // methods
@@ -50,7 +50,7 @@ namespace AE::PipelineCompiler
         explicit MetalCompiler (ArrayView<Path> includeDirs);
         ~MetalCompiler ();
 
-            void  SetPreprocessor (IShaderProprocessor*);
+            void  SetPreprocessor (IShaderPreprocessor*);
 
         ND_ bool  SpirvToMsl (const SpirvToMslConfig &cfg, SpirvBytecode_t spirv, INOUT ShaderReflection &reflection, OUT String &src) const;
         ND_ bool  Compile (const Input &in, OUT MetalBytecode_t &bytecode, OUT String &log) const;

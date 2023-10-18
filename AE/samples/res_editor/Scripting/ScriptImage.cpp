@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 #include "res_editor/Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
@@ -145,6 +145,17 @@ namespace
         _desc.Validate();
 
         _imageType          = uint(GetDescriptorImageType( _desc ));
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptImage::~ScriptImage ()
+    {
+        if ( not _resource )
+            AE_LOG_SE( "Unused image '"s << _dbgName << "'" );
     }
 
 /*
@@ -612,10 +623,10 @@ namespace
         }
 
         CHECK_ERR_MSG( _resUsage != Default, "failed to create image '"s << _dbgName << "'" );
-        for (auto usage = _resUsage; usage != Default;)
+        for (auto usage : BitfieldIterate( _resUsage ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT usage ))
+            switch ( usage )
             {
                 case EResourceUsage::ComputeRead :      _desc.usage |= EImageUsage::Storage | EImageUsage::TransferSrc;         break;
                 case EResourceUsage::ComputeWrite :     _desc.usage |= EImageUsage::Storage;                                    break;
@@ -679,7 +690,7 @@ namespace
             id.view = res_mngr.CreateImageView( _viewDesc, id.image, _dbgName );
             CHECK_ERR_MSG( id.view, "failed to create image '"s << _dbgName << "'" );
 
-            renderer.GetResourceQueue().EnqueueImageTransition( id.image );
+            renderer.GetDataTransferQueue().EnqueueImageTransition( id.image );
         }
 
         _resource = MakeRC<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,

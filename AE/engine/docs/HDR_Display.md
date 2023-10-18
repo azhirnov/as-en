@@ -13,7 +13,7 @@ __HDR (RGBA16F format)__
 
 ## Monitor
 
-Samsung monitor with VA matrix with a brightness of 1000 nit. Surface with `RGBA16F_Extended_sRGB_linear` mode.
+Samsung monitor with VA matrix with a brightness of 1000 nit (cd/m^2^). Surface with `RGBA16F_Extended_sRGB_linear` mode.
 
 * An analog of ACES tonemapping is used, so blue turns into pink, and only then into white.
 

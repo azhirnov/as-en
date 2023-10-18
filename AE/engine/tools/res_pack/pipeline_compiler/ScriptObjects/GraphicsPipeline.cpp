@@ -594,7 +594,7 @@ namespace
             str << "renderState.inputAssembly.topology = " << ToString( renderState.inputAssembly.topology ) << " is not supported.\n";
             str << "supported topologies: ";
 
-            for (uint bits = supported_topology.AsArray()[0]; bits != 0; )
+            for (uint bits = supported_topology.AsBits(); bits != 0; )
             {
                 EPrimitive  value = ExtractBitLog2<EPrimitive>( INOUT bits );
                 str << ToString( value ) << (bits ? ", " : "");
@@ -614,7 +614,7 @@ namespace
         CHECK_THROW_MSG( value > 0 );
         CHECK_THROW_MSG( value <= GraphicsConfig::MaxViewports );
 
-        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::minViewports, value, "minViewports", "viewportCount" );
+        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxViewports, value, "maxViewports", "viewportCount" );
 
         desc.viewportCount = CheckCast<ubyte>(value);
     }

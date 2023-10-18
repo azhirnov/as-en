@@ -26,7 +26,8 @@ namespace AE::Math
              >
     struct PhysicalQuantity
     {
-        //STATIC_ASSERT( IsFloatPoint<ValueType> and IsScalar<ValueType> );
+        STATIC_ASSERT( IsScalar<ValueType> );
+        //STATIC_ASSERT( IsFloatPoint<ValueType> );
 
     // types
     public:
@@ -52,6 +53,11 @@ namespace AE::Math
             template <typename S>
             constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> &other) __NE___ :
                 _value{ other.template ToScale<Scale_t>().GetNonScaled() }
+            {}
+
+            template <typename T, typename S>
+            explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> &other) __NE___ :
+                _value{T( other.template ToScale<Scale_t>().GetNonScaled() )}
             {}
 
             constexpr PhysicalQuantity (const Self &)           __NE___ = default;
@@ -117,11 +123,11 @@ namespace AE::Math
             return Self( lhs * rhs.GetNonScaled() );
         }
 
-        template <typename ToValueScale>
-        ND_ constexpr PhysicalQuantity< Value_t, Dimension_t, ToValueScale >  ToScale () C_NE___
+        template <typename DstScale>
+        ND_ constexpr PhysicalQuantity< Value_t, Dimension_t, DstScale >  ToScale () C_NE___
         {
-            const auto  val = Scale_t::Value / ToValueScale::Value;
-            return PhysicalQuantity< Value_t, Dimension_t, ToValueScale >{ _value * val };
+            const auto  scale = Scale_t::Value / Value_t(DstScale::Value);
+            return PhysicalQuantity< Value_t, Dimension_t, DstScale >{ _value * scale };
         }
 
         ND_ friend constexpr Inversed_t  operator / (Value_t lhs, const Self &rhs) __NE___
@@ -149,7 +155,8 @@ namespace AE::Math
              >
     struct PhysicalQuantity< ValueType, DefaultPhysicalDimensions::NonDimensional, ValueScale >
     {
-        STATIC_ASSERT( IsFloatPoint<ValueType> and IsScalar<ValueType> );
+        STATIC_ASSERT( IsScalar<ValueType> );
+        //STATIC_ASSERT( IsFloatPoint<ValueType> );
 
     // types
     public:
@@ -171,6 +178,16 @@ namespace AE::Math
             constexpr PhysicalQuantity ()                       __NE___ : _value{0} {}
 
             constexpr explicit PhysicalQuantity (Value_t value) __NE___ : _value{value} {}
+
+            template <typename S>
+            constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> &other) __NE___ :
+                _value{ other.template ToScale<Scale_t>().GetNonScaled() }
+            {}
+
+            template <typename T, typename S>
+            explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> &other) __NE___ :
+                _value{T( other.template ToScale<Scale_t>().GetNonScaled() )}
+            {}
 
             constexpr PhysicalQuantity (const Self &)           __NE___ = default;
             constexpr Self& operator = (const Self &)           __NE___ = default;
@@ -210,6 +227,13 @@ namespace AE::Math
             return Inversed_t{ left / right.GetNonScaled() };
         }
 
+        template <typename DstScale>
+        ND_ constexpr PhysicalQuantity< Value_t, Dimension_t, DstScale >  ToScale () C_NE___
+        {
+            const auto  scale = Scale_t::Value / Value_t(DstScale::Value);
+            return PhysicalQuantity< Value_t, Dimension_t, DstScale >{ _value * scale };
+        }
+
         template <int IntPower>
         ND_ constexpr auto  Pow ()                              C_NE___
         {
@@ -244,11 +268,60 @@ namespace AE::Math
     Lerp
 =================================================
 */
-    template <typename T, typename Dimension, typename LhsScale, typename RhsScale, typename B>
+    template <typename T, typename Dimension, typename LhsScale, typename RhsScale>
     ND_ constexpr auto  Lerp (const PhysicalQuantity<T, Dimension, LhsScale> &a,
-                              const PhysicalQuantity<T, Dimension, RhsScale> &b, const B& factor) __NE___
+                              const PhysicalQuantity<T, Dimension, RhsScale> &b, const T factor) __NE___
     {
-        return a * (T{1} - T{factor}) + b * T(factor);
+        return a * (T{1} - factor) + b * factor;
+    }
+
+/*
+=================================================
+    Equals
+=================================================
+*/
+    template <typename T, typename Dimension, typename Scale>
+    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, Scale> &a,
+                                const PhysicalQuantity<T, Dimension, Scale> &b,
+                                const T err = Epsilon<T>()) __NE___
+    {
+        return Math::Equals( a.GetNonScaled(), b.GetNonScaled(), err );
+    }
+
+    template <typename T, typename Dimension, typename LhsScale, typename RhsScale, typename ErrScale>
+    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+                                const PhysicalQuantity<T, Dimension, RhsScale> &b,
+                                const PhysicalQuantity<T, Dimension, ErrScale> &err) __NE___
+    {
+        return Math::Equals( a.GetScaled(), b.GetScaled(), err.GetScaled() );   // TODO: average scale
+    }
+
+    template <typename T, typename Dimension, typename LhsScale, typename RhsScale>
+    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+                                const PhysicalQuantity<T, Dimension, RhsScale> &b,
+                                const Percent err) __NE___
+    {
+        return Math::Equals( a.GetScaled(), b.GetScaled(), err );
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T, typename Dimension, typename Scale>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+                                                             const PhysicalQuantity<T, Dimension, Scale> &b,
+                                                             const EnabledBitCount bitCount) __NE___
+    {
+        return Math::BitEqual( a.GetNonScaled(), b.GetNonScaled(), bitCount );
+    }
+
+    template <typename T, typename Dimension, typename Scale>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+                                                             const PhysicalQuantity<T, Dimension, Scale> &b) __NE___
+    {
+        return Math::BitEqual( a.GetNonScaled(), b.GetNonScaled() );
     }
 //-----------------------------------------------------------------------------
 
@@ -266,7 +339,7 @@ namespace AE::Math
             struct Minute                   { static constexpr T  Value = T(60); };                     // m
             struct Hour                     { static constexpr T  Value = T(60 * 60); };                // h
             struct Day                      { static constexpr T  Value = T(24 * 60 * 60); };           // d
-            struct Year                     { static constexpr T  Value = T(36525 * 24 * 6 * 6); };     // y
+            struct Year                     { static constexpr T  Value = T(36'525 * 24 * 6 * 6); };    // y
 
             struct Deca                     { static constexpr T  Value = T(10); };
             struct Hecto                    { static constexpr T  Value = T(1.0e+2); };
@@ -323,8 +396,8 @@ namespace AE::Math
             struct Bar                      { static constexpr T  Value = T(1.0e+5); };                 // Pa   bar
             struct Atmosphere               { static constexpr T  Value = T(101325); };                 // Pa
 
-            struct SpeedOfLight             { static constexpr T  Value = T(299792458); };              // m/s  c
-            struct SpeedOfGravity           { static constexpr T  Value = T(299792458); };              // m/s  ?
+            struct SpeedOfLight             { static constexpr T  Value = T(299'792'458.0); };          // m/s  c                   - SI
+            struct SpeedOfGravity           { static constexpr T  Value = T(299'792'458.0); };          // m/s  ?
             struct Parsec                   { static constexpr T  Value = T(3.0856776e+16); };          // m    pc
             using LightMinute               = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Minute >;
             using LightHour                 = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Hour >;
@@ -334,15 +407,25 @@ namespace AE::Math
             struct GravitationalConstant    { static constexpr T  Value = T(6.6740831e-11); };          // m^3 / (s^2 * kg)
             struct GravitationalAcceleration{ static constexpr T  Value = T(9.80665); };                // m / s^2
 
-            struct AvogadroConstant         { static constexpr T  Value = T(6.02214076e+23); };                     // 1 / mol
-            struct Pi                       { static constexpr T  Value = T(3.14159265358979323846); };             // Pi
-            struct VacuumPermeabilityConst  { static constexpr T  Value = Pi::Value * T(4 * 1.0000000008220e-7); }; // kg * m / (s * A)^2
+            struct AvogadroConstant         { static constexpr T  Value = T(6.02214076e+23); };         // 1 / mol                  - SI
+            struct Pi                       { static constexpr T  Value = T(3.14159265358979323846); }; // Pi
+            struct VacuumPermeabilityConst  { static constexpr T  Value = T(1.25663706212191919e-6); }; // N / A^2
 
             struct GasConstant              { static constexpr T  Value = T(8.314459848); };            // R = J / (K * mol)
             struct EarthMass                { static constexpr T  Value = T(5.9722e+24); };             // kg
             struct SolarMass                { static constexpr T  Value = T(1.98847e+30); };            // kg
             struct SolarLuminosity          { static constexpr T  Value = T(3.828e+26); };              // W
-            struct SolarRadius              { static constexpr T  Value = T(6.957+8); };                // m
+            struct SolarRadius              { static constexpr T  Value = T(6.957e+8); };               // m
+
+            struct PlanckConst              { static constexpr T  Value = T(6.62607015e-34); };         // m^2 * kg / s = J*s       - SI
+            struct PlanckConstDiv2Pi        { static constexpr T  Value = T(1.05457180e-34); };         // m^2 * kg / s = J*s
+
+            struct HyperfineTransitionFrequencyOfCesium
+                                            { static constexpr T  Value = T(9'192'631'770.0); };        // Hz                       - SI
+            struct ElementaryCharge         { static constexpr T  Value = T{1.602176634e-19}; };        // C                        - SI
+            struct BoltzmannConst           { static constexpr T  Value = T{1.380649e-23}; };           // J / K                    - SI
+            struct LuminousEfficacyOf540THzRadiation
+                                            { static constexpr T  Value = T{683}; };                    // lm / W                   - SI
         };
 
 
@@ -359,7 +442,9 @@ namespace AE::Math
         using Currency                  = PhysicalQuantity< T, Dim::Currency >;                 // $
         using Bit                       = PhysicalQuantity< T, Dim::Bit >;                      // bit
 
-        using Frequency                 = PhysicalQuantity< T, Dim::Frequency >;                // 1 / s
+        using Radian                    = PhysicalQuantity< T, Dim::Radian >;                   // rad
+        using Steradian                 = PhysicalQuantity< T, Dim::Steradian >;                // sr
+        using Frequency                 = PhysicalQuantity< T, Dim::Hertz >;                    // 1 / s
         using SquareMeter               = PhysicalQuantity< T, Dim::SquareMeter >;              // m^2
         using CubicMeter                = PhysicalQuantity< T, Dim::CubicMeter >;               // m^3
         using MeterPerSecond            = PhysicalQuantity< T, Dim::MeterPerSecond >;           // m / s
@@ -404,6 +489,7 @@ namespace AE::Math
         using Parsec                    = PhysicalQuantity< T, Dim::Meter, typename Scale::Parsec >;            // pc
         using AstronomicalUnit          = PhysicalQuantity< T, Dim::Meter, typename Scale::AstronomicalUnit >;  // au
         using SolarRadius               = PhysicalQuantity< T, Dim::Meter, typename Scale::SolarRadius >;       // m
+        using Wavelength                = Nanometer;                                                            // λ
 
         using Liter                     = PhysicalQuantity< T, Dim::CubicMeter, typename Scale::Liter >;        // L
         using Pound                     = PhysicalQuantity< T, Dim::Kilogram, typename Scale::Pound >;          // kg
@@ -429,8 +515,8 @@ namespace AE::Math
         using Hour                      = PhysicalQuantity< T, Dim::Second, typename Scale::Hour >;             // h
         using Day                       = PhysicalQuantity< T, Dim::Second, typename Scale::Day >;              // d
         using Year                      = PhysicalQuantity< T, Dim::Second, typename Scale::Year >;             // y
-        using ThousandYears             = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, PhysicalQuantity_Scale::Integer<T, 1000>> >;
-        using MillionYears              = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, PhysicalQuantity_Scale::Integer<T, 1000'000>> >;
+        using ThousandYears             = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, typename Scale::Kilo >>;
+        using MillionYears              = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, typename Scale::Mega >>;
 
         using ElectronVolt              = PhysicalQuantity< T, Dim::Joule, typename Scale::ElectronVolt >;      // eV
         using NanoJoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Nano >;              // nJ
@@ -450,11 +536,9 @@ namespace AE::Math
         using Bar                       = PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;              // bar
         using Atmosphere                = PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;       // atm
 
-        using _GConstDim                = Dim::Meter::template Pow<3>::template Div< Dim::Kilogram::template Mul< Dim::Second::template Pow<2> >>;
-
         using GAcceleration             = PhysicalQuantity< T, Dim::MeterPerSquareSecond, typename Scale::GravitationalAcceleration >;  // g
-        using GConstant                 = PhysicalQuantity< T, _GConstDim, typename Scale::GravitationalConstant >; // G
-        using SolarLuminosity           = PhysicalQuantity< T, Dim::Watt, typename Scale::SolarLuminosity >;        // SL
+        using GConstant                 = PhysicalQuantity< T, Dim::GConstant, typename Scale::GravitationalConstant >; // G
+        using SolarLuminosity           = PhysicalQuantity< T, Dim::Watt, typename Scale::SolarLuminosity >;            // SL
 
         using KibiBit                   = PhysicalQuantity< T, Dim::Bit, typename Scale::Kibi >;
         using MebiBit                   = PhysicalQuantity< T, Dim::Bit, typename Scale::Mebi >;
@@ -471,6 +555,23 @@ namespace AE::Math
         using KibiBytePerSecond         = PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::KibiByte >;
         using MebiBytePerSecond         = PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::MebiByte >;
         using GibiBytePerSecond         = PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::GibiByte >;
+
+        using PlanckConst               = PhysicalQuantity< T, Dim::Joule::Mul<Dim::Second>, typename Scale::PlanckConst >;         // h
+        using PlanckConstDiv2Pi         = PhysicalQuantity< T, Dim::Joule::Mul<Dim::Second>, typename Scale::PlanckConstDiv2Pi >;   // h / 2Pi
+
+        // Radiometric
+        using RadiantEnergy             = PhysicalQuantity< T, Dim::RadiantEnergy >;                            // Q
+        using RadiantFlux               = PhysicalQuantity< T, Dim::RadiantFlux >;                              // W
+        using Intensity                 = PhysicalQuantity< T, Dim::Intensity >;                                // W / sr
+        using Irradiance                = PhysicalQuantity< T, Dim::Irradiance >;                               // W / m^2
+        using Radiance                  = PhysicalQuantity< T, Dim::Radiance >;                                 // W / (m^2 * sr)
+
+        // Photometric
+        using LuminousEnergy            = PhysicalQuantity< T, Dim::LuminousEnergy >;                           // talbot (T)
+        using LuminousFlux              = PhysicalQuantity< T, Dim::LuminousFlux >;                             // lm
+        using LuminousIntensity         = PhysicalQuantity< T, Dim::LuminousIntensity >;                        // lm / sr = cd
+        using Illuminance               = PhysicalQuantity< T, Dim::Illuminance >;                              // lx
+        using Luminance                 = PhysicalQuantity< T, Dim::Luminance >;                                // cd / m^2 = nit
     };
 
 

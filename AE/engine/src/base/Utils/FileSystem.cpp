@@ -39,7 +39,7 @@ namespace AE::Base
 
     bool  FileSystem::SearchBackward (const Path &base, const Path &ref, uint depth, OUT Path &result)
     {
-        CHECK_ERR( Exists( base ));
+        CHECK_ERR( IsDirectory( base ));
 
         Path    curr = ToAbsolute( base );
 
@@ -47,7 +47,7 @@ namespace AE::Base
         {
             result = (Path{ curr } /= ref);
 
-            if ( Exists( result ))
+            if ( IsFileOrDirectory( result ))
                 return true;
 
             if ( depth == 0 )
@@ -75,7 +75,7 @@ namespace {
 
             result = (Path{ dir.Get() } /= ref);
 
-            if ( FileSystem::Exists( result ))
+            if ( FileSystem::IsFileOrDirectory( result ))
                 return true;
 
             if ( depth > 0 )
@@ -102,13 +102,13 @@ namespace {
 
     bool  FileSystem::SearchForward (const Path &base, const Path &ref, uint depth, OUT Path &result)
     {
-        CHECK_ERR( Exists( base ));
+        CHECK_ERR( IsDirectory( base ));
 
         const Path  curr = ToAbsolute( base );
 
         result = (Path{ curr } /= ref);
 
-        if ( FileSystem::Exists( result ))
+        if ( FileSystem::IsFileOrDirectory( result ))
             return true;
 
         return RecursiveSearchForward( curr, ref, depth, OUT result );
@@ -126,7 +126,7 @@ namespace {
 
     bool  FileSystem::Search (const Path &base, const Path &ref, const uint backwardDepth, const uint forwardDepth, OUT Path &result)
     {
-        CHECK_ERR( Exists( base ));
+        CHECK_ERR( IsDirectory( base ));
 
         Path    curr    = ToAbsolute( base );
         uint    depth   = backwardDepth;
@@ -135,7 +135,7 @@ namespace {
         {
             result = (Path{ curr } /= ref);
 
-            if ( Exists( result ))
+            if ( IsFileOrDirectory( result ))
                 return true;
 
             if ( depth == 0 )
@@ -159,6 +159,8 @@ namespace {
     void  FileSystem::FindUnusedFilename (const Function< void (OUT Path &name, usize idx) >&   buildName,
                                           const Function< bool (const Path &) > &               consume) __Th___
     {
+        CHECK_ERRV( buildName and consume );
+
         Path        fname;
         usize       min_index   = 0;
         usize       max_index   = 1;
@@ -191,6 +193,29 @@ namespace {
             }
         }
     }
+
+/*
+=================================================
+    CreateEmptyFile
+=================================================
+*/
+    bool  FileSystem::CreateEmptyFile (const Path &p) __NE___
+    {
+    #ifdef AE_PLATFORM_WINDOWS
+
+        FILE*   file = null;
+        _wfopen_s( OUT &file, p.native().c_str(), L"w" );
+        if ( file != null ) fclose( file );
+        return file != null;
+
+    #else
+
+        FILE*   file = fopen( p.native().c_str(), "w" );
+        if ( file != null ) fclose( file );
+        return file != null;
+
+    #endif
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -200,13 +225,18 @@ namespace {
     GetWindowsPath
 =================================================
 */
-Path  FileSystem::GetWindowsPath ()
-{
-    wchar_t buf[MAX_PATH];
-    uint    len = ::GetWindowsDirectoryW( buf, uint(CountOf( buf )) );
+    Path  FileSystem::GetWindowsPath ()
+    {
+        wchar_t buf[MAX_PATH];
+        uint    len = ::GetWindowsDirectoryW( buf, uint(CountOf( buf )) );  // win2000
 
-    return Path{ WStringView{ buf, len }};
-}
+        return Path{ WStringView{ buf, len }};
+    }
+
+// TODO:
+//  SHGetKnownFolderPath
+//  https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+
 #endif // AE_PLATFORM_WINDOWS
 
 

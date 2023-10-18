@@ -7,7 +7,6 @@
 
 namespace AE::App
 {
-
 /*
 =================================================
     constructor
@@ -41,43 +40,35 @@ namespace AE::App
 
 /*
 =================================================
-    _Create
+    _WindowModeToStyle
 =================================================
 */
-    bool  WindowWinAPI::_Create (const WindowDesc &desc) __NE___
+    inline bool  WindowWinAPI::_WindowModeToStyle (const EWindowMode mode, const Monitor::ID monitorId,
+                                                   OUT uint &wndStyle, OUT uint &wndExtStyle, INOUT int2 &wndSize, OUT int2 &wndPos) C_NE___
     {
-        DRC_EXLOCK( _drCheck );
-        DRC_EXLOCK( _app.GetSingleThreadCheck() );
-        CHECK_ERR( _wnd == null );
-
-        const auto      monitors    = _app.GetMonitors();
         Monitor const*  cur_mon     = null;
+        const auto      monitors    = _app.GetMonitors();
+        CHECK_ERR( not monitors.empty() );
 
-        for (auto& mon : monitors)
-        {
-            if ( mon.id == desc.monitorId )
-            {
+        for (auto& mon : monitors) {
+            if ( mon.id == monitorId ) {
                 cur_mon = &mon;
                 break;
             }
         }
-
         if ( cur_mon == null )
             cur_mon = &monitors.front();
 
-        DWORD       wnd_style       = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-        DWORD       wnd_ext_style   = WS_EX_APPWINDOW;
         uint2 const scr_res         = uint2{cur_mon->region.pixels.Size()};
-        uint2       wnd_size;
-        int2        wnd_pos;
-
         bool        resizable       = false;
         bool        borderless      = false;
         bool        fullscreen      = false;
         bool        always_on_top   = false;
+                    wndStyle        = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+                    wndExtStyle     = WS_EX_APPWINDOW;
 
         BEGIN_ENUM_CHECKS();
-        switch ( desc.mode )
+        switch ( mode )
         {
             case EWindowMode::Resizable :           resizable = true;                           break;
             case EWindowMode::NonResizable :                                                    break;
@@ -90,30 +81,87 @@ namespace AE::App
         END_ENUM_CHECKS();
 
         if ( resizable )
-            wnd_style |= WS_OVERLAPPEDWINDOW;
+            wndStyle |= WS_OVERLAPPEDWINDOW;
         else
         if ( borderless ) {
-            wnd_style |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+            wndStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
         }else
-            wnd_style |= WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION;
+            wndStyle |= WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION;
 
         if ( fullscreen or always_on_top )
         {
             // setup for fullscreen
-            wnd_style       |= WS_POPUP;
-            wnd_ext_style   |= WS_EX_TOPMOST;
-            wnd_pos         = cur_mon->region.pixels.LeftTop();
-            wnd_size        = scr_res;
+            wndStyle    |= WS_POPUP;
+            wndExtStyle |= WS_EX_TOPMOST;
+            wndPos      = cur_mon->region.pixels.LeftTop();
+            wndSize     = scr_res;
         }
         else
         {
             // setup windowed
-            RECT    wnd_rect{ 0, 0, int(desc.size.x), int(desc.size.y) };
-            ::AdjustWindowRectEx( INOUT &wnd_rect, wnd_style, FALSE, wnd_ext_style );   // win2000
+            RECT    wnd_rect{ 0, 0, wndSize.x, wndSize.y };
+            ::AdjustWindowRectEx( INOUT &wnd_rect, wndStyle, FALSE, wndExtStyle );  // win2000
 
-            wnd_size    = Min( desc.size, uint2{ wnd_rect.right - wnd_rect.left, wnd_rect.bottom - wnd_rect.top });
-            wnd_pos     = cur_mon->workArea.pixels.Center() - int2{wnd_size} / 2;
+            wndSize = Min( wndSize, int2{ wnd_rect.right - wnd_rect.left, wnd_rect.bottom - wnd_rect.top });
+            wndPos  = cur_mon->workArea.pixels.Center() - wndSize / 2;
         }
+        return true;
+    }
+
+/*
+=================================================
+    SetMode
+=================================================
+*/
+    bool  WindowWinAPI::SetMode (EWindowMode mode, Monitor::ID monitorId) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        CHECK_ERR( _wnd != null );
+
+        if ( _wndMode == mode )
+            return true;
+
+    //  const bool  fullscreen      = EWindowMode_IsFullscreen( mode );
+        const bool  was_fullscreen  = EWindowMode_IsFullscreen( _wndMode );
+        HWND        hwnd            = BitCast<HWND>(_wnd);
+
+        RECT        old_rect;
+        ::GetWindowRect( hwnd, OUT &old_rect ); // win2000
+
+        uint    wnd_style, wnd_ext_style;
+        int2    wnd_pos, wnd_size;
+        CHECK_ERR( _WindowModeToStyle( mode, monitorId, OUT wnd_style, OUT wnd_ext_style, INOUT wnd_size, OUT wnd_pos ));
+
+        if ( was_fullscreen ) {
+            wnd_pos     = _lastWindowSize.LeftTop();
+            wnd_size    = _lastWindowSize.Size();
+        }else
+            _lastWindowSize = RectI{old_rect.left, old_rect.top, old_rect.right, old_rect.bottom};
+
+        ::SetWindowLongA( hwnd, GWL_STYLE, wnd_style );         // win2000
+        ::SetWindowLongA( hwnd, GWL_EXSTYLE, wnd_ext_style );   // win2000
+
+        ::SetWindowPos( hwnd, HWND_TOP,             // win2000
+                        wnd_pos.x, wnd_pos.y, wnd_size.x, wnd_size.y,
+                        SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOCOPYBITS | SWP_FRAMECHANGED );
+
+        return true;
+    }
+
+/*
+=================================================
+    _Create
+=================================================
+*/
+    bool  WindowWinAPI::_Create (const WindowDesc &desc) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        DRC_EXLOCK( _app.GetSingleThreadCheck() );
+        CHECK_ERR( _wnd == null );
+
+        uint    wnd_style, wnd_ext_style;
+        int2    wnd_pos, wnd_size = int2{desc.size};
+        CHECK_ERR( _WindowModeToStyle( desc.mode, desc.monitorId, OUT wnd_style, OUT wnd_ext_style, INOUT wnd_size, OUT wnd_pos ));
 
         _wndMode = desc.mode;
 
@@ -127,11 +175,11 @@ namespace AE::App
                                   wnd_size.y,
                                   null,
                                   null,
-                                  HINSTANCE(_GetApp().GetHInstance()),
+                                  BitCast<HINSTANCE>(_GetApp().GetHInstance()),
                                   null );
         CHECK_ERR( _wnd != null );
 
-        _surfaceSize    = desc.size;
+        _surfaceSize    = uint2{wnd_size};
         _cursorHandle   = ::LoadCursorW( null, IDC_ARROW ); // win2000
         _windowPos      = wnd_pos;
 
@@ -148,8 +196,7 @@ namespace AE::App
                 {
                     ASSERT( wp->_wnd == hWnd );
                     return LRESULT{wp->_ProcessMessage( uMsg, wParam, lParam )};
-                }
-                else
+                }else
                     return ::DefWindowProcA( hWnd, uMsg, wParam, lParam );
             }
         };
@@ -238,10 +285,6 @@ namespace AE::App
         _input.Update( _app.GetTimeSinceStart() );
 
         _LockAndHideCursor( _input.RequiresLockAndHideCursor() );
-
-        if_likely( _listener )
-            _listener->OnUpdate( *this );
-
         return true;
     }
 
@@ -316,7 +359,7 @@ namespace AE::App
                 {
                     // In window mode there is a bug with incorrect render area.
                     // Force to update render area by changing window position.
-                    // Borderless and fullscreen windows doesn't have this bug. 
+                    // Borderless and fullscreen window modes doesn't have this bug. 
                     if ( AnyEqual( _wndMode, EWindowMode::NonResizable, EWindowMode::Resizable ))
                     {
                         _windowPos.x += (IsEven( _windowPos.x ) ? +1 : -1);
@@ -331,7 +374,7 @@ namespace AE::App
 
                 case WM_WINDOWPOSCHANGED :
                 {
-                    auto*   wndpos  = BitCast<WINDOWPOS*>(usize(lParam));
+                    auto*   wndpos  = BitCast<WINDOWPOS*>(lParam);
                     _windowPos      = int2{ wndpos->x, wndpos->y };
                     _UpdateDescription();
                     return 0;   // WM_SIZE and WM_MOVE will not send
@@ -416,9 +459,6 @@ namespace AE::App
             _surface.ResizeSwapchain();
 
             _input.SetMonitor( _surfaceSize, GetMonitor() );
-
-            if_likely( _listener )
-                _listener->OnResize( *this, _surfaceSize );
         }
     }
 
@@ -480,8 +520,8 @@ namespace AE::App
         DRC_EXLOCK( _drCheck );
 
         NativeWindow    result;
-        result.hinstance    = _GetApp().GetHInstance();
-        result.hwnd         = _wnd;
+        result.hInstance    = _GetApp().GetHInstance();
+        result.hWnd         = _wnd;
         return result;
     }
 

@@ -55,5 +55,26 @@ namespace AE::ResLoader
         return EIndex_SizeOf( _indexType );
     }
 
+/*
+=================================================
+    IsValid
+=================================================
+*/
+    bool  IntermMesh::IsValid () C_NE___
+    {
+        CHECK_ERR( _attribs );
+
+        /*if (auto normals = GetDataOpt< packed_float3 >( VertexAttributeName::Normal );  not normals.empty() )
+        {
+            bool    valid = true;
+            for (auto& n : normals) {
+                valid &= IsNormalized( n );
+            }
+            CHECK_ERR( valid );
+        }*/
+
+        return true;
+    }
+
 
 } // AE::ResLoader

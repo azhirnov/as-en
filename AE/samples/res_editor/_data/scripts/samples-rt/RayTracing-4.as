@@ -70,14 +70,14 @@
         const int   idx         = GetGlobalIndex();
         const int   inst_count  = un_Instances.elements.length();
         float       time        = Pi() * un_PerPass.time * 0.2f + float(idx);
-        float3x4    transform   = f3x4_Rotate( time, float3(0.f, 0.f, 1.f) );
+        float4x3    transform   = float4x3(f3x3_Rotate( time, float3(0.f, 0.f, 1.f) ));
         float3      pos         = float3( ToSNorm( float(idx % 4) * 0.3 ),
                                           ToSNorm( float(idx / 4) * 0.3 ) + 0.5,
                                           0.0 );
 
-        transform = Translate( transform, pos );
+        SetTranslation( INOUT transform, pos );
 
-        un_Instances.elements[idx].transform = transform;
+        un_Instances.elements[idx].transform = MatTranspose( transform );
 
         if ( idx == 0 )
         {

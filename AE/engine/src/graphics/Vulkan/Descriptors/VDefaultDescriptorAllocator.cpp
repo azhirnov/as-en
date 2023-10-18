@@ -108,7 +108,7 @@ namespace AE::Graphics
             // allocate new chunk
             auto*   new_chunk = new Chunk{};
 
-            if_unlikely( not next->compare_exchange_strong( INOUT chunk, new_chunk ))
+            if_unlikely( not next->CAS_Loop( INOUT chunk, new_chunk ))
                 delete new_chunk;
         }
         return false;

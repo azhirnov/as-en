@@ -19,6 +19,7 @@ using namespace AE::Threading;
 extern void Test_Image (IResourceManager &resMngr);
 extern void Test_Buffer (IResourceManager &resMngr);
 
+static constexpr uint  c_MaxRenderThreads = 3;
 
 /*
 =================================================
@@ -46,6 +47,7 @@ RGTest::RGTest () :
     //_tests.emplace_back( &RGTest::Test_Buffer );
     //_tests.emplace_back( &RGTest::Test_Image );
 
+    _tests.emplace_back( &RGTest::Test_Allocator );
     _tests.emplace_back( &RGTest::Test_FeatureSets );
     _tests.emplace_back( &RGTest::Test_FrameCounter );
     _tests.emplace_back( &RGTest::Test_ImageFormat );
@@ -87,7 +89,7 @@ RGTest::RGTest () :
 
 /*
 =================================================
-    Test_Image/BUffer
+    Test_Image/Buffer
 =================================================
 */
 bool  RGTest::Test_Image ()
@@ -279,7 +281,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
     swapchain_ci.viewSize = wnd.GetSurfaceSize();
     CHECK_ERR( _swapchain.Create( swapchain_ci ));
 
-    for (uint i = 0; i < 2; ++i) {
+    for (uint i = 0; i < c_MaxRenderThreads; ++i) {
         Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
                 EThreadArray{ EThread::PerFrame, EThread::Renderer },
                 "render thread"s << ToString(i)
@@ -434,7 +436,7 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
     SwapchainDesc   swapchain_ci;
     CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 
-    for (uint i = 0; i < 2; ++i) {
+    for (uint i = 0; i < c_MaxRenderThreads; ++i) {
         Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
                 EThreadArray{ EThread::PerFrame, EThread::Renderer },
                 "render thread"s << ToString(i)

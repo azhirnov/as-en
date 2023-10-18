@@ -42,7 +42,6 @@ namespace AE::Threading
 */
     MemoryManagerImpl::MemoryManagerImpl () __NE___
     {
-        _defaultAlloc.CustomCtor( &StaticRC::New<DefaultAlloc_t> );
     }
 
 /*
@@ -52,7 +51,6 @@ namespace AE::Threading
 */
     MemoryManagerImpl::~MemoryManagerImpl () __NE___
     {
-        _defaultAlloc.CustomDtor( &StaticRC::Delete<DefaultAlloc_t> );
     }
 
 /*
@@ -126,7 +124,7 @@ namespace AE::Threading
 
     RC<TsSharedMem>  TsSharedMem::Create (Bytes size, Bytes align) __NE___
     {
-        return TsSharedMem::Create( MemoryManager().GetDefaultAllocator(), size, align );
+        return TsSharedMem::Create( AE::GetDefaultAllocator(), size, align );
     }
 
 

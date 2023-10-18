@@ -14,7 +14,7 @@
         {
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
             ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
-            ds.StorageBuffer( EShaderStages::Vertex, "un_Cube",      "CubeSBlock", EResourceState::ShaderStorage_Read );    // external
+            ds.StorageBuffer( EShaderStages::Vertex, "un_Geometry",  "GeometrySBlock", EResourceState::ShaderStorage_Read );    // external
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
@@ -64,8 +64,8 @@
 
     void Main ()
     {
-        uint    idx     = un_Cube.indices[ gl.VertexIndex ];
-        gl.Position     = LocalPosToScreenSpace( un_Cube.positions[idx] );
+        const uint  idx = gl.VertexIndex;
+        gl.Position     = LocalPosToClipSpace( un_Geometry.positions[idx] );
     }
 
 #endif
@@ -84,8 +84,8 @@
         const float     thickness       = 1.5;  // pixels
         const float     falloff         = 6.0;  // pixels
 
-        const float3    dx_barycoord    = dFdx( gl.BaryCoord );
-        const float3    dy_barycoord    = dFdy( gl.BaryCoord );
+        const float3    dx_barycoord    = gl.dFdx( gl.BaryCoord );
+        const float3    dy_barycoord    = gl.dFdy( gl.BaryCoord );
         const float3    d_barycoord     = Sqrt( dx_barycoord * dx_barycoord + dy_barycoord * dy_barycoord );
         const float3    d_thickness     = d_barycoord * thickness;
         const float3    d_falloff       = d_barycoord * falloff;

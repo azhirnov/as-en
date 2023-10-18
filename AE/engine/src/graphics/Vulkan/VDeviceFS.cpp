@@ -56,9 +56,8 @@ namespace AE::Graphics
             outFeatureSet.maxSubgroupSize   = CheckCast<ushort>(_properties.subgroupProperties.subgroupSize);
             outFeatureSet.subgroupTypes     = ESubgroupTypes::Float32 | ESubgroupTypes::Int32;
 
-            for (auto ops = VkSubgroupFeatureFlagBits(_properties.subgroupProperties.supportedOperations); ops != Zero;)
+            for (auto f : BitfieldIterate( VkSubgroupFeatureFlagBits( _properties.subgroupProperties.supportedOperations )))
             {
-                VkSubgroupFeatureFlagBits   f = ExtractBit( INOUT ops );
                 BEGIN_ENUM_CHECKS();
                 switch ( f )
                 {
@@ -193,8 +192,8 @@ namespace AE::Graphics
             SET_FEAT2( shaderDeviceClock,   _properties.shaderClockFeats );
         }
 
-        if ( _extensions.cooperativeMatrixNV )
-            outFeatureSet.cooperativeMatrixNV = _properties.cooperativeMatrixNVFeats.cooperativeMatrix ? True : False;
+        if ( _extensions.cooperativeMatrix )
+            outFeatureSet.cooperativeMatrix = _properties.cooperativeMatrixFeats.cooperativeMatrix ? True : False;
 
         if ( _extensions.bufferDeviceAddress )
             SET_FEAT2( bufferDeviceAddress, _properties.bufferDeviceAddressFeats );
@@ -331,10 +330,10 @@ namespace AE::Graphics
         {
             SET_FEAT2( rayTracingPipeline,              _properties.rayTracingPipelineFeats );
             SET_FEAT2( rayTraversalPrimitiveCulling,    _properties.rayTracingPipelineFeats );
-            outFeatureSet.minRayRecursionDepth      =   _properties.rayTracingPipelineProps.maxRayRecursionDepth;
+            outFeatureSet.maxRayRecursionDepth      =   _properties.rayTracingPipelineProps.maxRayRecursionDepth;
         }
 
-        outFeatureSet.minShaderVersion.spirv = (_spirvVersion.major * 100) + (_spirvVersion.minor * 10);
+        outFeatureSet.maxShaderVersion.spirv = (_spirvVersion.major * 100) + (_spirvVersion.minor * 10);
 
         SET_FEAT( drawIndirectFirstInstance );
         if ( _extensions.drawIndirectCount )
@@ -345,11 +344,11 @@ namespace AE::Graphics
             SET_FEAT2( multiview,                   _properties.multiviewFeats );
             SET_FEAT2( multiviewGeometryShader,     _properties.multiviewFeats );
             SET_FEAT2( multiviewTessellationShader, _properties.multiviewFeats );
-            outFeatureSet.minMultiviewViewCount     = _properties.multiviewProps.maxMultiviewViewCount;
+            outFeatureSet.maxMultiviewViewCount     = _properties.multiviewProps.maxMultiviewViewCount;
         }
 
         SET_FEAT( multiViewport );
-        outFeatureSet.minViewports = limits.maxViewports;
+        outFeatureSet.maxViewports = limits.maxViewports;
 
         if ( _extensions.sampleLocations )
         {
@@ -357,41 +356,41 @@ namespace AE::Graphics
             SET_FEAT2( variableSampleLocations, _properties.sampleLocationsProps );
         }
 
-        outFeatureSet.perDescrSet.minInputAttachments   = limits.maxDescriptorSetInputAttachments;
-        outFeatureSet.perDescrSet.minSampledImages      = limits.maxDescriptorSetSampledImages;
-        outFeatureSet.perDescrSet.minSamplers           = limits.maxDescriptorSetSamplers;
-        outFeatureSet.perDescrSet.minStorageBuffers     = limits.maxDescriptorSetStorageBuffers;
-        outFeatureSet.perDescrSet.minStorageImages      = limits.maxDescriptorSetStorageImages;
-        outFeatureSet.perDescrSet.minUniformBuffers     = limits.maxDescriptorSetUniformBuffers;
-        outFeatureSet.perDescrSet.minTotalResources     = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : 1024u;
+        outFeatureSet.perDescrSet.maxInputAttachments   = limits.maxDescriptorSetInputAttachments;
+        outFeatureSet.perDescrSet.maxSampledImages      = limits.maxDescriptorSetSampledImages;
+        outFeatureSet.perDescrSet.maxSamplers           = limits.maxDescriptorSetSamplers;
+        outFeatureSet.perDescrSet.maxStorageBuffers     = limits.maxDescriptorSetStorageBuffers;
+        outFeatureSet.perDescrSet.maxStorageImages      = limits.maxDescriptorSetStorageImages;
+        outFeatureSet.perDescrSet.maxUniformBuffers     = limits.maxDescriptorSetUniformBuffers;
+        outFeatureSet.perDescrSet.maxTotalResources     = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : 1024u;
 
-        outFeatureSet.perStage.minInputAttachments  = limits.maxPerStageDescriptorInputAttachments;
-        outFeatureSet.perStage.minSampledImages     = limits.maxPerStageDescriptorSampledImages;
-        outFeatureSet.perStage.minSamplers          = limits.maxPerStageDescriptorSamplers;
-        outFeatureSet.perStage.minStorageBuffers    = limits.maxPerStageDescriptorStorageBuffers;
-        outFeatureSet.perStage.minStorageImages     = limits.maxPerStageDescriptorStorageImages;
-        outFeatureSet.perStage.minUniformBuffers    = limits.maxPerStageDescriptorUniformBuffers;
-        outFeatureSet.perStage.minTotalResources    = limits.maxPerStageResources;
+        outFeatureSet.perStage.maxInputAttachments      = limits.maxPerStageDescriptorInputAttachments;
+        outFeatureSet.perStage.maxSampledImages         = limits.maxPerStageDescriptorSampledImages;
+        outFeatureSet.perStage.maxSamplers              = limits.maxPerStageDescriptorSamplers;
+        outFeatureSet.perStage.maxStorageBuffers        = limits.maxPerStageDescriptorStorageBuffers;
+        outFeatureSet.perStage.maxStorageImages         = limits.maxPerStageDescriptorStorageImages;
+        outFeatureSet.perStage.maxUniformBuffers        = limits.maxPerStageDescriptorUniformBuffers;
+        outFeatureSet.perStage.maxTotalResources        = limits.maxPerStageResources;
 
         if ( _extensions.accelerationStructure )
         {
             SET_FEAT2( accelerationStructureIndirectBuild, _properties.accelerationStructureFeats );
 
-            outFeatureSet.perDescrSet.minAccelStructures    = _properties.accelerationStructureProps.maxDescriptorSetAccelerationStructures;
-            outFeatureSet.perStage.minAccelStructures       = _properties.accelerationStructureProps.maxPerStageDescriptorAccelerationStructures;
+            outFeatureSet.perDescrSet.maxAccelStructures    = _properties.accelerationStructureProps.maxDescriptorSetAccelerationStructures;
+            outFeatureSet.perStage.maxAccelStructures       = _properties.accelerationStructureProps.maxPerStageDescriptorAccelerationStructures;
         }
 
-        outFeatureSet.minTexelBufferElements= limits.maxTexelBufferElements;
-        outFeatureSet.minUniformBufferSize  = limits.maxUniformBufferRange;
-        outFeatureSet.minStorageBufferSize  = limits.maxStorageBufferRange;
-        outFeatureSet.minDescriptorSets     = CheckCast<ushort>(limits.maxBoundDescriptorSets);
-        outFeatureSet.minTexelOffset        = CheckCast<ushort>(Min( limits.maxTexelOffset, Max( Abs(limits.minTexelOffset)-1, 0 )));
-        outFeatureSet.minTexelGatherOffset  = CheckCast<ushort>(Min( limits.maxTexelGatherOffset, Max( Abs(limits.minTexelGatherOffset)-1, 0 )));
+        outFeatureSet.maxTexelBufferElements= limits.maxTexelBufferElements;
+        outFeatureSet.maxUniformBufferSize  = limits.maxUniformBufferRange;
+        outFeatureSet.maxStorageBufferSize  = limits.maxStorageBufferRange;
+        outFeatureSet.maxDescriptorSets     = CheckCast<ushort>(limits.maxBoundDescriptorSets);
+        outFeatureSet.maxTexelOffset        = CheckCast<ushort>(Min( limits.maxTexelOffset, Max( Abs(limits.minTexelOffset)-1, 0 )));
+        outFeatureSet.maxTexelGatherOffset  = CheckCast<ushort>(Min( limits.maxTexelGatherOffset, Max( Abs(limits.minTexelGatherOffset)-1, 0 )));
 
-        outFeatureSet.minFragmentOutputAttachments          = CheckCast<ushort>(limits.maxFragmentOutputAttachments);
-        outFeatureSet.minFragmentDualSrcAttachments         = CheckCast<ushort>(limits.maxFragmentDualSrcAttachments);
-        outFeatureSet.minFragmentCombinedOutputResources    = limits.maxFragmentCombinedOutputResources;
-        outFeatureSet.minPushConstantsSize                  = limits.maxPushConstantsSize;
+        outFeatureSet.maxFragmentOutputAttachments          = CheckCast<ushort>(limits.maxFragmentOutputAttachments);
+        outFeatureSet.maxFragmentDualSrcAttachments         = CheckCast<ushort>(limits.maxFragmentDualSrcAttachments);
+        outFeatureSet.maxFragmentCombinedOutputResources    = limits.maxFragmentCombinedOutputResources;
+        outFeatureSet.maxPushConstantsSize                  = limits.maxPushConstantsSize;
 
         if ( _extensions.portabilitySubset )
         {
@@ -419,49 +418,49 @@ namespace AE::Graphics
         }
 
         outFeatureSet.computeShader                     = True;
-        outFeatureSet.minComputeSharedMemorySize        = limits.maxComputeSharedMemorySize;
-        outFeatureSet.minComputeWorkGroupInvocations    = limits.maxComputeWorkGroupInvocations;
-        outFeatureSet.minComputeWorkGroupSizeX          = Min( limits.maxComputeWorkGroupSize[0], limits.maxComputeWorkGroupInvocations );
-        outFeatureSet.minComputeWorkGroupSizeY          = Min( limits.maxComputeWorkGroupSize[1], limits.maxComputeWorkGroupInvocations );
-        outFeatureSet.minComputeWorkGroupSizeZ          = Min( limits.maxComputeWorkGroupSize[2], limits.maxComputeWorkGroupInvocations );
+        outFeatureSet.maxComputeSharedMemorySize        = limits.maxComputeSharedMemorySize;
+        outFeatureSet.maxComputeWorkGroupInvocations    = limits.maxComputeWorkGroupInvocations;
+        outFeatureSet.maxComputeWorkGroupSizeX          = Min( limits.maxComputeWorkGroupSize[0], limits.maxComputeWorkGroupInvocations );
+        outFeatureSet.maxComputeWorkGroupSizeY          = Min( limits.maxComputeWorkGroupSize[1], limits.maxComputeWorkGroupInvocations );
+        outFeatureSet.maxComputeWorkGroupSizeZ          = Min( limits.maxComputeWorkGroupSize[2], limits.maxComputeWorkGroupInvocations );
 
         if ( _extensions.meshShader )
         {
             SET_FEAT2( taskShader,  _properties.meshShaderFeats );
             SET_FEAT2( meshShader,  _properties.meshShaderFeats );
 
-            outFeatureSet.minTaskWorkGroupSize                  = Min(  _properties.meshShaderProps.maxTaskWorkGroupSize[0],
+            outFeatureSet.maxTaskWorkGroupSize                  = Min(  _properties.meshShaderProps.maxTaskWorkGroupSize[0],
                                                                         _properties.meshShaderProps.maxTaskWorkGroupSize[1],
                                                                         _properties.meshShaderProps.maxTaskWorkGroupSize[2],
                                                                         _properties.meshShaderProps.maxTaskWorkGroupInvocations );
-            outFeatureSet.minMeshWorkGroupSize                  = Min(  _properties.meshShaderProps.maxMeshWorkGroupSize[0],
+            outFeatureSet.maxMeshWorkGroupSize                  = Min(  _properties.meshShaderProps.maxMeshWorkGroupSize[0],
                                                                         _properties.meshShaderProps.maxMeshWorkGroupSize[1],
                                                                         _properties.meshShaderProps.maxMeshWorkGroupSize[2],
                                                                         _properties.meshShaderProps.maxMeshWorkGroupInvocations );
-            outFeatureSet.minMeshOutputVertices                 = _properties.meshShaderProps.maxMeshOutputVertices;
-            outFeatureSet.minMeshOutputPrimitives               = _properties.meshShaderProps.maxMeshOutputPrimitives;
+            outFeatureSet.maxMeshOutputVertices                 = _properties.meshShaderProps.maxMeshOutputVertices;
+            outFeatureSet.maxMeshOutputPrimitives               = _properties.meshShaderProps.maxMeshOutputPrimitives;
             outFeatureSet.maxMeshOutputPerVertexGranularity     = _properties.meshShaderProps.meshOutputPerVertexGranularity;
             outFeatureSet.maxMeshOutputPerPrimitiveGranularity  = _properties.meshShaderProps.meshOutputPerPrimitiveGranularity;
-            outFeatureSet.minTaskPayloadSize                    = _properties.meshShaderProps.maxTaskPayloadSize;
-            outFeatureSet.minTaskSharedMemorySize               = _properties.meshShaderProps.maxTaskSharedMemorySize;
-            outFeatureSet.minTaskPayloadAndSharedMemorySize     = _properties.meshShaderProps.maxTaskPayloadAndSharedMemorySize;
-            outFeatureSet.minMeshSharedMemorySize               = _properties.meshShaderProps.maxMeshSharedMemorySize;
-            outFeatureSet.minMeshPayloadAndSharedMemorySize     = _properties.meshShaderProps.maxMeshPayloadAndSharedMemorySize;
-            outFeatureSet.minMeshOutputMemorySize               = _properties.meshShaderProps.maxMeshOutputMemorySize;
-            outFeatureSet.minMeshPayloadAndOutputMemorySize     = _properties.meshShaderProps.maxMeshPayloadAndOutputMemorySize;
-            outFeatureSet.minMeshMultiviewViewCount             = _properties.meshShaderProps.maxMeshMultiviewViewCount;
-            outFeatureSet.minPreferredTaskWorkGroupInvocations  = _properties.meshShaderProps.maxPreferredTaskWorkGroupInvocations;
-            outFeatureSet.minPreferredMeshWorkGroupInvocations  = _properties.meshShaderProps.maxPreferredMeshWorkGroupInvocations;
+            outFeatureSet.maxTaskPayloadSize                    = _properties.meshShaderProps.maxTaskPayloadSize;
+            outFeatureSet.maxTaskSharedMemorySize               = _properties.meshShaderProps.maxTaskSharedMemorySize;
+            outFeatureSet.maxTaskPayloadAndSharedMemorySize     = _properties.meshShaderProps.maxTaskPayloadAndSharedMemorySize;
+            outFeatureSet.maxMeshSharedMemorySize               = _properties.meshShaderProps.maxMeshSharedMemorySize;
+            outFeatureSet.maxMeshPayloadAndSharedMemorySize     = _properties.meshShaderProps.maxMeshPayloadAndSharedMemorySize;
+            outFeatureSet.maxMeshOutputMemorySize               = _properties.meshShaderProps.maxMeshOutputMemorySize;
+            outFeatureSet.maxMeshPayloadAndOutputMemorySize     = _properties.meshShaderProps.maxMeshPayloadAndOutputMemorySize;
+            outFeatureSet.maxMeshMultiviewViewCount             = _properties.meshShaderProps.maxMeshMultiviewViewCount;
+            outFeatureSet.maxPreferredTaskWorkGroupInvocations  = _properties.meshShaderProps.maxPreferredTaskWorkGroupInvocations;
+            outFeatureSet.maxPreferredMeshWorkGroupInvocations  = _properties.meshShaderProps.maxPreferredMeshWorkGroupInvocations;
         }
 
         if ( _extensions.vertexDivisor and _properties.vertexDivisorFeats.vertexAttributeInstanceRateDivisor )
         {
             outFeatureSet.vertexDivisor             = True;
-            outFeatureSet.minVertexAttribDivisor    = _properties.vertexDivisorProps.maxVertexAttribDivisor;
+            outFeatureSet.maxVertexAttribDivisor    = _properties.vertexDivisorProps.maxVertexAttribDivisor;
         }
 
-        outFeatureSet.minVertexAttributes   = limits.maxVertexInputAttributes;
-        outFeatureSet.minVertexBuffers      = limits.maxVertexInputBindings;
+        outFeatureSet.maxVertexAttributes   = limits.maxVertexInputAttributes;
+        outFeatureSet.maxVertexBuffers      = limits.maxVertexInputBindings;
 
         SET_FEAT( geometryShader );
         SET_FEAT( tessellationShader );
@@ -477,12 +476,12 @@ namespace AE::Graphics
         {
             SET_FEAT2( textureCompressionASTC_HDR, _properties.astcHdrFeats );
         }
-        outFeatureSet.minImageArrayLayers = limits.maxImageArrayLayers;
+        outFeatureSet.maxImageArrayLayers = limits.maxImageArrayLayers;
         // TODO: storageImageFormats
 
         SET_FEAT( samplerAnisotropy );
-        outFeatureSet.minSamplerAnisotropy  = limits.maxSamplerAnisotropy;
-        outFeatureSet.minSamplerLodBias     = limits.maxSamplerLodBias;
+        outFeatureSet.maxSamplerAnisotropy  = limits.maxSamplerAnisotropy;
+        outFeatureSet.maxSamplerLodBias     = limits.maxSamplerLodBias;
 
         if ( _extensions.samplerMirrorClamp )
             outFeatureSet.samplerMirrorClampToEdge = True;
@@ -511,7 +510,7 @@ namespace AE::Graphics
         ASSERT( outFeatureSet.framebufferColorSampleCounts != Default );
         ASSERT( outFeatureSet.framebufferDepthSampleCounts != Default );
 
-        outFeatureSet.minFramebufferLayers = limits.maxFramebufferLayers;
+        outFeatureSet.maxFramebufferLayers = limits.maxFramebufferLayers;
 
         for (uint i = 0; i < uint(EPixelFormat::_Count); ++i)
         {
@@ -792,7 +791,7 @@ namespace AE::Graphics
         SET_FEAT2( shaderSubgroupClock, _properties.shaderClockFeats );
         SET_FEAT2( shaderDeviceClock,   _properties.shaderClockFeats );
 
-        _extensions.cooperativeMatrixNV = (inFS.cooperativeMatrixNV == True);
+        _extensions.cooperativeMatrix = (inFS.cooperativeMatrix == True);
 
         _extensions.bufferDeviceAddress = (inFS.bufferDeviceAddress == True);
         SET_FEAT2( bufferDeviceAddress, _properties.bufferDeviceAddressFeats );

@@ -1,4 +1,19 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Auto-barriers:
+     - read after write
+     - write after read
+     - write after write
+       * ignored 'CopyDst -> CopyDst' and 'BlitDst -> BlitDst', user must explicitly add a barrier if the regions intersects.
+
+    Features:
+     - Low CPU overhead:
+       * resource regions are not tracked, only the whole resource.
+       * commands are not sorted.
+     - Supported concurrent and explicit sharing between queue families.
+
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/RenderGraph.md)
+*/
 
 #pragma once
 

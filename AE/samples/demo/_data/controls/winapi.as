@@ -69,9 +69,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
                   ActionInfo( "Test.LongPress", EGestureType::LongPress ));
     }
 
-    // Simple3D bindings
+    // Camera3D bindings
     {
-        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Simple3D" );
+        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Camera3D" );
         bind.Inherit( "SampleSelector" );
 
         const float4    move_scale      (0.001f);

@@ -64,7 +64,7 @@ namespace
             const uint  cycles_before_suspend   = 3;
 
             ThreadUtils::SetName( _cfg.name );
-            //CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
+            CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
 
             {
                 EXLOCK( _profInfoGuard );
@@ -188,7 +188,7 @@ namespace
 */
     bool  MainThread::Attach (const uint, const uint coreId) __NE___
     {
-        //CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
+        CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
 
         _handle     = ThreadUtils::GetCurrentThreadHandle();
         _coreId     = ThreadUtils::GetCoreIndex();

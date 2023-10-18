@@ -2,7 +2,7 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Resources/Buffer.h"
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
 {
@@ -77,14 +77,36 @@ namespace
 
 /*
 =================================================
+    destructor
+=================================================
+*/
+    ScriptBuffer::~ScriptBuffer ()
+    {
+        if ( not _resource )
+            AE_LOG_SE( "Unused buffer '"s << _dbgName << "'" );
+    }
+
+/*
+=================================================
     GetTypeName
 =================================================
 */
     String  ScriptBuffer::GetTypeName () C_NE___
     {
-        ASSERT( HasLayout() );
+        return  _IsArray() ?
+                    _layout.typeName + (_layout.staticSrc.empty() ? "_Array" : "_Array2") :
+                    _layout.typeName;
+    }
 
-        return _IsArray() ? _layout.typeName + "Array" : _layout.typeName;
+/*
+=================================================
+    _IsArray
+=================================================
+*/
+    bool  ScriptBuffer::_IsArray () C_NE___
+    {
+        return  _dynCount or
+                (_staticCount > 0 and _staticCount != UMax);
     }
 
 /*
@@ -175,7 +197,7 @@ namespace
             CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ShaderAddress ));
         }
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
 
         if ( AnyBits( usage, EResourceUsage::ASBuild ))
         {
@@ -205,39 +227,60 @@ namespace
         _layout     = BufferLayout{typeName};
     }
 
-    void  ScriptBuffer::SetLayoutAndSize (const String &typeName, ulong dataSize) __Th___
-    {
-        SetSize( Bytes{dataSize}, typeName );
-    }
-
-    void  ScriptBuffer::SetLayout2 (const String &typeName) __Th___
-    {
-        CHECK_THROW_MSG( not _resource,
-            "resource is already created, can not change size" );
-        CHECK_THROW_MSG( StartsWith( _layout.typeName, "ConstLayout-" ));
-
-        _layout.typeName = typeName;
-    }
-
-    void  ScriptBuffer::SetLayout3 (const String &typeName, const String &source) __Th___
+/*
+=================================================
+    SetLayoutName
+=================================================
+*/
+    void  ScriptBuffer::SetLayoutName (const String &typeName) __Th___
     {
         CHECK_THROW_MSG( not _resource,
             "resource is already created, can not change size" );
         CHECK_THROW_MSG( StartsWith( _layout.typeName, "ConstLayout-" ));
 
         _layout.typeName = typeName;
-        _layout.source   = source;
     }
 
 /*
 =================================================
-    SetLayoutAndCount*
+    SetLayout*
 =================================================
 */
-    void  ScriptBuffer::SetLayoutAndCount1 (const String &typeName, uint count) __Th___
+    void  ScriptBuffer::SetLayout1 (const String &typeName) __Th___
     {
         CHECK_THROW_MSG( _layout.typeName.empty() );
-        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size already defined" );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        _SetType( EBufferType::MutableData_NonInitialized );  // throw
+
+        _layout.typeName = typeName;
+        _staticCount     = UMax;
+    }
+
+    void  ScriptBuffer::SetLayout2 (const String &typeName, const String &source) __Th___
+    {
+        CHECK_THROW_MSG( _layout.typeName.empty() );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        _SetType( EBufferType::MutableData_NonInitialized );  // throw
+
+        _layout.typeName = typeName;
+        _layout.source   = source;
+        _staticCount     = UMax;
+    }
+
+/*
+=================================================
+    SetArrayLayout*
+=================================================
+*/
+    void  ScriptBuffer::SetArrayLayout1 (const String &typeName, uint count) __Th___
+    {
+        CHECK_THROW_MSG( _layout.typeName.empty() );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+        CHECK_THROW_MSG( count > 0 );
 
         _SetType( EBufferType::MutableData_NonInitialized );  // throw
 
@@ -245,10 +288,12 @@ namespace
         _staticCount     = count;
     }
 
-    void  ScriptBuffer::SetLayoutAndCount2 (const String &typeName, const ScriptDynamicUIntPtr &count) __Th___
+    void  ScriptBuffer::SetArrayLayout2 (const String &typeName, const ScriptDynamicUIntPtr &count) __Th___
     {
         CHECK_THROW_MSG( _layout.typeName.empty() );
-        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size already defined" );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
 
         _SetType( EBufferType::MutableData_NonInitialized );  // throw
 
@@ -256,10 +301,13 @@ namespace
         _dynCount        = count;
     }
 
-    void  ScriptBuffer::SetLayoutAndCount3 (const String &typeName, const String &source, uint count) __Th___
+    void  ScriptBuffer::SetArrayLayout3 (const String &typeName, const String &source, uint count) __Th___
     {
         CHECK_THROW_MSG( _layout.typeName.empty() );
-        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size already defined" );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+        CHECK_THROW_MSG( count > 0 );
 
         _SetType( EBufferType::MutableData_NonInitialized );  // throw
 
@@ -268,16 +316,39 @@ namespace
         _staticCount     = count;
     }
 
-    void  ScriptBuffer::SetLayoutAndCount4 (const String &typeName, const String &source, const ScriptDynamicUIntPtr &count) __Th___
+    void  ScriptBuffer::SetArrayLayout4 (const String &typeName, const String &source, const ScriptDynamicUIntPtr &count) __Th___
     {
         CHECK_THROW_MSG( _layout.typeName.empty() );
-        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size already defined" );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
 
         _SetType( EBufferType::MutableData_NonInitialized );  // throw
 
         _layout.typeName = typeName;
         _layout.source   = source;
         _dynCount        = count;
+    }
+
+/*
+=================================================
+    SetArrayLayout*
+=================================================
+*/
+    void  ScriptBuffer::SetArrayLayout5 (const String &typeName, const String &source, const String &staticSrc, uint count) __Th___
+    {
+        CHECK_THROW_MSG( _layout.typeName.empty() );
+        CHECK_THROW_MSG( _layout.source.empty() );
+        CHECK_THROW_MSG( _layout.staticSrc.empty() );
+        CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+        CHECK_THROW_MSG( count > 0 );
+
+        _SetType( EBufferType::MutableData_NonInitialized );  // throw
+
+        _layout.typeName    = typeName;
+        _layout.source      = source;
+        _layout.staticSrc   = staticSrc;
+        _staticCount        = count;
     }
 
 /*
@@ -813,37 +884,48 @@ namespace
         binder.AddFactoryCtor( &ScriptBuffer_Ctor2,     {"filenameInVFS"} );
 
         binder.Comment( "Set resource name. It is used for debugging." );
-        binder.AddMethod( &ScriptBuffer::Name,                  "Name",         {} );
-
-        //binder.AddMethod( &ScriptBuffer::SetLayoutAndSize,    "LayoutAndSize" );
-        //binder.AddMethod( &ScriptBuffer::SetLayout3,          "Layout"        );
+        binder.AddMethod( &ScriptBuffer::Name,                  "Name",             {} );
 
         binder.Comment( "Set explicit name of the 'ShaderStructType' which will be created for buffer data layout.\n"
                         "It is used when buffer is passed to the pipeline which is explicitly declared (in 'pipelines' folder)\n"
                         "so typename must match in 'Layout()' and in 'ds.StorageBuffer()' call in pipeline script." );
-        binder.AddMethod( &ScriptBuffer::SetLayout2,            "Layout",       {"typeName"} );
+        binder.AddMethod( &ScriptBuffer::SetLayoutName,         "LayoutName",       {"typeName"} );
 
         binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
-                        "'typeName' must be previously declared." );
-        binder.AddMethod( &ScriptBuffer::SetLayoutAndCount1,    "LayoutAndCount",   {"typeName", "count"} );
-        binder.AddMethod( &ScriptBuffer::SetLayoutAndCount2,    "LayoutAndCount",   {"typeName", "count"} );
+                        "Layout will be '{ <typeName>  elements [<count>]; }'.\n"
+                        "'typeName' must be previously declared or one of built-in type:\n"
+                        "\t'DispatchIndirectCommand', 'DrawIndirectCommand', 'DrawIndexedIndirectCommand',\n"
+                        "\t'DrawMeshTasksIndirectCommand', 'TraceRayIndirectCommand', 'ASBuildIndirectCommand'\n"
+                        "\t'AccelStructInstance'." );
+        binder.AddMethod( &ScriptBuffer::SetArrayLayout1,       "ArrayLayout",      {"typeName", "count"} );
+        binder.AddMethod( &ScriptBuffer::SetArrayLayout2,       "ArrayLayout",      {"typeName", "count"} );
 
         binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
-                        "Created a new structure with type 'typeName' and field in 'source'.\n"
-                        "See 'ShaderStructType::Set()' in 'pipeline_compiler.as' to see rules for field declaration.");
-        binder.AddMethod( &ScriptBuffer::SetLayoutAndCount3,    "LayoutAndCount",   {"typeName", "source", "count"} );
-        binder.AddMethod( &ScriptBuffer::SetLayoutAndCount4,    "LayoutAndCount",   {"typeName", "source", "count"} );
+                        "Created a new structure with type 'typeName' and fields in 'source'.\n"
+                        "See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
+        binder.AddMethod( &ScriptBuffer::SetArrayLayout3,       "ArrayLayout",      {"typeName", "source", "count"} );
+        binder.AddMethod( &ScriptBuffer::SetArrayLayout4,       "ArrayLayout",      {"typeName", "source", "count"} );
+
+        binder.AddMethod( &ScriptBuffer::SetArrayLayout5,       "ArrayLayout",      {"typeName", "arrayElementSource", "staticSource", "count"} );
+
+        binder.Comment( "Allow to declare single structure as a buffer layout.\n"
+                        "'typeName' must be previously declared or one of built-in type (see 'ArrayLayout')." );
+        binder.AddMethod( &ScriptBuffer::SetLayout1,            "Layout",           {"typeName"} );
+
+        binder.Comment( "Created a new structure with type 'typeName' and fields in 'source'.\n"
+                        "See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
+        binder.AddMethod( &ScriptBuffer::SetLayout2,            "Layout",           {"typeName", "source"} );
 
         binder.Comment( "Returns buffer device address.\n"
-                        "Requires GL_EXT_buffer_reference extension in GLSL.\n"
-                        "It passed as 'uint64' type so cast it to any buffer reference type." );
+                        "Requires 'GL_EXT_buffer_reference extension' in GLSL.\n"
+                        "It passed as 'uint64' type so you should cast it to buffer reference type." );
         binder.AddMethod( &ScriptBuffer::GetDeviceAddress,      "DeviceAddress",    {} );
 
         binder.Comment( "Force enable buffer content history.\n"
                         "It store copy of the buffer content on last N frames." );
         binder.AddMethod( &ScriptBuffer::EnableHistory,         "EnableHistory",    {} );
 
-        binder.Comment( "Call this method if DeviceAddress of another buffer is used in current buffer to avoid missed synchronizations." );
+        binder.Comment( "Call this method if 'DeviceAddress()' of another buffer is used in current buffer to avoid missed synchronizations." );
         binder.AddMethod( &ScriptBuffer::AddReference,          "AddReference",     {} );
 
         binder.Comment( "Build buffer data layout with initial content.\n"
@@ -954,10 +1036,10 @@ namespace
         Buffer::EBufferFlags    flags = Default;
 
         CHECK_ERR_MSG( _resUsage != Default, "failed to create buffer '"s << _dbgName << "'" );
-        for (auto usage = _resUsage; usage != Default;)
+        for (auto usage : BitfieldIterate( _resUsage ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT usage ))
+            switch ( usage )
             {
                 case EResourceUsage::ComputeRead :      _desc.usage |= EBufferUsage::Storage | EBufferUsage::TransferSrc;       break;
                 case EResourceUsage::ComputeWrite :     _desc.usage |= EBufferUsage::Storage;                                   break;
@@ -1016,34 +1098,38 @@ namespace
 
         Bytes   elem_size;
 
-        if ( not _layout.typeName.empty() )
+        if ( HasLayout() )
         {
             using namespace AE::PipelineCompiler;
 
-            if ( auto storage = ObjectStorage::Instance() )
+            auto    storage = ObjectStorage::Instance();
+            if ( storage )
             {
                 auto&   st_types    = storage->structTypes;
-                auto    it          = st_types.find( _layout.typeName );
+                auto    it          = st_types.find( GetTypeName() );
                 CHECK_THROW_MSG( it != st_types.end(),
-                    "Can't find ShaderStructType '"s << _layout.typeName << "'" );
+                    "Can't find ShaderStructType '"s << GetTypeName() << "'" );
 
                 if ( _dynCount )
                 {
-                    CHECK_THROW_MSG( not it->second->HasDynamicArray() );
+                    UNTESTED;
+                    CHECK_THROW_MSG( it->second->HasDynamicArray() );
                     CHECK_THROW_MSG( _desc.size == 0 );
 
-                    elem_size = it->second->StaticSize();
+                    elem_size = it->second->ArrayStride();
                     _desc.size = elem_size;
                 }
 
                 if ( _staticCount > 0 )
                 {
-                    CHECK_THROW_MSG( not it->second->HasDynamicArray() );
+                    const bool  is_array = (_staticCount != UMax);
+                    CHECK_THROW_MSG( is_array == it->second->HasDynamicArray() );
                     CHECK_THROW_MSG( _desc.size == 0 );
 
-                    _desc.size = it->second->StaticSize() * _staticCount;
+                    _desc.size = it->second->TotalSize( is_array ? _staticCount : 0 );
                 }
             }
+            ASSERT( not (_dynCount or _staticCount > 0) or storage );
         }
 
         CHECK_THROW_MSG( _desc.size > 0,
@@ -1051,7 +1137,7 @@ namespace
         CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
             "Buffer '"s << _dbgName << "' description is not supported by GPU device" );
 
-        const ShaderStructName  struct_type {_IsArray() ? _layout.typeName + "Array" : _layout.typeName};
+        const ShaderStructName  struct_type {GetTypeName()};
         Buffer::IDs_t           buf_ids;
 
         if ( AllBits( flags, Buffer::EBufferFlags::WithHistory ))
@@ -1085,10 +1171,10 @@ namespace
     {
         using namespace AE::PipelineCompiler;
 
-        if ( _layout.typeName.empty() )
+        if ( not HasLayout() )
             return;
 
-        const auto  AddStructType = [] (const String &typeName, const String &source)
+        const auto  AddStructType = [] (const String &typeName, const String &source, Bool srcIsOptional = False{})
         {{
             auto    storage     = ObjectStorage::Instance();
             if ( not storage )
@@ -1099,21 +1185,26 @@ namespace
 
             if ( it != st_types.end() )
             {
-                if ( st_types.contains( "_Temp_"s + typeName ))
+                const String    tmp_typename = "_Temp_"s + typeName;
+
+                if ( st_types.contains( tmp_typename ))
                     return; // double check
 
                 // compare 'source' with existing structure
                 if ( not source.empty() )
                 {
-                    ShaderStructTypePtr     tmp{ new ShaderStructType{ "_Temp_"s + typeName }};
+                    ShaderStructTypePtr     tmp{ new ShaderStructType{ tmp_typename }};
                     tmp->Set( EStructLayout::Std430, source );
 
                     CHECK( it->second->Compare( *tmp ));
 
-                    st_types.erase( String{tmp->Typename()} );
+                    st_types.erase( tmp_typename );
                 }
                 return;
             }
+
+            if ( source.empty() and srcIsOptional )
+                return;
 
             ShaderStructTypePtr     st{ new ShaderStructType{ typeName }};
             st->Set( EStructLayout::Std430, source );
@@ -1121,8 +1212,12 @@ namespace
 
         if ( _IsArray() )
         {
-            AddStructType( _layout.typeName, _layout.source );
-            AddStructType( _layout.typeName + "Array", _layout.typeName + "  elements [];" );
+            String  src;
+            src << _layout.staticSrc << '\n';
+            src << _layout.typeName << "  elements [];";
+
+            AddStructType( _layout.typeName, _layout.source, True{"opt"} );
+            AddStructType( GetTypeName(), src );
         }
         else
         {
@@ -1151,10 +1246,7 @@ namespace
     {
         auto*   field = GetField( name ).GetIf< PipelineCompiler::ShaderStructType::Field >();  // throw
         CHECK_THROW_MSG( field != null );
-        if ( field->stType )
-            return field->stType->Typename();
-        else
-            return Default;
+        return  field->stType ? field->stType->Typename() : Default;
     }
 
 /*
@@ -1180,10 +1272,10 @@ namespace
     {
         using namespace AE::PipelineCompiler;
 
-        CHECK_THROW_MSG( not _layout.typeName.empty() );
+        CHECK_THROW_MSG( HasLayout() );
 
         auto&   st_types    = ObjectStorage::Instance()->structTypes;
-        auto    it          = st_types.find( _layout.typeName );
+        auto    it          = st_types.find( GetTypeName() );
 
         CHECK_THROW_MSG( it != st_types.end() )
 
@@ -1194,7 +1286,7 @@ namespace
         }
 
         CHECK_THROW_MSG( false,
-            "Failed to find field '"s << name << "' for type '" << _layout.typeName << "'" );
+            "Failed to find field '"s << name << "' for type '" << GetTypeName() << "'" );
     }
 
 

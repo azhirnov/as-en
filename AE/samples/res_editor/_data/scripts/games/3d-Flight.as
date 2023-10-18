@@ -56,6 +56,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
+    // >>>> 3rd party code
     #include "Skyline.glsl"
 
     ND_ float  RayTrace (const Ray ray, const float maxDepth, const int maxIter)
@@ -87,6 +88,7 @@
         }
         return t;
     }
+    // <<<< 3rd party code
 
     // Lift force - gravity force
     ND_ float  LiftMinusGravity ()
@@ -137,6 +139,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
+    // 3rd party code:
     #include "Skyline.glsl"
 
     void mainVR (out vec4 fragColor, in vec2 fragCoord, in vec3 fragRayOri, in vec3 fragRayDir)

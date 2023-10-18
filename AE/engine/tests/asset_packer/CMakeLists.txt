@@ -52,7 +52,11 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
     source_group( "external/shader_trace" FILES ${SHADER_TRACE_SRC} )
 
     set_property( TARGET "Tests.AssetPacker" PROPERTY FOLDER "Engine/Tests" )
-    target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" "Vulkan-lib" )
+    target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" )
+
+    if (TARGET "Vulkan-lib")
+        target_link_libraries( "Tests.AssetPacker" PUBLIC "Vulkan-lib" )
+    endif()
 
     target_include_directories( "Tests.AssetPacker" PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 

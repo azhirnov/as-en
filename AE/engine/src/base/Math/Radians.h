@@ -38,11 +38,6 @@ namespace AE::Math
 
         ND_ constexpr explicit operator T ()                    C_NE___ { return _value; }
 
-        ND_ constexpr static Self   Pi ()                       __NE___ { return Self{T( 3.14159265358979323846 )}; }
-        ND_ constexpr static Self   Pi2 ()                      __NE___ { return Pi() * T(2); }
-        ND_ constexpr static T      DegToRad ()                 __NE___ { return T(0.01745329251994329576923690768489); }
-        ND_ constexpr static T      RadToDeg ()                 __NE___ { return T(57.295779513082320876798154814105); }
-
             Self&  operator = (const Self &)                    __NE___ = default;
             Self&  operator = (Self &&)                         __NE___ = default;
 
@@ -50,6 +45,8 @@ namespace AE::Math
 
         ND_ constexpr Self   WrapToPi ()                        C_NE___ { return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
         ND_ constexpr Self   WrapTo0_2Pi ()                     C_NE___ { return Self{Wrap( _value, 0, Pi2()._value  )}; }
+
+        ND_ constexpr T      ToDeg ()                           C_NE___ { return _value * RadToDeg(); }
 
             constexpr Self&  operator += (const Self rhs)       __NE___ { _value += rhs._value;  return *this; }
             constexpr Self&  operator -= (const Self rhs)       __NE___ { _value -= rhs._value;  return *this; }
@@ -83,7 +80,13 @@ namespace AE::Math
         ND_ friend constexpr Self  operator * (T lhs, Self rhs) __NE___ { return Self{ lhs * rhs._value }; }
         ND_ friend constexpr Self  operator / (T lhs, Self rhs) __NE___ { return Self{ lhs / rhs._value }; }
 
-        ND_ static constexpr Self  FromDeg (T value)            __NE___ { return Self{ DegToRad() * value }; }
+
+        ND_ static constexpr Self   Pi ()                       __NE___ { return Self{T( 3.14159265358979323846 )}; }
+        ND_ static constexpr Self   Pi2 ()                      __NE___ { return Pi() * T(2); }
+        ND_ static constexpr T      DegToRad ()                 __NE___ { return T(0.01745329251994329576923690768489); }
+        ND_ static constexpr T      RadToDeg ()                 __NE___ { return T(57.295779513082320876798154814105); }
+
+        ND_ static constexpr Self   FromDeg (T value)           __NE___ { return Self{ DegToRad() * value }; }
     };
 
 
@@ -330,9 +333,32 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  Equals (const TRadians<T> &lhs, const TRadians<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ constexpr bool  Equals (const TRadians<T> &lhs, const TRadians<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
         return Equals( T{lhs}, T{rhs}, err );
+    }
+
+    template <typename T>
+    ND_ constexpr bool  Equals (const TRadians<T> &lhs, const TRadians<T> &rhs, const Percent err) __NE___
+    {
+        return Equals( T{lhs}, T{rhs}, err );
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadians<T> &lhs, const TRadians<T> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        return BitEqual( T{lhs}, T{rhs}, bitCount );
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadians<T> &lhs, const TRadians<T> &rhs) __NE___
+    {
+        return BitEqual( T{lhs}, T{rhs} );
     }
 
 /*

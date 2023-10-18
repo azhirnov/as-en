@@ -270,7 +270,7 @@ namespace AE::Graphics
     inline void  DRAWCMDBATCH::EndRecording () __NE___
     {
         EStatus exp = EStatus::Recording;
-        bool    res = _status.compare_exchange_strong( INOUT exp, EStatus::Pending );
+        bool    res = _status.CAS_Loop( INOUT exp, EStatus::Pending );
 
         Unused( res );
         ASSERT( res );

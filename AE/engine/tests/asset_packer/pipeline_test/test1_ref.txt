@@ -623,9 +623,6 @@ RayTracingPipelineSpec {
     maxRecursionDepth              = 1
     maxPipelineRayPayloadSize      = 0 b
     maxPipelineRayHitAttributeSize = 0 b
-    specialization = {
-      [0] 'sbtRecordStride' : 2 (0x2)
-    }
 }
 
 PipelineTemplNames {
@@ -645,7 +642,7 @@ RTShaderBindingTable {
   [0]
     ppln name:        raytracing_1.def
     ray gen:          0
-    hit group stride: 2
+    ray type count:   2
     miss shaders = {
         1, 1
     }
@@ -657,9 +654,9 @@ RTShaderBindingTable {
 
 SpirvShaders {
   [0]  offset = 0 b
-  [1]  offset = 2712 b
+  [1]  offset = 2672 b
   [2]  offset = 5 Kb
-  [3]  offset = 8 Kb
+  [3]  offset = 7 Kb
   [4]  offset = 10 Kb
   [5]  offset = 14 Kb
   [6]  offset = 17 Kb
@@ -669,7 +666,7 @@ SpirvShaders {
   [10]  offset = 29 Kb
   [11]  offset = 32 Kb
   [12]  offset = 35 Kb
-  [13]  offset = 38 Kb
+  [13]  offset = 37 Kb
   [14]  offset = 50 Kb
   [15]  offset = 53 Kb
   [16]  offset = 57 Kb
@@ -677,57 +674,54 @@ SpirvShaders {
 
 SpirvShaderData {
   [0]
-    codeSize = 2708 b
-    codeHash = 1de223fb8c13956e
+    codeSize = 2668 b
+    codeHash = b3950e514acc33c6
   [1]
-    codeSize = 2556 b
-    codeHash = 914c0d3d89b2bc0b
+    codeSize = 2552 b
+    codeHash = 24310dd6aef364e8
   [2]
-    codeSize = 2964 b
-    codeHash = 9231702bd961cd
+    codeSize = 2924 b
+    codeHash = af818025ed49b4e5
   [3]
-    codeSize = 2376 b
-    codeHash = c8fb3973e0c672f0
+    codeSize = 2336 b
+    codeHash = 397405a55e65fffc
   [4]
     codeSize = 4 Kb
-    codeHash = 87608e931f59c71
+    codeHash = 2447bbf52bbd0ba4
   [5]
-    codeSize = 2932 b
-    codeHash = 295be7b40e18109
+    codeSize = 2928 b
+    codeHash = fa654f63e60738b2
   [6]
-    codeSize = 3756 b
-    codeHash = 4accec62f187bd5f
-    spec     = {
-      [0] 'sbtRecordStride', 0
-    }
+    codeSize = 3696 b
+    codeHash = 416378d30a6b4068
   [7]
-    codeSize = 2344 b
-    codeHash = 3082d0788623f66a
+    codeSize = 2340 b
+    codeHash = 5cb35b6b5c5763bb
   [8]
-    codeSize = 2832 b
-    codeHash = 3de8f16d0ad1a461
+    codeSize = 2828 b
+    codeHash = 1bb70a7abea360ac
   [9]
-    codeSize = 3112 b
-    codeHash = b0b2f4a8005f7594
+    codeSize = 3108 b
+    codeHash = 43efcc9677bf8b35
   [10]
-    codeSize = 3536 b
-    codeHash = c596c68dc905a50a
+    codeSize = 3532 b
+    codeHash = 3e2836f6ce2ffaa7
   [11]
-    codeSize = 2964 b
-    codeHash = c27a9eeeefc9f03a
+    codeSize = 2924 b
+    codeHash = 6d692fbb29592512
   [12]
-    codeSize = 2512 b
-    codeHash = 8b13be07a30c4da7
+    codeSize = 2472 b
+    codeHash = 885a693c34e06aaf
   [13]
     codeSize = 6 Kb
     withTrace
   [14]
-    codeSize = 2868 b
-    codeHash = c9c946c3b5b20b44
+    codeSize = 2912 b
+    codeHash = a34fb0cad499d505
   [15]
     codeSize = 4 Kb
-    codeHash = 4432bbe3e99664e7
+    codeHash = 2a23c8f7f2223332
   [16]
     codeSize = 4 Kb
-    codeHash = 9c024316011428a7
+    codeHash = 1205accacefe4e70
 }

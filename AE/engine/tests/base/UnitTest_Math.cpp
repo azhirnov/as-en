@@ -26,14 +26,14 @@ namespace
 
     static void  Wrap_Test1 ()
     {
-        float b0 = Wrap( 1.0f, 2.0f, 5.0f );    TEST( Equals( b0, 4.0f ));
-        float b1 = Wrap( 6.0f, 2.0f, 5.0f );    TEST( Equals( b1, 3.0f ));
-        float b2 = Wrap( 4.0f, 2.0f, 5.0f );    TEST( Equals( b2, 4.0f ));
-        float b4 = Wrap( 1.5f, 2.0f, 5.0f );    TEST( Equals( b4, 4.5f ));
-        float b5 = Wrap( 5.5f, 2.0f, 5.0f );    TEST( Equals( b5, 2.5f ));
-        float b6 = Wrap( 15.0f, 0.0f, 5.0f );   TEST( Equals( b6, 0.0f ));
-        float b7 = Wrap( 2.0f, -5.0f, 0.0f );   TEST( Equals( b7, -3.0f ));
-        float b10 = Wrap( 3.99f, 0.0f, 4.0f );  TEST( Equals( b10, 3.99f ));
+        float b0 = Wrap( 1.0f, 2.0f, 5.0f );    TEST( BitEqual( b0, 4.0f ));
+        float b1 = Wrap( 6.0f, 2.0f, 5.0f );    TEST( BitEqual( b1, 3.0f ));
+        float b2 = Wrap( 4.0f, 2.0f, 5.0f );    TEST( BitEqual( b2, 4.0f ));
+        float b4 = Wrap( 1.5f, 2.0f, 5.0f );    TEST( BitEqual( b4, 4.5f ));
+        float b5 = Wrap( 5.5f, 2.0f, 5.0f );    TEST( BitEqual( b5, 2.5f ));
+        float b6 = Wrap( 15.0f, 0.0f, 5.0f );   TEST( BitEqual( b6, 0.0f ));
+        float b7 = Wrap( 2.0f, -5.0f, 0.0f );   TEST( BitEqual( b7, -3.0f ));
+        float b10 = Wrap( 3.99f, 0.0f, 4.0f );  TEST( BitEqual( b10, 3.99f ));
     }
 
 
@@ -53,12 +53,12 @@ namespace
 
     static void  MirroredWrap_Test1 ()
     {
-        float e0 = MirroredWrap( 2.0f, 1.0f, 5.0f );                TEST( Equals( e0, 2.0f ));
-        float e1 = MirroredWrap( 6.0f, 1.0f, 5.0f );                TEST( Equals( e1, 4.0f ));
-        float e2 = MirroredWrap( -1.0f, 1.0f, 5.0f );               TEST( Equals( e2, 3.0f ));
-        float e3 = MirroredWrap( 5.0f, 1.0f, 5.0f );                TEST( Equals( e3, 5.0f ));
-        float e4 = MirroredWrap( 0.0f, 1.0f, 5.0f );                TEST( Equals( e4, 2.0f ));
-    //  float e5 = MirroredWrap( Infinity<float>(), 1.0f, 5.0f );   TEST( Equals( e5, 1.0f ));
+        float e0 = MirroredWrap( 2.0f, 1.0f, 5.0f );                TEST( BitEqual( e0, 2.0f ));
+        float e1 = MirroredWrap( 6.0f, 1.0f, 5.0f );                TEST( BitEqual( e1, 4.0f ));
+        float e2 = MirroredWrap( -1.0f, 1.0f, 5.0f );               TEST( BitEqual( e2, 3.0f ));
+        float e3 = MirroredWrap( 5.0f, 1.0f, 5.0f );                TEST( BitEqual( e3, 5.0f ));
+        float e4 = MirroredWrap( 0.0f, 1.0f, 5.0f );                TEST( BitEqual( e4, 2.0f ));
+    //  float e5 = MirroredWrap( Infinity<float>(), 1.0f, 5.0f );   TEST( BitEqual( e5, 1.0f ));
         float e6 = MirroredWrap( NaN<float>(), 1.0f, 5.0f );        TEST( IsNaN( e6 ));
     }
 
@@ -195,6 +195,45 @@ namespace
         const float     af11 = float{a11};
         TEST( IsNaN( af11 ));
     }
+
+
+    static void  EqualsWithPercent_Test1 ()
+    {
+        {
+            float   a = 1.f;
+            float   b = 1.f;
+            TEST( Equals( a, b, 1_pct ));
+        }{
+            float   a = 1.f;
+            float   b = 2.f;
+            TEST( Equals( a, b, 50_pct ));
+        }{
+            float   a = 2.f;
+            float   b = 1.f;
+            TEST( Equals( a, b, 50_pct ));
+        }{
+            float   a = 2.0e+20f;
+            float   b = 1.0e+20f;
+            TEST( Equals( a, b, 50_pct ));
+        }{
+            float   a = 1.0e+20f;
+            float   b = 1.1e+20f;
+            TEST( Equals( a, b, 10_pct ));
+        }{
+            float   a = 0.f;
+            float   b = 0.f;
+            TEST( Equals( a, b, 1_pct ));
+        }{
+            float   a = 0.f;
+            float   b = 1.f;
+            TEST( not Equals( a, b, 99_pct ));
+            TEST( Equals( a, b, 100_pct ));
+        }{
+            float   a = 0.f;
+            float   b = Epsilon<float>();
+            TEST( Equals( a, b, 0_pct ));
+        }
+    }
 }
 
 
@@ -212,6 +251,8 @@ extern void UnitTest_Math ()
     Float16_Test1();
     UFloat16_Test1();
     UFloat8_Test1();
+
+    EqualsWithPercent_Test1();
 
     TEST_PASSED();
 }

@@ -167,17 +167,19 @@ namespace AE::Math
 
     struct DefaultPhysicalDimensions
     {
-        using NonDimensional    = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
-        using Second            = TPhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // s
-        using Kilogram          = TPhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // kg
-        using Meter             = TPhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // m
-        using Ampere            = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // A
-        using Kelvin            = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // K
-        using Mole              = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;   // mol
-        using Candela           = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;   // cd
-        using Currency          = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;   // $
-        using Bit               = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;   // bit
+        using NonDimensional            = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
+        using Second                    = TPhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // s        - SI
+        using Kilogram                  = TPhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // kg       - SI
+        using Meter                     = TPhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // m        - SI
+        using Ampere                    = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // A        - SI
+        using Kelvin                    = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // K        - SI
+        using Mole                      = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;   // mol      - SI
+        using Candela                   = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;   // cd       - SI
+        using Currency                  = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;   // $
+        using Bit                       = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;   // bit
 
+        using Radian                    = NonDimensional;                                       // rad = m / m      - planar angle  - SI
+        using Steradian                 = NonDimensional;                                       // sr = m^2 / m^2   - 3D angle      - SI
         using SquareMeter               = Meter::Pow< 2 >;                                      // m^2
         using CubicMeter                = Meter::Pow< 3 >;                                      // m^3
         using MeterPerSecond            = Meter::Div< Second >;                                 // m / s
@@ -185,25 +187,44 @@ namespace AE::Math
         using KilogramPerSecond         = Kilogram::Div< Second >;                              // kg / s
         using KilogramMeterPerSecond    = MeterPerSecond::Mul< Kilogram >;                      // kg * m / s
         using KilogramPerCubicMeter     = Kilogram::Div< CubicMeter >;                          // kg / m^3
-        using Newton                    = Kilogram::Mul< MeterPerSquareSecond >;                // N = kg * m / s^2
-        using Joule                     = Newton::Mul< Meter >;                                 // J = kg * (m / s)^2
-        using Pascal                    = Kilogram::Div< Meter::Mul< Second::Pow<2> >>;         // Pa = kg / (m * s^2)
-        using Hertz                     = NonDimensional::Div< Second >;                        // Hz = 1 / s
-        using Watt                      = Joule::Div< Second >;                                 // W = J / s
-        using Coulomb                   = Ampere::Mul< Second >;                                // C = A * s
-        using Volt                      = Joule::Div< Coulomb >;                                // V = J / C
-        using Ohm                       = Volt::Div< Ampere >;                                  // Ohm = V / A
-        using Farad                     = Coulomb::Div< Volt >;                                 // F = C / V
-        using Weber                     = Volt::Mul< Second >;                                  // Wb = V * s
-        using Henry                     = Weber::Div< Ampere >;                                 // H = Wb / A
-        using Tesla                     = Weber::Div< SquareMeter >;                            // T = Wb / m^2
-        using Siemens                   = NonDimensional::Div< Ohm >;                           // S = 1 / Ohm
-        using Lumen                     = Candela;                                              // lm = cd * (sr)
-        using Lux                       = Lumen::Div< SquareMeter >;                            // lx = lm / m^2
+        using Newton                    = Kilogram::Mul< MeterPerSquareSecond >;                // N = kg * m / s^2                 - SI
+        using Joule                     = Newton::Mul< Meter >;                                 // J = kg * (m / s)^2               - SI
+        using Pascal                    = Kilogram::Div< Meter::Mul< Second::Pow<2> >>;         // Pa = kg / (m * s^2)              - SI
+        using Hertz                     = NonDimensional::Div< Second >;                        // Hz = 1 / s                       - SI
+        using Watt                      = Joule::Div< Second >;                                 // W = J / s                        - SI
+        using Coulomb                   = Ampere::Mul< Second >;                                // C = A * s                        - SI
+        using Volt                      = Joule::Div< Coulomb >;                                // V = J / C                        - SI
+        using Ohm                       = Volt::Div< Ampere >;                                  // Ohm = V / A                      - SI
+        using Farad                     = Coulomb::Div< Volt >;                                 // F = C / V                        - SI
+        using Weber                     = Volt::Mul< Second >;                                  // Wb = V * s                       - SI
+        using Henry                     = Weber::Div< Ampere >;                                 // H = Wb / A                       - SI
+        using Tesla                     = Weber::Div< SquareMeter >;                            // T = Wb / m^2                     - SI
+        using Siemens                   = NonDimensional::Div< Ohm >;                           // S = 1 / Ohm                      - SI
+        using Lumen                     = Candela::Mul< Steradian >;                            // lm = cd * (steradian)            - SI
+        using Lux                       = Lumen::Div< SquareMeter >;                            // lx = lm / m^2                    - SI
         using AmperPerMeter             = Ampere::Div< Meter >;                                 // A / m
         using KilogramPerMole           = Kilogram::Div< Mole >;                                // kg / mol
         using BitPerSecond              = Bit::Div< Second >;                                   // bit / s
-        using Frequency                 = NonDimensional::Div< Second >;                        // 1 / s
+        using Becquerel                 = NonDimensional::Div< Second >;                        // Bq = 1 / s                       - SI
+        using Gray                      = Joule::Div< Kilogram >;                               // Gy = J / kg                      - SI
+        using Sievert                   = Joule::Div< Kilogram >;                               // Sv = J / kg                      - SI
+        using Katal                     = Mole::Div< Second >;                                  // kat = mol / s                    - SI
+
+        using GConstant                 = Meter::Pow<3>::Div< Kilogram::Mul< Second::Pow<2> >>; // G
+
+        // Radiometric
+        using RadiantEnergy             = Joule;                                                // Q
+        using RadiantFlux               = Watt;                                                 // W
+        using Intensity                 = Watt::Div< Steradian >;                               // W / sr
+        using Irradiance                = Watt::Div< SquareMeter >;                             // W / m^2
+        using Radiance                  = Watt::Div< SquareMeter::Mul< Steradian >>;            // W / (m^2 * sr)
+
+        // Photometric
+        using LuminousEnergy            = RadiantEnergy;                                        // talbot (T)
+        using LuminousFlux              = Lumen;                                                // lm
+        using LuminousIntensity         = Lumen::Div< Steradian >;                              // lm / sr = cd
+        using Illuminance               = Lux;                                                  // lx
+        using Luminance                 = Candela::Div< SquareMeter >;                          // cd / m^2 = nit
     };
 
 

@@ -586,15 +586,12 @@ namespace AE::Base
         {
             std::stringstream   str;
             str << std::hex << ulong{BitCast<ToUnsignedInteger<T>>(value)};
-            //str << std::resetiosflags( std::ios_base::dec ) << std::setiosflags( std::ios_base::hex | std::ios_base::uppercase )
-            //  << ulong{BitCast<ToUnsignedInteger<T>>(value)};
             return str.str();
         }
         else
         if constexpr( Radix == 16 )
         {
             std::stringstream   str;
-            //str << std::resetiosflags( std::ios_base::dec ) << std::setiosflags( std::ios_base::hex | std::ios_base::uppercase )
             str << std::hex << uint{BitCast<ToUnsignedInteger<T>>(value)};
             return str.str();
         }
@@ -925,13 +922,13 @@ namespace AE::Base
     ToString (Version)
 =================================================
 */
-    template <ulong UID>
+    template <uint UID>
     ND_ String  ToString (TVersion2<UID> value) __Th___
     {
         return ToString( value.major ) << '.' << ToString( value.minor );
     }
 
-    template <ulong UID>
+    template <uint UID>
     ND_ String  ToString (TVersion3<UID> value) __Th___
     {
         return ToString( value.major ) << '.' << ToString( value.minor ) << '.' << ToString( value.patch );
@@ -950,16 +947,18 @@ namespace AE::Base
     inline void  AppendToString (INOUT String &str, const usize count, const char value = ' ') __Th___
     {
         ASSERT( value != 0 );
-        str.reserve( str.size() + count );
 
-        for (usize i = 0; i < count; ++i)
-            str << value;
+        usize   pos = str.size();
+        str.resize( pos + count );  // throw
+
+        for (; pos < str.size(); ++pos)
+            str[pos] = value;
     }
 
     inline void  InsertToString (INOUT String &str, const usize count, const char value = ' ') __Th___
     {
         ASSERT( value != 0 );
-        str.reserve( str.size() + count );
+        str.reserve( str.size() + count );  // throw
 
         for (usize i = 0; i < count; ++i)
             str.insert( str.begin(), value );
@@ -970,10 +969,11 @@ namespace AE::Base
         ASSERT( value1 != 0 );
         ASSERT( value2 != 0 );
 
-        str.reserve( str.size() + (first < count ? (count - first) : 0) );
+        usize   pos = str.size();
+        str.resize( pos + (first < count ? (count - first) : 0) );  // throw
 
-        for (usize i = first; i < count; ++i)
-            str << ((initial and i&1) ? value1 : value2);
+        for (usize i = first; i < count; ++i, ++pos)
+            str[pos] = ((initial and i&1) ? value1 : value2);
     }
 
 /*
@@ -989,7 +989,7 @@ namespace AE::Base
         ASSERT( alignChar != 0 );
 
         String  tmp     = ToString<Radix>( value );
-        String  str;    str.reserve( (align > tmp.size() ? 0 : tmp.size() - align) + tmp.size() );
+        String  str;    str.reserve( (align > tmp.size() ? 0 : tmp.size() - align) + tmp.size() );  // throw
 
         for (usize i = tmp.size(); i < align; ++i) {
             str << alignChar;
@@ -1007,7 +1007,7 @@ namespace AE::Base
 */
     ND_ inline String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __Th___
     {
-        String  str;    str.resize( inStr.size() + ((inStr.size()-1) / stepSize) );
+        String  str;    str.resize( inStr.size() + ((inStr.size()-1) / stepSize) );  // throw
 
         usize   i = (inStr.length() % stepSize);
         i = stepSize - i;

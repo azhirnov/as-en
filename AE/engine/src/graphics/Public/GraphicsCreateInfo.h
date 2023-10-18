@@ -34,7 +34,9 @@ namespace AE::Graphics
     enum class EDeviceFlags : uint
     {
         Unknown                 = 0,
-        SetStableClock          = 1 << 0,       // required for GPU profiling, don't use in release!
+        SetStableClock          = 1 << 0,       // required for GPU profiling, not supported in release config.
+
+        EnableRenderDoc         = 1 << 1,       // allow to use RenderDoc API to trigger capture, not supported in release config.
 
         _Last,
         All                     = ((_Last - 1) << 1) - 1,

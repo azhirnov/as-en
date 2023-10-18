@@ -24,8 +24,6 @@ extern bool ShaderPerf_Test1 (TestDevice& vulkan);
 extern bool ClockMap_Test1 (TestDevice& vulkan);
 extern bool ClockMap_Test2 (TestDevice& vulkan);
 
-extern void  TestRT ();
-
 
 int main ()
 {
@@ -38,7 +36,7 @@ int main ()
     bool    passed = true;
     {
         passed &= ShaderTrace_Test1( vulkan );      // graphics
-        //passed &= ShaderTrace_Test2( vulkan );    // compute
+        passed &= ShaderTrace_Test2( vulkan );      // compute
         //passed &= ShaderTrace_Test3( vulkan );    // graphics
         passed &= ShaderTrace_Test4( vulkan );      // graphics
         passed &= ShaderTrace_Test5( vulkan );      // graphics

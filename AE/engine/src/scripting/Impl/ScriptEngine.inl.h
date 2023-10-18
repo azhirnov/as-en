@@ -127,7 +127,7 @@ namespace AE::Scripting
                 if ( info->GetSize() != sizeof(T) )
                 {
                     AE_LOG_DBG( "Global property '"s << signature << ' ' << name << "' has size (" << ToString(sizeof(T)) <<
-                                "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used uint" << ToString(sizeof(T)*8) << " type instead." );
+                                "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(T)*8) << "' type instead." );
                     signature.clear();
                     ScriptTypeInfo< ToUnsignedInteger<T> >::Name( INOUT signature );
                 }

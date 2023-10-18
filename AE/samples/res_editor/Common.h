@@ -22,6 +22,8 @@ namespace AE::ResEditor
 
     using AE::Threading::AsyncDSRequestResult;
     using AE::Threading::AsyncRDataSource;
+    using AE::Threading::AsyncWDataSource;
+    using AE::Threading::AsyncWStream;
     using AE::Threading::AsyncDSRequest;
     using AE::Threading::Synchronized;
 
@@ -37,6 +39,7 @@ namespace AE::ResEditor
 
     using ActionQueueReader = IInputActions::ActionQueueReader;
 
+    using Transformation = TTransformation<float>;
 
     class ScriptExe;
     class IPass;
@@ -54,5 +57,17 @@ namespace AE::ResEditor
     };
 
     static constexpr uint   ResNameMaxLen = 60;
+
+
+    enum class ERenderLayer : uint
+    {
+        Opaque,
+        Translucent,
+        PostProcess,
+        //Compute,
+    };
+
+
+    ND_ bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs);
 
 } // AE::ResEditor

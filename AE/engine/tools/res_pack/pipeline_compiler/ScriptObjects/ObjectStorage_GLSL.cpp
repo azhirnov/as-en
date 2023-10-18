@@ -68,7 +68,7 @@ namespace
 
         if ( debugDSIndex != UMax )
         {
-            TestFeature_Min( features, &FeatureSet::minDescriptorSets, ushort(debugDSIndex), "minDescriptorSets", "Debug descriptor set index" );
+            TestFeature_Min( features, &FeatureSet::maxDescriptorSets, ushort(debugDSIndex), "maxDescriptorSets", "Debug descriptor set index" );
         }
 
         SpirvCompiler::Output   out;
@@ -135,7 +135,7 @@ namespace
 
         // SPIRV version
         {
-            const uint  ver = Max( spirvVer.To100(), GetMaxValueFromFeatures( features, &FeatureSet::minShaderVersion ).spirv );
+            const uint  ver = Max( spirvVer.To100(), GetMaxValueFromFeatures( features, &FeatureSet::maxShaderVersion ).spirv );
             spirvVer = Version2::From100( ver );
             CHECK_THROW_MSG(( spirvVer == Version2{0,0} or spirvVer >= Version2{1,0} ));
         }
@@ -160,8 +160,8 @@ namespace
             ESubgroupTypes          types           = Default;
             FeatureSetCounter       dynamic_id;
             FeatureSetCounter       un_control_flow;
-            uint                    min_size        = 0;
-            uint                    max_size        = UMax;
+            //uint                  min_size        = 0;
+            //uint                  max_size        = UMax;
 
             for (auto& ptr : features)
             {
@@ -171,9 +171,9 @@ namespace
                     types           |= ptr->fs.subgroupTypes;
                     dynamic_id      .Add( ptr->fs.subgroupBroadcastDynamicId );
                     un_control_flow .Add( ptr->fs.shaderSubgroupUniformControlFlow );
-                    min_size        = Max( min_size, ptr->fs.minSubgroupSize );
-                    max_size        = Min( max_size, ptr->fs.maxSubgroupSize );
-                    CHECK( min_size <= max_size );
+                    //min_size      = Max( min_size, ptr->fs.minSubgroupSize );
+                    //max_size      = Max( max_size, ptr->fs.maxSubgroupSize );
+                    //CHECK( min_size <= max_size );
                 }
             }
 
@@ -196,10 +196,10 @@ namespace
             if ( ops.AnyInRange( ESubgroupOperation::_Quad_Begin, ESubgroupOperation::_Quad_End ))
                 ext << "#extension GL_KHR_shader_subgroup_quad                     : require\n";
 
-            while ( types != Default )
+            for (auto t : BitfieldIterate( types ))
             {
                 BEGIN_ENUM_CHECKS();
-                switch ( ExtractBit( INOUT types ))
+                switch ( t )
                 {
                     case ESubgroupTypes::Float32 :
                     case ESubgroupTypes::Int32 :        break;  // skip
@@ -276,8 +276,7 @@ namespace
             {
                 ext << "#extension GL_EXT_buffer_reference                         : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
                 ext << "#extension GL_EXT_buffer_reference2                        : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
-                if ( not shader_int64.IsTrue() )
-                    ext << "#extension GL_EXT_buffer_reference_uvec2                   : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
+                ext << "#extension GL_EXT_buffer_reference_uvec2                   : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
             }
             ext << "#extension GL_EXT_shader_explicit_arithmetic_types_int32   : enable\n"
                 << "#extension GL_EXT_shader_explicit_arithmetic_types_float32 : enable\n";
@@ -562,18 +561,18 @@ namespace
             }
         }
 
-        // cooperativeMatrixNV
+        // cooperativeMatrix
         {
             FeatureSetCounter   supported;
             FeatureSetCounter   supported2;
             for (auto& ptr : features) {
-                supported .Add( ptr->fs.cooperativeMatrixNV );
+                supported .Add( ptr->fs.cooperativeMatrix );
                 supported2.Add( ptr->fs.vulkanMemoryModel );
             }
             if ( supported.IsEnable() ) {
                 CHECK_THROW_MSG( supported2.IsEnable() );   // required
-                ext << "#extension GL_NV_cooperative_matrix                        : " << (supported.IsTrue() ? "require" : "enable") << "\n";
-                ext << "#extension GL_NV_integer_cooperative_matrix                : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+                ext << "#extension GL_KHR_cooperative_matrix                       : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+                def << "#define AE_COOP_MATRIX 1\n";
             }
         }
 
@@ -594,10 +593,10 @@ namespace
         CHECK_THROW_MSG( inShader );
 
         // validate options
-        for (EShaderOpt opt = inShader->options; opt != Zero;)
+        for (auto opt : BitfieldIterate( inShader->options ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT opt ))
+            switch ( opt )
             {
                 case EShaderOpt::DebugInfo :
                 case EShaderOpt::Trace :

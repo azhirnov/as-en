@@ -76,6 +76,10 @@ namespace AE::ResLoader
                     ArrayView<RC<IntermLight>>      lights,
                     SceneNode                       root)                           __NE___;
 
+        ND_ MaterialMap_t &         EditMaterials ()                                __NE___ { return _materials; }
+        ND_ MeshMap_t &             EditMeshes ()                                   __NE___ { return _meshes; }
+        ND_ LightMap_t &            EditLights ()                                   __NE___ { return _lights; }
+
         ND_ MaterialMap_t const&    Materials ()                                    C_NE___ { return _materials; }
         ND_ MeshMap_t const&        Meshes ()                                       C_NE___ { return _meshes; }
         ND_ LightMap_t const&       Lights ()                                       C_NE___ { return _lights; }
@@ -96,6 +100,8 @@ namespace AE::ResLoader
         void  ForEachModel (FN &&fn, const Transform_t &initialTransform = Default) C_Th___;
 
         ND_ usize  ModelNodeCount ()                                                C_NE___;
+
+        ND_ bool  IsValid ()                                                        C_NE___;
     };
 
 

@@ -8,6 +8,8 @@
 
 namespace AE::Graphics
 {
+namespace
+{
     STATIC_ASSERT( sizeof(DispatchIndirectCommand)      == sizeof(VkDispatchIndirectCommand) );
     STATIC_ASSERT( sizeof(DrawIndirectCommand)          == sizeof(VkDrawIndirectCommand) );
     STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand)   == sizeof(VkDrawIndexedIndirectCommand) );
@@ -30,10 +32,15 @@ namespace AE::Graphics
 
     STATIC_ASSERT( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-    STATIC_ASSERT( VK_HEADER_VERSION == 243 );
+    STATIC_ASSERT( VK_HEADER_VERSION == 261 );
 
-namespace
-{
+    static constexpr usize  c_MaxMemTypes = std::initializer_list<EMemoryType>{
+                                                EMemoryType::DeviceLocal,   EMemoryType::Transient,     EMemoryType::HostCoherent,
+                                                EMemoryType::HostCached,    EMemoryType::Dedicated,     EMemoryType::HostCachedCoherent,
+                                                EMemoryType::Unified,       EMemoryType::UnifiedCached }.size();
+    STATIC_ASSERT( decltype(DeviceResourceFlags::memTypes)::capacity() >= c_MaxMemTypes );
+
+
 #   include "vulkan_loader/vkenum_to_str.h"
 
 /*
@@ -126,6 +133,7 @@ namespace
             case VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA :
             case VK_OBJECT_TYPE_MICROMAP_EXT :
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :
+            case VK_OBJECT_TYPE_SHADER_EXT :
             case VK_OBJECT_TYPE_MAX_ENUM :  break;
         }
         END_ENUM_CHECKS();
@@ -140,9 +148,9 @@ namespace
     ND_ static VkDebugReportFlagsEXT MsgSeverityToReportFlags (VkDebugUtilsMessageSeverityFlagsEXT inFlags)
     {
         VkDebugReportFlagsEXT   result = 0;
-        while ( inFlags != 0 )
+
+        for (auto t : BitfieldIterate( inFlags ))
         {
-            auto    t = ExtractBit( inFlags );
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -213,6 +221,7 @@ namespace
             case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV :     return "AccelerationStructureNV";
             case VK_OBJECT_TYPE_MICROMAP_EXT :                  return "Mcromap";
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :       return "OpticalFlowSessionNV";
+            case VK_OBJECT_TYPE_SHADER_EXT :                    return "Shader";
 
             case VK_OBJECT_TYPE_UNKNOWN :
             case VK_OBJECT_TYPE_VALIDATION_CACHE_EXT :
@@ -479,6 +488,19 @@ namespace
 
 /*
 =================================================
+    GetMemoryTypeBits
+=================================================
+*/
+    uint  VDevice::GetMemoryTypeBits (const EMemoryType memType) C_NE___
+    {
+        constexpr EMemoryType   mask    = EMemoryType::DeviceLocal | EMemoryType::Transient | EMemoryType::HostCachedCoherent;
+        auto                    it      = _memTypeToBits.find( memType & mask );
+
+        return (it != _memTypeToBits.end() ? it->second : 0u);
+    }
+
+/*
+=================================================
     CheckConstantLimits
 =================================================
 */
@@ -518,6 +540,10 @@ namespace
         result &= CheckExt( _extensions.timelineSemaphore,  VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME );
         result &= CheckExt( _extensions.hostQueryReset,     VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME );
       #endif
+
+        if ( _extensions.rayTracingPipeline )
+            result &= CheckExt( _extensions.rayTracingMaintenance1, VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME );
+
         return result;
     }
 
@@ -534,6 +560,8 @@ namespace
         if ( not IsInitialized() or not GetVExtensions().memoryBudget )
             return result;
 
+        result = DeviceMemoryInfo{};
+
         VkPhysicalDeviceMemoryBudgetPropertiesEXT   budget = {};
         VkPhysicalDeviceMemoryProperties2           props  = {};
         budget.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
@@ -542,19 +570,18 @@ namespace
 
         vkGetPhysicalDeviceMemoryProperties2KHR( _vkPhysicalDevice, OUT &props );
 
-        result = DeviceMemoryInfo{};
+        Bytes*  usage [] = { &result->deviceUsage, &result->hostUsage, &result->unifiedUsage };
+        Bytes*  avail [] = { &result->deviceAvailable, &result->hostAvailable, &result->unifiedAvailable };
+
         for (uint i = 0; i < props.memoryProperties.memoryHeapCount; ++i)
         {
-            auto&   heap = props.memoryProperties.memoryHeaps[i];
-            if ( AllBits( heap.flags, VK_MEMORY_HEAP_DEVICE_LOCAL_BIT ))
-            {
-                result->deviceUsage     += budget.heapUsage[i];
-                result->deviceAvailable += budget.heapBudget[i];
-            }else{
-                result->hostUsage       += budget.heapUsage[i];
-                result->hostAvailable   += budget.heapBudget[i];
-            }
+            *usage[ _memHeapToType[i] ] += budget.heapUsage[i];
+            *avail[ _memHeapToType[i] ] += budget.heapUsage[i] + budget.heapBudget[i];
         }
+
+        // driver bug: memory_budget extension enabled but not active
+        ASSERT( (result->deviceAvailable + result->hostAvailable + result->unifiedAvailable) > 0 );
+
         return result;
     }
 
@@ -622,6 +649,33 @@ namespace
 
 /*
 =================================================
+    LoadArmProfiler
+=================================================
+*/
+    bool  VDeviceInitializer::LoadArmProfiler () __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+
+        // TODO
+        return false;
+    }
+
+/*
+=================================================
+    LoadArmProfiler
+=================================================
+*/
+    bool  VDeviceInitializer::LoadRenderDoc () __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        CHECK_ERR( not _rdc.IsInitialized() );
+        CHECK_ERR( GetVkInstance() != Default );
+
+        return _rdc.Initialize( GetVkInstance(), NativeWindow{} );
+    }
+
+/*
+=================================================
     CreateInstance
 =================================================
 */
@@ -660,6 +714,9 @@ namespace
 
         Array< const char* >    instance_extensions = _GetInstanceExtensions( _vkInstanceVersion );         // throw
         instance_extensions.insert( instance_extensions.end(), extensions.begin(), extensions.end() );      // throw
+
+        //if ( _nvPerf.IsLoaded() )
+        //    _nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
 
         _ValidateInstanceLayers( INOUT instance_layers );                           // throw
         _ValidateInstanceExtensions( instance_layers, INOUT instance_extensions );  // throw
@@ -769,6 +826,9 @@ namespace
             vkDestroyInstance( _vkInstance, null );
 
         VulkanLoader::Unload();
+
+        //if ( _nvPerf.IsLoaded() )
+        //    _nvPerf.Deinitialize();
 
         _vkInstance         = Default;
         _vkPhysicalDevice   = Default;
@@ -1168,6 +1228,126 @@ namespace {
 
 /*
 =================================================
+    _InitMemoryTypeToTypeBits
+=================================================
+*/
+    void  VDeviceInitializer::_InitMemoryTypeToTypeBits (OUT MemTypeToTypeBits_t &result) C_Th___
+    {
+        const auto& mem_props = GetVProperties().memoryProperties;
+
+        // for discrete GPU
+        for (uint i = 0; i < mem_props.memoryTypeCount; ++i)
+        {
+            const auto&     mt      = mem_props.memoryTypes[i];
+            //const auto&   heap    = mem_props.memoryHeaps[ mt.heapIndex ];
+            EMemoryType     dst     = AEEnumCast( VkMemoryPropertyFlagBits(mt.propertyFlags), false );
+            const uint      bit     = 1u << i;
+
+            if ( dst == Default )
+                continue;
+
+            if ( AllBits( dst, EMemoryType::Transient ))  { result( EMemoryType::Transient ) |= bit; continue; }
+
+            if ( AllBits( dst, EMemoryType::Unified ))
+            {
+                result( EMemoryType::Unified ) |= bit;
+                if ( AllBits( dst, EMemoryType::UnifiedCached ))  result( EMemoryType::UnifiedCached ) |= bit;
+                continue;
+            }
+
+            if ( AllBits( dst, EMemoryType::DeviceLocal ))          { result( EMemoryType::DeviceLocal ) |= bit; continue; }
+
+            if ( AllBits( dst, EMemoryType::HostCoherent ))         result( EMemoryType::HostCoherent )         |= bit;
+            if ( AllBits( dst, EMemoryType::HostCached ))           result( EMemoryType::HostCached )           |= bit;
+            if ( AllBits( dst, EMemoryType::HostCachedCoherent ))   result( EMemoryType::HostCachedCoherent )   |= bit;
+        }
+
+        // for integrated GPUs add alias 'HostCoherent' for 'Unified'
+        if ( auto it = result.find( EMemoryType::Unified );  (it != result.end()) and (not result.contains( EMemoryType::HostCoherent )) )
+            result.emplace( EMemoryType::HostCoherent, it->second );
+
+        // for integrated GPUs add alias 'HostCached' for 'UnifiedCached'
+        if ( auto it = result.find( EMemoryType::UnifiedCached );  (it != result.end()) and (not result.contains( EMemoryType::HostCached )) )
+        {
+            uint    tmp = it->second;
+            result.emplace( EMemoryType::HostCached, tmp );
+            result.emplace( EMemoryType::HostCachedCoherent, tmp );
+        }
+
+        // for integrated GPUs add alias 'DeviceLocal' for 'Unified'
+        if ( auto it = result.find( EMemoryType::Unified );  (it != result.end()) and (not result.contains( EMemoryType::DeviceLocal )) )
+            result.emplace( EMemoryType::DeviceLocal, it->second );
+
+        // validate
+        ASSERT( result.contains( EMemoryType::DeviceLocal ));
+        ASSERT( result.contains( EMemoryType::HostCoherent ));
+        ASSERT( result.contains( EMemoryType::HostCached ));
+    }
+
+/*
+=================================================
+    _InitMemHeapToMemType
+=================================================
+*/
+    void  VDeviceInitializer::_InitMemHeapToMemType (OUT MemHeapToMemType_t &result) C_Th___
+    {
+        ASSERT( not _memTypeToBits.empty() );
+
+        const auto& mem_props = GetVProperties().memoryProperties;
+
+        result.fill( VK_MAX_MEMORY_HEAPS-1 );
+
+        auto    dev_mem     = _memTypeToBits.find( EMemoryType::DeviceLocal );
+        auto    uni_mem     = _memTypeToBits.find( EMemoryType::Unified );
+        uint    heap_bits   = 0;
+
+        const auto  SetHeapBits = [&heap_bits, &mem_props, &result] (uint typeBits, ubyte memType)
+        {{
+            uint    new_heap_bits = 0;
+            for (uint i : BitIndexIterate( typeBits ))
+            {
+                uint    heap_idx = mem_props.memoryTypes[i].heapIndex;
+
+                new_heap_bits       |= ToBit<uint>( heap_idx );
+                result[ heap_idx ]  =  memType;
+            }
+
+            ASSERT( not AnyBits( heap_bits, new_heap_bits ));   // must not intersects
+            heap_bits |= new_heap_bits;
+        }};
+
+        if ( dev_mem != _memTypeToBits.end() and uni_mem != _memTypeToBits.end() )
+        {
+            const uint  uni_mem_bits = uni_mem->second & ~dev_mem->second;
+
+            if ( uni_mem_bits != 0 )
+            {
+                // discrete GPU with unified memory
+                SetHeapBits( uni_mem_bits, 2 );
+                SetHeapBits( dev_mem->second & ~uni_mem->second, 0 );
+            }
+            else
+            {
+                // integrated GPU or discrete GPU without unified memory
+                SetHeapBits( dev_mem->second, 0 );
+            }
+        }
+
+        // add host memory
+        for (uint i = 0; i < mem_props.memoryHeapCount; ++i)
+        {
+            if ( HasBit( heap_bits, i )) continue;
+            if ( AllBits( mem_props.memoryHeaps[i].flags, VK_MEMORY_HEAP_DEVICE_LOCAL_BIT )) continue;
+
+            heap_bits |= ToBit<uint>( i );
+            result[i]  = 1;
+        }
+
+        ASSERT( heap_bits == ToBitMask<uint>( mem_props.memoryHeapCount ));
+    }
+
+/*
+=================================================
     _LogResourceFlags
 =================================================
 */
@@ -1349,14 +1529,14 @@ namespace {
             return false;
         }};
 
-        for (EQueueMask mask = required; mask != Zero;)
+        for (auto type : BitIndexIterate<EQueueType>( required ))
         {
-            CHECK_ERR( FindHWQueue( ExtractBitLog2<EQueueType>( INOUT mask )));
+            CHECK_ERR( FindHWQueue( type ));
         }
 
-        for (EQueueMask mask = optional & ~required; mask != Zero;)
+        for (auto type : BitIndexIterate<EQueueType>( optional & ~required ))
         {
-            FindHWQueue( ExtractBitLog2<EQueueType>( INOUT mask ));
+            FindHWQueue( type );
         }
 
         _InitQueues( queue_family_props, INOUT _queues, INOUT _queueTypes );
@@ -1439,6 +1619,9 @@ namespace {
         // setup extensions
         Array<const char *>     device_extensions = _GetDeviceExtensions( _vkDeviceVersion );       // throw
         device_extensions.insert( device_extensions.end(), extensions.begin(), extensions.end() );  // throw
+
+        //if ( _nvPerf.IsLoaded() )
+        //    _nvPerf.GetDeviceExtensions( *this, INOUT device_extensions );
 
         _ValidateDeviceExtensions( _vkPhysicalDevice, INOUT device_extensions );    // throw
 
@@ -1530,9 +1713,9 @@ namespace {
             void*   dev_info_pnext = null;
             _InitFeaturesAndProperties( INOUT &dev_info_pnext );
 
-            // this feature affects performance
+            // disable some features
             {
-                _properties.features.robustBufferAccess = VK_FALSE;
+                _properties.features.robustBufferAccess = VK_FALSE; // this feature affects performance
 
                 _properties.bufferDeviceAddressFeats.bufferDeviceAddressCaptureReplay   = VK_FALSE;
                 _properties.bufferDeviceAddressFeats.bufferDeviceAddressMultiDevice     = VK_FALSE;
@@ -1543,7 +1726,7 @@ namespace {
                 _properties.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplay        = VK_FALSE;
                 _properties.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplayMixed   = VK_FALSE;
 
-                _properties.cooperativeMatrixNVFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
+                _properties.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
             }
 
             if ( fsToDeviceFeatures != null )
@@ -1568,6 +1751,8 @@ namespace {
         _ValidateQueueStages( _queues );
         _SetResourceFlags( OUT _resFlags );
         _ValidateSpirvVersion( OUT _spirvVersion );
+        _InitMemoryTypeToTypeBits( OUT _memTypeToBits );
+        _InitMemHeapToMemType( OUT _memHeapToType );
         _devProps.InitVulkan( _extensions, _properties );
 
         if ( _enableInfoLog )
@@ -1577,6 +1762,9 @@ namespace {
             _devProps.Print();
             _LogExternalTools();    // throw
         }
+
+        //if ( not (_nvPerf.IsLoaded() and _nvPerf.Initialize( *this )) )
+        //    _nvPerf.Deinitialize();
 
         return true;
     }
@@ -2017,15 +2205,18 @@ namespace {
             }
             else
             {
+                #ifdef AE_DEBUG
                 if ( spec_ver < VK_HEADER_VERSION_COMPLETE )
                 {
                     // this may cause a crash or false-positive in validation layer, you should update vulkan SDK.
-                    AE_LOG_DBG( "Instance layer '"s << *iter << "' version (" << ToString(VK_API_VERSION_MAJOR(spec_ver))
+                    AE_LOG_SE( "Instance layer '"s << *iter << "' version (" << ToString(VK_API_VERSION_MAJOR(spec_ver))
                                     << '.' << ToString(VK_API_VERSION_MINOR(spec_ver)) << '.' << ToString(VK_API_VERSION_PATCH(spec_ver))
                                     << ") is less than header version (" << ToString(VK_API_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE))
                                     << '.' << ToString(VK_API_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE)) << '.' << ToString(VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE))
                                     << ")" );
                 }
+                #endif
+
                 ++iter;
             }
         }
@@ -2272,23 +2463,26 @@ namespace {
     {
         using VErrorName = NamedID< 128, 0x1834'1292, false >;
 
-        static constexpr VErrorName stage_mask1     {"VUID-vkCmdPipelineBarrier2-srcStageMask-03849"};
-        static constexpr VErrorName stage_mask2     {"VUID-vkCmdPipelineBarrier2-dstStageMask-03850"};
-        static constexpr VErrorName spv_ext         {"VUID-VkShaderModuleCreateInfo-pCode-04147"};
-        static constexpr VErrorName img_fmt_list    {"VUID-VkImageViewCreateInfo-image-01762"};
+        static constexpr VErrorName stage_mask1     {"VUID-vkCmdPipelineBarrier2-srcStageMask-03849"};  // __ false-positive on queue ownership transfer
+        static constexpr VErrorName stage_mask2     {"VUID-vkCmdPipelineBarrier2-dstStageMask-03850"};  // /
+        static constexpr VErrorName spv_ext         {"VUID-VkShaderModuleCreateInfo-pCode-04147"};      // - noisy
+        static constexpr VErrorName img_fmt_list    {"VUID-VkImageViewCreateInfo-image-01762"};         // - false-positive: image format list allows to create image view with different format without VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT
         static constexpr VErrorName iface_mismatch  {"UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch"};
+        static constexpr VErrorName access_mask1    {"VUID-VkMemoryBarrier2-srcAccessMask-07454"};      // \ https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/6628
+        static constexpr VErrorName access_mask2    {"VUID-VkMemoryBarrier2-dstAccessMask-07454"};      // / (for sdk 1.3.261.1)
 
         auto*               self    = static_cast<VDeviceInitializer *>(pUserData);
         const VErrorName    msg_id  {pCallbackData->pMessageIdName};
 
-        if ( (msg_id == stage_mask1) | (msg_id == stage_mask2) | (msg_id == spv_ext) |
-             (msg_id == img_fmt_list) | (msg_id == iface_mismatch) )
+        if ( (msg_id == stage_mask1)    | (msg_id == stage_mask2)       | (msg_id == spv_ext)       |
+             (msg_id == img_fmt_list)   | (msg_id == iface_mismatch)    | (msg_id == access_mask1)  |
+             (msg_id == access_mask2) )
             return VK_FALSE;
 
         auto    dbg_report = self->_dbgReport.WriteNoLock();
         EXLOCK( dbg_report );
 
-        try{
+        TRY{
             dbg_report->tempObjectDbgInfos.resize( pCallbackData->objectCount );    // throw
 
             for (usize i = 0; i < dbg_report->tempObjectDbgInfos.size(); ++i)
@@ -2305,9 +2499,11 @@ namespace {
                                 dbg_report->callback,
                                 { dbg_report->tempObjectDbgInfos, pCallbackData->pMessage,
                                   AllBits( messageSeverity, VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
-                                });                                                                                 // throw
-        }catch(...)
-        {}
+                                });                                                                         // throw
+        }CATCH_ALL();
+
+        // The application should always return VK_FALSE.
+        // The VK_TRUE value is reserved for use in layer development.
         return VK_FALSE;
     }
 
@@ -2453,6 +2649,23 @@ namespace {
 */
     bool  VDeviceInitializer::Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions) __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
+        EDeviceFlags    dev_flags = ci.device.devFlags;
+
+        #ifdef AE_CFG_RELEASE
+        {
+            constexpr auto  dbg_flags = EDeviceFlags::_NvApiMask | EDeviceFlags::_ArmProfMask | EDeviceFlags::EnableRenderDoc;
+            dev_flags &= dbg_flags;
+        }
+        #endif
+
+        //if ( AnyBits( dev_flags, EDeviceFlags::_NvApiMask ))
+        //    LoadNvPerf();
+
+        if ( AnyBits( dev_flags, EDeviceFlags::_ArmProfMask ))
+            LoadArmProfiler();
+
         // instance
         {
             const bool  enable_validation = (ci.device.validation != EDeviceValidation::Disabled);
@@ -2474,10 +2687,20 @@ namespace {
 
             const VkValidationFeatureEnableEXT  printf_enable_feats  []         = { VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT };
 
+            Array<const char*>  layers;
+            if ( enable_validation )
+            {
+                auto    validation_layers = GetRecommendedInstanceLayers();
+                layers.insert( layers.end(), validation_layers.begin(), validation_layers.end() );
+            }
+
+            if ( AnyBits( dev_flags, EDeviceFlags::EnableRenderDoc ))
+                layers.push_back( RenderDocApi::GetVkLayer() );
+
             InstanceCreateInfo  instance_ci;
             instance_ci.appName             = ci.device.appName;
             instance_ci.engineName          = AE_ENGINE_NAME;
-            instance_ci.instanceLayers      = enable_validation ? GetRecommendedInstanceLayers() : Default;
+            instance_ci.instanceLayers      = layers;
             instance_ci.instanceExtensions  = instanceExtensions;
 
             BEGIN_ENUM_CHECKS();
@@ -2525,6 +2748,9 @@ namespace {
                 CreateDebugCallback( DefaultDebugMessageSeverity,
                                      [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK(not rep.isError); });
             }
+
+            if ( AnyBits( dev_flags, EDeviceFlags::EnableRenderDoc ))
+                LoadRenderDoc();
         }
 
         // device
@@ -2538,6 +2764,9 @@ namespace {
             CHECK_ERR( CreateDefaultQueues( ci.device.requiredQueues, ci.device.optionalQueues ));
             CHECK_ERR( CreateLogicalDevice() );
         }
+
+        //if ( AllBits( dev_flags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
+        //    _nvPerf.SetStableClockState( true );
 
         return true;
     }

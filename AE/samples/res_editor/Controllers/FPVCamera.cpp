@@ -12,10 +12,10 @@ namespace AE::ResEditor
 =================================================
 */
     FPVCamera::FPVCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY, const MovingScale &movingScale,
-                                  float2 rotationScale, float3 initialPos) __Th___ :
-        _dynDim{ RVRef(dim) }, _clipPlanes{clipPlanes}, _fovY{fovY},
-        _rotationScale{rotationScale}, _movingScale{movingScale},
-        _initialPos{initialPos}
+                          float2 rotationScale, float3 initialPos, bool reverseZ) __Th___ :
+        _dynDim{ RVRef(dim) },              _clipPlanes{ clipPlanes },  _fovY{ fovY },
+        _rotationScale{ rotationScale },    _movingScale{ movingScale },
+        _initialPos{ initialPos },          _reverseZ{ reverseZ }
     {
         CHECK_THROW( _dynDim );
         _Reset();
@@ -31,10 +31,10 @@ namespace AE::ResEditor
         constexpr auto& IA      = InputActions::Controller_FPVCamera;
         constexpr auto& BaseIA  = InputActions::SwitchInputMode;
 
-        packed_float3   move;
-        packed_float2   rotation;
-        float           zoom    = 0.f;
-        bool            reset   = false;
+        float3  move;
+        float2  rotation;
+        float   zoom    = 0.f;
+        bool    reset   = false;
 
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
@@ -43,10 +43,10 @@ namespace AE::ResEditor
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Rotate :
-                    rotation += reader.Data<packed_float2>( hdr.offset );   break;
+                    rotation += reader.DataCopy<float2>( hdr.offset );      break;
 
                 case IA.Camera_Move :
-                    move += reader.Data<packed_float3>( hdr.offset );       break;
+                    move += reader.DataCopy<float3>( hdr.offset );          break;
 
                 case IA.Camera_Zoom :
                     zoom += reader.Data<packed_float2>( hdr.offset ).y;     break;
@@ -64,13 +64,17 @@ namespace AE::ResEditor
 
         move = _movingScale.Apply( move ) * timeDelta.count();
 
-        _camera.Rotate( Rad{rotation.x * _rotationScale.x}, Rad{rotation.y * _rotationScale.y} );
+        rotation *= _rotationScale * _zoom;
+
+        _camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
         _camera.Move3D( move );
 
         if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
-            _zoom = Clamp( _zoom - zoom * _zoomStep, _3d_minZoom, _3d_maxZoom );
-            _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y );
+            zoom  = Clamp( zoom, -2.f, 2.f );
+            zoom  = zoom * _zoomSpeed * timeDelta.count();
+            _zoom = Clamp( _zoom - zoom, _3d_minZoom, _3d_maxZoom );
+            _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
         }
 
         _UpdateMatrix();
@@ -84,11 +88,11 @@ namespace AE::ResEditor
     void  FPVCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( QuatF::Identity() );
+        _camera.SetRotation( Quat::Identity() );
         _zoom       = 1.0f;
         _dimAspect  = _dynDim->Aspect();
 
-        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y );
+        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
         _UpdateMatrix();
     }

@@ -347,7 +347,7 @@ namespace AE::Profiler
                         tname = t_it->second.caption;
 
                     RGBA8u  color;
-                    PseudoRandom::StringToColor( OUT color, info.name );
+                    StringToColor( OUT color, info.name );
 
                   #ifdef AE_ENABLE_IMGUI
                     _imTaskGraph.Add( info.name, color, info.begin, end.time, usize(info.threadId), tname );
@@ -368,7 +368,7 @@ namespace AE::Profiler
                 tname = t_it->second.caption;
 
             RGBA8u  color;
-            PseudoRandom::StringToColor( OUT color, info.name );
+            StringToColor( OUT color, info.name );
 
           #ifdef AE_ENABLE_IMGUI
             _imTaskGraph.Add( info.name, color, info.begin, NaN<double>(), usize(info.threadId), tname );

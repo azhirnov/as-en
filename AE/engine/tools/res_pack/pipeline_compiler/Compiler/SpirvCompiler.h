@@ -6,7 +6,7 @@
 
 #include "Packer/PipelinePack.h"
 #include "Packer/RenderPassPack.h"
-#include "Compiler/IShaderProprocessor.h"
+#include "Compiler/IShaderPreprocessor.h"
 
 class TIntermNode;
 
@@ -143,7 +143,7 @@ namespace AE::PipelineCompiler
         uint                            _spirvTraget        = 0;        // spv_target_env
 
         TBuiltInResource                _builtinResource;
-        Unique<IShaderProprocessor>     _preprocessor;
+        Unique<IShaderPreprocessor>     _preprocessor;
 
         static constexpr bool           _quietWarnings      = true;
 
@@ -154,7 +154,7 @@ namespace AE::PipelineCompiler
         ~SpirvCompiler ();
 
             bool  SetDefaultResourceLimits ();
-            void  SetPreprocessor (IShaderProprocessor*);
+            void  SetPreprocessor (IShaderPreprocessor*);
 
         ND_ bool  BuildReflection (const Input &in, OUT ShaderReflection &outReflection, OUT String &log);
         ND_ bool  Compile (const Input &in, OUT Output &out);
@@ -186,7 +186,7 @@ namespace AE::PipelineCompiler
 
             void  _MergeWithGeometryInputPrimitive (INOUT TopologyBits_t &topologyBits, /*TLayoutGeometry*/uint type) const;
 
-        ND_ ShaderReflection::DescriptorSet&  _GetDesciptorSet (uint dsIndex, INOUT SpirvCompiler::ShaderReflection &reflection) const;
+        ND_ ShaderReflection::DescriptorSet&  _GetDescriptorSet (uint dsIndex, INOUT SpirvCompiler::ShaderReflection &reflection) const;
 
         ND_ EImageType      _ExtractImageType (const glslang::TType &type) const;
         ND_ EVertexType     _ExtractVertexType (const glslang::TType &type) const;

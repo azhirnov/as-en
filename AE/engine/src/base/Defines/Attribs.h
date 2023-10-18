@@ -2,23 +2,25 @@
 
 #pragma once
 
-#ifdef __has_include
-# if __has_include(<version>)
-#   include <version>
-# endif
-#endif
+// mark output and input-output function arguments //
 
-
-// mark output and input-output function arguments
-
-// OUT for reference - argument is write only
-// OUT for pointer   - memory pointed to is write only
+// Previous content will be discarded.
+// On error: returns empty object.
+// On success: returns new object.
+// 
+// OUT for reference - argument will be replaced by the new object.
+// OUT for pointer   - memory pointed to will be overwritten.
+//
 #ifndef OUT
 #   define OUT
 #endif
 
-// INOUT for reference - argument is read write
-// INOUT for pointer   - memory pointed to is read write
+// Previous content will be modified or added new content.
+// On error: fallback to previous content is implementation defined, content may be partially modified.
+// 
+// INOUT for reference - argument has read-write access.
+// INOUT for pointer   - memory pointed to has read-write access.
+// 
 #ifndef INOUT
 #   define INOUT
 #endif
@@ -44,22 +46,17 @@
 #define C_Th_OF     const   noexcept(false) override final
 #define __Th_OF             noexcept(false) override final
 
-// TODO: use *_NE_** / *_Th_** instead
-#define C______     const
-#define C____OV     const                   override
-#define C____OF     const                   override final
-#define _____OV                             override            
-#define _____OF                             override final
-
 // function prefix attribs
 /*
-#define __Cx__      constexpr
-#define __CxEx      explicit constexpr
+#define __Cx__              constexpr
+#define __Cx__              constexpr
 #define St____      static
-#define StCx__      static constexpr
+#define StCx__      static  constexpr
 #define Fr____      friend
-#define FrCx__      friend constexpr
-#define St____In    static inline
+#define FrCx__      friend  constexpr
+#define St__In      static                  inline
+#define St__FI      static                  forceinline
+#define __Cv__              consteval
 */
 
 // no discard

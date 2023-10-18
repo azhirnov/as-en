@@ -9,8 +9,6 @@ types:
     DirectCtx::Graphics
     DirectCtx::ASBuild
     DirectCtx::RayTracing
-    DirectCtx::VideoDecode
-    DirectCtx::VideoEncode
 
     IndirectCtx::CommandBuffer
     IndirectCtx::Transfer
@@ -19,8 +17,6 @@ types:
     IndirectCtx::Graphics
     IndirectCtx::ASBuild
     IndirectCtx::RayTracing
-    IndirectCtx::VideoDecode
-    IndirectCtx::VideoEncode
 
     RenderTask
     RenderTaskCoro
@@ -41,9 +37,6 @@ types:
     DrawCommandBatchPtr
 
     DescriptorUpdater
-
-    GfxLinearMemAllocator
-    GfxBlockMemAllocator
 */
 
 #pragma once
@@ -59,11 +52,6 @@ types:
 # include "graphics/Vulkan/Descriptors/VDescriptorUpdater.h"
 
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
-
-# include "graphics/Vulkan/Allocators/VBlockMemAllocator.h"
-# include "graphics/Vulkan/Allocators/VDedicatedMemAllocator.h"
-# include "graphics/Vulkan/Allocators/VLinearMemAllocator.h"
-# include "graphics/Vulkan/Allocators/VUniMemAllocator.h"
 
 namespace AE::Graphics
 {
@@ -98,9 +86,6 @@ namespace AE::Graphics
     using DrawCommandBatchPtr   = RC< DrawCommandBatch >;
 
     using DescriptorUpdater     = VDescriptorUpdater;
-
-    using GfxLinearMemAllocator = VLinearMemAllocator;
-    using GfxBlockMemAllocator  = VBlockMemAllocator;
 
 } // AE::Graphics
 

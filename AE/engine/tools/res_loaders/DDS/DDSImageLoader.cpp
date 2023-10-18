@@ -39,7 +39,10 @@ namespace
 
             case D3D11_RESOURCE_DIMENSION_TEXTURE2D :
                 if ( is_cube )
+                {
+                    CHECK_ERR( array_layers % 6 == 0 );
                     img_type = array_layers > 6 ? EImage_CubeArray : EImage_Cube;
+                }
                 else
                     img_type = array_layers > 1 ? EImage_2DArray : EImage_2D;
                 break;
@@ -63,7 +66,7 @@ namespace
         const auto&     info    = EPixelFormat_GetInfo( format );
         usize           pitch   = 0;
 
-        if ( All( info.TexBlockSize() == uint2{1} ))
+        if ( All( info.TexBlockDim() == uint2{1} ))
         {
             // uncompressed texture
             if ( AllBits( header.dwFlags, DDSD_PITCH ))
@@ -82,7 +85,7 @@ namespace
 
 
         IntermImage::Mipmaps_t  image_data;
-        const uint3             block_dim{ (dim.x + info.TexBlockSize().x-1) / info.TexBlockSize().x, (dim.y + info.TexBlockSize().y-1) / info.TexBlockSize().y, dim.z };
+        const uint3             block_dim{ (dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x, (dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y, dim.z };
 
         for (uint layer = 0; layer < array_layers; ++layer)
         {
@@ -158,7 +161,7 @@ namespace
         CHECK_ERR( header.ddspf.dwSize == sizeof(header.ddspf) );
 
         if ( not allocator )
-            allocator = SharedMem::CreateAllocator();
+            allocator = AE::GetDefaultAllocator();
 
         if ( AllBits( header.ddspf.dwFlags, DDPF_FOURCC ) and
              header.ddspf.dwFourCC == MakeFourCC('D','X','1','0') )

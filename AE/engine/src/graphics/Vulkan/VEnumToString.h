@@ -148,7 +148,9 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
                 case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
                 case VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM :
-                case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :            ASSERT(false); break;
+                case VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT :
+                case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
+                default :                                           DBG_WARNING( "unsupported image usage" ); break;
             }
             END_ENUM_CHECKS();
         }

@@ -165,6 +165,82 @@ template <typename T, int C, int R> ND_ _Matrix<T,C,R>  outerProduct (const _Vec
 template <typename T, int C, int R> ND_ _Matrix<T,R,C>  transpose (const _Matrix<T,C,R>);
 #endif
 
+// GL_EXT_shader_explicit_arithmetic_types
+#if 1
+                                ND_ slong           pack64 (const int2 v);
+                                ND_ ulong           pack64 (const uint2 v);
+                                ND_ slong           pack64 (const short4 v);
+                                ND_ ulong           pack64 (const ushort4 v);
+
+                                ND_ int             pack32 (const short2 v);
+                                ND_ uint            pack32 (const ushort2 v);
+                                ND_ int             pack32 (const sbyte4 v);
+                                ND_ uint            pack32 (const ubyte4 v);
+
+                                ND_ short           pack16 (const sbyte2 v);
+                                ND_ ushort          pack16 (const ubyte2 v);
+
+                                ND_ int2            unpack64 (const slong v);
+                                ND_ uint2           unpack64 (const ulong v);
+                                ND_ short4          unpack64 (const slong v);
+                                ND_ ushort4         unpack64 (const ulong v);
+
+                                ND_ short2          unpack32 (const int v);
+                                ND_ ushort2         unpack32 (const uint v);
+                                ND_ sbyte4          unpack32 (const int v);
+                                ND_ ubyte4          unpack32 (const uint v);
+
+                                ND_ sbyte2          unpack16 (const short v);
+                                ND_ ubyte2          unpack16 (const ushort v);
+
+                                ND_ slong           packInt2x32 (const int2 v);
+                                ND_ ulong           packUint2x32 (const uint2 v);
+                                ND_ int2            unpackInt2x32 (const slong v);
+                                ND_ uint2           unpackUint2x32 (const ulong v);
+
+                                ND_ uint            packFloat2x16 (const half2 v);
+                                ND_ half2           unpackFloat2x16 (const uint v);
+
+                                ND_ int             packInt2x16 (const short2 v);
+                                ND_ slong           packInt4x16 (const short4 v);
+                                ND_ uint            packUint2x16 (const ushort2 v);
+                                ND_ ulong           packUint4x16 (const ushort4 v);
+
+                                ND_ short2          unpackInt2x16 (const int v);
+                                ND_ short4          unpackInt4x16 (const slong v);
+                                ND_ ushort2         unpackUint2x16 (const uint v);
+                                ND_ ushort4         unpackUint4x16 (const ulong v);
+
+                                ND_ short           halfBitsToInt16 (const half);               // int16BitsToHalf
+template <int I>                ND_ _Vec<short,I>   halfBitsToInt16 (const _Vec<half,I>);       // int16BitsToHalf
+                                ND_ ushort          halfBitsToUint16 (const half);              // uint16BitsToHalf
+template <int I>                ND_ _Vec<ushort,I>  halfBitsToUint16 (const _Vec<half,I>);      // uint16BitsToHalf
+
+                                ND_ short           float16BitsToInt16 (const half);            // int16BitsToFloat16
+template <int I>                ND_ _Vec<short,I>   float16BitsToInt16 (const _Vec<half,I>);    // int16BitsToFloat16
+                                ND_ ushort          float16BitsToUint16 (const half);           // uint16BitsToFloat16
+template <int I>                ND_ _Vec<ushort,I>  float16BitsToUint16 (const _Vec<half,I>);   // uint16BitsToFloat16
+
+                                ND_ slong           doubleBitsToInt64 (const double);           // int64BitsToDouble
+template <int I>                ND_ _Vec<slong,I>   doubleBitsToInt64 (const _Vec<double,I>);   // int64BitsToDouble
+                                ND_ ulong           doubleBitsToUint64 (const double);          // uint64BitsToDouble
+template <int I>                ND_ _Vec<ulong,I>   doubleBitsToUint64 (const _Vec<double,I>);  // uint64BitsToDouble
+
+                                ND_ half            int16BitsToHalf (const short);              // halfBitsToInt16
+template <int I>                ND_ _Vec<half,I>    int16BitsToHalf (const _Vec<short,I>);      // halfBitsToInt16
+                                ND_ half            uint16BitsToHalf (const ushort);            // halfBitsToUint16
+template <int I>                ND_ _Vec<half,I>    uint16BitsToHalf (const _Vec<ushort,I>);    // halfBitsToUint16
+
+                                ND_ half            int16BitsToFloat16 (const short);           // float16BitsToInt16
+template <int I>                ND_ _Vec<half,I>    int16BitsToFloat16 (const _Vec<short,I>);   // float16BitsToInt16
+                                ND_ half            uint16BitsToFloat16 (const ushort);         // float16BitsToUint16
+template <int I>                ND_ _Vec<half,I>    uint16BitsToFloat16 (const _Vec<ushort,I>); // float16BitsToUint16
+
+                                ND_ double          int64BitsToDouble (const slong);            // doubleBitsToInt64
+template <int I>                ND_ _Vec<double,I>  int64BitsToDouble (const _Vec<slong,I>);    // doubleBitsToInt64
+                                ND_ double          uint64BitsToDouble (const ulong);           // doubleBitsToUint64
+template <int I>                ND_ _Vec<double,I>  uint64BitsToDouble (const _Vec<ulong,I>);   // doubleBitsToUint64
+#endif
 
 
 struct gl
@@ -230,8 +306,15 @@ public:
     template <typename T> struct Image2DMSArray         : _ImageBase<T> { Image2DMSArray ();    using Coord = int3; };
 
 
-    // Use it if array index is vary within a wave.
-    // PrimitiveID, InstanceID, DrawID, ...
+    // Use it if array index is not dynamically uniform.
+    // Dynamically uniform:
+    //  - Data from uniform buffer, for arrays it must be constant or dynamically uniform indexing.
+    //  - Data from push constants.
+    //  - 'DrawID'.
+    // 
+    // Non-dynamically uniform:
+    //  - 'VertexIndex', 'PrimitiveID', ...
+    //  - 'InstanceIndex' - non-uniform on TBDR.
 
     ND_ int   Nonuniform (int);         // GL_EXT_nonuniform_qualifier
     ND_ uint  Nonuniform (uint);        // GL_EXT_nonuniform_qualifier
@@ -904,12 +987,15 @@ public:
   #endif
 
 
+  #if defined(SH_MESH_TASK) or defined(SH_MESH) or defined(SH_VERT)
+    // in
+    const   int     DrawID      = {};   // GL_ARB_shader_draw_parameters    // dynamically uniform
+  #endif
+
+
     // GLSL_EXT_mesh_shader
   #ifdef SH_MESH_TASK
     void  EmitMeshTasks (uint groupCountX, uint groupCountY, uint groupCountZ);
-
-    // in
-    const   int     DrawID      = {};   // GL_ARB_shader_draw_parameters 
   #endif
 
 
@@ -918,7 +1004,6 @@ public:
     void  SetMeshOutputs (uint vertexCount, uint primitiveCount);
 
     // in
-    const   int     DrawID      = {};   // GL_ARB_shader_draw_parameters
     const   int     ViewIndex   = {};   // GL_EXT_multiview
 
     // out
@@ -1081,18 +1166,18 @@ public:
     enum class RayFlags
     {
         None,
-        Opaque,
-        NoOpaque,
+        Opaque,                     // Force all intersections with the trace to be opaque.
+        NoOpaque,                   // Force all intersections with the trace to be non-opaque.
         TerminateOnFirstHit,
-        SkipClosestHitShader,
-        CullBackFacingTriangles,
-        CullFrontFacingTriangles,
-        CullOpaque,
-        CullNoOpaque,
+        SkipClosestHitShader,       // Do not execute a closest hit shader.
+        CullBackFacingTriangles,    // Do not intersect with the back face of triangles.
+        CullFrontFacingTriangles,   // Do not intersect with the front face of triangles.
+        CullOpaque,                 // Do not intersect with opaque geometry.
+        CullNoOpaque,               // Do not intersect with non-opaque geometry.
 
         // GL_EXT_ray_flags_primitive_culling
-        SkipTriangles,
-        SkipAABB,
+        SkipTriangles,              // Do not intersect with any triangle geometries.
+        SkipAABB,                   // Do not intersect with any aabb geometries.
     };
   #endif
 
@@ -1108,6 +1193,15 @@ public:
     void    ExecuteCallable (uint sbtRecordIndex, int callable);
   #endif
   #ifdef SH_RAY_INT
+    // Invokes the current hit shader once an intersection shader has determined
+    // that a ray intersection has occurred. If the intersection occurred within
+    // the current ray interval, the any-hit shader corresponding to the current
+    // intersection shader is invoked. If the intersection is not ignored in the
+    // any-hit shader, <hitT> is committed as the new 'RayTmax' value of the
+    // current ray, <hitKind> is committed as the new value for 'HitKind', and
+    // true is returned. If either of those checks fails, then false is returned.
+    // If the value of <hitT> falls outside the current ray interval, the hit is
+    // rejected and false is returned.
     ND_ bool  ReportIntersection (float hitT, TriangleHitKind hitKind);
   #endif
 
@@ -1121,7 +1215,7 @@ public:
     //   Geometry instance ids
     const   int         PrimitiveID;
     const   int         InstanceID;
-    const   int         InstanceCustomIndex;
+    const   int         InstanceCustomIndex;        // 'RTSceneBuild::Instance::instanceCustomIndex'
     const   int         GeometryIndex;
     //   World space parameters
     const   float3      WorldRayOrigin;
@@ -1133,10 +1227,10 @@ public:
     const   float       RayTmax;
     const   RayFlags    IncomingRayFlags;
     //   Transform matrices
-    const   float4x3    ObjectToWorld;
-    const   float3x4    ObjectToWorld3x4;
+    const   float4x3    ObjectToWorld;              // 'RTSceneBuild::Instance::transform' without per-geometry transform
+    const   float3x4    ObjectToWorld3x4;           // == MatTranspose( ObjectToWorld )
     const   float4x3    WorldToObject;
-    const   float3x4    WorldToObject3x4;
+    const   float3x4    WorldToObject3x4;           // == MatTranspose( WorldToObject )
   #endif
 
   #ifdef SH_RAY_MISS
@@ -1150,7 +1244,12 @@ public:
   #endif
 
   #ifdef SH_RAY_AHIT
+    // This keyword terminates the calling any-hit shader and continues the ray
+    // query without modifying 'RayTmax' and 'HitKind'.
     const   _Uns_       IgnoreIntersection;
+
+    // This keyword terminates the calling any-hit shader, stops the ray
+    // traversal, and invokes the closest-hit shader.
     const   _Uns_       TerminateRay;
   #endif
 
@@ -1181,33 +1280,87 @@ public:
     };
 
     const struct {
+        // Initializes a ray query object but does not start traversal,
+        // discarding all previous state. Traversal is considered incomplete.
             void        Initialize (RayQuery &rq, AccelerationStructure &tlas,
                                     RayFlags rayFlags, uint cullMask, const float3 origin,
                                     float tMin, const float3 direction, float tMax) const;
 
+        // Allows traversal to proceed when traversal is incomplete.
+        // Returns 'true' if traversal is incomplete after the operation, and 'false'
+        // if traversal is complete.
         ND_ bool        Proceed (RayQuery &rq) const;
+
+        // Terminates execution of ray query when traversal is incomplete.
             void        Terminate (RayQuery &rq) const;
+
+        //  Generates and commits an intersection at <tHit>. Only valid when a candidate AABB intersection is found.
             void        GenerateIntersection (RayQuery &rq, float tHit) const;
+
+        // Commits current candidate triangle intersection to be included in
+        // determination of the closest hit for a ray query. Only valid when a
+        // candidate triangle intersection is found.
             void        ConfirmIntersection (RayQuery &rq) const;
-        ND_ uint        GetIntersectionType (RayQuery &rq, bool committed) const;   // RayQueryCommittedIntersection or RayQueryCandidateIntersection
+
+        // Returns type of committed or candidate intersection.
+        // 'RayQueryCommittedIntersection' or 'RayQueryCandidateIntersection'.
+        // <committed> must be a compile time constant value.
+        ND_ uint        GetIntersectionType (RayQuery &rq, bool committed) const;
+
+        //  Returns the parametric <tMin> value for the ray query.
         ND_ float       GetRayTMin (RayQuery &rq) const;
+
+        // Returns the ray flags for the ray query.
         ND_ RayFlags    GetRayFlags (RayQuery &rq) const;
+
+        // Returns the world-space origin of ray for the ray query.
         ND_ float3      GetWorldRayOrigin (RayQuery &rq) const;
+
+        // Returns the world-space direction of ray for the ray query.
         ND_ float3      GetWorldRayDirection (RayQuery &rq) const;
+
+        // Returns the parametric <t> value for current intersection.
         ND_ float       GetIntersectionT (RayQuery &rq, bool committed) const;
+
+        // Returns the 'RTSceneBuild::Instance::instanceCustomIndex' value.
         ND_ int         GetIntersectionInstanceCustomIndex (RayQuery &rq, bool committed) const;
+
+        // Returns the index of the instance for current intersection.
         ND_ int         GetIntersectionInstanceId (RayQuery &rq, bool committed) const;
+
+        // Returns the 'RTSceneBuild::Instance::instanceSBTOffset' value.
         ND_ uint        GetIntersectionInstanceSBTOffset (RayQuery &rq, bool committed) const;
+
+        // Returns implementation defined index of geometry for current intersection.
         ND_ int         GetIntersectionGeometryIndex (RayQuery &rq, bool committed) const;
+
+        // Returns the index of the primitive (triangle or bounding box) within the
+        // geometry of the bottom-level acceleration structure being processed.
         ND_ int         GetIntersectionPrimitiveIndex (RayQuery &rq, bool committed) const;
+
+        // Returns two component floating point barycentric coordinates of current intersection of ray.
         ND_ float2      GetIntersectionBarycentrics (RayQuery &rq, bool committed) const;
+
+        // Returns 'true' if the current intersection is a front facing triangle.
         ND_ bool        GetIntersectionFrontFace (RayQuery &rq, bool committed) const;
-        ND_ bool        GetIntersectionCandidateAABBOpaque (RayQuery &rq, bool committed) const;
+
+        // Returns 'true' if the current candidate intersection is an opaque AABB.
+        ND_ bool        GetIntersectionCandidateAABBOpaque (RayQuery &rq) const;
+
+        // Returns object-space direction of ray for current intersection.
         ND_ float3      GetIntersectionObjectRayDirection (RayQuery &rq, bool committed) const;
+
+        // Returns object-space origin of ray for current intersection.
         ND_ float3      GetIntersectionObjectRayOrigin (RayQuery &rq, bool committed) const;
+
+        // Returns object to world transformation matrix for current intersection.
         ND_ float4x3    GetIntersectionObjectToWorld (RayQuery &rq, bool committed) const;
+
+        // Returns world to object transformation matrix for current intersection.
         ND_ float4x3    GetIntersectionWorldToObject (RayQuery &rq, bool committed) const;
-            void        GetIntersectionTriangleVertexPositions (RayQuery &rq, bool committed, OUT float3 (&positions)[3]) const;    // GL_EXT_ray_tracing_position_fetch
+
+        // GL_EXT_ray_tracing_position_fetch
+            void        GetIntersectionTriangleVertexPositions (RayQuery &rq, bool committed, OUT float3 (&positions)[3]) const;
 
     } rayQuery {};
   #endif
@@ -1224,64 +1377,44 @@ public:
     };
   #endif
 
+    // GL_KHR_cooperative_matrix
+  #if defined(AE_COOP_MATRIX) and defined(AE_MEM_SCOPE)
 
-    // GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix
-  #if defined(SH_COMPUTE) or defined(AE_MEM_SCOPE)
-    template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
-    struct FCoopMatNV
+    enum class MatrixUse
     {
-        using type  = ;
-        using Self  = FCoopMatNV< CompBits, ScopeType, Rows, Columns >;
-
-        ND_ constexpr uint  length()                        { return Rows * Columns; }
-        ND_ type&           operator [] (uint i);
-        ND_ Self            operator + (Self rhs)   const;
-        ND_ Self            operator - (Self rhs)   const;
-        ND_ Self            operator * (Self rhs)   const;
-        ND_ Self            operator / (Self rhs)   const;
+        A,              // 'a' argument in CoopMatMulAdd()
+        B,              // 'b' argument in CoopMatMulAdd()
+        Accumulator     // 'c' argument in CoopMatMulAdd()
     };
 
-    template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
-    struct ICoopMatNV
+    enum class MatrixOperands
     {
-        using type  = ;
-        using Self  = ICoopMatNV< CompBits, ScopeType, Rows, Columns >;
-
-        ND_ constexpr uint  length()                        { return Rows * Columns; }
-        ND_ type&           operator [] (uint i);
-        ND_ Self            operator + (Self rhs)   const;
-        ND_ Self            operator - (Self rhs)   const;
-        ND_ Self            operator * (Self rhs)   const;
-        ND_ Self            operator / (Self rhs)   const;
+        None                    = 0,
+        SaturatingAccumulation  = 0x10,
     };
 
-    template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
-    struct UCoopMatNV
+    enum class CooperativeMatrixLayout
     {
-        using type  = ;
-        using Self  = UCoopMatNV< CompBits, ScopeType, Rows, Columns >;
-
-        ND_ constexpr uint  length()                        { return Rows * Columns; }
-        ND_ type&           operator [] (uint i);
-        ND_ Self            operator + (Self rhs)   const;
-        ND_ Self            operator - (Self rhs)   const;
-        ND_ Self            operator * (Self rhs)   const;
-        ND_ Self            operator / (Self rhs)   const;
+        RowMajor,
+        ColumnMajor
     };
 
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatLoadNV (OUT FCoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatLoadNV (OUT ICoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatLoadNV (OUT UCoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
+    template <typename T, Scope ScopeType, uint Rows, uint Columns, MatrixUse Use>
+    struct CoopMat
+    {
+        ND_ constexpr uint  length()                        { return Rows * Columns; }
+    };
 
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatStoreNV (FCoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatStoreNV (ICoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
-    template <uint B, Scope S, uint R, uint C, typename T>  void  CoopMatStoreNV (UCoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
+    template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
+    void  CoopMatLoad (OUT CoopMat<T,S,R,C,U> &m, B* buf, uint element, uint stride, CooperativeMatrixLayout layout);
 
-    template <uint B, Scope S, uint R, uint C, typename T>  ND_ FCoopMatNV<B,S,R,C>  CoopMatMulAddNV (FCoopMatNV<B,S,R,C> a, FCoopMatNV<B,S,R,C> b, FCoopMatNV<B,S,R,C> c);
-    template <uint B, Scope S, uint R, uint C, typename T>  ND_ ICoopMatNV<B,S,R,C>  CoopMatMulAddNV (ICoopMatNV<B,S,R,C> a, ICoopMatNV<B,S,R,C> b, ICoopMatNV<B,S,R,C> c);
-    template <uint B, Scope S, uint R, uint C, typename T>  ND_ UCoopMatNV<B,S,R,C>  CoopMatMulAddNV (UCoopMatNV<B,S,R,C> a, UCoopMatNV<B,S,R,C> b, UCoopMatNV<B,S,R,C> c);
+    template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
+    void  CoopMatStore (CoopMat<T,S,R,C,U> m, OUT B* buf, uint element, uint stride, CooperativeMatrixLayout layout);
 
-  #endif // SH_COMPUTE or AE_MEM_SCOPE
+    template <typename T, Scope S, uint R, uint C, MatrixUse U, typename T>
+    ND_ CoopMat<T,S,R,C,U>  CoopMatMulAdd (CoopMat<T,S,R,C,U> a, CoopMat<T,S,R,C,U> b, CoopMat<T,S,R,C,U> c, MatrixOperands matrixOperands = MatrixOperands::None);
+
+  #endif // AE_COOP_MATRIX and AE_MEM_SCOPE
 
 
     // GL_ARB_fragment_shader_interlock

@@ -208,8 +208,8 @@ namespace
 
         String  str;
         str << "namespace InputActions\n{\n"
-            << "\tusing InputModeName_t   = AE::App::InputModeName;\n"
-            << "\tusing InputActionName_t = AE::App::InputActionName;\n\n";
+            << "\tusing Hash_t          = AE::Base::HashVal32;\n"
+            << "\tusing InputModeName_t = AE::App::InputModeName;\n\n";
 
         struct ShModeInfo
         {
@@ -261,7 +261,8 @@ namespace
             str << suffix << "static constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n";
 
             for (const auto& act_name : act_arr) {
-                str << suffix << "static constexpr uint  " << ValidateName(act_name) << "  = uint{InputActionName_t{\"" << act_name << "\"}};\n";
+                str << suffix << "static constexpr uint  " << ValidateName(act_name) << "  = 0x"
+                    << ToString<16>( uint{InputActionName{act_name}} ) << "u;  // InputActionName{\"" << act_name << "\"}\n";
             }
             return str;
         }};
@@ -279,7 +280,8 @@ namespace
             for (auto& mode_name : mode_arr)
             {
                 str << "\tstatic constexpr struct _" << ValidateName(mode_name) << "\n\t{\n";
-                str << "\t\tconstexpr operator InputModeName_t () const { return InputModeName_t{\"" << mode_name << "\"}; }\n\n";
+                str << "\t\tconstexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x"
+                    << ToString<16>( uint{InputModeName{mode_name}} ) << "u}}; }  // '" << mode_name << "'\n\n";
 
                 const auto& mode = shared_modes[mode_name];
 

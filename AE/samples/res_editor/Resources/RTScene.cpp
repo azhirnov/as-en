@@ -9,8 +9,6 @@
 
 namespace AE::ResEditor
 {
-
-
 /*
 =================================================
     constructor
@@ -19,19 +17,17 @@ namespace AE::ResEditor
     RTGeometry::RTGeometry (TriangleMeshes_t    triangleMeshes,
                             RC<Buffer>          indirectBuffer,
                             Renderer &          renderer,
-                            StringView          dbgName) __Th___ :
+                            StringView          dbgName,
+                            Bool                isMutable) __Th___ :
         IResource{ renderer },
         _indirectBuffer{ RVRef(indirectBuffer) },
         _triangleMeshes{ RVRef(triangleMeshes) },
+        _isMutable{ isMutable },
         _dbgName{ dbgName }
     {
         _uploadStatus.store( EUploadStatus::InProgress );
 
-        _ResQueue().EnqueueForUpload( GetRC() );
-
-        for (auto& tri_mesh : _triangleMeshes) {
-            _isMutable |= tri_mesh.isMutable;
-        }
+        _DtTrQueue().EnqueueForUpload( GetRC() );
 
         auto&               res_mngr    = RenderGraph().GetStateTracker();
         RTGeometryBuild     build;
@@ -53,13 +49,10 @@ namespace AE::ResEditor
         }};
 
         _scratchBuffer = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-                                                _dbgName + "-Scratch", _GfxAllocator() );
-        _geomId = CreateGeometry();
+                                                _dbgName + "-Scratch", _isMutable ? _GfxDynamicAllocator() : _GfxAllocator() );
+        Unused( _geomId.Attach( CreateGeometry() ));
 
-        CHECK_THROW( _scratchBuffer );
-        CHECK_THROW( _geomId );
-
-        _address = res_mngr.GetDeviceAddress( _geomId.Get() );
+        CHECK_THROW( _scratchBuffer and _geomId );
 
         if ( _indirectBuffer and
              res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
@@ -91,13 +84,63 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    constructor
+=================================================
+*/
+    RTGeometry::RTGeometry (Renderer &  renderer,
+                            StringView  dbgName) __Th___ :
+        IResource{ renderer },
+        _dbgName{ dbgName }
+    {
+        _uploadStatus.store( EUploadStatus::InProgress );
+
+        auto    id = renderer.GetDummyRTGeometry();
+        CHECK_THROW( id );
+
+        Unused( _geomId.Attach( RVRef(id) ));
+    }
+
+/*
+=================================================
     destructor
 =================================================
 */
     RTGeometry::~RTGeometry ()
     {
+        auto&   res_mngr    = RenderGraph().GetStateTracker();
+        auto    geom_id     = _geomId.Release();
+
+        res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, geom_id );
+    }
+
+/*
+=================================================
+    Reset
+=================================================
+*/
+    void  RTGeometry::Reset (Strong<RTGeometryID> geomId)
+    {
+        CHECK( geomId );
+        CHECK( _uploadStatus.load() == EUploadStatus::InProgress );
+
+        auto    prev = _geomId.Attach( RVRef(geomId) );
+
         auto&   res_mngr = RenderGraph().GetStateTracker();
-        res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _geomId );
+        res_mngr.ReleaseResource( INOUT prev );
+
+        _uploadStatus.store( EUploadStatus::Completed );
+    }
+
+/*
+=================================================
+    CompleteUploading
+=================================================
+*/
+    void  RTGeometry::CompleteUploading ()
+    {
+        CHECK( _uploadStatus.load() == EUploadStatus::InProgress );
+
+        _uploadStatus.store( EUploadStatus::Completed );
     }
 
 /*
@@ -116,10 +159,10 @@ namespace AE::ResEditor
         for (auto& tri_mesh : _triangleMeshes)
         {
             EUploadStatus   v_status    = tri_mesh.vbuffer->GetStatus();
-            EUploadStatus   i_status    = (tri_mesh.ibuffer ? tri_mesh.ibuffer->GetStatus() : EUploadStatus::Complete);
+            EUploadStatus   i_status    = (tri_mesh.ibuffer ? tri_mesh.ibuffer->GetStatus() : EUploadStatus::Completed);
 
-            complete &= (v_status == EUploadStatus::Complete) and (i_status == EUploadStatus::Complete);
-            failed   |= (v_status == EUploadStatus::Canceled) or  (i_status == EUploadStatus::Canceled);
+            complete &= (v_status == EUploadStatus::Completed) and (i_status == EUploadStatus::Completed);
+            failed   |= (v_status == EUploadStatus::Canceled)  or  (i_status == EUploadStatus::Canceled);
         }
 
         if ( failed )
@@ -134,8 +177,11 @@ namespace AE::ResEditor
             if ( not Build( as_ctx, EBuildMode::Direct ))
                 _SetUploadStatus( EUploadStatus::Canceled );
 
+            if ( not _isMutable )
+                RenderGraph().GetStateTracker().ReleaseResource( INOUT _scratchBuffer );
+
             Reconstruct( INOUT ctx, as_ctx.GetRenderTask(), as_ctx.ReleaseCommandBuffer() );
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
         }
 
         return _uploadStatus.load();
@@ -148,6 +194,8 @@ namespace AE::ResEditor
 */
     bool  RTGeometry::Build (DirectCtx::ASBuild &ctx, EBuildMode mode) __Th___
     {
+        CHECK_ERR( _scratchBuffer );
+
         Allocator_t     alloc;
 
         BEGIN_ENUM_CHECKS();
@@ -305,29 +353,30 @@ namespace AE::ResEditor
                       RC<Buffer>    instanceBuffer,
                       RC<Buffer>    indirectBuffer,
                       Renderer &    renderer,
-                      StringView    dbgName) __Th___ :
+                      StringView    dbgName,
+                      Bool          allowUpdate) __Th___ :
         IResource{ renderer },
         _instanceBuffer{ RVRef(instanceBuffer) },
         _indirectBuffer{ RVRef(indirectBuffer) },
         _instances{ RVRef(instances) },
+        _isMutable{ allowUpdate or  [this]() {
+                                        bool  is_mutable = false;
+                                        for (auto& inst : _instances)  is_mutable |= inst.geometry->IsMutable();
+                                        return is_mutable; 
+                                    }() },
         _dbgName{ dbgName }
     {
         _uploadStatus.store( EUploadStatus::InProgress );
 
-        _ResQueue().EnqueueForUpload( GetRC() );
-
-        bool    is_mutable = false;
+        _DtTrQueue().EnqueueForUpload( GetRC() );
 
         _uniqueGeometries.reserve( _instances.size() );
-        for (auto& inst : _instances)
-        {
-            is_mutable |= inst.geometry->IsMutable();
+        for (auto& inst : _instances) {
             _uniqueGeometries.emplace( inst.geometry, 0 );
         }
 
-        auto&           res_mngr    = RenderGraph().GetStateTracker();
-        const auto      sizes       = res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
-
+        auto&       res_mngr        = RenderGraph().GetStateTracker();
+        const auto  sizes           = res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
         const auto  CreateRTScene   = [&res_mngr, &sizes, this] ()
         {{
             return res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName, _GfxAllocator() );
@@ -335,10 +384,9 @@ namespace AE::ResEditor
 
         _sceneId        = CreateRTScene();
         _scratchBuffer  = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-                                                 _dbgName + "-Scratch", _GfxAllocator() );
+                                                 _dbgName + "-Scratch", _isMutable ? _GfxDynamicAllocator() : _GfxAllocator() );
 
-        CHECK_THROW( _scratchBuffer );
-        CHECK_THROW( _sceneId );
+        CHECK_THROW( _scratchBuffer and _sceneId );
 
         if ( _indirectBuffer and
              res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
@@ -388,7 +436,7 @@ namespace AE::ResEditor
         {
             EUploadStatus   status  = geom->GetStatus();
 
-            complete &= (status == EUploadStatus::Complete);
+            complete &= (status == EUploadStatus::Completed);
             failed   |= (status == EUploadStatus::Canceled);
         }
 
@@ -405,8 +453,11 @@ namespace AE::ResEditor
             if ( not Build( as_ctx, EBuildMode::Direct ))
                 _SetUploadStatus( EUploadStatus::Canceled );
 
+            if ( not _isMutable )
+                RenderGraph().GetStateTracker().ReleaseResource( INOUT _scratchBuffer );
+
             Reconstruct( INOUT ctx, as_ctx.GetRenderTask(), as_ctx.ReleaseCommandBuffer() );
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
         }
 
         return _uploadStatus.load();
@@ -422,7 +473,7 @@ namespace AE::ResEditor
         const Bytes     size    = SizeOf<RTSceneBuild::Instance> * _instances.size();
 
         BufferMemView   mem_view;
-        ctx.UploadBuffer( _instanceBuffer->GetBufferId(0), 0_b, size, OUT mem_view, EStagingHeapType::Dynamic );
+        ctx.UploadBuffer( _instanceBuffer->GetBufferId(0), UploadBufferDesc{ 0_b, size }.DynamicHeap().MaxBlockSize(), OUT mem_view );
 
         if ( mem_view.DataSize() < size )
             return false;
@@ -467,6 +518,8 @@ namespace AE::ResEditor
 */
     bool  RTScene::Build (DirectCtx::ASBuild &ctx, EBuildMode mode) __Th___
     {
+        CHECK_ERR( _scratchBuffer );
+
         const uint      fid = ctx.GetFrameId().Index();
 
         RTSceneBuild    scene_build{ uint(_instances.size()), _options };

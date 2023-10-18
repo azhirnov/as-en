@@ -138,7 +138,7 @@ DEBUG_ONLY(
 
         // try to set completed state
         EStatus expected = EStatus::InProgress;
-        if ( _status.compare_exchange_strong( INOUT expected, EStatus::Completed ) or expected == EStatus::Failed )
+        if ( _status.CAS_Loop( INOUT expected, EStatus::Completed ) or expected == EStatus::Failed )
         {
             ASSERT( _waitBits.load() == 0 );    // all input dependencies must complete
 
@@ -868,7 +868,7 @@ namespace {
 
             if ( changed )
             {
-                _deadlockCheck.lastUpdate.Max( cur_time );
+                _deadlockCheck.lastUpdate.fetch_max( cur_time );
                 return;
             }
 
@@ -1007,9 +1007,8 @@ namespace {
             if ( auto bits = task->_waitBits.load() )
             {
                 log << ", in:";
-                for (; bits != 0; )
+                for (uint i : BitIndexIterate( bits ))
                 {
-                    auto    i = ExtractBitLog2( INOUT bits );
                     log << "\n    [" << ToString(i) << "] ";
                     LogDep( i, io );
                 }

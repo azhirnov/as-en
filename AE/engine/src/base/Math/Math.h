@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/Bytes.h"
+#include "base/Math/Percent.h"
 
 namespace AE::Math
 {
@@ -111,11 +112,11 @@ namespace AE::Math
 
 /*
 =================================================
-    IsAligned
+    IsMultipleOf
 =================================================
 */
     template <typename T0, typename T1>
-    ND_ constexpr bool  IsAligned (const T0 &value, const T1 &align) __NE___
+    ND_ constexpr bool  IsMultipleOf (const T0 &value, const T1 &align) __NE___
     {
         ASSERT( align > 0 );
         if constexpr( IsPointer<T0> )
@@ -187,26 +188,26 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equals (scalar)
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const T err = Epsilon<T>()) __NE___
     {
         if constexpr( IsUnsignedInteger<T> )
         {
             return lhs < rhs ? ((rhs - lhs) <= err) : ((lhs - rhs) <= err);
         }else
-            return Abs(lhs - rhs) <= err;
+            return Abs( lhs - rhs ) <= err;
     }
 
 /*
 =================================================
-    Equals
+    Equals (Optional)
 =================================================
 */
     template <typename T>
-    ND_ bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
+    ND_ constexpr bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
     {
         return  lhs.has_value() == rhs.has_value()  and
                 (lhs.has_value() ? All( *lhs == *rhs ) : false);
@@ -227,6 +228,20 @@ namespace AE::Math
     ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const T &x) __NE___
     {
         return not IsZero( x );
+    }
+
+/*
+=================================================
+    Equals
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const Percent err) __NE___
+    {
+        T   pct = std::abs( std::min( lhs, rhs ) / std::max( lhs, rhs ) - T{1});
+
+        return  std::abs( lhs - rhs ) <= Epsilon<T>() or    // for zero
+                pct <= T(err.GetFraction());
     }
 
 /*

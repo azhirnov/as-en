@@ -9,10 +9,14 @@ using namespace AE::Base;
 
 #define TEST    CHECK_FATAL
 
-#define __PRIVATE_TEST_OP( _lhs_, _op_, _rhs_ ) \
-        CHECK_FATAL_MSG( All( (_lhs_) _op_ (_rhs_) ), \
-            AE::Base::String{AE_TOSTRING( _lhs_ )} << " (" << AE::Base::ToString(_lhs_) << ") " << AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_rhs_) << ") " << AE_TOSTRING( _rhs_ ))
-
+#define __PRIVATE_TEST_OP( _lhs_, _op_, _rhs_ )                                                         \
+    {                                                                                                   \
+        const auto  _tmp_lhs_ = (_lhs_);                                                                \
+        const auto  _tmp_rhs_ = (_rhs_);                                                                \
+        CHECK_FATAL_MSG( AE::Math::All( _tmp_lhs_ _op_ _tmp_rhs_ ),                                     \
+            AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<    \
+            AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))   \
+    }
 #define TEST_Eq( _lhs_, _rhs_ )     __PRIVATE_TEST_OP( (_lhs_), ==, (_rhs_) )
 #define TEST_NE( _lhs_, _rhs_ )     __PRIVATE_TEST_OP( (_lhs_), !=, (_rhs_) )
 #define TEST_Gt( _lhs_, _rhs_ )     __PRIVATE_TEST_OP( (_lhs_), >,  (_rhs_) )

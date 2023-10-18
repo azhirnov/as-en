@@ -16,11 +16,11 @@ namespace AE::Graphics
     {
     // variables
     private:
-        VkBufferView            _bufferView         = Default;
-        BufferViewDesc          _desc;
-        bool                    _canBeDestroyed     = true;
+        VkBufferView                _bufferView         = Default;
+        BufferViewDesc              _desc;
+        bool                        _canBeDestroyed     = true;
 
-        Strong<BufferID>        _bufferId;
+        Strong<BufferID>            _bufferId;
 
         DEBUG_ONLY( DebugName_t     _debugName; )
         DRC_ONLY(   RWDataRaceCheck _drCheck;   )

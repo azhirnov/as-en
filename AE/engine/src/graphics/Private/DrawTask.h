@@ -68,6 +68,7 @@ namespace AE::Graphics
                 _dbgName    = dbg.label;
                 _dbgColor   = _ValidateDbgColor( dbg.color );
             )
+            Unused( dbg );
             return IsValid();
         }
 

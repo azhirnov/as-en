@@ -65,12 +65,17 @@ namespace _hidden_
         ND_ bool            Contains (const void* ptr, Bytes size = 0_b) C_NE___;
 
         template <typename T>
-        ND_ ArrayView<T>    ToView ()       C_NE___;
+        ND_ ArrayView<T>    AsArray ()      C_NE___;
+
+        template <typename T>
+        ND_ T&              As ()           __NE___;
+
+        template <typename T>
+        ND_ T const&        As ()           C_NE___;
 
 
-        ND_ static Allocator_t  CreateAllocator ()                                                          __NE___;
-        ND_ static RC<Self>     Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)                 __NE___;
-        ND_ static RC<Self>     Create (Allocator_t alloc, Bytes size, Bytes align = DefaultAllocatorAlign) __NE___;
+        ND_ static RC<Self>  Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)                    __NE___;
+        ND_ static RC<Self>  Create (Allocator_t alloc, Bytes size, Bytes align = DefaultAllocatorAlign)    __NE___;
 
 
     private:
@@ -111,16 +116,39 @@ namespace _hidden_
 
 /*
 =================================================
-    ToView
+    AsArray
 =================================================
 */
     template <typename E>
     template <typename T>
-    ArrayView<T>  TSharedMem<E>::ToView () C_NE___
+    ArrayView<T>  TSharedMem<E>::AsArray () C_NE___
     {
-        ASSERT( IsAligned( _size, SizeOf<T> ));
+        ASSERT( IsMultipleOf( _size, SizeOf<T> ));
         ASSERT( POTAlignOf<T> <= _align );
         return ArrayView<T>{ Cast<T>(Data()), _size / SizeOf<T> };
+    }
+
+/*
+=================================================
+    As
+=================================================
+*/
+    template <typename E>
+    template <typename T>
+    T&  TSharedMem<E>::As () __NE___
+    {
+        ASSERT( IsMultipleOf( _size, SizeOf<T> ));
+        ASSERT( POTAlignOf<T> <= _align );
+        return *Cast<T>(Data());
+    }
+
+    template <typename E>
+    template <typename T>
+    T const&  TSharedMem<E>::As () C_NE___
+    {
+        ASSERT( IsMultipleOf( _size, SizeOf<T> ));
+        ASSERT( POTAlignOf<T> <= _align );
+        return *Cast<T>(Data());
     }
 
 /*
@@ -134,11 +162,6 @@ namespace _hidden_
         return Create( RVRef(alloc), sizeAndAlign.size, sizeAndAlign.align );
     }
 
-/*
-=================================================
-    Create
-=================================================
-*/
     template <typename E>
     RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, Bytes size, Bytes align) __NE___
     {
@@ -151,20 +174,6 @@ namespace _hidden_
                 return RC<Self>{ new(self) Self{ size, align_pot, RVRef(alloc) }};
         }
         return Default;
-    }
-
-/*
-=================================================
-    CreateAllocator
-=================================================
-*/
-    template <typename E>
-    typename TSharedMem<E>::Allocator_t  TSharedMem<E>::CreateAllocator () __NE___
-    {
-        CATCH_ERR(
-            return Self::Allocator_t{ new AllocatorImpl< UntypedAllocator >{} };
-        )
-        return null;
     }
 
 /*

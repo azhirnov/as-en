@@ -4,7 +4,6 @@
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 
-AE_DECL_SCRIPT_OBJ( AE::ResEditor::RTMissIndex,     "MissIndex"     );
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::RTInstanceIndex, "InstanceIndex" );
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::RTRayIndex,      "RayIndex"      );
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::RTCallableIndex, "CallableIndex" );
@@ -28,10 +27,6 @@ namespace
 
     static ScriptRayTracingPass*  ScriptRayTracingPass_Ctor4 (const String &defines, ScriptBasePass::EFlags baseFlags) {
         return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ defines, baseFlags }}.Detach();
-    }
-
-    static void  RTMissIndex_Ctor (OUT void* mem, uint value) {
-        PlacementNew<RTMissIndex>( OUT mem, value );
     }
 
     static void  RTInstanceIndex_Ctor (OUT void* mem, uint value) {
@@ -114,6 +109,7 @@ namespace
         ScriptBasePass{ baseFlags }
     {
         _defines = defines;
+        StringToColor( OUT _dbgColor, StringView{_dbgName} );
         FindAndReplace( INOUT _defines, '=', ' ' );
 
         ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
@@ -191,15 +187,15 @@ namespace
 
 /*
 =================================================
-    HitGroupStride
+    MaxRayTypes
 =================================================
 */
-    void  ScriptRayTracingPass::HitGroupStride (uint stride) __Th___
+    void  ScriptRayTracingPass::MaxRayTypes (uint count) __Th___
     {
-        CHECK_THROW_MSG( _hitGroupStride == 0, "HitGroupStride() is already used" );
-        CHECK_THROW_MSG( stride > 0 );
+        CHECK_THROW_MSG( _maxRayTypes == 0, "MaxRayTypes() is already used" );
+        CHECK_THROW_MSG( count > 0 );
 
-        _hitGroupStride = stride;
+        _maxRayTypes = count;
     }
 
 /*
@@ -229,7 +225,7 @@ namespace
     SetRayMiss
 =================================================
 */
-    void  ScriptRayTracingPass::SetRayMiss (const RTMissIndex &missIndex, const RTShader &sh) __Th___
+    void  ScriptRayTracingPass::SetRayMiss (const RTRayIndex &missIndex, const RTShader &sh) __Th___
     {
         CHECK_THROW_MSG( sh.isDefined );
 
@@ -276,7 +272,7 @@ namespace
 
     void  ScriptRayTracingPass::SetTriangleHit2 (const RTRayIndex &rayIndex, const RTInstanceIndex &instanceIndex, const RTShader &closestHit, const RTShader &anyHit) __Th___
     {
-        CHECK_THROW_MSG( rayIndex.value < _hitGroupStride );
+        CHECK_THROW_MSG( rayIndex.value < _maxRayTypes );
         CHECK_THROW_MSG( closestHit.isDefined );
 
         _hitGroups.resize( Max( _hitGroups.size(), instanceIndex.value+1 ), Default );
@@ -309,7 +305,7 @@ namespace
     {
         CHECK_THROW_MSG( intersection.isDefined );
         CHECK_THROW_MSG( closestHit.isDefined );
-        CHECK_THROW_MSG( rayIndex.value < _hitGroupStride );
+        CHECK_THROW_MSG( rayIndex.value < _maxRayTypes );
 
         _hitGroups.resize( Max( _hitGroups.size(), instanceIndex.value+1 ), Default );
         auto&   groups = _hitGroups[ instanceIndex.value ];
@@ -328,6 +324,42 @@ namespace
 
 /*
 =================================================
+    SetMaxRayRecursion
+=================================================
+*/
+    void  ScriptRayTracingPass::SetMaxRayRecursion1 (uint value) __Th___
+    {
+        SetMaxRayRecursion2( ScriptDynamicUIntPtr{new ScriptDynamicUInt{ MakeRC<DynamicUInt>( value )}} );
+    }
+
+    void  ScriptRayTracingPass::SetMaxRayRecursion2 (const ScriptDynamicUIntPtr &value) __Th___
+    {
+        CHECK_THROW_MSG( value and value->Get() );
+        CHECK_THROW_MSG( not _maxRayRecursion, "'SetMaxRayRecursion()' already used" );
+
+        _maxRayRecursion = value;
+    }
+
+/*
+=================================================
+    SetMaxCallableRecursion
+=================================================
+*/
+    void  ScriptRayTracingPass::SetMaxCallableRecursion1 (uint value) __Th___
+    {
+        SetMaxCallableRecursion2( ScriptDynamicUIntPtr{new ScriptDynamicUInt{ MakeRC<DynamicUInt>( value )}} );
+    }
+
+    void  ScriptRayTracingPass::SetMaxCallableRecursion2 (const ScriptDynamicUIntPtr &value) __Th___
+    {
+        CHECK_THROW_MSG( value and value->Get() );
+        CHECK_THROW_MSG( not _maxCallRecursion, "'SetMaxCallableRecursion()' already used" );
+
+        _maxCallRecursion = value;
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -336,10 +368,6 @@ namespace
         using namespace AE::Scripting;
 
         {
-            ClassBinder<RTMissIndex>    binder{ se };
-            binder.CreateClassValue();
-            binder.AddConstructor( &RTMissIndex_Ctor, {} );
-        }{
             ClassBinder<RTInstanceIndex>    binder{ se };
             binder.CreateClassValue();
             binder.AddConstructor( &RTInstanceIndex_Ctor, {} );
@@ -381,13 +409,18 @@ namespace
             binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect3,  "DispatchIndirect", {"indirectBuffer", "indirectBufferFieldName"} );
 
             binder.AddMethod( &ScriptRayTracingPass::SetRayGen,                 "RayGen",           {} );
-            binder.AddMethod( &ScriptRayTracingPass::HitGroupStride,            "HitGroupStride",   {} );
+            binder.AddMethod( &ScriptRayTracingPass::MaxRayTypes,               "MaxRayTypes",      {} );
             binder.AddMethod( &ScriptRayTracingPass::SetRayMiss,                "RayMiss",          {"missIndex", "missShader"} );
             binder.AddMethod( &ScriptRayTracingPass::SetCallable,               "Callable",         {"callableIndex", "callableShader"} );
             binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit1,           "TriangleHit",      {"rayIndex", "instanceIndex", "closestHit"} );
             binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit2,           "TriangleHit",      {"rayIndex", "instanceIndex", "closestHit", "anyHit"} );
             binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit1,         "ProceduralHit",    {"rayIndex", "instanceIndex", "intersection", "closestHit"} );
             binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit2,         "ProceduralHit",    {"rayIndex", "instanceIndex", "intersection", "closestHit", "anyHit"} );
+
+            binder.AddMethod( &ScriptRayTracingPass::SetMaxRayRecursion1,       "MaxRayRecursion",      {} );
+            binder.AddMethod( &ScriptRayTracingPass::SetMaxRayRecursion2,       "MaxRayRecursion",      {} );
+            binder.AddMethod( &ScriptRayTracingPass::SetMaxCallableRecursion1,  "MaxCallableRecursion", {} );
+            binder.AddMethod( &ScriptRayTracingPass::SetMaxCallableRecursion2,  "MaxCallableRecursion", {} );
         }
     }
 
@@ -429,13 +462,13 @@ namespace
                 if ( auto* rt_scene = UnionGet<ScriptRTScenePtr>( arg.res ))
                 {
                     CHECK_THROW_MSG( _hitGroups.size() == (*rt_scene)->GetInstanceCount(),
-                        "HitGroups ("s << ToString(_hitGroups.size()) << ") must equal to InstanceCount (" <<
+                        "Number of HitGroups ("s << ToString(_hitGroups.size()) << ") must equal to InstanceCount (" <<
                         ToString((*rt_scene)->GetInstanceCount()) << ") in RTScene '" << (*rt_scene)->GetName() <<
                         "' in arg '" << arg.name << "'" );
 
-                    CHECK_THROW_MSG( _hitGroupStride == (*rt_scene)->GetHitGroupStride(),
-                        "HitGroupStride ("s << ToString(_hitGroupStride) << ") must equal to HitGroupStride (" <<
-                        ToString((*rt_scene)->GetHitGroupStride()) << ") in RTScene '" << (*rt_scene)->GetName() <<
+                    CHECK_THROW_MSG( _maxRayTypes == (*rt_scene)->GetMaxRayTypes(),
+                        "MaxRayTypes ("s << ToString(_maxRayTypes) << ") must equal to MaxRayTypes (" <<
+                        ToString((*rt_scene)->GetMaxRayTypes()) << ") in RTScene '" << (*rt_scene)->GetName() <<
                         "' in arg '" << arg.name << "'" );
                 }
             }
@@ -469,16 +502,10 @@ namespace
 
         auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second.Get<0>();
 
-        result->_dbgName    = this->_dbgName;
-        result->_dbgColor   = this->_dbgColor;
         result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
-        if ( this->_controller )
-        {
-            this->_controller->SetDimensionIfNotSet( _dynamicDim );
-            result->_controller = this->_controller->ToController();  // throw
-            CHECK_THROW( result->_controller );
-        }
+        result->_maxRayRecursion    = this->_maxRayRecursion  ? this->_maxRayRecursion->Get()  : null;
+        result->_maxCallRecursion   = this->_maxCallRecursion ? this->_maxCallRecursion->Get() : null;
 
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "RayTracingPassUB", renderer.GetAllocator() );
@@ -491,13 +518,55 @@ namespace
             _args.InitResources( OUT result->_resources );  // throw
         }
 
-        // add debug modes
+      #ifdef AE_ENABLE_VULKAN
+        {
+            Bytes   ray_gen_stack_max;
+            Bytes   closest_hit_stack_max;
+            Bytes   miss_stack_max;
+            Bytes   intersection_stack_max;
+            Bytes   any_hit_stack_max;
+            Bytes   callable_stack_max;
+
+            for (const auto& [mode, ppln_sbt] : result->_pipelines)
+            {
+                auto*   res = res_mngr.GetResource( ppln_sbt.Get<0>() );
+
+                AssignMax( INOUT ray_gen_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{_rayGen.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+
+                for (auto& miss : _missShaders) {
+                    AssignMax( INOUT miss_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{miss.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+                }
+                for (auto& call : _callableShaders) {
+                    AssignMax( INOUT callable_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{call.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+                }
+                for (auto& per_inst : _hitGroups)
+                {
+                    for (auto& hit : per_inst)
+                    {
+                        if ( hit.closestHit.isDefined )
+                            AssignMax( INOUT closest_hit_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_CLOSEST_HIT_KHR ));
+
+                        if ( hit.anyHit.isDefined )
+                            AssignMax( INOUT any_hit_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_ANY_HIT_KHR ));
+
+                        if ( hit.intersection.isDefined )
+                            AssignMax( INOUT intersection_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_INTERSECTION_KHR ));
+                    }
+                }
+            }
+
+            result->_rayGenStackMax         = ray_gen_stack_max;
+            result->_closestHitStackMax     = closest_hit_stack_max;
+            result->_missStackMax           = miss_stack_max;
+            result->_intersectionStackMax   = intersection_stack_max;
+            result->_anyHitStackMax         = any_hit_stack_max;
+            result->_callableStackMax       = callable_stack_max;
+        }
+      #endif
+
+        _Init( *result );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
 
-        _AddSlidersToUIInteraction( result.get() );
-        _CopyConstants( OUT result->_shConst );
-
-        AE_LOGI( "Compiled: "s << _dbgName );
         return result;
     }
 
@@ -505,7 +574,7 @@ namespace
 } // AE::ResEditor
 
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 #include "base/DataSource/FileStream.h"
 #include "base/Algorithms/Parser.h"
@@ -658,8 +727,6 @@ namespace AE::ResEditor
             shader->SetSource2( type, src, PathAndLine{sh.shaderPath, lines} );
             shader->options = EShaderOpt(shaderOpts);
 
-            shader->AddSpec( EValueType::UInt32, "HitGroupStride" );
-
             return shader;
         }};
 
@@ -702,20 +769,20 @@ namespace AE::ResEditor
             RayTracingPipelineSpecPtr   ppln_spec = ppln_templ->AddSpecialization2( pplnName );
             ppln_spec->AddToRenderTech( "rtech", "Compute" );
             ppln_spec->SetOptions( pplnOpt );
-            ppln_spec->SetSpecValueU( "HitGroupStride", _hitGroupStride );
             ppln_spec->MaxRecursionDepth( max_recursion );
+            ppln_spec->SetDynamicState( uint(EPipelineDynamicState::RTStackSize) );
 
             // create SBT
             RayTracingShaderBindingPtr  sbt{ new RayTracingShaderBinding{ ppln_spec, pplnName + ".sbt" }};
 
-            if ( _hitGroupStride > 0 )
-                sbt->HitGroupStride( _hitGroupStride );
+            if ( _maxRayTypes > 0 )
+                sbt->MaxRayTypes( _maxRayTypes );
 
             sbt->BindRayGen( "Main" );
 
             for (auto [miss, i] : WithIndex(_missShaders)) {
                 if ( miss.IsDefined() )
-                    sbt->BindMiss( miss.name, MissIndex(uint(i)) );
+                    sbt->BindMiss( miss.name, RayIndex(uint(i)) );
             }
 
             for (auto [call, i] : WithIndex(_callableShaders)) {

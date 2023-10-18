@@ -213,12 +213,38 @@ namespace AE::Base
     ND_ inline String  ToString (EShaderStages values) __Th___
     {
         String  str;
-        while ( values != Default )
-        {
-            EShader bit = ExtractBitLog2<EShader>( INOUT values );
 
-            if ( not str.empty() )
-                str << " | ";
+        if ( AllBits( values, EShaderStages::AllGraphics ))
+        {
+            if ( not str.empty() ) str << " | ";
+            str << "AllGraphics";
+            values &= ~EShaderStages::AllGraphics;
+        }
+
+        if ( AllBits( values, EShaderStages::AllRayTracing ))
+        {
+            if ( not str.empty() ) str << " | ";
+            str << "AllRayTracing";
+            values &= ~EShaderStages::AllRayTracing;
+        }
+
+        if ( AllBits( values, EShaderStages::MeshStages ))
+        {
+            if ( not str.empty() ) str << " | ";
+            str << "MeshStages";
+            values &= ~EShaderStages::MeshStages;
+        }
+
+        if ( AllBits( values, EShaderStages::GraphicsStages ))
+        {
+            if ( not str.empty() ) str << " | ";
+            str << "GraphicsStages";
+            values &= ~EShaderStages::GraphicsStages;
+        }
+
+        for (auto bit : BitIndexIterate<EShader>( values ))
+        {
+            if ( not str.empty() ) str << " | ";
 
             str << ToString( bit );
         }
@@ -652,13 +678,13 @@ namespace AE::Base
     ND_ inline String  ToString (EPipelineDynamicState values) __Th___
     {
         String  str;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
             if ( not str.empty() )
                 str << " | ";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT values ))
+            switch ( t )
             {
                 case EPipelineDynamicState::StencilCompareMask :    str << "StencilCompareMask";    break;
                 case EPipelineDynamicState::StencilWriteMask :      str << "StencilWriteMask";      break;
@@ -689,13 +715,13 @@ namespace AE::Base
     ND_ inline String  ToString (EDescSetUsage values) __Th___
     {
         String  str;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
             if ( not str.empty() )
                 str << " | ";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT values ))
+            switch ( t )
             {
                 case EDescSetUsage::AllowPartialyUpdate :   str << "AllowPartialyUpdate";   break;
                 case EDescSetUsage::UpdateTemplate :        str << "UpdateTemplate";        break;
@@ -721,13 +747,13 @@ namespace AE::Base
     ND_ inline String  ToString (EPipelineOpt values) __Th___
     {
         String  str;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
             if ( not str.empty() )
                 str << " | ";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT values ))
+            switch ( t )
             {
                 case EPipelineOpt::Optimize :                       str << "Optimize";                      break;
                 case EPipelineOpt::CS_DispatchBase :                str << "CS_DispatchBase";               break;
@@ -757,13 +783,13 @@ namespace AE::Base
     ND_ inline String  ToString (EMemoryType values) __Th___
     {
         String  str;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
             if ( not str.empty() )
                 str << " | ";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT values ))
+            switch ( t )
             {
                 case EMemoryType::DeviceLocal :     str << "DeviceLocal";   break;
                 case EMemoryType::Transient :       str << "Transient";     break;
@@ -1056,10 +1082,9 @@ namespace AE::Base
                 str += " | PostRasterizationShaders";
             }
 
-            for (; stages != Default;)
+            for (auto stage : BitfieldIterate( stages ))
             {
                 str += " | ";
-                EResourceState  stage = ExtractBit( INOUT stages );
                 switch ( stage )
                 {
                     case EResourceState::MeshTaskShader :           str += "MeshTaskShader";            break;

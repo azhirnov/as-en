@@ -39,14 +39,9 @@ namespace AE::ResEditor
 
         Strong<BufferID>        _ubuffer;
         mutable DynamicData     _dynData;       // used only in 'Upload()'
-        RC<IController>         _controller;
-        Constants               _shConst;
 
         ResourceArray           _resources;
         RenderTargets_t         _renderTargets;
-
-        String                  _dbgName;
-        RGBA8u                  _dbgColor;
 
 
     // methods
@@ -55,12 +50,10 @@ namespace AE::ResEditor
         ~Postprocess ();
 
     // IPass //
-        EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
-        RC<IController> GetController ()                                    C_NE_OV { return _controller; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
-        bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
-        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
+        EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
+        bool        Execute (SyncPassData &)                            __Th_OV;
+        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 

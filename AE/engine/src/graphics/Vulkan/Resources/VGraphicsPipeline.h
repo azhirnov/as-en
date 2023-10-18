@@ -39,8 +39,6 @@ namespace AE::Graphics
 
         EPipelineDynamicState       _dynamicState           = Default;
         EPipelineOpt                _options                = Default;
-        //uint                      _patchControlPoints     = 0;
-        //bool                      _earlyFragmentTests     = true;
         EPrimitive                  _topology               = Default;
         ubyte                       _subpassIndex           = UMax;
 
@@ -72,7 +70,6 @@ namespace AE::Graphics
         ND_ PipelineLayoutID        LayoutID ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
         ND_ EPipelineDynamicState   DynamicState ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
         ND_ EPrimitive              Topology ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _topology; }
-        //ND_ bool                  IsEarlyFragmentTests ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
         ND_ uint                    RenderPassSubpassIndex ()           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
         ND_ VBArray_t               GetVertexBuffers ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vertexBuffers.GetKeyArray(); }
 

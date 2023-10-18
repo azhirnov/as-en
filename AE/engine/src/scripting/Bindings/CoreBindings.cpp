@@ -133,5 +133,19 @@ namespace
         BindVecSwizzle_Func::Bind( se );
     }
 
+/*
+=================================================
+    BindVectorMath
+=================================================
+*/
+    void  CoreBindings::BindVectorMath (const ScriptEnginePtr &se) __Th___
+    {
+        CHECK_THROW( se and se->IsInitialized() );
+
+        // separated on 2 parts because otherwise VS requires /bigobj
+        _BindVectorMath1( se );
+        _BindVectorMath2( se );
+    }
+
 
 } // AE::Scripting

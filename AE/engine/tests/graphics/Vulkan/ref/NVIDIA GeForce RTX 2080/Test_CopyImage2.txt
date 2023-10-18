@@ -1,0 +1,198 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'CopyImage2 |0| Copy image task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   ALL_COMMANDS ---> COPY
+      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+      layout:  GENERAL ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'SSWB {f:0} {q:Graphics}'
+    dst:       'SrcImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'SrcImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'DstImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'DstImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'SSRB {f:0} {q:Graphics}'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   ALL_COMMANDS ---> COPY
+      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+      layout:  GENERAL ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'SSWB {f:1} {q:Graphics}'
+    dst:       'SrcImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'SrcImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'DstImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'DstImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'SSRB {f:1} {q:Graphics}'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================

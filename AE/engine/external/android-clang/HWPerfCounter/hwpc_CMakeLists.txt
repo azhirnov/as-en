@@ -2,7 +2,8 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "hwpc-main" LANGUAGES C )
 
-include( "../../../config.cmake" )
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
 set( HPC_BUILD_EXAMPLES OFF )
 

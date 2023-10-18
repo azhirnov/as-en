@@ -11,6 +11,8 @@ set( AE_ENABLE_ASSIMP           ON  CACHE BOOL "use Assimp" )
 
 set( AE_ENABLE_BROTLI           ON  CACHE BOOL "use brotli" )
 
+set( AE_ENABLE_CDT              ON  CACHE BOOL "use CDT" )
+
 set( AE_ENABLE_GLFW             ON  CACHE BOOL "use GLFW" )
 set( AE_ENABLE_GLSLANG          ON  CACHE BOOL "use GLSLang" )
 set( AE_ENABLE_GLM              ON  CACHE BOOL "use GLM" )
@@ -78,6 +80,10 @@ endif()
 
 if (${AE_ENABLE_BROTLI})
     add_subdirectory( "Brotli" )
+endif()
+
+if (${AE_ENABLE_CDT})
+    add_subdirectory( "CDT" )
 endif()
 
 if (${AE_ENABLE_GLFW})

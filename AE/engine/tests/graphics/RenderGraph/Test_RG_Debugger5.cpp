@@ -35,7 +35,7 @@ namespace
         bool                            isOK        = false;
 
         ImageComparator *               imgCmp      = null;
-        RC<GfxLinearMemAllocator>       gfxAlloc;
+        GfxMemAllocatorPtr              gfxAlloc;
 
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
@@ -258,7 +258,7 @@ no source
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db5_TestData    t;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 

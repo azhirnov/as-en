@@ -54,6 +54,9 @@ namespace AE::ResEditor
             Path                cppTypesFolder;
             Path                scriptHeaderOutFolder;
 
+            ArrayView<Path>     scriptIncludeDirs;
+            ArrayView<Path>     pipelineIncludeDirs;
+
             // emulate VFS
             ArrayView<Path>     vfsPaths;
             ArrayView<String>   vfsPathPrefixes;
@@ -79,6 +82,8 @@ namespace AE::ResEditor
         class ScriptClearBuffer;
         class ScriptBuildRTGeometry;
         class ScriptBuildRTScene;
+        class ScriptExportImage;
+        class ScriptExportBuffer;
 
         using ScriptPassGroupPtr    = ScriptRC<ScriptPassGroup>;
         using DynSlider_t           = Renderer::DynSlider_t;
@@ -179,7 +184,12 @@ namespace AE::ResEditor
         static void  _ClearImage2 (const ScriptImagePtr &image, const RGBA32u &value)                           __Th___;
         static void  _ClearImage3 (const ScriptImagePtr &image, const RGBA32i &value)                           __Th___;
 
-        static void  _ClearBuffer (const ScriptBufferPtr &buf, uint value)                                      __Th___;
+        static void  _ClearBuffer1 (const ScriptBufferPtr &buf, uint value)                                     __Th___;
+        static void  _ClearBuffer2 (const ScriptBufferPtr &buf, ulong offset, ulong size, uint value)           __Th___;
+
+        static void  _ExportImage (const ScriptImagePtr &image, const String &prefix)                           __Th___;
+        static void  _ExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)                        __Th___;
+        static void  _ExportGeometry (const ScriptGeomSourcePtr &geom, const String &prefix)                    __Th___;
 
         static void  _BuildRTGeometry (const ScriptRTGeometryPtr &)                                             __Th___;
         static void  _BuildRTGeometryIndirect (const ScriptRTGeometryPtr &)                                     __Th___;
@@ -256,36 +266,94 @@ namespace AE::ResEditor
                                  uint                       srcVertexCount,
                                  const ScriptArray<uint>    &indicesToAdd)                                      __Th___;
 
-        static void  _DbgView1 (const ScriptImagePtr &rt, DebugView::EFlags flags)                                                          __Th___;
-        static void  _DbgView2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap, DebugView::EFlags flags)                               __Th___;
-        static void  _DbgView3 (const ScriptImagePtr &rt, const ImageLayer &layer, DebugView::EFlags flags)                                 __Th___;
-        static void  _DbgView4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags)      __Th___;
+        static void  _ExtrudeAndMerge (const ScriptArray<packed_float2>     &lineStrip,
+                                        float                               height,
+                                        INOUT ScriptArray<packed_float3>    &positions,
+                                        INOUT ScriptArray<uint>             &indices)                           __Th___;
 
-        static void  _SliderI0 (const ScriptDynamicIntPtr &dyn, const String &name)                                                         __Th___;
-        static void  _SliderI1 (const ScriptDynamicIntPtr &dyn,const String &name, int min, int max)                                        __Th___;
-        static void  _SliderI2 (const ScriptDynamicInt2Ptr &dyn,const String &name, const packed_int2 &min, const packed_int2 &max)         __Th___;
-        static void  _SliderI3 (const ScriptDynamicInt3Ptr &dyn,const String &name, const packed_int3 &min, const packed_int3 &max)         __Th___;
-        static void  _SliderI4 (const ScriptDynamicInt4Ptr &dyn,const String &name, const packed_int4 &min, const packed_int4 &max)         __Th___;
+        static void  _TriangulateAndMerge1 (const ScriptArray<packed_float2>    &lineStrip,
+                                            float                               yCoord,
+                                            INOUT ScriptArray<packed_float3>    &positions,
+                                            INOUT ScriptArray<uint>             &indices)                       __Th___;
+        static void  _TriangulateAndMerge2 (const ScriptArray<packed_float2>    &vertices,
+                                            const ScriptArray<uint>             &lineListIndices,
+                                            float                               yCoord,
+                                            INOUT ScriptArray<packed_float3>    &positions,
+                                            INOUT ScriptArray<uint>             &indices)                       __Th___;
+        static void  _ImplTriangulateAndMerge (ArrayView<float2>                tmp_vertices,
+                                               ArrayView<uint>                  tmp_indices,
+                                               float                            yCoord,
+                                               INOUT ScriptArray<packed_float3> &positions,
+                                               INOUT ScriptArray<uint>          &indices)                       __Th___;
 
-        static void  _SliderU0 (const ScriptDynamicUIntPtr &dyn, const String &name)                                                        __Th___;
-        static void  _SliderU1 (const ScriptDynamicUIntPtr &dyn,const String &name, uint min, uint max)                                     __Th___;
-        static void  _SliderU2 (const ScriptDynamicUInt2Ptr &dyn,const String &name, const packed_uint2 &min, const packed_uint2 &max)      __Th___;
-        static void  _SliderU3 (const ScriptDynamicUInt3Ptr &dyn,const String &name, const packed_uint3 &min, const packed_uint3 &max)      __Th___;
-        static void  _SliderU4 (const ScriptDynamicUInt4Ptr &dyn,const String &name, const packed_uint4 &min, const packed_uint4 &max)      __Th___;
+        static void  _TriangulateExtrudeAndMerge1 (const ScriptArray<packed_float2> &lineStrip,
+                                                   float                            height,
+                                                   INOUT ScriptArray<packed_float3> &positions,
+                                                   INOUT ScriptArray<uint>          &indices)                   __Th___;
 
-        static void  _SliderF0 (const ScriptDynamicFloatPtr &dyn, const String &name)                                                       __Th___;
-        static void  _SliderF1 (const ScriptDynamicFloatPtr &dyn, const String &name, float min, float max)                                 __Th___;
-        static void  _SliderF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name, const packed_float2 &min, const packed_float2 &max)  __Th___;
-        static void  _SliderF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name, const packed_float3 &min, const packed_float3 &max)  __Th___;
-        static void  _SliderF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name, const packed_float4 &min, const packed_float4 &max)  __Th___;
+        static void  _TriangulateExtrudeAndMerge2 (const ScriptArray<packed_float2> &vertices,
+                                                   const ScriptArray<uint>          &lineListIndices,
+                                                   float                            height,
+                                                   INOUT ScriptArray<packed_float3> &positions,
+                                                   INOUT ScriptArray<uint>          &indices)                   __Th___;
+        static void  _ImplTriangulateExtrudeAndMerge (ArrayView<float2>                 tmp_vertices,
+                                                      ArrayView<uint>                   tmp_indices,
+                                                      ArrayView<uint>                   tmp_boundary,
+                                                      const float                       height,
+                                                      INOUT ScriptArray<packed_float3>  &positions,
+                                                      INOUT ScriptArray<uint>           &indices)               __Th___;
+
+        static void  _NormalizeSpectrum (INOUT ScriptArray<packed_float4> &)                                    __Th___;
+        static void  _WhiteColorSpectrum3 (OUT ScriptArray<packed_float4> &)                                    __Th___;
+        static void  _WhiteColorSpectrum7 (OUT ScriptArray<packed_float4> &, bool)                              __Th___;
+        static void  _WhiteColorSpectrumStep50nm (OUT ScriptArray<packed_float4> &, bool)                       __Th___;
+        static void  _WhiteColorSpectrumStep100nm (OUT ScriptArray<packed_float4> &, bool)                      __Th___;
+
+        static void  _DbgView1 (const ScriptImagePtr &rt, DebugView::EFlags flags)                                                              __Th___;
+        static void  _DbgView2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap, DebugView::EFlags flags)                                   __Th___;
+        static void  _DbgView3 (const ScriptImagePtr &rt, const ImageLayer &layer, DebugView::EFlags flags)                                     __Th___;
+        static void  _DbgView4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags)          __Th___;
+
+        static void  _SliderI0 (const ScriptDynamicIntPtr  &dyn, const String &name)                                                            __Th___;
+        static void  _SliderI1 (const ScriptDynamicIntPtr  &dyn, const String &name, int min, int max)                                          __Th___;
+        static void  _SliderI2 (const ScriptDynamicInt2Ptr &dyn, const String &name, const packed_int2 &min, const packed_int2 &max)            __Th___;
+        static void  _SliderI3 (const ScriptDynamicInt3Ptr &dyn, const String &name, const packed_int3 &min, const packed_int3 &max)            __Th___;
+        static void  _SliderI4 (const ScriptDynamicInt4Ptr &dyn, const String &name, const packed_int4 &min, const packed_int4 &max)            __Th___;
+
+        static void  _SliderI1a (const ScriptDynamicIntPtr  &, const String &, int min, int max, int val)                                       __Th___;
+        static void  _SliderI2a (const ScriptDynamicInt2Ptr &, const String &, const packed_int2 &, const packed_int2 &, const packed_int2 &)   __Th___;
+        static void  _SliderI3a (const ScriptDynamicInt3Ptr &, const String &, const packed_int3 &, const packed_int3 &, const packed_int3 &)   __Th___;
+        static void  _SliderI4a (const ScriptDynamicInt4Ptr &, const String &, const packed_int4 &, const packed_int4 &, const packed_int4 &)   __Th___;
+
+        static void  _SliderU0 (const ScriptDynamicUIntPtr  &dyn, const String &name)                                                           __Th___;
+        static void  _SliderU1 (const ScriptDynamicUIntPtr  &dyn, const String &name, uint min, uint max)                                       __Th___;
+        static void  _SliderU2 (const ScriptDynamicUInt2Ptr &dyn, const String &name, const packed_uint2 &min, const packed_uint2 &max)         __Th___;
+        static void  _SliderU3 (const ScriptDynamicUInt3Ptr &dyn, const String &name, const packed_uint3 &min, const packed_uint3 &max)         __Th___;
+        static void  _SliderU4 (const ScriptDynamicUInt4Ptr &dyn, const String &name, const packed_uint4 &min, const packed_uint4 &max)         __Th___;
+
+        static void  _SliderU1a (const ScriptDynamicUIntPtr &, const String&, uint min, uint max, uint val)                                     __Th___;
+        static void  _SliderU2a (const ScriptDynamicUInt2Ptr&, const String&, const packed_uint2&, const packed_uint2&, const packed_uint2&)    __Th___;
+        static void  _SliderU3a (const ScriptDynamicUInt3Ptr&, const String&, const packed_uint3&, const packed_uint3&, const packed_uint3&)    __Th___;
+        static void  _SliderU4a (const ScriptDynamicUInt4Ptr&, const String&, const packed_uint4&, const packed_uint4&, const packed_uint4&)    __Th___;
+
+        static void  _SliderF0 (const ScriptDynamicFloatPtr  &dyn, const String &name)                                                          __Th___;
+        static void  _SliderF1 (const ScriptDynamicFloatPtr  &dyn, const String &name, float min, float max)                                    __Th___;
+        static void  _SliderF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name, const packed_float2 &min, const packed_float2 &max)      __Th___;
+        static void  _SliderF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name, const packed_float3 &min, const packed_float3 &max)      __Th___;
+        static void  _SliderF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name, const packed_float4 &min, const packed_float4 &max)      __Th___;
+
+        static void  _SliderF1a (const ScriptDynamicFloatPtr &, const String&, float min, float max, float val)                                 __Th___;
+        static void  _SliderF2a (const ScriptDynamicFloat2Ptr&, const String&, const packed_float2&, const packed_float2&, const packed_float2&)__Th___;
+        static void  _SliderF3a (const ScriptDynamicFloat3Ptr&, const String&, const packed_float3&, const packed_float3&, const packed_float3&)__Th___;
+        static void  _SliderF4a (const ScriptDynamicFloat4Ptr&, const String&, const packed_float4&, const packed_float4&, const packed_float4&)__Th___;
 
         template <typename D, typename T>
-        static void  _Slider (const D &dyn, const String &name, const T &min, const T &max, const T &initial, ESlider type)                 __Th___;
+        static void  _Slider (const D &dyn, const String &name, const T &min, const T &max, const T &initial, ESlider type)                     __Th___;
 
-        static void  _AddSlidersToUIInteraction (TempData &, Renderer* renderer);
+        static void  _AddSlidersToUIInteraction (TempData &, Renderer* renderer)                                                                __NE___;
 
-        ND_ static ScriptBasePass*  _RunScript1 (const String &filePath, const ScriptCollectionPtr &)                                       __Th___;
-        ND_ static ScriptBasePass*  _RunScript2 (const String &filePath, PassGroup::EFlags flags, const ScriptCollectionPtr &)              __Th___;
+        ND_ static ScriptBasePass*  _RunScript1 (const String &filePath, const ScriptCollectionPtr &)                                           __Th___;
+        ND_ static ScriptBasePass*  _RunScript2 (const String &filePath, PassGroup::EFlags flags, const ScriptCollectionPtr &)                  __Th___;
     };
 
 
@@ -298,6 +366,7 @@ namespace AE::ResEditor
         friend class ScriptComputePass;
         friend class ScriptRayTracingPass;
         friend class ScriptSceneGraphicsPass;
+        friend class ScriptSceneRayTracingPass;
 
             static RTechInfo    ConvertAndLoad (Function<void (ScriptEnginePtr)> fn)    __Th___;
             static void         WithPipelineCompiler (Function<void()> fn)              __Th___;
@@ -311,6 +380,8 @@ namespace AE::ResEditor
         ND_ static Path         ToPipelineFolder (const Path &)                         __Th___;
 
         ND_ static Renderer&    GetRenderer ()                                          __Th___;
+
+        ND_ static ArrayView<Path>  GetPipelineIncludeDirs ()                           __NE___;
     };
 
 
@@ -332,6 +403,9 @@ namespace AE::ResEditor
         ND_ static bool         IsPassGroup (const ScriptBasePassPtr &pass)             __NE___;
 
         ND_ static Path         ToAbsolute (const String &)                             __Th___;
+
+    public:
+        ND_ static Graphics::FeatureSet const&  GetFeatureSet ()                        __NE___;
     };
 
 
@@ -339,29 +413,6 @@ namespace AE::ResEditor
 
 
 #include "graphics/Scripting/GraphicsBindings.h"
-
-// resources
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptImage,                     "Image"             );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptVideoImage,                "VideoImage"        );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBuffer,                    "Buffer"            );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRTGeometry,                "RTGeometry"        );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRTScene,                   "RTScene"           );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicDim,                "DynamicDim"        );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt,               "DynamicUInt"       );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt2,              "DynamicUInt2"      );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt3,              "DynamicUInt3"      );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicUInt4,              "DynamicUInt4"      );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt,                "DynamicInt"        );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt2,               "DynamicInt2"       );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt3,               "DynamicInt3"       );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicInt4,               "DynamicInt4"       );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat,              "DynamicFloat"      );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat2,             "DynamicFloat2"     );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat3,             "DynamicFloat3"     );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicFloat4,             "DynamicFloat4"     );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptDynamicULong,              "DynamicULong"      );
-//AE_DECL_SCRIPT_OBJ_RC(AE::ResEditor::ScriptDynamicMatrix4x4,          "DynamicMat4x4"     );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptCollection,                "Collection"        );
 
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceCustomIndex,           "RTInstanceCustomIndex" );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceMask,                  "RTInstanceMask"    );
@@ -375,6 +426,7 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptComputePass,               "Compute
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRayTracingPass,            "RayTracingPass"    );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptScene,                     "Scene"             );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneGraphicsPass,         "SceneGraphicsPass" );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneRayTracingPass,       "SceneRayTracingPass");
 
 // controller
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBaseController,            "BaseController"    );
@@ -407,3 +459,4 @@ AE_DECL_SCRIPT_TYPE(    AE::ResEditor::DebugView::EFlags,               "DbgView
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::PassGroup::EFlags,               "ScriptFlags"       );
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ScriptImage::ELoadOpFlags,       "ImageLoadOpFlags"  );
 AE_DECL_SCRIPT_TYPE(    AE::Graphics::EColorSpace,                      "EColorSpace"       );
+AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ERenderLayer,                    "ERenderLayer"      );

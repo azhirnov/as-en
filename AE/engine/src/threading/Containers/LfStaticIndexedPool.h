@@ -24,7 +24,7 @@ namespace AE::Threading
              >
     class LfStaticIndexedPool final : public Noncopyable
     {
-        STATIC_ASSERT( Count > 0 and IsAligned( Count, 32 ));
+        STATIC_ASSERT( Count > 0 and IsMultipleOf( Count, 32 ));
         STATIC_ASSERT( MaxValue<IndexType>() >= Count );
         STATIC_ASSERT( AllocatorType::IsThreadSafe );
 
@@ -39,7 +39,7 @@ namespace AE::Threading
         static constexpr usize  ChunkSize   = Count < 32*12 ? 32 : 64;
         static constexpr usize  ChunksCount = Count / ChunkSize;
 
-        STATIC_ASSERT( IsAligned( Count, ChunkSize ));
+        STATIC_ASSERT( IsMultipleOf( Count, ChunkSize ));
 
         using Bitfield_t    = Conditional< (ChunkSize <= 32), uint, ulong >;
 
@@ -81,6 +81,9 @@ namespace AE::Threading
 
             template <typename FN>
             void  ForEach (FN && fn)                    noexcept(IsNothrowInvocable<FN>);
+
+            template <typename FN>
+            void  ForEachAssigned (FN && fn)            const noexcept(IsNothrowInvocable<FN>);
 
         ND_ auto  Assign ()                             __NE___ { Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
         ND_ bool  Assign (OUT Index_t &outIndex)        __NE___;

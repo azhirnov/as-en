@@ -26,6 +26,7 @@ namespace AE::ResLoader
         RadianceHDR,    // .hdr
         OpenEXR,        // .exr
         KTX,            // .ktx
+        AEImg,          // .aeimg
         _Count
     };
 

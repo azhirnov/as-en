@@ -112,7 +112,7 @@ namespace AE::AppV2
         // load input actions
         _inputActionsData = MakeRC<MemRStream>();
 
-        auto    file = GetVFS().OpenAsStream( VFS::FileName{"controls"} );
+        auto    file = GetVFS().Open<RStream>( VFS::FileName{"controls"} );
         CHECK_ERR( file );
         CHECK_ERR( _inputActionsData->LoadRemaining( *file ));
 

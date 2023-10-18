@@ -49,64 +49,96 @@ namespace AE::VFS
     AddStorage
 =================================================
 */
+    bool  VirtualFileSystem::AddStorage (const StorageName &name, RC<IVirtualFileStorage> storage) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        CHECK_ERR( storage );
+
+        CHECK_ERR( _storageMap.emplace( StorageName::Optimized_t{name}, storage ).second );
+
+        CATCH_ERR( storage->_Append( INOUT _globalMap );)
+        return true;
+    }
+
     bool  VirtualFileSystem::AddStorage (RC<IVirtualFileStorage> storage) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( storage );
 
-        CATCH_ERR(
-            _storageArr.push_back( storage );       // throw
+        StorageName::Optimized_t    st_name {HashVal32{uint(_storageMap.size())}};
 
-            storage->_Append( INOUT _globalMap );   // throw
-            return true;
-        )
+        CHECK_ERR( _storageMap.emplace( st_name, storage ).second );
+
+        CATCH_ERR( storage->_Append( INOUT _globalMap );)
+        return true;
     }
 
 /*
 =================================================
-    Open***
+    Open
 =================================================
 */
-    auto  VirtualFileSystem::OpenAsStream (const FileName &name) C_NE___ -> RC<RStream>
+    bool  VirtualFileSystem::Open (OUT RC<RStream> &stream, FileNameRef name) C_NE___
     {
-        RC<RStream>  result;
-        return Open( OUT result, name ) ? RVRef(result) : Default;
+        return _OpenForRead( OUT stream, name );
     }
 
-    auto  VirtualFileSystem::OpenAsSource (const FileName &name) C_NE___ -> RC<RDataSource>
+    bool  VirtualFileSystem::Open (OUT RC<RDataSource> &ds, FileNameRef name) C_NE___
     {
-        RC<RDataSource>  result;
-        return Open( OUT result, name ) ? RVRef(result) : Default;
+        return _OpenForRead( OUT ds, name );
     }
 
-    auto  VirtualFileSystem::OpenAsAsyncDS (const FileName &name) C_NE___ -> RC<AsyncRDataSource>
+    bool  VirtualFileSystem::Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name) C_NE___
     {
-        RC<AsyncRDataSource>  result;
-        return Open( OUT result, name ) ? RVRef(result) : Default;
+        return _OpenForRead( OUT ds, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<RStream> &stream, const FileName &name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<AsyncRStream> &stream, FileNameRef name) C_NE___
     {
-        return _Open( OUT stream, name );
+        RC<AsyncRDataSource>    ds;
+        if ( Open( OUT ds, name ))
+        {
+            stream = MakeRC<AsyncRDataSourceAsStream>( RVRef(ds) );
+            ASSERT( stream->IsOpen() );
+            return true;
+        }
+        return false;
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<RDataSource> &ds, const FileName &name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
     {
-        return _Open( OUT ds, name );
+        return _OpenForRead( OUT stream, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<AsyncRDataSource> &ds, const FileName &name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
     {
-        return _Open( OUT ds, name );
+        return _OpenForRead( OUT ds, name );
+    }
+
+    bool  VirtualFileSystem::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
+    {
+        return _OpenForRead( OUT ds, name );
+    }
+
+    bool  VirtualFileSystem::Open (OUT RC<AsyncWStream> &stream, FileNameRef name) C_NE___
+    {
+        RC<AsyncWDataSource>    ds;
+        if ( Open( OUT ds, name ))
+        {
+            stream = MakeRC<AsyncWDataSourceAsStream>( RVRef(ds) );
+            ASSERT( stream->IsOpen() );
+            return true;
+        }
+        return false;
     }
 
 /*
 =================================================
-    _Open
+    _OpenForRead
 =================================================
 */
     template <typename ResultType>
-    bool  VirtualFileSystem::_Open (OUT ResultType &result, const FileName &name) C_NE___
+    bool  VirtualFileSystem::_OpenForRead (OUT ResultType &result, FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -120,7 +152,7 @@ namespace AE::VFS
 
                 DEBUG_ONLY(
                     bool    found = false;
-                    for (auto& st : _storageArr) {
+                    for (auto& st : _storageMap.GetValueArray()) {
                         found |= (st.get() == iter->second.storage);
                     }
                     ASSERT( found );
@@ -131,7 +163,7 @@ namespace AE::VFS
         }
 
         // search in all storages
-        for (auto& st : _storageArr)
+        for (auto& st : _storageMap.GetValueArray())
         {
             if_unlikely( st->Open( OUT result, name ))
                 return true;
@@ -145,21 +177,11 @@ namespace AE::VFS
 
 /*
 =================================================
-    LoadAsync
-=================================================
-*
-    Promise<void>  VirtualFileSystem::LoadAsync (const FileGroupName &name) const
-    {
-        // TODO
-        return Default;
-    }
-
-/*
-=================================================
-    Exists
+    _OpenForWrite
 =================================================
 */
-    bool  VirtualFileSystem::Exists (const FileName &name) C_NE___
+    template <typename ResultType>
+    bool  VirtualFileSystem::_OpenForWrite (OUT ResultType &result, FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -168,12 +190,52 @@ namespace AE::VFS
             auto    iter = _globalMap.find( FileName::Optimized_t{name} );
             if_likely( iter != _globalMap.end() )
             {
-                return true;
+                ASSERT( iter->second.storage != null );
+                ASSERT( iter->second.ref != null );
+
+                DEBUG_ONLY(
+                    bool    found = false;
+                    for (auto& st : _storageMap.GetValueArray()) {
+                        found |= (st.get() == iter->second.storage);
+                    }
+                    ASSERT( found );
+                )
+
+                return iter->second.storage->_OpenByIter( OUT result, name, iter->second.ref );
             }
         }
 
         // search in all storages
-        for (auto& st : _storageArr)
+        for (auto& st : _storageMap.GetValueArray())
+        {
+            if_unlikely( st->Open( OUT result, name ))
+                return true;
+        }
+
+        #if not AE_OPTIMIZE_IDS
+        DBG_WARNING( "Failed to open VFS file '"s << name.GetName() << "'" );
+        #endif
+        return false;
+    }
+
+/*
+=================================================
+    Exists
+=================================================
+*/
+    bool  VirtualFileSystem::Exists (FileNameRef name) C_NE___
+    {
+        DRC_SHAREDLOCK( _drCheck );
+
+        // find in global map
+        {
+            auto    iter = _globalMap.find( FileName::Optimized_t{name} );
+            if_likely( iter != _globalMap.end() )
+                return true;
+        }
+
+        // search in all storages
+        for (auto& st : _storageMap.GetValueArray())
         {
             if_unlikely( st->Exists( name ))
                 return true;
@@ -187,17 +249,47 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  VirtualFileSystem::Exists (const FileGroupName &name) C_NE___
+    bool  VirtualFileSystem::Exists (FileGroupNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        for (auto& st : _storageArr)
+        for (auto& st : _storageMap.GetValueArray())
         {
             if_unlikely( st->Exists( name ))
                 return true;
         }
 
         return false;
+    }
+
+/*
+=================================================
+    CreateFile
+=================================================
+*/
+    bool  VirtualFileSystem::CreateFile (const StorageName &stName, OUT FileName &name, const Path &path) C_NE___
+    {
+        DRC_SHAREDLOCK( _drCheck );
+
+        auto    it = _storageMap.find( stName );
+        CHECK_ERR( it != _storageMap.end() );
+
+        return it->second->CreateFile( OUT name, path );
+    }
+
+/*
+=================================================
+    CreateUniqueFile
+=================================================
+*/
+    bool  VirtualFileSystem::CreateUniqueFile (const StorageName &stName, OUT FileName &name, INOUT Path &path) C_NE___
+    {
+        DRC_SHAREDLOCK( _drCheck );
+
+        auto    it = _storageMap.find( stName );
+        CHECK_ERR( it != _storageMap.end() );
+
+        return it->second->CreateUniqueFile( OUT name, INOUT path );
     }
 
 

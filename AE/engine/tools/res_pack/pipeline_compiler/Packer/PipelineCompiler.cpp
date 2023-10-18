@@ -31,7 +31,9 @@ namespace
     BuildPipelineList
 =================================================
 */
-    ND_ static bool  BuildPipelineList (const PipelinesInfo *info, OUT Array<Path> &outPipelines, OUT Array<Path> &outIncludeDirs, OUT Array<Path> &outShaderDirs)
+    ND_ static bool  BuildPipelineList (const PipelinesInfo *info,
+                                        OUT Array<Path> &outPipelines, OUT Array<Path> &outPipelineIncludeDirs,
+                                        OUT Array<Path> &outShaderIncludeDirs, OUT Array<Path> &outShaderDirs)
     {
         struct PathInfo
         {
@@ -49,7 +51,7 @@ namespace
             auto&   item    = info->pipelineFolders[i];
             Path    path    { item.path };
 
-            if ( not FileSystem::Exists( path ) or not FileSystem::IsDirectory( path ))
+            if ( not FileSystem::IsDirectory( path ))
             {
                 AE_LOGI( "Can't find folder: '"s << ToString(path) << "'" );
                 continue;
@@ -90,7 +92,7 @@ namespace
         {
             Path    path{ info->inPipelines[i].path };
 
-            if ( not FileSystem::Exists( path ) or not FileSystem::IsFile( path ))
+            if ( not FileSystem::IsFile( path ))
             {
                 AE_LOGI( "Can't find pipeline: '"s << ToString(path) << "'" );
                 continue;
@@ -110,30 +112,43 @@ namespace
             outPipelines.push_back( RVRef(item.path) );
         }
 
-        for (usize i = 0; i < info->includeDirCount; ++i)
+        for (usize i = 0; i < info->shaderIncludeDirCount; ++i)
         {
-            Path    path{ info->includeDirs[i] };
+            Path    path{ info->shaderIncludeDirs[i] };
 
-            if ( not FileSystem::Exists( path ) or not FileSystem::IsDirectory( path ))
+            if ( not FileSystem::IsDirectory( path ))
             {
-                AE_LOGI( "Can't find include folder: '"s << ToString(path) << "'" );
+                AE_LOGI( "Can't find shader include folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
-            outIncludeDirs.push_back( FileSystem::ToAbsolute( path ));
+            outShaderIncludeDirs.push_back( FileSystem::ToAbsolute( path ));
         }
 
         for (usize i = 0; i < info->shaderFolderCount; ++i)
         {
             Path    path{ info->shaderFolders[i] };
 
-            if ( not FileSystem::Exists( path ) or not FileSystem::IsDirectory( path ))
+            if ( not FileSystem::IsDirectory( path ))
             {
                 AE_LOGI( "Can't find shader folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
             outShaderDirs.push_back( FileSystem::ToAbsolute( path ));
+        }
+
+        for (usize i = 0; i < info->pipelineIncludeDirCount; ++i)
+        {
+            Path    path{ info->pipelineIncludeDirs[i] };
+
+            if ( not FileSystem::IsDirectory( path ))
+            {
+                AE_LOGI( "Can't find pipeline include folder: '"s << ToString(path) << "'" );
+                continue;
+            }
+
+            outPipelineIncludeDirs.push_back( FileSystem::ToAbsolute( path ));
         }
 
         return true;
@@ -144,11 +159,11 @@ namespace
     LoadPipelines
 =================================================
 */
-    ND_ static bool  LoadPipelines (ObjectStorage &storage, const ScriptEnginePtr &scriptEngine, const Array<Path> &pipelines)
+    ND_ static bool  LoadPipelines (ObjectStorage &storage, const ScriptEnginePtr &scriptEngine, const Array<Path> &pipelines, ArrayView<Path> includeDirs)
     {
         for (auto& path : pipelines)
         {
-            if ( not storage.CompilePipeline( scriptEngine, path ))
+            if ( not storage.CompilePipeline( scriptEngine, path, includeDirs ))
                 continue;
         }
 
@@ -164,7 +179,8 @@ namespace
     ND_ bool  CompilePipelinesImpl (const PipelinesInfo *info)
     {
         CHECK_ERR( info != null );
-        CHECK_ERR( (info->includeDirCount > 0) == (info->includeDirs != null) );
+        CHECK_ERR( (info->shaderIncludeDirCount > 0) == (info->shaderIncludeDirs != null) );
+        CHECK_ERR( (info->pipelineIncludeDirCount > 0) == (info->pipelineIncludeDirs != null) );
         CHECK_ERR( (info->inPipelineCount > 0) == (info->inPipelines != null) );
         CHECK_ERR( (info->pipelineFolderCount > 0) == (info->pipelineFolders != null) );
         CHECK_ERR( (info->shaderFolderCount > 0) == (info->shaderFolders != null) );
@@ -174,10 +190,11 @@ namespace
         PipelineStorage     ppln_storage;
         ObjectStorage       obj_storage;
         Array< Path >       pipelines;
+        Array< Path >       ppln_include_dirs;
         {
             Array< Path >   shader_dirs;
-            Array< Path >   include_dirs;
-            CHECK_ERR( BuildPipelineList( info, OUT pipelines, OUT include_dirs, OUT shader_dirs ));
+            Array< Path >   shader_include_dirs;
+            CHECK_ERR( BuildPipelineList( info, OUT pipelines, OUT ppln_include_dirs, OUT shader_include_dirs, OUT shader_dirs ));
 
             CHECK_ERR( not pipelines.empty() );
             //CHECK_ERR( not shader_dirs.empty() );
@@ -186,10 +203,10 @@ namespace
             obj_storage.shaderFolders   = RVRef(shader_dirs);
 
           #ifdef AE_METAL_TOOLS
-            obj_storage.metalCompiler   = MakeUnique<MetalCompiler>( include_dirs );
+            obj_storage.metalCompiler   = MakeUnique<MetalCompiler>( shader_include_dirs );
           #endif
 
-            obj_storage.spirvCompiler   = MakeUnique<SpirvCompiler>( include_dirs );
+            obj_storage.spirvCompiler   = MakeUnique<SpirvCompiler>( shader_include_dirs );
             obj_storage.spirvCompiler->SetDefaultResourceLimits();
 
             ObjectStorage::SetInstance( &obj_storage );
@@ -201,7 +218,7 @@ namespace
 
         CATCH_ERR( ObjectStorage::Bind( script_engine ));
 
-        CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines ));
+        CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs ));
 
         CHECK_ERR( not obj_storage.hashCollisionCheck.HasCollisions() );
 

@@ -466,7 +466,7 @@ namespace AE::Graphics
         _cmdPool.Lock();
 
         EStatus exp = EStatus::Initial;
-        bool    res = _status.compare_exchange_strong( INOUT exp, EStatus::Recorded );
+        bool    res = _status.CAS_Loop( INOUT exp, EStatus::Recorded );
 
         ASSERT( res );
         return res;

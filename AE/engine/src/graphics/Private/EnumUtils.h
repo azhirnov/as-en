@@ -162,6 +162,19 @@ namespace AE::Graphics
                                                   EResourceState dstState, EImageAspect dstMask,
                                                   Bool relaxedStateTransition)                          __NE___;
 
+/*
+=================================================
+    EResourceState_IsUnnecessaryBarrier
+=================================================
+*/
+    ND_ inline bool  EResourceState_IsUnnecessaryBarrier (EResourceState srcState, EResourceState dstState) __NE___
+    {
+        // skip 'CopyDst -> CopyDst', 'BlitDst -> BlitDst' barriers,
+        // user must explicitly add this barrier, otherwise it is intended that regions are not intersects.
+
+        return  (srcState == dstState) &
+                ((srcState == EResourceState::CopyDst) | (srcState == EResourceState::BlitDst));
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -200,7 +213,7 @@ namespace AE::Graphics
         EPixelFormat        format          = Default;
         EImageAspect        aspectMask      = Default;
         ubyte               channels        = 0;
-        ubyte2              blockSize       = {1,1};
+        ubyte2              blockDim        = {1,1};
         ubyte               srcBitsPerPix   = 0;        // for compressed format or for actually used bits in ycbcr format
 
         PixelFormatInfo () __NE___ {}
@@ -210,7 +223,7 @@ namespace AE::Graphics
 
         PixelFormatInfo (EPixelFormat fmt, uint bpp, const uint2 &size, uint channels, EType type, uint srcBitsPerPix, EImageAspect aspect = EImageAspect::Color) __NE___ :
             valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect}, channels{ CheckCast<ubyte>( channels )},
-            blockSize{ CheckCast<ubyte2>( size )}, srcBitsPerPix{ CheckCast<ubyte>( srcBitsPerPix )} {}
+            blockDim{ CheckCast<ubyte2>( size )}, srcBitsPerPix{ CheckCast<ubyte>( srcBitsPerPix )} {}
 
         PixelFormatInfo (EPixelFormat fmt, uint2 depthStencilBPP, EType type = EType::DepthStencil, EImageAspect aspect = EImageAspect::DepthStencil) __NE___ :
             valueType{type}, bitsPerBlock{ CheckCast<ushort>( depthStencilBPP.x )}, bitsPerBlock2{ CheckCast<ubyte>( depthStencilBPP.y )},
@@ -222,8 +235,8 @@ namespace AE::Graphics
 
         ND_ bool    IsValid ()                      C_NE___ { return format != Default; }
 
-        ND_ uint2   TexBlockSize ()                 C_NE___ { return uint2{blockSize}; }
-        ND_ bool    IsCompressed ()                 C_NE___ { return not All( blockSize == ubyte2{1,1} ); }
+        ND_ uint2   TexBlockDim ()                  C_NE___ { return uint2{blockDim}; }
+        ND_ bool    IsCompressed ()                 C_NE___ { return not All( blockDim == ubyte2{1,1} ); }
 
         ND_ bool    IsColor ()                      C_NE___ { return not AnyBits( valueType, EType::DepthStencil ); }
         ND_ bool    IsDepth ()                      C_NE___ { return valueType == EType::Depth; }
@@ -234,7 +247,7 @@ namespace AE::Graphics
         ND_ bool    HasDepthOrStencil ()            C_NE___ { return AnyBits( valueType, EType::DepthStencil ); }
         ND_ bool    IsYcbcr ()                      C_NE___ { return AllBits( valueType, EType::Ycbcr ); }
 
-        ND_ uint    BitsPerPixel ()                 C_NE___ { return uint(bitsPerBlock) / Area( TexBlockSize() ); }
+        ND_ uint    BitsPerPixel ()                 C_NE___ { return uint(bitsPerBlock) / Area( TexBlockDim() ); }
         ND_ uint    BitsPerChannel ()               C_NE___ { return BitsPerPixel() / Max( 1u, channels ); }
         ND_ uint    UncompressedBitsPerChannel ()   C_NE___ { ASSERT( IsCompressed() );  return uint(srcBitsPerPix) / Max( 1u, channels ); }
 
@@ -259,9 +272,9 @@ namespace AE::Graphics
         ASSERT( AllBits( info.aspectMask, aspect ));
 
         if_likely( aspect != EImageAspect::Stencil )
-            return info.bitsPerBlock / (info.blockSize.x * info.blockSize.y);
+            return info.bitsPerBlock / (info.blockDim.x * info.blockDim.y);
         else
-            return info.bitsPerBlock2 / (info.blockSize.x * info.blockSize.y);
+            return info.bitsPerBlock2 / (info.blockDim.x * info.blockDim.y);
     }
 
 /*
@@ -366,13 +379,13 @@ namespace AE::Graphics
 */
     ND_ EPixelFormat  EPixelFormat_ToBC (EPixelFormat srcFormat)                            __NE___;
     ND_ EPixelFormat  EPixelFormat_ToETC_EAC (EPixelFormat srcFormat)                       __NE___;
-    ND_ EPixelFormat  EPixelFormat_ToASTC (EPixelFormat srcFormat, const uint2 &blockSize)  __NE___;
+    ND_ EPixelFormat  EPixelFormat_ToASTC (EPixelFormat srcFormat, const uint2 &blockDim)   __NE___;
     ND_ EPixelFormat  EPixelFormat_ToNoncompressed (EPixelFormat srcFormat, bool allowRGB)  __NE___;
     ND_ EPixelFormat  EPixelFormat_ToRGBA (EPixelFormat srcFormat)                          __NE___;        // RGB -> RGBA
 
-    ND_ EPixelFormat  EPixelFormat_ToASTC_UNorm (const uint2 &blockSize)                    __NE___;
-    ND_ EPixelFormat  EPixelFormat_ToASTC_sRGB (const uint2 &blockSize)                     __NE___;
-    ND_ EPixelFormat  EPixelFormat_ToASTC_16F (const uint2 &blockSize)                      __NE___;
+    ND_ EPixelFormat  EPixelFormat_ToASTC_UNorm (const uint2 &blockDim)                     __NE___;
+    ND_ EPixelFormat  EPixelFormat_ToASTC_sRGB (const uint2 &blockDim)                      __NE___;
+    ND_ EPixelFormat  EPixelFormat_ToASTC_16F (const uint2 &blockDim)                       __NE___;
 
 /*
 =================================================

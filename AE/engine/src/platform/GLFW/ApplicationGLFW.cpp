@@ -16,7 +16,7 @@ namespace AE::App
 =================================================
 */
 namespace {
-    void GLFW_ErrorCallback (int code, const char* msg) __NE___
+    static void  GLFW_ErrorCallback (int code, const char* msg) __NE___
     {
         AE_LOGE( "GLFW error: " + ToString( code ) + ", msg: \"" + msg + "\"" );
     }
@@ -30,7 +30,11 @@ namespace {
     ApplicationGLFW::ApplicationGLFW (Unique<IAppListener> listener) __NE___ :
         ApplicationBase{ RVRef(listener) }
     {
+      #ifndef AE_CFG_RELEASE
         glfwSetErrorCallback( &GLFW_ErrorCallback );
+      #else
+        Unused( &GLFW_ErrorCallback );
+      #endif
 
         _UpdateMinitors( OUT _cachedMonitors );
         _GetLocales( OUT _locales );

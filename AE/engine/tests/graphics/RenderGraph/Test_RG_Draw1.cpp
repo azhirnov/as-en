@@ -22,7 +22,7 @@ namespace
         bool                        isOK    = false;
 
         ImageComparator *           imgCmp  = null;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
     static constexpr auto&  RTech = RenderTechs::DrawTestRT;
@@ -113,7 +113,7 @@ namespace
         D1_TestData     t;
 
         t.rtech     = renderTech;
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 

@@ -85,7 +85,7 @@ namespace AE::Samples::Demo
         ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
         ND_ bool  _Upload (DirectCtx::Transfer &copyCtx);
 
-            void  _UpdateScale (float2 pixToMm);
+            void  _UpdateScale (float pixToMm);
     };
 
 

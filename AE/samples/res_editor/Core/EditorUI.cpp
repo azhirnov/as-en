@@ -79,6 +79,7 @@ namespace AE::Base
             case EImageFormat::RadianceHDR: return "RadianceHDR";
             case EImageFormat::OpenEXR :    return "OpenEXR";
             case EImageFormat::KTX :        return "KTX";
+            case EImageFormat::AEImg :      return "AEImg";
             case EImageFormat::Unknown :
             case EImageFormat::_Count :
             default :                       return "";
@@ -166,7 +167,7 @@ namespace
     UIInteraction::UIInteraction ()
     {
         graphics->dynSize       = MakeRC<DynamicDim>( uint2{1024} );
-        graphics->filterMode    = MakeRC<DynamicUInt>( 1u );
+        graphics->filterMode    = MakeRC<DynamicUInt>( 0u );
     }
 
 /*
@@ -636,8 +637,8 @@ namespace
         }
 
         auto        mode            = g_data->output->GetSurfaceInfo();
-        uint        color_mode      = int(IndexOfArrayElement( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
-        uint        present_mode    = int(IndexOfArrayElement( ArrayView<EPresentMode>{g_data->presentModes}, mode.presentMode ));
+        uint        color_mode      = int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
+        uint        present_mode    = int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, mode.presentMode ));
 
         g_mode->colorModeIdx        = color_mode;
         g_mode->presentModeIdx      = present_mode;
@@ -757,9 +758,8 @@ namespace
 
             if ( ImGui::BeginCombo( "Stage", cur_stage ))
             {
-                for (auto stages = inStages; stages != Default;)
+                for (auto sh : BitIndexIterate<EShader>( inStages ))
                 {
-                    auto    sh = ExtractBitLog2<EShader>( INOUT stages );
                     if ( ImGui::Selectable( ToString( sh ).data(), imgui->dbgStageIdx == uint(sh) ))
                         imgui->dbgStageIdx = uint(sh);
                 }
@@ -1167,7 +1167,6 @@ namespace
             ETaskQueue::Background,
             [] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
             {
-                ASSERT( compiling.load() );
                 Unused( core->RunRenderScriptAsync( path ));
                 compiling.store( false );
                 pauseRendering.store( false );
@@ -1423,7 +1422,7 @@ namespace
     Init
 =================================================
 */
-    bool  EditorUI::Init (IOutputSurface &surface)
+    bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode)
     {
         if ( _initialized.load() )
             return true;
@@ -1433,6 +1432,14 @@ namespace
         if ( _InitSurface( surface ) and _LoadPipelinePack() )
         {
             _initialized.store( true );
+
+            if ( EWindowMode_IsFullscreen( wndMode )) {
+                _windowMode.current.store( 1 | 2 );
+                _windowMode.fullscreenMode = wndMode;
+            }else{
+                _windowMode.current.store( 0 | 2 );
+                _windowMode.windowedMode = wndMode;
+            }
             return true;
         }
         return false;
@@ -1440,7 +1447,7 @@ namespace
 
 /*
 =================================================
-    Init
+    _InitSurface
 =================================================
 */
     bool  EditorUI::_InitSurface (IOutputSurface &surface)
@@ -1456,8 +1463,8 @@ namespace
         auto        g_mode      = s_UIInteraction.graphics.WriteNoLock();
         {
             EXLOCK( g_mode );
-            g_mode->colorModeIdx    = int(IndexOfArrayElement( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
-            g_mode->presentModeIdx  = int(IndexOfArrayElement( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
+            g_mode->colorModeIdx    = int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
+            g_mode->presentModeIdx  = int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
         }
 
         _imgui->defaultSurfFormat = ESurfaceFormat_Cast( info.colorFormat, info.colorSpace );
@@ -1641,7 +1648,7 @@ namespace
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( IA.actionCount == 13 );
+            STATIC_ASSERT( IA.actionCount == 15 );
             switch ( uint{hdr.name} )
             {
                 case IA.UI_MousePos :
@@ -1679,6 +1686,11 @@ namespace
 
                 case IA.ShowHelp :
                     imgui->showHelp = not imgui->showHelp;                          break;
+
+                case IA.FullscreenOnOff :
+                    _windowMode.current.store( (~_windowMode.current.load() & 1) ); break;
+
+                // IA.UI_ResExport - ignore
             }
         }
     }
@@ -1698,7 +1710,10 @@ R"(UI controls:
   'U'         - start/stop video recording (if supported)
   'I'         - make screenshot
   'G'         - run shader debugger for pixel under cursor
+  'F2'        - RenderDoc frame capture (if enabled)
+  'F3'        - export resources from current script (if defined)
   'F5'        - reload script
+  'F11'       - fullscreen / windowed
   'Right mouse btn' - pass mouse position to shader
 )" >> txt;
 
@@ -1752,7 +1767,7 @@ R"(UI controls:
 
             const String    name = ToString( dir.Get().filename().native() );
 
-            if ( depth+1 < maxDepth )
+            if ( depth+1 < maxDepth and not FileSystem::IsEmptyDirectory( dir ))
             {
                 auto&   dst = rootDst.folders.emplace_back();
                 dst.reset( new ScriptFolder{} );
@@ -1767,7 +1782,7 @@ R"(UI controls:
         // process files
         for (auto& dir : FileSystem::Enum( rootDir ))
         {
-            if ( dir.IsDirectory() )
+            if ( not dir.IsFile() )
                 continue;
 
             if ( not IsAnsiString( dir.Get().filename().native() ))
@@ -1783,6 +1798,21 @@ R"(UI controls:
             //else
             //  AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
         }
+    }
+
+/*
+=================================================
+    GetNewWindowMode
+=================================================
+*/
+    auto  EditorUI::GetNewWindowMode () -> Optional<EWindowMode>
+    {
+        ubyte   cur = _windowMode.current.fetch_or( 1 << 1 );
+
+        if ( HasBit( cur, 1 ))
+            return NullOptional;    // already used
+
+        return HasBit( cur, 0 ) ? _windowMode.fullscreenMode : _windowMode.windowedMode;
     }
 
 

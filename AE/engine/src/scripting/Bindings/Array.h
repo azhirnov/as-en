@@ -41,6 +41,17 @@ namespace AE::Scripting::_hidden_
 
         ND_ operator View_t ()                      C_NE___ { return _Arr(); }
 
+        ND_ explicit operator ArrayView<T> ()       C_NE___
+        {
+            CHECK_ERR( this->GetElementSize() == sizeof(T) );
+            return ArrayView<T>{ Cast<T>( const_cast< Self *>(this)->GetBuffer() ), size() };
+        }
+
+        ND_ explicit operator Array<T> ()           C_Th___
+        {
+            return Array<T>{ View_t{ *this }};
+        }
+
         ND_ T &         operator [] (usize i)       __NE___ { ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
         ND_ T const &   operator [] (usize i)       C_NE___ { ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
 
@@ -157,6 +168,14 @@ namespace AE::Scripting::_hidden_
             void  clear ()                                  __NE___ { this->Resize( 0 ); }
             void  resize (usize newSize)                    __NE___ { this->Resize( uint(newSize) ); }
             void  reserve (usize newSize)                   __NE___ { this->Reserve( uint(newSize) ); }
+
+        ND_ explicit operator Array<T> ()                   C_Th___
+        {
+            Array<T>    res;    res.resize( size() );  // throw
+            for (usize i = 0, cnt = size(); i < cnt; ++i)
+                res[i] = (*this)[i];
+            return res;
+        }
     };
 
 
@@ -245,6 +264,14 @@ namespace AE::Scripting::_hidden_
             void  clear ()                              __NE___ { this->Resize( 0 ); }
             void  resize (usize newSize)                __NE___ { this->Resize( uint(newSize) ); }
             void  reserve (usize newSize)               __NE___ { this->Reserve( uint(newSize) ); }
+
+        ND_ explicit operator Array<String> ()          C_Th___
+        {
+            Array<String>   res;    res.resize( size() );  // throw
+            for (usize i = 0, cnt = size(); i < cnt; ++i)
+                res[i] = (*this)[i];
+            return res;
+        }
     };
 
 

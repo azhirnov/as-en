@@ -10,15 +10,10 @@ namespace AE::AssetPacker
     SaveImage
 =================================================
 */
-    bool  RasterFontPacker::SaveImage (WStream &stream, const ImageMemView &src)
+    bool  RasterFontPacker::SaveImage (WStream &stream, const ResLoader::IntermImage &src) C_NE___
     {
     #ifdef AE_BUILD_ASSET_PACKER
-
-        ImagePacker     img_packer;
-        img_packer.header = header;
-
-        return img_packer.SaveImage( stream, src );
-
+        return ImagePacker{_header.hdr}.SaveImage( stream, src );
     #else
         Unused( stream, src );
         return false;
@@ -30,11 +25,9 @@ namespace AE::AssetPacker
     IsValid
 =================================================
 */
-    bool  RasterFontPacker::IsValid () const
+    bool  RasterFontPacker::IsValid () C_NE___
     {
-        ImagePacker     img_packer;
-        img_packer.header = header;
-        CHECK_ERR( img_packer.IsValid() );
+        CHECK_ERR( ImagePacker{_header.hdr}.IsValid() );
 
         CHECK_ERR( not glyphMap.empty() );
         CHECK_ERR( not fontHeight.empty() );
@@ -52,20 +45,7 @@ namespace AE::AssetPacker
                 CHECK_ERR( glyphMap.contains( GlyphKey{ c, h }));
             }
         }
-
         return true;
-    }
-
-/*
-=================================================
-    ReadImage
-=================================================
-*/
-    bool  RasterFontPacker::ReadImage (RStream &stream, INOUT ImageData &result) const
-    {
-        ImagePacker     img_packer;
-        img_packer.header = header;
-        return img_packer.ReadImage( stream, INOUT result );
     }
 
 /*
@@ -76,7 +56,7 @@ namespace AE::AssetPacker
     bool  RasterFontPacker::Serialize (Serializing::Serializer &ser) C_NE___
     {
         ASSERT( IsValid() );
-        return ser( Magic, version, header, sdfConfig, glyphMap, fontHeight );
+        return ser( _header, sdfConfig, glyphMap, fontHeight );
     }
 
 /*
@@ -86,12 +66,16 @@ namespace AE::AssetPacker
 */
     bool  RasterFontPacker::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        bool    res = des( OUT magic, OUT version );
-        if ( not res or (magic != Magic) or (version != Version) )
+        bool    res = des( OUT _header );
+        res &= (_header.magic == Magic);
+        res &= (_header.version == Version);
+
+        if_unlikely( not res )
             return false;
 
-        res = des( OUT header, OUT sdfConfig, OUT glyphMap, OUT fontHeight );
+        res = des( OUT sdfConfig, OUT glyphMap, OUT fontHeight );
         ASSERT( IsValid() );
+
         return res;
     }
 

@@ -46,7 +46,7 @@ namespace AE::VFS
 
             for (auto& entry : FileSystem::Enum( path ))
             {
-                if ( not entry.IsDirectory() )
+                if ( entry.IsFile() )
                 {
                     auto        file = FileSystem::ToRelative( entry.Get(), _folder );
                     StringView  str;
@@ -64,6 +64,7 @@ namespace AE::VFS
                     CHECK_ERR( _map.emplace( FileName::Optimized_t{name}, str ).second );   // throw
                 }
                 else
+                if ( entry.IsDirectory() )
                 {
                     stack.push_back( entry.Get() ); // throw
                 }
@@ -79,17 +80,17 @@ namespace AE::VFS
     Open
 =================================================
 */
-    bool  DiskStaticStorage::Open (OUT RC<RStream> &outStream, const FileName &name) C_NE___
+    bool  DiskStaticStorage::Open (OUT RC<RStream> &outStream, FileNameRef name) C_NE___
     {
         return _Open<FileRStream>( OUT outStream, name );
     }
 
-    bool  DiskStaticStorage::Open (OUT RC<RDataSource> &outDS, const FileName &name) C_NE___
+    bool  DiskStaticStorage::Open (OUT RC<RDataSource> &outDS, FileNameRef name) C_NE___
     {
         return _Open<FileRDataSource>( OUT outDS, name );
     }
 
-    bool  DiskStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, const FileName &name) C_NE___
+    bool  DiskStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, FileNameRef name) C_NE___
     {
     #if defined(AE_PLATFORM_WINDOWS)
         return _Open< Threading::WinAsyncRDataSource >( OUT outDS, name );
@@ -106,7 +107,7 @@ namespace AE::VFS
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  DiskStaticStorage::_Open (OUT ResultType &result, const FileName &name) C_NE___
+    bool  DiskStaticStorage::_Open (OUT ResultType &result, FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -131,7 +132,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  DiskStaticStorage::Exists (const FileName &name) C_NE___
+    bool  DiskStaticStorage::Exists (FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -139,7 +140,7 @@ namespace AE::VFS
         return iter != _map.end();
     }
 
-    bool  DiskStaticStorage::Exists (const FileGroupName &) C_NE___
+    bool  DiskStaticStorage::Exists (FileGroupNameRef) C_NE___
     {
         // not supported
         return false;
@@ -165,17 +166,17 @@ namespace AE::VFS
     _OpenByIter
 =================================================
 */
-    bool  DiskStaticStorage::_OpenByIter (OUT RC<RStream> &stream, const FileName &name, const void* ref) C_NE___
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<RStream> &stream, FileNameRef name, const void* ref) C_NE___
     {
         return _OpenByIter2<FileRStream>( OUT stream, name, ref );
     }
 
-    bool  DiskStaticStorage::_OpenByIter (OUT RC<RDataSource> &ds, const FileName &name, const void* ref) C_NE___
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<RDataSource> &ds, FileNameRef name, const void* ref) C_NE___
     {
         return _OpenByIter2<FileRDataSource>( OUT ds, name, ref );
     }
 
-    bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &ds, const FileName &name, const void* ref) C_NE___
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref) C_NE___
     {
     #if defined(AE_PLATFORM_WINDOWS)
         return _OpenByIter2< Threading::WinAsyncRDataSource >( OUT ds, name, ref );
@@ -192,7 +193,7 @@ namespace AE::VFS
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  DiskStaticStorage::_OpenByIter2 (OUT ResultType &result, const FileName &name, const void* ref) C_NE___
+    bool  DiskStaticStorage::_OpenByIter2 (OUT ResultType &result, FileNameRef name, const void* ref) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

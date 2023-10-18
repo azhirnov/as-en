@@ -30,12 +30,12 @@ namespace
         HSVColor    hsv3{ 0.5f, 0.75f, 0.5f };
         RGBA32f     rgba2{ hsv3 };
         HSVColor    hsv4{ rgba2 };
-        TEST( hsv3 == hsv4 );
+        TEST(All(Equals( hsv3, hsv4 )));
 
         HSVColor    hsv5{ 0.75f, 0.87f, 0.95f };
         RGBA32f     rgba3{ hsv5 };
         HSVColor    hsv6{ rgba3 };
-        TEST( hsv5 == hsv6 );
+        TEST(All(Equals( hsv5, hsv6 )));
     }
 }
 

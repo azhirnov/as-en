@@ -89,7 +89,7 @@ namespace AE::Graphics
                 ASSERT( dimension.z == 1 );
                 dimension.z = 1;
 
-                if ( AllBits( options, EImageOpt::CubeCompatible ) and not IsAligned( arrayLayers.Get(), 6 ))
+                if ( AllBits( options, EImageOpt::CubeCompatible ) and not IsMultipleOf( arrayLayers.Get(), 6 ))
                     options &= ~EImageOpt::CubeCompatible;
 
                 if ( AllBits( options, EImageOpt::CubeCompatible ))
@@ -134,7 +134,7 @@ namespace AE::Graphics
 
         if ( AllBits( memType, EMemoryType::Transient ))
         {
-            memType &= ~EMemoryType::HostCachedCoherent;
+            memType &= ~(EMemoryType::HostCachedCoherent | EMemoryType::DeviceLocal);
             usage   &= (EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment);
         }
 
@@ -388,7 +388,7 @@ namespace AE::Graphics
                     ASSERT( desc.imageDim == EImageDim_2D or
                             (desc.imageDim == EImageDim_3D and AllBits( desc.options, EImageOpt::Array2DCompatible )));
                     ASSERT( AllBits( desc.options, EImageOpt::CubeCompatible ));
-                    ASSERT( layerCount == UMax or IsAligned( layerCount, 6 ));
+                    ASSERT( layerCount == UMax or IsMultipleOf( layerCount, 6 ));
                     layerCount = CheckCast<ushort>( Max( 1u, ((max_layers - baseLayer.Get()) / 6) ) * 6 );
                     break;
 

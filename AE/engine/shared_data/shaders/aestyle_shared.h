@@ -38,6 +38,7 @@ struct _VecBase <T,2>
     ND_ T&  operator [] (uint idx);
     ND_ T   operator [] (int idx) const;
     ND_ T   operator [] (uint idx) const;
+    ND_ int length () const { return 2; }
 };
 
 template <typename T>
@@ -50,6 +51,7 @@ struct _VecBase <T,3>
     ND_ T&  operator [] (uint idx);
     ND_ T   operator [] (int idx) const;
     ND_ T   operator [] (uint idx) const;
+    ND_ int length () const { return 3; }
 };
 
 template <typename T>
@@ -62,6 +64,7 @@ struct _VecBase <T,4>
     ND_ T&  operator [] (uint idx);
     ND_ T   operator [] (int idx) const;
     ND_ T   operator [] (uint idx) const;
+    ND_ int length () const { return 4; }
 };
 
 template <typename T, int I>
@@ -139,7 +142,15 @@ struct _Vec <T,4> : _VecBase<T,4>
 template <typename T, int C, int R>
 struct _MatrixBase
 {
+private:
     _Vec<T,R>   _cols [C];
+
+public:
+    ND_ _Vec<T,C>&          operator [] (int c);
+    ND_ _Vec<T,C>&          operator [] (uint c);
+    ND_ _Vec<T,C> const&    operator [] (int c)     const;
+    ND_ _Vec<T,C> const&    operator [] (uint c)    const;
+    ND_ int                 length ()               const   { return C; }
 };
 
 template <typename T>

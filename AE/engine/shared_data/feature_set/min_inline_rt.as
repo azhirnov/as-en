@@ -93,41 +93,41 @@ void ASmain ()
     fset.minMetalVersion (240);
     fset.drawIndirectFirstInstance (True);
     fset.multiViewport (True);
-    fset.minViewports (16);
-    fset.minTexelBufferElements (64 << 20);
-    fset.minUniformBufferSize (64 << 10);
-    fset.minStorageBufferSize (64 << 10);
-    fset.perDescrSet_minInputAttachments (1000000);
-    fset.perDescrSet_minSampledImages (1000000);
-    fset.perDescrSet_minSamplers (1024);
-    fset.perDescrSet_minStorageBuffers (1048576);
-    fset.perDescrSet_minStorageImages (1000000);
-    fset.perDescrSet_minUniformBuffers (1048576);
-    fset.perDescrSet_minAccelStructures (1048576);
-    fset.perDescrSet_minTotalResources (1024);
-    fset.perStage_minInputAttachments (1048576);
-    fset.perStage_minSampledImages (1048576);
-    fset.perStage_minSamplers (8192);
-    fset.perStage_minStorageBuffers (1048576);
-    fset.perStage_minStorageImages (1048576);
-    fset.perStage_minUniformBuffers (1048576);
-    fset.perStage_minAccelStructures (1048576);
-    fset.perStage_minTotalResources (8008184);
-    fset.minDescriptorSets (8);
-    fset.minTexelOffset (7);
-    fset.minTexelGatherOffset (7);
-    fset.minFragmentOutputAttachments (8);
-    fset.minFragmentDualSrcAttachments (1);
-    fset.minFragmentCombinedOutputResources (8008184);
-    fset.minPushConstantsSize (128);
-    fset.minComputeSharedMemorySize (32 << 10);
-    fset.minComputeWorkGroupInvocations (1 << 10);
-    fset.minComputeWorkGroupSizeX (1 << 10);
-    fset.minComputeWorkGroupSizeY (1 << 10);
-    fset.minComputeWorkGroupSizeZ (64);
+    fset.maxViewports (16);
+    fset.maxTexelBufferElements (64 << 20);
+    fset.maxUniformBufferSize (64 << 10);
+    fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxInputAttachments (1000000);
+    fset.perDescrSet_maxSampledImages (1000000);
+    fset.perDescrSet_maxSamplers (1024);
+    fset.perDescrSet_maxStorageBuffers (1048576);
+    fset.perDescrSet_maxStorageImages (1000000);
+    fset.perDescrSet_maxUniformBuffers (1048576);
+    fset.perDescrSet_maxAccelStructures (1048576);
+    fset.perDescrSet_maxTotalResources (1024);
+    fset.perStage_maxInputAttachments (1048576);
+    fset.perStage_maxSampledImages (1048576);
+    fset.perStage_maxSamplers (8192);
+    fset.perStage_maxStorageBuffers (1048576);
+    fset.perStage_maxStorageImages (1048576);
+    fset.perStage_maxUniformBuffers (1048576);
+    fset.perStage_maxAccelStructures (1048576);
+    fset.perStage_maxTotalResources (8008184);
+    fset.maxDescriptorSets (8);
+    fset.maxTexelOffset (7);
+    fset.maxTexelGatherOffset (7);
+    fset.maxFragmentOutputAttachments (8);
+    fset.maxFragmentDualSrcAttachments (1);
+    fset.maxFragmentCombinedOutputResources (8008184);
+    fset.maxPushConstantsSize (128);
+    fset.maxComputeSharedMemorySize (32 << 10);
+    fset.maxComputeWorkGroupInvocations (1 << 10);
+    fset.maxComputeWorkGroupSizeX (1 << 10);
+    fset.maxComputeWorkGroupSizeY (1 << 10);
+    fset.maxComputeWorkGroupSizeZ (64);
     fset.computeShader (True);
-    fset.minVertexAttributes (31);
-    fset.minVertexBuffers (31);
+    fset.maxVertexAttributes (31);
+    fset.maxVertexBuffers (31);
     fset.AddVertexFormats({
         EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
         EVertexType::UByte, EVertexType::UByte2, EVertexType::UByte3, EVertexType::UByte4, 
@@ -175,7 +175,7 @@ void ASmain ()
     });
     fset.imageCubeArray (True);
     fset.multisampleArrayImage (True);
-    fset.minImageArrayLayers (2 << 10);
+    fset.maxImageArrayLayers (2 << 10);
     fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
         EPixelFormat::R32I, EPixelFormat::R32U
     });
@@ -220,8 +220,8 @@ void ASmain ()
         EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5
     });
     fset.samplerAnisotropy (True);
-    fset.minSamplerAnisotropy (16.00);
-    fset.minSamplerLodBias (4.00);
-    fset.minFramebufferLayers (1 << 10);
+    fset.maxSamplerAnisotropy (16.00);
+    fset.maxSamplerLodBias (4.00);
+    fset.maxFramebufferLayers (1 << 10);
     fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

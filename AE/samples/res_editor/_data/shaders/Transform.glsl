@@ -1,7 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    local_pos * model_mat   = world_pos (world space)
+    world_pos * view_mat    = view_pos (view space)
+    view_pos  * proj_mat    = clip_pos (clip space)
+    clip_pos  * viewport_tr = scr_pos (screen space)
+*/
 
 #include "Math.glsl"
 
+
+#ifndef DISABLE_un_PerPass
 /*
 =================================================
     LocalPosToWorldSpace
@@ -29,6 +37,22 @@ ND_ float3  LocalVecToWorldSpace (const float3 dir)
     return Normalize( float3x3(un_PerObject.transform) * dir );
 }
 
+#else
+
+/*
+=================================================
+    LocalPosToWorldSpace
+=================================================
+*/
+ND_ float4  LocalPosToWorldSpace (const float4 pos)
+{
+    return pos - float4(un_PerPass.camera.pos, 0.0f);
+}
+
+#endif
+//-----------------------------------------------------------------------------
+
+
 /*
 =================================================
     LocalPosToViewSpace
@@ -46,18 +70,39 @@ ND_ float4  LocalPosToViewSpace (const float3 pos)
 
 /*
 =================================================
-    LocalPosToScreenSpace
+    WorldPosToViewSpace
+=================================================
+*/
+ND_ float4  WorldPosToViewSpace (const float4 pos)
+{
+    return un_PerPass.camera.view * pos;
+}
+
+/*
+=================================================
+    LocalPosToClipSpace
 ----
     result in normalized coordinates before /w
     and without viewport scaling.
 =================================================
 */
-ND_ float4  LocalPosToScreenSpace (const float4 pos)
+ND_ float4  LocalPosToClipSpace (const float4 pos)
 {
     return un_PerPass.camera.viewProj * LocalPosToWorldSpace( pos );
 }
 
-ND_ float4  LocalPosToScreenSpace (const float3 pos)
+ND_ float4  LocalPosToClipSpace (const float3 pos)
 {
-    return LocalPosToScreenSpace( float4( pos, 1.0f ));
+    return LocalPosToClipSpace( float4( pos, 1.0f ));
 }
+
+/*
+=================================================
+    WorldPosToClipSpace
+=================================================
+*/
+ND_ float4  WorldPosToClipSpace (const float4 pos)
+{
+    return un_PerPass.camera.viewProj * pos;
+}
+

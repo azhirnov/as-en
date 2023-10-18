@@ -34,7 +34,8 @@ namespace AE::Graphics
 
     // variables
     private:
-        StrongImageAndViewID    _imageAndView;
+        Strong<ImageID>         _imageId;
+        Strong<ImageViewID>     _viewId;
         float2                  _invImgSize     {1};
         ImageMap_t              _nameToIdx;
         ImageRects_t            _imageRects;
@@ -48,9 +49,8 @@ namespace AE::Graphics
         bool  Get (const ImageInAtlasName &name, OUT RectI &region) C_NE___;
         bool  Get (const ImageInAtlasName &name, OUT RectF &region) C_NE___;
 
-        ND_ ImageID         GetImageID ()                           C_NE___ { return _imageAndView.image; }
-        ND_ ImageViewID     GetViewID ()                            C_NE___ { return _imageAndView.view; }
-        ND_ ImageAndViewID  GetImageAndView ()                      C_NE___ { return _imageAndView; }
+        ND_ ImageID             GetImageID ()                       C_NE___ { return _imageId; }
+        ND_ ImageViewID         GetViewID ()                        C_NE___ { return _viewId; }
     };
 
 

@@ -307,13 +307,13 @@ namespace AE::Graphics
 
         #if defined(AE_PLATFORM_WINDOWS)
         {
-            CHECK_ERR( window.hinstance != null and window.hwnd != null );
+            CHECK_ERR( window.hInstance != null and window.hWnd != null );
 
             VkWin32SurfaceCreateInfoKHR     surface_info = {};
 
             surface_info.sType      = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-            surface_info.hinstance  = HINSTANCE(window.hinstance);
-            surface_info.hwnd       = HWND(window.hwnd);
+            surface_info.hinstance  = BitCast< HINSTANCE >(window.hInstance);
+            surface_info.hwnd       = BitCast< HWND >(window.hWnd);
 
             auto  fpCreateWin32SurfaceKHR = BitCast<PFN_vkCreateWin32SurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateWin32SurfaceKHR" ));
             CHECK_ERR( fpCreateWin32SurfaceKHR );
@@ -332,7 +332,7 @@ namespace AE::Graphics
 
             surface_info.sType  = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
             surface_info.flags  = 0;
-            surface_info.window = static_cast<ANativeWindow *>( window.nativeWindow );
+            surface_info.window = BitCast< ANativeWindow *>( window.nativeWindow );
 
             auto  fpCreateAndroidSurfaceKHR = BitCast<PFN_vkCreateAndroidSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateAndroidSurfaceKHR" ));
             CHECK_ERR( fpCreateAndroidSurfaceKHR );
@@ -345,12 +345,12 @@ namespace AE::Graphics
         }
         #elif defined(AE_PLATFORM_LINUX)
         {
-            CHECK_ERR( window.window != null and window.display != null );
+            CHECK_ERR( window.x11Window != null and window.x11Display != null );
 
             VkXlibSurfaceCreateInfoKHR  surface_info = {};
             surface_info.sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-            surface_info.dpy    = BitCast<::Display*>(window.display);
-            surface_info.window = BitCast<::Window>(window.window);
+            surface_info.dpy    = BitCast< ::Display *>( window.x11Display );
+            surface_info.window = BitCast< ::Window >( window.x11Window );
 
             auto  fpCreateXlibSurfaceKHR = BitCast<PFN_vkCreateXlibSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateXlibSurfaceKHR" ));
             CHECK_ERR( fpCreateXlibSurfaceKHR );

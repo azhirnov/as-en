@@ -1,43 +1,27 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     from docs:
-    https://assimp-docs.readthedocs.io/en/latest/usage/use_the_lib.html#threading
-    You can use the Asset-Importer-Library in a separate thread context.
-    Just make sure that the resources used by the thread are not shared.
-    At this moment, assimp will not make sure that it is safe over different thread contexts.
-
-    https://assimp-docs.readthedocs.io/en/latest/usage/use_the_lib.html#thread-safety-using-assimp-concurrently-from-several-threads
-    The library can be accessed by multiple threads simultaneously, as long as the following prerequisites are fulfilled:
-
-    * Users of the C++-API should ensure that they use a dedicated #Assimp::Importer instance for each thread.
-      Constructing instances of #Assimp::Importer is expensive, so it might be a good idea to let every thread maintain
-      its own thread-local instance (which can be used to load as many files as necessary).
-    * The C-API is thread safe.
-    * When supplying custom IO logic, one must make sure the underlying implementation is thread-safe.
-    * Custom log streams or logger replacements have to be thread-safe, too.
-
     Multiple concurrent imports may or may not be beneficial, however.
     For certain file formats in conjunction with little or no post processing IO times tend to be the performance bottleneck.
     Intense post processing together with 'slow' file formats like X or Collada might scale well with multiple concurrent imports.
 */
 
 #ifdef AE_ENABLE_ASSIMP
-# include "base/Defines/StdInclude.h"
+# include "res_loaders/Assimp/AsssimpUtils.cpp.h"
 
 # include "assimp/Importer.hpp"
 # include "assimp/PostProcess.h"
 # include "assimp/Scene.h"
-# include "assimp/DefaultLogger.hpp"
-# include "assimp/LogStream.hpp"
+# include "assimp/GltfMaterial.h"
 
 # include "res_loaders/Assimp/AssimpLoader.h"
 # include "res_loaders/Intermediate/IntermScene.h"
-# include "res_loaders/Intermediate/IntermVertexAttribs_Settings.h"
+# include "res_loaders/Intermediate/IntermVertexAttribs_Setter.h"
 
 namespace AE::ResLoader
 {
-namespace {
-
+namespace
+{
     struct AttribHash {
         ND_ usize  operator () (const RC<IntermVertexAttribs> &value) C_NE___ {
             return usize(value->CalcHash());
@@ -64,26 +48,6 @@ namespace {
 
 /*
 =================================================
-    AssimpInit
-=================================================
-*/
-    static void  AssimpInit ()
-    {
-        static bool isAssimpInit = false;
-
-        if ( isAssimpInit )
-            return;
-
-        isAssimpInit = true;
-
-        // Create Logger
-        Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
-        Assimp::DefaultLogger::create( "", severity, aiDefaultLogStream_STDOUT );
-        //Assimp::DefaultLogger::create( "assimp_log.txt", severity, aiDefaultLogStream_FILE );
-    }
-
-/*
-=================================================
     ConvertMatrix
 =================================================
 */
@@ -103,6 +67,11 @@ namespace {
     ConvertVec
 =================================================
 */
+    ND_ static float2  ConvertVec (const aiVector2D &src)
+    {
+        return float2{ src.x, src.y };
+    }
+
     ND_ static float3  ConvertVec (const aiVector3D &src)
     {
         return float3{ src.x, src.y, src.z };
@@ -113,14 +82,19 @@ namespace {
         return float3{ src.r, src.g, src.b };
     }
 
+    ND_ static float4  ConvertVec (const aiColor4D &src)
+    {
+        return float4{ src.r, src.g, src.b, src.a };
+    }
+
 /*
 =================================================
-    ConvertColor
+    Str
 =================================================
 */
-    ND_ static RGBA32f  ConvertColor (const aiColor4D &src)
+    ND_ static StringView  Str (const aiString &str)
     {
-        return RGBA32f{ src.r, src.g, src.b, src.a };
+        return StringView{ str.C_Str(), str.length };
     }
 
 /*
@@ -133,16 +107,29 @@ namespace {
         BEGIN_ENUM_CHECKS();
         switch ( mode )
         {
-            case aiTextureMapMode_Wrap :    return EAddressMode::Repeat;
-            case aiTextureMapMode_Mirror :  return EAddressMode::MirrorRepeat;
-            case aiTextureMapMode_Clamp :   return EAddressMode::ClampToEdge;
-            case aiTextureMapMode_Decal :   return EAddressMode::ClampToBorder; // TODO: add transparent border color
-            #ifndef SWIG
+            case aiTextureMapMode_Wrap :        return EAddressMode::Repeat;
+            case aiTextureMapMode_Mirror :      return EAddressMode::MirrorRepeat;
+            case aiTextureMapMode_Clamp :       return EAddressMode::ClampToEdge;
+            case aiTextureMapMode_Decal :       return EAddressMode::ClampToBorder; // TODO: add transparent border color
             case _aiTextureMapMode_Force32Bit : break;
-            #endif
         }
         END_ENUM_CHECKS();
         RETURN_ERR( "unknown wrap mode", EAddressMode::Repeat );
+    }
+
+/*
+=================================================
+    ConvertBorderColor
+=================================================
+*/
+    ND_ static EBorderColor  ConvertBorderColor (aiTextureMapMode u, aiTextureMapMode v, aiTextureMapMode w)
+    {
+        if ( u == aiTextureMapMode_Decal or
+             v == aiTextureMapMode_Decal or
+             w == aiTextureMapMode_Decal )
+            return EBorderColor::FloatTransparentBlack;
+
+        return Default;
     }
 
 /*
@@ -163,13 +150,122 @@ namespace {
             case aiTextureMapping_BOX :         return ETextureMapping::Box;
             case aiTextureMapping_PLANE :       return ETextureMapping::Plane;
             case aiTextureMapping_OTHER :       break;
-            #ifndef SWIG
             case _aiTextureMapping_Force32Bit : break;
-            #endif
         }
         END_ENUM_CHECKS();
         RETURN_ERR( "unknown texture mapping" );
     };
+
+/*
+=================================================
+    TextureTypeToMaterialKey
+=================================================
+*/
+    ND_ static IntermMaterial::EKey  TextureTypeToMaterialKey (aiTextureType type)
+    {
+        BEGIN_ENUM_CHECKS();
+        switch ( type )
+        {
+            case aiTextureType_DIFFUSE :            return IntermMaterial::EKey::Diffuse;
+            case aiTextureType_SPECULAR :           return IntermMaterial::EKey::Specular;
+            case aiTextureType_AMBIENT :            return IntermMaterial::EKey::Ambient;
+            case aiTextureType_EMISSIVE :           return IntermMaterial::EKey::Emissive;
+            case aiTextureType_HEIGHT :             return IntermMaterial::EKey::HeightMap;
+            case aiTextureType_NORMALS :            return IntermMaterial::EKey::NormalMap;
+            case aiTextureType_SHININESS :          return IntermMaterial::EKey::Shininess;
+            case aiTextureType_OPACITY :            return IntermMaterial::EKey::Opacity;
+            case aiTextureType_DISPLACEMENT :       return IntermMaterial::EKey::DisplacementMap;
+            case aiTextureType_LIGHTMAP :           return IntermMaterial::EKey::LightMap;
+            case aiTextureType_REFLECTION :         return IntermMaterial::EKey::ReflectionMap;
+
+            case aiTextureType_BASE_COLOR :         return IntermMaterial::EKey::PBR_BaseColor;
+            case aiTextureType_NORMAL_CAMERA :      return IntermMaterial::EKey::PBR_NormalMap;
+            case aiTextureType_EMISSION_COLOR :     return IntermMaterial::EKey::PBR_Emission;
+            case aiTextureType_METALNESS :          return IntermMaterial::EKey::PBR_Metalness;
+            case aiTextureType_DIFFUSE_ROUGHNESS :  return IntermMaterial::EKey::PBR_Roughness;
+            case aiTextureType_AMBIENT_OCCLUSION :  return IntermMaterial::EKey::PBR_AmbientOcclusionMap;
+            case aiTextureType_SHEEN :              return IntermMaterial::EKey::PBR_Sheen;
+            case aiTextureType_CLEARCOAT :          return IntermMaterial::EKey::PBR_Clearcoat;
+            case aiTextureType_TRANSMISSION :       return IntermMaterial::EKey::PBR_Transmission;
+
+            case aiTextureType_NONE :
+            case aiTextureType_UNKNOWN :
+            case _aiTextureType_Force32Bit :        break;
+        }
+        END_ENUM_CHECKS();
+        return Default;
+    }
+
+/*
+=================================================
+    TextureTypeToMaterialKey
+=================================================
+*/
+    static bool  ReadColorForTexture (const aiMaterial *src, aiTextureType texType, OUT float4 &value)
+    {
+        #define GET_COLOR( _key_ )                                  \
+        {                                                           \
+            aiColor4D   color;                                      \
+            if ( src->Get( _key_, OUT color ) == AI_SUCCESS ) {     \
+                value = ConvertVec( color );                        \
+                return true;                                        \
+            }                                                       \
+            break;                                                  \
+        }
+        #define GET_VALUE( _key_ )                                  \
+        {                                                           \
+            float   fvalue  = 0.0f;                                 \
+            if ( src->Get( _key_, OUT fvalue ) == AI_SUCCESS ) {    \
+                value = float4{ fvalue };                           \
+                return true;                                        \
+            }                                                       \
+            break;                                                  \
+        }
+
+        BEGIN_ENUM_CHECKS();
+        switch ( texType )
+        {
+            case aiTextureType_DIFFUSE :            GET_COLOR( AI_MATKEY_COLOR_DIFFUSE );
+            case aiTextureType_SPECULAR :           GET_COLOR( AI_MATKEY_COLOR_SPECULAR );
+            case aiTextureType_AMBIENT :            GET_COLOR( AI_MATKEY_COLOR_AMBIENT );
+            case aiTextureType_EMISSIVE :           GET_COLOR( AI_MATKEY_COLOR_EMISSIVE );
+            case aiTextureType_HEIGHT :             break;
+            case aiTextureType_NORMALS :            break;
+            case aiTextureType_SHININESS :          GET_VALUE( AI_MATKEY_SHININESS );
+            case aiTextureType_DISPLACEMENT :       break;
+            case aiTextureType_LIGHTMAP :           break;
+            case aiTextureType_REFLECTION :         break;
+
+            case aiTextureType_OPACITY :
+            {
+                float   fvalue  = 0.0f;
+                if ( src->Get( AI_MATKEY_OPACITY, OUT fvalue ) == AI_SUCCESS and fvalue < 1.f ) {
+                    value = float4{ fvalue };
+                    return true;
+                }
+                break;
+            }
+
+            case aiTextureType_BASE_COLOR :         GET_COLOR( AI_MATKEY_BASE_COLOR );
+            case aiTextureType_NORMAL_CAMERA :      break;
+            case aiTextureType_EMISSION_COLOR :     break;
+            case aiTextureType_METALNESS :          break;
+            case aiTextureType_DIFFUSE_ROUGHNESS :  break;
+            case aiTextureType_AMBIENT_OCCLUSION :  break;
+            case aiTextureType_SHEEN :              GET_COLOR( AI_MATKEY_SHEEN_COLOR_FACTOR );
+            case aiTextureType_CLEARCOAT :          break;
+            case aiTextureType_TRANSMISSION :       break;
+
+            case aiTextureType_NONE :
+            case aiTextureType_UNKNOWN :
+            case _aiTextureType_Force32Bit :        break;
+        }
+        END_ENUM_CHECKS();
+        return false;
+
+        #undef GET_COLOR
+        #undef GET_VALUE
+    }
 
 /*
 =================================================
@@ -178,73 +274,118 @@ namespace {
 */
     ND_ static bool  LoadMaterial (const aiMaterial *src, OUT RC<IntermMaterial> &dst)
     {
-        IntermMaterial::Settings    mtr;
+        using EKey = IntermMaterial::EKey;
 
-        aiColor4D   color;
-        float       fvalue      = 0.0f;
-        uint        max_size    = 1;
+        dst = MakeRC<IntermMaterial>();
 
-        aiString    mtr_name;
-        aiGetMaterialString( src, AI_MATKEY_NAME, OUT &mtr_name );
-        mtr.name = mtr_name.C_Str();
-
-        if ( aiGetMaterialColor( src, AI_MATKEY_COLOR_DIFFUSE, OUT &color ) == aiReturn_SUCCESS )
-            mtr.albedo = ConvertColor( color );
-
-        if ( aiGetMaterialColor( src, AI_MATKEY_COLOR_SPECULAR, OUT &color ) == aiReturn_SUCCESS )
-            mtr.specular = ConvertColor( color );
-
-        if ( aiGetMaterialColor( src, AI_MATKEY_COLOR_AMBIENT, OUT &color ) == aiReturn_SUCCESS )
-            mtr.ambient = ConvertColor( color );
-
-        if ( aiGetMaterialColor( src, AI_MATKEY_COLOR_EMISSIVE, OUT &color ) == aiReturn_SUCCESS )
-            mtr.emissive = ConvertColor( color );
-
-        if ( aiGetMaterialFloatArray( src, AI_MATKEY_OPACITY, OUT &fvalue, &max_size ) == aiReturn_SUCCESS and fvalue < 1.0f )
-            mtr.opacity = fvalue;
-
-        if ( aiGetMaterialFloatArray( src, AI_MATKEY_SHININESS, OUT &fvalue, &max_size ) == aiReturn_SUCCESS )
-            mtr.shininess = fvalue;
-
-        aiGetMaterialFloatArray( src, AI_MATKEY_SHININESS_STRENGTH, OUT &mtr.shininessStrength, &max_size );
-
-        int     two_sided = 1;
-        aiGetMaterialInteger( src, AI_MATKEY_TWOSIDED, OUT &two_sided );
-        mtr.cullMode = two_sided ? ECullMode::None : ECullMode::Back;
-
-        StaticArray< IntermMaterial::Parameter*, aiTextureType_UNKNOWN >    textures =
         {
-            null, &mtr.albedo, &mtr.specular, &mtr.ambient, &mtr.emissive, &mtr.heightMap, &mtr.normalMap,
-            &mtr.shininess, &mtr.opacity, &mtr.displacementMap, &mtr.lightMap, &mtr.reflectionMap
-        };
+            aiString    mtr_name;
+            if ( src->Get( AI_MATKEY_NAME, OUT mtr_name ) == AI_SUCCESS )
+                dst->Set( Str( mtr_name ));
+        }{
+            int     two_sided = 1;
+            if ( src->Get( AI_MATKEY_TWOSIDED, OUT two_sided ) == AI_SUCCESS )
+                dst->Set( two_sided != 0 ? ECullMode::None : ECullMode::Back );
+        }{
+            int     wireframe = 0;
+            if ( src->Get( AI_MATKEY_ENABLE_WIREFRAME, OUT wireframe ) == AI_SUCCESS )
+                dst->EditSettings().wireframe = (wireframe != 0);
+        }{
+            int     blend_mode = 0;
+            if ( src->Get( AI_MATKEY_BLEND_FUNC, OUT blend_mode ) == AI_SUCCESS )
+            {
+                auto&   blend = dst->EditSettings().blendMode;
+                BEGIN_ENUM_CHECKS();
+                switch ( aiBlendMode(blend_mode) )
+                {
+                    case aiBlendMode_Default :
+                        blend.src = EBlendFactor::SrcAlpha;
+                        blend.dst = EBlendFactor::OneMinusSrcAlpha;
+                        blend.op  = EBlendOp::Add;
+                        break;
 
-        for (uint i = 0; i < aiTextureType_UNKNOWN; ++i)
+                    case aiBlendMode_Additive :
+                        blend.src = EBlendFactor::One;
+                        blend.dst = EBlendFactor::One;
+                        blend.op  = EBlendOp::Add;
+                        break;
+
+                    case _aiBlendMode_Force32Bit :
+                    default :                       DBG_WARNING( "unknown blend mode" );
+                }
+                END_ENUM_CHECKS();
+            }
+        }
+
+        for (uint i = 0; i <= AI_TEXTURE_TYPE_MAX; ++i)
         {
-            auto tex = textures[i];
-            if ( tex == null ) continue;
+            const auto  key = TextureTypeToMaterialKey( aiTextureType(i) );
+            if ( key == Default )
+                continue;
 
             aiString            tex_name;
             aiTextureMapMode    map_mode[3] = { aiTextureMapMode_Wrap, aiTextureMapMode_Wrap, aiTextureMapMode_Wrap };
             aiTextureMapping    mapping     = aiTextureMapping_UV;
-            uint                uv_index    = 0;
+            uint                uv_index    = UMax;
 
             if ( src->GetTexture( aiTextureType(i), 0, OUT &tex_name, OUT &mapping, OUT &uv_index, null, null, OUT map_mode ) == AI_SUCCESS )
             {
                 IntermMaterial::MtrTexture  mtr_tex;
-                mtr_tex.name            = tex_name.C_Str();
+                mtr_tex.image           = MakeRC<IntermImage>( Str( tex_name ));
+                mtr_tex.name            = Str( tex_name );
+            //  mtr_tex.uvTransform     =
+                mtr_tex.mapping         = ConvertMapping( mapping );
                 mtr_tex.addressModeU    = ConvertWrapMode( map_mode[0] );
                 mtr_tex.addressModeV    = ConvertWrapMode( map_mode[1] );
                 mtr_tex.addressModeW    = ConvertWrapMode( map_mode[2] );
-                mtr_tex.mapping         = ConvertMapping( mapping );
                 mtr_tex.filter          = EFilter::Linear;
-                mtr_tex.uvIndex         = uv_index;
-                mtr_tex.image           = MakeRC<IntermImage>( StringView{tex_name.C_Str()} );
+                mtr_tex.borderColor     = ConvertBorderColor( map_mode[0], map_mode[1], map_mode[2] );
+                mtr_tex.uvIndex         = ubyte(uv_index);
+                ReadColorForTexture( src, aiTextureType(i), OUT mtr_tex.valueScale );
 
-                *tex = RVRef(mtr_tex);
+                int     flags = 0;
+                if ( src->Get( AI_MATKEY_TEXFLAGS(aiTextureType(i),0), OUT flags ) == AI_SUCCESS ) {
+                    flags = 0;
+                }
+
+                dst->Set( key, RVRef(mtr_tex) );
+            }
+            else
+            {
+                float4  value;
+                if ( ReadColorForTexture( src, aiTextureType(i), OUT value ))
+                    dst->Set( key, value );
             }
         }
 
-        dst = MakeRC<IntermMaterial>( RVRef(mtr) );
+        {
+            aiString    mode;
+            if ( src->Get( AI_MATKEY_GLTF_ALPHAMODE, OUT mode ) == AI_SUCCESS )
+            {
+                if ( Str(mode) == "MASK" )
+                {
+                    float   cutoff = 0.5f;
+                    src->Get( AI_MATKEY_GLTF_ALPHACUTOFF, OUT cutoff );
+                    dst->EditSettings().alphaCutoff = cutoff;
+                }
+                else
+                if ( Str(mode) == "OPAQUE" )
+                {
+                    CHECK( not dst->EditSettings().blendMode );
+                }
+                else
+                if ( Str(mode) == "BLEND" )
+                {
+                    auto&   blend = dst->EditSettings().blendMode;
+                    blend.src = EBlendFactor::SrcAlpha;
+                    blend.dst = EBlendFactor::OneMinusSrcAlpha;
+                    blend.op  = EBlendOp::Add;
+                }
+                else
+                    AE_LOG_DBG( "In material '"s << dst->Name() << "' has unsupported alphaMode='"s << Str(mode) << "'" );
+            }
+        }
+
         return true;
     }
 
@@ -306,6 +447,9 @@ namespace {
     {
         CHECK_ERR( src->mPrimitiveTypes == aiPrimitiveType_TRIANGLE );
         CHECK_ERR( not src->HasBones() );
+        CHECK_ERR( src->mNumFaces > 0 );
+        CHECK_ERR( src->mNumVertices > 0 );
+        CHECK_ERR( src->mFaces[0].mNumIndices == 3 );
 
         Bytes                   vert_stride;
         RC<IntermVertexAttribs> attribs;
@@ -323,8 +467,8 @@ namespace {
             MemCopy( OUT const_cast<T &>(at_data[vertIdx]), data );
         }};
 
-        vertices.resize( src->mNumVertices * usize(vert_stride) );
-        indices.resize( src->mNumFaces * 3 * sizeof(uint) );
+        vertices.resize( src->mNumVertices * usize(vert_stride) );  // throw
+        indices.resize( src->mNumFaces * 3 * sizeof(uint) );        // throw
 
         for (uint i = 0; i < src->mNumFaces; ++i)
         {
@@ -339,25 +483,25 @@ namespace {
         if ( src->HasPositions() )
         {
             for (uint i = 0; i < src->mNumVertices; ++i) {
-                CopyAttrib( float3{src->mVertices[i].x, src->mVertices[i].y, src->mVertices[i].z}, VertexAttributeName::Position, i );
+                CopyAttrib( packed_float3{src->mVertices[i].x, src->mVertices[i].y, src->mVertices[i].z}, VertexAttributeName::Position, i );
             }
         }
         if ( src->HasNormals() )
         {
             for (uint i = 0; i < src->mNumVertices; ++i) {
-                CopyAttrib( float3{src->mNormals[i].x, src->mNormals[i].y, src->mNormals[i].z}, VertexAttributeName::Normal, i );
+                CopyAttrib( Normalize(packed_float3{src->mNormals[i].x, src->mNormals[i].y, src->mNormals[i].z}), VertexAttributeName::Normal, i );
             }
         }
         if ( src->mTangents != null )
         {
             for (uint i = 0; i < src->mNumVertices; ++i) {
-                CopyAttrib( float3{src->mTangents[i].x, src->mTangents[i].y, src->mTangents[i].z}, VertexAttributeName::Tangent, i );
+                CopyAttrib( Normalize(packed_float3{src->mTangents[i].x, src->mTangents[i].y, src->mTangents[i].z}), VertexAttributeName::Tangent, i );
             }
         }
         if ( src->mBitangents != null )
         {
             for (uint i = 0; i < src->mNumVertices; ++i) {
-                CopyAttrib( float3{src->mBitangents[i].x, src->mBitangents[i].y, src->mBitangents[i].z}, VertexAttributeName::BiTangent, i );
+                CopyAttrib( Normalize(packed_float3{src->mBitangents[i].x, src->mBitangents[i].y, src->mBitangents[i].z}), VertexAttributeName::BiTangent, i );
             }
         }
 
@@ -369,26 +513,31 @@ namespace {
             if ( src->mNumUVComponents[t] == 2 )
             {
                 for (uint i = 0; i < src->mNumVertices; ++i) {
-                    CopyAttrib( float2{src->mTextureCoords[t][i].x, src->mTextureCoords[t][i].y}, VertexAttributeName::TextureUVs[t], i );
+                    CopyAttrib( packed_float2{src->mTextureCoords[t][i].x, 1.f - src->mTextureCoords[t][i].y}, VertexAttributeName::TextureUVs[t], i );
                 }
             }
             else
             //if ( src->mNumUVComponents[t] == 3 )
             {
                 for (uint i = 0; i < src->mNumVertices; ++i) {
-                    CopyAttrib( float3{src->mTextureCoords[t][i].x, src->mTextureCoords[t][i].y, src->mTextureCoords[t][i].z}, VertexAttributeName::TextureUVs[t], i );
+                    CopyAttrib( packed_float3{src->mTextureCoords[t][i].x, src->mTextureCoords[t][i].y, src->mTextureCoords[t][i].z}, VertexAttributeName::TextureUVs[t], i );
                 }
             }
         }
 
         EPrimitive  topology = Default;
+        BEGIN_ENUM_CHECKS();
         switch ( src->mPrimitiveTypes )
         {
             case aiPrimitiveType_POINT :        topology = EPrimitive::Point;           break;
             case aiPrimitiveType_LINE :         topology = EPrimitive::LineList;        break;
             case aiPrimitiveType_TRIANGLE :     topology = EPrimitive::TriangleList;    break;
+            case aiPrimitiveType_POLYGON :
+            case aiPrimitiveType_NGONEncodingFlag :
+            case _aiPrimitiveType_Force32Bit :
             default :                           RETURN_ERR( "unsupported type" );
         }
+        END_ENUM_CHECKS();
 
         dst = MakeRC<IntermMesh>( RVRef(vertices), RVRef(attribs), vert_stride, topology, RVRef(indices), EIndex::UInt );
         return true;
@@ -413,9 +562,11 @@ namespace {
         light.diffuseColor  = ConvertVec( src->mColorDiffuse );
         light.specularColor = ConvertVec( src->mColorSpecular );
         light.ambientColor  = ConvertVec( src->mColorAmbient );
+        light.areaSize      = ConvertVec( src->mSize );
 
         light.coneAngleInnerOuter = float2{ src->mAngleInnerCone, src->mAngleOuterCone };
 
+        BEGIN_ENUM_CHECKS();
         switch ( src->mType )
         {
             case aiLightSource_DIRECTIONAL :    light.type = ELightType::Directional;   break;
@@ -423,8 +574,11 @@ namespace {
             case aiLightSource_SPOT :           light.type = ELightType::Spot;          break;
             case aiLightSource_AMBIENT :        light.type = ELightType::Ambient;       break;
             case aiLightSource_AREA :           light.type = ELightType::Area;          break;
-            default :                           ASSERT( !"unknown light type" );        break;
+            case aiLightSource_UNDEFINED :
+            case _aiLightSource_Force32Bit :
+            default :                           DBG_WARNING( "unknown light type" );    break;
         }
+        END_ENUM_CHECKS();
 
         dst = MakeRC<IntermLight>( RVRef(light) );
         return true;
@@ -437,7 +591,7 @@ namespace {
 */
     ND_ static bool  LoadMaterials (const aiScene *scene, OUT Array<RC<IntermMaterial>> &outMaterials)
     {
-        outMaterials.resize( scene->mNumMaterials );
+        outMaterials.resize( scene->mNumMaterials );  // throw
 
         for (uint i = 0; i < scene->mNumMaterials; ++i)
         {
@@ -453,7 +607,7 @@ namespace {
 */
     ND_ static bool  LoadMeshes (const aiScene *scene, OUT Array<RC<IntermMesh>> &outMeshes, INOUT VertexAttribsSet_t &attribsCache)
     {
-        outMeshes.resize( scene->mNumMeshes );
+        outMeshes.resize( scene->mNumMeshes );  // throw
 
         for (uint i = 0; i < scene->mNumMeshes; ++i)
         {
@@ -469,7 +623,7 @@ namespace {
 */
     ND_ static bool  LoadLights (const aiScene *scene, OUT Array<RC<IntermLight>> &outLights)
     {
-        outLights.resize( scene->mNumLights );
+        outLights.resize( scene->mNumLights );  // throw
 
         for (uint i = 0; i < scene->mNumLights; ++i)
         {
@@ -528,34 +682,54 @@ namespace {
         return true;
     }
 
+/*
+=================================================
+    SetupImporterAndGetSceneLoadFlags
+=================================================
+*/
+    ND_ static uint  SetupImporterAndGetSceneLoadFlags (Assimp::Importer &importer, const IModelLoader::Config &config)
+    {
+        importer.SetPropertyInteger( AI_CONFIG_PP_SLM_TRIANGLE_LIMIT,   config.maxTrianglesPerMesh );
+        importer.SetPropertyInteger( AI_CONFIG_PP_SLM_VERTEX_LIMIT,     config.maxVerticesPerMesh );
+
+        return  0
+                | (config.calculateTBN      ? aiProcess_CalcTangentSpace : 0)
+                | aiProcess_Triangulate
+                | (config.smoothNormals     ? aiProcess_GenSmoothNormals : aiProcess_GenNormals)
+                | aiProcess_RemoveRedundantMaterials
+                | aiProcess_GenUVCoords 
+                | aiProcess_TransformUVCoords
+                | (config.splitLargeMeshes  ? aiProcess_SplitLargeMeshes : 0)
+                | (not config.optimize      ? 0 :
+                    (aiProcess_JoinIdenticalVertices | aiProcess_FindInstances |
+                     aiProcess_OptimizeMeshes | aiProcess_ImproveCacheLocality /*| aiProcess_OptimizeGraph*/));
+    }
+
+/*
+=================================================
+    LoadScene
+=================================================
+*/
+    ND_ static bool  LoadScene (OUT IntermScene &outScene,
+                                const aiScene*  scene)
+    {
+        SceneData   scene_data;
+        CHECK_ERR( LoadMaterials( scene, OUT scene_data.materials ));
+        CHECK_ERR( LoadMeshes( scene, OUT scene_data.meshes, INOUT scene_data.attribsCache ));
+        //CHECK_ERR( LoadAnimations( scene, OUT scene_data.animations ));   // TODO
+        CHECK_ERR( LoadLights( scene, OUT scene_data.lights ));
+        CHECK_ERR( LoadHierarchy( scene, INOUT scene_data ));
+
+        outScene.Set( scene_data.materials, scene_data.meshes,
+                        RVRef(scene_data.lights), RVRef(scene_data.root) );
+        ASSERT( outScene.IsValid() );
+        return true;
+    }
+
 } // namespace
 //-----------------------------------------------------------------------------
 
 
-
-/*
-=================================================
-    constructor
-=================================================
-*/
-    AssimpLoader::AssimpLoader () __NE___
-    {
-        EXLOCK( _guard );
-
-        _importerPtr.reset( new Assimp::Importer{} );
-        AssimpInit();
-    }
-
-/*
-=================================================
-    destructor
-=================================================
-*/
-    AssimpLoader::~AssimpLoader () __NE___
-    {
-        EXLOCK( _guard );
-        _importerPtr.reset( null );
-    }
 
 /*
 =================================================
@@ -570,45 +744,28 @@ namespace {
         CHECK_ERR( stream.IsOpen() );
 
         Array<ubyte>    data;
-        CATCH_ERR( data.resize( usize(stream.RemainingSize()) ));
+        CATCH_ERR( data.resize( usize(stream.RemainingSize()) ));  // throw
 
         CHECK_ERR( stream.ReadSeq( OUT data.data(), ArraySizeOf(data) ) == ArraySizeOf(data) );
 
+        try {
+            AssimpInit();
+            Assimp::Importer    importer;
 
-        EXLOCK( _guard );
+            const auto      fmt_hint    = ModelFormatToExt( format );
+            const auto      load_flags  = SetupImporterAndGetSceneLoadFlags( importer, config );
 
-        const auto  fmt_hint        = ModelFormatToExt( format );
-        const uint  sceneLoadFlags  = 0
-                                    | (config.calculateTBN      ? aiProcess_CalcTangentSpace : 0)
-                                    | aiProcess_Triangulate
-                                    | (config.smoothNormals     ? aiProcess_GenSmoothNormals : aiProcess_GenNormals)
-                                    | aiProcess_RemoveRedundantMaterials
-                                    | aiProcess_GenUVCoords 
-                                    | aiProcess_TransformUVCoords
-                                    | (config.splitLargeMeshes  ? aiProcess_SplitLargeMeshes : 0)
-                                    | (not config.optimize      ? 0 :
-                                        (aiProcess_JoinIdenticalVertices | aiProcess_FindInstances |
-                                         aiProcess_OptimizeMeshes | aiProcess_ImproveCacheLocality /*| aiProcess_OptimizeGraph*/));
+            const aiScene * scene       = importer.ReadFileFromMemory( data.data(), data.size(), load_flags, fmt_hint.data() );
+            const char*     err_str     = importer.GetErrorString();
 
-        _importerPtr->SetPropertyInteger( AI_CONFIG_PP_SLM_TRIANGLE_LIMIT,  config.maxTrianglesPerMesh );
-        _importerPtr->SetPropertyInteger( AI_CONFIG_PP_SLM_VERTEX_LIMIT,    config.maxVerticesPerMesh );
+            CHECK_ERR( scene != null );
+            Unused( err_str );
 
-        const aiScene * scene   = _importerPtr->ReadFileFromMemory( data.data(), data.size(), sceneLoadFlags, fmt_hint.data() );
-        const char*     err_str = _importerPtr->GetErrorString();
-
-        CHECK_ERR( scene != null );
-        Unused( err_str );
-
-        SceneData   scene_data;
-        CHECK_ERR( LoadMaterials( scene, OUT scene_data.materials ));
-        CHECK_ERR( LoadMeshes( scene, OUT scene_data.meshes, INOUT scene_data.attribsCache ));
-        //CHECK_ERR( LoadAnimations( scene, OUT scene_data.animations ));   // TODO
-        CHECK_ERR( LoadLights( scene, OUT scene_data.lights ));
-        CHECK_ERR( LoadHierarchy( scene, INOUT scene_data ));
-
-        outScene.Set( scene_data.materials, scene_data.meshes,
-                      RVRef(scene_data.lights), RVRef(scene_data.root) );
-        return true;
+            return LoadScene( OUT outScene, scene );
+        }
+        catch (...) {
+            return false;
+        }
     }
 
 /*
@@ -620,40 +777,24 @@ namespace {
                                    const Path       &scenePath,
                                    const Config     &config) __NE___
     {
-        EXLOCK( _guard );
+        try {
+            AssimpInit();
+            Assimp::Importer    importer;
 
-        const auto  path            = scenePath.string();
-        const uint  sceneLoadFlags  = 0
-                                    | (config.calculateTBN      ? aiProcess_CalcTangentSpace : 0)
-                                    | aiProcess_Triangulate
-                                    | (config.smoothNormals     ? aiProcess_GenSmoothNormals : aiProcess_GenNormals)
-                                    | aiProcess_RemoveRedundantMaterials
-                                //  | aiProcess_GenUVCoords 
-                                //  | aiProcess_TransformUVCoords
-                                    | (config.splitLargeMeshes  ? aiProcess_SplitLargeMeshes : 0)
-                                    | (not config.optimize      ? 0 :
-                                        (aiProcess_JoinIdenticalVertices | aiProcess_FindInstances |
-                                         aiProcess_OptimizeMeshes | aiProcess_ImproveCacheLocality /*| aiProcess_OptimizeGraph*/));
+            const auto      path        = scenePath.string();
+            const auto      load_flags  = SetupImporterAndGetSceneLoadFlags( importer, config );
 
-        _importerPtr->SetPropertyInteger( AI_CONFIG_PP_SLM_TRIANGLE_LIMIT,  config.maxTrianglesPerMesh );
-        _importerPtr->SetPropertyInteger( AI_CONFIG_PP_SLM_VERTEX_LIMIT,    config.maxVerticesPerMesh );
+            const aiScene * scene       = importer.ReadFile( path, load_flags );
+            const char*     err_str     = importer.GetErrorString();
 
-        const aiScene * scene   = _importerPtr->ReadFile( path, sceneLoadFlags );
-        const char*     err_str = _importerPtr->GetErrorString();
+            CHECK_ERR( scene != null );
+            Unused( err_str );
 
-        CHECK_ERR( scene != null );
-        Unused( err_str );
-
-        SceneData   scene_data;
-        CHECK_ERR( LoadMaterials( scene, OUT scene_data.materials ));
-        CHECK_ERR( LoadMeshes( scene, OUT scene_data.meshes, INOUT scene_data.attribsCache ));
-        //CHECK_ERR( LoadAnimations( scene, OUT scene_data.animations ));   // TODO
-        CHECK_ERR( LoadLights( scene, OUT scene_data.lights ));
-        CHECK_ERR( LoadHierarchy( scene, INOUT scene_data ));
-
-        outScene.Set( scene_data.materials, scene_data.meshes,
-                      RVRef(scene_data.lights), RVRef(scene_data.root) );
-        return true;
+            return LoadScene( OUT outScene, scene );
+        }
+        catch (...) {
+            return false;
+        }
     }
 
 

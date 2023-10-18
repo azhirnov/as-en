@@ -108,7 +108,7 @@ no source
  * Graphics debugging
  * Shader debugging (requires `EShaderOpt::DebugInfo`)
  * Don't use for profiling!
- * [RenderDocApi](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/platform/Utils/RenderDocApi.h) class for interaction
+ * [RenderDocApi](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/RenderDocApi.h) class for interaction
  * `IBaseContext::DebugMarker()`, `IBaseContext::PushDebugGroup()`, `IBaseContext::PopDebugGroup()` methods for interaction
  
 #### Intel VTune / AMD uProf

@@ -86,7 +86,7 @@ namespace
                 break;
 
             case EImage_CubeArray :
-                CHECK_ERR( IsAligned( arr_layers, 6 ));
+                CHECK_ERR( IsMultipleOf( arr_layers, 6 ));
                 arr_layers /= 6;
                 cube_faces  = 6;
                 devil.ilSetInteger( IL_NUM_LAYERS, arr_layers );

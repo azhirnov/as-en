@@ -14,10 +14,10 @@
     void ASmain ()
     {
         // initialize
-        RC<Image>   rt      = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );        rt.Name( "RT" );
-        const uint  st_size = 48 * 128;
-        RC<Buffer>  storage = Buffer( st_size );
-        RC<Buffer>  cbuffer = Buffer();
+        RC<Image>   rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );        rt.Name( "RT" );
+        const uint  st_size     = 48 * 128;
+        RC<Buffer>  storage     = Buffer( st_size );
+        RC<Buffer>  cbuffer     = Buffer();
 
         cbuffer.ULong(  "root",     storage.DeviceAddress() );  cbuffer.AddReference( storage );
         cbuffer.ULong(  "maxSize",  st_size );
@@ -48,7 +48,7 @@
     layout(buffer_reference) buffer Node;
 
     // binary tree node
-    layout(std430, buffer_reference, buffer_reference_align=16) buffer Node
+    layout(std430, buffer_reference) buffer Node
     {
         float4  rect;
         float4  color;

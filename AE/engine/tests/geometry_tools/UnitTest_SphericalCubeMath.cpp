@@ -10,7 +10,6 @@ namespace
     void Test_ForwardInverseProjection ()
     {
         static constexpr uint   lod = 12;
-        static constexpr double err = 0.0001;
 
         for (uint face = 0; face < 6; ++face)
         {
@@ -24,8 +23,8 @@ namespace
                 auto[inv, inv_face] = Projection::Inverse( forward );
 
                 TEST( uint(inv_face) == face );
-                TEST(Equals( ncoord.x, inv.x, err ));
-                TEST(Equals( ncoord.y, inv.y, err ));
+                TEST(BitEqual( ncoord.x, inv.x ));
+                TEST(BitEqual( ncoord.y, inv.y ));
             }
         }
     }

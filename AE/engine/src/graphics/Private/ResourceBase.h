@@ -15,14 +15,15 @@ namespace AE::Graphics
     class alignas(AE_CACHE_LINE) ResourceBase final
     {
     // types
-    public:
+    private:
         enum class EState : uint
         {
-            Initial         = 0,
+            Destroyed   = 0,
             Failed,
             Created,
         };
 
+    public:
         using Self          = ResourceBase< ResType >;
         using Resource_t    = ResType;
         using Generation_t  = BufferID::Generation_t;
@@ -33,7 +34,7 @@ namespace AE::Graphics
         // instance counter used to detect deprecated handles
         Atomic<uint>            _generation {0};
 
-        Atomic<EState>          _state      {EState::Initial};
+        Atomic<EState>          _state      {EState::Destroyed};
 
         ResType                 _data;
 
@@ -42,32 +43,32 @@ namespace AE::Graphics
 
     // methods
     public:
-        ResourceBase ()                         __NE___ {}
+        ResourceBase ()                                 __NE___ {}
 
-        ResourceBase (Self &&)                  = delete;
-        ResourceBase (const Self &)             = delete;
+        ResourceBase (Self &&)                          = delete;
+        ResourceBase (const Self &)                     = delete;
 
-        Self& operator = (Self &&)              = delete;
-        Self& operator = (const Self &)         = delete;
+        Self& operator = (Self &&)                      = delete;
+        Self& operator = (const Self &)                 = delete;
 
-        ~ResourceBase ()                        __NE___ { ASSERT( IsDestroyed() ); }
+        ~ResourceBase ()                                __NE___ { ASSERT( IsDestroyed() ); }
 
-            void    AddRef ()                   C_NE___ { _refCounter.fetch_add( 1 ); }
-        ND_ int     ReleaseRef (int refCount)   C_NE___ { return (_refCounter.fetch_sub( refCount ) - refCount); }
+            void            AddRef ()                   C_NE___ { _refCounter.fetch_add( 1 ); }
+        ND_ int             ReleaseRef (int refCount)   C_NE___ { return (_refCounter.fetch_sub( refCount ) - refCount); }
 
 
-        ND_ bool            IsCreated ()        C_NE___ { return _GetState() == EState::Created; }
-        ND_ bool            IsDestroyed ()      C_NE___ { return _GetState() <= EState::Failed; }
+        ND_ bool            IsCreated ()                C_NE___ { return _GetState() == EState::Created; }
+        ND_ bool            IsDestroyed ()              C_NE___ { return _GetState() == EState::Destroyed; }
 
-        ND_ Generation_t    GetGeneration ()    C_NE___ { return Generation_t(_generation.load()); }
-        ND_ int             GetRefCount ()      C_NE___ { return _refCounter.load(); }
+        ND_ Generation_t    GetGeneration ()            C_NE___ { return Generation_t(_generation.load()); }
+        ND_ int             GetRefCount ()              C_NE___ { return _refCounter.load(); }
 
-        ND_ ResType&        Data ()             __NE___ { return _data; }
-        ND_ ResType const&  Data ()             C_NE___ { return _data; }
+        ND_ ResType&        Data ()                     __NE___ { return _data; }
+        ND_ ResType const&  Data ()                     C_NE___ { return _data; }
 
 
         template <typename ...Args>
-        ND_ bool  Create (Args&& ...args)       __NE___
+        ND_ bool  Create (Args&& ...args)               __NE___
         {
             ASSERT( IsDestroyed() );
             ASSERT( GetRefCount() == 0 );
@@ -81,19 +82,19 @@ namespace AE::Graphics
         }
 
         template <typename ...Args>
-        void  Destroy (Args&& ...args)          __NE___
+        void  Destroy (Args&& ...args)                  __NE___
         {
-            ASSERT( not IsDestroyed() );
+            ASSERT( AnyEqual( _GetState(), EState::Created, EState::Failed ));
             //ASSERT( GetRefCount() == 0 );
 
-            _data.Destroy( FwdArg<Args &&>( args )... );
+            _data.Destroy( FwdArg<Args>( args )... );
 
             // flush cache
             MemoryBarrier( EMemoryOrder::Release );
 
             // update atomics
             _refCounter.store( 0 );
-            _state.store( EState::Initial );
+            _state.store( EState::Destroyed );
 
             constexpr uint  max_gen = BufferID::MaxGeneration();
 
@@ -105,7 +106,7 @@ namespace AE::Graphics
         }
 
     private:
-        ND_ EState  _GetState ()                C_NE___ { return _state.load(); }
+        ND_ EState  _GetState ()                        C_NE___ { return _state.load(); }
     };
 
 

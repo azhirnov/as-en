@@ -221,13 +221,13 @@ namespace AE::App
 
             if ( update_rotation )
             {
-                packed_float2               accum_rotation;
+                float2                      accum_rotation;
                 ActionQueueReader::Header   hdr;
 
                 for (; reader.ReadHeader( OUT hdr );)
                 {
                     if ( hdr.name == InputActionName{".VRE.Rotate"} )
-                        accum_rotation += reader.Data<packed_float2>( hdr.offset );
+                        accum_rotation += reader.DataCopy<float2>( hdr.offset );
                 }
 
                 if ( Any( not IsZero( accum_rotation )))

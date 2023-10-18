@@ -13,19 +13,27 @@ Content:
 * Renderer is written in scripts.
 * Hot reloading.
 * Sliders and color pickers for passing data to the shader.
-* Built-in shader debugger and profiler.
+* Built-in shader debugger and profiler:
+    - [GLSL-Trace](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/res_pack/shader_trace/Readme.md).
+    - RenderDoc API.
+    - NSight (*in progress*)
 * Various 2D & 3D cameras.
 * Geometry templates:
     - Spherical cube with tangential projection (skybox, planet rendering)
     - Particles
     - Raw draw calls
     - Terrain (*in progress*)
+    - Models/Scenes (loaded using Assimp).
 * Compatible with shadertoy.
 * Supports modern features like a hardware ray tracing and mesh shading.
 * Supports async streaming (async file and partially upload in single graphics queue, async transfer queue is not used).
 * Video encoder and decoder (using [ffmpeg](https://ffmpeg.org/)).
 * Screenshot capture (dds, png, jpeg and other).
 * Supports HDR display.
+* Resource export:
+    - Image export to engine internal format.
+    - Buffer export to text format which reflect buffer structure in shader.
+    - Scene export (*in progress*)
 
 **Platforms:**<br/>
 * Windows x64
@@ -36,7 +44,6 @@ Content:
 ## Controls
 
 `Esc` - switch between camera and UI<br/>
-`Backspace` - disable rendering, keep only UI<br/>
 `Tab` - show/hide UI<br/>
 `F1` - show/hide help with key bindings<br/>
 

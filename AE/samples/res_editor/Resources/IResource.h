@@ -14,7 +14,7 @@ namespace AE::ResEditor
     class RTGeometry;
     class RTScene;
     class Renderer;
-    class ResourceQueue;
+    class DataTransferQueue;
 
 
 
@@ -27,10 +27,11 @@ namespace AE::ResEditor
     public:
         enum class EUploadStatus : uint
         {
-            Complete,
+            Completed,
             Canceled,       // or failed
             InProgress,
             NoMemory,
+            Failed,
         };
 
         using TransferCtx_t = RG::DirectCtx::Transfer;
@@ -65,7 +66,7 @@ namespace AE::ResEditor
         explicit IResource (Renderer &r)                        __NE___ : _renderer{r} {}
 
         ND_ Renderer&               _Renderer ()                const   { return _renderer; }
-        ND_ ResourceQueue&          _ResQueue ()                const;
+        ND_ DataTransferQueue&      _DtTrQueue ()               const;
         ND_ GfxMemAllocatorPtr      _GfxAllocator ()            const;
         ND_ GfxMemAllocatorPtr      _GfxDynamicAllocator ()     const;
 
@@ -84,7 +85,7 @@ namespace AE::ResEditor
     {
         for (auto status = _uploadStatus.load();;)
         {
-            if ( AnyEqual( status, EUploadStatus::Complete, EUploadStatus::Canceled ))
+            if ( AnyEqual( status, EUploadStatus::Completed, EUploadStatus::Canceled ))
                 break;
 
             if ( _uploadStatus.CAS( INOUT status, EUploadStatus::Canceled ))
@@ -103,7 +104,7 @@ namespace AE::ResEditor
     {
         for (auto status = _uploadStatus.load();;)
         {
-            if ( AnyEqual( status, EUploadStatus::Complete, EUploadStatus::Canceled, newStatus ))
+            if ( AnyEqual( status, EUploadStatus::Completed, EUploadStatus::Canceled, newStatus ))
                 break;
 
             if ( _uploadStatus.CAS( INOUT status, newStatus ))

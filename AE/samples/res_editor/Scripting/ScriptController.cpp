@@ -33,6 +33,17 @@ namespace
 
 /*
 =================================================
+    destructor
+=================================================
+*/
+    ScriptBaseController::~ScriptBaseController ()
+    {
+        if ( not _controller )
+            AE_LOG_SE( "Unused controller" );
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -217,13 +228,30 @@ namespace
     SetClipPlanes
 =================================================
 */
-    void  ScriptControllerOrbitalCamera::SetClipPlanes (float near, float far) __Th___
+    void  ScriptControllerOrbitalCamera::SetClipPlanes1 (float near, float far) __Th___
     {
         CHECK_THROW_MSG( near > 0.0f );
         CHECK_THROW_MSG( near < far );
         CHECK_THROW_MSG( (far - near) > 1.0f );
 
         _clipPlanes = float2{ near, far };
+    }
+
+    void  ScriptControllerOrbitalCamera::SetClipPlanes2 (float near) __Th___
+    {
+        CHECK_THROW_MSG( near > 0.0f );
+
+        _clipPlanes = float2{ near, Infinity<float>() };
+    }
+
+/*
+=================================================
+    ReverseZ
+=================================================
+*/
+    void  ScriptControllerOrbitalCamera::ReverseZ (bool enable) __Th___
+    {
+        _reverseZ = enable;
     }
 
 /*
@@ -241,20 +269,25 @@ namespace
         binder.AddMethod( &ScriptControllerOrbitalCamera::SetFovY,              "FovY",             {} );
 
         binder.Comment( "Set near and far clip planes." );
-        binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes,            "ClipPlanes",       {"near", "far"} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes1,       "ClipPlanes",       {"near", "far"} );
+
+        binder.Comment( "Set near clip plane for infinity projection." );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes2,       "ClipPlanes",       {"near"} );
+
+        binder.AddMethod( &ScriptControllerOrbitalCamera::ReverseZ,             "ReverseZ",         {} );
 
         binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale1,        "RotationScale",    {"xy"} );
-        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale2,        "RotationScale",    {"x", "y"} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale1,    "RotationScale",    {"xy"} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale2,    "RotationScale",    {"x", "y"} );
 
         //binder.Comment( "" );
-        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffsetScale,           "OffsetScale",      {} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffsetScale,       "OffsetScale",      {} );
 
         binder.Comment( "Set initial position." );
         binder.AddMethod( &ScriptControllerOrbitalCamera::SetPosition,          "Position",         {} );
 
         //binder.Comment( "" );
-        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffset,                "Offset",           {} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffset,            "Offset",           {} );
     }
 
 /*
@@ -270,7 +303,8 @@ namespace
             return _controller;
 
         _controller = MakeRC<OrbitalCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
-                                                _rotationScale, _offsetScale, _initialPos, _initialOffset );
+                                             _rotationScale, _offsetScale, _initialPos, _initialOffset,
+                                             _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -295,13 +329,30 @@ namespace
     SetClipPlanes
 =================================================
 */
-    void  ScriptControllerCamera3D::SetClipPlanes (float near, float far) __Th___
+    void  ScriptControllerCamera3D::SetClipPlanes1 (float near, float far) __Th___
     {
         CHECK_THROW_MSG( near > 0.0f );
         CHECK_THROW_MSG( near < far );
         CHECK_THROW_MSG( (far - near) > 1.0f );
 
         _clipPlanes = float2{ near, far };
+    }
+
+    void  ScriptControllerCamera3D::SetClipPlanes2 (float near) __Th___
+    {
+        CHECK_THROW_MSG( near > 0.0f );
+
+        _clipPlanes = float2{ near, Infinity<float>() };
+    }
+
+/*
+=================================================
+    ReverseZ
+=================================================
+*/
+    void  ScriptControllerCamera3D::ReverseZ (bool enable) __Th___
+    {
+        _reverseZ = enable;
     }
 
 /*
@@ -347,6 +398,31 @@ namespace
     {
         _movingScale.side = value;
     }
+
+/*
+=================================================
+    _BindCamera3D
+=================================================
+*/
+    template <typename B>
+    void  ScriptControllerCamera3D::_BindCamera3D (B &binder) __Th___
+    {
+        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY",             {} );
+
+        binder.Comment( "Set near and far clip planes." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes1,        "ClipPlanes",       {"near", "far"} );
+
+        binder.Comment( "Set near clip plane for infinity projection." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes2,        "ClipPlanes",       {"near"} );
+
+        binder.AddMethod( &ScriptControllerCamera3D::ReverseZ,              "ReverseZ",         {} );
+
+        binder.Comment( "Set initial position." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position",         {} );
+
+        _BindBase( binder );
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -376,22 +452,13 @@ namespace
         ClassBinder<ScriptControllerFlightCamera>  binder{ se };
         binder.CreateRef();
 
-        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,                   "FovY",             {} );
-
-        binder.Comment( "Set near and far clip planes." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,             "ClipPlanes",       {"near", "far"} );
-
         binder.Comment( "Set rotation scale for mouse/touches/arrows." );
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,         "RotationScale",    {} );
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale3,         "RotationScale",    {"yaw", "pitch", "roll"} );
 
         binder.AddMethod( &ScriptControllerFlightCamera::SetEngineThrustRange,  "EngineThrust",     {"min", "max"} );
 
-        binder.Comment( "Set initial position." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,               "Position",         {} );
-
-        _BindBase( binder );
+        _BindCamera3D( binder );
     }
 
 /*
@@ -407,7 +474,7 @@ namespace
             return _controller;
 
         _controller = MakeRC<FlightCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
-                                            _engineThrustRange, _rotationScale, _initialPos );
+                                            _engineThrustRange, _rotationScale, _initialPos, _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -424,12 +491,6 @@ namespace
         ClassBinder<ScriptControllerFPVCamera>  binder{ se };
         binder.CreateRef();
 
-        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY",                 {} );
-
-        binder.Comment( "Set near and far clip planes." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes",           {"near", "far"} );
-
         binder.Comment( "Set scale for forward and backward movement." );
         binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale", {} );
         binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale", {"forward", "backward"} );
@@ -445,10 +506,7 @@ namespace
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale",        {"xy"} );
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale",        {"x", "y"} );
 
-        binder.Comment( "Set initial position." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position",             {} );
-
-        _BindBase( binder );
+        _BindCamera3D( binder );
     }
 
 /*
@@ -464,7 +522,7 @@ namespace
             return _controller;
 
         _controller = MakeRC<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                         float2{_rotationScale}, _initialPos );
+                                         float2{_rotationScale}, _initialPos, _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -481,12 +539,6 @@ namespace
         ClassBinder<ScriptControllerFreeCamera>  binder{ se };
         binder.CreateRef();
 
-        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY",                 {} );
-
-        binder.Comment( "Set near and far clip planes." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes",           {"near", "far"} );
-
         binder.Comment( "Set scale for forward and backward movement." );
         binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale", {} );
         binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale", {"forward", "backward"} );
@@ -502,10 +554,7 @@ namespace
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale",        {"xy"} );
         binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale",        {"x", "y"} );
 
-        binder.Comment( "Set initial position." );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position",             {} );
-
-        _BindBase( binder );
+        _BindCamera3D( binder );
     }
 
 /*
@@ -521,7 +570,7 @@ namespace
             return _controller;
 
         _controller = MakeRC<FPVCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                         float2{_rotationScale}, _initialPos );
+                                         float2{_rotationScale}, _initialPos, _reverseZ );
         return _controller;
     }
 

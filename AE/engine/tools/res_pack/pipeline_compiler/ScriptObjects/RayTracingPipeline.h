@@ -109,6 +109,8 @@ namespace AE::PipelineCompiler
         ND_ bool    Build ();
         ND_ usize   SpecCount ()                                                            const   { return _pplnSpec.size(); }
 
+        ND_ Specializations_t const&    GetSpecializations ()                               const   { return _pplnSpec; }
+
         ND_ bool  HasGeneralShader (const String &name, EShader type)                       const;
         ND_ bool  HasTriangleHitGroup (const String &name, EShader type)                    const;
         ND_ bool  HasProceduralHitGroup (const String &name, EShader type)                  const;

@@ -25,13 +25,13 @@ namespace AE::GeometryTools
 
 /*
 =================================================
-    CalcTBN
+    ComputeTBN
 =================================================
 */
-    inline void  CalcTBN (/*vert0*/  const float3 position0, const float2 texcoord0,
-                          /*vert1*/  const float3 position1, const float2 texcoord1,
-                          /*vert2*/  const float3 position2, const float2 texcoord2,
-                          /*output*/ OUT float3 &normal, OUT float3 &tangent, OUT float3 &bitangent)
+    inline void  ComputeTBN (/*vert0*/  const float3 position0, const float2 texcoord0,
+                             /*vert1*/  const float3 position1, const float2 texcoord1,
+                             /*vert2*/  const float3 position2, const float2 texcoord2,
+                             /*output*/ OUT float3 &normal, OUT float3 &tangent, OUT float3 &bitangent)
     {
         float3  e0 = float3( position1.x - position0.x,
                              texcoord1.x - texcoord0.x,

@@ -154,7 +154,7 @@
         const float     scale   = In.payload[gid].scale;
         const float4    pos     = float4( In.payload[gid].pos + un_Cube.positions[I] * scale, 1.f );
 
-        gl.MeshVertices[I].gl_Position  = LocalPosToScreenSpace( pos );
+        gl.MeshVertices[I].gl_Position  = LocalPosToClipSpace( pos );
         Out[I].color                    = float4( ToUNorm( un_Cube.normals[I] ), 1.0 );
 
         if ( I < 12 )

@@ -26,8 +26,6 @@ void ASmain ()
         rg.options  = EShaderOpt::Trace;
         rg.version  = EShaderVersion::SPIRV_1_4;
 
-        rg.AddSpec( EValueType::UInt32, "HitGroupStride" );
-
         ppln.AddGeneralShader( "Main", rg );
     }
     {
@@ -53,11 +51,8 @@ void ASmain ()
 
     // specialization
     {
-        const uint  hit_group_stride = 2;
-
         RC<RayTracingPipelineSpec>  spec = ppln.AddSpecialization( "dbg4_rtrace1.def" );
 
-        spec.SetSpecValue( "HitGroupStride", hit_group_stride );
         spec.AddToRenderTech( "RayTracingTestRT", "RayTrace_1" );
 
         // shader binding table
@@ -66,10 +61,10 @@ void ASmain ()
 
             sbt.BindRayGen( "Main" );
 
-            sbt.HitGroupStride( hit_group_stride );
+            sbt.MaxRayTypes( 2 );
 
-            sbt.BindMiss( "Miss", MissIndex(0) );   // traceRays() with missIndex = 0
-            sbt.BindMiss( "Miss", MissIndex(1) );   // traceRays() with missIndex = 1
+            sbt.BindMiss( "Miss", RayIndex(0) );    // traceRays() with missIndex = 0
+            sbt.BindMiss( "Miss", RayIndex(1) );    // traceRays() with missIndex = 1
 
             sbt.BindHitGroup( "TriHit", InstanceIndex(0),   RayIndex(0) );  // traceRays() with sbtRecordOffset = 0
             sbt.BindHitGroup( "TriHit", InstanceIndex(0),   RayIndex(1) );  // traceRays() with sbtRecordOffset = 1

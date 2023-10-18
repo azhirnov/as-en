@@ -193,9 +193,7 @@ namespace AE::AppV2
 
     // IWndListener //
         void  OnStateChanged (IWindow &, EState)    __NE_OV;
-        void  OnUpdate (IWindow &)                  __NE_OV {}
 
-        void  OnResize (IWindow &, const uint2 &)   __NE_OV {}
         void  OnSurfaceCreated (IWindow &)          __NE_OV;
         void  OnSurfaceDestroyed (IWindow &)        __NE_OV;
     };
@@ -209,19 +207,17 @@ namespace AE::AppV2
     {
     // variables
     private:
-        RC<AppCore>             _core;
-        DefaultAppListener &    _app;
+        RC<AppCore>     _core;
 
 
     // methods
     public:
-        DefaultVRDeviceListener (RC<AppCore> core, DefaultAppListener &app) __NE___ :
-            _core{RVRef(core)}, _app{app}
+        DefaultVRDeviceListener (RC<AppCore> core, DefaultAppListener &) __NE___ :
+            _core{RVRef(core)}
         {}
 
 
     // IVRDeviceEventListener //
-        void  OnUpdate (IVRDevice &)                        __NE_OV {}
         void  OnStateChanged (IVRDevice &, EState state)    __NE_OV;
     };
 

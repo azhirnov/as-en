@@ -3,7 +3,6 @@
 #pragma once
 
 #include "base/Memory/IAllocator.h"
-#include "base/CompileTime/StringToID.h"
 
 #if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DEBUG)
 # include "HashToName.h"
@@ -14,26 +13,26 @@ namespace AE::PipelineCompiler
     using namespace AE::Base;
 
 
-    static constexpr uint   PackOffsets_Name            = uint("PackOff"_StringToID);
-    static constexpr uint   NameMapping_Name            = uint("NameMap"_StringToID);
+    static constexpr uint   PackOffsets_Name            = "PackOff"_Hash;
+    static constexpr uint   NameMapping_Name            = "NameMap"_Hash;
 
     static constexpr uint   FeatureSetPack_Version      = 1;
-    static constexpr uint   FeatureSetPack_Name         = uint("FSpack"_StringToID);
+    static constexpr uint   FeatureSetPack_Name         = "FSpack"_Hash;
 
     static constexpr uint   RenderPassPack_Version      = 1;
-    static constexpr uint   RenderPassPack_Name         = uint("RPpack"_StringToID);
-    static constexpr uint   RenderPassPack_VkRpBlock    = uint("VKRP"_StringToID);
-    static constexpr uint   RenderPassPack_MtlRpBlock   = uint("MtlRP"_StringToID);
+    static constexpr uint   RenderPassPack_Name         = "RPpack"_Hash;
+    static constexpr uint   RenderPassPack_VkRpBlock    = "VKRP"_Hash;
+    static constexpr uint   RenderPassPack_MtlRpBlock   = "MtlRP"_Hash;
     STATIC_ASSERT( RenderPassPack_VkRpBlock != RenderPassPack_MtlRpBlock );
 
     static constexpr uint   SamplerPack_Version         = 1;
-    static constexpr uint   SamplerPack_Name            = uint("SampPack"_StringToID);
+    static constexpr uint   SamplerPack_Name            = "SampPack"_Hash;
 
     static constexpr uint   PipelinePack_Version        = 2;
-    static constexpr uint   PipelinePack_Name           = uint("PplnPack"_StringToID);
+    static constexpr uint   PipelinePack_Name           = "PplnPack"_Hash;
 
     static constexpr uint   ShaderPack_Version          = 1;
-    static constexpr uint   ShaderPack_Name             = uint("ShPack"_StringToID);
+    static constexpr uint   ShaderPack_Name             = "ShPack"_Hash;
 
 
     STATIC_ASSERT( PackOffsets_Name != NameMapping_Name );

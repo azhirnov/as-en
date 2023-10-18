@@ -58,7 +58,7 @@ namespace AE::VFS
 
         using FileMap_t = FlatHashMap< FileName::Optimized_t, FileInfo >;
 
-        static constexpr uint   Name    = uint("VfsArch"_StringToID);
+        static constexpr uint   Name    = "VfsArch"_Hash;
         static constexpr uint   Version = (1 << 12) | (sizeof(FileHeader) & 0xFFF);
 
 
@@ -82,19 +82,23 @@ namespace AE::VFS
 
 
       // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, const FileName &name)                              C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, const FileName &name)                              C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)                         C_NE_OV;
+        bool  Open (OUT RC<RStream> &stream, FileNameRef name)                                  C_NE_OV;
+        bool  Open (OUT RC<RDataSource> &ds, FileNameRef name)                                  C_NE_OV;
+        bool  Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name)                             C_NE_OV;
 
-        bool  Exists (const FileName &name)                                                     C_NE_OV;
-        bool  Exists (const FileGroupName &name)                                                C_NE_OV;
+        using IVirtualFileStorage::Open;
+
+        bool  Exists (FileNameRef name)                                                         C_NE_OV;
+        bool  Exists (FileGroupNameRef name)                                                    C_NE_OV;
 
     private:
         void  _Append (INOUT GlobalFileMap_t &)                                                 C_Th_OV;
 
-        bool  _OpenByIter (OUT RC<RStream> &stream, const FileName &name, const void* ref)      C_NE_OV;
-        bool  _OpenByIter (OUT RC<RDataSource> &ds, const FileName &name, const void* ref)      C_NE_OV;
-        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, const FileName &name, const void* ref) C_NE_OV;
+        bool  _OpenByIter (OUT RC<RStream> &stream, FileNameRef name, const void* ref)          C_NE_OV;
+        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileNameRef name, const void* ref)          C_NE_OV;
+        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref)     C_NE_OV;
+
+        using IVirtualFileStorage::_OpenByIter;
 
         bool  _Open2 (OUT RC<RStream> &stream, const FileInfo &info)                            C_NE___;
         bool  _Open2 (OUT RC<RDataSource> &ds, const FileInfo &info)                            C_NE___;

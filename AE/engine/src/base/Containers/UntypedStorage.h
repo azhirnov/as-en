@@ -177,4 +177,8 @@ namespace AE::Base
     };
 
 
+    template <typename T, usize Capacity>
+    using UninitializedStaticArray = UntypedStorage< sizeof(T) * Capacity, alignof(T) >;
+
+
 } // AE::Base

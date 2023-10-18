@@ -61,14 +61,16 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline constexpr TSpherical<T>  TSpherical<T>::operator + (const Self &rhs) C_NE___
+    constexpr TSpherical<T>  TSpherical<T>::operator + (const Self &rhs) C_NE___
     {
+        // TODO: wrap?
         return Self{ theta + rhs.theta, phi + rhs.phi };
     }
 
     template <typename T>
-    inline constexpr TSpherical<T>  TSpherical<T>::operator - (const Self &rhs) C_NE___
+    constexpr TSpherical<T>  TSpherical<T>::operator - (const Self &rhs) C_NE___
     {
+        // TODO: wrap?
         return Self{ theta - rhs.theta, phi - rhs.phi };
     }
 
@@ -78,13 +80,16 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Pair<TSpherical<T>, T>  TSpherical<T>::FromCartesian (const Vec<T,3> &cartesian) __NE___
+    Pair<TSpherical<T>, T>  TSpherical<T>::FromCartesian (const Vec<T,3> &cartesian) __NE___
     {
-        const T radius  = Length( cartesian );
-        const T len     = Equals( radius, T{0} ) ? T{1} : radius;
+        const T     radius  = Length( cartesian );
+        const T     len     = IsZero( radius ) ? T{1} : radius;
+        const auto  c       = cartesian / len;
 
-        TSpherical<T>   spherical{  ACos( cartesian.z / len ),
-                                        ATan( cartesian.y, len )};
+        TSpherical<T>   spherical;
+        spherical.theta = ACos(Saturate( c.z ));
+        spherical.phi   = ATan( c.y, c.x ).WrapTo0_2Pi();
+
         return { spherical, radius };
     }
 
@@ -94,7 +99,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Vec<T,3>  TSpherical<T>::ToCartesian () C_NE___
+    Vec<T,3>  TSpherical<T>::ToCartesian () C_NE___
     {
         Vec<T,3>    cartesian;
 
@@ -107,7 +112,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    inline Vec<T,3>  TSpherical<T>::ToCartesian (T radius) C_NE___
+    Vec<T,3>  TSpherical<T>::ToCartesian (T radius) C_NE___
     {
         return ToCartesian() * radius;
     }

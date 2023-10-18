@@ -38,9 +38,10 @@ namespace AE::App
         bool                _requestQuit        = false;
         bool                _lockAndHideCursor  = false;
         void*               _cursorHandle       = null;     // HCURSOR
-        EWindowMode         _wndMode            = Default;
 
         InputActionsWinAPI  _input;
+
+        RectI               _lastWindowSize;    // before switching to fullscreen
 
 
     // methods
@@ -61,6 +62,7 @@ namespace AE::App
         void  SetPosition (Monitor::ID monitor, const int2 &pos)            __NE_OV;
         void  SetTitle (NtStringView title)                                 __NE_OV;
         void  SetFocus ()                                                   C_NE_OV;
+        bool  SetMode (EWindowMode mode, Monitor::ID monitor)               __NE_OV;
 
 
     private:
@@ -77,6 +79,9 @@ namespace AE::App
 
             void  _LockAndHideCursor (bool value)                           __NE___;
             void  _ClipCursor ()                                            __NE___;
+
+        ND_ bool  _WindowModeToStyle (EWindowMode, Monitor::ID monitorId,
+                                      OUT uint &, OUT uint &, INOUT int2 &, OUT int2 &) C_NE___;
     };
 
 

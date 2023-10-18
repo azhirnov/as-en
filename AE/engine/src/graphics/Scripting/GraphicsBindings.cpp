@@ -506,9 +506,14 @@ namespace
         binder.AddValue( "RayIntersection", EShaderStages::RayIntersection );
         binder.AddValue( "RayCallable",     EShaderStages::RayCallable );
 
-        binder.AddValue( "All",             EShaderStages::All );
-        binder.AddValue( "AllGraphics",     EShaderStages::AllGraphics );
-        binder.AddValue( "AllRayTracing",   EShaderStages::AllRayTracing );
+        binder.AddValue( "All",                     EShaderStages::All );
+        binder.AddValue( "AllGraphics",             EShaderStages::AllGraphics );
+        binder.AddValue( "AllRayTracing",           EShaderStages::AllRayTracing );
+        binder.AddValue( "GraphicsStages",          EShaderStages::GraphicsStages );
+        binder.AddValue( "MeshStages",              EShaderStages::MeshStages );
+        binder.AddValue( "VertexProcessingStages",  EShaderStages::VertexProcessingStages );
+        binder.AddValue( "PreRasterizationStages",  EShaderStages::PreRasterizationStages );
+        binder.AddValue( "PostRasterizationStages", EShaderStages::PostRasterizationStages );
         STATIC_ASSERT( uint(EShaderStages::All) == 0x7FFF );
     }
 

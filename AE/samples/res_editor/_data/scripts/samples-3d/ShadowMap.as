@@ -17,8 +17,6 @@
         RC<Image>               sm          = Image( EPixelFormat::Depth32F, uint2(1024) );         sm.Name( "ShadowMap" );
 
         RC<FPVCamera>           camera      = FPVCamera();
-        RC<Buffer>              geom_data   = Buffer();
-        RC<Buffer>              light_data  = Buffer();
         RC<Scene>               scene       = Scene();
         RC<Scene>               shadow_scene= Scene();
 
@@ -46,6 +44,9 @@
 
         // create geometry
         {
+            RC<Buffer>      geom_data   = Buffer();
+            RC<Buffer>      light_data  = Buffer();
+
             array<float3>   positions;
             array<uint>     indices;
             GetSphere( 7, OUT positions, OUT indices );
@@ -74,13 +75,13 @@
             geom_data.FloatArray(   "positions",    positions );
             geom_data.FloatArray(   "normals",      normals );
             geom_data.UIntArray(    "indices",      indices );
-            geom_data.Layout( "GeometrySBlock" );
+            geom_data.LayoutName( "GeometrySBlock" );
 
             light_data.Float(       "lightDir",     light_dir );
             light_data.Float(       "shadowVP",     sm_vp );
             light_data.Float(       "viewToShadow", sm_bias_mat * sm_vp );
             light_data.Float(       "invShadowDim", float2(1.f) / float2(sm.Dimension2()) );
-            light_data.Layout( "LightsSBlock" );
+            light_data.LayoutName( "LightsSBlock" );
 
 
             RC<UnifiedGeometry>     geometry1   = UnifiedGeometry();

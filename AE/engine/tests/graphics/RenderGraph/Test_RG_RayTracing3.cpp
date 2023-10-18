@@ -35,7 +35,7 @@ namespace
         bool                            isOK        = false;
 
         ImageComparator *               imgCmp      = null;
-        RC<GfxLinearMemAllocator>       gfxAlloc;
+        GfxMemAllocatorPtr              gfxAlloc;
 
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
@@ -158,7 +158,7 @@ namespace
         auto&           rg          = RenderTaskScheduler().GetRenderGraph();
         auto&           res_mngr    = rg.GetResourceManager();
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 

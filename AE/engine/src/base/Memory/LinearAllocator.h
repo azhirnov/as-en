@@ -48,28 +48,29 @@ namespace AE::Base
 
     // methods
     public:
-        LinearAllocator ()                                  __NE___ {}
-        LinearAllocator (Self &&other)                      __NE___ ;
-        explicit LinearAllocator (const Allocator_t &alloc) __NE___ : _alloc{alloc}             {}
-        explicit LinearAllocator (Bytes blockSize)          __NE___ : _blockSize{ blockSize }   {}
-        ~LinearAllocator ()                                 __NE___ { Release(); }
+        LinearAllocator ()                                      __NE___ {}
+        LinearAllocator (Self &&other)                          __NE___ ;
+        explicit LinearAllocator (const Allocator_t &alloc)     __NE___ : _alloc{alloc}             {}
+        explicit LinearAllocator (Bytes blockSize)              __NE___ : _blockSize{ blockSize }   {}
+        ~LinearAllocator ()                                     __NE___ { Release(); }
 
-        Self&  operator = (Self &&rhs)                      __NE___;
+        Self&  operator = (Self &&rhs)                          __NE___;
 
-        void  SetBlockSize (Bytes size)                     __NE___ { _blockSize = size; }
+        void  SetBlockSize (Bytes size)                         __NE___ { _blockSize = size; }
 
         template <typename T>
-        ND_ T*      Allocate (usize count = 1)              __NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
-        ND_ void*   Allocate (const SizeAndAlign)           __NE___;
+        ND_ T*      Allocate (usize count = 1)                  __NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
+        ND_ void*   Allocate (const SizeAndAlign)               __NE___;
 
-        void  Deallocate (void *, Bytes)                    __NE___ {}
-        void  Deallocate (void *, const SizeAndAlign)       __NE___ {}
+        void  Deallocate (void *ptr)                            __NE___ { Deallocate( ptr, 1_b ); }
+        void  Deallocate (void *ptr, Bytes size)                __NE___;
+        void  Deallocate (void *ptr, const SizeAndAlign sa)     __NE___ { Deallocate( ptr, sa.size ); }
 
-        void  Discard ()                                    __NE___;
-        void  Release ()                                    __NE___;
+        void  Discard ()                                        __NE___;
+        void  Release ()                                        __NE___;
 
-        ND_ Bytes               TotalSize ()                C_NE___;
-        ND_ ArrayView<Block>    GetBlocks ()                C_NE___ { return _blocks; }
+        ND_ Bytes               TotalSize ()                    C_NE___;
+        ND_ ArrayView<Block>    GetBlocks ()                    C_NE___ { return _blocks; }
     };
 
 
@@ -148,6 +149,29 @@ namespace AE::Base
         block.size = offset + sizeAndAlign.size;
         Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
         return block.ptr + offset;
+    }
+
+/*
+=================================================
+    Deallocate
+=================================================
+*/
+    template <typename A, uint MB>
+    void  LinearAllocator<A,MB,false>::Deallocate (void *ptr, Bytes size) __NE___
+    {
+    #ifdef AE_DEBUG
+        for (auto& block : _blocks)
+        {
+            if ( IsIntersects( ptr, ptr + size, block.ptr, block.ptr + block.size ))
+            {
+                CHECK( ptr + size <= block.ptr + block.size );
+                return;
+            }
+            AE_LOG_DBG( "'ptr' is not belong to this allocator" );
+        }
+    #else
+        Unused( ptr, size );
+    #endif
     }
 
 /*

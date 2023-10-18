@@ -346,7 +346,7 @@ namespace
     {
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( IsAligned( file_size, buf_size ));
+        STATIC_ASSERT( IsMultipleOf( file_size, buf_size ));
 
         const Path      fname {"stream1_data.bin"};
         {
@@ -399,7 +399,7 @@ namespace
     {
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( IsAligned( file_size, buf_size ));
+        STATIC_ASSERT( IsMultipleOf( file_size, buf_size ));
 
         const Path      fname {"file1_data.bin"};
         {

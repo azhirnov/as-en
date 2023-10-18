@@ -30,7 +30,7 @@ namespace AE::AppV1
     class DefaultAppListener : public IApplication::IAppListener
     {
     // variables
-    protected:
+    private:
       #if defined(AE_ENABLE_VULKAN)
         Graphics::VDeviceInitializer    _vulkan;
 
@@ -58,7 +58,7 @@ namespace AE::AppV1
     public:
         ~DefaultAppListener ()                          __NE_OV;
 
-        ND_ AppConfig const&    Config ()               C_NE___ { return _config; }
+        ND_ AppConfig const&    GetConfig ()            C_NE___ { return _config; }
         ND_ IBaseApp &          GetBaseApp ()           __NE___ { return *_impl; }
 
 
@@ -97,7 +97,7 @@ namespace AE::AppV1
     // Window Event Listener
     //
 
-    class DefaultIWndListener : public IWindow::IWndListener
+    class DefaultIWndListener final : public IWindow::IWndListener
     {
     // variables
     private:
@@ -114,9 +114,6 @@ namespace AE::AppV1
 
     // IWndListener //
         void  OnStateChanged (IWindow &, EState)    __NE_OV;
-        void  OnUpdate (IWindow &)                  __NE_OV {}
-
-        void  OnResize (IWindow &, const uint2 &)   __NE_OV {}
         void  OnSurfaceCreated (IWindow &)          __NE_OV;
         void  OnSurfaceDestroyed (IWindow &)        __NE_OV;
     };
@@ -127,23 +124,21 @@ namespace AE::AppV1
     // VR Device Listener
     //
 
-    class DefaultVRDeviceListener : public IVRDevice::IVRDeviceEventListener
+    class DefaultVRDeviceListener final : public IVRDevice::IVRDeviceEventListener
     {
     // variables
     private:
-        RC<IBaseApp>            _impl;
-        DefaultAppListener &    _app;
+        RC<IBaseApp>    _impl;
 
 
     // methods
     public:
-        DefaultVRDeviceListener (RC<IBaseApp> impl, DefaultAppListener &app) :
-            _impl{RVRef(impl)}, _app{app}
+        DefaultVRDeviceListener (RC<IBaseApp> impl, DefaultAppListener &) __NE___ :
+            _impl{RVRef(impl)}
         {}
 
 
     // IVRDeviceEventListener //
-        void  OnUpdate (IVRDevice &)                        __NE_OV {}
         void  OnStateChanged (IVRDevice &, EState state)    __NE_OV;
     };
 

@@ -135,7 +135,7 @@ namespace
             const uint  bits    = 0x10101;
             uint        i       = 0;
 
-            for (uint bit : BitfieldIterate(bits))
+            for (uint bit : BitfieldIterate( bits ))
             {
                 TEST( IsSingleBitSet( bit ));
                 switch ( i ) {
@@ -146,6 +146,46 @@ namespace
                 ++i;
             }
             TEST( i == 3 );
+        }{
+            const uint  bits    = 0;
+            uint        i       = 0;
+
+            for (uint bit : BitfieldIterate( bits ))
+            {
+                Unused( bit );
+                ++i;
+            }
+            TEST( i == 0 );
+        }
+    }
+
+
+    static void  Iterators_Test5 ()
+    {
+        {
+            const uint  bits    = 0x10101;
+            uint        i       = 0;
+
+            for (uint idx : BitIndexIterate(bits))
+            {
+                switch ( i ) {
+                    case 0 :    TEST( idx == 0 );   break;
+                    case 1 :    TEST( idx == 8 );   break;
+                    case 2 :    TEST( idx == 16 );  break;
+                }
+                ++i;
+            }
+            TEST( i == 3 );
+        }{
+            const uint  bits    = 0;
+            uint        i       = 0;
+
+            for (uint idx : BitIndexIterate(bits))
+            {
+                Unused( idx );
+                ++i;
+            }
+            TEST( i == 0 );
         }
     }
 }
@@ -157,6 +197,7 @@ extern void UnitTest_Iterators ()
     Iterators_Test2();
     Iterators_Test3();
     Iterators_Test4();
+    Iterators_Test5();
 
     TEST_PASSED();
 }

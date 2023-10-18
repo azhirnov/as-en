@@ -66,6 +66,8 @@ git clone --bare "https://github.com/freedreno/envytools.git" "hardware-perfcoun
 rmdir /Q /S "Abseil"
 git clone --bare "https://github.com/abseil/abseil-cpp.git" "Abseil"
 
+rmdir /Q /S "CDT"
+git clone --bare "https://github.com/artem-ogre/CDT.git" "CDT"
 
 :: delete 'temp'
 cd ..
@@ -175,3 +177,4 @@ robocopy "KTX-Software/.git" "../3party/KTX-Software" /S
 cd ..
 rmdir /Q /S "temp"
 
+pause

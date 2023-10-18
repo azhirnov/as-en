@@ -2,7 +2,7 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Resources/RTScene.h"
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
 {
@@ -78,7 +78,7 @@ namespace
         Scripting::ClassBinder<RTInstanceSBTOffset> binder{ se };
         binder.CreateClassValue();
         binder.Comment( "Set shader binding table offset, used first 24 bits.\n"
-                        "By default SBTOffset is calculated as 'instanceIndex * HitGroupStride()'." );
+                        "By default SBTOffset is calculated as 'instanceIndex * MaxRayTypes()'." );
         binder.AddConstructor( &RTInstanceSBTOffset_Ctor, {} );
     }
 //-----------------------------------------------------------------------------
@@ -108,8 +108,25 @@ namespace
     ScriptRTGeometry::ScriptRTGeometry () __Th___ :
         _dbgName{ "RTGeometry" }
     {
-        CHECK_THROW_MSG( RenderTaskScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue,
-            "RTGeometry is not supported" );
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue, "RTGeometry is not supported" );
+    }
+
+    ScriptRTGeometry::ScriptRTGeometry (Bool isDummy) __Th___ :
+        ScriptRTGeometry{}
+    {
+        _dummy = isDummy;
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptRTGeometry::~ScriptRTGeometry ()
+    {
+        if ( not _resource )
+            AE_LOG_SE( "Unused RTGeometry '"s << _dbgName << "'" );
     }
 
 /*
@@ -143,6 +160,19 @@ namespace
             if ( tri_mesh.ibuffer )
                 tri_mesh.ibuffer->EnableHistory();
         }
+    }
+
+/*
+=================================================
+    AllowUpdate
+=================================================
+*/
+    void  ScriptRTGeometry::AllowUpdate () __Th___
+    {
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change content" );
+
+        _allowUpdate = true;
     }
 
 /*
@@ -360,9 +390,10 @@ namespace
             _indirectBuffer.Set( new ScriptBuffer{} );
             _indirectBuffer->Name( "RTGeometry-Indirect" );
             _indirectBuffer->AddUsage( EResourceUsage::IndirectBuffer );
-            _indirectBuffer->SetLayoutAndCount1( "ASBuildIndirectCommand", uint(_triangleMeshes.size()) );
+            _indirectBuffer->SetArrayLayout1( "ASBuildIndirectCommand", uint(_triangleMeshes.size()) );
 
-            if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+            if ( auto& fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+                 fs.accelerationStructureIndirectBuild != EFeature::RequireTrue )
             {
                 EnableHistory();
             }
@@ -409,6 +440,8 @@ namespace
                         "   with static or dynamic array." );
         binder.AddMethod( &ScriptRTGeometry::AddTriangles1,         "AddTriangles",         {"vertexBuffer"} );
         binder.AddMethod( &ScriptRTGeometry::AddTriangles2,         "AddTriangles",         {"vertexBuffer", "maxVertex", "maxPrimitives"} );
+        binder.AddMethod( &ScriptRTGeometry::AddTriangles3,         "AddTriangles",         {"vertexBuffer", "vbField"} );
+        binder.AddMethod( &ScriptRTGeometry::AddTriangles4,         "AddTriangles",         {"vertexBuffer", "vbField", "maxVertex", "maxPrimitives"} );
 
         binder.Comment( "Add indexed triangle mesh.\n"
                         "Supported formats:\n"
@@ -416,6 +449,8 @@ namespace
                         "   with static or dynamic array." );
         binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles1,  "AddIndexedTriangles",  {"vertexBuffer", "indexBuffer"} );
         binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles2,  "AddIndexedTriangles",  {"vertexBuffer", "maxVertex", "maxPrimitives", "indexBuffer", "indexType"} );
+        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles3,  "AddIndexedTriangles",  {"vertexBuffer", "vbField", "indexBuffer", "ibField"} );
+        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles4,  "AddIndexedTriangles",  {"vertexBuffer", "vbField", "maxVertex", "maxPrimitives", "indexBuffer", "ibField"} );
 
         binder.Comment( "Returns indirect buffer, only this buffer must be used for indirect build." );
         binder.AddMethod( &ScriptRTGeometry::_GetIndirectBuffer,    "IndirectBuffer",       {} );
@@ -433,6 +468,14 @@ namespace
     {
         if ( _resource )
             return _resource;
+
+        Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
+
+        if ( _dummy )
+        {
+            _resource = MakeRC<RTGeometry>( renderer, _dbgName );
+            return _resource;
+        }
 
         CHECK_THROW_MSG( not _triangleMeshes.empty() );
         _Validate();
@@ -458,10 +501,7 @@ namespace
             dst.indexDataOffset = src.indexDataOffset;
         }
 
-        Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-        auto        result      = MakeRC<RTGeometry>( RVRef(tri_meshes), ind_buf, renderer, _dbgName );
-
-        _resource = result;
+        _resource = MakeRC<RTGeometry>( RVRef(tri_meshes), RVRef(ind_buf), renderer, _dbgName, Bool{_allowUpdate} );
         return _resource;
     }
 
@@ -541,6 +581,24 @@ namespace
 
                 auto    fields = it->second->Fields();
 
+                if ( not tri_mesh.vbufferField.empty() )
+                {
+                    bool    found = false;
+                    for (auto& field : fields)
+                    {
+                        if ( field.name == tri_mesh.vbufferField )
+                        {
+                            found = true;
+                            SetVertexInfo( field );
+                            tri_mesh.maxVertex = field.arraySize;
+                            CHECK_THROW_MSG( not field.IsDynamicArray(), "for dynamic array specify 'maxVertex' in script" );
+                            break;
+                        }
+                    }
+                    CHECK_THROW_MSG( found,
+                        "can't find field '"s << tri_mesh.vbufferField << "' in struct '" << tri_mesh.vbuffer->GetTypeName() << "'" );
+                }
+                else
                 if ( it->second->HasDynamicArray() )
                 {
                     // pattern:
@@ -613,6 +671,24 @@ namespace
 
                 auto    fields = it->second->Fields();
 
+                if ( not tri_mesh.ibufferField.empty() )
+                {
+                    bool    found = false;
+                    for (auto& field : fields)
+                    {
+                        if ( field.name == tri_mesh.ibufferField )
+                        {
+                            found = true;
+                            SetIndexInfo( field );
+                            tri_mesh.maxPrimitives = (field.rows * field.arraySize) / 3;
+                            CHECK_THROW_MSG( not field.IsDynamicArray(), "for dynamic array specify 'maxPrimitives' in script" );
+                            break;
+                        }
+                    }
+                    CHECK_THROW_MSG( found,
+                        "can't find field '"s << tri_mesh.ibufferField << "' in struct '" << tri_mesh.vbuffer->GetTypeName() << "'" );
+                }
+                else
                 if ( it->second->HasDynamicArray() )
                 {
                     // pattern:
@@ -665,11 +741,22 @@ namespace
         _instanceBuffer{ new ScriptBuffer{} },
         _dbgName{ "RTScene" }
     {
-        CHECK_THROW_MSG( RenderTaskScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue,
-            "RTScene is not supported" );
+        auto&   fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue, "RTScene is not supported" );
 
         _instanceBuffer->Name( "RTScene-Instances" );
         _instanceBuffer->AddUsage( EResourceUsage::ASBuild );
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptRTScene::~ScriptRTScene ()
+    {
+        if ( not _resource )
+            AE_LOG_SE( "Unused RTScene '"s << _dbgName << "'" );
     }
 
 /*
@@ -697,6 +784,19 @@ namespace
 
         GetInstanceBuffer()->EnableHistory();
         GetIndirectBuffer()->EnableHistory();
+    }
+
+/*
+=================================================
+    AllowUpdate
+=================================================
+*/
+    void  ScriptRTScene::AllowUpdate () __Th___
+    {
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change content" );
+
+        _allowUpdate = true;
     }
 
 /*
@@ -768,7 +868,7 @@ namespace
         if ( not _immutableInstances )
         {
             _immutableInstances = true;
-            _instanceBuffer->SetLayoutAndCount1( "AccelStructInstance", uint(_instances.size()) );
+            _instanceBuffer->SetArrayLayout1( "AccelStructInstance", uint(_instances.size()) );
         }
     }
 
@@ -787,9 +887,10 @@ namespace
             _indirectBuffer.Set( new ScriptBuffer{} );
             _indirectBuffer->Name( "RTScene-Indirect" );
             _indirectBuffer->AddUsage( EResourceUsage::IndirectBuffer );
-            _indirectBuffer->SetLayoutAndCount1( "ASBuildIndirectCommand", 1u );
+            _indirectBuffer->SetLayout1( "ASBuildIndirectCommand" );
 
-            if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+            if ( auto& fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+                 fs.accelerationStructureIndirectBuild != EFeature::RequireTrue )
             {
                 EnableHistory();
             }
@@ -841,18 +942,14 @@ namespace
 
             mat *= float3x3::Scaled( tr.scale );
 
-            dst.transform            = float3x4{mat};
-            dst.transform.get<0,3>() = tr.pos.x;
-            dst.transform.get<1,3>() = tr.pos.y;
-            dst.transform.get<2,3>() = tr.pos.z;
+            dst.transform = float4x3{mat}.SetTranslation( tr.pos );
         }
         else
         if ( args.IsArg< packed_float3 const& >(idx) )
         {
             auto&   pos = args.Arg< packed_float3 const& >(idx++);
-            dst.transform.get<0,3>() = pos.x;
-            dst.transform.get<1,3>() = pos.y;
-            dst.transform.get<2,3>() = pos.z;
+
+            dst.transform = float4x3::Identity().SetTranslation( pos );
         }
 
         if ( args.IsArg< RTInstanceCustomIndex const& >(idx) )
@@ -868,7 +965,7 @@ namespace
         if ( args.IsArg< RTInstanceSBTOffset const& >(idx) )
             dst.instanceSBTOffset = args.Arg< RTInstanceSBTOffset const& >(idx++).value;
         else
-            dst.instanceSBTOffset = uint(_instances.size()-1) * _hitGroupStride;
+            dst.instanceSBTOffset = uint(_instances.size()-1) * _maxRayTypes;
 
         if ( args.IsArg< ERTInstanceOpt >(idx) )
             dst.flags = args.Arg< ERTInstanceOpt >(idx++);
@@ -878,15 +975,33 @@ namespace
 
 /*
 =================================================
-    HitGroupStride
+    AddInstance
 =================================================
 */
-    void  ScriptRTScene::HitGroupStride (uint value) __Th___
+    void  ScriptRTScene::AddInstance (const ScriptRTGeometryPtr &geom, const float4x3 &transform,
+                                      const RTInstanceCustomIndex &customIdx, const RTInstanceMask &mask,
+                                      const RTInstanceSBTOffset &sbtOffset, ERTInstanceOpt opt) __Th___
+    {
+        auto&   dst = _instances.emplace_back();
+        dst.geometry            = geom;
+        dst.transform           = transform;
+        dst.instanceCustomIndex = customIdx.value;
+        dst.mask                = mask.value;
+        dst.instanceSBTOffset   = sbtOffset.value;
+        dst.flags               = opt;
+    }
+
+/*
+=================================================
+    MaxRayTypes
+=================================================
+*/
+    void  ScriptRTScene::MaxRayTypes (uint value) __Th___
     {
         CHECK_THROW_MSG( _instances.empty(),
-            "HitGroupStride() must be used before any AddInstance() call" );
+            "MaxRayTypes() must be used before any AddInstance() call" );
 
-        _hitGroupStride = value;
+        _maxRayTypes = value;
     }
 
 /*
@@ -958,7 +1073,7 @@ namespace
         binder.AddMethod( &ScriptRTScene::_GetIndirectBuffer,   "IndirectBuffer",   {} );
 
         binder.Comment( "Set number of ray types. It is used to calculate SBTOffset for instances." );
-        binder.AddMethod( &ScriptRTScene::HitGroupStride,       "HitGroupStride",   {} );
+        binder.AddMethod( &ScriptRTScene::MaxRayTypes,          "MaxRayTypes",      {} );
     }
 
 /*
@@ -1002,7 +1117,7 @@ namespace
         }
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-        auto        result      = MakeRC<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName );
+        auto        result      = MakeRC<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName, Bool{_allowUpdate} );
 
         _resource = result;
         return _resource;

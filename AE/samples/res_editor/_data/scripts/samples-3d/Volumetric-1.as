@@ -39,12 +39,9 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-    #include "Hash.glsl"
     #include "Noise.glsl"
     #include "SDF.glsl"
-    #include "AABB.glsl"
     #include "Intersectors.glsl"
-    #include "ToneMapping.glsl"
 
     const float3    c_VolumePos     = float3(0.0, 0.0, 4.0);
     const AABB      c_VolumeAABB    = {float3(-1.0) + c_VolumePos, float3(1.0) + c_VolumePos};
@@ -81,6 +78,7 @@
 
         float           accum_density   = 0.0;
 
+        // camera may be inside cube
         Ray_SetLength( INOUT ray, Max( t_min_max.x, ray.t ));
 
         for (uint i = 0; (i < c_MaxSteps) and (ray.t < t_min_max.y) and (accum_density < 0.999); ++i)

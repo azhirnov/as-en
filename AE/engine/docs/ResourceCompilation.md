@@ -73,6 +73,33 @@ There are PipelineSpecializations:
 * TilePipelineSpec
 
 
+### RayTracingShaderBinding
+
+```cpp
+// sbtRecordStride - from 'traceRay()'
+// sbtRecordOffset - from 'traceRay()'
+hitShader = RTSceneBuild::Instance::instanceSBTOffset + geometryIndex * sbtRecordStride + sbtRecordOffset;
+
+// sbtRecordIndex - from 'executeCallable()'
+callableShader = sbtRecordIndex;
+```
+
+<details>
+<summary>From Vulkan docs</summary>
+
+```cpp
+// Hit Shader
+pHitShaderBindingTable->deviceAddress + pHitShaderBindingTable->stride * ( instanceShaderBindingTableRecordOffset + geometryIndex * sbtRecordStride + sbtRecordOffset );
+
+// Miss Shader
+pMissShaderBindingTable->deviceAddress + pMissShaderBindingTable->stride * missIndex;
+
+// Callable Shader
+pCallableShaderBindingTable->deviceAddress + pCallableShaderBindingTable->stride * sbtRecordIndex;
+```
+</details>
+
+
 ### GLSL shaders
 
 GLSL shaders are compatible with Vulkan and Metal backends. For Metal backend they are compiled to SPIRV, then using SPIRV-Cross they are converted to the MSL and then compiled to Metal bytecode. For Windows it requires [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows).

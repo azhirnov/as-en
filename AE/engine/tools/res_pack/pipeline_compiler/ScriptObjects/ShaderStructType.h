@@ -72,21 +72,25 @@ namespace AE::PipelineCompiler
             ubyte               cols        = 0;
             bool                packed      : 1;
             bool                pointer     : 1;
+            bool                address     : 1;        // typed device address
+            bool                padding     : 1;
             Bytes               size;
             Bytes               align;
             Bytes               offset;
 
-            Field () : packed{false}, pointer{false} {}
+            Field () : packed{false}, pointer{false}, address{false}, padding{false} {}
 
-            ND_ bool    IsScalar ()                     const   { return rows == 1 and not IsStruct(); }
-            ND_ bool    IsVec ()                        const   { return rows > 1 and cols == 1; }
-            ND_ bool    IsMat ()                        const   { return cols > 1; }
-            ND_ bool    IsStruct ()                     const   { return bool(stType) and not IsBufferRef(); }
-            ND_ bool    IsBufferRef ()                  const   { return stType ? AllBits( stType->Usage(), EUsage::BufferReference ) : false; }
+            ND_ bool    IsScalar ()                     const   { return (rows == 1)  and (cols == 1) and (not IsStruct()); }
+            ND_ bool    IsVec ()                        const   { return (rows >  1)  and (cols == 1) and (not IsStruct()); }
+            ND_ bool    IsMat ()                        const   { return (cols >  1)  and (not IsStruct()); }
+            ND_ bool    IsStruct ()                     const   { return bool(stType) and (not IsDeviceAddress()); }
+            ND_ bool    IsBufferRef ()                  const   { return bool(stType) and address; }
             ND_ bool    IsPointer ()                    const   { return pointer; }
+            ND_ bool    IsDeviceAddress ()              const   { return address or (type == EValueType::DeviceAddress); }      // typed or untyped
+            ND_ bool    IsUntypedDeviceAddress ()       const   { return (not address) and (type == EValueType::DeviceAddress); }
             ND_ bool    IsDynamicArray ()               const   { return arraySize == UMax; }
             ND_ bool    IsArray ()                      const   { return arraySize != 0; }
-            ND_ bool    IsStaticArray ()                const   { return arraySize != 0 and not IsDynamicArray(); }
+            ND_ bool    IsStaticArray ()                const   { return (arraySize != 0) and (not IsDynamicArray()); }
             ND_ bool    operator == (const Field &rhs)  const;
         };
 
@@ -156,6 +160,7 @@ namespace AE::PipelineCompiler
         ND_ StringView      Typename ()                                                                 const   { return _typeName; }
         ND_ bool            HasDynamicArray ()                                                          const   { return _fields.size() > 0 and _fields.back().IsDynamicArray(); }
 
+        ND_ Bytes           TotalSize (uint arraySize)                                                  const;
         ND_ Bytes           StaticSize ()                                                               const   { return AlignUp( _size, _align ); }
         ND_ Bytes           ArrayStride ()                                                              const   { return HasDynamicArray() ? _fields.back().size : 0_b; }
         ND_ Bytes           Align ()                                                                    const   { return _structAlign; }
@@ -195,12 +200,13 @@ namespace AE::PipelineCompiler
         ND_ uint    _StaticSize ()                                                                      const   { return uint(StaticSize()); }
         ND_ uint    _ArrayStride ()                                                                     const   { return uint(ArrayStride()); }
 
-        static void  _ParseFields (StringView, const String &fields, OUT Array<Field> &outFields)       __Th___;
+        static void  _ParseFields (const String &fields, OUT Array<Field> &outFields)                   __Th___;
         static void  _CalcOffsets (StringView, EStructLayout layout, INOUT Array<Field> &fields,
                                    OUT Bytes &maxAlign, OUT Bytes &structAlign, OUT Bytes &totalSize)   __Th___;
 
         static void  _Validate (StringView, StringView, ArrayView<Field> fields, ValidationData &data)  __Th___;
         static void  _ValidateOffsets (const ValidationData &data, Bytes offset)                        __Th___;
+        static void  _AddPadding (EStructLayout layout, INOUT Array<Field> &fields)                     __Th___;
 
         ND_ static EValueType  _VertexToAttrib (EValueType type)                                        __Th___;
 

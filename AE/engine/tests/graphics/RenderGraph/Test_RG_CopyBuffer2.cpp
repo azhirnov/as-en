@@ -13,7 +13,7 @@ namespace
         AsyncTask                   result;
         CommandBatchPtr             batch;
         bool                        isOK        = false;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
 
@@ -61,7 +61,7 @@ namespace
         EMemoryType     host_mem    = Default;
         CB2_TestData    t;
 
-        t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         if ( res_mngr.IsSupported( EMemoryType::HostCached ))
             host_mem = EMemoryType::HostCached;

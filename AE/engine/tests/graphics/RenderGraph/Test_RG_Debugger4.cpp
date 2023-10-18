@@ -36,7 +36,7 @@ namespace
         bool                            isOK        = false;
 
         ImageComparator *               imgCmp      = null;
-        RC<GfxLinearMemAllocator>       gfxAlloc;
+        GfxMemAllocatorPtr              gfxAlloc;
 
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
@@ -221,7 +221,7 @@ no source
 //> traceRays(): void
 //  origin: float3 {0.765625, 0.792500, -1.000000}
 24.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
+25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/0, /*missIndex*/1,
 26.                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
 27.                  /*payload*/PAYLOAD_LOC );
 
@@ -256,7 +256,7 @@ no source
 //> traceRays(): void
 //  origin: float3 {0.463125, 0.455833, -1.000000}
 24.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
+25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/0, /*missIndex*/1,
 26.                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
 27.                  /*payload*/PAYLOAD_LOC );
 
@@ -298,7 +298,7 @@ no source
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db4_TestData    t;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 

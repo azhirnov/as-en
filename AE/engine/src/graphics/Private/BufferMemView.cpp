@@ -90,69 +90,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-    CopyFrom
-=================================================
-*/
-    Bytes  BufferMemView::CopyFrom (const BufferMemView &from) __NE___
-    {
-        const auto  src_parts   = from.Parts();
-        const auto  dst_parts   = Parts();
-
-        if ( src_parts.empty() or dst_parts.empty() )
-            return 0_b;
-
-        Bytes   written         = 0_b;
-        auto    src_part_iter   = src_parts.begin();
-        auto    dst_part_iter   = dst_parts.begin();
-
-        auto*   src_ptr         = Cast<ubyte>(src_part_iter->ptr);
-        auto*   src_end         = Cast<ubyte>(src_part_iter->End());
-        auto*   dst_ptr         = Cast<ubyte>(dst_part_iter->ptr);
-        auto*   dst_end         = Cast<ubyte>(dst_part_iter->End());
-
-        for (;;)
-        {
-            if_unlikely( src_ptr >= src_end )
-            {
-                if ( ++src_part_iter == src_parts.end() )
-                    break;
-
-                src_ptr = Cast<ubyte>(src_part_iter->ptr);
-                src_end = Cast<ubyte>(src_part_iter->End());
-            }
-            if_unlikely( dst_ptr >= dst_end )
-            {
-                if ( ++dst_part_iter == dst_parts.end() )
-                    break;
-
-                dst_ptr = Cast<ubyte>(dst_part_iter->ptr);
-                dst_end = Cast<ubyte>(dst_part_iter->End());
-            }
-
-            const Bytes part_size = Min( Bytes{src_end} - Bytes{src_ptr}, Bytes{dst_end} - Bytes{dst_ptr} );
-
-            std::memcpy( OUT dst_ptr, src_ptr, usize(part_size) );
-
-            dst_ptr += part_size;
-            src_ptr += part_size;
-            written += part_size;
-        }
-        return written;
-    }
-
-/*
-=================================================
-    CopyTo
-=================================================
-*/
-    Bytes  BufferMemView::CopyTo (OUT void* data, Bytes dataSize) C_NE___
-    {
-        BufferMemView   dst{ data, dataSize };
-        return dst.CopyFrom( *this );
-    }
-
-/*
-=================================================
     _ToArray
 =================================================
 */
@@ -164,10 +101,101 @@ namespace AE::Graphics
         Bytes   offset;
         for (auto& part : _parts)
         {
-            std::memcpy( OUT temp.data() + offset, part.ptr, usize(part.size) );
+            MemCopy( OUT temp.data() + offset, part.ptr, part.size );
             offset += part.size;
         }
         return temp;
+    }
+
+/*
+=================================================
+    _Copy
+=================================================
+*/
+    Bytes  BufferMemView::_Copy (const BufferMemView &srcMem, Bytes srcOffset,
+                                 BufferMemView &dstMem, Bytes dstOffset) __NE___
+    {
+        if ( srcMem._parts.empty() or dstMem._parts.empty() )
+            return 0_b;
+
+        Bytes   written     = 0_b;
+        auto    src_part_it = srcMem._parts.begin();
+        auto    dst_part_it = dstMem._parts.begin();
+
+        // move
+        for (; src_part_it != srcMem._parts.end(); ++src_part_it)
+        {
+            if ( srcOffset < src_part_it->size )
+                break;
+
+            srcOffset -= Min( srcOffset, src_part_it->size );
+        }
+
+        for (; dst_part_it != dstMem._parts.end(); ++dst_part_it)
+        {
+            if ( dstOffset < dst_part_it->size )
+                break;
+
+            dstOffset -= Min( dstOffset, dst_part_it->size );
+        }
+
+        if ( src_part_it == srcMem._parts.end() or dst_part_it == dstMem._parts.end() )
+            return 0_b;  // out of range
+
+        auto*   src_ptr     = Cast<ubyte>( src_part_it->ptr ) + srcOffset;
+        auto*   src_end     = Cast<ubyte>( src_part_it->End() );
+        auto*   dst_ptr     = Cast<ubyte>( dst_part_it->ptr ) + dstOffset;
+        auto*   dst_end     = Cast<ubyte>( dst_part_it->End() );
+
+        CHECK_ERR( (src_ptr < src_end) and (dst_ptr < dst_end) );
+
+        // copy
+        for (;;)
+        {
+            if_unlikely( src_ptr >= src_end )
+            {
+                if ( ++src_part_it == srcMem._parts.end() )
+                    break;
+
+                src_ptr = Cast<ubyte>( src_part_it->ptr );
+                src_end = Cast<ubyte>( src_part_it->End() );
+            }
+            if_unlikely( dst_ptr >= dst_end )
+            {
+                if ( ++dst_part_it == dstMem._parts.end() )
+                    break;
+
+                dst_ptr = Cast<ubyte>( dst_part_it->ptr );
+                dst_end = Cast<ubyte>( dst_part_it->End() );
+            }
+
+            const Bytes part_size = Min( Bytes{src_end} - Bytes{src_ptr}, Bytes{dst_end} - Bytes{dst_ptr} );
+
+            MemCopy( OUT dst_ptr, src_ptr, part_size );
+
+            dst_ptr += part_size;
+            src_ptr += part_size;
+            written += part_size;
+        }
+
+        return written;
+    }
+
+/*
+=================================================
+    GetRange
+=================================================
+*/
+    BufferMemView::ConstData  BufferMemView::GetRange (Bytes offset, Bytes size) C_NE___
+    {
+        for (auto& part : _parts)
+        {
+            if ( offset < part.size )
+                return ConstData{ part.ptr + offset, Min( part.size - offset, size )};
+
+            offset -= Min( offset, part.size );
+        }
+        return {};  // out of range
     }
 
 

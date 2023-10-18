@@ -4,8 +4,8 @@
         header
         image data:
             mipmap0
-                slice0 / layer0
-                slice1 / layer1
+                slice0 / layer0 / face0
+                slice1 / layer1 / face1
                 ...
             mipmap1
             ...
@@ -14,8 +14,12 @@
 #pragma once
 
 #include "graphics/Public/ResourceEnums.h"
+#include "graphics/Public/ImageDesc.h"
 #include "graphics/Public/ImageMemView.h"
 
+namespace AE::ResLoader {
+    class IntermImage;
+}
 namespace AE::AssetPacker
 {
     using namespace AE::Base;
@@ -31,61 +35,64 @@ namespace AE::AssetPacker
     // types
     public:
         static constexpr ushort     Version         = 1;
-        static constexpr ubyte      MipmapInfoFlag  = 1 << 0;
-        static constexpr uint       Magic           = uint("gr.Image"_StringToID);
-
+        static constexpr uint       Magic           = "gr.Image"_Hash;
 
         struct Header
         {
-            ushort          version;
             packed_ushort3  dimension;
             ushort          arrayLayers = 0;
             ushort          mipmaps     = 0;
             EImage          viewType    = Default;
             EPixelFormat    format      = Default;
-            ushort          flags       = 0;        // 0, MipmapInfoFlag
-            uint            rowSize     = 0;
+            ushort          flags       = 0;        // 0
+            ubyte           rowAlignPOT = 0;        // POTValue
+
+            // TODO: viewFormats, usage, options
+
+            Header ()                           __NE___ = default;
+
+            ND_ ImageDesc       ToDesc ()       C_NE___;
+            ND_ ImageViewDesc   ToViewDesc ()   C_NE___;
         };
-        STATIC_ASSERT( sizeof(Header) == 20 );
-        STATIC_ASSERT( alignof(Header) == 4 );
+        STATIC_ASSERT( sizeof(Header) == 16 );
+        STATIC_ASSERT( alignof(Header) == 2 );
 
 
-        struct MipmapInfo
+        struct Header2
         {
-            packed_ulong    mipmap0_Offset;
-            packed_ulong    mipmap1_Offset;
-        };
-        STATIC_ASSERT( sizeof(MipmapInfo) == 16 );
-        STATIC_ASSERT( alignof(MipmapInfo) == 4 );
+            uint            magic       = Magic;
+            ushort          version     = Version;
+            Header          hdr;
 
-
-        struct ImageData
-        {
-            RC<SharedMem>   storage;    // required for 'ReadImage()'
-            ImageMemView    memView;    // output
+            Header2 ()                          __NE___ = default;
+            explicit Header2 (const Header &h)  __NE___ : hdr{h} {};
         };
+        STATIC_ASSERT( sizeof(Header2) == 24 );
 
 
     // variables
-    public:
-        uint            magic       = Magic;
-        Header          header;
-        //MipmapInfo    mipInfo;    // TODO
+    private:
+        Header2     _header;
 
 
     // methods
     public:
+        ImagePacker ()                                                                      __NE___ {}
+        explicit ImagePacker (const Header &h)                                              __NE___ : _header{h} {}
 
-            bool  SaveHeader (WStream &stream)                                                              const;
-            bool  SaveImage (WStream &stream, const ImageMemView &src);
+            bool    SaveHeader (WStream &stream)                                            C_NE___;
+            bool    SaveImage (WStream &stream, const ResLoader::IntermImage &src)          C_NE___;
 
-            bool  ReadImage (RStream &stream, INOUT ImageData &, SharedMem::Allocator_t allocator = null)   const;
+            void    GetOffset (ImageLayer layer, MipmapLevel mipmap,
+                               OUT uint3 &imageDim, OUT Bytes &offset, OUT Bytes &size,
+                               OUT Bytes &rowSize, OUT Bytes &sliceSize)                    C_NE___;
 
-            bool  ReadHeader (RStream &stream);
-        ND_ bool  IsValid ()                                                                                const;
+            bool    ReadHeader (RStream &stream)                                            __NE___;
+        ND_ bool    IsValid ()                                                              C_NE___;
 
-        ND_ Bytes  SliceSize ()                                                                             const;
-        ND_ Bytes  DataSize ()                                                                              const;
+        ND_ Bytes   MaxSliceSize ()                                                         C_NE___;
+
+        ND_ Header const*  operator -> ()                                                   C_NE___ { return &_header.hdr; }
     };
 
 
@@ -93,5 +100,6 @@ namespace AE::AssetPacker
 
 namespace AE::Base
 {
-    template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header > { static constexpr bool  value = true; };
+    template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header >   { static constexpr bool  value = true; };
+    template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header2 >  { static constexpr bool  value = true; };
 }

@@ -89,7 +89,6 @@ namespace AE::Graphics
         using SizePerQueue_t    = GraphicsCreateInfo::SizePerQueue_t;
 
         static constexpr uint   _QueueCount     = uint(EQueueType::_Count);
-        static constexpr uint   _PartsCount     = 4;
         static constexpr Bytes  _BlockAlign     {16};
 
         struct Static
@@ -254,7 +253,7 @@ namespace AE::Graphics
         ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) const;
 
         template <typename RangeType, typename BufferType>
-        ND_ static bool  _AllocStatic (Bytes reqSize, Bytes blockSize, Bytes memOffsetAlign, INOUT RangeType &result, BufferType& sb);
+        ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
 
         template <bool SingleAlloc, typename RangeType>
         ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload, INOUT RangeType& buffers, DynamicBuffers &db) const;

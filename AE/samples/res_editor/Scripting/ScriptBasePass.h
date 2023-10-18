@@ -76,15 +76,7 @@ namespace AE::ResEditor
             String              name;
             uint                index       = UMax;
             ESlider             type        = ESlider::_Count;
-            union {
-                ScriptDynamicFloat4Ptr  f4;
-                ScriptDynamicInt4Ptr    i4;
-            };
-
-            Constant ();
-            Constant (const Constant &);
-            Constant (Constant &&);
-            ~Constant ();
+            ScriptRCBase        rc;         // Dynamic + Int|UInt|Float + 1|2|3|4
         };
         using Constants_t       = Array< Constant >;
 
@@ -95,10 +87,9 @@ namespace AE::ResEditor
 
         Sliders_t               _sliders;
         SliderCounter_t         _sliderCounter      {};
+        Constants_t             _constants;
 
         String                  _defines;
-
-        Constants_t             _constants;
 
         String                  _dbgName;
         RGBA8u                  _dbgColor   = HtmlColor::Red;
@@ -107,6 +98,12 @@ namespace AE::ResEditor
 
         ScriptBaseControllerPtr _controller;
         ScriptPassArgs          _args;
+
+        struct {
+            ScriptDynamicUIntPtr    dynamic;
+            uint                    ref         = 0;
+            ECompareOp              op          = ECompareOp::Always;
+        }                       _enablePass;
 
     private:
         UniqueSliderNames_t     _uniqueSliderNames;
@@ -152,6 +149,10 @@ namespace AE::ResEditor
 
         void  ConstantI4 (const String &name, const ScriptDynamicInt4Ptr &value)                        __Th___;
 
+        void  EnableIfEqual (const ScriptDynamicUIntPtr &dyn, uint ref)                                 __Th___;
+        void  EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref)                                  __Th___;
+        void  EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref)                               __Th___;
+
         void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)                            __Th___ { _args.ArgSceneIn( name, scene ); }
 
         void  ArgBufferIn (const String &name, const ScriptBufferPtr &buf)                              __Th___ { _args.ArgBufferIn( name, buf ); }
@@ -161,6 +162,10 @@ namespace AE::ResEditor
         void  ArgImageIn (const String &name, const ScriptImagePtr &img)                                __Th___ { _args.ArgImageIn( name, img ); }
         void  ArgImageOut (const String &name, const ScriptImagePtr &img)                               __Th___ { _args.ArgImageOut( name, img ); }
         void  ArgImageInOut (const String &name, const ScriptImagePtr &img)                             __Th___ { _args.ArgImageInOut( name, img ); }
+
+        void  ArgImageArrIn (const String &name, const ScriptArray<ScriptImagePtr> &arr)                __Th___ { _args.ArgImageArrIn( name, Array<ScriptImagePtr>{arr} ); }
+        void  ArgImageArrOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)               __Th___ { _args.ArgImageArrOut( name, Array<ScriptImagePtr>{arr} ); }
+        void  ArgImageArrInOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)             __Th___ { _args.ArgImageArrInOut( name, Array<ScriptImagePtr>{arr} ); }
 
         void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)   __Th___ { _args.ArgTextureIn( name, tex, samplerName ); }
         void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___ { _args.ArgVideoIn( name, tex, samplerName ); }
@@ -173,12 +178,14 @@ namespace AE::ResEditor
         template <typename T>
         void  _Slider (const String &name, const T &min, const T &max, T val, ESlider type)             __Th___;
 
+        void  _AddSlidersToUIInteraction (IPass* pass)                                                  const;
+        void  _CopyConstants (OUT IPass::Constants &)                                                   const;
+
 
     protected:
         explicit ScriptBasePass (EFlags flags)                                                          __Th___;
 
-        void  _AddSlidersToUIInteraction (IPass* pass)                                                  const;
-        void  _CopyConstants (OUT IPass::Constants &)                                                   const;
+        void  _Init (IPass &dst)                                                                        C_Th___;
 
         ND_ ScriptDynamicDim*   _Dimension ()                                                           __Th___ { return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
         void  _SetDynamicDimension (const ScriptDynamicDimPtr &)                                        __Th___;

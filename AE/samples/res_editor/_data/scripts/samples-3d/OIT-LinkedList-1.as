@@ -9,29 +9,25 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
-
-    Random  _rnd;
-    float   Rnd ()  { return _rnd.Uniform( 0.f, 1.f ); }
-    float3  Rnd3 () { return float3(Rnd(), Rnd(), Rnd()); }
+    #include "samples/GenColoredSpheres.as"
 
     void ASmain ()
     {
         // initialize
-        RC<Image>               rt              = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
-        RC<Image>               abuf            = Image( EPixelFormat::R32U, SurfaceSize() );           abuf.Name( "ABuffer" );
-        RC<Image>               ds              = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
-        RC<Buffer>              storage         = Buffer();
-        RC<Buffer>              count_buf       = Buffer();
+        RC<Image>       rt              = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
+        RC<Image>       abuf            = Image( EPixelFormat::R32U, SurfaceSize() );           abuf.Name( "ABuffer" );
+        RC<Image>       ds              = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
+        RC<Buffer>      storage         = Buffer();
+        RC<Buffer>      count_buf       = Buffer();
 
-        RC<FPVCamera>           camera          = FPVCamera();
-        RC<Buffer>              sphere          = Buffer();
-        RC<UnifiedGeometry>     geometry        = UnifiedGeometry();
-        RC<Scene>               scene           = Scene();
-        RC<Buffer>              drawtasks       = Buffer();
-        uint                    instance_count  = 0;
+        RC<Scene>       scene           = Scene();
+        RC<Buffer>      drawtasks       = Buffer();
+        uint            instance_count  = 0;
 
         // setup camera
         {
+            RC<FPVCamera>   camera = FPVCamera();
+
             camera.ClipPlanes( 0.1f, 100.f );
             camera.FovY( 50.f );
 
@@ -41,34 +37,20 @@
             camera.SideMovementScale( s );
 
             camera.Position( float3(0.f, 0.f, -3.f));
+
+            scene.Set( camera );
         }
 
         // setup draw tasks
         {
-            int3            ipos     (0);
-            const int3      grid_dim (8);
-            array<float2x4> draw_tasks;
-
-            for (ipos.z = 0; ipos.z < grid_dim.z; ++ipos.z)
-            for (ipos.y = 0; ipos.y < grid_dim.y; ++ipos.y)
-            for (ipos.x = 0; ipos.x < grid_dim.x; ++ipos.x)
-            {
-                int     idx     = VecToLinear( ipos, grid_dim );
-                float   scale1  = 0.2f;
-                float   scale2  = 2.5f;
-                float3  pos     = (float3(ipos - grid_dim / 2) * scale2 + ToSNorm(Rnd3())) * scale1;
-                float   size    = Remap( 0.f, 1.f, 0.25f, 1.f, Rnd() ) * scale1;                // sphere size
-                float4  color   = float4(Rainbow( float(idx) / Area(grid_dim) ));   color.w = 0.5;
-
-                draw_tasks.push_back( float2x4( float4(pos, size), color ));
-            }
+            array<float2x4> draw_tasks = GenColoredSpheresDrawTasks();
             drawtasks.FloatArray( "tasks", draw_tasks );
-            drawtasks.Layout( "DrawTask" );
+            drawtasks.LayoutName( "DrawTask" );
             instance_count = draw_tasks.size();
         }
 
         {
-            storage.LayoutAndCount(
+            storage.ArrayLayout(
                 "IntrsPoint",
                 "   float   depth;" +
                 "   uint    objId;" +
@@ -76,18 +58,21 @@
                 64 << 20 );
 
             count_buf.Uint( "counter", 0 );
-            count_buf.Layout( "CountSBlock" );
+            count_buf.LayoutName( "CountSBlock" );
         }
 
         // create sphere
         {
+            RC<Buffer>              sphere      = Buffer();
+            RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
+
             array<float3>   positions;
             array<uint>     indices;
             GetSphere( 7, OUT positions, OUT indices );
 
             sphere.FloatArray( "positions", positions );
             sphere.UIntArray(  "indices",   indices );
-            sphere.Layout( "GeometrySBlock" );
+            sphere.LayoutName( "GeometrySBlock" );
 
             UnifiedGeometry_DrawIndexed cmd;
             cmd.indexCount      = indices.size();
@@ -100,10 +85,9 @@
             geometry.ArgInOut(  "un_ABuffer",   abuf );
             geometry.ArgInOut(  "un_Storage",   storage );
             geometry.ArgInOut(  "un_Count",     count_buf );
-        }
 
-        scene.Set( camera );
-        scene.Add( geometry );
+            scene.Add( geometry );
+        }
 
         // render loop
         {

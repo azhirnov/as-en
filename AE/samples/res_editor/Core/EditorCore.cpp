@@ -19,6 +19,7 @@ namespace AE::ResEditor
 namespace
 {
     static ResEditorAppConfig       s_REConfig;
+    static constexpr auto           c_WindowMode = EWindowMode::Resizable;
 
 /*
 =================================================
@@ -40,7 +41,7 @@ namespace
         {
             cfg.graphics.maxFrames = 2;
 
-            cfg.graphics.staging.readStaticSize .fill( 2_Mb );
+            cfg.graphics.staging.readStaticSize .fill( 1_Mb );
             cfg.graphics.staging.writeStaticSize.fill( 2_Mb );
             cfg.graphics.staging.maxReadDynamicSize     = 64_Mb;
             cfg.graphics.staging.maxWriteDynamicSize    = 64_Mb;
@@ -50,7 +51,8 @@ namespace
             cfg.graphics.device.appName         = "ResourceEditor";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
             cfg.graphics.device.optionalQueues  = Default;
-            cfg.graphics.device.devFlags        = s_REConfig.setStableGPUClock ? EDeviceFlags::SetStableClock : Default;
+            cfg.graphics.device.devFlags        = (s_REConfig.setStableGPUClock ? EDeviceFlags::SetStableClock : Default) |
+                                                  (s_REConfig.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) ;
 
           #if AE_PUBLIC_VERSION and defined(AE_RELEASE)
             cfg.graphics.device.validation      = EDeviceValidation::Disabled;
@@ -72,7 +74,7 @@ namespace
         {
             cfg.window.title    = "ResourceEditor";
             cfg.window.size     = {1600, 900};
-            cfg.window.mode     = EWindowMode::Resizable;
+            cfg.window.mode     = c_WindowMode;
         }
 
         // VR
@@ -96,8 +98,8 @@ namespace
     {
         if ( not FileSystem::IsDirectory( path ))
         {
-            AE_LOG_SE( "VFSPath '"s << ToString(path) << "' must be existed folder" );
-            return;
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
         }
 
         self.vfsPaths.push_back( FileSystem::ToAbsolute( Path{path} ));
@@ -132,6 +134,19 @@ namespace
             "PipelineSearchDir '"s << ToString(path) << "' must be existed folder" );
 
         self.pipelineSearchDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
+    }
+
+/*
+=================================================
+    ResEditorAppConfig_PipelineIncludeDir
+=================================================
+*/
+    static void  ResEditorAppConfig_PipelineIncludeDir (ResEditorAppConfig &self, const String &path)
+    {
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "PipelineIncludeDir '"s << ToString(path) << "' must be existed folder" );
+
+        self.pipelineIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
     }
 
 /*
@@ -213,16 +228,30 @@ namespace
 
 /*
 =================================================
-    ResEditorAppConfig_ScriptDir
+    ResEditorAppConfig_ExportDir
 =================================================
 */
-    static void  ResEditorAppConfig_ScriptDir (ResEditorAppConfig &self, const String &path)
+    static void  ResEditorAppConfig_ExportDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
         {
             CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
                 "Failed to create folder '"s << ToString(path) << "'" );
         }
+
+        CHECK_THROW( self.exportFolder.empty() );
+        self.exportFolder = FileSystem::ToAbsolute( Path{path} );
+    }
+
+/*
+=================================================
+    ResEditorAppConfig_ScriptDir
+=================================================
+*/
+    static void  ResEditorAppConfig_ScriptDir (ResEditorAppConfig &self, const String &path)
+    {
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "ScriptDir '"s << ToString(path) << "' must be existed folder" );
 
         CHECK_THROW( self.scriptFolder.empty() );
         self.scriptFolder = FileSystem::ToAbsolute( Path{path} );
@@ -230,19 +259,29 @@ namespace
 
 /*
 =================================================
-    ResEditorAppConfig_SecondaryScriptDir
+    ResEditorAppConfig_CallableScriptDir
 =================================================
 */
-    static void  ResEditorAppConfig_SecondaryScriptDir (ResEditorAppConfig &self, const String &path)
+    static void  ResEditorAppConfig_CallableScriptDir (ResEditorAppConfig &self, const String &path)
     {
-        if ( not FileSystem::IsDirectory( path ))
-        {
-            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-                "Failed to create folder '"s << ToString(path) << "'" );
-        }
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "CallableScriptDir '"s << ToString(path) << "' must be existed folder" );
 
-        CHECK_THROW( self.scriptSecondaryFolder.empty() );
-        self.scriptSecondaryFolder = FileSystem::ToAbsolute( Path{path} );
+        CHECK_THROW( self.scriptCallableFolder.empty() );
+        self.scriptCallableFolder = FileSystem::ToAbsolute( Path{path} );
+    }
+
+/*
+=================================================
+    ResEditorAppConfig_AddScriptIncludeDir
+=================================================
+*/
+    static void  ResEditorAppConfig_AddScriptIncludeDir (ResEditorAppConfig &self, const String &path)
+    {
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "ScriptIncludeDir '"s << ToString(path) << "' must be existed folder" );
+
+        self.scriptIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
     }
 
 /*
@@ -262,17 +301,21 @@ namespace
         {
             ClassBinder<ResEditorAppConfig>     binder{ se };
             binder.CreateClassValue();
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,            "VFSPath",              {"path", "prefixInVFS"} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,          "UIDataDir",            {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,  "PipelineSearchDir",    {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,    "ShaderSearchDir",      {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,   "ShaderIncludeDir",     {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,          "ScriptDir",            {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_SecondaryScriptDir, "SecondaryScriptDir",   {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,     "ShaderTraceDir",       {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,      "ScreenshotDir",        {} );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,           "VideoDir",             {} );
-            binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,         "setStableGPUClock" );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,                "VFSPath",              {"path", "prefixInVFS"} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,              "UIDataDir",            {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,      "PipelineSearchDir",    {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineIncludeDir,     "PipelineIncludeDir",   {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,        "ShaderSearchDir",      {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,       "ShaderIncludeDir",     {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,              "ScriptDir",            {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_CallableScriptDir,      "CallableScriptDir",    {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_AddScriptIncludeDir,    "ScriptIncludeDir",     {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,         "ShaderTraceDir",       {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,          "ScreenshotDir",        {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,               "VideoDir",             {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ExportDir,              "ExportDir",            {} );
+            binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,             "setStableGPUClock"     );
+            binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,               "enableRenderDoc"       );
         }
 
         ScriptEngine::ModuleSource  src;
@@ -351,10 +394,12 @@ void main (Config &out cfg)
     //  attach path on disk to VFS
     cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
     cfg.VFSPath( vfs_path + "res_editor_data",  "res/" );
+    cfg.VFSPath( local_path + "../_export",     "export/" );
 
     // pipeline dirs //
     //  where to search pipelines for 'UnifiedGeometry' and 'Model'.
     cfg.PipelineSearchDir( local_path + "pipelines" );
+    cfg.PipelineIncludeDir( local_path + "pipelines/include" );
 
     // shaders //
     //  where to search shaders for pipelines and passes.
@@ -365,22 +410,29 @@ void main (Config &out cfg)
     // scripts //
     //  all files with '.as' extension will be added to script list in editor.
     cfg.ScriptDir( local_path + "scripts" );
-    //  scripts can be used directly and for 'RunScript()' call.
-    cfg.SecondaryScriptDir( local_path + "scripts/callable" );
+    //  scripts which can be used directly and for 'RunScript()' call.
+    cfg.CallableScriptDir( local_path + "scripts/callable" );
+    //  scripts which can be included in other scripts.
+    cfg.ScriptIncludeDir( local_path + "script_inc" );
 
     // output //
     //  path for imgui
     cfg.UIDataDir( ui_path );
-    //  where put shader traces
+    //  where to put shader traces
     cfg.ShaderTraceDir( local_path + "../_shader_trace" );
-    //  where save screenshots
+    //  where to save screenshots
     cfg.ScreenshotDir( local_path + "../_screenshots" );
-    //  where save video
+    //  where to save video
     cfg.VideoDir( local_path + "../_video" );
+    //  where to save export (images, models, scenes, etc)
+    cfg.ExportDir( local_path + "../_export" );
 
     // graphics settings //
-    //  set stable GPU clock for profiling, otherwise driver can move GPU to low power mode
+    //  set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
     cfg.setStableGPUClock = false;
+
+    //  on start attach RenderDoc to the app, this will disable mesh shader and ray tracing extensions.
+    cfg.enableRenderDoc = false;
 }
 )";
 
@@ -475,15 +527,20 @@ void main (Config &out cfg)
     {
         for (usize i = 0; i < s_REConfig.vfsPaths.size(); ++i)
         {
-            const StringView    prefix {s_REConfig.vfsPathPrefixes[i]};
+            String&     prefix = s_REConfig.vfsPathPrefixes[i];
             ASSERT( not prefix.empty() );
-            ASSERT( prefix.back() == '/' );
 
-            auto    storage = MakeRC<VFS::DiskStaticStorage>();
-            CHECK_ERR( storage->Create( Path{s_REConfig.vfsPaths[i]}, prefix ));
-            CHECK_ERR( GetVFS().AddStorage( storage ));
+            if ( prefix.empty() )           continue;
+            if ( prefix.back() != '/' )     prefix << '/';
+
+            CHECK_ERR( GetVFS().AddStorage( VFS::VirtualFileStorageFactory::CreateStaticFolder( s_REConfig.vfsPaths[i], prefix )));
         }
 
+        if ( not s_REConfig.exportFolder.empty() )
+        {
+            CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"export"},
+                                            VFS::VirtualFileStorageFactory::CreateDynamicFolder( s_REConfig.exportFolder, "export/" )));
+        }
         return true;
     }
 
@@ -523,9 +580,7 @@ void main (Config &out cfg)
 */
     ResEditorCore::ResEditorCore () :
         _ui{ *this, s_REConfig.scriptFolder }
-    {
-        //Unused( _rdc.Initialize() );
-    }
+    {}
 
 /*
 =================================================
@@ -534,6 +589,10 @@ void main (Config &out cfg)
 */
     ResEditorCore::~ResEditorCore ()
     {
+      #ifdef AE_ENABLE_VULKAN
+        RenderTaskScheduler().GetDevice().GetRenderDocApi().PrintCaptures();
+      #endif
+
         _mainLoop.Write( Default );
     }
 
@@ -552,6 +611,7 @@ void main (Config &out cfg)
             cfg.scriptHeaderOutFolder   = s_REConfig.scriptHeaderOutFolder;
             cfg.vfsPaths                = s_REConfig.vfsPaths;
             cfg.vfsPathPrefixes         = s_REConfig.vfsPathPrefixes;
+            cfg.scriptIncludeDirs       = s_REConfig.scriptIncludeDirs;
 
             _script.reset( new ScriptExe{ RVRef(cfg) });    // throw
         )
@@ -580,9 +640,9 @@ void main (Config &out cfg)
     OnSurfaceCreated
 =================================================
 */
-    bool  ResEditorCore::OnSurfaceCreated (IOutputSurface &output) __NE___
+    bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
     {
-        return _ui.Init( output );
+        return _ui.Init( wnd.GetSurface(), c_WindowMode );
     }
 
 /*
@@ -656,7 +716,7 @@ void main (Config &out cfg)
         cfg.shaderDirs      = s_REConfig.shaderSearchDirs;
         cfg.includeDirs     = s_REConfig.shaderIncludeDirs;
         cfg.pipelineDirs    = s_REConfig.pipelineSearchDirs;
-        cfg.scriptDir       = s_REConfig.scriptSecondaryFolder;
+        cfg.scriptDir       = s_REConfig.scriptCallableFolder;
 
         auto    output  = _mainLoop.ConstPtr()->output;
         if ( output )
@@ -790,6 +850,17 @@ void main (Config &out cfg)
 */
     void  ResEditorCore::RenderFrame () __NE___
     {
+        #ifdef AE_ENABLE_VULKAN
+        if ( _ui.IsCaptureRequested() )
+        {
+            auto&   dev = RenderTaskScheduler().GetDevice();
+            if ( dev.HasRenderDocApi() )
+            {
+                CHECK( dev.GetRenderDocApi().TriggerFrameCapture() );
+            }
+        }
+        #endif
+
         _mainLoop->endFrame = _DrawFrame();
     }
 
@@ -798,7 +869,9 @@ void main (Config &out cfg)
     WaitFrame
 =================================================
 */
-    void  ResEditorCore::WaitFrame (const Threading::EThreadArray &threads) __NE___
+    void  ResEditorCore::WaitFrame (const Threading::EThreadArray   &threadMask,
+                                    Ptr<IWindow>                    window,
+                                    Ptr<IVRDevice>                  ) __NE___
     {
         AsyncTask   task;
         std::swap( task, _mainLoop->endFrame );
@@ -808,9 +881,15 @@ void main (Config &out cfg)
             if ( task == null or task->IsFinished() )
                 break;
 
-            Scheduler().ProcessTasks( threads, 0 );
+            Scheduler().ProcessTasks( threadMask, 0 );
 
             Scheduler().DbgDetectDeadlock();
+        }
+
+        if ( window )
+        {
+            if ( auto new_mode = _ui.GetNewWindowMode();  new_mode.has_value() )
+                Unused( window->SetMode( *new_mode ));
         }
     }
 

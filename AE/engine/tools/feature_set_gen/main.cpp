@@ -104,7 +104,7 @@ static void  ValidateFS (INOUT FeatureSet &fs)
 
 static void  ValidateAppleFS (INOUT FeatureSet &fs)
 {
-    if ( fs.minShaderVersion.metal >= 220 and fs.subgroup == EFeature::RequireTrue )
+    if ( fs.maxShaderVersion.metal >= 220 and fs.subgroup == EFeature::RequireTrue )
     {
         fs.subgroupOperations = FeatureSet::SubgroupOperationBits{
             // Basic
@@ -144,17 +144,17 @@ static bool  GenMinimalFS (ArrayView<FeatureSetInfo> fsInfo)
     FeatureSet  min_fs = fsInfo.front().fs;
 
     // Mali T8xx supports 128 with half register count and 64 with full size registers
-    AssignMin( min_fs.minComputeWorkGroupInvocations,   64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeX,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeY,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeZ,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupInvocations,   64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeX,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeY,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeZ,         64u );
 
     for (auto& info : fsInfo)
     {
         min_fs.MergeMin( info.fs );
     }
 
-    CHECK( min_fs.minShaderVersion.metal >= 200 );
+    CHECK( min_fs.maxShaderVersion.metal >= 200 );
     ValidateFS( INOUT min_fs );
     ValidateAppleFS( INOUT min_fs );
 
@@ -192,12 +192,12 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
     #define FS_LIST2( _visitor_ ) \
         _visitor_( perDescrSet                          )\
         _visitor_( perStage                             )\
-        _visitor_( minUniformBufferSize                 )\
-        _visitor_( minStorageBufferSize                 )\
-        _visitor_( minDescriptorSets                    )\
-        _visitor_( minPushConstantsSize                 )\
-        _visitor_( minFragmentOutputAttachments         )\
-        _visitor_( minFragmentCombinedOutputResources   )
+        _visitor_( maxUniformBufferSize                 )\
+        _visitor_( maxStorageBufferSize                 )\
+        _visitor_( maxDescriptorSets                    )\
+        _visitor_( maxPushConstantsSize                 )\
+        _visitor_( maxFragmentOutputAttachments         )\
+        _visitor_( maxFragmentCombinedOutputResources   )
 
     FeatureSet  min_fs;
     String      comment;
@@ -273,12 +273,12 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
         _visitor_( shaderStorageTexelBufferArrayDynamicIndexing     )\
         _visitor_( perDescrSet                                      )\
         _visitor_( perStage                                         )\
-        _visitor_( minUniformBufferSize                             )\
-        _visitor_( minStorageBufferSize                             )\
-        _visitor_( minDescriptorSets                                )\
-        _visitor_( minPushConstantsSize                             )\
-        _visitor_( minFragmentOutputAttachments                     )\
-        _visitor_( minFragmentCombinedOutputResources               )
+        _visitor_( maxUniformBufferSize                             )\
+        _visitor_( maxStorageBufferSize                             )\
+        _visitor_( maxDescriptorSets                                )\
+        _visitor_( maxPushConstantsSize                             )\
+        _visitor_( maxFragmentOutputAttachments                     )\
+        _visitor_( maxFragmentCombinedOutputResources               )
 
     FeatureSet  min_fs;
     String      comment;
@@ -347,7 +347,7 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
     {
         const auto& fs = info.fs;
 
-        if ( fs.minRayRecursionDepth <= 1 )
+        if ( fs.maxRayRecursionDepth <= 1 )
             continue;
 
         if ( init )
@@ -365,7 +365,7 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = ushort(Max( min_fs.minShaderVersion.metal, 230u ));
+    min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 230u ));
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -415,7 +415,7 @@ static bool  GenMinInlineRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = ushort(Max( min_fs.minShaderVersion.metal, 230u ));
+    min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 230u ));
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -468,7 +468,7 @@ static bool  GenMinMeshShader (ArrayView<FeatureSetInfo> fsInfo)
 
     min_fs.rayQuery                 = EFeature::RequireFalse;
     min_fs.rayTracingPipeline       = EFeature::RequireFalse;
-    min_fs.minShaderVersion.metal   = ushort(Max( min_fs.minShaderVersion.metal, 300u ));
+    min_fs.maxShaderVersion.metal   = ushort(Max( min_fs.maxShaderVersion.metal, 300u ));
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -519,12 +519,12 @@ static bool  GenMinMobile (ArrayView<FeatureSetInfo> fsInfo)
     CHECK_ERR( init );
 
     // Mali T8xx supports 128 with half register count and 64 with full size registers
-    AssignMin( min_fs.minComputeWorkGroupInvocations,   64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeX,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeY,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeZ,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupInvocations,   64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeX,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeY,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeZ,         64u );
 
-    min_fs.minShaderVersion.metal = ushort(Max( min_fs.minShaderVersion.metal, 220u )); // iOS 13
+    min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 220u )); // iOS 13
 
     ValidateFS( INOUT min_fs );
     ValidateAppleFS( INOUT min_fs );
@@ -578,12 +578,12 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
     CHECK_ERR( init );
 
     // Mali T8xx supports 128 with half register count and 64 with full size registers
-    AssignMin( min_fs.minComputeWorkGroupInvocations,   64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeX,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeY,         64u );
-    AssignMin( min_fs.minComputeWorkGroupSizeZ,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupInvocations,   64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeX,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeY,         64u );
+    AssignMin( min_fs.maxComputeWorkGroupSizeZ,         64u );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
     min_fs.hwCompressedAttachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
 
     ValidateFS( INOUT min_fs );
@@ -635,7 +635,7 @@ static bool  GenMinMobileAdreno (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -686,7 +686,7 @@ static bool  GenMinMobilePowerVR (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -736,7 +736,7 @@ static bool  GenMinDesktop (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = ushort(Max( min_fs.minShaderVersion.metal, 220u )); // MacOS 10.15
+    min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 220u )); // MacOS 10.15
 
     ValidateFS( INOUT min_fs );
     ValidateAppleFS( INOUT min_fs );
@@ -789,7 +789,7 @@ static bool  GenMinDesktopAMD (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -840,7 +840,7 @@ static bool  GenMinDesktopNV (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -891,7 +891,7 @@ static bool  GenMinDesktopIntel (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal = 0;
+    min_fs.maxShaderVersion.metal = 0;
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();
@@ -941,7 +941,7 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 
     CHECK_ERR( init );
 
-    min_fs.minShaderVersion.metal   = ushort(Max( min_fs.minShaderVersion.metal, 220u ));   // macOS 10.15, iOS 13
+    min_fs.maxShaderVersion.metal   = ushort(Max( min_fs.maxShaderVersion.metal, 220u ));   // macOS 10.15, iOS 13
     min_fs.tessellationShader       = EFeature::Ignore;
 
     ValidateFS( INOUT min_fs );
@@ -980,8 +980,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple8";
             fs.type = EType::Mobile;
-            fs.fs.minShaderVersion.metal = 300;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 300;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1008,8 +1008,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple8_Mac";
             fs.type = EType::Desktop;
-            fs.fs.minShaderVersion.metal = 300;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 300;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1038,8 +1038,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple7_Metal3";
             fs.type = EType::Mobile;
-            fs.fs.minShaderVersion.metal = 300;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 300;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1066,8 +1066,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple7_Mac_Metal3";
             fs.type = EType::Desktop;
-            fs.fs.minShaderVersion.metal = 300;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 300;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1093,8 +1093,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple7";
             fs.type = EType::Mobile;
-            fs.fs.minShaderVersion.metal = 240;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 240;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1123,8 +1123,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple6_Metal3";
             fs.type = EType::Mobile;
-            fs.fs.minShaderVersion.metal = 300;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 300;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1150,8 +1150,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
             auto&   fs = fsInfo.emplace_back();
             fs.name = "Apple6";
             fs.type = EType::Mobile;
-            fs.fs.minShaderVersion.metal = 240;
-            fs.fs.minShaderVersion.spirv = 140;
+            fs.fs.maxShaderVersion.metal = 240;
+            fs.fs.maxShaderVersion.spirv = 140;
             fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
             mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1178,8 +1178,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
         auto&   fs = fsInfo.emplace_back();
         fs.name = "Apple5";
         fs.type = EType::Mobile;
-        fs.fs.minShaderVersion.metal = 240;
-        fs.fs.minShaderVersion.spirv = 100;
+        fs.fs.maxShaderVersion.metal = 240;
+        fs.fs.maxShaderVersion.spirv = 100;
         fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
         mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1205,8 +1205,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
         auto&   fs = fsInfo.emplace_back();
         fs.name = "Apple4";
         fs.type = EType::Mobile;
-        fs.fs.minShaderVersion.metal = 240;
-        fs.fs.minShaderVersion.spirv = 100;
+        fs.fs.maxShaderVersion.metal = 240;
+        fs.fs.maxShaderVersion.spirv = 100;
         fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
         mfs.InitFeatureSet( f, OUT fs.fs );
@@ -1234,8 +1234,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
         fs.type = EType::Desktop;
 
         FeatureSet  min_fs;
-        min_fs.minShaderVersion.metal = 240;
-        min_fs.minShaderVersion.spirv = 140;
+        min_fs.maxShaderVersion.metal = 240;
+        min_fs.maxShaderVersion.spirv = 140;
         min_fs.vendorIds.include.insert( EVendorID::AMD );
         min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
 
@@ -1276,8 +1276,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
         fs.type = EType::Desktop;
 
         FeatureSet  min_fs;
-        min_fs.minShaderVersion.metal = 300;
-        min_fs.minShaderVersion.spirv = 140;
+        min_fs.maxShaderVersion.metal = 300;
+        min_fs.maxShaderVersion.spirv = 140;
         min_fs.vendorIds.include.insert( EVendorID::AMD );
         min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
 
@@ -1407,8 +1407,8 @@ int main ()
             if ( info.fs.accelerationStructure() == EFeature::RequireTrue ) msl_ver = 240;
             if ( info.fs.meshShader == EFeature::RequireTrue )              msl_ver = 300;
 
-        //  info.fs.minUniformBufferSize    = Min( info.fs.minUniformBufferSize, DeviceLimits.res.maxUniformBufferRange );
-            info.fs.minShaderVersion.metal  = ushort(Max( info.fs.minShaderVersion.metal, msl_ver ));
+        //  info.fs.maxUniformBufferSize    = Min( info.fs.maxUniformBufferSize, DeviceLimits.res.maxUniformBufferRange );
+            info.fs.maxShaderVersion.metal  = ushort(Max( info.fs.maxShaderVersion.metal, msl_ver ));
         }
 
         // validate device limits

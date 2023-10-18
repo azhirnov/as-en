@@ -17,7 +17,7 @@ namespace AE::ResEditor
     PresentAsync
 =================================================
 */
-    AsyncTask  Present::PresentAsync (const PresentPassData &pd) __NE___
+    AsyncTask  Present::PresentAsync (const PresentPassData &pd) __Th___
     {
         const auto  sizes = pd.surface->GetTargetSizes();
 
@@ -222,8 +222,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  DebugView::Execute (SyncPassData &pd) __NE___
+    bool  DebugView::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         {
             auto&   ui = UIInteraction::Instance();
             ui.SetDbgView( _index, _view );
@@ -300,7 +303,7 @@ namespace AE::ResEditor
 =================================================
 */
     DebugView::DebugView (RC<Image> src, uint idx, EFlags flags, ImageLayer layer, MipmapLevel mipmap, Renderer* renderer, StringView dbgName) :
-        _index{idx}, _flags{flags}, _dbgName{dbgName}
+        IPass{dbgName}, _index{idx}, _flags{flags}
     {
         CHECK_THROW( src )
         CHECK_THROW( renderer != null );
@@ -365,7 +368,7 @@ namespace AE::ResEditor
             auto    view_id     = res_mngr.CreateImageView( ImageViewDesc{img_desc}, image_id, dbg_name );
             CHECK_THROW( view_id );
 
-            renderer->GetResourceQueue().EnqueueImageTransition( image_id );
+            renderer->GetDataTransferQueue().EnqueueImageTransition( image_id );
 
             _copy = MakeRC<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
                                    img_desc, ImageViewDesc{img_desc}, null, null, dbg_name );
@@ -539,6 +542,9 @@ namespace AE::ResEditor
 
         // pass 3
         {
+            gfx_ctx.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderStorage_Read | EResourceState::VertexProcessingShaders );
+            gfx_ctx.MemoryBarrier( EResourceState::ShaderStorage_RW | EResourceState::ComputeShader, EResourceState::ShaderStorage_Read | EResourceState::VertexProcessingShaders );
+
             STATIC_ASSERT( RTech.Graphics.attachmentsCount == 1 );
 
             RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
@@ -737,8 +743,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  GenerateMipmapsPass::Execute (SyncPassData &pd) __NE___
+    bool  GenerateMipmapsPass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::Transfer     ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"GenerateMipmaps", HtmlColor::Blue} };
 
         ctx.GenerateMipmaps( _image->GetImageId() );
@@ -756,7 +765,7 @@ namespace AE::ResEditor
 =================================================
 */
     CopyImagePass::CopyImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___ :
-        _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}, _dbgName{dbgName}
+        IPass{dbgName}, _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}
     {
         const auto& src_desc = _srcImage->GetImageDesc();
         const auto& dst_desc = _dstImage->GetImageDesc();
@@ -773,8 +782,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  CopyImagePass::Execute (SyncPassData &pd) __NE___
+    bool  CopyImagePass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::Transfer     ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"CopyImage", HtmlColor::Blue} };
 
         ImageCopy   copy;
@@ -798,8 +810,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  ClearImagePass::Execute (SyncPassData &pd) __NE___
+    bool  ClearImagePass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::Transfer     ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ClearImage", HtmlColor::Blue} };
         ImageSubresourceRange   range{ EImageAspect::Color, 0_mipmap, UMax, 0_layer, UMax };
         ImageID                 id = _image->GetImageId();
@@ -822,11 +837,14 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  ClearBufferPass::Execute (SyncPassData &pd) __NE___
+    bool  ClearBufferPass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::Transfer     ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ClearBuffer", HtmlColor::Blue} };
 
-        ctx.FillBuffer( _buffer->GetBufferId( ctx.GetFrameId() ), 0_b, UMax, _value );
+        ctx.FillBuffer( _buffer->GetBufferId( ctx.GetFrameId() ), _offset, _size, _value );
 
         pd.cmdbuf = ctx.ReleaseCommandBuffer();
         return true;

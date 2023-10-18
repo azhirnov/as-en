@@ -130,9 +130,8 @@ namespace AE::Base
             MHz_t   freq    = GetFrequency( core.FirstLogicalCore() );
             float   usage   = Max( float(freq - core.baseClock) / float(core.maxClock - core.baseClock), 0.f );
 
-            for (ulong bits = core.logicalBits.to_ullong(); bits != 0;)
+            for (uint core_id : BitIndexIterate( core.logicalBits.to_ullong() ))
             {
-                uint    core_id = ExtractBitLog2( INOUT bits );
                 if ( core_id < core_count )
                 {
                     user[core_id]   = usage;

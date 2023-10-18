@@ -1,4 +1,4 @@
-//814BA285
+//2C45077E
 #include <vector>
 #include <string>
 
@@ -20,47 +20,47 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct Android_ActionBindings;
-struct Android_Input;
-struct uint2;
-struct uint3;
-struct uint4;
-struct float4;
-struct short3;
-struct ushort4;
-struct sbyte4;
-struct short2;
-struct sbyte3;
-struct GLFW_BindingsMode;
-struct GLFW_ActionBindings;
-struct WinAPI_BindingsMode;
-struct OpenVR_ActionBindings;
-struct float2;
-struct float3;
-struct ubyte4;
+struct ubyte2;
+struct ubyte3;
+struct EGestureType;
 struct EGestureState;
 struct WinAPI_ActionBindings;
 struct OpenVR_Input;
-struct ubyte2;
-struct EGestureType;
-struct bool4;
-struct ubyte3;
-struct int2;
-struct bool3;
-struct bool2;
-struct int4;
-struct int3;
-struct GLFW_Input;
+struct ubyte4;
+struct VecSwizzle;
+struct Android_ActionBindings;
+struct EValueType;
+struct WinAPI_Input;
 struct OpenVR_BindingsMode;
-struct sbyte2;
 struct ushort3;
+struct sbyte2;
 struct ushort2;
-struct short4;
 struct ActionInfo;
 struct Android_BindingsMode;
-struct EValueType;
-struct VecSwizzle;
-struct WinAPI_Input;
+struct short4;
+struct bool4;
+struct int2;
+struct bool3;
+struct int3;
+struct bool2;
+struct GLFW_Input;
+struct int4;
+struct GLFW_BindingsMode;
+struct short3;
+struct short2;
+struct ushort4;
+struct sbyte3;
+struct sbyte4;
+struct uint4;
+struct float4;
+struct uint3;
+struct uint2;
+struct Android_Input;
+struct float2;
+struct float3;
+struct GLFW_ActionBindings;
+struct WinAPI_BindingsMode;
+struct OpenVR_ActionBindings;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -94,7 +94,7 @@ int  FloorPOT (int x);
 int  CeilPOT (int x);
 int  AlignDown (int x, int align);
 int  AlignUp (int x, int align);
-bool  IsAligned (int x, int align);
+bool  IsMultipleOf (int x, int align);
 uint  Square (uint x);
 uint  Min (uint x, uint y);
 uint  Max (uint x, uint y);
@@ -118,7 +118,7 @@ uint  FloorPOT (uint x);
 uint  CeilPOT (uint x);
 uint  AlignDown (uint x, uint align);
 uint  AlignUp (uint x, uint align);
-bool  IsAligned (uint x, uint align);
+bool  IsMultipleOf (uint x, uint align);
 float  Abs (float x);
 float  MirroredWrap (float x, float min, float max);
 float  Square (float x);
@@ -164,6 +164,7 @@ uint  RoundToUint (float x);
 float  IsInfinity (float x);
 float  IsNaN (float x);
 float  IsFinite (float x);
+float  Pi ();
 struct bool2
 {
     bool2 ();
@@ -237,6 +238,7 @@ struct bool4
     bool4 (const bool2 & xy, const bool2 & zw);
     bool4 (const bool3 & xyz, bool w);
     bool4 (bool x, bool y, bool z, bool w);
+    bool4 (bool x, const bool3 & yzw);
     bool4 (const short2 & v2);
     bool4 (const short3 & v3);
     bool4 (const short4 & v4);
@@ -327,6 +329,7 @@ struct sbyte4
     sbyte4 (const sbyte2 & xy, const sbyte2 & zw);
     sbyte4 (const sbyte3 & xyz, int8 w);
     sbyte4 (int8 x, int8 y, int8 z, int8 w);
+    sbyte4 (int8 x, const sbyte3 & yzw);
     sbyte4 (const short2 & v2);
     sbyte4 (const short3 & v3);
     sbyte4 (const short4 & v4);
@@ -417,6 +420,7 @@ struct ubyte4
     ubyte4 (const ubyte2 & xy, const ubyte2 & zw);
     ubyte4 (const ubyte3 & xyz, uint8 w);
     ubyte4 (uint8 x, uint8 y, uint8 z, uint8 w);
+    ubyte4 (uint8 x, const ubyte3 & yzw);
     ubyte4 (const short2 & v2);
     ubyte4 (const short3 & v3);
     ubyte4 (const short4 & v4);
@@ -501,6 +505,7 @@ struct short4
     short4 (const short2 & xy, const short2 & zw);
     short4 (const short3 & xyz, int16 w);
     short4 (int16 x, int16 y, int16 z, int16 w);
+    short4 (int16 x, const short3 & yzw);
     short4 (const ushort2 & v2);
     short4 (const ushort3 & v3);
     short4 (const ushort4 & v4);
@@ -582,6 +587,7 @@ struct ushort4
     ushort4 (const ushort2 & xy, const ushort2 & zw);
     ushort4 (const ushort3 & xyz, uint16 w);
     ushort4 (uint16 x, uint16 y, uint16 z, uint16 w);
+    ushort4 (uint16 x, const ushort3 & yzw);
     ushort4 (const short2 & v2);
     ushort4 (const short3 & v3);
     ushort4 (const short4 & v4);
@@ -663,6 +669,7 @@ struct int4
     int4 (const int2 & xy, const int2 & zw);
     int4 (const int3 & xyz, int w);
     int4 (int x, int y, int z, int w);
+    int4 (int x, const int3 & yzw);
     int4 (const short2 & v2);
     int4 (const short3 & v3);
     int4 (const short4 & v4);
@@ -744,6 +751,7 @@ struct uint4
     uint4 (const uint2 & xy, const uint2 & zw);
     uint4 (const uint3 & xyz, uint w);
     uint4 (uint x, uint y, uint z, uint w);
+    uint4 (uint x, const uint3 & yzw);
     uint4 (const short2 & v2);
     uint4 (const short3 & v3);
     uint4 (const short4 & v4);
@@ -825,6 +833,7 @@ struct float4
     float4 (const float2 & xy, const float2 & zw);
     float4 (const float3 & xyz, float w);
     float4 (float x, float y, float z, float w);
+    float4 (float x, const float3 & yzw);
     float4 (const short2 & v2);
     float4 (const short3 & v3);
     float4 (const short4 & v4);
@@ -1778,9 +1787,27 @@ struct OpenVR_ActionBindings
 };
 
 template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+    RC (const WinAPI_ActionBindings &);
+};
+
+template <>
 struct RC<Android_ActionBindings> : Android_ActionBindings
 {
     RC (const Android_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+    RC (const OpenVR_BindingsMode &);
+};
+
+template <>
+struct RC<Android_BindingsMode> : Android_BindingsMode
+{
+    RC (const Android_BindingsMode &);
 };
 
 template <>
@@ -1805,23 +1832,5 @@ template <>
 struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
     RC (const OpenVR_ActionBindings &);
-};
-
-template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
-{
-    RC (const WinAPI_ActionBindings &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-    RC (const OpenVR_BindingsMode &);
-};
-
-template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
-{
-    RC (const Android_BindingsMode &);
 };
 

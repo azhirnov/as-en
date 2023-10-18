@@ -34,7 +34,8 @@ namespace AE::Graphics
 
     // variables
     private:
-        StrongImageAndViewID    _imageAndView;
+        Strong<ImageID>         _imageId;
+        Strong<ImageViewID>     _viewId;
         SDFConfig               _sdfConfig;
         GlyphMap_t              _glyphMap;
         SizeArr_t               _fontHeight;
@@ -56,9 +57,8 @@ namespace AE::Graphics
         ND_ float  ScreenPixRange (float heightInPx)                                                    C_NE___;    // 2D SDF only
 
         ND_ bool                IsSDF ()                                                                C_NE___ { return _sdfConfig.scale != 0.f; }
-        ND_ ImageID             GetImageID ()                                                           C_NE___ { return _imageAndView.image; }
-        ND_ ImageViewID         GetViewID ()                                                            C_NE___ { return _imageAndView.view; }
-        ND_ ImageAndViewID      GetImageAndView ()                                                      C_NE___ { return _imageAndView; }
+        ND_ ImageID             GetImageID ()                                                           C_NE___ { return _imageId; }
+        ND_ ImageViewID         GetViewID ()                                                            C_NE___ { return _viewId; }
         ND_ SDFConfig const&    GetSDFConfig ()                                                         C_NE___ { return _sdfConfig; }
     };
 

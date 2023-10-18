@@ -17,10 +17,9 @@ namespace
     ND_ static DWORD  FileFlagCast (RFileFlags values) __NE___
     {
         DWORD   flags = FILE_ATTRIBUTE_NORMAL;
-        while ( values != Zero )
-        {
-            RFileFlags  t = ExtractBit( INOUT values );
 
+        for (auto t : BitfieldIterate( values ))
+        {
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -49,10 +48,9 @@ namespace
     ND_ static DWORD  FileFlagCast (WFileFlags values) __NE___
     {
         DWORD   flags = FILE_ATTRIBUTE_NORMAL;
-        while ( values != Zero )
-        {
-            WFileFlags  t = ExtractBit( INOUT values );
 
+        for (auto t : BitfieldIterate( values ))
+        {
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {

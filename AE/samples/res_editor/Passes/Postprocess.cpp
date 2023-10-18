@@ -13,8 +13,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  Postprocess::Execute (SyncPassData &pd) __NE___
+    bool  Postprocess::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         CHECK_ERR( not _renderTargets.empty() );
 
         ShaderDebugger::Result      dbg;
@@ -42,6 +45,7 @@ namespace AE::ResEditor
         DirectCtx::Graphics     ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
         _resources.SetStates( ctx, Default );
+        ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
         ctx.CommitBarriers();
 
         // render pass
@@ -76,7 +80,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
     {
         CHECK_ERR( not _renderTargets.empty() );
 
@@ -92,7 +96,6 @@ namespace AE::ResEditor
         }
 
         // update uniform buffer
-        if ( _ubuffer )
         {
             const auto&     rt      = *_renderTargets[0].image;
             const auto      desc    = rt.GetImageDesc();
@@ -103,7 +106,7 @@ namespace AE::ResEditor
             ub_data.timeDelta   = pd.frameTime.count();
             ub_data.frame       = _dynData.frame;
             ub_data.seed        = pd.seed;
-            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+            ub_data.mouse       = pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
             ub_data.customKeys  = pd.customKeys[0];
 
             if ( _controller )

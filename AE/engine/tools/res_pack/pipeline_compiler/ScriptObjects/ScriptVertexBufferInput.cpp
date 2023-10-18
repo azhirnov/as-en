@@ -205,8 +205,8 @@ namespace
         // validate
         const uint  attribs = Max( _glslLoc, _mslIndex );
 
-        TestFeature_Min( _features, &FeatureSet::minVertexAttributes, attribs, "minVertexAttributes", "attribs" );
-        TestFeature_Min( _features, &FeatureSet::minVertexAttributes, uint(_buffers.size()), "minVertexBuffers", "buffers" );
+        TestFeature_Min( _features, &FeatureSet::maxVertexAttributes, attribs, "maxVertexAttributes", "attribs" );
+        TestFeature_Min( _features, &FeatureSet::maxVertexAttributes, uint(_buffers.size()), "maxVertexBuffers", "buffers" );
 
         if ( divisor.has_value() )
         {

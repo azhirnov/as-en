@@ -1,8 +1,9 @@
-source: [FeatureSet.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/FeatureSet.h)
+Source: [FeatureSet.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/FeatureSet.h)
 
-Some kind of [Vulkan Profiles](https://github.com/KhronosGroup/Vulkan-Profiles) and [Metal Feature Set Tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf).
+This is some kind of [Vulkan Profiles](https://github.com/KhronosGroup/Vulkan-Profiles) and [Metal Feature Set Tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf).
 
-Use `FeatureSet` to get GPU limits and features in resource compilation stage.
+Use [FeatureSetGen](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/feature_set_gen/Readme.md) application to generate feature sets from Vulkan device info JSON and from Metal feature set table.<br/>
+Predefined FeatureSet's located in the [feature_set folder](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/feature_set), use them to get GPU limits and features in resource compilation stage.
 
 Use `FeatureSet const&  RenderTaskScheduler().GetFeatureSet()` to get cross-platform limits and features of the current GPU in runtime.
 
@@ -140,10 +141,6 @@ __- GL_EXT_shader_atomic_float2__:
 * shaderSubgroupClock
 * shaderDeviceClock
 
-### nVidia specific
-
-* cooperativeMatrixNV
-
 
 ## Shader features and limits
 
@@ -159,7 +156,7 @@ __- GL_EXT_shader_atomic_float2__:
 * shaderTerminateInvocation
 * shaderZeroInitializeWorkgroupMemory
 * shaderIntegerDotProduct
-* minShaderVersion
+* maxShaderVersion
 
 ### Array dynamic indexing
 
@@ -230,7 +227,7 @@ Metal: not supported (can be emulated).
 * __rayTraversalPrimitiveCulling__<br/>
 Same as `VkPhysicalDeviceRayTracingPipelineFeaturesKHR::rayTraversalPrimitiveCulling`.<br/>
 Metal: not supported.
-* __minRayRecursionDepth__<br/>
+* __maxRayRecursionDepth__<br/>
 Minimal value of `VkPhysicalDeviceRayTracingPipelinePropertiesKHR::maxRayRecursionDepth`.<br/>
 Metal: not supported.
 
@@ -239,12 +236,12 @@ Metal: not supported.
 * multiview
 * multiviewGeometryShader
 * multiviewTessellationShader
-* minMultiviewViewCount
+* maxMultiviewViewCount
 
 ### Multi viewport
 
 * multiViewport
-* minViewports
+* maxViewports
 
 ### Sample locations
 
@@ -262,31 +259,31 @@ Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::tessellationPointMode`.
 
 ### Shader limits
 
-* minTexelBufferElements
-* minUniformBufferSize
-* minStorageBufferSize
+* maxTexelBufferElements
+* maxUniformBufferSize
+* maxStorageBufferSize
 * perDescrSet
 * perStage
-* minDescriptorSets
-* minTexelOffset
-* minTexelGatherOffset
-* minFragmentOutputAttachments
-* minFragmentDualSrcAttachments
-* minFragmentCombinedOutputResources
-* minPushConstantsSize
-* minTotalThreadgroupSize
-* minTotalTileMemory
-* minVertAmplification
+* maxDescriptorSets
+* maxTexelOffset
+* maxTexelGatherOffset
+* maxFragmentOutputAttachments
+* maxFragmentDualSrcAttachments
+* maxFragmentCombinedOutputResources
+* maxPushConstantsSize
+* maxTotalThreadgroupSize
+* maxTotalTileMemory
+* maxVertAmplification
 
 ### Compute shader 
 
 * __computeShader__<br/>
 Vulkan: always supported.<br/>
 Metal: always supported.
-* __minComputeSharedMemorySize__<br/>
+* __maxComputeSharedMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceLimits::maxComputeSharedMemorySize`.<br/>
 Metal: constant.
-* __minComputeWorkGroupInvocations__<br/>
+* __maxComputeWorkGroupInvocations__<br/>
 Minimal value of `VkPhysicalDeviceLimits::maxComputeWorkGroupInvocations`.<br/>
 Metal: constant.
 * __minComputeWorkGroupSize [X,Y,Z]__<br/>
@@ -299,42 +296,42 @@ Metal: `[MTLDevice maxThreadsPerThreadgroup]`.
 Same as `VkPhysicalDeviceMeshShaderFeaturesEXT::taskShader`.
 * __meshShader__<br/>
 Same as `VkPhysicalDeviceMeshShaderFeaturesEXT::meshShader`.
-* __minTaskWorkGroupSize__<br/>
+* __maxTaskWorkGroupSize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxTaskWorkGroupInvocations` and `maxTaskWorkGroupSize`. In current implementations this values are same and equal to 32.
-* __minMeshWorkGroupSize__<br/>
+* __maxMeshWorkGroupSize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshWorkGroupInvocations` and `maxMeshWorkGroupSize`. In current implementations this values are same and equal to 32.
-* __minMeshOutputVertices__<br/>
+* __maxMeshOutputVertices__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshOutputVertices`.
-* __minMeshOutputPrimitives__<br/>
+* __maxMeshOutputPrimitives__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshOutputPrimitives`.
 * __maxMeshOutputPerVertexGranularity__<br/>
 Maximal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::meshOutputPerVertexGranularity`.
 * __maxMeshOutputPerPrimitiveGranularity__<br/>
 Maximal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::meshOutputPerPrimitiveGranularity`.
-* __minTaskPayloadSize__<br/>
+* __maxTaskPayloadSize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxTaskPayloadSize`.
-* __minTaskSharedMemorySize__<br/>
+* __maxTaskSharedMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxTaskSharedMemorySize`.
-* __minTaskPayloadAndSharedMemorySize__<br/>
+* __maxTaskPayloadAndSharedMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxTaskPayloadAndSharedMemorySize`.
-* __minMeshSharedMemorySize__<br/>
+* __maxMeshSharedMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshSharedMemorySize`.
-* __minMeshPayloadAndSharedMemorySize__<br/>
+* __maxMeshPayloadAndSharedMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshPayloadAndSharedMemorySize`.
-* __minMeshOutputMemorySize__<br/>
+* __maxMeshOutputMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshOutputMemorySize`.
-* __minMeshPayloadAndOutputMemorySize__<br/>
+* __maxMeshPayloadAndOutputMemorySize__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshPayloadAndOutputMemorySize`.
-* __minMeshMultiviewViewCount__<br/>
+* __maxMeshMultiviewViewCount__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxMeshMultiviewViewCount`.
-* __minPreferredTaskWorkGroupInvocations__<br/>
+* __maxPreferredTaskWorkGroupInvocations__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxPreferredTaskWorkGroupInvocations`.
-* __minPreferredMeshWorkGroupInvocations__<br/>
+* __maxPreferredMeshWorkGroupInvocations__<br/>
 Minimal value of `VkPhysicalDeviceMeshShaderPropertiesEXT::maxPreferredMeshWorkGroupInvocations`.
 
 ### Raster order group
 
-* minRasterOrderGroups
+* maxRasterOrderGroups
 
 ### Shaders
 
@@ -347,12 +344,12 @@ Metal: requires tile shader feature.
 
 ### Vertex buffer
 
-* minVertexAttributes
-* minVertexBuffers
+* maxVertexAttributes
+* maxVertexBuffers
 
 __- VK_EXT_vertex_attribute_divisor__:
 * vertexDivisor
-* minVertexAttribDivisor
+* maxVertexAttribDivisor
 
 
 ## Buffer
@@ -378,7 +375,7 @@ Formats which supports `VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_B
 * textureCompressionETC2
 * imageViewMinLod
 * multisampleArrayImage
-* minImageArrayLayers
+* maxImageArrayLayers
 * __storageImageAtomicFormats__<br/>
 Formats which supports `VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT` in `vkGetPhysicalDeviceFormatProperties()`.
 * __storageImageFormats__<br/>
@@ -402,15 +399,15 @@ Formats which supports `VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT` in `v
 * filterMinmaxImageComponentMapping
 * samplerMipLodBias
 * samplerYcbcrConversion
-* minSamplerAnisotropy
-* minSamplerLodBias
+* maxSamplerAnisotropy
+* maxSamplerLodBias
 
 
 ## Framebuffer
 
 * framebufferColorSampleCounts
 * framebufferDepthSampleCounts
-* minFramebufferLayers
+* maxFramebufferLayers
 
 
 ## Render pass

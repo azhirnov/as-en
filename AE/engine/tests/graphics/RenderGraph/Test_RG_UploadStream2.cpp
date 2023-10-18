@@ -10,7 +10,7 @@ namespace
         ImageMemView                imageData;
         const uint2                 dimension   {1u << 12};
         CommandBatchPtr             batch;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
         ImageStream                 stream;
         Atomic<uint>                counter     {0};
     };
@@ -43,7 +43,7 @@ namespace
             ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
             Bytes   copied;
-            CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+            CHECK_TE( mem_view.CopyFrom( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
                       copied == mem_view.Image2DSize() );
 
             Execute( ctx );
@@ -104,7 +104,7 @@ namespace
                     ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
                     Bytes   copied;
-                    CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+                    CHECK_CE( mem_view.CopyFrom( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
                               copied == mem_view.Image2DSize() );
 
                     co_await RenderTask_Execute( ctx );
@@ -138,7 +138,7 @@ namespace
         const Bytes     src_row_pitch   = t.dimension.x * bpp;
         const auto      format          = EPixelFormat::RGBA8_UNorm;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.image     = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.dimension ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "image", t.gfxAlloc );
         CHECK_ERR( t.image );
 

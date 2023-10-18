@@ -6,33 +6,31 @@ namespace
 {
     using Transform_t = TTransformation<float>;
 
-    constexpr float eps = 1.0e-4f;
-
     static void  Transformation_Test1 ()
     {
-        QuatF       q = QuatF::RotateX( 45.0_deg );
+        Quat        q = Quat::RotateX( 45.0_deg );
         float3      p = float3{10.0f, -3.0f, 2.5f};
         float4x4    m = float4x4::Translated( p ) * float4x4{q};
 
         Transform_t t{ m };
 
-        TEST( Equals( q.x, t.orientation.x, eps ));
-        TEST( Equals( q.y, t.orientation.y, eps ));
-        TEST( Equals( q.z, t.orientation.z, eps ));
-        TEST( Equals( q.w, t.orientation.w, eps ));
+        TEST( BitEqual( q.x, t.orientation.x ));
+        TEST( BitEqual( q.y, t.orientation.y ));
+        TEST( BitEqual( q.z, t.orientation.z ));
+        TEST( BitEqual( q.w, t.orientation.w ));
 
-        TEST( Equals( p.x, t.position.x, eps ));
-        TEST( Equals( p.y, t.position.y, eps ));
-        TEST( Equals( p.z, t.position.z, eps ));
+        TEST( BitEqual( p.x, t.position.x ));
+        TEST( BitEqual( p.y, t.position.y ));
+        TEST( BitEqual( p.z, t.position.z ));
 
-        TEST( Equals( 1.0f, t.scale, eps ));
+        TEST( BitEqual( 1.0f, t.scale ));
     }
 
 
     static void  Transformation_Test2 ()
     {
         const Transform_t   tr{ float3{1.0f, 2.0f, 3.0f},
-                                QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
+                                Quat::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
                                 2.0f };
 
         const float4x4  mat = tr.ToMatrix();
@@ -46,27 +44,46 @@ namespace
         const float3    tr_point0   = tr.ToGlobalPosition( point0 );
         const float3    tr_point1   = tr.ToGlobalPosition( point1 );
 
-        TEST( Equals( mat_point0.x, tr_point0.x, eps ));
-        TEST( Equals( mat_point0.y, tr_point0.y, eps ));
-        TEST( Equals( mat_point0.z, tr_point0.z, eps ));
+        TEST( BitEqual( mat_point0.x, tr_point0.x ));
+        TEST( BitEqual( mat_point0.y, tr_point0.y ));
+        TEST( BitEqual( mat_point0.z, tr_point0.z ));
 
-        TEST( Equals( mat_point1.x, tr_point1.x, eps ));
-        TEST( Equals( mat_point1.y, tr_point1.y, eps ));
-        TEST( Equals( mat_point1.z, tr_point1.z, eps ));
+        TEST( BitEqual( mat_point1.x, tr_point1.x ));
+        TEST( BitEqual( mat_point1.y, tr_point1.y ));
+        TEST( BitEqual( mat_point1.z, tr_point1.z ));
     }
 
 
     static void  Transformation_Test3 ()
     {
         const Transform_t   tr1{ float3{1.0f, 2.0f, -3.0f},
-                                 QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
+                                 Quat::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
                                  2.0f };
         const Transform_t tr2 = tr1.Inversed();
         const Transform_t tr3 = tr2.Inversed();
 
-        TEST( All( Equals( tr1.position, tr3.position, eps )));
-        TEST( All( Equals( tr1.orientation, tr3.orientation, eps )));
-        TEST( Equals( tr1.scale, tr3.scale, eps ));
+        TEST( All( BitEqual( tr1.position, tr3.position )));
+        TEST( All( BitEqual( tr1.orientation, tr3.orientation )));
+        TEST( BitEqual( tr1.scale, tr3.scale ));
+    }
+
+
+    static void  Transformation_Test4 ()
+    {
+        const Transform_t   tr1{ float3{1.0f, 2.0f, 3.0f},
+                                 Quat::Identity(),
+                                 2.0f };
+        const Transform_t   tr2{ float3{0.0f, -5.f, 0.f},
+                                 Quat::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
+                                 1.0f };
+        const Transform_t   tr3 = tr1 + tr2;
+
+        const float4x4  mat1 = tr1.ToMatrix();
+        const float4x4  mat2 = tr2.ToMatrix();
+        const float4x4  mat3 = tr3.ToMatrix();
+        const float4x4  mat4 = mat1 * mat2;
+
+        TEST( BitEqual( mat3, mat4 ));
     }
 }
 
@@ -76,6 +93,7 @@ extern void UnitTest_Math_Transformation ()
     Transformation_Test1();
     Transformation_Test2();
     Transformation_Test3();
+    Transformation_Test4();
 
     TEST_PASSED();
 }

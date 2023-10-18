@@ -443,7 +443,7 @@ namespace
         CHECK_THROW_MSG( value > 0 );
         CHECK_THROW_MSG( value <= GraphicsConfig::MaxViewports );
 
-        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::minViewports, value, "minViewports", "viewportCount" );
+        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxViewports, value, "maxViewports", "viewportCount" );
 
         desc.viewportCount = CheckCast<ubyte>(value);
     }
@@ -458,7 +458,7 @@ namespace
         CHECK_THROW_MSG( GetBase() != null and GetBase()->task, "task shader is not compiled" );
 
         const uint3 spec        = uint3{ GetBase()->task->reflection.mesh.taskGroupSpec };
-        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minTaskWorkGroupSize ));
+        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxTaskWorkGroupSize ));
 
         _SetLocalGroupSize( "task localSize ", spec, uint3{total_size}, total_size, uint3{x,y,z}, OUT desc.taskLocalSize );
     }
@@ -473,7 +473,7 @@ namespace
         CHECK_THROW_MSG( GetBase() != null and GetBase()->mesh, "mesh shader is not compiled" );
 
         const uint3 spec        = uint3{ GetBase()->mesh->reflection.mesh.meshGroupSpec };
-        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minMeshWorkGroupSize ));
+        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxMeshWorkGroupSize ));
 
         _SetLocalGroupSize( "mesh localSize ", spec, uint3{total_size}, total_size, uint3{x,y,z}, OUT desc.meshLocalSize );
     }

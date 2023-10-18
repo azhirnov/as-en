@@ -742,6 +742,7 @@ namespace AE::Graphics::_hidden_
 
             RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
         )
+        Unused( ctxType );
 
         if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
             PipelineBarrier( *bar );  // throw

@@ -67,9 +67,13 @@ namespace AE::PipelineCompiler
         const CharType * const* shaderFolders           = null;     // [shaderFolderCount]
         usize                   shaderFolderCount       = 0;
 
-        // include directories
-        const CharType * const* includeDirs             = null;     // [includeDirCount]
-        usize                   includeDirCount         = 0;
+        // shader include directories
+        const CharType * const* shaderIncludeDirs       = null;     // [shaderIncludeDirCount]
+        usize                   shaderIncludeDirCount   = 0;
+
+        // pipeline include directories
+        const CharType * const* pipelineIncludeDirs     = null;     // [pipelineIncludeDirCount]
+        usize                   pipelineIncludeDirCount = 0;
 
         // output
         const CharType *        outputPackName          = null;

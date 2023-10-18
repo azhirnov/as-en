@@ -22,6 +22,18 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    constructor
+=================================================
+*/
+    IPass::IPass ()
+    {}
+
+    IPass::IPass (StringView dbgName, RGBA8u dbgColor) :
+        _dbgName{dbgName}, _dbgColor{dbgColor}
+    {}
+
+/*
+=================================================
     destructor
 =================================================
 */
@@ -72,6 +84,38 @@ namespace AE::ResEditor
         for (usize i = 0; i < c.i.size(); ++i) {
             dstInts[i] = (c.i[i] ? c.i[i]->Get() : int4{});
         }
+    }
+
+/*
+=================================================
+    _IsEnabled
+=================================================
+*/
+    bool  IPass::_IsEnabled () const
+    {
+        if_likely( not _enablePass.dynamic )
+            return true;
+
+        const uint  lhs = _enablePass.dynamic->Get();
+        const uint  rhs = _enablePass.ref;
+
+        BEGIN_ENUM_CHECKS();
+        switch ( _enablePass.op )
+        {
+            case ECompareOp::Less :         return lhs <  rhs;
+            case ECompareOp::Equal :        return lhs == rhs;
+            case ECompareOp::LEqual :       return lhs <= rhs;
+            case ECompareOp::Greater :      return lhs >  rhs;
+            case ECompareOp::NotEqual :     return lhs != rhs;
+            case ECompareOp::GEqual :       return lhs >= rhs;
+            case ECompareOp::Always :       return true;
+
+            case ECompareOp::Never :
+            case ECompareOp::_Count :
+            case ECompareOp::Unknown :      break;
+        }
+        END_ENUM_CHECKS();
+        return true;
     }
 
 

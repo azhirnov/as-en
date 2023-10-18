@@ -31,9 +31,6 @@ namespace
 
     class WndListener final : public IWindow::IWndListener
     {
-    private:
-        uint    _counter    = 0;
-
     public:
         void OnStateChanged (IWindow &, EState state) __NE_OV
         {
@@ -58,17 +55,6 @@ namespace
         {
             events->push_back( 8 );
         }
-
-        void OnUpdate (IWindow &wnd) __NE_OV
-        {
-            if ( ++_counter > 1000 )
-            {
-                wnd.Close();
-            }
-        }
-
-        void OnResize (IWindow &, const uint2 &) __NE_OV
-        {}
     };
 
 
@@ -76,6 +62,7 @@ namespace
     {
     private:
         WindowPtr   _window;
+        uint        _counter    = 0;
 
     public:
         AppListener ()
@@ -118,7 +105,7 @@ namespace
 
         void  AfterWndUpdate (IApplication &app) __NE_OV
         {
-            if ( _window and _window->GetState() == IWindow::EState::Destroyed )
+            if ( ++_counter > 1000 )
                 app.Terminate();
         }
     };

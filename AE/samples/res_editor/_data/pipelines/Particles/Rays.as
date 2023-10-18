@@ -27,7 +27,7 @@
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
             ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
-            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", "ParticleArray", EResourceState::ShaderStorage_Read );
+            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", "Particle_Array", EResourceState::ShaderStorage_Read );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );

@@ -37,12 +37,13 @@ namespace
         EbtReference,
         EbtRayQuery,
         EbtHitObjectNV,
+        EbtCoopmat,
         EbtSpirvType,
         EbtString,
         EbtNumTypes
     };
 #endif
-    STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 23 );
+    STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 24 );
 
 
     //

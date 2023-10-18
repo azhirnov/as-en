@@ -28,7 +28,7 @@ namespace AE::Threading
     class LfFixedBlockAllocator final : public Noncopyable
     {
         STATIC_ASSERT( ChunkSize_v > 0 );
-        STATIC_ASSERT( IsAligned( ChunkSize_v, 32 ) or IsAligned( ChunkSize_v, 64 ));
+        STATIC_ASSERT( IsMultipleOf( ChunkSize_v, 32 ) or IsMultipleOf( ChunkSize_v, 64 ));
         STATIC_ASSERT( ChunkSize_v <= 64*64 );
         STATIC_ASSERT( MaxChunks_v > 0 );
         STATIC_ASSERT( IsPowerOfTwo( ChunkSize_v ));    // must be power of 2 to increase performance

@@ -4,7 +4,7 @@
 
 #include "PipelineCompiler.pch.h"
 #include "Packer/PipelinePack.h"
-#include "Compiler/IShaderProprocessor.h"
+#include "Compiler/IShaderPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {
@@ -13,6 +13,9 @@ namespace AE::PipelineCompiler
     template <typename T>
     using ScriptRC              = Scripting::AngelScriptHelper::SharedPtr<T>;
     using EnableScriptRC        = Scripting::AngelScriptHelper::SimpleRefCounter;
+
+    template <typename T>
+    using ScriptArray           = AE::Scripting::ScriptArray<T>;
 
     using ShaderDefines_t       = Array< String >;
     using DescriptorCount_t     = StaticArray< uint, uint(EDescriptorType::_Count) >;
@@ -153,7 +156,7 @@ namespace AE::PipelineCompiler
         Metal,              // as in MSL
         Std140,             // as in GLSL, uniform/storage buffer
         Std430,             // as in GLSL, storage buffer, uniform buffer requires 'scalarLayout' feature
-        InternalIO,         // for vertex input and internal shader input/output, GLSL can use precission instead of 8/16 bit types,
+        InternalIO,         // for vertex input and internal shader input/output, GLSL can use precision instead of 8/16 bit types,
                             // C++ reflection is not allowed, 
         //Scalar,           // TODO: GL_EXT_scalar_block_layout
         _Count,
@@ -195,6 +198,8 @@ namespace AE::PipelineCompiler
 
         UInt8_Norm,
         UInt16_Norm,
+
+        DeviceAddress,
 
         _Count
     };

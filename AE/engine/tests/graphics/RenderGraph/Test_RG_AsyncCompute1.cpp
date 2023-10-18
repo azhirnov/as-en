@@ -42,7 +42,7 @@ namespace
         bool                            isOK   [2] = {false, false};
 
         ImageComparator *               imgCmp  = null;
-        RC<GfxLinearMemAllocator>       gfxAlloc;
+        GfxMemAllocatorPtr              gfxAlloc;
     };
 
     static constexpr auto&  RTech = RenderTechs::AsyncCompTestRT;
@@ -247,7 +247,7 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
 
         t.rtech     = renderTech;
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
 
         CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );

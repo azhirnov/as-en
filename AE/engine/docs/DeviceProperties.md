@@ -1,4 +1,4 @@
-source: [DeviceProperties.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/DeviceProperties.h)
+Source: [DeviceProperties.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/DeviceProperties.h)
  
 Use **DeviceProperties** from `DeviceProperties const&  RenderTaskScheduler().GetDeviceProperties();` to get runtime limits for the current GPU.
 
@@ -28,14 +28,13 @@ the offset to the maximum of either the data type consumed by the compute functi
 A 16-byte alignment is safe in iOS if you don't need to consider the data type.*"
 
 * `maxVerticesPerRenderPass`</br>
-__Mali GPU__ has fixed-sized buffer to store vertices after transformations and before per-tile execution,
-this is not documented in Vulkan API and should be manually updated.</br>
-ref: [ARM blog](https://community.arm.com/arm-community-blogs/b/graphics-gaming-and-vr-blog/posts/memory-limits-with-vulkan-on-mali-gpus)</br>
+__Mali GPU__: from [ARM blog](https://community.arm.com/arm-community-blogs/b/graphics-gaming-and-vr-blog/posts/memory-limits-with-vulkan-on-mali-gpus): "*has fixed-sized buffer to store vertices after transformations and before per-tile execution,
+this is not documented in Vulkan API and should be manually updated.*"</br>
 __Vulkan__: *not defined*</br>
 __Metal__:  *not defined*
 	
 * `minVertexBufferOffsetAlign`</br>
-__Vulkan__: *not defined*</br>
+__Vulkan__: from [specs](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#fxvertex-input-address-calculation): "*If format is a packed format, attribAddress must be a multiple of the size in bytes of the whole attribute data type as described in Packed Formats. Otherwise, attribAddress must be a multiple of the size in bytes of the component type indicated by format.*"</br>
 __Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1515785-offset?language=objc): "*must be a multiple of 4 bytes*"
 
 * `minVertexBufferElementsAlign`</br>
@@ -102,7 +101,7 @@ __Vulkan__: from specs: "*must be aligned to 16 bytes*"<br/>
 __Metal__:  in [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3929834-transformationmatrixbufferoffset?language=objc): *not defined*.<br/>
 
 * `instanceDataAlign`<br/>
-__Vulkan__: from specs: "**".<br/>
+__Vulkan__: from specs: if arrayOfPointers: "*must be aligned to 8 bytes*", otherwise: "*must be aligned to 16 bytes*". For array elements: "*each element of ... in device memory must be aligned to 16 bytes*"<br/>
 __Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553887-instancedescriptorbufferoffset?language=objc): "*Specify an offset that is a multiple of 4 bytes and a multiple of the platform’s buffer offset alignment*".
 
 * `instanceStrideAlign`<br/>

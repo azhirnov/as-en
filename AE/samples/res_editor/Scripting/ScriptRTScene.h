@@ -30,7 +30,7 @@ namespace AE::ResEditor
     struct RTInstanceMask
     {
     // variables
-        uint        value   = 0;
+        uint        value   = 0xFF;
 
     // methods
         RTInstanceMask () {}
@@ -99,21 +99,27 @@ namespace AE::ResEditor
 
 
     // variables
-    public:
+    private:
         TriangleMeshes_t        _triangleMeshes;
         String                  _dbgName;
         ScriptBufferPtr         _indirectBuffer;
 
         bool                    _immutableGeom      = false;
+        bool                    _dummy              = false;
+        bool                    _allowUpdate        = false;
+
         RC<RTGeometry>          _resource;
 
 
     // methods
     public:
         ScriptRTGeometry ()                                                                             __Th___;
+        explicit ScriptRTGeometry (Bool isDummy)                                                        __Th___;
+        ~ScriptRTGeometry ();
 
         void  Name (const String &name)                                                                 __Th___;
         void  EnableHistory ()                                                                          __Th___;
+        void  AllowUpdate ()                                                                            __Th___;
 
         void  AddTriangles1 (const ScriptBufferPtr &vbuf)                                               __Th___;
         void  AddTriangles2 (const ScriptBufferPtr &vbuf, uint maxVertex, uint maxPrimitives)           __Th___;
@@ -166,7 +172,7 @@ namespace AE::ResEditor
         struct Instance
         {
             ScriptRTGeometryPtr     geometry;
-            float3x4                transform           = float3x4::Identity();
+            float4x3                transform           = float4x3::Identity();
             uint                    instanceCustomIndex = UMax;
             uint                    mask                = UMax;
             uint                    instanceSBTOffset   = UMax;
@@ -175,35 +181,43 @@ namespace AE::ResEditor
 
 
     // variables
-    public:
+    private:
         Array<Instance>         _instances;
         ScriptBufferPtr         _instanceBuffer;
         ScriptBufferPtr         _indirectBuffer;
         String                  _dbgName;
 
-        uint                    _hitGroupStride     = 1;
+        uint                    _maxRayTypes        = 0;
         bool                    _immutableInstances = false;
+        bool                    _allowUpdate        = false;
+
         RC<RTScene>             _resource;
 
 
     // methods
     public:
         ScriptRTScene ()                                                                                __Th___;
+        ~ScriptRTScene ();
 
         void  Name (const String &name)                                                                 __Th___;
         void  EnableHistory ()                                                                          __Th___;
-        void  HitGroupStride (uint value)                                                               __Th___;
+        void  MaxRayTypes (uint value)                                                                  __Th___;
+        void  AllowUpdate ()                                                                            __Th___;
 
         ND_ bool            HasIndirectBuffer ()                                                        const   { return bool{_indirectBuffer}; }
         ND_ ScriptBufferPtr GetInstanceBuffer ()                                                        __Th___;
         ND_ ScriptBufferPtr GetIndirectBuffer ()                                                        __Th___;
 
         ND_ uint            GetInstanceCount ()                                                         __Th___;
-        ND_ uint            GetHitGroupStride ()                                                        C_NE___ { return _hitGroupStride; }
+        ND_ uint            GetMaxRayTypes ()                                                           C_NE___ { return _maxRayTypes; }
 
         ND_ StringView      GetName ()                                                                  C_NE___ { return _dbgName; }
 
         ND_ bool            WithHistory ()                                                              C_Th___;
+
+        void  AddInstance (const ScriptRTGeometryPtr &geom, const float4x3 &transform,
+                           const RTInstanceCustomIndex &, const RTInstanceMask &,
+                           const RTInstanceSBTOffset &, ERTInstanceOpt)                                 __Th___;
 
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
 

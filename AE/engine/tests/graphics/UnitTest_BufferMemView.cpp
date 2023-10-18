@@ -79,6 +79,27 @@ namespace
 
         TEST( data_a == data_b );
     }
+
+
+    static void  BufferMemView_Test3 ()
+    {
+        Array<uint>     data_a;
+        const uint      count   = 10'000;
+
+        for (uint i = 0; i < count; ++i) {
+            data_a.push_back( i );
+        }
+
+        BufferMemView   view_a;
+        view_a.PushBack( data_a.data(), ArraySizeOf(data_a) );
+
+        auto    r0 = view_a.GetRange( 42'000_b, 16_b );
+        TEST( r0.Empty() );
+
+        auto    r1 = view_a.GetRange( 400_b, 4_b );
+        TEST( r1.size == 4_b );
+        TEST_Eq( *Cast<uint>(r1.ptr), 100 );
+    }
 }
 
 
@@ -86,6 +107,7 @@ extern void UnitTest_BufferMemView ()
 {
     BufferMemView_Test1();
     BufferMemView_Test2();
+    BufferMemView_Test3();
 
     TEST_PASSED();
 }

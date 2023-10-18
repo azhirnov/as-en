@@ -6,6 +6,7 @@
 #include "graphics/Public/RenderState.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/VertexEnums.h"
+#include "graphics/Public/GraphicsCreateInfo.h"
 
 namespace AE::Graphics
 {
@@ -124,6 +125,7 @@ namespace AE::Graphics
         EPipelinePackOpt    options         = EPipelinePackOpt::All;
         EPixelFormat        surfaceFormat   = Default;      // TODO: color space
         StringView          dbgName;
+        GfxMemAllocatorPtr  sbtAllocator;   // used to allocate SBT with unified memory (Vulkan only)
     };
 
 

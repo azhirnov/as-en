@@ -536,7 +536,7 @@ namespace
 
     AsyncDSRequest  WinAsyncRDataSource::ReadBlock (Bytes pos, Bytes size) __NE___
     {
-        RC<SharedMem>   mem     = SharedMem::Create( SharedMem::CreateAllocator(), size );  // TODO: optimize
+        RC<SharedMem>   mem     = SharedMem::Create( AE::GetDefaultAllocator(), size ); // TODO: optimize
         void*           data    = mem->Data();
         return ReadBlock( pos, data, size, RVRef(mem) );
     }
@@ -654,9 +654,9 @@ namespace
     Alloc
 =================================================
 */
-    RC<SharedMem>  WinAsyncWDataSource::Alloc (Bytes size) __NE___
+    RC<SharedMem>  WinAsyncWDataSource::Alloc (const SizeAndAlign value) __NE___
     {
-        return SharedMem::Create( SharedMem::CreateAllocator(), size ); // TODO: optimize
+        return SharedMem::Create( AE::GetDefaultAllocator(), value );   // TODO: optimize
     }
 
 /*

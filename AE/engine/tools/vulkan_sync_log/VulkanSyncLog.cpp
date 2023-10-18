@@ -10,7 +10,14 @@ using namespace AE::Graphics;
 using namespace AE::Threading;
 
 #define PRINT_ALL_DS        1
+
+// Print debug marker and debug groups.
 #define ENABLE_DBG_LABEL    0
+
+// Vulkan validation writes 'seq_no' - the zero based index of command within the command buffer.
+// Enable 'seq_no' field in the sync commands.
+// You should disable 'ENABLE_DEBUG_CLEAR' in 'VulkanExtEmulation' module, otherwise command indices will not match.
+#define ENABLE_SEQNO        0
 
 namespace
 {
@@ -54,7 +61,8 @@ namespace
         {
             ulong                   address = 0;
             ulong                   size    = 0;
-            VkBuffer                buffer  = Default;
+            VkObjectType            type    = VK_OBJECT_TYPE_UNKNOWN;
+            ulong                   resource;   // VkBuffer, VkAccelerationStructureKHR
         };
         struct DeviceAddressKey
         {
@@ -89,6 +97,8 @@ namespace
         struct AccelStructData
         {
             String                  name;
+            VkDeviceSize            size    = 0;
+            VkDeviceAddress         address = 0;
         };
         using AccelStructMap_t = FlatHashMap< VkAccelerationStructureKHR, AccelStructData >;
 
@@ -187,6 +197,7 @@ namespace
             BindPoints_t        bindPoints;
             uint                queueFamilyIndex    = UMax;
             int                 dbgLabelDepth       = 0;
+            uint                cmdIndex            = 0;
 
             void  Clear ();
         };
@@ -262,12 +273,16 @@ namespace
 
         void  _PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint);
 
+        ND_ CommandBufferData*  _WithCmdBuf (VkCommandBuffer commandBuffer, Bool incCmdIndex = False{});
+
             void    ResetSyncNames ();
         ND_ String  GetSyncName (VkSemaphore sem, ulong val);
 
-        ND_ String  GetBufferName (VkDeviceOrHostAddressConstKHR addr)  { return GetBufferName( addr.deviceAddress ); }
-        ND_ String  GetBufferName (VkDeviceOrHostAddressKHR addr)       { return GetBufferName( addr.deviceAddress ); }
-        ND_ String  GetBufferName (VkDeviceAddress addr);
+        ND_ String  GetBufferAsString (VkDeviceAddress addr)                const;
+        ND_ String  GetBufferAsString (VkDeviceOrHostAddressConstKHR addr)  const   { return GetBufferAsString( addr.deviceAddress ); }
+        ND_ String  GetBufferAsString (VkDeviceOrHostAddressKHR addr)       const   { return GetBufferAsString( addr.deviceAddress ); }
+
+        ND_ String  GetAccelStructAsString (VkDeviceAddress addr)           const;
 
         ND_ static VulkanLogger&  Get ()
         {
@@ -688,8 +703,9 @@ namespace
     Wrap_vkCreateGraphicsPipelines
 =================================================
 */
-    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateGraphicsPipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
-                                                                    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
+    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateGraphicsPipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount,
+                                                                   const VkGraphicsPipelineCreateInfo* pCreateInfos,
+                                                                    const VkAllocationCallbacks* pAllocator, OUT VkPipeline* pPipelines)
     {
         auto&   logger = VulkanLogger::Get();
         EXLOCK( logger.guard );
@@ -703,7 +719,7 @@ namespace
             auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
             ppln.pipeline   = pPipelines[i];
             ppln.type       = VulkanLogger::PipelineData::EType::Graphics;
-            ppln.name       = "pipeline-" + ToString( logger.resourceStat.pipelineCount );
+            ppln.name       = "graphics-ppln-" + ToString( logger.resourceStat.pipelineCount );
             ++logger.resourceStat.pipelineCount;
         }
         return VK_SUCCESS;
@@ -714,8 +730,9 @@ namespace
     Wrap_vkCreateComputePipelines
 =================================================
 */
-    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateComputePipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
-                                                                  const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
+    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateComputePipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount,
+                                                                  const VkComputePipelineCreateInfo* pCreateInfos,
+                                                                  const VkAllocationCallbacks* pAllocator, OUT VkPipeline* pPipelines)
     {
         auto&   logger = VulkanLogger::Get();
         EXLOCK( logger.guard );
@@ -729,7 +746,34 @@ namespace
             auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
             ppln.pipeline   = pPipelines[i];
             ppln.type       = VulkanLogger::PipelineData::EType::Compute;
-            ppln.name       = "pipeline-" + ToString( logger.resourceStat.pipelineCount );
+            ppln.name       = "compute-ppln-" + ToString( logger.resourceStat.pipelineCount );
+            ++logger.resourceStat.pipelineCount;
+        }
+        return VK_SUCCESS;
+    }
+
+/*
+=================================================
+    Wrap_vkCreateRayTracingPipelinesKHR
+=================================================
+*/
+    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateRayTracingPipelinesKHR (VkDevice device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
+                                                                        uint createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+                                                                        const VkAllocationCallbacks* pAllocator, OUT VkPipeline* pPipelines)
+    {
+        auto&   logger = VulkanLogger::Get();
+        EXLOCK( logger.guard );
+
+        VkResult    res = logger.vkCreateRayTracingPipelinesKHR( device, deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
+        if_unlikely( res != VK_SUCCESS )
+            return res;
+
+        for (uint i = 0; i < createInfoCount; ++i)
+        {
+            auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
+            ppln.pipeline   = pPipelines[i];
+            ppln.type       = VulkanLogger::PipelineData::EType::Compute;
+            ppln.name       = "ray-tracing-ppln-" + ToString( logger.resourceStat.pipelineCount );
             ++logger.resourceStat.pipelineCount;
         }
         return VK_SUCCESS;
@@ -1092,7 +1136,8 @@ namespace
             ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 
             cmdbuf.Clear();
-            cmdbuf.state = VulkanLogger::CommandBufferData::EState::Recording;
+            cmdbuf.state    = VulkanLogger::CommandBufferData::EState::Recording;
+            cmdbuf.cmdIndex = 0;
         }
         return VK_SUCCESS;
     }
@@ -1610,6 +1655,7 @@ namespace
             case VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA :
             case VK_OBJECT_TYPE_MICROMAP_EXT :
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :
+            case VK_OBJECT_TYPE_SHADER_EXT :
             case VK_OBJECT_TYPE_MAX_ENUM :
                 break;
         }
@@ -1636,14 +1682,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
@@ -1679,8 +1722,8 @@ namespace
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
                 log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
-                    << (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                    << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
             }
         }
 
@@ -1717,11 +1760,13 @@ namespace
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
                 log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
-                    << (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                    << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
             }
         }
-
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -1739,14 +1784,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
@@ -1786,8 +1828,8 @@ namespace
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
                 log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
-                    << (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                    << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
             }
         }
 
@@ -1824,11 +1866,13 @@ namespace
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
                 log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
-                    << (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                    << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
             }
         }
-
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2096,25 +2140,25 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.currentRP    = pRenderPassBegin->renderPass;
-        cmdbuf.currentFB    = pRenderPassBegin->framebuffer;
-        cmdbuf.subpassIndex = 0;
+        cmdbuf->currentRP   = pRenderPassBegin->renderPass;
+        cmdbuf->currentFB   = pRenderPassBegin->framebuffer;
+        cmdbuf->subpassIndex    = 0;
 
         if ( not logger.enableLog )
             return;
 
-        if ( not EndsWith( cmdbuf.log, "\n\n" ))
-            cmdbuf.log << '\n';
+        if ( not EndsWith( cmdbuf->log, "\n\n" ))
+            cmdbuf->log << '\n';
 
-         cmdbuf.log << "  BeginRenderPass\n";
-        PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
+        cmdbuf->log << "  BeginRenderPass\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        PrintRenderPass( *cmdbuf, cmdbuf->subpassIndex );
     }
 
 /*
@@ -2129,25 +2173,25 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.currentRP    = pRenderPassBegin->renderPass;
-        cmdbuf.currentFB    = pRenderPassBegin->framebuffer;
-        cmdbuf.subpassIndex = 0;
+        cmdbuf->currentRP   = pRenderPassBegin->renderPass;
+        cmdbuf->currentFB   = pRenderPassBegin->framebuffer;
+        cmdbuf->subpassIndex    = 0;
 
         if ( not logger.enableLog )
             return;
 
-        if ( not EndsWith( cmdbuf.log, "\n\n" ))
-            cmdbuf.log << '\n';
+        if ( not EndsWith( cmdbuf->log, "\n\n" ))
+            cmdbuf->log << '\n';
 
-         cmdbuf.log << "  BeginRenderPass2\n";
-        PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
+        cmdbuf->log << "  BeginRenderPass2\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        PrintRenderPass( *cmdbuf, cmdbuf->subpassIndex );
 
         // TODO: pRenderPassBegin->pNext
     }
@@ -2164,26 +2208,27 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-        cmdbuf.subpassIndex++;
+        ++cmdbuf->subpassIndex;
 
         if ( not logger.enableLog )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
 
         log << "  NextSubpass\n";
-        log << "    index: " << ToString( cmdbuf.subpassIndex ) << '\n';
+        log << "    index:  " << ToString( cmdbuf->subpassIndex ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
 
-        PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
+        PrintRenderPass( *cmdbuf, cmdbuf->subpassIndex );
     }
 
 /*
@@ -2198,26 +2243,27 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-        cmdbuf.subpassIndex++;
+        ++cmdbuf->subpassIndex;
 
         if ( not logger.enableLog )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
 
         log << "  NextSubpass2\n";
-        log << "    index: " << ToString( cmdbuf.subpassIndex ) << '\n';
+        log << "    index:  " << ToString( cmdbuf->subpassIndex ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
 
-        PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
+        PrintRenderPass( *cmdbuf, cmdbuf->subpassIndex );
     }
 
 /*
@@ -2253,21 +2299,21 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
-
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 
         if ( logger.enableLog )
         {
-            cmdbuf.log << "  EndRenderPass\n";
+            cmdbuf->log << "  EndRenderPass\n";
+            #if ENABLE_SEQNO
+            cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+            #endif
         }
 
-        cmdbuf.currentRP    = Default;
-        cmdbuf.currentFB    = Default;
-        cmdbuf.subpassIndex = VK_SUBPASS_EXTERNAL;
+        cmdbuf->currentRP    = Default;
+        cmdbuf->currentFB    = Default;
+        cmdbuf->subpassIndex = VK_SUBPASS_EXTERNAL;
     }
 
 /*
@@ -2282,24 +2328,21 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+        const auto  old_rp = cmdbuf->currentRP;
+        const auto  old_fb = cmdbuf->currentFB;
 
-        const auto  old_rp = cmdbuf.currentRP;
-        const auto  old_fb = cmdbuf.currentFB;
-
-        cmdbuf.currentRP    = Default;
-        cmdbuf.currentFB    = Default;
-        cmdbuf.subpassIndex = UMax;
+        cmdbuf->currentRP    = Default;
+        cmdbuf->currentFB    = Default;
+        cmdbuf->subpassIndex = UMax;
 
         if ( not logger.enableLog )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
@@ -2359,7 +2402,9 @@ namespace
                 log << "      access:  " << VkAccessFlags2ToString( bar.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( bar.dstAccessMask ) << '\n';
             }
         }
-
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2377,14 +2422,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyBuffer\n";
 
         auto    src_it = logger.bufferMap.find( srcBuffer );
@@ -2404,6 +2446,9 @@ namespace
             log << "      copy [" << ToString( reg.srcOffset ) << ", " << ToString( reg.srcOffset + reg.size )
                 << ") ---> ["     << ToString( reg.dstOffset ) << ", " << ToString( reg.dstOffset + reg.size ) << ")\n";
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2445,7 +2490,7 @@ namespace
     {
         ushort      bitsPerBlock    = 0;        // for color and depth
         ubyte       bitsPerBlock2   = 0;        // for stencil
-        ubyte2      blockSize       = {1,1};
+        ubyte2      blockDim        = {1,1};
 
         PixelFormatInfo () {}
 
@@ -2456,9 +2501,9 @@ namespace
             bitsPerBlock{ CheckCast<ushort>( bpp )}, bitsPerBlock2{ CheckCast<ubyte>( bpp2 )} {}
 
         PixelFormatInfo (uint bpp, uint2 block) :
-            bitsPerBlock{ CheckCast<ushort>( bpp )}, blockSize{ CheckCast<ubyte2>( block )} {}
+            bitsPerBlock{ CheckCast<ushort>( bpp )}, blockDim{ CheckCast<ubyte2>( block )} {}
 
-        ND_ uint2  BlockSize () const   { return uint2{blockSize}; }
+        ND_ uint2  BlockDim () const    { return uint2{blockDim}; }
     };
 
     ND_ static PixelFormatInfo  GetFormatInfo (VkFormat fmt)
@@ -2678,8 +2723,8 @@ namespace
         ASSERT( region.bufferImageHeight == 0 or region.bufferImageHeight >= region.imageExtent.height );
 
         const auto&     fmt_info    = GetFormatInfo( imageCI.format );
-        const Bytes     row_pitch   = ImageUtils::RowSize( Max( region.bufferRowLength, region.imageExtent.width ), fmt_info.bitsPerBlock, fmt_info.BlockSize() );
-        const Bytes     slice_pitch = ImageUtils::SliceSize( Max( region.bufferImageHeight, region.imageExtent.height ), row_pitch, fmt_info.BlockSize() );
+        const Bytes     row_pitch   = ImageUtils::RowSize( Max( region.bufferRowLength, region.imageExtent.width ), fmt_info.bitsPerBlock, fmt_info.BlockDim() );
+        const Bytes     slice_pitch = ImageUtils::SliceSize( Max( region.bufferImageHeight, region.imageExtent.height ), row_pitch, fmt_info.BlockDim() );
         const uint      dim_z       = Max( region.imageSubresource.layerCount, region.imageExtent.depth );
 
         return VkDeviceSize( dim_z * slice_pitch );
@@ -2700,14 +2745,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
@@ -2729,6 +2771,9 @@ namespace
             log << "      copy " << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource ) << " ---> "
                 << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2747,14 +2792,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  BlitImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
@@ -2779,6 +2821,9 @@ namespace
             log << "      blit " << SubresourceLayerToString( reg.srcOffsets[0], src_ext, reg.srcSubresource ) << " ---> "
                 << SubresourceLayerToString( reg.dstOffsets[0], dst_ext, reg.dstSubresource ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2797,14 +2842,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyBufferToImage\n";
 
         auto    src_it = logger.bufferMap.find( srcBuffer );
@@ -2825,6 +2867,9 @@ namespace
             log << "      copy { [" << ToString( reg.bufferOffset ) << ", " << ToString( reg.bufferOffset + CalcMemorySize( reg, dst_it->second.info )) << ") } ---> "
                 << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2843,14 +2888,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyImageToBuffer\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
@@ -2871,6 +2913,9 @@ namespace
             log << "      copy " << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource )
                 << " ---> { [" << ToString( reg.bufferOffset ) << ", " << ToString( reg.bufferOffset + CalcMemorySize( reg, src_it->second.info )) << ") }\n";
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2888,14 +2933,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  UpdateBuffer\n";
 
         auto    dst_it = logger.bufferMap.find( dstBuffer );
@@ -2905,6 +2947,9 @@ namespace
         log << "    dst:     '" << dst_it->second.name << "'\n";
         log << "    offset:  " << ToString( dstOffset ) << '\n';
         log << "    size:    " << ToString( dataSize ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no:  " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2922,14 +2967,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  FillBuffer\n";
 
         auto    dst_it = logger.bufferMap.find( dstBuffer );
@@ -2939,6 +2981,9 @@ namespace
         log << "    dst:     '" << dst_it->second.name << "'\n";
         log << "    offset:  " << ToString( dstOffset ) << '\n';
         log << "    size:    " << ToString( size ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no:  " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2957,14 +3002,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto& log = cmdbuf.log;
+        auto& log = cmdbuf->log;
         log << "  ClearColorImage\n";
 
         auto    dst_it = logger.imageMap.find( image );
@@ -2977,6 +3019,9 @@ namespace
         for (uint i = 0; i < rangeCount; ++i) {
             log << "      " << SubresourceRangeToString( pRanges[i] ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -2995,14 +3040,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto& log = cmdbuf.log;
+        auto& log = cmdbuf->log;
         log << "  ClearDepthStencilImage\n";
 
         auto    dst_it = logger.imageMap.find( image );
@@ -3015,6 +3057,9 @@ namespace
         for (uint i = 0; i < rangeCount; ++i) {
             log << "      " << SubresourceRangeToString( pRanges[i] ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3032,15 +3077,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto& log = cmdbuf.log;
+        auto& log = cmdbuf->log;
         log << "  ClearAttachments\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3059,14 +3104,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto& log = cmdbuf.log;
+        auto& log = cmdbuf->log;
         log << "  ResolveImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
@@ -3088,6 +3130,9 @@ namespace
             log << "      resolve " << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource )
                 << " ---> " << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource ) << '\n';
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3105,15 +3150,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  Dispatch\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
+        cmdbuf->log << "  Dispatch\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
     }
 
 /*
@@ -3130,15 +3175,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DispatchBase\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
+        cmdbuf->log << "  DispatchBase\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
     }
 
 /*
@@ -3155,15 +3200,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DispatchIndirect\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
+        cmdbuf->log << "  DispatchIndirect\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
     }
 
 /*
@@ -3180,15 +3225,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  Draw\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  Draw\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3205,15 +3250,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawIndexed\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawIndexed\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3230,15 +3275,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawIndirect\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawIndirect\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3255,15 +3300,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawIndexedIndirect\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawIndexedIndirect\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3281,15 +3326,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawIndirectCount\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawIndirectCount\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3307,15 +3352,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawIndexedIndirectCount\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawIndexedIndirectCount\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3332,15 +3377,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawMeshTasks\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawMeshTasks\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3357,15 +3402,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawMeshTasksIndirect\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawMeshTasksIndirect\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3383,15 +3428,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  DrawMeshTasksIndirectCount\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+        cmdbuf->log << "  DrawMeshTasksIndirectCount\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
     }
 
 /*
@@ -3411,15 +3456,15 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        cmdbuf.log << "  TraceRays\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
+        cmdbuf->log << "  TraceRays\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
     }
 
 /*
@@ -3439,15 +3484,40 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+        cmdbuf->log << "  TraceRaysIndirect\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
+    }
 
-        cmdbuf.log << "  TraceRaysIndirect\n";
-        logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
+/*
+=================================================
+    Wrap_vkCmdTraceRaysIndirect2KHR
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdTraceRaysIndirect2KHR (VkCommandBuffer commandBuffer, VkDeviceAddress indirectDeviceAddress)
+    {
+        auto&   logger = VulkanLogger::Get();
+        logger.vkCmdTraceRaysIndirect2KHR( commandBuffer, indirectDeviceAddress );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
+            return;
+
+        cmdbuf->log << "  TraceRaysIndirect2\n";
+        #if ENABLE_SEQNO
+        cmdbuf->log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        logger._PrintResourceUsage( *cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
     }
 
 /*
@@ -3464,23 +3534,21 @@ namespace
 
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
-
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 
         VulkanLogger::DescrSetArray_t * ds_array = null;
 
         BEGIN_ENUM_CHECKS();
         switch ( pipelineBindPoint )
         {
-            case VK_PIPELINE_BIND_POINT_GRAPHICS :          ds_array = &cmdbuf.bindPoints[0];   break;
-            case VK_PIPELINE_BIND_POINT_COMPUTE :           ds_array = &cmdbuf.bindPoints[1];   break;
-            case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR :   ds_array = &cmdbuf.bindPoints[2];   break;
+            case VK_PIPELINE_BIND_POINT_GRAPHICS :          ds_array = &cmdbuf->bindPoints[0];  break;
+            case VK_PIPELINE_BIND_POINT_COMPUTE :           ds_array = &cmdbuf->bindPoints[1];  break;
+            case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR :   ds_array = &cmdbuf->bindPoints[2];  break;
 
             case VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI :
+            case VK_PIPELINE_BIND_POINT_EXECUTION_GRAPH_AMDX :
             case VK_PIPELINE_BIND_POINT_MAX_ENUM :
             default :
                 DBG_WARNING( "unknown pipeline bind point" );
@@ -3516,7 +3584,10 @@ namespace
 
         EXLOCK( logger.guard );
 
-        logger.accelStructMap.insert_or_assign( *pAccelerationStructure, VulkanLogger::AccelStructData{} );
+        auto it = logger.accelStructMap.insert_or_assign( *pAccelerationStructure, VulkanLogger::AccelStructData{} ).first;
+
+        it->second.size = pCreateInfo->size;
+
         return VK_SUCCESS;
     }
 
@@ -3561,7 +3632,41 @@ namespace
                 VulkanLogger::DeviceAddressRange    range;
                 range.address   = addr;
                 range.size      = buf_it->second.info.size;
-                range.buffer    = buf_it->second.buffer;
+                range.type      = VK_OBJECT_TYPE_BUFFER;
+                range.resource  = BitCast<ulong>( buf_it->second.buffer );
+
+                usize   idx = LowerBound( ArrayView{logger.devAddrToBuffer}, VulkanLogger::DeviceAddressKey{addr} );
+                logger.devAddrToBuffer.insert( logger.devAddrToBuffer.begin() + idx, range );
+            }
+        }
+        return addr;
+    }
+
+/*
+=================================================
+    Wrap_vkGetAccelerationStructureDeviceAddressKHR
+=================================================
+*/
+    VKAPI_ATTR VkDeviceAddress VKAPI_CALL Wrap_vkGetAccelerationStructureDeviceAddressKHR (VkDevice device, const VkAccelerationStructureDeviceAddressInfoKHR *pInfo)
+    {
+        auto&   logger  = VulkanLogger::Get();
+        auto    addr    = logger.vkGetAccelerationStructureDeviceAddressKHR( device, pInfo );
+
+        if ( addr == 0 )
+            return addr;
+
+        EXLOCK( logger.guard );
+        {
+            auto    as_it = logger.accelStructMap.find( pInfo->accelerationStructure );
+            if ( as_it != logger.accelStructMap.end() )
+            {
+                as_it->second.address = addr;
+
+                VulkanLogger::DeviceAddressRange    range;
+                range.address   = addr;
+                range.size      = as_it->second.size;
+                range.type      = VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR;
+                range.resource  = BitCast<ulong>( pInfo->accelerationStructure );
 
                 usize   idx = LowerBound( ArrayView{logger.devAddrToBuffer}, VulkanLogger::DeviceAddressKey{addr} );
                 logger.devAddrToBuffer.insert( logger.devAddrToBuffer.begin() + idx, range );
@@ -3585,16 +3690,16 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  InsertDebugLabel\n";
-        log << "    name: " << pLabelInfo->pLabelName;
+        log << "    name:   " << pLabelInfo->pLabelName;
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "\n  ----------\n\n";
       #endif
     }
@@ -3612,22 +3717,22 @@ namespace
       #if ENABLE_DBG_LABEL
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        const int   depth = ++cmdbuf.dbgLabelDepth;
+        const int   depth = ++cmdbuf->dbgLabelDepth;
 
         if ( not logger.enableLog )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  BeginDebugLabel\n";
-        log << "    name:  '" << pLabelInfo->pLabelName << "'\n";
-        log << "    depth: " << ToString( depth ) << "\n";
+        log << "    name:   '" << pLabelInfo->pLabelName << "'\n";
+        log << "    depth:  " << ToString( depth ) << "\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
       #endif
     }
@@ -3645,26 +3750,26 @@ namespace
       #if ENABLE_DBG_LABEL
         EXLOCK( logger.guard );
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        const int   depth = cmdbuf.dbgLabelDepth--;
-        ASSERT( cmdbuf.dbgLabelDepth >= 0 );
+        const int   depth = cmdbuf->dbgLabelDepth--;
+        ASSERT( cmdbuf->dbgLabelDepth >= 0 );
 
         if ( not logger.enableLog )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
 
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
 
         log << "  EndDebugLabel\n";
-        log << "    depth: " << ToString( depth ) << "\n";
+        log << "    depth:  " << ToString( depth ) << "\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
       #endif
     }
@@ -3684,22 +3789,22 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
             return;
-
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 
         auto    buf_it = logger.bufferMap.find( dstBuffer );
         if ( buf_it == logger.bufferMap.end() )
             return;
 
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyQueryPoolResults\n";
         log << "    dstBuffer: '" << buf_it->second.name << "'\n";
         log << "    dstRange:  [" << ToString(dstOffset) << ", "
             << ToString( dstOffset + queryCount * stride + (AllBits(flags, VK_QUERY_RESULT_64_BIT) ? sizeof(ulong) : sizeof(uint))) << ")\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no:    " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3718,14 +3823,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  BuildAccelerationStructures\n";
 
         const auto  LogGeometry = [&logger, &log] (const VkAccelerationStructureGeometryKHR &geom)
@@ -3735,17 +3837,17 @@ namespace
             {
                 case VK_GEOMETRY_TYPE_TRIANGLES_KHR :
                     log << "Triangles\n";
-                    log << "      vertexData:    " << logger.GetBufferName( geom.geometry.triangles.vertexData ) << '\n';
-                    log << "      indexData:     " << logger.GetBufferName( geom.geometry.triangles.indexData ) << '\n';
-                    log << "      transformData: " << logger.GetBufferName( geom.geometry.triangles.transformData ) << '\n';
+                    log << "      vertexData:    " << logger.GetBufferAsString( geom.geometry.triangles.vertexData ) << '\n';
+                    log << "      indexData:     " << logger.GetBufferAsString( geom.geometry.triangles.indexData ) << '\n';
+                    log << "      transformData: " << logger.GetBufferAsString( geom.geometry.triangles.transformData ) << '\n';
                     break;
                 case VK_GEOMETRY_TYPE_AABBS_KHR :
                     log << "AABBs\n";
-                    log << "      data: " << logger.GetBufferName( geom.geometry.aabbs.data ) << '\n';
+                    log << "      data: " << logger.GetBufferAsString( geom.geometry.aabbs.data ) << '\n';
                     break;
                 case VK_GEOMETRY_TYPE_INSTANCES_KHR :
                     log << "Instances\n";
-                    log << "      data: " << logger.GetBufferName( geom.geometry.instances.data ) << '\n';
+                    log << "      data: " << logger.GetBufferAsString( geom.geometry.instances.data ) << '\n';
                     break;
                 case VK_GEOMETRY_TYPE_MAX_ENUM_KHR :
                 default :
@@ -3767,12 +3869,30 @@ namespace
             if ( dst_as_it != logger.accelStructMap.end() )
                 log << "    dstAS: '" << dst_as_it->second.name << "'\n";
 
-            log << "    scratch: " << logger.GetBufferName( info.scratchData ) << '\n';
+            log << "    scratch: " << logger.GetBufferAsString( info.scratchData ) << '\n';
 
-            log << "    type: " << (info.type == VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR       ? "TopLevel" :
-                                    info.type == VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR    ? "BottomLevel" : "") << '\n';
-            log << "    mode: " << (info.mode == VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR     ? "Build" :
-                                    info.mode == VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR    ? "Update" : "") << '\n';
+            log << "    type: ";
+            BEGIN_ENUM_CHECKS();
+            switch ( info.type )
+            {
+                case VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR :     log << "TopLevel\n";    break;
+                case VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR :  log << "BottomLevel\n"; break;
+                case VK_ACCELERATION_STRUCTURE_TYPE_GENERIC_KHR :
+                case VK_ACCELERATION_STRUCTURE_TYPE_MAX_ENUM_KHR :
+                default :                                               log << "<unknown>\n";   break;
+            }
+            END_ENUM_CHECKS();
+
+            log << "    mode: ";
+            BEGIN_ENUM_CHECKS();
+            switch ( info.mode )
+            {
+                case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :   log << "Build\n";       break;
+                case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :  log << "Update\n";      break;
+                case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
+                default :                                               log << "<unknown>\n";   break;
+            }
+            END_ENUM_CHECKS();
 
             if ( info.pGeometries != null )
             {
@@ -3792,6 +3912,41 @@ namespace
             }
             log << "    ----\n";
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        log << "  ----------\n\n";
+    }
+
+/*
+=================================================
+    Wrap_vkCmdBuildAccelerationStructuresIndirectKHR
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBuildAccelerationStructuresIndirectKHR (VkCommandBuffer commandBuffer, uint infoCount,
+                                                                                 const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+                                                                                 const VkDeviceAddress* pIndirectDeviceAddresses, const uint* pIndirectStrides,
+                                                                                 const uint* const* ppMaxPrimitiveCounts)
+    {
+        auto&       logger  = VulkanLogger::Get();
+        logger.vkCmdBuildAccelerationStructuresIndirectKHR( commandBuffer, infoCount, pInfos, pIndirectDeviceAddresses, pIndirectStrides, ppMaxPrimitiveCounts );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
+            return;
+
+        auto&   log = cmdbuf->log;
+        log << "  BuildAccelerationStructuresIndirect\n";
+
+        // TODO
+
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3811,14 +3966,11 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  WriteAccelerationStructuresProperties\n";
         log << "    AccelerationStructures: ";
 
@@ -3830,6 +3982,9 @@ namespace
 
             log << (i > 0 ? ", " : "") << "'" << as_it->second.name << "'";
         }
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3847,8 +4002,8 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
         auto    src_as_it   = logger.accelStructMap.find( pInfo->src );
@@ -3857,13 +4012,13 @@ namespace
         if ( src_as_it == logger.accelStructMap.end() or dst_as_it == logger.accelStructMap.end() )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyAccelerationStructure\n";
-        log << "    srcAS: '" << src_as_it->second.name << "'\n";
-        log << "    dstAS: '" << dst_as_it->second.name << "'\n";
+        log << "    srcAS:  '" << src_as_it->second.name << "'\n";
+        log << "    dstAS:  '" << dst_as_it->second.name << "'\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3881,21 +4036,21 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
         auto    as_it = logger.accelStructMap.find( pInfo->src );
         if ( as_it == logger.accelStructMap.end() )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyAccelerationStructureToMemory\n";
         log << "    srcAS:  '" << as_it->second.name << "'\n";
-        log << "    dstBuf: " << logger.GetBufferName( pInfo->dst ) << '\n';
+        log << "    dstBuf: " << logger.GetBufferAsString( pInfo->dst ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3913,21 +4068,21 @@ namespace
         if ( not logger.enableLog )
             return;
 
-        auto    iter = logger.commandBuffers.find( commandBuffer );
-        if ( iter == logger.commandBuffers.end() )
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
             return;
 
         auto    as_it = logger.accelStructMap.find( pInfo->dst );
         if ( as_it == logger.accelStructMap.end() )
             return;
 
-        auto&   cmdbuf = iter->second;
-        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-        auto&   log = cmdbuf.log;
+        auto&   log = cmdbuf->log;
         log << "  CopyMemoryToAccelerationStructure\n";
-        log << "    srcBuf: " << logger.GetBufferName( pInfo->src ) << '\n';
+        log << "    srcBuf: " << logger.GetBufferAsString( pInfo->src ) << '\n';
         log << "    dstAS:  '" << as_it->second.name << "'\n";
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
         log << "  ----------\n\n";
     }
 
@@ -3949,6 +4104,127 @@ namespace
             << "GetSemaphoreCounterValue: " << logger.GetSyncName( semaphore, *pValue ) << "\n\n";
 
         return result;
+    }
+
+/*
+=================================================
+    Wrap_vkCmdBindIndexBuffer
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBindIndexBuffer (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType)
+    {
+        auto&   logger = VulkanLogger::Get();
+        logger.vkCmdBindIndexBuffer( commandBuffer, buffer, offset, indexType );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
+            return;
+
+        auto    buf_it = logger.bufferMap.find( buffer );
+        if ( buf_it == logger.bufferMap.end() )
+            return;
+
+        auto&   log = cmdbuf->log;
+        log << "  BindIndexBuffer\n";
+        log << "    buffer: '" << buf_it->second.name << "'\n";
+        log << "    offset: " << ToString( offset ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        log << "  ----------\n\n";
+    }
+
+/*
+=================================================
+    Wrap_vkCmdBindVertexBuffers
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBindVertexBuffers (VkCommandBuffer commandBuffer, uint firstBinding, uint bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets)
+    {
+        auto&   logger = VulkanLogger::Get();
+        logger.vkCmdBindVertexBuffers( commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
+            return;
+
+        auto&   log = cmdbuf->log;
+        log << "  BindVertexBuffers\n";
+        for (uint i = 0; i < bindingCount; ++i)
+        {
+            log << "    [" << ToString(i + firstBinding) << "] buffer: '";
+
+            if (auto buf_it = logger.bufferMap.find( pBuffers[i] );  buf_it != logger.bufferMap.end() )
+                log << buf_it->second.name;
+
+            log << "', offset: " << ToString( pOffsets[i] ) << "\n";
+        }
+
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        log << "  ----------\n\n";
+    }
+
+/*
+=================================================
+    Wrap_vkCmdBindPipeline
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBindPipeline (VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
+    {
+        auto&   logger = VulkanLogger::Get();
+        logger.vkCmdBindPipeline( commandBuffer, pipelineBindPoint, pipeline );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
+        if ( cmdbuf == null )
+            return;
+
+        auto    ppln_it = logger.pipelineMap.find( pipeline );
+        if ( ppln_it == logger.pipelineMap.end() )
+            return;
+
+        auto&   log = cmdbuf->log;
+        log << "  BindPipeline\n";
+        log << "    pipeline:  '" << ppln_it->second.name << "'\n";
+        log << "    bindPoint: " << VkPipelineBindPointToString( pipelineBindPoint ) << '\n';
+        #if ENABLE_SEQNO
+        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        #endif
+        log << "  ----------\n\n";
+    }
+
+/*
+=================================================
+    Wrap_vkCmdExecuteCommands
+=================================================
+*/
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdExecuteCommands (VkCommandBuffer commandBuffer, uint commandBufferCount, const VkCommandBuffer* pCommandBuffers)
+    {
+        auto&   logger = VulkanLogger::Get();
+        logger.vkCmdExecuteCommands( commandBuffer, commandBufferCount, pCommandBuffers );
+
+        EXLOCK( logger.guard );
+        if ( not logger.enableLog )
+            return;
+
+        auto* cmdbuf = logger._WithCmdBuf( commandBuffer, True{"inc"} );
+        if ( cmdbuf == null )
+            return;
+
+        // TODO
     }
 
 } // namespace
@@ -3973,6 +4249,25 @@ namespace
 
 /*
 =================================================
+    _WithCmdBuf
+=================================================
+*/
+    VulkanLogger::CommandBufferData*  VulkanLogger::_WithCmdBuf (VkCommandBuffer commandBuffer, Bool incCmdIndex)
+    {
+        auto    iter = commandBuffers.find( commandBuffer );
+        if ( iter == commandBuffers.end() )
+            return null;
+
+        auto&   cmdbuf = iter->second;
+        ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+        cmdbuf.cmdIndex += uint(incCmdIndex);
+
+        return &cmdbuf;
+    }
+
+/*
+=================================================
     _PrintResourceUsage
 =================================================
 */
@@ -3991,6 +4286,7 @@ namespace
             case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR :   ds_array = &cmdbuf.bindPoints[2];   break;
 
             case VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI :
+            case VK_PIPELINE_BIND_POINT_EXECUTION_GRAPH_AMDX :
             case VK_PIPELINE_BIND_POINT_MAX_ENUM :
             default :
                 DBG_WARNING( "unknown pipeline bind point" );
@@ -4142,6 +4438,10 @@ namespace
     {
         EXLOCK( guard );
 
+        #ifdef AE_CFG_RELEASE
+        AE_LOG_SE( "VulkanSyncLog is used in Release" );
+        #endif
+
         queueMap = RVRef(queueNames);
 
         std::memcpy( &_originDeviceFnTable, &fnTable, sizeof(_originDeviceFnTable) );
@@ -4163,6 +4463,7 @@ namespace
         table._var_vkDestroyRenderPass              = &Wrap_vkDestroyRenderPass;
         table._var_vkCreateGraphicsPipelines        = &Wrap_vkCreateGraphicsPipelines;
         table._var_vkCreateComputePipelines         = &Wrap_vkCreateComputePipelines;
+        table._var_vkCreateRayTracingPipelinesKHR   = &Wrap_vkCreateRayTracingPipelinesKHR;
         table._var_vkDestroyPipeline                = &Wrap_vkDestroyPipeline;
         table._var_vkCreateCommandPool              = &Wrap_vkCreateCommandPool;
         table._var_vkDestroyCommandPool             = &Wrap_vkDestroyCommandPool;
@@ -4201,9 +4502,9 @@ namespace
         table._var_vkCmdBeginRenderPass             = &Wrap_vkCmdBeginRenderPass;
         table._var_vkCmdNextSubpass                 = &Wrap_vkCmdNextSubpass;
         table._var_vkCmdEndRenderPass               = &Wrap_vkCmdEndRenderPass;
-    //  table._var_vkCmdBeginRenderPass2            = &Wrap_vkCmdBeginRenderPass2;
-    //  table._var_vkCmdNextSubpass2                = &Wrap_vkCmdNextSubpass2;
-    //  table._var_vkCmdEndRenderPass2              = &Wrap_vkCmdEndRenderPass2;
+        table._var_vkCmdBeginRenderPass2            = &Wrap_vkCmdBeginRenderPass2;
+        table._var_vkCmdNextSubpass2                = &Wrap_vkCmdNextSubpass2;
+        table._var_vkCmdEndRenderPass2              = &Wrap_vkCmdEndRenderPass2;
         table._var_vkCmdBeginRenderPass2KHR         = &Wrap_vkCmdBeginRenderPass2;
         table._var_vkCmdNextSubpass2KHR             = &Wrap_vkCmdNextSubpass2;
         table._var_vkCmdEndRenderPass2KHR           = &Wrap_vkCmdEndRenderPass2;
@@ -4220,14 +4521,14 @@ namespace
         table._var_vkCmdResolveImage                = &Wrap_vkCmdResolveImage;
         table._var_vkCmdDispatch                    = &Wrap_vkCmdDispatch;
     //  table._var_vkCmdDispatchBase                = &Wrap_vkCmdDispatchBase;
-        table._var_vkCmdDispatchIndirect            = &Wrap_vkCmdDispatchIndirect;
         table._var_vkCmdDispatchBaseKHR             = &Wrap_vkCmdDispatchBase;
+        table._var_vkCmdDispatchIndirect            = &Wrap_vkCmdDispatchIndirect;
         table._var_vkCmdDraw                        = &Wrap_vkCmdDraw;
         table._var_vkCmdDrawIndexed                 = &Wrap_vkCmdDrawIndexed;
         table._var_vkCmdDrawIndirect                = &Wrap_vkCmdDrawIndirect;
         table._var_vkCmdDrawIndexedIndirect         = &Wrap_vkCmdDrawIndexedIndirect;
-    //  table._var_vkCmdDrawIndirectCount           = &Wrap_vkCmdDrawIndirectCount;
-    //  table._var_vkCmdDrawIndexedIndirectCount    = &Wrap_vkCmdDrawIndexedIndirectCount;
+        table._var_vkCmdDrawIndirectCount           = &Wrap_vkCmdDrawIndirectCount;
+        table._var_vkCmdDrawIndexedIndirectCount    = &Wrap_vkCmdDrawIndexedIndirectCount;
         table._var_vkCmdDrawIndirectCountKHR        = &Wrap_vkCmdDrawIndirectCount;
         table._var_vkCmdDrawIndexedIndirectCountKHR = &Wrap_vkCmdDrawIndexedIndirectCount;
         table._var_vkCmdDrawMeshTasksEXT            = &Wrap_vkCmdDrawMeshTasks;
@@ -4235,15 +4536,59 @@ namespace
         table._var_vkCmdDrawMeshTasksIndirectCountEXT= &Wrap_vkCmdDrawMeshTasksIndirectCount;
         table._var_vkCmdTraceRaysKHR                = &Wrap_vkCmdTraceRaysKHR;
         table._var_vkCmdTraceRaysIndirectKHR        = &Wrap_vkCmdTraceRaysIndirectKHR;
+        table._var_vkCmdTraceRaysIndirect2KHR       = &Wrap_vkCmdTraceRaysIndirect2KHR;
         table._var_vkCmdCopyQueryPoolResults        = &Wrap_vkCmdCopyQueryPoolResults;
+        table._var_vkCmdExecuteCommands             = &Wrap_vkCmdExecuteCommands;
+        table._var_vkCmdBindIndexBuffer             = &Wrap_vkCmdBindIndexBuffer;
+        table._var_vkCmdBindVertexBuffers           = &Wrap_vkCmdBindVertexBuffers;
+        table._var_vkCmdBindPipeline                = &Wrap_vkCmdBindPipeline;
 
     //  table._var_vkGetSemaphoreCounterValueKHR    = &Wrap_vkGetSemaphoreCounterValueKHR;
 
         table._var_vkCmdBuildAccelerationStructuresKHR           = &Wrap_vkCmdBuildAccelerationStructuresKHR;
+        table._var_vkCmdBuildAccelerationStructuresIndirectKHR   = &Wrap_vkCmdBuildAccelerationStructuresIndirectKHR;
         table._var_vkCmdWriteAccelerationStructuresPropertiesKHR = &Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR;
         table._var_vkCmdCopyAccelerationStructureKHR             = &Wrap_vkCmdCopyAccelerationStructureKHR;
         table._var_vkCmdCopyAccelerationStructureToMemoryKHR     = &Wrap_vkCmdCopyAccelerationStructureToMemoryKHR;
         table._var_vkCmdCopyMemoryToAccelerationStructureKHR     = &Wrap_vkCmdCopyMemoryToAccelerationStructureKHR;
+        table._var_vkGetAccelerationStructureDeviceAddressKHR    = &Wrap_vkGetAccelerationStructureDeviceAddressKHR;
+
+      #if ENABLE_SEQNO
+        // where 'seq_no' increases in sync validation:
+        //  vkCmdCopyBuffer, vkCmdCopyBuffer2,
+        //  vkCmdCopyImage, vkCmdCopyImage2,
+        //  vkCmdPipelineBarrier, vkCmdPipelineBarrier2,
+        //  vkCmdCopyBufferToImage, vkCmdCopyBufferToImage2, 
+        //  vkCmdCopyImageToBuffer, vkCmdCopyImageToBuffer2,
+        //  vkCmdBlitImage, vkCmdBlitImage2,
+        //  vkCmdDispatch, vkCmdDispatchIndirect,
+        //  vkCmdDraw, vkCmdDrawIndexed, vkCmdDrawIndirect, vkCmdDrawIndexedIndirect, vkCmdDrawIndirectCount, vkCmdDrawIndexedIndirectCount, 
+        //  vkCmdClearColorImage, vkCmdClearDepthStencilImage, vkCmdClearAttachments, 
+        //  vkCmdCopyQueryPoolResults, vkCmdFillBuffer, vkCmdResolveImage, vkCmdResolveImage2,
+        //  vkCmdUpdateBuffer,
+        //  vkCmdExecuteCommands, 
+        //  RecordBeginRenderPass, RecordNextSubpass, RecordEndRenderPass
+        /*
+        table._var_vkCmdSetStencilReference                 = &Wrap_vkCmdSetStencilReference;
+        table._var_vkCmdSetRayTracingPipelineStackSizeKHR   = &Wrap_vkCmdSetRayTracingPipelineStackSizeKHR;
+        table._var_vkCmdSetLineWidth                        = &Wrap_vkCmdSetLineWidth;
+        table._var_vkCmdSetViewport                         = &Wrap_vkCmdSetViewport;
+        table._var_vkCmdSetScissor                          = &Wrap_vkCmdSetScissor;
+        table._var_vkCmdSetDepthBias                        = &Wrap_vkCmdSetDepthBias;
+        table._var_vkCmdSetBlendConstants                   = &Wrap_vkCmdSetBlendConstants;
+        table._var_vkCmdSetDepthBounds                      = &Wrap_vkCmdSetDepthBounds;
+        table._var_vkCmdSetStencilCompareMask               = &Wrap_vkCmdSetStencilCompareMask;
+        table._var_vkCmdSetStencilWriteMask                 = &Wrap_vkCmdSetStencilWriteMask;
+        table._var_vkCmdBeginQuery                          = &Wrap_vkCmdBeginQuery;
+        table._var_vkCmdEndQuery                            = &Wrap_vkCmdEndQuery;
+        table._var_vkCmdResetQueryPool                      = &Wrap_vkCmdResetQueryPool;
+        table._var_vkCmdWriteTimestamp                      = &Wrap_vkCmdWriteTimestamp;
+        table._var_vkCmdPushConstants                       = &Wrap_vkCmdPushConstants;
+        table._var_vkCmdWriteTimestamp2KHR                  = &Wrap_vkCmdWriteTimestamp2KHR;
+        table._var_vkCmdSetFragmentShadingRateKHR           = &Wrap_vkCmdSetFragmentShadingRateKHR;
+        table._var_vkCmdSetSampleLocationsEXT               = &Wrap_vkCmdSetSampleLocationsEXT;
+        */
+      #endif
     }
 
 /*
@@ -4291,20 +4636,42 @@ namespace
 
 /*
 =================================================
-    GetBufferName
+    GetBufferAsString
 =================================================
 */
-    String  VulkanLogger::GetBufferName (VkDeviceAddress addr)
+    String  VulkanLogger::GetBufferAsString (VkDeviceAddress addr) const
     {
         if ( addr == 0 )
-            return "null";
+            return "null"s;
 
         usize   idx = LowerBound2( devAddrToBuffer, DeviceAddressKey{addr} );
-        if ( idx != UMax )
+        if ( idx != UMax and
+             devAddrToBuffer[ idx ].type == VK_OBJECT_TYPE_BUFFER )
         {
-            auto    it = bufferMap.find( devAddrToBuffer[ idx ].buffer );
+            auto    it = bufferMap.find( BitCast<VkBuffer>( devAddrToBuffer[ idx ].resource ));
             if ( it != bufferMap.end() )
-                return "'"s << it->second.name << '\'';
+                return "'"s << it->second.name << "', offset: " << ToString(ulong{addr - it->second.address});
+        }
+        return "<unknown>";
+    }
+
+/*
+=================================================
+    GetAccelStructAsString
+=================================================
+*/
+    String  VulkanLogger::GetAccelStructAsString (VkDeviceAddress addr) const
+    {
+        if ( addr == 0 )
+            return "null"s;
+
+        usize   idx = LowerBound2( devAddrToBuffer, DeviceAddressKey{addr} );
+        if ( idx != UMax and
+             devAddrToBuffer[ idx ].type == VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR )
+        {
+            auto    it = accelStructMap.find( BitCast<VkAccelerationStructureKHR>( devAddrToBuffer[ idx ].resource ));
+            if ( it != accelStructMap.end() )
+                return "'"s << it->second.name << "', offset: " << ToString(ulong{addr - it->second.address});
         }
         return "<unknown>";
     }

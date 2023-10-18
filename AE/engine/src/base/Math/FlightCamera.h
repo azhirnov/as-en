@@ -52,7 +52,9 @@ namespace AE::Math
         ND_ Mat4_t              ToModelMatrix ()                            C_NE___ { return _camera.ToModelMatrix(); }
         ND_ Mat4_t              ToModelViewMatrix ()                        C_NE___ { return _camera.ToModelViewMatrix(); }
 
-            void    SetPerspective (Rad fovY, T aspect, T zNear, T zFar)    __NE___;
+            void    SetPerspective (Rad fovY, T aspect,
+                                    T zNear, T zFar,
+                                    Bool reverseZ = False{})                __NE___;
 
             Self&   Rotate (Rad_t yaw, Rad_t pitch, Rad_t roll)             __NE___;
             Self&   Rotate (const Rad3_t &v)                                __NE___ { return Rotate( v.x, v.y, v.z ); }
@@ -72,9 +74,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  TFlightCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
+    void  TFlightCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar, Bool reverseZ) __NE___
     {
-        _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar} );
+        _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar}, reverseZ );
         _frustum.Setup( _camera );
     }
 

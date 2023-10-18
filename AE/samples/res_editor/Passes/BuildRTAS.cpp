@@ -15,9 +15,11 @@ namespace AE::ResEditor
     BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>    dstGeometry,
                                       bool              indirect,
                                       StringView        dbgName) __Th___ :
-        _dstGeometry{ RVRef(dstGeometry) },
-        _dbgName{ dbgName }
+        IPass{ dbgName },
+        _dstGeometry{ RVRef(dstGeometry) }
     {
+        CHECK_THROW( _dstGeometry );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
@@ -38,8 +40,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  BuildRTGeometry::Execute (SyncPassData &pd) __NE___
+    bool  BuildRTGeometry::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
         bool                result;
 
@@ -54,7 +59,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __NE___
+    bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __Th___
     {
         return true;
     }
@@ -70,9 +75,11 @@ namespace AE::ResEditor
     BuildRTScene::BuildRTScene (RC<RTScene> dstScene,
                                 bool        indirect,
                                 StringView  dbgName) __Th___ :
-        _dstScene{ RVRef(dstScene) },
-        _dbgName{ dbgName }
+        IPass{ dbgName },
+        _dstScene{ RVRef(dstScene) }
     {
+        CHECK_THROW( _dstScene );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
@@ -93,8 +100,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  BuildRTScene::Execute (SyncPassData &pd) __NE___
+    bool  BuildRTScene::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
         bool                result;
 
@@ -109,7 +119,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __NE___
+    bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __Th___
     {
         return true;
     }

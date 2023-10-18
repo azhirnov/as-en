@@ -124,6 +124,8 @@ namespace AE::Base
 
         ND_ constexpr BitArr_t const&  AsArray ()                           C_NE___ { return _bits; }
 
+        ND_ constexpr Elem_t const&  AsBits ()                              C_NE___ { if constexpr( _ArraySize == 1 ) return _bits[0]; }
+
         ND_ constexpr usize     BitCount ()                                 C_NE___;
         ND_ constexpr usize     ZeroCount ()                                C_NE___ { return size() - BitCount(); }
 

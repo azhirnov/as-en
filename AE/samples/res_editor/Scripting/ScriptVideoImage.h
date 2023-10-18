@@ -15,11 +15,11 @@ namespace AE::ResEditor
     class ScriptVideoImage final : public EnableScriptRC
     {
     // variables
-    public:
+    private:
         EResourceUsage          _resUsage       = Default;
         EPixelFormat            _format         = Default;
         uint                    _imageType      = 0;        // PipelineCompiler::EImageType
-        Path                    _videoFile;
+        VFS::FileName           _videoFile;
         String                  _dbgName;
 
         ScriptDynamicDimPtr     _outDynSize;    // image dimension will change this value
@@ -31,6 +31,7 @@ namespace AE::ResEditor
     public:
         ScriptVideoImage () {}
         ScriptVideoImage (EPixelFormat format, const String &filename)  __Th___;
+        ~ScriptVideoImage ();
 
         void  Name (const String &name)                                 __Th___;
         void  AddUsage (EResourceUsage usage)                           __Th___;

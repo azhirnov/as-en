@@ -208,11 +208,12 @@ namespace AE::PipelineCompiler
         static void  Bind_ECompilationTarget (const ScriptEnginePtr &se)                                                            __Th___;
         static void  Bind_EStructLayout (const ScriptEnginePtr &se)                                                                 __Th___;
         static void  Bind_EValueType (const ScriptEnginePtr &se)                                                                    __Th___;
-        static void  Bind_EShaderProprocessor (const ScriptEnginePtr &se)                                                           __Th___;
+        static void  Bind_EShaderPreprocessor (const ScriptEnginePtr &se)                                                           __Th___;
 
 
-        ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath);
-        ND_ bool  CompilePipelineFromSource (const ScriptEnginePtr &se, const Path &pplnPath, StringView source);
+        ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath, ArrayView<Path> includeDirs);
+        ND_ bool  CompilePipelineFromSource (const ScriptEnginePtr &se, const Path &pplnPath,
+                                             StringView source, ArrayView<Path> includeDirs);
         ND_ bool  BuildRenderTechniques ();
         ND_ bool  SavePack (const Path &filename, bool addNameMapping)                                                              const;
         ND_ bool  SavePack (WStream &stream, bool addNameMapping, OUT PipelinePackOffsets &offsets)                                 const;

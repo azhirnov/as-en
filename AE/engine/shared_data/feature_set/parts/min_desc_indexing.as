@@ -59,27 +59,27 @@ void ASmain ()
     fset.shaderStorageBufferArrayDynamicIndexing (True);
     fset.shaderUniformBufferArrayDynamicIndexing (True);
 
-    fset.minUniformBufferSize (16 << 10);
+    fset.maxUniformBufferSize (16 << 10);
 
-    fset.minStorageBufferSize (64 << 10);
-    fset.perDescrSet_minInputAttachments (4);
-    fset.perDescrSet_minSampledImages (96);
-    fset.perDescrSet_minSamplers (80);
-    fset.perDescrSet_minStorageBuffers (24);
-    fset.perDescrSet_minStorageImages (24);
-    fset.perDescrSet_minUniformBuffers (72);
-    fset.perDescrSet_minTotalResources (1024);
+    fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxInputAttachments (4);
+    fset.perDescrSet_maxSampledImages (96);
+    fset.perDescrSet_maxSamplers (80);
+    fset.perDescrSet_maxStorageBuffers (24);
+    fset.perDescrSet_maxStorageImages (24);
+    fset.perDescrSet_maxUniformBuffers (72);
+    fset.perDescrSet_maxTotalResources (1024);
 
-    fset.perStage_minInputAttachments (4);
-    fset.perStage_minSampledImages (16);
-    fset.perStage_minSamplers (16);
-    fset.perStage_minStorageBuffers (4);
-    fset.perStage_minStorageImages (4);
-    fset.perStage_minUniformBuffers (12);
-    fset.perStage_minTotalResources (44);
+    fset.perStage_maxInputAttachments (4);
+    fset.perStage_maxSampledImages (16);
+    fset.perStage_maxSamplers (16);
+    fset.perStage_maxStorageBuffers (4);
+    fset.perStage_maxStorageImages (4);
+    fset.perStage_maxUniformBuffers (12);
+    fset.perStage_maxTotalResources (44);
 
-    fset.minDescriptorSets (4);
-    fset.minFragmentOutputAttachments (4);
-    fset.minFragmentCombinedOutputResources (8);
-    fset.minPushConstantsSize (128);
+    fset.maxDescriptorSets (4);
+    fset.maxFragmentOutputAttachments (4);
+    fset.maxFragmentCombinedOutputResources (8);
+    fset.maxPushConstantsSize (128);
 }

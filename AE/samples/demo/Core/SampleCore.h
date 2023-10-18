@@ -72,11 +72,13 @@ namespace AE::Samples::Demo
 
     // IBaseApp (main thread) //
     private:
-        bool  OnSurfaceCreated (IOutputSurface &)                                   __NE_OV;
+        bool  OnSurfaceCreated (IWindow &)                                          __NE_OV;
         void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
         void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray &)                           __NE_OV;
         void  RenderFrame ()                                                        __NE_OV;
+        void  WaitFrame (const Threading::EThreadArray  &threadMask,
+                         Ptr<IWindow>                   window,
+                         Ptr<IVRDevice>                 vrDevice)                   __NE_OV;
 
         void  _InitInputActions (IInputActions &);
     };

@@ -30,6 +30,7 @@ namespace AE::Graphics
     using AE::Threading::BitAtomic;
     using AE::Threading::FAtomic;
     using AE::Threading::ETaskQueue;
+    using AE::Threading::Synchronized;
 
     class VDevice;
     class VResourceManager;

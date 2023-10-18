@@ -41,13 +41,13 @@ namespace AE::ResEditor
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Move :
-                    move += float2{reader.Data<packed_float2>( hdr.offset )};   break;
+                    move += reader.DataCopy<float2>( hdr.offset );      break;
 
                 case IA.Camera_Rotate :
-                    angle += reader.Data<float>( hdr.offset );                  break;
+                    angle += reader.Data<float>( hdr.offset );          break;
 
                 case IA.Camera_Reset :
-                    reset = true;                                               break;
+                    reset = true;                                       break;
 
                 // UI_MousePos      - ignore
                 // UI_MouseRBDown   - ignore

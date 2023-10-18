@@ -82,12 +82,11 @@ namespace AE::Graphics
     {
         auto&           dev     = cmdPoolMngr.GetDevice();
         VCommandBuffer  cmdbuf;
-        int             prev_idx = -1;
+        uint            prev_idx = UMax;
 
-        while ( cmdTypes != 0 )
+        for (uint i : BitIndexIterate( cmdTypes ))
         {
-            const int   i = ExtractBitLog2( INOUT cmdTypes );
-
+            // recreate command buffer if indirect command buffers placed with a gap
             if ( cmdbuf.IsValid() and prev_idx+1 != i )
             {
                 _pool[prev_idx].native = cmdbuf.Get();
@@ -108,7 +107,7 @@ namespace AE::Graphics
             prev_idx = i;
         }
 
-        if_likely( prev_idx >= 0 )
+        if_likely( prev_idx < _pool.size() )
         {
             _pool[prev_idx].native = cmdbuf.Get();
             CHECK_ERR( cmdbuf.EndAndRelease() );
@@ -126,12 +125,10 @@ namespace AE::Graphics
     {
         auto&           dev     = cmdPoolMngr.GetDevice();
         VCommandBuffer  cmdbuf;
-        int             i       = -1;
+        uint            last_idx = UMax;
 
-        while ( cmdTypes != 0 )
+        for (uint i : BitIndexIterate( cmdTypes ))
         {
-            i = ExtractBitLog2( INOUT cmdTypes );
-
             if_unlikely( not cmdbuf.IsValid() )
             {
                 cmdbuf = cmdPoolMngr.GetCommandBuffer( queue, cmdbufType, primaryState );
@@ -142,11 +139,13 @@ namespace AE::Graphics
             auto&   item = _pool[i];
             CHECK_ERR( item.baked.Execute( dev, cmdbuf.Get() ));
             item.baked.Destroy();
+
+            last_idx = i;
         }
 
-        if_likely( i >= 0 )
+        if_likely( last_idx < _pool.size() )
         {
-            _pool[i].native = cmdbuf.Get();
+            _pool[last_idx].native = cmdbuf.Get();
             CHECK_ERR( cmdbuf.EndAndRelease() );
         }
         return true;

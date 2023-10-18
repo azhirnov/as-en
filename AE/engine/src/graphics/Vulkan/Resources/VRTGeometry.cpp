@@ -175,11 +175,11 @@ namespace AE::Graphics
                 tri.transformData.deviceAddress = tb != null ? BitCast<VkDeviceAddress>( tb->GetDeviceAddress() + data.transformDataOffset ) : 0;
 
                 // must be aligned to the size in bytes of the smallest component of the format in vertexFormat
-                ASSERT( IsAligned( tri.vertexData.deviceAddress, EVertexType_SizeOf( info.vertexFormat & ~EVertexType::_VecMask )));
+                ASSERT( IsMultipleOf( tri.vertexData.deviceAddress, EVertexType_SizeOf( info.vertexFormat & ~EVertexType::_VecMask )));
 
                 ASSERT( Bytes{data.vertexStride} >= EVertexType_SizeOf( info.vertexFormat ));
-                ASSERT( (info.indexType == Default) or IsAligned( tri.indexData.deviceAddress, EIndex_SizeOf( info.indexType )) );
-                ASSERT( (not info.allowTransforms) or IsAligned( tri.transformData.deviceAddress, 16 ) );
+                ASSERT( (info.indexType == Default) or IsMultipleOf( tri.indexData.deviceAddress, EIndex_SizeOf( info.indexType )) );
+                ASSERT( (not info.allowTransforms) or IsMultipleOf( tri.transformData.deviceAddress, 16 ) );
                 ASSERT( vb->Size() >= (data.vertexDataOffset + Bytes{data.vertexStride} * info.maxVertex) );
                 ASSERT( (info.indexType == Default) or (ib->Size() >= (data.indexDataOffset + info.maxPrimitives * EIndex_SizeOf( info.indexType ))) );
                 ASSERT( (not info.allowTransforms) or (tb->Size() >= (data.transformDataOffset + SizeOf<VkTransformMatrixKHR>)) );
@@ -229,7 +229,7 @@ namespace AE::Graphics
                 aabb.data.deviceAddress = BitCast<VkDeviceAddress>( buf->GetDeviceAddress() + data.dataOffset );
                 aabb.stride             = VkDeviceSize(data.stride);
 
-                ASSERT( IsAligned( aabb.data.deviceAddress, 8 ));
+                ASSERT( IsMultipleOf( aabb.data.deviceAddress, 8 ));
                 ASSERT( buf->Size() >= (data.dataOffset + SizeOf<VkAabbPositionsKHR> * info.maxAABBs) );
 
                 auto&   range = *(ranges++);

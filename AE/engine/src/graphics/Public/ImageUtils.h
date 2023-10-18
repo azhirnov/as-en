@@ -31,7 +31,7 @@ struct ImageUtils final : Noninstanceable
     ND_ static Bytes  RowSize (Pixels width, uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
-        ASSERT( IsAligned( width, texelBlock.x ));
+        ASSERT( IsMultipleOf( width, texelBlock.x ));
 
         return ((Bytes{width + texelBlock.x-1} / texelBlock.x) * bitsPerBlock) / 8;
     }
@@ -40,7 +40,7 @@ struct ImageUtils final : Noninstanceable
 =================================================
     RowLength
 ----
-    vk: bufferRowLength
+    Vulkan: bufferRowLength
 =================================================
 */
     ND_ static Pixels  RowLength (Bytes rowPitch, uint bitsPerBlock, const uint2 &texelBlock) __NE___
@@ -52,6 +52,8 @@ struct ImageUtils final : Noninstanceable
 /*
 =================================================
     SliceSize
+----
+    for 2D slice
 =================================================
 */
     ND_ static Bytes  SliceSize (const Pixels2 &dim, uint bitsPerBlock, const uint2 &texelBlock) __NE___
@@ -64,7 +66,7 @@ struct ImageUtils final : Noninstanceable
     ND_ static Bytes  SliceSize (uint height, Bytes rowSize, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
-        ASSERT( IsAligned( height, texelBlock.y ));
+        ASSERT( IsMultipleOf( height, texelBlock.y ));
         return (rowSize * height + texelBlock.y-1) / texelBlock.y;
     }
 
@@ -72,7 +74,7 @@ struct ImageUtils final : Noninstanceable
 =================================================
     ImageHeight
 ----
-    vk: bufferImageHeight
+    Vulkan: bufferImageHeight
 =================================================
 */
     ND_ static Pixels  ImageHeight (Bytes slicePitch, Bytes rowPitch, const uint2 &texelBlock) __NE___
@@ -84,12 +86,39 @@ struct ImageUtils final : Noninstanceable
 /*
 =================================================
     ImageSize
+----
+    for 3D slice
 =================================================
 */
     ND_ static Bytes  ImageSize (const uint3 &dim, uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
         return SliceSize( Pixels2{dim.x, dim.y}, bitsPerBlock, texelBlock ) * dim.z;
+    }
+
+/*
+=================================================
+    ImageOffset
+=================================================
+*/
+    ND_ static Bytes  ImageOffset (const uint3 &offset, Bytes rowSize, Bytes sliceSize, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    {
+        ASSERT( All( texelBlock > 0u ));
+        ASSERT( All( IsMultipleOf( uint2{offset}, texelBlock )));
+
+        Bytes   data_offset;
+        data_offset += RowSize( offset.x, bitsPerBlock, texelBlock );
+        data_offset += SliceSize( offset.y, rowSize, texelBlock );
+        data_offset += sliceSize * offset.z;
+        return data_offset;
+    }
+
+    ND_ static Bytes  ImageOffset (const uint3 &offset, const uint3 &dim, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    {
+        ASSERT( All( offset < dim ));
+        Bytes   row_size    = RowSize( dim.x, bitsPerBlock, texelBlock );
+        Bytes   slice_size  = SliceSize( dim.y, row_size, texelBlock );
+        return ImageOffset( offset, row_size, slice_size, bitsPerBlock, texelBlock );
     }
 
 /*
@@ -115,12 +144,12 @@ struct ImageUtils final : Noninstanceable
 
 /*
 =================================================
-    MipmapSize
+    MipmapDimension
 =================================================
 */
-    ND_ static uint3  MipmapSize (const uint3 &dim, usize mipLevel, const uint2 &texelBlock) __NE___
+    ND_ static uint3  MipmapDimension (const uint3 &dim, usize mipLevel, const uint2 &texelBlock) __NE___
     {
-        return Max( Max( dim >> mipLevel, 1u ), uint3{texelBlock, 1} );
+        return Max( dim >> mipLevel, uint3{texelBlock, 1} );
     }
 
 

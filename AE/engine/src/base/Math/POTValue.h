@@ -239,11 +239,11 @@ namespace AE::Math
 
 /*
 =================================================
-    IsAligned
+    IsMultipleOf
 =================================================
 */
     template <typename T, typename T1>
-    ND_ constexpr bool  IsAligned (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
+    ND_ constexpr bool  IsMultipleOf (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
     {
         STATIC_ASSERT( not IsPowerOf2Value<T> );
 

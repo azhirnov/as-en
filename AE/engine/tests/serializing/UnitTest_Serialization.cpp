@@ -93,7 +93,7 @@ namespace
     {
         STATIC_ASSERT( IsTriviallySerializable< int >);
         STATIC_ASSERT( IsTriviallySerializable< float >);
-        //STATIC_ASSERT( IsTriviallySerializable< QuatF >);
+        //STATIC_ASSERT( IsTriviallySerializable< Quat >);
 
         STATIC_ASSERT( not IsTriviallySerializable< String >);
     }

@@ -23,7 +23,7 @@ namespace AE::Threading
     {
         STATIC_ASSERT( ChunkSize_v > 0 );
         STATIC_ASSERT( ChunkSize_v <= 64*64 );
-        STATIC_ASSERT( IsAligned( ChunkSize_v, 32 ) or IsAligned( ChunkSize_v, 64 ));
+        STATIC_ASSERT( IsMultipleOf( ChunkSize_v, 32 ) or IsMultipleOf( ChunkSize_v, 64 ));
         STATIC_ASSERT( IsPowerOfTwo( ChunkSize_v ));    // must be power of 2 to increase performance
         STATIC_ASSERT( IsPowerOfTwo( MaxChunks_v ));    // must be power of 2 to increase performance
         STATIC_ASSERT( MaxChunks_v > 0 );
@@ -88,7 +88,10 @@ namespace AE::Threading
         void  Release (Bool checkForAssigned)               __NE___;
 
         template <typename FN>
-        void  UnassignAll (FN &&visitor)                    __NE___;
+        void  UnassignAll (FN &&visitor)                    noexcept(IsNothrowInvocable<FN>);
+
+        template <typename FN>
+        void  ForEachAssigned (FN &&fn)                     const noexcept(IsNothrowInvocable<FN>);
 
         ND_ auto  Assign ()                                 __NE___ { Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
         ND_ bool  Assign (OUT Index_t &outIndex)            __NE___;

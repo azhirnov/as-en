@@ -41,7 +41,7 @@ void ASmain ()
             ppln.AddPipelineFolder( "layouts" );
             ppln.AddPipelineFolder( "pipelines" );
             ppln.AddShaderFolder( "shaders" );
-            ppln.IncludeDir( GetSharedShadersPath() );
+            ppln.ShaderIncludeDir( GetSharedShadersPath() );
             ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
 
             const string  fname = output_temp + suffix[i] + "/pipelines.bin";

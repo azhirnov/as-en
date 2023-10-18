@@ -83,14 +83,15 @@ namespace AE::Graphics
 
 
     private:
-        ND_ static Data &       _CastStorage (Storage_t &data)          { return *data.Ptr<Data>(); }
-        ND_ static Data const&  _CastStorage (const Storage_t &data)    { return *data.Ptr<Data>(); }
+        ND_ static Data &       _CastStorage (Storage_t &data)          __NE___ { return *data.Ptr<Data>(); }
+        ND_ static Data const&  _CastStorage (const Storage_t &data)    __NE___ { return *data.Ptr<Data>(); }
 
-        ND_ Bytes               _GetOffset (const Data &data)   const   { return data.offset; }
-        ND_ VkDeviceMemory      _GetMemory (const Data &data)   const   { return data.page->memory; }
+        ND_ Bytes               _GetOffset (const Data &data)           C_NE___ { return data.offset; }
+        ND_ VkDeviceMemory      _GetMemory (const Data &data)           C_NE___ { return data.page->memory; }
 
         ND_ bool  _IsValidPage (const Page* page) const;
-        ND_ bool  _Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &);
+        ND_ bool  _Allocate (VDevice const&, Bytes memSize, Bytes memAlign, uint memBits,
+                             Bool shaderAddress, Bool isImage, Bool mapMem, OUT Data &);
     };
 
 

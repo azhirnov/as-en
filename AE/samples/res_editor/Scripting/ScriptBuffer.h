@@ -31,6 +31,7 @@ namespace AE::ResEditor
         // variables
             Array<ubyte>        _data;
             String              source;
+            String              staticSrc;
             Bytes               _align  = 4_b;
             String              typeName;           // ShaderStructName
 
@@ -46,7 +47,7 @@ namespace AE::ResEditor
 
 
     // variables
-    public:
+    private:
         const VFS::FileName     _filename;
         BufferLayout            _layout;
         BufferDesc              _desc;
@@ -68,6 +69,7 @@ namespace AE::ResEditor
         ScriptBuffer ()                                                                         __Th___;
         ScriptBuffer (Bytes size)                                                               __Th___;
         ScriptBuffer (const String &filename)                                                   __Th___;
+        ~ScriptBuffer ();
 
         void  Name (const String &name)                                                         __Th___;
 
@@ -75,14 +77,16 @@ namespace AE::ResEditor
         void  EnableHistory ()                                                                  __Th___ { AddUsage( EResourceUsage::WithHistory ); }
 
         void  SetSize (Bytes size, const String &typeName = Default)                            __Th___;
-        void  SetLayoutAndSize (const String &typeName, ulong dataSize)                         __Th___;
-        void  SetLayout2 (const String &typeName)                                               __Th___;
-        void  SetLayout3 (const String &typeName, const String &source)                         __Th___;
-        void  SetLayoutAndCount1 (const String &typeName, uint count)                           __Th___;
-        void  SetLayoutAndCount2 (const String &typeName, const ScriptDynamicUIntPtr &count)    __Th___;
-        void  SetLayoutAndCount3 (const String &typeName, const String &source, uint count)     __Th___;
-        void  SetLayoutAndCount4 (const String &typeName, const String &source,
-                                  const ScriptDynamicUIntPtr &count)                            __Th___;
+        void  SetLayoutName (const String &typeName)                                            __Th___;
+        void  SetLayout1 (const String &typeName)                                               __Th___;
+        void  SetLayout2 (const String &typeName, const String &source)                         __Th___;
+        void  SetArrayLayout1 (const String &typeName, uint count)                              __Th___;
+        void  SetArrayLayout2 (const String &typeName, const ScriptDynamicUIntPtr &count)       __Th___;
+        void  SetArrayLayout3 (const String &typeName, const String &source, uint count)        __Th___;
+        void  SetArrayLayout4 (const String &typeName, const String &source,
+                               const ScriptDynamicUIntPtr &count)                               __Th___;
+        void  SetArrayLayout5 (const String &typeName, const String &source,
+                               const String &staticSrc, uint count)                             __Th___;
 
         ND_ StringView      GetName ()                                                          C_NE___ { return _dbgName; }
         ND_ bool            HasLayout ()                                                        C_NE___ { return not _layout.typeName.empty(); }
@@ -177,7 +181,7 @@ namespace AE::ResEditor
 
 
     private:
-        ND_ bool  _IsArray ()                                                                   C_NE___ { return _dynCount or _staticCount > 1; }
+        ND_ bool  _IsArray ()                                                                   C_NE___;
 
         void  _SetType (EBufferType type)                                                       __Th___;
 

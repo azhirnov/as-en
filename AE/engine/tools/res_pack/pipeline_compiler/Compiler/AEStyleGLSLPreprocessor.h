@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Compiler/IShaderProprocessor.h"
+#include "Compiler/IShaderPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {
@@ -11,7 +11,7 @@ namespace AE::PipelineCompiler
     // AE-style GLSL Preprocessor
     //
 
-    class AEStyleGLSLPreprocessor final : public IShaderProprocessor
+    class AEStyleGLSLPreprocessor final : public IShaderPreprocessor
     {
     // variables
     private:
@@ -22,7 +22,7 @@ namespace AE::PipelineCompiler
     public:
         AEStyleGLSLPreprocessor ();
 
-        // IShaderProprocessor //
+        // IShaderPreprocessor //
         bool  Process (EShader shaderType, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr) override;
     };
 

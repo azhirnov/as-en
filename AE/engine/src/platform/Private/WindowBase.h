@@ -20,6 +20,7 @@ namespace AE::App
     protected:
         Unique<IWndListener>    _listener;
         EState                  _wndState           = Default;
+        EWindowMode             _wndMode            = Default;
 
         WindowSurface           _surface;
         ApplicationBase &       _app;
@@ -44,6 +45,7 @@ namespace AE::App
 
         IOutputSurface& GetSurface ()                                       __NE_OV { return _surface; }
         EState          GetState ()                                         C_NE_OV { DRC_SHAREDLOCK( _drCheck );  return _wndState; }
+        EWindowMode     GetCurrentMode ()                                   C_NE_OV { DRC_SHAREDLOCK( _drCheck );  return _wndMode; }
 
         bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc)     __NE_OV;
 

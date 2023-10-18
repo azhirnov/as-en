@@ -7,23 +7,25 @@
 
 namespace AE::Base
 {
-    template <ulong UID>
+    template <uint UID>
     struct TVersion2;
 
 
     //
     // 3 component Version
     //
-    template <ulong UID>
+    template <uint UID>
     struct TVersion3
     {
     // types
         using Self  = TVersion3<UID>;
 
+
     // variables
-        ushort  major   = 0;
-        ushort  minor   = 0;
-        uint    patch   = 0;
+        ushort      major   = 0;
+        ushort      minor   = 0;
+        uint        patch   = 0;
+
 
     // methods
         constexpr TVersion3 ()                                              __NE___ {}
@@ -39,13 +41,13 @@ namespace AE::Base
         ND_ constexpr bool  operator <  (const Self &rhs)                   C_NE___ { return not (*this >= rhs); }
         ND_ constexpr bool  operator <= (const Self &rhs)                   C_NE___ { return not (*this >  rhs); }
 
-        template <ulong UID2>
+        template <uint UID2>
         ND_ constexpr TVersion3<UID2>   Cast ()                             C_NE___ { return {major, minor, patch}; }
 
         template <typename T>
         ND_ constexpr auto              Cast ()                             C_NE___ { return TVersion3< T::GetUID() >{ major, minor, patch }; }
 
-        ND_ constexpr static ulong      GetUID ()                           __NE___ { return UID; }
+        ND_ constexpr static uint       GetUID ()                           __NE___ { return UID; }
         ND_ constexpr static Self       Max ()                              __NE___ { return {0xFFFFu, 0xFFFFu, ~0u}; }
         ND_ constexpr static Self       Min ()                              __NE___ { return {0, 0, 0}; }
     };
@@ -55,15 +57,17 @@ namespace AE::Base
     //
     // 2 component Version
     //
-    template <ulong UID>
+    template <uint UID>
     struct TVersion2
     {
     // types
         using Self  = TVersion2<UID>;
 
+
     // variables
-        ushort  major   = 0;
-        ushort  minor   = 0;
+        ushort      major   = 0;
+        ushort      minor   = 0;
+
 
     // methods
         constexpr TVersion2 ()                                  __NE___ {}
@@ -79,13 +83,13 @@ namespace AE::Base
         ND_ constexpr bool  operator <  (const Self &rhs)       C_NE___ { return not (*this >= rhs); }
         ND_ constexpr bool  operator <= (const Self &rhs)       C_NE___ { return not (*this >  rhs); }
 
-        template <ulong UID2>
+        template <uint UID2>
         ND_ constexpr TVersion2<UID2>   Cast ()                 C_NE___ { return {major, minor}; }
 
         template <typename T>
         ND_ constexpr auto              Cast ()                 C_NE___ { return TVersion2< T::GetUID() >{ major, minor }; }
 
-        ND_ constexpr static ulong      GetUID ()               __NE___ { return UID; }
+        ND_ constexpr static uint       GetUID ()               __NE___ { return UID; }
         ND_ constexpr static Self       Max ()                  __NE___ { return {0xFFFFu, 0xFFFFu}; }
         ND_ constexpr static Self       Min ()                  __NE___ { return {}; }
 
@@ -107,33 +111,33 @@ namespace AE::Base
     using Version3 = TVersion3<0>;
 
 
-    template <ulong UID>
+    template <uint UID>
     constexpr TVersion3<UID>::TVersion3 (const TVersion2<UID> &v, uint path) __NE___ :
         major{v.major}, minor{v.minor}, patch{patch}
     {}
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion2<UID>::operator == (const TVersion2<UID> &rhs) C_NE___
     {
         return  major == rhs.major and
                 minor == rhs.minor;
     }
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion2<UID>::operator >  (const TVersion2<UID> &rhs) C_NE___
     {
         return  major != rhs.major ? major > rhs.major :
                                      minor > rhs.minor;
     }
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion2<UID>::operator >= (const TVersion2<UID> &rhs) C_NE___
     {
         return not (rhs > *this);
     }
 
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion3<UID>::operator == (const TVersion3<UID> &rhs) C_NE___
     {
         return  major == rhs.major and
@@ -141,7 +145,7 @@ namespace AE::Base
                 patch == rhs.patch;
     }
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion3<UID>::operator >  (const TVersion3<UID> &rhs) C_NE___
     {
         return  major != rhs.major  ? major > rhs.major :
@@ -149,35 +153,35 @@ namespace AE::Base
                                       patch > rhs.patch;
     }
 
-    template <ulong UID>
+    template <uint UID>
     inline constexpr bool  TVersion3<UID>::operator >= (const TVersion3<UID> &rhs) C_NE___
     {
         return not (rhs > *this);
     }
 
 
-    template <ulong UID>    ND_ constexpr bool  operator == (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs == TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator == (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} == rhs; }
+    template <uint UID> ND_ constexpr bool  operator == (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs == TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator == (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} == rhs; }
 
-    template <ulong UID>    ND_ constexpr bool  operator != (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs != TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator != (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} != rhs; }
+    template <uint UID> ND_ constexpr bool  operator != (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs != TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator != (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} != rhs; }
 
-    template <ulong UID>    ND_ constexpr bool  operator >  (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs > TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator >  (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} > rhs; }
+    template <uint UID> ND_ constexpr bool  operator >  (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs > TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator >  (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} > rhs; }
 
-    template <ulong UID>    ND_ constexpr bool  operator <  (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs < TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator <  (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} < rhs; }
+    template <uint UID> ND_ constexpr bool  operator <  (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs < TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator <  (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} < rhs; }
 
-    template <ulong UID>    ND_ constexpr bool  operator >= (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs >= TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator >= (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} >= rhs; }
+    template <uint UID> ND_ constexpr bool  operator >= (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs >= TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator >= (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} >= rhs; }
 
-    template <ulong UID>    ND_ constexpr bool  operator <= (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs <= TVersion2<UID>{rhs}; }
-    template <ulong UID>    ND_ constexpr bool  operator <= (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} <= rhs; }
+    template <uint UID> ND_ constexpr bool  operator <= (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs) __NE___  { return lhs <= TVersion2<UID>{rhs}; }
+    template <uint UID> ND_ constexpr bool  operator <= (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs) __NE___  { return TVersion2<UID>{lhs} <= rhs; }
 
 } // AE::Base
 
 
-template <AE::ulong UID>
+template <AE::uint UID>
 struct std::hash< AE::Base::TVersion2<UID> >
 {
     ND_ size_t  operator () (const AE::Base::TVersion2<UID> &value) C_NE___
@@ -190,7 +194,7 @@ struct std::hash< AE::Base::TVersion2<UID> >
     }
 };
 
-template <AE::ulong UID>
+template <AE::uint UID>
 struct std::hash< AE::Base::TVersion3<UID> >
 {
     ND_ size_t  operator () (const AE::Base::TVersion3<UID> &value) C_NE___

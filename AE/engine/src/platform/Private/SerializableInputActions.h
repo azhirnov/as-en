@@ -7,7 +7,7 @@
 
 namespace AE::App
 {
-    static constexpr uint   InputActions_Name   = uint("InAct"_StringToID);
+    static constexpr uint   InputActions_Name   = "InAct"_Hash;
 
 
     //

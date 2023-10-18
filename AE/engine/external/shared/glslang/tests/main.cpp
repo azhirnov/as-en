@@ -19,7 +19,7 @@
 #   include "spirv-tools/libspirv.h"
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 12 || GLSLANG_VERSION_MINOR != 1 || GLSLANG_VERSION_PATCH != 0
+#if GLSLANG_VERSION_MAJOR != 12 || GLSLANG_VERSION_MINOR != 3 || GLSLANG_VERSION_PATCH != 1
 # error invalid glslang version
 #endif
 

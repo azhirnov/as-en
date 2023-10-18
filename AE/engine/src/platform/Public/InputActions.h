@@ -132,6 +132,9 @@ namespace AE::App
             template <typename T>
             ND_ T const&  Data (Bytes offset)                   C_NE___;
 
+            template <typename T>
+            ND_ T  DataCopy (Bytes offset)                      C_NE___;
+
                 void  Restart ()                                __NE___ { _pos = 0; }
         };
 
@@ -282,6 +285,23 @@ namespace AE::App
     {
         STATIC_ASSERT( AlignOf<T> <= IInputActions::ActionQueue::_DataAlign );
         return *Cast<T>( _queue->GetData() + offset );
+    }
+
+/*
+=================================================
+    DataCopy
+=================================================
+*/
+    template <typename T>
+    T  IInputActions::ActionQueueReader::DataCopy (Bytes offset) C_NE___
+    {
+        if constexpr( IsSimdVec<T> )
+        {
+            using V = PackedVec< typename T::value_type, VecSize<T> >;
+            return T{Data<V>( offset )};
+        }
+        else
+            return Data<T>( offset );
     }
 //-----------------------------------------------------------------------------
 

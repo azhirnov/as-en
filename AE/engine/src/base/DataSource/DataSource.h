@@ -248,7 +248,7 @@ namespace AE::Base
     template <typename T, typename A>
     EnableIf<IsTrivial<T>, bool>  RDataSource::Read (Bytes offset, Bytes size, OUT BasicString<T,A> &str) __NE___
     {
-        ASSERT( IsAligned( size, sizeof(T) ));
+        ASSERT( IsMultipleOf( size, sizeof(T) ));
         return Read( offset, usize(size) / sizeof(T), OUT str );
     }
 
@@ -268,7 +268,7 @@ namespace AE::Base
     template <typename T, typename A>
     EnableIf<IsTrivial<T>, bool>  RDataSource::Read (Bytes offset, Bytes size, OUT Array<T,A> &arr) __NE___
     {
-        ASSERT( IsAligned( size, sizeof(T) ));
+        ASSERT( IsMultipleOf( size, sizeof(T) ));
         return Read( offset, usize(size) / sizeof(T), OUT arr );
     }
 

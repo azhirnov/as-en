@@ -145,24 +145,16 @@
 #include "ext/vector_float4_precision.hpp"
 
 #include "ext/vector_int1.hpp"
-#include "ext/vector_int1_precision.hpp"
 #include "ext/vector_int2.hpp"
-#include "ext/vector_int2_precision.hpp"
 #include "ext/vector_int3.hpp"
-#include "ext/vector_int3_precision.hpp"
 #include "ext/vector_int4.hpp"
-#include "ext/vector_int4_precision.hpp"
 
 #include "ext/vector_relational.hpp"
 
 #include "ext/vector_uint1.hpp"
-#include "ext/vector_uint1_precision.hpp"
 #include "ext/vector_uint2.hpp"
-#include "ext/vector_uint2_precision.hpp"
 #include "ext/vector_uint3.hpp"
-#include "ext/vector_uint3_precision.hpp"
 #include "ext/vector_uint4.hpp"
-#include "ext/vector_uint4_precision.hpp"
 
 #include "gtc/bitfield.hpp"
 #include "gtc/color_space.hpp"
@@ -189,6 +181,13 @@
 #include "gtx/norm.hpp"
 #include "gtx/easing.hpp"
 
+#include "gtx/dual_quaternion.hpp"
+#include "gtx/intersect.hpp"
+
+#include "gtx/fast_exponential.hpp"
+#include "gtx/fast_square_root.hpp"
+#include "gtx/fast_trigonometry.hpp"
+
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
 #endif
@@ -199,8 +198,6 @@
 
 namespace AE::Math
 {
-    //STATIC_ASSERT( bool(AE_HAS_SIMD != 0) == ((GLM_ARCH & GLM_ARCH_SIMD_BIT) != 0) );
-
     static constexpr inline auto    GLMSimdQualifier    = glm::qualifier::aligned_highp;
     static constexpr inline auto    GLMPackedQualifier  = glm::qualifier::packed_highp;
 
@@ -208,7 +205,7 @@ namespace AE::Math
     using TVec = glm::vec< I, T, Q >;
 
     template <typename T, glm::qualifier Q = GLMSimdQualifier>
-    struct Quat;
+    struct TQuat;
 
     template <typename T, uint Columns, uint Rows, glm::qualifier Q>
     struct TMatrix;
@@ -234,13 +231,13 @@ namespace AE::Base
     //struct TTriviallySerializable< TVec<T,I,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
 
     template <typename T, glm::qualifier Q>
-    struct TMemCopyAvailable< Quat<T,Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    struct TMemCopyAvailable< TQuat<T,Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
 
     template <typename T, glm::qualifier Q>
-    struct TZeroMemAvailable< Quat<T,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    struct TZeroMemAvailable< TQuat<T,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 
     //template <typename T, glm::qualifier Q>
-    //struct TTriviallySerializable< Quat<T,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
+    //struct TTriviallySerializable< TQuat<T,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
 
     template <typename T, uint Columns, uint Rows, glm::qualifier Q>
     struct TMemCopyAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };

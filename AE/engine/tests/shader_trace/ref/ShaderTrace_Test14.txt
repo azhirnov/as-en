@@ -28,15 +28,15 @@ no source
 19.                  /*direction*/direction, /*Tmax*/10.0f,
 20.                  /*payload*/PAYLOAD_LOC );
 
-//> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//> payload: float4 {0.121094, 0.011719, 0.867188, 1.000000}
 20. C );
 
-//> color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-//  payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//> color: float4 {0.121094, 0.011719, 0.867188, 1.000000}
+//  payload: float4 {0.121094, 0.011719, 0.867188, 1.000000}
 22. color = payload;
 
 //> imageStore(): void
-//  color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+//  color: float4 {0.121094, 0.011719, 0.867188, 1.000000}
 //  gl_LaunchIDEXT: uint3 {60, 40, 0}
 23.     imageStore( un_Output, ivec2(gl_LaunchIDEXT), color );
 

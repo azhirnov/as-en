@@ -226,6 +226,12 @@ namespace AE::ResEditor
         Atomic<bool>                _requestCapture     {false};
 
         struct {
+            Atomic<ubyte>               current         {0};
+            EWindowMode                 windowedMode    = EWindowMode::Resizable;
+            EWindowMode                 fullscreenMode  = EWindowMode::FullscreenWindow;
+        }                           _windowMode;
+
+        struct {
             RenderTechPipelinesPtr      rtech;
             PipelineMap_t               pplns;
             PerFrameDescSet_t           descSets;
@@ -252,7 +258,7 @@ namespace AE::ResEditor
         EditorUI (ResEditorCore &core, Path scriptPath);
         ~EditorUI ();
 
-        ND_ bool        Init (IOutputSurface &);
+        ND_ bool        Init (IOutputSurface &, EWindowMode);
         ND_ AsyncTask   Draw (ArrayView<AsyncTask> deps);
             void        ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
             void        SetHelpText (String txt);
@@ -260,6 +266,10 @@ namespace AE::ResEditor
 
         ND_ bool        IsInitialized ()        const   { return _initialized.load(); }
         ND_ bool        IsCaptureRequested ()           { return _requestCapture.exchange( false ); }
+
+        // '_Count' - mode is not changed
+        // Other valid value - new window mode.
+        ND_ auto        GetNewWindowMode ()         -> Optional<EWindowMode>;
 
 
     private:

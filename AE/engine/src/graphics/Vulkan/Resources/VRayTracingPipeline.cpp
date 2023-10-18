@@ -65,63 +65,74 @@ namespace AE::Graphics
         CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, false, *ci.tempAllocator ));
         CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, *ci.tempAllocator ));
 
-        _nameToHandle.Create( NameToHandleAlloc_t{ ci.allocator });
-        _nameToHandle->reserve( group_count );
+        try {
+            const auto  ToGroupIndex = [] (auto* lhs, auto* rhs)
+            {{
+                ssize   d = Distance( lhs, rhs );
+                return CheckCast<uint>( d );
+            }};
 
-        for (auto& gen : ci.templCI.generalShaders)
-        {
-            GRES_CHECK( gen.shader == VK_SHADER_UNUSED_KHR  or  gen.shader < ci.shaders.size() );
+            _nameToHandle.Create( NameToHandleAlloc_t{ ci.allocator });
+            _nameToHandle->reserve( group_count );  // throw
 
-            _nameToHandle->emplace( gen.name, uint(Distance( pipeline_info.pGroups, groups )));
+            for (auto& gen : ci.templCI.generalShaders)
+            {
+                GRES_CHECK( gen.shader == VK_SHADER_UNUSED_KHR  or  gen.shader < ci.shaders.size() );
 
-            auto&   dst = *(groups++);
-            dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-            dst.pNext               = null;
-            dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-            dst.generalShader       = gen.shader;
-            dst.closestHitShader    = VK_SHADER_UNUSED_KHR;
-            dst.anyHitShader        = VK_SHADER_UNUSED_KHR;
-            dst.intersectionShader  = VK_SHADER_UNUSED_KHR;
-            dst.pShaderGroupCaptureReplayHandle = null;
+                _nameToHandle->emplace( gen.name, ToGroupIndex( pipeline_info.pGroups, groups ));
+
+                auto&   dst = *(groups++);
+                dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+                dst.pNext               = null;
+                dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+                dst.generalShader       = gen.shader;
+                dst.closestHitShader    = VK_SHADER_UNUSED_KHR;
+                dst.anyHitShader        = VK_SHADER_UNUSED_KHR;
+                dst.intersectionShader  = VK_SHADER_UNUSED_KHR;
+                dst.pShaderGroupCaptureReplayHandle = null;
+            }
+
+            for (auto& tri : ci.templCI.triangleGroups)
+            {
+                GRES_CHECK( tri.closestHit  == VK_SHADER_UNUSED_KHR  or  tri.closestHit < ci.shaders.size() );
+                GRES_CHECK( tri.anyHit      == VK_SHADER_UNUSED_KHR  or  tri.anyHit     < ci.shaders.size() );
+
+                _nameToHandle->emplace( tri.name, ToGroupIndex( pipeline_info.pGroups, groups ));
+
+                auto&   dst = *(groups++);
+                dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+                dst.pNext               = null;
+                dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+                dst.generalShader       = VK_SHADER_UNUSED_KHR;
+                dst.closestHitShader    = tri.closestHit;
+                dst.anyHitShader        = tri.anyHit;
+                dst.intersectionShader  = VK_SHADER_UNUSED_KHR;
+                dst.pShaderGroupCaptureReplayHandle = null;
+            }
+
+            for (auto& proc : ci.templCI.proceduralGroups)
+            {
+                GRES_CHECK( proc.closestHit     == VK_SHADER_UNUSED_KHR  or  proc.closestHit    < ci.shaders.size() );
+                GRES_CHECK( proc.anyHit         == VK_SHADER_UNUSED_KHR  or  proc.anyHit        < ci.shaders.size() );
+                GRES_CHECK( proc.intersection   == VK_SHADER_UNUSED_KHR  or  proc.intersection  < ci.shaders.size() );
+
+                _nameToHandle->emplace( proc.name, ToGroupIndex( pipeline_info.pGroups, groups ));
+
+                auto&   dst = *(groups++);
+                dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+                dst.pNext               = null;
+                dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR;
+                dst.generalShader       = VK_SHADER_UNUSED_KHR;
+                dst.closestHitShader    = proc.closestHit;
+                dst.anyHitShader        = proc.anyHit;
+                dst.intersectionShader  = proc.intersection;
+                dst.pShaderGroupCaptureReplayHandle = null;
+            }
+            GRES_CHECK( groups == pipeline_info.pGroups + pipeline_info.groupCount );
         }
-
-        for (auto& tri : ci.templCI.triangleGroups)
-        {
-            GRES_CHECK( tri.closestHit  == VK_SHADER_UNUSED_KHR  or  tri.closestHit < ci.shaders.size() );
-            GRES_CHECK( tri.anyHit      == VK_SHADER_UNUSED_KHR  or  tri.anyHit     < ci.shaders.size() );
-
-            _nameToHandle->emplace( tri.name, uint(Distance( pipeline_info.pGroups, groups )));
-
-            auto&   dst = *(groups++);
-            dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-            dst.pNext               = null;
-            dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-            dst.generalShader       = VK_SHADER_UNUSED_KHR;
-            dst.closestHitShader    = tri.closestHit;
-            dst.anyHitShader        = tri.anyHit;
-            dst.intersectionShader  = VK_SHADER_UNUSED_KHR;
-            dst.pShaderGroupCaptureReplayHandle = null;
+        catch (...) {
+            RETURN_ERR( "failed to allocate '_nameToHandle' hash map" );
         }
-
-        for (auto& proc : ci.templCI.proceduralGroups)
-        {
-            GRES_CHECK( proc.closestHit     == VK_SHADER_UNUSED_KHR  or  proc.closestHit    < ci.shaders.size() );
-            GRES_CHECK( proc.anyHit         == VK_SHADER_UNUSED_KHR  or  proc.anyHit        < ci.shaders.size() );
-            GRES_CHECK( proc.intersection   == VK_SHADER_UNUSED_KHR  or  proc.intersection  < ci.shaders.size() );
-
-            _nameToHandle->emplace( proc.name, uint(Distance( pipeline_info.pGroups, groups )));
-
-            auto&   dst = *(groups++);
-            dst.sType               = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-            dst.pNext               = null;
-            dst.type                = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR;
-            dst.generalShader       = VK_SHADER_UNUSED_KHR;
-            dst.closestHitShader    = proc.closestHit;
-            dst.anyHitShader        = proc.anyHit;
-            dst.intersectionShader  = proc.intersection;
-            dst.pShaderGroupCaptureReplayHandle = null;
-        }
-        GRES_CHECK( groups == pipeline_info.pGroups + pipeline_info.groupCount );
 
         auto&   dev = resMngr.GetDevice();
         VK_CHECK_ERR( dev.vkCreateRayTracingPipelinesKHR( dev.GetVkDevice(), Default, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
@@ -250,17 +261,18 @@ namespace AE::Graphics
 =================================================
     GetShaderGroupStackSize
 =================================================
-*
-    Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, const RayTracingGroupName &group) C_NE___
+*/
+    Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, const RayTracingGroupName &name, VkShaderGroupShaderKHR type) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto    it = _nameToHandle->find( group );
+        auto    it = _nameToHandle->find( name );
         CHECK_ERR( it != _nameToHandle->end() );
 
-        return Bytes{ dev.vkGetRayTracingShaderGroupStackSizeKHR( dev.GetVkDevice(), _handle, _groupHandles[it->second], TODO )};
+        // TODO: 'type' is not validated, this is not safe!
+        return Bytes{ dev.vkGetRayTracingShaderGroupStackSizeKHR( dev.GetVkDevice(), _handle, it->second, type )};
     }
-*/
+
 
 } // AE::Graphics
 

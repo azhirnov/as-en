@@ -13,11 +13,11 @@
     Special behaviour:
         Metal:
             max dynamic buffers per stage limit = 31
-            max dynamic buffers (vertex stage)  = minVertexBuffers + minDescriptorSets + dynamicUB + dynamicSB
-            max dynamic buffers (other stages)  = minDescriptorSets + dynamicUB + dynamicSB
+            max dynamic buffers (vertex stage)  = maxVertexBuffers + maxDescriptorSets + dynamicUB + dynamicSB
+            max dynamic buffers (other stages)  = maxDescriptorSets + dynamicUB + dynamicSB
 
-            max buffers per desc set limit      = Min( minStorageBuffers, minUniformBuffers, minAccelStructures )
-            max buffers per desc set            = minStorageBuffers + minUniformBuffers + minAccelStructures
+            max buffers per desc set limit      = Min( maxStorageBuffers, maxUniformBuffers, maxAccelStructures )
+            max buffers per desc set            = maxStorageBuffers + maxUniformBuffers + maxAccelStructures
 
     [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/FeatureSet.md)
 */
@@ -46,14 +46,14 @@ namespace AE::Graphics
     // types
         struct PerDescriptorSet
         {
-            uint    minInputAttachments;    // maxDescriptorSetInputAttachments         -   maxPerStageDescriptorInputAttachments
-            uint    minSampledImages;       // maxDescriptorSetSampledImages            -   maxPerStageDescriptorSampledImages
-            uint    minSamplers;            // maxDescriptorSetSamplers                 -   maxPerStageDescriptorSamplers
-            uint    minStorageBuffers;      // maxDescriptorSetStorageBuffers           -   maxPerStageDescriptorStorageBuffers
-            uint    minStorageImages;       // maxDescriptorSetStorageImages            -   maxPerStageDescriptorStorageImages
-            uint    minUniformBuffers;      // maxDescriptorSetUniformBuffers           -   maxPerStageDescriptorUniformBuffers
-            uint    minAccelStructures;     // maxDescriptorSetAccelerationStructures   -   maxPerStageDescriptorAccelerationStructures
-            uint    minTotalResources;      // maxPerSetDescriptors                     -   maxPerStageResources
+            uint    maxInputAttachments;    // maxDescriptorSetInputAttachments         -   maxPerStageDescriptorInputAttachments
+            uint    maxSampledImages;       // maxDescriptorSetSampledImages            -   maxPerStageDescriptorSampledImages
+            uint    maxSamplers;            // maxDescriptorSetSamplers                 -   maxPerStageDescriptorSamplers
+            uint    maxStorageBuffers;      // maxDescriptorSetStorageBuffers           -   maxPerStageDescriptorStorageBuffers
+            uint    maxStorageImages;       // maxDescriptorSetStorageImages            -   maxPerStageDescriptorStorageImages
+            uint    maxUniformBuffers;      // maxDescriptorSetUniformBuffers           -   maxPerStageDescriptorUniformBuffers
+            uint    maxAccelStructures;     // maxDescriptorSetAccelerationStructures   -   maxPerStageDescriptorAccelerationStructures
+            uint    maxTotalResources;      // maxPerSetDescriptors                     -   maxPerStageResources
 
             ND_ bool  operator == (const PerDescriptorSet &rhs) C_NE___;
             ND_ bool  operator >= (const PerDescriptorSet &rhs) C_NE___;
@@ -208,8 +208,8 @@ namespace AE::Graphics
         /* clock */\
         _visitor_( EFeature,            shaderSubgroupClock,                    : 2 )   /* GL_ARB_shader_clock                                                              */\
         _visitor_( EFeature,            shaderDeviceClock,                      : 2 )   /* GL_EXT_shader_realtime_clock                                                     */\
-        /* nvidia */\
-        _visitor_( EFeature,            cooperativeMatrixNV,                    : 2 )   /* GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix                       */\
+        /*  */\
+        _visitor_( EFeature,            cooperativeMatrix,                      : 2 )   /* GL_KHR_cooperative_matrix                                                        */\
         \
         \
     /*---- shader features/limits ----*/\
@@ -276,12 +276,12 @@ namespace AE::Graphics
         _visitor_( EShaderStages,       rayQueryStages,                             )\
         /* ray tracing */\
         _visitor_( EFeature,            rayTracingPipeline,                     : 2 )   /* GL_EXT_ray_tracing, VK_KHR_ray_tracing_pipeline                                  */\
-        /*_visitor_( EFeature,          rayTracingPipelineTraceRaysIndirect,    : 2 )                                                                                       */\
+        /*_visitor_( EFeature,          rayTracingPipelineTraceRaysIndirect,    : 2 )*/\
         _visitor_( EFeature,            rayTraversalPrimitiveCulling,           : 2 )   /* GL_EXT_ray_flags_primitive_culling                                               */\
-        _visitor_( uint,                minRayRecursionDepth,                       )   /* maxRayRecursionDepth                                                             */\
-        /*_visitor_( uint,              minRayHitAttributeSize,                     )   / * maxRayHitAttributeSize                                                          */\
+        _visitor_( uint,                maxRayRecursionDepth,                       )\
+        /*_visitor_( uint,              maxRayHitAttributeSize,                     )*/\
         /* shader version */\
-        _visitor_( ShaderVersion,       minShaderVersion,                           )\
+        _visitor_( ShaderVersion,       maxShaderVersion,                           )\
         /* draw indirect */\
         _visitor_( EFeature,            drawIndirectFirstInstance,              : 2 )   /* Vulkan feature: drawIndirectFirstInstance                                        */\
         _visitor_( EFeature,            drawIndirectCount,                      : 2 )   /* VK_KHR_draw_indirect_count                                                       */\
@@ -289,60 +289,60 @@ namespace AE::Graphics
         _visitor_( EFeature,            multiview,                              : 2 )   /*\                                                                                 */\
         _visitor_( EFeature,            multiviewGeometryShader,                : 2 )   /*-|                                                                                */\
         _visitor_( EFeature,            multiviewTessellationShader,            : 2 )   /*-|--GL_EXT_multiview                                                              */\
-        _visitor_( uint,                minMultiviewViewCount,                      )   /*/                     - maxMultiviewViewCount                                     */\
+        _visitor_( uint,                maxMultiviewViewCount,                      )   /*/                                                                                 */\
         /* multi viewport */\
         _visitor_( EFeature,            multiViewport,                          : 2 )\
-        _visitor_( uint,                minViewports,                               )   /* maxViewports                                                                     */\
+        _visitor_( uint,                maxViewports,                               )\
         /* sample locations */\
         _visitor_( EFeature,            sampleLocations,                        : 2 )   /* VK_EXT_sample_locations                                                          */\
         _visitor_( EFeature,            variableSampleLocations,                : 2 )\
-        /*_visitor_( SampleCountBits,   sampleLocationSampleCounts,                 )   / *                                                                                 */\
+        /*_visitor_( SampleCountBits,   sampleLocationSampleCounts,                 )*/\
         /* tessellation */\
         _visitor_( EFeature,            tessellationIsolines,                   : 2 )\
         _visitor_( EFeature,            tessellationPointMode,                  : 2 )\
         /* shader limits */\
-        _visitor_( uint,                minTexelBufferElements,                     )   /* maxTexelBufferElements                                                           */\
-        _visitor_( uint,                minUniformBufferSize,                       )   /* maxUniformBufferRange                                                            */\
-        _visitor_( uint,                minStorageBufferSize,                       )   /* maxStorageBufferRange                                                            */\
+        _visitor_( uint,                maxTexelBufferElements,                     )\
+        _visitor_( uint,                maxUniformBufferSize,                       )   /* maxUniformBufferRange                                                            */\
+        _visitor_( uint,                maxStorageBufferSize,                       )   /* maxStorageBufferRange                                                            */\
         _visitor_( PerDescriptorSet,    perDescrSet,                                )   /* Metal: no limits                                                                 */\
         _visitor_( PerShaderStage,      perStage,                                   )\
-        _visitor_( ushort,              minDescriptorSets,                          )   /* maxBoundDescriptorSets                                                           */\
-        _visitor_( ushort,              minTexelOffset,                             )   /* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()                */\
-        _visitor_( ushort,              minTexelGatherOffset,                       )   /* maxTexelGatherOffset, minTexelGatherOffset                                       */\
-        _visitor_( ushort,              minFragmentOutputAttachments,               )   /* maxFragmentOutputAttachments, maxColorAttachments                                */\
-        _visitor_( ushort,              minFragmentDualSrcAttachments,              )   /* maxFragmentDualSrcAttachments                                                    */\
-        _visitor_( uint,                minFragmentCombinedOutputResources,         )   /* maxFragmentCombinedOutputResources = storage buffers + storage images + color attachments */\
-        _visitor_( uint,                minPushConstantsSize,                       )   /* maxPushConstantsSize                                                             */\
-        _visitor_( uint,                minTotalThreadgroupSize,                    )   /* only for Metal                                                                   */\
-        _visitor_( uint,                minTotalTileMemory,                         )   /* only for Metal                                                                   */\
-        _visitor_( uint,                minVertAmplification,                       )   /* only for Metal                                                                   */\
+        _visitor_( ushort,              maxDescriptorSets,                          )   /* maxBoundDescriptorSets                                                           */\
+        _visitor_( ushort,              maxTexelOffset,                             )   /* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()                */\
+        _visitor_( ushort,              maxTexelGatherOffset,                       )   /* maxTexelGatherOffset, minTexelGatherOffset                                       */\
+        _visitor_( ushort,              maxFragmentOutputAttachments,               )   /* maxFragmentOutputAttachments, maxColorAttachments                                */\
+        _visitor_( ushort,              maxFragmentDualSrcAttachments,              )\
+        _visitor_( uint,                maxFragmentCombinedOutputResources,         )   /* = storage buffers + storage images + color attachments                           */\
+        _visitor_( uint,                maxPushConstantsSize,                       )\
+        _visitor_( uint,                maxTotalThreadgroupSize,                    )   /* only for Metal                                                                   */\
+        _visitor_( uint,                maxTotalTileMemory,                         )   /* only for Metal                                                                   */\
+        _visitor_( uint,                maxVertAmplification,                       )   /* only for Metal                                                                   */\
         /* compute shader */\
-        _visitor_( uint,                minComputeSharedMemorySize,                 )   /* maxComputeSharedMemorySize                                                       */\
-        _visitor_( uint,                minComputeWorkGroupInvocations,             )   /* maxComputeWorkGroupInvocations                                                   */\
-        _visitor_( uint,                minComputeWorkGroupSizeX,                   )   /* maxComputeWorkGroupCount, local_size_x                                           */\
-        _visitor_( uint,                minComputeWorkGroupSizeY,                   )   /* local_size_y                                                                     */\
-        _visitor_( uint,                minComputeWorkGroupSizeZ,                   )   /* local_size_z                                                                     */\
+        _visitor_( uint,                maxComputeSharedMemorySize,                 )\
+        _visitor_( uint,                maxComputeWorkGroupInvocations,             )\
+        _visitor_( uint,                maxComputeWorkGroupSizeX,                   )   /* maxComputeWorkGroupCount, local_size_x                                           */\
+        _visitor_( uint,                maxComputeWorkGroupSizeY,                   )   /* local_size_y                                                                     */\
+        _visitor_( uint,                maxComputeWorkGroupSizeZ,                   )   /* local_size_z                                                                     */\
         /* mesh shader */\
         _visitor_( EFeature,            taskShader,                             : 2 )   /*\                                                                                 */\
         _visitor_( EFeature,            meshShader,                             : 2 )   /*-|--GL_EXT_mesh_shader                                                            */\
-        _visitor_( uint,                minTaskWorkGroupSize,                       )   /*-|    - local_size_x/y/z, maxTaskWorkGroupSize                                    */\
-        _visitor_( uint,                minMeshWorkGroupSize,                       )   /*-|    - local_size_x/y/z, maxMeshWorkGroupSize                                    */\
-        _visitor_( uint,                minMeshOutputVertices,                      )   /*-|    - maxMeshOutputVertices                                                     */\
-        _visitor_( uint,                minMeshOutputPrimitives,                    )   /*-|    - maxMeshOutputPrimitives                                                   */\
+        _visitor_( uint,                maxTaskWorkGroupSize,                       )   /*-|    - local_size_x/y/z                                                          */\
+        _visitor_( uint,                maxMeshWorkGroupSize,                       )   /*-|    - local_size_x/y/z                                                          */\
+        _visitor_( uint,                maxMeshOutputVertices,                      )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshOutputPrimitives,                    )   /*-|                                                                                */\
         _visitor_( uint,                maxMeshOutputPerVertexGranularity,          )   /*-|    - meshOutputPerVertexGranularity                                            */\
         _visitor_( uint,                maxMeshOutputPerPrimitiveGranularity,       )   /*-|    - meshOutputPerPrimitiveGranularity                                         */\
-        _visitor_( uint,                minTaskPayloadSize,                         )   /*-|    - maxTaskPayloadSize                                                        */\
-        _visitor_( uint,                minTaskSharedMemorySize,                    )   /*-|    - maxTaskSharedMemorySize                                                   */\
-        _visitor_( uint,                minTaskPayloadAndSharedMemorySize,          )   /*-|    - maxTaskPayloadAndSharedMemorySize                                         */\
-        _visitor_( uint,                minMeshSharedMemorySize,                    )   /*-|    - maxMeshSharedMemorySize                                                   */\
-        _visitor_( uint,                minMeshPayloadAndSharedMemorySize,          )   /*-|    - maxMeshPayloadAndSharedMemorySize                                         */\
-        _visitor_( uint,                minMeshOutputMemorySize,                    )   /*-|    - maxMeshOutputMemorySize                                                   */\
-        _visitor_( uint,                minMeshPayloadAndOutputMemorySize,          )   /*-|    - maxMeshPayloadAndOutputMemorySize                                         */\
-        _visitor_( uint,                minMeshMultiviewViewCount,                  )   /*-|    - maxMeshMultiviewViewCount                                                 */\
-        _visitor_( uint,                minPreferredTaskWorkGroupInvocations,       )   /*-|    - maxPreferredTaskWorkGroupInvocations                                      */\
-        _visitor_( uint,                minPreferredMeshWorkGroupInvocations,       )   /*/     - maxPreferredMeshWorkGroupInvocations                                      */\
+        _visitor_( uint,                maxTaskPayloadSize,                         )   /*-|                                                                                */\
+        _visitor_( uint,                maxTaskSharedMemorySize,                    )   /*-|                                                                                */\
+        _visitor_( uint,                maxTaskPayloadAndSharedMemorySize,          )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshSharedMemorySize,                    )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshPayloadAndSharedMemorySize,          )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshOutputMemorySize,                    )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshPayloadAndOutputMemorySize,          )   /*-|                                                                                */\
+        _visitor_( uint,                maxMeshMultiviewViewCount,                  )   /*-|                                                                                */\
+        _visitor_( uint,                maxPreferredTaskWorkGroupInvocations,       )   /*-|                                                                                */\
+        _visitor_( uint,                maxPreferredMeshWorkGroupInvocations,       )   /*/                                                                                 */\
         /* raster order group */\
-        _visitor_( ushort,              minRasterOrderGroups,                       )   /* only for Metal                                                                   */\
+        _visitor_( ushort,              maxRasterOrderGroups,                       )   /* only for Metal                                                                   */\
         /* shaders */\
         _visitor_( EFeature,            geometryShader,                         : 2 )\
         _visitor_( EFeature,            tessellationShader,                     : 2 )\
@@ -350,9 +350,9 @@ namespace AE::Graphics
         _visitor_( EFeature,            tileShader,                             : 2 )   /* GL_HUAWEI_subpass_shading                                                        */\
         /* vertex buffer */\
         _visitor_( EFeature,            vertexDivisor,                          : 2 )   /* \                                                                                */\
-        _visitor_( uint,                minVertexAttribDivisor,                     )   /*-'-- VK_EXT_vertex_attribute_divisor                                              */\
-        _visitor_( uint,                minVertexAttributes,                        )   /* maxVertexInputAttributes                                                         */\
-        _visitor_( uint,                minVertexBuffers,                           )   /* maxVertexInputBindings                                                           */\
+        _visitor_( uint,                maxVertexAttribDivisor,                     )   /*-'-- VK_EXT_vertex_attribute_divisor                                              */\
+        _visitor_( uint,                maxVertexAttributes,                        )   /* maxVertexInputAttributes                                                         */\
+        _visitor_( uint,                maxVertexBuffers,                           )   /* maxVertexInputBindings                                                           */\
         \
         \
     /*---- buffer ----*/\
@@ -371,18 +371,18 @@ namespace AE::Graphics
         _visitor_( EFeature,            textureCompressionETC2,                 : 2 )\
         _visitor_( EFeature,            imageViewMinLod,                        : 2 )   /* VK_EXT_image_view_min_lod, minLod                                                */\
         _visitor_( EFeature,            multisampleArrayImage,                  : 2 )\
-        _visitor_( uint,                minImageArrayLayers,                        )   /* maxImageArrayLayers                                                              */\
+        _visitor_( uint,                maxImageArrayLayers,                        )\
         _visitor_( PixelFormatSet_t,    storageImageAtomicFormats,                  )   /* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT                                       */\
         _visitor_( PixelFormatSet_t,    storageImageFormats,                        )   /* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT      TODO: R or W                            */\
         _visitor_( PixelFormatSet_t,    attachmentBlendFormats,                     )   /* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT                                     */\
         _visitor_( PixelFormatSet_t,    attachmentFormats,                          )   /* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
         _visitor_( PixelFormatSet_t,    linearSampledFormats,                       )   /* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT                                */\
         /*_visitor_( PixelFormatSet_t,  minmaxFilterFormats,                        )   / * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT                               */\
-        _visitor_( SurfaceFormatSet_t,  surfaceFormats,                             )   /*                                                                                  */\
-        /*_visitor_( PixelFormatSet_t,  sparseImageFormats,                         )   / *                                                                                 */\
-        /*_visitor_( PixelFormatSet_t,  multisampleImageFormats,                    )   / *                                                                                 */\
+        _visitor_( SurfaceFormatSet_t,  surfaceFormats,                             )\
+        /*_visitor_( PixelFormatSet_t,  sparseImageFormats,                         )*/\
+        /*_visitor_( PixelFormatSet_t,  multisampleImageFormats,                    )*/\
         _visitor_( PixelFormatSet_t,    hwCompressedAttachmentFormats,              )   /* formats which is compatible with hardware compression                            */\
-        _visitor_( PixelFormatSet_t,    lossyCompressedAttachmentFormats,           )   /*                                                                                  */\
+        _visitor_( PixelFormatSet_t,    lossyCompressedAttachmentFormats,           )\
         \
         \
     /*---- sampler ----*/\
@@ -390,23 +390,23 @@ namespace AE::Graphics
         _visitor_( EFeature,            samplerMirrorClampToEdge,               : 2 )   /* VK_KHR_sampler_mirror_clamp_to_edge                                              */\
         _visitor_( EFeature,            samplerFilterMinmax,                    : 2 )\
         _visitor_( EFeature,            filterMinmaxImageComponentMapping,      : 2 )\
-        /*_visitor_( EFeature,          filterMinmaxSingleComponentFormats,     : 2 )                                                                                       */\
+        /*_visitor_( EFeature,          filterMinmaxSingleComponentFormats,     : 2 )*/\
         _visitor_( EFeature,            samplerMipLodBias,                      : 2 )\
         _visitor_( EFeature,            samplerYcbcrConversion,                 : 2 )   /* VK_KHR_sampler_ycbcr_conversion                                                  */\
-        _visitor_( float,               minSamplerAnisotropy,                       )   /* maxSamplerAnisotropy                                                             */\
-        _visitor_( float,               minSamplerLodBias,                          )   /* maxSamplerLodBias                                                                */\
-        /*_visitor_( SampleCountBits,   sampledImageColorSampleCounts,              )   / *                                                                                 */\
-        /*_visitor_( SampleCountBits,   sampledImageDepthSampleCounts,              )   / *                                                                                 */\
-        /*_visitor_( SampleCountBits,   sampledImageIntegerSampleCounts,            )   / *                                                                                 */\
-        /*_visitor_( SampleCountBits,   sampledImageStencilSampleCounts,            )   / *                                                                                 */\
-        /*_visitor_( SampleCountBits,   storageImageSampleCounts,                   )   / *                                                                                 */\
+        _visitor_( float,               maxSamplerAnisotropy,                       )\
+        _visitor_( float,               maxSamplerLodBias,                          )\
+        /*_visitor_( SampleCountBits,   sampledImageColorSampleCounts,              )*/\
+        /*_visitor_( SampleCountBits,   sampledImageDepthSampleCounts,              )*/\
+        /*_visitor_( SampleCountBits,   sampledImageIntegerSampleCounts,            )*/\
+        /*_visitor_( SampleCountBits,   sampledImageStencilSampleCounts,            )*/\
+        /*_visitor_( SampleCountBits,   storageImageSampleCounts,                   )*/\
         \
         \
     /*---- framebuffer ----*/\
-        _visitor_( SampleCountBits,     framebufferColorSampleCounts,               )   /*                                                                                  */\
-        _visitor_( SampleCountBits,     framebufferDepthSampleCounts,               )   /*                                                                                  */\
-        /*_visitor_( SampleCountBits,   framebufferIntegerColorSampleCounts,        )   /*                                                                                  */\
-        _visitor_( uint,                minFramebufferLayers,                       )   /* maxFramebufferLayers                                                             */\
+        _visitor_( SampleCountBits,     framebufferColorSampleCounts,               )\
+        _visitor_( SampleCountBits,     framebufferDepthSampleCounts,               )\
+        /*_visitor_( SampleCountBits,   framebufferIntegerColorSampleCounts,        )*/\
+        _visitor_( uint,                maxFramebufferLayers,                       )\
         \
         \
     /*---- render pass ----*/\

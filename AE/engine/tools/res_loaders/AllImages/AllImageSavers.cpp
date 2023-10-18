@@ -5,6 +5,7 @@
 #include "res_loaders/STB/STBImageSaver.h"
 #include "res_loaders/DDS/DDSImageSaver.h"
 #include "res_loaders/KTX/KTXImageSaver.h"
+#include "res_loaders/AE/AEImageSaver.h"
 
 namespace AE::ResLoader
 {
@@ -17,8 +18,17 @@ namespace AE::ResLoader
     bool  AllImageSavers::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
     {
         // multithreaded
+        if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
         {
             DDSImageSaver   saver;
+            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+                return true;
+        }
+
+        // multithreaded
+        if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
+        {
+            AEImageSaver    saver;
             if ( saver.SaveImage( stream, image, fileFormat, flipY ))
                 return true;
         }
@@ -34,6 +44,7 @@ namespace AE::ResLoader
 
         // multithreaded
         #ifdef AE_ENABLE_KTX
+        if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
         {
             KTXImageSaver   saver;
             if ( saver.SaveImage( stream, image, fileFormat, flipY ))

@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Physically based rendering functions.
-
-    https://physicallybased.info/
 */
 
 #ifdef __cplusplus
@@ -16,13 +14,19 @@ ND_ float  LinearAttenuation (const float dist, const float radius);
 ND_ float  QuadraticAttenuation (const float dist, const float radius);
 ND_ float  Attenuation (const float3 attenFactor, const float dist);
 
+ND_ float3  Lambert (const float3 diffuse, const float3 lightDir, const float3 normal);
 ND_ float3  SpecularBRDF (const float3 albedo, const float3 lightColor, const float3 lightDir, const float3 viewDir,
                           const float3 surfNorm, const float metallic, const float roughness);
 
-ND_ float  Fresnel (float eta, float cosThetaI);
+ND_ float  FresnelDielectric (const float cosThetaI, const float eta);
+ND_ float  FresnelDielectric (float cosThetaI, float etaI, float etaT);
+
+ND_ float  FresnelDielectricConductor (float cosThetaI, const float etaI, const float etaT, const float k);
+ND_ float  FresnelDielectricConductorApprox (float cosThetaI, const float etaI, const float etaT, const float k);
 //-----------------------------------------------------------------------------
 
-
+#include "../3party_shaders/PBR-1.glsl"
+#include "../3party_shaders/PBR-2.glsl"
 
 
 /*
@@ -48,29 +52,12 @@ float  Attenuation (const float3 attenFactor, const float dist)
 
 /*
 =================================================
-    Fresnel
+    Lambert
 =================================================
 */
-float  Fresnel (float eta, float cosThetaI)
+float3  Lambert (const float3 diffuse, const float3 lightDir, const float3 normal)
 {
-    cosThetaI = Clamp( cosThetaI, -1.0f, 1.0f );
-
-    if ( cosThetaI < 0.0f )
-    {
-        eta         = 1.0f / eta;
-        cosThetaI   = -cosThetaI;
-    }
-
-    float   sin_theta_tsq = eta * eta * (1.0f - cosThetaI * cosThetaI);
-
-    if ( sin_theta_tsq > 1.0f )
-        return 1.0f;
-
-    float   cos_theta_t = Sqrt( 1.0f - sin_theta_tsq );
-    float   Rs          = (eta * cosThetaI   - cos_theta_t) / (eta * cosThetaI   + cos_theta_t);
-    float   Rp          = (eta * cos_theta_t - cosThetaI)   / (eta * cos_theta_t + cosThetaI);
-
-    return 0.5f * (Rs * Rs + Rp * Rp);
+    return diffuse * Max( Dot( normal, lightDir ), 0.0 );
 }
 
 /*
@@ -121,4 +108,24 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightColor, const float3
     }
 
     return color;
+}
+
+/*
+=================================================
+    ApproxLightAbsorptionInVolume
+----
+    Approximation for light absorption inside the volume.
+    'sceneColor'    - color of the scene outside of the volume.
+    'materialColor' - volume color.
+    'ambientLight'  - approximated ambient light inside volume.
+    'depth'         - ray path inside volume.
+    'absorption'    - absorption inside the volume.
+=================================================
+*/
+ND_ float3  ApproxLightAbsorptionInVolume (const float3 sceneColor, const float3 materialColor, const float3 ambientLight,
+                                            const float depth, const float absorption)
+{
+    float   factor  = Saturate( Exp( -depth * absorption ));
+    return  sceneColor * factor * materialColor +
+            ambientLight * materialColor * (1.0f - factor);
 }

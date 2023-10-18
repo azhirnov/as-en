@@ -12,10 +12,11 @@ namespace AE::ResEditor
 =================================================
 */
     FlightCamera::FlightCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY, float2 engineThrustRange,
-                                float3 rotationScale, float3 initialPos) __Th___ :
-        _dynDim{ RVRef(dim) }, _clipPlanes{clipPlanes}, _rotationScale{rotationScale},
-        _fovY{fovY}, _minThrust{engineThrustRange.x}, _maxThrust{engineThrustRange.y},
-        _initialPos{initialPos}
+                                float3 rotationScale, float3 initialPos, bool reverseZ) __Th___ :
+        _dynDim{ RVRef(dim) },              _clipPlanes{ clipPlanes },
+        _rotationScale{ rotationScale },    _fovY{ fovY },
+        _minThrust{ engineThrustRange.x },  _maxThrust{ engineThrustRange.y },
+        _initialPos{ initialPos },          _reverseZ{ reverseZ }
     {
         CHECK_THROW( _dynDim );
         _Reset();
@@ -78,7 +79,7 @@ namespace AE::ResEditor
         if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
             _zoom = Clamp( _zoom - zoom * _zoomStep, _3d_minZoom, _3d_maxZoom );
-            _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y );
+            _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
         }
 
         _UpdateMatrix();
@@ -92,12 +93,12 @@ namespace AE::ResEditor
     void  FlightCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( QuatF::Identity() );
+        _camera.SetRotation( Quat::Identity() );
         _zoom           = 1.0f;
         _engineThrust   = 0.f;
         _dimAspect      = _dynDim->Aspect();
 
-        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y );
+        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
         _UpdateMatrix();
     }

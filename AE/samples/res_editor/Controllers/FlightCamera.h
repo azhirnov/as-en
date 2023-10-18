@@ -31,6 +31,7 @@ namespace AE::ResEditor
         const float             _maxThrust;
         const float3            _initialPos;
         const float             _zoomStep       = 0.1f;
+        const bool              _reverseZ;
 
         float                   _zoom           = 1.0f;
         float                   _engineThrust   = 0.f;
@@ -41,7 +42,7 @@ namespace AE::ResEditor
     public:
         FlightCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
                       float2 engineThrustRange, float3 rotationScale,
-                      float3 initialPos)                                __Th___;
+                      float3 initialPos, bool reverseZ)                 __Th___;
 
         // IController //
         void  ProcessInput (ActionQueueReader, secondsf)                __NE_OV;

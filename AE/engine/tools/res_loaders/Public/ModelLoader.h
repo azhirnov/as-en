@@ -39,6 +39,8 @@ namespace AE::ResLoader
 
     // methods
     public:
+        virtual ~IModelLoader ()                                        __NE___ {}
+
         virtual bool  LoadModel (OUT IntermScene    &scene,
                                  RStream            &stream,
                                  const Config       &cfg,

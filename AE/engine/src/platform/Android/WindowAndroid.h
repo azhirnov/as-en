@@ -57,12 +57,13 @@ namespace AE::App
         IInputActions&  InputActions ()                 __NE_OV { return _input; }
         NativeWindow    GetNative ()                    C_NE_OV;
 
-        // desctop only
+        // desktop only
         void  SetSize (const uint2 &)                   __NE_OV {}
         void  SetPosition (const int2 &)                __NE_OV {}
         void  SetPosition (Monitor::ID, const int2 &)   __NE_OV {}
         void  SetTitle (NtStringView)                   __NE_OV {}
         void  SetFocus ()                               C_NE_OV {}
+        bool  SetMode (EWindowMode, Monitor::ID)        __NE_OV { return false; }
 
 
     private:

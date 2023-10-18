@@ -24,6 +24,8 @@ namespace AE::ResLoader
     {
     // methods
     public:
+        virtual ~IImageSaver ()                                             __NE___ {}
+
         bool  SaveImage (const Path &       filename,
                          const IntermImage& image,
                          EImageFormat       fileFormat  = Default,

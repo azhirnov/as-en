@@ -89,6 +89,7 @@ namespace
 
             case EValueType::Int64 :
             case EValueType::UInt64 :
+            case EValueType::DeviceAddress :
             case EValueType::Float64 :
             case EValueType::Unknown :
             case EValueType::_Count :
@@ -369,7 +370,7 @@ namespace
         {
             Path    sh_path = (Path{ folder }.append( _filename ));
 
-            if ( FileSystem::Exists( sh_path ))
+            if ( FileSystem::IsFile( sh_path ))
             {
                 fpath = FileSystem::ToAbsolute( sh_path );
                 break;
@@ -575,6 +576,7 @@ namespace
                     case EValueType::UInt16_Norm :
                     case EValueType::Int64 :
                     case EValueType::UInt64 :
+                    case EValueType::DeviceAddress :
                     case EValueType::Float64 :
                     case EValueType::Unknown :
                     case EValueType::_Count :
@@ -690,6 +692,7 @@ namespace
 
                 case EValueType::Int64 :
                 case EValueType::UInt64 :
+                case EValueType::DeviceAddress :
                 case EValueType::Float64 :
                 case EValueType::Unknown :
                 case EValueType::_Count :
@@ -778,7 +781,7 @@ namespace
 
         if ( AnyEqual( type, EShader::Compute, EShader::Tile, EShader::MeshTask, EShader::Mesh ))
         {
-            uint    count = GetMaxValueFromFeatures( features, &FeatureSet::minComputeWorkGroupInvocations );
+            uint    count = GetMaxValueFromFeatures( features, &FeatureSet::maxComputeWorkGroupInvocations );
 
             if ( All( _defaultLocalSize != ~0u ))
                 count = _defaultLocalSize.x * _defaultLocalSize.y * _defaultLocalSize.z;

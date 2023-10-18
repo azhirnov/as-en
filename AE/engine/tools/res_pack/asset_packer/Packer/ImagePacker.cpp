@@ -1,41 +1,38 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Packer/ImagePacker.h"
+#include "ImagePacker.h"
 #include "graphics/Private/EnumUtils.h"
+
+#ifdef AE_BUILD_ASSET_PACKER
+# include "res_loaders/Intermediate/IntermImage.h"
+#endif
 
 namespace AE::AssetPacker
 {
+namespace {
+#   include "ImagePackerUtils.cpp.h"
+}
 
 /*
 =================================================
-    ReadImage
+    GetOffset
 =================================================
 */
-    bool  ImagePacker::ReadImage (RStream &stream, INOUT ImageData &img, SharedMem::Allocator_t allocator) const
+    void  ImagePacker::GetOffset (ImageLayer layer, MipmapLevel mipmap, OUT uint3 &imageDim, OUT Bytes &offset,
+                                  OUT Bytes &size, OUT Bytes &rowSize, OUT Bytes &sliceSize) C_NE___
     {
-        ASSERT( IsValid() );
-        ASSERT( stream.IsOpen() );
+        ImagePacker_GetOffset( _header.hdr, layer, mipmap, uint3{0},
+                               OUT imageDim, OUT offset, OUT size, OUT rowSize, OUT sliceSize );
+    }
 
-        if ( not allocator )
-            allocator = SharedMem::CreateAllocator();
-
-        const Bytes     slice_size  = SliceSize();
-        const Bytes     size        = slice_size * header.dimension.z;
-
-        if ( not img.storage or img.storage->Size() < size )
-        {
-            auto    storage = SharedMem::Create( RVRef(allocator), size );
-            if_unlikely( not storage )
-                return false;
-
-            img.storage = RVRef(storage);
-        }
-
-        if_unlikely( not stream.Read( OUT img.storage->Data(), size ))
-            return false;
-
-        img.memView = ImageMemView{ img.storage->Data(), size, uint3{}, uint3{header.dimension}, Bytes{header.rowSize}, slice_size, header.format, EImageAspect::Color };
-        return true;
+/*
+=================================================
+    MaxSliceSize
+=================================================
+*/
+    Bytes  ImagePacker::MaxSliceSize () C_NE___
+    {
+        return ImagePacker_MaxSliceSize( _header.hdr );
     }
 
 /*
@@ -43,18 +40,9 @@ namespace AE::AssetPacker
     ReadHeader
 =================================================
 */
-    bool  ImagePacker::ReadHeader (RStream &stream)
+    bool  ImagePacker::ReadHeader (RStream &stream) __NE___
     {
-        ASSERT( stream.IsOpen() );
-
-        if ( not stream.Read( OUT magic ) or magic != Magic )
-            return false;
-
-        bool    res = stream.Read( OUT &header, Sizeof(header) );
-        res &= (header.version == Version);
-
-        ASSERT( IsValid() );
-        return res;
+        return ImagePacker_ReadHeader( stream, OUT _header );
     }
 
 /*
@@ -62,19 +50,9 @@ namespace AE::AssetPacker
     SaveHeader
 =================================================
 */
-    bool  ImagePacker::SaveHeader (WStream &stream) const
+    bool  ImagePacker::SaveHeader (WStream &stream) C_NE___
     {
-    #ifdef AE_BUILD_ASSET_PACKER
-
-        ASSERT( stream.IsOpen() );
-        ASSERT( IsValid() );
-        return  stream.Write( Magic ) and
-                stream.Write( &header, Sizeof(header) );
-
-    #else
-        Unused( stream );
-        return false;
-    #endif
+        return ImagePacker_SaveHeader( stream, _header );
     }
 
 /*
@@ -82,24 +60,9 @@ namespace AE::AssetPacker
     SaveImage
 =================================================
 */
-    bool  ImagePacker::SaveImage (WStream &stream, const ImageMemView &src)
+    bool  ImagePacker::SaveImage (WStream &stream, const ResLoader::IntermImage &src) C_NE___
     {
-    #ifdef AE_BUILD_ASSET_PACKER
-
-        ASSERT( stream.IsOpen() );
-        ASSERT( IsValid() );
-        ASSERT( not src.Empty() );
-
-        for (auto& part : src.Parts())
-        {
-            CHECK_ERR( stream.Write( part.ptr, part.size ));
-        }
-        return true;
-
-    #else
-        Unused( stream, src );
-        return false;
-    #endif
+        return ImagePacker_SaveImage( stream, _header.hdr, src );
     }
 
 /*
@@ -107,37 +70,40 @@ namespace AE::AssetPacker
     IsValid
 =================================================
 */
-    bool  ImagePacker::IsValid () const
+    bool  ImagePacker::IsValid () C_NE___
     {
-        CHECK_ERR( header.version == Version );
-        CHECK_ERR( All( uint3{header.dimension} > uint3{0} ));
-        CHECK_ERR( header.arrayLayers > 0 );
-        CHECK_ERR( header.mipmaps > 0 );
-        CHECK_ERR( header.format < EPixelFormat::_Count );
-        CHECK_ERR( header.rowSize > 0 );
-        CHECK_ERR( header.flags == 0 );     // not supported yet
-
-        auto&   fmt_info     = EPixelFormat_GetInfo( header.format );
-        Bytes   min_row_size = ImageUtils::RowSize( header.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockSize() );
-        CHECK_ERR( header.rowSize >= min_row_size );
-
-        return true;
+        return ImagePacker_IsValid( _header.hdr );
     }
 
 /*
 =================================================
-    DataSize
+    Header::ToDesc
 =================================================
 */
-    Bytes  ImagePacker::SliceSize () const
+    ImageDesc  ImagePacker::Header::ToDesc () C_NE___
     {
-        auto&   fmt_info = EPixelFormat_GetInfo( header.format );
-        return ImageUtils::SliceSize( header.dimension.y, Bytes{header.rowSize}, fmt_info.TexBlockSize() );
+        EImageOpt   options = Default;
+        switch ( viewType ) {
+            case EImage::Cube :
+            case EImage::CubeArray :    options |= EImageOpt::CubeCompatible;   break;
+        }
+        return ImageDesc{}
+            .SetDimension( uint3{dimension} )
+            .SetArrayLayers( arrayLayers )
+            .SetMaxMipmaps( mipmaps )
+            .SetType( viewType )
+            .SetFormat( format )
+            .SetOptions( options );
     }
 
-    Bytes  ImagePacker::DataSize () const
+/*
+=================================================
+    Header::ToViewDesc
+=================================================
+*/
+    ImageViewDesc  ImagePacker::Header::ToViewDesc () C_NE___
     {
-        return header.dimension.z * SliceSize();
+        return ImageViewDesc{ viewType };
     }
 
 

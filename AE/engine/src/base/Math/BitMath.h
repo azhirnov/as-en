@@ -20,6 +20,7 @@ namespace AE::Math
     ND_ constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T>>  ToNearUInt (const T &value) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum<T> );
+        STATIC_ASSERT( not IsFloatPoint<T> );
         STATIC_ASSERT( sizeof(value) <= sizeof(ToUnsignedInteger<T>) );
 
         return static_cast< ToUnsignedInteger<T> >( value );
@@ -34,6 +35,7 @@ namespace AE::Math
     ND_ constexpr EnableIf<IsScalar<T>, ToSignedInteger<T>>  ToNearInt (const T &value) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum<T> );
+        STATIC_ASSERT( not IsFloatPoint<T> );
         STATIC_ASSERT( sizeof(value) <= sizeof(ToSignedInteger<T>) );
 
         return static_cast< ToSignedInteger<T> >( value );
@@ -258,7 +260,8 @@ namespace AE::Math
 =================================================
     IntLog10
 ----
-    how many times X can be divided by 10
+    how many times X can be divided by 10.
+    slow implementation!
 =================================================
 */
     template <typename T>
@@ -505,6 +508,12 @@ namespace AE::Math
         return T{1} << index;
     }
 
+    template <typename T>
+    ND_ constexpr EnableIf<IsUnsignedInteger<T>, T>  ToBit (bool bit, usize index) __NE___
+    {
+        return T{bit} << index;
+    }
+
 /*
 =================================================
     ReadBits
@@ -594,6 +603,41 @@ namespace AE::Math
     ND_ constexpr EnableIf<IsInteger<T> or IsEnum<T>, bool>  IsEven (const T x) __NE___
     {
         return ( x & T(1) ) == T(0);
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    enum class EnabledBitCount : uint {};
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const T &lhs, const T &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        ASSERT( uint(bitCount) < sizeof(T)*8 );
+
+        using I = ToSignedInteger<T>;
+        using U = ToUnsignedInteger<T>;
+
+        I   a   = BitCast<I>( lhs );
+        I   b   = BitCast<I>( rhs );
+            a   = (a < I{0} ? MinValue<I>() - a : a);
+            b   = (b < I{0} ? MinValue<I>() - b : b);
+        U   dif = U(std::abs( a - b ));
+        U   ac  = U{1} << (sizeof(T)*8 - uint(bitCount));
+
+        return dif < ac;
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const T &lhs, const T &rhs) __NE___
+    {
+        if constexpr( IsSameTypes< T, float >)
+            return BitEqual( lhs, rhs, EnabledBitCount(28) );
+        else
+        if constexpr( IsSameTypes< T, double >)
+            return BitEqual( lhs, rhs, EnabledBitCount(50) );
     }
 
 

@@ -355,14 +355,14 @@ namespace
     ND_ static FeatureSet::PerDescriptorSet  FS_MergeMin (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
     {
         FeatureSet::PerDescriptorSet    res;
-        res.minInputAttachments = FS_MergeMin( lhs.minInputAttachments, rhs.minInputAttachments,"minInputAttachments"   );
-        res.minSampledImages    = FS_MergeMin( lhs.minSampledImages,    rhs.minSampledImages,   "minSampledImages"      );
-        res.minSamplers         = FS_MergeMin( lhs.minSamplers,         rhs.minSamplers,        "minSamplers"           );
-        res.minStorageBuffers   = FS_MergeMin( lhs.minStorageBuffers,   rhs.minStorageBuffers,  "minStorageBuffers"     );
-        res.minStorageImages    = FS_MergeMin( lhs.minStorageImages,    rhs.minStorageImages,   "minStorageImages"      );
-        res.minUniformBuffers   = FS_MergeMin( lhs.minUniformBuffers,   rhs.minUniformBuffers,  "minUniformBuffers"     );
-        res.minAccelStructures  = FS_MergeMin( lhs.minAccelStructures,  rhs.minAccelStructures, "minAccelStructures"    );
-        res.minTotalResources   = FS_MergeMin( lhs.minTotalResources,   rhs.minTotalResources,  "minTotalResources"     );
+        res.maxInputAttachments = FS_MergeMin( lhs.maxInputAttachments, rhs.maxInputAttachments,"maxInputAttachments"   );
+        res.maxSampledImages    = FS_MergeMin( lhs.maxSampledImages,    rhs.maxSampledImages,   "maxSampledImages"      );
+        res.maxSamplers         = FS_MergeMin( lhs.maxSamplers,         rhs.maxSamplers,        "maxSamplers"           );
+        res.maxStorageBuffers   = FS_MergeMin( lhs.maxStorageBuffers,   rhs.maxStorageBuffers,  "maxStorageBuffers"     );
+        res.maxStorageImages    = FS_MergeMin( lhs.maxStorageImages,    rhs.maxStorageImages,   "maxStorageImages"      );
+        res.maxUniformBuffers   = FS_MergeMin( lhs.maxUniformBuffers,   rhs.maxUniformBuffers,  "maxUniformBuffers"     );
+        res.maxAccelStructures  = FS_MergeMin( lhs.maxAccelStructures,  rhs.maxAccelStructures, "maxAccelStructures"    );
+        res.maxTotalResources   = FS_MergeMin( lhs.maxTotalResources,   rhs.maxTotalResources,  "maxTotalResources"     );
         STATIC_ASSERT( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
         return res;
     }
@@ -489,14 +489,14 @@ namespace
     ND_ static FeatureSet::PerDescriptorSet  FS_MergeMax (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
     {
         FeatureSet::PerDescriptorSet    res;
-        res.minInputAttachments = FS_MergeMax( lhs.minInputAttachments, rhs.minInputAttachments,    "minInputAttachments"   );
-        res.minSampledImages    = FS_MergeMax( lhs.minSampledImages,    rhs.minSampledImages,       "minSampledImages"      );
-        res.minSamplers         = FS_MergeMax( lhs.minSamplers,         rhs.minSamplers,            "minSamplers"           );
-        res.minStorageBuffers   = FS_MergeMax( lhs.minStorageBuffers,   rhs.minStorageBuffers,      "minStorageBuffers"     );
-        res.minStorageImages    = FS_MergeMax( lhs.minStorageImages,    rhs.minStorageImages,       "minStorageImages"      );
-        res.minUniformBuffers   = FS_MergeMax( lhs.minUniformBuffers,   rhs.minUniformBuffers,      "minUniformBuffers"     );
-        res.minAccelStructures  = FS_MergeMax( lhs.minAccelStructures,  rhs.minAccelStructures,     "minAccelStructures"    );
-        res.minTotalResources   = FS_MergeMax( lhs.minTotalResources,   rhs.minTotalResources,      "minTotalResources"     );
+        res.maxInputAttachments = FS_MergeMax( lhs.maxInputAttachments, rhs.maxInputAttachments,    "maxInputAttachments"   );
+        res.maxSampledImages    = FS_MergeMax( lhs.maxSampledImages,    rhs.maxSampledImages,       "maxSampledImages"      );
+        res.maxSamplers         = FS_MergeMax( lhs.maxSamplers,         rhs.maxSamplers,            "maxSamplers"           );
+        res.maxStorageBuffers   = FS_MergeMax( lhs.maxStorageBuffers,   rhs.maxStorageBuffers,      "maxStorageBuffers"     );
+        res.maxStorageImages    = FS_MergeMax( lhs.maxStorageImages,    rhs.maxStorageImages,       "maxStorageImages"      );
+        res.maxUniformBuffers   = FS_MergeMax( lhs.maxUniformBuffers,   rhs.maxUniformBuffers,      "maxUniformBuffers"     );
+        res.maxAccelStructures  = FS_MergeMax( lhs.maxAccelStructures,  rhs.maxAccelStructures,     "maxAccelStructures"    );
+        res.maxTotalResources   = FS_MergeMax( lhs.maxTotalResources,   rhs.maxTotalResources,      "maxTotalResources"     );
         return res;
     }
 
@@ -543,14 +543,14 @@ namespace
 */
     bool  FeatureSet::PerDescriptorSet::operator == (const PerDescriptorSet &rhs) C_NE___
     {
-        return  minInputAttachments == rhs.minInputAttachments  and
-                minSampledImages    == rhs.minSampledImages     and
-                minSamplers         == rhs.minSamplers          and
-                minStorageBuffers   == rhs.minStorageBuffers    and
-                minStorageImages    == rhs.minStorageImages     and
-                minUniformBuffers   == rhs.minUniformBuffers    and
-                minAccelStructures  == rhs.minAccelStructures   and
-                minTotalResources   == rhs.minTotalResources;
+        return  maxInputAttachments == rhs.maxInputAttachments  and
+                maxSampledImages    == rhs.maxSampledImages     and
+                maxSamplers         == rhs.maxSamplers          and
+                maxStorageBuffers   == rhs.maxStorageBuffers    and
+                maxStorageImages    == rhs.maxStorageImages     and
+                maxUniformBuffers   == rhs.maxUniformBuffers    and
+                maxAccelStructures  == rhs.maxAccelStructures   and
+                maxTotalResources   == rhs.maxTotalResources;
     }
 
 /*
@@ -560,14 +560,14 @@ namespace
 */
     bool  FeatureSet::PerDescriptorSet::operator >= (const PerDescriptorSet &rhs) C_NE___
     {
-        return  minInputAttachments >= rhs.minInputAttachments  and
-                minSampledImages    >= rhs.minSampledImages     and
-                minSamplers         >= rhs.minSamplers          and
-                minStorageBuffers   >= rhs.minStorageBuffers    and
-                minStorageImages    >= rhs.minStorageImages     and
-                minUniformBuffers   >= rhs.minUniformBuffers    and
-                minAccelStructures  >= rhs.minAccelStructures   and
-                minTotalResources   >= rhs.minTotalResources;
+        return  maxInputAttachments >= rhs.maxInputAttachments  and
+                maxSampledImages    >= rhs.maxSampledImages     and
+                maxSamplers         >= rhs.maxSamplers          and
+                maxStorageBuffers   >= rhs.maxStorageBuffers    and
+                maxStorageImages    >= rhs.maxStorageImages     and
+                maxUniformBuffers   >= rhs.maxUniformBuffers    and
+                maxAccelStructures  >= rhs.maxAccelStructures   and
+                maxTotalResources   >= rhs.maxTotalResources;
     }
 
 /*
@@ -577,9 +577,9 @@ namespace
 */
     HashVal  FeatureSet::PerDescriptorSet::CalcHash () C_NE___
     {
-        return  HashOf( minInputAttachments ) + HashOf( minSampledImages ) + HashOf( minSamplers ) +
-                HashOf( minStorageBuffers ) + HashOf( minStorageImages ) + HashOf( minUniformBuffers ) +
-                HashOf( minTotalResources );
+        return  HashOf( maxInputAttachments ) + HashOf( maxSampledImages ) + HashOf( maxSamplers ) +
+                HashOf( maxStorageBuffers ) + HashOf( maxStorageImages ) + HashOf( maxUniformBuffers ) +
+                HashOf( maxTotalResources );
     }
 //-----------------------------------------------------------------------------
 
@@ -751,21 +751,21 @@ namespace
 
         if ( fEqual( rayTracingPipeline, EFeature::RequireTrue ))
         {
-            chGreaterEq( minShaderVersion.spirv, 140 );
+            chGreaterEq( maxShaderVersion.spirv, 140 );
             if constexpr( not Mutable ) { CHECK( fEqual( bufferDeviceAddress, EFeature::RequireTrue )); }
         }
         else
         {
             chNotEqual2( rayTraversalPrimitiveCulling,  EFeature::RequireTrue, neg_feat );
-            chEqual(     minRayRecursionDepth,          0 );
+            chEqual(     maxRayRecursionDepth,          0 );
         }
 
         if ( fEqual( rayQuery, EFeature::RequireTrue ))
         {
             chNotEqual2( rayQueryStages,                            EShaderStages::Unknown, EShaderStages::Fragment | EShaderStages::Compute );
             chEqual2(    AnyBits( rayQueryStages, ~all_stages ),    false,                  rayQueryStages &= all_stages                     );
-            if ( minShaderVersion.spirv != 0 ) { chGreaterEq( minShaderVersion.spirv, 140 ); }
-            if ( minShaderVersion.metal != 0 ) { chGreaterEq( minShaderVersion.metal, 230 ); }
+            if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
+            if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 230 ); }
             if constexpr( not Mutable ) { CHECK( fNotEq( bufferDeviceAddress, EFeature::RequireFalse )); }
         }
         else
@@ -783,127 +783,127 @@ namespace
             chEqual( accelStructVertexFormats,  VertexFormatSet_t{} );
         }
 
-        if ( minShaderVersion.spirv != 0 )
+        if ( maxShaderVersion.spirv != 0 )
         {
-            chGreaterEq( minShaderVersion.spirv, MinSpirvVersion );
-            chLessEq(    minShaderVersion.spirv, MaxSpirvVersion );
+            chGreaterEq( maxShaderVersion.spirv, MinSpirvVersion );
+            chLessEq(    maxShaderVersion.spirv, MaxSpirvVersion );
         }
-        if ( minShaderVersion.metal != 0 )
+        if ( maxShaderVersion.metal != 0 )
         {
-            chGreaterEq( minShaderVersion.metal, MinMetalVersion );
-            chLessEq(    minShaderVersion.metal, MaxMetalVersion );
+            chGreaterEq( maxShaderVersion.metal, MinMetalVersion );
+            chLessEq(    maxShaderVersion.metal, MaxMetalVersion );
         }
 
         if ( fEqual( multiview, EFeature::RequireTrue ))
         {
-            chGreaterEq( minMultiviewViewCount, 1 );
+            chGreaterEq( maxMultiviewViewCount, 1 );
         }
         else
         {
             chNotEqual2( multiviewGeometryShader,       EFeature::RequireTrue, neg_feat );
             chNotEqual2( multiviewTessellationShader,   EFeature::RequireTrue, neg_feat );
-            chLessEq(    minMultiviewViewCount,         1 );
+            chLessEq(    maxMultiviewViewCount,         1 );
         }
 
         if ( fNotEq( multiViewport, EFeature::RequireTrue ))
         {
-            chEqual( minViewports, 1 );
+            chEqual( maxViewports, 1 );
         }
-        chGreaterEq( minViewports, 1 );
+        chGreaterEq( maxViewports, 1 );
 
-        chGreaterEq( minUniformBufferSize, 1 );
-        chGreaterEq( minStorageBufferSize, 0 );
+        chGreaterEq( maxUniformBufferSize, 1 );
+        chGreaterEq( maxStorageBufferSize, 0 );
 
-        chGreaterEq( perDescrSet.minUniformBuffers, 1 );
-        chGreaterEq( perDescrSet.minSampledImages,  1 );
-        chGreaterEq( perDescrSet.minTotalResources, 1 );
-        chGreaterEq( perStage.minUniformBuffers, 1 );
-        chGreaterEq( perStage.minSampledImages,  1 );
-        chGreaterEq( perStage.minTotalResources, 1 );
+        chGreaterEq( perDescrSet.maxUniformBuffers, 1 );
+        chGreaterEq( perDescrSet.maxSampledImages,  1 );
+        chGreaterEq( perDescrSet.maxTotalResources, 1 );
+        chGreaterEq( perStage.maxUniformBuffers, 1 );
+        chGreaterEq( perStage.maxSampledImages,  1 );
+        chGreaterEq( perStage.maxTotalResources, 1 );
 
-        chGreaterEq( minDescriptorSets, 1 );
-        // minTexelOffset, minTexelGatherOffset can be 0
-        chGreaterEq( minFragmentOutputAttachments,       1 );
-        chGreaterEq( minFragmentCombinedOutputResources, 1 );
-        // minFragmentDualSrcAttachments can be 0
-        chGreaterEq( minPushConstantsSize, 16 );
+        chGreaterEq( maxDescriptorSets, 1 );
+        // maxTexelOffset, maxTexelGatherOffset can be 0
+        chGreaterEq( maxFragmentOutputAttachments,       1 );
+        chGreaterEq( maxFragmentCombinedOutputResources, 1 );
+        // maxFragmentDualSrcAttachments can be 0
+        chGreaterEq( maxPushConstantsSize, 16 );
 
         if ( fEqual( computeShader, EFeature::RequireTrue ))
         {
-            chGreaterEq( minComputeSharedMemorySize,     16 );
-            chGreaterEq( minComputeWorkGroupInvocations, 1 );
-            chGreaterEq( minComputeWorkGroupSizeX,       1 );
-            chLessEq(    minComputeWorkGroupSizeX,       minComputeWorkGroupInvocations );
-            chGreaterEq( minComputeWorkGroupSizeY,       1 );
-            chLessEq(    minComputeWorkGroupSizeY,       minComputeWorkGroupInvocations );
-            chGreaterEq( minComputeWorkGroupSizeZ,       1 );
-            chLessEq(    minComputeWorkGroupSizeZ,       minComputeWorkGroupInvocations );
+            chGreaterEq( maxComputeSharedMemorySize,     16 );
+            chGreaterEq( maxComputeWorkGroupInvocations, 1 );
+            chGreaterEq( maxComputeWorkGroupSizeX,       1 );
+            chLessEq(    maxComputeWorkGroupSizeX,       maxComputeWorkGroupInvocations );
+            chGreaterEq( maxComputeWorkGroupSizeY,       1 );
+            chLessEq(    maxComputeWorkGroupSizeY,       maxComputeWorkGroupInvocations );
+            chGreaterEq( maxComputeWorkGroupSizeZ,       1 );
+            chLessEq(    maxComputeWorkGroupSizeZ,       maxComputeWorkGroupInvocations );
 
             chNotEqual2( storageImageFormats, PixelFormatSet_t{},  PixelFormatSet_t{}.insert( EPixelFormat::R32I ));
             //CHECK_ERR( storageImageAtomicFormats.Any() ); // can be empty
         }
         else
         {
-            chEqual( minComputeSharedMemorySize,     0 );
-            chEqual( minComputeWorkGroupInvocations, 0 );
-            chEqual( minComputeWorkGroupSizeX,       0 );
-            chEqual( minComputeWorkGroupSizeY,       0 );
-            chEqual( minComputeWorkGroupSizeZ,       0 );
+            chEqual( maxComputeSharedMemorySize,     0 );
+            chEqual( maxComputeWorkGroupInvocations, 0 );
+            chEqual( maxComputeWorkGroupSizeX,       0 );
+            chEqual( maxComputeWorkGroupSizeY,       0 );
+            chEqual( maxComputeWorkGroupSizeZ,       0 );
         }
 
         if ( fEqual( taskShader, EFeature::RequireTrue ))
         {
-            chGreaterEq( minTaskWorkGroupSize,                  32          );
-            chGreaterEq( minTaskPayloadSize,                    (16<<10)    );
-            chGreaterEq( minTaskSharedMemorySize,               (16<<10)    );
-            chGreaterEq( minTaskPayloadAndSharedMemorySize,     (16<<10)    );
-            chGreaterEq( minPreferredTaskWorkGroupInvocations,  32          );
+            chGreaterEq( maxTaskWorkGroupSize,                  32          );
+            chGreaterEq( maxTaskPayloadSize,                    (16<<10)    );
+            chGreaterEq( maxTaskSharedMemorySize,               (16<<10)    );
+            chGreaterEq( maxTaskPayloadAndSharedMemorySize,     (16<<10)    );
+            chGreaterEq( maxPreferredTaskWorkGroupInvocations,  32          );
             chEqual(     meshShader,                            EFeature::RequireTrue );
-            if ( minShaderVersion.spirv != 0 ) { chGreaterEq( minShaderVersion.spirv, 140 ); }
-            if ( minShaderVersion.metal != 0 ) { chGreaterEq( minShaderVersion.metal, 300 ); }
+            if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
+            if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 300 ); }
         }
         else
         {
-            chEqual( minTaskWorkGroupSize,                  0 );
-            chEqual( minTaskPayloadSize,                    0 );
-            chEqual( minTaskSharedMemorySize,               0 );
-            chEqual( minTaskPayloadAndSharedMemorySize,     0 );
-            chEqual( minPreferredTaskWorkGroupInvocations,  0 );
+            chEqual( maxTaskWorkGroupSize,                  0 );
+            chEqual( maxTaskPayloadSize,                    0 );
+            chEqual( maxTaskSharedMemorySize,               0 );
+            chEqual( maxTaskPayloadAndSharedMemorySize,     0 );
+            chEqual( maxPreferredTaskWorkGroupInvocations,  0 );
         }
 
         if ( fEqual( meshShader, EFeature::RequireTrue ))
         {
-            chGreaterEq( minMeshWorkGroupSize,                  32          );
-            chGreaterEq( minMeshOutputVertices,                 128         );
-            chGreaterEq( minMeshOutputPrimitives,               128         );
+            chGreaterEq( maxMeshWorkGroupSize,                  32          );
+            chGreaterEq( maxMeshOutputVertices,                 128         );
+            chGreaterEq( maxMeshOutputPrimitives,               128         );
             chGreaterEq( maxMeshOutputPerVertexGranularity,     32          );
             chGreaterEq( maxMeshOutputPerPrimitiveGranularity,  32          );
-            chGreaterEq( minMeshSharedMemorySize,               (16<<10)    );
-            chGreaterEq( minMeshPayloadAndSharedMemorySize,     (16<<10)    );
-            chGreaterEq( minMeshOutputMemorySize,               (16<<10)    );
-            chGreaterEq( minMeshPayloadAndOutputMemorySize,     (16<<10)    );
-            chGreaterEq( minPreferredMeshWorkGroupInvocations,  32          );
-            // minMeshMultiviewViewCount can be 0
-            if ( minShaderVersion.spirv != 0 ) { chGreaterEq( minShaderVersion.spirv, 140 ); }
-            if ( minShaderVersion.metal != 0 ) { chGreaterEq( minShaderVersion.metal, 300 ); }
+            chGreaterEq( maxMeshSharedMemorySize,               (16<<10)    );
+            chGreaterEq( maxMeshPayloadAndSharedMemorySize,     (16<<10)    );
+            chGreaterEq( maxMeshOutputMemorySize,               (16<<10)    );
+            chGreaterEq( maxMeshPayloadAndOutputMemorySize,     (16<<10)    );
+            chGreaterEq( maxPreferredMeshWorkGroupInvocations,  32          );
+            // maxMeshMultiviewViewCount can be 0
+            if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
+            if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 300 ); }
         }
         else
         {
-            chEqual( minMeshWorkGroupSize,                  0 );
-            chEqual( minMeshOutputVertices,                 0 );
-            chEqual( minMeshOutputPrimitives,               0 );
+            chEqual( maxMeshWorkGroupSize,                  0 );
+            chEqual( maxMeshOutputVertices,                 0 );
+            chEqual( maxMeshOutputPrimitives,               0 );
             chEqual( maxMeshOutputPerVertexGranularity,     0 );
             chEqual( maxMeshOutputPerPrimitiveGranularity,  0 );
-            chEqual( minMeshSharedMemorySize,               0 );
-            chEqual( minMeshPayloadAndSharedMemorySize,     0 );
-            chEqual( minMeshOutputMemorySize,               0 );
-            chEqual( minMeshPayloadAndOutputMemorySize,     0 );
-            chEqual( minPreferredMeshWorkGroupInvocations,  0 );
-            chEqual( minMeshMultiviewViewCount,             0 );
+            chEqual( maxMeshSharedMemorySize,               0 );
+            chEqual( maxMeshPayloadAndSharedMemorySize,     0 );
+            chEqual( maxMeshOutputMemorySize,               0 );
+            chEqual( maxMeshPayloadAndOutputMemorySize,     0 );
+            chEqual( maxPreferredMeshWorkGroupInvocations,  0 );
+            chEqual( maxMeshMultiviewViewCount,             0 );
         }
 
-        chGreaterEq( minImageArrayLayers,   1 );
-        chGreaterEq( minFramebufferLayers,  1 );
+        chGreaterEq( maxImageArrayLayers,   1 );
+        chGreaterEq( maxFramebufferLayers,  1 );
 
         //CHECK_ERR( surfaceFormats.Any() ); // can be empty
         //CHECK_ERR( attachmentBlendFormats.Any() ); // can be empty
@@ -924,11 +924,11 @@ namespace
         if ( fEqual( shaderSampleRateInterpolationFunctions, EFeature::RequireTrue )) {
              chEqual( sampleRateShading, EFeature::RequireTrue );
         }
-        if ( minShaderVersion.metal != 0 and minShaderVersion.metal < 230 ) {
+        if ( maxShaderVersion.metal != 0 and maxShaderVersion.metal < 230 ) {
             chNotEqual( shaderInt64, EFeature::RequireTrue );
         }
         // not supported in Metal
-        if ( minShaderVersion.spirv == 0 and minShaderVersion.metal != 0 )
+        if ( maxShaderVersion.spirv == 0 and maxShaderVersion.metal != 0 )
         {
             chNotEqual( shaderFloat64,          EFeature::RequireTrue );
             chNotEqual( shaderSubgroupClock,    EFeature::RequireTrue );
@@ -1063,10 +1063,10 @@ namespace
 
         result &= (desc.queues == Default) or AllBits( queues.supported, desc.queues );
 
-        for (EBufferOpt opt = desc.options; opt != Default;)
+        for (auto opt : BitfieldIterate( desc.options ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT opt ))
+            switch ( opt )
             {
                 case EBufferOpt::SparseResidency :          break;
                 case EBufferOpt::SparseAliased :            break;
@@ -1136,7 +1136,7 @@ namespace
              (desc.format >= EPixelFormat::EAC_R11_SNorm and desc.format <= EPixelFormat::EAC_RG11_UNorm) )
             result &= (textureCompressionETC2 == EFeature::RequireTrue);
 
-        result &= (desc.arrayLayers.Get() <= minImageArrayLayers);
+        result &= (desc.arrayLayers.Get() <= maxImageArrayLayers);
 
         if ( desc.arrayLayers.Get() > 1 and desc.samples.Get() > 1 )
             result &= (multisampleArrayImage == EFeature::RequireTrue);
@@ -1146,10 +1146,10 @@ namespace
 
         result &= (desc.queues == Default) or AllBits( queues.supported, desc.queues );
 
-        for (EImageUsage usage = desc.usage; usage != Default;)
+        for (auto usage : BitfieldIterate( desc.usage ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT usage ))
+            switch ( usage )
             {
                 case EImageUsage::TransferSrc :             break;
                 case EImageUsage::TransferDst :             break;
@@ -1170,10 +1170,10 @@ namespace
             END_ENUM_CHECKS();
         }
 
-        for (EImageOpt opt = desc.options; opt != Default;)
+        for (auto opt : BitfieldIterate( desc.options ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT opt ))
+            switch ( opt )
             {
                 case EImageOpt::CubeCompatible :            break;
                 case EImageOpt::MutableFormat :             break;  // TODO
@@ -1219,10 +1219,10 @@ namespace
 
         if ( desc.format != view.format and view.extUsage != Default )
         {
-            for (EImageUsage usage = view.extUsage; usage != Default;)
+            for (auto usage : BitfieldIterate( view.extUsage ))
             {
                 BEGIN_ENUM_CHECKS();
-                switch ( ExtractBit( INOUT usage ))
+                switch ( usage )
                 {
                     case EImageUsage::TransferSrc :             break;
                     case EImageUsage::TransferDst :             break;
@@ -1330,21 +1330,21 @@ namespace
 */
     void  FeatureSet::SetDefault () __NE___
     {
-        minShaderVersion.spirv  = MinSpirvVersion;
-        minShaderVersion.metal  = MinMetalVersion;
+        maxShaderVersion.spirv  = MinSpirvVersion;
+        maxShaderVersion.metal  = MinMetalVersion;
 
-        minViewports    = 1;
+        maxViewports    = 1;
 
-        minUniformBufferSize                = 16 << 10;
-        minDescriptorSets                   = 1;
-        minFragmentOutputAttachments        = 1;
-        minFragmentCombinedOutputResources  = 1;
+        maxUniformBufferSize                = 16 << 10;
+        maxDescriptorSets                   = 1;
+        maxFragmentOutputAttachments        = 1;
+        maxFragmentCombinedOutputResources  = 1;
 
-        minImageArrayLayers = 1;
+        maxImageArrayLayers = 1;
 
         framebufferColorSampleCounts = SampleCountBits( 1 );
         framebufferDepthSampleCounts = SampleCountBits( 1 );
-        minFramebufferLayers         = 1;
+        maxFramebufferLayers         = 1;
     }
 
 /*
@@ -1459,7 +1459,7 @@ namespace {
 */
     HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
     {
-        return HashVal64{0xd026eeeadf8b7e79ull};
+        return HashVal64{0x92bc3d49423bcd36ull};
     }
 
 /*

@@ -16,11 +16,11 @@ namespace AE::Graphics
     {
     // variables
     private:
-        VkImageView         _imageView          = Default;
-        ImageViewDesc       _desc;
-        bool                _canBeDestroyed     = true;
+        VkImageView                 _imageView          = Default;
+        ImageViewDesc               _desc;
+        bool                        _canBeDestroyed     = true;
 
-        Strong<ImageID>     _imageId;
+        Strong<ImageID>             _imageId;
 
         DEBUG_ONLY( DebugName_t     _debugName; )
         DRC_ONLY(   RWDataRaceCheck _drCheck;   )

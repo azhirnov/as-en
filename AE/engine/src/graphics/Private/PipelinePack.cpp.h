@@ -47,34 +47,45 @@ namespace AE::Graphics
 
         _parentPackId   = Default;
         _surfaceFormat  = Default;
-
-        // clear without releasing IDs - it is safe and faster
-        _samplerRefs.Destroy();
-        _renderPassRefs.Destroy();
-
         _shaders        = Default;
         _shaderOffset   = Default;
         _shaderDataSize = Default;
 
-        // skip this step in release config
-        #ifdef AE_DEBUG
-        {
-            for (uint i = 0, cnt = _renTechs.Get<0>(); i < cnt; ++i) {
-                _renTechs.Get<1>()[i].Destroy( resMngr );
-            }
-
-            for (uint i = 0, cnt = _pplnLayouts.Get<0>(); i < cnt; ++i) {
-                CHECK( resMngr.ImmediatelyRelease( INOUT _pplnLayouts.Get<1>()[i] ) == 0 ); // pipeline layout depends on DS layouts
-            }
-
-            for (uint i = 0, cnt = _dsLayouts.Get<0>(); i < cnt; ++i) {
-                CHECK( resMngr.ImmediatelyRelease( INOUT _dsLayouts.Get<1>()[i] ) == 0 );   // DS layout is using memory form '_allocator'
-            }
+        // none of the resources has strong reference on sampler
+        for (auto& [name, id] : *_samplerRefs) {
+            CHECK( resMngr.ImmediatelyRelease( INOUT id ) == 0 );
         }
-        #endif
+        _samplerRefs.Destroy();
 
-        _pplnLayouts    = Default;
-        _dsLayouts      = Default;
+        // none of the resources has strong reference on render pass
+        for (auto& [name, id] : _renderPassRefs->specMap) {
+            CHECK( resMngr.ImmediatelyRelease( INOUT id ) == 0 );
+        }
+
+        // release pipelines
+        for (uint i = 0, cnt = _renTechs.Get<0>(); i < cnt; ++i) {
+            _renTechs.Get<1>()[i].Destroy( resMngr );
+            StaticRC::Delete( INOUT _renTechs.Get<1>()[i] );
+        }
+        _renTechs = Default;
+
+        // pipelines has strong reference on compatible render pass
+        for (auto& [name, id] : _renderPassRefs->compatMap) {
+            CHECK_Eq( resMngr.ImmediatelyRelease( INOUT id ), 0 );
+        }
+        _renderPassRefs.Destroy();
+
+        // pipelines has strong reference on pipeline layout
+        for (uint i = 0, cnt = _pplnLayouts.Get<0>(); i < cnt; ++i) {
+            CHECK( resMngr.ImmediatelyRelease( INOUT _pplnLayouts.Get<1>()[i] ) == 0 );
+        }
+        _pplnLayouts = Default;
+
+        // pipeline layout has strong reference on descriptor set layout
+        for (uint i = 0, cnt = _dsLayouts.Get<0>(); i < cnt; ++i) {
+            CHECK( resMngr.ImmediatelyRelease( INOUT _dsLayouts.Get<1>()[i] ) == 0 );
+        }
+        _dsLayouts = Default;
 
         DEBUG_ONLY(
             _allFeatureSets.Destroy();
@@ -83,11 +94,6 @@ namespace AE::Graphics
         _pplnTemplMap.Destroy();
         _dsLayoutMap.Destroy();
         _renTechMap.Destroy();
-
-        for (uint i = 0, cnt = _renTechs.Get<0>(); i < cnt; ++i) {
-            StaticRC::Delete( _renTechs.Get<1>()[i] );
-        }
-        _renTechs       = Default;
 
         _serGPplnTempl  = Default;
         _serMPplnTempl  = Default;
@@ -568,7 +574,7 @@ namespace AE::Graphics
 
         size -= 8_b;    // header & version
         size -= 12_b;   // fs_hash & count
-        CHECK_ERR( IsAligned( size, count ));
+        CHECK_ERR( IsMultipleOf( size, count ));
         CHECK_ERR( size == (SizeOf<FeatureSet> + 4_b) * count );
 
         auto*   parent_pack = resMngr.GetResource( _parentPackId, False{"don't inc ref"}, True{"quiet"} );
@@ -717,7 +723,7 @@ namespace AE::Graphics
                                    "Failed to create sampler '"s << resMngr.HashToName( name ) << "'" );
                 }
 
-                CHECK( _samplerRefs->insert_or_assign( name, samplers[i] ).second );    // throw
+                CHECK( _samplerRefs->insert_or_assign( name, Strong<SamplerID>{samplers[i]} ).second );  // throw
             }else{
                 DEBUG_ONLY( AE_LOG_SE( "Sampler '"s << resMngr.HashToName( name ) << "' is NOT supported" ));
             }
@@ -1619,7 +1625,7 @@ namespace AE::Graphics
         for (auto& [name, sbt] : _rtSbtMap)
         {
             Strong<RTShaderBindingID>   id{ sbt.sbtId };
-            resMngr.ImmediatelyRelease( id );
+            CHECK( resMngr.ImmediatelyRelease( id ) == 0 );
         }
         _rtSbtMap.clear();
     }

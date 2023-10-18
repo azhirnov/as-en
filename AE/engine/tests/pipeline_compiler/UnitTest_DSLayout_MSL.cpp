@@ -154,18 +154,18 @@ extern void  UnitTest_DSLayout_MSL ()
     ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
     fs->fs.SetAll( EFeature::RequireTrue );
     fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
-    fs->fs.perDescrSet.minUniformBuffers = 8;
-    fs->fs.perDescrSet.minStorageBuffers = 8;
-    fs->fs.perDescrSet.minStorageImages = 8;
-    fs->fs.perDescrSet.minSampledImages = 8;
-    fs->fs.perDescrSet.minSamplers = 8;
-    fs->fs.perDescrSet.minTotalResources = 1024;
-    fs->fs.perStage.minUniformBuffers = 8;
-    fs->fs.perStage.minStorageBuffers = 8;
-    fs->fs.perStage.minStorageImages = 8;
-    fs->fs.perStage.minSampledImages = 8;
-    fs->fs.perStage.minSamplers = 8;
-    fs->fs.perStage.minTotalResources = 1024;
+    fs->fs.perDescrSet.maxUniformBuffers = 8;
+    fs->fs.perDescrSet.maxStorageBuffers = 8;
+    fs->fs.perDescrSet.maxStorageImages = 8;
+    fs->fs.perDescrSet.maxSampledImages = 8;
+    fs->fs.perDescrSet.maxSamplers = 8;
+    fs->fs.perDescrSet.maxTotalResources = 1024;
+    fs->fs.perStage.maxUniformBuffers = 8;
+    fs->fs.perStage.maxStorageBuffers = 8;
+    fs->fs.perStage.maxStorageImages = 8;
+    fs->fs.perStage.maxSampledImages = 8;
+    fs->fs.perStage.maxSamplers = 8;
+    fs->fs.perStage.maxTotalResources = 1024;
 
     try {
         DSLayout_Test1();

@@ -23,8 +23,23 @@ namespace AE::ResEditor
     {
     // types
     public:
-        using PipelineNames_t       = Array< PipelineName >;
-        using CppStructsFromShaders = ScriptBasePass::CppStructsFromShaders;
+        struct PplnNameAndObjectId
+        {
+            PipelineName    pplnName;
+            usize           objId       = 0;
+
+            PplnNameAndObjectId ()                                      = default;
+            PplnNameAndObjectId (const PplnNameAndObjectId &)           = default;
+            explicit PplnNameAndObjectId (const PipelineName &name)     : pplnName{name} {}
+            PplnNameAndObjectId (const PipelineName &name, usize objId) : pplnName{name}, objId{objId} {}
+        };
+
+        using PipelineNames_t           = Array< PplnNameAndObjectId >;
+        using CppStructsFromShaders     = ScriptBasePass::CppStructsFromShaders;
+
+        using EGeometryType             = IGeomSource::ERTGeometryType;
+        using RTScriptGeometryTypes_t   = StaticArray< ScriptRTGeometryPtr, uint(EGeometryType::_Count) >;
+        using RTGeometryTypes_t         = StaticArray< RC<RTGeometry>, uint(EGeometryType::_Count) >;
 
 
     // variables
@@ -37,32 +52,34 @@ namespace AE::ResEditor
         ScriptGeomSource ();
 
         // resources
-        void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)                            __Th___ { _args.ArgSceneIn( name, scene ); }
+        void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)                                        __Th___ { _args.ArgSceneIn( name, scene ); }
 
-        void  ArgBufferIn (const String &name, const ScriptBufferPtr &buf)                              __Th___ { _args.ArgBufferIn( name, buf ); }
-        void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)                             __Th___ { _args.ArgBufferOut( name, buf ); }
-        void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)                           __Th___ { _args.ArgBufferInOut( name, buf ); }
+        void  ArgBufferIn (const String &name, const ScriptBufferPtr &buf)                                          __Th___ { _args.ArgBufferIn( name, buf ); }
+        void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)                                         __Th___ { _args.ArgBufferOut( name, buf ); }
+        void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)                                       __Th___ { _args.ArgBufferInOut( name, buf ); }
 
-        void  ArgImageIn (const String &name, const ScriptImagePtr &img)                                __Th___ { _args.ArgImageIn( name, img ); }
-        void  ArgImageOut (const String &name, const ScriptImagePtr &img)                               __Th___ { _args.ArgImageOut( name, img ); }
-        void  ArgImageInOut (const String &name, const ScriptImagePtr &img)                             __Th___ { _args.ArgImageInOut( name, img ); }
+        void  ArgImageIn (const String &name, const ScriptImagePtr &img)                                            __Th___ { _args.ArgImageIn( name, img ); }
+        void  ArgImageOut (const String &name, const ScriptImagePtr &img)                                           __Th___ { _args.ArgImageOut( name, img ); }
+        void  ArgImageInOut (const String &name, const ScriptImagePtr &img)                                         __Th___ { _args.ArgImageInOut( name, img ); }
 
-        void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)   __Th___ { _args.ArgTextureIn( name, tex, samplerName ); }
-        void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___ { _args.ArgVideoIn( name, tex, samplerName ); }
+        void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)               __Th___ { _args.ArgTextureIn( name, tex, samplerName ); }
+        void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)            __Th___ { _args.ArgVideoIn( name, tex, samplerName ); }
 
-        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
+        static void  Bind (const ScriptEnginePtr &se)                                                               __Th___;
 
-        ND_ virtual RC<IGeomSource>     ToGeomSource ()                                                 __Th___ = 0;
-        ND_ virtual PipelineNames_t     FindMaterialPipeline ()                                         C_Th___ = 0;
-            virtual void                AddLayoutReflection ()                                          C_Th___ { _args.AddLayoutReflection(); }
-        ND_ virtual RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)    C_Th___ = 0;
+        ND_ virtual ScriptRTGeometryPtr  GetRTGeometry (EGeometryType)                                              __Th___ { return null; }
+
+        ND_ virtual RC<IGeomSource>     ToGeomSource ()                                                             __Th___ = 0;
+        ND_ virtual PipelineNames_t     FindMaterialGraphicsPipelines (ERenderLayer)                                C_Th___ = 0;
+            virtual void                AddLayoutReflection ()                                                      C_Th___ { _args.AddLayoutReflection(); }
+        ND_ virtual RC<IGSMaterials>    ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)  C_Th___ = 0;
 
 
     protected:
         template <typename B>
-        static void  _BindBase (B &binder)                                                              __Th___;
+        static void  _BindBase (B &binder)                                                                          __Th___;
 
-        virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                   C_Th___ = 0;
+        virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                               C_Th___ = 0;
     };
 
 
@@ -84,25 +101,26 @@ namespace AE::ResEditor
     // methods
     public:
         ScriptSphericalCube () {}
+        ~ScriptSphericalCube ();
 
-        void  SetDetailLevel1 (uint maxLod)                                                             __Th___;
-        void  SetDetailLevel2 (uint minLod, uint maxLod)                                                __Th___;
+        void  SetDetailLevel1 (uint maxLod)                                                                 __Th___;
+        void  SetDetailLevel2 (uint minLod, uint maxLod)                                                    __Th___;
 
-        void  SetTessLevel1 (float level)                                                               __Th___;
-        void  SetTessLevel2 (const ScriptDynamicFloatPtr &level)                                        __Th___;
+        void  SetTessLevel1 (float level)                                                                   __Th___;
+        void  SetTessLevel2 (const ScriptDynamicFloatPtr &level)                                            __Th___;
 
-        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
-        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
+        static void  Bind (const ScriptEnginePtr &se)                                                       __Th___;
+        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                         __Th___;
 
     // ScriptGeomSource //
-        ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
-        ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
-        ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
+        ND_ RC<IGeomSource>     ToGeomSource ()                                                             __Th_OV;
+        ND_ PipelineNames_t     FindMaterialGraphicsPipelines (ERenderLayer layer)                          C_Th_OV;
+        ND_ RC<IGSMaterials>    ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)  C_Th_OV;
 
     private:
-        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                               C_Th_OV;
 
-        ND_ static auto  _CreateUBType ()                                                               __Th___;
+        ND_ static auto  _CreateUBType ()                                                                   __Th___;
     };
 
 
@@ -278,32 +296,33 @@ namespace AE::ResEditor
     // methods
     public:
         ScriptUniGeometry () {}
+        ~ScriptUniGeometry ();
 
         // draw commands
-        void  Draw1 (const DrawCmd3 &)                                                                  __Th___;
-        void  Draw2 (const DrawIndexedCmd3 &)                                                           __Th___;
-        void  Draw3 (const DrawIndirectCmd3 &)                                                          __Th___;
-        void  Draw4 (const DrawIndexedIndirectCmd3 &)                                                   __Th___;
-        void  Draw5 (const DrawMeshTasksCmd3 &)                                                         __Th___;
-        void  Draw6 (const DrawMeshTasksIndirectCmd3 &)                                                 __Th___;
-        void  Draw7 (const DrawIndirectCountCmd3 &)                                                     __Th___;
-        void  Draw8 (const DrawIndexedIndirectCountCmd3 &)                                              __Th___;
-        void  Draw9 (const DrawMeshTasksIndirectCountCmd3 &)                                            __Th___;
+        void  Draw1 (const DrawCmd3 &)                                                                      __Th___;
+        void  Draw2 (const DrawIndexedCmd3 &)                                                               __Th___;
+        void  Draw3 (const DrawIndirectCmd3 &)                                                              __Th___;
+        void  Draw4 (const DrawIndexedIndirectCmd3 &)                                                       __Th___;
+        void  Draw5 (const DrawMeshTasksCmd3 &)                                                             __Th___;
+        void  Draw6 (const DrawMeshTasksIndirectCmd3 &)                                                     __Th___;
+        void  Draw7 (const DrawIndirectCountCmd3 &)                                                         __Th___;
+        void  Draw8 (const DrawIndexedIndirectCountCmd3 &)                                                  __Th___;
+        void  Draw9 (const DrawMeshTasksIndirectCountCmd3 &)                                                __Th___;
 
-        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
-        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
+        static void  Bind (const ScriptEnginePtr &se)                                                       __Th___;
+        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                         __Th___;
 
-        ScriptUniGeometry*  Clone ()                                                                    C_Th___;
+        ScriptUniGeometry*  Clone ()                                                                        C_Th___;
 
     // ScriptGeomSource //
-        ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
-        ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
-        ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
+        ND_ RC<IGeomSource>     ToGeomSource ()                                                             __Th_OV;
+        ND_ PipelineNames_t     FindMaterialGraphicsPipelines (ERenderLayer layer)                          C_Th_OV;
+        ND_ RC<IGSMaterials>    ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)  C_Th_OV;
 
     private:
-        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                               C_Th_OV;
 
-        ND_ static auto  _CreateUBType ()                                                               __Th___;
+        ND_ static auto  _CreateUBType ()                                                                   __Th___;
     };
 
 
@@ -315,6 +334,28 @@ namespace AE::ResEditor
     {
     // types
     private:
+        struct OmniLight
+        {
+            float3      pos;
+            float3      atten;
+            RGBA32f     color;
+        };
+
+        struct ConeLight
+        {
+            float3      pos;
+            float3      dir;
+            float3      atten;
+            float2      cone;
+            RGBA32f     color;
+        };
+
+        struct DirLight
+        {
+            float3      dir;
+            float3      atten;
+            RGBA32f     color;
+        };
 
 
     // variables
@@ -323,11 +364,14 @@ namespace AE::ResEditor
         String                          _dbgName;
         Array<Path>                     _texSearchDirs;
 
-        ScriptRTGeometryPtr             _opaqueRTGeom;
-        ScriptRTGeometryPtr             _translucentRTGeom;
+        RTScriptGeometryTypes_t         _rtGeometries;
+
+        Array<OmniLight>                _omiLights;
+        Array<ConeLight>                _coneLights;
+        Array<DirLight>                 _dirLights;
 
         RC< ResLoader::IntermScene >    _intermScene;
-        float4x4                        _initialTransform;
+        Transformation                  _initialTransform;
 
         const uint                      _maxTextures    = 128;
 
@@ -336,29 +380,49 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptModelGeometrySrc ()                                                                       __Th___;
-        ScriptModelGeometrySrc (const String &filename)                                                 __Th___;
+        ScriptModelGeometrySrc ()                                                                           __Th___;
+        ScriptModelGeometrySrc (const String &filename)                                                     __Th___;
         ~ScriptModelGeometrySrc ();
 
-            void  Name (const String &name)                                                             __Th___;
-            void  AddTextureSearchDir (const String &value)                                             __Th___;
-            void  SetInitialTransform (const packed_float4x4 &value)                                    __Th___;
+            void  Name (const String &name)                                                                 __Th___;
+            void  AddTextureSearchDir (const String &value)                                                 __Th___;
+            void  SetInitialTransform1 (const packed_float4x4 &value)                                       __Th___;
+            void  SetInitialTransform2 (const packed_float3 &position,
+                                        const packed_float3 &rotation,
+                                        float scale)                                                        __Th___;
 
-        ND_ ScriptRTGeometry*  GetOpaqueRTGeometry ()                                                   __Th___;
-        ND_ ScriptRTGeometry*  GetTranslucentRTGeometry ()                                              __Th___;
+            void  AddOmniLight (const packed_float3 &pos,
+                                const packed_float3 &atten,
+                                const RGBA32f       &color)                                                 __Th___;
 
-        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
-        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
+            void  AddConeLight (const packed_float3 &pos,
+                                const packed_float3 &dir,
+                                const packed_float3 &atten,
+                                const packed_float2 &cone,
+                                const RGBA32f       &color)                                                 __Th___;
+
+            void  AddDirLight (const packed_float3  &dir,
+                               const packed_float3  &atten,
+                               const RGBA32f        &color)                                                 __Th___;
+
+
+        ND_ ScriptRTGeometryPtr  GetRTGeometry (EGeometryType)                                              __Th_OV;
+
+        static void  Bind (const ScriptEnginePtr &se)                                                       __Th___;
+        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                         __Th___;
 
     // ScriptGeomSource //
-        ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
-        ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
-        ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
+        ND_ RC<IGeomSource>     ToGeomSource ()                                                             __Th_OV;
+        ND_ PipelineNames_t     FindMaterialGraphicsPipelines (ERenderLayer layer)                          C_Th_OV;
+        ND_ RC<IGSMaterials>    ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)  C_Th_OV;
 
     private:
-        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;
+        ND_ PipelineNames_t     _FindPostProcessPipelines ()                                                C_Th___;
+        ND_ RC<IGSMaterials>    _ToPostProcessMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)    C_Th___;
 
-        ND_ static String  _AttribsToVBName (const ResLoader::IntermVertexAttribs &)                    __Th___;
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                               C_Th_OV;
+
+        ND_ static String  _AttribsToVBName (const ResLoader::IntermVertexAttribs &)                        __Th___;
     };
 
 

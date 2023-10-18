@@ -67,35 +67,37 @@ namespace AE::Base
 
     // methods
     public:
-        StackAllocator ()                                   __NE___ {}
-        StackAllocator (Self &&other)                       __NE___;
-        StackAllocator (const Self &)                       = delete;
-        explicit StackAllocator (const Allocator_t &alloc)  __NE___: _alloc{alloc} {}
+        StackAllocator ()                                           __NE___ {}
+        StackAllocator (Self &&other)                               __NE___;
+        StackAllocator (const Self &)                               = delete;
+        explicit StackAllocator (const Allocator_t &alloc)          __NE___: _alloc{alloc} {}
 
-        ~StackAllocator ()                                  __NE___ { Release(); }
+        ~StackAllocator ()                                          __NE___ { Release(); }
 
-            Self&  operator = (const Self &)                = delete;
-            Self&  operator = (Self &&rhs)                  __NE___;
+            Self&  operator = (const Self &)                        = delete;
+            Self&  operator = (Self &&rhs)                          __NE___;
 
-            void  SetBlockSize (Bytes size)                 __NE___ { _blockSize = size; }
+            void  SetBlockSize (Bytes size)                         __NE___ { _blockSize = size; }
 
         template <typename T>
-        ND_ T*      Allocate (usize count = 1)              __NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
-        ND_ void*   Allocate (const SizeAndAlign)           __NE___;
+        ND_ T*      Allocate (usize count = 1)                      __NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
+        ND_ void*   Allocate (const SizeAndAlign)                   __NE___;
 
-            void    Deallocate (void*, const SizeAndAlign)  __NE___ {}
+            void    Deallocate (void* ptr)                          __NE___ { Deallocate( ptr, 1_b ); }
+            void    Deallocate (void* ptr, Bytes size)              __NE___;
+            void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE___ { Deallocate( ptr, sa.size ); }
 
-            bool    Commit (Bookmark bm, Bytes size)        __NE___;
+            bool    Commit (Bookmark bm, Bytes size)                __NE___;
 
-        ND_ auto    PushAuto ()                             __NE___ { return AutoReleaseBookmark{ *this }; }
+        ND_ auto    PushAuto ()                                     __NE___ { return AutoReleaseBookmark{ *this }; }
 
-        ND_ Bookmark Push ()                                __NE___;
-            void     Pop (Bookmark bm)                      __NE___;
+        ND_ Bookmark Push ()                                        __NE___;
+            void     Pop (Bookmark bm)                              __NE___;
 
-            void    Discard ()                              __NE___;
-            void    Release ()                              __NE___;
+            void    Discard ()                                      __NE___;
+            void    Release ()                                      __NE___;
 
-        ND_ Bytes   TotalSize ()                            C_NE___;
+        ND_ Bytes   TotalSize ()                                    C_NE___;
 
     private:
         ND_ static Pair<usize, usize>  _UnpackBookmark (Bookmark bm) __NE___;
@@ -187,6 +189,29 @@ namespace AE::Base
         block.size = offset + sizeAndAlign.size;
         Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
         return block.ptr + offset;
+    }
+
+/*
+=================================================
+    Deallocate
+=================================================
+*/
+    template <typename A, uint B>
+    void    StackAllocator<A,B,false>::Deallocate (void* ptr, Bytes size) __NE___
+    {
+    #ifdef AE_DEBUG
+        for (auto& block : _blocks)
+        {
+            if ( IsIntersects( ptr, ptr + size, block.ptr, block.ptr + block.size ))
+            {
+                CHECK( ptr + size <= block.ptr + block.size );
+                return;
+            }
+            AE_LOG_DBG( "'ptr' is not belong to this allocator" );
+        }
+    #else
+        Unused( ptr, size );
+    #endif
     }
 
 /*

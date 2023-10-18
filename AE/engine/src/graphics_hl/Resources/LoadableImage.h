@@ -20,7 +20,9 @@ namespace AE::Graphics
         };
 
         struct Loader {
-            ND_ RC<LoadableImage>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc) __NE___;
+            ND_ static RC<LoadableImage>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc) __NE___;
+
+            ND_ static bool  _Load (RStream &stream, ImageID imageId, const void* hdr, ITransferContext &ctx) __NE___;
         };
 
 

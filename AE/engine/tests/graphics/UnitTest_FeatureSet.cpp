@@ -29,7 +29,7 @@ namespace
         FeatureSet  a;
         FeatureSet  b;
 
-        a.minShaderVersion.spirv = 140;
+        a.maxShaderVersion.spirv = 140;
         a.attachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
         b.attachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
 
@@ -184,25 +184,6 @@ extern void UnitTest_FeatureSet ()
 {
     const auto  h = FeatureSet::GetHashOfFS();
     ASSERT( h == FeatureSet::GetHashOfFS_Precalculated() );
-    /*
-    ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),               8 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),                 28 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),        64 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minRayRecursionDepth ),            80 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minVertAmplification ),           224 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minRasterOrderGroups ),           316 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minImageArrayLayers ),            476 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minSamplerLodBias ),              660 );
-
-    ASSERT_Eq( OffsetOf( &FeatureSet::framebufferColorSampleCounts ),   664 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::framebufferDepthSampleCounts ),   668 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::minFramebufferLayers ),           672 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::metalArgBufferTier ),             680 );
-    ASSERT_Eq( OffsetOf( &FeatureSet::vendorIds ),                      688 );
-
-    ASSERT_Eq( OffsetOf( &FeatureSet::devicesIds ),                     696 );
-
-    STATIC_ASSERT( sizeof(FeatureSet) == 696 );*/
 
     FeatureSet_Test1();
     FeatureSet_Test2();

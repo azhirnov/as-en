@@ -37,10 +37,12 @@ ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos);
 ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos, const float3 worldNorm);
 #endif
 
-    void  CalcTBN (const float3 position0, const float2 texcoord0,
-                   const float3 position1, const float2 texcoord1,
-                   const float3 position2, const float2 texcoord2,
-                   out float3x3 outTBNinWS);
+ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const float3 position2);
+
+    void  ComputeTBN (const float3 position0, const float2 texcoord0,
+                      const float3 position1, const float2 texcoord1,
+                      const float3 position2, const float2 texcoord2,
+                      out float3x3 outTBN);
 //-----------------------------------------------------------------------------
 
 
@@ -219,13 +221,23 @@ ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos, const
 
 /*
 =================================================
-    CalcTBN
+    ComputeNormal
 =================================================
 */
-    void  CalcTBN (const float3 position0, const float2 texcoord0,
-                   const float3 position1, const float2 texcoord1,
-                   const float3 position2, const float2 texcoord2,
-                   out float3x3 outTBNinWS)
+    float3  ComputeNormal (const float3 position0, const float3 position1, const float3 position2)
+    {
+        return Normalize( Cross( position1 - position0, position2 - position0 ));
+    }
+
+/*
+=================================================
+    ComputeTBN
+=================================================
+*/
+    void  ComputeTBN (const float3 position0, const float2 texcoord0,
+                      const float3 position1, const float2 texcoord1,
+                      const float3 position2, const float2 texcoord2,
+                      out float3x3 outTBN)
     {
         float3  e0 = float3( position1.x - position0.x,
                              texcoord1.x - texcoord0.x,
@@ -259,7 +271,7 @@ ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos, const
         tangent     = Normalize( tangent );
         bitangent   = Normalize( bitangent );
 
-        outTBNinWS  = float3x3( tangent, bitangent, normal );
+        outTBN      = float3x3( tangent, bitangent, normal );
     }
 
 /*
@@ -271,37 +283,37 @@ ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos, const
         2  3
 =================================================
 */
-#define _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
-                                                                            \
-        const float3    pos0    = _getPos_( _coord_, offset.xx );           \
-        const float3    pos1    = _getPos_( _coord_, offset.yx );           \
-        const float3    pos2    = _getPos_( _coord_, offset.zx );           \
-        const float3    pos3    = _getPos_( _coord_, offset.xy );           \
-                                                                            \
-        const float2    uv0     = _getUV_( _coord_, offset.xx );            \
-        const float2    uv1     = _getUV_( _coord_, offset.yx );            \
-        const float2    uv2     = _getUV_( _coord_, offset.zx );            \
-        const float2    uv3     = _getUV_( _coord_, offset.xy );            \
-                                                                            \
-        float3x3    tbn0, tbn1;                                             \
-        CalcTBN( pos0, uv0, pos1, uv1, pos3, uv3, OUT tbn0 );/* 1-0, 3-0 */ \
-        CalcTBN( pos0, uv0, pos3, uv3, pos2, uv2, OUT tbn1 );/* 3-0, 2-0 */ \
-                                                                            \
-        _outTBNinWS_[0] = Normalize( tbn0[0] + tbn1[0] );                   \
-        _outTBNinWS_[1] = Normalize( tbn0[1] + tbn1[1] );                   \
-        _outTBNinWS_[2] = Normalize( tbn0[2] + tbn1[2] );                   \
+#define _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
+                                                                                \
+        const float3    pos0    = _getPos_( _coord_, offset.xx );               \
+        const float3    pos1    = _getPos_( _coord_, offset.yx );               \
+        const float3    pos2    = _getPos_( _coord_, offset.zx );               \
+        const float3    pos3    = _getPos_( _coord_, offset.xy );               \
+                                                                                \
+        const float2    uv0     = _getUV_( _coord_, offset.xx );                \
+        const float2    uv1     = _getUV_( _coord_, offset.yx );                \
+        const float2    uv2     = _getUV_( _coord_, offset.zx );                \
+        const float2    uv3     = _getUV_( _coord_, offset.xy );                \
+                                                                                \
+        float3x3    tbn0, tbn1;                                                 \
+        ComputeTBN( pos0, uv0, pos1, uv1, pos3, uv3, OUT tbn0 );/* 1-0, 3-0 */  \
+        ComputeTBN( pos0, uv0, pos3, uv3, pos2, uv2, OUT tbn1 );/* 3-0, 2-0 */  \
+                                                                                \
+        _outTBNinWS_[0] = Normalize( tbn0[0] + tbn1[0] );                       \
+        _outTBNinWS_[1] = Normalize( tbn0[1] + tbn1[1] );                       \
+        _outTBNinWS_[2] = Normalize( tbn0[2] + tbn1[2] );                       \
 
 
-#define SmoothTBN2x2i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )           \
-    {                                                                       \
-        const int2      offset = int2(0, 1);                                \
-        _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
+#define SmoothTBN2x2i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )               \
+    {                                                                           \
+        const int2      offset = int2(0, 1);                                    \
+        _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
     }
 
-#define SmoothTBN2x2f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )  \
-    {                                                                       \
-        const float2    offset = float2(0.0, _scale_);                      \
-        _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
+#define SmoothTBN2x2f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )      \
+    {                                                                           \
+        const float2    offset = float2(0.0, _scale_);                          \
+        _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
     }
 
 /*
@@ -314,47 +326,47 @@ ND_ float3x3  ComputeTBNinWS_dxdy (const float2 uv, const float3 worldPos, const
         6 7 8
 =================================================
 */
-#define _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
-                                                                            \
-        const float3    pos0    = _getPos_( _coord_, offset.xx );           \
-        const float3    pos1    = _getPos_( _coord_, offset.yx );           \
-        const float3    pos2    = _getPos_( _coord_, offset.zx );           \
-        const float3    pos3    = _getPos_( _coord_, offset.xy );           \
-        const float3    pos4    = _getPos_( _coord_, offset.yy );           \
-        const float3    pos5    = _getPos_( _coord_, offset.zy );           \
-        const float3    pos6    = _getPos_( _coord_, offset.xz );           \
-        const float3    pos7    = _getPos_( _coord_, offset.yz );           \
-        const float3    pos8    = _getPos_( _coord_, offset.zz );           \
-                                                                            \
-        const float2    uv0     = _getUV_( _coord_, offset.xx );            \
-        const float2    uv1     = _getUV_( _coord_, offset.yx );            \
-        const float2    uv2     = _getUV_( _coord_, offset.zx );            \
-        const float2    uv3     = _getUV_( _coord_, offset.xy );            \
-        const float2    uv4     = _getUV_( _coord_, offset.yy );            \
-        const float2    uv5     = _getUV_( _coord_, offset.zy );            \
-        const float2    uv6     = _getUV_( _coord_, offset.xz );            \
-        const float2    uv7     = _getUV_( _coord_, offset.yz );            \
-        const float2    uv8     = _getUV_( _coord_, offset.zz );            \
-                                                                            \
-        float3x3    tbn0, tbn1, tbn2, tbn3;                                 \
-        CalcTBN( pos4, uv4, pos1, uv1, pos2, uv2, OUT tbn0 );/* 1-4, 2-4 */ \
-        CalcTBN( pos4, uv4, pos5, uv5, pos8, uv8, OUT tbn1 );/* 5-4, 8-4 */ \
-        CalcTBN( pos4, uv4, pos7, uv7, pos6, uv6, OUT tbn2 );/* 7-4, 6-4 */ \
-        CalcTBN( pos4, uv4, pos3, uv3, pos0, uv0, OUT tbn3 );/* 3-4, 0-4 */ \
-                                                                            \
-        _outTBNinWS_[0]= Normalize( tbn0[0] + tbn1[0] + tbn2[0] + tbn3[0] );\
-        _outTBNinWS_[1]= Normalize( tbn0[1] + tbn1[1] + tbn2[1] + tbn3[1] );\
-        _outTBNinWS_[2]= Normalize( tbn0[2] + tbn1[2] + tbn2[2] + tbn3[2] );\
+#define _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
+                                                                                \
+        const float3    pos0    = _getPos_( _coord_, offset.xx );               \
+        const float3    pos1    = _getPos_( _coord_, offset.yx );               \
+        const float3    pos2    = _getPos_( _coord_, offset.zx );               \
+        const float3    pos3    = _getPos_( _coord_, offset.xy );               \
+        const float3    pos4    = _getPos_( _coord_, offset.yy );               \
+        const float3    pos5    = _getPos_( _coord_, offset.zy );               \
+        const float3    pos6    = _getPos_( _coord_, offset.xz );               \
+        const float3    pos7    = _getPos_( _coord_, offset.yz );               \
+        const float3    pos8    = _getPos_( _coord_, offset.zz );               \
+                                                                                \
+        const float2    uv0     = _getUV_( _coord_, offset.xx );                \
+        const float2    uv1     = _getUV_( _coord_, offset.yx );                \
+        const float2    uv2     = _getUV_( _coord_, offset.zx );                \
+        const float2    uv3     = _getUV_( _coord_, offset.xy );                \
+        const float2    uv4     = _getUV_( _coord_, offset.yy );                \
+        const float2    uv5     = _getUV_( _coord_, offset.zy );                \
+        const float2    uv6     = _getUV_( _coord_, offset.xz );                \
+        const float2    uv7     = _getUV_( _coord_, offset.yz );                \
+        const float2    uv8     = _getUV_( _coord_, offset.zz );                \
+                                                                                \
+        float3x3    tbn0, tbn1, tbn2, tbn3;                                     \
+        ComputeTBN( pos4, uv4, pos1, uv1, pos2, uv2, OUT tbn0 );/* 1-4, 2-4 */  \
+        ComputeTBN( pos4, uv4, pos5, uv5, pos8, uv8, OUT tbn1 );/* 5-4, 8-4 */  \
+        ComputeTBN( pos4, uv4, pos7, uv7, pos6, uv6, OUT tbn2 );/* 7-4, 6-4 */  \
+        ComputeTBN( pos4, uv4, pos3, uv3, pos0, uv0, OUT tbn3 );/* 3-4, 0-4 */  \
+                                                                                \
+        _outTBNinWS_[0]= Normalize( tbn0[0] + tbn1[0] + tbn2[0] + tbn3[0] );    \
+        _outTBNinWS_[1]= Normalize( tbn0[1] + tbn1[1] + tbn2[1] + tbn3[1] );    \
+        _outTBNinWS_[2]= Normalize( tbn0[2] + tbn1[2] + tbn2[2] + tbn3[2] );    \
 
 
-#define SmoothTBN3x3i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )           \
-    {                                                                       \
-        const int3      offset = int3(-1, 0, 1);                            \
-        _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
+#define SmoothTBN3x3i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )               \
+    {                                                                           \
+        const int3      offset = int3(-1, 0, 1);                                \
+        _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
     }
 
-#define SmoothTBN3x3f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )  \
-    {                                                                       \
-        const float3    offset = float3(-_scale_, 0.0, _scale_);            \
-        _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )      \
+#define SmoothTBN3x3f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )      \
+    {                                                                           \
+        const float3    offset = float3(-_scale_, 0.0, _scale_);                \
+        _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
     }

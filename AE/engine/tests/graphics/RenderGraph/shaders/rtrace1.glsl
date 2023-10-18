@@ -15,14 +15,14 @@ void Main ()
     const vec2  uv          = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
     const vec3  origin      = vec3(uv.x, 1.0f - uv.y, -1.0f);
     const vec3  direction   = vec3(0.0f, 0.0f, 1.0f);
-    const uint  ray_idx     = 1;    // must be < HitGroupStride
+    const uint  ray_idx     = 1;    // must be < 2
 
     payload = vec4(0.0);
 
-    // hitShader = RTSceneBuild::Instance::instanceSBTOffset + geometryIndex * sbtRecordStride + sbtRecordOffset
+    // hitShader = RTSceneBuild::Instance::instanceSBTOffset + rayIndex
 
     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-                 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
+                 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/0, /*missIndex*/1,
                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
                  /*payload*/PAYLOAD_LOC );
 

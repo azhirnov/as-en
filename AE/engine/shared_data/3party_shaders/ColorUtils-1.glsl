@@ -28,6 +28,40 @@ float3  HSVtoRGB (const float3 hsv)
 
 /*
 =================================================
+    LerpHSV
+----
+    from https://www.alanzucconi.com/2016/01/06/colour-interpolation/
+=================================================
+*/
+float3  LerpHSV (float3 a, float3 b, float factor)
+{
+    // Hue interpolation
+    float   h;
+    float   d = b.x - a.x;
+    float   t = factor;
+
+    if ( a.x > b.x )
+    {
+        Swap( a.x, b.x );
+        d = -d;
+        t = 1.0 - t;
+    }
+
+    if ( d > 0.5 ) // 180deg
+    {
+        a.x = a.x + 1.0; // 360deg
+        h = Fract( a.x + t * (b.x - a.x) ); // 360deg
+    }
+    if ( d <= 0.5 ) // 180deg
+    {
+        h = a.x + t * d;
+    }
+
+    return float3( h, Lerp( a.yz, b.yz, factor ));
+}
+
+/*
+=================================================
     HSVtoRGB_v2
 ----
     from https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
@@ -92,10 +126,9 @@ float3  RGBtoYUV (const float3 rgb)
 
 float3  YUVtoRGB (float3 yuv)
 {
-    return float3(
-                yuv.x + 1.0 / 0.877 * yuv.z,
-                yuv.x - 0.39393     * yuv.y - 0.58081 * yuv.z,
-                yuv.x + 1.0 / 0.493 * yuv.y );
+    return float3(  yuv.x + 1.0 / 0.877 * yuv.z,
+                    yuv.x - 0.39393     * yuv.y - 0.58081 * yuv.z,
+                    yuv.x + 1.0 / 0.493 * yuv.y );
 }
 
 /*
@@ -117,10 +150,9 @@ float3  RGBtoYUV_v2 (const float3 rgb)
 float3  YUVtoRGB_v2 (float3 yuv)
 {
     // from https://www.shadertoy.com/view/3lycWz
-    return float3(
-                yuv.x + 1.403 * yuv.z,
-                yuv.x - 0.344 * yuv.y - 0.714 * yuv.z,
-                yuv.x + 1.770 * yuv.y );
+    return float3(  yuv.x + 1.403 * yuv.z,
+                    yuv.x - 0.344 * yuv.y - 0.714 * yuv.z,
+                    yuv.x + 1.770 * yuv.y );
 }
 
 /*

@@ -226,13 +226,13 @@ namespace AE::Math
 =================================================
 */
     template <glm::qualifier Q>
-    ND_ uint  UNorm16x2ToUint (const TVec<float,2,Q> &value) __NE___
+    ND_ uint  UNorm16x2ToUInt (const TVec<float,2,Q> &value) __NE___
     {
         return glm::packUnorm2x16( value );
     }
 
     template <glm::qualifier Q>
-    ND_ uint  SNorm16x2ToUint (const TVec<float,2,Q> &value) __NE___
+    ND_ uint  SNorm16x2ToUInt (const TVec<float,2,Q> &value) __NE___
     {
         return glm::packUnorm2x16( value );
     }
@@ -253,13 +253,13 @@ namespace AE::Math
 =================================================
 */
     template <glm::qualifier Q>
-    ND_ uint  UNorm8x4ToUint (const TVec<float,4,Q> &value) __NE___
+    ND_ uint  UNorm8x4ToUInt (const TVec<float,4,Q> &value) __NE___
     {
         return glm::packUnorm4x8( value );
     }
 
     template <glm::qualifier Q>
-    ND_ uint  SNorm8x4ToUint (const TVec<float,4,Q> &value) __NE___
+    ND_ uint  SNorm8x4ToUInt (const TVec<float,4,Q> &value) __NE___
     {
         return glm::packUnorm4x8( value );
     }
@@ -280,7 +280,7 @@ namespace AE::Math
 =================================================
 */
     template <glm::qualifier Q>
-    ND_ uint  Float16x2ToUint (const TVec<float,2,Q> &value) __NE___
+    ND_ uint  Float16x2ToUInt (const TVec<float,2,Q> &value) __NE___
     {
         return glm::packHalf2x16( value );
     }

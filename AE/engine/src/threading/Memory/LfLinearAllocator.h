@@ -72,9 +72,9 @@ namespace AE::Threading
         ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)              __NE___;
 
         // only for debugging
-        void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)       __NE___;
-        void  Deallocate (void *ptr, const Bytes size)                      __NE___ { Deallocate( ptr, SizeAndAlign{ size, 1_b }); }
-        void  Deallocate (void *ptr)                                        __NE___ { Unused( ptr ); }
+        void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)       __NE___ { Deallocate( ptr, sizeAndAlign.size ); }
+        void  Deallocate (void *ptr, const Bytes size)                      __NE___;
+        void  Deallocate (void *ptr)                                        __NE___ { Deallocate( ptr, 1_b ); }
 
 
         ND_ static constexpr Bytes  BlockSize ()                            __NE___ { return _Capacity; }

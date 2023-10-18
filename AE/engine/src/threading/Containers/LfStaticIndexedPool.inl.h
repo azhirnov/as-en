@@ -38,7 +38,7 @@ namespace AE::Threading
 
             for (usize j = 0; j < ChunkSize; ++j)
             {
-                fn( chunk.arr[j], Index_t(i*ChunkSize + j) );
+                fn( INOUT chunk.arr[j], Index_t(i*ChunkSize + j) );
             }
         }
     }
@@ -90,11 +90,39 @@ namespace AE::Threading
             auto&       chunk   = (*_arr)[i];
             Bitfield_t  bits    = chunk.assigned.exchange( 0 );
 
-            if ( bits == 0 )
-                continue;
+            int     idx = BitScanForward( bits );   // first 1 bit
+            for (; idx >= 0;)
+            {
+                Bitfield_t  mask = Bitfield_t{1} << idx;
+
+                fn( INOUT chunk.arr[idx] );
+
+                bits &= ~mask;                  // 1 -> 0
+                idx  = BitScanForward( bits );  // first 1 bit
+            }
+        }
+    }
+
+/*
+=================================================
+    ForEachAssigned
+----
+    Must be externally synchronized
+=================================================
+*/
+    template <typename V, typename I, usize C, typename A>
+    template <typename FN>
+    void  LfStaticIndexedPool<V,I,C,A>::ForEachAssigned (FN && fn) const noexcept(IsNothrowInvocable<FN>)
+    {
+        if ( _arr == null )
+            return;
+
+        for (usize i = 0; i < ChunksCount; ++i)
+        {
+            auto&       chunk   = (*_arr)[i];
+            Bitfield_t  bits    = chunk.assigned.load();
 
             int     idx = BitScanForward( bits );   // first 1 bit
-
             for (; idx >= 0;)
             {
                 Bitfield_t  mask = Bitfield_t{1} << idx;

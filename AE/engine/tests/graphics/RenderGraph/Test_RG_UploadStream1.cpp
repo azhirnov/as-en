@@ -10,7 +10,7 @@ namespace
         const Bytes                 buf_size    = 32_Mb;
         Array<ubyte>                buffer_data;
         CommandBatchPtr             batch;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
         BufferStream                stream;
         Atomic<uint>                counter     {0};
     };
@@ -90,7 +90,7 @@ namespace
         auto&           res_mngr    = rts.GetResourceManager();
         US1_TestData    t;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.buf       = res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
         CHECK_ERR( t.buf );
 

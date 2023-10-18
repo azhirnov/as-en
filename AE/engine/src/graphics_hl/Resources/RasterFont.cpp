@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "graphics_hl/Resources/LoadableImage.h"
 #include "graphics_hl/Resources/RasterFont.h"
 
 namespace AE::Graphics
@@ -14,8 +15,8 @@ namespace AE::Graphics
 */
     RasterFont::~RasterFont () __NE___
     {
-        if ( _imageAndView )
-            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageAndView.image, _imageAndView.view );
+        if ( _imageId )
+            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
     }
 
 /*
@@ -143,10 +144,11 @@ namespace AE::Graphics
 */
     RasterFont&  RasterFont::operator = (RasterFont &&rhs) __NE___
     {
-        _imageAndView   = RVRef(rhs._imageAndView);
-        _glyphMap       = RVRef(rhs._glyphMap);
-        _fontHeight     = rhs._fontHeight;
-        _sdfConfig      = rhs._sdfConfig;
+        _imageId    = RVRef(rhs._imageId);
+        _viewId     = RVRef(rhs._viewId);
+        _glyphMap   = RVRef(rhs._glyphMap);
+        _fontHeight = rhs._fontHeight;
+        _sdfConfig  = rhs._sdfConfig;
 
         return *this;
     }
@@ -160,44 +162,23 @@ namespace AE::Graphics
     {
         CHECK_ERR( stream and stream->IsOpen() );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
         RasterFontPacker    unpacker;
         {
             Serializing::Deserializer   des{ MakeRC<BufferedRStream>( stream )};
             CHECK_ERR( unpacker.Deserialize( des ));
         }
-        ASSERT( unpacker.header.viewType == EImage_2D );
 
-        auto    img_id = res_mngr.CreateImage( ImageDesc{}
-                            .SetDimension( uint3{unpacker.header.dimension} ).SetArrayLayers( unpacker.header.arrayLayers ).SetMaxMipmaps( unpacker.header.mipmaps )
-                            .SetType( unpacker.header.viewType ).SetFormat( unpacker.header.format ).SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ),
-                            Default, alloc );
-        CHECK_ERR( img_id );
+        auto    font        = MakeRC<RasterFont>();
+        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
 
-        auto    view_id = res_mngr.CreateImageView( ImageViewDesc{ unpacker.header.viewType }, img_id, Default );
-        CHECK_ERR( view_id );
+        font->_imageId = res_mngr.CreateImage( unpacker.Header().ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
+        CHECK_ERR( font->_imageId );
 
-        ImagePacker::ImageData  img_data;
-        CHECK_ERR( unpacker.ReadImage( *stream, INOUT img_data ));
+        font->_viewId = res_mngr.CreateImageView( unpacker.Header().ToViewDesc(), font->_imageId, Default );
+        CHECK_ERR( font->_viewId );
 
-        // copy to staging buffer
-        {
-            ctx.ImageBarrier( img_id, EResourceState::Unknown, EResourceState::CopyDst );
-            ctx.CommitBarriers();
+        CHECK_ERR( LoadableImage::Loader::_Load( *stream, font->_imageId, &unpacker.Header(), ctx ));
 
-            UploadImageDesc desc;
-            desc.heapType   = EStagingHeapType::Dynamic;
-
-            ImageMemView    dst_mem;
-            ctx.UploadImage( img_id, desc, OUT dst_mem );
-
-            CHECK_ERR( dst_mem.Copy( img_data.memView ));
-        }
-
-        auto    font = MakeRC<RasterFont>();
-
-        font->_imageAndView = StrongImageAndViewID{ RVRef(img_id), RVRef(view_id) };
         font->_glyphMap     = RVRef(unpacker.glyphMap);
         font->_fontHeight   = unpacker.fontHeight;
         font->_sdfConfig    = unpacker.sdfConfig;

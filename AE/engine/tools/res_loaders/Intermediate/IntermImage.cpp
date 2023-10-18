@@ -174,15 +174,17 @@ namespace AE::ResLoader
 */
     bool  IntermImage::Copy (const ImageMemView &memView) __NE___
     {
-        return Copy( memView, SharedMem::CreateAllocator() );
+        return Copy( memView, null );
     }
 
     bool  IntermImage::Copy (const ImageMemView &memView, SharedMem::Allocator_t allocator) __NE___
     {
         CHECK_ERR( IsMutable() );
-        CHECK_ERR( allocator );
 
-        auto    storage = SharedMem::Create( allocator, memView.SlicePitch() * memView.Dimension().z );
+        if ( not allocator )
+            allocator = AE::GetDefaultAllocator();
+
+        auto    storage = SharedMem::Create( RVRef(allocator), memView.SlicePitch() * memView.Dimension().z );
         CHECK_ERR( storage );
 
         Bytes   offset = 0_b;
@@ -196,7 +198,7 @@ namespace AE::ResLoader
         ASSERT( offset == storage->Size() );
 
         ImageMemView    view{ storage->Data(), storage->Size(), uint3{}, memView.Dimension(), memView.RowPitch(), memView.SlicePitch(), memView.Format(), memView.Aspect() };
-        return SetData( view, storage );
+        return SetData( view, RVRef(storage) );
     }
 
 /*
@@ -280,7 +282,7 @@ namespace AE::ResLoader
                 CHECK_ERR( dim.z == 1 );
                 break;
             case EImage_CubeArray :
-                CHECK_ERR( IsAligned( layers.Get(), 6 ));
+                CHECK_ERR( IsMultipleOf( layers.Get(), 6 ));
                 CHECK_ERR( dim.z == 1 );
                 break;
             case EImage_3D :
@@ -302,12 +304,12 @@ namespace AE::ResLoader
             for (uint layer = 0; layer < layers.Get(); ++layer)
             {
                 auto&   img = _data[mip][layer];
-                img.dimension   = ImageUtils::MipmapSize( dim, mip, fmt_info.TexBlockSize() );
+                img.dimension   = ImageUtils::MipmapDimension( dim, mip, fmt_info.TexBlockDim() );
                 img.format      = fmt;
                 img.layer       = ImageLayer{layer};
                 img.mipmap      = MipmapLevel{mip};
-                img.rowPitch    = ImageUtils::RowSize( img.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockSize() );
-                img.slicePitch  = ImageUtils::SliceSize( img.dimension.y, img.rowPitch, fmt_info.TexBlockSize() );
+                img.rowPitch    = ImageUtils::RowSize( img.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
+                img.slicePitch  = ImageUtils::SliceSize( img.dimension.y, img.rowPitch, fmt_info.TexBlockDim() );
             }
         }
 
@@ -325,7 +327,9 @@ namespace AE::ResLoader
 */
     bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps, SharedMem::Allocator_t allocator) __NE___
     {
-        CHECK_ERR( allocator );
+        if ( not allocator )
+            allocator = AE::GetDefaultAllocator();
+
         CHECK_ERR( Reserve( type, fmt, dim, layers, mipmaps ));
 
         auto&   fmt_info = EPixelFormat_GetInfo( fmt );
@@ -345,12 +349,12 @@ namespace AE::ResLoader
 
     bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, SharedMem::Allocator_t allocator) __NE___
     {
-        return Allocate( type, fmt, dim, ImageLayer{1u}, MipmapLevel{1u}, allocator );
+        return Allocate( type, fmt, dim, ImageLayer{1u}, MipmapLevel{1u}, RVRef(allocator) );
     }
 
     bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps) __NE___
     {
-        return Allocate( type, fmt, dim, layers, mipmaps, SharedMem::CreateAllocator() );
+        return Allocate( type, fmt, dim, layers, mipmaps, null );
     }
 
     bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim) __NE___

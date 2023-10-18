@@ -30,7 +30,7 @@ namespace AE::ResLoader
             ImageLayer          layer       {0u};
             MipmapLevel         mipmap      {0u};
             Bytes               rowPitch;
-            Bytes               slicePitch;
+            Bytes               slicePitch;         // for 3D
         private:
             void*               _pixels     = null;
             RC<SharedMem>       _storage;   // can be null
@@ -56,12 +56,18 @@ namespace AE::ResLoader
         using ArrayLayers_t     = Array< Level >;           // size == 1 for non-array images
         using Mipmaps_t         = Array< ArrayLayers_t >;
 
+        // layout:
+        //  CubeMap:        mipmaps[] { faces[] { level }}
+        //  CubeMapArray:   mipmaps[] { layers|faces[] { level }}       face = layer % 6
+        //  3D:             mipmaps[] { layer { 3d_level }}
+        //  2DArray:        mipmaps[] { layers[] { level }}
+
 
     // variables
     private:
         Path            _srcPath;
 
-        Mipmaps_t       _data;                      // mipmaps[] { layers[] { level } }
+        Mipmaps_t       _data;
         EImage          _imageType      = Default;
 
         bool            _immutable      = false;

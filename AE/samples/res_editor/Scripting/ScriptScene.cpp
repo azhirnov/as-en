@@ -6,7 +6,7 @@
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 #include "res_editor/_data/cpp/types.h"
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
 {   
@@ -82,6 +82,20 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    AddRayTracingPass
+=================================================
+*/
+    ScriptSceneRayTracingPass*  ScriptScene::AddRayTracingPass (const String &name) __Th___
+    {
+        CHECK_THROW_MSG( not _geomInstances.empty() );
+
+        ++_passCount;
+        _hasRayTracingPass = true;
+        return ScriptSceneRayTracingPassPtr{ new ScriptSceneRayTracingPass{ ScriptScenePtr{this}, name }}.Detach();
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -93,16 +107,17 @@ namespace AE::ResEditor
         binder.CreateRef();
 
         binder.Comment( "Attach geometry to scene." );
-        binder.AddMethod( &ScriptScene::InputGeometry1,     "Add",              {"geometry", "position", "rotationInRads", "scale"} );
-        binder.AddMethod( &ScriptScene::InputGeometry2,     "Add",              {"geometry", "position"} );
-        binder.AddMethod( &ScriptScene::InputGeometry3,     "Add",              {"geometry"} );
-        binder.AddMethod( &ScriptScene::InputGeometry4,     "Add",              {"geometry", "transform"} );
+        binder.AddMethod( &ScriptScene::InputGeometry1,     "Add",                  {"geometry", "position", "rotationInRads", "scale"} );
+        binder.AddMethod( &ScriptScene::InputGeometry2,     "Add",                  {"geometry", "position"} );
+        binder.AddMethod( &ScriptScene::InputGeometry3,     "Add",                  {"geometry"} );
+        binder.AddMethod( &ScriptScene::InputGeometry4,     "Add",                  {"geometry", "transform"} );
 
         binder.Comment( "Set camera to scene." );
-        binder.AddMethod( &ScriptScene::InputController,    "Set",              {"controller"} );
+        binder.AddMethod( &ScriptScene::InputController,    "Set",                  {"controller"} );
 
         binder.Comment( "Add graphics pass. It will link geometries with pipelines and draw it." );
-        binder.AddMethod( &ScriptScene::AddGraphicsPass,    "AddGraphicsPass",  {"name"} );
+        binder.AddMethod( &ScriptScene::AddGraphicsPass,    "AddGraphicsPass",      {"name"} );
+        binder.AddMethod( &ScriptScene::AddRayTracingPass,  "AddRayTracingPass",    {"name"} );
     }
 
 /*
@@ -117,6 +132,15 @@ namespace AE::ResEditor
 
         CHECK_THROW_MSG( not _geomInstances.empty() );
         CHECK_THROW_MSG( _passCount > 0 );
+
+        if ( _hasRayTracingPass )
+        {
+            for (auto& inst : _geomInstances) {
+                for (auto i : IndicesOnly<ScriptGeomSource::EGeometryType>()) {
+                    Unused( inst.geom->GetRTGeometry( ScriptGeomSource::EGeometryType(i) ));
+                }
+            }
+        }
 
         _scene = MakeRC<SceneData>();
 
@@ -147,9 +171,12 @@ namespace AE::ResEditor
 
     ScriptSceneGraphicsPass::ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName) __Th___ :
         ScriptBaseRenderPass{ EFlags::Unknown },
-        _scene{scene}, _controller{_scene->GetController()}, _passName{passName}
+        _scene{scene}, _passName{passName}
     {
-        _dbgName = passName;
+        _dbgName    = passName;
+        _controller = _scene->GetController();
+
+        StringToColor( OUT _dbgColor, StringView{_dbgName} );
 
         ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
     }
@@ -196,11 +223,22 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    SetLayer
+=================================================
+*/
+    void  ScriptSceneGraphicsPass::SetLayer (ERenderLayer layer) __Th___
+    {
+        _renderLayer = layer;
+    }
+
+/*
+=================================================
     _OnAddArg
 =================================================
 */
-    void  ScriptSceneGraphicsPass::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
+    void  ScriptSceneGraphicsPass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
     {
+        arg.state |= EResourceState::FragmentShader;
     }
 
 /*
@@ -210,22 +248,25 @@ namespace AE::ResEditor
 */
     RC<IPass>  ScriptSceneGraphicsPass::ToPass () C_Th___
     {
+        CHECK_THROW_MSG( not _pipelines.empty(), "pipelines must be defined" );
+
         RC<SceneGraphicsPass>   result      = MakeRC<SceneGraphicsPass>();
         auto&                   res_mngr    = RenderTaskScheduler().GetResourceManager();
         Renderer&               renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
         auto&                   materials   = result->_materials;
-        PipelineNames_t         ppln_names;
+        const auto              max_frames  = RenderTaskScheduler().GetMaxFrames();
+        PipelinesPerInstance_t  pplns_per_inst;
 
-        result->_rtech  = _CompilePipelines( OUT ppln_names, OUT result->_scene );  // throw
+        result->_rtech  = _CompilePipelines( OUT pplns_per_inst, OUT result->_scene );  // throw
 
-        CHECK_THROW( ppln_names.size() == _scene->_geomInstances.size() );
-        materials.reserve( ppln_names.size() );
+        CHECK_THROW( pplns_per_inst.size() == _scene->_geomInstances.size() );
+        materials.reserve( pplns_per_inst.size() );
 
-        for (usize i = 0; i < ppln_names.size(); ++i)
+        for (usize i = 0; i < pplns_per_inst.size(); ++i)
         {
             const auto&     geom    = _scene->_geomInstances[i].geom;
-            const auto&     names   = ppln_names[i];
-            auto            mtr     = geom->ToMaterial( result->_rtech.rtech, names );  // throw
+            const auto&     pplns   = pplns_per_inst[i];
+            auto            mtr     = geom->ToMaterial( _renderLayer, result->_rtech.rtech, pplns );  // throw
             CHECK_THROW( mtr );
             materials.push_back( mtr );
         }
@@ -235,12 +276,15 @@ namespace AE::ResEditor
         result->_rpDesc.packId          = result->_rtech.packId;
         result->_rpDesc.layerCount      = 1_layer;
         result->_depthRange             = this->_depthRange;
+        result->_renderLayer            = this->_renderLayer;
 
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneGraphicsPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "SceneGraphicsPassUB", renderer.GetAllocator() );
         CHECK_ERR( result->_ubuffer );
 
-        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), result->_descSets.size(), result->_rtech.packId, DSLayoutName{"pass.ds"} ));
+        // create descriptor set
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"} ));
+        _args.InitResources( OUT result->_resources );  // throw
 
         for (usize i = 0; i < _output.size(); ++i)
         {
@@ -265,24 +309,11 @@ namespace AE::ResEditor
         }
         CHECK_ERR( not result->_renderTargets.empty() );
 
-        result->_dbgName    = this->_dbgName;
-        result->_dbgColor   = this->_dbgColor;
+        _Init( *result );
 
-        if ( this->_controller )
-        {
-            this->_controller->SetDimensionIfNotSet( _dynamicDim );
-            result->_controller = this->_controller->ToController();  // throw
-            CHECK_ERR( result->_controller );
-        }
-
-        // add debug modes
         EnumBitSet<IPass::EDebugMode>   dbg_modes;  // TODO
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
 
-        _AddSlidersToUIInteraction( result.get() );
-        _CopyConstants( OUT result->_shConst );
-
-        AE_LOGI( "Compiled: "s << _dbgName );
         return result;
     }
 
@@ -295,19 +326,30 @@ namespace AE::ResEditor
     {
         using namespace Scripting;
 
-        ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
-        binder.CreateRef();
+        {
+            EnumBinder<ERenderLayer>    binder{ se };
+            binder.Create();
+            binder.AddValue( "Opaque",      ERenderLayer::Opaque );
+            binder.AddValue( "Translucent", ERenderLayer::Translucent );
+            binder.AddValue( "PostProcess", ERenderLayer::PostProcess );
+        }
+        {
+            ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
+            binder.CreateRef();
 
-        _BindBase( binder, False{"without args"} );
-        _BindBaseRenderPass( binder, False{"without blending"} );
+            _BindBase( binder, True{"with args"} );
+            _BindBaseRenderPass( binder, False{"without blending"} );
 
-        binder.Comment( "Set input controller (camera), supported single controller per pass." );
-        binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Set",          {} );
+            binder.Comment( "Set input controller (camera), supported single controller per pass." );
+            binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Set",          {} );
 
-        binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
-                        "Scene geometry will be linked with compatible pipeline or error will be generated." );
-        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,        "AddPipeline",  {"pplnFile"} );
-        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,       "AddPipelines", {"pplnFolder"} );
+            binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
+                            "Scene geometry will be linked with compatible pipeline or error will be generated." );
+            binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,        "AddPipeline",  {"pplnFile"} );
+            binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,       "AddPipelines", {"pplnFolder"} );
+
+            binder.AddMethod( &ScriptSceneGraphicsPass::SetLayer,           "Layer",        {} );
+        }
     }
 
 /*
@@ -369,9 +411,11 @@ namespace AE::ResEditor
     _CompilePipelines2
 =================================================
 */
-    void  ScriptSceneGraphicsPass::_CompilePipelines2 (ScriptEnginePtr se, OUT PipelineNames_t &pplnNames) C_Th___
+    void  ScriptSceneGraphicsPass::_CompilePipelines2 (ScriptEnginePtr se, OUT PipelinesPerInstance_t &pplnNames) C_Th___
     {
         using namespace AE::PipelineCompiler;
+
+        _args.ValidateArgs();
 
         auto&           storage = *ObjectStorage::Instance();
         const String    subpass = "main";
@@ -406,7 +450,7 @@ namespace AE::ResEditor
                 if ( _output[i].HasClearValue() )
                 {
                     att->loadOp = EAttachmentLoadOp::Clear;
-                    att->AddLayout( "ExternalIn", EResourceState::Invalidate );
+                    att->AddLayout( "ExternalIn", EResourceState::Invalidate | state );
                 }
                 att->AddLayout( subpass, state );
             }
@@ -423,8 +467,10 @@ namespace AE::ResEditor
             Unused( _CreateUBType() );  // throw
 
             DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
+            const auto              stage   = EShaderStages::Fragment;
 
             ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
+            _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
             // add sliders
             {
@@ -490,8 +536,10 @@ namespace AE::ResEditor
             inst.geom->AddLayoutReflection();  // throw
         }
 
+        auto    include_dirs = ScriptExe::ScriptPassApi::GetPipelineIncludeDirs();
+        CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
         for (auto& ppln : _pipelines) {
-            if ( not storage.CompilePipeline( se, ppln ))
+            if ( not storage.CompilePipeline( se, ppln, include_dirs ))
                 continue;
         }
 
@@ -502,10 +550,10 @@ namespace AE::ResEditor
 
         for (auto& inst : _scene->_geomInstances)
         {
-            auto    names = inst.geom->FindMaterialPipeline();  // throw
-            CHECK_THROW( not names.empty() );
+            auto    names = inst.geom->FindMaterialGraphicsPipelines( _renderLayer );  // throw
             pplnNames.push_back( RVRef(names) );
         }
+        ASSERT( _scene->_geomInstances.size() == pplnNames.size() );
     }
 
 /*
@@ -513,7 +561,7 @@ namespace AE::ResEditor
     _CompilePipelines
 =================================================
 */
-    RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT PipelineNames_t &pplnNames, OUT RC<SceneData> &outScene) C_Th___
+    RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT PipelinesPerInstance_t &pplnNames, OUT RC<SceneData> &outScene) C_Th___
     {
         return ScriptExe::ScriptPassApi::ConvertAndLoad(
                     [this, &pplnNames, &outScene] (ScriptEnginePtr se)
@@ -521,6 +569,437 @@ namespace AE::ResEditor
                         outScene = _scene->ToScene();               // throw
                         _CompilePipelines2( se, OUT pplnNames );    // throw
                     });
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass () :
+        ScriptBasePass{ EFlags::Unknown }
+    {}
+
+    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName) __Th___ :
+        ScriptBasePass{ EFlags::Unknown },
+        _scene{scene}, _passName{passName}
+    {
+        _dbgName    = passName;
+        _controller = _scene->GetController();
+
+        StringToColor( OUT _dbgColor, StringView{_dbgName} );
+
+        ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
+    }
+
+/*
+=================================================
+    SetPipeline
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::SetPipeline (const String &pplnFile) __Th___
+    {
+        _pipeline = ScriptExe::ScriptPassApi::ToPipelinePath( Path{pplnFile} );  // throw
+    }
+
+/*
+=================================================
+    InputController
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::InputController (const ScriptBaseControllerPtr &value) __Th___
+    {
+        CHECK_THROW_MSG( value );
+
+        _controller = value;
+    }
+
+/*
+=================================================
+    _OnAddArg
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
+    {
+        arg.state |= EResourceState::RayTracingShaders;
+    }
+
+/*
+=================================================
+    DispatchThreads*
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::DispatchThreads3v (const packed_uint3 &threads) __Th___
+    {
+        auto&   it  = _iterations.emplace_back();
+        it.dim      = threads;
+    }
+
+    void  ScriptSceneRayTracingPass::DispatchThreadsDS (const ScriptDynamicDimPtr &ds) __Th___
+    {
+        CHECK_THROW_MSG( ds and ds->Get() );
+
+        auto&   it  = _iterations.emplace_back();
+        it.dim      = ds->Get();
+
+        _SetDynamicDimension( ds );
+    }
+
+    void  ScriptSceneRayTracingPass::DispatchThreads1D (const ScriptDynamicUIntPtr &dyn) __Th___
+    {
+        CHECK_THROW_MSG( dyn );
+
+        auto&   it  = _iterations.emplace_back();
+        it.dim      = dyn->Get();
+    }
+
+/*
+=================================================
+    DispatchThreadsIndirect*
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::DispatchThreadsIndirect1 (const ScriptBufferPtr &ibuf) __Th___
+    {
+        DispatchThreadsIndirect2( ibuf, 0 );
+    }
+
+    void  ScriptSceneRayTracingPass::DispatchThreadsIndirect2 (const ScriptBufferPtr &ibuf, ulong offset) __Th___
+    {
+        CHECK_THROW_MSG( ibuf );
+
+        auto&   it          = _iterations.emplace_back();
+        it.indirect         = ibuf;
+        it.indirectOffset   = Bytes{offset};
+    }
+
+    void  ScriptSceneRayTracingPass::DispatchThreadsIndirect3 (const ScriptBufferPtr &ibuf, const String &field) __Th___
+    {
+        CHECK_THROW_MSG( ibuf );
+        CHECK_THROW_MSG( not field.empty() );
+
+        auto&   it          = _iterations.emplace_back();
+        it.indirect         = ibuf;
+        it.indirectCmdField = field;
+    }
+
+/*
+=================================================
+    ToPass
+=================================================
+*/
+    RC<IPass>  ScriptSceneRayTracingPass::ToPass () C_Th___
+    {
+        CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
+        CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
+        CHECK_THROW_MSG( not _pipeline.empty(), "pipeline is not defined" );
+
+        RC<SceneRayTracingPass> result      = MakeRC<SceneRayTracingPass>();
+        auto&                   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        Renderer&               renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
+        const auto              max_frames  = RenderTaskScheduler().GetMaxFrames();
+        PipelineName            ppln_name;
+        RTShaderBindingName     sbt_name;
+        ScriptRTScenePtr        rt_scene;
+
+        result->_rtech      = _CompilePipelines( OUT ppln_name, OUT sbt_name, OUT result->_scene, OUT rt_scene );   // throw
+
+        result->_pipeline   = result->_rtech.rtech->GetRayTracingPipeline( ppln_name );
+        CHECK_THROW( result->_pipeline );
+
+        result->_sbt        = result->_rtech.rtech->GetRTShaderBinding( sbt_name );
+        CHECK_THROW( result->_sbt );
+
+        result->_ubuffer    = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneRayTracingPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
+                                                     "SceneRayTracingPassUB", renderer.GetAllocator() );
+        CHECK_ERR( result->_ubuffer );
+
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_passDSIndex, OUT result->_passDescSets.data(), max_frames, result->_pipeline, DescriptorSetName{"pass"} ));
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_objDSIndex,  OUT result->_objDescSets.data(),  max_frames, result->_pipeline, DescriptorSetName{"material"} ));
+
+        _args.InitResources( OUT result->_resources );  // throw
+
+        {
+            auto    rt_scene_res = rt_scene->ToResource();
+            CHECK_THROW( rt_scene_res );
+            result->_resources._resources.emplace_back( UniformName{"un_RtScene"}, rt_scene_res, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders );
+        }
+
+        result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
+
+        _Init( *result );
+
+        EnumBitSet<IPass::EDebugMode>   dbg_modes;  // TODO
+        UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
+
+        return result;
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        using namespace Scripting;
+
+        ClassBinder<ScriptSceneRayTracingPass>  binder{ se };
+        binder.CreateRef();
+
+        _BindBase( binder, True{"with args"} );
+
+        binder.Comment( "Set input controller (camera), supported single controller per pass." );
+        binder.AddMethod( &ScriptSceneRayTracingPass::InputController,          "Set",              {} );
+
+        binder.Comment( "Set path to single pipeline.\n"
+                        "Scene geometry will be linked with compatible pipeline or error will be generated." );
+        binder.AddMethod( &ScriptSceneRayTracingPass::SetPipeline,              "SetPipeline",      {"pplnFile"} );
+
+        binder.Comment( "Run RayGen shader with specified number of threads." );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads1,         "Dispatch",         {"threadsX"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads2,         "Dispatch",         {"threadsX", "threadsY"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads3,         "Dispatch",         {"threadsX", "threadsY", "threadsZ"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads2v,        "Dispatch",         {"threads"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads3v,        "Dispatch",         {"threads"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsDS,        "Dispatch",         {"dynamicThreadCount"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads1D,        "Dispatch",         {"dynamicThreadCount"} );
+
+        binder.Comment( "Run RayGen shader with number of threads from indirect command." );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect1, "DispatchIndirect", {"indirectBuffer"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect2, "DispatchIndirect", {"indirectBuffer", "indirectBufferOffset"} );
+        binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect3, "DispatchIndirect", {"indirectBuffer", "indirectBufferFieldName"} );
+    }
+
+/*
+=================================================
+    _CreateUBType
+=================================================
+*/
+    auto  ScriptSceneRayTracingPass::_CreateUBType () __Th___
+    {
+        using namespace AE::PipelineCompiler;
+
+        auto&   obj_storage = *ObjectStorage::Instance();
+        auto    it          = obj_storage.structTypes.find( "SceneRayTracingPassUB" );
+
+        if ( it != obj_storage.structTypes.end() )
+            return it->second;
+
+        ShaderStructTypePtr st{ new ShaderStructType{"SceneRayTracingPassUB"}};
+        st->Set( EStructLayout::Std140, R"#(
+                // view //
+                float       time;                   // shader playback time (in seconds)
+                float       timeDelta;              // render time (in seconds)
+                uint        frame;                  // shader playback frame
+                uint        seed;                   // unique value, updated on each shader reloading
+
+                // controller //
+                CameraData  camera;
+
+                // sliders //
+                float4      floatSliders [4];
+                int4        intSliders [4];
+                float4      colors [4];
+
+                // constants //
+                float4      floatConst [4];
+                int4        intConst [4];
+            )#");
+
+        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
+        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        return st;
+    }
+
+/*
+=================================================
+    GetShaderTypes
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
+    {
+        auto    st = _CreateUBType();   // throw
+
+        CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+    }
+
+/*
+=================================================
+    _CompilePipelines2
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::_CompilePipelines2 (ScriptEnginePtr se, OUT PipelineName &pplnName, OUT RTShaderBindingName &sbtName) C_Th___
+    {
+        using namespace AE::PipelineCompiler;
+
+        _args.ValidateArgs();
+
+        auto&   storage = *ObjectStorage::Instance();
+
+
+        RenderTechniquePtr  rtech{ new RenderTechnique{ "rtech" }};
+        {
+            RTComputePassPtr    pass = rtech->AddComputePass2( "main" );
+        }
+
+        {
+            Unused( _CreateUBType() );  // throw
+
+            DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
+            const auto              stage   = EShaderStages::AllRayTracing;
+
+            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "SceneRayTracingPassUB", EResourceState::ShaderUniform, False{} );
+            ds_layout->AddRayTracingScene( stage, "un_RtScene", ArraySize{1} );
+            _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+
+            // add sliders
+            {
+                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
+                for (usize i = 0; i < _sliderCounter.size(); ++i) {
+                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
+                }
+
+                for (auto& slider : _sliders)
+                {
+                    String  str;
+                    str << slider.name << " = un_PerPass.";
+
+                    BEGIN_ENUM_CHECKS();
+                    switch ( slider.type )
+                    {
+                        case ESlider::Int :     str << "intSliders[";   break;
+                        case ESlider::Float :   str << "floatSliders["; break;
+                        case ESlider::Color :   str << "colors[";       break;
+                        case ESlider::_Count :
+                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
+                    }
+                    END_ENUM_CHECKS();
+
+                    str << ToString( slider.index ) << "]";
+                    switch ( slider.count )
+                    {
+                        case 1 :    str << ".x";    break;
+                        case 2 :    str << ".xy";   break;
+                        case 3 :    str << ".xyz";  break;
+                        case 4 :    str << ".xyzw"; break;
+                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
+                    }
+                    ds_layout->Define( str );
+                }
+            }
+
+            // add constants
+            {
+                for (auto& c : _constants)
+                {
+                    String  str;
+                    str << c.name << " = un_PerPass.";
+
+                    BEGIN_ENUM_CHECKS();
+                    switch ( c.type )
+                    {
+                        case ESlider::Int :     str << "intConst[";     break;
+                        case ESlider::Float :   str << "floatConst[";   break;
+                        case ESlider::Color :
+                        case ESlider::_Count :
+                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
+                    }
+                    END_ENUM_CHECKS();
+
+                    str << ToString( c.index ) << "]";
+                    ds_layout->Define( str );
+                }
+            }
+        }
+
+        for (auto& inst : _scene->_geomInstances) {
+            inst.geom->AddLayoutReflection();  // throw
+        }
+
+        auto    include_dirs = ScriptExe::ScriptPassApi::GetPipelineIncludeDirs();
+        CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
+        CHECK_THROW( storage.CompilePipeline( se, _pipeline, include_dirs ));
+
+        CHECK_THROW( storage.rtShaderBindings.size() == 1 );
+        CHECK_THROW( storage.rtpipelines.size() == 1 );
+        CHECK_THROW( storage.rtpipelines.begin()->second->GetSpecializations().size() == 1 );
+
+        pplnName    = storage.rtpipelines.begin()->second->GetSpecializations()[0]->Name();
+        sbtName     = RTShaderBindingName{storage.rtShaderBindings.begin()->second->Name()};
+    }
+
+/*
+=================================================
+    _CompilePipelines
+=================================================
+*/
+    RTechInfo  ScriptSceneRayTracingPass::_CompilePipelines (OUT PipelineName &pplnName, OUT RTShaderBindingName &sbtName,
+                                                             OUT RC<SceneData> &outScene, OUT ScriptRTScenePtr &rtScene) C_Th___
+    {
+        return ScriptExe::ScriptPassApi::ConvertAndLoad(
+                    [&] (ScriptEnginePtr se)
+                    {
+                        outScene = _scene->ToScene();                           // throw
+                        _CompilePipelines2( se, OUT pplnName, OUT sbtName );    // throw
+                        _CreateRTScene( sbtName, OUT rtScene );
+                    });
+    }
+
+/*
+=================================================
+    _CreateRTScene
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::_CreateRTScene (const RTShaderBindingName &sbtName, OUT ScriptRTScenePtr &rt_scene) C_Th___
+    {
+        using namespace AE::PipelineCompiler;
+
+        auto&   storage = *ObjectStorage::Instance();
+        CHECK_THROW( storage.rtShaderBindings.size() == 1 );
+        CHECK_THROW( sbtName == RTShaderBindingName{storage.rtShaderBindings.begin()->second->Name()} );
+
+        rt_scene = ScriptRTScenePtr{new ScriptRTScene{}};
+        rt_scene->MaxRayTypes( storage.rtShaderBindings.begin()->second->GetMaxRayTypes() );
+
+        RTInstanceSBTOffset     opaque_sbt      {0};
+        RTInstanceSBTOffset     translucent_sbt {1};
+        RTInstanceSBTOffset     volumetric_sbt  {2};    // use callable shader for different implementations
+
+        // TODO: remove RTGeometry if opaque/dual-sided/translucent is not present in model
+
+        for (auto& inst : _scene->_geomInstances)
+        {
+            auto    rt_geom = inst.geom->GetRTGeometry( ScriptGeomSource::EGeometryType::Opaque );
+            if ( not rt_geom ) continue;
+            rt_scene->AddInstance( rt_geom, float4x3{inst.transform}, RTInstanceCustomIndex{}, RTInstanceMask{},
+                                    opaque_sbt, ERTInstanceOpt::ForceOpaque | ERTInstanceOpt::TriangleCullBack | ERTInstanceOpt::TriangleFrontCCW );
+        }
+        for (auto& inst : _scene->_geomInstances)
+        {
+            auto    rt_geom = inst.geom->GetRTGeometry( ScriptGeomSource::EGeometryType::OpaqueDualSided );
+            if ( not rt_geom ) continue;
+            rt_scene->AddInstance( rt_geom, float4x3{inst.transform}, RTInstanceCustomIndex{}, RTInstanceMask{},
+                                    opaque_sbt, ERTInstanceOpt::ForceOpaque | ERTInstanceOpt::TriangleCullDisable | ERTInstanceOpt::TriangleFrontCCW );
+        }
+        for (auto& inst : _scene->_geomInstances)
+        {
+            auto    rt_geom = inst.geom->GetRTGeometry( ScriptGeomSource::EGeometryType::Translucent );
+            if ( not rt_geom ) continue;
+            rt_scene->AddInstance( rt_geom, float4x3{inst.transform}, RTInstanceCustomIndex{}, RTInstanceMask{},
+                                    translucent_sbt, ERTInstanceOpt::ForceNonOpaque | ERTInstanceOpt::TriangleCullDisable | ERTInstanceOpt::TriangleFrontCCW );
+        }
+        for (auto& inst : _scene->_geomInstances)
+        {
+            auto    rt_geom = inst.geom->GetRTGeometry( ScriptGeomSource::EGeometryType::Volumetric );
+            if ( not rt_geom ) continue;
+            rt_scene->AddInstance( rt_geom, float4x3{inst.transform}, RTInstanceCustomIndex{}, RTInstanceMask{},
+                                    volumetric_sbt, ERTInstanceOpt::ForceNonOpaque | ERTInstanceOpt::TriangleCullDisable | ERTInstanceOpt::TriangleFrontCCW );
+        }
+
+        CHECK_THROW( rt_scene->ToResource() );
     }
 
 

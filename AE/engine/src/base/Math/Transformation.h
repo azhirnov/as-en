@@ -16,11 +16,13 @@ namespace AE::Math
     template <typename T>
     struct TTransformation
     {
+        STATIC_ASSERT( IsFloatPoint<T> );
+
     // types
     public:
         using Value_t   = T;
         using Vec3_t    = Vec< T, 3 >;
-        using Quat_t    = Quat< T >;
+        using Quat_t    = TQuat< T >;
         using Mat4_t    = Matrix< T, 4, 4 >;
         using Self      = TTransformation< T >;
 
@@ -40,29 +42,33 @@ namespace AE::Math
 
         TTransformation (const Vec3_t &pos, const Quat_t &orient, const T &scale = T{1})__NE___ : orientation{orient}, position{pos}, scale{scale} {}
 
+        template <typename B>
+        explicit TTransformation (const TTransformation<B> &other)                      __NE___ : orientation{other.orientation}, position{other.position}, scale{T(other.scale)} {}
+
         explicit TTransformation (const Mat4_t &mat)                                    __NE___;
 
             constexpr Self&  operator =  (const Self &)                                 __NE___ = default;
             constexpr Self&  operator =  (Self &&)                                      __NE___ = default;
 
             Self&   operator += (const Self &rhs)                                       __NE___;
-        ND_ Self    operator +  (const Self &rhs)                                       C_NE___ { return Self{*this} += rhs; }
+        ND_ Self    operator +  (const Self &rhs)                                       C_NE___;
 
             Self&   operator -= (const Self &rhs)                                       __NE___ { return Self{*this} += rhs.Inversed(); }
-        ND_ Self    operator -  (const Self &rhs)                                       C_NE___ { return Self{*this} -= rhs; }
+        ND_ Self    operator -  (const Self &rhs)                                       C_NE___ { return *this + rhs.Inversed(); }
 
         ND_ bool    operator == (const Self &rhs)                                       C_NE___;
         ND_ bool    operator != (const Self &rhs)                                       C_NE___ { return not (*this == rhs); }
 
-            Self&   Move (const Vec3_t &delta)                                          __NE___;
-            Self&   Rotate (const Quat_t &delta)                                        __NE___;
-            Self&   Scale (float scale)                                                 __NE___;
+            Self&   Move (const Vec3_t &delta)                                          __NE___ { position += orientation * (delta * scale);  return *this; }
+            Self&   Rotate (const Quat_t &delta)                                        __NE___ { orientation *= delta;  return *this; }
+            Self&   Scale (const T value)                                               __NE___ { scale *= value;  return *this; }
 
             Self&   Inverse ()                                                          __NE___;
         ND_ Self    Inversed ()                                                         C_NE___ { return Self{*this}.Inverse(); }
 
-        ND_ Mat4_t  ToMatrix ()                                                         C_NE___;
-        ND_ Mat4_t  ToRotationMatrix ()                                                 C_NE___ { return Mat4_t{ orientation } * Mat4_t::Scaled( scale ); }
+        ND_ Mat4_t  ToMatrix ()                                                         C_NE___;                                                            // position transform
+        ND_ Mat4_t  ToRotationMatrix ()                                                 C_NE___ { return Mat4_t{ orientation }; }                           // normals transform
+        ND_ Mat4_t  ToRotationScaleMatrix ()                                            C_NE___ { return Mat4_t{ orientation } * Mat4_t::Scaled( scale ); } // view matrix
         ND_ Mat4_t  ToModelMatrix ()                                                    C_NE___ { return Mat4_t::Translated( position ); }
 
         ND_ bool    IsIdentity ()                                                       C_NE___ { return Equals( *this, Self{} ); }
@@ -89,15 +95,18 @@ namespace AE::Math
         Vec3_t      scale3;
         Vec3_t      skew;
         Vec<T,4>    perspective;
-        Unused( glm::decompose( mat._value, OUT scale3, OUT orientation._value, OUT position, OUT skew, OUT perspective ));
+        bool        ok = glm::decompose( mat._value, OUT scale3, OUT orientation._value, OUT position, OUT skew, OUT perspective );
 
+        ASSERT( ok );  Unused( ok );
         ASSERT( Equals( scale3.x, scale3.y ) and Equals( scale3.x, scale3.z ));
         scale = scale3.x;
     }
 
 /*
 =================================================
-    operator +=
+    operator + / operator +=
+----
+    same as 'lhs.ToMatrix() * rhs.ToMatrix()'
 =================================================
 */
     template <typename T>
@@ -107,6 +116,15 @@ namespace AE::Math
         orientation *= rhs.orientation;
         scale       *= rhs.scale;
         return *this;
+    }
+
+    template <typename T>
+    TTransformation<T>  TTransformation<T>::operator + (const Self &rhs) C_NE___
+    {
+        return  TTransformation<T>{
+                    this->position + this->orientation * (rhs.position * this->scale),
+                    this->orientation * rhs.orientation,
+                    this->scale * rhs.scale };
     }
 
 /*
@@ -128,7 +146,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T err = Epsilon<T>()) __NE___
+    {
+        return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
+                All( Math::Equals( lhs.position, rhs.position, err ))       &
+                Math::Equals( lhs.scale, rhs.scale, err );
+    }
+
+    template <typename T>
+    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const Percent err) __NE___
     {
         return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
                 All( Math::Equals( lhs.position, rhs.position, err ))       &
@@ -137,38 +163,23 @@ namespace AE::Math
 
 /*
 =================================================
-    Move
+    BitEqual
 =================================================
 */
     template <typename T>
-    TTransformation<T>&  TTransformation<T>::Move (const Vec3_t &delta) __NE___
+    ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const EnabledBitCount bitCount) __NE___
     {
-        position += orientation * (delta * scale);
-        return *this;
+        return  All( Math::BitEqual( lhs.orientation, rhs.orientation, bitCount ))  &
+                All( Math::BitEqual( lhs.position, rhs.position, bitCount ))        &
+                Math::BitEqual( lhs.scale, rhs.scale, bitCount );
     }
 
-/*
-=================================================
-    Rotate
-=================================================
-*/
     template <typename T>
-    TTransformation<T>&  TTransformation<T>::Rotate (const Quat_t &delta) __NE___
+    ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs) __NE___
     {
-        orientation *= delta;
-        return *this;
-    }
-
-/*
-=================================================
-    Scale
-=================================================
-*/
-    template <typename T>
-    TTransformation<T>&  TTransformation<T>::Scale (float value) __NE___
-    {
-        this->scale *= value;
-        return *this;
+        return  All( Math::BitEqual( lhs.orientation, rhs.orientation ))    &
+                All( Math::BitEqual( lhs.position, rhs.position ))          &
+                Math::BitEqual( lhs.scale, rhs.scale );
     }
 
 /*

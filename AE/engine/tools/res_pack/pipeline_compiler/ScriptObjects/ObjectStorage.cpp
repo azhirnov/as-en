@@ -573,14 +573,15 @@ namespace AE::PipelineCompiler
 
         for (auto& [name, st] : this->structTypes)
         {
-            if ( unique.contains( name ))
-                continue;
-
             if ( not AnyBits( st->Usage(), EUsage::BufferLayout | EUsage::VertexLayout ))
                 continue;
 
             CHECK_ERR( st->ToCPP( INOUT types, INOUT unique ));
         }
+        
+      #if not AE_PRIVATE_USE_TABS
+        types = Parser::TabsToSpaces( types );
+      #endif
 
         auto    file = MakeRC<FileWStream>( filename );
         CHECK_ERR( file->IsOpen() );
@@ -620,7 +621,8 @@ namespace AE::PipelineCompiler
             for (auto& rtech : rtech_arr)
             {
                 tmp << "\n\tstatic constexpr struct _" << ValidateName(rtech->Name()) << "\n\t{\n";
-                tmp << "\t\tconstexpr operator RenderTechName_t () const { return RenderTechName_t{\"" << rtech->Name() << "\"};}\n";
+                tmp << "\t\tconstexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x"
+                    << ToString<16>( uint{RenderTechName{rtech->Name()}} ) << "u}};}  // '" << rtech->Name() << "'\n";
 
                 for (auto& pass : rtech->GetPasses())
                 {
@@ -634,10 +636,15 @@ namespace AE::PipelineCompiler
                         tmp << "\t\t// pass (" << ToString(pass->PassIndex()) << ")\n";
 
                     tmp << "\t\tstatic constexpr struct _" << ValidateName(pass->Name()) << "\n\t\t{\n";
-                    tmp << "\t\t\tconstexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{\"" << pass->Name() << "\"};}\n";
+                    tmp << "\t\t\tconstexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x"
+                        << ToString<16>( uint{RenderTechPassName{pass->Name()}} ) << "u}};}  // '" << pass->Name() << "'\n";
 
                     if ( pass->GetDSLayout() )
-                        tmp << "\t\t\tstatic constexpr DescriptorSetName_t  dsLayout {\"" << pass->GetDSLayout()->Name() << "\"};\n";
+                    {
+                        tmp << "\t\t\tstatic constexpr DescriptorSetName_t  dsLayout {Hash_t{0x"
+                            << ToString<16>( uint{DescriptorSetName{pass->GetDSLayout()->Name()}} )
+                            << "u}};  // '" << pass->GetDSLayout()->Name() << "'\n";
+                    }
 
                     if ( auto* gpass = DynCast<RTGraphicsPass>( pass.Get() ))
                     {
@@ -652,7 +659,8 @@ namespace AE::PipelineCompiler
                             for (auto& [att_name, att] : compat_rp->_attachments)
                             {
                                 const auto  name = GetName(att_name);
-                                tmp << "\t\t\tstatic constexpr AttachmentName_t  att_" << ValidateName(name) << " {\"" << name << "\"};\n";
+                                tmp << "\t\t\tstatic constexpr AttachmentName_t  att_" << ValidateName(name) << " {Hash_t{0x"
+                                    << ToString<16>( uint{AttachmentName{name}} ) << "u}};  // '" << name << "'\n";
                             }
                         }
                     }
@@ -669,7 +677,8 @@ namespace AE::PipelineCompiler
                         tmp << "\n\t\t\t// pipelines\n";
                         //tmp << "\n\t\t\tstatic constexpr struct {\n";
                         for (auto& name : ppln_names) {
-                            tmp << "\t\t\tstatic constexpr PipelineName_t  " << ValidateName(name) << " {\"" << name << "\"};\n";
+                            tmp << "\t\t\tstatic constexpr PipelineName_t  " << ValidateName(name) << " {Hash_t{0x"
+                                << ToString<16>( uint{PipelineName{name}} ) << "u}};  // '" << name << "'\n";
                         }
                         //tmp << "\t\t\t} ppln;\n";
                     }
@@ -684,7 +693,8 @@ namespace AE::PipelineCompiler
                     for (auto& sbt : rtech->GetSBTs())
                     {
                         const auto  name = sbt->Name();
-                        tmp << "\t\t\tstatic constexpr RTShaderBindingName_t  " << ValidateName(name) << " {\"" << name << "\"};\n";
+                        tmp << "\t\t\tstatic constexpr RTShaderBindingName_t  " << ValidateName(name) << " {Hash_t{0x"
+                            << ToString<16>( uint{RTShaderBindingName{name}} ) << "u}};  // '" << name << "'\n";
                     }
                     tmp << "\t\t} sbt;\n";
                 }
@@ -694,6 +704,7 @@ namespace AE::PipelineCompiler
 
             if ( not tmp.empty() ) {
                 str << "namespace RenderTechs\n{\n"
+                    << "\tusing Hash_t                = AE::Base::HashVal32;\n"
                     << "\tusing RenderTechName_t      = AE::Graphics::RenderTechName;\n"
                     << "\tusing RenderTechPassName_t  = AE::Graphics::RenderTechPassName;\n"
                     << "\tusing AttachmentName_t      = AE::Graphics::AttachmentName;\n"
@@ -722,7 +733,7 @@ namespace AE::PipelineCompiler
     CompilePipeline
 =================================================
 */
-    bool  ObjectStorage::CompilePipeline (const ScriptEnginePtr &scriptEngine, const Path &path)
+    bool  ObjectStorage::CompilePipeline (const ScriptEnginePtr &scriptEngine, const Path &path, ArrayView<Path> includeDirs)
     {
         const String    ansi_path   = ToString(path);
         String          script;
@@ -743,7 +754,7 @@ namespace AE::PipelineCompiler
             }
         }
 
-        return CompilePipelineFromSource( scriptEngine, path, script );
+        return CompilePipelineFromSource( scriptEngine, path, script, includeDirs );
     }
 
 /*
@@ -751,7 +762,7 @@ namespace AE::PipelineCompiler
     CompilePipelineFromSource
 =================================================
 */
-    bool  ObjectStorage::CompilePipelineFromSource (const ScriptEnginePtr &scriptEngine, const Path &path, StringView source)
+    bool  ObjectStorage::CompilePipelineFromSource (const ScriptEnginePtr &scriptEngine, const Path &path, StringView source, ArrayView<Path> includeDirs)
     {
         const String    ansi_path = ToString(path);
 
@@ -761,7 +772,7 @@ namespace AE::PipelineCompiler
         src.dbgLocation     = SourceLoc{ ansi_path, 0 };
         src.usePreprocessor = true;
 
-        ScriptModulePtr     module = scriptEngine->CreateModule( {src}, {"SCRIPT"} );
+        ScriptModulePtr     module = scriptEngine->CreateModule( {src}, {"SCRIPT"}, includeDirs );
         if ( not module )
         {
             AE_LOGI( "Failed to parse pipeline file: '"s << ansi_path << "'" );
@@ -875,7 +886,7 @@ namespace {
         Bind_ECompilationTarget( se );
         Bind_EStructLayout( se );
         Bind_EValueType( se );
-        Bind_EShaderProprocessor( se );
+        Bind_EShaderPreprocessor( se );
 
         ScriptConfig::Bind( se );
         ScriptRenderState::Bind( se );
@@ -1110,7 +1121,7 @@ namespace {
         binder.AddValue( "Std140",              EStructLayout::Std140 );
         binder.Comment( "Apply GLSL std430 rules." );
         binder.AddValue( "Std430",              EStructLayout::Std430 );
-        binder.Comment( "Platform dependend layout." );
+        binder.Comment( "Platform depended layout." );
         binder.AddValue( "InternalIO",          EStructLayout::InternalIO );
         STATIC_ASSERT( uint(EStructLayout::_Count) == 6 );
     }
@@ -1119,27 +1130,28 @@ namespace {
     {
         EnumBinder<EValueType>  binder{ se };
         binder.Create();
-        binder.AddValue( "Bool8",       EValueType::Bool8 );
-        binder.AddValue( "Bool32",      EValueType::Bool32 );
-        binder.AddValue( "Int8",        EValueType::Int8 );
-        binder.AddValue( "Int16",       EValueType::Int16 );
-        binder.AddValue( "Int32",       EValueType::Int32 );
-        binder.AddValue( "Int64",       EValueType::Int64 );
-        binder.AddValue( "UInt8",       EValueType::UInt8 );
-        binder.AddValue( "UInt16",      EValueType::UInt16 );
-        binder.AddValue( "UInt32",      EValueType::UInt32 );
-        binder.AddValue( "UInt64",      EValueType::UInt64 );
-        binder.AddValue( "Float16",     EValueType::Float16 );
-        binder.AddValue( "Float32",     EValueType::Float32 );
-        binder.AddValue( "Float64",     EValueType::Float64 );
-        binder.AddValue( "Int8_Norm",   EValueType::Int8_Norm );
-        binder.AddValue( "Int16_Norm",  EValueType::Int16_Norm );
-        binder.AddValue( "UInt8_Norm",  EValueType::UInt8_Norm );
-        binder.AddValue( "UInt16_Norm", EValueType::UInt16_Norm );
-        STATIC_ASSERT( uint(EValueType::_Count) == 18 );
+        binder.AddValue( "Bool8",           EValueType::Bool8 );
+        binder.AddValue( "Bool32",          EValueType::Bool32 );
+        binder.AddValue( "Int8",            EValueType::Int8 );
+        binder.AddValue( "Int16",           EValueType::Int16 );
+        binder.AddValue( "Int32",           EValueType::Int32 );
+        binder.AddValue( "Int64",           EValueType::Int64 );
+        binder.AddValue( "UInt8",           EValueType::UInt8 );
+        binder.AddValue( "UInt16",          EValueType::UInt16 );
+        binder.AddValue( "UInt32",          EValueType::UInt32 );
+        binder.AddValue( "UInt64",          EValueType::UInt64 );
+        binder.AddValue( "Float16",         EValueType::Float16 );
+        binder.AddValue( "Float32",         EValueType::Float32 );
+        binder.AddValue( "Float64",         EValueType::Float64 );
+        binder.AddValue( "Int8_Norm",       EValueType::Int8_Norm );
+        binder.AddValue( "Int16_Norm",      EValueType::Int16_Norm );
+        binder.AddValue( "UInt8_Norm",      EValueType::UInt8_Norm );
+        binder.AddValue( "UInt16_Norm",     EValueType::UInt16_Norm );
+        binder.AddValue( "DeviceAddress",   EValueType::DeviceAddress );
+        STATIC_ASSERT( uint(EValueType::_Count) == 19 );
     }
 
-    void  ObjectStorage::Bind_EShaderProprocessor (const ScriptEnginePtr &se)
+    void  ObjectStorage::Bind_EShaderPreprocessor (const ScriptEnginePtr &se)
     {
         EnumBinder<EShaderPreprocessor> binder{ se };
         binder.Create();

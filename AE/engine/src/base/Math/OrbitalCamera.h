@@ -55,7 +55,9 @@ namespace AE::Math
         ND_ Mat4_t              ToModelMatrix ()                            C_NE___ { return _camera.ToModelMatrix(); }
         ND_ Mat4_t              ToModelViewMatrix ()                        C_NE___ { return ToViewMatrix() * ToModelMatrix(); }
 
-            void    SetPerspective (Rad fovY, T aspect, T zNear, T zFar)    __NE___;
+            void    SetPerspective (Rad fovY, T aspect,
+                                    T zNear, T zFar,
+                                    Bool reverseZ = False{})                __NE___;
 
             void    SetOffset (T value)                                     __NE___ { _offset = Max( value, T{0} ); }
             void    AddOffset (T delta)                                     __NE___ { _offset = Max( _offset + delta, T{0} ); }
@@ -78,9 +80,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  TOrbitalCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
+    void  TOrbitalCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar, Bool reverseZ) __NE___
     {
-        _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar} );
+        _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar}, reverseZ );
         _frustum.Setup( _camera );
     }
 

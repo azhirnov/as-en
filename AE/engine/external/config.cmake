@@ -1,7 +1,7 @@
 # helper file to redirect to engine config
 
-include( "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake/config.cmake" )
-include( "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake/compilers.cmake" )
+include( "${AE_EXTERNAL_PATH}/../cmake/config.cmake" )
+include( "${AE_EXTERNAL_PATH}/../cmake/compilers.cmake" )
 
 if (DEFINED ANDROID)
     set( CMAKE_DEBUG_POSTFIX    ""  CACHE INTERNAL "" FORCE )

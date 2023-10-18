@@ -142,7 +142,7 @@ namespace AE::Threading
         EStatus     status = task->Status();
         if_likely( ((status == EStatus::Pending) &
                     (canceled == 0))            and
-                   task->_status.compare_exchange_strong( INOUT status, EStatus::InProgress ))
+                   task->_status.CAS_Loop( INOUT status, EStatus::InProgress ))
         {
             return false;   // stop search
         }
@@ -330,7 +330,7 @@ namespace AE::Threading
                             DEBUG_ONLY(
                                 _insertionTime += (TimePoint_t::clock::now() - start_time).count();
 
-                                _maxTasks.Max( _taskCount.Add( 1 ));
+                                _maxTasks.fetch_max( _taskCount.Add( 1 ));
                             )
                             return;
                         }

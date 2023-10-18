@@ -27,7 +27,7 @@ namespace
 
         template <typename T>   static T  AlignDown (T value, T align)      { return Math::AlignDown( value, align ); }
         template <typename T>   static T  AlignUp (T value, T align)        { return Math::AlignUp( value, align ); }
-        template <typename T>   static bool  IsAligned (T value, T align)   { return Math::IsAligned( value, align ); }
+        template <typename T>   static bool  IsMultipleOf (T value, T align)    { return Math::IsMultipleOf( value, align ); }
 
         template <typename T>   static T  SafeDiv (T lhs, T rhs, T def)     { return Math::SafeDiv( lhs, rhs, def ); }
 
@@ -100,6 +100,8 @@ namespace
 
         template <typename T>   static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)           { return Math::Remap( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
         template <typename T>   static T  RemapClamped (T srcMin, T srcMax, T dstMin, T dstMax, T x)    { return Math::RemapClamped( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
+
+        template <typename T>   static T  Pi ()                             { return T{Math::TRadians<T>::Pi()}; }
     };
 
 /*
@@ -138,7 +140,7 @@ namespace
 
         se->AddFunction( &ScalarFunc::AlignDown<T>,         "AlignDown",        {"x", "align"} );
         se->AddFunction( &ScalarFunc::AlignUp<T>,           "AlignUp",          {"x", "align"} );
-        se->AddFunction( &ScalarFunc::IsAligned<T>,         "IsAligned",        {"x", "align"} );
+        se->AddFunction( &ScalarFunc::IsMultipleOf<T>,      "IsMultipleOf",     {"x", "align"} );
     }
 
 /*
@@ -199,6 +201,12 @@ namespace
         se->AddFunction( &ScalarFunc::IsInfinity<T>,    "IsInfinity",   {"x"} );
         se->AddFunction( &ScalarFunc::IsNaN<T>,         "IsNaN",        {"x"} );
         se->AddFunction( &ScalarFunc::IsFinite<T>,      "IsFinite",     {"x"} );
+
+        if constexpr( IsSameTypes< T, float >)
+            se->AddFunction( &ScalarFunc::Pi<T>,        "Pi",           {} );
+
+        if constexpr( IsSameTypes< T, double >)
+            se->AddFunction( &ScalarFunc::Pi<T>,        "dPi",          {} );
     }
 
 /*

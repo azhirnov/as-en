@@ -3,7 +3,7 @@
 #pragma once
 
 #include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {

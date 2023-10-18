@@ -100,7 +100,7 @@ namespace AE::Threading
         private:
             // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
             void*                       _data       = null;
-            RC<WinAsyncRDataSource>     _dataSource;    // keep alive
+            RC<WinAsyncRDataSource>     _dataSource;    // keep alive until request is in progress
 
 
         // methods
@@ -131,7 +131,7 @@ namespace AE::Threading
         // variables
         private:
             // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
-            RC<WinAsyncWDataSource>     _dataSource;    // keep alive
+            RC<WinAsyncWDataSource>     _dataSource;    // keep alive until request is in progress
 
 
         // methods
@@ -157,8 +157,10 @@ namespace AE::Threading
         template <typename T, usize ChunkSize, usize MaxChunks>
         using PoolTmpl              = LfIndexedPool2< T, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 
-        using ReadRequestPool_t     = PoolTmpl< ReadRequest,  1u<<10, 8 >;
-        using WriteRequestPool_t    = PoolTmpl< WriteRequest, 1u<<10, 8 >;
+        static constexpr uint       _ReqPoolSize = 1u << 10;
+
+        using ReadRequestPool_t     = PoolTmpl< ReadRequest,  _ReqPoolSize, 8 >;
+        using WriteRequestPool_t    = PoolTmpl< WriteRequest, _ReqPoolSize, 8 >;
 
 
     // variables
@@ -329,7 +331,7 @@ namespace AE::Threading
 
         AsyncDSRequest  WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem)  __NE_OV;
         bool            CancelAllRequests ()                                                __NE_OV;
-        RC<SharedMem>   Alloc (Bytes size)                                                  __NE_OV;
+        RC<SharedMem>   Alloc (SizeAndAlign)                                                __NE_OV;
 
         using AsyncWDataSource::WriteBlock;
     };

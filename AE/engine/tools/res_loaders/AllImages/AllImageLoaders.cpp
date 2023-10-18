@@ -5,6 +5,7 @@
 #include "res_loaders/STB/STBImageLoader.h"
 #include "res_loaders/DDS/DDSImageLoader.h"
 #include "res_loaders/KTX/KTXImageLoader.h"
+#include "res_loaders/AE/AEImageLoader.h"
 
 namespace AE::ResLoader
 {
@@ -17,8 +18,17 @@ namespace AE::ResLoader
     bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
     {
         // multithreaded
+        if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
         {
             DDSImageLoader  loader;
+            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+                return true;
+        }
+
+        // multithreaded
+        if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
+        {
+            AEImageLoader   loader;
             if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
                 return true;
         }
@@ -34,6 +44,7 @@ namespace AE::ResLoader
 
         // multithreaded
         #ifdef AE_ENABLE_KTX
+        if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
         {
             KTXImageLoader  loader;
             if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))

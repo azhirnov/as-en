@@ -31,14 +31,13 @@ namespace AE::Base
 
     // variables
     private:
-        Length_t    _length = 0;
+        Length_t    _length             = 0;
         CharT       _array [StringSize] = {};
 
 
     // methods
     public:
-        constexpr TFixedString ()                           __NE___ { DEBUG_ONLY( DbgInitMem( _array, Sizeof(_array) )); }
-
+        constexpr TFixedString ()                           __NE___ = default;
         constexpr TFixedString (const View_t &view)         __NE___ : TFixedString{ view.data(), view.length() } {}
 
         constexpr TFixedString (const CharT *str)           __NE___

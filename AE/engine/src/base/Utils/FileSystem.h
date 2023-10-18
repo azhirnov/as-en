@@ -58,17 +58,23 @@ namespace AE::Base
         // Create all directories that is not exists.
         static bool  CreateDirectories (const Path &p)                  __NE___;
 
+        // Create an empty file.
+        static bool  CreateEmptyFile (const Path &p)                    __NE___;
+
         // Set working directory.
         static bool  SetCurrentPath (const Path &p)                     __NE___;
 
-        // Returns 'true' if file or directory is exists.
-        ND_ static bool  Exists (const Path &p)                         __NE___;
-
         // Returns 'true' if path refers to a file.
-        ND_ static bool  IsFile (const Path &p)                         __NE___ { return Exists( p ) and not _IsDirectory( p ); }
+        ND_ static bool  IsFile (const Path &p)                         __NE___ { return _Exists( p ) and _IsFile( p ); }
 
         // Returns 'true' if path refers to a directory.
-        ND_ static bool  IsDirectory (const Path &p)                    __NE___ { return Exists( p ) and _IsDirectory( p ); }
+        ND_ static bool  IsDirectory (const Path &p)                    __NE___ { return _Exists( p ) and _IsDirectory( p ); }
+
+        // Returns 'true' if path refers to a file or directory.
+        ND_ static bool  IsFileOrDirectory (const Path &p)              __NE___ { return _Exists( p ); }
+
+        // Returns 'true' if path refers to an empty directory.
+        ND_ static bool  IsEmptyDirectory (const Path &p)               __NE___ { return _IsEmpty( p ) and _IsDirectory( p ); }
 
         // Returns time of the last modification of file.
         ND_ static Time_t  LastWriteTime (const Path &p)                __NE___;
@@ -114,7 +120,7 @@ namespace AE::Base
 
     // utils
     public:
-        // Searches for a directory for which 'Exists( ref )' returns 'true'.
+        // Searches for a path for which 'IsDirectory( ref )' returns 'true'.
         static bool  FindAndSetCurrent (const Path &ref, uint depth)                                                        __Th___;
         static bool  FindAndSetCurrent (const Path &base, const Path &ref, uint depth)                                      __Th___;
 
@@ -134,12 +140,18 @@ namespace AE::Base
 
     // platform dependent
     public:
-        #ifdef AE_PLATFORM_WINDOWS
+      #ifdef AE_PLATFORM_WINDOWS
+        // Returns path like a 'C:\Windows'
         ND_ static Path  GetWindowsPath ()                              __Th___;
-        #endif
+      #endif
 
     private:
         ND_ static bool  _IsDirectory (const Path &p)                   __NE___;
+        ND_ static bool  _IsFile (const Path &p)                        __NE___;
+
+        ND_ static bool  _Exists (const Path &p)                        __NE___;
+
+        ND_ static bool  _IsEmpty (const Path &p)                       __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -228,6 +240,7 @@ namespace AE::Base
         ND_ Path const&     Get ()                          C_NE___ { return _entry.path(); }
         ND_ bool            Exist ()                        C_NE___ { std::error_code ec;  return _entry.exists( OUT ec ); }
         ND_ bool            IsDirectory ()                  C_NE___ { std::error_code ec;  return _entry.is_directory( OUT ec ); }
+        ND_ bool            IsFile ()                       C_NE___ { std::error_code ec;  return _entry.is_regular_file( OUT ec ); }
         ND_ Bytes           FileSyze ()                     C_NE___ { std::error_code ec;  return Bytes{_entry.file_size( OUT ec )}; }
         ND_ Time_t          LastWriteTime ()                C_NE___ { std::error_code ec;  return _entry.last_write_time( OUT ec ); }
         ND_ auto            Status ()                       C_NE___ { std::error_code ec;  return _entry.status( OUT ec ); }
@@ -324,7 +337,7 @@ namespace AE::Base
         return ec == Default;
     }
 
-    inline bool  FileSystem::Exists (const Path &p) __NE___
+    inline bool  FileSystem::_Exists (const Path &p) __NE___
     {
         std::error_code ec;
         return _ae_fs_::exists( p, OUT ec );
@@ -347,6 +360,18 @@ namespace AE::Base
     {
         std::error_code ec;
         return _ae_fs_::is_directory( p, OUT ec );
+    }
+
+    inline bool  FileSystem::_IsFile (const Path &p) __NE___
+    {
+        std::error_code ec;
+        return _ae_fs_::is_regular_file( p, OUT ec );
+    }
+
+    inline bool  FileSystem::_IsEmpty (const Path &p) __NE___
+    {
+        std::error_code ec;
+        return _ae_fs_::is_empty( p, OUT ec );
     }
 
     inline Path  FileSystem::CurrentPath () __Th___

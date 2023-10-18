@@ -201,7 +201,7 @@ namespace {
         dst.viewId          = image_and_view.view;
         dst.region          = RectI{ int2{0}, int2{_swapchain.GetSurfaceSize()} };
 
-        dst.pixToMm         = _surfData->pixToMm;
+        dst.pixToMm         = _pixToMm.load();
         dst.format          = sw_desc.colorFormat;
         dst.colorSpace      = sw_desc.colorSpace;
 
@@ -281,10 +281,12 @@ namespace {
 */
     void  WindowSurface::_UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &data) __NE___
     {
-        data->desc      = _swapchain.GetDescription();
+                    data->desc  = _swapchain.GetDescription();
 
-        const auto  m   = data->window->GetMonitor();   // must be in main thread
-        data->pixToMm   = m.MillimetersPerPixel();
+        const auto  m           = data->window->GetMonitor();   // must be in main thread
+        float2      px_to_mm    = m.MillimetersPerPixel();
+
+        _pixToMm.store( Average( px_to_mm.x, px_to_mm.y ));
     }
 //-----------------------------------------------------------------------------
 

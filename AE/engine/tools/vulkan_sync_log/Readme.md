@@ -3,10 +3,11 @@
 ### Features
 
 * Capture Vulkan functions which transit resource state or use resource for read/write access (see examples).
-* Capture resource usage on each draw call (`PRINT_ALL_DS` macros).
-* Capture debug markers and debug groups (`ENABLE_DBG_LABEL` macros).
+* Capture resource usage on each draw call, enabled by `PRINT_ALL_DS` macros.
+* Capture debug markers and debug groups, enabled by `ENABLE_DBG_LABEL` macros.
 * Converts a timeline semaphore with a value to a unique ID, this improve readability.
 * Result is stable on multiple executions and can be used in tests.
+* Has `seq_no` counter which compatible with Vulkan Synchronization Validation, enabled by `ENABLE_SEQNO` macros.
 
 
 ### How to use

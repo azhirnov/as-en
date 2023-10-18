@@ -19,11 +19,11 @@ namespace AE::Graphics
     {
     // variables
     private:
-        VkBuffer            _buffer         = Default;
-        DeviceAddress       _address        = Default;
-        BufferDesc          _desc;
+        VkBuffer                    _buffer         = Default;
+        DeviceAddress               _address        = Default;
+        BufferDesc                  _desc;
 
-        Strong<MemoryID>    _memoryId;
+        Strong<MemoryID>            _memoryId;
 
         DEBUG_ONLY( DebugName_t     _debugName; )
         DRC_ONLY(   RWDataRaceCheck _drCheck;   )

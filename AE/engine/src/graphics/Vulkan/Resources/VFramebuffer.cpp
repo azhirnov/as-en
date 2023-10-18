@@ -54,29 +54,15 @@ namespace AE::Graphics
     Create
 =================================================
 */
-    bool  VFramebuffer::Create (VResourceManager &resMngr, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName) __NE___
+    bool  VFramebuffer::Create (VResourceManager &resMngr, const RenderPassDesc &rpDesc, RenderPassID rpId, StringView dbgName) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( not _framebuffer );
-        CHECK_ERR( not desc.attachments.empty() );
+        CHECK_ERR( not rpDesc.attachments.empty() );
 
         _renderPassId = resMngr.AcquireResource( rpId );
         CHECK_ERR( _renderPassId );
 
-        if ( _Create( resMngr, desc, dbgName ))
-            return true;
-
-        Destroy( resMngr );
-        return false;
-    }
-
-/*
-=================================================
-    _Create
-=================================================
-*/
-    bool  VFramebuffer::_Create (VResourceManager &resMngr, const RenderPassDesc &rpDesc, StringView dbgName) __NE___
-    {
         VRenderPass const*  ren_pass = resMngr.GetResource( _renderPassId );
         CHECK_ERR( ren_pass != null );
 
@@ -159,8 +145,8 @@ namespace AE::Graphics
 
         VK_CHECK_ERR( dev.vkCreateFramebuffer( dev.GetVkDevice(), &fb_info, null, OUT &_framebuffer ));
 
+        dev.SetObjectName( _framebuffer, dbgName, VK_OBJECT_TYPE_FRAMEBUFFER );
         DEBUG_ONLY( _debugName = dbgName; )
-        Unused( dbgName );
 
         return true;
     }

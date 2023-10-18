@@ -131,15 +131,15 @@ namespace AE::App
         if_likely( _window != null )
         {
         #ifdef AE_PLATFORM_WINDOWS
-            result.hinstance    = ::GetModuleHandle( null );
-            result.hwnd         = glfwGetWin32Window( _window );
+            result.hInstance    = ::GetModuleHandle( null );
+            result.hWnd         = glfwGetWin32Window( _window );
 
         #elif defined(AE_PLATFORM_LINUX)
-            result.window       = BitCast<void*>(glfwGetX11Window( _window ));
-            result.display      = glfwGetX11Display();
+            result.x11Window    = BitCast<void*>(glfwGetX11Window( _window ));
+            result.x11Display   = glfwGetX11Display();
 
         #elif defined(AE_PLATFORM_MACOS)
-            result.layer        = GetNSWindowView( _window );
+            result.metalLayer   = GetNSWindowView( _window );
 
         #else
         #   error unsupported platform!
@@ -237,6 +237,93 @@ namespace AE::App
 
 /*
 =================================================
+    SetMode
+=================================================
+*/
+    bool  WindowGLFW::SetMode (const EWindowMode mode, const Monitor::ID monitorId) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        DRC_EXLOCK( _app.GetSingleThreadCheck() );
+        CHECK_ERR( _window != null );
+
+        if ( _wndMode == mode )
+            return true;
+
+        GLFWmonitor*    monitor         = glfwGetWindowMonitor( _window );  // non-null if in fullscreen
+        bool            resizable       = false;
+        bool            borderless      = false;
+        bool            fullscreen      = false;
+        bool            always_on_top   = false;
+        const bool      was_fullscreen  = monitor != null or EWindowMode_IsFullscreen( _wndMode );
+
+        BEGIN_ENUM_CHECKS();
+        switch ( mode )
+        {
+            case EWindowMode::Resizable :           resizable = true;                                               break;
+            case EWindowMode::NonResizable :                                                                        break;
+            case EWindowMode::Borderless :          borderless = true;                                              break;
+            case EWindowMode::FullscreenWindow :    fullscreen = true;  borderless = true;  always_on_top = true;   break;
+            case EWindowMode::Fullscreen :          fullscreen = true;                                              break;
+            case EWindowMode::_Count :
+            default :                               RETURN_ERR( "unknown window mode" );
+        }
+        END_ENUM_CHECKS();
+
+        // save last window location
+        if ( not was_fullscreen )
+        {
+            glfwGetWindowPos( _window, OUT &_lastWindowSize.left, OUT &_lastWindowSize.top );
+            glfwGetWindowSize( _window, OUT &_lastWindowSize.right, OUT &_lastWindowSize.bottom );
+            _lastWindowSize.right   += _lastWindowSize.left;
+            _lastWindowSize.bottom  += _lastWindowSize.top;
+        }
+
+        glfwSetWindowAttrib( _window, GLFW_DECORATED,   borderless ? GLFW_FALSE : GLFW_TRUE );
+        glfwSetWindowAttrib( _window, GLFW_RESIZABLE,   resizable ? GLFW_TRUE : GLFW_FALSE );
+        glfwSetWindowAttrib( _window, GLFW_FLOATING,    always_on_top ? GLFW_TRUE : GLFW_FALSE );
+
+        // set windowed mode
+        if ( not fullscreen and was_fullscreen )
+        {
+            glfwSetWindowMonitor( _window, null,
+                                  _lastWindowSize.left, _lastWindowSize.top, _lastWindowSize.Width(), _lastWindowSize.Height(),
+                                  GLFW_DONT_CARE );
+        }
+
+        // set fullscreen
+        if ( fullscreen and not was_fullscreen )
+        {
+            int             monitor_count;
+            GLFWmonitor**   monitors        = glfwGetMonitors( OUT &monitor_count );
+
+            if ( monitors != null           and
+                 int(monitorId) >= 0        and
+                 int(monitorId) < monitor_count )
+            {
+                monitor = monitors[ int(monitorId) ];
+            }else
+                monitor = glfwGetPrimaryMonitor();
+
+            int2    monitor_size;
+            if ( const GLFWvidmode* vmode = glfwGetVideoMode( monitor ))
+                monitor_size = int2{ vmode->width, vmode->height };
+
+            int2    monitor_pos {0};
+            if ( mode == EWindowMode::FullscreenWindow )
+            {
+                glfwGetMonitorPos( monitor, OUT &monitor_pos.x, OUT &monitor_pos.y );
+                monitor = null;
+            }
+
+            glfwSetWindowMonitor( _window, monitor, monitor_pos.x, monitor_pos.y, monitor_size.x, monitor_size.y, GLFW_DONT_CARE );
+        }
+
+        _wndMode = mode;
+        return true;
+    }
+
+/*
+=================================================
     _Create
 =================================================
 */
@@ -251,8 +338,8 @@ namespace AE::App
         glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 
         GLFWmonitor*    monitor         = null;
-        int             count;
-        GLFWmonitor**   monitors        = glfwGetMonitors( OUT &count );
+        int             monitor_count;
+        GLFWmonitor**   monitors        = glfwGetMonitors( OUT &monitor_count );
         int2            window_pos;
         int2            window_size     = int2(desc.size);
 
@@ -274,9 +361,12 @@ namespace AE::App
         }
         END_ENUM_CHECKS();
 
-        if ( monitors and int(desc.monitorId) >= 0 and int(desc.monitorId) < count )
+        if ( monitors != null                   and
+             int(desc.monitorId) >= 0           and
+             int(desc.monitorId) < monitor_count )
+        {
             monitor = monitors[ int(desc.monitorId) ];
-        else
+        }else
             monitor = glfwGetPrimaryMonitor();
 
 
@@ -291,14 +381,14 @@ namespace AE::App
             else
                 monitor_size = work_area_size;
 
-            int2    mpos;
-            glfwGetMonitorPos( monitor, OUT &mpos.x, OUT &mpos.y );
-
             window_size  = Min( window_size, work_area_size );
             window_pos  += Max( int2{0}, (work_area_size - window_size) / 2 );
 
             if ( desc.mode == EWindowMode::FullscreenWindow )
             {
+                int2    mpos;
+                glfwGetMonitorPos( monitor, OUT &mpos.x, OUT &mpos.y );
+
                 window_pos  = mpos;
                 window_size = monitor_size;
             }
@@ -323,6 +413,8 @@ namespace AE::App
                                     monitor,
                                     null );
         CHECK_ERR( _window != null );
+
+        _wndMode = desc.mode;
 
         if ( not fullscreen )
             glfwSetWindowPos( _window, window_pos.x, window_pos.y );
@@ -395,10 +487,6 @@ namespace AE::App
         _input.Update( _app.GetTimeSinceStart() );
 
         _LockAndHideCursor( _input.RequiresLockAndHideCursor() and _HasFocus() );
-
-        if_likely( _listener )
-            _listener->OnUpdate( *this );
-
         return true;
     }
 
@@ -443,9 +531,6 @@ namespace AE::App
             self->_surface.ResizeSwapchain();
 
         self->_input.SetMonitor( size, self->GetMonitor() );
-
-        if_likely( self->_listener )
-            self->_listener->OnResize( *self, size );
     }
 
 /*

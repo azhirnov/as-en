@@ -86,6 +86,9 @@ namespace AE::Graphics
     template <typename T>
     struct TDeviceAddress
     {
+    public:
+        using Value_t = T;
+
     private:
         DeviceAddress       _addr   = Default;
 

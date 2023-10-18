@@ -154,8 +154,8 @@ namespace AE::Samples::Demo
     {
         CHECK( profiler.Initialize() );
 
-        auto    gfx_alloc   = MakeRC<GfxLinearMemAllocator>();
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto    gfx_alloc   = res_mngr.CreateLinearGfxMemAllocator();
         auto    rtech       = res_mngr.LoadRenderTech( pack, RTech, Default );
 
         CHECK_ERR( imgui.Init( gfx_alloc, rtech ));

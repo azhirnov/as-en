@@ -12,7 +12,7 @@ void Main ()
                  gl_RayFlagsNoneEXT,    // rayFlags
                  0xFF,                  // cullMask
                  0,                     // sbtRecordOffset
-                 sbtRecordStride,       // sbtRecordStride
+                 0,                     // sbtRecordStride
                  0,                     // missIndex
                  origin,                // ray origin
                  0.01,                  // ray min range

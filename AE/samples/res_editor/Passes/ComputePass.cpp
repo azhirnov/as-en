@@ -72,8 +72,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  ComputePass::Execute (SyncPassData &pd) __NE___
+    bool  ComputePass::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
 
@@ -105,6 +108,7 @@ namespace AE::ResEditor
         DescriptorSetID     ds  = _descSets[ ctx.GetFrameId().Index() ];
 
         _resources.SetStates( ctx, Default );
+        ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
         ctx.CommitBarriers();
 
         ctx.BindPipeline( ppln );
@@ -135,7 +139,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  ComputePass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  ComputePass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
     {
         CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
@@ -147,7 +151,7 @@ namespace AE::ResEditor
             ub_data.timeDelta   = pd.frameTime.count();
             ub_data.frame       = _dynData.frame;
             ub_data.seed        = pd.seed;
-            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+            ub_data.mouse       = pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
             ub_data.customKeys  = pd.customKeys[0];
 
             if ( _controller )

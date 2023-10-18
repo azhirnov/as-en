@@ -33,11 +33,8 @@ namespace AE::Math
           #endif
         }
 
-        constexpr RGBAColor (T r, T g, T b, T a)                                __NE___ : r{r}, g{g}, b{b}, a{a}
-        {}
-
-        constexpr explicit RGBAColor (T val)                                    __NE___ : r{val}, g{val}, b{val}, a{val}
-        {}
+        constexpr RGBAColor (T r, T g, T b, T a)                                __NE___ : r{r}, g{g}, b{b}, a{a} {}
+        constexpr explicit RGBAColor (T val)                                    __NE___ : r{val}, g{val}, b{val}, a{val} {}
 
         template <typename B>
         constexpr explicit RGBAColor (const RGBAColor<B> &other)                __NE___;
@@ -47,38 +44,13 @@ namespace AE::Math
         template <typename B, glm::qualifier Q>
         explicit RGBAColor (const TVec<B,4,Q> &v)                               __NE___ : r{v.x}, g{v.y}, b{v.z}, a{v.w} {}
 
-
-        ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)               C_NE___
-        {
-            const T  eps = Epsilon();
-            return  Equals( r, rhs.r, eps ) &
-                    Equals( g, rhs.g, eps ) &
-                    Equals( b, rhs.b, eps ) &
-                    Equals( a, rhs.a, eps );
-        }
-
+        ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)               C_NE___ { return    (r == rhs.r) & (g == rhs.g) & (b == rhs.b) & (a == rhs.a); }
         ND_ constexpr bool  operator != (const RGBAColor<T> &rhs)               C_NE___ { return not (*this == rhs); }
 
         template <glm::qualifier Q>
         ND_ operator TVec<T,4,Q> ()                                             C_NE___ { return {r,g,b,a}; }
 
-
-        ND_ static constexpr T  MaxValue ()                                     __NE___
-        {
-            if constexpr( IsFloatPoint<T> )
-                return T(1.0);
-            else
-                return Base::MaxValue<T>();
-        }
-
-        ND_ static constexpr T  Epsilon ()                                      __NE___
-        {
-            if constexpr( IsFloatPoint<T> )
-                return T(0.001);
-            else
-                return T(0);
-        }
-
+        ND_ static constexpr T  MaxValue ()                                     __NE___ { if constexpr( IsFloatPoint<T> ) return T(1.0); else return Base::MaxValue<T>(); }
         ND_ static constexpr usize  size ()                                     __NE___ { return 4; }
 
         ND_ T *         data ()                                                 __NE___ { return std::addressof(r); }
@@ -153,14 +125,7 @@ namespace AE::Math
             v = q.x;
         }
 
-        ND_ constexpr bool  operator == (const HSVColor &rhs)                   C_NE___
-        {
-            constexpr float eps = RGBA32f::Epsilon();
-            return  Equals( h, rhs.h, eps ) &
-                    Equals( s, rhs.s, eps ) &
-                    Equals( v, rhs.v, eps );
-        }
-
+        ND_ constexpr bool  operator == (const HSVColor &rhs)                   C_NE___ { return (h == rhs.h) & (s == rhs.s) & (v == rhs.v); }
         ND_ constexpr bool  operator != (const HSVColor &rhs)                   C_NE___ { return not (*this == rhs); }
 
         template <glm::qualifier Q>
@@ -176,9 +141,6 @@ namespace AE::Math
     };
 
 
-    // in range 400 .. 700
-    ND_ RGBA32f  WavelengthToRGB (float wavelengthInNanometers) __NE___;
-
 /*
 =================================================
     RGBA32f
@@ -190,9 +152,9 @@ namespace AE::Math
         // from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
         float4 K = float4(1.0f, 2.0f / 3.0f, 1.0f / 3.0f, 3.0f);
         float3 p = Abs(Fract(c.h + float3(K.x, K.y, K.z)) * 6.0f - K.w);
-        r = c.v * Lerp(K.x, Saturate(p.x - K.x), c.s);
-        g = c.v * Lerp(K.x, Saturate(p.y - K.x), c.s);
-        b = c.v * Lerp(K.x, Saturate(p.z - K.x), c.s);
+        r = c.v * Lerp( K.x, Saturate(p.x - K.x), c.s );
+        g = c.v * Lerp( K.x, Saturate(p.y - K.x), c.s );
+        b = c.v * Lerp( K.x, Saturate(p.z - K.x), c.s );
         a = alpha;
     }
 
@@ -357,32 +319,73 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline constexpr RGBAColor<T>  Min (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
+    ND_ constexpr RGBAColor<T>  Min (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
     {
         return RGBAColor<T>{ Min(lhs.r, rhs.r), Min(lhs.g, rhs.g), Min(lhs.b, rhs.b), Min(lhs.a, rhs.a) };
     }
 
     template <typename T>
-    ND_ inline constexpr RGBAColor<T>  Max (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
+    ND_ constexpr RGBAColor<T>  Max (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
     {
         return RGBAColor<T>{ Max(lhs.r, rhs.r), Max(lhs.g, rhs.g), Max(lhs.b, rhs.b), Max(lhs.a, rhs.a) };
     }
 
     template <typename T>
-    ND_ inline constexpr RGBAColor<T>  Clamp (const RGBAColor<T> &value, const RGBAColor<T> &minVal, const RGBAColor<T> &maxVal) __NE___
+    ND_ constexpr RGBAColor<T>  Clamp (const RGBAColor<T> &value, const RGBAColor<T> &minVal, const RGBAColor<T> &maxVal) __NE___
     {
         return Min( maxVal, Max( value, minVal ));
     }
 
 /*
 =================================================
-    Equals
+    Equals (RGBAColor)
 =================================================
 */
     template <typename T>
-    ND_ inline bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err ) };
+        return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err )};
+    }
+
+    template <typename T>
+    ND_ bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const Percent err) __NE___
+    {
+        return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err )};
+    }
+
+/*
+=================================================
+    Equals (HSVColor)
+=================================================
+*/
+    ND_ inline bool3  Equals (const HSVColor &lhs, const HSVColor &rhs, const float err = Epsilon<float>()) __NE___
+    {
+        return bool3{ Equals( lhs.h, rhs.h, err ), Equals( lhs.s, rhs.s, err ), Equals( lhs.v, rhs.v, err )};
+    }
+
+    ND_ inline bool3  Equals (const HSVColor &lhs, const HSVColor &rhs, const Percent err) __NE___
+    {
+        return bool3{ Equals( lhs.h, rhs.h, err ), Equals( lhs.s, rhs.s, err ), Equals( lhs.v, rhs.v, err )};
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T>
+    ND_ bool4  BitEqual (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        return bool4{ BitEqual( lhs.r, rhs.r, bitCount ),
+                      BitEqual( lhs.g, rhs.g, bitCount ),
+                      BitEqual( lhs.b, rhs.b, bitCount ),
+                      BitEqual( lhs.a, rhs.a, bitCount )};
+    }
+
+    template <typename T>
+    ND_ bool4  BitEqual (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
+    {
+        return bool4{ BitEqual( lhs.r, rhs.r ), BitEqual( lhs.g, rhs.g ), BitEqual( lhs.b, rhs.b ), BitEqual( lhs.a, rhs.a )};
     }
 //-----------------------------------------------------------------------------
 

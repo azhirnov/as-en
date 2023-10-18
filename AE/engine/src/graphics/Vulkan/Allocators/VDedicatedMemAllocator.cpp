@@ -14,8 +14,7 @@ namespace AE::Graphics
 =================================================
 */
     VDedicatedMemAllocator::VDedicatedMemAllocator () __NE___ :
-        _device{ RenderTaskScheduler().GetDevice() },
-        _supportDedicated{ _device.GetVExtensions().dedicatedAllocation }
+        _supportDedicated{ RenderTaskScheduler().GetDevice().GetVExtensions().dedicatedAllocation }
     {}
 
 /*
@@ -38,6 +37,8 @@ namespace AE::Graphics
         CHECK_ERR( image != Default );
         CHECK_ERR( desc.memType != Default );
 
+        auto&   dev = RenderTaskScheduler().GetDevice();
+
         // get memory requirements
         VkImageMemoryRequirementsInfo2  mem_info        = {};
         VkMemoryRequirements2           mem_req         = {};
@@ -52,12 +53,12 @@ namespace AE::Graphics
 
         if_likely( _supportDedicated )
         {
-            _device.vkGetImageMemoryRequirements2KHR( _device.GetVkDevice(), &mem_info, OUT &mem_req );
+            dev.vkGetImageMemoryRequirements2KHR( dev.GetVkDevice(), &mem_info, OUT &mem_req );
         }
         else
         {
             CHECK( mem_info.pNext == null );
-            _device.vkGetImageMemoryRequirements( _device.GetVkDevice(), mem_info.image, OUT &mem_req.memoryRequirements );
+            dev.vkGetImageMemoryRequirements( dev.GetVkDevice(), mem_info.image, OUT &mem_req.memoryRequirements );
         }
 
 
@@ -71,18 +72,19 @@ namespace AE::Graphics
         mem_alloc.sType     = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mem_alloc.allocationSize = mem_req.memoryRequirements.size;
 
+        mem_req.memoryRequirements.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
+        CHECK_ERR( mem_req.memoryRequirements.memoryTypeBits != 0 );
+
         if ( AllBits( desc.memType, EMemoryType::Dedicated ))
             mem_alloc.pNext = &dedicated;
 
-        VAutoreleaseMemory  memory {_device};
-        for (; mem_req.memoryRequirements.memoryTypeBits != 0;)
+        VAutoreleaseMemory  memory {dev};
+        for (uint type_idx : BitIndexIterate( mem_req.memoryRequirements.memoryTypeBits ))
         {
-            CHECK_ERR( _device.GetMemoryTypeIndex( mem_req.memoryRequirements.memoryTypeBits, desc.memType, OUT mem_alloc.memoryTypeIndex ));
+            mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( _device.vkAllocateMemory( _device.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
                 break;
-
-            mem_req.memoryRequirements.memoryTypeBits &= ~(1u << mem_alloc.memoryTypeIndex);
         }
         CHECK_ERR( memory.Get() != Default );
 
@@ -95,12 +97,12 @@ namespace AE::Graphics
 
         if_likely( _supportDedicated )
         {
-            VK_CHECK_ERR( _device.vkBindImageMemory2KHR( _device.GetVkDevice(), 1, &bind ));
+            VK_CHECK_ERR( dev.vkBindImageMemory2KHR( dev.GetVkDevice(), 1, &bind ));
         }
         else
         {
             CHECK( bind.pNext == null );
-            VK_CHECK_ERR( _device.vkBindImageMemory( _device.GetVkDevice(), bind.image, bind.memory, bind.memoryOffset ));
+            VK_CHECK_ERR( dev.vkBindImageMemory( dev.GetVkDevice(), bind.image, bind.memory, bind.memoryOffset ));
         }
 
 
@@ -108,7 +110,7 @@ namespace AE::Graphics
         void*   mapped_ptr = null;
         if ( EMemoryType_IsHostVisible( desc.memType ))
         {
-            VK_CHECK_ERR( _device.vkMapMemory( _device.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
+            VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
         }
 
         auto&   mem_data = _CastStorage( data );
@@ -134,6 +136,8 @@ namespace AE::Graphics
         constexpr auto  dev_addr_mask = EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable |
                                         EBufferUsage::ASBuild_ReadOnly | EBufferUsage::ASBuild_Scratch;
 
+        auto&   dev = RenderTaskScheduler().GetDevice();
+
         // get memory requirements
         VkBufferMemoryRequirementsInfo2 mem_info        = {};
         VkMemoryRequirements2           mem_req         = {};
@@ -148,12 +152,12 @@ namespace AE::Graphics
 
         if_likely( _supportDedicated )
         {
-            _device.vkGetBufferMemoryRequirements2KHR( _device.GetVkDevice(), &mem_info, OUT &mem_req );
+            dev.vkGetBufferMemoryRequirements2KHR( dev.GetVkDevice(), &mem_info, OUT &mem_req );
         }
         else
         {
             CHECK( mem_info.pNext == null );
-            _device.vkGetBufferMemoryRequirements( _device.GetVkDevice(), mem_info.buffer, OUT &mem_req.memoryRequirements );
+            dev.vkGetBufferMemoryRequirements( dev.GetVkDevice(), mem_info.buffer, OUT &mem_req.memoryRequirements );
         }
 
 
@@ -172,6 +176,9 @@ namespace AE::Graphics
         mem_alloc.sType     = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mem_alloc.allocationSize = mem_req.memoryRequirements.size;
 
+        mem_req.memoryRequirements.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
+        CHECK_ERR( mem_req.memoryRequirements.memoryTypeBits != 0 );
+
         if ( AllBits( desc.memType, EMemoryType::Dedicated ))
         {
             *next   = &dedicated;
@@ -183,15 +190,13 @@ namespace AE::Graphics
             next    = &mem_flag.pNext;
         }
 
-        VAutoreleaseMemory  memory {_device};
-        for (; mem_req.memoryRequirements.memoryTypeBits != 0;)
+        VAutoreleaseMemory  memory {dev};
+        for (uint type_idx : BitIndexIterate( mem_req.memoryRequirements.memoryTypeBits ))
         {
-            CHECK_ERR( _device.GetMemoryTypeIndex( mem_req.memoryRequirements.memoryTypeBits, desc.memType, OUT mem_alloc.memoryTypeIndex ));
+            mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( _device.vkAllocateMemory( _device.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
                 break;
-
-            mem_req.memoryRequirements.memoryTypeBits &= ~(1u << mem_alloc.memoryTypeIndex);
         }
         CHECK_ERR( memory.Get() != Default );
 
@@ -204,12 +209,12 @@ namespace AE::Graphics
 
         if_likely( _supportDedicated )
         {
-            VK_CHECK_ERR( _device.vkBindBufferMemory2KHR( _device.GetVkDevice(), 1, &bind ));
+            VK_CHECK_ERR( dev.vkBindBufferMemory2KHR( dev.GetVkDevice(), 1, &bind ));
         }
         else
         {
             CHECK( bind.pNext == null );
-            VK_CHECK_ERR( _device.vkBindBufferMemory( _device.GetVkDevice(), bind.buffer, bind.memory, bind.memoryOffset ));
+            VK_CHECK_ERR( dev.vkBindBufferMemory( dev.GetVkDevice(), bind.buffer, bind.memory, bind.memoryOffset ));
         }
 
 
@@ -217,7 +222,7 @@ namespace AE::Graphics
         void*   mapped_ptr = null;
         if ( EMemoryType_IsHostVisible( desc.memType ))
         {
-            VK_CHECK_ERR( _device.vkMapMemory( _device.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
+            VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
         }
 
         auto&   mem_data = _CastStorage( data );
@@ -232,6 +237,26 @@ namespace AE::Graphics
 
 /*
 =================================================
+    AllocForVideoSession
+=================================================
+*/
+    bool  VDedicatedMemAllocator::AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &) __NE___
+    {
+        RETURN_ERR( "not implemented" );
+    }
+
+/*
+=================================================
+    AllocForVideoImage
+=================================================
+*/
+    bool  VDedicatedMemAllocator::AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &) __NE___
+    {
+        RETURN_ERR( "not implemented" );
+    }
+
+/*
+=================================================
     Dealloc
 =================================================
 */
@@ -241,10 +266,12 @@ namespace AE::Graphics
 
         if ( mem_data.mem != Default )
         {
-            if ( mem_data.mapped != null )
-                _device.vkUnmapMemory( _device.GetVkDevice(), mem_data.mem );
+            auto&   dev = RenderTaskScheduler().GetDevice();
 
-            _device.vkFreeMemory( _device.GetVkDevice(), mem_data.mem, null );
+            if ( mem_data.mapped != null )
+                dev.vkUnmapMemory( dev.GetVkDevice(), mem_data.mem );
+
+            dev.vkFreeMemory( dev.GetVkDevice(), mem_data.mem, null );
             mem_data = Default;
 
             CHECK( _counter.fetch_sub( 1 ) > 0 );
@@ -260,8 +287,9 @@ namespace AE::Graphics
 */
     bool  VDedicatedMemAllocator::GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) C_NE___
     {
+        auto&   dev         = RenderTaskScheduler().GetDevice();
         auto&   mem_data    = _CastStorage( data );
-        auto&   mem_props   = _device.GetVProperties().memoryProperties;
+        auto&   mem_props   = dev.GetVProperties().memoryProperties;
 
         CHECK_ERR( mem_data.index < mem_props.memoryTypeCount );
         CHECK_ERR( mem_data.mem != Default );
@@ -284,8 +312,9 @@ namespace AE::Graphics
 */
     Bytes  VDedicatedMemAllocator::MaxAllocationSize () C_NE___
     {
-        return _device.GetVExtensions().maintenance3 ?
-                    Bytes{_device.GetVProperties().maintenance3Props.maxMemoryAllocationSize} :
+        auto&   dev = RenderTaskScheduler().GetDevice();
+        return dev.GetVExtensions().maintenance3 ?
+                    Bytes{dev.GetVProperties().maintenance3Props.maxMemoryAllocationSize} :
                     UMax;
     }
 

@@ -24,6 +24,7 @@
         {
             RC<RTGeometry>  geom        = RTGeometry();
             RC<Buffer>      triangles   = Buffer();
+
             array<float2>   positions   = { float2(0.f, -0.5f), float2(0.5f, 0.5f), float2(-0.5f, 0.5f) };
             array<uint>     indices     = { 0, 1, 2 };
 
@@ -65,11 +66,11 @@
     void  Main ()
     {
         const int   idx         = GetGlobalIndex();
-        float3x4    transform   = f3x4_Rotate( Pi() * un_PerPass.time * 0.2f, float3(0.f, 0.f, 1.f) );
+        float4x3    transform   = float4x3(f3x3_Rotate( Pi() * un_PerPass.time * 0.2f, float3(0.f, 0.f, 1.f) ));
 
-        transform = Translate( transform, float3( (idx == 0 ? 0.5f : -0.5f), 0.f, 0.f ));
+        SetTranslation( INOUT transform, float3( (idx == 0 ? 0.5f : -0.5f), 0.f, 0.f ));
 
-        un_Instances.elements[idx].transform = transform;
+        un_Instances.elements[idx].transform = MatTranspose( transform );
     }
 
 #endif

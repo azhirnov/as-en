@@ -8,7 +8,7 @@ namespace
     {
         auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        RC<GfxLinearMemAllocator>   gfx_alloc = MakeRC<GfxLinearMemAllocator>();
+        GfxMemAllocatorPtr          gfx_alloc = res_mngr.CreateLinearGfxMemAllocator();
         GAutorelease<ImageID>       image_id;
         GAutorelease<ImageViewID>   view_id_sampled;
         GAutorelease<ImageViewID>   view_id_storage;
@@ -41,7 +41,7 @@ namespace
     {
         auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        RC<GfxLinearMemAllocator>   gfx_alloc = MakeRC<GfxLinearMemAllocator>();
+        GfxMemAllocatorPtr          gfx_alloc = res_mngr.CreateLinearGfxMemAllocator();
         GAutorelease<ImageID>       image_id;
         GAutorelease<ImageViewID>   view_id_sampled;
         GAutorelease<ImageViewID>   view_id_storage;

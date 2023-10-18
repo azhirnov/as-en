@@ -13,6 +13,36 @@ namespace AE::Scripting
 
     struct CoreBindings final : Noninstanceable
     {
+    // types
+    private:
+        using VecTypes = TypeList<
+                            packed_bool2,   packed_bool3,   packed_bool4,
+                            packed_sbyte2,  packed_sbyte3,  packed_sbyte4,
+                            packed_ubyte2,  packed_ubyte3,  packed_ubyte4,
+                            packed_short2,  packed_short3,  packed_short4,
+                            packed_ushort2, packed_ushort3, packed_ushort4,
+                            packed_int2,    packed_int3,    packed_int4,
+                            packed_uint2,   packed_uint3,   packed_uint4,
+                            packed_float2,  packed_float3,  packed_float4
+                        >;
+
+        using RectTypes = TypeList< RectU, RectI, RectF >;
+
+        using ColorTypes = TypeList< RGBA32f, RGBA32i, RGBA32u, RGBA8u >;
+
+        using MatTypes = TypeList<
+                            packed_float2x2, packed_float2x3, packed_float2x4,
+                            packed_float3x2, packed_float3x3, packed_float3x4,
+                            packed_float4x2, packed_float4x3, packed_float4x4
+                          >;
+
+
+    // functions
+    private:
+        static void  _BindVectorMath1 (const ScriptEnginePtr &se)   __Th___;
+        static void  _BindVectorMath2 (const ScriptEnginePtr &se)   __Th___;
+
+    public:
         static void  BindStdTypes (const ScriptEnginePtr &se)       __Th___;
         static void  BindScalarMath (const ScriptEnginePtr &se)     __Th___;
         static void  BindVectorMath (const ScriptEnginePtr &se)     __Th___;

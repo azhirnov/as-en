@@ -105,3 +105,13 @@
         AE_PRIVATE_CHECK( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
 
 #endif // AE_CI_BUILD
+
+
+// enable/disable exceptions
+#if 1
+#   define TRY                  try
+#   define CATCH_ALL( ... )     catch(...) { __VA_ARGS__ }
+#else
+#   define TRY
+#   define CATCH_ALL( ... )     {}
+#endif

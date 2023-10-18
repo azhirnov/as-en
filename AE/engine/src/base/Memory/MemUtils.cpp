@@ -3,9 +3,10 @@
 #include "base/Memory/MemUtils.h"
 
 namespace AE::Base
-{   
+{
 namespace _hidden_
 {
+
 /*
 =================================================
     SecureZeroMemFallback
@@ -19,6 +20,6 @@ namespace _hidden_
     {
         memset_fn( OUT ptr, 0, usize(size) );
     }
-}
 
+} // _hidden_
 } // AE::Base

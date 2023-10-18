@@ -77,7 +77,7 @@
         const uint      idx = gl.VertexIndex;
         const float4    pos = LocalPosToWorldSpace( un_Geometry.positions[idx] );
 
-        gl.Position     = un_PerPass.camera.viewProj * pos;
+        gl.Position     = WorldPosToClipSpace( pos );
         Out.texcoord    = un_Geometry.texcoords[idx];
         Out.worldPos    = pos.xyz;
         Out.normal      = LocalVecToWorldSpace( un_Geometry.normals[idx] );

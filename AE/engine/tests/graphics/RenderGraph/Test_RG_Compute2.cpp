@@ -34,7 +34,7 @@ namespace
         bool                                isOK_1      = false;
         bool                                isOK_2      = false;
 
-        RC<GfxLinearMemAllocator>           gfxAlloc;
+        GfxMemAllocatorPtr                  gfxAlloc;
     };
 
 
@@ -148,7 +148,7 @@ namespace
         const uint2     img_dim     {16, 16};
         const auto      format      = EPixelFormat::RGBA8_UNorm;
 
-        t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         t.img0 = rg.CreateImage( ImageDesc{}.SetDimension( img_dim ).SetFormat( format ).SetUsage( EImageUsage::Storage | EImageUsage::TransferSrc ), "Image-0", t.gfxAlloc );
         t.img1 = rg.CreateImage( ImageDesc{}.SetDimension( img_dim ).SetFormat( format ).SetUsage( EImageUsage::Storage | EImageUsage::TransferSrc ), "Image-1", t.gfxAlloc );

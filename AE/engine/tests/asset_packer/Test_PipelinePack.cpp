@@ -37,8 +37,8 @@ namespace
         info.inPipelineCount        = CountOf( pipelines );
         info.pipelineFolders        = pipeline_folder;
         info.pipelineFolderCount    = CountOf( pipeline_folder );
-        info.includeDirs            = include_dir;
-        info.includeDirCount        = CountOf( include_dir );
+        info.shaderIncludeDirs      = include_dir;
+        info.shaderIncludeDirCount  = CountOf( include_dir );
         info.shaderFolders          = shader_folder;
         info.shaderFolderCount      = CountOf( shader_folder );
         info.outputPackName         = Cast<CharType>(output.c_str());

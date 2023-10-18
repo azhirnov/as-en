@@ -103,6 +103,7 @@ namespace
             case EImageFormat::PSD :
             case EImageFormat::OpenEXR :
             case EImageFormat::KTX :
+            case EImageFormat::AEImg :
             case EImageFormat::Unknown :
             case EImageFormat::_Count :
                 break;

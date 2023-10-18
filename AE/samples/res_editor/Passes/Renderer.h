@@ -5,7 +5,7 @@
 #include "res_editor/Passes/IPass.h"
 #include "res_editor/Resources/IResource.h"
 #include "res_editor/GeomSource/IGeomSource.h"
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DefaultResources.h"
 
 namespace AE::ResEditor
 {
@@ -14,7 +14,7 @@ namespace AE::ResEditor
     // Renderer
     //
 
-    class Renderer final : public EnableRC< Renderer >
+    class Renderer final : public DefaultResources
     {
     // types
     public:
@@ -48,6 +48,13 @@ namespace AE::ResEditor
         };
         using InputDataSync = Synchronized< RWSpinLock, InputData >;
 
+        enum class EExportState : ubyte
+        {
+            Completed   = 0,
+            Started     = 1,
+            InProgress  = 2,
+        };
+
 
     // variables
     private:
@@ -56,14 +63,9 @@ namespace AE::ResEditor
 
         Unique<ShaderDebugger>  _shaderDebugger;
 
-        RC<ResourceQueue>       _resQueue;
-
         microseconds            _totalTime          {};
         TimePoint_t             _lastUpdateTime;
         uint                    _frameCounter       = 0;
-
-        GfxMemAllocatorPtr      _gfxLinearAlloc;
-        GfxMemAllocatorPtr      _gfxDynamicAlloc;
 
         InputDataSync           _input;
         Sliders_t               _sliders;
@@ -77,13 +79,11 @@ namespace AE::ResEditor
             const secondsf          updateInterval {1.f};
         }                       _scriptFile;        // TODO: use Synchronized*/
 
-        struct {
-            StrongImageAndViewID    image2D;
-            StrongImageAndViewID    imageCube;
+        bool                    _uploadInProgress       = true;
+        bool                    _readbackInProgress     = true;
+        Atomic<EExportState>    _resExport              {EExportState::Completed};
 
-            Strong<RTGeometryID>    rtGeometry;
-            Strong<RTSceneID>       rtScene;
-        }                       _dummyRes;
+        static constexpr uint   _minFramesWithoutWork   = 10;
 
 
     // methods
@@ -98,45 +98,36 @@ namespace AE::ResEditor
 
         //ND_ bool          IsFileChanged ();
 
-        ND_ String          GetHelpText ()                                      const;
+        ND_ String          GetHelpText ()                                      C_Th___;
 
 
     // api for ScriptExe
     public:
-            void                    AddPass (RC<IPass> pass)                    __Th___;
-            void                    SetController (RC<IController> cont)        __Th___;
-        //  void                    SetDependencies (Array<Path> deps)          __Th___;
-            void                    SetSliders (Sliders_t value)                __Th___ { _sliders = RVRef(value); }
-            void                    SetSurfaceFormat (ESurfaceFormat value)     __Th___ { _reqSurfFormat = value; }
+            void            AddPass (RC<IPass> pass)                            __Th___;
+            void            SetController (RC<IController> cont)                __Th___;
+        //  void            SetDependencies (Array<Path> deps)                  __Th___;
+            void            SetSliders (Sliders_t value)                        __NE___ { _sliders = RVRef(value); }
+            void            SetSurfaceFormat (ESurfaceFormat value)             __Th___ { _reqSurfFormat = value; }
 
-        ND_ ResourceQueue&          GetResourceQueue ()                         C_NE___ { return *_resQueue; }
-        ND_ GfxMemAllocatorPtr      GetAllocator ()                             C_NE___ { return _gfxLinearAlloc; }
-        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()                      C_NE___ { return _gfxDynamicAlloc; }
-        ND_ ESurfaceFormat          GetSurfaceFormat ()                         C_NE___ { return _reqSurfFormat; }
-
-        ND_ StrongImageAndViewID    GetDummyImage (const ImageDesc &)           C_NE___;
-        ND_ Strong<RTGeometryID>    GetDummyRTGeometry ()                       C_NE___;
-        ND_ Strong<RTSceneID>       GetDummyRTScene ()                          C_NE___;
+        ND_ ESurfaceFormat  GetSurfaceFormat ()                                 C_NE___ { return _reqSurfFormat; }
 
 
     private:
-        ND_ static RenderTaskCoro   _SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData);
-        ND_ static RenderTaskCoro   _ResizeRes (Array<RC<IResource>>);
-        ND_ RenderTaskCoro          _ReadShaderTrace ();
+        ND_ static RenderTaskCoro   _SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData) __Th___;
+        ND_ static RenderTaskCoro   _ResizeRes (Array<RC<IResource>>)           __Th___;
+        ND_ RenderTaskCoro          _ReadShaderTrace ()                         __Th___;
+
+        ND_ AsyncTask               _Export (ArrayView<AsyncTask> deps);
+        ND_ static RenderTaskCoro   _ExportPasses (PassArr_t, RC<Renderer>, IPass::UpdatePassData)      __Th___;
 
         void  _PrintDbgTrace (const Array<String> &) const;
         void  _UpdateDynSliders ();
-
-        static void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr);
-        static void  _CreateDummyImageCube (OUT StrongImageAndViewID &, GfxMemAllocatorPtr);
-        static void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr);
-        static void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr);
     };
 
 
 
-    inline ResourceQueue&  IResource::_ResQueue () const {
-        return _renderer.GetResourceQueue();
+    inline DataTransferQueue&  IResource::_DtTrQueue () const {
+        return _renderer.GetDataTransferQueue();
     }
 
     inline GfxMemAllocatorPtr  IResource::_GfxAllocator () const {
@@ -148,8 +139,8 @@ namespace AE::ResEditor
     }
 
 
-    inline ResourceQueue&  IGeomSource::_ResQueue () const {
-        return _renderer.GetResourceQueue();
+    inline DataTransferQueue&  IGeomSource::_DtTrQueue () const {
+        return _renderer.GetDataTransferQueue();
     }
 
     inline GfxMemAllocatorPtr  IGeomSource::_GfxAllocator () const {

@@ -59,6 +59,9 @@ namespace AE::Graphics
         static constexpr uint   MaxCmdBufPerBatch       = 32;
 
         static constexpr uint   MaxPendingCmdBatches    = 15;
+
+        // staging buffer
+        static constexpr uint   MaxStagingBufferParts   = 4;
     };
 
 

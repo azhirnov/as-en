@@ -9,21 +9,41 @@
 # include "base/DataSource/BrotliStream.h"
 # include "base/Math/Vec.h"
 # include "base/Algorithms/StringUtils.h"
+# include "base/Memory/IAllocator.h"
 
 namespace AE::Base
 {
+namespace
+{   
+    static void*  BrotliAlloc (void* opaque, size_t size) __NE___
+    {
+        return Cast<IAllocator>(opaque)->Allocate( Bytes{size} );
+    }
+
+    static void   BrotliFree (void* opaque, void* address) __NE___
+    {
+        Cast<IAllocator>(opaque)->Deallocate( address );
+    }
+}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
     constructor
 =================================================
 */
-    BrotliRStream::BrotliRStream (RC<RStream> stream) __NE___ :
+    BrotliRStream::BrotliRStream (RC<RStream> stream, RC<IAllocator> alloc) __NE___ :
         _stream{ RVRef(stream) },
         _position{ _stream->Position() },
-        _lastResult{ BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT }
+        _lastResult{ BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT },
+        _allocator{ RVRef(alloc) }
     {
-        _instance = BrotliDecoderCreateInstance( null, null, null );
+        if ( _allocator ) {
+            _instance = BrotliDecoderCreateInstance( &BrotliAlloc, &BrotliFree, _allocator.get() );
+        }else{
+            _instance = BrotliDecoderCreateInstance( null, null, null );
+        }
         ASSERT( _instance != null );
     }
 
@@ -141,10 +161,15 @@ namespace AE::Base
     constructor
 =================================================
 */
-    BrotliWStream::BrotliWStream (RC<WStream> stream, const Config &cfg) __NE___ :
-        _stream{ RVRef(stream) }
+    BrotliWStream::BrotliWStream (RC<WStream> stream, const Config &cfg, RC<IAllocator> alloc) __NE___ :
+        _stream{ RVRef(stream) },
+        _allocator{ RVRef(alloc) }
     {
-        _instance = BrotliEncoderCreateInstance( null, null, null );
+        if ( _allocator ){
+            _instance = BrotliEncoderCreateInstance( &BrotliAlloc, &BrotliFree, _allocator.get() );
+        }else{
+            _instance = BrotliEncoderCreateInstance( null, null, null );
+        }
         ASSERT( _instance != null );
 
         if ( _instance != null )

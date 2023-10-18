@@ -105,20 +105,20 @@ namespace AE::Graphics
             }
         }
 
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+
         // create allocator
         GfxMemAllocatorPtr  gfx_alloc = _gfxAlloc.load();
         if_unlikely( gfx_alloc == null )
         {
-            GfxMemAllocatorPtr  new_alloc {new GfxLinearMemAllocator{ _blockSize * 4 }};
+            GfxMemAllocatorPtr  new_alloc = res_mngr.CreateLinearGfxMemAllocator( _blockSize * 4 );
             if ( _gfxAlloc.CAS_Loop( INOUT gfx_alloc, new_alloc ))
                 gfx_alloc = new_alloc;
         }
 
         // create new
         {
-            Buffer  buf;
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
+            Buffer      buf;
             EMemoryType host_mem_type = EMemoryType::HostCachedCoherent;
             if ( not res_mngr.IsSupported( host_mem_type ))
             {

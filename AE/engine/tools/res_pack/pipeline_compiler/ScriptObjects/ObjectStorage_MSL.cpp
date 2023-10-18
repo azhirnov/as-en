@@ -15,7 +15,7 @@ namespace AE::PipelineCompiler
     {
         // Metal version
         {
-            const uint  ver = Max( metalVer.To100(), GetMaxValueFromFeatures( features, &FeatureSet::minShaderVersion ).metal );
+            const uint  ver = Max( metalVer.To100(), GetMaxValueFromFeatures( features, &FeatureSet::maxShaderVersion ).metal );
             metalVer = Version2::From100( ver );
             CHECK_THROW_MSG(( metalVer == Version2{0,0} or metalVer >= Version2{2,0} ));
         }
@@ -154,10 +154,10 @@ namespace AE::PipelineCompiler
                          AllBits( version, EShaderVersion::_Metal_Mac ));
 
         // validate options
-        for (EShaderOpt opt = inShader->options; opt != Zero;)
+        for (auto opt : BitfieldIterate( inShader->options ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT opt ))
+            switch ( opt )
             {
                 case EShaderOpt::DebugInfo :
                 case EShaderOpt::Optimize :

@@ -65,8 +65,8 @@ namespace AE::Scripting
                 {
                     STATIC_ASSERT( IsClass<T2> );
                     T2* arg = *static_cast<T2 **>(_gen->GetArgAddress( idx ));
-                    ASSERT( arg == null or arg->__Counter() > 0 );
-                    return arg;
+                    ASSERT( arg == null );
+                    return *arg;
                 }
             }
             else

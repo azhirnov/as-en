@@ -270,7 +270,7 @@ namespace AE::Graphics
 
         ND_ bool    _WaitAll (milliseconds timeout);
 
-        ND_ bool    _SetState (EState expected, EState newState)                        __NE___ { return _state.compare_exchange_strong( INOUT expected, newState ); }
+        ND_ bool    _SetState (EState expected, EState newState)                        __NE___ { return _state.CAS_Loop( INOUT expected, newState ); }
             void    _SetState (EState newState)                                         __NE___ { _state.store( newState ); }
         ND_ EState  _GetState ()                                                        __NE___ { return _state.load(); }
 

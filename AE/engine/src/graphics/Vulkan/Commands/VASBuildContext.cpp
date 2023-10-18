@@ -53,7 +53,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         _Build( build_info, ranges );
     }
@@ -80,7 +80,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = dst_geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         _Build( build_info, ranges );
     }
@@ -110,7 +110,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         vkCmdBuildAccelerationStructuresIndirectKHR( _cmdbuf.Get(), 1, &build_info, &indirectMem, &stride, &max_prim_count );
     }
@@ -141,8 +141,8 @@ namespace AE::Graphics::_hidden_
 
         geom.geometry.instances.data.deviceAddress  = BitCast<VkDeviceAddress>(  inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
         _Build( build_info, p_ranges );
     }
@@ -175,8 +175,8 @@ namespace AE::Graphics::_hidden_
 
         geom.geometry.instances.data.deviceAddress  = BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
         _Build( build_info, p_ranges );
     }
@@ -209,9 +209,9 @@ namespace AE::Graphics::_hidden_
 
         geom.geometry.instances.data.deviceAddress  = BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         vkCmdBuildAccelerationStructuresIndirectKHR( _cmdbuf.Get(), 1, &build_info, &indirectMem, &stride, &max_inst_count );
     }
@@ -327,7 +327,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         _Build( build_info, ranges );
     }
@@ -355,7 +355,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = dst_geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         _Build( build_info, ranges );
     }
@@ -386,8 +386,8 @@ namespace AE::Graphics::_hidden_
 
         geom->geometry.instances.data.deviceAddress = BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
         _Build( build_info, range );
     }
@@ -420,8 +420,8 @@ namespace AE::Graphics::_hidden_
 
         geom->geometry.instances.data.deviceAddress = BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
         _Build( build_info, range );
     }
@@ -487,7 +487,7 @@ namespace AE::Graphics::_hidden_
         build_info.dstAccelerationStructure     = geom.Handle();
         build_info.scratchData.deviceAddress    = BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
         _BuildIndirect( build_info, indirectMem, max_prim_count, uint(indirectStride) );
     }
@@ -519,8 +519,8 @@ namespace AE::Graphics::_hidden_
 
         geom->geometry.instances.data.deviceAddress = BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-        ASSERT( IsAligned( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-        ASSERT( IsAligned( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+        ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+        ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
         _BuildIndirect( build_info, indirectMem, max_inst_count, sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
     }

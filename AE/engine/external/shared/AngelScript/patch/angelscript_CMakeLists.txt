@@ -9,7 +9,8 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set( SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" )
 set( AS_NO_EXCEPTIONS OFF CACHE INTERNAL "" FORCE )
 
-include( "../../../config.cmake" )
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
 #----------------------------------------------------------------------------------
 # dependent projects

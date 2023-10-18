@@ -33,7 +33,7 @@ namespace AE::ResEditor
 
 
     // variables
-    public:
+    private:
         const Path      _pplnPath;
 
         uint3           _localSize  {0};

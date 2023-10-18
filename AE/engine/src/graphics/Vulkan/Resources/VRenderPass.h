@@ -80,7 +80,7 @@ namespace AE::Graphics
         ND_ uint2 GetTileSizeGranularity (const VDevice &dev)                               C_NE___;
 
         ND_ VkRenderPass                Handle ()                                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _renderPass; }
-        ND_ RenderPassID                CompatibpleRP ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _compatibleRP; }
+        ND_ RenderPassID                CompatibleRP ()                                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _compatibleRP; }
 
         ND_ AttachmentMap_t const&      AttachmentMap ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _attachmentMap; }
         ND_ AttachmentStates_t const&   AttachmentStates ()                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _attStates; }

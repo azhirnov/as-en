@@ -98,6 +98,10 @@ namespace
                              "It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches." );
         classBinder.AddMethod( &ScriptBasePass::_Dimension,         "Dimension",        {} );
 
+        classBinder.AddMethod( &ScriptBasePass::EnableIfEqual,      "EnableIfEqual",    {"dynamic", "refValue"} );
+        classBinder.AddMethod( &ScriptBasePass::EnableIfLess,       "EnableIfLess",     {"dynamic", "refValue"} );
+        classBinder.AddMethod( &ScriptBasePass::EnableIfGreater,    "EnableIfGreater",  {"dynamic", "refValue"} );
+
         if ( withArgs )
         {
             classBinder.Comment( "Add resource to all shaders in the current pass.\n"
@@ -116,6 +120,10 @@ namespace
             classBinder.AddMethod( &ScriptBasePass::ArgTextureIn,       "ArgIn",            {"uniformName", "resource", "samplerName"} );
             classBinder.AddMethod( &ScriptBasePass::ArgVideoIn,         "ArgIn",            {"uniformName", "resource", "samplerName"} );
             classBinder.AddMethod( &ScriptBasePass::ArgController,      "ArgIn",            {"camera"} );
+
+            classBinder.AddMethod( &ScriptBasePass::ArgImageArrIn,      "ArgIn",            {"uniformName", "resources"} );
+            classBinder.AddMethod( &ScriptBasePass::ArgImageArrOut,     "ArgOut",           {"uniformName", "resources"} );
+            classBinder.AddMethod( &ScriptBasePass::ArgImageArrInOut,   "ArgInOut",         {"uniformName", "resources"} );
         }
     }
 //-----------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 
 namespace AE::App
 {
-    static constexpr uint   InputActionsWinAPI_Name = uint("ia.Win"_StringToID);
+    static constexpr uint   InputActionsWinAPI_Name = "ia.Win"_Hash;
 
 
     //

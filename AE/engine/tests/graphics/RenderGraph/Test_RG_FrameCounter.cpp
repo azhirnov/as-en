@@ -6,7 +6,7 @@ namespace
 {
     struct FC_TestData
     {
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
         GAutorelease<BufferID>      buf;
         const uint                  maxCount    = 1000;
         const Bytes                 buf_size    = 4_b * maxCount;
@@ -74,7 +74,7 @@ namespace
         auto&       res_mngr    = rts.GetResourceManager();
         FC_TestData t;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.buf       = res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
         CHECK_ERR( t.buf );
 

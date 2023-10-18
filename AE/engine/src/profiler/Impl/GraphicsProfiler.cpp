@@ -77,12 +77,19 @@ namespace AE::Profiler
             // memory usage
             if ( _memInfo.has_value() )
             {
-                const double    dev_usage_pct  = Max( 100.0 * double(ulong(_memInfo->deviceUsage)) / double(ulong(_memInfo->deviceAvailable)), 0.0 );
-                const double    host_usage_pct = Max( 100.0 * double(ulong(_memInfo->hostUsage))   / double(ulong(_memInfo->hostAvailable)),   0.0 );
+                const double    dev_usage_pct   = Max( 100.0 * double(ulong(_memInfo->deviceUsage))  / double(ulong(_memInfo->deviceAvailable)),  0.0 );
+                const double    host_usage_pct  = Max( 100.0 * double(ulong(_memInfo->hostUsage))    / double(ulong(_memInfo->hostAvailable)),    0.0 );
+                const double    uni_usage_pct   = Max( 100.0 * double(ulong{_memInfo->unifiedUsage}) / double(ulong{_memInfo->unifiedAvailable}), 0.0 );
 
                 str.clear();
-                str << "mem:  dev(" << ToString( _memInfo->deviceUsage ) << ' ' << ToString( dev_usage_pct, 1 )
-                    << "%)  host("  << ToString( _memInfo->hostUsage ) << ' ' << ToString( host_usage_pct, 1 ) << "%)";
+                str << "mem:  dev(" << ToString( _memInfo->deviceUsage ) << ' ' << ToString( dev_usage_pct, 1 ) << "%)";
+
+                if ( _memInfo->hostAvailable > 0 )
+                    str << "  host("  << ToString( _memInfo->hostUsage ) << ' ' << ToString( host_usage_pct, 1 ) << "%)";
+
+                if ( _memInfo->unifiedAvailable > 0 )
+                    str << "  unified(" << ToString( _memInfo->unifiedUsage ) << ' ' << ToString( uni_usage_pct, 1 ) << "%)";
+
                 ImGui::TextUnformatted( str.c_str() );
             }
 

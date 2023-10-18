@@ -9,30 +9,29 @@
 
 void ASmain ()
 {
-    RC<Image>           rt              = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
-    RC<Image>           ds              = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
+    RC<Image>       rt              = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
+    RC<Image>       ds              = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
 
-    const uint2         planet_dim      = uint2(1024);
+    const uint2     planet_dim      = uint2(1024);
 
-    RC<Image>           height_map      = Image( EPixelFormat::R16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );          height_map.Name( "Planet height" );
-    RC<Image>           height_view     = height_map.CreateView( EImage::Cube );
+    RC<Image>       height_map      = Image( EPixelFormat::R16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );          height_map.Name( "Planet height" );
+    RC<Image>       height_view     = height_map.CreateView( EImage::Cube );
 
-    RC<Image>           normal_map      = Image( EPixelFormat::RGBA16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );       normal_map.Name( "Planet normal" );
-    RC<Image>           normal_view     = normal_map.CreateView( EImage::Cube );
+    RC<Image>       normal_map      = Image( EPixelFormat::RGBA16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );       normal_map.Name( "Planet normal" );
+    RC<Image>       normal_view     = normal_map.CreateView( EImage::Cube );
 
-    RC<Image>           albedo_map      = Image( EPixelFormat::RGBA8_UNorm, planet_dim, ImageLayer(6), MipmapLevel(~0) );   albedo_map.Name( "Planet albedo" );
-    RC<Image>           albedo_view     = albedo_map.CreateView( EImage::Cube );
+    RC<Image>       albedo_map      = Image( EPixelFormat::RGBA8_UNorm, planet_dim, ImageLayer(6), MipmapLevel(~0) );   albedo_map.Name( "Planet albedo" );
+    RC<Image>       albedo_view     = albedo_map.CreateView( EImage::Cube );
 
-    RC<Image>           emission_map    = Image( EPixelFormat::RG16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );         emission_map.Name( "Planet emission" );
-    RC<Image>           emission_view   = emission_map.CreateView( EImage::Cube );
+    RC<Image>       emission_map    = Image( EPixelFormat::RG16F, planet_dim, ImageLayer(6), MipmapLevel(~0) );         emission_map.Name( "Planet emission" );
+    RC<Image>       emission_view   = emission_map.CreateView( EImage::Cube );
 
-    RC<Scene>           scene           = Scene();
-    RC<FPVCamera>       camera          = FPVCamera();
-    RC<SphericalCube>   planet          = SphericalCube();
-    RC<DynamicFloat>    tess_level      = DynamicFloat();
+    RC<Scene>       scene           = Scene();
 
     // setup camera
     {
+        RC<FPVCamera>   camera = FPVCamera();
+
         camera.ClipPlanes( 0.1f, 100.f );
         camera.FovY( 60.f );
 
@@ -40,10 +39,15 @@ void ASmain ()
         camera.ForwardBackwardScale( s );
         camera.UpDownScale( s );
         camera.SideMovementScale( s );
+
+        scene.Set( camera );
     }
 
     // setup planet
     {
+        RC<DynamicFloat>    tess_level  = DynamicFloat();
+        RC<SphericalCube>   planet      = SphericalCube();
+
         planet.ArgIn( "un_HeightMap",   height_view,    Sampler_LinearMipmapRepeat );
         planet.ArgIn( "un_NormalMap",   normal_view,    Sampler_LinearMipmapRepeat );
         planet.ArgIn( "un_AlbedoMap",   albedo_view,    Sampler_LinearMipmapRepeat );
@@ -52,10 +56,8 @@ void ASmain ()
         planet.TessLevel( tess_level );
 
         Slider( tess_level, "Tess level", 1.f, 64.f );
+        scene.Add( planet, float3(0.f, 0.f, 2.f) );
     }
-
-    scene.Set( camera );
-    scene.Add( planet, float3(0.f, 0.f, 2.f) );
 
     // generate cubemap
     {

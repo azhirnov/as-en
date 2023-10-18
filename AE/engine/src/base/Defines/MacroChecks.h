@@ -30,15 +30,16 @@
 #endif
 
 
-#ifdef AE_DEBUG
+#if defined(AE_DEBUG)
 # ifdef AE_RELEASE
 #   error only one of AE_DEBUG and AE_RELEASE can be defined
 # endif
-#endif
-#ifdef AE_RELEASE
+#elif defined(AE_RELEASE)
 # ifdef AE_DEBUG
 #   error only one of AE_DEBUG and AE_RELEASE can be defined
 # endif
+#else
+#   error one of AE_DEBUG or AE_RELEASE must be defined
 #endif
 
 

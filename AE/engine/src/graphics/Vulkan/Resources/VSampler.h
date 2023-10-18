@@ -37,6 +37,9 @@ namespace AE::Graphics
         ND_ VkSamplerYcbcrConversion    YcbcrConversion ()                                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }
         ND_ VkFormat                    YcbcrFormat ()                                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrFormat; }
 
+        DEBUG_ONLY( ND_ StringView      GetDebugName ()                                         C_NE___ { return Default; })
+
+
             static void  ConvertSampler (const SamplerDesc &desc, OUT VkSamplerCreateInfo &info)                                    __NE___;
             static void  ConvertSampler (const SamplerYcbcrConversionDesc &desc, OUT VkSamplerYcbcrConversionCreateInfo &info)      __NE___;
 

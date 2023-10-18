@@ -750,7 +750,7 @@ namespace
             wds.pBufferInfo     = dst;
         }
 
-        ASSERT( IsAligned( bufferOffset, min_align ));
+        ASSERT( IsMultipleOf( bufferOffset, min_align ));
         ASSERT( bufferSize <= max_size );
 
         if constexpr( IsSameTypes< T, BufferID >)

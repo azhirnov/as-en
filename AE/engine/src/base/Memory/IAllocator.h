@@ -27,6 +27,7 @@ namespace AE::Base
 
         ND_ virtual void*  Allocate (Bytes size)                                    __NE___ = 0;
             virtual void   Deallocate (void *ptr, Bytes size)                       __NE___ = 0;
+            virtual void   Deallocate (void *ptr)                                   __NE___ = 0;
 
         ND_ virtual void*  Allocate (const SizeAndAlign sizeAndAlign)               __NE___ = 0;
             virtual void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE___ = 0;
@@ -55,6 +56,7 @@ namespace AE::Base
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( size ); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, size ); }
+        void   Deallocate (void *ptr)                                   __NE_OV { return _alloc.Deallocate( ptr ); }
 
         void*  Allocate (const SizeAndAlign sizeAndAlign)               __NE_OV { return _alloc.Allocate( sizeAndAlign ); }
         void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE_OV { return _alloc.Deallocate( ptr, sizeAndAlign ); }
@@ -83,6 +85,7 @@ namespace AE::Base
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( size ); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, size ); }
+        void   Deallocate (void *ptr)                                   __NE_OV { return _alloc.Deallocate( ptr ); }
 
         void*  Allocate (const SizeAndAlign sizeAndAlign)               __NE_OV { return _alloc.Allocate( sizeAndAlign ); }
         void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE_OV { return _alloc.Deallocate( ptr, sizeAndAlign ); }
@@ -110,6 +113,7 @@ namespace AE::Base
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
+        void   Deallocate (void *ptr)                                   __NE_OV { return _alloc.Deallocate( ptr ); }
 
         void*  Allocate (const SizeAndAlign sizeAndAlign)               __NE_OV { return _alloc.Allocate( sizeAndAlign ); }
         void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE_OV { return _alloc.Deallocate( ptr, sizeAndAlign ); }
@@ -138,6 +142,7 @@ namespace AE::Base
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
+        void   Deallocate (void *ptr)                                   __NE_OV { return _alloc.Deallocate( ptr ); }
 
         void*  Allocate (const SizeAndAlign sizeAndAlign)               __NE_OV { return _alloc.Allocate( sizeAndAlign ); }
         void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE_OV { return _alloc.Deallocate( ptr, sizeAndAlign ); }
@@ -145,3 +150,10 @@ namespace AE::Base
 
 
 } // AE::Base
+
+namespace AE
+{
+        void                        SetDefaultAllocator (Base::RC<Base::IAllocator>)    __NE___;
+    ND_ Base::RC<Base::IAllocator>  GetDefaultAllocator ()                              __NE___;
+
+} // AE

@@ -49,10 +49,8 @@ namespace {
         const VkFormatFeatureFlags  available   = (optTiling ? fmt_props.optimalTilingFeatures : fmt_props.linearTilingFeatures) |
                                                   (dev.GetVExtensions().maintenance1 ? 0 : VK_FORMAT_FEATURE_TRANSFER_SRC_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT);
 
-        for (; usage != Zero;)
+        for (auto t : BitfieldIterate( usage ))
         {
-            EImageUsage t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -363,10 +361,8 @@ namespace {
             if_unlikely( not AllBits( res_flags.imageOptions, desc.options ))
                 return false;
 
-            for (auto opts = desc.options; opts != Default;)
+            for (auto option : BitfieldIterate( desc.options ))
             {
-                const EImageOpt option = ExtractBit( INOUT opts );
-
                 BEGIN_ENUM_CHECKS();
                 switch ( option )
                 {
@@ -486,7 +482,7 @@ namespace {
                 }
                 else
                 {
-                    compatible &= All( fmt_info.blockSize == origin_fmt_info.blockSize );
+                    compatible &= All( fmt_info.blockDim == origin_fmt_info.blockDim );
                     compatible &= fmt_info.IsCompressed() == origin_fmt_info.IsCompressed();
                 }
                 if_unlikely( not compatible )
@@ -532,7 +528,7 @@ namespace {
             if_unlikely( not AllBits( _desc.options, EImageOpt::CubeCompatible ))
                 return false;
 
-            if_unlikely( not IsAligned( view.layerCount, 6 ))
+            if_unlikely( not IsMultipleOf( view.layerCount, 6 ))
                 return false;
         }
 
@@ -561,8 +557,8 @@ namespace {
         {
             const auto&     required    = EPixelFormat_GetInfo( _desc.format );
             const auto&     origin      = EPixelFormat_GetInfo( view.format );
-            const bool      req_comp    = Any( required.TexBlockSize() > 1u );
-            const bool      orig_comp   = Any( origin.TexBlockSize() > 1u );
+            const bool      req_comp    = Any( required.TexBlockDim() > 1u );
+            const bool      orig_comp   = Any( origin.TexBlockDim() > 1u );
 
             if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{_desc.viewFormats}, view.format ) and
                          not AllBits( _desc.options, EImageOpt::MutableFormat ))
@@ -579,7 +575,7 @@ namespace {
                 if_unlikely( req_comp != orig_comp )
                     return false;
 
-                if_unlikely( Any( required.blockSize != origin.blockSize ))
+                if_unlikely( Any( required.blockDim != origin.blockDim ))
                     return false;
 
                 if ( view.aspectMask == EImageAspect::Stencil )
@@ -624,10 +620,8 @@ namespace {
 
         // TODO ?
         /*
-        for (EImageUsage usage = desc.usage; usage != Zero;)
+        for (auto t : BitfieldIterate( desc.usage ))
         {
-            EImageUsage t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {

@@ -9,11 +9,13 @@
 
 namespace AE::Graphics
 {
+    // 3x4 row-major affine transformation matrix
+    //
     //      rotation        translation
     // [0,0]  [0,1]  [0,2]    [0,3]
     // [1,0]  [1,1]  [1,2]    [1,3]
     // [2,0]  [2,1]  [2,2]    [2,3]
-    using RTMatrixStorage = MatrixStorage< float, 3, 4, EMatrixOrder::ColumnMajor, 4 >;
+    using RTMatrixStorage = MatrixStorage< float, 3, 4, EMatrixOrder::RowMajor, sizeof(float) >;
 
 
     //
@@ -144,7 +146,7 @@ namespace AE::Graphics
                 Instance ()                                             __NE___;
                 Instance&  SetIdentity ()                               __NE___ { transform         = RTMatrixStorage::Identity();  return *this; }
                 Instance&  SetTransform (const RTMatrixStorage &value)  __NE___ { transform         = value;        return *this; }
-                Instance&  SetTransform (const float3x4 &value)         __NE___ { transform         = value;        return *this; }
+                Instance&  SetTransform (const float4x3 &value)         __NE___ { transform         = value;        return *this; }
                 Instance&  SetMask (uint value)                         __NE___ { mask              = value;        return *this; }
                 Instance&  SetInstanceOffset (uint value)               __NE___ { instanceSBTOffset = value;        return *this; }
                 Instance&  SetFlags (ERTInstanceOpt value)              __NE___;
@@ -251,13 +253,12 @@ namespace AE::Graphics
     //
     struct RTShaderBindingDesc
     {
-        uint    maxMissShaders : 16;
-        uint    hitGroupStride : 16;    // in shader only 4 bits are used
+        uint    maxRayTypes     : 16;   // 'sbtRecordStride' has 4 bits, 'missIndex' has 16 bits
+        uint    maxCallable     : 16;
         uint    maxInstances;           // 'instanceSBTOffset' has 24 bits
-        // TODO: max callable
 
         RTShaderBindingDesc () __NE___ :
-            maxMissShaders{0xFFFF}, hitGroupStride{0xFFFF}, maxInstances{UMax} {}
+            maxRayTypes{0xFFFF}, maxCallable{0xFFFF}, maxInstances{UMax} {}
     };
 
 

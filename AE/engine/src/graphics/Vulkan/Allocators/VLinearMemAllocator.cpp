@@ -19,7 +19,7 @@ namespace AE::Graphics
 */
     VLinearMemAllocator::VLinearMemAllocator (Bytes pageSize) __NE___
     {
-        SetPageSize( pageSize );
+        SetPageSize( pageSize == 0 ? _DefaultPageSize : pageSize );
     }
 
 /*
@@ -91,41 +91,37 @@ namespace AE::Graphics
     _Allocate
 =================================================
 */
-    bool  VLinearMemAllocator::_Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &outData)
+    inline bool  VLinearMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
+                                                 const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData)
     {
         outData = Default;
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
-
         // try to allocate in page
-        for (uint bits = memReq.memoryTypeBits, type_idx = UMax; bits != 0;)
         {
-            if_unlikely( not dev.GetMemoryTypeIndex( bits, memType, OUT type_idx ))
-                break;
-
-            bits &= ~(1u << type_idx);
-
-            const Key   key{ type_idx, shaderAddress, isImage };
-
             EXLOCK( _pageGuard );
 
-            auto    iter = _pages.find( key );
-            if ( iter == _pages.end() )
-                continue;
-
-            for (auto& page : iter->second)
+            for (uint type_idx : BitIndexIterate( memBits ))
             {
-                Bytes   offset = AlignUp( page.size, Bytes{memReq.alignment} );
+                const Key   key{ type_idx, shaderAddress, isImage };
 
-                if ( offset + memReq.size <= page.capacity )
+                auto    iter = _pages.find( key );
+                if ( iter == _pages.end() )
+                    continue;
+
+                for (auto& page : iter->second)
                 {
-                    page.size = offset + memReq.size;
-                    page.counter.fetch_add( 1 );
+                    Bytes   offset = AlignUp( page.size, memAlign );
 
-                    outData.page    = &page;
-                    outData.offset  = offset;
-                    outData.size    = Bytes{memReq.size};
-                    return true;
+                    if_unlikely( offset + memSize <= page.capacity )
+                    {
+                        page.size = offset + memSize;
+                        page.counter.fetch_add( 1 );
+
+                        outData.page    = &page;
+                        outData.offset  = offset;
+                        outData.size    = memSize;
+                        return true;
+                    }
                 }
             }
         }
@@ -137,29 +133,25 @@ namespace AE::Graphics
 
         mem_alloc.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mem_alloc.pNext          = shaderAddress ? &mem_flag : null;
-        mem_alloc.allocationSize = VkDeviceSize( Max( AlignUp( Bytes{memReq.size}*2, _Align ), _pageSize ));
+        mem_alloc.allocationSize = VkDeviceSize( Max( AlignUp( memSize*2, _Align ), _pageSize ));
 
         mem_flag.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
         mem_flag.flags           = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
 
-        for (uint bits = memReq.memoryTypeBits; bits != 0;)
+        for (uint type_idx : BitIndexIterate( memBits ))
         {
-            CHECK_ERR( dev.GetMemoryTypeIndex( bits, memType, OUT mem_alloc.memoryTypeIndex ));
+            mem_alloc.memoryTypeIndex = type_idx;
 
             if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
                 break;
-
-            bits &= ~(1u << mem_alloc.memoryTypeIndex);
         }
         CHECK_ERR( memory.Get() != Default );
 
 
         // map memory
         void*   mapped_ptr = null;
-        if ( EMemoryType_IsHostVisible( memType ))
-        {
+        if ( mapMem )
             VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
-        }
 
 
         EXLOCK( _pageGuard );
@@ -174,13 +166,13 @@ namespace AE::Graphics
         page.counter.fetch_add( 1 );
         page.memory         = memory.Release();
         page.capacity       = Bytes{mem_alloc.allocationSize};
-        page.size           = Bytes{memReq.size};
+        page.size           = memSize;
         page.mapped         = mapped_ptr;
         page.memTypeIndex   = mem_alloc.memoryTypeIndex;
 
-        outData.page    = &page;
-        outData.offset  = 0_b;
-        outData.size    = Bytes{memReq.size};
+        outData.page        = &page;
+        outData.offset      = 0_b;
+        outData.size        = memSize;
 
         return true;
     }

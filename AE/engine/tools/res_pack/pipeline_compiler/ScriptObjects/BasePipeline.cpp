@@ -675,7 +675,7 @@ namespace
         if ( sh_version != Default )
             return sh_version;
 
-        const auto  sh_ver      = GetMaxValueFromFeatures( _features, &FeatureSet::minShaderVersion );
+        const auto  sh_ver      = GetMaxValueFromFeatures( _features, &FeatureSet::maxShaderVersion );
         const uint  min_spirv   = sh_ver.spirv;
         const uint  min_metal   = sh_ver.metal;
 
@@ -833,10 +833,10 @@ namespace
     {
         _options = value;
 
-        for (auto opt = _options; opt != Default;)
+        for (auto opt : BitfieldIterate( _options ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT opt ))
+            switch ( opt )
             {
                 case EPipelineOpt::Optimize :
                     break;  // ok
@@ -879,10 +879,10 @@ namespace
             CHECK_THROW_MSG( state.stencil == Default );
         }
 
-        for (auto dyn_st = dynamicState; dyn_st != Zero;)
+        for (auto dyn_st : BitfieldIterate( dynamicState ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT dyn_st ))
+            switch ( dyn_st )
             {
                 case EPipelineDynamicState::StencilCompareMask :
                 case EPipelineDynamicState::StencilWriteMask :

@@ -151,7 +151,8 @@ namespace _hidden_
 
         bool  Cancel ()                                                             __NE___;
 
-        // execute 'fn' only if result is ready
+        // Execute 'fn' only if result is ready.
+        // Returns 'true' if completed and 'fn' is executed.
         template <typename Fn>
         bool  WithResult (Fn && fn)                                                 __Th___;
 

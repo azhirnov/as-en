@@ -6,6 +6,7 @@ using namespace AE;
 using namespace AE::Base;
 
 extern void UnitTest_SphericalCubeMath ();
+extern void UnitTest_Triangulation ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -17,6 +18,7 @@ int main ()
     AE::Base::StaticLogger::LoggerDbgScope log{};
 
     UnitTest_SphericalCubeMath();
+    UnitTest_Triangulation();
 
     AE_LOGI( "Tests.GeometryTools finished" );
     return 0;

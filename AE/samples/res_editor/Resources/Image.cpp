@@ -1,12 +1,25 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Possible problems:
+
+    * '_id' and '_view' are atomics but some processes may happens when '_id' has new image and '_view' has previous view.
+    * '_id' must be updated before '_view'.
+    * Add imageId to the RG state tracker before updating '_id' and '_view'.
+*/
 
 #include "res_editor/Resources/Image.h"
 #include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Passes/Renderer.h"
 
+#include "res_pack/asset_packer/Packer/ImagePacker.h"
+
 namespace AE::ResEditor
 {
-    ND_ bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs);
+namespace {
+#   define AE_BUILD_ASSET_PACKER
+#   include "res_pack/asset_packer/Packer/ImagePackerUtils.cpp.h"
+#   undef AE_BUILD_ASSET_PACKER
+}
 
 /*
 =================================================
@@ -50,7 +63,7 @@ namespace AE::ResEditor
         }
         else
         {
-            _uploadStatus.store( EUploadStatus::Complete );
+            _uploadStatus.store( EUploadStatus::Completed );
 
             RenderGraph().GetStateTracker().AddResource( _id.Get() );
         }
@@ -69,7 +82,7 @@ namespace AE::ResEditor
                 op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
             }
 
-            _ResQueue().EnqueueForUpload( GetRC() );
+            _DtTrQueue().EnqueueForUpload( GetRC() );
         }
     }
 
@@ -80,12 +93,7 @@ namespace AE::ResEditor
 */
     Image::~Image ()
     {
-        for (auto& op : _loadOps)
-        {
-            if ( op.file )      op.file->CancelAllRequests();
-            if ( op.loaded )    op.loaded.Cancel();
-        }
-        _loadOps.clear();
+        Cancel();
 
         {
             auto    view    = _view.Release();
@@ -118,7 +126,7 @@ namespace AE::ResEditor
         desc.options    = EImageOpt::BlitSrc | EImageOpt::BlitDst;
 
         result->_imageDesc.Write( desc );
-        result->_imageDesc.Write( res_mngr.GetDescription( img_and_view.view ));
+        // don't change image view descriptor
         result->_isDummy.store( true );
 
         Unused( result->_id.Attach( RVRef(img_and_view.image) ));
@@ -166,7 +174,7 @@ namespace AE::ResEditor
 
             load_op.loaded  = req->AsPromise().Then( [fmt = load_op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
 
-            result->_ResQueue().EnqueueForUpload( result );
+            result->_DtTrQueue().EnqueueForUpload( result );
         }
 
         return result;
@@ -186,7 +194,7 @@ namespace AE::ResEditor
 
         RC<Image>   result = CreateDummy2D( renderer, dbgName );
 
-        // just upload from RAM
+        // upload from RAM
         {
             result->_uploadStatus.store( EUploadStatus::InProgress );
 
@@ -195,7 +203,7 @@ namespace AE::ResEditor
             load_op.flags   = flags;
             load_op.loaded  = Threading::MakePromiseFromValue( RVRef(imageData) );
 
-            result->_ResQueue().EnqueueForUpload( result );
+            result->_DtTrQueue().EnqueueForUpload( result );
         }
 
         return result;
@@ -310,13 +318,15 @@ namespace AE::ResEditor
         bool    all_complete    = true;
         bool    failed          = false;
 
+        auto&   fmt_info    = EPixelFormat_GetInfo( _imageDesc.ConstPtr<0>()->format );
+
         for (auto& op : _loadOps)
         {
             if ( op.IsCompleted() )
                 continue;
 
             op.loaded.WithResult(
-                [this, &ctx, &op, &failed] (const IntermImageRC &imageData)
+                [this, &ctx, &op, &failed, &fmt_info] (const IntermImageRC &imageData)
                 {
                     if ( not imageData )
                     {
@@ -326,14 +336,8 @@ namespace AE::ResEditor
 
                     if_unlikely( _isDummy.load() )
                     {
-                        CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, AllBits( op.flags, ELoadOpFlags::GenMipmaps )));
-
+                        CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, AllBits( op.flags, ELoadOpFlags::GenMipmaps ), ctx ));
                         _isDummy.store( false );
-                        RenderGraph().GetStateTracker().AddResource( _id.Get(),
-                                                                     EResourceState::_InvalidState,                             // current is not used
-                                                                     EResourceState::ShaderSample | EResourceState::AllShaders, // default
-                                                                     ctx.GetCommandBatchRC() );
-                        ctx.ResourceState( _id, EResourceState::Invalidate );
                     }
 
                     for (;;)
@@ -341,7 +345,7 @@ namespace AE::ResEditor
                         if_unlikely( not op.stream.IsInitialized() )
                         {
                             UploadImageDesc     upload;
-                            upload.imageSize    = Max( imageData->Dimension() >> op.curMipmap.Get(), 1u );
+                            upload.imageSize    = ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() );
                             upload.arrayLayer   = op.layer + op.curLayer;
                             upload.mipLevel     = op.mipmap + op.curMipmap;
                             upload.heapType     = EStagingHeapType::Dynamic;
@@ -358,7 +362,7 @@ namespace AE::ResEditor
                         if ( dst_mem.Empty() )
                             break;
 
-                        CHECK( dst_mem.Copy( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
+                        CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
 
                         if ( op.stream.IsCompleted() )
                         {
@@ -394,7 +398,7 @@ namespace AE::ResEditor
             _GenMipmaps( ctx );
 
             _loadOps.clear();
-            _SetUploadStatus( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Completed );
         }
 
         return _uploadStatus.load();
@@ -430,14 +434,185 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    CreateAndStore
+=================================================
+*/
+    RC<Image>  Image::CreateAndStore (const Image           &src,
+                                      ArrayView<StoreOp>    storeOps,
+                                      StringView            dbgName) __Th___
+    {
+        CHECK_ERR( not src._isDummy.load() );
+        CHECK_ERR( not storeOps.empty() );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        RC<Image>   result      {new Image{ src._Renderer(), dbgName }};
+
+        Unused( result->_id.Attach( res_mngr.AcquireResource( src._id.Get() )));
+        Unused( result->_view.Attach( res_mngr.AcquireResource( src._view.Get() )));
+
+        const auto  img_desc    = res_mngr.GetDescription( result->_id.Get() );
+        const auto  view_desc   = res_mngr.GetDescription( result->_view.Get() );
+
+        result->_imageDesc.Write( img_desc );
+        result->_imageDesc.Write( view_desc );
+
+        result->_uploadStatus.store( EUploadStatus::InProgress );
+
+        for (auto& op : storeOps) {
+            result->_storeOps.emplace_back( StoreOp2{ op });
+        }
+
+        for (auto& op : result->_storeOps)
+        {
+            CHECK_ERR( op.file and op.file->IsOpen() );
+
+            using Header = AssetPacker::ImagePacker::Header2;
+
+            auto    mem = op.file->Alloc( SizeAndAlignOf<Header> );
+            CHECK_ERR( mem );
+
+            auto&   hdr     = PlacementNew<Header>( mem->Data() )->hdr;
+            hdr.dimension   = packed_ushort3{img_desc.dimension};
+            hdr.arrayLayers = ushort(img_desc.arrayLayers.Get());
+            hdr.mipmaps     = ushort(img_desc.maxLevel.Get());
+            hdr.viewType    = view_desc.viewType;
+            hdr.format      = img_desc.format;
+
+            CHECK_ERR( ImagePacker_IsValid( hdr ));
+
+            auto    req = op.file->WriteBlock( 0_b, SizeOf<Header>, RVRef(mem) );
+            CHECK_ERR( req );
+        }
+
+        result->_DtTrQueue().EnqueueForReadback( result );
+        return result;
+    }
+
+/*
+=================================================
     Readback
 =================================================
 */
-    IResource::EUploadStatus  Image::Readback (TransferCtx_t &) __Th___
+    IResource::EUploadStatus  Image::Readback (TransferCtx_t &ctx) __Th___
     {
-        // TODO
+        if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
+            return stat;
 
-        return EUploadStatus::Canceled;
+        ASSERT( not _storeOps.empty() );
+
+        bool    all_complete    = true;
+        bool    failed          = false;
+
+        for (auto& op : _storeOps)
+        {
+            if ( op.IsCompleted() )
+                continue;
+
+            if_unlikely( not op.stream.IsInitialized() )
+            {
+                const auto      img_desc    = _imageDesc.Read<ImageDesc>();
+                const auto&     fmt_info    = EPixelFormat_GetInfo( img_desc.format );
+
+                ReadbackImageDesc   read;
+                read.imageSize  = ImageUtils::MipmapDimension( img_desc.dimension, op.curMipmap.Get(), fmt_info.TexBlockDim() );
+                read.arrayLayer = op.curLayer;
+                read.mipLevel   = op.curMipmap;
+                read.heapType   = EStagingHeapType::Dynamic;
+                read.aspectMask = EImageAspect::Color;
+                op.stream       = ImageStream{ _id, read };
+            }
+
+            ctx.ReadbackImage( INOUT op.stream )
+                .Then(  [self = GetRC<Image>(), layer = op.curLayer, mipmap = op.curMipmap, file = op.file] (const ImageMemView &memView)
+                        {
+                            const auto      img_desc    = self->_imageDesc.Read<ImageDesc>();
+                            const auto      view_type   = self->_imageDesc.ConstPtr<1>()->viewType;
+                            const auto&     fmt_info    = EPixelFormat_GetInfo( img_desc.format );
+                            const uint3     mip_dim     = ImageUtils::MipmapDimension( img_desc.dimension, mipmap.Get(), fmt_info.TexBlockDim() );
+
+                            AssetPacker::ImagePacker::Header    header;
+                            header.dimension    = packed_ushort3{mip_dim};
+                            header.arrayLayers  = ushort(img_desc.arrayLayers.Get());
+                            header.mipmaps      = ushort(img_desc.maxLevel.Get());
+                            header.viewType     = view_type;
+                            header.format       = img_desc.format;
+
+                            uint3   dim;
+                            Bytes   off, size, row_size, slice_size;
+                            ImagePacker_GetOffset( header, layer, mipmap, memView.Offset(),
+                                                   OUT dim, OUT off, OUT size, OUT row_size, OUT slice_size );
+
+                            CHECK( All( dim == mip_dim ));
+                            CHECK( size >= memView.ContentSize() );
+                            CHECK( row_size == memView.RowPitch() );
+                            CHECK( slice_size == memView.SlicePitch() );
+
+                            auto    mem = file->Alloc( memView.ContentSize() );
+                            CHECK_THROW( mem );
+
+                            CHECK( memView.CopyTo( mem->Data(), memView.ContentSize() ));
+
+                            Unused( file->WriteBlock( off + SizeOf<AssetPacker::ImagePacker::Header2>, memView.ContentSize(), RVRef(mem) ));
+                        });
+
+            if ( op.stream.IsCompleted() )
+            {
+                const auto  img_desc = _imageDesc.Read<ImageDesc>();
+
+                // invalidate
+                op.stream = Default;
+
+                if ( ++op.curLayer < img_desc.arrayLayers )
+                    continue;
+
+                if ( ++op.curMipmap < img_desc.maxLevel )
+                {
+                    op.curLayer = ImageLayer{};
+                    continue;
+                }
+
+                op.complete = true;
+            }
+
+            all_complete &= op.IsCompleted();
+        }
+
+        if ( failed )
+        {
+            _storeOps.clear();
+            _SetUploadStatus( EUploadStatus::Canceled );
+        }
+
+        if ( all_complete )
+        {
+            _storeOps.clear();
+            _SetUploadStatus( EUploadStatus::Completed );
+        }
+
+        return _uploadStatus.load();
+    }
+
+/*
+=================================================
+    Cancel
+=================================================
+*/
+    void  Image::Cancel () __NE___
+    {
+        IResource::Cancel();
+
+        for (auto& op : _loadOps)
+        {
+            if ( op.file )      op.file->CancelAllRequests();
+            if ( op.loaded )    op.loaded.Cancel();
+        }
+        _loadOps.clear();
+
+        for (auto& op : _storeOps)
+        {
+            if ( op.file )      CHECK( not op.file->CancelAllRequests() );  // all write requests must complete
+        }
+        _storeOps.clear();
     }
 
 /*
@@ -447,13 +622,13 @@ namespace AE::ResEditor
 */
     RC<Image>  Image::CreateView (const ImageViewDesc &viewDesc, StringView dbgName) __NE___
     {
-        //CHECK_ERR( _uploadStatus == EUploadStatus::Complete );
+        //CHECK_ERR( _uploadStatus == EUploadStatus::Completed );
 
         RC<Image>   result  {new Image{ _Renderer(), dbgName }};
 
         result->_inDynSize  = _inDynSize;
         result->_base       = GetRC();
-        result->_uploadStatus.store( EUploadStatus::Complete );
+        result->_uploadStatus.store( EUploadStatus::Completed );
 
         _derived->insert( result.get() );
 
@@ -505,14 +680,15 @@ namespace AE::ResEditor
     _CreateImage
 =================================================
 */
-    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer, bool allMipmaps)
+    template <typename CtxType>
+    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer, bool allMipmaps, CtxType &ctx)
     {
         ASSERT( _isDummy.load() );
         ASSERT( not intermImg.IsEmpty() );
 
         auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        const auto  Create   = [this, &res_mngr, baseMipmap, baseLayer, allMipmaps] (auto& intermImg) -> bool
+        const auto  Create   = [&] (auto& intermImg) -> bool
         {{
             ImageDesc       desc        = GetImageDesc();
             ImageViewDesc   view_desc   = GetViewDesc();
@@ -543,6 +719,12 @@ namespace AE::ResEditor
 
                 auto    image   = res_mngr.CreateImage( desc, _dbgName, _GfxAllocator() );
                 CHECK_ERR( image );
+
+                RenderGraph().GetStateTracker().AddResource( image,
+                                                             EResourceState::_InvalidState,                             // current is not used
+                                                             EResourceState::ShaderSample | EResourceState::AllShaders, // default
+                                                             ctx.GetCommandBatchRC() );
+                ctx.ResourceState( image, EResourceState::Invalidate );
 
                 _imageDesc.Write( res_mngr.GetDescription( image ));
 
@@ -609,5 +791,3 @@ namespace AE::ResEditor
 
 
 } // AE::ResEditor
-
-#include "res_editor/Scripting/PassCommon.inl.h"

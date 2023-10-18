@@ -231,6 +231,7 @@ namespace AE::Graphics::_hidden_
     void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
+        Unused( typeName );
         RawCtx::_PushConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }
 

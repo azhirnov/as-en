@@ -42,7 +42,7 @@
 #   pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 12 or GLSLANG_VERSION_MINOR != 1 or GLSLANG_VERSION_PATCH != 0
+#if GLSLANG_VERSION_MAJOR != 12 or GLSLANG_VERSION_MINOR != 3 or GLSLANG_VERSION_PATCH != 1
 #   error invalid glslang version
 #endif
 
@@ -104,13 +104,13 @@ namespace AE::PipelineCompiler
         IncludeResults_t        _results;
         IncludedFiles_t         _includedFiles;
         IncludeDirsRef_t        _directories;
-        IShaderProprocessor*    _preprocessor   = null;
+        IShaderPreprocessor*    _preprocessor   = null;
         EShader                 _shaderType     = Default;
 
 
     // methods
     public:
-        explicit ShaderIncluder (IncludeDirsRef_t dirs, IShaderProprocessor* pp, EShader shaderType) :
+        explicit ShaderIncluder (IncludeDirsRef_t dirs, IShaderPreprocessor* pp, EShader shaderType) :
             _directories{dirs}, _preprocessor{pp}, _shaderType{shaderType} {}
 
         ~ShaderIncluder () override {}
@@ -150,7 +150,7 @@ namespace AE::PipelineCompiler
         {
             Path    path = Path( folder ) / headerName;
 
-            if ( not FileSystem::Exists( path ))
+            if ( not FileSystem::IsFile( path ))
                 continue;
 
             const Path  filename = FileSystem::ToAbsolute( path.make_preferred() );
@@ -331,7 +331,7 @@ namespace AE::PipelineCompiler
     SetPreprocessor
 =================================================
 */
-    void  SpirvCompiler::SetPreprocessor (IShaderProprocessor* value)
+    void  SpirvCompiler::SetPreprocessor (IShaderPreprocessor* value)
     {
         _preprocessor.reset( value );
     }
@@ -1077,10 +1077,10 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
-    _GetDesciptorSet
+    _GetDescriptorSet
 =================================================
 */
-    SpirvCompiler::ShaderReflection::DescriptorSet&  SpirvCompiler::_GetDesciptorSet (uint dsIndex, INOUT SpirvCompiler::ShaderReflection &reflection) const
+    SpirvCompiler::ShaderReflection::DescriptorSet&  SpirvCompiler::_GetDescriptorSet (uint dsIndex, INOUT SpirvCompiler::ShaderReflection &reflection) const
     {
         reflection.layout.descrSets.resize( Max( dsIndex+1, reflection.layout.descrSets.size() ));
 
@@ -1149,6 +1149,7 @@ namespace AE::PipelineCompiler
             case TBasicType::EbtNumTypes :
             case TBasicType::EbtSpirvType :
             case TBasicType::EbtHitObjectNV :
+            case TBasicType::EbtCoopmat :
             default :
                 COMP_RETURN_ERR( "unknown basic type!" );
         }
@@ -1209,6 +1210,7 @@ namespace AE::PipelineCompiler
             case TSamplerDim::EsdNone :
             case TSamplerDim::EsdRect :
             case TSamplerDim::EsdNumDims :
+            case TSamplerDim::EsdAttachmentEXT :
             default :
                 COMP_RETURN_ERR( "unknown sampler dimension type!" );
         }
@@ -1425,6 +1427,7 @@ namespace AE::PipelineCompiler
             case TBasicType::EbtNumTypes :
             case TBasicType::EbtSpirvType :
             case TBasicType::EbtHitObjectNV :
+            case TBasicType::EbtCoopmat :
             default :                       COMP_RETURN_ERR( "unsupported basic type!" );
         }
         END_ENUM_CHECKS();
@@ -1669,7 +1672,7 @@ namespace AE::PipelineCompiler
 
         COMP_CHECK_ERR( qual.hasSet(), "descriptor set index for '"s << node_name << "' is not defined" );
 
-        auto&   descriptor_set = _GetDesciptorSet( uint(qual.layoutSet), INOUT reflection );
+        auto&   descriptor_set = _GetDescriptorSet( uint(qual.layoutSet), INOUT reflection );
 
         if ( type.getBasicType() == TBasicType::EbtSampler )
         {   

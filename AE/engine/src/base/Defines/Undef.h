@@ -31,3 +31,4 @@
 #undef _stat
 #undef near
 #undef far
+#undef CreateFile

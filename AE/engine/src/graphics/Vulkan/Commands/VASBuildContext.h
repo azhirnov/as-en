@@ -218,7 +218,7 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectASBuildCtx::SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info) __Th___
     {
         GCTX_CHECK( info.dst.deviceAddress != Default );
-        GCTX_CHECK( IsAligned( info.dst.deviceAddress, 256 ));
+        GCTX_CHECK( IsMultipleOf( info.dst.deviceAddress, 256 ));
 
         vkCmdCopyAccelerationStructureToMemoryKHR( _cmdbuf.Get(), &info );
     }
@@ -226,7 +226,7 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectASBuildCtx::DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info) __Th___
     {
         GCTX_CHECK( info.src.deviceAddress != Default );
-        GCTX_CHECK( IsAligned( info.src.deviceAddress, 256 ));
+        GCTX_CHECK( IsMultipleOf( info.src.deviceAddress, 256 ));
 
         vkCmdCopyMemoryToAccelerationStructureKHR( _cmdbuf.Get(), &info );
     }
@@ -335,6 +335,7 @@ namespace AE::Graphics::_hidden_
         auto  query             = _ASQueryOrThrow( property );
 
         VALIDATE_GCTX( WriteProperty( property, dst_buf.Description(), offset, size ));
+        Unused( size );
 
         RawCtx::_WriteProperty( src_as.Handle(), dst_buf.Handle(), offset, query );
     }

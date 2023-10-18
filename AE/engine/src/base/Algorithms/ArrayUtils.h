@@ -325,13 +325,13 @@ namespace AE::Base
 
 /*
 =================================================
-    IndexOfArrayElement
+    FindArrayElementIndex
 ----
     returns valid index or UMax
 =================================================
 */
     template <typename Iter, typename T>
-    ND_ usize  IndexOfArrayElement (Iter begin, Iter end, const T &value) __NE___
+    ND_ usize  FindArrayElementIndex (Iter begin, Iter end, const T &value) __NE___
     {
         auto    it = std::find( begin, end, value );
         return  it != end ?
@@ -340,9 +340,9 @@ namespace AE::Base
     }
 
     template <typename Container, typename T>
-    ND_ usize  IndexOfArrayElement (const Container &container, const T &value) __NE___
+    ND_ usize  FindArrayElementIndex (const Container &container, const T &value) __NE___
     {
-        return IndexOfArrayElement( container.begin(), container.end(), value );
+        return FindArrayElementIndex( container.begin(), container.end(), value );
     }
 
 /*
@@ -389,22 +389,22 @@ namespace AE::Base
             Container &     _container;
 
         public:
-            explicit ReverseContainerView (Container& container)    __NE___ : _container{container} {}
+            explicit constexpr ReverseContainerView (Container& container)  __NE___ : _container{container} {}
 
-            ND_ auto  begin ()                                      __NE___ { return std::rbegin( _container ); }
-            ND_ auto  end ()                                        __NE___ { return std::rend( _container ); }
+            ND_ constexpr auto  begin ()                                    __NE___ { return std::rbegin( _container ); }
+            ND_ constexpr auto  end ()                                      __NE___ { return std::rend( _container ); }
         };
 
     } // _hidden_
 
     template <typename Container>
-    ND_ auto  Reverse (Container& container) __NE___
+    ND_ constexpr auto  Reverse (Container& container) __NE___
     {
         return Base::_hidden_::ReverseContainerView<Container>{ container };
     }
 
     template <typename Container>
-    ND_ auto  Reverse (const Container& container) __NE___
+    ND_ constexpr auto  Reverse (const Container& container) __NE___
     {
         return Base::_hidden_::ReverseContainerView<const Container>{ container };
     }
@@ -420,7 +420,7 @@ namespace AE::Base
         {
             usize   _size;
 
-            explicit IndicesOnly_End (usize s)      __NE___ : _size{s} {}
+            explicit constexpr IndicesOnly_End (usize s)                    __NE___ : _size{s} {}
         };
 
         struct IndicesOnly_Iter
@@ -429,19 +429,19 @@ namespace AE::Base
 
             usize   _index;
 
-            explicit IndicesOnly_Iter (usize i)                 __NE___ : _index{i} {}
+            explicit constexpr IndicesOnly_Iter (usize i)                   __NE___ : _index{i} {}
 
-                Self&   operator = (const Self &)               __NE___ = default;
-                Self&   operator = (Self &&)                    __NE___ = default;
+                constexpr Self&     operator = (const Self &)               __NE___ = default;
+                constexpr Self&     operator = (Self &&)                    __NE___ = default;
 
-            ND_ bool    operator != (const Self &rhs)           C_NE___ { return _index != rhs._index; }
-            ND_ bool    operator == (const Self &rhs)           C_NE___ { return _index == rhs._index; }
+            ND_ constexpr bool      operator != (const Self &rhs)           C_NE___ { return _index != rhs._index; }
+            ND_ constexpr bool      operator == (const Self &rhs)           C_NE___ { return _index == rhs._index; }
 
-            ND_ bool    operator != (const IndicesOnly_End &rhs)C_NE___ { return _index < rhs._size; }
+            ND_ constexpr bool      operator != (const IndicesOnly_End &rhs)C_NE___ { return _index < rhs._size; }
 
-                Self&   operator ++ ()                          __NE___ { ++_index;  return *this; }
-                Self    operator ++ (int)                       __NE___ { return Self{_index++}; }
-            ND_ usize   operator * ()                           __NE___ { return _index; }
+                constexpr Self&     operator ++ ()                          __NE___ { ++_index;  return *this; }
+                constexpr Self      operator ++ (int)                       __NE___ { return Self{_index++}; }
+            ND_ constexpr usize     operator * ()                           __NE___ { return _index; }
         };
 
 
@@ -452,10 +452,10 @@ namespace AE::Base
             const usize     _end;
 
         public:
-            explicit IndicesOnlyRange (usize b, usize e)    __NE___ : _begin{b}, _end{e} {}
+            explicit constexpr IndicesOnlyRange (usize b, usize e)          __NE___ : _begin{b}, _end{e} {}
 
-            ND_ IndicesOnly_Iter    begin ()                __NE___ { return IndicesOnly_Iter{ _begin }; }
-            ND_ IndicesOnly_End     end ()                  __NE___ { return IndicesOnly_End{ _end }; }
+            ND_ constexpr IndicesOnly_Iter  begin ()                        C_NE___ { return IndicesOnly_Iter{ _begin }; }
+            ND_ constexpr IndicesOnly_End   end ()                          C_NE___ { return IndicesOnly_End{ _end }; }
         };
 
     } // _hidden_
@@ -464,20 +464,28 @@ namespace AE::Base
     template <typename Container,
               typename = EnableIf< IsClass<Container> >
              >
-    ND_ auto  IndicesOnly (const Container& container) __NE___
+    ND_ constexpr auto  IndicesOnly (const Container& container) __NE___
     {
         return Base::_hidden_::IndicesOnlyRange{ 0, container.size() };
     }
 
-    ND_ inline auto  IndicesOnly (usize begin, usize end) __NE___
+    ND_ constexpr inline auto  IndicesOnly (usize begin, usize end) __NE___
     {
         ASSERT( begin <= end );
         return Base::_hidden_::IndicesOnlyRange{ begin, end };
     }
 
-    ND_ inline auto  IndicesOnly (usize count) __NE___
+    ND_ constexpr inline auto  IndicesOnly (usize count) __NE___
     {
         return Base::_hidden_::IndicesOnlyRange{ 0, count };
+    }
+
+    template <typename T,
+              typename = EnableIf< IsEnum<T> >
+             >
+    ND_ constexpr inline auto  IndicesOnly () __NE___
+    {
+        return Base::_hidden_::IndicesOnlyRange{ 0, usize(T::_Count) };
     }
 
 /*
@@ -491,7 +499,7 @@ namespace AE::Base
         {
             usize   _size;
 
-            explicit ReverseIndices_End (usize s)   __NE___ : _size{s} {}
+            explicit constexpr ReverseIndices_End (usize s)                     __NE___ : _size{s} {}
         };
 
         struct ReverseIndices_Iter
@@ -500,19 +508,19 @@ namespace AE::Base
 
             usize   _index;
 
-            explicit ReverseIndices_Iter (usize i)                  __NE___ : _index{i} {}
+            explicit constexpr ReverseIndices_Iter (usize i)                    __NE___ : _index{i} {}
 
-                Self&   operator = (const Self &)                   __NE___ = default;
-                Self&   operator = (Self &&)                        __NE___ = default;
+                constexpr Self&     operator = (const Self &)                   __NE___ = default;
+                constexpr Self&     operator = (Self &&)                        __NE___ = default;
 
-            ND_ bool    operator != (const Self &rhs)               C_NE___ { return _index != rhs._index; }
-            ND_ bool    operator == (const Self &rhs)               C_NE___ { return _index == rhs._index; }
+            ND_ constexpr bool      operator != (const Self &rhs)               C_NE___ { return _index != rhs._index; }
+            ND_ constexpr bool      operator == (const Self &rhs)               C_NE___ { return _index == rhs._index; }
 
-            ND_ bool    operator != (const ReverseIndices_End &rhs) C_NE___ { return _index < rhs._size; }
+            ND_ constexpr bool      operator != (const ReverseIndices_End &rhs) C_NE___ { return _index < rhs._size; }
 
-                Self&   operator ++ ()                              __NE___ { --_index;  return *this; }
-                Self    operator ++ (int)                           __NE___ { return Self{_index--}; }
-            ND_ usize   operator * ()                               __NE___ { return _index; }
+                constexpr Self&     operator ++ ()                              __NE___ { --_index;  return *this; }
+                constexpr Self      operator ++ (int)                           __NE___ { return Self{_index--}; }
+            ND_ constexpr usize     operator * ()                               __NE___ { return _index; }
         };
 
 
@@ -523,10 +531,10 @@ namespace AE::Base
             const usize     _end;
 
         public:
-            explicit ReverseIndicesRange (usize b, usize e)     __NE___ : _begin{b}, _end{e} {}
+            explicit constexpr ReverseIndicesRange (usize b, usize e)           __NE___ : _begin{b}, _end{e} {}
 
-            ND_ ReverseIndices_Iter     begin ()                __NE___ { return ReverseIndices_Iter{ _begin }; }
-            ND_ ReverseIndices_End      end ()                  __NE___ { return ReverseIndices_End{ _end }; }
+            ND_ constexpr ReverseIndices_Iter       begin ()                    __NE___ { return ReverseIndices_Iter{ _begin }; }
+            ND_ constexpr ReverseIndices_End        end ()                      __NE___ { return ReverseIndices_End{ _end }; }
         };
 
     } // _hidden_
@@ -535,12 +543,12 @@ namespace AE::Base
     template <typename Container,
               typename = EnableIf< IsClass<Container> >
              >
-    ND_ auto  ReverseIndices (const Container& container) __NE___
+    ND_ constexpr auto  ReverseIndices (const Container& container) __NE___
     {
         return Base::_hidden_::ReverseIndicesRange{ container.size()-1, container.size() };
     }
 
-    ND_ inline auto  ReverseIndices (usize count) __NE___
+    ND_ constexpr inline auto  ReverseIndices (usize count) __NE___
     {
         return Base::_hidden_::ReverseIndicesRange{ count-1, count };
     }
@@ -560,15 +568,15 @@ namespace AE::Base
             Iter    _it;
             usize   _index;
 
-            WithIndex_Iter (Iter it, usize idx)             __NE___ : _it{it}, _index{idx} {}
+            constexpr WithIndex_Iter (Iter it, usize idx)                   __NE___ : _it{it}, _index{idx} {}
 
-            ND_ bool    operator != (const Self &rhs)       C_NE___ { return _it != rhs._it; }
-            ND_ bool    operator == (const Self &rhs)       C_NE___ { return _it == rhs._it; }
+            ND_ constexpr bool  operator != (const Self &rhs)               C_NE___ { return _it != rhs._it; }
+            ND_ constexpr bool  operator == (const Self &rhs)               C_NE___ { return _it == rhs._it; }
 
-            ND_ auto    operator * ()                       __NE___ { return TupleRef{ &(*_it), &_index }; }
+            ND_ constexpr auto  operator * ()                               __NE___ { return TupleRef{ &(*_it), &_index }; }
 
-                Self&   operator ++ ()                      __NE___ { ++_it;  ++_index;  return *this; }
-                Self    operator ++ (int)                   __NE___ { return Self{ ++_it, ++_index }; }
+                constexpr Self& operator ++ ()                              __NE___ { ++_it;  ++_index;  return *this; }
+                constexpr Self  operator ++ (int)                           __NE___ { return Self{ ++_it, ++_index }; }
         };
 
 
@@ -579,22 +587,22 @@ namespace AE::Base
             Container &     _container;
 
         public:
-            explicit WithIndexContainerView (Container& container)  __NE___ : _container{container} {}
+            explicit constexpr WithIndexContainerView (Container& container)__NE___ : _container{container} {}
 
-            ND_ auto    begin ()                                    __NE___ { return WithIndex_Iter<Iter>{ _container.begin(), 0 }; }
-            ND_ auto    end ()                                      __NE___ { return WithIndex_Iter<Iter>{ _container.end(),   UMax }; }
+            ND_ constexpr auto  begin ()                                    __NE___ { return WithIndex_Iter<Iter>{ _container.begin(), 0 }; }
+            ND_ constexpr auto  end ()                                      __NE___ { return WithIndex_Iter<Iter>{ _container.end(),   UMax }; }
         };
 
     } // _hidden_
 
     template <typename Container>
-    ND_ auto  WithIndex (Container& container) __NE___
+    ND_ constexpr auto  WithIndex (Container& container) __NE___
     {
         return Base::_hidden_::WithIndexContainerView< Container, typename Container::iterator >{ container };
     }
 
     template <typename Container>
-    ND_ auto  WithIndex (const Container& container) __NE___
+    ND_ constexpr auto  WithIndex (const Container& container) __NE___
     {
         return Base::_hidden_::WithIndexContainerView< const Container, typename Container::const_iterator >{ container };
     }
@@ -603,7 +611,8 @@ namespace AE::Base
 =================================================
     BitfieldIterate
 ----
-    from low to high bit
+    From low to high bit.
+    Replacement for loop with 'ExtractBit()'.
 =================================================
 */
     namespace _hidden_
@@ -622,16 +631,16 @@ namespace AE::Base
             T       _current;   // may be invalid
 
         public:
-            explicit BitfieldIterate_Iter (T& bits)         __NE___ : _bits{bits}, _current{ _ExtractBit( _bits )} {}
+            explicit constexpr BitfieldIterate_Iter (T& bits)           __NE___ : _bits{bits}, _current{ _ExtractBit( _bits )} {}
 
-            ND_ bool    operator != (BitfieldIterate_End)   C_NE___ { return _bits != 0; }
+            ND_ constexpr bool      operator != (BitfieldIterate_End)   C_NE___ { return _bits != Zero; }
 
-            ND_ T       operator * ()                       C_NE___ { return _current; }
+            ND_ constexpr T         operator * ()                       C_NE___ { return _current; }
 
-                Self&   operator ++ ()                      __NE___ { _bits = T(U(_bits) & ~U(_current));  _current = _ExtractBit( _bits );  return *this; }
+                constexpr Self&     operator ++ ()                      __NE___ { _bits = T(U(_bits) & ~U(_current));  _current = _ExtractBit( _bits );  return *this; }
 
         private:
-            ND_ static T  _ExtractBit (T bits)              __NE___ { return T( U(bits) & ~(U(bits) - U{1}) ); }
+            ND_ static constexpr T  _ExtractBit (T bits)                __NE___ { return T( U(bits) & ~(U(bits) - U{1}) ); }
         };
 
         template <typename T>
@@ -641,20 +650,86 @@ namespace AE::Base
             T   _bits;
 
         public:
-            explicit BitfieldIterateView (T bits)   __NE___ : _bits{bits} {}
+            explicit constexpr BitfieldIterateView (T bits)             __NE___ : _bits{bits} {}
 
-            ND_ auto    begin ()                    __NE___ { return BitfieldIterate_Iter<T>{ _bits }; }
-            ND_ auto    end ()                      __NE___ { return BitfieldIterate_End{}; }
+            ND_ constexpr auto  begin ()                                __NE___ { return BitfieldIterate_Iter<T>{ _bits }; }
+            ND_ constexpr auto  end ()                                  __NE___ { return BitfieldIterate_End{}; }
 
         };
 
     } // _hidden_
 
     template <typename T>
-    ND_ auto  BitfieldIterate (const T &bits) __NE___
+    ND_ constexpr auto  BitfieldIterate (const T &bits) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
         return Base::_hidden_::BitfieldIterateView<T>{ bits };
+    }
+
+/*
+=================================================
+    BitIndexIterate
+----
+    From low to high bit.
+    Replacement for loop with 'ExtractBitLog2()'.
+=================================================
+*/
+    namespace _hidden_
+    {
+        struct BitIndexIterate_End
+        {};
+
+        template <typename R, typename T>
+        struct BitIndexIterate_Iter
+        {
+        private:
+            using Self  = BitIndexIterate_Iter< R, T >;
+            using U     = ToUnsignedInteger<T>;
+
+            T &     _bits;
+            R       _current;   // may be invalid
+
+        public:
+            explicit constexpr BitIndexIterate_Iter (T& bits)           __NE___ : _bits{bits}, _current{ _ExtractBitLog2( _bits )} {}
+
+            ND_ constexpr bool      operator != (BitIndexIterate_End)   C_NE___ { return _bits != Zero; }
+
+            ND_ constexpr R         operator * ()                       C_NE___ { return _current; }
+
+                constexpr Self&     operator ++ ()                      __NE___ { _bits = T(U(_bits) & ~SafeLeftBitShift( U{1}, uint(_current) ));  _current = _ExtractBitLog2( _bits );  return *this; }
+
+        private:
+            ND_ static constexpr R  _ExtractBitLog2 (T bits)            __NE___ { return R(IntLog2( U(bits) & ~(U(bits) - U{1}) )); }
+        };
+
+        template <typename R, typename T>
+        struct BitIndexIterateView
+        {
+        private:
+            T   _bits;
+
+        public:
+            explicit constexpr BitIndexIterateView (T bits)             __NE___ : _bits{bits} {}
+
+            ND_ constexpr auto  begin ()                                __NE___ { return BitIndexIterate_Iter<R,T>{ _bits }; }
+            ND_ constexpr auto  end ()                                  __NE___ { return BitIndexIterate_End{}; }
+
+        };
+
+    } // _hidden_
+
+    template <typename T>
+    ND_ constexpr auto  BitIndexIterate (const T &bits) __NE___
+    {
+        STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
+        return Base::_hidden_::BitIndexIterateView< uint, T >{ bits };
+    }
+
+    template <typename R, typename T>
+    ND_ constexpr auto  BitIndexIterate (const T &bits) __NE___
+    {
+        STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
+        return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
     }
 
 

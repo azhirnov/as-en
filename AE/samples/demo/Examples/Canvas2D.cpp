@@ -33,7 +33,7 @@ namespace AE::Samples::Demo
     {
         // load texture
         {
-            auto    file = GetVFS().OpenAsStream( VFS::FileName{"canvas2d.tex1"} );
+            auto    file = GetVFS().Open<RStream>( VFS::FileName{"canvas2d.tex1"} );
             CHECK_TE( file );
 
             DirectCtx::Transfer     ctx{ *this };
@@ -86,7 +86,7 @@ namespace AE::Samples::Demo
     {
         // load atlas
         {
-            auto    file = GetVFS().OpenAsStream( VFS::FileName{"canvas2d.atlas"} );
+            auto    file = GetVFS().Open<RStream>( VFS::FileName{"canvas2d.atlas"} );
             CHECK_TE( file );
 
             DirectCtx::Transfer     ctx{ *this };
@@ -139,7 +139,7 @@ namespace AE::Samples::Demo
     {
         // load raster font
         {
-            auto    file = GetVFS().OpenAsStream( fname );
+            auto    file = GetVFS().Open<RStream>( fname );
             CHECK_TE( file );
 
             DirectCtx::Transfer     ctx{ *this };
@@ -262,8 +262,8 @@ namespace AE::Samples::Demo
 
             copy_ctx.UpdateBuffer( t->ublock, 0_b, Sizeof(ublock_data), &ublock_data );
 
-            ublock_data.rotation0       = rot[0];
-            ublock_data.rotation1       = rot[1];
+            ublock_data.rotation0   = rot[0];
+            ublock_data.rotation1   = rot[1];
 
             copy_ctx.UpdateBuffer( t->ublock, AlignUp( SizeOf<ShaderTypes::sdf_font_ublock>, DeviceLimits.res.minUniformBufferOffsetAlign ), Sizeof(ublock_data), &ublock_data );
         }
@@ -409,7 +409,7 @@ namespace AE::Samples::Demo
     bool  Canvas2DSample::Init (PipelinePackID pack)
     {
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
-                gfxAlloc    = MakeRC<GfxLinearMemAllocator>();
+                gfxAlloc    = res_mngr.CreateLinearGfxMemAllocator();
 
         rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
         CHECK_ERR( rtech );

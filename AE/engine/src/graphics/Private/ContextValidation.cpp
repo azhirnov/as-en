@@ -229,18 +229,18 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( bufDesc ));
         GCTX_CHECK( AllBits( bufDesc.usage, EBufferUsage::TransferDst ));
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( offset < bufDesc.size );
         GCTX_CHECK( size == UMax or (offset + size <= bufDesc.size) );
-        GCTX_CHECK( size == UMax or IsAligned( size, 4 ));
+        GCTX_CHECK( size == UMax or IsMultipleOf( size, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
     void  TransferContextValidation::FillBuffer (VkBuffer buffer, Bytes offset, Bytes size) __Th___
     {
         GCTX_CHECK( buffer != Default );
-        GCTX_CHECK( IsAligned( offset, 4 ));
-        GCTX_CHECK( IsAligned( size, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( size, 4 ));
     }
 # endif
 
@@ -255,10 +255,10 @@ namespace
         GCTX_CHECK( AllBits( bufDesc.usage, EBufferUsage::TransferDst ));
         GCTX_CHECK( size > 0_b );
         GCTX_CHECK( data != null );
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( offset < bufDesc.size );
         GCTX_CHECK( size == UMax or (offset + size <= bufDesc.size) );
-        GCTX_CHECK( size == UMax or IsAligned( size, 4 ));
+        GCTX_CHECK( size == UMax or IsMultipleOf( size, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -266,8 +266,8 @@ namespace
     {
         GCTX_CHECK( buffer != Default );
         GCTX_CHECK( data != null );
-        GCTX_CHECK( IsAligned( offset, 4 ));
-        GCTX_CHECK( IsAligned( size, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( size, 4 ));
         GCTX_CHECK( size <= 65536 );
     }
 # endif
@@ -284,7 +284,9 @@ namespace
 
         GCTX_CHECK( offset < bufDesc.size );
         GCTX_CHECK( size == UMax or (offset + size <= bufDesc.size) );
+
         ASSERT( memView.Empty() );
+        Unused( memView );
     }
 
 /*
@@ -363,6 +365,7 @@ namespace
     void  TransferContextValidation::CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges) __Th___
     {
         ASSERT( not ranges.empty() );
+        Unused( ranges );
         GCTX_CHECK( srcBuffer != Default );
         GCTX_CHECK( dstBuffer != Default );
     }
@@ -392,6 +395,7 @@ namespace
     void  TransferContextValidation::CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges) __Th___
     {
         ASSERT( not ranges.empty() );
+        Unused( ranges );
         GCTX_CHECK( srcImage != Default );
         GCTX_CHECK( dstImage != Default );
     }
@@ -428,7 +432,7 @@ namespace
             ValidateImageSubresourceLayers( dstImageDesc, range.imageSubres, range.imageOffset, range.imageExtent );
 
             GCTX_CHECK( range.rowPitch != 0_b );
-            GCTX_CHECK( range.slicePitch > 0_b and IsAligned( range.slicePitch, range.rowPitch ));
+            GCTX_CHECK( range.slicePitch > 0_b and IsMultipleOf( range.slicePitch, range.rowPitch ));
         }
     }
 
@@ -436,6 +440,7 @@ namespace
     void  TransferContextValidation::CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges) __Th___
     {
         ASSERT( not ranges.empty() );
+        Unused( ranges );
         GCTX_CHECK( srcBuffer != Default );
         GCTX_CHECK( dstImage != Default );
     }
@@ -472,7 +477,7 @@ namespace
             ValidateImageSubresourceLayers( srcImageDesc, range.imageSubres, range.imageOffset, range.imageExtent );
 
             GCTX_CHECK( range.rowPitch != 0_b );
-            GCTX_CHECK( range.slicePitch > 0_b and IsAligned( range.slicePitch, range.rowPitch ));
+            GCTX_CHECK( range.slicePitch > 0_b and IsMultipleOf( range.slicePitch, range.rowPitch ));
         }
     }
 
@@ -480,6 +485,7 @@ namespace
     void  TransferContextValidation::CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges) __Th___
     {
         ASSERT( not ranges.empty() );
+        Unused( ranges );
         GCTX_CHECK( srcImage != Default );
         GCTX_CHECK( dstBuffer != Default );
     }
@@ -540,6 +546,7 @@ namespace
     void  TransferContextValidation::BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions) __Th___
     {
         ASSERT( not regions.empty() );
+        Unused( regions );
         GCTX_CHECK( srcImage != Default );
         GCTX_CHECK( dstImage != Default );
         GCTX_CHECK( AnyEqual( filter, VK_FILTER_NEAREST, VK_FILTER_LINEAR ));
@@ -580,6 +587,7 @@ namespace
     void  TransferContextValidation::ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions) __Th___
     {
         ASSERT( not regions.empty() );
+        Unused( regions );
         GCTX_CHECK( srcImage != Default );
         GCTX_CHECK( dstImage != Default );
     }
@@ -611,6 +619,7 @@ namespace
     void  TransferContextValidation::GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges) __Th___
     {
         ASSERT( not ranges.empty() );
+        Unused( ranges );
         GCTX_CHECK( image != Default );
         GCTX_CHECK( All( dimension > 0u ));
     }
@@ -629,18 +638,20 @@ namespace
 */
     void  ComputeContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        DEBUG_ONLY(
-            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-        )
+    #ifdef AE_DEBUG
+        GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );
+        GCTX_CHECK( Bytes{idx.dbgDataSize} == size or idx.dbgDataSize == 0 );
+    #else
+        Unused( idx, size, typeName );
+    #endif
     }
 
 # ifdef AE_ENABLE_VULKAN
     void  ComputeContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
     {
         GCTX_CHECK( size > 0 );
-        GCTX_CHECK( IsAligned( size, 4 ));
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( size, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( values != null );
         GCTX_CHECK( stages != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
@@ -659,7 +670,7 @@ namespace
     {
         GCTX_CHECK( ds != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
-        GCTX_CHECK( index.vkIndex < _GetFeatureSet().minDescriptorSets );
+        GCTX_CHECK( index.vkIndex < _GetFeatureSet().maxDescriptorSets );
     }
 # endif
 
@@ -700,7 +711,7 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( (offset + sizeof(DispatchIndirectCommand)) <= indirectBufferDesc.size );
     }
 
@@ -725,18 +736,20 @@ namespace
 */
     void  DrawContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        DEBUG_ONLY(
-            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-        )
+    #ifdef AE_DEBUG
+        GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );
+        GCTX_CHECK( Bytes{idx.dbgDataSize} == size or idx.dbgDataSize == 0 );
+    #else
+        Unused( idx, size, typeName );
+    #endif
     }
 
 # ifdef AE_ENABLE_VULKAN
     void  DrawContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
     {
         GCTX_CHECK( size > 0 );
-        GCTX_CHECK( IsAligned( size, 4 ));
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( size, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( values != null );
         GCTX_CHECK( stages != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
@@ -755,7 +768,7 @@ namespace
     {
         GCTX_CHECK( ds != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
-        GCTX_CHECK( index.vkIndex < _GetFeatureSet().minDescriptorSets );
+        GCTX_CHECK( index.vkIndex < _GetFeatureSet().maxDescriptorSets );
     }
 # endif
 
@@ -792,7 +805,7 @@ namespace
 */
     void  DrawContextValidation::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets) __Th___
     {
-        const uint      max_vb  = _GetFeatureSet().minVertexBuffers;
+        const uint      max_vb  = _GetFeatureSet().maxVertexBuffers;
         const Bytes     align   = _GetResourceProps().minVertexBufferOffsetAlign;
 
         GCTX_CHECK( not buffers.empty() and not offsets.empty() );
@@ -801,14 +814,14 @@ namespace
         GCTX_CHECK( (firstBinding + buffers.size()) <= max_vb );
 
         for (auto off : offsets) {
-            GCTX_CHECK( IsAligned( off, align ));
+            GCTX_CHECK( IsMultipleOf( off, align ));
         }
     }
 
 # ifdef AE_ENABLE_VULKAN
     void  DrawContextValidation::BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets) __Th___
     {
-        const uint      max_vb  = _GetFeatureSet().minVertexBuffers;
+        const uint      max_vb  = _GetFeatureSet().maxVertexBuffers;
         const Bytes     align   = _GetResourceProps().minVertexBufferOffsetAlign;
 
         GCTX_CHECK( not buffers.empty() and not offsets.empty() );
@@ -820,7 +833,7 @@ namespace
             GCTX_CHECK( buf != Default );
         }
         for (auto off : offsets) {
-            GCTX_CHECK( IsAligned( off, align ));
+            GCTX_CHECK( IsMultipleOf( off, align ));
         }
     }
 # endif
@@ -879,7 +892,7 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + drawCount * stride) <= indirectBufferDesc.size );
     }
@@ -887,8 +900,9 @@ namespace
     void  DrawContextValidation::DrawIndirect (uint drawCount, Bytes stride) __Th___
     {
         ASSERT( drawCount > 0 );
+        Unused( drawCount );
         GCTX_CHECK( stride >= SizeOf<DrawIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -918,7 +932,7 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + drawCount * stride) <= indirectBufferDesc.size );
     }
@@ -926,8 +940,9 @@ namespace
     void  DrawContextValidation::DrawIndexedIndirect (uint drawCount, Bytes stride) __Th___
     {
         ASSERT( drawCount > 0 );
+        Unused( drawCount );
         GCTX_CHECK( stride >= SizeOf<DrawIndexedIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -959,13 +974,13 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + maxDrawCount * stride) <= indirectBufferDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( countBufferDesc ));
         GCTX_CHECK( AllBits( countBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( countBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( countBufferOffset, 4 ));
         GCTX_CHECK( countBufferOffset < countBufferDesc.size );
         GCTX_CHECK( (countBufferOffset + SizeOf<uint>) <= countBufferDesc.size );
     }
@@ -973,9 +988,10 @@ namespace
     void  DrawContextValidation::DrawIndirectCount (uint maxDrawCount, Bytes stride) __Th___
     {
         ASSERT( maxDrawCount > 0 );
+        Unused( maxDrawCount );
         GCTX_CHECK( DrawIndirectCountSupported() );
         GCTX_CHECK( stride >= SizeOf<DrawIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -1008,13 +1024,13 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + maxDrawCount * stride) <= indirectBufferDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( countBufferDesc ));
         GCTX_CHECK( AllBits( countBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( countBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( countBufferOffset, 4 ));
         GCTX_CHECK( countBufferOffset < countBufferDesc.size );
         GCTX_CHECK( (countBufferOffset + SizeOf<uint>) <= countBufferDesc.size );
     }
@@ -1022,9 +1038,10 @@ namespace
     void  DrawContextValidation::DrawIndexedIndirectCount (uint maxDrawCount, Bytes stride) __Th___
     {
         ASSERT( maxDrawCount > 0 );
+        Unused( maxDrawCount );
         GCTX_CHECK( DrawIndirectCountSupported() );
         GCTX_CHECK( stride >= SizeOf<DrawIndexedIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -1050,6 +1067,7 @@ namespace
     void  DrawContextValidation::DrawMeshTasks (const uint3 &taskCount) __Th___
     {
         ASSERT( All( taskCount >= 1u ));
+        Unused( taskCount );
         GCTX_CHECK( MeshShaderSupported() );
     }
 
@@ -1075,7 +1093,7 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + drawCount * stride) <= indirectBufferDesc.size );
     }
@@ -1083,9 +1101,10 @@ namespace
     void  DrawContextValidation::DrawMeshTasksIndirect (uint drawCount, Bytes stride) __Th___
     {
         ASSERT( drawCount > 0 );
+        Unused( drawCount );
         GCTX_CHECK( MeshShaderSupported() );
         GCTX_CHECK( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -1117,13 +1136,13 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferOffset < indirectBufferDesc.size );
         GCTX_CHECK( (indirectBufferOffset + maxDrawCount * stride) <= indirectBufferDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( countBufferDesc ));
         GCTX_CHECK( AllBits( countBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( countBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( countBufferOffset, 4 ));
         GCTX_CHECK( countBufferOffset < countBufferDesc.size );
         GCTX_CHECK( (countBufferOffset + SizeOf<uint>) <= countBufferDesc.size );
     }
@@ -1131,9 +1150,10 @@ namespace
     void  DrawContextValidation::DrawMeshTasksIndirectCount (uint maxDrawCount, Bytes stride) __Th___
     {
         ASSERT( maxDrawCount > 0 );
+        Unused( maxDrawCount );
         GCTX_CHECK( MeshShaderSupported() );
         GCTX_CHECK( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-        GCTX_CHECK( IsAligned( stride, 4 ));
+        GCTX_CHECK( IsMultipleOf( stride, 4 ));
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -1289,7 +1309,7 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
     }
 
@@ -1299,12 +1319,12 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( instanceBufDesc ));
         GCTX_CHECK( AllBits( instanceBufDesc.usage, EBufferUsage::ASBuild_ReadOnly ));
-        GCTX_CHECK( IsAligned( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
+        GCTX_CHECK( IsMultipleOf( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
         GCTX_CHECK( instanceBufferOffset < instanceBufDesc.size );
     }
 
@@ -1323,7 +1343,7 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
     }
 
@@ -1338,12 +1358,12 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( instanceBufDesc ));
         GCTX_CHECK( AllBits( instanceBufDesc.usage, EBufferUsage::ASBuild_ReadOnly ));
-        GCTX_CHECK( IsAligned( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
+        GCTX_CHECK( IsMultipleOf( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
         GCTX_CHECK( instanceBufferOffset < instanceBufDesc.size );
     }
 
@@ -1378,10 +1398,10 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectStride, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectStride, 4 ));
         GCTX_CHECK( indirectStride >= SizeOf<ASBuildIndirectCommand> );
 
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferDesc.size > indirectBufferOffset );
         GCTX_CHECK( indirectBufferDesc.size >= indirectBufferOffset + indirectStride * cmd.GeometryCount() );
     }
@@ -1392,7 +1412,7 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferDesc.size > indirectBufferOffset );
         GCTX_CHECK( indirectBufferDesc.size >= indirectBufferOffset + sizeof(ASBuildIndirectCommand) );
     }
@@ -1403,12 +1423,12 @@ namespace
     {
         GCTX_CHECK( BuildIndirectSupported() );
 
-        GCTX_CHECK( IsAligned( indirectStride, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectStride, 4 ));
         GCTX_CHECK( indirectStride >= SizeOf<ASBuildIndirectCommand> );
 
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
 
     }
@@ -1421,12 +1441,12 @@ namespace
 
         GCTX_CHECK( IsDeviceMemory( scratchBufDesc ));
         GCTX_CHECK( AllBits( scratchBufDesc.usage, EBufferUsage::ASBuild_Scratch ));
-        GCTX_CHECK( IsAligned( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
+        GCTX_CHECK( IsMultipleOf( scratchBufferOffset, _GetRayTracingProps().scratchBufferAlign ));
         GCTX_CHECK( scratchBufferOffset < scratchBufDesc.size );
 
         GCTX_CHECK( IsDeviceMemory( instanceBufDesc ));
         GCTX_CHECK( AllBits( instanceBufDesc.usage, EBufferUsage::ASBuild_ReadOnly ));
-        GCTX_CHECK( IsAligned( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
+        GCTX_CHECK( IsMultipleOf( instanceBufferOffset, _GetRayTracingProps().instanceDataAlign ));
         GCTX_CHECK( instanceBufferOffset < instanceBufDesc.size );
     }
 
@@ -1470,7 +1490,7 @@ namespace
         END_ENUM_CHECKS();
 
         GCTX_CHECK( size == 8_b or size == UMax );
-        GCTX_CHECK( IsAligned( dstOffset, 8 ));
+        GCTX_CHECK( IsMultipleOf( dstOffset, 8 ));
 
         GCTX_CHECK( dstOffset < dstBufferDesc.size );
         GCTX_CHECK( (dstOffset + size) <= dstBufferDesc.size );
@@ -1491,7 +1511,7 @@ namespace
         GCTX_CHECK( property == ERTASProperty::CompactedSize );
 
         GCTX_CHECK( size == 4_b or size == UMax );
-        GCTX_CHECK( IsAligned( dstOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( dstOffset, 4 ));
         GCTX_CHECK( dstOffset < dstBufferDesc.size );
         GCTX_CHECK( (dstOffset + size) <= dstBufferDesc.size );
         GCTX_CHECK( IsDeviceMemory( dstBufferDesc ));
@@ -1512,18 +1532,20 @@ namespace
 */
     void  RayTracingContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        DEBUG_ONLY(
-            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-        )
+    #ifdef AE_DEBUG
+        GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );
+        GCTX_CHECK( Bytes{idx.dbgDataSize} == size or idx.dbgDataSize == 0 );
+    #else
+        Unused( idx, size, typeName );
+    #endif
     }
 
 # ifdef AE_ENABLE_VULKAN
     void  RayTracingContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         GCTX_CHECK( size > 0 );
-        GCTX_CHECK( IsAligned( size, 4 ));
-        GCTX_CHECK( IsAligned( offset, 4 ));
+        GCTX_CHECK( IsMultipleOf( size, 4 ));
+        GCTX_CHECK( IsMultipleOf( offset, 4 ));
         GCTX_CHECK( values != null );
         GCTX_CHECK( stages != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
@@ -1542,7 +1564,7 @@ namespace
     {
         GCTX_CHECK( ds != Default );
         GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
-        GCTX_CHECK( index.vkIndex < _GetFeatureSet().minDescriptorSets );
+        GCTX_CHECK( index.vkIndex < _GetFeatureSet().maxDescriptorSets );
     }
 # endif
 
@@ -1573,7 +1595,7 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferDesc.size >= indirectBufferOffset + sizeof(TraceRayIndirectCommand) );
     }
 
@@ -1594,7 +1616,7 @@ namespace
     {
         GCTX_CHECK( IsDeviceMemory( indirectBufferDesc ));
         GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
-        GCTX_CHECK( IsAligned( indirectBufferOffset, 4 ));
+        GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
         GCTX_CHECK( indirectBufferDesc.size >= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
 
       #ifdef AE_ENABLE_VULKAN

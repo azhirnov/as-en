@@ -17,11 +17,11 @@ void ASmain ()
     RC<Image>           cubemap_view    = cubemap.CreateView( EImage::Cube );
 
     RC<Scene>           scene           = Scene();
-    RC<FPVCamera>       camera          = FPVCamera();
-    RC<SphericalCube>   skybox          = SphericalCube();
 
     // setup camera
     {
+        RC<FPVCamera>   camera = FPVCamera();
+
         camera.ClipPlanes( 0.1f, 10.f );
         camera.FovY( 70.f );
 
@@ -29,16 +29,19 @@ void ASmain ()
         camera.ForwardBackwardScale( s );
         camera.UpDownScale( s );
         camera.SideMovementScale( s );
+
+        scene.Set( camera );
     }
 
     // setup skybox
     {
+        RC<SphericalCube>   skybox = SphericalCube();
+
         skybox.ArgIn( "un_CubeMap", cubemap_view, Sampler_LinearMipmapRepeat );
         skybox.DetailLevel( 0, 9 );
-    }
 
-    scene.Set( camera );
-    scene.Add( skybox );
+        scene.Add( skybox );
+    }
 
     // load cubemap
     {

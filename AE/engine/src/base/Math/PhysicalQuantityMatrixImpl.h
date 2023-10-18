@@ -21,7 +21,7 @@ namespace AE::Math
         STATIC_ASSERT( IsPhysicalQuantity< Quantity_t >);
 
         using Self          = PhysicalQuantityMatrix< Quantity, Columns, Rows, Q >;
-        using VQuat_t       = Quat< Value_t, Q >;
+        using VQuat_t       = TQuat< Value_t, Q >;
         using VMatrix_t     = TMatrix< Value_t,  Columns, Rows, Q >;
         using VCol_t        = typename VMatrix_t::Col_t;            // [Rows]
         using VRow_t        = typename VMatrix_t::Row_t;            // [Columns]

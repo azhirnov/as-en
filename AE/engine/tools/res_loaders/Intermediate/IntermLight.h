@@ -15,9 +15,9 @@ namespace AE::ResLoader
     {
     // types
     public:
-        enum class ELightType
+        enum class ELightType : uint
         {
-            None,
+            Unknown,
             Point,
             Spot,
             Directional,
@@ -32,7 +32,7 @@ namespace AE::ResLoader
             float3          upDirection     = {0.0f, 0.0f, 1.0f};
 
             float3          attenuation;
-            ELightType      type            = ELightType::None;
+            ELightType      type            = Default;
             bool            castShadow      = false;
 
             float3          diffuseColor;
@@ -40,6 +40,7 @@ namespace AE::ResLoader
             float3          ambientColor;
 
             float2          coneAngleInnerOuter;
+            float2          areaSize;
         };
 
 
@@ -52,6 +53,9 @@ namespace AE::ResLoader
     public:
         IntermLight ()                              __NE___ {}
         explicit IntermLight (Settings settings)    __NE___ : _settings{RVRef(settings)} {}
+
+        ND_ Settings&           Edit ()             __NE___ { return _settings; }
+        ND_ Settings const&     Get ()              C_NE___ { return _settings; }
     };
 
 

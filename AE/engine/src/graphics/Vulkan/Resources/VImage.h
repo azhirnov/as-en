@@ -20,12 +20,12 @@ namespace AE::Graphics
     {
     // variables
     private:
-        VkImage                 _image          = Default;
-        ImageDesc               _desc;
+        VkImage                     _image          = Default;
+        ImageDesc                   _desc;
 
-        VkImageAspectFlagBits   _aspectMask     = Zero;
+        VkImageAspectFlagBits       _aspectMask     = Zero;
 
-        Strong<MemoryID>        _memoryId;
+        Strong<MemoryID>            _memoryId;
 
         DEBUG_ONLY( DebugName_t     _debugName; )
         DRC_ONLY(   RWDataRaceCheck _drCheck;   )

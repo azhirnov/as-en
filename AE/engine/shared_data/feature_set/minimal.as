@@ -13,37 +13,37 @@ void ASmain ()
     fset.separateStencilMaskRef (True);
     fset.minSpirvVersion (100);
     fset.minMetalVersion (200);
-    fset.minViewports (1);
-    fset.minTexelBufferElements (64 << 10);
-    fset.minUniformBufferSize (16 << 10);
-    fset.minStorageBufferSize (64 << 10);
-    fset.perDescrSet_minInputAttachments (4);
-    fset.perDescrSet_minSampledImages (96);
-    fset.perDescrSet_minSamplers (80);
-    fset.perDescrSet_minStorageBuffers (24);
-    fset.perDescrSet_minStorageImages (24);
-    fset.perDescrSet_minUniformBuffers (72);
-    fset.perDescrSet_minTotalResources (1024);
-    fset.perStage_minInputAttachments (4);
-    fset.perStage_minSampledImages (16);
-    fset.perStage_minSamplers (16);
-    fset.perStage_minStorageBuffers (4);
-    fset.perStage_minStorageImages (4);
-    fset.perStage_minUniformBuffers (12);
-    fset.perStage_minTotalResources (44);
-    fset.minDescriptorSets (4);
-    fset.minTexelOffset (7);
-    fset.minFragmentOutputAttachments (4);
-    fset.minFragmentCombinedOutputResources (4);
-    fset.minPushConstantsSize (128);
-    fset.minComputeSharedMemorySize (16 << 10);
-    fset.minComputeWorkGroupInvocations (64);
-    fset.minComputeWorkGroupSizeX (64);
-    fset.minComputeWorkGroupSizeY (64);
-    fset.minComputeWorkGroupSizeZ (64);
+    fset.maxViewports (1);
+    fset.maxTexelBufferElements (64 << 10);
+    fset.maxUniformBufferSize (16 << 10);
+    fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxInputAttachments (4);
+    fset.perDescrSet_maxSampledImages (96);
+    fset.perDescrSet_maxSamplers (80);
+    fset.perDescrSet_maxStorageBuffers (24);
+    fset.perDescrSet_maxStorageImages (24);
+    fset.perDescrSet_maxUniformBuffers (72);
+    fset.perDescrSet_maxTotalResources (1024);
+    fset.perStage_maxInputAttachments (4);
+    fset.perStage_maxSampledImages (16);
+    fset.perStage_maxSamplers (16);
+    fset.perStage_maxStorageBuffers (4);
+    fset.perStage_maxStorageImages (4);
+    fset.perStage_maxUniformBuffers (12);
+    fset.perStage_maxTotalResources (44);
+    fset.maxDescriptorSets (4);
+    fset.maxTexelOffset (7);
+    fset.maxFragmentOutputAttachments (4);
+    fset.maxFragmentCombinedOutputResources (4);
+    fset.maxPushConstantsSize (128);
+    fset.maxComputeSharedMemorySize (16 << 10);
+    fset.maxComputeWorkGroupInvocations (64);
+    fset.maxComputeWorkGroupSizeX (64);
+    fset.maxComputeWorkGroupSizeY (64);
+    fset.maxComputeWorkGroupSizeZ (64);
     fset.computeShader (True);
-    fset.minVertexAttributes (16);
-    fset.minVertexBuffers (16);
+    fset.maxVertexAttributes (16);
+    fset.maxVertexBuffers (16);
     fset.AddVertexFormats({
         EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte4, EVertexType::UByte, 
         EVertexType::UByte2, EVertexType::UByte4, EVertexType::Short, EVertexType::Short2, 
@@ -75,7 +75,7 @@ void ASmain ()
     });
     fset.imageCubeArray (True);
     fset.multisampleArrayImage (True);
-    fset.minImageArrayLayers (256);
+    fset.maxImageArrayLayers (256);
     fset.AddTexelFormats( EFormatFeature::StorageImage, {
         EPixelFormat::RGBA8_SNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8I, EPixelFormat::RGBA16I, 
         EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::RGBA8U, 
@@ -104,8 +104,8 @@ void ASmain ()
         EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, EPixelFormat::RG16F, 
         EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5
     });
-    fset.minSamplerAnisotropy (1.00);
-    fset.minSamplerLodBias (2.00);
-    fset.minFramebufferLayers (256);
+    fset.maxSamplerAnisotropy (1.00);
+    fset.maxSamplerLodBias (2.00);
+    fset.maxFramebufferLayers (256);
     fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

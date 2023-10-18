@@ -32,8 +32,7 @@ namespace AE::Graphics
 
     private:
         template <typename K, typename V>
-        using THashMap = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, VPipelinePack::Allocator_t* >>;
-
+        using THashMap              = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, VPipelinePack::Allocator_t* >>;
         using NameToHandleAlloc_t   = StdAllocatorRef< Pair<const RayTracingGroupName::Optimized_t, uint>, VPipelinePack::Allocator_t* >;
         using NameToHandle_t        = THashMap< RayTracingGroupName::Optimized_t, uint >;   // name to index in '_groupHandles'
 
@@ -65,10 +64,10 @@ namespace AE::Graphics
 
         ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result)  C_NE___;
 
-        ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &group)  C_NE___;
+        ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &name, VkShaderGroupShaderKHR type)  C_NE___;
 
-            bool  CopyHandle (const VDevice &, const RayTracingGroupName &name, OUT void* dst, Bytes dstSize)   C_NE___;
-            bool  CopyHandle (const VDevice &, uint index, OUT void* dst, Bytes dstSize)                        C_NE___;
+            bool  CopyHandle (const VDevice &, const RayTracingGroupName &name, OUT void* dst, Bytes dstSize)               C_NE___;
+            bool  CopyHandle (const VDevice &, uint index, OUT void* dst, Bytes dstSize)                                    C_NE___;
 
         ND_ VkPipeline              Handle ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _handle; }
         ND_ VkPipelineLayout        Layout ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layout; }

@@ -103,7 +103,8 @@ namespace
         Array< PathParams2 >                _pipelines;
 
         Array< BasicString<CharType> >      _shaderFolders;
-        Array< BasicString<CharType> >      _includeDirs;
+        Array< BasicString<CharType> >      _shaderIncludeDirs;
+        Array< BasicString<CharType> >      _pplnIncludeDirs;
         EReflectionFlags                    _reflFlags      = Default;
 
         String                              _outputCppStructsFile;
@@ -152,9 +153,14 @@ namespace
             _shaderFolders.push_back( ConvertString( path ));
         }
 
-        void  AddIncludeDir (const String &path) __Th___
+        void  AddShaderIncludeDir (const String &path) __Th___
         {
-            _includeDirs.push_back( ConvertString( path ));
+            _shaderIncludeDirs.push_back( ConvertString( path ));
+        }
+
+        void  AddPipelineIncludeDir (const String &path) __Th___
+        {
+            _pplnIncludeDirs.push_back( ConvertString( path ));
         }
 
         void  SetOutputCPPFile1 (const String &structs, const String &names, uint flags) __Th___
@@ -194,7 +200,8 @@ namespace
             const auto  pipeline_folders        = ConvertArray( _pipelineFolders );
             const auto  pipelines               = ConvertArray( _pipelines );
             const auto  shader_folders          = ConvertArray( _shaderFolders );
-            const auto  include_dirs            = ConvertArray( _includeDirs );
+            const auto  shader_include_dirs     = ConvertArray( _shaderIncludeDirs );
+            const auto  ppln_include_dirs       = ConvertArray( _pplnIncludeDirs );
 
             PipelinesInfo   info = {};
 
@@ -208,9 +215,13 @@ namespace
             info.shaderFolders          = shader_folders.data();
             info.shaderFolderCount      = shader_folders.size();
 
-            // include directories
-            info.includeDirs            = include_dirs.data();
-            info.includeDirCount        = include_dirs.size();
+            // shader include directories
+            info.shaderIncludeDirs      = shader_include_dirs.data();
+            info.shaderIncludeDirCount  = shader_include_dirs.size();
+
+            // pipeline include directories
+            info.pipelineIncludeDirs    = ppln_include_dirs.data();
+            info.pipelineIncludeDirCount= ppln_include_dirs.size();
 
             // output
             info.outputPackName         = output_pack_name.c_str();
@@ -225,7 +236,8 @@ namespace
             _pipelineFolders.clear();
             _pipelines.clear();
             _shaderFolders.clear();
-            _includeDirs.clear();
+            _shaderIncludeDirs.clear();
+            _pplnIncludeDirs.clear();
         }
     };
 
@@ -322,7 +334,7 @@ namespace
 
         void  SetTempFile (const String &fileName) __Th___
         {
-            CHECK_THROW_MSG( not FileSystem::Exists( fileName ) or
+            CHECK_THROW_MSG( not FileSystem::IsDirectory( fileName ) or
                              FileSystem::IsFile( fileName ));
 
             const Path  path {fileName};
@@ -411,7 +423,7 @@ namespace
 
         void  SetTempFile (const String &fileName) __Th___
         {
-            CHECK_THROW_MSG( not FileSystem::Exists( fileName ) or
+            CHECK_THROW_MSG( not FileSystem::IsDirectory( fileName ) or
                              FileSystem::IsFile( fileName ));
 
             const Path  path {fileName};
@@ -517,19 +529,20 @@ namespace
         {
             ClassBinder<ScriptPipelineCompiler>     binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,   "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder2,  "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder3,  "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,         "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline2,        "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline3,        "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,     "AddShaderFolder"           );
-            binder.AddMethod( &ScriptPipelineCompiler::AddIncludeDir,       "IncludeDir"                );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,       "AddPipelineFolder"         );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder2,      "AddPipelineFolder"         );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder3,      "AddPipelineFolder"         );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,             "AddPipeline"               );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline2,            "AddPipeline"               );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline3,            "AddPipeline"               );
+            binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,         "AddShaderFolder"           );
+            binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,     "ShaderIncludeDir"          );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,   "PipelineIncludeDir"        );
 
-            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,   "SetOutputCPPFile"          );
-            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,   "SetOutputCPPFile"          );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile1,            "Compile"                   );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile4,            "CompileWithNameMapping"    );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,       "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,       "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::Compile1,                "Compile"                   );
+            binder.AddMethod( &ScriptPipelineCompiler::Compile4,                "CompileWithNameMapping"    );
         }
 
         // input actions
@@ -545,24 +558,24 @@ namespace
         {
             ClassBinder<ScriptAssetPacker>      binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptAssetPacker::Add,          "Add"           );
-            binder.AddMethod( &ScriptAssetPacker::AddFolder,    "AddFolder"     );
-            binder.AddMethod( &ScriptAssetPacker::SetTempFile,  "SetTempFile"   );
-            binder.AddMethod( &ScriptAssetPacker::ToArchive,    "ToArchive"     );
+            binder.AddMethod( &ScriptAssetPacker::Add,                  "Add"               );
+            binder.AddMethod( &ScriptAssetPacker::AddFolder,            "AddFolder"         );
+            binder.AddMethod( &ScriptAssetPacker::SetTempFile,          "SetTempFile"       );
+            binder.AddMethod( &ScriptAssetPacker::ToArchive,            "ToArchive"         );
         }
 
         // archive
         {
             ClassBinder<ScriptArchive>      binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptArchive::SetTempFile,          "SetTempFile"       );
-            binder.AddMethod( &ScriptArchive::SetDefaultFileType,   "SetDefaultFileType");
-            binder.AddMethod( &ScriptArchive::Add1,                 "Add"               );
-            binder.AddMethod( &ScriptArchive::Add2,                 "Add"               );
-            binder.AddMethod( &ScriptArchive::Add3,                 "Add"               );
-            binder.AddMethod( &ScriptArchive::Add4,                 "Add"               );
-            binder.AddMethod( &ScriptArchive::AddArchive,           "AddArchive"        );
-            binder.AddMethod( &ScriptArchive::Store,                "Store"             );
+            binder.AddMethod( &ScriptArchive::SetTempFile,              "SetTempFile"       );
+            binder.AddMethod( &ScriptArchive::SetDefaultFileType,       "SetDefaultFileType");
+            binder.AddMethod( &ScriptArchive::Add1,                     "Add"               );
+            binder.AddMethod( &ScriptArchive::Add2,                     "Add"               );
+            binder.AddMethod( &ScriptArchive::Add3,                     "Add"               );
+            binder.AddMethod( &ScriptArchive::Add4,                     "Add"               );
+            binder.AddMethod( &ScriptArchive::AddArchive,               "AddArchive"        );
+            binder.AddMethod( &ScriptArchive::Store,                    "Store"             );
         }
     }
 

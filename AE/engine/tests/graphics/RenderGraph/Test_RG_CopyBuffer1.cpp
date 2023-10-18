@@ -13,7 +13,7 @@ namespace
         AsyncTask                   result;
         CommandBatchPtr             batch;
         bool                        isOK        = false;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
 
@@ -42,7 +42,7 @@ namespace
             ctx.AccumBarriers()
                 .BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
-            t.result = AsyncTask{ ctx.ReadbackBuffer( t.buf_2, 0_b, t.buf_size )
+            t.result = AsyncTask{ ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ))
                         .Then( [p = &t] (const BufferMemView &view)
                                 {
                                     p->isOK = (view == ArrayView<ubyte>{ p->buffer_data });
@@ -64,7 +64,7 @@ namespace
         EMemoryType     host_mem    = Default;
         CB1_TestData    t;
 
-        t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         if ( res_mngr.IsSupported( EMemoryType::HostCached ))
             host_mem = EMemoryType::HostCached;

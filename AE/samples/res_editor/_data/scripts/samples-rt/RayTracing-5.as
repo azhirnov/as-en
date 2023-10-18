@@ -121,7 +121,7 @@
         {
             const int   prim_count = un_Triangles.indices.length() / 3;
 
-            un_IndirectCmd.primitiveCount =
+            un_IndirectCmd.elements[0].primitiveCount =
                 Clamp( int(Abs(Sin(un_PerPass.time * 0.5)) * prim_count + 0.5), 1, prim_count );
         }
     }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "res_editor/Passes/Postprocess.h"
+#include "res_editor/Passes/RayTracingPass.h"
 #include "res_editor/GeomSource/IGeomSource.h"
 
 namespace AE::ResEditor
@@ -59,6 +60,7 @@ namespace AE::ResEditor
 
         RenderPassDesc          _rpDesc;
         float2                  _depthRange         {0.f, 1.f};
+        ERenderLayer            _renderLayer;
 
         ResourceArray           _resources;         // per pass
         RenderTargets_t         _renderTargets;
@@ -67,12 +69,6 @@ namespace AE::ResEditor
         PerFrameDescSet_t       _descSets;
         DescSetBinding          _dsIndex;
 
-        RC<IController>         _controller;
-        Constants               _shConst;
-
-        String                  _dbgName;
-        RGBA8u                  _dbgColor;
-
 
     // methods
     public:
@@ -80,12 +76,59 @@ namespace AE::ResEditor
         ~SceneGraphicsPass ();
 
     // IPass //
-        EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
-        RC<IController> GetController ()                                    C_NE_OV { return _controller; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
-        bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
-        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
+        EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
+        bool        Execute (SyncPassData &)                            __Th_OV;
+        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
+    };
+
+
+
+    //
+    // Scene Ray Tracing Pass
+    //
+    class SceneRayTracingPass final : public IPass
+    {
+        friend class ScriptSceneRayTracingPass;
+
+    // types
+    private:
+        using Materials_t   = Array< RC<IGSMaterials> >;
+        using Iterations_t  = Array< RayTracingPass::Iteration >;
+
+
+    // variables
+    private:
+        RTechInfo               _rtech;
+
+        RayTracingPipelineID    _pipeline;
+        RTShaderBindingID       _sbt;
+
+        Iterations_t            _iterations;
+
+        RC<SceneData>           _scene;
+
+        ResourceArray           _resources;
+
+        PerFrameDescSet_t       _passDescSets;
+        PerFrameDescSet_t       _objDescSets;
+
+        Strong<BufferID>        _ubuffer;
+
+        DescSetBinding          _passDSIndex;
+        DescSetBinding          _objDSIndex;
+
+
+    // methods
+    public:
+        SceneRayTracingPass () {}
+        ~SceneRayTracingPass ();
+
+    // IPass //
+        EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
+        bool        Execute (SyncPassData &)                            __Th_OV;
+        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 

@@ -380,9 +380,6 @@ namespace {
             if ( Any( old_size != window->_surfSize ))
             {
                 window->_surface.ResizeSwapchain();
-
-                if_likely( window->_listener )
-                    window->_listener->OnResize( *window, window->_surfSize );
             }
 
             window->_input.SetMonitor( window->_surfSize, window->GetMonitor() );
@@ -435,9 +432,6 @@ namespace {
             window->_App().BeforeUpdate();
 
             window->_input.Update( window->_App().GetTimeSinceStart() );
-
-            if_likely( window->_listener )
-                window->_listener->OnUpdate( *window );
 
             window->_App().AfterUpdate();
             return 1000 / 240;  // TODO: framerate

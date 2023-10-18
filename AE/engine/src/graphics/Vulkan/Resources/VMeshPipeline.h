@@ -40,7 +40,6 @@ namespace AE::Graphics
         ushort3                     _taskLocalSize;
         EPipelineDynamicState       _dynamicState           = Default;
         EPipelineOpt                _options                = Default;
-        //bool                      _earlyFragmentTests     = true;
         ubyte                       _subpassIndex           = UMax;
 
         Strong<PipelineLayoutID>    _layoutId;
@@ -66,7 +65,6 @@ namespace AE::Graphics
         ND_ VkPipelineBindPoint     BindPoint ()                    C_NE___ { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
         ND_ PipelineLayoutID        LayoutID ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
         ND_ EPipelineDynamicState   DynamicState ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-        //ND_ bool                  IsEarlyFragmentTests ()         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
         ND_ uint                    RenderPassSubpassIndex ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
 
         ND_ uint3                   TaskLocalSize ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }

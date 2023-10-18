@@ -33,8 +33,6 @@ namespace AE::Threading
 
 
     private:
-        using DefaultAlloc_t    = AllocatorImpl< UntypedAllocator >;
-
         static constexpr uint   _MaxFrames = FrameUID::MaxFramesLimit();
 
 
@@ -71,8 +69,6 @@ namespace AE::Threading
         FrameAlloc                      _graphicsFrameAlloc;
         FrameAlloc                      _simulationFrameAlloc;
 
-        InPlace<DefaultAlloc_t>         _defaultAlloc;
-
         PROFILE_ONLY(
             AtomicRC<IMemoryProfiler>   _profiler;
         )
@@ -86,8 +82,6 @@ namespace AE::Threading
 
         ND_ FrameAlloc&                 GetGraphicsFrameAllocator ()    __NE___ { return _graphicsFrameAlloc; }
         ND_ FrameAlloc&                 GetSimulationFrameAllocator ()  __NE___ { return _simulationFrameAlloc; }
-
-        ND_ RC<IAllocator>              GetDefaultAllocator ()          __NE___ { return _defaultAlloc->GetRC(); }
 
 
     private:

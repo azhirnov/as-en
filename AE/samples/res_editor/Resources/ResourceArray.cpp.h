@@ -40,6 +40,11 @@ namespace AE::ResEditor
                 [&] (const RC<VideoImage> &video) {
                     ctx.ResourceState( video->GetImageId(), state );
                 },
+                [&] (const Array<RC<Image>> &arr) {
+                    for (auto& img : arr) {
+                        ctx.ResourceState( img->GetImageId(), state );
+                    }
+                },
                 [](NullUnion) {}
             );
         }
@@ -56,22 +61,29 @@ namespace AE::ResEditor
         {
             auto&   un  = in_un;
             CHECK_ERR( Visit( res,
-                            [&] (const RC<Buffer> &buf) {
-                                return updater.BindBuffer( un, buf->GetBufferId( fid ));
-                            },
-                            [&] (const RC<RTScene> &scene) {
-                                return updater.BindRayTracingScene( un, scene->GetSceneId( fid ));
-                            },
-                            [&] (const RC<Image> &img) {
-                                return updater.BindImage( un, img->GetViewId() );
-                            },
-                            [&] (const RC<VideoImage> &video) {
-                                return updater.BindImage( un, video->GetViewId() );
-                            },
-                            [](NullUnion) {
-                                    return true;
-                            }
-                        ));
+                [&] (const RC<Buffer> &buf) {
+                    return updater.BindBuffer( un, buf->GetBufferId( fid ));
+                },
+                [&] (const RC<RTScene> &scene) {
+                    return updater.BindRayTracingScene( un, scene->GetSceneId( fid ));
+                },
+                [&] (const RC<Image> &img) {
+                    return updater.BindImage( un, img->GetViewId() );
+                },
+                [&] (const RC<VideoImage> &video) {
+                    return updater.BindImage( un, video->GetViewId() );
+                },
+                [&] (const Array<RC<Image>> &arr) {
+                    bool    res = true;
+                    for (usize i : IndicesOnly( arr )) {
+                        res &= updater.BindImage( un, arr[i]->GetViewId(), uint(i) );
+                    }
+                    return res;
+                },
+                [](NullUnion) {
+                    return true;
+                }
+            ));
         }
         return true;
     }
@@ -87,20 +99,26 @@ namespace AE::ResEditor
         {
             Visit( res,
                 [&] (const RC<Buffer> &buf) {
-                    if ( buf->RequireResize() )
+                    if_unlikely( buf->RequireResize() )
                         result.push_back( buf );
                 },
                 [&] (const RC<RTScene> &scene) {
-                    if ( scene->RequireResize() )
+                    if_unlikely( scene->RequireResize() )
                         result.push_back( scene );
                 },
                 [&] (const RC<Image> &img) {
-                    if ( img->RequireResize() )
+                    if_unlikely( img->RequireResize() )
                         result.push_back( img );
                 },
                 [&] (const RC<VideoImage> &video) {
-                    if ( video->RequireResize() )
+                    if_unlikely( video->RequireResize() )
                         result.push_back( video );
+                },
+                [&] (const Array<RC<Image>> &arr) {
+                    for (auto& img : arr) {
+                        if_unlikely( img->RequireResize() )
+                            result.push_back( img );
+                    }
                 },
                 [](NullUnion) {
                 }

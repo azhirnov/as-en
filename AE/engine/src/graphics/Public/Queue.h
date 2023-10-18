@@ -41,6 +41,7 @@ namespace AE::Graphics
     {
         Host,
         Graphics,
+        FramebufferLocal,
         Compute,
         Transfer_Graphics,  // blit, clear, resolve requires graphics queue, include Transfer_Copy
         Transfer_Copy,      // for async transfer queue

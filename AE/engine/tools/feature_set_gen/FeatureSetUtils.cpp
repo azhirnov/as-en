@@ -365,26 +365,26 @@ namespace
     {
         if ( name == "\"perDescrSet\"" )
         {
-            prev.minInputAttachments= FS_ParseJSON( 0u,     json, "maxDescriptorSetInputAttachments" );
-            prev.minSampledImages   = FS_ParseJSON( 0u,     json, "maxDescriptorSetSampledImages" );
-            prev.minSamplers        = FS_ParseJSON( 0u,     json, "maxDescriptorSetSamplers" );
-            prev.minStorageBuffers  = FS_ParseJSON( 0u,     json, "maxDescriptorSetStorageBuffers" );
-            prev.minStorageImages   = FS_ParseJSON( 0u,     json, "maxDescriptorSetStorageImages" );
-            prev.minUniformBuffers  = FS_ParseJSON( 0u,     json, "maxDescriptorSetUniformBuffers" );
-            prev.minAccelStructures = FS_ParseJSON( 0u,     json, "maxDescriptorSetAccelerationStructures" );
-            prev.minTotalResources  = FS_ParseJSON( 1024u,  json, "maxPerSetDescriptors" );
+            prev.maxInputAttachments= FS_ParseJSON( 0u,     json, "maxDescriptorSetInputAttachments" );
+            prev.maxSampledImages   = FS_ParseJSON( 0u,     json, "maxDescriptorSetSampledImages" );
+            prev.maxSamplers        = FS_ParseJSON( 0u,     json, "maxDescriptorSetSamplers" );
+            prev.maxStorageBuffers  = FS_ParseJSON( 0u,     json, "maxDescriptorSetStorageBuffers" );
+            prev.maxStorageImages   = FS_ParseJSON( 0u,     json, "maxDescriptorSetStorageImages" );
+            prev.maxUniformBuffers  = FS_ParseJSON( 0u,     json, "maxDescriptorSetUniformBuffers" );
+            prev.maxAccelStructures = FS_ParseJSON( 0u,     json, "maxDescriptorSetAccelerationStructures" );
+            prev.maxTotalResources  = FS_ParseJSON( 1024u,  json, "maxPerSetDescriptors" );
         }
         else
         if ( name == "\"perStage\"" )
         {
-            prev.minInputAttachments= FS_ParseJSON( 0u, json, "maxPerStageDescriptorInputAttachments" );
-            prev.minSampledImages   = FS_ParseJSON( 0u, json, "maxPerStageDescriptorSampledImages" );
-            prev.minSamplers        = FS_ParseJSON( 0u, json, "maxPerStageDescriptorSamplers" );
-            prev.minStorageBuffers  = FS_ParseJSON( 0u, json, "maxPerStageDescriptorStorageBuffers" );
-            prev.minStorageImages   = FS_ParseJSON( 0u, json, "maxPerStageDescriptorStorageImages" );
-            prev.minUniformBuffers  = FS_ParseJSON( 0u, json, "maxPerStageDescriptorUniformBuffers" );
-            prev.minAccelStructures = FS_ParseJSON( 0u, json, "maxPerStageDescriptorAccelerationStructures" );
-            prev.minTotalResources  = FS_ParseJSON( 0u, json, "maxPerStageResources" );
+            prev.maxInputAttachments= FS_ParseJSON( 0u, json, "maxPerStageDescriptorInputAttachments" );
+            prev.maxSampledImages   = FS_ParseJSON( 0u, json, "maxPerStageDescriptorSampledImages" );
+            prev.maxSamplers        = FS_ParseJSON( 0u, json, "maxPerStageDescriptorSamplers" );
+            prev.maxStorageBuffers  = FS_ParseJSON( 0u, json, "maxPerStageDescriptorStorageBuffers" );
+            prev.maxStorageImages   = FS_ParseJSON( 0u, json, "maxPerStageDescriptorStorageImages" );
+            prev.maxUniformBuffers  = FS_ParseJSON( 0u, json, "maxPerStageDescriptorUniformBuffers" );
+            prev.maxAccelStructures = FS_ParseJSON( 0u, json, "maxPerStageDescriptorAccelerationStructures" );
+            prev.maxTotalResources  = FS_ParseJSON( 0u, json, "maxPerStageResources" );
         }
         else
         {
@@ -1035,46 +1035,19 @@ namespace
         }
 
         const HashMap<StringView, StringView>   replace_names = {
-            { "minSubsampledArrayLayers",           "maxSubsampledArrayLayers"              },
-            { "minDescriptorSetSubsampledSamplers", "maxDescriptorSetSubsampledSamplers"    },
-            { "minTexelBufferElements",             "maxTexelBufferElements"                },
-            { "minUniformBufferSize",               "maxUniformBufferRange"                 },
-            { "minStorageBufferSize",               "maxStorageBufferRange"                 },
-            { "minDescriptorSets",                  "maxBoundDescriptorSets"                },
-            { "minFragmentOutputAttachments",       "maxFragmentOutputAttachments"          },
-            { "minFragmentDualSrcAttachments",      "maxFragmentDualSrcAttachments"         },
-            { "minFragmentCombinedOutputResources", "maxFragmentCombinedOutputResources"    },
-            { "minPushConstantsSize",               "maxPushConstantsSize"                  },
-            { "minComputeSharedMemorySize",         "maxComputeSharedMemorySize"            },
-            { "minComputeWorkGroupInvocations",     "maxComputeWorkGroupInvocations"        },
-            { "minTaskOutputCount",                 "maxTaskOutputCount"                    },
-            { "minTaskTotalMemorySize",             "maxTaskTotalMemorySize"                },
-            { "minTaskWorkGroupInvocations",        "maxTaskWorkGroupInvocations"           },
-            { "minMeshTotalMemorySize",             "maxMeshTotalMemorySize"                },
-            { "minMeshOutputVertices",              "maxMeshOutputVertices"                 },
-            { "minMeshOutputPrimitives",            "maxMeshOutputPrimitives"               },
-            { "minMeshMultiviewViewCount",          "maxMeshMultiviewViewCount"             },
-            { "minMeshWorkGroupInvocations",        "maxMeshWorkGroupInvocations"           },
-            { "imageViewMinLod",                    "minLod"                                },
-            { "minImageArrayLayers",                "maxImageArrayLayers"                   },
-            { "minSamplerAnisotropy",               "maxSamplerAnisotropy"                  },
-            { "minSamplerLodBias",                  "maxSamplerLodBias"                     },
-            { "minFramebufferLayers",               "maxFramebufferLayers"                  },
-            { "subgroupOperations",                 "subgroupSupportedOperations"           },
-            { "subgroupStages",                     "subgroupSupportedStages"               },
-            { "minRayRecursionDepth",               "maxRayRecursionDepth"                  },
-            { "minMultiviewViewCount",              "maxMultiviewViewCount"                 },
-            { "minViewports",                       "maxViewports"                          },
-            { "subgroupTypes",                      "shaderSubgroupExtendedTypes"           },
-            { "subgroupQuadStages",                 "subgroupQuadOperationsInAllStages"     },
-            { "taskShaderNV",                       "taskShader"                            },
-            { "meshShaderNV",                       "meshShader"                            },
-            { "subgroupSizeStages",                 "requiredSubgroupSizeStages"            },
-            { "minTexelOffset",                     "maxTexelOffset"                        },
-            { "minTexelGatherOffset",               "maxTexelGatherOffset"                  },
-            { "minVertexAttributes",                "maxVertexInputAttributes"              },
-            { "minVertexBuffers",                   "maxVertexInputBindings"                },
-            { "minVertexAttribDivisor",             "maxVertexAttribDivisor"                }
+            { "maxUniformBufferSize",                   "maxUniformBufferRange"                 },
+            { "maxStorageBufferSize",                   "maxStorageBufferRange"                 },
+            { "maxDescriptorSets",                      "maxBoundDescriptorSets"                },
+            { "imageViewMinLod",                        "minLod"                                },
+            { "subgroupOperations",                     "subgroupSupportedOperations"           },
+            { "subgroupStages",                         "subgroupSupportedStages"               },
+            { "subgroupTypes",                          "shaderSubgroupExtendedTypes"           },
+            { "subgroupQuadStages",                     "subgroupQuadOperationsInAllStages"     },
+            { "subgroupSizeStages",                     "requiredSubgroupSizeStages"            },
+            { "maxVertexAttributes",                    "maxVertexInputAttributes"              },
+            { "maxVertexBuffers",                       "maxVertexInputBindings"                },
+            { "maxMeshOutputPerVertexGranularity",      "meshOutputPerVertexGranularity"        },
+            { "maxMeshOutputPerPrimitiveGranularity",   "meshOutputPerPrimitiveGranularity"     }
         };
 
         const auto  ReplaceName = [&replace_names] (StringView key)
@@ -1106,7 +1079,7 @@ namespace
                 outFeatureSet.maxSubgroupSize   = CheckCast<ushort>(subgroup_size);
             }
 
-            outFeatureSet.minShaderVersion.spirv    = ver >= Version2{1,2}                      ? 150 :
+            outFeatureSet.maxShaderVersion.spirv    = ver >= Version2{1,2}                      ? 150 :
                                                       HasSubString( json, "VK_KHR_spirv_1_4" )  ? 140 :
                                                       ver >= Version2{1,1}                      ? 130 : 100;
 
@@ -1146,7 +1119,7 @@ namespace
         {
             int min_off = 0;
             min_off = FS_ParseJSON( min_off, json, "\"minTexelOffset\"" );
-            outFeatureSet.minTexelOffset = CheckCast<ushort>(Min( outFeatureSet.minTexelOffset, Abs(min_off)-1 ));
+            outFeatureSet.maxTexelOffset = CheckCast<ushort>(Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
         }
 
         // minTexelGatherOffset
@@ -1155,7 +1128,7 @@ namespace
             min_off = FS_ParseJSON( min_off, json, "\"minTexelGatherOffset\"" );
             min_off = Abs(min_off);
             min_off += min_off != 0 ? -1 : 0;
-            outFeatureSet.minTexelGatherOffset = CheckCast<ushort>(Min( outFeatureSet.minTexelGatherOffset, min_off ));
+            outFeatureSet.maxTexelGatherOffset = CheckCast<ushort>(Min( outFeatureSet.maxTexelGatherOffset, min_off ));
         }
 
         // compute shader
@@ -1163,16 +1136,16 @@ namespace
             Array<StringView>   tokens = FS_ParseJSON_N( json, "\"maxComputeWorkGroupSize\"" );
             if ( tokens.size() == 7 and tokens.front() == "[" )
             {
-                outFeatureSet.minComputeWorkGroupSizeX = StringToUInt( tokens[1] );
-                outFeatureSet.minComputeWorkGroupSizeY = StringToUInt( tokens[3] );
-                outFeatureSet.minComputeWorkGroupSizeZ = StringToUInt( tokens[5] );
+                outFeatureSet.maxComputeWorkGroupSizeX = StringToUInt( tokens[1] );
+                outFeatureSet.maxComputeWorkGroupSizeY = StringToUInt( tokens[3] );
+                outFeatureSet.maxComputeWorkGroupSizeZ = StringToUInt( tokens[5] );
             }
             else
             {
                 CHECK( tokens.empty() );
-                outFeatureSet.minComputeWorkGroupSizeX = outFeatureSet.minComputeWorkGroupInvocations;
-                outFeatureSet.minComputeWorkGroupSizeY = outFeatureSet.minComputeWorkGroupInvocations;
-                outFeatureSet.minComputeWorkGroupSizeZ = outFeatureSet.minComputeWorkGroupInvocations;
+                outFeatureSet.maxComputeWorkGroupSizeX = outFeatureSet.maxComputeWorkGroupInvocations;
+                outFeatureSet.maxComputeWorkGroupSizeY = outFeatureSet.maxComputeWorkGroupInvocations;
+                outFeatureSet.maxComputeWorkGroupSizeZ = outFeatureSet.maxComputeWorkGroupInvocations;
             }
         }
 
@@ -1328,14 +1301,14 @@ namespace
             str << "\tfset." << name << "_" << valName << " (" << ToString(value) << ");\n";
         }};
 
-        ValToStr( "minInputAttachments",    val.minInputAttachments );
-        ValToStr( "minSampledImages",       val.minSampledImages );
-        ValToStr( "minSamplers",            val.minSamplers );
-        ValToStr( "minStorageBuffers",      val.minStorageBuffers );
-        ValToStr( "minStorageImages",       val.minStorageImages );
-        ValToStr( "minUniformBuffers",      val.minUniformBuffers );
-        ValToStr( "minAccelStructures",     val.minAccelStructures );
-        ValToStr( "minTotalResources",      val.minTotalResources );
+        ValToStr( "maxInputAttachments",    val.maxInputAttachments );
+        ValToStr( "maxSampledImages",       val.maxSampledImages );
+        ValToStr( "maxSamplers",            val.maxSamplers );
+        ValToStr( "maxStorageBuffers",      val.maxStorageBuffers );
+        ValToStr( "maxStorageImages",       val.maxStorageImages );
+        ValToStr( "maxUniformBuffers",      val.maxUniformBuffers );
+        ValToStr( "maxAccelStructures",     val.maxAccelStructures );
+        ValToStr( "maxTotalResources",      val.maxTotalResources );
 
         CHECK( name == "perDescrSet" or name == "perStage" );
     }
@@ -1463,12 +1436,12 @@ namespace
 
         str << "\tfset." << name << "(ESubgroupTypes(";
 
-        while ( val != Default )
+        for (auto t : BitfieldIterate( val ))
         {
             str << "\n\t\tESubgroupTypes::";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT val ))
+            switch ( t )
             {
                 case ESubgroupTypes::Float32 :  str << "Float32";   break;
                 case ESubgroupTypes::Int32 :    str << "Int32";     break;
@@ -1525,9 +1498,9 @@ namespace
             str << "\n\t\tEShaderStages::AllRayTracing | ";
         }
 
-        while ( val != Default )
+        for (auto t : BitIndexIterate<EShader>( val ))
         {
-            str << "\n\t\tEShaderStages::" << ToString( ExtractBitLog2<EShader>( INOUT val )) << " | ";
+            str << "\n\t\tEShaderStages::" << ToString( t ) << " | ";
         }
 
         str.pop_back();
@@ -1686,7 +1659,7 @@ namespace
     FS_ToString (ShadingRateSet_t)
 =================================================
 */
-    static void  FS_ToString (INOUT String &str, const FeatureSet::ShadingRateSet_t &val, StringView)
+    static void  FS_ToString (INOUT String &, const FeatureSet::ShadingRateSet_t &, StringView)
     {
     }
 

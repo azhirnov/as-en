@@ -13,6 +13,8 @@ namespace AE::Graphics
     {
         CHECK_ERR( image != Default );
         CHECK_ERR( desc.memType != Default );
+        ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
+                    "Dedicated allocation is not supported" );
 
         auto&   dev = RenderTaskScheduler().GetDevice();
 
@@ -22,9 +24,14 @@ namespace AE::Graphics
 
         mem_req.alignment = Max( mem_req.alignment, VkDeviceSize(VImage::GetMemoryAlignment( dev, desc )) );
 
+        mem_req.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
+        CHECK_ERR( mem_req.memoryTypeBits != 0 );
+
         // allocate memory
         auto&   mem_data = _CastStorage( data );
-        CHECK_ERR( _Allocate( mem_req, desc.memType, false, true, OUT mem_data ));
+        CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
+                              False{"no shaderAddress"}, True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
+                              OUT mem_data ));
 
         // bind image to memory
         auto    err = dev.vkBindImageMemory( dev.GetVkDevice(), image, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -49,6 +56,8 @@ namespace AE::Graphics
 
         CHECK_ERR( buffer != Default );
         CHECK_ERR( desc.memType != Default );
+        ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
+                    "Dedicated allocation is not supported" );
 
         auto&   dev = RenderTaskScheduler().GetDevice();
 
@@ -58,9 +67,14 @@ namespace AE::Graphics
 
         mem_req.alignment = Max( mem_req.alignment, VkDeviceSize(VBuffer::GetMemoryAlignment( dev, desc )) );
 
+        mem_req.memoryTypeBits &= dev.GetMemoryTypeBits( desc.memType );
+        CHECK_ERR( mem_req.memoryTypeBits != 0 );
+
         // allocate memory
         auto&   mem_data = _CastStorage( data );
-        CHECK_ERR( _Allocate( mem_req, desc.memType, AnyBits( desc.usage, dev_addr_mask ), false, OUT mem_data ));
+        CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
+                              Bool{AnyBits( desc.usage, dev_addr_mask )}, False{"buffer"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
+                              OUT mem_data ));
 
         // bind buffer to memory
         auto    err = dev.vkBindBufferMemory( dev.GetVkDevice(), buffer, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -87,6 +101,7 @@ namespace AE::Graphics
         // get memory requirements
         VkVideoSessionMemoryRequirementsKHR     mem_reqs [VConfig::MaxVideoMaxReq]  = {};
         uint                                    count                               = VConfig::MaxVideoMaxReq;
+        const uint                              membits_mask                        = dev.GetMemoryTypeBits( memType );
 
         VK_CHECK_ERR( dev.vkGetVideoSessionMemoryRequirementsKHR( dev.GetVkDevice(), videoSession, INOUT &count, OUT mem_reqs ));
         CHECK_ERR( count > 0 and count <= CountOf(mem_reqs) );
@@ -96,8 +111,14 @@ namespace AE::Graphics
         uint    i;
         bool    ok = true;
 
-        for (i = 0; ok & (i < count); ++i) {
-            ok = _Allocate( mem_reqs[i].memoryRequirements, memType, false, false, OUT _CastStorage( data[i] ));
+        for (i = 0; ok & (i < count); ++i)
+        {
+            ok = (mem_reqs[i].memoryRequirements.memoryTypeBits &= membits_mask) != 0;
+            if ( not ok ) continue;
+
+            ok = _Allocate( dev, Bytes{mem_reqs[i].memoryRequirements.size}, Bytes{mem_reqs[i].memoryRequirements.alignment},
+                            mem_reqs[i].memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
+                            False{"buffer"}, False{"map mem"}, OUT _CastStorage( data[i] ));
         }
 
         if_unlikely( not ok )
@@ -151,6 +172,8 @@ namespace AE::Graphics
         const uint  plane_count = EPixelFormat_PlaneCount( desc.format );
         CHECK_ERR( plane_count >= 0 and plane_count <= max_planes );
 
+        const uint  membits_mask = dev.GetMemoryTypeBits( desc.memType );
+
         if ( plane_count == 0 )
         {
             data.resize( 1 );
@@ -159,9 +182,16 @@ namespace AE::Graphics
             VkMemoryRequirements    mem_req = {};
             dev.vkGetImageMemoryRequirements( dev.GetVkDevice(), image, OUT &mem_req );
 
+            //mem_req.alignment = Max( mem_req.alignment, VkDeviceSize(VImage::GetMemoryAlignment( dev, desc )) );  // TODO
+
+            mem_req.memoryTypeBits &= membits_mask;
+            CHECK_ERR( mem_req.memoryTypeBits != 0 );
+
             // allocate memory
             auto&   mem_data = _CastStorage( data[0] );
-            CHECK_ERR( _Allocate( mem_req, desc.memType, false, true, OUT mem_data ));
+            CHECK_ERR( _Allocate( dev, Bytes{mem_req.size}, Bytes{mem_req.alignment}, mem_req.memoryTypeBits,
+                                  False{"no shaderAddress"}, True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )},
+                                  OUT mem_data ));
 
             // bind image to memory
             auto    err = dev.vkBindImageMemory( dev.GetVkDevice(), image, _GetMemory(mem_data), VkDeviceSize(_GetOffset(mem_data)) );
@@ -209,9 +239,16 @@ namespace AE::Graphics
 
                 dev.vkGetImageMemoryRequirements2KHR( dev.GetVkDevice(), &mem_info, OUT &mem_req );
 
+                //mem_req.alignment = Max( mem_req.alignment, VkDeviceSize(VImage::GetMemoryAlignment( dev, desc )) );  // TODO
+
+                ok = (mem_req.memoryRequirements.memoryTypeBits &= membits_mask) != 0;
+                if ( not ok ) continue;
+
                 // allocate memory
                 auto&   mem_data = _CastStorage( data[plane] );
-                ok = _Allocate( mem_req.memoryRequirements, desc.memType, false, true, OUT mem_data );
+                ok = _Allocate( dev, Bytes{mem_req.memoryRequirements.size}, Bytes{mem_req.memoryRequirements.alignment},
+                                mem_req.memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
+                                True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )}, OUT mem_data );
 
                 auto&   bind_info   = bind_infos [plane];
                 auto&   plane_info  = bind_plane_info [plane];

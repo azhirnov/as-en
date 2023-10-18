@@ -2,10 +2,10 @@
 /*
     file format:
 
-        uint    hash                (InputActions_Name)
+        uint    magic               (InputActions_Name)
         uint    count
 
-        uint    hash    [count]     (InputActionsAndroid_Name, InputActionsGLFW_Name, InputActionsWinAPI_Name, ...)
+        uint    magic   [count]     (InputActionsAndroid_Name, InputActionsGLFW_Name, InputActionsWinAPI_Name, ...)
         uint    offset  [count]     offsets to data for deserialization, use 'SerializableInputActions'.
 */
 

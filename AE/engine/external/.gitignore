@@ -23,6 +23,9 @@
 /shared/Brotli/build
 /shared/Brotli/temp
 
+/shared/CDT/build
+/shared/CDT/temp
+
 /shared/FreeType/build
 /shared/FreeType/temp
 

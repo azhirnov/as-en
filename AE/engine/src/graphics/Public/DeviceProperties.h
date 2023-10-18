@@ -144,8 +144,12 @@ namespace AE::Graphics
     {
         Bytes   deviceUsage;        // VRAM used by process
         Bytes   deviceAvailable;    // VRAM totally available (used and free)
+
         Bytes   hostUsage;          // RAM used by GPU process
         Bytes   hostAvailable;      // RAM totally available (used and free)
+
+        Bytes   unifiedUsage;       // host visible VRAM used by process
+        Bytes   unifiedAvailable;   // host visible VRAM totally available (used and free)
     };
 
 

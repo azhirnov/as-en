@@ -15,8 +15,6 @@
         RC<Image>           ds                  = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
 
         RC<Scene>           scene               = Scene();
-        RC<FPVCamera>       camera              = FPVCamera();
-        RC<UnifiedGeometry> geometry            = UnifiedGeometry();
         RC<Buffer>          particles           = Buffer();
         const bool          use_rays            = true;
         const uint          max_particle_count  = 1000 * 1000;
@@ -24,6 +22,8 @@
 
         // setup camera
         {
+            RC<FPVCamera>   camera = FPVCamera();
+
             camera.ClipPlanes( 0.1f, 100.f );
             camera.FovY( 60.f );
 
@@ -31,11 +31,13 @@
             camera.ForwardBackwardScale( s );
             camera.UpDownScale( s );
             camera.SideMovementScale( s );
+
+            scene.Set( camera );
         }
 
         // setup particles
         {
-            particles.LayoutAndCount(
+            particles.ArrayLayout(
                 "Particle",
                 "   float4  position_size;" +
                 "   float4  velocity_color;" +
@@ -50,12 +52,14 @@
         {
             UnifiedGeometry_Draw    cmd;
             cmd.VertexCount( particle_count );
+
+            RC<UnifiedGeometry>     geometry = UnifiedGeometry();
+
             geometry.Draw( cmd );
             geometry.ArgIn( "un_Particles", particles );
-        }
 
-        scene.Set( camera );
-        scene.Add( geometry, float3( 0.f, 0.f, 5.f ));
+            scene.Add( geometry, float3( 0.f, 0.f, 5.f ));
+        }
 
         // render loop
         {
@@ -63,8 +67,8 @@
             sim_pass.ArgInOut( "un_Particles", particles );
             sim_pass.LocalSize( 64 );
             sim_pass.DispatchThreads( particle_count );
-            sim_pass.Slider( "iSteps", 1, 10 );
-            sim_pass.Slider( "iTimeScale", 1.f, 4.f );
+            sim_pass.Slider( "iSteps",      1,      10 );
+            sim_pass.Slider( "iTimeScale",  1.f,    4.f );
         }{
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
             draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Particles/Rays.as)
@@ -78,7 +82,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-    #include "Particles/Simulation-shared.glsl"
+    #include "Particles-Simulation.glsl"
 
 
     const GravityObject     g_GravityObjects[1] = {
@@ -98,7 +102,7 @@
         float   size    = float(GetGlobalIndexSize());
         float   vel     = 0.5;
 
-        outParticle.position_size.xyz   = AABB_GetPointInBox( g_BoundingBox, float3( 0.1, 0.0, 0.0 ));
+        outParticle.position_size.xyz   = AABB_SNormToGlobal( g_BoundingBox, float3( 0.1, 0.0, 0.0 ));
         outParticle.position_size.w     = 8.0;
         outParticle.velocity_color.xyz  = ParticleEmitter_ConeVector( index, size, 1.0 ).zxy * -vel;
         outParticle.velocity_color.w    = uintBitsToFloat( 0xFFFFFFFF );

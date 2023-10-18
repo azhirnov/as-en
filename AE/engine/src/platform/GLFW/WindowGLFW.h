@@ -27,6 +27,8 @@ namespace AE::App
         InputActionsGLFW    _input;
         bool                _lockAndHideCursor  = false;
 
+        RectI               _lastWindowSize;    // before switching to fullscreen
+
 
     // methods
     public:
@@ -49,6 +51,7 @@ namespace AE::App
         void  SetPosition (Monitor::ID monitor, const int2 &pos)    __NE_OV;
         void  SetTitle (NtStringView title)                         __NE_OV;
         void  SetFocus ()                                           C_NE_OV;
+        bool  SetMode (EWindowMode mode, Monitor::ID monitor)       __NE_OV;
 
 
     private:

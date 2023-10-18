@@ -6,7 +6,7 @@
 
 namespace AE::App
 {
-    static constexpr uint   InputActionsGLFW_Name   = uint("ia.GLFW"_StringToID);
+    static constexpr uint   InputActionsGLFW_Name   = "ia.GLFW"_Hash;
 
 
     //

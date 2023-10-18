@@ -139,36 +139,51 @@ namespace AE::Math
                                 (CountOf<Arg0, Args...>() == Columns) );
         }
 
-        template <uint Columns2, uint Rows2, usize Align2>
-        constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+
+        template <usize Align2>
+        constexpr MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
         {
-            for (uint c = 0; c < Columns; ++c)
-            for (uint r = 0; r < Rows; ++r) {
-                _columns[c].data[r] = ((c < Columns2) & (r < Rows2)) ? other[c][r] : (c == r ? T{1} : T{0});
-            }
+            _CopyColumnMajor< Columns, Rows >( other );
+        }
+
+        template <usize Align2>
+        constexpr MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+        {
+            _CopyRowMajor< Columns, Rows >( other );
+        }
+
+        template <glm::qualifier Q>
+        MatrixStorage (const TMatrix< T, Columns, Rows, Q > &other) __NE___
+        {
+            _CopyColumnMajor< Columns, Rows >( other );
+        }
+
+
+        template <uint Columns2, uint Rows2, usize Align2>
+        constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+        {
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, usize Align2>
-        constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+        constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
         {
-            for (uint c = 0; c < Columns; ++c)
-            for (uint r = 0; r < Rows; ++r) {
-                _columns[c].data[r] = ((r < Columns2) & (c < Rows2)) ? other[r][c] : (c == r ? T{1} : T{0});
-            }
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyRowMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
-        MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
+        explicit MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
         {
-            for (uint c = 0; c < Columns; ++c)
-            for (uint r = 0; r < Rows; ++r) {
-                _columns[c].data[r] = ((c < Columns2) & (r < Rows2)) ? other[c][r] : (c == r ? T{1} : T{0});
-            }
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyColumnMajor< Columns2, Rows2 >( other );
         }
+
 
         ND_ static constexpr Self  Identity () __NE___
         {
-            constexpr uint  cnt = Min(Columns, Rows);
+            constexpr uint  cnt = Min( Columns, Rows );
             Self            result;
 
             for (uint i = 0; i < cnt; ++i) {
@@ -177,8 +192,11 @@ namespace AE::Math
             return result;
         }
 
+
+        // return column
         ND_ const Column_t  operator [] (uint index) C_NE___
         {
+            ASSERT( index < Columns );
             auto&   d = _columns[index].data;
 
             if constexpr( Rows == 2 )
@@ -191,13 +209,24 @@ namespace AE::Math
                 return Column_t{ d[0], d[1], d[2], d[3] };
         }
 
+        template <uint C>   ND_ const Column_t  get ()              C_NE___ { STATIC_ASSERT( C < Columns );  return (*this)[C]; }
+
+
+        // return scalar
+        ND_ constexpr const T   operator () (usize c, usize r)      C_NE___ { ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+        ND_ constexpr T &       operator () (usize c, usize r)      __NE___ { ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+
+        template <uint C, uint R>   ND_ constexpr const T   get ()  C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _columns[C].data[R]; }
+        template <uint C, uint R>   ND_ constexpr T &       get ()  __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _columns[C].data[R]; }
+
+
         template <uint Columns2, uint Rows2, glm::qualifier Q>
         ND_ explicit operator TMatrix< T, Columns2, Rows2, Q > () C_NE___
         {
             TMatrix< T, Columns2, Rows2, Q >    result;
             for (uint c = 0; c < Columns2; ++c)
             for (uint r = 0; r < Rows2; ++r) {
-                result[c][r] = ((c < Columns) & (r < Rows)) ? (*this)[c][r] : (c == r ? T{1} : T{0});
+                result(c,r) = ((c < Columns) & (r < Rows)) ? (*this)(c,r) : (c == r ? T{1} : T{0});
             }
             return result;
         }
@@ -229,6 +258,24 @@ namespace AE::Math
             if constexpr( I+1 < Columns )
                 _CopyColumns< I+1 >( args... );
         }
+
+        template <uint Columns2, uint Rows2, typename M>
+        constexpr void  _CopyColumnMajor (const M &other) __NE___
+        {
+            for (uint c = 0; c < Columns; ++c)
+            for (uint r = 0; r < Rows; ++r) {
+                _columns[c].data[r] = ((c < Columns2) & (r < Rows2)) ? other(c,r) : (c == r ? T{1} : T{0});
+            }
+        }
+
+        template <uint Columns2, uint Rows2, typename M>
+        constexpr void _CopyRowMajor (const M &other) __NE___
+        {
+            for (uint c = 0; c < Columns; ++c)
+            for (uint r = 0; r < Rows; ++r) {
+                _columns[c].data[r] = ((r < Rows2) & (c < Columns2)) ? other(r,c) : (c == r ? T{1} : T{0});
+            }
+        }
     };
 
 
@@ -237,8 +284,8 @@ namespace AE::Math
     // Row-major Matrix Storage
     //
 
-    template <typename T, uint Columns, uint Rows, usize Align>
-    struct MatrixStorage< T, Columns, Rows, EMatrixOrder::RowMajor, Align >
+    template <typename T, uint Rows, uint Columns, usize Align>
+    struct MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >
     {
         STATIC_ASSERT( IsAnyFloatPoint<T> );
 
@@ -249,8 +296,9 @@ namespace AE::Math
             T   data [Columns] = {};
         };
 
-        using Self          = MatrixStorage< T, Columns, Rows, EMatrixOrder::RowMajor, Align >;
-        using Transposed_t  = MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >;
+        using Self          = MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >;
+        using Transposed_t  = MatrixStorage< T, Columns, Rows, EMatrixOrder::RowMajor, Align >;
+        using ColumnMajor_t = MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >;
         using Row_t         = Vec< T, Columns >;
         using Column_t      = Vec< T, Rows >;
         using Dim_t         = Math::_hidden_::_MatrixDim;
@@ -293,36 +341,51 @@ namespace AE::Math
                                 (CountOf<Arg0, Args...>() == Rows) );
         }
 
-        template <uint Columns2, uint Rows2, usize Align2>
-        constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+
+        template <usize Align2>
+        constexpr MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
         {
-            for (uint r = 0; r < Rows; ++r)
-            for (uint c = 0; c < Columns; ++c) {
-                _rows[r].data[c] = ((c < Columns2) & (r < Rows2)) ? other[r][c] : (c == r ? T{1} : T{0});
-            }
+            _CopyRowMajor< Columns, Rows >( other );
+        }
+
+        template <usize Align2>
+        constexpr MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+        {
+            _CopyColumnMajor< Columns, Rows >( other );
+        }
+
+        template <glm::qualifier Q>
+        MatrixStorage (const TMatrix< T, Columns, Rows, Q > &other) __NE___
+        {
+            _CopyColumnMajor< Columns, Rows >( other );
+        }
+
+
+        template <uint Columns2, uint Rows2, usize Align2>
+        constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+        {
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyRowMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, usize Align2>
         constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
         {
-            for (uint r = 0; r < Rows; ++r)
-            for (uint c = 0; c < Columns; ++c) {
-                _rows[r].data[c] = ((r < Columns2) & (c < Rows2)) ? other[c][r] : (c == r ? T{1} : T{0});
-            }
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
         explicit MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
         {
-            for (uint c = 0; c < Columns; ++c)
-            for (uint r = 0; r < Rows; ++r) {
-                _rows[r].data[c] = ((c < Columns2) & (r < Rows2)) ? other[c][r] : (c == r ? T{1} : T{0});
-            }
+            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
-        ND_ static Self  Identity () __NE___
+
+        ND_ static constexpr Self  Identity () __NE___
         {
-            constexpr uint  cnt = Min(Columns, Rows);
+            constexpr uint  cnt = Min( Columns, Rows );
             Self            result;
 
             for (uint i = 0; i < cnt; ++i) {
@@ -331,8 +394,10 @@ namespace AE::Math
             return result;
         }
 
+        // returns row
         ND_ const Row_t  operator [] (uint index) C_NE___
         {
+            ASSERT( index < Rows );
             auto&   d = _rows[index].data;
 
             if constexpr( Columns == 2 )
@@ -345,13 +410,24 @@ namespace AE::Math
                 return Row_t{ d[0], d[1], d[2], d[3] };
         }
 
+        template <uint R>   ND_ const Row_t     get ()                  C_NE___ { STATIC_ASSERT( R < Rows );  return (*this)[R]; }
+
+
+        // return scalar
+        ND_ constexpr const T       operator () (usize r, usize c)      C_NE___ { ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+        ND_ constexpr T &           operator () (usize r, usize c)      __NE___ { ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+
+        template <uint R, uint C>   ND_ constexpr const T   get ()      C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _rows[R].data[C]; }
+        template <uint R, uint C>   ND_ constexpr T &       get ()      __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _rows[R].data[C]; }
+
+
         template <uint Columns2, uint Rows2, glm::qualifier Q>
         ND_ explicit operator TMatrix< T, Columns2, Rows2, Q > () C_NE___
         {
             TMatrix< T, Columns2, Rows2, Q >    result;
             for (uint c = 0; c < Columns2; ++c)
             for (uint r = 0; r < Rows2; ++r) {
-                result[c][r] = ((c < Columns) & (r < Rows)) ? (*this)[r][c] : (c == r ? T{1} : T{0});
+                result(c,r) = ((c < Columns) & (r < Rows)) ? (*this)(r,c) : (c == r ? T{1} : T{0});
             }
             return result;
         }
@@ -382,6 +458,24 @@ namespace AE::Math
 
             if constexpr( I+1 < Rows )
                 _CopyRows< I+1 >( args... );
+        }
+
+        template <uint Columns2, uint Rows2, typename M>
+        constexpr void  _CopyRowMajor (const M &other) __NE___
+        {
+            for (uint r = 0; r < Rows; ++r)
+            for (uint c = 0; c < Columns; ++c) {
+                _rows[r].data[c] = ((c < Columns2) & (r < Rows2)) ? other(r,c) : (c == r ? T{1} : T{0});
+            }
+        }
+
+        template <uint Columns2, uint Rows2, typename M>
+        constexpr void  _CopyColumnMajor (const M &other) __NE___
+        {
+            for (uint r = 0; r < Rows; ++r)
+            for (uint c = 0; c < Columns; ++c) {
+                _rows[r].data[c] = ((r < Rows2) & (c < Columns2)) ? other(c,r) : (c == r ? T{1} : T{0});
+            }
         }
     };
 

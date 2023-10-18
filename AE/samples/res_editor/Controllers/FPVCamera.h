@@ -15,31 +15,32 @@ namespace AE::ResEditor
     {
     // variables
     private:
-        mutable RWSpinLock          _guard;
+        mutable RWSpinLock      _guard;
 
-        RC<DynamicDim>              _dynDim;
+        RC<DynamicDim>          _dynDim;
 
-        float4x4                    _view;          // cached
-        float4x4                    _viewProj;      // cached
-        float4x4                    _invViewProj;   // cached
+        float4x4                _view;              // cached
+        float4x4                _viewProj;          // cached
+        float4x4                _invViewProj;       // cached
 
         TFPVCamera<float>       _camera;
-        const float2                _clipPlanes;
-        const Rad                   _fovY;
-        const float2                _rotationScale;     // x, y
-        const MovingScale           _movingScale;
-        const float3                _initialPos;
-        const float                 _zoomStep       = 0.1f;
+        const float2            _clipPlanes;
+        const Rad               _fovY;
+        const float2            _rotationScale;     // x, y
+        const MovingScale       _movingScale;
+        const float3            _initialPos;
+        const float             _zoomSpeed      = 10.f; // zoom/sec
+        const bool              _reverseZ;
 
-        float                       _zoom           = 1.0f;
-        float                       _dimAspect      = 1.f;
+        float                   _zoom           = 1.0f;
+        float                   _dimAspect      = 1.f;
 
 
     // methods
     public:
         FPVCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
                    const MovingScale &, float2 rotationScale,
-                   float3 initialPos)                                   __Th___;
+                   float3 initialPos, bool reverseZ)                    __Th___;
 
         // IController //
         void  ProcessInput (ActionQueueReader, secondsf)                __NE_OV;

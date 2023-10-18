@@ -5,7 +5,9 @@ project( "msdfgen-main" LANGUAGES CXX )
 set( MSDFGEN_BUILD_STANDALONE OFF CACHE INTERNAL "" FORCE )
 set( MSDFGEN_INSTALL OFF CACHE INTERNAL "" FORCE )
 
-include( "../../../config.cmake" )
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
 include( "origin_CMakeLists.txt" )
 
 get_filename_component( FT2_DIR "${CMAKE_INSTALL_PREFIX}/../FreeType" ABSOLUTE )

@@ -200,9 +200,9 @@ namespace
             *(states++) = VK_DYNAMIC_STATE_SCISSOR;
         }
 
-        while ( inState != Zero )
+        for (auto t : BitfieldIterate( inState ))
         {
-            *(states++) = VEnumCast( ExtractBit( INOUT inState ));
+            *(states++) = VEnumCast( t );
             ++outState.dynamicStateCount;
             ASSERT( outState.dynamicStateCount <= max_size );
         }

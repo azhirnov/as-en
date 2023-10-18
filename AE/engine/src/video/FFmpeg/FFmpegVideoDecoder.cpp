@@ -75,7 +75,7 @@ namespace {
 
         // open video file
         {
-            const String    fname   = ToString( filename );
+            const String    fname = ToString( filename );
 
             _formatCtx = ffmpeg.avformat_alloc_context();
             CHECK_ERR( _formatCtx != null );
@@ -163,7 +163,7 @@ namespace {
             CHECK_ERR( _videoPacket != null );
 
             const auto&     fmt_info = EPixelFormat_GetInfo( _config.dstFormat );
-            _frameRowPitch  = ImageUtils::RowSize( _codecCtx->width, fmt_info.bitsPerBlock, fmt_info.TexBlockSize() );
+            _frameRowPitch  = ImageUtils::RowSize( _codecCtx->width, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
             _frameDataSize  = _frameRowPitch * _codecCtx->height;
             _frameData      = Cast<ubyte>( Allocator_t::Allocate( SizeAndAlign{ _frameDataSize, 16_b }));
 

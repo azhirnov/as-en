@@ -78,7 +78,7 @@ namespace AE::Threading
 */
     template <typename V, typename I, usize CS, usize MC, typename A>
     template <typename FN>
-    void  LfIndexedPool3<V,I,CS,MC,A>::UnassignAll (FN &&visitor) __NE___
+    void  LfIndexedPool3<V,I,CS,MC,A>::UnassignAll (FN &&visitor) noexcept(IsNothrowInvocable<FN>)
     {
         if ( _highLvl == null )
             return;
@@ -109,6 +109,47 @@ namespace AE::Threading
             }
 
             hi_chunk.available.store( InitialHighLevel );   // set 0 bit for working range, 1 bit for unused bits
+        }
+    }
+
+/*
+=================================================
+    ForEachAssigned
+----
+    Must be externally synchronized
+=================================================
+*/
+    template <typename V, typename I, usize CS, usize MC, typename A>
+    template <typename FN>
+    void  LfIndexedPool3<V,I,CS,MC,A>::ForEachAssigned (FN &&fn) const noexcept(IsNothrowInvocable<FN>)
+    {
+        if ( _highLvl == null )
+            return;
+
+        MemoryBarrier( EMemoryOrder::Acquire );
+
+        for (auto& hi_chunk : *_highLvl)
+        {
+            LowLvlChunkArray_t* low_chunks = hi_chunk.chunksPtr.load();
+
+            if ( low_chunks == null )
+                continue;
+
+            for (auto& low_chunk : *low_chunks)
+            {
+                LowLvlBits_t    low_bits    = low_chunk.assigned.load();
+                int             idx         = BitScanForward( low_bits );       // first 1 bit
+
+                for (; idx >= 0;)
+                {
+                    LowLvlBits_t    bit = LowLvlBits_t{1} << idx;
+
+                    fn( low_chunk.values[idx] );
+
+                    low_bits &= ~bit;                       // 1 -> 0
+                    idx      = BitScanForward( low_bits );  // first 1 bit
+                }
+            }
         }
     }
 

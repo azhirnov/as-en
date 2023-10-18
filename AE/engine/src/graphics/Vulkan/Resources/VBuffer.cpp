@@ -150,7 +150,7 @@ namespace AE::Graphics
 
             DEBUG_ONLY(
                 Bytes   align = GetMemoryAlignment( dev, _desc );
-                ASSERT( IsAligned( BitCast<ulong>(_address), align ));
+                ASSERT( IsMultipleOf( BitCast<ulong>(_address), align ));
             )
         }
         return true;
@@ -278,11 +278,11 @@ namespace AE::Graphics
             return false;
 
         if_unlikely( AllBits( _desc.usage, EBufferUsage::UniformTexel )                     and
-                     not IsAligned( view.offset, props.res.minUniformTexelBufferOffsetAlign ))
+                     not IsMultipleOf( view.offset, props.res.minUniformTexelBufferOffsetAlign ))
             return false;
 
         if_unlikely( AllBits( _desc.usage, EBufferUsage::StorageTexel )                     and
-                     not IsAligned( view.offset, props.res.minStorageTexelBufferOffsetAlign ))
+                     not IsMultipleOf( view.offset, props.res.minStorageTexelBufferOffsetAlign ))
             return false;
 
         // check supported view formats in FS
@@ -306,10 +306,8 @@ namespace AE::Graphics
         if ( EMemoryType_IsNonCoherent( desc.memType ))
             align = Max( align, props.res.minNonCoherentAtomSize );
 
-        for (EBufferUsage usage = desc.usage; usage != Zero;)
+        for (auto t : BitfieldIterate( desc.usage ))
         {
-            EBufferUsage    t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {

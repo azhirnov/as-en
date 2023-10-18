@@ -20,7 +20,7 @@ namespace
         bool                        isOK    = false;
 
         ImageComparator *           imgCmp  = null;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
     static constexpr auto&  RTech = RenderTechs::DrawTestRT;
@@ -166,7 +166,7 @@ namespace
         D4_TestData     t;
 
         t.rtech     = renderTech;
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 
@@ -201,7 +201,7 @@ namespace
 
         AsyncTask   task3   = batch.template Task< D4_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, {"Readback task"} )
                                     .UseResource( t.img, EResourceState::CopySrc )
-                                    .SubmitBatch().Run( Tuple{begin} );
+                                    .SubmitBatch().Run( Tuple{task1, task2} );
 
         AsyncTask   end     = rg.EndFrame( Tuple{task1, task2, task3} );
 

@@ -261,6 +261,7 @@ namespace AE::Graphics
             _dbgName    = dbg.label;
             _dbgColor   = _ValidateDbgColor( GetQueueType(), dbg.color );
         )
+        Unused( dbg );
         return IsValid();
     }
 

@@ -42,8 +42,6 @@ namespace AE::App
 
         struct SurfaceData
         {
-            float2                      pixToMm;
-
             CommandBatchPtr             endCmdBatch;
             AsyncTask                   prevTask;
 
@@ -57,6 +55,7 @@ namespace AE::App
     private:
         Atomic<bool>        _initialized    {false};
         Atomic<bool>        _recreate       {false};
+        FAtomic<float>      _pixToMm        {1.f};
 
         Swapchain_t         _swapchain;     // thread safe
 

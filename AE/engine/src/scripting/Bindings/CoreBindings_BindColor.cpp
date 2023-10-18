@@ -111,12 +111,12 @@ namespace
 
     static RGBA32f  RGBA32f_Rainbow (float factor)
     {
-        return PseudoRandom::Rainbow( factor );
+        return Rainbow( factor );
     }
 
     static RGBA32f  RGBA32f_RainbowWrap (float factor)
     {
-        return PseudoRandom::RainbowWrap( factor );
+        return RainbowWrap( factor );
     }
 
 /*
@@ -143,7 +143,6 @@ namespace
 
         if constexpr( IsSameTypes< typename T::value_type, float >)
         {
-            se->AddFunction( &WavelengthToRGB,          "WavelengthToRGB",  {"wavelengthInNanometers"} );
             se->AddFunction( &RGBA32f_Lerp,             "Lerp",             {"x", "y", "factor"} );
             se->AddFunction( &RGBA32f_AdjustContrast,   "AdjustContrast",   {"col", "factor"} );
             se->AddFunction( &RGBA32f_Luminance,        "Luminance",        {"col"} );

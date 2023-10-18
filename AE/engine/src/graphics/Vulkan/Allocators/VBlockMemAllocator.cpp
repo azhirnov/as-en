@@ -32,8 +32,11 @@ namespace AE::Graphics
 */
     VBlockMemAllocator::VBlockMemAllocator (Bytes blockSize, Bytes pageSize) __NE___ :
         _blockSize{ blockSize },
-        _bitsPerPage{ AlignUp( DivCeil( pageSize, blockSize ), _BitsPerPageGranularity )}
-    {}
+        _bitsPerPage{ AlignUp( Max( DivCeil( pageSize, blockSize ), 1 ), _BitsPerPageGranularity )}
+    {
+        CHECK( pageSize >= blockSize );
+        CHECK( _bitsPerPage > 0 );
+    }
 
 /*
 =================================================
@@ -78,7 +81,7 @@ namespace AE::Graphics
     _AllocInPage
 =================================================
 */
-    bool  VBlockMemAllocator::_AllocInPage (PageArr &pageArr, OUT Data &outData) const
+    inline bool  VBlockMemAllocator::_AllocInPage (PageArr &pageArr, OUT Data &outData) const
     {
         const       uint    low_mask    = ToBitMask<uint>( _bitsPerPage );
         constexpr   uint    hi_mask     = ToBitMask<uint>( _PageCount );
@@ -136,37 +139,28 @@ namespace AE::Graphics
     _Allocate
 =================================================
 */
-    bool  VBlockMemAllocator::_Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &outData)
+    inline bool  VBlockMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
+                                                const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData)
     {
         outData = Default;
 
-        CHECK_ERR( memReq.alignment <= _blockSize );
-
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        CHECK_ERR( memAlign <= _blockSize and memSize <= _blockSize );
 
         // try to allocate in page
-        for (uint bits = memReq.memoryTypeBits, type_idx = UMax; bits != 0;)
         {
-            if_unlikely( not dev.GetMemoryTypeIndex( bits, memType, OUT type_idx ))
-                break;
+            SHAREDLOCK( _pageMapGuard );
 
-            bits &= ~(1u << type_idx);
-
-            const Key   key{ type_idx, shaderAddress, isImage };
-            PageArr*    page_arr;
-
+            for (uint type_idx : BitIndexIterate( memBits ))
             {
-                SHAREDLOCK( _pageMapGuard );
+                const Key   key{ type_idx, shaderAddress, isImage };
 
                 auto    iter = _pageMap.find( key );
                 if ( iter == _pageMap.end() )
                     continue;
 
-                page_arr = &iter->second;
+                if ( _AllocInPage( iter->second, OUT outData ))
+                    return true;
             }
-
-            if ( _AllocInPage( *page_arr, OUT outData ))
-                return true;
         }
 
         // create new page
@@ -181,24 +175,20 @@ namespace AE::Graphics
         mem_flag.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
         mem_flag.flags           = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
 
-        for (uint bits = memReq.memoryTypeBits; bits != 0;)
+        for (uint type_idx : BitIndexIterate( memBits ))
         {
-            CHECK_ERR( dev.GetMemoryTypeIndex( bits, memType, OUT mem_alloc.memoryTypeIndex ));
+            mem_alloc.memoryTypeIndex = type_idx;
 
             if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
                 break;
-
-            bits &= ~(1u << mem_alloc.memoryTypeIndex);
         }
         CHECK_ERR( memory.Get() != Default );
 
 
         // map memory
         void*   mapped_ptr = null;
-        if ( EMemoryType_IsHostVisible( memType ))
-        {
+        if ( mapMem )
             VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
-        }
 
 
         const Key   key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage };

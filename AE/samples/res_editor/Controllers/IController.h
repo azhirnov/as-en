@@ -39,7 +39,7 @@ namespace AE::ResEditor
     // config
     protected:
         static constexpr float      _3d_minZoom     = 0.1f;
-        static constexpr float      _3d_maxZoom     = 1.5f;
+        static constexpr float      _3d_maxZoom     = 1.0f;
 
         static constexpr float      _2d_minZoom     = 0.1f;
         static constexpr float      _2d_maxZoom     = 10.f;

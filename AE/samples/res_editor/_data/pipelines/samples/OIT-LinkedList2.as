@@ -19,7 +19,7 @@
             ds.UniformBuffer( EShaderStages::Vertex,    "un_PerObject", "UnifiedGeometryMaterialUB" );
             ds.StorageBuffer( EShaderStages::Vertex,    "un_Geometry",  "GeometrySBlock",   EResourceState::ShaderStorage_Read );   // external
             ds.StorageBuffer( EShaderStages::Vertex,    "un_DrawTasks", "DrawTask",         EResourceState::ShaderStorage_Read );   // external
-            ds.StorageBuffer( EShaderStages::Fragment,  "un_Storage",   "IntrsPointArray",  EResourceState::ShaderStorage_RW );     // external
+            ds.StorageBuffer( EShaderStages::Fragment,  "un_Storage",   "IntrsPoint_Array", EResourceState::ShaderStorage_RW );     // external
             ds.StorageBuffer( EShaderStages::Fragment,  "un_Count",     "CountSBlock",      EResourceState::ShaderStorage_RW );     // external
             ds.StorageImage(  EShaderStages::Fragment,  "un_ABuffer",   EImageType::UImage2D, EPixelFormat::R32U, EAccessType::Restrict, EResourceState::ShaderStorage_RW );    // external
         }{
@@ -79,9 +79,9 @@
         const float3    vert_pos    = sphere_pos + (un_Geometry.positions[idx] * scale);
         const float4    world_pos   = LocalPosToWorldSpace( vert_pos );
 
-        gl.Position     = un_PerPass.camera.viewProj * world_pos;
+        gl.Position     = WorldPosToClipSpace( world_pos );
         Out.instanceId  = gl.InstanceIndex;
-        Out.viewDepth   = (un_PerPass.camera.view * world_pos).z;
+        Out.viewDepth   = WorldPosToViewSpace( world_pos ).z;
     }
 
 #endif

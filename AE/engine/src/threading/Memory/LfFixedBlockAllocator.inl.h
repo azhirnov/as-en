@@ -206,7 +206,7 @@ namespace AE::Threading
             ++dbgCounter;
 
             // memory may be allocated in another thread.
-            if ( chunk.memBlock.compare_exchange_strong( INOUT ptr, new_block ))
+            if ( chunk.memBlock.CAS_Loop( INOUT ptr, new_block ))
             {
                 ASSERT( ptr == null );
                 ptr = new_block;

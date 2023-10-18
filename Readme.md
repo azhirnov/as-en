@@ -48,7 +48,8 @@ __AsEn__ - полностью асинхронный движок для исп�
  * [Рендер граф](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/RenderGraph.md)
  * [Файловая система](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/VirtualFileSystem.md)
  * [HDR дисплеи](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/HDR_Display.md)
- * [Многопоточное программирование](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/AsyncProgramming.md)
+ * [Асинхронное программирование](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/AsyncProgramming.md)
+ * [Заметки по архитектуре](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/ArchitectureNotes.md)
 
 Обсуждение:
  * [форум gamedev](https://gamedev.ru/flame/forum/?id=277212) 

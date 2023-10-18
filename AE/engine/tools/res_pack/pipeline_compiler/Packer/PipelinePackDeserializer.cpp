@@ -680,7 +680,7 @@ namespace {
 */
     bool  SerializableRTShaderBindingTable::Deserialize (Serializing::Deserializer& des) __NE___
     {
-        return des( OUT pplnName, OUT raygen, OUT miss, OUT hit, OUT callable, OUT hitGroupStride );
+        return des( OUT pplnName, OUT raygen, OUT miss, OUT hit, OUT callable, OUT numRayTypes );
     }
 //-----------------------------------------------------------------------------
 
@@ -1307,13 +1307,11 @@ namespace {
     ND_ inline String  TopologyBitsToString (const SerializableGraphicsPipeline::TopologyBits_t topology)
     {
         String  str;
-        uint    bits = topology.AsArray()[0];
-        while ( bits != 0 )
+        for (auto value : BitIndexIterate<EPrimitive>( topology.AsBits() ))
         {
             if ( not str.empty() )
                 str << " | ";
 
-            EPrimitive  value = ExtractBitLog2<EPrimitive>( bits );
             str << ToString( value );
         }
         return str;
@@ -1670,7 +1668,7 @@ namespace {
         String  str;
         str << "\n    ppln name:        " << nameMap( pplnName );
         str << "\n    ray gen:          " << Base::ToString( raygen.index );
-        str << "\n    hit group stride: " << Base::ToString( hitGroupStride );
+        str << "\n    ray type count:   " << Base::ToString( numRayTypes );
 
         if ( miss.size() )
         {

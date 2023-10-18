@@ -12,12 +12,13 @@ namespace AE::ResEditor
 =================================================
 */
     OrbitalCamera::OrbitalCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
-                                      float2 rotationScale, float offsetScale,
-                                      float3 initialPos, float initialOffset) __Th___ :
+                                  float2 rotationScale, float offsetScale,
+                                  float3 initialPos, float initialOffset, bool reverseZ) __Th___ :
         _dynDim{ RVRef(dim) },      _clipPlanes{ clipPlanes },
         _fovY{ fovY },              _rotationScale{ rotationScale },
         _offsetScale{ offsetScale },
-        _initialPos{ initialPos },  _initialOffset{ initialOffset }
+        _initialPos{ initialPos },  _initialOffset{ initialOffset },
+        _reverseZ{ reverseZ }
     {
         CHECK_THROW( _dynDim );
         _Reset();
@@ -78,12 +79,12 @@ namespace AE::ResEditor
     void  OrbitalCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( QuatF::Identity() );
+        _camera.SetRotation( Quat::Identity() );
         _camera.SetOffset( _initialOffset );
 
         _dimAspect  = _dynDim->Aspect();
 
-        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y );
+        _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
         _UpdateMatrix();
     }

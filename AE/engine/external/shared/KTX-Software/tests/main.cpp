@@ -9,7 +9,7 @@
 #ifdef ANDROID
 # include "TestHelper.h"
 
-extern void AE_imgui_Test ()
+extern void AE_KTX_Test ()
 #else
 int main ()
 #endif

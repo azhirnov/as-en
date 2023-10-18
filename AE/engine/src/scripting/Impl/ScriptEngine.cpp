@@ -145,7 +145,7 @@ namespace AE::Scripting
     CreateModule
 =================================================
 */
-    ScriptModulePtr  ScriptEngine::CreateModule (ArrayView<ModuleSource> sources, ArrayView<StringView> defines) __NE___
+    ScriptModulePtr  ScriptEngine::CreateModule (ArrayView<ModuleSource> sources, ArrayView<StringView> defines, ArrayView<Path> includeDirs) __NE___
     {
         using namespace AngelScript;
         using ModulePtr = Unique< asIScriptModule, void (*)(asIScriptModule*) >;
@@ -166,7 +166,7 @@ namespace AE::Scripting
 
             if ( src.usePreprocessor )
             {
-                CHECK_ERR( _Preprocessor( script, OUT temp, defines ));
+                CHECK_ERR( _Preprocessor2( script, OUT temp, defines, includeDirs ));
                 script = temp;
             }
 
@@ -195,8 +195,6 @@ namespace AE::Scripting
 /*
 =================================================
     _Preprocessor
-----
-    will crash on string allocation exception
 =================================================
 */
 namespace
@@ -234,7 +232,10 @@ namespace
     }
 }
 
-    bool  ScriptEngine::_Preprocessor (StringView str, OUT String &dst, ArrayView<StringView> defines) __NE___
+    bool  ScriptEngine::_Preprocessor (StringView                           str,
+                                       OUT String                           &dst,
+                                       OUT Array<Pair< StringView, usize >> &includeFileAndPos,
+                                       ArrayView<StringView>                defines) __Th___
     {
         usize       begin_block     = 0;
         Array<bool> include_scope;  include_scope.push_back(true);
@@ -285,7 +286,6 @@ namespace
                 Parser::ToEndOfLine( str, INOUT begin_block );
             }
         }};
-
 
         usize   pos = 1;
         for (; pos < str.size();)
@@ -439,14 +439,29 @@ namespace
                     if ( include_scope.back() )
                     {
                         begin_block = pos;
-                        Parser::ToEndOfLine( str, INOUT begin_block );
+                        Parser::ToNextLine( str, INOUT begin_block );
 
                         pos += 7;
                         SkipSpaces( str, INOUT pos );
 
-                        if ( str[pos] == '<' )  {}  // skip
+                        if ( str[pos] == '<' )
+                        {
+                            // skip system include
+                            pos = str.find( '>', pos );
+                            CHECK_ERR( pos < begin_block );
+                        }
+                        else
+                        if ( str[pos] == '"' )
+                        {
+                            StringView  fname;
+                            CHECK_ERR( Parser::ReadString( str, INOUT pos, OUT fname ));
+                            includeFileAndPos.emplace_back( fname, dst.size() );
+                        }
                         else
                             RETURN_ERR( "not supported" );
+
+                        dst << '\n';
+                        pos = begin_block;
                     }
                 }
                 #ifdef AE_DEBUG
@@ -515,10 +530,57 @@ namespace
             dst << str.substr( begin_block );
         }
 
+        // TODO: check is it a word
         FindAndReplace( INOUT dst, "INOUT ",    "      " );
         FindAndReplace( INOUT dst, "OUT ",      "    " );
+        FindAndReplace( INOUT dst, "ND_ ",      "    " );
 
         return true;
+    }
+
+/*
+=================================================
+    _Preprocessor2
+=================================================
+*/
+    bool  ScriptEngine::_Preprocessor2 (StringView str, OUT String &dst, ArrayView<StringView> defines, ArrayView<Path> includeDirs) __NE___
+    {
+        const auto  ReadFile = [&includeDirs] (StringView fname, OUT String &s) -> bool
+        {{
+            Path    path;
+            for (auto& dir : includeDirs)
+            {
+                path = dir / fname;
+                if ( FileSystem::IsFile( path ))
+                {
+                    FileRStream  file {path};
+                    return file.IsOpen() and file.Read( file.RemainingSize(), OUT s );
+                }
+            }
+            RETURN_ERR( "failed to find included file: '"s << fname << "'" );
+        }};
+
+        try {
+            Array<Pair< StringView, usize >>    file_and_pos;
+
+            CHECK_ERR( _Preprocessor( str, OUT dst, file_and_pos, defines ));
+            CHECK_ERR( file_and_pos.empty() or not includeDirs.empty() );
+
+            usize   offset = 0;
+            for (auto& [fname, pos] : file_and_pos)
+            {
+                String  in, out;
+                CHECK_ERR( ReadFile( fname, OUT in ));
+                CHECK_ERR( _Preprocessor2( in, OUT out, defines, includeDirs ));
+
+                dst.insert( dst.begin() + pos + offset, out.begin(), out.end() );
+                offset += out.size();
+            }
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
     }
 
 /*

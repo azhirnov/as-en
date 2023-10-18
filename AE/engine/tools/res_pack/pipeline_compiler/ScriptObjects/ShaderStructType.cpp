@@ -72,6 +72,18 @@ namespace
 
 /*
 =================================================
+    IsSameLayouts
+=================================================
+*/
+    ND_ static bool  IsSameLayouts (EStructLayout lhs, EStructLayout rhs)
+    {
+        return  IsStd140( lhs ) == IsStd140( rhs )  or
+                IsStd430( lhs ) == IsStd430( rhs )  or
+                (lhs == EStructLayout::InternalIO) == (rhs == EStructLayout::InternalIO);
+    }
+
+/*
+=================================================
     EValueType_ToString
 =================================================
 */
@@ -97,6 +109,7 @@ namespace
             case EValueType::Int16_Norm :   return "Int16_Norm";
             case EValueType::UInt8_Norm :   return "UInt8_Norm";
             case EValueType::UInt16_Norm :  return "UInt16_Norm";
+            case EValueType::DeviceAddress: return "DeviceAddress";
             case EValueType::Unknown :
             case EValueType::_Count :       break;
         }
@@ -191,23 +204,24 @@ namespace
 */
     ShaderStructType::Constants::Constants () :
         typeNames{
-            { "bool",       { EValueType::Bool8,        1,  1 }},
-            { "lbool",      { EValueType::Bool32,       4,  4 }},
-            { "sbyte",      { EValueType::Int8,         1,  1 }},
-            { "ubyte",      { EValueType::UInt8,        1,  1 }},
-            { "sshort",     { EValueType::Int16,        2,  2 }},
-            { "ushort",     { EValueType::UInt16,       2,  2 }},
-            { "sint",       { EValueType::Int32,        4,  4 }},
-            { "uint",       { EValueType::UInt32,       4,  4 }},
-            { "slong",      { EValueType::Int64,        8,  8 }},
-            { "ulong",      { EValueType::UInt64,       8,  8 }},
-            { "half",       { EValueType::Float16,      2,  2 }},
-            { "float",      { EValueType::Float32,      4,  4 }},
-            { "double",     { EValueType::Float64,      8,  8 }},
-            { "sbyte_norm", { EValueType::Int8_Norm,    1,  1 }},
-            { "ubyte_norm", { EValueType::UInt8_Norm,   1,  1 }},
-            { "sshort_norm",{ EValueType::Int16_Norm,   2,  2 }},
-            { "ushort_norm",{ EValueType::UInt16_Norm,  2,  2 }},
+            { "bool",           { EValueType::Bool8,            1,  1 }},
+            { "lbool",          { EValueType::Bool32,           4,  4 }},
+            { "sbyte",          { EValueType::Int8,             1,  1 }},
+            { "ubyte",          { EValueType::UInt8,            1,  1 }},
+            { "sshort",         { EValueType::Int16,            2,  2 }},
+            { "ushort",         { EValueType::UInt16,           2,  2 }},
+            { "sint",           { EValueType::Int32,            4,  4 }},
+            { "uint",           { EValueType::UInt32,           4,  4 }},
+            { "slong",          { EValueType::Int64,            8,  8 }},
+            { "ulong",          { EValueType::UInt64,           8,  8 }},
+            { "DeviceAddress",  { EValueType::DeviceAddress,    8,  8 }},   // uvec2
+            { "half",           { EValueType::Float16,          2,  2 }},
+            { "float",          { EValueType::Float32,          4,  4 }},
+            { "double",         { EValueType::Float64,          8,  8 }},
+            { "sbyte_norm",     { EValueType::Int8_Norm,        1,  1 }},
+            { "ubyte_norm",     { EValueType::UInt8_Norm,       1,  1 }},
+            { "sshort_norm",    { EValueType::Int16_Norm,       2,  2 }},
+            { "ushort_norm",    { EValueType::UInt16_Norm,      2,  2 }},
         },
         renameMap{
             {"int8_t",      "sbyte"},   {"byte",    "sbyte"},   {"char",    "sbyte"},
@@ -247,7 +261,7 @@ namespace
     _ParseFields
 =================================================
 */
-    void  ShaderStructType::_ParseFields (StringView stName, const String &fields, OUT Array<Field> &outFields) __Th___
+    void  ShaderStructType::_ParseFields (const String &fields, OUT Array<Field> &outFields) __Th___
     {
         const auto&         const_ptr   = ObjectStorage::Instance()->_structTypeConstPtr;
         const auto&         c_typeNames = const_ptr->typeNames;
@@ -404,6 +418,7 @@ namespace
                         field.cols      = ubyte(cols);
                         field.packed    = is_packed;
                         field.pointer   = (*it == "*");
+                        field.address   = field.pointer;
 
                         if ( field.pointer )
                         {
@@ -437,10 +452,7 @@ namespace
                 if ( is_ref )
                 {
                     ++it;
-                    //st_it->second->AddUsage( EUsage::BufferReference );
-                    CHECK_THROW_MSG( AllBits( st_it->second->Usage(), EUsage::BufferReference ),
-                        "Struct '"s << st_it->second->Name() << "' used as 'BufferReference' in '" << stName << 
-                        "' but usage is not specified, call 'AddUsage( EUsage::BufferReference )' before" );
+                    st_it->second->AddUsage( EUsage::BufferReference );
 
                     CHECK_THROW_MSG( not st_it->second->HasDynamicArray(),
                         "buffer reference with dynamic array is not supported, use pointer to <dynamic_array_element_type> instead" );
@@ -448,6 +460,8 @@ namespace
                     field.stType    = st_it->second;
                     field.align     = c_ptrSize;
                     field.size      = c_ptrAlign;
+                    field.type      = EValueType::DeviceAddress;
+                    field.address   = true;
                 }
                 else
                 {
@@ -458,6 +472,7 @@ namespace
                     field.align     = field.stType->_align;
                     field.size      = field.stType->_size;
                     field.pointer   = (*it == "*");
+                    field.address   = field.pointer;
 
                     if ( field.pointer )
                     {
@@ -504,10 +519,8 @@ namespace
                     "In Struct '"s << stName << "', field '" << field.name << "': only last field can be dynamic array" );
             }
 
-            if ( field.IsBufferRef() or field.IsPointer() )
+            if ( field.IsDeviceAddress() )
             {
-                CHECK_THROW_MSG( not field.IsArray() );
-
                 // skip
             }
             else
@@ -520,7 +533,7 @@ namespace
                     {
                         // Metal does not support custom align
                         if ( field.IsArray() ) {
-                            CHECK_THROW_MSG( IsAligned( field.align, 16 ) or IsAligned( field.size, 16 ),
+                            CHECK_THROW_MSG( IsMultipleOf( field.align, 16 ) or IsMultipleOf( field.size, 16 ),
                                 "In Struct '"s << stName << "', field '" << field.name << "': align (" << ToString(uint(field.align)) <<
                                 ") and size (" << ToString(uint(field.size)) << ") must be aligned to 16 bytes" );
                         }
@@ -555,7 +568,7 @@ namespace
                             "In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
                             "must not be Bool8/Bool32/Float64" );
 
-                        if ( field.IsMat() and not IsAligned( field.size, 16 ))
+                        if ( field.IsMat() and not IsMultipleOf( field.size, 16 ))
                             field.packed = true;    // set 'packed' for compatibility with Metal
 
                         if ( not field.packed and field.rows > 1 )
@@ -569,7 +582,7 @@ namespace
                         // Metal does not support custom align for arrays
                         if ( field.IsArray() )
                         {
-                            CHECK_THROW_MSG( IsAligned( field.align, 16 ) or IsAligned( field.size, 16 ),
+                            CHECK_THROW_MSG( IsMultipleOf( field.align, 16 ) or IsMultipleOf( field.size, 16 ),
                                 "In Struct '"s << stName << "', field '" << field.name << "': align (" << ToString(uint(field.align)) <<
                                 ") and size (" << ToString(uint(field.size)) << ") must be aligned to 16 bytes" );
                             field.align = Max( field.align, 16_b );
@@ -684,79 +697,83 @@ namespace
     _GetCPPSizeAndAlign
 =================================================
 */
-    SizeAndAlign  ShaderStructType::_GetCPPSizeAndAlign2 (const Field &field)
+    SizeAndAlign  ShaderStructType::_GetCPPSizeAndAlign2 (const Field &field) __Th___
     {
-    #define SWITCH_TYPE( _prefix_, _suffix_ ) \
-        { \
-            BEGIN_ENUM_CHECKS(); \
-            switch ( field.type ) \
-            { \
-                case EValueType::Bool32 :       return SizeAndAlignOf<_prefix_ ## lbool  ## _suffix_>; \
-                case EValueType::Int32 :        return SizeAndAlignOf<_prefix_ ## int    ## _suffix_>; \
-                case EValueType::UInt32 :       return SizeAndAlignOf<_prefix_ ## uint   ## _suffix_>; \
-                case EValueType::Float32 :      return SizeAndAlignOf<_prefix_ ## float  ## _suffix_>; \
-                case EValueType::Int64 :        return SizeAndAlignOf<_prefix_ ## slong  ## _suffix_>; \
-                case EValueType::UInt64 :       return SizeAndAlignOf<_prefix_ ## ulong  ## _suffix_>; \
-                case EValueType::Float64 :      return SizeAndAlignOf<_prefix_ ## double ## _suffix_>; \
-                case EValueType::Bool8 :        return SizeAndAlignOf<_prefix_ ## bool   ## _suffix_>; \
-                case EValueType::Int8 :         \
-                case EValueType::Int8_Norm :    return SizeAndAlignOf<_prefix_ ## sbyte  ## _suffix_>; \
-                case EValueType::UInt8 :        \
-                case EValueType::UInt8_Norm :   return SizeAndAlignOf<_prefix_ ## ubyte  ## _suffix_>; \
-                case EValueType::Int16 :        \
-                case EValueType::Int16_Norm :   return SizeAndAlignOf<_prefix_ ## short  ## _suffix_>; \
-                case EValueType::UInt16 :       \
-                case EValueType::UInt16_Norm :  return SizeAndAlignOf<_prefix_ ## ushort ## _suffix_>; \
-                case EValueType::Float16 :      return SizeAndAlignOf<_prefix_ ## half   ## _suffix_>; \
-                case EValueType::Unknown :      \
-                case EValueType::_Count :       \
-                default :                       CHECK_THROW_MSG( false, "unknown value type" ); \
-            } \
-            END_ENUM_CHECKS(); \
+    #define SWITCH_TYPE( _prefix_, _suffix_, ... )                                                      \
+        {                                                                                               \
+            BEGIN_ENUM_CHECKS();                                                                        \
+            switch ( field.type )                                                                       \
+            {                                                                                           \
+                case EValueType::Bool32 :       return SizeAndAlignOf<_prefix_ ## lbool  ## _suffix_>;  \
+                case EValueType::Int32 :        return SizeAndAlignOf<_prefix_ ## int    ## _suffix_>;  \
+                case EValueType::UInt32 :       return SizeAndAlignOf<_prefix_ ## uint   ## _suffix_>;  \
+                case EValueType::Float32 :      return SizeAndAlignOf<_prefix_ ## float  ## _suffix_>;  \
+                case EValueType::Int64 :        return SizeAndAlignOf<_prefix_ ## slong  ## _suffix_>;  \
+                case EValueType::UInt64 :       return SizeAndAlignOf<_prefix_ ## ulong  ## _suffix_>;  \
+                case EValueType::Float64 :      return SizeAndAlignOf<_prefix_ ## double ## _suffix_>;  \
+                case EValueType::Bool8 :        return SizeAndAlignOf<_prefix_ ## bool   ## _suffix_>;  \
+                case EValueType::Int8 :                                                                 \
+                case EValueType::Int8_Norm :    return SizeAndAlignOf<_prefix_ ## sbyte  ## _suffix_>;  \
+                case EValueType::UInt8 :                                                                \
+                case EValueType::UInt8_Norm :   return SizeAndAlignOf<_prefix_ ## ubyte  ## _suffix_>;  \
+                case EValueType::Int16 :                                                                \
+                case EValueType::Int16_Norm :   return SizeAndAlignOf<_prefix_ ## short  ## _suffix_>;  \
+                case EValueType::UInt16 :                                                               \
+                case EValueType::UInt16_Norm :  return SizeAndAlignOf<_prefix_ ## ushort ## _suffix_>;  \
+                case EValueType::Float16 :      return SizeAndAlignOf<_prefix_ ## half   ## _suffix_>;  \
+                case EValueType::Unknown :                                                              \
+                case EValueType::_Count :                                                               \
+                __VA_ARGS__                                                                             \
+                default :                       CHECK_THROW_MSG( false, "unknown value type" );         \
+            }                                                                                           \
+            END_ENUM_CHECKS();                                                                          \
         }
-    #define SWITCH_MAT_TYPE( _prefix_, _suffix_ ) \
-        { \
-            BEGIN_ENUM_CHECKS(); \
-            switch ( field.type ) \
-            { \
-                case EValueType::Float32 :      return SizeAndAlignOf<_prefix_ ## float  ## _suffix_>; \
-                case EValueType::Float64 :      return SizeAndAlignOf<_prefix_ ## double ## _suffix_>; \
-                case EValueType::Float16 :      return SizeAndAlignOf<_prefix_ ## half   ## _suffix_>; \
-                case EValueType::Bool32 :       \
-                case EValueType::Int32 :        \
-                case EValueType::UInt32 :       \
-                case EValueType::Int64 :        \
-                case EValueType::UInt64 :       \
-                case EValueType::Bool8 :        \
-                case EValueType::Int8 :         \
-                case EValueType::UInt8 :        \
-                case EValueType::Int16 :        \
-                case EValueType::UInt16 :       \
-                case EValueType::Int8_Norm :    \
-                case EValueType::UInt8_Norm :   \
-                case EValueType::Int16_Norm :   \
-                case EValueType::UInt16_Norm :  return {}; \
-                case EValueType::Unknown :      \
-                case EValueType::_Count :       \
-                default :                       CHECK_THROW_MSG( false, "unknown value type" ); \
-            } \
-            END_ENUM_CHECKS(); \
+    #define SWITCH_MAT_TYPE( _prefix_, _suffix_ )                                                       \
+        {                                                                                               \
+            BEGIN_ENUM_CHECKS();                                                                        \
+            switch ( field.type )                                                                       \
+            {                                                                                           \
+                case EValueType::Float32 :      return SizeAndAlignOf<_prefix_ ## float  ## _suffix_>;  \
+                case EValueType::Float64 :      return SizeAndAlignOf<_prefix_ ## double ## _suffix_>;  \
+                case EValueType::Float16 :      return SizeAndAlignOf<_prefix_ ## half   ## _suffix_>;  \
+                case EValueType::Bool32 :                                                               \
+                case EValueType::Int32 :                                                                \
+                case EValueType::UInt32 :                                                               \
+                case EValueType::Int64 :                                                                \
+                case EValueType::DeviceAddress:                                                         \
+                case EValueType::UInt64 :                                                               \
+                case EValueType::Bool8 :                                                                \
+                case EValueType::Int8 :                                                                 \
+                case EValueType::UInt8 :                                                                \
+                case EValueType::Int16 :                                                                \
+                case EValueType::UInt16 :                                                               \
+                case EValueType::Int8_Norm :                                                            \
+                case EValueType::UInt8_Norm :                                                           \
+                case EValueType::Int16_Norm :                                                           \
+                case EValueType::UInt16_Norm :  CHECK_THROW_MSG( false, "unsupported value type" );     \
+                case EValueType::Unknown :                                                              \
+                case EValueType::_Count :                                                               \
+                default :                       CHECK_THROW_MSG( false, "unknown value type" );         \
+            }                                                                                           \
+            END_ENUM_CHECKS();                                                                          \
         }
 
-        CHECK_THROW_MSG( not (field.IsStruct() or field.IsBufferRef() or field.IsPointer()) );
+        CHECK_THROW_MSG( not (field.IsStruct() or field.IsDeviceAddress()) );
 
         if ( field.IsScalar() )
         {
-            SWITCH_TYPE( , );
+            SWITCH_TYPE( , ,
+                case EValueType::DeviceAddress : return SizeAndAlignOf< Graphics::DeviceAddress >;
+            );
         }
         else
         if ( field.IsVec() and field.packed )
         {
             switch ( field.rows )
             {
-                case 2 :    SWITCH_TYPE( packed_, 2 );  break;
-                case 3 :    SWITCH_TYPE( packed_, 3 );  break;
-                case 4 :    SWITCH_TYPE( packed_, 4 );  break;
+                case 2 :    SWITCH_TYPE( packed_, 2,  case EValueType::DeviceAddress: );    break;
+                case 3 :    SWITCH_TYPE( packed_, 3,  case EValueType::DeviceAddress: );    break;
+                case 4 :    SWITCH_TYPE( packed_, 4,  case EValueType::DeviceAddress: );    break;
                 default :   CHECK_THROW_MSG( false, "unsupported vector size" );
             }
         }
@@ -765,9 +782,9 @@ namespace
         {
             switch ( field.rows )
             {
-                case 2 :    SWITCH_TYPE( , 2 ); break;
-                case 3 :    SWITCH_TYPE( , 3 ); break;
-                case 4 :    SWITCH_TYPE( , 4 ); break;
+                case 2 :    SWITCH_TYPE( , 2,  case EValueType::DeviceAddress: );   break;
+                case 3 :    SWITCH_TYPE( , 3,  case EValueType::DeviceAddress: );   break;
+                case 4 :    SWITCH_TYPE( , 4,  case EValueType::DeviceAddress: );   break;
                 default :   CHECK_THROW_MSG( false, "unsupported vector size" );
             }
         }
@@ -812,12 +829,12 @@ namespace
     #undef SWITCH_TYPE
     }
 
-    SizeAndAlign  ShaderStructType::_GetCPPSizeAndAlign (const Field &field, EStructLayout layout)
+    SizeAndAlign  ShaderStructType::_GetCPPSizeAndAlign (const Field &field, EStructLayout layout) __Th___
     {
         auto [size, align] = _GetCPPSizeAndAlign2( field );
 
-        if ( field.IsDynamicArray() or align == 0 )
-            return {};
+        if ( field.IsDynamicArray() )
+            size = 0_b;
 
         size = AlignUp( size, align );
 
@@ -844,7 +861,7 @@ namespace
     _GetMSLSizeAndAlign
 =================================================
 */
-    SizeAndAlign  ShaderStructType::_GetMSLSizeAndAlign2 (const Field &field)
+    SizeAndAlign  ShaderStructType::_GetMSLSizeAndAlign2 (const Field &field) __Th___
     {
         if ( field.IsScalar() or (field.IsVec() and field.packed) or (field.IsMat() and field.packed) )
         {
@@ -867,9 +884,10 @@ namespace
                 case EValueType::UInt32 :       return SizeAndAlign{ 4_b * field.rows * field.cols,  4_b };
                 case EValueType::Float32 :      return SizeAndAlign{ 4_b * field.rows * field.cols,  4_b };
                 case EValueType::Int64 :        return SizeAndAlign{ 8_b * field.rows * field.cols,  8_b };
+                case EValueType::DeviceAddress: return SizeAndAlign{ 8_b * field.rows * field.cols,  8_b };
                 case EValueType::UInt64 :       return SizeAndAlign{ 8_b * field.rows * field.cols,  8_b };
                 case EValueType::Bool32 :
-                case EValueType::Float64 :      return {};
+                case EValueType::Float64 :      CHECK_THROW_MSG( false, "unsupported value type" );
                 case EValueType::Unknown :
                 case EValueType::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );
@@ -904,7 +922,8 @@ namespace
                 case EValueType::Int64 :        return SizeAndAlign{ 8_b * count,  8_b * rows };
                 case EValueType::UInt64 :       return SizeAndAlign{ 8_b * count,  8_b * rows };
                 case EValueType::Bool32 :
-                case EValueType::Float64 :      return {};
+                case EValueType::Float64 :
+                case EValueType::DeviceAddress: CHECK_THROW_MSG( false, "unsupported value type" );
                 case EValueType::Unknown :
                 case EValueType::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );
@@ -915,12 +934,12 @@ namespace
         CHECK_THROW_MSG( false, "unknown field type" );
     }
 
-    SizeAndAlign  ShaderStructType::_GetMSLSizeAndAlign (const Field &field, EStructLayout layout)
+    SizeAndAlign  ShaderStructType::_GetMSLSizeAndAlign (const Field &field, EStructLayout layout) __Th___
     {
         auto [size, align] = _GetMSLSizeAndAlign2( field );
 
-        if ( field.IsDynamicArray() or align == 0 )
-            return {};
+        if ( field.IsDynamicArray() )
+            size = 0_b;
 
         size = AlignUp( size, align );
 
@@ -941,7 +960,7 @@ namespace
     _GetGLSLSizeAndAlign
 =================================================
 */
-    SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign2 (const Field &field)
+    SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign2 (const Field &field) __Th___
     {
         BEGIN_ENUM_CHECKS();
         switch ( field.type )
@@ -961,6 +980,7 @@ namespace
             case EValueType::Float32 :      return SizeAndAlign{ 4_b,  4_b };
             case EValueType::Bool32 :       return SizeAndAlign{ 4_b,  4_b };
             case EValueType::Int64 :        return SizeAndAlign{ 8_b,  8_b };
+            case EValueType::DeviceAddress: return SizeAndAlign{ 8_b,  8_b };
             case EValueType::UInt64 :       return SizeAndAlign{ 8_b,  8_b };
             case EValueType::Float64 :      return SizeAndAlign{ 8_b,  8_b };
             case EValueType::Unknown :
@@ -970,12 +990,12 @@ namespace
         END_ENUM_CHECKS();
     }
 
-    SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign (const Field &field, EStructLayout layout)
+    SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign (const Field &field, EStructLayout layout) __Th___
     {
         auto [size, align] = _GetGLSLSizeAndAlign2( field );
 
-        if ( field.IsDynamicArray() or align == 0 )
-            return {};
+        if ( field.IsDynamicArray() )
+            size = 0_b;
 
         if ( not field.packed )
             align *= (field.rows == 3 ? 4 : field.rows);
@@ -1039,8 +1059,7 @@ namespace
                 break;
             case EStructLayout::_Count :
             case EStructLayout::Unknown :
-            default :
-                CHECK_THROW_MSG( false );
+            default :               CHECK_THROW_MSG( false );
         }
         END_ENUM_CHECKS();
     }
@@ -1052,12 +1071,18 @@ namespace
 */
     void  ShaderStructType::_Validate (StringView prefix, StringView stName, ArrayView<Field> fields, INOUT ValidationData &data) __Th___
     {
-        const bool  is_std140       = IsStd140( data.layout );
         const bool  is_internal_io  = data.layout == EStructLayout::InternalIO;
+        const bool  glsl_compat     = IsGLSLCompatible( data.layout );
+        const bool  msl_compat      = IsMSLCompatible( data.layout );
 
         for (auto& field : fields)
         {
-            if ( field.IsBufferRef() or field.IsPointer() )
+            if ( field.padding )
+                continue;
+
+            CHECK( field.IsDeviceAddress() == (field.IsBufferRef() or field.IsPointer() or field.IsUntypedDeviceAddress()) );
+
+            if ( field.IsDeviceAddress() )
             {
                 TEST_FEATURE( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
 
@@ -1070,20 +1095,23 @@ namespace
 
                 _ValidateOffsets( data, field.offset );
 
-                data.mslOffset  += ptr_size;
-                data.glslOffset += ptr_size;
-                data.cppOffset  += ptr_size;
+                const uint  arr_size = field.IsStaticArray() ? field.arraySize : 1;
+
+                data.mslOffset  += ptr_size * arr_size;
+                data.glslOffset += ptr_size * arr_size;
+                data.cppOffset  += ptr_size * arr_size;
             }
             else
             if ( field.IsStruct() )
             {
-                CHECK_THROW_MSG( data.layout == field.stType->Layout(),
+                CHECK_THROW_MSG( IsSameLayouts( data.layout, field.stType->Layout() ),
                     "Struct '"s << stName << "' field '" << field.name << "' uses Struct '" << field.stType->Name() << "' with layout '" <<
                     EStructLayout_ToString(field.stType->Layout()) << "' is not compatible with layout '" << EStructLayout_ToString(data.layout) << "'" );
 
-                data.mslOffset  = AlignUp( data.mslOffset,  field.stType->_align );
-                data.glslOffset = AlignUp( data.glslOffset, Max( field.stType->_align, is_std140 ? 16_b : 1_b ));
-                data.cppOffset  = AlignUp( data.cppOffset,  field.stType->_align );
+                const Bytes     st_align = field.stType->_structAlign;
+                data.mslOffset  = AlignUp( data.mslOffset,  st_align );
+                data.glslOffset = AlignUp( data.glslOffset, st_align );
+                data.cppOffset  = AlignUp( data.cppOffset,  st_align );
 
                 _ValidateOffsets( data, field.offset );
 
@@ -1097,9 +1125,10 @@ namespace
 
                 if ( not field.IsDynamicArray() )
                 {
-                    data.mslOffset  = data2.mslOffset;
-                    data.glslOffset = data2.glslOffset;
-                    data.cppOffset  = data2.cppOffset;
+                    const uint  arr_size = field.IsStaticArray() ? field.arraySize : 1;
+                    data.mslOffset  += AlignUp( data2.mslOffset  - data.mslOffset,  st_align ) * arr_size;
+                    data.glslOffset += AlignUp( data2.glslOffset - data.glslOffset, st_align ) * arr_size;
+                    data.cppOffset  += AlignUp( data2.cppOffset  - data.cppOffset,  st_align ) * arr_size;
                 }
             }
             else
@@ -1149,6 +1178,10 @@ namespace
                         }
                         break;
 
+                    case EValueType::DeviceAddress :
+                        TEST_FEATURE( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
+                        break;
+
                     case EValueType::Unknown :
                     case EValueType::_Count :
                     default :                   CHECK_THROW_MSG( false, "unknown value type" );
@@ -1160,45 +1193,44 @@ namespace
                 Bytes   cpp_offset  = data.cppOffset;
 
                 // Metal
+                if ( msl_compat )
                 {
                     auto [size, align] = _GetMSLSizeAndAlign( field, data.layout );
-                    if ( align > 0 )
-                    {
-                        CHECK_THROW_MSG( size == field.size,
-                            "Struct '"s << stName << "' field '" << field.name << "' size mismatch for Metal backend: (" <<
-                            ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
 
-                        data.mslOffset  = AlignUp( data.mslOffset, align );
-                        msl_offset      = data.mslOffset + size;
-                    }
+                    CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+                    CHECK_THROW_MSG( size == 0_b or size == field.size,
+                        "Struct '"s << stName << "' field '" << field.name << "' size mismatch for Metal backend: (" <<
+                        ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
+
+                    data.mslOffset  = AlignUp( data.mslOffset, align );
+                    msl_offset      = data.mslOffset + size;
                 }
 
                 // GLSL
+                if ( glsl_compat )
                 {
                     auto [size, align] = _GetGLSLSizeAndAlign( field, data.layout );
-                    if ( align > 0 )
-                    {
-                        CHECK_THROW_MSG( size == field.size,
-                            "Struct '"s << stName << "' field '" << field.name << "' size mismatch for GLSL backend: (" <<
-                            ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
 
-                        data.glslOffset = AlignUp( data.glslOffset, align );
-                        glsl_offset     = data.glslOffset + size;
-                    }
+                    CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+                    CHECK_THROW_MSG( size == 0_b or size == field.size,
+                        "Struct '"s << stName << "' field '" << field.name << "' size mismatch for GLSL backend: (" <<
+                        ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
+
+                    data.glslOffset = AlignUp( data.glslOffset, align );
+                    glsl_offset     = data.glslOffset + size;
                 }
 
                 // CPP
                 {
                     auto [size, align] = _GetCPPSizeAndAlign( field, data.layout );
-                    if ( align > 0 )
-                    {
-                        CHECK_THROW_MSG( size == field.size,
-                            "Struct '"s << stName << "' field '" << field.name << "' size mismatch for C++ backend: (" <<
-                            ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
 
-                        data.cppOffset  = AlignUp( data.cppOffset, align );
-                        cpp_offset      = data.cppOffset + size;
-                    }
+                    CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+                    CHECK_THROW_MSG( size == 0_b or size == field.size,
+                        "Struct '"s << stName << "' field '" << field.name << "' size mismatch for C++ backend: (" <<
+                        ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
+
+                    data.cppOffset  = AlignUp( data.cppOffset, align );
+                    cpp_offset      = data.cppOffset + size;
                 }
 
                 _ValidateOffsets( data, field.offset );
@@ -1208,6 +1240,54 @@ namespace
                 data.cppOffset  = cpp_offset;
             }
         }
+    }
+
+/*
+=================================================
+    _AddPadding
+=================================================
+*/
+    void  ShaderStructType::_AddPadding (const EStructLayout layout, INOUT Array<Field> &fields) __Th___
+    {
+        BEGIN_ENUM_CHECKS();
+        switch ( layout )
+        {
+            case EStructLayout::Compatible_Std430 :
+            case EStructLayout::Std430 :
+            case EStructLayout::Compatible_Std140 :
+            case EStructLayout::Std140 :
+                for (usize i = 0; i < fields.size(); ++i)
+                {
+                    auto&   field = fields[i];
+
+                    if ( field.IsArray() )  continue;
+
+                    // add padding for vec3
+                    if ( field.IsVec() and field.rows == 3 and not field.packed )
+                    {
+                        Field   pad = field;
+
+                        pad.name    = "_"s + field.name + "_padding_w";
+                        pad.rows    = 1;
+                        pad.size    = field.size / 4;
+                        pad.offset  = field.offset + (field.size - pad.size);
+                        pad.align   = pad.size;
+                        pad.padding = true;
+                        ASSERT( pad.IsScalar() );
+
+                        ++i;
+                        fields.insert( fields.begin()+i, RVRef(pad) );
+                    }
+                }
+                break;
+
+            case EStructLayout::Metal :
+            case EStructLayout::InternalIO :
+            case EStructLayout::_Count :
+            case EStructLayout::Unknown :   break;
+        }
+        END_ENUM_CHECKS();
+
     }
 
 /*
@@ -1253,12 +1333,12 @@ namespace
         return Set( ObjectStorage::Instance()->defaultLayout, fields );
     }
 
-    void  ShaderStructType::Set (EStructLayout layout, const String &fields) __Th___
+    void  ShaderStructType::Set (const EStructLayout layout, const String &fields) __Th___
     {
         CHECK_THROW_MSG( not fields.empty() );
         CHECK_THROW_MSG( _fields.empty() );
 
-        _ParseFields( Name(), fields, OUT _fields );
+        _ParseFields( fields, OUT _fields );
         CHECK_THROW_MSG( not _fields.empty() );
 
         _CalcOffsets( Name(), layout, INOUT _fields, OUT _align, OUT _structAlign, OUT _size );
@@ -1281,8 +1361,10 @@ namespace
         {
             ValidationData  data{ _features, _layout };
             _Validate( "", Name(), _fields, INOUT data );
-            _ValidateOffsets( data, _size );
+            _ValidateOffsets( data, HasDynamicArray() ? StaticSize() : _size );
         }
+
+        _AddPadding( _layout, INOUT _fields );
 
         auto&   storage = *ObjectStorage::Instance();
         if ( storage.spirvCompiler != null and IsGLSLCompatible( _layout ))
@@ -1355,17 +1437,19 @@ namespace
             String          log;
             CHECK_THROW_MSG( storage.metalCompiler->Compile( in, OUT bytecode, OUT log ),
                 "MSL shader struct type validation failed:\n"s << log );
+
+            CHECK_THROW( not bytecode.empty() ); // internal error
         }
     }
 
 /*
 =================================================
-    _CreatePackedTypeGLSL
+    _CreatePackedTypeGLSL1
 =================================================
 */
     bool  ShaderStructType::_CreatePackedTypeGLSL1 (INOUT String &str, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &field)
     {
-        CHECK_ERR_MSG( not (field.IsScalar() or field.IsStruct() or field.IsBufferRef() or field.IsPointer()),
+        CHECK_ERR_MSG( not (field.IsScalar() or field.IsStruct() or field.IsDeviceAddress()),
             "Field '"s << field.name << "' has unsupported type" );
 
         const char  vec_field_names[] = "xyzw";
@@ -1386,28 +1470,56 @@ namespace
             }
         }
 
-        str << "#define " << packedTypeName << "_cast( _src_ )  " << dstType << "( ";
+        // example: '#define /*float3*/ GetInplaceFloat3( /*inplace_float3*/ _fieldName_ ) ...'
+        String  short_name {packedTypeName.substr( packedTypeName.find( '_' )+1 )};  // remove 'inplace_'
+        CHECK_ERR( not short_name.empty() );
+        short_name[0] = ToUpperCase( short_name[0] );
+
+        String  mat_field = short_name.substr( 0, short_name.size()-3 ) + short_name.substr( short_name.size()-1 );
+
+        str << "#define GetInplace" << short_name << "( _fieldName_ )  " << dstType << "( ";
 
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "(_src_ ## _" << vec_field_names[r] << ")"; 
+                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << ")"; 
+            }
+        }else
+        if ( field.IsMat() )
+        {
+            UNTESTED;
+            for (ubyte c = 0; c < field.cols; ++c) {
+                str << (c ? ", " : "") << "GetInplace" << mat_field << "(_fieldName_ ## _c" << ToString( uint(c) ) << ")";
+            }
+        }
+        str << " )\n";
+
+        // example: '#define /*inplace_float3*/ SetInplaceFloat3( _fieldName_, /*float3*/_src_ ) ...'
+        str << "#define SetInplace" << short_name << "( _fieldName_, _src_ )  {";
+        if ( field.IsVec() )
+        {
+            for (ubyte r = 0; r < field.rows; ++r) {
+                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << " = (_src_)." << vec_field_names[r] << ")"; 
             }
         }else
         if ( field.IsMat() )
         {
             for (ubyte c = 0; c < field.cols; ++c) {
-                str << (c ? ", " : "") << memberTypeName << "_cast(_src_ ## _c" << ToString( uint(c) ) << ")";
+                str << (c ? ", " : "") << "SetInplace" << mat_field << "(_fieldName_ ## _c" << ToString( uint(c) ) << ")";
             }
         }
-
-        str << " )\n\n";
+        str << "}\n\n";
         return true;
     }
 
+/*
+=================================================
+    _CreatePackedTypeGLSL2
+=================================================
+*/
     bool  ShaderStructType::_CreatePackedTypeGLSL2 (INOUT String &str, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &field)
     {
-        CHECK_ERR_MSG( not (field.IsScalar() or field.IsStruct() or field.IsBufferRef() or field.IsPointer()),
+        CHECK_ERR_MSG( not (field.IsScalar() or field.IsStruct() or field.IsUntypedDeviceAddress()),
             "Field '"s << field.name << "' has unsupported type" );
 
         const char  vec_field_names[] = "xyzw";
@@ -1427,24 +1539,40 @@ namespace
                 str << "\t" << memberTypeName << "  c" << ToString( uint(c) ) << ";\n";
             }
         }
-
         str << "};\n";
-        str << "#define " << packedTypeName << "_cast( _src_ )  " << dstType << "( ";
 
+        // example: 'float3  Cast (const packed_float3 src) ...'
+        str << dstType << "  Cast" << " (const " << packedTypeName << " src) { return " << dstType << "( ";
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "(_src_." << vec_field_names[r] << ")"; 
+                str << (r ? ", " : "") << "src." << vec_field_names[r]; 
             }
         }else
         if ( field.IsMat() )
         {
             for (ubyte c = 0; c < field.cols; ++c) {
-                str << (c ? ", " : "") << memberTypeName << "_cast(_src_.c" << ToString( uint(c) ) << ")";
+                str << (c ? ", " : "") << "Cast(src.c" << ToString( uint(c) ) << ")";
             }
         }
+        str << " ); }\n";
 
-        str << " )\n\n";
+        // example: 'packed_float3  Cast (const float3 src) ...'
+        str << packedTypeName << "  Cast" << " (const " << dstType << " src) { return " << packedTypeName << "( ";
+        if ( field.IsVec() )
+        {
+            for (ubyte r = 0; r < field.rows; ++r) {
+                str << (r ? ", " : "") << "src." << vec_field_names[r]; 
+            }
+        }else
+        if ( field.IsMat() )
+        {
+            for (ubyte c = 0; c < field.cols; ++c) {
+                str << (c ? ", " : "") << "Cast(src[" << ToString( uint(c) ) << "])";
+            }
+        }
+        str << " ); }\n\n";
+
         return true;
     }
 
@@ -1471,6 +1599,7 @@ namespace {
             case EValueType::Int32 :        s_name = "int";         v_name = "ivec";    break;
             case EValueType::UInt32 :       s_name = "uint";        v_name = "uvec";    break;
             case EValueType::Int64 :        s_name = "int64_t";     v_name = "i64vec";  break;
+            case EValueType::DeviceAddress: s_name = "uvec2";                           break;
             case EValueType::UInt64 :       s_name = "uint64_t";    v_name = "u64vec";  break;
             case EValueType::Float16 :      s_name = "float16_t";   v_name = "f16vec";  m_name = "f16mat";  break;
             case EValueType::Float32 :      s_name = "float";       v_name = "vec";     m_name = "mat";     break;
@@ -1523,6 +1652,46 @@ namespace {
             case EValueType::Float64 :      s_name = "double";          v_name = "dvec";        m_name = "dmat";        break;
 
             case EValueType::Bool8 :        // TODO
+            case EValueType::DeviceAddress:
+            case EValueType::Unknown :
+            case EValueType::_Count :
+            default :                       RETURN_ERR( "unknown value type" );
+        }
+        END_ENUM_CHECKS();
+        return true;
+    }
+}
+
+/*
+=================================================
+    ValueTypeToStrCPP
+=================================================
+*/
+namespace {
+    ND_ static bool  ValueTypeToStrCPP (EValueType type, INOUT String &src)
+    {
+        BEGIN_ENUM_CHECKS();
+        switch ( type )
+        {
+            case EValueType::Bool8 :        src << "bool";          break;
+            case EValueType::Bool32 :       src << "lbool";         break;
+            case EValueType::Int8 :
+            case EValueType::Int8_Norm :    src << "sbyte";         break;
+            case EValueType::UInt8 :
+            case EValueType::UInt8_Norm :   src << "ubyte";         break;
+            case EValueType::Int16 :
+            case EValueType::Int16_Norm :   src << "short";         break;
+            case EValueType::UInt16 :
+            case EValueType::UInt16_Norm :  src << "ushort";        break;
+            case EValueType::Int32 :        src << "int";           break;
+            case EValueType::UInt32 :       src << "uint";          break;
+            case EValueType::Int64 :        src << "slong";         break;
+            case EValueType::UInt64 :       src << "ulong";         break;
+            case EValueType::Float16 :      src << "half";          break;
+            case EValueType::Float32 :      src << "float";         break;
+            case EValueType::Float64 :      src << "double";        break;
+            case EValueType::DeviceAddress: src << "DeviceAddress"; break;
+
             case EValueType::Unknown :
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
@@ -1536,7 +1705,7 @@ namespace {
     ToGLSL
 =================================================
 */
-    bool  ShaderStructType::ToGLSL (bool withOffsets, INOUT String &outTypes, INOUT String &outFields, INOUT UniqueTypes_t &uniqueTypes, Bytes baseOffset) const
+    bool  ShaderStructType::ToGLSL (const bool withOffsets, INOUT String &outTypes, INOUT String &outFields, INOUT UniqueTypes_t &uniqueTypes, Bytes baseOffset) const
     {
         const bool  is_std140 = IsStd140( _layout );
 
@@ -1553,20 +1722,21 @@ namespace {
 
             if ( field.packed )
             {
-                StringView  short_name = s_name;
-                if ( EndsWith( short_name, "_t" ))
-                    short_name = short_name.substr( 0, short_name.length()-2 );
+                String  public_name;
+                CHECK_ERR( ValueTypeToStrCPP( field.type, OUT public_name ));
 
-                String  packed  = String{short_name} << (isStd140 ? "_inpack" : "_packed");
-                String  memt    = String{s_name};
+                // Prefix 'inplace_' - packed in the same place, because in 'std140' struct aligned to 16 bytes
+
+                String  packed  = (isStd140 ? "inplace_"s : "packed_"s) << public_name;
+                String  memt    {s_name};
 
                 if ( field.IsVec() )
                     packed << ToString( field.rows );
 
                 if ( field.IsMat() )
                 {
-                    packed  << ToString( field.cols ) << 'x' << ToString( field.rows );
-                    memt    << (isStd140 ? "_inpack" : "_packed") << ToString( field.rows );
+                    memt = (isStd140 ? "inplace_"s : "packed_"s) << public_name << ToString( field.rows );
+                    packed << ToString( field.cols ) << 'x' << ToString( field.rows );
 
                     // add packed vec type
                     if ( uniqueTypes.insert( memt ).second )
@@ -1630,6 +1800,10 @@ namespace {
 
         for (auto& field : _fields)
         {
+            // padding needed for structure declaration, buffer declaration has explicit offsets
+            if ( withOffsets and field.padding )
+                continue;
+
             outFields << "\t";
             if ( withOffsets )
                 outFields << "layout(offset=" << ToString( usize(field.offset + baseOffset) ) << ", align=" << ToString( usize(field.align) ) << ") ";
@@ -1669,7 +1843,14 @@ namespace {
                 String      elem_name;
                 CHECK_ERR( GetScalarName( false, field, INOUT elem_name ));
 
-                const String        type_name   = elem_name + "_AEPtr";
+                String      type_name;
+                CHECK_ERR( ValueTypeToStrCPP( field.type, OUT type_name ));
+                if ( field.packed )     "packed_" >> type_name;
+                if ( field.IsVec() )    type_name << ToString( field.rows );
+                if ( field.IsMat() )    type_name << ToString( field.cols ) << 'x' << ToString( field.rows );
+                CHECK_ERR( not type_name.empty() );
+                type_name << "_AEPtr";
+
                 const SizeAndAlign  size_align  = _GetGLSLSizeAndAlign( field, EStructLayout::Std430 );
 
                 if ( uniqueTypes.insert( type_name ).second )
@@ -1798,6 +1979,7 @@ namespace {
             case EValueType::UInt64 :       src << "ulong";     break;
             case EValueType::Float16 :      src << "half";      break;
             case EValueType::Float32 :      src << "float";     break;
+            case EValueType::DeviceAddress: src << "void";      break;
 
             case EValueType::Bool32 :       // TODO
             case EValueType::Float64 :
@@ -1871,6 +2053,7 @@ namespace {
 
             case EValueType::Bool32 :       // TODO
             case EValueType::Float64 :
+            case EValueType::DeviceAddress:
             case EValueType::Unknown :
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
@@ -1949,18 +2132,22 @@ namespace {
                 return false;
         }};
 
+        CHECK_ERR( IsMSLCompatible( Layout() ));
 
         String  src;
         src << "struct " << Typename() << "\n{\n";
 
         for (auto& field : _fields)
         {
+            if ( field.padding )
+                continue;
+
             src << "\t";
 
             if ( field.IsDynamicArray() )
                 src << "device ";
 
-            if ( field.IsBufferRef() or field.IsPointer() )
+            if ( field.IsDeviceAddress() )
             {
                 Field   f2 = field;     f2.pointer = false;
 
@@ -2004,44 +2191,6 @@ namespace {
         UniqueTypes_t   uniqueTypes;
         return ToMSL( INOUT types, uniqueTypes );
     }
-
-/*
-=================================================
-    ValueTypeToStrCPP
-=================================================
-*/
-namespace {
-    ND_ static bool  ValueTypeToStrCPP (EValueType type, INOUT String &src)
-    {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
-        {
-            case EValueType::Bool8 :        src << "bool";      break;
-            case EValueType::Bool32 :       src << "lbool";     break;
-            case EValueType::Int8 :
-            case EValueType::Int8_Norm :    src << "sbyte";     break;
-            case EValueType::UInt8 :
-            case EValueType::UInt8_Norm :   src << "ubyte";     break;
-            case EValueType::Int16 :
-            case EValueType::Int16_Norm :   src << "short";     break;
-            case EValueType::UInt16 :
-            case EValueType::UInt16_Norm :  src << "ushort";    break;
-            case EValueType::Int32 :        src << "int";       break;
-            case EValueType::UInt32 :       src << "uint";      break;
-            case EValueType::Int64 :        src << "slong";     break;
-            case EValueType::UInt64 :       src << "ulong";     break;
-            case EValueType::Float16 :      src << "half";      break;
-            case EValueType::Float32 :      src << "float";     break;
-            case EValueType::Float64 :      src << "double";    break;
-
-            case EValueType::Unknown :
-            case EValueType::_Count :
-            default :                       RETURN_ERR( "unknown value type" );
-        }
-        END_ENUM_CHECKS();
-        return true;
-    }
-}
 /*
 =================================================
     ToCPP
@@ -2049,6 +2198,9 @@ namespace {
 */
     bool  ShaderStructType::ToCPP (INOUT String &outTypes, INOUT UniqueTypes_t &uniqueTypes) const
     {
+        if ( not uniqueTypes.insert( String{Typename()} ).second )
+            return true;  // already exists
+
         String  src;
         String  test;
 
@@ -2056,9 +2208,7 @@ namespace {
         {{
             if ( field.stType )
             {
-                if ( uniqueTypes.insert( String{field.stType->Typename()} ).second )
-                    CHECK_ERR( field.stType->ToCPP( INOUT outTypes, INOUT uniqueTypes ));
-
+                CHECK_ERR( field.stType->ToCPP( INOUT outTypes, INOUT uniqueTypes ));
                 src << field.stType->Typename();
                 return true;
             }
@@ -2106,18 +2256,27 @@ namespace {
         if ( _align != _structAlign )
             src << " (" << ToString( usize(_structAlign) ) << ")";
 
-        src << "\n\tstruct " << Typename() << "\n"
+        src << "\n\tstruct ";
+
+        if ( _size != AlignUp( _size, _align ))
+            src << "alignas(" << ToString( usize(_align) ) << ") ";
+
+        src << Typename() << "\n"
             << "\t{\n"
-            << "\t\tstatic constexpr auto  TypeName = ShaderStructName{\"" << Typename() << "\"};\n\n";
+            << "\t\tstatic constexpr auto  TypeName = ShaderStructName{HashVal32{0x"
+            << ToString<16>( uint{ShaderStructName{Typename()}} ) << "u}};  // '" << Typename() << "'\n\n";
 
         for (auto& field : _fields)
         {
+            if ( field.padding )
+                continue;
+
             src << (field.IsDynamicArray() ? "\t//\t" : "\t\t");
 
             if ( field.IsStaticArray() )
                 src << "StaticArray< ";
 
-            if ( field.IsBufferRef() or field.IsPointer() )
+            if ( field.IsDeviceAddress() )
             {
                 src << "TDeviceAddress< ";
                 CHECK_ERR( TypeToStr( field, INOUT src ));
@@ -2148,12 +2307,13 @@ namespace {
                 test << "\tSTATIC_ASSERT( offsetof(" << Typename() << ", " << field.name << ") == " << ToString(usize( field.offset )) << " );\n";
         }
         src << "\t};\n"
+            << "#endif\n"
             << test;
 
         if ( _size > 0 ) {
             src << "\tSTATIC_ASSERT( sizeof(" << Typename() << ") == " << ToString(usize( AlignUp( _size, _align ))) << " );\n";
         }
-        src << "#endif\n\n";
+        src << "\n";
 
         outTypes << src;
         return true;
@@ -2206,7 +2366,7 @@ namespace {
         for (auto& field : _fields)
         {
             CHECK_THROW_MSG( not field.IsArray() );
-            CHECK_THROW_MSG( not (field.IsBufferRef() or field.IsPointer()) );
+            CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
             if ( field.IsStruct() )
             {
@@ -2248,7 +2408,7 @@ namespace {
         for (auto& field : _fields)
         {
             CHECK_THROW_MSG( not field.IsArray() );
-            CHECK_THROW_MSG( not (field.IsBufferRef() or field.IsPointer()) );
+            CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
             if ( field.IsStruct() )
             {
@@ -2282,7 +2442,9 @@ namespace {
     {
         for (auto& field : _fields)
         {
-            CHECK_THROW_MSG( not (field.IsBufferRef() or field.IsPointer()) );
+            if ( field.padding ) continue;
+
+            CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
             if ( field.IsStruct() )
             {
@@ -2315,6 +2477,7 @@ namespace {
 
                     case EValueType::Bool8 :        // TODO
                     case EValueType::Bool32 :
+                    case EValueType::DeviceAddress:
                     case EValueType::Unknown :
                     case EValueType::_Count :
                     default :                       CHECK_THROW_MSG( false, "unknown value type" );
@@ -2414,8 +2577,10 @@ namespace {
         String  str;
         for (auto& field : _fields)
         {
+            if ( field.padding ) continue;
+
             CHECK_THROW_MSG( not field.IsArray() );
-            CHECK_THROW_MSG( not (field.IsBufferRef() or field.IsPointer()) );
+            CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
             if ( field.IsStruct() )
             {
@@ -2470,8 +2635,10 @@ namespace {
         String  str;
         for (auto& field : _fields)
         {
+            if ( field.padding ) continue;
+
             CHECK_THROW_MSG( not field.IsArray() );
-            CHECK_THROW_MSG( not (field.IsBufferRef() or field.IsPointer()) );
+            CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
             if ( field.IsStruct() )
             {
@@ -2516,6 +2683,18 @@ namespace {
         return  _fields     == rhs._fields      and
                 _layout     == rhs._layout      and
                 _features   == rhs._features;
+    }
+
+/*
+=================================================
+    TotalSize
+=================================================
+*/
+    Bytes  ShaderStructType::TotalSize (uint arraySize) const
+    {
+        CHECK( (arraySize > 0) == HasDynamicArray() );
+
+        return StaticSize() + ArrayStride() * arraySize;
     }
 
 /*

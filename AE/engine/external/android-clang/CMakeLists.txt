@@ -3,18 +3,20 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 # External dependencies
-set( AE_ENABLE_FILESYSTEM   ON  CACHE BOOL "enable alternative std::filesystem" )
-set( AE_ENABLE_ARM_HWCPIPE  ON  CACHE BOOL "enable ARM (Mali) performance counters" )
-set( AE_ENABLE_HWPERCOUNTER ON  CACHE BOOL "enable Google performance counters for Adreno/Mali" )
+set( AE_ENABLE_FILESYSTEM       ON  CACHE BOOL "enable alternative std::filesystem" )
+set( AE_ENABLE_ARM_HWCPIPE      ON  CACHE BOOL "enable ARM (Mali) performance counters" )
+set( AE_ENABLE_HWPERCOUNTER     ON  CACHE BOOL "enable Google performance counters for Adreno/Mali" )
 
-set( AE_ENABLE_ASSIMP       OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_GLSLANG      OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_SPIRV_CROSS  OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_GLFW         OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_FREETYPE     OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_MSDFGEN      OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_KTX          OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_TINYGLTF     OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_ASSIMP           OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_CDT              OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_GLSLANG          OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_SPIRV_CROSS      OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_GLFW             OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_FREETYPE         OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_MSDFGEN          OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_MESH_OPTIMIZER   OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_KTX              OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_TINYGLTF         OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 

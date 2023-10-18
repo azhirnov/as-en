@@ -128,10 +128,10 @@ namespace AE::GeometryTools
             const float3    bitan2  = float3{SNormShortToFloat( _vertices[i2].bitangent )};
 
             float3  normal, tangent, bitangent;
-            CalcTBN( pos0, uv0,
-                     pos1, uv1,
-                     pos2, uv2,
-                     OUT normal, OUT tangent, OUT bitangent );
+            ComputeTBN( pos0, uv0,
+                        pos1, uv1,
+                        pos2, uv2,
+                        OUT normal, OUT tangent, OUT bitangent );
 
             CheckTBN( normal, tangent, bitangent );
 

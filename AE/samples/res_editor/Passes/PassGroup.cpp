@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/PassGroup.h"
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {
@@ -24,8 +24,11 @@ namespace AE::ResEditor
     Execute
 =================================================
 */
-    bool  PassGroup::Execute (SyncPassData &pd) __NE___
+    bool  PassGroup::Execute (SyncPassData &pd) __Th___
     {
+        if_unlikely( not _IsEnabled() )
+            return true;
+
         BEGIN_ENUM_CHECKS();
         switch ( _flags )
         {
@@ -41,8 +44,8 @@ namespace AE::ResEditor
             }
             case EFlags::RunOnce_AfterLoading :
             {
-                if ( _resQueue.UploadFramesWithoutWork() > 10 ) {
-                    if ( _count.Inc() < 1 ) return true;
+                if ( _dtQueue.UploadFramesWithoutWork() > 10 ) {
+                    if ( _count.Inc() > 1 ) return true;
                 }
                 break;
             }
@@ -109,7 +112,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  PassGroup::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  PassGroup::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
     {
         if ( not _CanUpdate() )
             return true;

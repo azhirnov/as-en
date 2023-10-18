@@ -166,7 +166,7 @@ namespace AE::Profiler
             info->Get<UniqueNameIdx>()  = iter->second;
 
             if ( color == Default )
-                color = RGBA8u{ RGBA32f{ HSVColor{ PseudoRandom::HEHash( uint(iter->second) )}}};
+                color = RGBA8u{ Rainbow( HEHash( uint(iter->second) ))};
 
             color.a = 255;
             info->Get<RGBA8u>() = color;

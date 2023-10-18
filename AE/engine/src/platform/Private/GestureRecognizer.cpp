@@ -56,10 +56,8 @@ namespace
         // muti touch
         _Recognize2Touch( active_count, timestamp, ia );
 
-        for (uint bits = _activeTouches; bits != 0;)
+        for (const uint i : BitIndexIterate( _activeTouches ))
         {
-            const uint  i = ExtractBitLog2( INOUT bits );
-
             if_unlikely( _touchStates[i] == EGestureState::End )
                 _activeTouches &= ~(1u << i);
         }
@@ -76,10 +74,8 @@ namespace
         ASSERT( state <= EGestureState::Outside );
         //ASSERT( All( IsNotZero( pos )));
 
-        for (uint bits = _activeTouches; bits != 0;)
+        for (const uint i : BitIndexIterate( _activeTouches ))
         {
-            const uint  i = ExtractBitLog2( INOUT bits );
-
             if_likely( id == uint(_touchIDs[i]) )
             {
                 auto&   touch   = _touchData[i];

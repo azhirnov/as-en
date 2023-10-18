@@ -20,12 +20,15 @@ namespace AE::Threading
 
     // methods
     public:
-        AsyncRDataSourceAsStream (RC<AsyncRDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } {}
+        AsyncRDataSourceAsStream (RC<AsyncRDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } { ASSERT(_ds); }
 
-        bool            IsOpen ()                                                   C_NE_OV { return _ds->IsOpen(); }
+        bool            IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
+
+        PosAndSize      PositionAndSize ()                                          C_NE_OV { return PosAndSize{ _pos.load(), _ds->Size() }; }
 
         ReadRequestPtr  ReadSeq (void* data, Bytes dataSize, RC<> mem)              __NE_OV;
         ReadRequestPtr  ReadSeq (Bytes size)                                        __NE_OV;
+        bool            CancelAllRequests ()                                        __NE_OV { return _ds->CancelAllRequests(); }
     };
 //-----------------------------------------------------------------------------
 
@@ -44,12 +47,15 @@ namespace AE::Threading
 
     // methods
     public:
-        AsyncWDataSourceAsStream (RC<AsyncWDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } {}
+        AsyncWDataSourceAsStream (RC<AsyncWDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } { ASSERT(_ds); }
 
-        bool            IsOpen ()                                                   C_NE_OV { return _ds->IsOpen(); }
+        bool            IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
 
-        RC<SharedMem>   Alloc (Bytes size)                                          __NE_OV { return _ds->Alloc( size ); }
+        Bytes           Position ()                                                 C_NE_OV { return _pos.load(); }
+
+        RC<SharedMem>   Alloc (const SizeAndAlign value)                            __NE_OV { return _ds->Alloc( value ); }
         WriteRequestPtr WriteSeq (const void* data, Bytes dataSize, RC<> mem)       __NE_OV;
+        bool            CancelAllRequests ()                                        __NE_OV { return _ds->CancelAllRequests(); }
     };
 //-----------------------------------------------------------------------------
 

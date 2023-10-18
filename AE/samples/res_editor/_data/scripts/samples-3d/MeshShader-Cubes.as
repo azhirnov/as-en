@@ -15,18 +15,18 @@
     void ASmain ()
     {
         // initialize
-        RC<Image>               rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
-        RC<Image>               ds          = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
+        RC<Image>       rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
+        RC<Image>       ds          = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
 
-        RC<Scene>               scene       = Scene();
-        RC<FPVCamera>           camera      = FPVCamera();
-        RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
-        RC<Buffer>              drawtasks   = Buffer();
-        RC<Buffer>              cube        = Buffer();
-        uint                    task_count  = 1;
+        RC<Scene>       scene       = Scene();
+        RC<Buffer>      drawtasks   = Buffer();
+        RC<Buffer>      cube        = Buffer();
+        uint            task_count  = 1;
 
         // setup camera
         {
+            RC<FPVCamera>   camera = FPVCamera();
+
             camera.ClipPlanes( 0.1f, 20.f );
             camera.FovY( 70.f );
 
@@ -34,6 +34,8 @@
             camera.ForwardBackwardScale( s );
             camera.UpDownScale( s );
             camera.SideMovementScale( s );
+
+            scene.Set( camera );
         }
 
         // setup draw tasks
@@ -56,7 +58,7 @@
                 }
             }
             drawtasks.FloatArray( "tasks", draw_tasks );
-            drawtasks.Layout( "mesh.DrawTask" );
+            drawtasks.LayoutName( "mesh.DrawTask" );
             task_count = draw_tasks.size();
         }
 
@@ -74,20 +76,22 @@
             cube.FloatArray( "normals",         normals );
             cube.UIntArray(  "indices",         primitives );
             cube.Float(      "sphereRadius",    2.0f * Sqrt(3.f) * 0.5f );  // cube_size * sqrt(3)/2
-            cube.Layout( "CubeSBlock" );
+            cube.LayoutName( "CubeSBlock" );
         }
 
         // how to draw geometry
         {
             UnifiedGeometry_DrawMeshTasks   cmd;
             cmd.taskCount.x = task_count / 32;
+
+            RC<UnifiedGeometry>     geometry = UnifiedGeometry();
+
             geometry.Draw( cmd );
             geometry.ArgIn( "un_Cube",      cube );
             geometry.ArgIn( "un_DrawTasks", drawtasks );
-        }
 
-        scene.Set( camera );
-        scene.Add( geometry, float3(0.f, 2.f, 0.f) );
+            scene.Add( geometry, float3(0.f, 2.f, 0.f) );
+        }
 
         // render loop
         {

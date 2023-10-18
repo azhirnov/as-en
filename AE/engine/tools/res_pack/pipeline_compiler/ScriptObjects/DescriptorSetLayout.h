@@ -71,11 +71,13 @@ namespace AE::PipelineCompiler
         void  AddSampledImage (EShaderStages, const String &name, const ArraySize &, EImageType, EResourceState)                                            __Th___;
         void  AddCombinedImage (EShaderStages, const String &name, const ArraySize &, EImageType, EResourceState)                                           __Th___;
         void  AddCombinedImage_ImmutableSampler (EShaderStages, const String &name, EImageType, EResourceState, const String &samplerName)                  __Th___;
+        void  AddCombinedImage_ImmutableSampler (EShaderStages, const String &name, EImageType, EResourceState, ArrayView<String> samplerNames)             __Th___;
         void  AddSubpassInput (EShaderStages, const String &name, uint index, EImageType, EResourceState)                                                   __Th___;
         void  AddSubpassInputFromRenderTech (const String &renTechName, const String &passName)                                                             __Th___;
         void  AddSubpassInputFromRenderPass (const String &compatRPassName, const String &subpassName)                                                      __Th___;
         void  AddSampler (EShaderStages, const String &name, const ArraySize &)                                                                             __Th___;
         void  AddImmutableSampler (EShaderStages, const String &name, const String &samplerName)                                                            __Th___;
+        void  AddImmutableSampler (EShaderStages, const String &name, ArrayView<String> samplerNames)                                                       __Th___;
         void  AddRayTracingScene (EShaderStages, const String &name, const ArraySize &)                                                                     __Th___;
         void  AddDebugStorageBuffer (const String &name, EShaderStages, Bytes staticSize, Bytes arraySize)                                                  __Th___;
 
@@ -130,7 +132,7 @@ namespace AE::PipelineCompiler
         void  _CheckSamplerName (const String &name)                                        __Th___;
         void  _CheckAccessType (EAccessType access)                                         C_Th___;
         void  _CheckStorageFormat (EPixelFormat fmt, bool isReadOnly)                       C_Th___;
-        void  _CheckFileds (const String &fields)                                           C_Th___;
+        void  _CheckFields (const String &fields)                                           C_Th___;
     };
     using DescriptorSetLayoutPtr = ScriptRC< DescriptorSetLayout >;
 

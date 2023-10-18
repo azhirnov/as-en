@@ -609,7 +609,7 @@ namespace
                 hash                = (ulong(srcIdx) << 32) | ulong(dstIdx);
 
                 dep.sType           = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
-                dep.dependencyFlags= VK_DEPENDENCY_BY_REGION_BIT;   // TODO: VK_DEPENDENCY_VIEW_LOCAL_BIT
+                dep.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;  // TODO: VK_DEPENDENCY_VIEW_LOCAL_BIT  // TODO: remove by_region for VK_SUBPASS_EXTERNAL ?
                 dep.srcSubpass      = srcSP;
                 dep.dstSubpass      = dstSP;
 
@@ -621,7 +621,7 @@ namespace
         };
         HashMap<ulong, DepInfo> dependencies;
 
-        // create execution dependencies detween all subpasses
+        // create execution dependencies between all subpasses
         for (usize i = 1; i < compat._subpasses.size(); ++i)
         {
             DepInfo dep{ uint(i), uint(i+1), uint(i-1), uint(i) };
@@ -708,7 +708,7 @@ namespace
                     continue;
 
                 const auto      prev_access = EResourceState_ToAccessMask( prev.Get<0>() ) & ~read_access_mask;
-                const auto      next_access = EResourceState_ToAccessMask( next.Get<0>() ) & ~prev_access;
+                const auto      next_access = EResourceState_ToAccessMask( next.Get<0>() ); // & ~prev_access;
 
                 for (auto& [h, dep] : dependencies)
                 {
@@ -1498,7 +1498,7 @@ namespace
         _name = rp._name;   // for compatible RP name is not defined
 
         CHECK_ERR( _ConvertAttachments( compat, rp ));
-        CHECK_ERR( _WalidateSubpasses( compat, rp ));
+        CHECK_ERR( _ValidateSubpasses( compat, rp ));
 
         return true;
     }
@@ -1600,10 +1600,10 @@ namespace
 
 /*
 =================================================
-    _WalidateSubpasses
+    _ValidateSubpasses
 =================================================
 */
-    bool  SerializableMtlRenderPass::_WalidateSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec)
+    bool  SerializableMtlRenderPass::_ValidateSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec)
     {
         Unused( compat, spec );
         // TODO

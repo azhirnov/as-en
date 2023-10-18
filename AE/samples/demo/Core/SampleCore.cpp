@@ -9,7 +9,7 @@
 
 // samples
 #include "demo/Examples/Canvas2D.h"
-#include "demo/Examples/Simple3D.h"
+#include "demo/Examples/Camera3D.h"
 #include "demo/Examples/ImGuiSample.h"
 
 namespace AE::Samples::Demo
@@ -25,8 +25,8 @@ namespace AE::Samples::Demo
     SampleCore::SampleCore ()
     {
         //_sample = MakeRC< ImGuiSample >();
-        //_sample = MakeRC< Canvas2DSample >();
-        _sample = MakeRC< Simple3DSample >();
+        _sample = MakeRC< Canvas2DSample >();
+        //_sample = MakeRC< Camera3DSample >();
     }
 //-----------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ namespace
         // load input actions
         _inputActionsData = MakeRC<MemRStream>();
 
-        auto    file = GetVFS().OpenAsStream( VFS::FileName{"controls"} );
+        auto    file = GetVFS().Open<RStream>( VFS::FileName{"controls"} );
         CHECK_ERR( file );
         CHECK_ERR( _inputActionsData->LoadRemaining( *file ));
 
@@ -211,10 +211,12 @@ namespace
     OnSurfaceCreated
 =================================================
 */
-    bool  SampleCore::OnSurfaceCreated (IOutputSurface &output) __NE___
+    bool  SampleCore::OnSurfaceCreated (IWindow &wnd) __NE___
     {
         if ( _initialized.load() )
             return true;
+
+        auto&   output = wnd.GetSurface();
 
         if ( _CompileBaseResources( output ) and _CompileResources( output ))
         {
@@ -245,7 +247,7 @@ namespace
             constexpr auto  fname = VFS::FileName{"vk/render_passes"};
         #endif
 
-        auto    file = GetVFS().OpenAsStream( fname );
+        auto    file = GetVFS().Open<RStream>( fname );
         CHECK_ERR( file );
 
         PipelinePackDesc    desc;
@@ -280,7 +282,7 @@ namespace
             constexpr auto  fname = VFS::FileName{"vk/pipelines"};
         #endif
 
-        auto    file = GetVFS().OpenAsStream( fname );
+        auto    file = GetVFS().Open<RStream>( fname );
         CHECK_ERR( file );
 
         PipelinePackDesc    desc;
@@ -345,7 +347,9 @@ namespace
     WaitFrame
 =================================================
 */
-    void  SampleCore::WaitFrame (const Threading::EThreadArray &threads) __NE___
+    void  SampleCore::WaitFrame (const Threading::EThreadArray  &threadMask,
+                                 Ptr<IWindow>                   ,
+                                 Ptr<IVRDevice>                 ) __NE___
     {
         AsyncTask   task;
         std::swap( task, _mainLoop->endFrame );
@@ -355,7 +359,7 @@ namespace
             if ( task == null or task->IsFinished() )
                 break;
 
-            Scheduler().ProcessTasks( threads, 0 );
+            Scheduler().ProcessTasks( threadMask, 0 );
 
             Scheduler().DbgDetectDeadlock();
         }

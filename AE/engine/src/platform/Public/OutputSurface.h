@@ -69,7 +69,7 @@ namespace AE::App
             RectI                   region;         // for texture atlas
             ImageLayer              layer;
 
-            float2                  pixToMm;        // pixels to millimeters, used for touch screen, should not be used for VR
+            float                   pixToMm;        // pixels to millimeters, used for touch screen, should not be used for VR
 
             EResourceState          initialState    = Default;
             EResourceState          finalState      = Default;
@@ -90,17 +90,6 @@ namespace AE::App
             ND_ float2  RegionSizeMm ()         C_NE___ { return float2(region.Size()) * pixToMm; }
         };
         using RenderTargets_t = FixedArray< RenderTarget, MaxOutputTargets >;
-
-
-        //
-        // All Images which is used by surface
-        //
-        struct AllImages_t
-        {
-            FixedArray< ImageID, 16 >   images;
-            EResourceState              initialState    = Default;
-            EResourceState              finalState      = Default;
-        };
 
 
         //
@@ -154,6 +143,7 @@ namespace AE::App
         //
         ND_ virtual RenderPassInfo  GetRenderPassInfo ()                                                                        C_NE___ = 0;
 
+
         // Begin rendering.
         // Returns image acquire task which is implicitly synchronized with present/blit task which returned by 'End()', returns 'null' on error.
         // 'beginCmdBatch'  - batch where render targets will be rendered.
@@ -171,13 +161,13 @@ namespace AE::App
 
         // End rendering and present frame.
         // Returns present/blit task, returns 'null' on error.
-        // 'deps'       - list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is implicitly added.
+        // 'deps'   - list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is implicitly added.
         //
         ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)                                                                  __NE___ = 0;
 
 
         // Returns current surface sizes.
-        // Size can be changed at any moment, so result may be deprecated.
+        // Size can be changed at any moment, so result may be outdated.
         // If not changed then result is equal to 'RenderTarget::RegionSize()' which returns by 'GetTargets()'.
         //
         ND_ virtual TargetSizes_t  GetTargetSizes ()                                                                            C_NE___ = 0;

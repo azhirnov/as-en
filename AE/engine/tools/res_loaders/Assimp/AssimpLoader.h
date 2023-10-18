@@ -5,13 +5,8 @@
 
 #pragma once
 
-#include "res_loaders/Public/ModelLoader.h"
-
 #ifdef AE_ENABLE_ASSIMP
-
-namespace Assimp {
-    class Importer;
-}
+# include "res_loaders/Public/ModelLoader.h"
 
 namespace AE::ResLoader
 {
@@ -22,17 +17,8 @@ namespace AE::ResLoader
 
     class AssimpLoader final : public IModelLoader
     {
-    // variables
-    private:
-        Mutex                       _guard;
-        Unique< Assimp::Importer >  _importerPtr;
-
-
     // methods
     public:
-        AssimpLoader ()                                 __NE___;
-        ~AssimpLoader ()                                __NE___;
-
         bool  LoadModel (OUT IntermScene    &scene,
                          RStream            &stream,
                          const Config       &cfg,

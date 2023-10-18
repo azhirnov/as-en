@@ -99,5 +99,20 @@ namespace AE::ResLoader
         return count;
     }
 
+/*
+=================================================
+    IsValid
+=================================================
+*/
+    bool  IntermScene::IsValid () C_NE___
+    {
+        for (auto& [mesh, idx] : _meshes)
+        {
+            CHECK_ERR( mesh );
+            CHECK_ERR( mesh->IsValid() );
+        }
+        return true;
+    }
+
 
 } // AE::ResLoader

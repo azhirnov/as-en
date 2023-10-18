@@ -224,10 +224,8 @@ namespace AE::Graphics
             return VK_SHADER_STAGE_ALL;
 
         VkShaderStageFlagBits   flags = Zero;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            EShaderStages   t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -252,6 +250,9 @@ namespace AE::Graphics
                 case EShaderStages::MeshStages :
                 case EShaderStages::AllGraphics :
                 case EShaderStages::AllRayTracing :
+                case EShaderStages::VertexProcessingStages :
+                case EShaderStages::PreRasterizationStages :
+                case EShaderStages::PostRasterizationStages :
                 case EShaderStages::All :
                 default_unlikely :                      RETURN_ERR( "unknown shader type!", Zero );
             }
@@ -433,10 +434,8 @@ namespace AE::Graphics
     {
         VkImageCreateFlagBits   flags = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            EImageOpt   t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -547,10 +546,8 @@ namespace AE::Graphics
     {
         VkImageUsageFlagBits    flags = Zero;
 
-        while ( usage != Zero )
+        for (auto t : BitfieldIterate( usage ))
         {
-            EImageUsage t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -589,10 +586,8 @@ namespace AE::Graphics
     {
         VkImageAspectFlagBits   flags = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            EImageAspect    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -624,10 +619,8 @@ namespace AE::Graphics
     {
         EImageAspect    flags = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            VkImageAspectFlagBits   t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -662,10 +655,8 @@ namespace AE::Graphics
     {
         VkBufferUsageFlagBits   result = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            EBufferUsage    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -906,10 +897,8 @@ namespace AE::Graphics
         outMemType      = Default;
 
         STATIC_ASSERT( uint(EImageUsage::All) == 0xFF );
-        while ( usage != Zero )
+        for (auto t : BitfieldIterate( usage ))
         {
-            auto    t = VkImageUsageFlagBits( ExtractBit( INOUT usage ));
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -939,6 +928,7 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
                 case VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM :
                 case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
+                case VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT :
                 default_unlikely :                                  RETURN_ERRV( "not supported" );
             }
             END_ENUM_CHECKS();
@@ -975,10 +965,8 @@ namespace AE::Graphics
         EImageOpt   result = Zero;
 
         STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            VkImageCreateFlagBits   t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1022,10 +1010,8 @@ namespace AE::Graphics
         EBufferUsage    result = Default;
 
         STATIC_ASSERT( uint(EBufferUsage::All) == 0x1FFF );
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            VkBufferUsageFlagBits   t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( VkBufferUsageFlagBits(t) )
             {
@@ -1056,6 +1042,7 @@ namespace AE::Graphics
                 case VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT :
                 case VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT :
                 case VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM :
+                case VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX :
                 default_unlikely :                                  RETURN_ERR( "invalid buffer usage" );
             }
             END_ENUM_CHECKS();
@@ -1072,10 +1059,8 @@ namespace AE::Graphics
     {
         VkMemoryPropertyFlagBits    result = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1108,10 +1093,8 @@ namespace AE::Graphics
     {
         EMemoryType result = Default;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1148,10 +1131,8 @@ namespace AE::Graphics
 
         EShaderStages   result = Default;
 
-        while ( stages != Zero )
+        for (auto t : BitfieldIterate( stages ))
         {
-            auto    t = ExtractBit( INOUT stages );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1190,10 +1171,8 @@ namespace AE::Graphics
     {
         VkPipelineCreateFlagBits    result = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1225,10 +1204,8 @@ namespace AE::Graphics
     {
         VkBuildAccelerationStructureFlagBitsKHR     result = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1237,6 +1214,7 @@ namespace AE::Graphics
                 case ERTASOptions::PreferFastTrace :    result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;    break;
                 case ERTASOptions::PreferFastBuild :    result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;    break;
                 case ERTASOptions::LowMemory :          result |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;           break;
+                case ERTASOptions::AllowDataAccess :    result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DATA_ACCESS_KHR;        break;
 
                 case ERTASOptions::_Last :
                 case ERTASOptions::Unknown :
@@ -1256,10 +1234,8 @@ namespace AE::Graphics
     {
         VkGeometryFlagBitsKHR   result = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1284,10 +1260,8 @@ namespace AE::Graphics
     {
         VkGeometryInstanceFlagBitsKHR   result = Zero;
 
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
-            auto    t = ExtractBit( INOUT values );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1635,10 +1609,8 @@ namespace AE::Graphics
     {
         VkBufferUsageFlagBits   flags = Zero;
 
-        while ( usage != Zero )
+        for (auto t : BitfieldIterate( usage ))
         {
-            EVideoBufferUsage   t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {
@@ -1667,10 +1639,8 @@ namespace AE::Graphics
     {
         VkImageUsageFlagBits    flags = Zero;
 
-        while ( usage != Zero )
+        for (auto t : BitfieldIterate( usage ))
         {
-            EVideoImageUsage    t = ExtractBit( INOUT usage );
-
             BEGIN_ENUM_CHECKS();
             switch ( t )
             {

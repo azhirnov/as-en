@@ -111,9 +111,6 @@ namespace AE::App
             explicit WindowEventListener (VRDeviceEmulator &vr)     __NE___ : _vrDev{vr} {}
             ~WindowEventListener ()                                 __NE_OV {}
 
-            void  OnUpdate (IWindow &)                              __NE_OV {}
-            void  OnResize (IWindow &, const uint2 &)               __NE_OV {}
-
             void  OnSurfaceCreated (IWindow &)                      __NE_OV {}
             void  OnSurfaceDestroyed (IWindow &)                    __NE_OV {}
 

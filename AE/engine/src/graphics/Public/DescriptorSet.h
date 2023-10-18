@@ -186,8 +186,8 @@ namespace AE::Graphics
         EShader         stage   = Default;
 
         DEBUG_ONLY(
-            Bytes16u            dataSize;
-            ShaderStructName    typeName;
+            Bytes16u            dbgDataSize;
+            ShaderStructName    dbgTypeName;
         )
 
 
@@ -199,12 +199,14 @@ namespace AE::Graphics
 
         explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage,
                                               const ShaderStructName &typeName, Bytes dataSize) __NE___ :
-            offset{vulkanOffset}, stage{stage}  DEBUG_ONLY(, dataSize{dataSize}, typeName{typeName} )
+            offset{vulkanOffset}, stage{stage}
+            DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
         { Unused( typeName, dataSize ); }
 
         explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage,
                                               const ShaderStructName &typeName, Bytes dataSize) __NE___ :
-            bufferId{ushort(metalBufferId)}, stage{stage}  DEBUG_ONLY(, dataSize{dataSize}, typeName{typeName} )
+            bufferId{ushort(metalBufferId)}, stage{stage}
+            DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
         { Unused( typeName, dataSize ); }
 
         ND_ constexpr explicit operator bool ()                                                 C_NE___ { return stage != Default; }

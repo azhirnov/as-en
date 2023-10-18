@@ -279,19 +279,23 @@ namespace {
 */
     void  RESMNGR::Deinitialize () __NE___
     {
-        ForceReleaseResources();
-
         _stagingMngr.Deinitialize();
         _queryMngr.Deinitialize();
 
-        // 
+        ForceReleaseResources();
+
         ImmediatelyRelease( _defaultSampler );
         ImmediatelyRelease( _emptyDSLayout );
-        LogAssignedResourcesAndDestroy( this, INOUT _resPool.descSet );
         ForceReleaseResources();
+
+      #ifdef AE_ENABLE_VULKAN
+        DestroyResources( this, INOUT _resPool.framebuffers );
+        ForceReleaseResources();
+      #endif
 
         { auto tmp = _defaultPack.Release();  ImmediatelyRelease( tmp ); }
         LogAssignedResourcesAndDestroy( this, INOUT _resPool.pipelinePacks );
+        LogAssignedResourcesAndDestroy( this, INOUT _resPool.descSet );
 
         DestroyResources( this, INOUT _resPool.samplers );
         DestroyResources( this, INOUT _resPool.graphicsPpln );
@@ -330,21 +334,17 @@ namespace {
 
         if ( _defaultMemAlloc )
         {
-            CHECK( _defaultMemAlloc.use_count() == 1 );
+            CHECK_Eq( _defaultMemAlloc.use_count(), 1 );
             _defaultMemAlloc = null;
         }
 
         if ( _defaultDescAlloc )
         {
-            CHECK( _defaultDescAlloc.use_count() == 1 );
+            CHECK_Eq( _defaultDescAlloc.use_count(), 1 );
             _defaultDescAlloc = null;
         }
 
         DestroyResources( this, INOUT _resPool.renderPass );
-
-      #ifdef AE_ENABLE_VULKAN
-        DestroyResources( this, INOUT _resPool.framebuffers );
-      #endif
 
         AllResourceIDs_t::Visit( _ResourceDestructor{*this} );
 
@@ -751,7 +751,7 @@ namespace {
         auto*   rp = GetResource( rp_id );
         CHECK_ERR( rp );
 
-        const auto  compat_id = rp->CompatibpleRP();
+        const auto  compat_id = rp->CompatibleRP();
         DBG_CHECK_MSG( compat_id, "compatible render pass must not be added to '_renderPassRefs'" );
 
         return compat_id ? compat_id : rp_id;
@@ -813,6 +813,15 @@ namespace {
             #endif
             return false;
         }
+
+      #if defined(AE_DEBUG) and (not AE_OPTIMIZE_IDS)
+        String  dbg_name;
+        if ( dbgName.empty() )
+        {
+            dbg_name    = HashToName( dsName );
+            dbgName     = dbg_name;
+        }
+      #endif
 
         allocator = _ChooseDescAllocator( RVRef(allocator) );
 
@@ -1022,6 +1031,49 @@ namespace {
     Strong<RTShaderBindingID>  RESMNGR::CreateRTShaderBinding (const ShaderBindingTable_t::CreateInfo &ci) __NE___
     {
         return _CreateResource<RTShaderBindingID>( "failed when creating RT shader binding table", *this, ci );
+    }
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+    _ResourcePrinter
+=================================================
+*/
+#ifdef AE_DEBUG
+    struct RESMNGR::_ResourcePrinter
+    {
+        RESMNGR&    resMngr;
+        String&     log;
+
+        template <typename T, uint I>
+        void operator () () __NE___
+        {
+            auto    name = resMngr._GetResourcePoolName( T{} );
+            log << "\nPool: " << name;
+
+            auto&   pool = resMngr._GetResourcePool( T{} );
+            pool.ForEachAssigned( [this] (auto& res) { log << "\n  '" << res.Data().GetDebugName() << "', rc: " << ToString(res.GetRefCount()); } );
+        }
+    };
+#endif
+
+/*
+=================================================
+    PrintAllResources
+=================================================
+*/
+    void  RESMNGR::PrintAllResources () __NE___
+    {
+    #ifdef AE_DEBUG
+        try {
+            String  log;
+            AllResourceIDs_t::Visit( _ResourcePrinter{ *this, log });
+            AE_LOGI( log );
+        }
+        catch (...)
+        {}
+    #endif
     }
 //-----------------------------------------------------------------------------
 

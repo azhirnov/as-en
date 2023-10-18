@@ -645,11 +645,10 @@
             clear_values[i] = pRenderPassBegin->pClearValues[i];
         }
 
-        for (uint bits = clear_ids.to_ulong(); bits != 0;)
+        for (const uint i : BitIndexIterate( clear_ids.to_ulong() ))
         {
-            const uint  i       = ExtractBitLog2( INOUT bits );
-            auto&       color   = clear_values[i].color;
-            auto&       ds      = clear_values[i].depthStencil;
+            auto&   color   = clear_values[i].color;
+            auto&   ds      = clear_values[i].depthStencil;
 
             if_likely( rp_info.loadOps.color.test( i ))
             {
@@ -728,10 +727,8 @@
 
         const auto& sp = rp_info.subpasses[ cmdbuf_info.subpassIndex ];
 
-        for (ulong bits = sp.clear.to_ullong(); bits != 0;)
+        for (uint idx : BitIndexIterate( sp.clear.to_ullong() ))
         {
-            int     idx = ExtractBitLog2( INOUT bits );
-
             VkClearAttachment   clear_att   = {};
             VkClearRect         clear_rect  = {};
             const RGBA32f       rgba        = self.rnd.UniformColor();

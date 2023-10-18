@@ -74,7 +74,7 @@
 
     void Main ()
     {
-        gl.Position     = LocalPosToScreenSpace( in_Position.xyz );
+        gl.Position     = LocalPosToClipSpace( in_Position.xyz );
         Out.texcoord    = in_Texcoord.xyz;
         Out.normal      = in_Position.xyz;
     }

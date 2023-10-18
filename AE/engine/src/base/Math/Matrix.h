@@ -76,6 +76,10 @@ namespace _hidden_
     {
         ubyte       columns;
         ubyte       rows;
+
+        constexpr _MatrixDim (ubyte c, ubyte r)                 __NE___ : columns{c}, rows{r} {}
+
+        ND_ constexpr bool  operator == (const _MatrixDim &rhs) C_NE___ { return columns == rhs.columns and rows == rhs.rows; }
     };
 }
 } // AE::Math
@@ -155,26 +159,63 @@ namespace AE::Math
 =================================================
 */
     template <typename T, uint C, uint R, glm::qualifier Q>
-    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        uint    eq = 0;
+        uint    eq = 1;
         for (uint i = 0; i < C; ++i) {
-            eq += All( Equals( lhs[i], rhs[i], err ));
+            eq &= All( Equals( lhs[i], rhs[i], err ));
         }
-        return eq == C;
+        return eq == 1;
     }
+
+    template <typename T, uint C, uint R, glm::qualifier Q>
+    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const Percent err) __NE___
+    {
+        uint    eq = 1;
+        for (uint i = 0; i < C; ++i) {
+            eq &= All( Equals( lhs[i], rhs[i], err ));
+        }
+        return eq == 1;
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T, uint C, uint R, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        uint    eq = 1;
+        for (uint i = 0; i < C; ++i) {
+            eq &= All( BitEqual( lhs[i], rhs[i], bitCount ));
+        }
+        return eq == 1;
+    }
+
+    template <typename T, uint C, uint R, glm::qualifier Q>
+    ND_ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs) __NE___
+    {
+        uint    eq = 1;
+        for (uint i = 0; i < C; ++i) {
+            eq &= uint(All( BitEqual( lhs[i], rhs[i] )));
+        }
+        return eq == 1;
+    }
+//-----------------------------------------------------------------------------
+
 
 
 /*
 =================================================
-    Quat()
+    TQuat()
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    Quat<T,Q>::Quat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
+    TQuat<T,Q>::TQuat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
 
     template <typename T, glm::qualifier Q>
-    Quat<T,Q>::Quat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
+    TQuat<T,Q>::TQuat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
 
 /*
 =================================================
@@ -182,21 +223,21 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisX () C_NE___
+    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisX () C_NE___
     {
         Mat3_t  mat {*this};    // TODO: optimize
         return Vec3_t( mat[0][0], mat[1][0], mat[2][0] );
     }
 
     template <typename T, glm::qualifier Q>
-    typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisY () C_NE___
+    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisY () C_NE___
     {
         Mat3_t  mat {*this};    // TODO: optimize
         return Vec3_t( mat[0][1], mat[1][1], mat[2][1] );
     }
 
     template <typename T, glm::qualifier Q>
-    typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisZ () C_NE___
+    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisZ () C_NE___
     {
         Mat3_t  mat {*this};    // TODO: optimize
         return Vec3_t( mat[0][2], mat[1][2], mat[2][2] );

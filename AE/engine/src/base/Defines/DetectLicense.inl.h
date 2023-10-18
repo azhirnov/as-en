@@ -15,6 +15,7 @@
     Defined by third party libraries:
      * AE_LICENSE_APACHE_2
      * AE_LICENSE_BSD       - BSD-like
+     * AE_LICENSE_BSD2
      * AE_LICENSE_BSD3
      * AE_LICENSE_GPLv2
      * AE_LICENSE_GPLv3
@@ -24,7 +25,7 @@
      * AE_LICENSE_LGPLv2_SHAREDLIB
      * AE_LICENSE_LGPLv3_SHAREDLIB
      * AE_LICENSE_MIT
-     * AE_LICENSE_MPL       - Mozilla Public License    // https://en.wikipedia.org/wiki/Mozilla_Public_License
+     * AE_LICENSE_MPL_2     - Mozilla Public License    // https://en.wikipedia.org/wiki/Mozilla_Public_License
      * AE_LICENSE_ZLIB                                  // https://en.wikipedia.org/wiki/Zlib_License
      * AE_LICENSE_FREE_NON_COMMERCIAL
 
@@ -35,11 +36,11 @@
 
 // MIT & BSD
 #if defined(REQUIRE_MIT) or defined(REQUIRE_BSD_3)
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_LGPLv2_SHAREDLIB - ok
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
-//  AE_LICENSE_MPL              - ?
+//  AE_LICENSE_MPL_2            - ?
 //  AE_LICENSE_ZLIB             - ok
 
 #   if defined(AE_LICENSE_APACHE_2)
@@ -59,11 +60,11 @@
 // Apache 2.0
 #elif defined(REQUIRE_APACHE_2)
 //  AE_LICENSE_APACHE_2         - ok
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_LGPLv2_SHAREDLIB - ok
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
-//  AE_LICENSE_MPL              - ?
+//  AE_LICENSE_MPL_2            - ?
 //  AE_LICENSE_ZLIB             - ok
 
 #   if defined(AE_LICENSE_GPLv2) or defined(AE_LICENSE_GPLv3) or defined(AE_LICENSE_LGPLv2) or defined(AE_LICENSE_LGPLv3)
@@ -75,13 +76,14 @@
 
 // LGPLv2
 #elif defined(REQUIRE_LGPLv2)
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_LGPLv2_SHAREDLIB - ok
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_MPL_2            - ok
 
-#   if defined(AE_LICENSE_APACHE_2) or defined(AE_LICENSE_MPL)
+#   if defined(AE_LICENSE_APACHE_2) or defined(AE_LICENSE_MPL_2)
 #     error Apache 2.0 / MPL is not compatible with LGPLv2
 #   endif
 #   if defined(AE_LICENSE_GPLv3) or defined(AE_LICENSE_LGPLv3)
@@ -93,15 +95,13 @@
 
 #elif defined(REQUIRE_LGPLv3)
 //  AE_LICENSE_APACHE_2         - ok
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_LGPLv2_SHAREDLIB - ok
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_MPL_2            - ok
 
-#   if defined(AE_LICENSE_MPL)
-#     error MPL is not compatible with LGPLv3
-#   endif
 #   if defined(AE_LICENSE_GPLv2)
 #     error GPLv2 is not compatible with LGPLv3
 #   endif
@@ -111,13 +111,14 @@
 
 // GPLv2
 #elif defined(REQUIRE_GPLv2)
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_GPLv2            - ok
 //  AE_LICENSE_LGPLv2           - ok
 //  AE_LICENSE_LGPLv2_SHAREDLIB - ok
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_MPL_2            - ok
 
 #   if defined(AE_LICENSE_APACHE_2)
 #     error Apache 2.0 is not compatible with GPLv2, try GPLv3
@@ -131,7 +132,7 @@
 
 #elif defined(REQUIRE_GPLv3)
 //  AE_LICENSE_APACHE_2         - ok
-//  AE_LICENSE_BSD/BSD3         - ok
+//  AE_LICENSE_BSD/BSD2/BSD3    - ok
 //  AE_LICENSE_GPLv2            - ok
 //  AE_LICENSE_GPLv3            - ok
 //  AE_LICENSE_LGPLv2           - ok
@@ -140,6 +141,7 @@
 //  AE_LICENSE_LGPLv3_SHAREDLIB - ok
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_MPL_2            - ok
 
 #   if defined(AE_LICENSE_GPLv2)
 #     error GPLv3 is not compatible with GPLv2

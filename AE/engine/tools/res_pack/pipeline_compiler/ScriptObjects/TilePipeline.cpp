@@ -196,10 +196,10 @@ namespace
 
         // TODO: tile local size instead of compute ?
         const auto& spec        = GetBase()->shader->reflection.compute.localGroupSpec;
-        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minComputeWorkGroupInvocations ));
-        uint3       max_threads = uint3{ GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minComputeWorkGroupSizeX ),
-                                         GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minComputeWorkGroupSizeY ),
-                                         GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::minComputeWorkGroupSizeZ )};
+        uint        total_size  = Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupInvocations ));
+        uint3       max_threads = uint3{ GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeX ),
+                                         GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeY ),
+                                         GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeZ )};
         max_threads = Max( max_threads, uint3{1} );
 
         packed_ushort3  local_size;

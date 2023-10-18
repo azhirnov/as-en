@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Scripting/ScriptPassArgs.h"
+#include "res_editor/Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {
@@ -35,6 +36,18 @@ namespace AE::ResEditor
                     CHECK_THROW( res );
                     resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
                 },
+                [&] (const Array<ScriptImagePtr> &arr)
+                {
+                    Array<RC<Image>>    images;
+                    images.reserve( arr.size() );
+
+                    for (auto& tex : arr) {
+                        auto    res = tex->ToResource();
+                        CHECK_THROW( res );
+                        images.push_back( RVRef(res) );
+                    }
+                    resources._resources.emplace_back( UniformName{arg.name}, RVRef(images), arg.state );
+                },
                 [] (NullUnion) {
                     CHECK_THROW_MSG( false, "unsupported argument type" );
                 }
@@ -52,11 +65,12 @@ namespace AE::ResEditor
         for (auto& arg : _args)
         {
             Visit( arg.res,
-                [] (ScriptBufferPtr buf)        { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
-                [] (ScriptImagePtr tex)         { CHECK_THROW_MSG( tex->ToResource() ); },
-                [] (ScriptVideoImagePtr video)  { CHECK_THROW_MSG( video->ToResource() ); },
-                [] (ScriptRTScenePtr scene)     { CHECK_THROW_MSG( scene->ToResource() ); },
-                [] (NullUnion)                  { CHECK_THROW_MSG( false, "unsupported argument type" ); }
+                [] (ScriptBufferPtr buf)                { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
+                [] (ScriptImagePtr tex)                 { CHECK_THROW_MSG( tex->ToResource() ); },
+                [] (ScriptVideoImagePtr video)          { CHECK_THROW_MSG( video->ToResource() ); },
+                [] (ScriptRTScenePtr scene)             { CHECK_THROW_MSG( scene->ToResource() ); },
+                [] (const Array<ScriptImagePtr> &arr)   { for (auto& tex : arr) CHECK_THROW_MSG( tex->ToResource() ); },
+                [] (NullUnion)                          { CHECK_THROW_MSG( false, "unsupported argument type" ); }
             );
         }
     }
@@ -118,7 +132,7 @@ namespace AE::ResEditor
 
         switch ( usage ) {
             case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderAddress_Write;   break;
+            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
             case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
             default :                           CHECK_THROW_MSG( false, "unsupported usage" );
         }
@@ -148,7 +162,7 @@ namespace AE::ResEditor
 
         switch ( usage ) {
             case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderAddress_Write;   break;
+            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
             case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
             default :                           CHECK_THROW_MSG( false, "unsupported usage" );
         }
@@ -207,6 +221,47 @@ namespace AE::ResEditor
         arg.state       = EResourceState::ShaderSample;
         arg.samplerName = samplerName;
 
+        if ( _onAddArg )
+            _onAddArg( arg );
+    }
+
+/*
+=================================================
+    ArgImageArr*
+=================================================
+*/
+    void  ScriptPassArgs::ArgImageArrIn (const String &name, Array<ScriptImagePtr> arr)     __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeRead ); }
+    void  ScriptPassArgs::ArgImageArrOut (const String &name, Array<ScriptImagePtr> arr)    __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeWrite ); }
+    void  ScriptPassArgs::ArgImageArrInOut (const String &name, Array<ScriptImagePtr> arr)  __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeRW ); }
+
+    void  ScriptPassArgs::_AddArg (const String &name, Array<ScriptImagePtr> arr, EResourceUsage usage) __Th___
+    {
+        CHECK_THROW_MSG( arr.size() > 1 );
+        CHECK_THROW_MSG( arr[0] );
+
+        const auto  img_type    = arr[0]->ImageType();
+        const auto  img_fmt     = arr[0]->Description().format;
+
+        for (auto& img : arr)
+        {
+            CHECK_THROW_MSG( img );
+            CHECK_THROW_MSG( img_type == img->ImageType() );
+            CHECK_THROW_MSG( img_fmt == img->Description().format );
+
+            img->AddUsage( usage );
+        }
+        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+
+        Argument&   arg = _args.emplace_back();
+        arg.name = name;
+        arg.res.emplace< Array<ScriptImagePtr> >( RVRef(arr) );
+
+        switch ( usage ) {
+            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
+            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
+            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
+            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
+        }
         if ( _onAddArg )
             _onAddArg( arg );
     }

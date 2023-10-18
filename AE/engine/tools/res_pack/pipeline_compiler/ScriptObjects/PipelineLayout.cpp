@@ -180,7 +180,7 @@ namespace
         else
         {
             CHECK_THROW_MSG( IsStd140OrMetal( ptr->Layout() ),
-                "PushConstant '"s << name << "' with struct '" << ptr->Name() << "' reuuires Std140 layout" );
+                "PushConstant '"s << name << "' with struct '" << ptr->Name() << "' requires Std140 layout" );
         }
 
         _pushConstants.push_back( Tuple{ name, ptr, stage });
@@ -218,10 +218,10 @@ namespace
 
         name << "_";
 
-        for (auto stages = EShaderStages(inStages); stages != Zero;)
+        for (auto t : BitfieldIterate( EShaderStages( inStages )))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT stages ))
+            switch ( t )
             {
                 case EShaderStages::Vertex :            name << "Vs";   break;
                 case EShaderStages::TessControl :       name << "Tc";   break;
@@ -244,6 +244,9 @@ namespace
                 case EShaderStages::MeshStages :
                 case EShaderStages::AllGraphics :
                 case EShaderStages::AllRayTracing :
+                case EShaderStages::VertexProcessingStages :
+                case EShaderStages::PreRasterizationStages :
+                case EShaderStages::PostRasterizationStages :
                 case EShaderStages::Unknown :
                 default :
                     CHECK_THROW_MSG( false, "unknown shader stage" );
@@ -441,11 +444,10 @@ namespace
                 // Metal
                 if ( is_metal )
                 {
-                    for (EShaderStages stages = ptr->GetStages(); stages != Default;)
+                    for (auto stage : BitfieldIterate( ptr->GetStages() ))
                     {
-                        const EShaderStages stage           = ExtractBit( INOUT stages );
-                        auto&               msl_bindings    = msl_per_stage( stage );
-                        ubyte*              dst             = dsl.mtlIndex.PtrForShader( stage );
+                        auto&   msl_bindings    = msl_per_stage( stage );
+                        ubyte*  dst             = dsl.mtlIndex.PtrForShader( stage );
 
                         CHECK_ERR( dst != null, "unsupported shader stage for Metal" );
                         CHECK_ERR( CheckCast( OUT *dst, msl_bindings.BufferCount() ));
@@ -494,8 +496,8 @@ namespace
 
         ASSERT( _pushConstants.size() == _desc.pushConstants.items.size() );
 
-        TestFeature_Min( _features, &FeatureSet::minDescriptorSets,     ushort(idx),    "minDescriptorSets",    "DescriptorLayouts" );
-        TestFeature_Min( _features, &FeatureSet::minPushConstantsSize,  uint(pc_offset),"minPushConstantsSize", "PushConstantsSize" );
+        TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,     ushort(idx),    "maxDescriptorSets",    "DescriptorLayouts" );
+        TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,  uint(pc_offset),"maxPushConstantsSize", "PushConstantsSize" );
 
         if ( is_metal )
         {

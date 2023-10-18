@@ -11,10 +11,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
-
-    Random  _rnd;
-    float   Rnd ()  { return _rnd.Uniform( 0.f, 1.f ); }
-    float3  Rnd3 () { return float3(Rnd(), Rnd(), Rnd()); }
+    #include "samples/GenColoredSpheres.as"
 
     void ASmain ()
     {
@@ -23,7 +20,6 @@
         RC<FPVCamera>   camera          = FPVCamera();
         RC<Buffer>      sphere          = Buffer();
         RC<Buffer>      color_per_inst  = Buffer();
-        array<float4>   colors;
         RC<RTGeometry>  geom            = RTGeometry();
         RC<RTScene>     scene           = RTScene();
 
@@ -54,25 +50,14 @@
 
         // setup draw tasks
         {
-            int3        ipos     (0);
-            const int3  grid_dim (8);
-
-            for (ipos.z = 0; ipos.z < grid_dim.z; ++ipos.z)
-            for (ipos.y = 0; ipos.y < grid_dim.y; ++ipos.y)
-            for (ipos.x = 0; ipos.x < grid_dim.x; ++ipos.x)
+            array<float4>   colors;
+            array<float2x4> draw_tasks = GenColoredSpheresDrawTasks();
+            for (uint i = 0; i < draw_tasks.size(); ++i)
             {
-                int     idx     = VecToLinear( ipos, grid_dim );
-                float   scale1  = 0.2f;
-                float   scale2  = 2.5f;
-                float3  pos     = (float3(ipos - grid_dim / 2) * scale2 + ToSNorm(Rnd3())) * scale1;
-                float   size    = Remap( 0.f, 1.f, 0.25f, 1.f, Rnd() ) * scale1;                // sphere size
-                float4  color   = float4(Rainbow( float(idx) / Area(grid_dim) ));   color.w = 0.5;
-
-                colors.push_back( color );
-
-                scene.AddInstance( geom, RTInstanceTransform( pos, float3(0.f), size ), RTInstanceCustomIndex(idx) );
+                float2x4 task = draw_tasks[i];
+                colors.push_back( task.col1 );
+                scene.AddInstance( geom, RTInstanceTransform( float3(task.col0), float3(0.f), task.col0.w ), RTInstanceCustomIndex(i) );
             }
-
             color_per_inst.FloatArray( "colors", colors );
         }
 

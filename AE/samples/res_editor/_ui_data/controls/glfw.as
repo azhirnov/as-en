@@ -15,6 +15,12 @@ void ASmain (GLFW_ActionBindings& bindings)
                   ActionInfo( "UI.ShowHide", EGestureType::Down ));
         bind.Add( GLFW_Input::I,
                   ActionInfo( "UI.Screenshot", EGestureType::Down ));
+        bind.Add( GLFW_Input::F5,
+                  ActionInfo( "UI.ReloadScript", EGestureType::Down ));
+        bind.Add( GLFW_Input::F3,
+                  ActionInfo( "UI.ResExport", EGestureType::Down ));
+        bind.Add( GLFW_Input::F11,
+                  ActionInfo( "FullscreenOnOff", EGestureType::Down ));
     }
 
     // switch input mode
@@ -68,9 +74,7 @@ void ASmain (GLFW_ActionBindings& bindings)
                   ActionInfo( "UI.StartStopRecording", EGestureType::Down ));
         bind.Add( GLFW_Input::G,
                   ActionInfo( "UI.ShaderDebugger", EGestureType::Down ));
-        bind.Add( GLFW_Input::F5,
-                  ActionInfo( "UI.ReloadScript", EGestureType::Down ));
-        bind.Add( GLFW_Input::P,
+        bind.Add( GLFW_Input::F2,
                   ActionInfo( "UI.FrameCapture", EGestureType::Down ));
     }
 

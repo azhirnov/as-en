@@ -112,12 +112,14 @@ namespace AE::RG::_hidden_
         void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)       __Th_OV;
         void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)      __Th_OV;
 
-        void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
-
+        void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)          __Th_OV;
         void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)               __Th_OV;
 
-        Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
-        Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                                                    __Th_OV;
+        Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)                __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                    __Th_OV;
+
+        Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                     __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                       __Th_OV;
 
         void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)                             __Th_OV;
         void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)                                __Th_OV;
@@ -312,7 +314,7 @@ namespace AE::RG::_hidden_
                                  uint       maxDrawCount,
                                  Bytes      stride)                                                                         __Th___;
 
-        void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___ { DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+        void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___ { DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
         void  DrawIndexedIndirectCount (BufferID    indirectBuffer,
                                         Bytes       indirectBufferOffset,
                                         BufferID    countBuffer,
@@ -320,7 +322,7 @@ namespace AE::RG::_hidden_
                                         uint        maxDrawCount,
                                         Bytes       stride)                                                                 __Th___;
 
-        void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___ { DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+        void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___ { DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
         void  DrawMeshTasksIndirectCount (BufferID  indirectBuffer,
                                           Bytes     indirectBufferOffset,
                                           BufferID  countBuffer,
@@ -621,7 +623,7 @@ namespace AE::RG::_hidden_
     template <typename C>
     void  TransferContext<C>::FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data) __Th___
     {
-        ResourceState( buffer, EResourceState::CopyDst );
+        ResourceState( buffer, EResourceState::ClearDst );
         _ctx.CommitBarriers();
         _ctx.FillBuffer( buffer, offset, size, data );
     }
@@ -689,33 +691,43 @@ namespace AE::RG::_hidden_
     }
 
     template <typename C>
-    void  TransferContext<C>::UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType) __Th___
+    void  TransferContext<C>::UploadBuffer (BufferID buffer, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
     {
         UploadMemoryBarrier( EResourceState::CopySrc );
         ResourceState( buffer, EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
-        _ctx.UploadBuffer( buffer, offset, requiredSize, OUT memView, heapType );
+        _ctx.UploadBuffer( buffer, uploadDesc, OUT memView );
     }
 
     template <typename C>
-    void  TransferContext<C>::UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView) __Th___
+    void  TransferContext<C>::UploadImage (ImageID image, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
     {
         UploadMemoryBarrier( EResourceState::CopySrc );
         ResourceState( image, EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
-        _ctx.UploadImage( image, desc, OUT memView );
+        _ctx.UploadImage( image, uploadDesc, OUT memView );
     }
 
     template <typename C>
-    Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType) __Th___
+    Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
     {
         ResourceState( buffer, EResourceState::CopySrc );
         ReadbackMemoryBarrier( EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
-        return _ctx.ReadbackBuffer( buffer, offset, size, heapType );
+        return _ctx.ReadbackBuffer( buffer, readDesc );
+    }
+
+    template <typename C>
+    Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (INOUT BufferStream &stream) __Th___
+    {
+        ResourceState( stream.Buffer(), EResourceState::CopySrc );
+        ReadbackMemoryBarrier( EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        return _ctx.ReadbackBuffer( stream );
     }
 
     template <typename C>
@@ -726,6 +738,16 @@ namespace AE::RG::_hidden_
 
         _ctx.CommitBarriers();
         return _ctx.ReadbackImage( image, desc );
+    }
+
+    template <typename C>
+    Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
+    {
+        ResourceState( stream.Image(), EResourceState::CopySrc );
+        ReadbackMemoryBarrier( EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        return _ctx.ReadbackImage( stream );
     }
 
     template <typename C>

@@ -97,6 +97,7 @@ namespace AE::Graphics
       #endif
 
         struct _ResourceDestructor;
+        struct _ResourcePrinter;
         using AllResourceIDs_t      = TypeList< BufferViewID, ImageViewID, BufferID, ImageID, SamplerID,
                                                 PipelineCacheID, PipelinePackID, DescriptorSetLayoutID, PipelineLayoutID, DescriptorSetID,
                                               #ifdef AE_ENABLE_VULKAN
@@ -309,6 +310,7 @@ namespace AE::Graphics
         ND_ PushConstantIndex       GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
         ND_ PushConstantIndex       GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
         ND_ PushConstantIndex       GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
+
         using IResourceManager::GetPushConstantIndex;
 
         ND_ NativeBuffer_t          GetBufferHandle (BufferID id)                                                                                   C_NE_OV;
@@ -381,6 +383,8 @@ namespace AE::Graphics
             void    ImmediatelyReleaseResources (Arg0 &arg0, Args& ...args)                             __NE___;
 
             bool    ForceReleaseResources ()                                                            __NE_OV;
+
+            void    PrintAllResources ()                                                                __NE___;
 
         ND_ BufferDesc const&           GetDescription (BufferID id)                                    C_NE_OV;
         ND_ ImageDesc const&            GetDescription (ImageID id)                                     C_NE_OV;
@@ -457,6 +461,15 @@ namespace AE::Graphics
         ND_ QueryManager_t&         GetQueryManager ()                                                  __NE___ { return _queryMngr; }
 
         ND_ StagingBufferStat       GetStagingBufferFrameStat (FrameUID frameId)                        C_NE_OV { return _stagingMngr.GetFrameStat( frameId ); }
+
+        // memory allocators
+        ND_ GfxMemAllocatorPtr      CreateLinearGfxMemAllocator (Bytes pageSize = 0_b)                  C_NE_OV;
+        ND_ GfxMemAllocatorPtr      CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)        C_NE_OV;
+        ND_ GfxMemAllocatorPtr      CreateUnifiedGfxMemAllocator (Bytes pageSize = 0_b)                 C_NE_OV;
+        ND_ GfxMemAllocatorPtr      GetDefaultGfxMemAllocator ()                                        C_NE_OV { return _defaultMemAlloc; }
+
+        // descriptor allocators
+        ND_ DescriptorAllocatorPtr  GetDefaultDescriptorAllocator ()                                    C_NE_OV { return _defaultDescAlloc; }
 
         AE_GLOBALLY_ALLOC
 
@@ -555,7 +568,7 @@ namespace AE::Graphics
         template <typename ID>
         ND_ auto const&         _GetDescription (ID id)                         C_NE___;
 
-    // memory managment
+    // memory management
         ND_ GfxMemAllocatorPtr      _ChooseMemAllocator (GfxMemAllocatorPtr userDefined)        __NE___;
         ND_ DescriptorAllocatorPtr  _ChooseDescAllocator (DescriptorAllocatorPtr userDefined)   __NE___;
 
@@ -956,7 +969,14 @@ namespace AE::Graphics
                 return _hashToName( name );
             }
             else
+            {
+                if_unlikely( name.GetName().empty() )
+                {
+                    SHAREDLOCK( _hashToNameGuard );
+                    return _hashToName( name );
+                }
                 return String{name.GetName()};
+            }
         #else
             Unused( name );
             return {};

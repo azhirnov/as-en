@@ -79,6 +79,7 @@ namespace AE::ResLoader
             case EImageFormat::KTX :        return IL_KTX;
 
             case EImageFormat::DDS :        RETURN_ERR( "use DDSLoader/DDSSaver instead", IL_DDS );
+            case EImageFormat::AEImg :
             case EImageFormat::Unknown :
             case EImageFormat::_Count :     return IL_TYPE_UNKNOWN;
         }

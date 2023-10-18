@@ -25,12 +25,15 @@ namespace AE::App
         Resizable,
         NonResizable,
         Borderless,
-        FullscreenWindow,       // borderless, always on top
 
+        FullscreenWindow,       // borderless, always on top
         Fullscreen,
+
         _Count,
         Unknown         = Resizable,
     };
+
+    ND_ constexpr bool  EWindowMode_IsFullscreen (EWindowMode value) __NE___ { return value >= EWindowMode::FullscreenWindow; }
 
 
     //
@@ -77,9 +80,6 @@ namespace AE::App
         public:
             virtual ~IWndListener ()                                        __NE___ {}
 
-            virtual void  OnUpdate (IWindow &wnd)                           __NE___ = 0;
-            virtual void  OnResize (IWindow &wnd, const uint2 &newSize)     __NE___ = 0;
-
             virtual void  OnSurfaceCreated (IWindow &wnd)                   __NE___ = 0;
             virtual void  OnSurfaceDestroyed (IWindow &wnd)                 __NE___ = 0;
 
@@ -99,7 +99,7 @@ namespace AE::App
         virtual void  Close ()                                                      __NE___ = 0;
 
         // Return surface size.
-        //   Window size with border will be greater.
+        //   Note: window size with border will be greater then surface size.
         //   Thread safe: main thread only
         //
         ND_ virtual uint2  GetSurfaceSize ()                                        C_NE___ = 0;
@@ -124,6 +124,11 @@ namespace AE::App
         //
         ND_ virtual IInputActions&  InputActions ()                                 __NE___ = 0;
 
+        // Returns current window mode.
+        //   Thread safe: no
+        //
+        ND_ virtual EWindowMode  GetCurrentMode ()                                  C_NE___ = 0;
+
 
     // surface api
 
@@ -139,7 +144,7 @@ namespace AE::App
         ND_ virtual IOutputSurface&  GetSurface ()                                  __NE___ = 0;
 
 
-    // desctop only
+    // desktop only
 
         // Set focus to the window.
         //   Thread safe: main thread only
@@ -162,9 +167,10 @@ namespace AE::App
         //
         virtual void  SetTitle (NtStringView title)                                 __NE___ = 0;
 
-        // TODO:
-        //  hide cursor
-        //  set cursor pos
+        // Set window mode windowed/fullscreen.
+        //   Thread safe: main thread only
+        //
+        ND_ virtual bool  SetMode (EWindowMode mode, Monitor::ID monitor = Default) __NE___ = 0;
     };
 
 

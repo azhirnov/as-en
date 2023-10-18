@@ -136,23 +136,23 @@ namespace AE::Threading
 =================================================
 */
     template <usize BS, usize MA, usize MB, typename A>
-    void  LfLinearAllocator<BS,MA,MB,A>::Deallocate (void *ptr, const SizeAndAlign sizeAndAlign) __NE___
+    void  LfLinearAllocator<BS,MA,MB,A>::Deallocate (void *ptr, Bytes size) __NE___
     {
     #ifdef AE_DEBUG
         for (auto& block : _blocks)
         {
             if ( void* mem = block.mem.load() )
             {
-                if ( IsIntersects( ptr, ptr + sizeAndAlign.size, mem, mem + BlockSize() ))
+                if ( IsIntersects( ptr, ptr + size, mem, mem + BlockSize() ))
                 {
-                    CHECK( ptr + sizeAndAlign.size <= mem + Bytes{block.size.load()} );
+                    CHECK( ptr + size <= mem + Bytes{block.size.load()} );
                     return;
                 }
             }
         }
         AE_LOG_DBG( "'ptr' is not belong to this allocator" );
     #else
-        Unused( ptr, sizeAndAlign );
+        Unused( ptr, size );
     #endif
     }
 

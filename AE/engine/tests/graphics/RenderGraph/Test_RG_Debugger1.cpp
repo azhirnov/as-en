@@ -22,7 +22,7 @@ namespace
         AsyncTask                       result;
         bool                            isOK        = false;
 
-        RC<GfxLinearMemAllocator>       gfxAlloc;
+        GfxMemAllocatorPtr              gfxAlloc;
     };
 
 
@@ -167,7 +167,7 @@ no source
         const uint2     img_dim     {16, 16};
         const auto      format      = EPixelFormat::RGBA8_UNorm;
 
-        t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( img_dim ).SetFormat( format ).SetUsage( EImageUsage::Storage | EImageUsage::TransferSrc ), "Image", t.gfxAlloc );
         CHECK_ERR( t.img );

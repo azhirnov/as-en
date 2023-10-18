@@ -33,8 +33,6 @@ namespace
         void OnStateChanged (IWindow &, EState)     __NE_OV {}
         void OnSurfaceCreated (IWindow &)           __NE_OV {}
         void OnSurfaceDestroyed (IWindow &)         __NE_OV {}
-        void OnUpdate (IWindow &wnd)                __NE_OV { wnd.Close(); }
-        void OnResize (IWindow &, const uint2 &)    __NE_OV {}
     };
 
 
@@ -90,8 +88,7 @@ namespace
 
         void  AfterWndUpdate (IApplication &app) __NE_OV
         {
-            if ( _window and _window->GetState() == IWindow::EState::Destroyed )
-                app.Terminate();
+            app.Terminate();
         }
     };
 }

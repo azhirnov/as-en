@@ -17,7 +17,7 @@ namespace AE::ResEditor
 */
     VideoImage::VideoImage (Renderer &          renderer,
                             const ImageDesc &   inDesc,
-                            const Path &        path,
+                            const VFS::FileName &filename,
                             RC<DynamicDim>      outDynSize,
                             StringView          dbgName) __Th___ :
         IResource{ renderer },
@@ -25,14 +25,16 @@ namespace AE::ResEditor
         _dbgName{ dbgName }
     {
         _decoder = Video::VideoFactory::CreateFFmpegDecoder();
-        // TODO: other decoders
         CHECK_THROW( _decoder );
+
+        auto    rstream = GetVFS().Open<RStream>( filename );
+        CHECK_THROW( rstream );
 
         Video::IVideoDecoder::Config    in_cfg;
         in_cfg.dstFormat    = inDesc.format;
         in_cfg.filter       = Video::EFilter::Bilinear;
 
-        CHECK_THROW( _decoder->Begin( in_cfg, path ));
+        CHECK_THROW( _decoder->Begin( in_cfg, rstream ));
 
         const auto  config  = _decoder->GetConfig();
         const auto  props   = _decoder->GetProperties();
@@ -64,8 +66,8 @@ namespace AE::ResEditor
         }
         _uploadStatus.store( EUploadStatus::InProgress );
 
-        _ResQueue().EnqueueImageTransition( _ids[0] );
-        _ResQueue().EnqueueForUpload( GetRC() );
+        _DtTrQueue().EnqueueImageTransition( _ids[0] );
+        _DtTrQueue().EnqueueForUpload( GetRC() );
     }
 
 /*
@@ -119,7 +121,7 @@ namespace AE::ResEditor
 
             if ( not dst_mem.Empty() )
             {
-                CHECK( dst_mem.Copy( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
+                CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
             }
 
             CHECK( _stream.IsCompleted() );

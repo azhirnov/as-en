@@ -15,7 +15,7 @@ namespace {
     ND_ static bool  FindImage2 (const Path &path, ArrayView<Path> directories, OUT Path &result)
     {
         // check default directory
-        if ( FileSystem::Exists( path ))
+        if ( FileSystem::IsFile( path ))
         {
             result = path;
             return true;
@@ -26,7 +26,7 @@ namespace {
         {
             Path    img_path = dir / path;
 
-            if ( FileSystem::Exists( img_path ))
+            if ( FileSystem::IsFile( img_path ))
             {
                 result = RVRef(img_path);
                 return true;
@@ -69,6 +69,7 @@ namespace {
             case EImageFormat::RadianceHDR :    if ( ext == "HDR" ) return EImageFormat::RadianceHDR;
             case EImageFormat::OpenEXR :        if ( ext == "EXR" ) return EImageFormat::OpenEXR;
             case EImageFormat::KTX :            if ( ext == "KTX" ) return EImageFormat::KTX;
+            case EImageFormat::AEImg :          if ( ext == "AEIMG" ) return EImageFormat::AEImg;
             case EImageFormat::_Count :         break;
         }
         END_ENUM_CHECKS();
@@ -96,6 +97,7 @@ namespace {
             case EImageFormat::RadianceHDR :    return "hdr";
             case EImageFormat::OpenEXR :        return "exr";
             case EImageFormat::KTX :            return "ktx";
+            case EImageFormat::AEImg :          return "aeimg";
             case EImageFormat::Unknown :
             case EImageFormat::_Count :         break;
         }

@@ -261,6 +261,7 @@ namespace AE::Graphics
         packed_uint3    groupCount;
     };
     STATIC_ASSERT( sizeof(DispatchIndirectCommand) == 12 );
+    STATIC_ASSERT( alignof(DispatchIndirectCommand) == 4 );
 
 
     struct DrawIndirectCommand
@@ -271,6 +272,7 @@ namespace AE::Graphics
         uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
     STATIC_ASSERT( sizeof(DrawIndirectCommand) == 16 );
+    STATIC_ASSERT( alignof(DrawIndirectCommand) == 4 );
 
 
     struct DrawIndexedIndirectCommand
@@ -282,6 +284,7 @@ namespace AE::Graphics
         uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
     STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand) == 20 );
+    STATIC_ASSERT( alignof(DrawIndexedIndirectCommand) == 4 );
 
 
     struct DrawMeshTasksIndirectCommand
@@ -289,6 +292,7 @@ namespace AE::Graphics
         packed_uint3    taskCount;
     };
     STATIC_ASSERT( sizeof(DrawMeshTasksIndirectCommand) == 12 );
+    STATIC_ASSERT( alignof(DrawMeshTasksIndirectCommand) == 4 );
 
 
     struct TraceRayIndirectCommand
@@ -296,6 +300,7 @@ namespace AE::Graphics
         packed_uint3    dim;
     };
     STATIC_ASSERT( sizeof(TraceRayIndirectCommand) == 12 );
+    STATIC_ASSERT( alignof(TraceRayIndirectCommand) == 4 );
 
 
     struct TraceRayIndirectCommand2
@@ -328,6 +333,7 @@ namespace AE::Graphics
     };
     #ifdef AE_ENABLE_VULKAN
       STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
+      STATIC_ASSERT( alignof(TraceRayIndirectCommand2) == 8 );
     #endif
 
 
@@ -341,6 +347,7 @@ namespace AE::Graphics
         uint        transformOffset;
     };
     STATIC_ASSERT( sizeof(ASBuildIndirectCommand) == 16 );
+    STATIC_ASSERT( alignof(ASBuildIndirectCommand) == 4 );
 
 
 //-----------------------------------------------------------------------------
@@ -354,7 +361,32 @@ namespace AE::Graphics
         Any         = Static | Dynamic,     // try static, then dynamic
     };
 
-    // TODO: UploadBufferDesc
+
+    //
+    // Upload Buffer Description
+    //
+    struct UploadBufferDesc
+    {
+        Bytes               offset;
+        Bytes               size            = UMax;     // UMax - remaining size
+        Bytes               blockSize;                  // 0 - auto
+        EStagingHeapType    heapType        = EStagingHeapType::Static;
+
+        UploadBufferDesc ()                                     __NE___ = default;
+
+        UploadBufferDesc (Bytes offset, Bytes size, Bytes blockSize = 0_b,
+                          EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
+            offset{offset}, size{size}, blockSize{blockSize}, heapType{heapType} {}
+
+        UploadBufferDesc&   Offset (Bytes value)                __NE___ { offset    = value;                        return *this; }
+        UploadBufferDesc&   DataSize (Bytes value)              __NE___ { size      = value;                        return *this; }
+        UploadBufferDesc&   HeapType (EStagingHeapType value)   __NE___ { heapType  = value;                        return *this; }
+        UploadBufferDesc&   StaticHeap ()                       __NE___ { heapType  = EStagingHeapType::Static;     return *this; }
+        UploadBufferDesc&   DynamicHeap ()                      __NE___ { heapType  = EStagingHeapType::Dynamic;    return *this; }
+        UploadBufferDesc&   BlockSize (Bytes value)             __NE___ { blockSize = value;                        return *this; }
+        UploadBufferDesc&   MaxBlockSize ()                     __NE___ { ASSERT( size != UMax );  blockSize = DivCeil( size, GraphicsConfig::MaxStagingBufferParts );  return *this; }
+    };
+    using ReadbackBufferDesc = UploadBufferDesc;
 
 
     //
@@ -363,11 +395,11 @@ namespace AE::Graphics
     struct UploadImageDesc
     {
         uint3               imageOffset     {0};
-        uint3               imageSize       {~0u};
+        uint3               imageSize       {~0u};  // UMax - remaining size
         ImageLayer          arrayLayer;
         MipmapLevel         mipLevel;
-        Bytes               dataRowPitch;   // 0 - auto
-        Bytes               dataSlicePitch; // 0 - auto
+        Bytes               dataRowPitch;           // 0 - auto
+        Bytes               dataSlicePitch;         // 0 - auto
         EImageAspect        aspectMask      = EImageAspect::Color;  // must only have a single bit set
         EStagingHeapType    heapType        = EStagingHeapType::Dynamic;
 
@@ -389,33 +421,39 @@ namespace AE::Graphics
     public:
         Bytes               pos;
     private:
-        Bytes               _size;
-        Bytes               _offset;
-        Bytes               _blockSize;
-        BufferID            _bufferId;      // TODO: Strong ?
-        EStagingHeapType    _heapType       = EStagingHeapType::Static;
+        BufferID            _bufferId;
+        UploadBufferDesc    _desc;
 
     // methods
     public:
-        BufferStream () __NE___ {}
-        BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b, EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
-            _size{size}, _offset{offset}, _blockSize{blockSize}, _bufferId{id}, _heapType{heapType} {}
+        BufferStream ()                                         __NE___ {}
+        BufferStream (BufferID id, const UploadBufferDesc &desc)__NE___ : _bufferId{id}, _desc{desc} {}
 
-        BufferStream&  operator = (const BufferStream &)    __NE___ = default;
+        BufferStream (BufferID id,
+                      Bytes offset, Bytes size, Bytes blockSize = 0_b,
+                      EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
+            _bufferId{id}, _desc{ offset, size, blockSize, heapType} {}
 
-        BufferStream&  SetHeapType (EStagingHeapType type)  __NE___ { _heapType = type;  return *this; }
-        BufferStream&  SetBlockSize (Bytes value)           __NE___ { _blockSize = value;  return *this; }
+        BufferStream&  operator = (const BufferStream &)        __NE___ = default;
 
-        ND_ BufferID            Buffer ()                   C_NE___ { return _bufferId; }
-        ND_ Bytes               DataSize ()                 C_NE___ { return _size; }
-        ND_ Bytes               OffsetAndPos ()             C_NE___ { return _offset + pos; }
-        ND_ Bytes               Begin ()                    C_NE___ { return _offset; }
-        ND_ Bytes               End ()                      C_NE___ { return _offset + _size; }
-        ND_ Bytes               RemainSize ()               C_NE___ { return _size - pos; }
-        ND_ EStagingHeapType    HeapType ()                 C_NE___ { return _heapType; }
+        BufferStream&  SetHeapType (EStagingHeapType type)      __NE___ { _desc.heapType = type;    return *this; }
+        BufferStream&  SetBlockSize (Bytes value)               __NE___ { _desc.blockSize = value;  return *this; }
+        BufferStream&  MaxBlockSize ()                          __NE___ { _desc.MaxBlockSize();     return *this; }
 
-        ND_ bool                IsCompleted ()              C_NE___ { return pos >= _size; }
-        ND_ bool                IsInitialized ()            C_NE___ { return _bufferId != Default; }
+        ND_ BufferID            Buffer ()                       C_NE___ { return _bufferId; }
+        ND_ Bytes               DataSize ()                     C_NE___ { return _desc.size; }
+        ND_ Bytes               OffsetAndPos ()                 C_NE___ { return _desc.offset + pos; }
+        ND_ Bytes               Begin ()                        C_NE___ { return _desc.offset; }
+        ND_ Bytes               End ()                          C_NE___ { return _desc.offset + _desc.size; }
+        ND_ Bytes               RemainSize ()                   C_NE___ { return _desc.size - pos; }
+        ND_ EStagingHeapType    HeapType ()                     C_NE___ { return _desc.heapType; }
+        ND_ Bytes               BlockSize ()                    C_NE___ { return _desc.blockSize; }
+
+        ND_ auto const&         ToUploadDesc ()                 C_NE___ { return _desc; }
+        ND_ auto const&         ToReadbackDesc ()               C_NE___ { return _desc; }
+
+        ND_ bool                IsInitialized ()                C_NE___ { return _bufferId != Default; }
+        ND_ bool                IsCompleted ()                  C_NE___ { return pos >= _desc.size; }
     };
 
 
@@ -426,31 +464,32 @@ namespace AE::Graphics
     {
     // variables
     public:
-        packed_uint2    posYZ;
+        packed_uint2        posYZ;
     private:
-        ImageID         _imageId;   // TODO: Strong ?
-        UploadImageDesc _desc;
+        ImageID             _imageId;
+        UploadImageDesc     _desc;
 
     // methods
     public:
-        ImageStream () __NE___ {}
-        ImageStream (ImageID id, const UploadImageDesc &desc) __NE___ :
-            _imageId{id}, _desc{desc} {}
+        ImageStream ()                                          __NE___ {}
+        ImageStream (ImageID id, const UploadImageDesc &desc)   __NE___ : _imageId{id}, _desc{desc} {}
 
-        ImageStream&  operator = (const ImageStream &)      __NE___ = default;
+        ImageStream&  operator = (const ImageStream &)          __NE___ = default;
 
-        ImageStream&  SetHeapType (EStagingHeapType type)   __NE___ { _desc.heapType = type;  return *this; }
+        ImageStream&  SetHeapType (EStagingHeapType type)       __NE___ { _desc.heapType = type;  return *this; }
 
-        ND_ ImageID             Image ()                    C_NE___ { return _imageId; }
-        ND_ uint3 const&        Begin ()                    C_NE___ { return _desc.imageOffset; }
-        ND_ uint3               End ()                      C_NE___ { return _desc.imageOffset + _desc.imageSize; }
-        ND_ uint3 const&        RegionSize ()               C_NE___ { return _desc.imageSize; }
-        ND_ auto const&         ToUploadDesc ()             C_NE___ { return _desc; }
-        ND_ Bytes               DataOffset ()               C_NE___ { return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
-        ND_ EStagingHeapType    HeapType ()                 C_NE___ { return _desc.heapType; }
+        ND_ ImageID             Image ()                        C_NE___ { return _imageId; }
+        ND_ uint3 const&        Begin ()                        C_NE___ { return _desc.imageOffset; }
+        ND_ uint3               End ()                          C_NE___ { return _desc.imageOffset + _desc.imageSize; }
+        ND_ uint3 const&        RegionSize ()                   C_NE___ { return _desc.imageSize; }
+        ND_ Bytes               DataOffset ()                   C_NE___ { return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
+        ND_ EStagingHeapType    HeapType ()                     C_NE___ { return _desc.heapType; }
 
-        ND_ bool                IsInitialized ()            C_NE___ { return _imageId != Default; }
-        ND_ bool                IsCompleted ()              C_NE___ { return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
+        ND_ auto const&         ToUploadDesc ()                 C_NE___ { return _desc; }
+        ND_ auto const&         ToReadbackDesc ()               C_NE___ { return _desc; }
+
+        ND_ bool                IsInitialized ()                C_NE___ { return _imageId != Default; }
+        ND_ bool                IsCompleted ()                  C_NE___ { return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
     };
 //-----------------------------------------------------------------------------
 
@@ -508,7 +547,7 @@ namespace AE::Graphics
         // Allows RG to accumulate batches to minimize CPU overhead.
         Deferred,
 
-        // Submit batch immediately when all render tasks has been complete.
+        // Submit batch immediately when all render tasks are completed.
         Immediately,
 
         // Block until batch is not submitted

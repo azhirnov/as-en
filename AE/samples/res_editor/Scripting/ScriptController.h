@@ -21,6 +21,8 @@ namespace AE::ResEditor
 
     // methods
     public:
+        ~ScriptBaseController ();
+
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
         ND_ virtual RC<IController>  ToController ()                    __Th___ = 0;
@@ -61,11 +63,13 @@ namespace AE::ResEditor
     private:
         using MovingScale   = IController::MovingScale;
 
+
     // variables
     private:
         MovingScale     _movingScale;
         float           _rotationScale  {1.f};
         float2          _initialPos     {0.f};
+
 
     // methods
     public:
@@ -96,11 +100,15 @@ namespace AE::ResEditor
         float3          _initialPos     {0.f};
         float           _initialOffset  {0.f};
         float           _offsetScale    {1.f};
+        bool            _reverseZ       = false;
+
 
     // methods
     public:
         void  SetFovY (float value)                                     __Th___;
-        void  SetClipPlanes (float near, float far)                     __Th___;
+        void  SetClipPlanes1 (float near, float far)                    __Th___;
+        void  SetClipPlanes2 (float near)                               __Th___;
+        void  ReverseZ (bool enable)                                    __Th___;
 
         void  SetRotationScale1 (float value)                           __Th___ { _rotationScale = float2{value}; }
         void  SetRotationScale2 (float x, float y)                      __Th___ { _rotationScale = float2{x,y}; }
@@ -125,6 +133,7 @@ namespace AE::ResEditor
     protected:
         using MovingScale   = IController::MovingScale;
 
+
     // variables
     protected:
         float           _fovY           = 60.f;
@@ -132,11 +141,15 @@ namespace AE::ResEditor
         float3          _rotationScale  {1.f};
         MovingScale     _movingScale;
         float3          _initialPos     {0.f};
+        bool            _reverseZ       = false;
+
 
     // methods
     public:
         void  SetFovY (float value)                                     __Th___;
-        void  SetClipPlanes (float near, float far)                     __Th___;
+        void  SetClipPlanes1 (float near, float far)                    __Th___;
+        void  SetClipPlanes2 (float near)                               __Th___;
+        void  ReverseZ (bool enable)                                    __Th___;
 
         void  SetRotationScale1 (float value)                           __Th___ { _rotationScale = float3{value}; }
         void  SetRotationScale2 (float x, float y)                      __Th___ { _rotationScale = float3{x,y,0.f}; }
@@ -149,6 +162,10 @@ namespace AE::ResEditor
         void  SideMovementScale (float value)                           __Th___;
 
         void  SetPosition (const packed_float3 &pos)                    __Th___ { _initialPos = pos; }
+
+    protected:
+        template <typename B>
+        static void  _BindCamera3D (B &binder)                          __Th___;
     };
 
 
@@ -161,6 +178,7 @@ namespace AE::ResEditor
     // variables
     private:
         float2      _engineThrustRange  {-2.f, 10.f};
+
 
     // methods
     public:

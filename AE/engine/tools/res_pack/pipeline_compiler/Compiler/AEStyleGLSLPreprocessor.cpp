@@ -491,7 +491,6 @@ namespace {
         _typeMap.emplace( "gl.rayQuery.GetIntersectionObjectRayOrigin",     "rayQueryGetIntersectionObjectRayOriginEXT" );
         _typeMap.emplace( "gl.rayQuery.GetIntersectionObjectToWorld",       "rayQueryGetIntersectionObjectToWorldEXT" );
         _typeMap.emplace( "gl.rayQuery.GetIntersectionWorldToObject",       "rayQueryGetIntersectionWorldToObjectEXT" );
-        _typeMap.emplace( "gl.rayQuery.GetIntersectionTriangleVertexPositions", "rayQueryGetIntersectionTriangleVertexPositionsEXT" );
 
         // ray tracing
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_ray_tracing.txt
@@ -510,8 +509,8 @@ namespace {
         _typeMap.emplace( "gl.HitKind",                 "gl_HitKindEXT" );
         _typeMap.emplace( "gl.ObjectToWorld",           "gl_ObjectToWorldEXT" );
         _typeMap.emplace( "gl.WorldToObject",           "gl_WorldToObjectEXT" );
-        _typeMap.emplace( "gl.WorldToObject3x4",        "gl_WorldToObject3x4EXT" );
         _typeMap.emplace( "gl.ObjectToWorld3x4",        "gl_ObjectToWorld3x4EXT" );
+        _typeMap.emplace( "gl.WorldToObject3x4",        "gl_WorldToObject3x4EXT" );
 
         _typeMap.emplace( "gl::TriangleHitKind",                "uint" );
         _typeMap.emplace( "gl::TriangleHitKind::FrontFacing",   "gl_HitKindFrontFacingTriangleEXT" );
@@ -535,9 +534,10 @@ namespace {
 
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_ray_tracing_position_fetch.txt
         _typeMap.emplace( "gl.HitTriangleVertexPositions",  "gl_HitTriangleVertexPositionsEXT" );   // in var
+        _typeMap.emplace( "gl.rayQuery.GetIntersectionTriangleVertexPositions", "rayQueryGetIntersectionTriangleVertexPositionsEXT" );
 
         // for VkAccelerationStructureInstance
-        _typeMap.emplace( "DeviceAddress",                              "uint64_t" );   // same as AE::Graphics::DeviceAddress
+        _typeMap.emplace( "DeviceAddress",                              "uvec2" );      // same as AE::Graphics::DeviceAddress
         _typeMap.emplace( "GeometryInstanceFlags",                      "uint32_t" );   // type
         _typeMap.emplace( "GeometryInstanceFlags::TriangleCullDisable", "1" );          // same as ERTInstanceOpt::TriangleCullDisable
         _typeMap.emplace( "GeometryInstanceFlags::TriangleFrontCCW",    "2" );          // same as ERTInstanceOpt::TriangleFrontCCW
@@ -606,13 +606,21 @@ namespace {
         _typeMap.emplace( "gl::StorageSemantics::Image",    "gl_StorageSemanticsImage" );
         _typeMap.emplace( "gl::StorageSemantics::Output",   "gl_StorageSemanticsOutput" );
 
-        // GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix
-        _typeMap.emplace( "gl::FCoopMatNV",                 "fcoopMatNV" );
-        _typeMap.emplace( "gl::ICoopMatNV",                 "icoopMatNV" );
-        _typeMap.emplace( "gl::UCoopMatNV",                 "ucoopMatNV" );
-        _typeMap.emplace( "gl.CoopMatLoadNV",               "coopMatLoadNV" );
-        _typeMap.emplace( "gl.CoopMatStoreNV",              "coopMatStoreNV" );
-        _typeMap.emplace( "gl.CoopMatMulAddNV",             "coopMatMulAddNV" );
+        // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GLSL_KHR_cooperative_matrix.txt
+        _typeMap.emplace( "gl::CoopMat",                                "coopmat" );
+        _typeMap.emplace( "gl.CoopMatLoad",                             "coopmatLoad" );
+        _typeMap.emplace( "gl.CoopMatStore",                            "coopmatStore" );
+        _typeMap.emplace( "gl.CoopMatMulAdd",                           "coopmatMulAdd" );
+        _typeMap.emplace( "gl::MatrixOperands",                         "int" );
+        _typeMap.emplace( "gl::MatrixOperands::None",                   "0" );
+        _typeMap.emplace( "gl::MatrixOperands::SaturatingAccumulation", "gl_MatrixOperandsSaturatingAccumulation" );
+        _typeMap.emplace( "gl::MatrixUse",                              "int" );
+        _typeMap.emplace( "gl::MatrixUse::A",                           "gl_MatrixUseA" );
+        _typeMap.emplace( "gl::MatrixUse::B",                           "gl_MatrixUseB" );
+        _typeMap.emplace( "gl::MatrixUse::Accumulator",                 "gl_MatrixUseAccumulator" );
+        _typeMap.emplace( "gl::CooperativeMatrixLayout",                "int" );
+        _typeMap.emplace( "gl::CooperativeMatrixLayout::RowMajor",      "gl_CooperativeMatrixLayoutRowMajor" );
+        _typeMap.emplace( "gl::CooperativeMatrixLayout::ColumnMajor",   "gl_CooperativeMatrixLayoutColumnMajor" );
 
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_fragment_shading_rate.txt
         _typeMap.emplace( "gl.ShadingRate",                 "gl_ShadingRateEXT" );          // in

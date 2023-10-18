@@ -144,7 +144,7 @@ namespace
         TEST( image_a.BitsPerBlock() == 4*8 );
 
         Bytes   d;
-        TEST( image_a.Copy( image_b, OUT d ));
+        TEST( image_a.CopyFrom( image_b, OUT d ));
         TEST( d == ArraySizeOf(data_a) );
         TEST( data_a == data_b );
     }

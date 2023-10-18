@@ -74,6 +74,7 @@ namespace
         if ( not _defines.empty() )
             _dbgName << "|" << _defines;
 
+        StringToColor( OUT _dbgColor, StringView{_dbgName} );
         FindAndReplace( INOUT _defines, '=', ' ' );
 
         ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
@@ -235,23 +236,9 @@ namespace
         }
         CHECK_ERR( not result->_renderTargets.empty() );
 
-        result->_dbgName    = this->_dbgName;
-        result->_dbgColor   = this->_dbgColor;
-
-        if ( this->_controller )
-        {
-            this->_controller->SetDimensionIfNotSet( _dynamicDim );
-            result->_controller = this->_controller->ToController();  // throw
-            CHECK_ERR( result->_controller );
-        }
-
-        // add debug modes
+        _Init( *result );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
 
-        _AddSlidersToUIInteraction( result.get() );
-        _CopyConstants( OUT result->_shConst );
-
-        AE_LOGI( "Compiled: "s << _dbgName );
         return result;
     }
 
@@ -259,7 +246,7 @@ namespace
 } // AE::ResEditor
 
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 #include "base/DataSource/FileStream.h"
 #include "base/Algorithms/Parser.h"

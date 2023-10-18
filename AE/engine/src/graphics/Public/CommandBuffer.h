@@ -96,6 +96,14 @@ namespace AE::Graphics
         virtual void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)                  __Th___ = 0;
         virtual bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)     __Th___ = 0;
 
+        // for Draw(), DrawIndirect(), DrawIndirectCount() :
+        //   'VertexIndex'   range:  [firstVertex,   firstVertex   + vertexCount]
+        //   'InstanceIndex' range:  [firstInstance, firstInstance + instanceCount]
+
+        // for DrawIndexed(), DrawIndexedIndirect(), DrawIndexedIndirectCount() :
+        //   'VertexIndex'   value:  indexBuffer[firstIndex + i] + vertexOffset
+        //   'InstanceIndex' range:  [firstInstance, firstInstance + instanceCount]
+
                 void  Draw (const DrawCmd &cmd)                                                                                     __Th___ { Draw( cmd.vertexCount, cmd.instanceCount, cmd.firstVertex, cmd.firstInstance ); }
         virtual void  Draw (uint vertexCount,
                             uint instanceCount  = 1,
@@ -255,8 +263,9 @@ namespace AE::Graphics
     {
     // interface
     public:
-        //      buffer: EResourceState::CopyDst
+        //      buffer: EResourceState::ClearDst
         virtual void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)                                 __Th___ = 0;
+        //      buffer: EResourceState::CopyDst
         virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                        __Th___ = 0; // Vulkan - native, Metal - used UploadBuffer()
 
         //      srcBuffer, srcImage: EResourceState::CopySrc
@@ -272,9 +281,8 @@ namespace AE::Graphics
         //      buffer: EResourceState::CopyDst
         ND_         bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data,
                                         EStagingHeapType heapType = EStagingHeapType::Static)                           __Th___;
-        // 'memView' data size may be <= 'requiredSize'
-            virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView,
-                                        EStagingHeapType heapType = EStagingHeapType::Static)                           __Th___ = 0;
+        // 'memView' data size may be <= 'desc.size' but multiple of 'desc.blockSize'
+            virtual void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)      __Th___ = 0;
 
         //      image: EResourceState::CopyDst
         ND_         Bytes UploadImage (ImageID image, const UploadImageDesc &desc, const void* data, Bytes size)        __Th___;
@@ -282,8 +290,7 @@ namespace AE::Graphics
 
     // read from device local memory using staging buffer //
         //      buffer, image: EResourceState::CopySrc
-        ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size,
-                                                            EStagingHeapType heapType = EStagingHeapType::Static)       __Th___ = 0;
+        ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)            __Th___ = 0;
         ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                __Th___ = 0;
 
     // partially upload //
@@ -293,8 +300,8 @@ namespace AE::Graphics
 
     // partially read //
         //      stream.buffer, stream.image: EResourceState::CopySrc
-        //ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)                                     __Th___;
-        //ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageStream &stream)                                       __Th___;
+        ND_ virtual Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                 __Th___ = 0;
+        ND_ virtual Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                   __Th___ = 0;
 
     // only for host-visible memory //
         //      buffer: EResourceState::Host_Write
@@ -575,7 +582,7 @@ namespace AE::Graphics
         ImageMemView    mem_view;
         UploadImage( imageId, uploadDesc, OUT mem_view );
 
-        Bytes   written = 0_b;
+        Bytes   written;
         for (auto& dst : mem_view.Parts())
         {
             MemCopy( OUT dst.ptr, data + written, dst.size );
@@ -595,17 +602,22 @@ namespace AE::Graphics
 */
     inline bool  ITransferContext::UploadBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data, EStagingHeapType heapType) __Th___
     {
-        BufferMemView   ranges;
-        UploadBuffer( buffer, offset, size, OUT ranges, heapType );
+        UploadBufferDesc    desc;
+        desc.offset     = offset;
+        desc.size       = size;
+        desc.heapType   = heapType;
 
-        Bytes   written = 0_b;
+        BufferMemView   ranges;
+        UploadBuffer( buffer, desc, OUT ranges );
+
+        Bytes   written;
         for (auto& dst : ranges)
         {
             MemCopy( OUT dst.ptr, data + written, dst.size );
             written += dst.size;
         }
-        ASSERT( written <= size );
-        return written == size;
+        ASSERT( written <= desc.size );
+        return written == desc.size;
     }
 
 

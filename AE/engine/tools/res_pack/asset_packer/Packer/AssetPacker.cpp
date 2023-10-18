@@ -21,6 +21,7 @@ namespace
     {
         CHECK_ERR( info != null );
         CHECK_ERR( (info->inFileCount > 0) and (info->inFiles != null) );
+        CHECK_ERR( (info->inIncludeFolderCount > 0) == (info->inIncludeFolders != null) );
         CHECK_ERR( info->tempFile != null );
         CHECK_ERR( info->outputArchive != null );
 
@@ -30,6 +31,16 @@ namespace
 
         CHECK_ERR( obj_storage.Initialize( Path{info->tempFile} ));
         CATCH_ERR( ObjectStorage::Bind( script_engine ));
+
+        Array<Path>     script_include_dirs;
+        for (usize i = 0; i < info->inIncludeFolderCount; ++i)
+        {
+            Path    path {info->inIncludeFolders[i]};
+            if ( FileSystem::IsDirectory( path ))
+                script_include_dirs.push_back( RVRef(path) );
+            else
+                AE_LOGI( "Skip invalid include directory: '"s << ToString(path) << "'" );
+        }
 
         for (usize i = 0; i < info->inFileCount; ++i)
         {
@@ -58,7 +69,7 @@ namespace
             src.dbgLocation     = SourceLoc{ ansi_path, 0 };
             src.usePreprocessor = true;
 
-            ScriptModulePtr     module = script_engine->CreateModule( {src}, {"SCRIPT"} );
+            ScriptModulePtr     module = script_engine->CreateModule( {src}, {"SCRIPT"}, script_include_dirs );
             if ( not module )
             {
                 AE_LOGI( "Failed to parse script file: '"s << ansi_path << "'" );

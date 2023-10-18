@@ -27,7 +27,7 @@ namespace
         CommandBatchPtr             batch;
 
         Array<ImageComparator*>     imgCmps;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
     };
 
     static constexpr auto&  RTech = RenderTechs::VRSTestRT;
@@ -227,7 +227,7 @@ namespace
         auto&           res_mngr    = rts.GetResourceManager();
         SR1_TestData    t;
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmps   = imgCmps;
         t.rtech     = renderTech;
         t.viewSize  = uint2{512, 512};

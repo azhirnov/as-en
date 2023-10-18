@@ -1218,8 +1218,9 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 
     // create bottom level acceleration structure
     VkAccelerationStructureBuildSizesInfoKHR    blas_size_info = {};
+    VkAccelerationStructureGeometryKHR          blas_geometry[1] = {};
     {
-        VkAccelerationStructureGeometryKHR      geometry[1] = {};
+        auto&   geometry            = blas_geometry;
         geometry[0].sType           = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
         geometry[0].geometryType    = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
         geometry[0].flags           = 0;
@@ -1302,7 +1303,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
             });
         }
 
-        res.onUpdate.push_back( [&] (VkCommandBuffer cmd)
+        res.onUpdate.push_back( [this, &geometry, &vertex_buffer_addr, &index_buffer_addr, &scratch_buffer_addr, &outRTData] (VkCommandBuffer cmd)
         {
             geometry[0].geometry.triangles.vertexData.deviceAddress = vertex_buffer_addr;
             geometry[0].geometry.triangles.indexData.deviceAddress  = index_buffer_addr;
@@ -1459,7 +1460,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
             });
         }
 
-        res.onUpdate.push_back( [&] (VkCommandBuffer cmd)
+        res.onUpdate.push_back( [this, &instance_buffer_addr, &scratch_buffer_addr, &outRTData] (VkCommandBuffer cmd)
         {
             VkAccelerationStructureGeometryKHR  geometry    = {};
             geometry.sType                                  = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
@@ -1615,8 +1616,8 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         {
             VkMemoryBarrier     barrier = {};
             barrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-            barrier.srcAccessMask   = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
-            barrier.dstAccessMask   = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
+            barrier.srcAccessMask   = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
+            barrier.dstAccessMask   = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT;
 
             vkCmdPipelineBarrier( cmdBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                   0, 1, &barrier, 0, null, 0, null );

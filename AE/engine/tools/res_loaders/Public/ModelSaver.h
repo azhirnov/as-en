@@ -28,6 +28,8 @@ namespace AE::ResLoader
 
     // methods
     public:
+        virtual ~IModelSaver ()                                 __NE___ {}
+
         virtual bool  SaveModel (const IntermScene  &scene,
                                  const WStream      &stream,
                                  EModelFormat       format)     __NE___ = 0;

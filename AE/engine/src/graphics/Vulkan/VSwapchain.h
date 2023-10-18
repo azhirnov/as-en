@@ -96,25 +96,25 @@ namespace AE::Graphics
         ND_ VkResult  Present (VQueuePtr queue,
                                ArrayView<VkSemaphore> renderFinished = Default) __NE___;
 
-        ND_ bool                        IsInitialized ()                        C_NE___ { return GetVkSwapchain() != Default; }
+        ND_ bool                IsInitialized ()                                C_NE___ { return GetVkSwapchain() != Default; }
 
-        ND_ VkSurfaceKHR                GetVkSurface ()                         C_NE___ { SHAREDLOCK( _guard );  return _vkSurface; }
-        ND_ VkSwapchainKHR              GetVkSwapchain ()                       C_NE___ { SHAREDLOCK( _guard );  return _vkSwapchain; }
+        ND_ VkSurfaceKHR        GetVkSurface ()                                 C_NE___ { SHAREDLOCK( _guard );  return _vkSurface; }
+        ND_ VkSwapchainKHR      GetVkSwapchain ()                               C_NE___ { SHAREDLOCK( _guard );  return _vkSwapchain; }
 
-        ND_ VSwapchainDesc              GetVDescription ()                      C_NE___;
-        ND_ SwapchainDesc               GetDescription ()                       C_NE___ { SHAREDLOCK( _guard );  return _desc; }
+        ND_ VSwapchainDesc      GetVDescription ()                              C_NE___;
+        ND_ SwapchainDesc       GetDescription ()                               C_NE___ { SHAREDLOCK( _guard );  return _desc; }
 
         // same as output params in 'AcquireNextImage()'
-        ND_ VkSemaphore                 GetImageAvailableSemaphore ()           C_NE___ { return _imageAvailableSem[ _indices.load().semaphoreId ]; }
-        ND_ VkSemaphore                 GetRenderFinishedSemaphore ()           C_NE___ { return _renderFinishedSem[ _indices.load().semaphoreId ]; }
+        ND_ VkSemaphore         GetImageAvailableSemaphore ()                   C_NE___ { return _imageAvailableSem[ _indices.load().semaphoreId ]; }
+        ND_ VkSemaphore         GetRenderFinishedSemaphore ()                   C_NE___ { return _renderFinishedSem[ _indices.load().semaphoreId ]; }
 
-        ND_ uint2                       GetSurfaceSize ()                       C_NE___;
+        ND_ uint2               GetSurfaceSize ()                               C_NE___;
 
-        ND_ uint                        GetCurrentImageIndex ()                 C_NE___ { return _indices.load().imageIdx; }
-        ND_ bool                        IsImageAcquired ()                      C_NE___ { return GetCurrentImageIndex() < _MaxImageIndex; }
+        ND_ uint                GetCurrentImageIndex ()                         C_NE___ { return _indices.load().imageIdx; }
+        ND_ bool                IsImageAcquired ()                              C_NE___ { return GetCurrentImageIndex() < _MaxImageIndex; }
 
-        ND_ ImageAndViewID              GetCurrentImageAndViewID ()             C_NE___ { return GetImageAndViewID( GetCurrentImageIndex() ); }
-        ND_ ImageAndViewID              GetImageAndViewID (uint i)              C_NE___;
+        ND_ ImageAndViewID      GetCurrentImageAndViewID ()                     C_NE___ { return GetImageAndViewID( GetCurrentImageIndex() ); }
+        ND_ ImageAndViewID      GetImageAndViewID (uint i)                      C_NE___;
     };
 
 
@@ -158,12 +158,15 @@ namespace AE::Graphics
         ND_ bool  _CreateSemaphores ()                                                                                      __NE___;
             void  _DestroySemaphores ()                                                                                     __NE___;
 
-        ND_ bool  _GetImageUsage (OUT VkImageUsageFlags &imageUsage,    VkPresentModeKHR presentMode, VkFormat colorFormat, const VkSurfaceCapabilitiesKHR &surfaceCaps)C_NE___;
-        ND_ bool  _GetCompositeAlpha (INOUT VkCompositeAlphaFlagBitsKHR &compositeAlpha, const VkSurfaceCapabilitiesKHR &surfaceCaps)                                   C_NE___;
-            void  _GetPresentMode (INOUT VkPresentModeKHR &presentMode)                                                                                                 C_NE___;
-            void  _GetSwapChainExtent (INOUT VkExtent2D &extent, const VkSurfaceCapabilitiesKHR &surfaceCaps)                                                           C_NE___;
-            void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform, const VkSurfaceCapabilitiesKHR &surfaceCaps)                                    C_NE___;
-            void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps)                                                        C_NE___;
+        ND_ bool  _GetImageUsage (OUT VkImageUsageFlags &imageUsage, VkPresentModeKHR presentMode,
+                                  VkFormat colorFormat, const VkSurfaceCapabilitiesKHR &surfaceCaps)                        C_NE___;
+        ND_ bool  _GetCompositeAlpha (INOUT VkCompositeAlphaFlagBitsKHR &compositeAlpha,
+                                      const VkSurfaceCapabilitiesKHR &surfaceCaps)                                          C_NE___;
+            void  _GetPresentMode (INOUT VkPresentModeKHR &presentMode)                                                     C_NE___;
+            void  _GetSwapChainExtent (INOUT VkExtent2D &extent, const VkSurfaceCapabilitiesKHR &surfaceCaps)               C_NE___;
+            void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform,
+                                        const VkSurfaceCapabilitiesKHR &surfaceCaps)                                        C_NE___;
+            void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps)            C_NE___;
     };
 
 

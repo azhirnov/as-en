@@ -6,14 +6,6 @@
 
 namespace AE::PipelineCompiler
 {
-    struct MissIndex
-    {
-        uint        value   = 0;
-
-        MissIndex () {}
-        explicit MissIndex (uint v) : value{v} {}
-    };
-
     struct InstanceIndex
     {
         uint        value   = 0;
@@ -51,7 +43,7 @@ namespace AE::PipelineCompiler
 
     // variables
     private:
-        uint                            _hitGroupStride = 1;
+        uint                            _maxRayTypes    = 0;
 
         GroupIndex                      _rayGen         = Default;
         Array<GroupIndex>               _missShaders;
@@ -69,11 +61,13 @@ namespace AE::PipelineCompiler
         RayTracingShaderBinding ();
         explicit RayTracingShaderBinding (const RayTracingPipelineSpecPtr &ptr, const String &name)         __Th___;
 
-        void  HitGroupStride (uint value)                                                                   __Th___;
+        void  MaxRayTypes (uint value)                                                                      __Th___;
         void  BindRayGen (const String &groupName)                                                          __Th___;
-        void  BindMiss (const String &groupName, const MissIndex &missIndex)                                __Th___;
+        void  BindMiss (const String &groupName, const RayIndex &missIndex)                                 __Th___;
         void  BindHitGroup (const String &groupName, const InstanceIndex &instIndex, const RayIndex &rayIdx)__Th___;
         void  BindCallable (const String &groupName, const CallableIndex &callableIdx)                      __Th___;
+
+        // TODO: set recursion depth for each shader and then use it for stack size calculation
 
         void  Print ()                                                                                      C_Th___;
 
@@ -81,8 +75,9 @@ namespace AE::PipelineCompiler
 
         ND_ bool  Build ();
 
-        ND_ StringView          Name ()     const   { return _name; }
-        ND_ RTShaderBindingUID  UID ()      const   { return _uid.value_or( Default ); }
+        ND_ StringView          Name ()                                                                     const   { return _name; }
+        ND_ RTShaderBindingUID  UID ()                                                                      const   { return _uid.value_or( Default ); }
+        ND_ uint                GetMaxRayTypes ()                                                           const   { return _maxRayTypes; }
     };
 
 

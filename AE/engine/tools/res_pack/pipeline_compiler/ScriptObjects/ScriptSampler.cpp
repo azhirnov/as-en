@@ -124,7 +124,7 @@ namespace
     void  ScriptSampler::SetMipLodBias (float value) __Th___
     {
         TEST_FEATURE( _features, samplerMipLodBias );
-        TestFeature_Min( _features, &FeatureSet::minSamplerLodBias, value, "minSamplerLodBias", "mipLodBias" );
+        TestFeature_Min( _features, &FeatureSet::maxSamplerLodBias, value, "maxSamplerLodBias", "mipLodBias" );
 
         _desc.mipLodBias = value;
     }
@@ -150,7 +150,7 @@ namespace
     void  ScriptSampler::SetAnisotropy (float value) __Th___
     {
         TEST_FEATURE( _features, samplerAnisotropy );
-        TestFeature_Min( _features, &FeatureSet::minSamplerAnisotropy, value, "minSamplerAnisotropy", "maxAnisotropy" );
+        TestFeature_Min( _features, &FeatureSet::maxSamplerAnisotropy, value, "maxSamplerAnisotropy", "maxAnisotropy" );
 
         _desc.maxAnisotropy = value;
     }

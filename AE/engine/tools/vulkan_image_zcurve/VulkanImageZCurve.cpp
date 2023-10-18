@@ -204,7 +204,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
         submit_info.pCommandBuffers     = &cmd_buffer;
         VK_CHECK( dev.vkQueueSubmit( cmd_queue, 1, &submit_info, VK_NULL_HANDLE ));
     }
-    VK_CHECK( dev.vkDeviceWaitIdle( dev.GetVkDevice() ));
+    VK_CHECK( dev.vkQueueWaitIdle( cmd_queue ));
 
 
     // find block size

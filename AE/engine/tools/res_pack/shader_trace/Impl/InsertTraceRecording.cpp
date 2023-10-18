@@ -1657,6 +1657,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
                 case TBasicType::EbtRayQuery :
                 case TBasicType::EbtSpirvType:
                 case TBasicType::EbtHitObjectNV:
+                case TBasicType::EbtCoopmat :
                     break;
             }
             END_ENUM_CHECKS();
@@ -3214,6 +3215,7 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
         case TBasicType::EbtRayQuery :
         case TBasicType::EbtSpirvType :
         case TBasicType::EbtHitObjectNV :
+        case TBasicType::EbtCoopmat :
         default :                       RETURN_ERR( "not supported" );
     }
     END_ENUM_CHECKS();

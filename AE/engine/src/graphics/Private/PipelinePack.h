@@ -156,8 +156,8 @@ namespace AE::Graphics
             template <typename K, typename V>
             using THashMap = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, Allocator_t* >>;
 
-            THashMap< RenderPassName::Optimized_t,       RenderPassID > specMap;
-            THashMap< CompatRenderPassName::Optimized_t, RenderPassID > compatMap;
+            THashMap< RenderPassName::Optimized_t,       Strong<RenderPassID> > specMap;
+            THashMap< CompatRenderPassName::Optimized_t, Strong<RenderPassID> > compatMap;
 
             explicit RenderPassRefs (Allocator_t *alloc);
         };
@@ -199,7 +199,7 @@ namespace AE::Graphics
 
         using StackAllocator_t      = StackAllocator< UntypedAllocator, 16, false >;
         using FeatureNames_t        = THashSet< FeatureSetName::Optimized_t >;
-        using SamplerRefs_t         = THashMap< SamplerName::Optimized_t,       SamplerID >;
+        using SamplerRefs_t         = THashMap< SamplerName::Optimized_t,       Strong<SamplerID> >;
         using DSLayoutMap_t         = THashMap< DSLayoutName::Optimized_t,      DescriptorSetLayoutID >;
         using PplnTemplMap_t        = THashMap< PipelineTmplName::Optimized_t,  PipelineCompiler::PipelineTemplUID >;
 
@@ -212,7 +212,7 @@ namespace AE::Graphics
         {
         // types
         private:
-            using PipelineID = HandleTmpl< 16, 16, 0 >;
+            using PipelineID = HandleTmpl< 16, 16, 0 >;     // GraphicsPipelineID, MeshPipelineID, TilePipelineID, ComputePipelineID, RayTracingPipelineID
 
             struct PipelineInfo
             {

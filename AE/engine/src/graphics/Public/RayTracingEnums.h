@@ -50,6 +50,7 @@ namespace AE::Graphics
         PreferFastTrace             = 1 << 2,
         PreferFastBuild             = 1 << 3,
         LowMemory                   = 1 << 4,
+        AllowDataAccess             = 1 << 5,
         //MotionNV
         _Last,
         Unknown                     = 0,

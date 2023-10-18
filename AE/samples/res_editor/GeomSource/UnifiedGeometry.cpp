@@ -41,19 +41,43 @@ namespace AE::ResEditor
     StateTransition
 =================================================
 */
-    void  UnifiedGeometry::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
+    void  UnifiedGeometry::StateTransition (IGSMaterials &, DirectCtx::Graphics &ctx) __Th___
     {
         _resources.SetStates( ctx, EResourceState::AllGraphicsShaders );
-    }
 
-/*
-=================================================
-    StateTransition
-=================================================
-*/
-    void  UnifiedGeometry::StateTransition (IGSMaterials &, RayTracingCtx_t &ctx) __NE___
-    {
-        _resources.SetStates( ctx, EResourceState::RayTracingShaders );
+        for (usize i = 0; i < _drawCommands.size(); ++i)
+        {
+            Visit( _drawCommands[i],
+
+                [&ctx] (const DrawCmd2 &) {},
+                [&ctx] (const DrawIndexedCmd2 &src) {
+                    ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
+                },
+                [&ctx] (const DrawMeshTasksCmd2 &) {},
+                [&ctx] (const DrawIndirectCmd2 &src) {
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                },
+                [&ctx] (const DrawIndexedIndirectCmd2 &src) {
+                    ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                },
+                [&ctx] (const DrawMeshTasksIndirectCmd2 &src) {
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                },
+                [&ctx] (const DrawIndirectCountCmd2 &src) {
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                    ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                },
+                [&ctx] (const DrawIndexedIndirectCountCmd2 &src) {
+                    ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                    ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                },
+                [&ctx] (const DrawMeshTasksIndirectCountCmd2 &src) {
+                    ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                    ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+                });
+        }
     }
 
 /*
@@ -61,7 +85,7 @@ namespace AE::ResEditor
     Draw
 =================================================
 */
-    bool  UnifiedGeometry::Draw (const DrawData &in) __NE___
+    bool  UnifiedGeometry::Draw (const DrawData &in) __Th___
     {
         auto&               ctx         = in.ctx;
         auto&               mtr         = RefCast<Material>(in.mtr);
@@ -181,7 +205,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  UnifiedGeometry::Update (const UpdateData &in) __NE___
+    bool  UnifiedGeometry::Update (const UpdateData &in) __Th___
     {
         auto&   ctx = in.ctx;
         auto&   mtr = RefCast<Material>(in.mtr);

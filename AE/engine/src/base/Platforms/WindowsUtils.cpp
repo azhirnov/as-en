@@ -219,10 +219,10 @@ namespace
     #pragma pack(push,8)
     typedef struct tagTHREADNAME_INFO
     {
-        DWORD dwType; // Must be 0x1000.  
-        LPCSTR szName; // Pointer to name (in user addr space).
-        DWORD dwThreadID; // Thread ID (-1=caller thread).
-        DWORD dwFlags; // Reserved for future use, must be zero.
+        DWORD   dwType;         // Must be 0x1000.  
+        LPCSTR  szName;         // Pointer to name (in user addr space).
+        DWORD   dwThreadID;     // Thread ID (-1=caller thread).
+        DWORD   dwFlags;        // Reserved for future use, must be zero.
      } THREADNAME_INFO;
     #pragma pack(pop)
 
@@ -231,15 +231,15 @@ namespace
         constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
 
         THREADNAME_INFO info;
-        info.dwType = 0x1000;
-        info.szName = name;
+        info.dwType     = 0x1000;
+        info.szName     = name;
         info.dwThreadID = ::GetCurrentThreadId();
-        info.dwFlags = 0;
+        info.dwFlags    = 0;
 
     #pragma warning(push)
     #pragma warning(disable: 6320 6322)
         __try{
-            ::RaiseException( MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info );    // winxp
+            ::RaiseException( MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), Cast<ULONG_PTR>(&info) );   // winxp
         }
         __except (EXCEPTION_EXECUTE_HANDLER) {
         }
@@ -255,7 +255,7 @@ namespace
     {
         auto&   kernel = WinDynamicLibs();
 
-        if ( not kernel.setThreadDescription )
+        if ( kernel.setThreadDescription == null )
             return false;
 
         WCHAR   str[256] = {};
@@ -279,7 +279,7 @@ namespace
     {
         auto&   kernel = WinDynamicLibs();
 
-        if ( not kernel.getThreadDescription )
+        if ( kernel.getThreadDescription == null )
             return false;
 
         PWSTR   w_name;
@@ -295,7 +295,7 @@ namespace
                 name.push_back( char(*w_name) );
         }
 
-        ::LocalFree( w_name );
+        ::LocalFree( w_name );  // winxp
         return true;
     }
 
@@ -338,7 +338,7 @@ namespace
 */
     ThreadHandle  WindowsUtils::GetCurrentThreadHandle () __NE___
     {
-        return ::GetCurrentThread();
+        return ::GetCurrentThread();  // winxp
     }
 
 /*
@@ -531,7 +531,7 @@ namespace
 */
     bool  WindowsUtils::IsUnderDebugger () __NE___
     {
-        return ::IsDebuggerPresent() != 0;
+        return ::IsDebuggerPresent() != 0;  // winxp
     }
 
 /*
@@ -569,7 +569,7 @@ namespace
         {
             BYTE    buf [128];
             DWORD   size = sizeof(buf);
-            if ( ::RegQueryValueExA( key, "ProductName", null, null, buf, INOUT &size ) == ERROR_SUCCESS )
+            if ( ::RegQueryValueExA( key, "ProductName", null, null, buf, INOUT &size ) == ERROR_SUCCESS )  // win2000
             {
                 CATCH_ERR(
                     return String{ Cast<char>(buf) };
@@ -669,7 +669,6 @@ namespace
     static BOOL CALLBACK  EnumUILanguagesProc (LPSTR arg0, LONG_PTR arg1)
     {
         auto&   arr = *BitCast< Array<String> *>( arg1 );
-
         arr.push_back( arg0 );
         return TRUE;
     }
@@ -689,7 +688,7 @@ namespace
 */
     void*  WindowsUtils::_GetSystemCpuSetInformationFn () __NE___
     {
-        return BitCast<void*>(WinDynamicLibs().fnGetSystemCpuSetInformation);
+        return BitCast<void*>( WinDynamicLibs().fnGetSystemCpuSetInformation );
     }
 
 /*
@@ -699,7 +698,7 @@ namespace
 */
     void*  WindowsUtils::_GetDpiForMonitorFn () __NE___
     {
-        return BitCast<void*>(WinDynamicLibs().fnGetDpiForMonitor);
+        return BitCast<void*>( WinDynamicLibs().fnGetDpiForMonitor );
     }
 
 /*
@@ -709,7 +708,7 @@ namespace
 */
     void*  WindowsUtils::_SetProcessDpiAwarenessFn () __NE___
     {
-        return BitCast<void*>(WinDynamicLibs().fnSetProcessDpiAwareness);
+        return BitCast<void*>( WinDynamicLibs().fnSetProcessDpiAwareness );
     }
 
 

@@ -75,7 +75,6 @@ namespace AE::Graphics
 
     using RenderTargetName      = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 39, AE_OPTIMIZE_IDS >;
     using ImageInAtlasName      = NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
-    using MaterialName          = NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 41, AE_OPTIMIZE_IDS >;
 
 
     static constexpr AttachmentName     Attachment_Depth        {"Depth"};

@@ -48,7 +48,7 @@ namespace
     SamplerDescToMSL
 =================================================
 */
-    ND_ static StringView  AddessMSL (EAddressMode value) __Th___
+    ND_ static StringView  AddressMSL (EAddressMode value) __Th___
     {
         BEGIN_ENUM_CHECKS();
         switch ( value )
@@ -141,9 +141,9 @@ namespace
 
         String  str;
         str << "  coord::" << (desc.unnormalizedCoordinates ? "pixel" : "normalized") << ",\n"
-            << "  s_address::" << AddessMSL( desc.addressMode.x ) << ",\n"
-            << "  t_address::" << AddessMSL( desc.addressMode.y ) << ",\n"
-            << "  r_address::" << AddessMSL( desc.addressMode.z ) << ",\n"
+            << "  s_address::" << AddressMSL( desc.addressMode.x ) << ",\n"
+            << "  t_address::" << AddressMSL( desc.addressMode.y ) << ",\n"
+            << "  r_address::" << AddressMSL( desc.addressMode.z ) << ",\n"
             << "  border_color::" << BorderColorMSL( desc.borderColor ) << ",\n"
             << "  mag_filter::" << FilterMSL( desc.magFilter ) << ",\n"
             << "  min_filter::" << FilterMSL( desc.minFilter ) << ",\n"
@@ -981,10 +981,9 @@ namespace
                     END_ENUM_CHECKS();
                 }
                 else
-                for (EShaderStages stages = (un.stages & s_MetalStages); stages != Zero;)
+                for (auto shader : BitIndexIterate<EShader>( un.stages & s_MetalStages ))
                 {
-                    const EShader   shader      = ExtractBitLog2<EShader>( INOUT stages );
-                    const int       idx         = MetalBindingPerStage::ShaderToIndex( shader );
+                    const int   idx = MetalBindingPerStage::ShaderToIndex( shader );
                     CHECK_ERR_MSG( idx >= 0, "unsupported shader stage for Metal" );
 
                     MSLBindings*    dst_binding = &msl_per_stage[0];
@@ -1058,9 +1057,8 @@ namespace
         {
             total[uint(un.type)] += Max( 1u, un.arraySize );    // can not count runtime sized array
 
-            for (auto stages = un.stages; stages != Default;)
+            for (auto shader : BitIndexIterate<EShader>( un.stages ))
             {
-                const EShader   shader = ExtractBitLog2<EShader>( stages );
                 perStage(shader)[uint(un.type)] += Max( 1u, un.arraySize );
             }
         }
@@ -1253,14 +1251,22 @@ namespace
         binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState)             >( &DescriptorSetLayout::_AddCombinedImage, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
 
         binder.Comment( "Add sampled image with immutable sampler." );
-        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, const String &)                                       >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
-        binder.AddGenericMethod< void (uint, const String &, EImageType, const String &)                                                >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, const String &)                    >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
-        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, const String &)                             >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState, const String &)                       >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
-        binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState, const String &)                                >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState, const String &)    >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
-        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState, const String &)             >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, const String &)                                               >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType, const String &)                                                        >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, const String &)                            >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, const String &)                                     >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState, const String &)                               >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState, const String &)                                        >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState, const String &)            >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState, const String &)                     >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, const ScriptArray<String> &)                                  >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType, const ScriptArray<String> &)                                           >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, const ScriptArray<String> &)               >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, const ScriptArray<String> &)                        >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState, const ScriptArray<String> &)                  >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState, const ScriptArray<String> &)                           >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState, const ScriptArray<String>&)>( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState, const ScriptArray<String> &)        >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
 
         binder.Comment( "Add input attachment." );
         binder.AddGenericMethod< void (EShaderStages, const String &)                                   >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform"} );
@@ -1287,8 +1293,10 @@ namespace
         binder.AddGenericMethod< void (uint, const String &, const ArraySize &)             >( &DescriptorSetLayout::_AddSampler, "Sampler", {"shaderStages", "uniform", "arraySize"} );
 
         binder.Comment( "Add immutable sampler." );
-        binder.AddGenericMethod< void (EShaderStages, const String &, const String &)   >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerName"} );
-        binder.AddGenericMethod< void (uint, const String &, const String &)            >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const String &)               >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerName"} );
+        binder.AddGenericMethod< void (uint, const String &, const String &)                        >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerName"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, const ScriptArray<String> &)  >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerNames"} );
+        binder.AddGenericMethod< void (uint, const String &, const ScriptArray<String> &)           >( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerNames"} );
 
         binder.Comment( "Add ray tracing scene (top level acceleration structure)." );
         binder.AddGenericMethod< void (EShaderStages, const String &)                       >( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform"} );
@@ -1826,7 +1834,7 @@ namespace
         EResourceState  res_state       = EResourceState::ShaderSample;
         EImageType      image_type      = Default;
         String          uniform_name;
-        String          sampler_name;
+        Array<String>   sampler_names;
 
         if ( args.IsArg< EShaderStages >(idx) ) stages = args.Arg< EShaderStages >(idx++);          else
         if ( args.IsArg< uint >(idx) )          stages = EShaderStages(args.Arg< uint >(idx++));    else
@@ -1843,13 +1851,21 @@ namespace
         if ( args.IsArg< EResourceState >(idx) )
             res_state = args.Arg< EResourceState >(idx++);
 
-        if ( args.IsArg< String const& >(idx) )
-            sampler_name = args.Arg< String const& >(idx++);
+        if ( args.IsArg< ScriptArray<String> const& >(idx) )
+        {
+            auto&   arr = args.Arg< ScriptArray<String> const& >(idx++);
+            for (auto& samp : arr) {
+                sampler_names.push_back( samp );
+            }
+        }
         else
-            CHECK_THROW_MSG( false, "Required sampler name as 'String'" );
+        if ( args.IsArg< String const& >(idx) )
+            sampler_names.push_back( args.Arg< String const& >(idx++) );
+        else
+            CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>'" );
 
         CHECK_THROW_MSG( idx == args.ArgCount() );
-        args.GetObject< DescriptorSetLayout >()->AddCombinedImage_ImmutableSampler( stages, uniform_name, image_type, res_state, sampler_name );
+        args.GetObject< DescriptorSetLayout >()->AddCombinedImage_ImmutableSampler( stages, uniform_name, image_type, res_state, sampler_names );
     }
 
 /*
@@ -1926,7 +1942,7 @@ namespace
         uint            idx             = 0;
         EShaderStages   stages          = Default;
         String          uniform_name;
-        String          sampler_name;
+        Array<String>   sampler_names;
 
         if ( args.IsArg< EShaderStages >(idx) ) stages = args.Arg< EShaderStages >(idx++);          else
         if ( args.IsArg< uint >(idx) )          stages = EShaderStages(args.Arg< uint >(idx++));    else
@@ -1937,13 +1953,21 @@ namespace
         else
             CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
 
-        if ( args.IsArg< String const& >(idx) )
-            sampler_name = args.Arg< String const& >(idx++);
+        if ( args.IsArg< ScriptArray<String> const& >(idx) )
+        {
+            auto&   arr = args.Arg< ScriptArray<String> const& >(idx++);
+            for (auto& samp : arr) {
+                sampler_names.push_back( samp );
+            }
+        }
         else
-            CHECK_THROW_MSG( false, "Required sampler name as 'String'" );
+        if ( args.IsArg< String const& >(idx) )
+            sampler_names.push_back( args.Arg< String const& >(idx++) );
+        else
+            CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>'" );
 
         CHECK_THROW_MSG( idx == args.ArgCount() );
-        args.GetObject< DescriptorSetLayout >()->AddImmutableSampler( stages, uniform_name, sampler_name );
+        args.GetObject< DescriptorSetLayout >()->AddImmutableSampler( stages, uniform_name, sampler_names );
     }
 
 /*
@@ -2004,7 +2028,7 @@ namespace
         else
         {
             CHECK_THROW_MSG( IsStd140OrMetal( st_it->second->Layout() ),
-                "UniformBuffer '"s << name << "' with struct '" << st_it->second->Name() << "' reuuires Std140 layout" );
+                "UniformBuffer '"s << name << "' with struct '" << st_it->second->Name() << "' requires Std140 layout" );
         }
 
         auto&   aux_info    = _infoMap[ UniformName{name} ];
@@ -2247,29 +2271,42 @@ namespace
 */
     void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, const String &samplerName) __Th___
     {
+        AddCombinedImage_ImmutableSampler( stages, name, type, state, ArrayView<String>{samplerName} );
+    }
+
+    void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, ArrayView<String> samplerNames) __Th___
+    {
         CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
         CHECK_THROW_MSG( stages != Default );
         state |= EResourceState_FromShaders( stages );
         CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
         CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
+        const uint  array_size = uint(samplerNames.size());
+
         _CheckUniformName( name );
-        _CheckSamplerName( samplerName );
+        _CheckArraySize( array_size );
 
         Uniform         un;
         un.type         = EDescriptorType::CombinedImage_ImmutableSampler;
         un.stages       = stages;
-        un.arraySize    = 1;
+        un.arraySize    = ArraySize_t(array_size);
 
         un.image        = Default;
         un.image.state  = state;
         un.image.type   = type;
         un.image.format = Default;
 
-        un.image.samplerOffsetInStorage = CheckCast<DescriptorSetLayoutDesc::SamplerIdx_t>(_dsLayout.samplerStorage.size());
+        CHECK_THROW_MSG( _dsLayout.samplerStorage.size() + array_size < MaxValue<DescriptorSetLayoutDesc::SamplerIdx_t>() );
+        un.image.samplerOffsetInStorage = DescriptorSetLayoutDesc::SamplerIdx_t(_dsLayout.samplerStorage.size());
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
-        _dsLayout.samplerStorage.push_back( SamplerName{samplerName} );     // TODO: optimize
+
+        for (auto& samp : samplerNames)
+        {
+            _CheckSamplerName( samp );
+            _dsLayout.samplerStorage.push_back( SamplerName{samp} );
+        }
     }
 
 /*
@@ -2429,20 +2466,33 @@ namespace
 */
     void  DescriptorSetLayout::AddImmutableSampler (EShaderStages stages, const String &name, const String &samplerName) __Th___
     {
+        AddImmutableSampler( stages, name, ArrayView<String>{samplerName} );
+    }
+
+    void  DescriptorSetLayout::AddImmutableSampler (EShaderStages stages, const String &name, ArrayView<String> samplerNames) __Th___
+    {
         CHECK_THROW_MSG( stages != Default );
 
+        const uint  array_size = uint(samplerNames.size());
+
         _CheckUniformName( name );
-        //_CheckArraySize( arraySize );
-        _CheckSamplerName( samplerName );
+        _CheckArraySize( array_size );
 
         Uniform     un;
         un.type         = EDescriptorType::ImmutableSampler;
         un.stages       = stages;
-        un.arraySize    = 1;
-        un.immutableSampler.offsetInStorage = CheckCast<DescriptorSetLayoutDesc::SamplerIdx_t>(_dsLayout.samplerStorage.size());
+        un.arraySize    = ArraySize_t(array_size);
+
+        CHECK_THROW_MSG( _dsLayout.samplerStorage.size() + array_size < MaxValue<DescriptorSetLayoutDesc::SamplerIdx_t>() );
+        un.immutableSampler.offsetInStorage = DescriptorSetLayoutDesc::SamplerIdx_t(_dsLayout.samplerStorage.size());
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
-        _dsLayout.samplerStorage.push_back( SamplerName{samplerName} );     // TODO: optimize
+
+        for (auto& samp : samplerNames)
+        {
+            _CheckSamplerName( samp );
+            _dsLayout.samplerStorage.push_back( SamplerName{samp} );
+        }
     }
 
 /*
@@ -2482,25 +2532,25 @@ namespace
                 const auto  rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perDescrSet, &FeatureSet::PerDescriptorSet::_rhs_ );  \
                 if_unlikely( (_lhs_) > rhs_val ) {                                                                                          \
                     result = false;                                                                                                         \
-                    AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exeeds the maximum allowed '" <<    \
+                    AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<   \
                              AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );                                                   \
                 }                                                                                                                           \
             }
-            CHECK_LIMIT( total[uint(DT::UniformBuffer)],    minUniformBuffers,      "uniform buffers per DS" );
-            CHECK_LIMIT( total[uint(DT::StorageBuffer)],    minStorageBuffers,      "storage buffers per DS" );
-            CHECK_LIMIT( total[uint(DT::SubpassInput)],     minInputAttachments,    "input attachments per DS" );
-            CHECK_LIMIT( total[uint(DT::RayTracingScene)],  minAccelStructures,     "acceleration structures per DS" );
+            CHECK_LIMIT( total[uint(DT::UniformBuffer)],    maxUniformBuffers,      "uniform buffers per DS" );
+            CHECK_LIMIT( total[uint(DT::StorageBuffer)],    maxStorageBuffers,      "storage buffers per DS" );
+            CHECK_LIMIT( total[uint(DT::SubpassInput)],     maxInputAttachments,    "input attachments per DS" );
+            CHECK_LIMIT( total[uint(DT::RayTracingScene)],  maxAccelStructures,     "acceleration structures per DS" );
 
-            CHECK_LIMIT( total[uint(DT::StorageImage)] + total[uint(DT::StorageTexelBuffer)], minStorageImages, "storage images per DS" );
+            CHECK_LIMIT( total[uint(DT::StorageImage)] + total[uint(DT::StorageTexelBuffer)], maxStorageImages, "storage images per DS" );
             CHECK_LIMIT( total[uint(DT::UniformTexelBuffer)] + total[uint(DT::SampledImage)] + total[uint(DT::CombinedImage)] + total[uint(DT::CombinedImage_ImmutableSampler)],
-                         minSampledImages, "sampler images per DS" );
-            CHECK_LIMIT( total[uint(DT::Sampler)] + total[uint(DT::ImmutableSampler)], minSamplers, "samplers per DS" );
+                         maxSampledImages, "sampler images per DS" );
+            CHECK_LIMIT( total[uint(DT::Sampler)] + total[uint(DT::ImmutableSampler)], maxSamplers, "samplers per DS" );
 
             uint    total_res = 0;
             for (uint cnt : total) {
                 total_res += cnt;
             }
-            CHECK_LIMIT( total_res, minTotalResources, "total resources per DS" );
+            CHECK_LIMIT( total_res, maxTotalResources, "total resources per DS" );
             #undef CHECK_LIMIT
         }
 
@@ -2511,25 +2561,25 @@ namespace
                 const auto  rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perStage, &FeatureSet::PerShaderStage::_rhs_ );   \
                 if_unlikely( (_lhs_) > rhs_val ) {                                                                                      \
                     result = false;                                                                                                     \
-                    AE_LOGE( "Number of "s << (_msg_) << " (" << ToString(_lhs_) << ") exeeds the maximum allowed '" <<                 \
+                    AE_LOGE( "Number of "s << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<                \
                             AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );                                                \
                 }                                                                                                                       \
             }
-            CHECK_LIMIT( count[uint(DT::UniformBuffer)],    minUniformBuffers,      "uniform buffers per stage" );
-            CHECK_LIMIT( count[uint(DT::StorageBuffer)],    minStorageBuffers,      "storage buffers per stage" );
-            CHECK_LIMIT( count[uint(DT::SubpassInput)],     minInputAttachments,    "input attachments per stage" );
-            CHECK_LIMIT( count[uint(DT::RayTracingScene)],  minAccelStructures,     "acceleration structures per stage" );
+            CHECK_LIMIT( count[uint(DT::UniformBuffer)],    maxUniformBuffers,      "uniform buffers per stage" );
+            CHECK_LIMIT( count[uint(DT::StorageBuffer)],    maxStorageBuffers,      "storage buffers per stage" );
+            CHECK_LIMIT( count[uint(DT::SubpassInput)],     maxInputAttachments,    "input attachments per stage" );
+            CHECK_LIMIT( count[uint(DT::RayTracingScene)],  maxAccelStructures,     "acceleration structures per stage" );
 
-            CHECK_LIMIT( count[uint(DT::StorageImage)] + count[uint(DT::StorageTexelBuffer)], minStorageImages, "storage images per stage" );
+            CHECK_LIMIT( count[uint(DT::StorageImage)] + count[uint(DT::StorageTexelBuffer)], maxStorageImages, "storage images per stage" );
             CHECK_LIMIT( count[uint(DT::UniformTexelBuffer)] + count[uint(DT::SampledImage)] + count[uint(DT::CombinedImage)] + count[uint(DT::CombinedImage_ImmutableSampler)],
-                         minSampledImages, "sampler images per stage" );
-            CHECK_LIMIT( count[uint(DT::Sampler)] + count[uint(DT::ImmutableSampler)], minSamplers, "samplers per stage" );
+                         maxSampledImages, "sampler images per stage" );
+            CHECK_LIMIT( count[uint(DT::Sampler)] + count[uint(DT::ImmutableSampler)], maxSamplers, "samplers per stage" );
 
             uint    total_res = 0;
             for (uint cnt : count) {
                 total_res += cnt;
             }
-            CHECK_LIMIT( total_res, minTotalResources, "total resources per stage" );
+            CHECK_LIMIT( total_res, maxTotalResources, "total resources per stage" );
             #undef CHECK_LIMIT
         }
 

@@ -89,9 +89,8 @@ namespace AE::PipelineCompiler
     ND_ inline String  StagesToStr (EShaderStages stages)
     {
         String  str;
-        while ( stages != Default )
+        for (auto sh : BitIndexIterate<EShader>( stages ))
         {
-            EShader sh = ExtractBitLog2<EShader>( INOUT stages );
             if ( not str.empty() )
                 str << " | ";
             str << ShaderToStr( sh );

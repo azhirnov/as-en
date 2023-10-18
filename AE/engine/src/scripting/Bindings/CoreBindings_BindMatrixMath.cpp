@@ -45,6 +45,10 @@ namespace
         //  binder.AddConstructor( &_Ctor1 );
             binder.AddConstructor( &_Ctor2, {"value"} );
             binder.AddConstructor( &_Ctor3, {"col0", "col1"} );
+
+            Mat_t   temp;
+            binder.AddProperty( temp, temp.get<0>(), "col0" );
+            binder.AddProperty( temp, temp.get<1>(), "col1" );
         }
     };
 
@@ -86,6 +90,11 @@ namespace
         //  binder.AddConstructor( &_Ctor1 );
             binder.AddConstructor( &_Ctor2, {"value"} );
             binder.AddConstructor( &_Ctor3, {"col0", "col1", "col2"} );
+
+            Mat_t   temp;
+            binder.AddProperty( temp, temp.get<0>(), "col0" );
+            binder.AddProperty( temp, temp.get<1>(), "col1" );
+            binder.AddProperty( temp, temp.get<2>(), "col2" );
         }
     };
 
@@ -127,6 +136,12 @@ namespace
         //  binder.AddConstructor( &_Ctor1 );
             binder.AddConstructor( &_Ctor2, {"value"} );
             binder.AddConstructor( &_Ctor3, {"col0", "col1", "col2", "col3"} );
+
+            Mat_t   temp;
+            binder.AddProperty( temp, temp.get<0>(), "col0" );
+            binder.AddProperty( temp, temp.get<1>(), "col1" );
+            binder.AddProperty( temp, temp.get<2>(), "col2" );
+            binder.AddProperty( temp, temp.get<3>(), "col3" );
         }
     };
 
@@ -304,11 +319,6 @@ namespace
 */
     void  CoreBindings::BindMatrixMath (const ScriptEnginePtr &se) __Th___
     {
-        using MatTypes = TypeList<
-                            packed_float2x2, packed_float2x3, packed_float2x4,
-                            packed_float3x2, packed_float3x3, packed_float3x4,
-                            packed_float4x2, packed_float4x3, packed_float4x4
-                          >;
         CHECK_THROW( se and se->IsInitialized() );
 
         // declare

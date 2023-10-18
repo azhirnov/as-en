@@ -55,7 +55,7 @@ namespace AE::VFS
             CHECK_ERR(  hdr.name == Name            and
                         hdr.version == Version      and
                         hdr.fileHeadersSize > 0     and
-                        IsAligned( hdr.fileHeadersSize, sizeof(FileHeader) ));
+                        IsMultipleOf( hdr.fileHeadersSize, sizeof(FileHeader) ));
 
             const uint  file_count = hdr.fileHeadersSize / sizeof(FileHeader);
             _map.reserve( file_count );
@@ -87,7 +87,7 @@ namespace AE::VFS
     Open (RStream)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<RStream> &outStream, const FileName &name) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<RStream> &outStream, FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -157,7 +157,7 @@ namespace AE::VFS
     Open (RDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<RDataSource> &outDS, const FileName &name) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<RDataSource> &outDS, FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -225,7 +225,7 @@ namespace AE::VFS
     Open (AsyncRDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &, const FileName &) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &, FileNameRef) C_NE___
     {
         // TODO: replace '_archive' by asyncDS
         return false;
@@ -236,7 +236,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  ArchiveStaticStorage::Exists (const FileName &name) C_NE___
+    bool  ArchiveStaticStorage::Exists (FileNameRef name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -249,7 +249,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  ArchiveStaticStorage::Exists (const FileGroupName &) C_NE___
+    bool  ArchiveStaticStorage::Exists (FileGroupNameRef) C_NE___
     {
         // not supported
         return false;
@@ -275,7 +275,7 @@ namespace AE::VFS
     _OpenByIter (RStream)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RStream> &outStream, const FileName &name, const void* ref) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RStream> &outStream, FileNameRef name, const void* ref) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -294,7 +294,7 @@ namespace AE::VFS
     _OpenByIter (RDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RDataSource> &outDS, const FileName &name, const void* ref) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RDataSource> &outDS, FileNameRef name, const void* ref) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -313,7 +313,7 @@ namespace AE::VFS
     _OpenByIter (AsyncRDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, const FileName &, const void*) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, FileNameRef, const void*) C_NE___
     {
         return false;
     }

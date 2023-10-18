@@ -35,12 +35,12 @@ namespace AE::Graphics
         VkSamplerYcbcrConversionInfo    conv_info   = {};
 
         auto&   dev = resMngr.GetDevice();
-        DEV_CHECK_ERR( IsSupported( dev, sampler_ci ));
+        GRES_CHECK( IsSupported( dev, sampler_ci ));
 
         if ( convCI != null )
         {
             CHECK_ERR( resMngr.GetFeatureSet().samplerYcbcrConversion == EFeature::RequireTrue );
-            DEV_CHECK_ERR( IsSupported( dev, sampler_ci, *convCI ));
+            GRES_CHECK( IsSupported( dev, sampler_ci, *convCI ));
 
             VK_CHECK_ERR( dev.vkCreateSamplerYcbcrConversionKHR( dev.GetVkDevice(), convCI, null, OUT &_ycbcrConversion ));
             dev.SetObjectName( _ycbcrConversion, dbgName, VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION );

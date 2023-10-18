@@ -25,7 +25,7 @@ namespace
         bool                        isOK    = false;
 
         ImageComparator *           imgCmp  = null;
-        RC<GfxLinearMemAllocator>   gfxAlloc;
+        GfxMemAllocatorPtr          gfxAlloc;
 
         CR1_TestData (Canvas &c) : canvas{c} {}
     };
@@ -137,7 +137,7 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         CR1_TestData    t           {*canvas};
 
-        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 

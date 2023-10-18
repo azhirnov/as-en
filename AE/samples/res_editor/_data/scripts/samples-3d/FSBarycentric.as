@@ -11,15 +11,14 @@
     void ASmain ()
     {
         // initialize
-        RC<Image>               rt          = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );            rt.Name( "RT-Color" );
-        RC<Image>               ds          = Image( EPixelFormat::Depth32F, SurfaceSize() );               ds.Name( "RT-Depth" );
-        RC<FPVCamera>           camera      = FPVCamera();
-        RC<Buffer>              cube        = Buffer();
-        RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
-        RC<Scene>               scene       = Scene();
+        RC<Image>   rt      = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt.Name( "RT-Color" );
+        RC<Image>   ds      = Image( EPixelFormat::Depth32F, SurfaceSize() );       ds.Name( "RT-Depth" );
+        RC<Scene>   scene   = Scene();
 
         // setup camera
         {
+            RC<FPVCamera>   camera = FPVCamera();
+
             camera.ClipPlanes( 0.1f, 100.f );
             camera.FovY( 50.f );
 
@@ -27,28 +26,34 @@
             camera.ForwardBackwardScale( s );
             camera.UpDownScale( s );
             camera.SideMovementScale( s );
+
+            scene.Set( camera );
         }
 
         // create cube
         {
+            RC<Buffer>              geom_data   = Buffer();
+            RC<UnifiedGeometry>     geometry    = UnifiedGeometry();
+
             array<float3>   positions;
             array<float3>   normals;
             array<uint>     indices;
             GetCube( OUT positions, OUT normals, OUT indices );
 
-            cube.FloatArray( "positions",   positions );
-            cube.FloatArray( "normals",     normals );
-            cube.UIntArray(  "indices",     indices );
-            cube.Layout( "CubeSBlock" );
+            geom_data.FloatArray( "positions",  positions );
+            geom_data.FloatArray( "normals",    normals );
+            geom_data.UIntArray(  "indices",    indices );
+            geom_data.LayoutName( "GeometrySBlock" );
 
-            UnifiedGeometry_Draw    cmd;
-            cmd.vertexCount = indices.size();
+            UnifiedGeometry_DrawIndexed cmd;
+            cmd.indexCount = indices.size();
+            cmd.IndexBuffer( geom_data, "indices" );
+
             geometry.Draw( cmd );
-            geometry.ArgIn( "un_Cube",  cube );
-        }
+            geometry.ArgIn( "un_Geometry",  geom_data );
 
-        scene.Set( camera );
-        scene.Add( geometry, float3(0.f, 0.f, 4.f) );
+            scene.Add( geometry, float3(0.f, 0.f, 4.f) );
+        }
 
         // render loop
         {

@@ -77,10 +77,9 @@ namespace AE::Profiler
         const auto&     cpu_info = CpuArchInfo::Get();
         for (auto& core : cpu_info.cpu.coreTypes)
         {
-            for (ulong bits = core.logicalBits.to_ullong(); bits != 0;)
+            for (uint core_id : BitIndexIterate( core.logicalBits.to_ullong() ))
             {
-                uint    core_id = ExtractBitLog2( INOUT bits );
-                auto&   graph   = _imgui.coreUsage[core_id];
+                auto&   graph = _imgui.coreUsage[core_id];
 
                 graph.Add({ user[core_id] + kernel[core_id], kernel[core_id] });
             }

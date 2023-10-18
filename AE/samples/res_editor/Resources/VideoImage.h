@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {
@@ -44,7 +44,7 @@ namespace AE::ResEditor
     public:
         VideoImage (Renderer &          renderer,
                     const ImageDesc &   desc,
-                    const Path &        path,
+                    const VFS::FileName &filename,
                     RC<DynamicDim>      outDynSize,
                     StringView          dbgName)            __Th___;
 

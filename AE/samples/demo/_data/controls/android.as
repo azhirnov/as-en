@@ -39,9 +39,9 @@ void ASmain (Android_ActionBindings& bindings)
                   ActionInfo( "Test.ScaleRotate2D", EValueType::Float4, EGestureType::ScaleRotate2D ));
     }
 
-    // Simple3D bindings
+    // Camera3D bindings
     {
-        RC<Android_BindingsMode>    bind = bindings.CreateMode( "Simple3D" );
+        RC<Android_BindingsMode>    bind = bindings.CreateMode( "Camera3D" );
 
         bind.Add( Android_Input::TouchDelta_norm,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(2.0f) ));

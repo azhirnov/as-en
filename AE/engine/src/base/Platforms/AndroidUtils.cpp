@@ -133,6 +133,7 @@ namespace AE::Base
         __builtin_arm_yield();
         //__yield();
         //asm volatile("yield")
+        //__wfe()   or __wfi()
     #else
         // TODO
     #endif

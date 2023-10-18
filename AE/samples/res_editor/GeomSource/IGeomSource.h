@@ -32,8 +32,6 @@ namespace AE::ResEditor
     {
     // types
     public:
-        using GraphicsCtx_t     = DirectCtx::Graphics;
-        using RayTracingCtx_t   = DirectCtx::RayTracing;
         using UpdatePassData    = IPass::UpdatePassData;
 
         struct UpdateData
@@ -46,8 +44,7 @@ namespace AE::ResEditor
 
         struct UpdateRTData
         {
-            IGSMaterials &          mtr;
-            DirectCtx::ASBuild &    ctx;
+            DescriptorUpdater &     updater;
         };
 
         struct DrawData
@@ -55,6 +52,15 @@ namespace AE::ResEditor
             IGSMaterials &          mtr;
             DirectCtx::Draw &       ctx;
             DescriptorSetID         passDS;
+        };
+
+        enum class ERTGeometryType
+        {
+            Opaque,
+            OpaqueDualSided,
+            Translucent,
+            Volumetric,
+            _Count
         };
 
 
@@ -68,16 +74,17 @@ namespace AE::ResEditor
         explicit IGeomSource (Renderer &r) : _renderer{r} {}
 
     public:
-        virtual void  StateTransition (IGSMaterials &, GraphicsCtx_t &)     __NE___ = 0;
-        virtual void  StateTransition (IGSMaterials &, RayTracingCtx_t &)   __NE___ = 0;
+            virtual void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)   __Th___ = 0;
+            virtual void  StateTransition (DirectCtx::RayTracing &)                 __Th___ {}
 
-        virtual bool  Draw (const DrawData &)                               __NE___ = 0;
-        virtual bool  Update (const UpdateData &)                           __NE___ = 0;
-        virtual bool  RTUpdate (const UpdateRTData &)                       __NE___ { return false; }
+        ND_ virtual bool  Draw (const DrawData &)                                   __Th___ = 0;
+        ND_ virtual bool  PostProcess (const DrawData &)                            __Th___ { return false; }
+        ND_ virtual bool  Update (const UpdateData &)                               __Th___ = 0;
+        ND_ virtual bool  RTUpdate (const UpdateRTData &)                           __Th___ { return false; }
 
-        ND_ Renderer&           _Renderer ()                                const   { return _renderer; }
-        ND_ ResourceQueue&      _ResQueue ()                                const;
-        ND_ GfxMemAllocatorPtr  _GfxAllocator ()                            const;
+        ND_ Renderer&           _Renderer ()                                        const   { return _renderer; }
+        ND_ DataTransferQueue&  _DtTrQueue ()                                       const;
+        ND_ GfxMemAllocatorPtr  _GfxAllocator ()                                    const;
     };
 
 

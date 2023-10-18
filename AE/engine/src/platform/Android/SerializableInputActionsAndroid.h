@@ -6,7 +6,7 @@
 
 namespace AE::App
 {
-    static constexpr uint   InputActionsAndroid_Name    = uint("ia.And"_StringToID);
+    static constexpr uint   InputActionsAndroid_Name    = "ia.And"_Hash;
 
 
     //

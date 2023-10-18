@@ -14,17 +14,18 @@ namespace AE::VFS
     bool  DiskDynamicStorage::Create (const Path &folder, StringView prefix)
     {
         {
-            EXLOCK( _mapGuard );
+            auto    file_map = _fileMap.WriteNoLock();
+            EXLOCK( file_map );
 
             CHECK_ERR( _folder.empty() );
             CHECK_ERR( FileSystem::IsDirectory( folder ));
 
-            _map.clear();
-            _map.reserve( 128 );
+            file_map->map.clear();
+            file_map->map.reserve( 128 );
+            file_map->lastUpdate = Default;
 
-            _folder     = FileSystem::ToAbsolute( folder );
-            _lastUpdate = Default;
-            _prefix     = String{prefix};
+            _folder = FileSystem::ToAbsolute( folder );
+            _prefix = String{prefix};
         }
 
         CHECK_ERR( _Update() );
@@ -39,23 +40,18 @@ namespace AE::VFS
     bool  DiskDynamicStorage::_Update () C_NE___
     {
         try{
-            Threading::DeferExLock      lock {_mapGuard};
-            if ( not lock.try_lock() )
-                return false;
-
             auto    cur_time = TimePoint_t::clock::now();
 
-            if ( TimeCast<seconds>( cur_time - _lastUpdate ) < _UpdateInterval )
+            if ( TimeCast<seconds>( cur_time - _fileMap.ConstPtr()->lastUpdate ) < _UpdateInterval )
                 return false;
 
-            _lastUpdate = cur_time;
+            _fileMap->lastUpdate = cur_time;
 
             // build file map
             Array< Path >   stack;
             stack.push_back( _folder );
 
             String  str, name;
-            str.reserve( 64 );
             name.reserve( 64 );
 
             for (; not stack.empty();)
@@ -65,7 +61,7 @@ namespace AE::VFS
 
                 for (auto& entry : FileSystem::Enum( path ))
                 {
-                    if ( not entry.IsDirectory() )
+                    if ( entry.IsFile() )
                     {
                         auto    file = FileSystem::ToRelative( entry.Get(), _folder );
 
@@ -74,16 +70,19 @@ namespace AE::VFS
                         name.clear();
                         name << _prefix << str;
 
-                        DEBUG_ONLY( _hashCollisionCheck.Add( FileName{name} ));
+                        DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( FileName{name} ));
 
-                        _map.emplace( FileName::Optimized_t{name}, str );
+                        _fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
                     }
                     else
+                    if ( entry.IsDirectory() )
                     {
                         stack.push_back( entry.Get() );
                     }
                 }
             }
+
+            _fileMap->lastUpdate = TimePoint_t::clock::now();
         }
         catch (...)
         {}
@@ -96,31 +95,34 @@ namespace AE::VFS
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  DiskDynamicStorage::_Open2 (OUT ResultType &result, const FileName &name) C_NE___
+    bool  DiskDynamicStorage::_Open2 (OUT ResultType &result, FileNameRef name) C_NE___
     {
-        auto    iter = _map.find( FileName::Optimized_t{name} );
-        if_likely( iter != _map.end() )
+        Path    path;
         {
-            Path    path{ _folder };
-            path /= Path{ iter->second };
+            auto    file_map = _fileMap.ReadNoLock();
+            SHAREDLOCK( file_map );
 
-            auto    file = MakeRC<ImplType>( path );
-            if_likely( file->IsOpen() )
-            {
-                result = file;
-                return true;
-            }
+            auto    iter = file_map->map.find( FileName::Optimized_t{name} );
+            if_unlikely( iter == file_map->map.end() )
+                return false;
+
+            path = _folder / iter->second;
+        }
+
+        auto    file = MakeRC<ImplType>( path );
+        if_likely( file->IsOpen() )
+        {
+            result = file;
+            return true;
         }
         return false;
     }
 
     template <typename ImplType, typename ResultType>
-    bool  DiskDynamicStorage::_Open (OUT ResultType &result, const FileName &name) C_NE___
+    bool  DiskDynamicStorage::_Open (OUT ResultType &result, FileNameRef name) C_NE___
     {
         // first try
         {
-            SHAREDLOCK( _mapGuard );
-
             if_likely( _Open2<ImplType>( OUT result, name ))
                 return true;
         }
@@ -128,8 +130,6 @@ namespace AE::VFS
         // update file map and try again
         if ( _Update() )
         {
-            SHAREDLOCK( _mapGuard );
-
             if_likely( _Open2<ImplType>( OUT result, name ))
                 return true;
         }
@@ -137,17 +137,17 @@ namespace AE::VFS
         return false;
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<RStream> &stream, const FileName &name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<RStream> &stream, FileNameRef name) C_NE___
     {
         return _Open<FileRStream>( OUT stream, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<RDataSource> &ds, const FileName &name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<RDataSource> &ds, FileNameRef name) C_NE___
     {
         return _Open<FileRDataSource>( OUT ds, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, const FileName &name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name) C_NE___
     {
     #if defined(AE_PLATFORM_WINDOWS)
         return _Open< Threading::WinAsyncRDataSource >( OUT ds, name );
@@ -160,50 +160,123 @@ namespace AE::VFS
 
 /*
 =================================================
-    LoadAsync
+    Open
 =================================================
-*
-    Promise<void>  DiskDynamicStorage::LoadAsync (const FileGroupName &name) const
+*/
+    bool  DiskDynamicStorage::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
     {
-        // not supported
-        return Default;
+        return _Open<FileWStream>( OUT stream, name );
     }
+
+    bool  DiskDynamicStorage::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
+    {
+        return _Open<FileWDataSource>( OUT ds, name );
+    }
+
+    bool  DiskDynamicStorage::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
+    {
+    #if defined(AE_PLATFORM_WINDOWS)
+        return _Open< Threading::WinAsyncWDataSource >( OUT ds, name );
+
+    #else
+        Unused( ds, name );
+        return false;
+    #endif
+    }
+
+/*
+=================================================
+    CreateFile
+=================================================
+*/
+    bool  DiskDynamicStorage::CreateFile (OUT FileName &name, const Path &inPath) C_NE___
+    {
+        Path    path = (_folder / inPath).lexically_normal();   // path without '..'
+                path = FileSystem::ToRelative( path, _folder );
+
+        String  str;
+        CHECK_ERR( Convert<Path::value_type>( OUT str, path.native() ));
+
+        name = FileName{_prefix + str};
+        DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
+
+        _fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
+        return true;
+    }
+
+/*
+=================================================
+    CreateUniqueFile
+=================================================
+*/
+#if 1
+    bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
+    {
+        Path            path    = (_folder / inoutPath).lexically_normal(); // path without '..'
+        String          fname   = ToString( path.filename().replace_extension("") );
+        const String    ext     = ToString( path.extension() );
+        const usize     len     = fname.length();
+                        path    = path.parent_path();
+
+        const auto  BuildName = [&] (OUT Path &p, usize idx)
+        {{
+            fname.resize( len );
+            fname << ToString(idx) << ext;
+            p = path / fname;
+        }};
+
+        const auto  Consume = [this, &inoutPath, &name] (const Path &p) -> bool
+        {{
+            inoutPath = FileSystem::ToRelative( p, _folder );
+
+            String  str;
+            CHECK_ERR( Convert<Path::value_type>( OUT str, inoutPath.native() ));
+
+            name = FileName{_prefix + str};
+            DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
+
+            _fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
+            return true;
+        }};
+
+        FileSystem::FindUnusedFilename( BuildName, Consume );
+        return name.IsDefined();
+    }
+#else
+
+    bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
+    {
+        Path    path = (_folder / inoutPath).lexically_normal();    // path without '..'
+                path = FileSystem::ToRelative( path, _folder );
+
+        // TODO: search in map
+    }
+#endif
 
 /*
 =================================================
     Exists
 =================================================
 */
-    bool  DiskDynamicStorage::_Exists (const FileName &name) C_NE___
-    {
-        auto    iter = _map.find( FileName::Optimized_t{name} );
-        return iter != _map.end();
-    }
-
-    bool  DiskDynamicStorage::Exists (const FileName &name) C_NE___
+    bool  DiskDynamicStorage::Exists (FileNameRef name) C_NE___
     {
         // first try
         {
-            SHAREDLOCK( _mapGuard );
-
-            if_likely( _Exists( name ))
+            if_likely( _fileMap.ConstPtr()->map.contains( FileName::Optimized_t{name} ))
                 return true;
         }
 
         // update file map and try again
         if ( _Update() )
         {
-            SHAREDLOCK( _mapGuard );
-
-            if_likely( _Exists( name ))
+            if_likely( _fileMap.ConstPtr()->map.contains( FileName::Optimized_t{name} ))
                 return true;
         }
 
         return false;
-
     }
 
-    bool  DiskDynamicStorage::Exists (const FileGroupName &) C_NE___
+    bool  DiskDynamicStorage::Exists (FileGroupNameRef) C_NE___
     {
         // not supported
         return false;

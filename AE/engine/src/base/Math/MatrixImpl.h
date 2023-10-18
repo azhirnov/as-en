@@ -55,7 +55,7 @@ namespace AE::Math
                  const Col_t &col2)                                                     __NE___ :
             _value{ col0, col1, col2 } {}
 
-        explicit TMatrix (const Quat<T,Q> &q)                                           __NE___ : _value{glm::mat3_cast(q._value)} {}
+        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat3_cast(q._value)} {}
 
         ND_ static Self  FromScalar (Value_t value)                                     __NE___ { return Self{ Col_t{value}, Col_t{value}, Col_t{value} }; }
     #endif
@@ -67,7 +67,7 @@ namespace AE::Math
                  const Col_t &col3)                                                     __NE___ :
             _value{ col0, col1, col2, col3 } {}
 
-        explicit TMatrix (const Quat<T,Q> &q)                                           __NE___ : _value{glm::mat4_cast(q._value)} {}
+        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat4_cast(q._value)} {}
 
         ND_ static Self  FromScalar (Value_t value)                                     __NE___ { return Self{ Col_t{value}, Col_t{value}, Col_t{value}, Col_t{value} }; }
     #endif
@@ -91,6 +91,9 @@ namespace AE::Math
         ND_ bool    operator == (const Self &rhs)                                       C_NE___;
 
         ND_ bool    IsIdentity ()                                                       C_NE___ { return *this == Identity(); }
+
+        ND_ T       Determinant ()                                                      C_NE___ { return glm::determinant( _value ); }
+
 
         ND_ friend Row_t            operator * (const Col_t &lhs, const Self &rhs)      __NE___ { return lhs * rhs._value; }
 
@@ -130,6 +133,8 @@ namespace AE::Math
         ND_ static constexpr usize      size ()                                         __NE___ { return Columns; }
         ND_ static constexpr usize      ElementCount ()                                 __NE___ { return Columns*Rows; }
         ND_ static constexpr Dim_t      Dimension ()                                    __NE___ { return Dim_t{ Columns, Rows }; }
+        ND_ static constexpr bool       IsColumnMajor ()                                __NE___ { return true; }
+
 
     #if Columns == 2 and Rows == 2
         ND_ static Self  Rotate (Rad_t angle)                                           __NE___;
@@ -142,9 +147,16 @@ namespace AE::Math
         ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
     #endif
 
+    #if Columns == 4 and (Rows == 3 or Rows == 4)
+        ND_ static Self  Translated (const Vec3_t &translation)                         __NE___ { return Identity().SetTranslation( translation ); }
+        ND_ Self         Translate (const Vec3_t &translation)                          C_NE___ { return Self{*this}.AddTranslation( translation ); }
+            Self&        SetTranslation (const Vec3_t &translation)                     __NE___;
+            Self&        AddTranslation (const Vec3_t &translation)                     __NE___;
+    #endif
+
     #if Columns == 4 and Rows == 4
         ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)            __NE___ { return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
-        ND_ static Self  InfinitePerspective (Rad_t fovY, T aspect, T zNear)            __NE___ { return Self{ glm::infinitePerspective( T(fovY), aspect, zNear )}; }
+        ND_ static Self  InfinitePerspective (Rad_t fovY, T aspect, T zNear)            __NE___;
         ND_ static Self  Perspective (Rad_t fovY, T aspect, const Vec2_t &range)        __NE___ { return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
         ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)  __NE___ { return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
         ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)          __NE___ { return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
@@ -152,14 +164,11 @@ namespace AE::Math
 
         ND_ static Self  LookAt (const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up) __NE___ { return Self{ glm::lookAt( eye, center, up )}; }
 
-        ND_ static Self  Translated (const Vec3_t &translation)                         __NE___ { return Self{ glm::translate( Self::Identity()._value, translation )}; }
         ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___;
         ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
 
         ND_ Vec3_t       Project (const Vec3_t &pos, const Rect_t &viewport)            C_NE___;
         ND_ Vec3_t       UnProject (const Vec3_t &pos, const Rect_t &viewport)          C_NE___;
-
-        ND_ Self         Translate (const Vec3_t &translation)                          C_NE___ { return Self{ glm::translate( _value, translation )}; }
 
         ND_ Vec3_t       AxisX ()                                                       C_NE___ { return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }
         ND_ Vec3_t       AxisY ()                                                       C_NE___ { return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }
@@ -324,21 +333,44 @@ namespace AE::Math
 
 /*
 =================================================
+    InfinitePerspective
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfinitePerspective (Rad_t fovY, T aspect, T zNear) __NE___
+    {
+        T const range   = glm::tan( T(fovY) * T(0.5) ) * zNear;
+        T const left    = -range * aspect;
+        T const right   = range * aspect;
+        T const bottom  = -range;
+        T const top     = range;
+
+        Self    result = Zero();
+        result[0][0] = (T(2) * zNear) / (right - left);
+        result[1][1] = (T(2) * zNear) / (top - bottom);
+        result[2][2] = T(1);
+        result[2][3] = T(1);
+        result[3][2] = - zNear;
+        return result;
+    }   
+
+/*
+=================================================
     InfiniteFrustum
 =================================================
 */
     template <typename T, glm::qualifier Q>
     TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfiniteFrustum (const Rect_t &viewport, T zNear) __NE___
     {
-        Self    proj;
-        proj[0][0] = T(2) / (viewport.right - viewport.left);
-        proj[1][1] = T(2) / (viewport.bottom - viewport.top);
-        proj[2][0] = (viewport.right + viewport.left) / (viewport.right - viewport.left);
-        proj[2][1] = (viewport.top + viewport.bottom) / (viewport.bottom - viewport.top);
-        proj[2][2] = -T(1);
-        proj[2][3] = -T(1);
-        proj[3][2] = -T(2) * zNear;
-        return proj;
+        Self    result = Zero();
+        result[0][0] = T(2) / (viewport.right - viewport.left);
+        result[1][1] = T(2) / (viewport.bottom - viewport.top);
+        result[2][0] = - (viewport.right + viewport.left) / (viewport.right - viewport.left);
+        result[2][1] = - (viewport.top + viewport.bottom) / (viewport.bottom - viewport.top);
+        result[2][2] = T(1);
+        result[2][3] = T(1);
+        result[3][2] = - zNear;
+        return result;
     }
 
 /*
@@ -438,5 +470,47 @@ namespace AE::Math
     #endif
     }
 
+
+/*
+=================================================
+    AddTranslation / SetTranslation
+=================================================
+*/
+#if Columns == 4 and Rows == 3
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::AddTranslation (const Vec3_t &translation) __NE___
+    {
+        get<3>() =  get<0>() * translation[0] +
+                    get<1>() * translation[1] +
+                    get<2>() * translation[2];
+        return *this;
+    }
+
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::SetTranslation (const Vec3_t &translation) __NE___
+    {
+        get<3>() = translation;
+        return *this;
+    }
+#endif
+
+#if Columns == 4 and Rows == 4
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::AddTranslation (const Vec3_t &translation) __NE___
+    {
+        get<3>() =  get<0>() * translation[0] +
+                    get<1>() * translation[1] +
+                    get<2>() * translation[2] +
+                    get<3>();
+        return *this;
+    }
+
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::SetTranslation (const Vec3_t &translation) __NE___
+    {
+        get<3>() = Vec4_t{ translation, T{1} };
+        return *this;
+    }
+#endif
 
 } // AE::Math

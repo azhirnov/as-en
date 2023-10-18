@@ -251,7 +251,7 @@ namespace AE::Graphics
                          build.instanceData.offset >= buf->Size()                                   or
                          size > buf->Size()                                                         or
                          not AllBits( buf->Description().usage, EBufferUsage::ASBuild_ReadOnly )    or
-                         not IsAligned( ulong(buf->GetDeviceAddress() + build.instanceData.offset), props.instanceDataAlign ))
+                         not IsMultipleOf( ulong(buf->GetDeviceAddress() + build.instanceData.offset), props.instanceDataAlign ))
                 return false;
         }
 
@@ -261,7 +261,7 @@ namespace AE::Graphics
             if_unlikely( buf == null                                                            or
                          build.scratch.offset >= buf->Size()                                    or
                          not AllBits( buf->Description().usage, EBufferUsage::ASBuild_Scratch ) or
-                         not IsAligned( ulong(buf->GetDeviceAddress() + build.scratch.offset), props.scratchBufferAlign ))
+                         not IsMultipleOf( ulong(buf->GetDeviceAddress() + build.scratch.offset), props.scratchBufferAlign ))
                 return false;
         }
 

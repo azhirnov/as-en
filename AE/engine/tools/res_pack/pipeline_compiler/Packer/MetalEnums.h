@@ -530,13 +530,13 @@ namespace AE::Base
     ND_ inline String  ToString (MtlAttachmentFlags values)
     {
         String  str;
-        while ( values != Zero )
+        for (auto t : BitfieldIterate( values ))
         {
             if ( not str.empty() )
                 str << " | ";
 
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT values ))
+            switch ( t )
             {
                 case MtlAttachmentFlags::Color :    str << "Color";     break;
                 case MtlAttachmentFlags::Depth :    str << "Depth";     break;

@@ -423,11 +423,17 @@ namespace AE::Graphics
         // statistics
         ND_ virtual StagingBufferStat           GetStagingBufferFrameStat (FrameUID frameId)                C_NE___ = 0;
 
-
         ND_ virtual FeatureSet const&           GetFeatureSet ()                                            C_NE___ = 0;
 
+        // memory allocators
+        ND_ virtual GfxMemAllocatorPtr          CreateLinearGfxMemAllocator (Bytes pageSize = 0_b)          C_NE___ = 0;
+        ND_ virtual GfxMemAllocatorPtr          CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)C_NE___ = 0;
+        ND_ virtual GfxMemAllocatorPtr          CreateUnifiedGfxMemAllocator (Bytes pageSize = 0_b)         C_NE___ = 0;
+        ND_ virtual GfxMemAllocatorPtr          GetDefaultGfxMemAllocator ()                                C_NE___ = 0;
 
-        // TODO: mem alloc factory
+        // descriptor allocators
+        //ND_ virtual DescriptorAllocatorPtr    CreateLinearDescriptorAllocator ()                          C_NE___ = 0;
+        ND_ virtual DescriptorAllocatorPtr      GetDefaultDescriptorAllocator ()                            C_NE___ = 0;
     };
 
 

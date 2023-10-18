@@ -4,7 +4,11 @@
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
 # include "graphics/Vulkan/VEnumCast.h"
+
 # include "graphics/Vulkan/Allocators/VUniMemAllocator.h"
+# include "graphics/Vulkan/Allocators/VLinearMemAllocator.h"
+# include "graphics/Vulkan/Allocators/VBlockMemAllocator.h"
+
 # include "graphics/Vulkan/Descriptors/VDefaultDescriptorAllocator.h"
 
 namespace AE::Graphics
@@ -226,21 +230,21 @@ namespace AE::Graphics
         auto&   data = _GetResourcePool( raw_id )[ raw_id.Index() ];
         Replace( data );
 
-        if_unlikely( not data.Create( *this, desc, rp_id ))
+        if_unlikely( not data.Create( *this, desc, rp_id  DEBUG_ONLY(, HashToName( desc.renderPassName )) ))
         {
             data.Destroy( *this );
             _Unassign( raw_id );
             RETURN_ERR( "failed when creating framebuffer from render pass '"s << HashToName( desc.renderPassName ) << "'" );
         }
 
-        data.AddRef();
+        data.AddRef();  // 'raw_id' rc == 1 
 
 
         // add to cache
         Strong<VFramebufferID>  actual_id;
         {
             EXLOCK( _resPool.fbCacheGuard );
-            auto [iter, inserted] = _resPool.fbCache.emplace( key, VFramebufferID{raw_id} );
+            auto [iter, inserted] = _resPool.fbCache.emplace( key, raw_id );
 
             if_likely( inserted )
             {
@@ -352,6 +356,29 @@ namespace AE::Graphics
         }
 
         return non_empty;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Create***Allocator
+=================================================
+*/
+    GfxMemAllocatorPtr  VResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
+    {
+        return MakeRC<VLinearMemAllocator>( pageSize );
+    }
+
+    GfxMemAllocatorPtr  VResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___
+    {
+        return MakeRC<VBlockMemAllocator>( blockSize, pageSize );
+    }
+
+    GfxMemAllocatorPtr  VResourceManager::CreateUnifiedGfxMemAllocator (Bytes pageSize) C_NE___
+    {
+        return MakeRC<VUniMemAllocator>( pageSize );
     }
 //-----------------------------------------------------------------------------
 

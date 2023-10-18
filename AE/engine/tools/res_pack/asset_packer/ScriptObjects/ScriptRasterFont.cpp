@@ -317,21 +317,18 @@ namespace AE::AssetPacker
 
         // serialize
         {
-            ImageMemView    dst_view = dst_image.ToView();
+            ImagePacker::Header img_hdr;
+            img_hdr.dimension   = ushort3{uint3{ rect_packer.TargetSize(), 1 }};
+            img_hdr.arrayLayers = 1;
+            img_hdr.mipmaps     = 1;
+            img_hdr.format      = _dstFormat;
+            img_hdr.viewType    = EImage_2D;
 
-            RasterFontPacker    fnt_packer;
-            fnt_packer.header.version       = ImagePacker::Version;
-            fnt_packer.header.dimension     = ushort3{uint3{ rect_packer.TargetSize(), 1 }};
-            fnt_packer.header.arrayLayers   = 1;
-            fnt_packer.header.mipmaps       = 1;
-            fnt_packer.header.format        = _dstFormat;
-            fnt_packer.header.viewType      = EImage_2D;
-            fnt_packer.header.rowSize       = uint(dst_view.RowPitch());
-
+            RasterFontPacker    fnt_packer {img_hdr};
             fnt_packer.sdfConfig.scale      = sdf_scale;
             fnt_packer.sdfConfig.bias       = sdf_bias;
             fnt_packer.sdfConfig.pixRange2D = float(_sdfPixRange);
-            fnt_packer.sdfConfig.pixRange3D = float(_sdfPixRange) / float2(fnt_packer.header.dimension);
+            fnt_packer.sdfConfig.pixRange3D = float(_sdfPixRange) / float2(img_hdr.dimension);
 
             fnt_packer.fontHeight.push_back( CheckCast<ubyte>( fnt_height ));
             fnt_packer.glyphMap.reserve( glyphs.size() );
@@ -345,7 +342,7 @@ namespace AE::AssetPacker
                 Serializing::Serializer     ser {stream};
                 CHECK_ERR( fnt_packer.Serialize( ser ));
             }
-            CHECK_ERR( fnt_packer.SaveImage( *stream, dst_view ));
+            CHECK_ERR( fnt_packer.SaveImage( *stream, dst_image ));
         }
 
         return true;
@@ -841,6 +838,7 @@ namespace AE::AssetPacker
                 CHECK( tx_max <=  1.f );
             }
           #endif
+            Unused( tx_min, tx_max );
         }
 
         // convert float format to '_intermFormat'

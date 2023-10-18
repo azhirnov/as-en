@@ -31,7 +31,7 @@ namespace AE::ResEditor
 
 
     // variables
-    public:
+    private:
         ImageDesc               _desc;
         ImageViewDesc           _viewDesc;
         const bool              _descDefined    = false;
@@ -58,6 +58,7 @@ namespace AE::ResEditor
                      const ImageLayer &layers, const MipmapLevel &mipmaps)          __Th___;
         ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds,
                      const ImageLayer &layers, const MipmapLevel &mipmaps)          __Th___;
+        ~ScriptImage ();
 
         void  Name (const String &name)                                             __Th___;
 

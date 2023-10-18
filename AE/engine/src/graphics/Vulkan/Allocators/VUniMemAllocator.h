@@ -25,6 +25,8 @@ namespace AE::Graphics
             VmaAllocation   allocation;
         };
 
+        static constexpr Bytes  _DefaultPageSize    {64 << 20};
+
 
     // variables
     private:
@@ -35,7 +37,7 @@ namespace AE::Graphics
 
     // methods
     public:
-        VUniMemAllocator ()                                                                     __NE___;
+        explicit VUniMemAllocator (Bytes pageSize = _DefaultPageSize)                           __NE___;
         ~VUniMemAllocator ()                                                                    __NE_OV;
 
       // IGfxMemAllocator //
@@ -51,10 +53,10 @@ namespace AE::Graphics
 
 
     private:
-        bool _CreateAllocator (OUT VmaAllocator &alloc) const;
+        ND_ bool  _CreateAllocator (Bytes pageSize, OUT VmaAllocator &alloc)                    C_NE___;
 
-        ND_ static Data &       _CastStorage (Storage_t &data)          { return *data.Ptr<Data>(); }
-        ND_ static Data const&  _CastStorage (const Storage_t &data)    { return *data.Ptr<Data>(); }
+        ND_ static Data &       _CastStorage (Storage_t &data)                                  __NE___ { return *data.Ptr<Data>(); }
+        ND_ static Data const&  _CastStorage (const Storage_t &data)                            __NE___ { return *data.Ptr<Data>(); }
     };
 
 

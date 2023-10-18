@@ -208,6 +208,7 @@ namespace AE::Graphics::_hidden_
     void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
+        Unused( typeName );
 
         RawCtx::_PushComputeConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }

@@ -285,12 +285,12 @@ namespace AE::Base
     // methods
     public:
         AtomicRC ()                                                 __NE___ {}
-        AtomicRC (std::nullptr_t)                                   __NE___ {}
-
-        AtomicRC (T* ptr)                                           __NE___ { _IncSet( ptr ); }
-        AtomicRC (Ptr<T> ptr)                                       __NE___ { _IncSet( ptr.get() ); }
         AtomicRC (RC_t && rc)                                       __NE___ { _ptr.store( rc.release().release() ); }
         AtomicRC (const RC_t &rc)                                   __NE___ { _IncSet( rc.get() ); }
+
+        explicit AtomicRC (std::nullptr_t)                          __NE___ {}
+        explicit AtomicRC (T* ptr)                                  __NE___ { _IncSet( ptr ); }
+        explicit AtomicRC (Ptr<T> ptr)                              __NE___ { _IncSet( ptr.get() ); }
 
         ~AtomicRC ()                                                __NE___ { _ResetDec();  STATIC_ASSERT( alignof(T) > 1 ); /* because first bit is used for lock bit */}
 
@@ -627,9 +627,9 @@ namespace AE::Base
         bool    res;
 
         if constexpr( IsStrong )
-            res = _ptr.compare_exchange_strong( INOUT exp, des );
+            res = _ptr.CAS_Loop( INOUT exp, des );
         else
-            res = _ptr.compare_exchange_weak( INOUT exp, des );
+            res = _ptr.CAS( INOUT exp, des );
 
         if ( res ) {
             RefCounterUtils::DecRefAndRelease( exp );
@@ -651,7 +651,7 @@ namespace AE::Base
         T*  exp = _RemoveLockBit( _ptr.load() );
 
         for (uint i = 0;
-             not _ptr.compare_exchange_weak( INOUT exp, desired );
+             not _ptr.CAS( INOUT exp, desired );
              ++i)
         {
             if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -678,7 +678,7 @@ namespace AE::Base
     {
         T*  exp = _RemoveLockBit( _ptr.load() );
         for (uint i = 0;
-             not _ptr.compare_exchange_weak( INOUT exp, _SetLockBit( exp ));
+             not _ptr.CAS( INOUT exp, _SetLockBit( exp ));
              ++i)
         {
             if_unlikely( i > ThreadUtils::SpinBeforeLock() )

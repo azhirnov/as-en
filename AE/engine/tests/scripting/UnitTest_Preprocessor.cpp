@@ -52,7 +52,7 @@ lsdkfmsdlklas akdslmalksd
         const StringView    defines[] = { "PART1", "PART2", "PART5" };
         String              src;
 
-        TEST( ScriptEngine::_Preprocessor( source, OUT src, defines ));
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, defines, Default ));
 
         const char  expected[] =
 R"(aaaj sdi kas jnd
@@ -117,7 +117,7 @@ ewgryjkcs eDSfsehyu rdscszdfve
 11
 )";
         String  src;
-        TEST( ScriptEngine::_Preprocessor( source, OUT src, Default ));
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, Default, Default ));
 
         const char  expected[] = R"(
 
@@ -144,7 +144,7 @@ RC<Class> cl = Class();
 cl.Method( EType::Value );
 )";
         String  src;
-        TEST( ScriptEngine::_Preprocessor( source, OUT src, Default ));
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, Default, Default ));
 
         const char  expected[] = R"(
 Class@ cl = Class();
@@ -174,7 +174,7 @@ dfrkdtywb
 888
 )";
         String  src;
-        TEST( ScriptEngine::_Preprocessor( source, OUT src, Default ));
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, Default, Default ));
 
         const char  expected[] = R"(
 dfrkdtywb
@@ -217,7 +217,7 @@ dfrkdtywb
 "\r\n"
 "#endif\r\n";
         String  src;
-        TEST( ScriptEngine::_Preprocessor( source, OUT src, ArrayView<StringView>{"SCRIPT"} ));
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, ArrayView<StringView>{"SCRIPT"}, Default ));
 
         FindAndReplace( INOUT src, "\r\n", "\n" );
 

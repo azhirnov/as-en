@@ -501,7 +501,7 @@ namespace
 */
     void  RayTracingPipelineSpecScriptBinding::MaxRecursionDepth (uint value) __Th___
     {
-        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::minRayRecursionDepth, value, "minRayRecursionDepth", "maxRecursionDepth" );
+        TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxRayRecursionDepth, value, "maxRayRecursionDepth", "maxRecursionDepth" );
 
         desc.maxRecursionDepth = value;
     }

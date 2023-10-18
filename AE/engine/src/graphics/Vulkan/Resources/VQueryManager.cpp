@@ -548,7 +548,7 @@ The second synchronization scope includes all commands which reference the queri
     bool  VQueryManager::GetPipelineStatistic (const Query &q, OUT PipelineStatistic* result, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( IsAligned( sizeof(*result), sizeof(ulong) ));
+        STATIC_ASSERT( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
 
         CHECK_ERR( q and result != null );
         CHECK_ERR( size >= (SizeOf<PipelineStatistic> * q.count) );

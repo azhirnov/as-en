@@ -3,7 +3,7 @@
 #pragma once
 
 #include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/ResourceQueue.h"
+#include "res_editor/Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {
@@ -37,8 +37,17 @@ namespace AE::ResEditor
             LoadOp () {}
         };
 
+        struct StoreOp
+        {
+            RC<AsyncWDataSource>    file;
+
+            StoreOp () {}
+        };
+
+
     private:
         using IntermImageRC = RC< ResLoader::IntermImage >;
+
 
         struct LoadOp2 : LoadOp
         {
@@ -58,6 +67,21 @@ namespace AE::ResEditor
         };
 
 
+        struct StoreOp2 : StoreOp
+        {
+            // mutable
+            MipmapLevel             curMipmap;
+            ImageLayer              curLayer;
+            ImageStream             stream;
+            bool                    complete    = false;
+
+            StoreOp2 () {}
+            StoreOp2 (const StoreOp &other) : StoreOp{other} {}
+
+            ND_ bool  IsCompleted ()    const   { return complete; }
+        };
+
+
     // variables
     private:
         StrongAtom<ImageID>         _id;
@@ -72,6 +96,7 @@ namespace AE::ResEditor
             FlatHashSet<Image*> >   _derived;
 
         Array<LoadOp2>              _loadOps;
+        Array<StoreOp2>             _storeOps;
 
         Synchronized< RWSpinLock,
             ImageDesc,
@@ -116,6 +141,7 @@ namespace AE::ResEditor
     // IResource //
         EUploadStatus   Upload (TransferCtx_t &)                                    __Th_OV;
         EUploadStatus   Readback (TransferCtx_t &)                                  __Th_OV;
+        void            Cancel ()                                                   __NE_OV;
 
 
         ND_ static RC<Image>  CreateDummy2D (Renderer   &renderer,
@@ -133,11 +159,17 @@ namespace AE::ResEditor
                                              ELoadOpFlags       flags,
                                              ArrayView<Path>    texSearchDirs)      __Th___;
 
+        ND_ static RC<Image>  CreateAndStore (const Image           &src,
+                                              ArrayView<StoreOp>    storeOps,
+                                              StringView            dbgName)        __Th___;
+
 
     private:
         ND_ bool  _OnResize (const ImageViewDesc &);
 
-        ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer, bool allMipmaps);
+        template <typename CtxType>
+        ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer,
+                                bool allMipmaps, CtxType &ctx);
         ND_ bool  _ResizeImage (TransferCtx_t &ctx, const ImageDesc &, const ImageViewDesc &);
             void  _GenMipmaps (TransferCtx_t &ctx)                                  const;
 

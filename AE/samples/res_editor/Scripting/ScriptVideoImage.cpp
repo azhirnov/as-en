@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/PassCommon.inl.h"
+#include "res_editor/Scripting/PipelineCompiler.inl.h"
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Scripting/ScriptBuffer.h"
 
@@ -27,14 +27,28 @@ namespace
     ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
         _format{ format },
         _imageType{uint( PipelineCompiler::EImageType::Img2D | PipelineCompiler::EImageType::Float )},
-        _videoFile{ ScriptExe::ScriptResourceApi::ToAbsolute( filename )}  // throw
+        _videoFile{ filename }
     {
+        CHECK_THROW_MSG( GetVFS().Exists( _videoFile ),
+            "File '"s << filename << "' is not exists" );
+
         if ( _dbgName.empty() )
             _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
 
         _resUsage |= EResourceUsage::UploadedData;
 
         _outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ new DynamicDim{ uint3{}, EImageDim_2D } }};
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptVideoImage::~ScriptVideoImage ()
+    {
+        if ( not _resource )
+            AE_LOG_SE( "Unused VideoImage '"s << _dbgName << "'" );
     }
 
 /*
@@ -104,10 +118,10 @@ namespace
         desc.format     = _format;
 
         CHECK_ERR( _resUsage != Default );
-        for (auto usage = _resUsage; usage != Default;)
+        for (auto usage : BitfieldIterate( _resUsage ))
         {
             BEGIN_ENUM_CHECKS();
-            switch ( ExtractBit( INOUT usage ))
+            switch ( usage )
             {
                 case EResourceUsage::ComputeRead :
                 case EResourceUsage::ComputeWrite :     desc.usage |= EImageUsage::Storage;     break;

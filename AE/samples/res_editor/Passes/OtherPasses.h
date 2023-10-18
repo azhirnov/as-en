@@ -18,7 +18,6 @@ namespace AE::ResEditor
     // variables
     private:
         Array<RC<Image>>            _src;
-        String                      _dbgName;
         RC<DynamicDim>              _dynSize;       // mutable
         RC<DynamicUInt>             _filterMode;    // mutable
 
@@ -28,12 +27,11 @@ namespace AE::ResEditor
     // methods
     public:
         explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize, RC<DynamicUInt> filterMode) :
-            _src{RVRef(src)}, _dbgName{dbgName}, _dynSize{dynSize}, _filterMode{filterMode} {}
+            IPass{dbgName}, _src{RVRef(src)}, _dynSize{dynSize}, _filterMode{filterMode} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Present; }
-        StringView  GetName ()                                          C_NE_OV { return _dbgName; }
-        AsyncTask   PresentAsync (const PresentPassData &)              __NE_OV;
+        AsyncTask   PresentAsync (const PresentPassData &)              __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
 
     private:
@@ -69,7 +67,7 @@ namespace AE::ResEditor
         {
         public:
             virtual ~IAdditionalPass () {}
-            virtual bool  Execute (const Image &src, const Image &copy, SyncPassData &) const = 0;
+            virtual bool  Execute (const Image &src, const Image &copy, SyncPassData &) C_Th___ = 0;
         };
 
 
@@ -99,7 +97,7 @@ namespace AE::ResEditor
             Histogram (Renderer* renderer, const Image &src, const Image &copy)     __Th___;
             ~Histogram ();
 
-            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C_Th_OV;
         };
 
 
@@ -120,7 +118,7 @@ namespace AE::ResEditor
             LinearDepth (const Image &src, const Image &copy)                       __Th___;
             ~LinearDepth ();
 
-            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C_Th_OV;
         };
 
 
@@ -140,7 +138,7 @@ namespace AE::ResEditor
             StencilView (const Image &src, const Image &copy)                       __Th___;
             ~StencilView ();
 
-            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C_Th_OV;
         };
 
 
@@ -152,7 +150,6 @@ namespace AE::ResEditor
 
         const uint              _index;
         const EFlags            _flags;
-        const String            _dbgName;
 
         Unique<IAdditionalPass> _pass;
 
@@ -168,8 +165,7 @@ namespace AE::ResEditor
 
     // IPass //
         EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
+        bool            Execute (SyncPassData &)                            __Th_OV;
         void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
 
     private:
@@ -190,18 +186,16 @@ namespace AE::ResEditor
     // variables
     private:
         RC<Image>   _image;
-        String      _dbgName;
 
 
     // methods
     public:
         explicit GenerateMipmapsPass (RC<Image> image, StringView dbgName) :
-            _image{RVRef(image)}, _dbgName{dbgName} {}
+            IPass{dbgName}, _image{RVRef(image)} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync; }
-        StringView  GetName ()                                          C_NE_OV { return _dbgName; }
-        bool        Execute (SyncPassData &)                            __NE_OV;
+        bool        Execute (SyncPassData &)                            __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 
@@ -219,7 +213,6 @@ namespace AE::ResEditor
         RC<Image>       _dstImage;
         uint3           _dim;
         EImageAspect    _aspect;
-        String          _dbgName;
 
 
     // methods
@@ -228,8 +221,7 @@ namespace AE::ResEditor
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync; }
-        StringView  GetName ()                                          C_NE_OV { return _dbgName; }
-        bool        Execute (SyncPassData &)                            __NE_OV;
+        bool        Execute (SyncPassData &)                            __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 
@@ -250,18 +242,16 @@ namespace AE::ResEditor
     private:
         RC<Image>           _image;
         const ClearValue_t  _value;
-        String              _dbgName;
 
 
     // methods
     public:
         explicit ClearImagePass (RC<Image> image, ClearValue_t value, StringView dbgName) :
-            _image{RVRef(image)}, _value{value}, _dbgName{dbgName} {}
+            IPass{dbgName}, _image{RVRef(image)}, _value{value} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync; }
-        StringView  GetName ()                                          C_NE_OV { return _dbgName; }
-        bool        Execute (SyncPassData &)                            __NE_OV;
+        bool        Execute (SyncPassData &)                            __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 
@@ -276,19 +266,19 @@ namespace AE::ResEditor
     // variables
     private:
         RC<Buffer>      _buffer;
+        const Bytes     _offset;
+        const Bytes     _size;
         const uint      _value;
-        String          _dbgName;
 
 
     // methods
     public:
-        explicit ClearBufferPass (RC<Buffer> buffer, uint value, StringView dbgName) :
-            _buffer{RVRef(buffer)}, _value{value}, _dbgName{dbgName} {}
+        explicit ClearBufferPass (RC<Buffer> buffer, Bytes offset, Bytes size, uint value, StringView dbgName) :
+            IPass{dbgName}, _buffer{RVRef(buffer)}, _offset{offset}, _size{size}, _value{value} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Sync; }
-        StringView  GetName ()                                          C_NE_OV { return _dbgName; }
-        bool        Execute (SyncPassData &)                            __NE_OV;
+        bool        Execute (SyncPassData &)                            __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
     };
 

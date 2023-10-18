@@ -135,7 +135,7 @@ namespace AE::App
             dst.viewId          = _views[i];
             dst.region          = RectI{ int2{0}, int2(_desc.dimension) };
             dst.layer           = 0_layer;  // TODO: supports 2D array
-            dst.pixToMm         = float2{1.0f};
+            dst.pixToMm         = 1.0f;
             dst.initialState    = EResourceState::ColorAttachment;
             dst.finalState      = EResourceState::ColorAttachment;
             dst.format          = _desc.format;

@@ -67,7 +67,7 @@ namespace AE::Base
 
         for (; copied < srcSize;)
         {
-            CHECK_ERR( IsAligned( srcOffset + offset, align ));
+            CHECK_ERR( IsMultipleOf( srcOffset + offset, align ));
 
             Bytes   part_size   = Min( srcSize - copied, buffer.size );
             Bytes   readn       = srcDS.ReadBlock( srcOffset + offset, OUT buffer.ptr, part_size );

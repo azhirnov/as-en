@@ -30,6 +30,7 @@ namespace AE::ResEditor
         const float             _offsetScale;
         const float3            _initialPos;
         const float             _initialOffset;
+        const bool              _reverseZ;
 
         float                   _dimAspect      = 1.f;
 
@@ -38,7 +39,8 @@ namespace AE::ResEditor
     public:
         OrbitalCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
                        float2 rotationScale, float offsetScale,
-                       float3 initialPos, float initialOffset)          __Th___;
+                       float3 initialPos, float initialOffset,
+                       bool reverseZ)                                   __Th___;
 
         // IController //
         void  ProcessInput (ActionQueueReader, secondsf)                __NE_OV;

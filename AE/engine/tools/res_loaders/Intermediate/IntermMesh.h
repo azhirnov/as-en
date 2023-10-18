@@ -20,6 +20,11 @@ namespace AE::ResLoader
     private:
         using VertName_t    = VertexAttributeName::Name_t;
 
+    public:
+        struct Meshlet
+        {
+        };
+
 
     // variables
     private:
@@ -44,10 +49,10 @@ namespace AE::ResLoader
 
         template <typename V, typename I>
         IntermMesh (ArrayView<V> vertices, RC<IntermVertexAttribs> attribs,
-                    Bytes vertStride, EPrimitive topology,
-                    ArrayView<I> indices, EIndex indexType)                 __NE___;
+                    EPrimitive topology, ArrayView<I> indices)              __NE___;
 
             void  CalcAABB ()                                               __NE___;
+        ND_ bool  IsValid ()                                                C_NE___;
 
         ND_ ArrayView<ubyte>            Vertices ()                         C_NE___ { return _vertices; }
         ND_ ArrayView<ubyte>            Indices ()                          C_NE___ { return _indices; }
@@ -81,11 +86,12 @@ namespace AE::ResLoader
 */
     template <typename V, typename I>
     IntermMesh::IntermMesh (ArrayView<V> vertices, RC<IntermVertexAttribs> attribs,
-                            Bytes vertStride, EPrimitive topology,
-                            ArrayView<I> indices, EIndex indexType) __NE___ :
-        _vertexStride{ vertStride }, _attribs{ RVRef(attribs) },
-        _topology{ topology }, _indexType{ indexType }
+                            EPrimitive topology, ArrayView<I> indices) __NE___ :
+        _vertexStride{ SizeOf<V> }, _attribs{ RVRef(attribs) },
+        _topology{ topology }, _indexType{ sizeof(I) == sizeof(uint) ? EIndex::UInt : EIndex::UShort }
     {
+        STATIC_ASSERT(( IsSameTypes< I, uint > or IsSameTypes< I, ushort >));
+
         auto*   verts   = vertices.data();
         auto*   indcs   = indices.data();
 

@@ -218,17 +218,14 @@ namespace AE::AssetPacker
 
         // serialize
         {
-            ImageMemView    dst_view = dst_image.ToView();
+            ImagePacker::Header img_hdr;
+            img_hdr.dimension   = ushort3{uint3{ rect_packer.TargetSize(), 1 }};
+            img_hdr.arrayLayers = 1;
+            img_hdr.mipmaps     = 1;
+            img_hdr.format      = _dstFormat;
+            img_hdr.viewType    = EImage_2D;
 
-            ImageAtlasPacker    atlas_packer;
-            atlas_packer.header.version     = ImagePacker::Version;
-            atlas_packer.header.dimension   = ushort3{uint3{ rect_packer.TargetSize(), 1 }};
-            atlas_packer.header.arrayLayers = 1;
-            atlas_packer.header.mipmaps     = 1;
-            atlas_packer.header.format      = _dstFormat;
-            atlas_packer.header.viewType    = EImage_2D;
-            atlas_packer.header.rowSize     = uint(dst_view.RowPitch());
-
+            ImageAtlasPacker    atlas_packer {img_hdr};
             atlas_packer.map.reserve( _map.size() );
             atlas_packer.rects.resize( _imageRegions.size() );
 
@@ -256,7 +253,7 @@ namespace AE::AssetPacker
                 Serializing::Serializer ser {stream};
                 CHECK_ERR( atlas_packer.Serialize( ser ));
             }
-            CHECK_ERR( atlas_packer.SaveImage( *stream, dst_view ));
+            CHECK_ERR( atlas_packer.SaveImage( *stream, dst_image ));
         }
 
         return true;

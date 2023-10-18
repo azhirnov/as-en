@@ -45,7 +45,7 @@ namespace AE::Base
     DbgInitMem
 =================================================
 */
-# ifdef AE_DEBUG
+#ifdef AE_DEBUG
     inline void  DbgInitMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
@@ -64,7 +64,7 @@ namespace AE::Base
     DbgFreeMem
 =================================================
 */
-# ifdef AE_DEBUG
+#ifdef AE_DEBUG
     inline void  DbgFreeMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );

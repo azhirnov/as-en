@@ -171,7 +171,7 @@ namespace AE::PipelineCompiler
     private:
         #ifdef AE_BUILD_PIPELINE_COMPILER
         bool  _ConvertAttachments (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
-        bool  _WalidateSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
+        bool  _ValidateSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
         #endif
     };
 

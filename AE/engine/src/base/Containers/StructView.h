@@ -18,7 +18,8 @@ namespace AE::Base
     {
     // types
     public:
-        using Self  = StructView< T >;
+        using Self      = StructView< T >;
+        using Value_t   = T;
 
         struct const_iterator
         {
@@ -36,6 +37,8 @@ namespace AE::Base
             ND_ T const&    operator * ()                           C_NE___ { return _ref[_index]; }
             ND_ bool        operator == (const const_iterator &rhs) C_NE___ { return &_ref == &rhs._ref and _index == rhs._index; }
             ND_ bool        operator != (const const_iterator &rhs) C_NE___ { return not (*this == rhs); }
+
+            ND_ usize       Index ()                                C_NE___ { return _index; }
         };
 
 
@@ -60,6 +63,7 @@ namespace AE::Base
                 return  (_ref._array  == rhs._ref._array)  & (_ref._count == rhs._ref._count) &
                         (_ref._stride == rhs._ref._stride) & (_index == rhs._index);
             }
+            ND_ usize       Index ()                                C_NE___ { return _index; }
         };
 
 
@@ -149,25 +153,26 @@ namespace AE::Base
 
     // methods
     public:
-        StructView ()                               __NE___
-        {}
+        StructView ()                                   __NE___ = default;
 
-        StructView (ArrayView<T> arr)               __NE___ :
-            _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<T> }
+        StructView (ArrayView<T> arr)                   __NE___ : _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<T> }
         {
             DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
         }
 
-        StructView (const Self &other)              __NE___ :
-            _array{other._array}, _count{other._count}, _stride{other._stride}
+        StructView (const Self &other)                  __NE___ : _array{other._array}, _count{other._count}, _stride{other._stride}
         {
             DEBUG_ONLY( if ( other._dbgView ) _dbgView = other._dbgView->Clone() );
         }
 
-        StructView (Self &&other)                   __NE___ :
-            _array{other._array}, _count{other._count}, _stride{other._stride}
+        StructView (Self &&other)                       __NE___ : _array{other._array}, _count{other._count}, _stride{other._stride}
         {
             DEBUG_ONLY( std::swap( _dbgView, other._dbgView ));
+        }
+
+        StructView (const T* ptr, usize count)          __NE___ : _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ SizeOf<T> }
+        {
+            DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
         }
 
         template <typename Class>
@@ -177,84 +182,40 @@ namespace AE::Base
             DEBUG_ONLY( _dbgView = _CreateView<Class, sizeof(Class)>( _array ));
         }
 
-        StructView (const T* ptr, usize count)      __NE___ :
-            _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ SizeOf<T> }
-        {
-            DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
-        }
-
         StructView (const void *ptr, usize count, Bytes stride) __NE___ :
             _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
         {}
 
-        ~StructView ()                              __NE___
-        {}
+            Self&  operator = (const Self &rhs)         __NE___;
+            Self&  operator = (Self && rhs)             __NE___;
 
 
-        Self&  operator = (const Self &rhs)         __NE___
-        {
-            _array  = rhs._array;
-            _count  = rhs._count;
-            _stride = rhs._stride;
-            DEBUG_ONLY( if ( rhs._dbgView ) _dbgView = rhs._dbgView->Clone() );
-            return *this;
-        }
+        ND_ usize           size ()                     C_NE___ { return _count; }
+        ND_ bool            empty ()                    C_NE___ { return _count == 0; }
+        ND_ T const &       operator [] (usize i)       C_NE___ { ASSERT( i < size() );  return *static_cast<T const *>( _array + (i * Stride()) ); }
 
-        Self&  operator = (Self && rhs)             __NE___
-        {
-            _array  = rhs._array;
-            _count  = rhs._count;
-            _stride = rhs._stride;
-            DEBUG_ONLY( std::swap( _dbgView, rhs._dbgView ));
-            return *this;
-        }
+        ND_ T const&        front ()                    C_NE___ { return operator[] (0); }
+        ND_ T const&        back ()                     C_NE___ { return operator[] (_count-1); }
 
+        ND_ const_iterator  begin ()                    CrNE___ { return const_iterator{ *this, 0 }; }
+        ND_ const_iterator  end ()                      CrNE___ { return const_iterator{ *this, size() }; }
 
-        ND_ usize           size ()                 C_NE___ { return _count; }
-        ND_ bool            empty ()                C_NE___ { return _count == 0; }
-        ND_ T const &       operator [] (usize i)   C_NE___ { ASSERT( i < size() );  return *static_cast<T const *>( _array + (i * Stride()) ); }
+        ND_ large_iterator  begin ()                    rvNE___ { return large_iterator{ *this, 0 }; }
+        ND_ large_iterator  end ()                      rvNE___ { return large_iterator{ *this, size() }; }
 
-        ND_ T const&        front ()                C_NE___ { return operator[] (0); }
-        ND_ T const&        back ()                 C_NE___ { return operator[] (_count-1); }
+        ND_ const_iterator  begin ()                    r_NE___ { return const_iterator{ *this, 0 }; }
+        ND_ const_iterator  end ()                      r_NE___ { return const_iterator{ *this, size() }; }
 
-        ND_ const_iterator  begin ()                CrNE___ { return const_iterator{ *this, 0 }; }
-        ND_ const_iterator  end ()                  CrNE___ { return const_iterator{ *this, size() }; }
+        ND_ Bytes           Stride ()                   C_NE___ { return Bytes{_stride}; }
+        ND_ Bytes           DataSize ()                 C_NE___ { return SizeOf<T> * size(); }
 
-        ND_ large_iterator  begin ()                rvNE___ { return large_iterator{ *this, 0 }; }
-        ND_ large_iterator  end ()                  rvNE___ { return large_iterator{ *this, size() }; }
+        ND_ bool  operator == (const Self &rhs)         C_NE___;
 
-        ND_ const_iterator  begin ()                r_NE___ { return const_iterator{ *this, 0 }; }
-        ND_ const_iterator  end ()                  r_NE___ { return const_iterator{ *this, size() }; }
+        ND_ Self  section (usize first, usize count)    C_NE___;
 
-        ND_ Bytes           Stride ()               C_NE___ { return Bytes{_stride}; }
-        ND_ Bytes           DataSize ()             C_NE___ { return SizeOf<T> * size(); }
+        ND_ usize  IndexOf (const const_iterator &it)   C_NE___;
 
-
-        ND_ bool  operator == (Self rhs)            C_NE___
-        {
-            if ( (_array == rhs._array) & (_count == rhs._count) & (_stride == rhs._stride) )
-                return true;
-
-            if ( size() != rhs.size() )
-                return false;
-
-            for (usize i = 0; i < size(); ++i)
-            {
-                if_unlikely( not ((*this)[i] == rhs[i]) )
-                    return false;
-            }
-            return true;
-        }
-
-
-        ND_ Self  section (usize first, usize count) C_NE___
-        {
-            return first < size() ?
-                    Self{ _array + (first * Stride()), Min(size() - first, count) } :
-                    Self{};
-        }
-
-        ND_ explicit operator Array<T> ()           C_NE___
+        ND_ explicit operator Array<T> ()               C_NE___
         {
             Array<T>    result;
             result.resize( size() );
@@ -268,19 +229,7 @@ namespace AE::Base
 
     private:
         template <typename Class, usize Stride>
-        ND_ static Unique<_IViewer>  _CreateView (const void *ptr)
-        {
-            STATIC_ASSERT( Stride >= sizeof(T) );
-            const usize padding = Stride - sizeof(T);
-
-            if constexpr( padding == 0 )
-                return MakeUnique< _ViewerImpl< Class >>( ptr );
-            else
-            if constexpr( IsAligned( padding, alignof(T) ))
-                return MakeUnique< _ViewerWithPadding< Class, padding >>( ptr );
-            else
-                return MakeUnique< _ViewerWithPaddingUnaligned< Class, padding >>( ptr );
-        }
+        ND_ static Unique<_IViewer>  _CreateView (const void *ptr);
     };
 
 
@@ -294,19 +243,13 @@ namespace AE::Base
     {
         STATIC_ASSERT( std::is_convertible_v< SrcType, DstType >);
 
-        ND_ DstType  operator () (SrcType src) C_NE___
-        {
-            return DstType{src};
-        }
+        ND_ DstType  operator () (SrcType src)          C_NE___ { return DstType{src}; }
     };
 
     template <typename SrcType, typename DstType>
     struct StructViewTransform_BitCastConverter
     {
-        ND_ DstType  operator () (const SrcType &src) C_NE___
-        {
-            return BitCast<DstType>( src );
-        }
+        ND_ DstType  operator () (const SrcType &src)   C_NE___ { return BitCast<DstType>( src ); }
     };
 
 
@@ -366,7 +309,7 @@ namespace AE::Base
 
     // methods
     public:
-        StructViewTransform ()                      __NE___ {}
+        StructViewTransform ()                      __NE___ = default;
         StructViewTransform (const Self &)          __NE___ = default;
         StructViewTransform (Self &&)               __NE___ = default;
 
@@ -397,10 +340,7 @@ namespace AE::Base
         ND_ Bytes           DstDataSize ()          C_NE___ { return SizeOf<DstType> * size(); }
 
 
-        ND_ Self  section (usize first, usize count) C_NE___
-        {
-            return Self{ _view.section( first, count )};
-        }
+        ND_ Self  section (usize first, usize count)C_NE___ { return Self{ _view.section( first, count )}; }
 
         ND_ explicit operator Array<DstType> ()     C_NE___
         {
@@ -413,6 +353,106 @@ namespace AE::Base
             return result;
         }
     };
+//-----------------------------------------------------------------------------
 
+
+
+/*
+=================================================
+    operator =
+=================================================
+*/
+    template <typename T>
+    StructView<T>&  StructView<T>::operator = (const StructView<T> &rhs) __NE___
+    {
+        _array  = rhs._array;
+        _count  = rhs._count;
+        _stride = rhs._stride;
+        DEBUG_ONLY( if ( rhs._dbgView ) _dbgView = rhs._dbgView->Clone() );
+        return *this;
+    }
+
+/*
+=================================================
+    operator =
+=================================================
+*/
+    template <typename T>
+    StructView<T>&  StructView<T>::operator = (StructView<T> && rhs) __NE___
+    {
+        _array  = rhs._array;
+        _count  = rhs._count;
+        _stride = rhs._stride;
+        DEBUG_ONLY( std::swap( _dbgView, rhs._dbgView ));
+        return *this;
+    }
+
+/*
+=================================================
+    operator ==
+=================================================
+*/
+    template <typename T>
+    bool  StructView<T>::operator == (const StructView<T> &rhs) C_NE___
+    {
+        if ( (_array == rhs._array) & (_count == rhs._count) & (_stride == rhs._stride) )
+            return true;
+
+        if ( size() != rhs.size() )
+            return false;
+
+        for (usize i = 0; i < size(); ++i)
+        {
+            if_unlikely( not ((*this)[i] == rhs[i]) )
+                return false;
+        }
+        return true;
+    }
+
+/*
+=================================================
+    section
+=================================================
+*/
+    template <typename T>
+    StructView<T>  StructView<T>::section (usize first, usize count) C_NE___
+    {
+        return first < size() ?
+                Self{ _array + (first * Stride()), Min(size() - first, count) } :
+                Self{};
+    }
+
+/*
+=================================================
+    _CreateView
+=================================================
+*/
+    template <typename T>
+    template <typename Class, usize Stride>
+    Unique<typename StructView<T>::_IViewer>  StructView<T>::_CreateView (const void *ptr)
+    {
+        STATIC_ASSERT( Stride >= sizeof(T) );
+        const usize padding = Stride - sizeof(T);
+
+        if constexpr( padding == 0 )
+            return MakeUnique< _ViewerImpl< Class >>( ptr );
+        else
+        if constexpr( IsMultipleOf( padding, alignof(T) ))
+            return MakeUnique< _ViewerWithPadding< Class, padding >>( ptr );
+        else
+            return MakeUnique< _ViewerWithPaddingUnaligned< Class, padding >>( ptr );
+    }
+
+/*
+=================================================
+    IndexOf
+=================================================
+*/
+    template <typename T>
+    usize  StructView<T>::IndexOf (const const_iterator &it) C_NE___
+    {
+        ASSERT( &it._ref == this );
+        return it._index;
+    }
 
 } // AE::Base

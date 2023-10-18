@@ -29,7 +29,7 @@ namespace {
     Process
 =================================================
 */
-    bool  AEStyleMSLPreprocessor::Process (EShader, const PathAndLine &fileLoc, usize headerLines, StringView inStr, OUT String &outStr)
+    bool  AEStyleMSLPreprocessor::Process (EShader, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr)
     {
         usize   hdr_size = 0;
         Parser::MoveToLine( inStr, INOUT hdr_size, headerLines );

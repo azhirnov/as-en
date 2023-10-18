@@ -6,7 +6,7 @@
 
 namespace AE::App
 {
-    static constexpr uint   InputActionsOpenVR_Name = uint("ia.OVR"_StringToID);
+    static constexpr uint   InputActionsOpenVR_Name = "ia.OVR"_Hash;
 
 
     //

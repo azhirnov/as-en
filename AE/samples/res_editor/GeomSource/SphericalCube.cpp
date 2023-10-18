@@ -52,19 +52,9 @@ namespace AE::ResEditor
     StateTransition
 =================================================
 */
-    void  SphericalCube::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
+    void  SphericalCube::StateTransition (IGSMaterials &, DirectCtx::Graphics &ctx) __Th___
     {
-        _resources.SetStates( ctx, EResourceState::FragmentShader );
-    }
-
-/*
-=================================================
-    StateTransition
-=================================================
-*/
-    void  SphericalCube::StateTransition (IGSMaterials &, RayTracingCtx_t &ctx) __NE___
-    {
-        _resources.SetStates( ctx, EResourceState::RayTracingShaders );
+        _resources.SetStates( ctx, EResourceState::AllGraphicsShaders );
     }
 
 /*
@@ -72,7 +62,7 @@ namespace AE::ResEditor
     Draw
 =================================================
 */
-    bool  SphericalCube::Draw (const DrawData &in) __NE___
+    bool  SphericalCube::Draw (const DrawData &in) __Th___
     {
         auto&           ctx     = in.ctx;
         auto&           mtr     = RefCast<Material>(in.mtr);
@@ -100,7 +90,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  SphericalCube::Update (const UpdateData &in) __NE___
+    bool  SphericalCube::Update (const UpdateData &in) __Th___
     {
         auto&   ctx = in.ctx;
         auto&   mtr = RefCast<Material>(in.mtr);

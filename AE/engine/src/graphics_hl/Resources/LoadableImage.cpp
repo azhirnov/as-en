@@ -47,57 +47,65 @@ namespace AE::Graphics
 
         CHECK_ERR( stream and stream->IsOpen() );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto    image       = MakeRC<LoadableImage>();
+        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
 
         ImagePacker unpacker;
         CHECK_ERR( unpacker.ReadHeader( *stream ));
 
-        ImageDesc   desc;
-        desc.SetDimension( uint3{unpacker.header.dimension} )
-            .SetArrayLayers( unpacker.header.arrayLayers )
-            .SetMaxMipmaps( unpacker.header.mipmaps )
-            .SetType( unpacker.header.viewType )
-            .SetFormat( unpacker.header.format )
-            .SetUsage( EImageUsage::Sampled | EImageUsage::Transfer );
+        image->_imageId = res_mngr.CreateImage( unpacker->ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
+        CHECK_ERR( image->_imageId );
 
-        switch ( unpacker.header.viewType ) {
-            case EImage::Cube :
-            case EImage::CubeArray :    desc.options |= EImageOpt::CubeCompatible;  break;
-        }
+        CHECK_ERR( _Load( *stream, image->_imageId, unpacker.operator->(), ctx ));
 
-        auto img_id = res_mngr.CreateImage( desc, Default, alloc );
-        CHECK_ERR( img_id );
+        image->_viewType = unpacker->viewType;
+        return image;
+    }
+
+/*
+=================================================
+    Loader::_Load
+=================================================
+*/
+    bool  LoadableImage::Loader::_Load (RStream &stream, ImageID imageId, const void* hdr, ITransferContext &ctx) __NE___
+    {
+        ImagePacker     unpacker    {*Cast<ImagePacker::Header>(hdr)};
+        const Bytes     base_off    = stream.Position();
+
+        RC<SharedMem>   tmp         = SharedMem::Create( AE::GetDefaultAllocator(), unpacker.MaxSliceSize() );
+        CHECK_ERR( tmp );
 
         // copy to staging buffer
+        ctx.ImageBarrier( imageId, EResourceState::Unknown, EResourceState::CopyDst );
+        ctx.CommitBarriers();
+
+        UploadImageDesc upload;
+        upload.heapType = EStagingHeapType::Dynamic;
+
+        for (uint mip = 0, mip_cnt = unpacker->mipmaps; mip < mip_cnt; ++mip)
         {
-            ctx.ImageBarrier( img_id, EResourceState::Unknown, EResourceState::CopyDst );
-            ctx.CommitBarriers();
-
-            UploadImageDesc upload;
-            upload.heapType = EStagingHeapType::Dynamic;
-
-            for (uint mip = 0, mip_cnt = unpacker.header.mipmaps; mip < mip_cnt; ++mip)
+            for (uint layer = 0, layer_cnt = unpacker->arrayLayers; layer < layer_cnt; ++layer)
             {
-                for (uint layer = 0, layer_cnt = unpacker.header.arrayLayers; layer < layer_cnt; ++layer)
-                {
-                    ImagePacker::ImageData  img_data;
-                    CHECK_ERR( unpacker.ReadImage( *stream, INOUT img_data ));
+                upload.arrayLayer   = ImageLayer{layer};
+                upload.mipLevel     = MipmapLevel{mip};
 
-                    upload.arrayLayer   = ImageLayer{layer};
-                    upload.mipLevel     = MipmapLevel{mip};
+                Bytes   off, size;
+                unpacker.GetOffset( upload.arrayLayer, upload.mipLevel,
+                                    OUT upload.imageSize, OUT off, OUT size, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
 
-                    ImageMemView    dst_mem;
-                    ctx.UploadImage( img_id, upload, OUT dst_mem );
+                CHECK_ERR( stream.Position() == off + base_off );
+                CHECK_ERR( size <= tmp->Size() );
+                CHECK_ERR( stream.Read( OUT tmp->Data(), size ));
 
-                    CHECK_ERR( dst_mem.Copy( img_data.memView ));
-                }
+                ImageMemView    dst_mem;
+                ctx.UploadImage( imageId, upload, OUT dst_mem );
+
+                ImageMemView    src_mem { tmp->Data(), size, uint3{}, upload.imageSize, upload.dataRowPitch,
+                                          upload.dataSlicePitch, unpacker->format, EImageAspect::Color };
+                CHECK_ERR( dst_mem.CopyFrom( src_mem ));
             }
         }
-
-        auto    image = MakeRC<LoadableImage>();
-        image->_imageId     = RVRef(img_id);
-        image->_viewType    = unpacker.header.viewType;
-        return image;
+        return true;
     }
 
 

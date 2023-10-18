@@ -3,7 +3,6 @@
 #include "ScriptObjects/RayTracingShaderBinding.h"
 #include "ScriptObjects/Common.inl.h"
 
-AE_DECL_SCRIPT_OBJ( AE::PipelineCompiler::MissIndex,        "MissIndex"     );
 AE_DECL_SCRIPT_OBJ( AE::PipelineCompiler::InstanceIndex,    "InstanceIndex" );
 AE_DECL_SCRIPT_OBJ( AE::PipelineCompiler::RayIndex,         "RayIndex"      );
 AE_DECL_SCRIPT_OBJ( AE::PipelineCompiler::CallableIndex,    "CallableIndex" );
@@ -15,10 +14,6 @@ namespace
 {
     static RayTracingShaderBinding*  RayTracingShaderBinding_Ctor (const RayTracingPipelineSpecPtr &ptr, const String &name) {
         return RayTracingShaderBindingPtr{ new RayTracingShaderBinding{ ptr, name }}.Detach();
-    }
-
-    static void  MissIndex_Ctor (OUT void* mem, uint value) {
-        PlacementNew<MissIndex>( OUT mem, value );
     }
 
     static void  InstanceIndex_Ctor (OUT void* mem, uint value) {
@@ -69,10 +64,6 @@ namespace
     void  RayTracingShaderBinding::Bind (const ScriptEnginePtr &se) __Th___
     {
         {
-            ClassBinder<MissIndex>  binder{ se };
-            binder.CreateClassValue();
-            binder.AddConstructor( &MissIndex_Ctor, {} );
-        }{
             ClassBinder<InstanceIndex>  binder{ se };
             binder.CreateClassValue();
             binder.AddConstructor( &InstanceIndex_Ctor, {} );
@@ -96,17 +87,17 @@ namespace
                             "It will be used to calculate offsets in table:\n"
                             "\t'hitShaders [InstanceCount] [RayTypeCount]'"
                             "Where 'ray type' is primary, shadow, reflection and other. All types are user-defined." );
-            binder.AddMethod( &RayTracingShaderBinding::HitGroupStride, "HitGroupStride",   {"stride"} );
+            binder.AddMethod( &RayTracingShaderBinding::MaxRayTypes,    "MaxRayTypes",      {"count"} );
 
             binder.Comment( "Bind shader group from ray tracing pipeline as a ray generation shader." );
             binder.AddMethod( &RayTracingShaderBinding::BindRayGen,     "BindRayGen",       {"groupName"} );
 
             binder.Comment( "Bind shader group from ray tracing pipeline as a miss shader.\n"
-                            "'missIndex' should be < HitGroupStride." );
+                            "'missIndex' should be < MaxRayTypes." );
             binder.AddMethod( &RayTracingShaderBinding::BindMiss,       "BindMiss",         {"groupName", "missIndex"} );
 
             binder.Comment( "Bind shader group from ray tracing pipeline as a hit group.\n"
-                            "'rayIndex' must be < HitGroupStride." );
+                            "'rayIndex' must be < MaxRayTypes." );
             binder.AddMethod( &RayTracingShaderBinding::BindHitGroup,   "BindHitGroup",     {"groupName", "instanceIndex", "rayIndex"} );
 
             binder.Comment( "Bind shader group from ray tracing pipeline as callable shader." );
@@ -135,7 +126,7 @@ namespace
         SerializableRTShaderBindingTable    desc;
 
         desc.pplnName       = PipelineName::Optimized_t{ _spec->Name() };
-        desc.hitGroupStride = _hitGroupStride;
+        desc.numRayTypes    = _maxRayTypes;
 
         // ray gen
         {
@@ -145,6 +136,9 @@ namespace
         // miss shader
         if ( not _missShaders.empty() )
         {
+            CHECK( _missShaders.size() <= _maxRayTypes );
+            _missShaders.resize( _maxRayTypes, Default );
+
             auto*   ptr = storage.allocator.Allocate<BindingInfo>( _missShaders.size() );
             CHECK_ERR( ptr != null );
             desc.miss = BindingTable_t{ ptr, _missShaders.size() };
@@ -157,20 +151,14 @@ namespace
         // hit group
         if ( not _hitGroups.empty() )
         {
-            usize   max_size = _hitGroupStride;
-
             for (auto& arr : _hitGroups) {
-                max_size = Max( max_size, arr.size() );
-            }
-            CHECK_ERR( max_size == _hitGroupStride );
-
-            for (auto& arr : _hitGroups) {
-                arr.resize( _hitGroupStride, Default );
+                CHECK( arr.size() <= _maxRayTypes );
+                arr.resize( _maxRayTypes, Default );
             }
 
-            auto*   ptr = storage.allocator.Allocate<BindingInfo>( _hitGroups.size() * _hitGroupStride );
+            auto*   ptr = storage.allocator.Allocate<BindingInfo>( _hitGroups.size() * _maxRayTypes );
             CHECK_ERR( ptr != null );
-            desc.hit = BindingTable_t{ ptr, _hitGroups.size() * _hitGroupStride };
+            desc.hit = BindingTable_t{ ptr, _hitGroups.size() * _maxRayTypes };
 
             usize   k = 0;
             for (usize i = 0; i < _hitGroups.size(); ++i)
@@ -195,8 +183,6 @@ namespace
             }
         }
 
-        //Print();
-
         _uid    = storage.pplnStorage->AddSBT( RVRef(desc) );
         _spec   = Default;
 
@@ -211,7 +197,8 @@ namespace
     void  RayTracingShaderBinding::Print () C_Th___
     {
         String  str;
-        str << "RayGen: " << _spec->GetBase()->GetRayGenShaderName( uint(_rayGen) ) << "\n\n";
+        str << "MaxRayTypes: " << ToString(_maxRayTypes) << "\n";
+        str << "RayGen:      " << _spec->GetBase()->GetRayGenShaderName( uint(_rayGen) ) << "\n\n";
 
         if ( not _missShaders.empty() )
         {
@@ -227,8 +214,7 @@ namespace
 
         if ( not _hitGroups.empty() )
         {
-            str << "HitGroupStride: " << ToString(_hitGroupStride) << "\n"
-                << "HitGroups [ray][instance]:\n";
+            str << "HitGroups [ray][instance]:\n";
 
             for (usize i = 0; i < _hitGroups.size(); ++i)
             {
@@ -259,14 +245,14 @@ namespace
 
 /*
 =================================================
-    HitGroupStride
+    MaxRayTypes
 =================================================
 */
-    void  RayTracingShaderBinding::HitGroupStride (uint value) __Th___
+    void  RayTracingShaderBinding::MaxRayTypes (uint value) __Th___
     {
         CHECK_THROW_MSG( value > 0 );
 
-        _hitGroupStride = value;
+        _maxRayTypes = value;
     }
 
 /*
@@ -288,11 +274,12 @@ namespace
     BindMiss
 =================================================
 */
-    void  RayTracingShaderBinding::BindMiss (const String &groupName, const MissIndex &missIndex) __Th___
+    void  RayTracingShaderBinding::BindMiss (const String &groupName, const RayIndex &missIndex) __Th___
     {
         const uint  idx = _spec->GetBase()->GetMissShader( groupName );
         CHECK_THROW_MSG( idx != UMax,
             "MissShader '"s << groupName << "' is not exists in '" << _spec->GetBase()->GetName() << "'" );
+        CHECK_THROW_MSG( missIndex.value < _maxRayTypes );
 
         _missShaders.resize( Max( _missShaders.size(), missIndex.value+1 ), Default );
 
@@ -309,8 +296,7 @@ namespace
         const uint  idx = _spec->GetBase()->GetHitGroup( groupName );
         CHECK_THROW_MSG( idx != UMax,
             "HitGroup '"s << groupName << "' is not exists in '" << _spec->GetBase()->GetName() << "'" );
-
-        CHECK_THROW_MSG( rayIdx.value < _hitGroupStride );
+        CHECK_THROW_MSG( rayIdx.value < _maxRayTypes );
 
         _hitGroups.resize( Max( _hitGroups.size(), instanceIndex.value+1 ), Default );
         auto&   groups = _hitGroups[ instanceIndex.value ];

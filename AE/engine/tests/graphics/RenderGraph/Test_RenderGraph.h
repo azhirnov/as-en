@@ -96,6 +96,7 @@ private:
 private:
     bool  Test_Image ();
     bool  Test_Buffer ();
+    bool  Test_Allocator ();
     bool  Test_FeatureSets ();
     bool  Test_FrameCounter ();
     bool  Test_ImageFormat ();

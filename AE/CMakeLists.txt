@@ -3,7 +3,7 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "AE"
-         VERSION 23.9.187   # year, month, version
+         VERSION 23.10.199   # year, month, version
          LANGUAGES C CXX )
 if (APPLE)
     enable_language(OBJC)

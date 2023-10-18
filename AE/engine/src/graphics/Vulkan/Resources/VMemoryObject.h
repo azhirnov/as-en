@@ -17,11 +17,11 @@ namespace AE::Graphics
     {
     // variables
     private:
-        GfxMemAllocatorPtr          _memAllocator;
-        IGfxMemAllocator::Storage_t _storage;
+        GfxMemAllocatorPtr              _memAllocator;
+        IGfxMemAllocator::Storage_t     _storage;
 
-        DEBUG_ONLY( DebugName_t     _debugName; )
-        DRC_ONLY(   RWDataRaceCheck _drCheck;   )
+        DEBUG_ONLY( DebugName_t         _debugName; )
+        DRC_ONLY(   RWDataRaceCheck     _drCheck;   )
 
 
     // methods

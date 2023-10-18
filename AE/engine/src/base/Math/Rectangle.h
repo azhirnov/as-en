@@ -419,14 +419,44 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        bool4   res;
-        res[0] = Math::Equals( lhs.left,   rhs.left,   err );
-        res[1] = Math::Equals( lhs.top,    rhs.top,    err );
-        res[2] = Math::Equals( lhs.right,  rhs.right,  err );
-        res[3] = Math::Equals( lhs.bottom, rhs.bottom, err );
-        return res;
+        return bool4{ Math::Equals( lhs.left,   rhs.left,   err ),
+                      Math::Equals( lhs.top,    rhs.top,    err ),
+                      Math::Equals( lhs.right,  rhs.right,  err ),
+                      Math::Equals( lhs.bottom, rhs.bottom, err )};
+    }
+
+    template <typename T>
+    ND_ bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const Percent err) __NE___
+    {
+        return bool4{ Math::Equals( lhs.left,   rhs.left,   err ),
+                      Math::Equals( lhs.top,    rhs.top,    err ),
+                      Math::Equals( lhs.right,  rhs.right,  err ),
+                      Math::Equals( lhs.bottom, rhs.bottom, err )};
+    }
+
+/*
+=================================================
+    BitEqual
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        return bool4{ Math::BitEqual( lhs.left,   rhs.left,   bitCount ),
+                      Math::BitEqual( lhs.top,    rhs.top,    bitCount ),
+                      Math::BitEqual( lhs.right,  rhs.right,  bitCount ),
+                      Math::BitEqual( lhs.bottom, rhs.bottom, bitCount )};
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
+    {
+        return bool4{ Math::BitEqual( lhs.left,   rhs.left   ),
+                      Math::BitEqual( lhs.top,    rhs.top    ),
+                      Math::BitEqual( lhs.right,  rhs.right  ),
+                      Math::BitEqual( lhs.bottom, rhs.bottom )};
     }
 
 

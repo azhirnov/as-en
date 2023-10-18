@@ -16,6 +16,13 @@
 #include "graphics/Public/Common.h"
 #include "graphics/Vulkan/VulkanCheckError.h"
 
+#if not defined(AE_PLATFORM_ANDROID) or not defined(AE_DEBUG)
+    // a lot of bugs on Android devices
+#   define ENABLE_DEBUG_CLEAR   0
+#else
+#   define ENABLE_DEBUG_CLEAR   1
+#endif
+
 namespace AE::Graphics
 {
 namespace
@@ -208,8 +215,7 @@ namespace
             if ( vk_ver >= Version2{1,3} )
                 exist_ext |= Extension::Synchronization2;
 
-            // a lot of bugs in Android devices
-          #if defined(AE_PLATFORM_ANDROID) or not defined(AE_DEBUG)
+          #if not ENABLE_DEBUG_CLEAR
             exist_ext |= Extension::DebugClear;     // disable
           #endif
 
@@ -249,10 +255,9 @@ namespace
 
         if ( result == VK_SUCCESS and enabled_ext != Default )
         {
-            for (; enabled_ext != Default;)
+            for (auto ext_bit : BitfieldIterate( enabled_ext ))
             {
-                Extension   ext_bit = ExtractBit( enabled_ext );
-                const uint  idx     = (*pPropertyCount)++;
+                const uint  idx = (*pPropertyCount)++;
 
                 BEGIN_ENUM_CHECKS();
                 switch ( ext_bit )

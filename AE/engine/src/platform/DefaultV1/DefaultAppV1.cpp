@@ -90,7 +90,19 @@ namespace AE::AppV1
                 profiler->EndNonTaskWork( this, "NativeApp" );
         })
 
-        _impl->WaitFrame( _allowProcessInMain );
+
+        Ptr<IWindow>    active_wnd;
+        Ptr<IVRDevice>  active_vr;
+
+        for (auto& wnd : _windows) {
+            if ( wnd->GetState() == IWindow::EState::Focused )
+                active_wnd = wnd.get();
+        }
+
+        if ( _vrDevice and _vrDevice->GetState() == IWindow::EState::Focused )
+            active_vr = _vrDevice.get();
+
+        _impl->WaitFrame( _allowProcessInMain, active_wnd, active_vr );
     }
 
 /*
@@ -116,6 +128,7 @@ namespace AE::AppV1
                 profiler->BeginNonTaskWork( this, "NativeApp" );
         })
 
+        // terminate application if main window has been closed
         if_unlikely( _windows.empty() or _windows[0]->GetState() == IWindow::EState::Destroyed )
         {
             if ( _vrDevice )
@@ -208,7 +221,7 @@ namespace AE::AppV1
     {
         if ( _impl )
         {
-            _impl->WaitFrame( _allowProcessInMain );
+            _impl->WaitFrame( _allowProcessInMain, null, null );
             _impl = null;
         }
         _windows.clear();
@@ -405,11 +418,11 @@ namespace AE::AppV1
     void  DefaultIWndListener::OnSurfaceCreated (IWindow &wnd) __NE___
     {
         // create render surface
-        CHECK_FATAL( wnd.CreateRenderSurface( _app.Config().graphics.swapchain ));
+        CHECK_FATAL( wnd.CreateRenderSurface( _app.GetConfig().graphics.swapchain ));
 
         _impl->StartRendering( &wnd.InputActions(), &wnd.GetSurface(), EState::InForeground );
 
-        CHECK_FATAL( _impl->OnSurfaceCreated( wnd.GetSurface() ));
+        CHECK_FATAL( _impl->OnSurfaceCreated( wnd ));
     }
 
 /*
