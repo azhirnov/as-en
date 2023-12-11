@@ -68,7 +68,7 @@ namespace AE::Video
 */
     ND_ inline EVideoFormat  EnumCast (AVPixelFormat fmt)
     {
-        STATIC_ASSERT( uint(EVideoFormat::_Count) == 8 );
+        StaticAssert( uint(EVideoFormat::_Count) == 8 );
         switch ( fmt )
         {
             case AV_PIX_FMT_YUV420P :           return EVideoFormat::YUV420P;
@@ -118,7 +118,7 @@ namespace AE::Video
 */
     ND_ inline int  EnumCast (EFilter value)
     {
-        STATIC_ASSERT( uint(EFilter::_Count) == 3 );
+        StaticAssert( uint(EFilter::_Count) == 3 );
         switch ( value )
         {
             case EFilter::Fast :        return SWS_FAST_BILINEAR;
@@ -137,7 +137,7 @@ namespace AE::Video
 */
     ND_ inline EMediaType  EnumCast (AVMediaType value)
     {
-        STATIC_ASSERT( uint(EMediaType::_Count) == 2 );
+        StaticAssert( uint(EMediaType::_Count) == 2 );
         switch ( value )
         {
             case AVMEDIA_TYPE_VIDEO :   return EMediaType::Video;
@@ -153,7 +153,7 @@ namespace AE::Video
 */
     ND_ inline EVideoCodec  EnumCast (AVCodecID value)
     {
-        STATIC_ASSERT( uint(EVideoCodec::_Count) == 8 );
+        StaticAssert( uint(EVideoCodec::_Count) == 8 );
         switch ( value )
         {
             case AV_CODEC_ID_GIF :      return EVideoCodec::GIF;

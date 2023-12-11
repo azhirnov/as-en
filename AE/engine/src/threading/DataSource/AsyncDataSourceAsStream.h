@@ -14,13 +14,13 @@ namespace AE::Threading
     {
     // variables
     private:
-        BytesAtomic< Bytes >    _pos;
+        AtomicByte< Bytes >     _pos;
         RC<AsyncRDataSource>    _ds;
 
 
     // methods
     public:
-        AsyncRDataSourceAsStream (RC<AsyncRDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } { ASSERT(_ds); }
+        AsyncRDataSourceAsStream (RC<AsyncRDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{offset}, _ds{RVRef(ds)} { ASSERT(_ds); }
 
         bool            IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
 
@@ -41,13 +41,13 @@ namespace AE::Threading
     {
     // variables
     private:
-        BytesAtomic< Bytes >    _pos;
+        AtomicByte< Bytes >     _pos;
         RC<AsyncWDataSource>    _ds;
 
 
     // methods
     public:
-        AsyncWDataSourceAsStream (RC<AsyncWDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{ offset }, _ds{ RVRef(ds) } { ASSERT(_ds); }
+        AsyncWDataSourceAsStream (RC<AsyncWDataSource> ds, Bytes offset = 0_b)      __NE___ : _pos{offset}, _ds{RVRef(ds)} { ASSERT(_ds); }
 
         bool            IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
 

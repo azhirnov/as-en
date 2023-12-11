@@ -6,6 +6,32 @@
 
 namespace AE::ResEditor
 {
+namespace
+{
+    template <typename B>
+    struct CopyConstant
+    {
+        B&      _dst;
+        RC<>    _rc;
+
+        CopyConstant (B& dst, RC<> rc) : _dst{dst}, _rc{RVRef(rc)}
+        {}
+
+        template <typename T, usize I>
+        void  operator () () __NE___
+        {
+            if ( auto* dyn_val = DynCast<T>( _rc.get() ))
+            {
+                auto    val = dyn_val->Get();
+                std::memcpy( OUT &_dst, &val, sizeof(val) );
+            }
+        }
+    };
+
+} // namespace
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -56,9 +82,9 @@ namespace AE::ResEditor
             auto    sliders = p_sliders->ReadNoLock();
             SHAREDLOCK( sliders );
 
-            STATIC_ASSERT( sizeof(dstFloats)    == sizeof(sliders->floatSliders) );
-            STATIC_ASSERT( sizeof(dstInts)      == sizeof(sliders->intSliders) );
-            STATIC_ASSERT( sizeof(dstColors)    == sizeof(sliders->colors) );
+            StaticAssert( sizeof(dstFloats) == sizeof(sliders->floatSliders) );
+            StaticAssert( sizeof(dstInts)       == sizeof(sliders->intSliders) );
+            StaticAssert( sizeof(dstColors) == sizeof(sliders->colors) );
 
             std::memcpy( OUT dstFloats.data(),  sliders->floatSliders.data(),   sizeof(dstFloats) );
             std::memcpy( OUT dstInts.data(),    sliders->intSliders.data(),     sizeof(dstInts) );
@@ -75,14 +101,18 @@ namespace AE::ResEditor
                                  OUT StaticArray<float4, 4> &dstFloats,
                                  OUT StaticArray<int4, 4>   &dstInts) const
     {
-        STATIC_ASSERT( sizeof(dstFloats)    == sizeof(float4) * Constants::MaxCount );
-        STATIC_ASSERT( sizeof(dstInts)      == sizeof(int4) * Constants::MaxCount );
+        StaticAssert( sizeof(dstFloats) == sizeof(float4) * Constants::MaxCount );
+        StaticAssert( sizeof(dstInts)       == sizeof(int4) * Constants::MaxCount );
 
-        for (usize i = 0; i < c.f.size(); ++i) {
-            dstFloats[i] = (c.f[i] ? c.f[i]->Get() : float4{});
+        for (usize i = 0; i < c.f.size(); ++i)
+        {
+            if ( c.f[i] )
+                DynamicFloatTypes_t::Visit( CopyConstant{ OUT dstFloats[i], c.f[i] });
         }
-        for (usize i = 0; i < c.i.size(); ++i) {
-            dstInts[i] = (c.i[i] ? c.i[i]->Get() : int4{});
+        for (usize i = 0; i < c.i.size(); ++i)
+        {
+            if ( c.i[i] )
+                DynamicIntTypes_t::Visit( CopyConstant{ OUT dstInts[i], c.i[i] });
         }
     }
 

@@ -27,6 +27,9 @@ using EStatus = AE::Threading::IAsyncTask::EStatus;
 
 using ImageComparator = GraphicsTest::ImageComparator;
 
+static constexpr seconds    c_MaxTimeout    {100};
+static const EThreadArray   c_ThreadArr     {EThread::PerFrame, EThread::Renderer};
+
 
 class RGTest
 {
@@ -34,6 +37,7 @@ class RGTest
 protected:
     using TestFunc_t    = bool (RGTest::*) ();
     using TestQueue_t   = Deque< TestFunc_t >;
+    using FStorage_t    = RC<AE::VFS::IVirtualFileStorage>;
 
     static constexpr bool   UpdateAllReferenceDumps = true;
 
@@ -41,6 +45,7 @@ protected:
 // variables
 protected:
     RenderTechPipelinesPtr      _pipelines;
+    RenderTechPipelinesPtr      _dbgPipelines;
     RenderTechPipelinesPtr      _acPipelines;       // async compute
     RenderTechPipelinesPtr      _msPipelines;       // mesh shader
     RenderTechPipelinesPtr      _rtPipelines;       // ray tracing
@@ -51,20 +56,24 @@ protected:
     uint                        _testsPassed        = 0;
     uint                        _testsFailed        = 0;
 
-    Path                        _refDumpPath;
+    FStorage_t                  _refImageStorage;
+    Path                        _refImagePath;
 
   #if defined(AE_ENABLE_VULKAN)
-    VDeviceInitializer          _vulkan;
+    FStorage_t                  _refDumpStorage;
+    Path                        _refDumpPath;
+    VDeviceInitializer          _device;
     VSwapchainInitializer       _swapchain;
     VulkanSyncLog               _syncLog;
 
   #elif defined(AE_ENABLE_METAL)
-    MDeviceInitializer          _metal;
+    MDeviceInitializer          _device;
     MSwapchainInitializer       _swapchain;
 
   #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-    RDeviceInitializer          _remote;
+    RDeviceInitializer          _device;
     RSwapchainInitializer       _swapchain;
+    const ushort                _serverPort     = 3000;
 
   #else
   # error not implemented
@@ -78,7 +87,7 @@ public:
 
     bool  Run (AE::App::IApplication &app, AE::App::IWindow &wnd);
 
-    static bool  SaveImage (StringView name, const ImageMemView &view);
+    bool  SaveImage (StringView name, const ImageMemView &view) const;
 
 private:
     ND_ Unique<ImageComparator>  _LoadReference (StringView filename) const;
@@ -89,7 +98,7 @@ private:
     ND_ bool  _RunTests ();
         void  _Destroy ();
 
-    ND_ bool  _CompilePipelines ();
+    ND_ bool  _CompilePipelines (AE::App::IApplication &app);
 
     ND_ static GraphicsCreateInfo  _GetGraphicsCreateInfo ();
 

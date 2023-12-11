@@ -24,6 +24,8 @@ namespace AE::ResEditor
         _outDynSize{ RVRef(outDynSize) },
         _dbgName{ dbgName }
     {
+        _states.store( States{} );
+
         _decoder = Video::VideoFactory::CreateFFmpegDecoder();
         CHECK_THROW( _decoder );
 
@@ -33,6 +35,7 @@ namespace AE::ResEditor
         Video::IVideoDecoder::Config    in_cfg;
         in_cfg.dstFormat    = inDesc.format;
         in_cfg.filter       = Video::EFilter::Bilinear;
+        in_cfg.threadCount  = 4;
 
         CHECK_THROW( _decoder->Begin( in_cfg, rstream ));
 
@@ -42,16 +45,16 @@ namespace AE::ResEditor
         CHECK_THROW( vstream != null );
 
         ImageDesc   desc    = inDesc;
-        desc.dimension  = uint3{ vstream->size, 1u };
-        _dimension      = vstream->size;
+        desc.dimension  = uint3{ vstream->dimension, 1u };
+        _dimension      = vstream->dimension;
 
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto&   rstate      = RenderGraph().GetStateTracker();
 
         CHECK_THROW_MSG( res_mngr.IsSupported( desc ),
             "VideoImage '"s << _dbgName << "' description is not supported by GPU device" );
 
-        for (uint i = 0; i < _MaxImages; ++i)
+        for (usize i = 0; i < _ids.size(); ++i)
         {
             _ids[i] = res_mngr.CreateImage( desc, _dbgName + ToString(i), _GfxAllocator() );
             CHECK_THROW( _ids[i] );
@@ -60,14 +63,24 @@ namespace AE::ResEditor
             CHECK_THROW( _views[i] );
 
             rstate.AddResource( _ids[i].Get(),
-                                EResourceState::Invalidate,                                 // current is not used
+                                EResourceState::Invalidate,                                 // current state is not used
                                 EResourceState::ShaderSample | EResourceState::AllShaders,  // default
                                 EQueueType::Graphics );
         }
+
+        auto&   fmt_info = EPixelFormat_GetInfo( desc.format );
+        _allocator.SetBlockSize( ImageUtils::ImageSize( desc.dimension, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
+
+        for (usize i = 0; i < _imageMemView.size(); ++i) {
+            CHECK_THROW( Video::IVideoDecoder::AllocMemView( config, OUT _imageMemView[i], _allocator ));
+        }
+
         _uploadStatus.store( EUploadStatus::InProgress );
 
         _DtTrQueue().EnqueueImageTransition( _ids[0] );
         _DtTrQueue().EnqueueForUpload( GetRC() );
+
+        _lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{}, "Video decoding" );
     }
 
 /*
@@ -77,9 +90,6 @@ namespace AE::ResEditor
 */
     VideoImage::~VideoImage ()
     {
-        if ( _decoder )
-            CHECK( _decoder->End() );
-
         auto&   rstate = RenderGraph().GetStateTracker();
         rstate.ReleaseResourceArray( _ids );
         rstate.ReleaseResourceArray( _views );
@@ -92,49 +102,192 @@ namespace AE::ResEditor
 */
     IResource::EUploadStatus  VideoImage::Upload (TransferCtx_t &ctx) __Th___
     {
-        using FrameInfo = Video::IVideoDecoder::FrameInfo;
-
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
 
-        ImageMemView    src_mem;
-        FrameInfo       info;
-        const uint      idx     = (_imageIdx.load()+1) % _MaxImages;
+        // invalidate cache to load '_frameTimes'
+        States  states = _states.load( EMemoryOrder::Acquire );
+        _Validate( states );
+
+        if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
+            _lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{_lastDecoding}, "Video decoding" );
+
+
+        // variants:
+        //  - decoding in progress  -> skip
+        //  - frame ready           -> begin uploading
+        //  - uploading in progress -> continue uploading
+        const uint  mem_idx = states.pos;
+
+        if ( not HasBit( states.decodedBits, mem_idx ))
+            return _uploadStatus.load();  // decoding in progress
+
+        const auto  cur_time = Second_t{_curTime.Add( GraphicsScheduler().GetFrameTimeDelta().count() )};
+
+        if ( cur_time < _frameTimes[mem_idx] )
+            return _uploadStatus.load();  // skip
+
+        const uint  idx = (_imageIdx.load()+1) % _ids.size();
 
         // init image stream
+        if ( not _stream.IsInitialized() )
         {
             UploadImageDesc     upload;
             upload.imageSize    = uint3{ _dimension, 1u };
             upload.heapType     = EStagingHeapType::Dynamic;
             upload.aspectMask   = EImageAspect::Color;
             _stream             = ImageStream{ _ids[idx], upload };
-        }
 
-        // get video frame and upload it to GPU
-        if ( _decoder->GetFrame( OUT src_mem, OUT info ))
-        {
-            _frameTimes[ idx ] = info.timestamp;
-
-            ImageMemView    dst_mem;
             ctx.ResourceState( _ids[idx], EResourceState::Invalidate );
-            ctx.UploadImage( _stream, OUT dst_mem );
-
-            if ( not dst_mem.Empty() )
-            {
-                CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
-            }
-
-            CHECK( _stream.IsCompleted() );
-            _imageIdx.store( idx );
         }
-        else
+        ASSERT( _stream.ImageId() == _ids[idx] );
+
+
+        // upload
+        ImageMemView&   src_mem = _imageMemView[ mem_idx ];
+        ImageMemView    dst_mem;
+        ctx.UploadImage( _stream, OUT dst_mem );
+
+        if ( not dst_mem.Empty() )
         {
-            // restart
-            if ( not _decoder->SeekTo( 0 ))
-                _SetUploadStatus( EUploadStatus::Canceled );
+            CHECK( dst_mem.CopyFrom( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
+        }
+
+        if ( _stream.IsCompleted() )
+        {
+            _imageIdx.store( idx );
+            _stream = ImageStream{};
+
+            // update 'pos', 'decodedBits'
+            for (States exp = states;;)
+            {
+                states.pos          = mem_idx+1;
+                states.emptyBits    |= ToBit<uint>( mem_idx );
+                states.decodedBits  &= ~ToBit<uint>( mem_idx );
+
+                if_likely( _states.CAS( INOUT exp, states ))
+                    break;
+
+                states = exp;
+                ThreadUtils::Pause();
+            }
         }
 
         return _uploadStatus.load();
+    }
+
+/*
+=================================================
+    Cancel
+=================================================
+*/
+    void  VideoImage::Cancel () __NE___
+    {
+        IResource::Cancel();
+
+        Unused( Scheduler().Wait( {_lastDecoding}, seconds{1} ));
+        _lastDecoding = null;
+    }
+
+/*
+=================================================
+    _DecodeFrameTask
+=================================================
+*/
+    CoroTask  VideoImage::_DecodeFrameTask (RC<VideoImage> self) __NE___
+    {
+        for (uint i = 0; i < _MaxCpuImages/2; ++i)
+        {
+            if ( self->_uploadStatus.load() != EUploadStatus::InProgress )
+                break;
+
+            uint    cnt = self->_DecodeFrame();
+            if ( cnt == 0 )
+                break;
+        }
+        co_return;
+    }
+
+/*
+=================================================
+    _DecodeFrame
+=================================================
+*/
+    uint  VideoImage::_DecodeFrame () __NE___
+    {
+        using FrameInfo = Video::IVideoDecoder::FrameInfo;
+
+        // find empty image
+        States      states  = _states.load();
+        uint        idx     = states.pos;
+
+        _Validate( states );
+
+        if_unlikely( states.emptyBits == 0 )
+            return 0;
+
+        for (uint i = 0; i < _MaxCpuImages; ++i)
+        {
+            if ( HasBit( states.emptyBits, idx ))
+                break;
+
+            idx = (idx+1) % _MaxCpuImages;
+        }
+        ASSERT( not HasBit( states.decodedBits, idx ));
+
+        if_unlikely( not _decoder )
+            return 0;
+
+        uint    result = 0;
+
+        // get next video frame
+        if ( FrameInfo info;  _decoder->GetNextFrame( INOUT _imageMemView[idx], OUT info ))
+        {
+            _frameTimes[idx] = info.timestamp;
+
+            for (States exp = states;;)
+            {
+                states.emptyBits    &= ~ToBit<uint>( idx );
+                states.decodedBits  |= ToBit<uint>( idx );
+
+                // flush cache to make '_frameTimes[idx]' visible
+                if_likely( _states.CAS( INOUT exp, states, EMemoryOrder::Release, EMemoryOrder::Relaxed ))
+                    break;
+
+                states = exp;
+                ThreadUtils::Pause();
+            }
+
+            result = uint(BitCount( states.emptyBits ));
+        }
+        else
+        // restart
+        {
+            _frameTimes.fill( Second_t{0.0} );
+            _states.store( States{}, EMemoryOrder::Release );
+            _curTime.store( 0.0 );
+
+            if ( _decoder->SeekTo( 0 )) {
+                result = UMax;
+            }else{
+                _SetUploadStatus( EUploadStatus::Canceled );
+            }
+        }
+
+        return result;
+    }
+
+/*
+=================================================
+    _Validate
+=================================================
+*/
+    void  VideoImage::_Validate (const States s) __NE___
+    {
+        Unused( s );
+        ASSERT( not AnyBits( s.emptyBits, s.decodedBits ));
+        ASSERT( (s.emptyBits | s.decodedBits) == ToBitMask<uint>(_MaxCpuImages) );
+        ASSERT( s.decodedBits == 0 or HasBit( s.decodedBits, s.pos ));
     }
 
 

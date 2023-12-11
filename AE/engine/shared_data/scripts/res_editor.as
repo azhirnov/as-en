@@ -1,4 +1,4 @@
-//F2DCA70E
+//e9eee8b5
 #include <vector>
 #include <string>
 
@@ -20,163 +20,163 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EBlendOp;
-struct RGBA8u;
-struct ELogicOp;
-struct EMipmapFilter;
-struct OrbitalCamera;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct RGBA32u;
-struct UnifiedGeometry_DrawMeshTasks;
-struct RectF;
-struct SphericalCube;
-struct EShader;
-struct DynamicFloat;
-struct EShaderStages;
-struct RTInstanceMask;
-struct uint3;
-struct uint2;
-struct RectI;
-struct RectU;
-struct EColorSpace;
-struct uint4;
-struct FPSCamera;
-struct ECompareOp;
-struct DynamicDim;
-struct RayTracingPass;
-struct EResourceState;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct ComputePass;
-struct EVendorID;
-struct Postprocess;
-struct SceneRayTracingPass;
-struct EImageType;
-struct EAttachmentStoreOp;
-struct UnifiedGeometry;
-struct EBorderColor;
-struct UnifiedGeometry_DrawIndirectCount;
-struct EFeature;
-struct CallableIndex;
-struct Buffer;
-struct DepthStencil;
-struct TopDownCamera;
-struct ScaleBiasCamera;
-struct EReductionMode;
-struct BaseController;
-struct MipmapLevel;
-struct FlightCamera;
-struct ESurfaceFormat;
-struct float3x4;
-struct Model;
-struct float3x3;
-struct float3x2;
-struct float4x3;
-struct EPolygonMode;
-struct EAttachmentLoadOp;
-struct DynamicUInt;
-struct float4x2;
-struct float4x4;
-struct int2;
-struct int3;
-struct int4;
-struct ImageLayer;
-struct Scene;
-struct ushort2;
-struct sbyte2;
-struct ushort3;
-struct EPixelFormat;
-struct short4;
-struct UnifiedGeometry_DrawIndexed;
-struct short3;
-struct Random;
-struct short2;
-struct ushort4;
-struct sbyte3;
-struct sbyte4;
-struct ESamplerYcbcrModelConversion;
-struct ScriptFlags;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct Image;
-struct ESubgroupTypes;
-struct GeomSource;
-struct UnifiedGeometry_DrawIndirect;
-struct DynamicInt3;
-struct DynamicInt2;
-struct EIndex;
-struct DynamicInt4;
-struct RTShader;
-struct DynamicUInt2;
-struct DynamicUInt3;
-struct DynamicFloat4;
-struct EPostprocess;
-struct float4;
-struct DynamicFloat3;
-struct ImageLoadOpFlags;
-struct DynamicUInt4;
-struct RTGeometry;
-struct DynamicFloat2;
-struct float3;
-struct float2;
-struct EPipelineOpt;
-struct DynamicInt;
-struct InstanceIndex;
-struct ERenderLayer;
-struct RTInstanceTransform;
-struct EImageAspect;
-struct EShaderIO;
-struct EVertexInputRate;
-struct EDescSetUsage;
-struct float2x4;
-struct float2x2;
-struct float2x3;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct ESamplerChromaLocation;
-struct Random_Binomial3;
-struct Random_Binomial1;
-struct IPass;
-struct MultiSamples;
-struct Random_Binomial2;
-struct Random_Binomial4;
-struct EFilter;
-struct EPipelineDynamicState;
-struct EPrimitive;
-struct Random_Normal1;
-struct Random_Normal2;
-struct UnifiedGeometry_Draw;
-struct Random_Normal3;
-struct Random_Normal4;
-struct ubyte2;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct FPVCamera;
-struct ESubgroupOperation;
-struct VideoImage;
-struct RTInstanceCustomIndex;
-struct ubyte4;
-struct ESamplerUsage;
-struct ESamplerYcbcrRange;
-struct RTInstanceSBTOffset;
-struct EStencilOp;
-struct DbgViewFlags;
-struct ERTInstanceOpt;
-struct EBlendFactor;
+struct EAddressMode;
+struct Collection;
 struct RayIndex;
 struct RTScene;
 struct EPassFlags;
-struct Collection;
-struct EAddressMode;
-struct bool4;
-struct SceneGraphicsPass;
-struct EVertexType;
-struct RGBA32i;
-struct bool3;
-struct bool2;
-struct EImage;
-struct DynamicULong;
-struct HSVColor;
+struct EBlendFactor;
+struct ERTInstanceOpt;
+struct EStencilOp;
+struct EBlendOp;
+struct ECullMode;
 struct RGBA32f;
 struct EQueueMask;
-struct ECullMode;
+struct DbgViewFlags;
+struct HSVColor;
+struct ELogicOp;
+struct DynamicULong;
+struct EImage;
+struct bool2;
+struct bool3;
+struct RGBA32i;
+struct EVertexType;
+struct SceneGraphicsPass;
+struct bool4;
+struct VideoImage;
+struct ESubgroupOperation;
+struct ubyte3;
+struct EGraphicsDeviceID;
+struct FPVCamera;
+struct ubyte2;
+struct Random_Normal4;
+struct Random_Normal3;
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal2;
+struct EPrimitive;
+struct RTInstanceSBTOffset;
+struct ESamplerYcbcrRange;
+struct ubyte4;
+struct RTInstanceCustomIndex;
+struct ESamplerUsage;
+struct EDescSetUsage;
+struct EVertexInputRate;
+struct EShaderIO;
+struct EImageAspect;
+struct RTInstanceTransform;
+struct ERenderLayer;
+struct InstanceIndex;
+struct float2;
+struct EPipelineOpt;
+struct float3;
+struct EPipelineDynamicState;
+struct DynamicInt;
+struct EFilter;
+struct Random_Binomial4;
+struct Random_Binomial2;
+struct MultiSamples;
+struct IPass;
+struct Random_Binomial1;
+struct Random_Binomial3;
+struct ESamplerChromaLocation;
+struct float2x2;
+struct float2x3;
+struct float2x4;
+struct UnifiedGeometry_DrawIndexedIndirect;
+struct ESubgroupTypes;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct Image;
+struct ScriptFlags;
+struct ESamplerYcbcrModelConversion;
+struct sbyte4;
+struct sbyte3;
+struct short2;
+struct ushort4;
+struct short3;
+struct Random;
+struct DynamicFloat2;
+struct UnifiedGeometry_DrawIndexed;
+struct RTGeometry;
+struct DynamicUInt4;
+struct DynamicFloat3;
+struct float4;
+struct ImageLoadOpFlags;
+struct EPostprocess;
+struct DynamicFloat4;
+struct DynamicUInt3;
+struct RTShader;
+struct DynamicUInt2;
+struct EIndex;
+struct DynamicInt4;
+struct DynamicInt2;
+struct DynamicInt3;
+struct UnifiedGeometry_DrawIndirect;
+struct GeomSource;
+struct float4x2;
+struct float4x4;
+struct DynamicUInt;
+struct EAttachmentLoadOp;
+struct EPolygonMode;
+struct float4x3;
+struct float3x2;
+struct float3x3;
+struct Model;
+struct float3x4;
+struct short4;
+struct EPixelFormat;
+struct ushort3;
+struct sbyte2;
+struct ushort2;
+struct Scene;
+struct ImageLayer;
+struct int4;
+struct int3;
+struct int2;
+struct DepthStencil;
+struct ESurfaceFormat;
+struct MipmapLevel;
+struct FlightCamera;
+struct BaseController;
+struct EReductionMode;
+struct ScaleBiasCamera;
+struct TopDownCamera;
+struct EBorderColor;
+struct EAttachmentStoreOp;
+struct UnifiedGeometry;
+struct EImageType;
+struct SceneRayTracingPass;
+struct EVendorID;
+struct Postprocess;
+struct EResourceState;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct Buffer;
+struct CallableIndex;
+struct EFeature;
+struct UnifiedGeometry_DrawIndirectCount;
+struct RectF;
+struct SphericalCube;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct OrbitalCamera;
+struct EMipmapFilter;
+struct RGBA8u;
+struct DynamicDim;
+struct ECompareOp;
+struct FPSCamera;
+struct RayTracingPass;
+struct EColorSpace;
+struct uint4;
+struct RectU;
+struct RectI;
+struct uint3;
+struct uint2;
+struct EShaderStages;
+struct RTInstanceMask;
+struct EShader;
+struct DynamicFloat;
 
 struct EImageType
 {
@@ -2359,57 +2359,60 @@ struct EGraphicsDeviceID
     static constexpr uint32 Adreno_600_QC5 = 4;
     static constexpr uint32 Adreno_700_SC3 = 5;
     static constexpr uint32 Adreno_700_DC4_SC5 = 6;
-    static constexpr uint32 AMD_GCN1 = 7;
-    static constexpr uint32 AMD_GCN2 = 8;
-    static constexpr uint32 AMD_GCN3 = 9;
-    static constexpr uint32 AMD_GCN4 = 10;
-    static constexpr uint32 AMD_GCN5 = 11;
-    static constexpr uint32 AMD_GCN5_APU = 12;
-    static constexpr uint32 AMD_RDNA1 = 13;
-    static constexpr uint32 AMD_RDNA2 = 14;
-    static constexpr uint32 AMD_RDNA2_APU = 15;
-    static constexpr uint32 AMD_RDNA3 = 16;
-    static constexpr uint32 AMD_RDNA3_APU = 17;
-    static constexpr uint32 Apple_A8 = 18;
-    static constexpr uint32 Apple_A9_A10 = 19;
-    static constexpr uint32 Apple_A11 = 20;
-    static constexpr uint32 Apple_A12 = 21;
-    static constexpr uint32 Apple_A13 = 22;
-    static constexpr uint32 Apple_A14_M1 = 23;
-    static constexpr uint32 Apple_A15_M2 = 24;
-    static constexpr uint32 Apple_A16 = 25;
-    static constexpr uint32 Mali_Midgard_Gen2 = 26;
-    static constexpr uint32 Mali_Midgard_Gen3 = 27;
-    static constexpr uint32 Mali_Midgard_Gen4 = 28;
-    static constexpr uint32 Mali_Bifrost_Gen1 = 29;
-    static constexpr uint32 Mali_Bifrost_Gen2 = 30;
-    static constexpr uint32 Mali_Bifrost_Gen3 = 31;
-    static constexpr uint32 Mali_Valhall_Gen1 = 32;
-    static constexpr uint32 Mali_Valhall_Gen2 = 33;
-    static constexpr uint32 Mali_Valhall_Gen3 = 34;
-    static constexpr uint32 Mali_Valhall_Gen4 = 35;
-    static constexpr uint32 NV_Maxwell = 36;
-    static constexpr uint32 NV_Maxwell_Tegra = 37;
-    static constexpr uint32 NV_Pascal = 38;
-    static constexpr uint32 NV_Pascal_MX = 39;
-    static constexpr uint32 NV_Pascal_Tegra = 40;
-    static constexpr uint32 NV_Volta = 41;
-    static constexpr uint32 NV_Turing_16 = 42;
-    static constexpr uint32 NV_Turing = 43;
-    static constexpr uint32 NV_Turing_MX = 44;
-    static constexpr uint32 NV_Ampere = 45;
-    static constexpr uint32 NV_Ampere_Orin = 46;
-    static constexpr uint32 NV_Ada = 47;
-    static constexpr uint32 Intel_Gen9 = 48;
-    static constexpr uint32 Intel_Gen11 = 49;
-    static constexpr uint32 Intel_Gen12 = 50;
-    static constexpr uint32 PowerVR_Series8XE = 51;
-    static constexpr uint32 PowerVR_Series8XEP = 52;
-    static constexpr uint32 PowerVR_Series8XT = 53;
-    static constexpr uint32 PowerVR_Series9XE = 54;
-    static constexpr uint32 VeriSilicon = 55;
-    static constexpr uint32 V3D_4 = 56;
-    static constexpr uint32 SwiftShader = 57;
+    static constexpr uint32 Adreno_700_QC5X = 7;
+    static constexpr uint32 AMD_GCN1 = 8;
+    static constexpr uint32 AMD_GCN2 = 9;
+    static constexpr uint32 AMD_GCN3 = 10;
+    static constexpr uint32 AMD_GCN4 = 11;
+    static constexpr uint32 AMD_GCN5 = 12;
+    static constexpr uint32 AMD_GCN5_APU = 13;
+    static constexpr uint32 AMD_RDNA1 = 14;
+    static constexpr uint32 AMD_RDNA2 = 15;
+    static constexpr uint32 AMD_RDNA2_APU = 16;
+    static constexpr uint32 AMD_RDNA3 = 17;
+    static constexpr uint32 AMD_RDNA3_APU = 18;
+    static constexpr uint32 Apple_A8 = 19;
+    static constexpr uint32 Apple_A9_A10 = 20;
+    static constexpr uint32 Apple_A11 = 21;
+    static constexpr uint32 Apple_A12 = 22;
+    static constexpr uint32 Apple_A13 = 23;
+    static constexpr uint32 Apple_A14_M1 = 24;
+    static constexpr uint32 Apple_A15_M2 = 25;
+    static constexpr uint32 Apple_A16 = 26;
+    static constexpr uint32 Apple_A17_M3 = 27;
+    static constexpr uint32 Mali_Midgard_Gen2 = 28;
+    static constexpr uint32 Mali_Midgard_Gen3 = 29;
+    static constexpr uint32 Mali_Midgard_Gen4 = 30;
+    static constexpr uint32 Mali_Bifrost_Gen1 = 31;
+    static constexpr uint32 Mali_Bifrost_Gen2 = 32;
+    static constexpr uint32 Mali_Bifrost_Gen3 = 33;
+    static constexpr uint32 Mali_Valhall_Gen1 = 34;
+    static constexpr uint32 Mali_Valhall_Gen2 = 35;
+    static constexpr uint32 Mali_Valhall_Gen3 = 36;
+    static constexpr uint32 Mali_Valhall_Gen4 = 37;
+    static constexpr uint32 Mali_Valhall_Gen5 = 38;
+    static constexpr uint32 NV_Maxwell = 39;
+    static constexpr uint32 NV_Maxwell_Tegra = 40;
+    static constexpr uint32 NV_Pascal = 41;
+    static constexpr uint32 NV_Pascal_MX = 42;
+    static constexpr uint32 NV_Pascal_Tegra = 43;
+    static constexpr uint32 NV_Volta = 44;
+    static constexpr uint32 NV_Turing_16 = 45;
+    static constexpr uint32 NV_Turing = 46;
+    static constexpr uint32 NV_Turing_MX = 47;
+    static constexpr uint32 NV_Ampere = 48;
+    static constexpr uint32 NV_Ampere_Orin = 49;
+    static constexpr uint32 NV_Ada = 50;
+    static constexpr uint32 Intel_Gen9 = 51;
+    static constexpr uint32 Intel_Gen11 = 52;
+    static constexpr uint32 Intel_Gen12 = 53;
+    static constexpr uint32 Intel_Gen12_7 = 54;
+    static constexpr uint32 PowerVR_Series8XE = 55;
+    static constexpr uint32 PowerVR_Series8XEP = 56;
+    static constexpr uint32 PowerVR_Series8XT = 57;
+    static constexpr uint32 PowerVR_Series9XE = 58;
+    static constexpr uint32 VeriSilicon = 59;
+    static constexpr uint32 SwiftShader = 60;
 };
 
 struct EFilter
@@ -2474,8 +2477,7 @@ struct ESamplerUsage
     ESamplerUsage (uint8) {}
     operator uint8 () const;
     static constexpr uint8 Default = 0;
-    static constexpr uint8 Subsampled = 1;
-    static constexpr uint8 SubsampledCoarseReconstruction = 2;
+    static constexpr uint8 NonSeamlessCubeMap = 1;
 };
 
 struct EVertexInputRate
@@ -2501,16 +2503,19 @@ struct EDescSetUsage
 struct EPipelineOpt
 {
     EPipelineOpt () {}
-    EPipelineOpt (uint8) {}
-    operator uint8 () const;
-    static constexpr uint8 Optimize = 1;
-    static constexpr uint8 CS_DispatchBase = 2;
-    static constexpr uint8 RT_NoNullAnyHitShaders = 4;
-    static constexpr uint8 RT_NoNullClosestHitShaders = 8;
-    static constexpr uint8 RT_NoNullMissShaders = 16;
-    static constexpr uint8 RT_NoNullIntersectionShaders = 32;
-    static constexpr uint8 RT_SkipTriangles = 64;
-    static constexpr uint8 RT_SkipAABBs = 128;
+    EPipelineOpt (uint16) {}
+    operator uint16 () const;
+    static constexpr uint16 Optimize = 1;
+    static constexpr uint16 CS_DispatchBase = 2;
+    static constexpr uint16 RT_NoNullAnyHitShaders = 4;
+    static constexpr uint16 RT_NoNullClosestHitShaders = 8;
+    static constexpr uint16 RT_NoNullMissShaders = 16;
+    static constexpr uint16 RT_NoNullIntersectionShaders = 32;
+    static constexpr uint16 RT_SkipTriangles = 64;
+    static constexpr uint16 RT_SkipAABBs = 128;
+    static constexpr uint16 DontCompile = 256;
+    static constexpr uint16 CaptureStatistics = 512;
+    static constexpr uint16 CaptureInternalRepresentation = 1024;
 };
 
 struct EQueueMask
@@ -2645,7 +2650,6 @@ struct ScriptFlags
 
 struct DynamicDim
 {
-    DynamicDim ();
     RC<DynamicDim>  opMul (int) const;
     RC<DynamicDim>  opDiv (int) const;
     RC<DynamicDim>  Mul (int) const;
@@ -2669,66 +2673,79 @@ struct DynamicDim
 struct DynamicUInt
 {
     DynamicUInt ();
+    DynamicUInt (uint);
 };
 
 struct DynamicUInt2
 {
     DynamicUInt2 ();
+    DynamicUInt2 (const uint2 &);
 };
 
 struct DynamicUInt3
 {
     DynamicUInt3 ();
+    DynamicUInt3 (const uint3 &);
 };
 
 struct DynamicUInt4
 {
     DynamicUInt4 ();
+    DynamicUInt4 (const uint4 &);
 };
 
 struct DynamicInt
 {
     DynamicInt ();
+    DynamicInt (int);
 };
 
 struct DynamicInt2
 {
     DynamicInt2 ();
+    DynamicInt2 (const int2 &);
 };
 
 struct DynamicInt3
 {
     DynamicInt3 ();
+    DynamicInt3 (const int3 &);
 };
 
 struct DynamicInt4
 {
     DynamicInt4 ();
+    DynamicInt4 (const int4 &);
 };
 
 struct DynamicFloat
 {
     DynamicFloat ();
+    DynamicFloat (float);
 };
 
 struct DynamicFloat2
 {
     DynamicFloat2 ();
+    DynamicFloat2 (const float2 &);
 };
 
 struct DynamicFloat3
 {
     DynamicFloat3 ();
+    DynamicFloat3 (const float3 &);
 };
 
 struct DynamicFloat4
 {
     DynamicFloat4 ();
+    DynamicFloat4 (const float4 &);
 };
 
 struct DynamicULong
 {
     DynamicULong ();
+    DynamicULong (uint64);
 };
 
 struct ImageLoadOpFlags
@@ -2743,7 +2760,6 @@ struct ImageLoadOpFlags
 
 struct Image
 {
-    Image ();
 
     // Create image from file.
     // File will be searched in VFS.
@@ -3294,10 +3310,6 @@ struct SphericalCube
     // Vertex count: (lod+2)^2, index count: 6*(lod+1)^2.
     void  DetailLevel (uint maxLOD);
     void  DetailLevel (uint minLOD, uint maxLOD);
-
-    // Set constant or dynamic tessellation level.
-    void  TessLevel (float level);
-    void  TessLevel (const RC<DynamicFloat> & level);
 };
 
 struct UnifiedGeometry_Draw
@@ -3572,9 +3584,12 @@ struct EPostprocess
 
     // Entry point: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'
     static constexpr uint32 ShadertoyVR = 2;
-    static constexpr uint32 ShadertoyVR_180 = 4;
-    static constexpr uint32 ShadertoyVR_360 = 8;
-    static constexpr uint32 Shadertoy_360 = 16;
+    static constexpr uint32 ShadertoyVR_180 = 3;
+    static constexpr uint32 ShadertoyVR_360 = 4;
+    static constexpr uint32 Shadertoy_360 = 5;
+    static constexpr uint32 Curved_1000R = 6;
+    static constexpr uint32 Curved_1500R = 7;
+    static constexpr uint32 Curved_1800R = 8;
 };
 
 struct EPassFlags
@@ -3598,7 +3613,6 @@ struct EPassFlags
 
 struct Postprocess
 {
-    Postprocess ();
 
     // Set debug label and color. It is used in graphics profiler.
     void  SetDebugLabel (const string & label);
@@ -3628,8 +3642,18 @@ struct Postprocess
     void  ColorSelector (const string & name, const RGBA8u & initial);
 
     // TODO
-    void  Constant (const string &, const RC<DynamicFloat4> &);
-    void  Constant (const string &, const RC<DynamicInt4> &);
+    void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
 
     // Returns dynamic dimension of the pass.
     // It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -3639,7 +3663,7 @@ struct Postprocess
     void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
 
     // Add resource to all shaders in the current pass.
-    // In - resource is used for read access.
+    // In  - resource is used for read access.
     // Out - resource is used for write access.
     void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
     void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
@@ -3650,7 +3674,7 @@ struct Postprocess
     void  ArgInOut (const string & uniformName, const RC<Image> & resource);
     void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
     void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
-    void  ArgIn (const RC<BaseController> & camera);
+    void  Set (const RC<BaseController> & camera);
     void  ArgIn (const string & uniformName, const array<Image@> & resources);
     void  ArgOut (const string & uniformName, const array<Image@> & resources);
     void  ArgInOut (const string & uniformName, const array<Image@> & resources);
@@ -3658,47 +3682,67 @@ struct Postprocess
     // Add color/depth render target.
     // Implicitly name will be 'out_Color' + index.
     void  Output (const RC<Image> &);
-    void  Output (const RC<Image> &, const MipmapLevel &);
-    void  Output (const RC<Image> &, const ImageLayer &);
-    void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &);
-    void  Output (const RC<Image> &, const RGBA32f &);
-    void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32f &);
-    void  Output (const RC<Image> &, const ImageLayer &, const RGBA32f &);
-    void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
+    void  Output (const RC<Image> & image, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
     void  Output (const RC<Image> &, const RGBA32u &);
     void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32u &);
     void  Output (const RC<Image> &, const ImageLayer &, const RGBA32u &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
     void  Output (const RC<Image> &, const RGBA32i &);
     void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32i &);
     void  Output (const RC<Image> &, const ImageLayer &, const RGBA32i &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
     void  Output (const RC<Image> &, const DepthStencil &);
     void  Output (const RC<Image> &, const MipmapLevel &, const DepthStencil &);
     void  Output (const RC<Image> &, const ImageLayer &, const DepthStencil &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
 
     // Add color/depth render target with explicit name.
     void  Output (const string &, const RC<Image> &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &);
     void  Output (const string &, const RC<Image> &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32f &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
 
     // Add color render target with blend operation.
     // Implicitly name will be 'out_Color' + index.
@@ -3706,23 +3750,32 @@ struct Postprocess
     void  OutputBlend (const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
 
     // Add color render target with blend operation and with explicit name.
     void  OutputBlend (const string &, const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+    void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
     void  DepthRange (float min, float max);
 
     // Set path to fragment shader, empty - load current file.
+    Postprocess  ();
     Postprocess (const string & shaderPath);
     Postprocess (const string & shaderPath, EPostprocess postprocessFlags);
     Postprocess (EPostprocess postprocessFlags);
@@ -3766,8 +3819,18 @@ struct ComputePass
     void  ColorSelector (const string & name, const RGBA8u & initial);
 
     // TODO
-    void  Constant (const string &, const RC<DynamicFloat4> &);
-    void  Constant (const string &, const RC<DynamicInt4> &);
+    void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
 
     // Returns dynamic dimension of the pass.
     // It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -3777,7 +3840,7 @@ struct ComputePass
     void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
 
     // Add resource to all shaders in the current pass.
-    // In - resource is used for read access.
+    // In  - resource is used for read access.
     // Out - resource is used for write access.
     void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
     void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
@@ -3788,7 +3851,7 @@ struct ComputePass
     void  ArgInOut (const string & uniformName, const RC<Image> & resource);
     void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
     void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
-    void  ArgIn (const RC<BaseController> & camera);
+    void  Set (const RC<BaseController> & camera);
     void  ArgIn (const string & uniformName, const array<Image@> & resources);
     void  ArgOut (const string & uniformName, const array<Image@> & resources);
     void  ArgInOut (const string & uniformName, const array<Image@> & resources);
@@ -3899,8 +3962,18 @@ struct RayTracingPass
     void  ColorSelector (const string & name, const RGBA8u & initial);
 
     // TODO
-    void  Constant (const string &, const RC<DynamicFloat4> &);
-    void  Constant (const string &, const RC<DynamicInt4> &);
+    void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
 
     // Returns dynamic dimension of the pass.
     // It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -3910,7 +3983,7 @@ struct RayTracingPass
     void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
 
     // Add resource to all shaders in the current pass.
-    // In - resource is used for read access.
+    // In  - resource is used for read access.
     // Out - resource is used for write access.
     void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
     void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
@@ -3921,7 +3994,7 @@ struct RayTracingPass
     void  ArgInOut (const string & uniformName, const RC<Image> & resource);
     void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
     void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
-    void  ArgIn (const RC<BaseController> & camera);
+    void  Set (const RC<BaseController> & camera);
     void  ArgIn (const string & uniformName, const array<Image@> & resources);
     void  ArgOut (const string & uniformName, const array<Image@> & resources);
     void  ArgInOut (const string & uniformName, const array<Image@> & resources);
@@ -3969,7 +4042,6 @@ struct ERenderLayer
 
 struct SceneGraphicsPass
 {
-    SceneGraphicsPass ();
 
     // Set debug label and color. It is used in graphics profiler.
     void  SetDebugLabel (const string & label);
@@ -3999,8 +4071,18 @@ struct SceneGraphicsPass
     void  ColorSelector (const string & name, const RGBA8u & initial);
 
     // TODO
-    void  Constant (const string &, const RC<DynamicFloat4> &);
-    void  Constant (const string &, const RC<DynamicInt4> &);
+    void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
 
     // Returns dynamic dimension of the pass.
     // It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -4010,7 +4092,7 @@ struct SceneGraphicsPass
     void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
 
     // Add resource to all shaders in the current pass.
-    // In - resource is used for read access.
+    // In  - resource is used for read access.
     // Out - resource is used for write access.
     void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
     void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
@@ -4021,7 +4103,7 @@ struct SceneGraphicsPass
     void  ArgInOut (const string & uniformName, const RC<Image> & resource);
     void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
     void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
-    void  ArgIn (const RC<BaseController> & camera);
+    void  Set (const RC<BaseController> & camera);
     void  ArgIn (const string & uniformName, const array<Image@> & resources);
     void  ArgOut (const string & uniformName, const array<Image@> & resources);
     void  ArgInOut (const string & uniformName, const array<Image@> & resources);
@@ -4029,51 +4111,68 @@ struct SceneGraphicsPass
     // Add color/depth render target.
     // Implicitly name will be 'out_Color' + index.
     void  Output (const RC<Image> &);
-    void  Output (const RC<Image> &, const MipmapLevel &);
-    void  Output (const RC<Image> &, const ImageLayer &);
-    void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &);
-    void  Output (const RC<Image> &, const RGBA32f &);
-    void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32f &);
-    void  Output (const RC<Image> &, const ImageLayer &, const RGBA32f &);
-    void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
+    void  Output (const RC<Image> & image, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap);
+    void  Output (const RC<Image> & image, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
+    void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
     void  Output (const RC<Image> &, const RGBA32u &);
     void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32u &);
     void  Output (const RC<Image> &, const ImageLayer &, const RGBA32u &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
     void  Output (const RC<Image> &, const RGBA32i &);
     void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32i &);
     void  Output (const RC<Image> &, const ImageLayer &, const RGBA32i &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
     void  Output (const RC<Image> &, const DepthStencil &);
     void  Output (const RC<Image> &, const MipmapLevel &, const DepthStencil &);
     void  Output (const RC<Image> &, const ImageLayer &, const DepthStencil &);
     void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
+    void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
 
     // Add color/depth render target with explicit name.
     void  Output (const string &, const RC<Image> &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &);
     void  Output (const string &, const RC<Image> &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32f &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &);
     void  Output (const string &, const RC<Image> &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
     void  Output (const string &, const RC<Image> &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
     void  Output (const string &, const RC<Image> &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const MipmapLevel &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const DepthStencil &);
     void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
+    void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
     void  DepthRange (float min, float max);
-
-    // Set input controller (camera), supported single controller per pass.
-    void  Set (const RC<BaseController> &);
 
     // Add path to single pipeline or folder with pipelines.
     // Scene geometry will be linked with compatible pipeline or error will be generated.
@@ -4084,7 +4183,6 @@ struct SceneGraphicsPass
 
 struct SceneRayTracingPass
 {
-    SceneRayTracingPass ();
 
     // Set debug label and color. It is used in graphics profiler.
     void  SetDebugLabel (const string & label);
@@ -4114,8 +4212,18 @@ struct SceneRayTracingPass
     void  ColorSelector (const string & name, const RGBA8u & initial);
 
     // TODO
-    void  Constant (const string &, const RC<DynamicFloat4> &);
-    void  Constant (const string &, const RC<DynamicInt4> &);
+    void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+    void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
 
     // Returns dynamic dimension of the pass.
     // It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -4125,7 +4233,7 @@ struct SceneRayTracingPass
     void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
 
     // Add resource to all shaders in the current pass.
-    // In - resource is used for read access.
+    // In  - resource is used for read access.
     // Out - resource is used for write access.
     void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
     void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
@@ -4136,13 +4244,10 @@ struct SceneRayTracingPass
     void  ArgInOut (const string & uniformName, const RC<Image> & resource);
     void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
     void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
-    void  ArgIn (const RC<BaseController> & camera);
+    void  Set (const RC<BaseController> & camera);
     void  ArgIn (const string & uniformName, const array<Image@> & resources);
     void  ArgOut (const string & uniformName, const array<Image@> & resources);
     void  ArgInOut (const string & uniformName, const array<Image@> & resources);
-
-    // Set input controller (camera), supported single controller per pass.
-    void  Set (const RC<BaseController> &);
 
     // Set path to single pipeline.
     // Scene geometry will be linked with compatible pipeline or error will be generated.
@@ -4182,7 +4287,7 @@ struct Scene
 };
 
 
-// Returns dynamic dimensions of the screen size.
+// Returns dynamic dimensions of the screen surface.
 RC<DynamicDim>  SurfaceSize ();
 
 // Present image to the screen.
@@ -4266,6 +4371,9 @@ void  GetCylinder (uint segmentCount, bool isInner, array<float3> & positions, a
 // Returns cylinder
 void  GetCylinder (uint segmentCount, bool isInner, array<float3> & positions, array<float3> & normals, array<float3> & tangents, array<float3> & bitangents, array<float2> & texcoords, array<uint> & indices);
 
+// Returns spherical cube without projection and rotation
+void  GetSphericalCube (uint lod, array<float3> & positions, array<uint> & indices);
+
 // Helper function to convert array of indices to array of uint3 indices per triangle
 void  IndicesToPrimitives (const array<uint> & indices, array<uint3> & primitives);
 
@@ -4324,186 +4432,45 @@ void  WhiteColorSpectrum3 (array<float4> & wavelengthToRGB);
 void  WhiteColorSpectrum7 (array<float4> & wavelengthToRGB, bool normalized);
 void  WhiteColorSpectrumStep50nm (array<float4> & wavelengthToRGB, bool normalized);
 void  WhiteColorSpectrumStep100nm (array<float4> & wavelengthToRGB, bool normalized);
+float3  CM_CubeSC_Forward (const float3 &);
+float3  CM_IdentitySC_Forward (const float3 &);
+float3  CM_TangentialSC_Forward (const float3 &);
 #define SCRIPT
 
 template <>
-struct RC<OrbitalCamera> : OrbitalCamera
+struct RC<Collection> : Collection
 {
-    RC (const OrbitalCamera &);
+    RC (const Collection &);
 };
 
 template <>
-struct RC<SphericalCube> : SphericalCube
+struct RC<RTScene> : RTScene
 {
-    RC (const SphericalCube &);
+    RC (const RTScene &);
 };
 
 template <>
-struct RC<DynamicFloat> : DynamicFloat
+struct RC<DynamicULong> : DynamicULong
 {
-    RC (const DynamicFloat &);
+    RC (const DynamicULong &);
 };
 
 template <>
-struct RC<FPSCamera> : FPSCamera
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
 {
-    RC (const FPSCamera &);
+    RC (const SceneGraphicsPass &);
 };
 
 template <>
-struct RC<DynamicDim> : DynamicDim
+struct RC<VideoImage> : VideoImage
 {
-    RC (const DynamicDim &);
+    RC (const VideoImage &);
 };
 
 template <>
-struct RC<RayTracingPass> : RayTracingPass
+struct RC<FPVCamera> : FPVCamera
 {
-    RC (const RayTracingPass &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-    RC (const ComputePass &);
-};
-
-template <>
-struct RC<Postprocess> : Postprocess
-{
-    RC (const Postprocess &);
-};
-
-template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
-{
-    RC (const SceneRayTracingPass &);
-};
-
-template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
-{
-    RC (const UnifiedGeometry &);
-};
-
-template <>
-struct RC<Buffer> : Buffer
-{
-    RC (const Buffer &);
-};
-
-template <>
-struct RC<TopDownCamera> : TopDownCamera
-{
-    RC (const TopDownCamera &);
-};
-
-template <>
-struct RC<ScaleBiasCamera> : ScaleBiasCamera
-{
-    RC (const ScaleBiasCamera &);
-};
-
-template <>
-struct RC<BaseController> : BaseController
-{
-    RC (const BaseController &);
-};
-
-template <>
-struct RC<FlightCamera> : FlightCamera
-{
-    RC (const FlightCamera &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-    RC (const Model &);
-};
-
-template <>
-struct RC<DynamicUInt> : DynamicUInt
-{
-    RC (const DynamicUInt &);
-};
-
-template <>
-struct RC<Scene> : Scene
-{
-    RC (const Scene &);
-};
-
-template <>
-struct RC<Image> : Image
-{
-    RC (const Image &);
-};
-
-template <>
-struct RC<GeomSource> : GeomSource
-{
-    RC (const GeomSource &);
-};
-
-template <>
-struct RC<DynamicInt3> : DynamicInt3
-{
-    RC (const DynamicInt3 &);
-};
-
-template <>
-struct RC<DynamicInt2> : DynamicInt2
-{
-    RC (const DynamicInt2 &);
-};
-
-template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-    RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<DynamicUInt2> : DynamicUInt2
-{
-    RC (const DynamicUInt2 &);
-};
-
-template <>
-struct RC<DynamicUInt3> : DynamicUInt3
-{
-    RC (const DynamicUInt3 &);
-};
-
-template <>
-struct RC<DynamicFloat4> : DynamicFloat4
-{
-    RC (const DynamicFloat4 &);
-};
-
-template <>
-struct RC<DynamicFloat3> : DynamicFloat3
-{
-    RC (const DynamicFloat3 &);
-};
-
-template <>
-struct RC<DynamicUInt4> : DynamicUInt4
-{
-    RC (const DynamicUInt4 &);
-};
-
-template <>
-struct RC<RTGeometry> : RTGeometry
-{
-    RC (const RTGeometry &);
-};
-
-template <>
-struct RC<DynamicFloat2> : DynamicFloat2
-{
-    RC (const DynamicFloat2 &);
+    RC (const FPVCamera &);
 };
 
 template <>
@@ -4519,38 +4486,182 @@ struct RC<IPass> : IPass
 };
 
 template <>
-struct RC<FPVCamera> : FPVCamera
+struct RC<Image> : Image
 {
-    RC (const FPVCamera &);
+    RC (const Image &);
 };
 
 template <>
-struct RC<VideoImage> : VideoImage
+struct RC<DynamicFloat2> : DynamicFloat2
 {
-    RC (const VideoImage &);
+    RC (const DynamicFloat2 &);
 };
 
 template <>
-struct RC<RTScene> : RTScene
+struct RC<RTGeometry> : RTGeometry
 {
-    RC (const RTScene &);
+    RC (const RTGeometry &);
 };
 
 template <>
-struct RC<Collection> : Collection
+struct RC<DynamicUInt4> : DynamicUInt4
 {
-    RC (const Collection &);
+    RC (const DynamicUInt4 &);
 };
 
 template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
+struct RC<DynamicFloat3> : DynamicFloat3
 {
-    RC (const SceneGraphicsPass &);
+    RC (const DynamicFloat3 &);
 };
 
 template <>
-struct RC<DynamicULong> : DynamicULong
+struct RC<DynamicFloat4> : DynamicFloat4
 {
-    RC (const DynamicULong &);
+    RC (const DynamicFloat4 &);
+};
+
+template <>
+struct RC<DynamicUInt3> : DynamicUInt3
+{
+    RC (const DynamicUInt3 &);
+};
+
+template <>
+struct RC<DynamicUInt2> : DynamicUInt2
+{
+    RC (const DynamicUInt2 &);
+};
+
+template <>
+struct RC<DynamicInt4> : DynamicInt4
+{
+    RC (const DynamicInt4 &);
+};
+
+template <>
+struct RC<DynamicInt2> : DynamicInt2
+{
+    RC (const DynamicInt2 &);
+};
+
+template <>
+struct RC<DynamicInt3> : DynamicInt3
+{
+    RC (const DynamicInt3 &);
+};
+
+template <>
+struct RC<GeomSource> : GeomSource
+{
+    RC (const GeomSource &);
+};
+
+template <>
+struct RC<DynamicUInt> : DynamicUInt
+{
+    RC (const DynamicUInt &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+    RC (const Model &);
+};
+
+template <>
+struct RC<Scene> : Scene
+{
+    RC (const Scene &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+    RC (const FlightCamera &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+    RC (const BaseController &);
+};
+
+template <>
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
+{
+    RC (const ScaleBiasCamera &);
+};
+
+template <>
+struct RC<TopDownCamera> : TopDownCamera
+{
+    RC (const TopDownCamera &);
+};
+
+template <>
+struct RC<UnifiedGeometry> : UnifiedGeometry
+{
+    RC (const UnifiedGeometry &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+    RC (const SceneRayTracingPass &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+    RC (const Postprocess &);
+};
+
+template <>
+struct RC<ComputePass> : ComputePass
+{
+    RC (const ComputePass &);
+};
+
+template <>
+struct RC<Buffer> : Buffer
+{
+    RC (const Buffer &);
+};
+
+template <>
+struct RC<SphericalCube> : SphericalCube
+{
+    RC (const SphericalCube &);
+};
+
+template <>
+struct RC<OrbitalCamera> : OrbitalCamera
+{
+    RC (const OrbitalCamera &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+    RC (const DynamicDim &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+    RC (const FPSCamera &);
+};
+
+template <>
+struct RC<RayTracingPass> : RayTracingPass
+{
+    RC (const RayTracingPass &);
+};
+
+template <>
+struct RC<DynamicFloat> : DynamicFloat
+{
+    RC (const DynamicFloat &);
 };
 

@@ -62,7 +62,7 @@ namespace
     AE_BIT_OPERATORS( EFeatures );
 
     using SemaphoreID   = HandleTmpl< 32, 32, 0x654145 >;
-    STATIC_ASSERT( sizeof(SemaphoreID) == sizeof(VkSemaphore) );
+    StaticAssert( sizeof(SemaphoreID) == sizeof(VkSemaphore) );
 
 
 
@@ -140,7 +140,7 @@ namespace
 
     // methods
     public:
-        explicit VulkanEmulation (VulkanDeviceFnTable *fnTable)                             __NE___ : VulkanDeviceFn{fnTable} {}
+        explicit VulkanEmulation (VulkanDeviceFnTable* fnTable)                             __NE___ : VulkanDeviceFn{fnTable} {}
 
         void  InitDeviceInfo (VkPhysicalDevice physicalDevice, INOUT PhysDevInfo& info)     __NE___;
 
@@ -181,7 +181,7 @@ namespace
         if ( origin_vkEnumerateDeviceExtensionProperties( physicalDevice, null, OUT &prop_count, null ) == VK_SUCCESS )
         {
             Array< VkExtensionProperties >  ext_props;
-            CATCH_ERRV( ext_props.resize( prop_count ));
+            NOTHROW_ERRV( ext_props.resize( prop_count ));
 
             VK_CHECK( origin_vkEnumerateDeviceExtensionProperties( physicalDevice, null, OUT &prop_count, OUT ext_props.data() ));
 
@@ -429,7 +429,7 @@ namespace
         Array< const char* >    extensions;
         if ( dev_ci.ppEnabledExtensionNames != null and dev_ci.enabledExtensionCount > 0 )
         {
-            CATCH_ERR( extensions.assign( dev_ci.ppEnabledExtensionNames, dev_ci.ppEnabledExtensionNames + dev_ci.enabledExtensionCount ),
+            NOTHROW_ERR( extensions.assign( dev_ci.ppEnabledExtensionNames, dev_ci.ppEnabledExtensionNames + dev_ci.enabledExtensionCount ),
                        VK_RESULT_MAX_ENUM );
 
             for (usize i = 0; i < extensions.size(); ++i)
@@ -752,7 +752,7 @@ namespace
     Wrap_vkGetDeviceProcAddr
 =================================================
 */
-    VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL Wrap_vkGetDeviceProcAddr (VkDevice device, const char *pName)
+    VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL Wrap_vkGetDeviceProcAddr (VkDevice device, const char* pName)
     {
         CHECK_ERR( pName != null );
 
@@ -776,7 +776,7 @@ namespace
     constructor
 =================================================
 */
-    VulkanExtEmulation::VulkanExtEmulation (VulkanDeviceFnTable *fnTable) __NE___
+    VulkanExtEmulation::VulkanExtEmulation (VulkanDeviceFnTable* fnTable) __NE___
     {
         auto&   emulator = VulkanEmulation::Get();
         PlacementNew<VulkanEmulation>( OUT &emulator, fnTable );

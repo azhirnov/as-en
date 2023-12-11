@@ -68,7 +68,7 @@ namespace AE::App
             TYPE_GRAVITY                = 9,    // [3]
             TYPE_GYROSCOPE              = 4,    // [3]
             TYPE_LINEAR_ACCELERATION    = 10,   // [3]
-            TYPE_ROTATION_VECTOR        = 11,   // [4]
+            TYPE_ROTATION_VECTOR        = 11,   // [5]
         };
 
         EInputType  type = Default;
@@ -152,7 +152,7 @@ namespace AE::App
     SetQueue
 =================================================
 */
-    void  InputActionsAndroid::SetQueue (DubleBufferedQueue *q) __NE___
+    void  InputActionsAndroid::SetQueue (DubleBufferedQueue* q) __NE___
     {
         CHECK_ERRV( q != null );
 

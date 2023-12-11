@@ -176,7 +176,7 @@
         const float3    u_dir   = v10 * duv0.x + v20 * duv0.y;
         const float3    v_dir   = v10 * duv1.x + v20 * duv1.y;
         const float3    center  = (P0 + P1 + P2) / 3.0f;
-        const float3    pos     = center + v_dir * c_Offset + u_dir * c_Offset;
+        const float3    pos     = center + (v_dir + u_dir) * c_Offset;
         {
             gl.Position = un_PerPass.camera.viewProj * float4(pos, 1.0f);
             Out.color   = float3(0.2, 0.2, 0.2);
@@ -286,6 +286,7 @@
             DrawTriangleBorder();
         }
     }
+
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG

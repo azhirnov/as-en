@@ -38,8 +38,7 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
         IApplication&   _app;
 
     public:
-        WndListener (IApplication &app) : _app{app} {}
-        ~WndListener () override {}
+        WndListener (IApplication &app)             __NE___ : _app{app} {}
 
         void OnStateChanged (IWindow &, EState)     __NE_OV {}
         void OnSurfaceDestroyed (IWindow &)         __NE_OV {}
@@ -59,18 +58,20 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
         WindowPtr   _window;
 
     public:
-        AppListener ()
+        AppListener ()                              __NE___
         {
-            TaskScheduler::CreateInstance();
+            TaskScheduler::InstanceCtor::Create();
 
             TaskScheduler::Config   cfg;
+            cfg.mainThreadCoreId    = ECpuCoreId(0);
+
             CHECK_FATAL( Scheduler().Setup( cfg ));
         }
 
         ~AppListener ()                             __NE_OV
         {
             Scheduler().Release();
-            TaskScheduler::DestroyInstance();
+            TaskScheduler::InstanceCtor::Destroy();
         }
 
         void  OnStart (IApplication &app)           __NE_OV

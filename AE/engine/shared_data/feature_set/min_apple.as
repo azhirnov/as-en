@@ -7,6 +7,8 @@ void ASmain ()
     //  Apple M1 driver 0.2.1914 on Osx 12.0
     //  Apple A12 GPU driver 0.2.1915 on Ios 15.3
     //  Apple A15 GPU driver 0.2.1914 on Ios 15.3
+    //  Apple A17 Pro GPU driver 0.2.2014 on Ios 17.1
+    //  Apple M3 Max driver 0.2.2014 on Osx 14.2
     //  Apple8
     //  Apple8_Mac
     //  Apple7_Metal3
@@ -95,7 +97,7 @@ void ASmain ()
     fset.perDescrSet_maxStorageBuffers (155);
     fset.perDescrSet_maxStorageImages (40);
     fset.perDescrSet_maxUniformBuffers (155);
-    fset.perDescrSet_maxTotalResources (1024);
+    fset.perDescrSet_maxTotalResources (512);
     fset.perStage_maxInputAttachments (96);
     fset.perStage_maxSampledImages (96);
     fset.perStage_maxSamplers (16);

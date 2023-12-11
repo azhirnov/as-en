@@ -88,7 +88,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        explicit Renderer (uint seed);
+        explicit Renderer (uint seed)                                           __Th___;
         ~Renderer ();
 
             void            ProcessInput (ActionQueueReader reader, OUT bool &switchMode);

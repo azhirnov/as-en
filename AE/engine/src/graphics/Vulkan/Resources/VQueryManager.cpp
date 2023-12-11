@@ -13,7 +13,7 @@ namespace AE::Graphics
 =================================================
 */
     VQueryManager::VQueryManager () __NE___ :
-        _device{ RenderTaskScheduler().GetDevice() },
+        _device{ GraphicsScheduler().GetDevice() },
         _hostReset{false}, _perfQuery{false}, _calibratedTs{false}
     {}
 
@@ -52,11 +52,11 @@ namespace AE::Graphics
         _timestampPeriod    = _device.GetVProperties().properties.limits.timestampPeriod;
         _timestampAllowed   = Default;
 
-        for (auto q : _device.GetQueues())
+        for (auto& q : _device.GetQueues())
         {
             if ( q.timestampValidBits == 0 ) continue;
             _timestampAllowed |= q.type;
-            _tsBits[ uint(q.type) ] = q.timestampValidBits; 
+            _tsBits[ uint(q.type) ] = q.timestampValidBits;
         }
 
         if ( _timestampAllowed != Default and _timestampPeriod > 0.f )
@@ -95,12 +95,12 @@ namespace AE::Graphics
 
         if ( _device.GetVProperties().features.pipelineStatisticsQuery )
         {
-            static constexpr auto   StatBits = 
+            static constexpr auto   StatBits =
                 //VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
                 VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT        |   // before clipping
                 VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT         |   // after clipping
                 VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
-            STATIC_ASSERT( sizeof(PipelineStatistic) == sizeof(ulong) * CT_BitCount< StatBits >);
+            StaticAssert( sizeof(PipelineStatistic) == sizeof(ulong) * CT_BitCount< StatBits >);
 
             auto&   pool = _poolArr [uint(EQueryType::PipelineStatistic)];
             pool.maxCount = VConfig::PipelineStatQueryPerFrame;
@@ -121,7 +121,7 @@ namespace AE::Graphics
             vk_counters.reserve( 128 );
             vk_counter_desc.reserve( 128 );
 
-            for (auto q : _device.GetQueues())
+            for (auto& q : _device.GetQueues())
             {
                 uint    count = 0;
                 VK_CHECK_ERR( vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
@@ -401,7 +401,7 @@ The second synchronization scope includes all commands which reference the queri
     bool  VQueryManager::_GetTimestamp (const Query &q, OUT T* result, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( sizeof(*result) == sizeof(ulong) );
+        StaticAssert( sizeof(*result) == sizeof(ulong) );
 
         CHECK_ERR( q and result != null );
         CHECK_ERR( size >= (SizeOf<ulong> * q.count) );
@@ -456,7 +456,7 @@ The second synchronization scope includes all commands which reference the queri
     bool  VQueryManager::_GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( sizeof(*result) == sizeof(ulong) );
+        StaticAssert( sizeof(*result) == sizeof(ulong) );
 
         CHECK_ERR( q and result != null and maxDeviation != null );
         CHECK_ERR( _calibratedTs );
@@ -548,7 +548,7 @@ The second synchronization scope includes all commands which reference the queri
     bool  VQueryManager::GetPipelineStatistic (const Query &q, OUT PipelineStatistic* result, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
+        StaticAssert( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
 
         CHECK_ERR( q and result != null );
         CHECK_ERR( size >= (SizeOf<PipelineStatistic> * q.count) );
@@ -576,13 +576,13 @@ The second synchronization scope includes all commands which reference the queri
     GetRTASProperty
 =================================================
 */
-    bool  VQueryManager::GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size) C_NE___
+    bool  VQueryManager::GetRTASProperty (const Query &q, OUT Byte64u* result, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( sizeof(*result) == sizeof(ulong) );
+        StaticAssert( sizeof(*result) == sizeof(ulong) );
 
         CHECK_ERR( q and result != null );
-        CHECK_ERR( size >= (SizeOf<Bytes64u> * q.count) );
+        CHECK_ERR( size >= (SizeOf<Byte64u> * q.count) );
 
         ASSERT( q.type == EQueryType::AccelStructCompactedSize      or
                 q.type == EQueryType::AccelStructSerializationSize  or
@@ -599,7 +599,7 @@ The second synchronization scope includes all commands which reference the queri
         bool    available = true;
         for (uint i = 0, cnt = q.count; i < cnt; ++i)
         {
-            result[i]  = Bytes64u{ tmp[i].result };
+            result[i]  = Byte64u{ tmp[i].result };
             available &= tmp[i].IsAvailable();
         }
         return err == VK_SUCCESS and available;

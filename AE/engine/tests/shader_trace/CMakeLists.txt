@@ -15,7 +15,7 @@ if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
 
     file( GLOB_RECURSE SOURCES "*.*" )
     set( VK_FILES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics/Vulkan" )
-    set( VK_SOURCES 
+    set( VK_SOURCES
         "${VK_FILES_PATH}/VDevice.h"
         "${VK_FILES_PATH}/VDevice.cpp"
         "${VK_FILES_PATH}/VDeviceFS.cpp"

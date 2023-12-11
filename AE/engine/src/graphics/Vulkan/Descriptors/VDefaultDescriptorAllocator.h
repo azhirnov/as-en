@@ -18,16 +18,12 @@ namespace AE::Graphics
     {
     // types
     private:
-        static constexpr uint   PoolsPerChunk           = 8;
-        static constexpr uint   MaxDescriptorPoolSize   = 1u << 11;
-        static constexpr uint   MaxDescriptorSets       = 1u << 10;
-        static constexpr uint   MaxAllocFails           = 2;
-        static constexpr uint   MaxChunks               = 1024;
+        static constexpr uint   PoolsPerChunk   = 8;
 
         struct DSPool
         {
             SpinLock            guard;
-            uint                allocFails  = 0;
+            Atomic<uint>        allocFails  {0};
             VkDescriptorPool    handle      = Default;
         };
 

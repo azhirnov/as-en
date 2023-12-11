@@ -17,7 +17,7 @@ using namespace AE::PipelineCompiler;
 using namespace AE::InputActions;
 using namespace AE::AssetPacker;
 
-using LinearAlloc_t = AllocatorImpl2< LinearAllocator<> >;
+using LinearAlloc_t = IAllocatorAdaptor< LinearAllocator<> >;
 
 
 template <typename T>

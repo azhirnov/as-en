@@ -9,7 +9,7 @@ namespace
     class DummyTask final : public IAsyncTask
     {
     public:
-        DummyTask (uint id) : IAsyncTask{ETaskQueue::PerFrame}
+        DummyTask (uint id) __NE___ : IAsyncTask{ETaskQueue::PerFrame}
         {
             Unused( id );
             _DbgSet( EStatus::Pending );
@@ -26,21 +26,22 @@ namespace
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
 
-        LfTaskQueue     q{ Default, "" };
-        const uint      count = 1'000;
+        LfTaskQueue     q       { Default, "" };
+        const uint      count   = 1'000;
+        const auto      seed    = scheduler->GetDefaultSeed();
 
         for (uint i = 0; i < count; ++i) {
-            q.Add( MakeRC<DummyTask>( i ), 0 );
+            q.Add( MakeRC<DummyTask>( i ), seed );
         }
 
-        for (; q.Process( 0 );) {}
+        for (; q.Process( seed );) {}
     }
 
 
     static void  LfTaskQueue_Test2 ()
     {
-        LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        LfTaskQueue         q{ Default, "" };
+        LocalTaskScheduler  scheduler   {WorkerQueueCount(1)};
+        LfTaskQueue         q           { Default, "" };
 
         const uint  thread_count = Max( 2u, ThreadUtils::MaxThreadCount() );
 
@@ -51,16 +52,18 @@ namespace
         {
             threads.push_back( StdThread{ [&q, tid]()
                 {
+                    const auto  seed = Scheduler().GetDefaultSeed();
+
                     for (uint c = 0; c < 1000; ++c)
                     {
                         const uint  count = (tid & 0xF) * 10;
 
                         for (uint i = 0; i < count; ++i) {
-                            q.Add( MakeRC<DummyTask>( i ), 0 );
+                            q.Add( MakeRC<DummyTask>( i ), seed );
                         }
 
                         for (uint i = 0; i < 100; ++i) {
-                            if ( q.Process( 0 ))
+                            if ( q.Process( seed ))
                                 i = 0;
                         }
                     }
@@ -71,7 +74,8 @@ namespace
             t.join();
         }
 
-        for (; q.Process( 0 );) {}
+        const auto  seed = Scheduler().GetDefaultSeed();
+        for (; q.Process( seed );) {}
     }
 }
 

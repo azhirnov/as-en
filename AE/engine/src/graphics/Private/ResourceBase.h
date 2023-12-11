@@ -11,12 +11,12 @@ namespace AE::Graphics
     // Resource Wrapper
     //
 
-    template <typename ResType>
+    template <typename ResType, typename ID>
     class alignas(AE_CACHE_LINE) ResourceBase final
     {
     // types
     private:
-        enum class EState : uint
+        enum class EState : ubyte
         {
             Destroyed   = 0,
             Failed,
@@ -24,15 +24,15 @@ namespace AE::Graphics
         };
 
     public:
-        using Self          = ResourceBase< ResType >;
+        using Self          = ResourceBase< ResType, ID >;
         using Resource_t    = ResType;
-        using Generation_t  = BufferID::Generation_t;
+        using Generation_t  = typename ID::Generation_t;
 
 
     // variables
     private:
         // instance counter used to detect deprecated handles
-        Atomic<uint>            _generation {0};
+        Atomic<Generation_t>    _generation {0};
 
         Atomic<EState>          _state      {EState::Destroyed};
 
@@ -45,11 +45,11 @@ namespace AE::Graphics
     public:
         ResourceBase ()                                 __NE___ {}
 
-        ResourceBase (Self &&)                          = delete;
-        ResourceBase (const Self &)                     = delete;
+        ResourceBase (Self &&)                                  = delete;
+        ResourceBase (const Self &)                             = delete;
 
-        Self& operator = (Self &&)                      = delete;
-        Self& operator = (const Self &)                 = delete;
+        Self& operator = (Self &&)                              = delete;
+        Self& operator = (const Self &)                         = delete;
 
         ~ResourceBase ()                                __NE___ { ASSERT( IsDestroyed() ); }
 
@@ -60,7 +60,7 @@ namespace AE::Graphics
         ND_ bool            IsCreated ()                C_NE___ { return _GetState() == EState::Created; }
         ND_ bool            IsDestroyed ()              C_NE___ { return _GetState() == EState::Destroyed; }
 
-        ND_ Generation_t    GetGeneration ()            C_NE___ { return Generation_t(_generation.load()); }
+        ND_ Generation_t    GetGeneration ()            C_NE___ { return _generation.load(); }
         ND_ int             GetRefCount ()              C_NE___ { return _refCounter.load(); }
 
         ND_ ResType&        Data ()                     __NE___ { return _data; }
@@ -96,11 +96,13 @@ namespace AE::Graphics
             _refCounter.store( 0 );
             _state.store( EState::Destroyed );
 
-            constexpr uint  max_gen = BufferID::MaxGeneration();
+            constexpr Generation_t  max_gen = ID::MaxGeneration();
 
-            for (uint exp = _generation.load();
-                 not _generation.CAS( INOUT exp, (exp < max_gen ? exp + 1 : 0) );)
+            for (Generation_t exp = _generation.load();;)
             {
+                if_likely( _generation.CAS( INOUT exp, (exp < max_gen ? exp + 1 : 0) ))
+                    break;
+
                 ThreadUtils::Pause();
             }
         }

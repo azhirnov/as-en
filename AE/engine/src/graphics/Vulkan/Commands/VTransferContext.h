@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    TransferCtx --> DirectTransferCtx   --> BarrierMngr --> Vulkan device 
+    TransferCtx --> DirectTransferCtx   --> BarrierMngr --> Vulkan device
                 \-> IndirectTransferCtx --> BarrierMngr --> Backed commands
 */
 
@@ -102,13 +102,9 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsTransferContext       = true;
-        static constexpr bool   IsVulkanTransferContext = true;
-
         using CmdBuf_t          = typename CtxImpl::CmdBuf_t;
     private:
         static constexpr uint   _LocalArraySize         = 16;
-        static constexpr Bytes  _StagingBufOffsetAlign  = 4_b;
 
         using RawCtx            = CtxImpl;
         using AccumBar          = VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
@@ -133,9 +129,6 @@ namespace AE::Graphics::_hidden_
 
         using RawCtx::UpdateBuffer;
         void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                                        __Th_OV;
-
-        template <typename T>   void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)                           __Th___ { return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
-        template <typename T>   void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)                        __Th___ { return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 
         using RawCtx::FillBuffer;
         void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)                                                 __Th_OV;
@@ -180,12 +173,13 @@ namespace AE::Graphics::_hidden_
 
         using RawCtx::GenerateMipmaps;
 
-        void  GenerateMipmaps (ImageID image)                                                                                   __Th_OV;
-        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)                                          __Th_OV;
+        void  GenerateMipmaps (ImageID image, EResourceState state)                                                             __Th_OV;
+        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)                    __Th_OV;
 
         using ITransferContext::UpdateHostBuffer;
         using ITransferContext::UploadBuffer;
         using ITransferContext::UploadImage;
+        using ITransferContext::UpdateBuffer;
 
         uint3  MinImageTransferGranularity ()                                                                                   C_NE_OF;
 
@@ -707,27 +701,45 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image) __Th___
+    void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, EResourceState state) __Th___
     {
         auto&                   img = _GetResourcesOrThrow( image );
         ImageDesc const&        desc = img.Description();
         ImageSubresourceRange   range;
 
-        range.aspectMask        = EPixelFormat_ToImageAspect( desc.format );
-        range.baseMipLevel      = 0_mipmap;
-        range.mipmapCount       = desc.maxLevel.Get();
-        range.baseLayer         = 0_layer;
-        range.layerCount        = desc.arrayLayers.Get();
+        range.aspectMask    = EPixelFormat_ToImageAspect( desc.format );
+        range.baseMipLevel  = 0_mipmap;
+        range.baseLayer     = 0_layer;
+        range.layerCount    = ushort(desc.arrayLayers.Get());
+
+        if ( state != Default and state != EResourceState::BlitSrc )
+        {
+            range.mipmapCount = 1;
+            this->ImageBarrier( image, state, EResourceState::BlitSrc, range );
+            this->CommitBarriers();
+        }
+
+        range.mipmapCount = ushort(desc.maxLevel.Get());
 
         VALIDATE_GCTX( GenerateMipmaps( img.Description(), {range} ));
         RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, {range} );
     }
 
     template <typename C>
-    void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges) __Th___
+    void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state) __Th___
     {
         auto&               img = _GetResourcesOrThrow( image );
         ImageDesc const&    desc = img.Description();
+
+        if ( state != Default and state != EResourceState::BlitSrc )
+        {
+            for (auto range : ranges) {
+                range.mipmapCount = 1;
+                this->ImageBarrier( image, state, EResourceState::BlitSrc, range );
+            }
+            this->CommitBarriers();
+        }
+
         VALIDATE_GCTX( GenerateMipmaps( img.Description(), ranges ));
         RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, ranges );
     }

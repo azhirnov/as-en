@@ -199,7 +199,7 @@ namespace AE::Graphics
 
         _Count
     };
-    STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 52 );
+    StaticAssert( uint(ESubgroupOperation::_Count) == 52 );
 
 
     //
@@ -238,6 +238,7 @@ namespace AE::Graphics
         _visit_( Adreno_600_QC5 )       /* 643, 650, 660                                    with quad channel LPDDR5                            */\
         _visit_( Adreno_700_SC3 )       /* 702                                              with single channel LPDDR3                          */\
         _visit_( Adreno_700_DC4_SC5 )   /* 730, 740                                         with dual channel LPDDR4 or single channel LPDDR5   */\
+        _visit_( Adreno_700_QC5X )      /* 740, 750                                         with quad channel LPDDR5X                           */\
         \
         /*---- AMD ----*/\
         _visit_( AMD_GCN1 )             /* 520, 610                                             */\
@@ -249,18 +250,19 @@ namespace AE::Graphics
         _visit_( AMD_RDNA1 )            /* 5300 - 5700                                          */\
         _visit_( AMD_RDNA2 )            /* N6: 6400 - 6500, N7: 6600 - 6900                     */\
         _visit_( AMD_RDNA2_APU )        /* PS5, SteamDeck, Ryzen 6xxx / 7x20 / 7x35 / 7x45 APU  */\
-        _visit_( AMD_RDNA3 )            /* N5/N6: 7900                                          */\
+        _visit_( AMD_RDNA3 )            /* N5/N6: 7600 - 7900                                   */\
         _visit_( AMD_RDNA3_APU )        /* Ryzen 7x40 APU, Z1                                   */\
         \
         /*---- Apple ----*/\
-        _visit_( Apple_A8 )             \
-        _visit_( Apple_A9_A10 )         /*                  (Hurricane / Zephyr)    */\
-        _visit_( Apple_A11 )            /*                  (Monsoon / Mistral)     */\
-        _visit_( Apple_A12 )            /* A12X, A12Z       (Vortex / Tempest)      */\
-        _visit_( Apple_A13 )            /*                  (Lightning / Thunder)   */\
-        _visit_( Apple_A14_M1 )         /* M1 Pro, M1 Max   (Firestorm / Icestorm)  */\
-        _visit_( Apple_A15_M2 )         /* M2 Pro, M2 Max   (Avalanche / Blizzard)  */\
-        _visit_( Apple_A16 )            /*                  (Everest / Sawtooth )   */\
+        _visit_( Apple_A8 )             /*                                          - Apple2 */\
+        _visit_( Apple_A9_A10 )         /*                  (Hurricane / Zephyr)    - Apple3 */\
+        _visit_( Apple_A11 )            /*                  (Monsoon / Mistral)     - Apple4 */\
+        _visit_( Apple_A12 )            /* A12X, A12Z       (Vortex / Tempest)      - Apple5 */\
+        _visit_( Apple_A13 )            /*                  (Lightning / Thunder)   - Apple6 */\
+        _visit_( Apple_A14_M1 )         /* M1 Pro, M1 Max   (Firestorm / Icestorm)  - Apple7 */\
+        _visit_( Apple_A15_M2 )         /* M2 Pro, M2 Max   (Avalanche / Blizzard)  - Apple8 */\
+        _visit_( Apple_A16 )            /*                  (Everest / Sawtooth)    - Apple8 */\
+        _visit_( Apple_A17_M3 )         /* A17, M3...       ( )                     - Apple9 */\
         \
         /*---- Mali ----*/\
         _visit_( Mali_Midgard_Gen2 )    /* T622, T624, T628, T678       */\
@@ -273,6 +275,7 @@ namespace AE::Graphics
         _visit_( Mali_Valhall_Gen2 )    /* G68, G78                     */\
         _visit_( Mali_Valhall_Gen3 )    /* G310, G510, G610, G710       */\
         _visit_( Mali_Valhall_Gen4 )    /* G615, G715                   */\
+        _visit_( Mali_Valhall_Gen5 )    /* G620, G720                   */\
         \
         /*---- NVidia ----*/\
         _visit_( NV_Maxwell )           /* GTX 9xx, Titan X, Quadro Mxxxx                       */\
@@ -292,6 +295,7 @@ namespace AE::Graphics
         _visit_( Intel_Gen9 )           /* UHD 620, 630                                 */\
         _visit_( Intel_Gen11 )          /* Iris Plus, Core 10xxx                        */\
         _visit_( Intel_Gen12 )          /* UHD Graphics 7xx, Iris Xe, Core 11xxx        */\
+        _visit_( Intel_Gen12_7 )        /* Arc 3/5/7                                    */\
         \
         /*---- PowerVR ----*/\
         _visit_( PowerVR_Series8XE )    /* GE8100, GE8200, GE8300, GE8310, GE8430           */\
@@ -301,7 +305,8 @@ namespace AE::Graphics
         \
         /*---- Other ----*/\
         _visit_( VeriSilicon )          /*  */\
-        _visit_( V3D_4 )                /* Raspberry Pi 4 */\
+        /*_visit_( V3D_4 )              / * Raspberry Pi 4 */\
+        /*_visit_( V3D_6 )              / * Raspberry Pi 5 */\
         _visit_( SwiftShader )          /* emulation */\
 
         #define AE_GRAPHICS_DEVICE_VISIT( _name_ )              _name_,
@@ -312,22 +317,22 @@ namespace AE::Graphics
         Unknown         = _Count,
 
         _Adreno_Begin   = Adreno_500,
-        _Adreno_End     = Adreno_700_DC4_SC5,
+        _Adreno_End     = Adreno_700_QC5X,
 
         _AMD_Begin      = AMD_GCN1,
         _AMD_End        = AMD_RDNA3_APU,
 
         _Apple_Begin    = Apple_A8,
-        _Apple_End      = Apple_A16,
+        _Apple_End      = Apple_A17_M3,
 
         _Mali_Begin     = Mali_Midgard_Gen2,
-        _Mali_End       = Mali_Valhall_Gen4,
+        _Mali_End       = Mali_Valhall_Gen5,
 
         _NV_Begin       = NV_Maxwell,
         _NV_End         = NV_Ada,
 
         _Intel_Begin    = Intel_Gen9,
-        _Intel_End      = Intel_Gen12,
+        _Intel_End      = Intel_Gen12_7,
 
         _PowerVR_Begin  = PowerVR_Series8XE,
         _PowerVR_End    = PowerVR_Series9XE,
@@ -335,21 +340,21 @@ namespace AE::Graphics
         _Other_Begin    = VeriSilicon,
     };
 
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_Begin)   == 0 );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_Begin)   <  uint(EGraphicsDeviceID::_Adreno_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_End)+1   == uint(EGraphicsDeviceID::_AMD_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_AMD_Begin)      <  uint(EGraphicsDeviceID::_AMD_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_AMD_End)+1      == uint(EGraphicsDeviceID::_Apple_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Apple_Begin)    <  uint(EGraphicsDeviceID::_Apple_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Apple_End)+1    == uint(EGraphicsDeviceID::_Mali_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Mali_Begin)     <  uint(EGraphicsDeviceID::_Mali_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Mali_End)+1     == uint(EGraphicsDeviceID::_NV_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_NV_Begin)       <  uint(EGraphicsDeviceID::_NV_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_NV_End)+1       == uint(EGraphicsDeviceID::_Intel_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Intel_Begin)    <  uint(EGraphicsDeviceID::_Intel_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_Intel_End)+1    == uint(EGraphicsDeviceID::_PowerVR_Begin) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_PowerVR_Begin)  <  uint(EGraphicsDeviceID::_PowerVR_End) );
-    STATIC_ASSERT( uint(EGraphicsDeviceID::_PowerVR_End)+1  == uint(EGraphicsDeviceID::_Other_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_Adreno_Begin)    == 0 );
+    StaticAssert( uint(EGraphicsDeviceID::_Adreno_Begin)    <  uint(EGraphicsDeviceID::_Adreno_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_Adreno_End)+1    == uint(EGraphicsDeviceID::_AMD_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_AMD_Begin)       <  uint(EGraphicsDeviceID::_AMD_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_AMD_End)+1       == uint(EGraphicsDeviceID::_Apple_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_Apple_Begin) <  uint(EGraphicsDeviceID::_Apple_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_Apple_End)+1 == uint(EGraphicsDeviceID::_Mali_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_Mali_Begin)      <  uint(EGraphicsDeviceID::_Mali_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_Mali_End)+1      == uint(EGraphicsDeviceID::_NV_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_NV_Begin)        <  uint(EGraphicsDeviceID::_NV_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_NV_End)+1        == uint(EGraphicsDeviceID::_Intel_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_Intel_Begin) <  uint(EGraphicsDeviceID::_Intel_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_Intel_End)+1 == uint(EGraphicsDeviceID::_PowerVR_Begin) );
+    StaticAssert( uint(EGraphicsDeviceID::_PowerVR_Begin)   <  uint(EGraphicsDeviceID::_PowerVR_End) );
+    StaticAssert( uint(EGraphicsDeviceID::_PowerVR_End)+1   == uint(EGraphicsDeviceID::_Other_Begin) );
 
 
 } // AE::Graphics

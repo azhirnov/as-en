@@ -13,7 +13,7 @@ namespace AE::App
     constructor
 =================================================
 */
-    InputActionsGLFW::InputActionsGLFW (DubleBufferedQueue *q) __NE___ :
+    InputActionsGLFW::InputActionsGLFW (DubleBufferedQueue* q) __NE___ :
         InputActionsBase{ q != null ? *q : _dbQueue },
         _touchActive{ false },  _touchBegin{ false }, _touchEnd{ false },
         _gestureRecognizer{ ushort(EInputType::TouchPos),   ushort(EInputType::TouchPos_mm),

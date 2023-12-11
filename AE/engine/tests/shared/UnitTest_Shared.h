@@ -7,7 +7,7 @@
 using namespace AE;
 using namespace AE::Base;
 
-#define TEST    CHECK_FATAL
+#define TEST( ... )     CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING(__VA_ARGS__) )
 
 #define __PRIVATE_TEST_OP( _lhs_, _op_, _rhs_ )                                                         \
     {                                                                                                   \

@@ -25,7 +25,7 @@ namespace AE::GeometryTools
             packed_short4   tangent;
             packed_short4   bitangent;
         };
-        STATIC_ASSERT( sizeof(Vertex) == 40 );
+        StaticAssert( sizeof(Vertex) == 40 );
 
         struct UnpackedVertex
         {

@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "PipelinePack.h"
-#include "serializing/Serializer.h"
-#include "serializing/ObjectFactory.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/DataSource/MemStream.h"
+#include "serializing/Basic/Serializer.h"
+#include "serializing/Basic/ObjectFactory.h"
 #include "graphics/Private/EnumUtils.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
@@ -876,7 +876,7 @@ namespace {
 =================================================
     BasePipelineDesc_Hash
 =================================================
-*/  
+*/
     ND_ static HashVal  BasePipelineDesc_Hash (const BasePipelineDesc &desc)
     {
         return HashOf(desc.specialization) + HashOf(desc.dynamicState) + HashOf(desc.options);
@@ -886,7 +886,7 @@ namespace {
 =================================================
     BasePipelineDesc_Compare
 =================================================
-*/  
+*/
     ND_ static bool  BasePipelineDesc_Compare (const BasePipelineDesc &lhs, const BasePipelineDesc &rhs)
     {
         return  (lhs.specialization == rhs.specialization)  &
@@ -927,7 +927,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableGraphicsPipeline::CalcHash () const
+    HashVal  SerializableGraphicsPipeline::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( features );
@@ -945,7 +945,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableGraphicsPipeline::operator == (const SerializableGraphicsPipeline &rhs) const
+    bool  SerializableGraphicsPipeline::operator == (const SerializableGraphicsPipeline &rhs) C_NE___
     {
         return  features            == rhs.features             and
                 layout              == rhs.layout               and
@@ -977,7 +977,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableMeshPipeline::CalcHash () const
+    HashVal  SerializableMeshPipeline::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( features );
@@ -999,7 +999,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableMeshPipeline::operator == (const SerializableMeshPipeline &rhs) const
+    bool  SerializableMeshPipeline::operator == (const SerializableMeshPipeline &rhs) C_NE___
     {
         return  features                    == rhs.features                 and
                 layout                      == rhs.layout                   and
@@ -1032,7 +1032,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableComputePipeline::CalcHash () const
+    HashVal  SerializableComputePipeline::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( features );
@@ -1048,7 +1048,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableComputePipeline::operator == (const SerializableComputePipeline &rhs) const
+    bool  SerializableComputePipeline::operator == (const SerializableComputePipeline &rhs) C_NE___
     {
         return  features                == rhs.features             and
                 layout                  == rhs.layout               and
@@ -1075,7 +1075,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableTilePipeline::CalcHash () const
+    HashVal  SerializableTilePipeline::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( features );
@@ -1091,7 +1091,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableTilePipeline::operator == (const SerializableTilePipeline &rhs) const
+    bool  SerializableTilePipeline::operator == (const SerializableTilePipeline &rhs) C_NE___
     {
         return  features                == rhs.features             and
                 layout                  == rhs.layout               and
@@ -1124,7 +1124,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableRayTracingPipeline::CalcHash () const
+    HashVal  SerializableRayTracingPipeline::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( features );
@@ -1141,7 +1141,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableRayTracingPipeline::operator == (const SerializableRayTracingPipeline &rhs) const
+    bool  SerializableRayTracingPipeline::operator == (const SerializableRayTracingPipeline &rhs) C_NE___
     {
         return  features            == rhs.features         and
                 layout              == rhs.layout           and
@@ -1178,7 +1178,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableGraphicsPipelineSpec::CalcHash () const
+    HashVal  SerializableGraphicsPipelineSpec::CalcHash () C_NE___
     {
         HashVal res;
         res << HashOf( uint(templUID) );
@@ -1198,7 +1198,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableGraphicsPipelineSpec::operator == (const SerializableGraphicsPipelineSpec &rhs) const
+    bool  SerializableGraphicsPipelineSpec::operator == (const SerializableGraphicsPipelineSpec &rhs) C_NE___
     {
         return  templUID            == rhs.templUID             and
                 rStateUID           == rhs.rStateUID            and
@@ -1238,7 +1238,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableMeshPipelineSpec::CalcHash () const
+    HashVal  SerializableMeshPipelineSpec::CalcHash () C_NE___
     {
         return  HashOf( uint(templUID) ) + HashOf( uint(rStateUID) ) + HashOf( uint(dsStateUID) ) +
                 BasePipelineDesc_Hash( desc ) + HashOf( desc.renderPass ) + HashOf( desc.subpass ) + HashOf( desc.viewportCount ) +
@@ -1250,7 +1250,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableMeshPipelineSpec::operator == (const SerializableMeshPipelineSpec &rhs) const
+    bool  SerializableMeshPipelineSpec::operator == (const SerializableMeshPipelineSpec &rhs) C_NE___
     {
         return  templUID                == rhs.templUID             and
                 rStateUID               == rhs.rStateUID            and
@@ -1285,7 +1285,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableComputePipelineSpec::CalcHash () const
+    HashVal  SerializableComputePipelineSpec::CalcHash () C_NE___
     {
         return HashOf( uint(templUID) ) + BasePipelineDesc_Hash( desc ) + HashOf( desc.localSize );
     }
@@ -1295,7 +1295,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableComputePipelineSpec::operator == (const SerializableComputePipelineSpec &rhs) const
+    bool  SerializableComputePipelineSpec::operator == (const SerializableComputePipelineSpec &rhs) C_NE___
     {
         return  templUID            == rhs.templUID         and
                 BasePipelineDesc_Compare( desc, rhs.desc )  and
@@ -1324,7 +1324,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableTilePipelineSpec::CalcHash () const
+    HashVal  SerializableTilePipelineSpec::CalcHash () C_NE___
     {
         return  HashOf( uint(templUID) ) +
                 BasePipelineDesc_Hash( desc ) + HashOf( desc.renderPass ) + HashOf( desc.subpass ) + HashOf( desc.localSize );
@@ -1335,7 +1335,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableTilePipelineSpec::operator == (const SerializableTilePipelineSpec &rhs) const
+    bool  SerializableTilePipelineSpec::operator == (const SerializableTilePipelineSpec &rhs) C_NE___
     {
         return  templUID            == rhs.templUID         and
                 BasePipelineDesc_Compare( desc, rhs.desc )  and
@@ -1366,7 +1366,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableRayTracingPipelineSpec::CalcHash () const
+    HashVal  SerializableRayTracingPipelineSpec::CalcHash () C_NE___
     {
         return  HashOf( uint(templUID) ) + BasePipelineDesc_Hash( desc ) +
                 HashOf( desc.maxRecursionDepth ) + HashOf( desc.maxPipelineRayPayloadSize ) +
@@ -1378,7 +1378,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableRayTracingPipelineSpec::operator == (const SerializableRayTracingPipelineSpec &rhs) const
+    bool  SerializableRayTracingPipelineSpec::operator == (const SerializableRayTracingPipelineSpec &rhs) C_NE___
     {
         return  templUID                            == rhs.templUID                             and
                 BasePipelineDesc_Compare( desc, rhs.desc )                                      and
@@ -1422,7 +1422,7 @@ namespace {
     operator ==
 =================================================
 */
-    bool  SerializableRTShaderBindingTable::operator == (const SerializableRTShaderBindingTable &rhs) const
+    bool  SerializableRTShaderBindingTable::operator == (const SerializableRTShaderBindingTable &rhs) C_NE___
     {
         return  pplnName        == rhs.pplnName     and
                 raygen          == rhs.raygen       and
@@ -1437,7 +1437,7 @@ namespace {
     CalcHash
 =================================================
 */
-    HashVal  SerializableRTShaderBindingTable::CalcHash () const
+    HashVal  SerializableRTShaderBindingTable::CalcHash () C_NE___
     {
         return HashOf(pplnName) + HashOf(raygen) + HashOf(miss) + HashOf(hit) + HashOf(callable) + HashOf(numRayTypes);
     }
@@ -1946,7 +1946,7 @@ namespace {
     template <typename ArrType, typename MapType>
     ShaderUID  PipelineStorage::_AddMslShader (MetalBytecode_t msl, const SpecConstants_t &spec, ShaderUID mask, ArrType &arr, MapType &mapType)
     {
-        CHECK_ERR(  AllBits( mask, ShaderUID::Metal_iOS, ShaderUID::_Mask ) or 
+        CHECK_ERR(  AllBits( mask, ShaderUID::Metal_iOS, ShaderUID::_Mask ) or
                     AllBits( mask, ShaderUID::Metal_Mac, ShaderUID::_Mask ));
 
         ShaderBytecode  code    { RVRef(msl), spec };

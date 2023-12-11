@@ -9,21 +9,19 @@ namespace
 {
     struct DefaultAllocator
     {
-        using Alloc_t = AllocatorImpl< UntypedAllocator >;
+        using Alloc_t = IAllocatorAdaptor< UntypedAllocator >;
 
-        InPlace< Alloc_t >      alloc;
-        AtomicRC<IAllocator>    rc;
+        StaticRC< Alloc_t >     alloc;
+        AtomicRC<IAllocator>    rc;         // TODO: Atomic<IAllocator*> may be faster
 
         DefaultAllocator ()
         {
-            alloc.CustomCtor( &StaticRC::New<Alloc_t> );
-            rc = alloc->GetRC();
+            rc.store( alloc->GetRC() );
         }
 
         ~DefaultAllocator ()
         {
-            rc = null;
-            alloc.CustomDtor( &StaticRC::Delete<Alloc_t> );
+            rc.reset();
         }
     };
 
@@ -39,15 +37,20 @@ namespace AE
 
     void  SetDefaultAllocator (RC<IAllocator> value) __NE___
     {
-        if ( value )
-            Base::s_DefaultAllocator.rc = value;
+        if_likely( value )
+            Base::s_DefaultAllocator.rc.store( value );
         else
-            Base::s_DefaultAllocator.rc = Base::s_DefaultAllocator.alloc->GetRC();
+            Base::s_DefaultAllocator.rc.store( Base::s_DefaultAllocator.alloc->GetRC() );
     }
 
     RC<IAllocator>  GetDefaultAllocator () __NE___
     {
         return Base::s_DefaultAllocator.rc.load();
+    }
+
+    Ptr<IAllocator>  GetDefaultAllocatorPtr () __NE___
+    {
+        return Base::s_DefaultAllocator.rc.unsafe_get();
     }
 
 } // AE

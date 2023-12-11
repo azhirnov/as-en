@@ -37,7 +37,7 @@ namespace AE::Profiler
 
         Scheduler().SetProfiler( _task );
         MemoryManager().SetProfiler( _memory );
-        RenderTaskScheduler().SetProfiler( _graphics );
+        GraphicsScheduler().SetProfiler( _graphics );
 
         _lastUpdate = TimePoint_t::clock::now();
 
@@ -59,7 +59,7 @@ namespace AE::Profiler
 
         Scheduler().SetProfiler( null );
         MemoryManager().SetProfiler( null );
-        RenderTaskScheduler().SetProfiler( null );
+        GraphicsScheduler().SetProfiler( null );
     }
 
 /*

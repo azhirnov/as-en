@@ -118,7 +118,7 @@ namespace AE::Graphics
     bool  RenderState::StencilBufferState::operator == (const StencilBufferState &rhs) C_NE___
     {
         return  (enabled    == rhs.enabled) &
-                (enabled ? 
+                (enabled ?
                     ((front == rhs.front)   &
                      (back  == rhs.back))   : true);
     }
@@ -210,9 +210,9 @@ namespace AE::Graphics
     bool  RenderState::RasterizationState::operator == (const RasterizationState &rhs) C_NE___
     {
         return  (polygonMode                ==  rhs.polygonMode)            &
-                Equals( depthBiasConstFactor,   rhs.depthBiasConstFactor )  &
-                Equals( depthBiasClamp,         rhs.depthBiasClamp )        &
-                Equals( depthBiasSlopeFactor,   rhs.depthBiasSlopeFactor )  &
+                Equal(  depthBiasConstFactor,   rhs.depthBiasConstFactor )  &
+                Equal(  depthBiasClamp,         rhs.depthBiasClamp )        &
+                Equal(  depthBiasSlopeFactor,   rhs.depthBiasSlopeFactor )  &
                 (depthBias                  ==  rhs.depthBias)              &
                 (depthClamp                 ==  rhs.depthClamp)             &
                 (rasterizerDiscard          ==  rhs.rasterizerDiscard)      &
@@ -251,7 +251,7 @@ namespace AE::Graphics
     {
         return  (sampleMask             ==  rhs.sampleMask)         &
                 (samples                ==  rhs.samples)            &
-                Equals( minSampleShading,   rhs.minSampleShading )  &
+                Equal(  minSampleShading,   rhs.minSampleShading )  &
                 (sampleShading          ==  rhs.sampleShading)      &
                 (alphaToCoverage        ==  rhs.alphaToCoverage)    &
                 (alphaToOne             ==  rhs.alphaToOne);

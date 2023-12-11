@@ -134,7 +134,7 @@ namespace AE::Graphics
     CreateSampler
 =================================================
 */
-    Strong<SamplerID>  VResourceManager::CreateSampler (const VkSamplerCreateInfo &info, const VkSamplerYcbcrConversionCreateInfo *ycbcrInfo, StringView dbgName) __NE___
+    Strong<SamplerID>  VResourceManager::CreateSampler (const VkSamplerCreateInfo &info, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo, StringView dbgName) __NE___
     {
         return _CreateResource<SamplerID>( "failed when creating sampler", *this, info, ycbcrInfo, dbgName );
     }
@@ -237,7 +237,7 @@ namespace AE::Graphics
             RETURN_ERR( "failed when creating framebuffer from render pass '"s << HashToName( desc.renderPassName ) << "'" );
         }
 
-        data.AddRef();  // 'raw_id' rc == 1 
+        data.AddRef();  // 'raw_id' rc == 1
 
 
         // add to cache
@@ -405,7 +405,7 @@ namespace AE::Graphics
 */
     void  VResourceManager::VReleaseExpiredResourcesTask::Run ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         auto&   list     = res_mngr._expiredResources.Get( _frameId );
         EXLOCK( list.guard );
 

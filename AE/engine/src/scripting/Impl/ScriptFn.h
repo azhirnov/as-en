@@ -69,7 +69,7 @@ namespace AE::Scripting
         using ExpectedArgs_t    = TypeList< Types... >;
         using InputArgs_t       = TypeList< Args... >;
 
-        STATIC_ASSERT( Scripting::_hidden_::CheckInputArgTypes< ExpectedArgs_t, InputArgs_t >::value );
+        StaticAssert( Scripting::_hidden_::CheckInputArgTypes< ExpectedArgs_t, InputArgs_t >::value );
 
         if_unlikely( not (_module and _ctx != null) )
         {

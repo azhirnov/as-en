@@ -94,7 +94,7 @@ namespace
     CopyData2
 =================================================
 */
-    ND_ static bool  CopyData2 (INOUT IntermImage &image, SharedMem::Allocator_t allocator, ktxTexture* ktx_tex, EPixelFormat format) __NE___
+    ND_ static bool  CopyData2 (INOUT IntermImage &image, RC<IAllocator> allocator, ktxTexture* ktx_tex, EPixelFormat format) __NE___
     {
         CHECK_ERR( format != Default );
 
@@ -221,14 +221,14 @@ namespace
     CopyData
 =================================================
 */
-    ND_ static bool  CopyData (INOUT IntermImage &image, SharedMem::Allocator_t allocator, ktxTexture2* ktx_tex2) __NE___
+    ND_ static bool  CopyData (INOUT IntermImage &image, RC<IAllocator> allocator, ktxTexture2* ktx_tex2) __NE___
     {
         const EPixelFormat  format = VkFormatToEPixelFormat( ktx_tex2->vkFormat );
 
         return CopyData2( image, RVRef(allocator), ktxTexture(ktx_tex2), format );
     }
 
-    ND_ static bool  CopyData (INOUT IntermImage &image, SharedMem::Allocator_t allocator, ktxTexture1* ktx_tex1) __NE___
+    ND_ static bool  CopyData (INOUT IntermImage &image, RC<IAllocator> allocator, ktxTexture1* ktx_tex1) __NE___
     {
         const EPixelFormat  format = GLFormatToEPixelFormat( ktx_tex1->glInternalformat );
 
@@ -243,7 +243,7 @@ namespace
     LoadImage
 =================================================
 */
-    bool  KTXImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  KTXImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         CHECK( not flipY );
 
@@ -289,14 +289,14 @@ namespace
 
         if ( temp_tex2 != null )
         {
-            ktx_tex = { ktxTexture(temp_tex2), [](ktxTexture *tex){ ktxTexture_Destroy(tex); }};
+            ktx_tex = { ktxTexture(temp_tex2), [](ktxTexture* tex){ ktxTexture_Destroy(tex); }};
 
             CHECK_ERR( CopyData( INOUT image, RVRef(allocator), temp_tex2 ));
         }
         else
         if ( temp_tex1 != null )
         {
-            ktx_tex = { ktxTexture(temp_tex1), [](ktxTexture *tex){ ktxTexture_Destroy(tex); }};
+            ktx_tex = { ktxTexture(temp_tex1), [](ktxTexture* tex){ ktxTexture_Destroy(tex); }};
 
             CHECK_ERR( CopyData( INOUT image, RVRef(allocator), temp_tex1 ));
         }

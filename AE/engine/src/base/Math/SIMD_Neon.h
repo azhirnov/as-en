@@ -127,7 +127,7 @@ namespace AE::Math
         ND_ Self  FMSub  (const Self &b, const Self &c)     C_NE___ { return Self{ vfms_f16(   _value, b._value, c._value )}; }     // (a * b) - c
         ND_ Self  FMSub  (const Self &b, Value_t c)         C_NE___ { return Self{ vfms_n_f16( _value, b._value, c )}; }            //
 
-        template <uint Lane> ND_ Self  Mul (const Self &rhs)C_NE___ { STATIC_ASSERT( Lane < 4 );  return Self{ vmul_lane_f16( _value, rhs, Lane )}; }   // a * b[lane]
+        template <uint Lane> ND_ Self  Mul (const Self &rhs)C_NE___ { StaticAssert( Lane < 4 );  return Self{ vmul_lane_f16( _value, rhs, Lane )}; }    // a * b[lane]
 
         ND_ Bool4  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
         ND_ Bool4  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
@@ -156,7 +156,7 @@ namespace AE::Math
     template <typename IntType>
     struct SimdTInt64
     {
-        STATIC_ASSERT( IsInteger<IntType> );
+        StaticAssert( IsInteger<IntType> );
 
     // types
     public:
@@ -169,7 +169,7 @@ namespace AE::Math
                                     Conditional< IsSameTypes< IntType, ushort >, uint16x4_t,
                                         Conditional< IsSameTypes< IntType, sint >, int32x2_t,
                                             Conditional< IsSameTypes< IntType, uint >, uint32x2_t, void >>>>>>;
-        STATIC_ASSERT( CT_SizeOfInBits<Native_t> == 64 );
+        StaticAssert( CT_SizeOfInBits<Native_t> == 64 );
 
 
     // variables
@@ -194,9 +194,7 @@ namespace AE::Math
         explicit SimdTInt64 (Base::_hidden_::_UMax)     __NE___ : SimdTInt64{ ~IntType{0} } {}
         explicit SimdTInt64 (const Native_t &val)       __NE___ : _value{ val } {}
 
-        template <typename T,
-                  typename = EnableIf< IsSameTypes< T, IntType >>
-                 >
+        template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
         explicit SimdTInt64 (T val)                     __NE___
         {
             if constexpr( isU8 )    _value = vdup_n_u8(  val );
@@ -207,9 +205,7 @@ namespace AE::Math
             if constexpr( isI32 )   _value = vdup_n_s32( val );
         }
 
-        template <typename T,
-                  typename = EnableIf< IsSameTypes< T, IntType >>
-                 >
+        template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
         explicit SimdTInt64 (const T* ptr)              __NE___
         {
             ASSERT( ptr != null );
@@ -398,7 +394,7 @@ namespace AE::Math
     template <typename IntType>
     struct SimdTInt128
     {
-        STATIC_ASSERT( IsInteger<IntType> );
+        StaticAssert( IsInteger<IntType> );
 
     // types
     public:
@@ -413,7 +409,7 @@ namespace AE::Math
                                             Conditional< IsSameTypes< IntType, uint >, uint32x4_t,
                                                 Conditional< IsSameTypes< IntType, slong >, int64x2_t,
                                                     Conditional< IsSameTypes< IntType, ulong >, uint64x2_t, void >>>>>>>>;
-        STATIC_ASSERT( CT_SizeOfInBits<Native_t> == 128 );
+        StaticAssert( CT_SizeOfInBits<Native_t> == 128 );
 
 
     // variables
@@ -440,9 +436,7 @@ namespace AE::Math
         explicit SimdTInt128 (Base::_hidden_::_UMax)    __NE___ : SimdTInt128{ ~IntType{0} } {}
         explicit SimdTInt128 (const Native_t &val)      __NE___ : _value{ val } {}
 
-        template <typename T,
-                  typename = EnableIf< IsSameTypes< T, IntType >>
-                 >
+        template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
         explicit SimdTInt128 (T val)                    __NE___
         {
             if constexpr( isU8 )    _value = vdupq_n_u8(  val );
@@ -455,9 +449,7 @@ namespace AE::Math
             if constexpr( isI64 )   _value = vdupq_n_s64( val );
         }
 
-        template <typename T,
-                  typename = EnableIf< IsSameTypes< T, IntType >>
-                 >
+        template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
         explicit SimdTInt128 (const T* ptr)             __NE___
         {
             ASSERT( ptr != null );
@@ -796,7 +788,7 @@ namespace AE::Math
         ND_ Self  FMSub  (const Self &b, const Self &c)     C_NE___ { return Self{ vfmsq_f16(   _value, b._value, c._value )}; }    // (a * b) - c
         ND_ Self  FMSub  (const Self &b, Value_t c)         C_NE___ { return Self{ vfmsq_n_f16( _value, b._value, c )}; }           //
 
-        template <uint Lane> ND_ Self  Mul (const Self &rhs)C_NE___ { STATIC_ASSERT( Lane < 4 );  return Self{ vmulq_lane_f16( _value, rhs, Lane )}; }  // a * b[lane]
+        template <uint Lane> ND_ Self  Mul (const Self &rhs)C_NE___ { StaticAssert( Lane < 4 );  return Self{ vmulq_lane_f16( _value, rhs, Lane )}; }   // a * b[lane]
 
         ND_ Bool8  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
         ND_ Bool8  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
@@ -902,9 +894,9 @@ namespace AE::Math
         ND_ Self  FMSub  (const Self &b, Value_t c)     C_NE___ { return Self{ vfmsq_n_f32( _value, b._value, c )}; }           //
       #endif
 
-    //  template <uint Lane> ND_ Self  Mul (const Self &rhs)                            C_NE___ { STATIC_ASSERT( Lane < count );  return Self{ vmulq_lane_f32( _value, rhs, Lane )}; }                  // a * b[lane]
-    //  template <uint Lane> ND_ Self  MulAdd (const Self &b, const Self &c)            C_NE___ { STATIC_ASSERT( Lane < count );  return Self{ vmlaq_lane_f32( _value, b._value, c._value, Lane )}; }   // a + (b * c[Lane])
-    //  template <uint Lane> ND_ Self  MulSub (const Self &b, const Self &c)            C_NE___ { STATIC_ASSERT( Lane < count );  return Self{ vmlsq_lane_f32( _value, b._value, c._value, Lane )}; }   // a - (b * c[Lane])
+    //  template <uint Lane> ND_ Self  Mul (const Self &rhs)                            C_NE___ { StaticAssert( Lane < count );  return Self{ vmulq_lane_f32( _value, rhs, Lane )}; }                   // a * b[lane]
+    //  template <uint Lane> ND_ Self  MulAdd (const Self &b, const Self &c)            C_NE___ { StaticAssert( Lane < count );  return Self{ vmlaq_lane_f32( _value, b._value, c._value, Lane )}; }    // a + (b * c[Lane])
+    //  template <uint Lane> ND_ Self  MulSub (const Self &b, const Self &c)            C_NE___ { StaticAssert( Lane < count );  return Self{ vmlsq_lane_f32( _value, b._value, c._value, Lane )}; }    // a - (b * c[Lane])
 
     //  template <typename T> ND_ EnableIf< IsSameTypes<T,half>, SimdHalf4>  Cast ()    C_NE___;
         template <typename T> ND_ EnableIf< IsSameTypes<T,int>,  SimdInt4>   Cast ()    C_NE___;

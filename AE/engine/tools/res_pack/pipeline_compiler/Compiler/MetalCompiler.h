@@ -12,7 +12,7 @@ namespace AE::PipelineCompiler
     // Metal Compiler
     //
 
-    struct MetalCompiler
+    struct MetalCompiler : NothrowAllocatable
     {
     // types
     public:
@@ -47,7 +47,7 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        explicit MetalCompiler (ArrayView<Path> includeDirs);
+        explicit MetalCompiler (ArrayView<Path> includeDirs)    __NE___;
         ~MetalCompiler ();
 
             void  SetPreprocessor (IShaderPreprocessor*);

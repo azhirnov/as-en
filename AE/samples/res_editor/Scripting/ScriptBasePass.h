@@ -73,21 +73,18 @@ namespace AE::ResEditor
 
         struct Constant
         {
-            String              name;
-            uint                index       = UMax;
-            ESlider             type        = ESlider::_Count;
-            ScriptRCBase        rc;         // Dynamic + Int|UInt|Float + 1|2|3|4
+            String      name;
+            uint        index       = UMax;
+            ESlider     type        = ESlider::_Count;
+            ubyte       count       = 0;
+            RC<>        rc;         // Dynamic + Int|UInt|Float + 1|2|3|4
         };
-        using Constants_t       = Array< Constant >;
+        using Constants_t   = Array< Constant >;
 
 
     // variables
     protected:
         const EFlags            _baseFlags;
-
-        Sliders_t               _sliders;
-        SliderCounter_t         _sliderCounter      {};
-        Constants_t             _constants;
 
         String                  _defines;
 
@@ -106,6 +103,12 @@ namespace AE::ResEditor
         }                       _enablePass;
 
     private:
+        Sliders_t               _sliders;
+        SliderCounter_t         _sliderCounter      {};
+
+        Constants_t             _constants;
+        SliderCounter_t         _constantCounter    {};
+
         UniqueSliderNames_t     _uniqueSliderNames;
 
 
@@ -118,6 +121,7 @@ namespace AE::ResEditor
     public:
         void  SetDebugLabel1 (const String &name)                                                                           __Th___;
         void  SetDebugLabel2 (const String &name, const RGBA8u &color)                                                      __Th___;
+
 
         void  SliderI0 (const String &name)                                                                                 __Th___;
         void  SliderI1 (const String &name, int min, int max)                                                               __Th___;
@@ -145,9 +149,22 @@ namespace AE::ResEditor
         void  ColorSelector2 (const String &name, const RGBA32f &val)                                                       __Th___;
         void  ColorSelector3 (const String &name, const RGBA8u &val)                                                        __Th___;
 
+
+        void  ConstantF1 (const String &name, const ScriptDynamicFloatPtr  &value)                      __Th___;
+        void  ConstantF2 (const String &name, const ScriptDynamicFloat2Ptr &value)                      __Th___;
+        void  ConstantF3 (const String &name, const ScriptDynamicFloat3Ptr &value)                      __Th___;
         void  ConstantF4 (const String &name, const ScriptDynamicFloat4Ptr &value)                      __Th___;
 
+        void  ConstantI1 (const String &name, const ScriptDynamicIntPtr  &value)                        __Th___;
+        void  ConstantI2 (const String &name, const ScriptDynamicInt2Ptr &value)                        __Th___;
+        void  ConstantI3 (const String &name, const ScriptDynamicInt3Ptr &value)                        __Th___;
         void  ConstantI4 (const String &name, const ScriptDynamicInt4Ptr &value)                        __Th___;
+
+        void  ConstantU1 (const String &name, const ScriptDynamicUIntPtr  &value)                       __Th___;
+        void  ConstantU2 (const String &name, const ScriptDynamicUInt2Ptr &value)                       __Th___;
+        void  ConstantU3 (const String &name, const ScriptDynamicUInt3Ptr &value)                       __Th___;
+        void  ConstantU4 (const String &name, const ScriptDynamicUInt4Ptr &value)                       __Th___;
+
 
         void  EnableIfEqual (const ScriptDynamicUIntPtr &dyn, uint ref)                                 __Th___;
         void  EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref)                                  __Th___;
@@ -178,6 +195,9 @@ namespace AE::ResEditor
         template <typename T>
         void  _Slider (const String &name, const T &min, const T &max, T val, ESlider type)             __Th___;
 
+        template <typename T>
+        void  _Constant (const String &name, const T &dynVal, ESlider type, ubyte count)                __Th___;
+
         void  _AddSlidersToUIInteraction (IPass* pass)                                                  const;
         void  _CopyConstants (OUT IPass::Constants &)                                                   const;
 
@@ -185,7 +205,7 @@ namespace AE::ResEditor
     protected:
         explicit ScriptBasePass (EFlags flags)                                                          __Th___;
 
-        void  _Init (IPass &dst)                                                                        C_Th___;
+        void  _Init (IPass &dst, const ScriptBaseControllerPtr &defaultController)                      C_Th___;
 
         ND_ ScriptDynamicDim*   _Dimension ()                                                           __Th___ { return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
         void  _SetDynamicDimension (const ScriptDynamicDimPtr &)                                        __Th___;
@@ -199,6 +219,7 @@ namespace AE::ResEditor
         static void  _AddDefines (StringView defines, INOUT String &header)                             __Th___;
 
         void  _AddSliders (INOUT String &header)                                                        C_Th___;
+        void  _AddSlidersAsMacros (OUT String &macros)                                                  C_Th___;
     };
 
     AE_BIT_OPERATORS( ScriptBasePass::EFlags );

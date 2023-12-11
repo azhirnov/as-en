@@ -37,10 +37,10 @@ namespace AE::App
         struct OpenVRLoader
         {
         // types
-            using VR_InitInternal_t                         = intptr_t (*) (EVRInitError *peError, EVRApplicationType eType);
+            using VR_InitInternal_t                         = intptr_t (*) (EVRInitError* peError, EVRApplicationType eType);
             using VR_ShutdownInternal_t                     = void (*) ();
             using VR_IsHmdPresent_t                         = int (*) ();
-            using VR_GetGenericInterface_t                  = intptr_t (*) (const char *pchInterfaceVersion, EVRInitError *peError);
+            using VR_GetGenericInterface_t                  = intptr_t (*) (const char* pchInterfaceVersion, EVRInitError* peError);
             using VR_IsRuntimeInstalled_t                   = int (*) ();
             using VR_GetVRInitErrorAsSymbol_t               = const char* (*) (EVRInitError error);
             using VR_GetVRInitErrorAsEnglishDescription_t   = const char* (*) (EVRInitError error);
@@ -161,7 +161,7 @@ namespace AE::App
 
         ND_ ControllerID  _GetControllerID (uint tdi) const;
 
-        ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice, TrackedDeviceProperty prop, TrackedPropertyError *peError = null) C_NE___;
+        ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice, TrackedDeviceProperty prop, TrackedPropertyError* peError = null) C_NE___;
     };
 
 

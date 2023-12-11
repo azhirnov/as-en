@@ -9,6 +9,8 @@ types:
     DirectCtx::Graphics
     DirectCtx::ASBuild
     DirectCtx::RayTracing
+    DirectCtx::VideoDecode
+    DirectCtx::VideoEncode
 
     IndirectCtx::CommandBuffer
     IndirectCtx::Transfer
@@ -17,6 +19,8 @@ types:
     IndirectCtx::Graphics
     IndirectCtx::ASBuild
     IndirectCtx::RayTracing
+    IndirectCtx::VideoDecode
+    IndirectCtx::VideoEncode
 
     RenderTask
     RenderTaskCoro
@@ -64,6 +68,8 @@ namespace AE::Graphics
         using Graphics      = VDirectGraphicsContext;
         using ASBuild       = VDirectASBuildContext;
         using RayTracing    = VDirectRayTracingContext;
+    //  using VideoDecode   = VDirectVideoDecodeContext;
+    //  using VideoEncode   = VDirectVideoEncodeContext;
     };
 
     struct IndirectCtx
@@ -75,9 +81,9 @@ namespace AE::Graphics
         using Graphics      = VIndirectGraphicsContext;
         using ASBuild       = VIndirectASBuildContext;
         using RayTracing    = VIndirectRayTracingContext;
+    //  using VideoDecode   = VIndirectVideoDecodeContext;
+    //  using VideoEncode   = VIndirectVideoEncodeContext;
     };
-
-    using GRenderTaskScheduler  = VRenderTaskScheduler;
 
     using CommandBatch          = VCommandBatch;
     using CommandBatchPtr       = RC< CommandBatch >;
@@ -94,7 +100,122 @@ namespace AE::Graphics
 
 
 
+#if defined(AE_ENABLE_METAL) and not defined(AE_ENABLE_REMOTE_GRAPHICS)
+# include "graphics/Metal/Commands/MTransferContext.h"
+# include "graphics/Metal/Commands/MComputeContext.h"
+# include "graphics/Metal/Commands/MDrawContext.h"
+# include "graphics/Metal/Commands/MGraphicsContext.h"
+# include "graphics/Metal/Commands/MASBuildContext.h"
+# include "graphics/Metal/Commands/MRayTracingContext.h"
+
+# include "graphics/Metal/Descriptors/MDescriptorUpdater.h"
+
+# include "graphics/Metal/MRenderTaskScheduler.h"
+
+namespace AE::Graphics
+{
+    struct DirectCtx
+    {
+        using CommandBuffer = MCommandBuffer;
+        using Transfer      = MDirectTransferContext;
+        using Compute       = MDirectComputeContext;
+        using Draw          = MDirectDrawContext;
+        using Graphics      = MDirectGraphicsContext;
+        using ASBuild       = MDirectASBuildContext;
+        using RayTracing    = MDirectRayTracingContext;
+    //  using VideoDecode   = MDirectVideoDecodeContext;
+    //  using VideoEncode   = MDirectVideoEncodeContext;
+    };
+
+    struct IndirectCtx
+    {
+        using CommandBuffer = Graphics::_hidden_::MSoftwareCmdBufPtr;
+        using Transfer      = MIndirectTransferContext;
+        using Compute       = MIndirectComputeContext;
+        using Draw          = MIndirectDrawContext;
+        using Graphics      = MIndirectGraphicsContext;
+        using ASBuild       = MIndirectASBuildContext;
+        using RayTracing    = MIndirectRayTracingContext;
+    //  using VideoDecode   = MIndirectVideoDecodeContext;
+    //  using VideoEncode   = MIndirectVideoEncodeContext;
+    };
+
+    using CommandBatch          = MCommandBatch;
+    using CommandBatchPtr       = RC< CommandBatch >;
+
+    using DrawCommandBatch      = MDrawCommandBatch;
+    using DrawCommandBatchPtr   = RC< DrawCommandBatch >;
+
+    using DescriptorUpdater     = MDescriptorUpdater;
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_METAL
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "graphics/Remote/Commands/RTransferContext.h"
+# include "graphics/Remote/Commands/RComputeContext.h"
+# include "graphics/Remote/Commands/RDrawContext.h"
+# include "graphics/Remote/Commands/RGraphicsContext.h"
+# include "graphics/Remote/Commands/RASBuildContext.h"
+# include "graphics/Remote/Commands/RRayTracingContext.h"
+
+# include "graphics/Remote/Descriptors/RDescriptorUpdater.h"
+
+# include "graphics/Remote/RRenderTaskScheduler.h"
+
+namespace AE::Graphics
+{
+    struct DirectCtx
+    {
+        using CommandBuffer = Graphics::_hidden_::RSoftwareCmdBufPtr;
+        using Transfer      = RTransferContext;
+        using Compute       = RComputeContext;
+        using Draw          = RDrawContext;
+        using Graphics      = RGraphicsContext;
+        using ASBuild       = RASBuildContext;
+        using RayTracing    = RRayTracingContext;
+    //  using VideoDecode   = RVideoDecodeContext;
+    //  using VideoEncode   = RVideoEncodeContext;
+    };
+
+    using IndirectCtx           = DirectCtx;
+
+    using CommandBatch          = RCommandBatch;
+    using CommandBatchPtr       = RC< CommandBatch >;
+
+    using DrawCommandBatch      = RDrawCommandBatch;
+    using DrawCommandBatchPtr   = RC< DrawCommandBatch >;
+
+    using DescriptorUpdater     = RDescriptorUpdater;
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_REMOTE_GRAPHICS
+//-----------------------------------------------------------------------------
+
+
+
 #ifdef AE_CPP_DETECT_MISMATCH
+
+# ifdef AE_ENABLE_METAL
+#   pragma detect_mismatch( "AE_ENABLE_METAL", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
+# endif
+
+# ifdef AE_ENABLE_METAL
+#  if AE_METAL_NATIVE_DEBUGGER
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "1" )
+#  else
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "0" )
+#  endif
+# else
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "0" )
+# endif
 
 # ifdef AE_ENABLE_VULKAN
 #   pragma detect_mismatch( "AE_ENABLE_VULKAN", "1" )

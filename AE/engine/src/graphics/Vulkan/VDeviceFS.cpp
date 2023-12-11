@@ -6,6 +6,11 @@
 
 namespace AE::Graphics
 {
+namespace
+{
+    // https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_KHR_maintenance3&extensionproperty=maxPerSetDescriptors&platform=all
+    static constexpr uint   c_MaxPerSetDescriptors = 512;
+}
 
 /*
 =================================================
@@ -14,7 +19,7 @@ namespace AE::Graphics
 */
     void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
     {
-        STATIC_ASSERT( sizeof(FeatureSet) == 680 );
+        StaticAssert( sizeof(FeatureSet) == 688 );
 
         const EFeature  True    = EFeature::RequireTrue;
         const EFeature  False   = EFeature::RequireFalse;
@@ -193,7 +198,12 @@ namespace AE::Graphics
         }
 
         if ( _extensions.cooperativeMatrix )
-            outFeatureSet.cooperativeMatrix = _properties.cooperativeMatrixFeats.cooperativeMatrix ? True : False;
+        {
+            outFeatureSet.cooperativeMatrix         = _properties.cooperativeMatrixFeats.cooperativeMatrix ? True : False;
+            outFeatureSet.cooperativeMatrixStages   = AEEnumCast( VkShaderStageFlagBits( _properties.cooperativeMatrixProps.cooperativeMatrixSupportedStages )) & all_stages;
+
+            // use vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR to get supported props
+        }
 
         if ( _extensions.bufferDeviceAddress )
             SET_FEAT2( bufferDeviceAddress, _properties.bufferDeviceAddressFeats );
@@ -306,6 +316,7 @@ namespace AE::Graphics
                 EShadingRate    samples = EShadingRate_FromSampleBits( shading_rates[i].sampleCounts );
                 uint2           size2   = EShadingRate_Size( size | samples );
 
+                Unused( size2 );
                 ASSERT( size2.x == shading_rates[i].fragmentSize.width );
                 ASSERT( size2.y == shading_rates[i].fragmentSize.height );
 
@@ -362,7 +373,7 @@ namespace AE::Graphics
         outFeatureSet.perDescrSet.maxStorageBuffers     = limits.maxDescriptorSetStorageBuffers;
         outFeatureSet.perDescrSet.maxStorageImages      = limits.maxDescriptorSetStorageImages;
         outFeatureSet.perDescrSet.maxUniformBuffers     = limits.maxDescriptorSetUniformBuffers;
-        outFeatureSet.perDescrSet.maxTotalResources     = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : 1024u;
+        outFeatureSet.perDescrSet.maxTotalResources     = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : c_MaxPerSetDescriptors;
 
         outFeatureSet.perStage.maxInputAttachments      = limits.maxPerStageDescriptorInputAttachments;
         outFeatureSet.perStage.maxSampledImages         = limits.maxPerStageDescriptorSampledImages;
@@ -584,7 +595,7 @@ namespace AE::Graphics
                 vkGetPhysicalDeviceQueueFamilyProperties( _vkPhysicalDevice, OUT &count, OUT queue_family_props.data() );
                 queue_family_props.resize( Min( count, queue_family_props.size() ));
 
-                STATIC_ASSERT( uint(EQueueMask::All) == 0x1F );
+                StaticAssert( uint(EQueueMask::All) == 0x1F );
                 for (auto& props : queue_family_props)
                 {
                     if ( AllBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT ) and
@@ -631,7 +642,7 @@ namespace AE::Graphics
         #define SET_FEAT( _name_ )          feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
         #define SET_FEAT2( _name_, _feat_ ) _feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
-        STATIC_ASSERT( sizeof(FeatureSet) == 680 );
+        StaticAssert( sizeof(FeatureSet) == 688 );
 
         auto&           feats10     = _properties.features;
         auto&           f16i8_feats = _properties.shaderFloat16Int8Feats;
@@ -791,7 +802,12 @@ namespace AE::Graphics
         SET_FEAT2( shaderSubgroupClock, _properties.shaderClockFeats );
         SET_FEAT2( shaderDeviceClock,   _properties.shaderClockFeats );
 
-        _extensions.cooperativeMatrix = (inFS.cooperativeMatrix == True);
+        if ( inFS.cooperativeMatrix == True )
+        {
+            _extensions.cooperativeMatrix                                       = true;
+            _properties.cooperativeMatrixFeats.cooperativeMatrix                = VK_TRUE;
+            _properties.cooperativeMatrixProps.cooperativeMatrixSupportedStages = VEnumCast( inFS.cooperativeMatrixStages );
+        }
 
         _extensions.bufferDeviceAddress = (inFS.bufferDeviceAddress == True);
         SET_FEAT2( bufferDeviceAddress, _properties.bufferDeviceAddressFeats );
@@ -864,7 +880,7 @@ namespace AE::Graphics
 
         _extensions.accelerationStructure = _extensions.rayTracingPipeline or _extensions.rayQuery;
 
-        SET_FEAT( drawIndirectFirstInstance ); 
+        SET_FEAT( drawIndirectFirstInstance );
         _extensions.drawIndirectCount = (inFS.drawIndirectCount == True);
 
         _extensions.multiview = (inFS.multiview                     == True)    or

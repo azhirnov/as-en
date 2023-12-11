@@ -21,129 +21,156 @@ namespace {
 */
     AEStyleGLSLPreprocessor::AEStyleGLSLPreprocessor ()
     {
-        // TODO: optimize - group by prefixes
-
         // types
-        _typeMap.emplace( "float2",     "vec2" );
-        _typeMap.emplace( "float3",     "vec3" );
-        _typeMap.emplace( "float4",     "vec4" );
-        _typeMap.emplace( "float2x2",   "mat2x2" );
-        _typeMap.emplace( "float2x3",   "mat2x3" );
-        _typeMap.emplace( "float2x4",   "mat2x4" );
-        _typeMap.emplace( "float3x2",   "mat3x2" );
-        _typeMap.emplace( "float3x3",   "mat3x3" );
-        _typeMap.emplace( "float3x4",   "mat3x4" );
-        _typeMap.emplace( "float4x2",   "mat4x2" );
-        _typeMap.emplace( "float4x3",   "mat4x3" );
-        _typeMap.emplace( "float4x4",   "mat4x4" );
+      #if 1
+        _typeMap.emplace( "float2",         "vec2" );
+        _typeMap.emplace( "float3",         "vec3" );
+        _typeMap.emplace( "float4",         "vec4" );
+        _typeMap.emplace( "float_vec_t",    "vec" );
+        _typeMap.emplace( "float2x2",       "mat2x2" );
+        _typeMap.emplace( "float2x3",       "mat2x3" );
+        _typeMap.emplace( "float2x4",       "mat2x4" );
+        _typeMap.emplace( "float3x2",       "mat3x2" );
+        _typeMap.emplace( "float3x3",       "mat3x3" );
+        _typeMap.emplace( "float3x4",       "mat3x4" );
+        _typeMap.emplace( "float4x2",       "mat4x2" );
+        _typeMap.emplace( "float4x3",       "mat4x3" );
+        _typeMap.emplace( "float4x4",       "mat4x4" );
+        _typeMap.emplace( "float_mat_t",    "mat" );
+      #else
+        // GL_EXT_shader_explicit_arithmetic_types
+        _typeMap.emplace( "float",          "float32_t" );
+        _typeMap.emplace( "float2",         "f32vec2" );
+        _typeMap.emplace( "float3",         "f32vec3" );
+        _typeMap.emplace( "float4",         "f32vec4" );
+        _typeMap.emplace( "float_vec_t",    "f32vec" );
+        _typeMap.emplace( "float2x2",       "f32mat2x2" );
+        _typeMap.emplace( "float2x3",       "f32mat2x3" );
+        _typeMap.emplace( "float2x4",       "f32mat2x4" );
+        _typeMap.emplace( "float3x2",       "f32mat3x2" );
+        _typeMap.emplace( "float3x3",       "f32mat3x3" );
+        _typeMap.emplace( "float3x4",       "f32mat3x4" );
+        _typeMap.emplace( "float4x2",       "f32mat4x2" );
+        _typeMap.emplace( "float4x3",       "f32mat4x3" );
+        _typeMap.emplace( "float4x4",       "f32mat4x4" );
+        _typeMap.emplace( "float_mat_t",    "f32mat" );
+      #endif
 
-        _typeMap.emplace( "double2",    "dvec2" );
-        _typeMap.emplace( "double3",    "dvec3" );
-        _typeMap.emplace( "double4",    "dvec4" );
-        _typeMap.emplace( "double2x2",  "dmat2x2" );
-        _typeMap.emplace( "double2x3",  "dmat2x3" );
-        _typeMap.emplace( "double2x4",  "dmat2x4" );
-        _typeMap.emplace( "double3x2",  "dmat3x2" );
-        _typeMap.emplace( "double3x3",  "dmat3x3" );
-        _typeMap.emplace( "double3x4",  "dmat3x4" );
-        _typeMap.emplace( "double4x2",  "dmat4x2" );
-        _typeMap.emplace( "double4x3",  "dmat4x3" );
-        _typeMap.emplace( "double4x4",  "dmat4x4" );
+      #if 1
+        _typeMap.emplace( "double2",        "dvec2" );
+        _typeMap.emplace( "double3",        "dvec3" );
+        _typeMap.emplace( "double4",        "dvec4" );
+        _typeMap.emplace( "double_vec_t",   "dvec" );
+        _typeMap.emplace( "double2x2",      "dmat2x2" );
+        _typeMap.emplace( "double2x3",      "dmat2x3" );
+        _typeMap.emplace( "double2x4",      "dmat2x4" );
+        _typeMap.emplace( "double3x2",      "dmat3x2" );
+        _typeMap.emplace( "double3x3",      "dmat3x3" );
+        _typeMap.emplace( "double3x4",      "dmat3x4" );
+        _typeMap.emplace( "double4x2",      "dmat4x2" );
+        _typeMap.emplace( "double4x3",      "dmat4x3" );
+        _typeMap.emplace( "double4x4",      "dmat4x4" );
+        _typeMap.emplace( "double_mat_t",   "dmat" );
+      #else
+        // GL_EXT_shader_explicit_arithmetic_types
+        _typeMap.emplace( "double",         "float64_t" );
+        _typeMap.emplace( "double2",        "f64vec2" );
+        _typeMap.emplace( "double3",        "f64vec3" );
+        _typeMap.emplace( "double4",        "f64vec4" );
+        _typeMap.emplace( "double_vec_t",   "f64vec" );
+        _typeMap.emplace( "double2x2",      "f64mat2x2" );
+        _typeMap.emplace( "double2x3",      "f64mat2x3" );
+        _typeMap.emplace( "double2x4",      "f64mat2x4" );
+        _typeMap.emplace( "double3x2",      "f64mat3x2" );
+        _typeMap.emplace( "double3x3",      "f64mat3x3" );
+        _typeMap.emplace( "double3x4",      "f64mat3x4" );
+        _typeMap.emplace( "double4x2",      "f64mat4x2" );
+        _typeMap.emplace( "double4x3",      "f64mat4x3" );
+        _typeMap.emplace( "double4x4",      "f64mat4x4" );
+        _typeMap.emplace( "double_mat_t",   "f64mat" );
+      #endif
 
-        _typeMap.emplace( "int2",       "ivec2" );
-        _typeMap.emplace( "int3",       "ivec3" );
-        _typeMap.emplace( "int4",       "ivec4" );
+      #if 1
+        _typeMap.emplace( "int2",           "ivec2" );
+        _typeMap.emplace( "int3",           "ivec3" );
+        _typeMap.emplace( "int4",           "ivec4" );
+        _typeMap.emplace( "int_vec_t",      "ivec" );
+        _typeMap.emplace( "uint2",          "uvec2" );
+        _typeMap.emplace( "uint3",          "uvec3" );
+        _typeMap.emplace( "uint4",          "uvec4" );
+        _typeMap.emplace( "uint_vec_t",     "uvec" );
+      #else
+        // GL_EXT_shader_explicit_arithmetic_types
+        _typeMap.emplace( "int",            "int32_t" );
+        _typeMap.emplace( "int2",           "i32vec2" );
+        _typeMap.emplace( "int3",           "i32vec3" );
+        _typeMap.emplace( "int4",           "i32vec4" );
+        _typeMap.emplace( "int_vec_t",      "i32vec" );
+        _typeMap.emplace( "uint",           "uint32_t" );
+        _typeMap.emplace( "uint2",          "u32vec2" );
+        _typeMap.emplace( "uint3",          "u32vec3" );
+        _typeMap.emplace( "uint4",          "u32vec4" );
+        _typeMap.emplace( "uint_vec_t",     "u32vec" );
+      #endif
 
-        _typeMap.emplace( "uint2",      "uvec2" );
-        _typeMap.emplace( "uint3",      "uvec3" );
-        _typeMap.emplace( "uint4",      "uvec4" );
-
-        _typeMap.emplace( "bool2",      "bvec2" );
-        _typeMap.emplace( "bool3",      "bvec3" );
-        _typeMap.emplace( "bool4",      "bvec4" );
+        _typeMap.emplace( "bool2",          "bvec2" );
+        _typeMap.emplace( "bool3",          "bvec3" );
+        _typeMap.emplace( "bool4",          "bvec4" );
+        _typeMap.emplace( "bool_vec_t",     "bvec4" );
 
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GL_EXT_shader_explicit_arithmetic_types.txt
-        _typeMap.emplace( "byte",       "int8_t" );
-        _typeMap.emplace( "byte2",      "i8vec2" );
-        _typeMap.emplace( "byte3",      "i8vec3" );
-        _typeMap.emplace( "byte4",      "i8vec4" );
+        _typeMap.emplace( "sbyte",          "int8_t" );
+        _typeMap.emplace( "sbyte2",         "i8vec2" );
+        _typeMap.emplace( "sbyte3",         "i8vec3" );
+        _typeMap.emplace( "sbyte4",         "i8vec4" );
+        _typeMap.emplace( "sbyte_vec_t",    "i8vec" );
 
-        _typeMap.emplace( "ubyte",      "uint8_t" );
-        _typeMap.emplace( "ubyte2",     "u8vec2" );
-        _typeMap.emplace( "ubyte3",     "u8vec3" );
-        _typeMap.emplace( "ubyte4",     "u8vec4" );
+        _typeMap.emplace( "ubyte",          "uint8_t" );
+        _typeMap.emplace( "ubyte2",         "u8vec2" );
+        _typeMap.emplace( "ubyte3",         "u8vec3" );
+        _typeMap.emplace( "ubyte4",         "u8vec4" );
+        _typeMap.emplace( "ubyte_vec_t",    "u8vec" );
 
-        _typeMap.emplace( "short",      "int16_t" );
-        _typeMap.emplace( "short2",     "i16vec2" );
-        _typeMap.emplace( "short3",     "i16vec3" );
-        _typeMap.emplace( "short4",     "i16vec4" );
+        _typeMap.emplace( "sshort",         "int16_t" );
+        _typeMap.emplace( "sshort2",        "i16vec2" );
+        _typeMap.emplace( "sshort3",        "i16vec3" );
+        _typeMap.emplace( "sshort4",        "i16vec4" );
+        _typeMap.emplace( "sshort_vec_t",   "i16vec" );
 
-        _typeMap.emplace( "ushort",     "uint16_t" );
-        _typeMap.emplace( "ushort2",    "u16vec2" );
-        _typeMap.emplace( "ushort3",    "u16vec3" );
-        _typeMap.emplace( "ushort4",    "u16vec4" );
+        _typeMap.emplace( "ushort",         "uint16_t" );
+        _typeMap.emplace( "ushort2",        "u16vec2" );
+        _typeMap.emplace( "ushort3",        "u16vec3" );
+        _typeMap.emplace( "ushort4",        "u16vec4" );
+        _typeMap.emplace( "ushort_vec_t",   "u16vec" );
 
-        _typeMap.emplace( "half",       "float16_t" );
-        _typeMap.emplace( "half2",      "f16vec2" );
-        _typeMap.emplace( "half3",      "f16vec3" );
-        _typeMap.emplace( "half4",      "f16vec4" );
-        _typeMap.emplace( "half2x2",    "f16mat2x2" );
-        _typeMap.emplace( "half2x3",    "f16mat2x3" );
-        _typeMap.emplace( "half2x4",    "f16mat2x4" );
-        _typeMap.emplace( "half3x2",    "f16mat3x2" );
-        _typeMap.emplace( "half3x3",    "f16mat3x3" );
-        _typeMap.emplace( "half3x4",    "f16mat3x4" );
-        _typeMap.emplace( "half4x2",    "f16mat4x2" );
-        _typeMap.emplace( "half4x3",    "f16mat4x3" );
-        _typeMap.emplace( "half4x4",    "f16mat4x4" );
-        /*
-        _typeMap.emplace( "float",      "float32_t" );
-        _typeMap.emplace( "float2",     "f32vec2" );
-        _typeMap.emplace( "float3",     "f32vec3" );
-        _typeMap.emplace( "float4",     "f32vec4" );
-        _typeMap.emplace( "float2x2",   "f32mat2x2" );
-        _typeMap.emplace( "float2x3",   "f32mat2x3" );
-        _typeMap.emplace( "float2x4",   "f32mat2x4" );
-        _typeMap.emplace( "float3x2",   "f32mat3x2" );
-        _typeMap.emplace( "float3x3",   "f32mat3x3" );
-        _typeMap.emplace( "float3x4",   "f32mat3x4" );
-        _typeMap.emplace( "float4x2",   "f32mat4x2" );
-        _typeMap.emplace( "float4x3",   "f32mat4x3" );
-        _typeMap.emplace( "float4x4",   "f32mat4x4" );
-        *//*
-        _typeMap.emplace( "double",     "float64_t" );
-        _typeMap.emplace( "double2",    "f64vec2" );
-        _typeMap.emplace( "double3",    "f64vec3" );
-        _typeMap.emplace( "double4",    "f64vec4" );
-        _typeMap.emplace( "double2x2",  "f64mat2x2" );
-        _typeMap.emplace( "double2x3",  "f64mat2x3" );
-        _typeMap.emplace( "double2x4",  "f64mat2x4" );
-        _typeMap.emplace( "double3x2",  "f64mat3x2" );
-        _typeMap.emplace( "double3x3",  "f64mat3x3" );
-        _typeMap.emplace( "double3x4",  "f64mat3x4" );
-        _typeMap.emplace( "double4x2",  "f64mat4x2" );
-        _typeMap.emplace( "double4x3",  "f64mat4x3" );
-        _typeMap.emplace( "double4x4",  "f64mat4x4" );
+        _typeMap.emplace( "half",           "float16_t" );
+        _typeMap.emplace( "half2",          "f16vec2" );
+        _typeMap.emplace( "half3",          "f16vec3" );
+        _typeMap.emplace( "half4",          "f16vec4" );
+        _typeMap.emplace( "half_vec_t",     "f16vec" );
+        _typeMap.emplace( "half2x2",        "f16mat2x2" );
+        _typeMap.emplace( "half2x3",        "f16mat2x3" );
+        _typeMap.emplace( "half2x4",        "f16mat2x4" );
+        _typeMap.emplace( "half3x2",        "f16mat3x2" );
+        _typeMap.emplace( "half3x3",        "f16mat3x3" );
+        _typeMap.emplace( "half3x4",        "f16mat3x4" );
+        _typeMap.emplace( "half4x2",        "f16mat4x2" );
+        _typeMap.emplace( "half4x3",        "f16mat4x3" );
+        _typeMap.emplace( "half4x4",        "f16mat4x4" );
+        _typeMap.emplace( "half_mat_t",     "f16mat" );
 
-        _typeMap.emplace( "int",        "int32_t" );
-        _typeMap.emplace( "int2",       "i32vec2" );
-        _typeMap.emplace( "int3",       "i32vec3" );
-        _typeMap.emplace( "int4",       "i32vec4" );
+        _typeMap.emplace( "slong",          "int64_t" );
+        _typeMap.emplace( "slong2",         "i64vec2" );
+        _typeMap.emplace( "slong3",         "i64vec3" );
+        _typeMap.emplace( "slong4",         "i64vec4" );
+        _typeMap.emplace( "slong_vec_t",    "i64vec" );
 
-        _typeMap.emplace( "uint",       "uint32_t" );
-        _typeMap.emplace( "uint2",      "u32vec2" );
-        _typeMap.emplace( "uint3",      "u32vec3" );
-        _typeMap.emplace( "uint4",      "u32vec4" );
-        */
-        _typeMap.emplace( "long",       "int64_t" );
-        _typeMap.emplace( "long2",      "i64vec2" );
-        _typeMap.emplace( "long3",      "i64vec3" );
-        _typeMap.emplace( "long4",      "i64vec4" );
+        _typeMap.emplace( "ulong",          "uint64_t" );
+        _typeMap.emplace( "ulong2",         "u64vec2" );
+        _typeMap.emplace( "ulong3",         "u64vec3" );
+        _typeMap.emplace( "ulong4",         "u64vec4" );
+        _typeMap.emplace( "ulong_vec_t",    "u64vec" );
 
-        _typeMap.emplace( "ulong",      "uint64_t" );
-        _typeMap.emplace( "ulong2",     "u64vec2" );
-        _typeMap.emplace( "ulong3",     "u64vec3" );
-        _typeMap.emplace( "ulong4",     "u64vec4" );
 
         _typeMap.emplace( "gl::SubpassInput<float>",    "subpassInput" );
         _typeMap.emplace( "gl::SubpassInputMS<float>",  "subpassInputMS" );
@@ -608,9 +635,9 @@ namespace {
 
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GLSL_KHR_cooperative_matrix.txt
         _typeMap.emplace( "gl::CoopMat",                                "coopmat" );
-        _typeMap.emplace( "gl.CoopMatLoad",                             "coopmatLoad" );
-        _typeMap.emplace( "gl.CoopMatStore",                            "coopmatStore" );
-        _typeMap.emplace( "gl.CoopMatMulAdd",                           "coopmatMulAdd" );
+        _typeMap.emplace( "gl.CoopMatLoad",                             "coopMatLoad" );
+        _typeMap.emplace( "gl.CoopMatStore",                            "coopMatStore" );
+        _typeMap.emplace( "gl.CoopMatMulAdd",                           "coopMatMulAdd" );
         _typeMap.emplace( "gl::MatrixOperands",                         "int" );
         _typeMap.emplace( "gl::MatrixOperands::None",                   "0" );
         _typeMap.emplace( "gl::MatrixOperands::SaturatingAccumulation", "gl_MatrixOperandsSaturatingAccumulation" );
@@ -618,6 +645,7 @@ namespace {
         _typeMap.emplace( "gl::MatrixUse::A",                           "gl_MatrixUseA" );
         _typeMap.emplace( "gl::MatrixUse::B",                           "gl_MatrixUseB" );
         _typeMap.emplace( "gl::MatrixUse::Accumulator",                 "gl_MatrixUseAccumulator" );
+        _typeMap.emplace( "gl::MatrixUse::C",                           "gl_MatrixUseAccumulator" );
         _typeMap.emplace( "gl::CooperativeMatrixLayout",                "int" );
         _typeMap.emplace( "gl::CooperativeMatrixLayout::RowMajor",      "gl_CooperativeMatrixLayoutRowMajor" );
         _typeMap.emplace( "gl::CooperativeMatrixLayout::ColumnMajor",   "gl_CooperativeMatrixLayoutColumnMajor" );
@@ -666,6 +694,7 @@ namespace {
             {{
                 if ( dst.size() <= 1 )  return;
                 if ( dst == "uint" )    return;
+                if ( dst == "int" )     return;
 
                 for (usize i = 0; i < source.size();)
                 {

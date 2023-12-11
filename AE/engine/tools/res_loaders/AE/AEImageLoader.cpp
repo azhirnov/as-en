@@ -15,7 +15,7 @@ namespace {
     LoadImage
 =================================================
 */
-    bool  AEImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  AEImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         CHECK( not flipY );
 

@@ -83,7 +83,7 @@ float3  HSVtoRGB_v2 (float3 hsv)
     //    if      ( var_i == 0 ) { R = V         ; G = TempRGB.z ; B = TempRGB.x }
     //    else if ( var_i == 2 ) { R = TempRGB.x ; G = V         ; B = TempRGB.z }
     //    else if ( var_i == 4 ) { R = TempRGB.z ; G = TempRGB.x ; B = V     }
-    // 
+    //
     //    else if ( var_i == 1 ) { R = TempRGB.y ; G = V         ; B = TempRGB.x }
     //    else if ( var_i == 3 ) { R = TempRGB.x ; G = TempRGB.y ; B = V     }
     //    else if ( var_i == 5 ) { R = V         ; G = TempRGB.x ; B = TempRGB.y }
@@ -208,7 +208,7 @@ float3  XYYtoRGB_v2 (float3 xyY)
     );
     const float3x3  XYZ2RGB = float3x3(
         3.2406, -1.5372, -0.4986,
-        -0.9689, 1.8758, 0.0415, 
+        -0.9689, 1.8758, 0.0415,
         0.0557, -0.2040, 1.0570
     );
     return XYZ2RGB * XYZ;
@@ -266,4 +266,68 @@ float3  XYYtoRGB (const float3 xyY)
                           xyY.z,
                           xyY.z * (1.0 - xyY.x - xyY.y) / xyY.y );
     return XYZtoRGB( xyz );
+}
+
+/*
+=================================================
+    RGBtoOklab / OklabToRGB
+-----
+    from https://mini.gmshaders.com/p/oklab
+    originally from https://bottosson.github.io/posts/gamutclipping/#source-code (MIT license)
+=================================================
+*/
+float3  RGBtoOklab (float3 rgb)
+{
+    const float3x3  im1 = float3x3( 0.4121656120, 0.2118591070, 0.0883097947,
+                                    0.5362752080, 0.6807189584, 0.2818474174,
+                                    0.0514575653, 0.1074065790, 0.6302613616 );
+
+    const float3x3  im2 = float3x3( +0.2104542553, +1.9779984951, +0.0259040371,
+                                    +0.7936177850, -2.4285922050, +0.7827717662,
+                                    -0.0040720468, +0.4505937099, -0.8086757660 );
+
+    float3  lms = im1 * rgb;
+    return im2 * (Sign(lms) * Pow( Abs(lms), float3(1.0/3.0) ));
+}
+
+float3  OklabToRGB (float3 oklab)
+{
+    const float3x3  m1 = float3x3(  +1.000000000, +1.000000000, +1.000000000,
+                                    +0.396337777, -0.105561346, -0.089484178,
+                                    +0.215803757, -0.063854173, -1.291485548 );
+
+    const float3x3  m2 = float3x3(  +4.076724529, -1.268143773, -0.004111989,
+                                    -3.307216883, +2.609332323, -0.703476310,
+                                    +0.230759054, -0.341134429, +1.706862569 );
+    float3  lms = m1 * oklab;
+    return m2 * (lms * lms * lms);
+}
+
+/*
+=================================================
+    RGBLerpOklab
+-----
+    By Inigo Quilez, under MIT license
+    https://www.shadertoy.com/view/ttcyRS
+=================================================
+*/
+float3  RGBLerpOklab (const float3 lin1, const float3 lin2, const float factor)
+{
+    const float3x3  kCONEtoLMS = float3x3(
+         0.4121656120,  0.2118591070,  0.0883097947,
+         0.5362752080,  0.6807189584,  0.2818474174,
+         0.0514575653,  0.1074065790,  0.6302613616 );
+
+    const float3x3  kLMStoCONE = float3x3(
+         4.0767245293, -1.2681437731, -0.0041119885,
+        -3.3072168827,  2.6093323231, -0.7034763098,
+         0.2307590544, -0.3411344290,  1.7068625689 );
+
+    float3  lms1    = Pow( kCONEtoLMS * lin1, float3(1.0/3.0) );
+    float3  lms2    = Pow( kCONEtoLMS * lin2, float3(1.0/3.0) );
+
+    float3  lms     = Lerp( lms1, lms2, factor );
+            lms     *= 1.0 + 0.2 * factor * (1.0 - factor);
+
+    return kLMStoCONE * (lms * lms * lms);
 }

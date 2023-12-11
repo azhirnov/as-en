@@ -77,7 +77,7 @@ namespace AE::Base
     template <usize Size, uint UID, bool Optimize, uint Seed>
     void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, Optimize, Seed> &id, StringView name) __Th___
     {
-        STATIC_ASSERT( Size <= StString_t::capacity() );
+        StaticAssert( Size <= StString_t::capacity() );
 
         auto&       info     = _uidMap.emplace( UID, Info{Seed} ).first->second;    // throw
         const usize key      = usize(id.GetHash());

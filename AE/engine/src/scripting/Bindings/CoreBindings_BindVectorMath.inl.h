@@ -20,30 +20,30 @@ namespace
     struct InitVecFields< PackedVec<T,2> >
     {
     private:
-        static void  _Ctor1 (void *mem, const T value)
+        static void  _Ctor1 (void* mem, const T value)
         {
             PlacementNew< PackedVec<T,2> >( OUT mem, value );
         }
 
         template <typename B>
-        static void  _Ctor2 (void *mem, const PackedVec<B,2> &value)
+        static void  _Ctor2 (void* mem, const PackedVec<B,2> &value)
         {
             PlacementNew< PackedVec<T,2> >( OUT mem, PackedVec<T,2>{value} );
         }
 
         template <typename B>
-        static void  _Ctor3 (void *mem, const PackedVec<B,3> &value)
+        static void  _Ctor3 (void* mem, const PackedVec<B,3> &value)
         {
             PlacementNew< PackedVec<T,2> >( OUT mem, PackedVec<T,2>{value} );
         }
 
         template <typename B>
-        static void  _Ctor4 (void *mem, const PackedVec<B,4> &value)
+        static void  _Ctor4 (void* mem, const PackedVec<B,4> &value)
         {
             PlacementNew< PackedVec<T,2> >( OUT mem, PackedVec<T,2>{value} );
         }
 
-        static void  _CtorArg2 (void *mem, T x, T y)
+        static void  _CtorArg2 (void* mem, T x, T y)
         {
             PlacementNew< PackedVec<T,2> >( OUT mem, x, y );
         }
@@ -103,35 +103,35 @@ namespace
     struct InitVecFields< PackedVec<T,3> >
     {
     private:
-        static void  _Ctor1 (void *mem, const T value)
+        static void  _Ctor1 (void* mem, const T value)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, value );
         }
 
         template <typename B>
-        static void  _Ctor2 (void *mem, const PackedVec<B,2> &value)
+        static void  _Ctor2 (void* mem, const PackedVec<B,2> &value)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value.x, value.y, B{0}} );
         }
 
         template <typename B>
-        static void  _Ctor3 (void *mem, const PackedVec<B,3> &value)
+        static void  _Ctor3 (void* mem, const PackedVec<B,3> &value)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value} );
         }
 
         template <typename B>
-        static void  _Ctor4 (void *mem, const PackedVec<B,4> &value)
+        static void  _Ctor4 (void* mem, const PackedVec<B,4> &value)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value.x, value.y, value.z} );
         }
 
-        static void  _CtorArg2 (void *mem, const PackedVec<T,2> &xy, T z)
+        static void  _CtorArg2 (void* mem, const PackedVec<T,2> &xy, T z)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, xy, z );
         }
 
-        static void  _CtorArg3 (void *mem, T x, T y, T z)
+        static void  _CtorArg3 (void* mem, T x, T y, T z)
         {
             PlacementNew< PackedVec<T,3> >( OUT mem, x, y, z );
         }
@@ -193,45 +193,45 @@ namespace
     struct InitVecFields< PackedVec<T,4> >
     {
     private:
-        static void  _Ctor1 (void *mem, const T value)
+        static void  _Ctor1 (void* mem, const T value)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, value );
         }
 
         template <typename B>
-        static void  _Ctor2 (void *mem, const PackedVec<B,2> &value)
+        static void  _Ctor2 (void* mem, const PackedVec<B,2> &value)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{value.x, value.y, B{0}, B{0}} );
         }
 
         template <typename B>
-        static void  _Ctor3 (void *mem, const PackedVec<B,3> &value)
+        static void  _Ctor3 (void* mem, const PackedVec<B,3> &value)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{value.x, value.y, value.z, B{0}} );
         }
 
         template <typename B>
-        static void  _Ctor4 (void *mem, const PackedVec<B,4> &value)
+        static void  _Ctor4 (void* mem, const PackedVec<B,4> &value)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{value} );
         }
 
-        static void  _CtorArg2 (void *mem, const PackedVec<T,2> &xy, const PackedVec<T,2> &zw)
+        static void  _CtorArg2 (void* mem, const PackedVec<T,2> &xy, const PackedVec<T,2> &zw)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, xy, zw );
         }
 
-        static void  _CtorArg3 (void *mem, const PackedVec<T,3> &xyz, T w)
+        static void  _CtorArg3 (void* mem, const PackedVec<T,3> &xyz, T w)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, xyz, w );
         }
 
-        static void  _CtorArg4 (void *mem, T x, T y, T z, T w)
+        static void  _CtorArg4 (void* mem, T x, T y, T z, T w)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, x, y, z, w );
         }
 
-        static void  _CtorArg5 (void *mem, T x, const PackedVec<T,3> &yzw)
+        static void  _CtorArg5 (void* mem, T x, const PackedVec<T,3> &yzw)
         {
             PlacementNew< PackedVec<T,4> >( OUT mem, x, yzw );
         }
@@ -438,7 +438,7 @@ namespace
 
         binder.Operators()
             .Unary(     EUnaryOperator::Not,    static_cast<T (*)(const T&) >(&glm::operator !) )
-            .Equals(                            &VecFunc::template Equal< Vec_t >)
+            .Equal(                         &VecFunc::template Equal< Vec_t >)
             .Compare(                           &VecFunc::template Cmp< Vec_t >);
 
         se->AddFunction( &VecFunc::template All< Vec_t >,   "All",  {"x"} );
@@ -553,7 +553,7 @@ namespace
             .Binary(        EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_v_s< Vec_t >)
             .BinaryRH(      EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_s_v< Vec_t >)
 
-            .Equals( &VecFunc::template Equal< Vec_t >)
+            .Equal( &VecFunc::template Equal< Vec_t >)
             .Compare( &VecFunc::template Cmp< Vec_t >);
 
         BindIntFloatVec( binder, se );
@@ -600,7 +600,7 @@ namespace
             .Binary(        EBinaryOperator::Mod, &VecFunc::template Mod_v_s< Vec_t >)
             .BinaryRH(      EBinaryOperator::Mod, &VecFunc::template Mod_s_v< Vec_t >)
 
-            .Equals( &VecFunc::template Equal< Vec_t >)
+            .Equal( &VecFunc::template Equal< Vec_t >)
             .Compare( &VecFunc::template Cmp< Vec_t >);
 
         BindIntFloatVec( binder, se );

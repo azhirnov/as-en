@@ -72,10 +72,9 @@ namespace {
 */
     WindowPtr  ApplicationAndroid::CreateWindow (WndListenerPtr listener, const WindowDesc &, IInputActions* dstActions) __NE___
     {
-        DRC_EXLOCK( _stCheck );
-
         CHECK_ERR( listener );
 
+        DRC_EXLOCK( _stCheck );
         EXLOCK( _windowsGuard );
 
         if ( _windows.size() == 1 and not _windows.front().second->_listener )
@@ -90,17 +89,29 @@ namespace {
 
 /*
 =================================================
-    OpenBuiltinStorage
+    OpenStorage
 =================================================
 */
-    RC<IVirtualFileStorage>  ApplicationAndroid::OpenBuiltinStorage () __NE___
+    RC<IVirtualFileStorage>  ApplicationAndroid::OpenStorage (EAppStorage type) __NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        BEGIN_ENUM_CHECKS();
+        switch ( type )
+        {
+            case EAppStorage::Builtin :
+            {
+                auto    fs = MakeRC<FileSystemAndroid>();
+                CHECK_ERR( fs->Create( _paths->jniAssetMngr, "" ));
+                return fs;
+            }
 
-        auto    fs = MakeRC<FileSystemAndroid>();           // throw
-        CHECK_ERR( fs->Create( _java.jniAssetMngr, "" ));
-
-        return fs;
+            case EAppStorage::Cache :
+            {
+                Path    dir = _paths->externalCache;
+                CHECK_ERR( not dir.empty() );
+                return VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir );
+            }
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -124,10 +135,7 @@ namespace {
 */
     ArrayView<const char*>  ApplicationAndroid::GetVulkanInstanceExtensions () __NE___
     {
-        static const char*  extensions[] = {
-            "VK_KHR_android_surface"
-        };
-        return extensions;
+        return Graphics::VSwapchain::GetInstanceExtensions();
     }
 
 /*
@@ -200,9 +208,9 @@ namespace {
 
         _java.application       = Default;
         _java.assetManager      = Default;
-        _java.jniAssetMngr      = null;
+        _paths->jniAssetMngr    = null;
 
-        _methods.createWindow   = Default;
+        //_methods.createWindow = Default;
 
         EXLOCK( _windowsGuard );
 
@@ -222,11 +230,13 @@ namespace {
 */
     ApplicationAndroid::WinID  ApplicationAndroid::_AddWindow (SharedPtr<WindowAndroid> wnd) __NE___
     {
-        EXLOCK( _windowsGuard );
+        WinID   id;
+        {
+            EXLOCK( _windowsGuard );
 
-        const WinID id = ++_windowCounter;
-
-        _windows.emplace_back( id, wnd );
+            id = ++_windowCounter;
+            _windows.emplace_back( id, wnd );
+        }
 
         if ( not _started and _listener )
         {
@@ -266,26 +276,20 @@ namespace {
     native_OnCreate
 =================================================
 */
-    void JNICALL ApplicationAndroid::native_OnCreate (JNIEnv *env, jclass, jobject appCtx, jobject assetMngr) __NE___
+    void JNICALL ApplicationAndroid::native_OnCreate (JNIEnv* env, jclass, jobject appCtx, jobject assetMngr) __NE___
     {
         auto&   app = GetApp();
         DRC_EXLOCK( app._drCheck );
 
         JavaEnv je{ env };
 
-        app._java.application   = JavaObj{ appCtx, je };
-        app._java.assetManager  = JavaObj{ assetMngr, je };
-        app._java.jniAssetMngr  = AAssetManager_fromJava( env, app._java.assetManager.Get() );
+        app._java.application       = JavaObj{ appCtx, je };
+        app._java.assetManager      = JavaObj{ assetMngr, je };
+        app._paths->jniAssetMngr    = AAssetManager_fromJava( env, app._java.assetManager.Get() );
 
         app._java.application.Method( "ShowToast", OUT app._methods.showToast );
         app._java.application.Method( "IsNetworkConnected", OUT app._methods.isNetworkConnected );
         //app._java.application.Method( "CreateWindow", OUT app._methods.createWindow );
-
-        if ( not app._started and app._listener )
-        {
-            app._started = true;
-            app._listener->OnStart( app );
-        }
     }
 
 /*
@@ -295,9 +299,15 @@ namespace {
 */
     void JNICALL ApplicationAndroid::native_SetDirectories (JNIEnv*, jclass,
                                                             jstring internalAppData, jstring internalCache,
-                                                            jstring externalAppData, jstring externalCache, jstring externalStorage) __NE___
+                                                            jstring externalAppData, jstring externalCache) __NE___
     {
-        // TODO
+        auto&   app = GetApp();
+        DRC_EXLOCK( app._drCheck );
+
+        app._paths->internalAppData = Path{JavaString{ internalAppData }};
+        app._paths->internalCache   = Path{JavaString{ internalCache }};
+        app._paths->externalAppData = Path{JavaString{ externalAppData }};
+        app._paths->externalCache   = Path{JavaString{ externalCache }};
     }
 
 /*

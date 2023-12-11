@@ -20,7 +20,7 @@ message( STATUS "Run compiler tests with flags: ${CMAKE_REQUIRED_FLAGS}" )
 set( AE_COMPILER_DEFINITIONS "" )
 
 #------------------------------------------------------------------------------
-set( STD_FILESYSTEM_SUPPORTED_SRC 
+set( STD_FILESYSTEM_SUPPORTED_SRC
     "#include <filesystem>
     int main () {
         (void)(std::filesystem::current_path());
@@ -52,7 +52,7 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-set( STD_CACHELINESIZE_SUPPORTED_SRC 
+set( STD_CACHELINESIZE_SUPPORTED_SRC
     "#include <new>
     static constexpr size_t Align = std::hardware_destructive_interference_size;
     int main () {
@@ -87,12 +87,12 @@ if (STD_CACHELINESIZE_SUPPORTED)
 elseif (APPLE)
     string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
     if (${PLATFORM_NAME} STREQUAL "X86_64")
-        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64" )
+        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{64}" )
     else()
-        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=128" )
+        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{128}" )
     endif()
 else ()
-    set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64" ) # TODO: check
+    set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{64}" ) # TODO: check
 endif()
 
 #------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ if (NOT (HAS_HASHFN_HashArrayRepresentation OR HAS_HASHFN_Murmur2OrCityhash OR H
 endif()
 
 #==============================================================================
-set( CPP_COROUTINE_SUPPORTED_SRC 
+set( CPP_COROUTINE_SUPPORTED_SRC
     "#include <coroutine>
     #ifndef __cpp_impl_coroutine
     #   error coroutines are not supported by compiler

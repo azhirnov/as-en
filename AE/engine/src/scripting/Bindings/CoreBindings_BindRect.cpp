@@ -20,27 +20,27 @@ namespace
         using Rect_t    = Rectangle<T>;
         using Vec2_t    = PackedVec<T,2>;
 
-        static void  Rect_Ctor1 (void *mem, const Rect_t &value)
+        static void  Rect_Ctor1 (void* mem, const Rect_t &value)
         {
             PlacementNew< Rect_t >( OUT mem, value );
         }
 
-        static void  Rect_Ctor2 (void *mem, const Vec2_t &value)
+        static void  Rect_Ctor2 (void* mem, const Vec2_t &value)
         {
             PlacementNew< Rect_t >( OUT mem, value );
         }
 
-        static void  Rect_Ctor3 (void *mem, const Vec2_t &leftTop, const Vec2_t &rightBottom)
+        static void  Rect_Ctor3 (void* mem, const Vec2_t &leftTop, const Vec2_t &rightBottom)
         {
             PlacementNew< Rect_t >( OUT mem, leftTop, rightBottom );
         }
 
-        static void  Rect_Ctor4 (void *mem, T sizeX, T sizeY)
+        static void  Rect_Ctor4 (void* mem, T sizeX, T sizeY)
         {
             PlacementNew< Rect_t >( OUT mem, Vec2_t{ sizeX, sizeY });
         }
 
-        static void  Rect_Ctor5 (void *mem, T left, T top, T right, T bottom)
+        static void  Rect_Ctor5 (void* mem, T left, T top, T right, T bottom)
         {
             PlacementNew< Rect_t >( OUT mem, left, top, right, bottom );
         }

@@ -20,11 +20,11 @@ namespace AE::GraphicsTest
         EXLOCK( _guard );
         if ( _newRef )
         {
-            FileWStream file{ _fname };
-            if ( file.IsOpen() )
+            ASSERT( _dstFile );
+            if ( _dstFile )
             {
                 DDSImageSaver   saver;
-                saver.SaveImage( file, _image );
+                saver.SaveImage( *_dstFile, _image );
             }
         }
     }
@@ -34,27 +34,35 @@ namespace AE::GraphicsTest
     LoadReference
 =================================================
 */
-    bool  ImageComparator::LoadReference (Path imgName)
+    bool  ImageComparator::LoadReference (RC<RStream> imgFile, Path imgName)
     {
-        EXLOCK( _guard );
+        _fname      = RVRef(imgName);
+        _loaded     = false;
+        _newRef     = false;
+        _dstFile    = null;
 
-        _fname  = RVRef(imgName);
-        _loaded = false;
-        _newRef = false;
-
-        if ( FileSystem::IsFile( _fname ))
+        if ( imgFile and imgFile->IsOpen() )
         {
-            FileRStream     file{ _fname };
-            if ( file.IsOpen() )
-            {
-                DDSImageLoader  loader;
-                _loaded = loader.LoadImage( OUT _image, file, False{"don't flipY"}, null, Default );
+            DDSImageLoader  loader;
+            _loaded = loader.LoadImage( OUT _image, *imgFile, False{"don't flipY"}, null, Default );
 
-                CHECK_ERR( _image.MipLevels() == 1 );
-                CHECK_ERR( _image.ArrayLayers() == 1 );
-            }
+            CHECK_ERR( _image.MipLevels() == 1 );
+            CHECK_ERR( _image.ArrayLayers() == 1 );
         }
         return _loaded;
+    }
+
+/*
+=================================================
+    Reset
+=================================================
+*/
+    void  ImageComparator::Reset (RC<WStream> imgFile, Path imgName)
+    {
+        _dstFile    = RVRef(imgFile);
+        _fname      = RVRef(imgName);
+        _loaded     = false;
+        _newRef     = false;
     }
 
 /*

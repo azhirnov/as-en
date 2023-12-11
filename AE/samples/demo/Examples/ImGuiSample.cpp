@@ -20,7 +20,7 @@ namespace AE::Samples::Demo
         RC<ImGuiSample>     t;
         ActionQueueReader   reader;
 
-        ProcessInputTask (ImGuiSample* p, ActionQueueReader reader) :
+        ProcessInputTask (ImGuiSample* p, ActionQueueReader reader) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ p }, reader{ RVRef(reader) }
         {}
@@ -33,8 +33,8 @@ namespace AE::Samples::Demo
             ActionQueueReader::Header   hdr;
             for (; reader.ReadHeader( OUT hdr );)
             {
-                STATIC_ASSERT( IA.actionCount == 6 );
-                STATIC_ASSERT( IA.Desktop.actionCount == 5 );
+                StaticAssert( IA.actionCount == 6 );
+                StaticAssert( IA.Desktop.actionCount == 5 );
 
                 switch ( uint{hdr.name} )
                 {
@@ -77,7 +77,7 @@ namespace AE::Samples::Demo
 
     // methods
     public:
-        DrawTask (ImGuiSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+        DrawTask (ImGuiSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"ImGui::Draw"} },
             t{ p }, surface{ surf }
         {}
@@ -150,11 +150,11 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  ImGuiSample::Init (PipelinePackID pack)
+    bool  ImGuiSample::Init (PipelinePackID pack) __NE___
     {
         CHECK( profiler.Initialize() );
 
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto    gfx_alloc   = res_mngr.CreateLinearGfxMemAllocator();
         auto    rtech       = res_mngr.LoadRenderTech( pack, RTech, Default );
 
@@ -171,7 +171,7 @@ namespace AE::Samples::Demo
     Update
 =================================================
 */
-    AsyncTask  ImGuiSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
+    AsyncTask  ImGuiSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
     {
         return Scheduler().Run< ProcessInputTask >( Tuple{ this, reader }, Tuple{deps} );
     }
@@ -181,7 +181,7 @@ namespace AE::Samples::Demo
     GetInputMode
 =================================================
 */
-    InputModeName  ImGuiSample::GetInputMode () const
+    InputModeName  ImGuiSample::GetInputMode () C_NE___
     {
         return IA;
     }
@@ -191,7 +191,7 @@ namespace AE::Samples::Demo
     Draw
 =================================================
 */
-    AsyncTask  ImGuiSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)
+    AsyncTask  ImGuiSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) __NE___
     {
         auto    batch = rg.Render( "ImGui pass" );
         CHECK_ERR( batch );

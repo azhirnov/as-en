@@ -6,6 +6,9 @@
 #elif defined(AE_ENABLE_METAL)
 #   define SUFFIX       M
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#   define SUFFIX       R
+
 #else
 #   error not implemented
 #endif
@@ -22,10 +25,10 @@ namespace {
     destroy previous resource instance and construct new instance
 =================================================
 */
-    template <typename ResType, typename ...Args>
-    inline void  Replace (INOUT ResourceBase<ResType> &target, Args&& ...args) __NE___
+    template <typename ResType, typename ID, typename ...Args>
+    inline void  Replace (INOUT ResourceBase<ResType,ID> &target, Args&& ...args) __NE___
     {
-        Reconstruct<ResType>( target.Data(), FwdArg<Args>( args )... );
+        Reconstruct<ResType>( INOUT target.Data(), FwdArg<Args>( args )... );
     }
 
 /*
@@ -36,7 +39,7 @@ namespace {
     template <typename PoolT>
     inline void  DestroyResources (RESMNGR* resMngr, INOUT PoolT &pool) __NE___
     {
-        pool.UnassignAll( [resMngr] (auto& res)
+        pool.UnassignAll( [resMngr] (auto& res) __NE___
             {
                 ASSERT( res.IsCreated() );  // all assigned resources should be created
 
@@ -53,7 +56,7 @@ namespace {
     template <typename PoolT>
     inline void  LogAssignedResourcesAndDestroy (RESMNGR* resMngr, INOUT PoolT &pool) __NE___
     {
-        pool.UnassignAll( [resMngr] (auto& res)
+        pool.UnassignAll( [resMngr] (auto& res) __NE___
             {
                 ASSERT( res.IsCreated() );  // all assigned resources should be created
 
@@ -121,7 +124,7 @@ namespace {
     void  RESMNGR::AddHashToName (const PipelineCompiler::HashToName &value) __NE___
     {
         EXLOCK( _hashToNameGuard );
-        CATCH( _hashToName.Merge( value ));
+        NOTHROW( _hashToName.Merge( value ));
     }
 # endif
 
@@ -174,40 +177,40 @@ namespace {
     constructor
 =================================================
 */
-    RESMNGR::RESMNGR (const Device_t &dev) __Th___ :
+    RESMNGR::RESMNGR (const Device_t &dev) __NE___ :
         _device{ dev },
         _stagingMngr{ *this },
         _queryMngr{}
     {
         _device.InitFeatureSet( OUT _featureSet );
 
-        STATIC_ASSERT( BufferID::MaxIndex()             >= BufferPool_t::capacity() );
-        STATIC_ASSERT( ImageID::MaxIndex()              >= ImagePool_t::capacity() );
-        STATIC_ASSERT( MemoryID::MaxIndex()             >= MemObjPool_t::capacity() );
-        STATIC_ASSERT( BufferViewID::MaxIndex()         >= BufferViewPool_t::capacity() );
-        STATIC_ASSERT( ImageViewID::MaxIndex()          >= ImageViewPool_t::capacity() );
-        STATIC_ASSERT( DescriptorSetLayoutID::MaxIndex()>= DSLayoutPool_t::capacity() );
-        STATIC_ASSERT( GraphicsPipelineID::MaxIndex()   >= GPipelinePool_t::capacity() );
-        STATIC_ASSERT( ComputePipelineID::MaxIndex()    >= CPipelinePool_t::capacity() );
-        STATIC_ASSERT( MeshPipelineID::MaxIndex()       >= MPipelinePool_t::capacity() );
-        STATIC_ASSERT( RayTracingPipelineID::MaxIndex() >= RTPipelinePool_t::capacity() );
-        STATIC_ASSERT( TilePipelineID::MaxIndex()       >= TPipelinePool_t::capacity() );
-        STATIC_ASSERT( DescriptorSetID::MaxIndex()      >= DescSetPool_t::capacity() );
-        STATIC_ASSERT( RTGeometryID::MaxIndex()         >= RTGeomPool_t::capacity() );
-        STATIC_ASSERT( RTSceneID::MaxIndex()            >= RTScenePool_t::capacity() );
-        STATIC_ASSERT( PipelineLayoutID::MaxIndex()     >= PplnLayoutPool_t::capacity() );
-        STATIC_ASSERT( RTShaderBindingID::MaxIndex()    >= SBTPool_t::capacity() );
-        STATIC_ASSERT( SamplerID::MaxIndex()            >= SamplerPool_t::capacity() );
-        STATIC_ASSERT( RenderPassID::MaxIndex()         >= RenderPassPool_t::capacity() );
-        STATIC_ASSERT( PipelineCacheID::MaxIndex()      >= PipelineCachePool_t::capacity() );
-        STATIC_ASSERT( PipelinePackID::MaxIndex()       >= PipelinePackPool_t::capacity() );
-        STATIC_ASSERT( IsSameTypes< AllResourceIDs_t::Back::type, MemoryID >);
+        StaticAssert( BufferID::MaxIndex()              >= BufferPool_t::capacity() );
+        StaticAssert( ImageID::MaxIndex()               >= ImagePool_t::capacity() );
+        StaticAssert( MemoryID::MaxIndex()              >= MemObjPool_t::capacity() );
+        StaticAssert( BufferViewID::MaxIndex()          >= BufferViewPool_t::capacity() );
+        StaticAssert( ImageViewID::MaxIndex()           >= ImageViewPool_t::capacity() );
+        StaticAssert( DescriptorSetLayoutID::MaxIndex() >= DSLayoutPool_t::capacity() );
+        StaticAssert( GraphicsPipelineID::MaxIndex()    >= GPipelinePool_t::capacity() );
+        StaticAssert( ComputePipelineID::MaxIndex()     >= CPipelinePool_t::capacity() );
+        StaticAssert( MeshPipelineID::MaxIndex()        >= MPipelinePool_t::capacity() );
+        StaticAssert( RayTracingPipelineID::MaxIndex()  >= RTPipelinePool_t::capacity() );
+        StaticAssert( TilePipelineID::MaxIndex()        >= TPipelinePool_t::capacity() );
+        StaticAssert( DescriptorSetID::MaxIndex()       >= DescSetPool_t::capacity() );
+        StaticAssert( RTGeometryID::MaxIndex()          >= RTGeomPool_t::capacity() );
+        StaticAssert( RTSceneID::MaxIndex()             >= RTScenePool_t::capacity() );
+        StaticAssert( PipelineLayoutID::MaxIndex()      >= PplnLayoutPool_t::capacity() );
+        StaticAssert( RTShaderBindingID::MaxIndex()     >= SBTPool_t::capacity() );
+        StaticAssert( SamplerID::MaxIndex()             >= SamplerPool_t::capacity() );
+        StaticAssert( RenderPassID::MaxIndex()          >= RenderPassPool_t::capacity() );
+        StaticAssert( PipelineCacheID::MaxIndex()       >= PipelineCachePool_t::capacity() );
+        StaticAssert( PipelinePackID::MaxIndex()        >= PipelinePackPool_t::capacity() );
+        StaticAssert( IsSameTypes< AllResourceIDs_t::Back::type, MemoryID >);
 
         #ifdef AE_ENABLE_VULKAN
-        STATIC_ASSERT( VideoBufferID::MaxIndex()        >= VideoBufferPool_t::capacity() );
-        STATIC_ASSERT( VideoImageID::MaxIndex()         >= VideoImagePool_t::capacity() );
-        STATIC_ASSERT( VideoSessionID::MaxIndex()       >= VideoSessionPool_t::capacity() );
-        STATIC_ASSERT( VFramebufferID::MaxIndex()       >= FramebufferPool_t::capacity() );
+        StaticAssert( VideoBufferID::MaxIndex()     >= VideoBufferPool_t::capacity() );
+        StaticAssert( VideoImageID::MaxIndex()          >= VideoImagePool_t::capacity() );
+        StaticAssert( VideoSessionID::MaxIndex()        >= VideoSessionPool_t::capacity() );
+        StaticAssert( VFramebufferID::MaxIndex()        >= FramebufferPool_t::capacity() );
 
         _InitReleaseResourceByIDFns();
         #endif
@@ -251,7 +254,7 @@ namespace {
     Initialize
 =================================================
 */
-    bool  RESMNGR::Initialize (const GraphicsCreateInfo &info) __Th___
+    bool  RESMNGR::Initialize (const GraphicsCreateInfo &info) __NE___
     {
         CHECK_ERR( _CreateEmptyDescriptorSetLayout() );
         CHECK_ERR( _CreateDefaultSampler() );
@@ -263,11 +266,11 @@ namespace {
 
       #ifdef AE_ENABLE_VULKAN
         if ( not _defaultMemAlloc )
-            _defaultMemAlloc = MakeRC< VUniMemAllocator >();    // throw
+            _defaultMemAlloc = MakeRC< VUniMemAllocator >();
       #endif
 
         if ( not _defaultDescAlloc )
-            _defaultDescAlloc = MakeRC< AE_PRIVATE_UNITE_RAW( SUFFIX, DefaultDescriptorAllocator )>();  // throw
+            _defaultDescAlloc = MakeRC< AE_PRIVATE_UNITE_RAW( SUFFIX, DefaultDescriptorAllocator )>();
 
         return true;
     }
@@ -282,16 +285,12 @@ namespace {
         _stagingMngr.Deinitialize();
         _queryMngr.Deinitialize();
 
-        ForceReleaseResources();
-
+      #ifdef AE_ENABLE_VULKAN
+        DestroyResources( this, INOUT _resPool.framebuffers );
+      #endif
         ImmediatelyRelease( _defaultSampler );
         ImmediatelyRelease( _emptyDSLayout );
         ForceReleaseResources();
-
-      #ifdef AE_ENABLE_VULKAN
-        DestroyResources( this, INOUT _resPool.framebuffers );
-        ForceReleaseResources();
-      #endif
 
         { auto tmp = _defaultPack.Release();  ImmediatelyRelease( tmp ); }
         LogAssignedResourcesAndDestroy( this, INOUT _resPool.pipelinePacks );
@@ -791,7 +790,7 @@ namespace {
         auto*   ppln = GetResource( pplnId );
         CHECK_ERR( ppln );
 
-        auto*   ppln_layout = GetResource( ppln->LayoutID() );
+        auto*   ppln_layout = GetResource( ppln->LayoutId() );
         CHECK_ERR( ppln_layout );
 
         DescriptorSetLayoutID   layout_id;
@@ -889,7 +888,7 @@ namespace {
         auto*   ppln = GetResource( pplnId );
         CHECK_ERR( ppln != null );
 
-        auto*   layout = GetResource( ppln->LayoutID() );
+        auto*   layout = GetResource( ppln->LayoutId() );
         CHECK_ERR( layout != null );
 
         auto&   pc = layout->GetPushConstants();
@@ -903,6 +902,9 @@ namespace {
 
         #elif defined(AE_ENABLE_METAL)
             return PushConstantIndex{ it->second.metalBufferId, it->second.stage, it->second.typeName, it->second.size };
+
+        #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+            return PushConstantIndex{ it->second.vulkanOffset, it->second.stage, it->second.typeName, it->second.size };    // TODO
 
         #else
         #   error not implemented
@@ -1053,7 +1055,7 @@ namespace {
             log << "\nPool: " << name;
 
             auto&   pool = resMngr._GetResourcePool( T{} );
-            pool.ForEachAssigned( [this] (auto& res) { log << "\n  '" << res.Data().GetDebugName() << "', rc: " << ToString(res.GetRefCount()); } );
+            pool.ForEachAssigned( [this] (auto& res) __NE___ { log << "\n  '" << res.Data().GetDebugName() << "', rc: " << ToString(res.GetRefCount()); } );
         }
     };
 #endif
@@ -1066,13 +1068,12 @@ namespace {
     void  RESMNGR::PrintAllResources () __NE___
     {
     #ifdef AE_DEBUG
-        try {
+        TRY{
             String  log;
             AllResourceIDs_t::Visit( _ResourcePrinter{ *this, log });
             AE_LOGI( log );
         }
-        catch (...)
-        {}
+        CATCH_ALL();
     #endif
     }
 //-----------------------------------------------------------------------------

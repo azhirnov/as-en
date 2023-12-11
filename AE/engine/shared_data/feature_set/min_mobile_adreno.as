@@ -65,7 +65,7 @@ void ASmain ()
     fset.perDescrSet_maxStorageBuffers (24);
     fset.perDescrSet_maxStorageImages (24);
     fset.perDescrSet_maxUniformBuffers (84);
-    fset.perDescrSet_maxTotalResources (1024);
+    fset.perDescrSet_maxTotalResources (512);
     fset.perStage_maxInputAttachments (8);
     fset.perStage_maxSampledImages (128);
     fset.perStage_maxSamplers (16);

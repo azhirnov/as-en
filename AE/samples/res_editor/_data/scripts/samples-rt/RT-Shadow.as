@@ -108,7 +108,7 @@
             array<float3>   bitangents;
             array<float3>   texcoords;
             array<uint>     indices;
-            GetSphere( 9, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
+            GetSphere( 4, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
 
             uint    pos_off     = sphere.FloatArray(    "positions",    positions );
             uint    norm_off    = sphere.FloatArray(    "normals",      normals );
@@ -137,8 +137,8 @@
 
         // render loop
         {
-            RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::Enable_ShaderTrace );
-            pass.ArgIn(  camera );
+            RC<RayTracingPass>      pass = RayTracingPass();
+            pass.Set(    camera );
             pass.ArgOut( "un_OutImage", rt );
             pass.ArgIn(  "un_RtScene",  scene );
             pass.ArgIn(  "un_Geometry", geom_data );

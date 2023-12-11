@@ -92,9 +92,9 @@ namespace
     static constexpr char   c_Subpass_ExternalIn[]  = "ExternalIn";
     static constexpr char   c_Subpass_ExternalOut[] = "ExternalOut";
 
-    STATIC_ASSERT( SubpassName{c_Subpass_ExternalIn} == Subpass_ExternalIn );
-    STATIC_ASSERT( SubpassName{c_Subpass_ExternalOut} == Subpass_ExternalOut );
-    STATIC_ASSERT( alignof(RPAttachment::ShaderIO) == 4 );
+    StaticAssert( SubpassName{c_Subpass_ExternalIn} == Subpass_ExternalIn );
+    StaticAssert( SubpassName{c_Subpass_ExternalOut} == Subpass_ExternalOut );
+    StaticAssert( alignof(RPAttachment::ShaderIO) == 4 );
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -1201,7 +1201,7 @@ namespace
                                     " must be <= maxTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
                                 CHECK_THROW_MSG( ((texel_size.x / texel_size.y) <= aspect) or ((texel_size.y / texel_size.x) <= aspect),
                                     "ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
-                                    " aspect must be <= maxAspectRatio(" << Base::ToString(aspect) << ") in feature sets" ); 
+                                    " aspect must be <= maxAspectRatio(" << Base::ToString(aspect) << ") in feature sets" );
                             }
                         }
                         break;
@@ -1391,7 +1391,7 @@ namespace
             binder.Comment( "Fragment shading rate attachment." );
             binder.AddValue( "ShadingRate",     EAttachment::ShadingRate    );
 
-            STATIC_ASSERT( uint(EAttachment::_Count) == 8 );
+            StaticAssert( uint(EAttachment::_Count) == 8 );
         }
 
         // shader IO

@@ -10,20 +10,20 @@ namespace
         float   f;
         int2    v;
 
-        SerObj ()   {}
-        ~SerObj ()  {}
+        SerObj ()   __NE___ {}
+        ~SerObj ()  __NE___ {}
     };
-    STATIC_ASSERT( not IsTriviallySerializable< SerObj >);
+    StaticAssert( not IsTriviallySerializable< SerObj >);
 
 
-    static bool  SerObj_Serialize (Serializer &ser, const void *ptr) __NE___
+    static bool  SerObj_Serialize (Serializer &ser, const void* ptr) __NE___
     {
         auto*   self = Cast<SerObj>(ptr);
 
         return ser( self->i, self->f, self->v );
     }
 
-    static bool  SerObj_Deserialize (Deserializer &deser, OUT void *ptr, bool create) __NE___
+    static bool  SerObj_Deserialize (Deserializer &deser, OUT void* ptr, bool create) __NE___
     {
         auto*   self = create ? PlacementNew<SerObj>( OUT ptr ) : Cast<SerObj>( ptr );
 
@@ -91,11 +91,11 @@ namespace
 
     static void  SerializationTraits ()
     {
-        STATIC_ASSERT( IsTriviallySerializable< int >);
-        STATIC_ASSERT( IsTriviallySerializable< float >);
-        //STATIC_ASSERT( IsTriviallySerializable< Quat >);
+        StaticAssert( IsTriviallySerializable< int >);
+        StaticAssert( IsTriviallySerializable< float >);
+        //StaticAssert( IsTriviallySerializable< Quat >);
 
-        STATIC_ASSERT( not IsTriviallySerializable< String >);
+        StaticAssert( not IsTriviallySerializable< String >);
     }
 }
 

@@ -41,11 +41,6 @@ namespace AE::VFS
 
     // methods
     public:
-        DiskDynamicStorage ()                                                       __NE___ {}
-        ~DiskDynamicStorage ()                                                      __NE_OV {}
-
-        ND_ bool  Create (const Path &folder, StringView prefix = Default);
-
 
       // IVirtualFileStorage //
         bool  Open (OUT RC<RStream> &stream, FileNameRef name)                      C_NE_OV;
@@ -79,6 +74,14 @@ namespace AE::VFS
         ND_ bool  _Open2 (OUT ResultType &, FileNameRef name)                       C_NE___;
 
         ND_ bool  _Update ()                                                        C_NE___;
+
+
+    private:
+        friend class VirtualFileStorageFactory;
+        DiskDynamicStorage ()                                                       __NE___ {}
+        ~DiskDynamicStorage ()                                                      __NE_OV {}
+
+        ND_ bool  _Create (const Path &folder, StringView prefix, bool createFolder)__NE___;
     };
 
 

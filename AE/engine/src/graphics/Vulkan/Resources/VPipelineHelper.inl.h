@@ -493,7 +493,7 @@ namespace
 =================================================
 */
     bool  CopyShaderTrace (ArrayView< VPipelinePack::ShaderModuleRef >  shaders,
-                           VPipelinePack::Allocator_t *                 allocator,
+                           IAllocator *                                 allocator,
                            OUT ArrayView<ShaderTracePtr>                &dbgTrace) __NE___
     {
         dbgTrace = Default;
@@ -529,11 +529,11 @@ namespace
     {
         using ELogFormat = PipelineCompiler::ShaderTrace::ELogFormat;
 
-        STATIC_ASSERT( uint(ELogFormat::_Count)     == uint(ShaderDebugger::ELogFormat::_Count) );
-        STATIC_ASSERT( uint(ELogFormat::Text)       == uint(ShaderDebugger::ELogFormat::Text)   );
-        STATIC_ASSERT( uint(ELogFormat::VS_Console) == uint(ShaderDebugger::ELogFormat::VS_Console) );
-        STATIC_ASSERT( uint(ELogFormat::VS)         == uint(ShaderDebugger::ELogFormat::VS) );
-        STATIC_ASSERT( uint(ELogFormat::VSCode)     == uint(ShaderDebugger::ELogFormat::VSCode) );
+        StaticAssert( uint(ELogFormat::_Count)      == uint(ShaderDebugger::ELogFormat::_Count) );
+        StaticAssert( uint(ELogFormat::Text)        == uint(ShaderDebugger::ELogFormat::Text)   );
+        StaticAssert( uint(ELogFormat::VS_Console)  == uint(ShaderDebugger::ELogFormat::VS_Console) );
+        StaticAssert( uint(ELogFormat::VS)          == uint(ShaderDebugger::ELogFormat::VS) );
+        StaticAssert( uint(ELogFormat::VSCode)      == uint(ShaderDebugger::ELogFormat::VSCode) );
 
         return ELogFormat(fmt);
     }

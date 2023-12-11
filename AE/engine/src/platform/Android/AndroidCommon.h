@@ -8,6 +8,8 @@
 # include <android/asset_manager_jni.h>
 # include <android/native_window.h>
 
+# include "platform/Android/Java.h"
+
 namespace AE::App
 {
     class ApplicationAndroid;

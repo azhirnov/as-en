@@ -14,7 +14,7 @@ namespace AE::GeometryTools
     // Spherical Cube Renderer
     //
 
-    class SphericalCubeRenderer final : public SphericalCubeProjection< TangentialSphericalCube, TextureProjection >
+    class SphericalCubeRenderer final : public SphericalCubeGen::Base_t
     {
     // types
     public:
@@ -83,7 +83,7 @@ namespace AE::GeometryTools
 =================================================
 */
     template <typename DrawCtx>
-    bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, uint lod) C_NE___
+    bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, const uint lod) C_NE___
     {
         CHECK_ERR( lod >= _minLod and lod <= _maxLod );
 
@@ -97,7 +97,7 @@ namespace AE::GeometryTools
 
         ctx.BindVertexBuffer( 0, vb, vb_range.Offset() );
         ctx.BindIndexBuffer( ib, ib_range.Offset(), EIndex::UInt );
-        STATIC_ASSERT( sizeof(Index) == sizeof(uint) );
+        StaticAssert( sizeof(Index) == sizeof(uint) );
 
         DrawIndexedCmd  cmd;
         cmd.indexCount      = idx_cnt;

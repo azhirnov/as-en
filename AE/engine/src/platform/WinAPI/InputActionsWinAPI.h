@@ -35,7 +35,7 @@ namespace AE::App
 
         bool                _touchActive        : 1;    // \ 
         bool                _touchBegin         : 1;    // |-- touch emulation by mouse & left button
-        bool                _touchEnd           : 1;    // / 
+        bool                _touchEnd           : 1;    // /
 
         float2              _surfaceSize;
 
@@ -44,7 +44,7 @@ namespace AE::App
 
     // methods
     public:
-        explicit InputActionsWinAPI (DubleBufferedQueue *q)                 __NE___;
+        explicit InputActionsWinAPI (DubleBufferedQueue* q)                 __NE___;
 
         ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam,
                                   Duration_t timestamp, bool hasFocus)      __NE___;

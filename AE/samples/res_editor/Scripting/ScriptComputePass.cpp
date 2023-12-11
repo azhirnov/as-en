@@ -333,9 +333,9 @@ namespace
         CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
 
         auto        result      = MakeRC<ComputePass>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
         Bytes       ub_size;
 
         result->_rtech = _CompilePipeline( OUT ub_size );   // throw
@@ -361,6 +361,13 @@ namespace
 
         auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+        }
+        #endif
+
         result->_localSize  = this->_localSize;
         result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
@@ -375,7 +382,7 @@ namespace
             _args.InitResources( OUT result->_resources );  // throw
         }
 
-        _Init( *result );
+        _Init( *result, null );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Compute );
 
         return result;
@@ -432,9 +439,9 @@ namespace AE::ResEditor
                 int4        intConst [4];
             )#");
 
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
-        STATIC_ASSERT( IPass::CustomKeys_t{}.max_size() == 1 );
+        StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
+        StaticAssert( IPass::Constants::MaxCount == 4 );
+        StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
         return st;
     }
 
@@ -498,10 +505,16 @@ namespace AE::ResEditor
             }
         }
 
-        const EShaderOpt    sh_opt = EShaderOpt::Optimize;
-    //  const EShaderOpt    sh_opt = EShaderOpt::DebugInfo; // for shader debugging in RenderDoc
+        const EShaderOpt    sh_opt  = EShaderOpt::Optimize;
+    //  const EShaderOpt    sh_opt  = EShaderOpt::DebugInfo;    // for shader debugging in RenderDoc
 
-        _CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), EPipelineOpt::Optimize );
+      #if PIPELINE_STATISTICS
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
+      #else
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize;
+      #endif
+
+        _CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), ppln_opt );
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( cs, cs_line, "compute.Trace", uint(sh_opt | EShaderOpt::Trace), Default );

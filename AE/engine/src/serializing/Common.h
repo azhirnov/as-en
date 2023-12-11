@@ -14,9 +14,16 @@ namespace AE::Serializing
 
     using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
 
+    // Basic
     struct Serializer;
     struct Deserializer;
     class ObjectFactory;
+
+
+    // BitPacking
+    struct BitSerializer;
+    struct BitDeserializer;
+
 
     // IsTriviallySerializable<> defined in 'base/CompileTime/TypeTraits.h'
 

@@ -17,7 +17,7 @@ namespace
     PackAssetsImpl
 =================================================
 */
-    ND_ static bool  PackAssetsImpl (const AssetInfo *info)
+    ND_ static bool  PackAssetsImpl (const AssetInfo* info)
     {
         CHECK_ERR( info != null );
         CHECK_ERR( (info->inFileCount > 0) and (info->inFiles != null) );
@@ -30,7 +30,7 @@ namespace
         ObjectStorage::SetInstance( &obj_storage );
 
         CHECK_ERR( obj_storage.Initialize( Path{info->tempFile} ));
-        CATCH_ERR( ObjectStorage::Bind( script_engine ));
+        NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
         Array<Path>     script_include_dirs;
         for (usize i = 0; i < info->inIncludeFolderCount; ++i)
@@ -109,7 +109,7 @@ namespace
     PackAssets
 =================================================
 */
-    extern "C" bool AE_AP_API  PackAssets (const AssetInfo *info)
+    extern "C" bool AE_AP_API  PackAssets (const AssetInfo* info)
     {
         AE::Base::StaticLogger::LoggerScope log{};
 

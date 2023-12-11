@@ -24,12 +24,15 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ExportImage (RC<Image> src, const Path &path) : _src{RVRef(src)}, _filePath{path} {}
+        ExportImage (RC<Image> src, const Path &path)                   __NE___ : _src{RVRef(src)}, _filePath{path} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Export; }
         bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
         void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
+
+    private:
+        ND_ bool    _BeginExport (uint frameId);
     };
 
 
@@ -55,13 +58,16 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ExportBuffer (RC<Buffer> src, const Path &path, ParserFn_t parser) :
+        ExportBuffer (RC<Buffer> src, const Path &path, ParserFn_t parser)  __Th___ :
             _src{RVRef(src)}, _filePath{path}, _parser{RVRef(parser)} {}
 
     // IPass //
-        EPassType   GetType ()                                          C_NE_OV { return EPassType::Export; }
-        bool        Update (TransferCtx_t &, const UpdatePassData &)    __Th_OV;
-        void        GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV {}
+        EPassType   GetType ()                                              C_NE_OV { return EPassType::Export; }
+        bool        Update (TransferCtx_t &, const UpdatePassData &)        __Th_OV;
+        void        GetResourcesToResize (INOUT Array<RC<IResource>> &)     __NE_OV {}
+
+    private:
+        ND_ bool    _BeginExport (TransferCtx_t &, uint frameId);
     };
 
 

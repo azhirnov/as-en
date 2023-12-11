@@ -119,7 +119,7 @@ quat  QMul (const quat left, const quat right)
 {
     quat    ret;
 
-    ret.data.xyz    = left.data.w * right.data.xyz + 
+    ret.data.xyz    = left.data.w * right.data.xyz +
                       left.data.xyz * right.data.w +
                       Cross( left.data.xyz, right.data.xyz );
 

@@ -49,11 +49,11 @@ namespace AE::Base
     ReadBlock
 =================================================
 */
-    Bytes  MemRefRDataSource::ReadBlock (Bytes offset, OUT void *buffer, Bytes size) __NE___
+    Bytes  MemRefRDataSource::ReadBlock (const Bytes pos, OUT void* buffer, Bytes size) __NE___
     {
-        size = Min( offset + size, _size ) - offset;
+        size = Min( pos + size, _size ) - pos;
 
-        MemCopy( OUT buffer, _dataPtr + offset, size );
+        MemCopy( OUT buffer, _dataPtr + pos, size );
 
         return size;
     }
@@ -73,7 +73,7 @@ namespace AE::Base
 
     MemRDataSource::MemRDataSource (const void* ptr, Bytes size) __NE___
     {
-        CATCH( _data.assign( Cast<ubyte>(ptr), Cast<ubyte>(ptr + size) ));
+        NOTHROW( _data.assign( Cast<ubyte>(ptr), Cast<ubyte>(ptr + size) ));
 
         _Set( _data.data(), ArraySizeOf(_data) );
     }
@@ -133,7 +133,7 @@ namespace AE::Base
 */
     MemWDataSource::MemWDataSource () __NE___
     {
-        CATCH( _data.reserve( usize(DefaultAllocationSize) ));
+        NOTHROW( _data.reserve( usize(DefaultAllocationSize) ));
     }
 
     MemWDataSource::MemWDataSource (Array<ubyte> data, Bytes maxSize) __NE___ :
@@ -144,7 +144,7 @@ namespace AE::Base
     MemWDataSource::MemWDataSource (Bytes bufferSize, Bytes maxSize) __NE___ :
         _maxSize{ maxSize }
     {
-        CATCH( _data.reserve( usize(bufferSize) ));
+        NOTHROW( _data.reserve( usize(bufferSize) ));
     }
 
 /*
@@ -165,7 +165,7 @@ namespace AE::Base
 */
     Bytes  MemWDataSource::Reserve (Bytes capacity) __NE___
     {
-        CATCH( _data.reserve( Min( Max( _data.capacity(), usize(capacity) ), usize(_maxSize) )));
+        NOTHROW( _data.reserve( Min( Max( _data.capacity(), usize(capacity) ), usize(_maxSize) )));
 
         return Bytes{ _data.capacity() };
     }
@@ -175,13 +175,13 @@ namespace AE::Base
     WriteBlock
 =================================================
 */
-    Bytes  MemWDataSource::WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE___
+    Bytes  MemWDataSource::WriteBlock (const Bytes pos, const void* buffer, Bytes size) __NE___
     {
-        size = Min( offset + size, _maxSize ) - offset;
+        size = Min( pos + size, _maxSize ) - pos;
 
-        CATCH_ERR( _data.resize( Max( _data.size(), usize(offset + size) )));
+        NOTHROW_ERR( _data.resize( Max( _data.size(), usize(pos + size) )));
 
-        MemCopy( OUT _data.data() + offset, buffer, size );
+        MemCopy( OUT _data.data() + pos, buffer, size );
         return size;
     }
 

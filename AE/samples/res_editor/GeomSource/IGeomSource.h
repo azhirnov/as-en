@@ -17,10 +17,13 @@ namespace AE::ResEditor
     // types
     protected:
         using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
+        using EDebugMode        = IPass::EDebugMode;
+        using DebugModeBits     = EnumBitSet<EDebugMode>;
 
 
     // methods
     public:
+        ND_ virtual DebugModeBits  GetDebugModeBits ()  C_NE___ { return Default; }
     };
 
 
@@ -33,6 +36,8 @@ namespace AE::ResEditor
     // types
     public:
         using UpdatePassData    = IPass::UpdatePassData;
+        using EDebugMode        = IPass::EDebugMode;
+        using Debugger          = IPass::Debugger;
 
         struct UpdateData
         {
@@ -52,6 +57,11 @@ namespace AE::ResEditor
             IGSMaterials &          mtr;
             DirectCtx::Draw &       ctx;
             DescriptorSetID         passDS;
+
+            ShaderDebugger::Result* dbgStorage  = null;
+            EDebugMode              dbgMode     = Default;
+
+            ND_ bool  IsDebuggerEnabled ()  const { return dbgStorage != null and *dbgStorage and dbgMode != Default; }
         };
 
         enum class ERTGeometryType
@@ -74,17 +84,20 @@ namespace AE::ResEditor
         explicit IGeomSource (Renderer &r) : _renderer{r} {}
 
     public:
-            virtual void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)   __Th___ = 0;
-            virtual void  StateTransition (DirectCtx::RayTracing &)                 __Th___ {}
+            virtual void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
+                                               const Debugger &, OUT ShaderDebugger::Result &)  __Th___ {}
 
-        ND_ virtual bool  Draw (const DrawData &)                                   __Th___ = 0;
-        ND_ virtual bool  PostProcess (const DrawData &)                            __Th___ { return false; }
-        ND_ virtual bool  Update (const UpdateData &)                               __Th___ = 0;
-        ND_ virtual bool  RTUpdate (const UpdateRTData &)                           __Th___ { return false; }
+            virtual void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)               __Th___ = 0;
+            virtual void  StateTransition (DirectCtx::RayTracing &)                             __Th___ {}
 
-        ND_ Renderer&           _Renderer ()                                        const   { return _renderer; }
-        ND_ DataTransferQueue&  _DtTrQueue ()                                       const;
-        ND_ GfxMemAllocatorPtr  _GfxAllocator ()                                    const;
+        ND_ virtual bool  Draw (const DrawData &)                                               __Th___ = 0;
+        ND_ virtual bool  PostProcess (const DrawData &)                                        __Th___ { return false; }
+        ND_ virtual bool  Update (const UpdateData &)                                           __Th___ = 0;
+        ND_ virtual bool  RTUpdate (const UpdateRTData &)                                       __Th___ { return false; }
+
+        ND_ Renderer&           _Renderer ()                                                    const   { return _renderer; }
+        ND_ DataTransferQueue&  _DtTrQueue ()                                                   const;
+        ND_ GfxMemAllocatorPtr  _GfxAllocator ()                                                const;
     };
 
 

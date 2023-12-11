@@ -37,8 +37,8 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
     const auto&     fmt_info        = EPixelFormat_GetInfo( fmt );
     CHECK_ERRV( not fmt_info.IsCompressed() );
     CHECK_ERRV( fmt_info.BytesPerPixel() == SizeOf<T> );
-    STATIC_ASSERT( IsUnsignedInteger<T> );
-    STATIC_ASSERT( sizeof(T) >= sizeof(ushort) );
+    StaticAssert( IsUnsignedInteger<T> );
+    StaticAssert( sizeof(T) >= sizeof(ushort) );
 
     // create staging buffer
     VkBuffer        staging_buffer  = VK_NULL_HANDLE;

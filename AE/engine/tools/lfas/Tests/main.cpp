@@ -22,7 +22,9 @@ int main ()
     Test_LfLinearAllocator();
 
     // TODO:
-    //  LfFixedBlockAllocator, LfFixedBlockAllocator3
+    //  LfFixedBlockAllocator
     //  LfStaticQueue
     //  LfStaticIndexedPool
+
+    return 0;
 }

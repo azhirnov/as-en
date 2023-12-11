@@ -68,7 +68,7 @@ namespace
     constructor
 =================================================
 */
-    MetalCompiler::MetalCompiler (ArrayView<Path> includeDirs)
+    MetalCompiler::MetalCompiler (ArrayView<Path> includeDirs) __NE___
     {
         _directories.reserve( includeDirs.size() );
 

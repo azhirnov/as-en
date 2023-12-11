@@ -11,7 +11,7 @@
 
 //
 // Reinhard
-// 
+//
 
 // The Reinhard tone operator. Typically, the value of k is 1.0, but you can adjust exposure by 1/k.
 // I.e. ToneMap_Reinhard(x, 0.5) == ToneMap_Reinhard(x * 2.0, 1.0)

@@ -309,8 +309,16 @@ namespace AE::PipelineCompiler
     constructor
 =================================================
 */
-    SpirvCompiler::SpirvCompiler (Array<Path> dirs) : _directories{ RVRef(dirs) }
+    SpirvCompiler::SpirvCompiler (ArrayView<Path> includeDirs) __NE___
     {
+        _directories.reserve( includeDirs.size() );
+
+        for (auto& path : includeDirs)
+        {
+            CHECK( path.is_absolute() );
+            _directories.push_back( path.string() );
+        }
+
         glslang::InitializeProcess();
 
         _GenerateResources( OUT _builtinResource );
@@ -911,8 +919,8 @@ namespace AE::PipelineCompiler
         const String        path_str    = ToString( in.fileLoc.path );
         String              str;        str.reserve( log.length() );
 
-        STATIC_ASSERT( CountOf(num_lines) == src_count );
-        STATIC_ASSERT( CountOf(sources) == src_count );
+        StaticAssert( CountOf(num_lines) == src_count );
+        StaticAssert( CountOf(sources) == src_count );
 
         for (;;)
         {
@@ -996,7 +1004,7 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
-    _BuildReflection 
+    _BuildReflection
 =================================================
 */
     bool  SpirvCompiler::_BuildReflection (const GLSLangResult &glslangData, OUT ShaderReflection &result)
@@ -1320,7 +1328,7 @@ namespace AE::PipelineCompiler
     ExtractNodeName
 =================================================
 */
-    ND_ static String  ExtractNodeName (TIntermNode *node)
+    ND_ static String  ExtractNodeName (TIntermNode* node)
     {
         CHECK_ERR( node and node->getAsSymbolNode() );
 
@@ -1340,28 +1348,28 @@ namespace AE::PipelineCompiler
     Extract***ID
 =================================================
 */
-    ND_ static UniformName  ExtractUniformID (TIntermNode *node)
+    ND_ static UniformName  ExtractUniformID (TIntermNode* node)
     {
         String  name = ExtractNodeName( node );
         ObjectStorage::Instance()->AddName<UniformName>( name );
         return UniformName{ name };
     }
 
-    ND_ static ShaderIOName  ExtractShaderIOName (TIntermNode *node)
+    ND_ static ShaderIOName  ExtractShaderIOName (TIntermNode* node)
     {
         String  name = ExtractNodeName( node );
         ObjectStorage::Instance()->AddName<ShaderIOName>( name );
         return ShaderIOName{ name };
     }
 
-    ND_ static SpecializationName  ExtractSpecializationID (TIntermNode *node)
+    ND_ static SpecializationName  ExtractSpecializationID (TIntermNode* node)
     {
         String  name = ExtractNodeName( node );
         ObjectStorage::Instance()->AddName<SpecializationName>( name );
         return SpecializationName{ name };
     }
 
-    ND_ static PushConstantName  ExtractPushConstant (TIntermNode *node)
+    ND_ static PushConstantName  ExtractPushConstant (TIntermNode* node)
     {
         String  name = ExtractNodeName( node );
         ObjectStorage::Instance()->AddName<PushConstantName>( name );
@@ -1467,7 +1475,7 @@ namespace AE::PipelineCompiler
 
         if ( type.isSubpass() )
         {
-            STATIC_ASSERT( uint(EShaderIO::_Count) == 13 );
+            StaticAssert( uint(EShaderIO::_Count) == 13 );
             switch( type.getSampler().type )
             {
                 case TBasicType::EbtFloat :     return EShaderIO::Float;
@@ -1481,7 +1489,7 @@ namespace AE::PipelineCompiler
 
         COMP_CHECK_ERR( type.getVectorSize() == 4 );
 
-        STATIC_ASSERT( uint(EShaderIO::_Count) == 13 );
+        StaticAssert( uint(EShaderIO::_Count) == 13 );
         switch ( type.getBasicType() )
         {
             case TBasicType::EbtFloat :     return EShaderIO::Float;
@@ -1500,12 +1508,12 @@ namespace AE::PipelineCompiler
     based on TParseContext::fixBlockUniformOffsets
 =================================================
 */
-    bool  SpirvCompiler::_CalculateStructSize (const glslang::TType &bufferType, OUT Bytes32u &staticSize, OUT Bytes32u &arrayStride, OUT Bytes32u &minOffset) const
+    bool  SpirvCompiler::_CalculateStructSize (const glslang::TType &bufferType, OUT Byte32u &staticSize, OUT Byte32u &arrayStride, OUT Byte32u &minOffset) const
     {
         using namespace glslang;
 
-        staticSize = arrayStride = Bytes32u{0u};
-        minOffset = Bytes32u::Max();
+        staticSize = arrayStride = Byte32u{0u};
+        minOffset = Byte32u::Max();
 
         COMP_CHECK_ERR( bufferType.isStruct() );
         COMP_CHECK_ERR( bufferType.getQualifier().isUniformOrBuffer() or bufferType.getQualifier().layoutPushConstant );
@@ -1555,14 +1563,14 @@ namespace AE::PipelineCompiler
             // for last member
             if ( member+1 == struct_fields.size() and member_type.isUnsizedArray() )
             {
-                arrayStride = Bytes32u{uint( dummy_stride )};
+                arrayStride = Byte32u{uint( dummy_stride )};
             }else{
                 offset += member_size;
             }
         }
 
         glslang::RoundToPow2( INOUT offset, max_align );
-        staticSize = Bytes32u{uint( offset )};
+        staticSize = Byte32u{uint( offset )};
 
         return true;
     }
@@ -1654,7 +1662,7 @@ namespace AE::PipelineCompiler
         // push constants
         if ( qual.layoutPushConstant )
         {
-            Bytes32u    size, stride, offset;
+            Byte32u size, stride, offset;
             COMP_CHECK_ERR( _CalculateStructSize( type, OUT size, OUT stride, OUT offset ), "failed to calculate struct size for '"s << node_name << "'");
             size -= offset;
 
@@ -1675,7 +1683,7 @@ namespace AE::PipelineCompiler
         auto&   descriptor_set = _GetDescriptorSet( uint(qual.layoutSet), INOUT reflection );
 
         if ( type.getBasicType() == TBasicType::EbtSampler )
-        {   
+        {
             TSampler const& samp = type.getSampler();
 
             COMP_CHECK_ERR( not samp.isYuv() );
@@ -1821,13 +1829,13 @@ namespace AE::PipelineCompiler
 
                 un.buffer                   = Default;
                 un.buffer.state             = EResourceState::ShaderUniform | EResourceState_FromShaders( _currentStage );
-                un.buffer.arrayStride       = Bytes32u{0u};
+                un.buffer.arrayStride       = Byte32u{0u};
                 un.buffer.dynamicOffsetIndex= UMax;
                 un.buffer.typeName          = GetShaderStructName( type.getTypeName() );
 
                 COMP_CHECK_ERR( name.IsDefined() );
 
-                Bytes32u    stride, offset;
+                Byte32u stride, offset;
                 COMP_CHECK_ERR( _CalculateStructSize( type, OUT un.buffer.staticSize, OUT stride, OUT offset ));
                 COMP_CHECK_ERR( offset == 0u );
                 return true;
@@ -1850,7 +1858,7 @@ namespace AE::PipelineCompiler
 
                 COMP_CHECK_ERR( name.IsDefined() );
 
-                Bytes32u    offset;
+                Byte32u offset;
                 COMP_CHECK_ERR( _CalculateStructSize( type, OUT un.buffer.staticSize, OUT un.buffer.arrayStride, OUT offset ));
                 COMP_CHECK_ERR( offset == 0u );
                 return true;

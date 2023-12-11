@@ -82,7 +82,7 @@ namespace AE::PipelineCompiler
 
     // methods
         RPAttachment () {}
-        RPAttachment (const AttachmentName &name, const CompatibleRenderPassDesc *compat, uint idx) :
+        RPAttachment (const AttachmentName &name, const CompatibleRenderPassDesc* compat, uint idx) :
             index{idx}, _name{name}, _compat{compat} {}
 
         void  AddUsage (const String &subpassName, EAttachment type)                                                __Th___;
@@ -170,7 +170,7 @@ namespace AE::PipelineCompiler
 
     // methods
         RenderPassSpec () {}
-        RenderPassSpec (const RenderPassName &name, const CompatibleRenderPassDesc *compat) : _name{name}, _compat{compat} {}
+        RenderPassSpec (const RenderPassName &name, const CompatibleRenderPassDesc* compat) : _name{name}, _compat{compat} {}
 
         ND_ RPAttachmentSpec*   AddAttachment (const String &attachmentName)    __Th___;
         ND_ RPAttachmentSpecPtr AddAttachment2 (const String &attachmentName)   __Th___;

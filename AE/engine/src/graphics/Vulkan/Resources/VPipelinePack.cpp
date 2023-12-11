@@ -24,7 +24,7 @@ namespace AE::Graphics
     {
         DRC_EXLOCK( _drCheck );
 
-        CATCH_ERR(
+        NOTHROW_ERR(
             _sbtAllocator = desc.sbtAllocator;
 
             return _Create( resMngr, desc );
@@ -373,9 +373,9 @@ namespace AE::Graphics
         CHECK_ERR( offset == sbt_size );
 
         RTShaderBindingDesc     sbt_desc;
-        sbt_desc.maxRayTypes    = Max( desc.numRayTypes, desc.miss.size() );
+        sbt_desc.maxRayTypes    = uint(Max( desc.numRayTypes, desc.miss.size() ));
         sbt_desc.maxInstances   = uint(SafeDiv( desc.hit.size(), desc.numRayTypes ));
-        sbt_desc.maxCallable    = desc.callable.size();
+        sbt_desc.maxCallable    = uint(desc.callable.size());
 
         ASSERT( desc.hit.empty() or IsMultipleOf( desc.hit.size(), desc.numRayTypes ));
         ASSERT( sbt_desc.maxRayTypes == Max( desc.numRayTypes, desc.miss.size() )); // overflow

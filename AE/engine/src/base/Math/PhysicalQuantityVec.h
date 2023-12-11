@@ -55,7 +55,7 @@ namespace AE::Math
     template <typename Quantity, glm::qualifier Q>
     struct PhysicalQuantityVec <Quantity, 2, Q> : TVec< Quantity, 2, Q >
     {
-        STATIC_ASSERT( IsPhysicalQuantity< Quantity >);
+        StaticAssert( IsPhysicalQuantity< Quantity >);
 
     // types
         using Value_t       = typename Quantity::Value_t;
@@ -66,7 +66,7 @@ namespace AE::Math
         using ValVec_t      = TVec< Value_t,  2, Q >;
         using QVec_t        = TVec< Quantity, 2, Q >;
 
-        STATIC_ASSERT( sizeof(QVec_t) == sizeof(ValVec_t) );
+        StaticAssert( sizeof(QVec_t) == sizeof(ValVec_t) );
 
     // methods
         PhysicalQuantityVec ()                              __NE___ {}
@@ -92,7 +92,7 @@ namespace AE::Math
     template <typename Quantity, glm::qualifier Q>
     struct PhysicalQuantityVec <Quantity, 3, Q> : TVec< Quantity, 3, Q >
     {
-        STATIC_ASSERT( IsPhysicalQuantity< Quantity >);
+        StaticAssert( IsPhysicalQuantity< Quantity >);
 
     // types
         using Value_t       = typename Quantity::Value_t;
@@ -103,7 +103,7 @@ namespace AE::Math
         using ValVec_t      = TVec< Value_t,  3, Q >;
         using QVec_t        = TVec< Quantity, 3, Q >;
 
-        STATIC_ASSERT( sizeof(QVec_t) == sizeof(ValVec_t) );
+        StaticAssert( sizeof(QVec_t) == sizeof(ValVec_t) );
 
     // methods
         PhysicalQuantityVec ()                                      __NE___ {}
@@ -129,7 +129,7 @@ namespace AE::Math
     template <typename Quantity, glm::qualifier Q>
     struct PhysicalQuantityVec <Quantity, 4, Q> : TVec< Quantity, 4, Q >
     {
-        STATIC_ASSERT( IsPhysicalQuantity< Quantity >);
+        StaticAssert( IsPhysicalQuantity< Quantity >);
 
     // types
         using Value_t       = typename Quantity::Value_t;
@@ -140,7 +140,7 @@ namespace AE::Math
         using ValVec_t      = TVec< Value_t,  4, Q >;
         using QVec_t        = TVec< Quantity, 4, Q >;
 
-        STATIC_ASSERT( sizeof(QVec_t) == sizeof(ValVec_t) );
+        StaticAssert( sizeof(QVec_t) == sizeof(ValVec_t) );
 
     // methods
         PhysicalQuantityVec ()                                                  __NE___ {}
@@ -661,12 +661,11 @@ namespace _hidden_
 namespace AE::Base
 {
     template <typename Qt, int I, glm::qualifier Ql>
-    struct TMemCopyAvailable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsMemCopyAvailable<Qt>; };
+    struct TMemCopyAvailable< PhysicalQuantityVec<Qt,I,Ql> >        { static constexpr bool  value = IsMemCopyAvailable<Qt>; };
 
     template <typename Qt, int I, glm::qualifier Ql>
-    struct TZeroMemAvailable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsZeroMemAvailable<Qt>; };
+    struct TZeroMemAvailable< PhysicalQuantityVec<Qt,I,Ql> >        { static constexpr bool  value = IsZeroMemAvailable<Qt>; };
 
-    template <typename Qt, int I, glm::qualifier Ql>
-    struct TTriviallySerializable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsTriviallySerializable<Qt>; };
+    // 'IsTriviallySerializable< PhysicalQuantityVec<> > = false' - because SIMD and packed types has different alignment
 
 } // AE::Base

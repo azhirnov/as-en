@@ -166,6 +166,16 @@ namespace
         }
         TEST( T1::CheckStatistic() );
     }
+
+
+    static void  FixedSet_Test7 ()
+    {
+        struct alignas(64) Elem {};
+
+        using Set_t = FixedSet< Elem, 8 >;
+
+        StaticAssert( alignof(Set_t) == alignof(Elem) );
+    }
 }
 
 
@@ -177,6 +187,7 @@ extern void UnitTest_FixedSet ()
     FixedSet_Test4();
     FixedSet_Test5();
     FixedSet_Test6();
+    FixedSet_Test7();
 
     TEST_PASSED();
 }

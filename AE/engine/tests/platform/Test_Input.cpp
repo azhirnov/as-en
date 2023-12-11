@@ -42,18 +42,19 @@ namespace
         WindowPtr   _window;
 
     public:
-        AppListener ()
+        AppListener () __NE___
         {
-            TaskScheduler::CreateInstance();
+            TaskScheduler::InstanceCtor::Create();
 
             TaskScheduler::Config   cfg;
+            cfg.mainThreadCoreId    = ECpuCoreId(0);
             CHECK_FATAL( Scheduler().Setup( cfg ));
         }
 
         ~AppListener () __NE_OV
         {
             Scheduler().Release();
-            TaskScheduler::DestroyInstance();
+            TaskScheduler::InstanceCtor::Destroy();
         }
 
         void  OnStart (IApplication &app) __NE_OV

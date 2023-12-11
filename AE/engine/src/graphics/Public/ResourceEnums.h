@@ -476,7 +476,7 @@ namespace AE::Graphics
 
         Unknown         = 0xFF,
     };
-    STATIC_ASSERT( uint(EPixelFormat::_Count) < uint(EPixelFormat::SwapchainColor) );
+    StaticAssert( uint(EPixelFormat::_Count) < uint(EPixelFormat::SwapchainColor) );
 
 
     enum class EShaderIO : ubyte

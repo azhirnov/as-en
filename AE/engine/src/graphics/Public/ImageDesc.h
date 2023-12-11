@@ -18,7 +18,7 @@ namespace AE::Graphics
     struct ImageDesc
     {
     // types
-        using FormatList_t = FixedArray< EPixelFormat, 4 >;
+        using FormatList_t = StaticArray< EPixelFormat, 4 >;
 
 
     // variables
@@ -32,7 +32,7 @@ namespace AE::Graphics
         MultiSamples        samples;                // if > 1 then enabled multisampling
         EMemoryType         memType         = EMemoryType::DeviceLocal;
         EQueueMask          queues          = Default;
-        FormatList_t        viewFormats;
+        FormatList_t        viewFormats     { Default, Default, Default, Default };
 
 
     // methods
@@ -43,6 +43,8 @@ namespace AE::Graphics
 
         ND_ bool  operator == (const ImageDesc &rhs)        C_NE___;
         ND_ bool  IsExclusiveSharing ()                     C_NE___ { return queues == Default; }
+        ND_ bool  HasViewFormatList ()                      C_NE___ { return ViewFormatListSize() != 0; }
+        ND_ usize ViewFormatListSize ()                     C_NE___;
 
         ImageDesc&  SetType (EImage value)                  __NE___;
         ImageDesc&  SetType (EImageDim value)               __NE___ { imageDim      = value;                return *this; }
@@ -60,7 +62,7 @@ namespace AE::Graphics
         ImageDesc&  SetAllMipmaps ()                        __NE___ { maxLevel      = MipmapLevel::Max();   return *this; }
         ImageDesc&  SetQueues (EQueueMask value)            __NE___ { queues        = value;                return *this; }
         ImageDesc&  SetMemory (EMemoryType value)           __NE___ { memType       = value;                return *this; }
-        ImageDesc&  AddViewFormat (EPixelFormat value)      __NE___ { viewFormats.try_push_back( value );   return *this; }
+        ImageDesc&  AddViewFormat (EPixelFormat value)      __NE___;
 
         ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)   __NE___;
         ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)   __NE___;
@@ -127,7 +129,7 @@ namespace AE::Base
     template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >     { static constexpr bool  value = true; };
     template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >{ static constexpr bool  value = true; };
 
-    STATIC_ASSERT( sizeof(AE::Graphics::ImageDesc) == 48 );
-    STATIC_ASSERT( sizeof(AE::Graphics::ImageViewDesc) == 20 );
+    StaticAssert( sizeof(AE::Graphics::ImageDesc) == 48 );
+    StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 20 );
 
 } // AE::Base

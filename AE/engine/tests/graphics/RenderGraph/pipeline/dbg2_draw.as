@@ -7,6 +7,7 @@ void ASmain ()
 
     {
         RC<PipelineLayout>      pl = PipelineLayout( "dbg2_draw.pl" );
+        pl.AddFeatureSet( "MinDesktop" );
         pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Fragment | EShaderStages::Vertex );
         pl.Define( "DEBUG" );
     }
@@ -30,7 +31,7 @@ void ASmain ()
     // specialization
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "dbg2_draw" );
-        spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
+        spec.AddToRenderTech( "DebugDrawTestRT", "Draw_1" );
 
         RenderState rs;
         rs.inputAssembly.topology = EPrimitive::TriangleList;

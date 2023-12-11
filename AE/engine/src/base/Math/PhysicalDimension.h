@@ -24,15 +24,15 @@ namespace AE::Math
             >
     struct TPhysicalDimension
     {
-        STATIC_ASSERT( SecondsDenom     > 0 );
-        STATIC_ASSERT( KilogramsDenom   > 0 );
-        STATIC_ASSERT( MetersDenom      > 0 );
-        STATIC_ASSERT( AmperasDenom     > 0 );
-        STATIC_ASSERT( KelvinsDenom     > 0 );
-        STATIC_ASSERT( MolesDenom       > 0 );
-        STATIC_ASSERT( CandelasDenom    > 0 );
-        STATIC_ASSERT( CurrencyDenom    > 0 );
-        STATIC_ASSERT( BitsDenom        > 0 );
+        StaticAssert( SecondsDenom      > 0 );
+        StaticAssert( KilogramsDenom    > 0 );
+        StaticAssert( MetersDenom       > 0 );
+        StaticAssert( AmperasDenom      > 0 );
+        StaticAssert( KelvinsDenom      > 0 );
+        StaticAssert( MolesDenom        > 0 );
+        StaticAssert( CandelasDenom > 0 );
+        StaticAssert( CurrencyDenom > 0 );
+        StaticAssert( BitsDenom     > 0 );
 
         //              SI
         static constexpr FractionalI    seconds     { SecondsNum,   SecondsDenom };     // time

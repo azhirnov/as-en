@@ -58,9 +58,9 @@ namespace AE::Base
         static constexpr MO_t   OnSuccess   = Success;
         static constexpr MO_t   OnFailure   = Failure;
 
-        STATIC_ASSERT( StdAtomic<IT>::is_always_lock_free );
-        STATIC_ASSERT( IsInteger<IT> or IsEnum<IT> );
-        STATIC_ASSERT( sizeof(PublicType) == sizeof(InternalType) );
+        StaticAssert( StdAtomic<IT>::is_always_lock_free );
+        StaticAssert( IsInteger<IT> or IsEnum<IT> );
+        StaticAssert( sizeof(PublicType) == sizeof(InternalType) );
 
 
     // variables
@@ -178,8 +178,8 @@ namespace AE::Base
         static constexpr MO_t   OnSuccess   = Success;
         static constexpr MO_t   OnFailure   = Failure;
 
-        STATIC_ASSERT( StdAtomic<IT>::is_always_lock_free );
-        STATIC_ASSERT( IsUnion<T> or IsClass<T> );
+        StaticAssert( StdAtomic<IT>::is_always_lock_free );
+        StaticAssert( IsUnion<T> or IsClass<T> );
 
 
     // variables
@@ -292,9 +292,9 @@ namespace AE::Base
         static constexpr MO_t   OnSuccess   = Success;
         static constexpr MO_t   OnFailure   = Failure;
 
-        STATIC_ASSERT( StdAtomic<T>::is_always_lock_free );
-        STATIC_ASSERT( IsFloatPoint<T> );
-        STATIC_ASSERT( sizeof(IT) == sizeof(T) );
+        StaticAssert( StdAtomic<T>::is_always_lock_free );
+        StaticAssert( IsFloatPoint<T> );
+        StaticAssert( sizeof(IT) == sizeof(T) );
 
 
     // variables
@@ -356,11 +356,6 @@ namespace AE::Base
         T   Inc (MO_t memOrder)                             __NE___ { return Add( T{1}, memOrder ); }
         T   Dec (MO_t memOrder)                             __NE___ { return Sub( T{1}, memOrder ); }
 
-    //  Self&  operator += (T arg)                          __NE___ { fetch_add( arg );  return *this; }
-    //  Self&  operator -= (T arg)                          __NE___ { fetch_sub( arg );  return *this; }
-    //  Self&  operator ++ ()                               __NE___ { fetch_add( T{1} ); return *this; }
-    //  Self&  operator -- ()                               __NE___ { fetch_sub( T{1} ); return *this; }
-
         T   fetch_max (T arg)                               __NE___
         {
             T   exp = load();
@@ -401,7 +396,7 @@ namespace AE::Base
         static constexpr MO_t   OnSuccess   = Success;
         static constexpr MO_t   OnFailure   = Failure;
 
-        STATIC_ASSERT( StdAtomic<value_type>::is_always_lock_free );
+        StaticAssert( StdAtomic<value_type>::is_always_lock_free );
 
 
     // variables
@@ -443,8 +438,8 @@ namespace AE::Base
 
         T*  fetch_add (ssize arg, MO_t memOrder)                __NE___ { return _value.fetch_add( arg, memOrder ); }
         T*  fetch_sub (ssize arg, MO_t memOrder)                __NE___ { return _value.fetch_sub( arg, memOrder ); }
-        T*  Add (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_add( arg, memOrder ) + Math::BytesSSize{arg}; }
-        T*  Sub (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_sub( arg, memOrder ) - Math::BytesSSize{arg}; }
+        T*  Add (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_add( arg, memOrder ) + Math::ByteSSize{arg}; }
+        T*  Sub (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_sub( arg, memOrder ) - Math::ByteSSize{arg}; }
 
         T*  fetch_max (T* arg)                                  __NE___
         {
@@ -475,18 +470,52 @@ namespace AE::Base
     namespace _hidden_
     {
         template <typename T>
-        struct TBytesAtomic {
-            using type = TAtomic< Math::TBytes<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+        struct TAtomicByte {
+            using type = TAtomic< Math::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
         };
 
         template <typename T>
-        struct TBytesAtomic< Math::TBytes<T> > {
-            using type = TAtomic< Math::TBytes<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+        struct TAtomicByte< Math::TByte<T> > {
+            using type = TAtomic< Math::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
         };
     }
 
     template <typename T>
-    using BytesAtomic = typename Base::_hidden_::TBytesAtomic<T>::type;
+    using AtomicByte = typename Base::_hidden_::TAtomicByte<T>::type;
+
+
+    namespace _hidden_
+    {
+        template <typename T>
+        struct _IsAtomic {
+            static constexpr bool   value = false;
+            using type = void;
+        };
+
+        template <typename PublicType, typename InternalType, std::memory_order Success, std::memory_order Failure>
+        struct _IsAtomic< TAtomic< PublicType, InternalType, Success, Failure >> {
+            static constexpr bool   value = true;
+            using type = PublicType;
+        };
+
+        template <typename T, std::memory_order Success, std::memory_order Failure>
+        struct _IsAtomic< TBitAtomic< T, Success, Failure >> {
+            static constexpr bool   value = true;
+            using type = T;
+        };
+
+        template <typename T, std::memory_order Success, std::memory_order Failure>
+        struct _IsAtomic< TAtomicFloat< T, Success, Failure >> {
+            static constexpr bool   value = true;
+            using type = T;
+        };
+    }
+
+    template <typename T>
+    static constexpr bool  IsAtomic = Base::_hidden_::_IsAtomic< T >::value;
+
+    template <typename T>
+    using AtomicInternalType = typename Base::_hidden_::_IsAtomic< T >::type;
 
 
 } // AE::Base

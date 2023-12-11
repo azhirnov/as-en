@@ -136,7 +136,7 @@ namespace AE::Base
         bool        SeekFwd (Bytes offset)                                              __NE_OV;
         Bytes       Reserve (Bytes additionalSize)                                      __NE_OV;
 
-        Bytes       WriteSeq (const void *, Bytes)                                      __NE_OV;
+        Bytes       WriteSeq (const void*, Bytes)                                       __NE_OV;
         void        Flush ()                                                            __NE_OV;
     };
 
@@ -193,7 +193,7 @@ namespace AE::Base
         ESourceType GetSourceType ()                                                        C_NE_OV;
         Bytes       Size ()                                                                 C_NE_OV { return _fileSize; }
 
-        Bytes       ReadBlock (Bytes, OUT void *, Bytes)                                    __NE_OV;
+        Bytes       ReadBlock (Bytes, OUT void*, Bytes)                                     __NE_OV;
     };
 
 
@@ -247,7 +247,7 @@ namespace AE::Base
 
         Bytes       Reserve (Bytes)                                                         __NE_OV;
 
-        Bytes       WriteBlock (Bytes, const void *, Bytes)                                 __NE_OV;
+        Bytes       WriteBlock (Bytes, const void*, Bytes)                                  __NE_OV;
         void        Flush ()                                                                __NE_OV;
     };
 

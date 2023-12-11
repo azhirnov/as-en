@@ -15,7 +15,7 @@ namespace AE::Graphics
     LoadableImage::~LoadableImage () __NE___
     {
         if ( _imageId )
-            RenderTaskScheduler().GetResourceManager().ReleaseResource( _imageId );
+            GraphicsScheduler().GetResourceManager().ReleaseResource( _imageId );
     }
 
 /*
@@ -25,7 +25,7 @@ namespace AE::Graphics
 */
     auto  LoadableImage::ReleaseImageAndView () __NE___ -> StrongImageAndViewID
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         auto    view_id = res_mngr.CreateImageView( ImageViewDesc{ _viewType }, _imageId, Default );
 
@@ -48,7 +48,7 @@ namespace AE::Graphics
         CHECK_ERR( stream and stream->IsOpen() );
 
         auto    image       = MakeRC<LoadableImage>();
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
 
         ImagePacker unpacker;
         CHECK_ERR( unpacker.ReadHeader( *stream ));

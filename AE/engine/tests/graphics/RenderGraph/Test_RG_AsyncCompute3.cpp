@@ -56,7 +56,7 @@ namespace
         AC3_TestData&   t;
         const uint      fi;
 
-        AC3_GraphicsTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+        AC3_GraphicsTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t },
             fi{ frameIdx & 1 }
@@ -74,7 +74,7 @@ namespace
             // draw
             {
                 constexpr auto&     rtech_pass = RTech.Draw_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.imageSize }
                                     .AddViewport( t.imageSize )
@@ -98,7 +98,7 @@ namespace
         AC3_TestData&   t;
         const uint      fi;
 
-        AC3_ComputeTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+        AC3_ComputeTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t },
             fi{ frameIdx & 1 }
@@ -128,7 +128,7 @@ namespace
     public:
         AC3_TestData&   t;
 
-        AC3_CopyTask (AC3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        AC3_CopyTask (AC3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -165,29 +165,31 @@ namespace
     public:
         AC3_TestData&       t;
 
-        AC3_FrameTask (AC3_TestData& t) :
+        AC3_FrameTask (AC3_TestData& t) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ t }
         {}
 
         void  Run () __Th_OV
         {
-            auto&   rg = RenderTaskScheduler().GetRenderGraph();
+            auto&   rg = GraphicsScheduler().GetRenderGraph();
 
             if ( t.frameIdx.load() == 3 )
             {
                 // frame 3
-                AsyncTask   begin       = rg.BeginFrame();
-                auto        batch       = rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
-                                                .UseResource( t.image[0] )
-                                                .UseResource( t.image[1] )
-                                                .ReadbackMemory()
-                                                .Begin();
+                CHECK_TE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+                CHECK_TE( rg.BeginFrame() );
+
+                auto    batch   = rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
+                                        .UseResource( t.image[0] )
+                                        .UseResource( t.image[1] )
+                                        .ReadbackMemory()
+                                        .Begin();
                 CHECK_TE( batch );
 
-                AsyncTask   read_task   = batch.template Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
-                                                .SubmitBatch().Run( Tuple{begin} );
-                AsyncTask   end         = rg.EndFrame( Tuple{read_task} );
+                auto    read_task   = batch.template Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
+                                                .SubmitBatch().Run();
+                auto    end         = rg.EndFrame( Tuple{read_task} );
 
                 ++t.frameIdx;
                 return Continue( Tuple{end} );
@@ -197,27 +199,31 @@ namespace
                 return; // frame 4+
 
             // frames [0..2]:
-            const uint  fi      = t.frameIdx.load() & 1;
-            AsyncTask   begin   = rg.BeginFrame();
+            const uint  fi = t.frameIdx.load() & 1;
+
+            CHECK_TE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+            CHECK_TE( rg.BeginFrame() );
 
 
             // batch graph
-            auto        batch_gfx = rg.CmdBatch( EQueueType::Graphics, {"graphics batch"} )
-                                        .UseResource( t.image[fi], EResourceState::ShaderSample | EResourceState::FragmentShader )
-                                        .Begin();
+            auto    batch_gfx = rg.CmdBatch( EQueueType::Graphics, {"graphics batch"} )
+                                    .UseResource( t.image[fi], EResourceState::ShaderSample | EResourceState::FragmentShader )
+                                    .Begin();
             CHECK_TE( batch_gfx );
 
-            auto        batch_ac = rg.CmdBatch( EQueueType::AsyncCompute, {"compute batch"} )
-                                        .UseResource( t.image[fi], EResourceState::ShaderStorage_RW | EResourceState::ComputeShader )
-                                        .Begin();
+            auto    batch_ac = rg.CmdBatch( EQueueType::AsyncCompute, {"compute batch"} )
+                                    .UseResource( t.image[fi], EResourceState::ShaderStorage_RW | EResourceState::ComputeShader )
+                                    .Begin();
             CHECK_TE( batch_ac );
 
 
             // add tasks to cmd batches
-            AsyncTask   gfx_task    = batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"}      ).SubmitBatch().Run( Tuple{begin} );
-            AsyncTask   comp_task   = batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} ).SubmitBatch().Run( Tuple{gfx_task} );
+            auto    gfx_task    = batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"} )
+                                        .SubmitBatch().Run();
+            auto    comp_task   = batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} )
+                                        .SubmitBatch().Run( Tuple{gfx_task} );
 
-            AsyncTask   end         = rg.EndFrame( Tuple{ gfx_task, comp_task });
+            auto    end         = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
             ++t.frameIdx;
             return Continue( Tuple{end} );
@@ -228,12 +234,12 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  AsyncCompute3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  AsyncCompute3Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&           res_mngr    = GraphicsScheduler().GetResourceManager();
         AC3_TestData    t;
         const auto      format      = EPixelFormat::RGBA8_UNorm;
-        auto&           rg          = RenderTaskScheduler().GetRenderGraph();
+        auto&           rg          = GraphicsScheduler().GetRenderGraph();
 
         t.rtech     = renderTech;
         t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
@@ -282,12 +288,12 @@ namespace
         // draw 3 frames
         auto    task = Scheduler().Run< AC3_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
 
-        CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rg.WaitAll() );
+        CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
+        CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
         CHECK_ERR( t.frameIdx.load() == 4 );
 
-        CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
+        CHECK_ERR( Scheduler().Wait( {t.result[0], t.result[1]}, c_MaxTimeout ));
         CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
         CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
         CHECK_ERR( t.isOK[0] );
@@ -301,7 +307,7 @@ namespace
 
 bool RGTest::Test_AsyncCompute3 ()
 {
-    if ( not AllBits( RenderTaskScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
+    if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
         return true; // skip
 
     auto    img_cmp = _LoadReference( TEST_NAME );

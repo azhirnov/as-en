@@ -20,22 +20,17 @@ namespace AE::VFS
 
 /*
 =================================================
-    CreateInstance
+    InstanceCtor
 =================================================
 */
-    void  VirtualFileSystem::CreateInstance () __NE___
+    void  VirtualFileSystem::InstanceCtor::Create () __NE___
     {
         s_VirtualFileSystem.Create();
 
         MemoryBarrier( EMemoryOrder::Release );
     }
 
-/*
-=================================================
-    DestroyInstance
-=================================================
-*/
-    void  VirtualFileSystem::DestroyInstance () __NE___
+    void  VirtualFileSystem::InstanceCtor::Destroy () __NE___
     {
         MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -51,26 +46,41 @@ namespace AE::VFS
 */
     bool  VirtualFileSystem::AddStorage (const StorageName &name, RC<IVirtualFileStorage> storage) __NE___
     {
-        DRC_EXLOCK( _drCheck );
-        CHECK_ERR( storage );
-
-        CHECK_ERR( _storageMap.emplace( StorageName::Optimized_t{name}, storage ).second );
-
-        CATCH_ERR( storage->_Append( INOUT _globalMap );)
-        return true;
+        return _AddStorage( StorageName::Optimized_t{name}, RVRef(storage) );
     }
 
     bool  VirtualFileSystem::AddStorage (RC<IVirtualFileStorage> storage) __NE___
     {
         DRC_EXLOCK( _drCheck );
-        CHECK_ERR( storage );
 
         StorageName::Optimized_t    st_name {HashVal32{uint(_storageMap.size())}};
 
-        CHECK_ERR( _storageMap.emplace( st_name, storage ).second );
+        return _AddStorage( st_name, RVRef(storage) );
+    }
 
-        CATCH_ERR( storage->_Append( INOUT _globalMap );)
+    bool  VirtualFileSystem::_AddStorage (StorageName::Optimized_t name, RC<IVirtualFileStorage> storage) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        CHECK_ERR( not _isImmutable.load() );
+
+        CHECK_ERR( storage );
+
+        auto [it, inserted] = _storageMap.emplace( name, RVRef(storage) );
+        CHECK_ERR( inserted );
+
+        NOTHROW_ERR( it->second->_Append( INOUT _globalMap );)
         return true;
+    }
+
+/*
+=================================================
+    MakeImmutable
+=================================================
+*/
+    bool  VirtualFileSystem::MakeImmutable () __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+        return not _isImmutable.exchange( true );
     }
 
 /*
@@ -107,17 +117,17 @@ namespace AE::VFS
 
     bool  VirtualFileSystem::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
     {
-        return _OpenForRead( OUT stream, name );
+        return _OpenForWrite( OUT stream, name );
     }
 
     bool  VirtualFileSystem::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
     {
-        return _OpenForRead( OUT ds, name );
+        return _OpenForWrite( OUT ds, name );
     }
 
     bool  VirtualFileSystem::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
     {
-        return _OpenForRead( OUT ds, name );
+        return _OpenForWrite( OUT ds, name );
     }
 
     bool  VirtualFileSystem::Open (OUT RC<AsyncWStream> &stream, FileNameRef name) C_NE___
@@ -140,7 +150,7 @@ namespace AE::VFS
     template <typename ResultType>
     bool  VirtualFileSystem::_OpenForRead (OUT ResultType &result, FileNameRef name) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         // find in global map
         {
@@ -155,7 +165,7 @@ namespace AE::VFS
                     for (auto& st : _storageMap.GetValueArray()) {
                         found |= (st.get() == iter->second.storage);
                     }
-                    ASSERT( found );
+                    ASSERT_MSG( found, "memory corruption - iterator contains pointer to storage which is not exists" );
                 )
 
                 return iter->second.storage->_OpenByIter( OUT result, name, iter->second.ref );
@@ -183,7 +193,7 @@ namespace AE::VFS
     template <typename ResultType>
     bool  VirtualFileSystem::_OpenForWrite (OUT ResultType &result, FileNameRef name) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         // find in global map
         {
@@ -198,7 +208,7 @@ namespace AE::VFS
                     for (auto& st : _storageMap.GetValueArray()) {
                         found |= (st.get() == iter->second.storage);
                     }
-                    ASSERT( found );
+                    ASSERT_MSG( found, "memory corruption - iterator contains pointer to storage which is not exists" );
                 )
 
                 return iter->second.storage->_OpenByIter( OUT result, name, iter->second.ref );
@@ -225,7 +235,7 @@ namespace AE::VFS
 */
     bool  VirtualFileSystem::Exists (FileNameRef name) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         // find in global map
         {
@@ -251,7 +261,7 @@ namespace AE::VFS
 */
     bool  VirtualFileSystem::Exists (FileGroupNameRef name) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         for (auto& st : _storageMap.GetValueArray())
         {
@@ -267,9 +277,9 @@ namespace AE::VFS
     CreateFile
 =================================================
 */
-    bool  VirtualFileSystem::CreateFile (const StorageName &stName, OUT FileName &name, const Path &path) C_NE___
+    bool  VirtualFileSystem::CreateFile (OUT FileName &name, const Path &path, const StorageName &stName) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         auto    it = _storageMap.find( stName );
         CHECK_ERR( it != _storageMap.end() );
@@ -282,9 +292,9 @@ namespace AE::VFS
     CreateUniqueFile
 =================================================
 */
-    bool  VirtualFileSystem::CreateUniqueFile (const StorageName &stName, OUT FileName &name, INOUT Path &path) C_NE___
+    bool  VirtualFileSystem::CreateUniqueFile (OUT FileName &name, INOUT Path &path, const StorageName &stName) C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        CHECK_ERR( _isImmutable.load() );
 
         auto    it = _storageMap.find( stName );
         CHECK_ERR( it != _storageMap.end() );

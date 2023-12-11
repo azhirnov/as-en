@@ -164,11 +164,11 @@ namespace
 
         RGBA32f     b0;
         image.Load( uint3{0,0,0}, OUT b0 );
-        TEST( All( Equals( a0, b0, 0.002f )));
+        TEST( All( Equal( a0, b0, 0.002f )));
 
         RGBA32u     c0;
         image.Load( uint3{0,0,0}, OUT c0 );
-        TEST( All( Equals( RGBA32u{ 0x33, 0x99, 0xE5, 0xFF }, c0 )));
+        TEST( All( Equal( RGBA32u{ 0x33, 0x99, 0xE5, 0xFF }, c0 )));
 
 
         RGBA32f     a1{ -0.5f, 0.8f, 0.3f, 0.0f };
@@ -176,11 +176,11 @@ namespace
 
         RGBA32f     b1;
         image.Load( uint3{1,1,0}, OUT b1 );
-        TEST( All( Equals( Max( RGBA32f{}, a1 ), b1, 0.002f )));
+        TEST( All( Equal( Max( RGBA32f{}, a1 ), b1, 0.002f )));
 
         RGBA32u     c1;
         image.Load( uint3{1,1,0}, OUT c1 );
-        TEST( All( Equals( RGBA32u{ 0x00, 0xCC, 0x4C, 0x00 }, c1 )));
+        TEST( All( Equal( RGBA32u{ 0x00, 0xCC, 0x4C, 0x00 }, c1 )));
     }
 
 
@@ -198,11 +198,11 @@ namespace
 
         RGBA32f     b0;
         image.Load( uint3{0,0,0}, OUT b0 );
-        TEST( All( Equals( a0, b0 )));
+        TEST( All( Equal( a0, b0 )));
 
         RGBA32u     c0;
         image.Load( uint3{0,0,0}, OUT c0 );
-        TEST( All( Equals( RGBA32u{ 0x3e4ccccd, 0x3f19999a, 0x3f666666, 0x3f800000 }, c0 )));
+        TEST( All( Equal( RGBA32u{ 0x3e4ccccd, 0x3f19999a, 0x3f666666, 0x3f800000 }, c0 )));
 
 
         RGBA32f     a1{ -0.5f, 0.8f, 0.3f, 1000.0f };
@@ -210,11 +210,11 @@ namespace
 
         RGBA32f     b1;
         image.Load( uint3{1,1,0}, OUT b1 );
-        TEST( All( Equals( a1, b1 )));
+        TEST( All( Equal( a1, b1 )));
 
         RGBA32u     c1;
         image.Load( uint3{1,1,0}, OUT c1 );
-        TEST( All( Equals( RGBA32u{ 0xbf000000, 0x3f4ccccd, 0x3e99999a, 0x447a0000 }, c1 )));
+        TEST( All( Equal( RGBA32u{ 0xbf000000, 0x3f4ccccd, 0x3e99999a, 0x447a0000 }, c1 )));
     }
 
 
@@ -232,11 +232,11 @@ namespace
 
         RGBA32f     b0;
         image.Load( uint3{0,0,0}, OUT b0 );
-        TEST( All( Equals( a0, b0, 0.001f )));
+        TEST( All( Equal( a0, b0, 0.001f )));
 
         RGBA32u     c0;
         image.Load( uint3{0,0,0}, OUT c0 );
-        TEST( All( Equals( RGBA32u{ 0x3266, 0x38CD, 0x3B33, 0x3C00 }, c0 )));
+        TEST( All( Equal( RGBA32u{ 0x3266, 0x38CD, 0x3B33, 0x3C00 }, c0 )));
 
 
         RGBA32f     a1{ -0.5f, 0.8f, 0.3f, 100.0f };
@@ -244,11 +244,11 @@ namespace
 
         RGBA32f     b1;
         image.Load( uint3{1,1,0}, OUT b1 );
-        TEST( All( Equals( a1, b1, 0.001f )));
+        TEST( All( Equal( a1, b1, 0.001f )));
 
         RGBA32u     c1;
         image.Load( uint3{1,1,0}, OUT c1 );
-        TEST( All( Equals( RGBA32u{ 0xB800, 0x3A66, 0x34CD, 0x5640 }, c1 )));
+        TEST( All( Equal( RGBA32u{ 0xB800, 0x3A66, 0x34CD, 0x5640 }, c1 )));
     }
 
 
@@ -266,11 +266,11 @@ namespace
 
         RGBA32f     b0;
         image.Load( uint3{0,0,0}, OUT b0 );
-        TEST( All( Equals( a0, b0, 0.01f )));
+        TEST( All( Equal( a0, b0, 0.01f )));
 
         RGBA32u     c0;
         image.Load( uint3{0,0,0}, OUT c0 );
-        TEST( All( Equals( RGBA32u{ 0x19, 0x4C, 0x73, 0x7F }, c0 )));
+        TEST( All( Equal( RGBA32u{ 0x19, 0x4C, 0x73, 0x7F }, c0 )));
 
 
         RGBA32f     a1{ -0.2f, -0.6f, -0.9f, -1.0f };
@@ -278,11 +278,11 @@ namespace
 
         RGBA32f     b1;
         image.Load( uint3{2,2,0}, OUT b1 );
-        TEST( All( Equals( a1, b1, 0.01f )));
+        TEST( All( Equal( a1, b1, 0.01f )));
 
         RGBA32u     c1;
         image.Load( uint3{2,2,0}, OUT c1 );
-        TEST( All( Equals( RGBA32u{ 0xE6, 0xB3, 0x8C, 0x80 }, c1 )));
+        TEST( All( Equal( RGBA32u{ 0xE6, 0xB3, 0x8C, 0x80 }, c1 )));
     }
 }
 

@@ -44,6 +44,8 @@ namespace AE::Base
             _Count
         };
 
+        struct Builder;
+
 
     // variables
     private:
@@ -95,9 +97,6 @@ namespace AE::Base
         ND_ ulong   ToMillisecondsSinceEpoch ()         C_NE___ { return _ToMilliseconds( 0 ); }
             Date&   SetMillisecondsSinceEpoch (ulong ms)__NE___ { return _SetMilliseconds( 0, ms ); }
 
-            Date&   SetYear (uint value)                __NE___ { _year = value; return *this; }
-            Date&   SetMonth (uint value)               __NE___ { _month = value; return *this; }
-
 
         ND_ String  ToString (StringView fmt)           C_NE___;
 
@@ -119,6 +118,50 @@ namespace AE::Base
 
         ND_ ulong  _ToMilliseconds (uint startYear) const;
             Date&  _SetMilliseconds (uint startYear, ulong ms);
+    };
+
+
+
+    //
+    // Date Builder
+    //
+
+    struct Date::Builder
+    {
+    // variables
+    private:
+        Date    _date;
+
+
+    // methods
+    public:
+        Builder ()                              __NE___ {}
+        explicit Builder (const Date &value)    __NE___ : _date{value} {}
+
+        Builder&  Year (uint value)             __NE___ { ASSERT( value < 65536 );                  _date._year         = value;        return *this; }
+        Builder&  Month (uint value)            __NE___ { ASSERT( value < 12 );                     _date._month        = value;        return *this; }
+        Builder&  Month (EMonth value)          __NE___ {                                           _date._month        = uint(value);  return *this; }
+        Builder&  DayOfMonth (uint value)       __NE___ { ASSERT( value < _date.DaysInMonth() );    _date._dayOfMonth   = value;        return *this; }
+        Builder&  DayOfYear (uint value)        __NE___ { ASSERT( value < _date.DaysInYear() );     _date._dayOfYear    = value;        return *this; }
+        Builder&  DayOfWeek (uint value)        __NE___ { ASSERT( value < 7 );                      _date._dayOfWeek    = value;        return *this; }
+        Builder&  DayOfWeek (EWeekDay value)    __NE___ {                                           _date._dayOfWeek    = uint(value);  return *this; }
+        Builder&  Hour (uint value)             __NE___ { ASSERT( value < 24 );                     _date._hour         = value;        return *this; }
+        Builder&  Minute (uint value)           __NE___ { ASSERT( value < 60 );                     _date._minute       = value;        return *this; }
+        Builder&  Second (uint value)           __NE___ { ASSERT( value < 60 );                     _date._second       = value;        return *this; }
+        Builder&  Milliseconds (uint value)     __NE___ { ASSERT( value < 1000 );                   _date._millis       = value;        return *this; }
+
+        Builder&  AddDayOfYear (uint value)     __NE___;
+        Builder&  SubDayOfYear (uint value)     __NE___;
+
+        Builder&  CalcDayOfYear ()              __NE___;    // requires: year, month, dayOfMonth
+        Builder&  CalcDayOfWeek ()              __NE___;    // requires: year, month, dayOfMonth
+        Builder&  CalcMonthAndDayOfMonth ()     __NE___;    // requires: year, dayOfYear
+
+        ND_ Date        Get ()                  C_NE___ { return _date; }
+        ND_ Date const* operator -> ()          C_NE___ { return &_date; }
+
+    private:
+        void  _ValidateYear ()                  __NE___;
     };
 
 

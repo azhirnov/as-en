@@ -9,6 +9,7 @@
 
 #ifndef AE_LFAS_ENABLED
 # include "threading/Common.h"
+# include "threading/Primitives/DataRaceCheck.h"
 #endif
 
 namespace AE::Threading
@@ -24,7 +25,7 @@ namespace AE::Threading
              >
     class LfStaticPool final : public Noncopyable
     {
-        STATIC_ASSERT( Count > 0 and IsMultipleOf( Count, 32 ));
+        StaticAssert( Count > 0 and IsMultipleOf( Count, 32 ));
 
     // types
     public:
@@ -37,7 +38,7 @@ namespace AE::Threading
         static constexpr usize  ChunkSize   = Count < 32*12 ? 32 : 64;
         static constexpr usize  ChunksCount = Count / ChunkSize;
 
-        STATIC_ASSERT( IsMultipleOf( Count, ChunkSize ));
+        StaticAssert( IsMultipleOf( Count, ChunkSize ));
 
         using Bitfield_t    = Conditional< (ChunkSize <= 32), uint, ulong >;
 
@@ -63,15 +64,17 @@ namespace AE::Threading
         static constexpr usize  ChunkIdxStep        =   ChunksCount < 4 ?   1 :
                                                         ChunksCount < 10 ?  3 :
                                                                             5;
-        STATIC_ASSERT( ThreadToChunkMask < ChunksCount );
+        StaticAssert( ThreadToChunkMask < ChunksCount );
 
 
     // variables
     private:
-        ChunkArray_t *      _arr    = null;
+        ChunkArray_t*       _arr        = null;
 
         NO_UNIQUE_ADDRESS
          Allocator_t        _allocator;
+
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
 
 
     // methods
@@ -82,15 +85,15 @@ namespace AE::Threading
         ND_ static constexpr usize  Capacity ()     __NE___ { return Count; }
         ND_ static constexpr Bytes  DynamicSize ()  __NE___ { return SizeOf<ChunkArray_t>; }
 
-        void  Release ()                            __NE___ { return Release( [](Value_t &value) { value.~Value_t(); }); }
+            void  Release ()                        __NE___ { return Release( [](Value_t &value) __NE___ { value.~Value_t(); }); }
 
-        template <typename FN>
-        void  Release (FN &&fn)                     noexcept(IsNothrowInvocable<FN>);
+            template <typename FN>
+            void  Release (FN &&fn)                 __NE___;
 
         template <typename T>
-        ND_ bool  Put (T && value)                  __NE___;
+        ND_ bool  Put (T &&value)                   __NE___;
 
-        bool  Extract (OUT Value_t &outValue)       __NE___;
+            bool  Extract (OUT Value_t &outValue)   __NE___;
     };
 
 } // AE::Threading

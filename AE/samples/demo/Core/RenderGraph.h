@@ -17,7 +17,7 @@ namespace AE::Samples::Demo
     private:
         Atomic<uint>                _submitIdx  {};
 
-        GRenderTaskScheduler&       _rts;
+        RenderTaskScheduler&        _rts;
         const FrameUID              _prevFrameId;
 
         Ptr<IOutputSurface>         _surface;
@@ -32,7 +32,7 @@ namespace AE::Samples::Demo
         static constexpr uint       _RenderBatch_First  = 1;
         static constexpr uint       _RenderBatch_Last   = _UIBatch-1;
 
-        STATIC_ASSERT( _RenderBatch_First < _RenderBatch_Last );
+        StaticAssert( _RenderBatch_First < _RenderBatch_Last );
 
 
     // methods
@@ -41,10 +41,8 @@ namespace AE::Samples::Demo
 
 
         // single threaded
-        template <typename ...Deps>
-        ND_ AsyncTask   BeginFrame (Ptr<IOutputSurface>     surface,
-                                    const BeginFrameConfig  &cfg    = Default,
-                                    const Tuple<Deps...>    &deps   = Default);
+        ND_ bool        BeginFrame (Ptr<IOutputSurface>     surface,
+                                    const BeginFrameConfig  &cfg    = Default);
 
         template <typename ...Deps>
         ND_ AsyncTask   EndFrame (ArrayView<AsyncTask>  presentDeps,
@@ -74,7 +72,7 @@ namespace AE::Samples::Demo
 =================================================
 */
     inline RenderGraph::RenderGraph () :
-        _rts{ RenderTaskScheduler() },
+        _rts{ GraphicsScheduler() },
         _prevFrameId{ _rts.GetFrameId() }
     {}
 
@@ -83,8 +81,7 @@ namespace AE::Samples::Demo
     BeginFrame
 =================================================
 */
-    template <typename ...Deps>
-    AsyncTask  RenderGraph::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
+    inline bool  RenderGraph::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg)
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( _prevFrameId == _rts.GetFrameId() );
@@ -92,7 +89,7 @@ namespace AE::Samples::Demo
         _surface        = surface;
         _submitIdx.store( _RenderBatch_First );
 
-        return _rts.BeginFrame( cfg, deps );
+        return _rts.BeginFrame( cfg );
     }
 
 /*
@@ -172,7 +169,7 @@ namespace AE::Samples::Demo
         uint    idx = _RenderBatch_First;
         for (;;)
         {
-            if ( _submitIdx.CAS( INOUT idx, idx+1 ))
+            if_likely( _submitIdx.CAS( INOUT idx, idx+1 ))
                 break;
 
             ASSERT( idx >= _RenderBatch_First );
@@ -180,6 +177,8 @@ namespace AE::Samples::Demo
 
             if ( idx < _RenderBatch_First or idx > _RenderBatch_Last )
                 return null;    // overflow
+
+            ThreadUtils::Pause();
         }
 
         return  _rts.BeginCmdBatch( EQueueType::Graphics, idx, {name} );

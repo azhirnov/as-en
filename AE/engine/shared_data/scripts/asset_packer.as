@@ -1,4 +1,4 @@
-//CB390BE2
+//bfe1cedf
 #include <vector>
 #include <string>
 
@@ -20,90 +20,90 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EResourceState;
-struct EPipelineOpt;
-struct RasterFont;
-struct float2;
-struct ESurfaceFormat;
-struct MipmapLevel;
-struct ESamplerYcbcrRange;
-struct ESamplerUsage;
-struct EReductionMode;
-struct ubyte4;
-struct ESubgroupOperation;
-struct ubyte2;
-struct EGraphicsDeviceID;
-struct ubyte3;
-struct Material;
-struct Mesh;
-struct EPrimitive;
-struct DepthStencil;
-struct short4;
-struct EPixelFormat;
-struct EBlendOp;
-struct ushort3;
-struct ushort2;
-struct sbyte2;
-struct HSVColor;
-struct ELogicOp;
-struct int4;
-struct EImage;
-struct RGBA32f;
-struct int2;
-struct EQueueMask;
-struct bool3;
-struct RGBA32i;
-struct bool4;
-struct ImageLayer;
-struct EVertexType;
-struct bool2;
-struct int3;
-struct ECullMode;
-struct ECubeFace;
-struct EAddressMode;
-struct EPolygonMode;
-struct ERasterFontMode;
-struct EAttachmentLoadOp;
-struct EBlendFactor;
-struct EStencilOp;
-struct ERTInstanceOpt;
-struct Model;
-struct float4;
-struct ECompareOp;
-struct uint4;
-struct RectU;
-struct uint2;
-struct EIndex;
-struct uint3;
-struct RectI;
-struct RectF;
-struct ESubgroupTypes;
-struct EShader;
-struct EShaderStages;
-struct RGBA32u;
-struct short3;
-struct ushort4;
-struct short2;
-struct sbyte3;
-struct sbyte4;
-struct ESamplerYcbcrModelConversion;
-struct RGBA8u;
-struct Texture;
-struct ImageAtlas;
-struct EFilter;
-struct EMipmapFilter;
 struct EPipelineDynamicState;
+struct EFilter;
 struct MultiSamples;
 struct EFeature;
 struct ESamplerChromaLocation;
-struct EBorderColor;
 struct EDescSetUsage;
-struct EAttachmentStoreOp;
 struct EVertexInputRate;
+struct EBorderColor;
+struct EAttachmentStoreOp;
 struct EImageAspect;
-struct EVendorID;
 struct EShaderIO;
+struct EVendorID;
+struct EResourceState;
 struct float3;
+struct EPipelineOpt;
+struct RasterFont;
+struct float2;
+struct float4;
+struct RectU;
+struct ECompareOp;
+struct EIndex;
+struct uint4;
+struct uint3;
+struct RectI;
+struct EShaderStages;
+struct uint2;
+struct EShader;
+struct RectF;
+struct ESubgroupTypes;
+struct RGBA32u;
+struct ESamplerYcbcrModelConversion;
+struct ImageAtlas;
+struct EMipmapFilter;
+struct short2;
+struct Texture;
+struct sbyte4;
+struct short4;
+struct sbyte3;
+struct RGBA8u;
+struct ushort4;
+struct sbyte2;
+struct short3;
+struct ushort3;
+struct ushort2;
+struct RGBA32f;
+struct HSVColor;
+struct bool2;
+struct int3;
+struct int4;
+struct EPixelFormat;
+struct EImage;
+struct RGBA32i;
+struct bool3;
+struct int2;
+struct bool4;
+struct ECullMode;
+struct EAddressMode;
+struct ECubeFace;
+struct EQueueMask;
+struct EAttachmentLoadOp;
+struct EVertexType;
+struct EPolygonMode;
+struct ImageLayer;
+struct EBlendFactor;
+struct ERasterFontMode;
+struct EBlendOp;
+struct ELogicOp;
+struct Model;
+struct ERTInstanceOpt;
+struct EStencilOp;
+struct ESurfaceFormat;
+struct MipmapLevel;
+struct ESamplerYcbcrRange;
+struct ubyte4;
+struct ESamplerUsage;
+struct EReductionMode;
+struct ubyte3;
+struct EGraphicsDeviceID;
+struct ubyte2;
+struct ESubgroupOperation;
+struct Mesh;
+struct Material;
+struct DepthStencil;
+struct EPrimitive;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1991,57 +1991,60 @@ struct EGraphicsDeviceID
     static constexpr uint32 Adreno_600_QC5 = 4;
     static constexpr uint32 Adreno_700_SC3 = 5;
     static constexpr uint32 Adreno_700_DC4_SC5 = 6;
-    static constexpr uint32 AMD_GCN1 = 7;
-    static constexpr uint32 AMD_GCN2 = 8;
-    static constexpr uint32 AMD_GCN3 = 9;
-    static constexpr uint32 AMD_GCN4 = 10;
-    static constexpr uint32 AMD_GCN5 = 11;
-    static constexpr uint32 AMD_GCN5_APU = 12;
-    static constexpr uint32 AMD_RDNA1 = 13;
-    static constexpr uint32 AMD_RDNA2 = 14;
-    static constexpr uint32 AMD_RDNA2_APU = 15;
-    static constexpr uint32 AMD_RDNA3 = 16;
-    static constexpr uint32 AMD_RDNA3_APU = 17;
-    static constexpr uint32 Apple_A8 = 18;
-    static constexpr uint32 Apple_A9_A10 = 19;
-    static constexpr uint32 Apple_A11 = 20;
-    static constexpr uint32 Apple_A12 = 21;
-    static constexpr uint32 Apple_A13 = 22;
-    static constexpr uint32 Apple_A14_M1 = 23;
-    static constexpr uint32 Apple_A15_M2 = 24;
-    static constexpr uint32 Apple_A16 = 25;
-    static constexpr uint32 Mali_Midgard_Gen2 = 26;
-    static constexpr uint32 Mali_Midgard_Gen3 = 27;
-    static constexpr uint32 Mali_Midgard_Gen4 = 28;
-    static constexpr uint32 Mali_Bifrost_Gen1 = 29;
-    static constexpr uint32 Mali_Bifrost_Gen2 = 30;
-    static constexpr uint32 Mali_Bifrost_Gen3 = 31;
-    static constexpr uint32 Mali_Valhall_Gen1 = 32;
-    static constexpr uint32 Mali_Valhall_Gen2 = 33;
-    static constexpr uint32 Mali_Valhall_Gen3 = 34;
-    static constexpr uint32 Mali_Valhall_Gen4 = 35;
-    static constexpr uint32 NV_Maxwell = 36;
-    static constexpr uint32 NV_Maxwell_Tegra = 37;
-    static constexpr uint32 NV_Pascal = 38;
-    static constexpr uint32 NV_Pascal_MX = 39;
-    static constexpr uint32 NV_Pascal_Tegra = 40;
-    static constexpr uint32 NV_Volta = 41;
-    static constexpr uint32 NV_Turing_16 = 42;
-    static constexpr uint32 NV_Turing = 43;
-    static constexpr uint32 NV_Turing_MX = 44;
-    static constexpr uint32 NV_Ampere = 45;
-    static constexpr uint32 NV_Ampere_Orin = 46;
-    static constexpr uint32 NV_Ada = 47;
-    static constexpr uint32 Intel_Gen9 = 48;
-    static constexpr uint32 Intel_Gen11 = 49;
-    static constexpr uint32 Intel_Gen12 = 50;
-    static constexpr uint32 PowerVR_Series8XE = 51;
-    static constexpr uint32 PowerVR_Series8XEP = 52;
-    static constexpr uint32 PowerVR_Series8XT = 53;
-    static constexpr uint32 PowerVR_Series9XE = 54;
-    static constexpr uint32 VeriSilicon = 55;
-    static constexpr uint32 V3D_4 = 56;
-    static constexpr uint32 SwiftShader = 57;
+    static constexpr uint32 Adreno_700_QC5X = 7;
+    static constexpr uint32 AMD_GCN1 = 8;
+    static constexpr uint32 AMD_GCN2 = 9;
+    static constexpr uint32 AMD_GCN3 = 10;
+    static constexpr uint32 AMD_GCN4 = 11;
+    static constexpr uint32 AMD_GCN5 = 12;
+    static constexpr uint32 AMD_GCN5_APU = 13;
+    static constexpr uint32 AMD_RDNA1 = 14;
+    static constexpr uint32 AMD_RDNA2 = 15;
+    static constexpr uint32 AMD_RDNA2_APU = 16;
+    static constexpr uint32 AMD_RDNA3 = 17;
+    static constexpr uint32 AMD_RDNA3_APU = 18;
+    static constexpr uint32 Apple_A8 = 19;
+    static constexpr uint32 Apple_A9_A10 = 20;
+    static constexpr uint32 Apple_A11 = 21;
+    static constexpr uint32 Apple_A12 = 22;
+    static constexpr uint32 Apple_A13 = 23;
+    static constexpr uint32 Apple_A14_M1 = 24;
+    static constexpr uint32 Apple_A15_M2 = 25;
+    static constexpr uint32 Apple_A16 = 26;
+    static constexpr uint32 Apple_A17_M3 = 27;
+    static constexpr uint32 Mali_Midgard_Gen2 = 28;
+    static constexpr uint32 Mali_Midgard_Gen3 = 29;
+    static constexpr uint32 Mali_Midgard_Gen4 = 30;
+    static constexpr uint32 Mali_Bifrost_Gen1 = 31;
+    static constexpr uint32 Mali_Bifrost_Gen2 = 32;
+    static constexpr uint32 Mali_Bifrost_Gen3 = 33;
+    static constexpr uint32 Mali_Valhall_Gen1 = 34;
+    static constexpr uint32 Mali_Valhall_Gen2 = 35;
+    static constexpr uint32 Mali_Valhall_Gen3 = 36;
+    static constexpr uint32 Mali_Valhall_Gen4 = 37;
+    static constexpr uint32 Mali_Valhall_Gen5 = 38;
+    static constexpr uint32 NV_Maxwell = 39;
+    static constexpr uint32 NV_Maxwell_Tegra = 40;
+    static constexpr uint32 NV_Pascal = 41;
+    static constexpr uint32 NV_Pascal_MX = 42;
+    static constexpr uint32 NV_Pascal_Tegra = 43;
+    static constexpr uint32 NV_Volta = 44;
+    static constexpr uint32 NV_Turing_16 = 45;
+    static constexpr uint32 NV_Turing = 46;
+    static constexpr uint32 NV_Turing_MX = 47;
+    static constexpr uint32 NV_Ampere = 48;
+    static constexpr uint32 NV_Ampere_Orin = 49;
+    static constexpr uint32 NV_Ada = 50;
+    static constexpr uint32 Intel_Gen9 = 51;
+    static constexpr uint32 Intel_Gen11 = 52;
+    static constexpr uint32 Intel_Gen12 = 53;
+    static constexpr uint32 Intel_Gen12_7 = 54;
+    static constexpr uint32 PowerVR_Series8XE = 55;
+    static constexpr uint32 PowerVR_Series8XEP = 56;
+    static constexpr uint32 PowerVR_Series8XT = 57;
+    static constexpr uint32 PowerVR_Series9XE = 58;
+    static constexpr uint32 VeriSilicon = 59;
+    static constexpr uint32 SwiftShader = 60;
 };
 
 struct EFilter
@@ -2106,8 +2109,7 @@ struct ESamplerUsage
     ESamplerUsage (uint8) {}
     operator uint8 () const;
     static constexpr uint8 Default = 0;
-    static constexpr uint8 Subsampled = 1;
-    static constexpr uint8 SubsampledCoarseReconstruction = 2;
+    static constexpr uint8 NonSeamlessCubeMap = 1;
 };
 
 struct EVertexInputRate
@@ -2133,16 +2135,19 @@ struct EDescSetUsage
 struct EPipelineOpt
 {
     EPipelineOpt () {}
-    EPipelineOpt (uint8) {}
-    operator uint8 () const;
-    static constexpr uint8 Optimize = 1;
-    static constexpr uint8 CS_DispatchBase = 2;
-    static constexpr uint8 RT_NoNullAnyHitShaders = 4;
-    static constexpr uint8 RT_NoNullClosestHitShaders = 8;
-    static constexpr uint8 RT_NoNullMissShaders = 16;
-    static constexpr uint8 RT_NoNullIntersectionShaders = 32;
-    static constexpr uint8 RT_SkipTriangles = 64;
-    static constexpr uint8 RT_SkipAABBs = 128;
+    EPipelineOpt (uint16) {}
+    operator uint16 () const;
+    static constexpr uint16 Optimize = 1;
+    static constexpr uint16 CS_DispatchBase = 2;
+    static constexpr uint16 RT_NoNullAnyHitShaders = 4;
+    static constexpr uint16 RT_NoNullClosestHitShaders = 8;
+    static constexpr uint16 RT_NoNullMissShaders = 16;
+    static constexpr uint16 RT_NoNullIntersectionShaders = 32;
+    static constexpr uint16 RT_SkipTriangles = 64;
+    static constexpr uint16 RT_SkipAABBs = 128;
+    static constexpr uint16 DontCompile = 256;
+    static constexpr uint16 CaptureStatistics = 512;
+    static constexpr uint16 CaptureInternalRepresentation = 1024;
 };
 
 struct EQueueMask
@@ -2343,21 +2348,9 @@ struct RC<RasterFont> : RasterFont
 };
 
 template <>
-struct RC<Material> : Material
+struct RC<ImageAtlas> : ImageAtlas
 {
-    RC (const Material &);
-};
-
-template <>
-struct RC<Mesh> : Mesh
-{
-    RC (const Mesh &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-    RC (const Model &);
+    RC (const ImageAtlas &);
 };
 
 template <>
@@ -2367,8 +2360,20 @@ struct RC<Texture> : Texture
 };
 
 template <>
-struct RC<ImageAtlas> : ImageAtlas
+struct RC<Model> : Model
 {
-    RC (const ImageAtlas &);
+    RC (const Model &);
+};
+
+template <>
+struct RC<Mesh> : Mesh
+{
+    RC (const Mesh &);
+};
+
+template <>
+struct RC<Material> : Material
+{
+    RC (const Material &);
 };
 

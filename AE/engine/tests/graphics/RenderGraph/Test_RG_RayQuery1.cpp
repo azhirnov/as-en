@@ -51,7 +51,7 @@ namespace
     public:
         RQ1_TestData&   t;
 
-        RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -107,7 +107,7 @@ namespace
     public:
         RQ1_TestData&   t;
 
-        RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -143,7 +143,7 @@ namespace
     public:
         RQ1_TestData&   t;
 
-        RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -169,9 +169,9 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  RayQuery1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  RayQuery1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         RQ1_TestData    t;
@@ -241,23 +241,26 @@ namespace
         }
         CHECK_ERR( t.ds );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"RayQuery1"} );
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch->Run< RQ1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},                 {"Upload RTAS task"} );
+        AsyncTask   task1   = t.batch->Run< RQ1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{},                      {"Upload RTAS task"} );
         AsyncTask   task2   = t.batch->Run< RQ1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},                 {"Ray tracing task"} );
         AsyncTask   task3   = t.batch->Run< RQ1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},   {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task3} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

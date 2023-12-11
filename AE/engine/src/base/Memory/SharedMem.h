@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    SharedMem must be used only as RC object.
+*/
 
 #pragma once
 
@@ -34,52 +37,67 @@ namespace _hidden_
     {
     // types
     public:
-        using Allocator_t   = RC<IAllocator>;
-        using Self          = TSharedMem< ExtraDataType >;
+        using Self      = TSharedMem< ExtraDataType >;
 
     private:
-        using Extra_t       = Base::_hidden_::TSharedMem_Extra< ExtraDataType >;
+        using Extra_t   = Base::_hidden_::TSharedMem_Extra< ExtraDataType >;
 
         static constexpr bool   _HasExtra = not IsVoid< ExtraDataType >;
 
 
     // variables
     private:
-        Bytes32u        _size;
+        Byte32u         _size;
         POTBytes        _align;
         Extra_t         _extra;
-        Allocator_t     _allocator;
+        RC<IAllocator>  _allocator;
 
 
     // methods
     public:
-        ND_ void const*     Data ()         C_NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
-        ND_ void*           Data ()         __NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
-        ND_ Bytes           Size ()         C_NE___ { return _size; }
-        ND_ Bytes           Align ()        C_NE___ { return Bytes{ _align }; }
-        ND_ auto            Allocator ()    C_NE___ { return _allocator; }
+        ND_ void const*     Data ()                 C_NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
+        ND_ void*           Data ()                 __NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
+        ND_ Bytes           Size ()                 C_NE___ { return _size; }
+        ND_ Bytes           Align ()                C_NE___ { return Bytes{ _align }; }
+        ND_ IAllocator*     AllocatorPtr ()         C_NE___ { return _allocator.get(); }
+        ND_ RC<IAllocator>  AllocatorRC ()          C_NE___ { return _allocator; }
 
-        ND_ auto&           Extra ()        __NE___ { if constexpr( _HasExtra ) return &_extra.data; }
-        ND_ auto&           Extra ()        C_NE___ { if constexpr( _HasExtra ) return &_extra.data; }
+        ND_ auto&           Extra ()                __NE___ { if constexpr( _HasExtra ) return &_extra.data; }
+        ND_ auto&           Extra ()                C_NE___ { if constexpr( _HasExtra ) return &_extra.data; }
 
         ND_ bool            Contains (const void* ptr, Bytes size = 0_b) C_NE___;
 
         template <typename T>
-        ND_ ArrayView<T>    AsArray ()      C_NE___;
+        ND_ ArrayView<T>    AsArray ()              C_NE___;
 
         template <typename T>
-        ND_ T&              As ()           __NE___;
+        ND_ T&              As ()                   __NE___;
 
         template <typename T>
-        ND_ T const&        As ()           C_NE___;
+        ND_ T const&        As ()                   C_NE___;
+
+        template <typename T>
+        ND_ T*              Ptr (Bytes offset)      __NE___ { ASSERT( SizeOf<T> + offset <= Size() );  return Cast<T>( Data () + offset ); }
+
+        template <typename T>
+        ND_ T const*        Ptr (Bytes offset)      C_NE___ { ASSERT( SizeOf<T> + offset <= Size() );  return Cast<T>( Data () + offset ); }
+
+        template <typename T>
+        ND_ T&              Ref (Bytes offset)      __NE___ { return *Ptr<T>( offset ); }
+
+        template <typename T>
+        ND_ T const&        Ref (Bytes offset)      C_NE___ { return *Ptr<T>( offset ); }
 
 
-        ND_ static RC<Self>  Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)                    __NE___;
-        ND_ static RC<Self>  Create (Allocator_t alloc, Bytes size, Bytes align = DefaultAllocatorAlign)    __NE___;
+        ND_ static RC<Self>  Create (RC<IAllocator> alloc, const SizeAndAlign sizeAndAlign)                 __NE___;
+        ND_ static RC<Self>  Create (RC<IAllocator> alloc, Bytes size, Bytes align = DefaultAllocatorAlign) __NE___;
+
+        ND_ static void*  operator new (usize, void* where)     __NE___ { return where; }
+        //  static void   operator delete (void*, void*)        __NE___ {}
 
 
     private:
-        TSharedMem (Bytes size, POTBytes align, Allocator_t alloc)      __NE___;
+        TSharedMem (Bytes size, POTBytes align, RC<IAllocator> alloc)   __NE___;
         ~TSharedMem ()                                                  __NE_OV {}
 
         void  _ReleaseObject ()                                         __NE_OV;
@@ -97,7 +115,7 @@ namespace _hidden_
 =================================================
 */
     template <typename E>
-    TSharedMem<E>::TSharedMem (Bytes size, POTBytes align, Allocator_t alloc) __NE___ :
+    TSharedMem<E>::TSharedMem (const Bytes size, const POTBytes align, RC<IAllocator> alloc) __NE___ :
         _size{size}, _align{align}, _allocator{RVRef(alloc)}
     {
         DEBUG_ONLY( DbgInitMem( OUT Data(), Size() ));
@@ -109,7 +127,7 @@ namespace _hidden_
 =================================================
 */
     template <typename E>
-    bool  TSharedMem<E>::Contains (const void* ptr, Bytes size) C_NE___
+    bool  TSharedMem<E>::Contains (const void* ptr, const Bytes size) C_NE___
     {
         return IsIntersects<const void*>( Data(), Data() + _size, ptr, ptr + size );
     }
@@ -157,13 +175,13 @@ namespace _hidden_
 =================================================
 */
     template <typename E>
-    RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign) __NE___
+    RC<TSharedMem<E>>  TSharedMem<E>::Create (RC<IAllocator> alloc, const SizeAndAlign sizeAndAlign) __NE___
     {
         return Create( RVRef(alloc), sizeAndAlign.size, sizeAndAlign.align );
     }
 
     template <typename E>
-    RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, Bytes size, Bytes align) __NE___
+    RC<TSharedMem<E>>  TSharedMem<E>::Create (RC<IAllocator> alloc, const Bytes size, const Bytes align) __NE___
     {
         if_likely( alloc and size > 0 )
         {
@@ -182,7 +200,7 @@ namespace _hidden_
 =================================================
 */
     template <typename E>
-    SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, POTBytes align) __NE___
+    SizeAndAlign  TSharedMem<E>::_CalcSize (const Bytes size, const POTBytes align) __NE___
     {
         return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align )} };
     }

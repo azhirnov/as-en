@@ -36,7 +36,7 @@ namespace
         storage.samplerRefs.push_back( ScriptSamplerPtr{this} );
     }
 
-    ScriptSampler::ScriptSampler (ScriptSampler && other) __NE___ :
+    ScriptSampler::ScriptSampler (ScriptSampler &&other) __NE___ :
         _name{ other._name },
         _desc{ other._desc },
         _features{ RVRef(other._features) }

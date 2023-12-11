@@ -22,6 +22,7 @@ namespace AE::ResEditor
             String          name;
             ScriptImagePtr  rt;
             ImageLayer      layer;
+            uint            layerCount      = UMax;
             MipmapLevel     mipmap;
             EBlendFactor    srcFactorRGB    = Default;
             EBlendFactor    srcFactorA      = Default;

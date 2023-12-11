@@ -14,7 +14,7 @@
 namespace AE::Base
 {
 namespace
-{   
+{
 /*
 =================================================
     GetSystemMemorySize

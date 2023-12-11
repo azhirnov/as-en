@@ -18,7 +18,7 @@ namespace AE::ECS
     public:
         enum class Index_t : uint { Unknown = ~0u };
 
-        DEBUG_ONLY(     
+        DEBUG_ONLY(
             class IComponentDbgView {
             public:
                 virtual ~IComponentDbgView () {}
@@ -32,8 +32,8 @@ namespace AE::ECS
         using Allocator_t   = UntypedAllocator;
         using Components_t  = FixedTupleArray< ECS_Config::MaxComponentsPerArchetype,
                                     /*0 - id    */ ComponentID,
-                                    /*1 - size  */ Bytes16u,
-                                    /*2 - align */ Bytes16u,
+                                    /*1 - size  */ Byte16u,
+                                    /*2 - align */ Byte16u,
                                     /*3 - ptr   */ void*,
                                     /*4 - ctor  */ void (*)(void*) >;
 
@@ -47,8 +47,8 @@ namespace AE::ECS
         const Archetype     _archetype;
         Components_t        _components;
         usize               _capacity;
-        Bytes32u            _maxAlign;
-        Bytes32u            _memSize;
+        Byte32u             _maxAlign;
+        Byte32u             _memSize;
 
         NO_UNIQUE_ADDRESS
          Allocator_t        _allocator;
@@ -98,8 +98,8 @@ namespace AE::ECS
         ND_ Bytes               GetMemorySize ()                    C_NE___ { return _memSize; }
 
         ND_ auto                GetComponentIDs ()                  C_NE___ -> ArrayView<ComponentID>   { return _components.get<0>(); }
-        ND_ auto                GetComponentSizes ()                C_NE___ -> ArrayView<Bytes16u>      { return _components.get<1>(); }
-        ND_ auto                GetComponentAligns ()               C_NE___ -> ArrayView<Bytes16u>      { return _components.get<2>(); }
+        ND_ auto                GetComponentSizes ()                C_NE___ -> ArrayView<Byte16u>       { return _components.get<1>(); }
+        ND_ auto                GetComponentAligns ()               C_NE___ -> ArrayView<Byte16u>       { return _components.get<2>(); }
         ND_ auto                GetComponentData ()                 __NE___ -> ArrayView<void*>         { return _components.get<3>(); }
 
         DEBUG_ONLY(
@@ -127,7 +127,7 @@ namespace AE::ECS
     template <typename T>
     inline T*  ArchetypeStorage::GetComponents () C_NE___
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
         return Cast<T>( GetComponents( ComponentTypeInfo<T>::id ));
     }
 
@@ -153,7 +153,7 @@ namespace AE::ECS
     template <typename T>
     inline T*  ArchetypeStorage::GetComponent (Index_t idx) C_NE___
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
         ASSERT( usize(idx) < Count() );
         ASSERT( _memory );
 

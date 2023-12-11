@@ -28,6 +28,7 @@ name: 'graphics batch |0| graphics task'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -83,11 +84,13 @@ name: 'compute batch |0| async compute task'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-0', layout: GENERAL
   ----------
 
@@ -127,6 +130,7 @@ name: 'graphics batch |0| graphics task'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -182,11 +186,13 @@ name: 'compute batch |0| async compute task'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-1', layout: GENERAL
   ----------
 
@@ -230,6 +236,7 @@ name: 'graphics batch |0| graphics task'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -285,11 +292,13 @@ name: 'compute batch |0| async compute task'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-0', layout: GENERAL
   ----------
 
@@ -318,7 +327,7 @@ name: 'copy task |0| Readback task'
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2
@@ -334,7 +343,7 @@ name: 'copy task |0| Readback task'
     src:       'Image-1'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [1920000, 3840000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [1920000, 3840000) }
   ----------
 
   PipelineBarrier2
@@ -394,6 +403,7 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -449,11 +459,13 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-0', layout: GENERAL
   ----------
 
@@ -493,6 +505,7 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -548,11 +561,13 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-1', layout: GENERAL
   ----------
 
@@ -596,6 +611,7 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.graphics'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -651,11 +667,13 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'async_comp1.compute'
+    layout:    '1'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '1'
       image: 'Image-0', layout: GENERAL
   ----------
 
@@ -684,7 +702,7 @@ name: 'IndirectCmdBuffers'
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2
@@ -700,7 +718,7 @@ name: 'IndirectCmdBuffers'
     src:       'Image-1'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [1920000, 3840000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [1920000, 3840000) }
   ----------
 
   PipelineBarrier2

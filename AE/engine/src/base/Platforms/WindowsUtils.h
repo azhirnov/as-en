@@ -52,11 +52,23 @@ namespace AE::Base
 
 
         // Thread //
-            static bool     NanoSleep (nanoseconds relativeTime)                            __NE___;
-            static bool     WaitIO (milliseconds relativeTime)                              __NE___;
+            static void     ThreadPause ()                                                  __NE___;
+            static void     ThreadSleep_1us ()                                              __NE___;
+            static void     ThreadSleep_500us ()                                            __NE___;
+            static void     ThreadSleep_15ms ()                                             __NE___;
+
+            static void     ThreadNanoSleep (nanoseconds relativeTime)                      __NE___;
+            static bool     ThreadMicroSleep (nanoseconds relativeTime)                     __NE___ { return _MicroSleepImpl( relativeTime, true ); }
+            static void     ThreadMilliSleep (milliseconds relativeTime)                    __NE___;
+
+            static bool     ThreadWaitIO (milliseconds relativeTime)                        __NE___;
+        ND_ static bool     SwitchToPendingThread ()                                        __NE___;
 
             static bool     GetTimerResolution (OUT nanoseconds &period)                    __NE___;
-            static bool     SetTimerResolution (milliseconds period)                        __NE___;
+
+        ND_ static constexpr auto  NanoSleepTimeStep ()                                     __NE___ { return nanoseconds{30}; }
+        ND_ static constexpr auto  MicroSleepTimeStep ()                                    __NE___ { return nanoseconds{500'000}; }    // step from docs: 100ns, real step: 500us
+        ND_ static constexpr auto  MilliSleepTimeStep ()                                    __NE___ { return nanoseconds{1'000'000'000 / 64}; } // by default it is 64 context switch per second
 
         ND_ static ThreadHandle  GetCurrentThreadHandle ()                                  __NE___;
 
@@ -71,14 +83,10 @@ namespace AE::Base
 
         ND_ static uint     GetProcessorCoreIndex ()                                        __NE___;    // current logical CPU core
 
-            static bool     ThreadYield ()                                                  __NE___;
-            static void     ThreadPause ()                                                  __NE___;
-
-        ND_ static bool     IsUnderDebugger ()                                              __NE___;
-
 
         // OS //
         ND_ static Version3     GetOSVersion ()                                             __NE___;
+        ND_ static bool         IsUnderDebugger ()                                          __NE___;
 
         #ifdef AE_RELEASE
         ND_ static StringView   GetOSName ()                                                __NE___ { return "Windows"; }
@@ -88,7 +96,7 @@ namespace AE::Base
 
 
         // Locale //
-            static bool  GetLocales (OUT Array<String> &)                                   __NE___;
+            static bool     GetLocales (OUT Array<String> &)                                __NE___;
 
 
         // Clipboard //
@@ -105,6 +113,7 @@ namespace AE::Base
         ND_ static bool  _ClipboardExtract (OUT DataType &result, void* wnd)                        __NE___;
         ND_ static bool  _ClipboardPut (const void* data, Bytes dataSize, uint format, void* wnd)   __NE___;
 
+            static bool  _MicroSleepImpl (nanoseconds relativeTime, bool isWin10v1803)      __NE___;
 
     public:
         ND_ static void*  _GetSystemCpuSetInformationFn ()                                  __NE___;

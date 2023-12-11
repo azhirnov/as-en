@@ -25,7 +25,7 @@ namespace AE::Graphics
     Create
 =================================================
 */
-    bool  VSampler::Create (const VResourceManager &resMngr, const VkSamplerCreateInfo &ci, const VkSamplerYcbcrConversionCreateInfo *convCI, StringView dbgName) __NE___
+    bool  VSampler::Create (const VResourceManager &resMngr, const VkSamplerCreateInfo &ci, const VkSamplerYcbcrConversionCreateInfo* convCI, StringView dbgName) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( _sampler == Default );

@@ -52,8 +52,8 @@ namespace
                 const uint  r   = uint(float(x % blockSize) * 255.0f / float(blockSize) + 0.5f);
                 const uint  g   = uint(float(y % blockSize) * 255.0f / float(blockSize) + 0.5f);
 
-                const bool  is_equal = (Equals( dst[0], r, 1u ) and
-                                        Equals( dst[1], g, 1u ) and
+                const bool  is_equal = (Equal( dst[0], r, 1u )  and
+                                        Equal( dst[1], g, 1u )  and
                                         dst[2] == 255           and
                                         dst[3] == 0);
 
@@ -71,7 +71,7 @@ namespace
     public:
         C1_TestData&    t;
 
-        C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -117,7 +117,7 @@ namespace
     public:
         C1_TestData&    t;
 
-        C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -155,7 +155,7 @@ namespace
     template <typename CompCtx, typename CopyCtx>
     static bool  Compute1Test ()
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         C1_TestData     t;
         const uint2     img_dim     {16, 16};
@@ -217,22 +217,25 @@ namespace
             CHECK_ERR( updater.Flush() );
         }
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Compute1"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin},                {"Compute task"} );
+        AsyncTask   task1   = batch->Run< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{},                     {"Compute task"} );
         AsyncTask   task2   = batch->Run< C1_CopyTask<CopyCtx>    >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},  {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result0, t.result1, t.result2 }));
+        CHECK_ERR( Scheduler().Wait( {t.result0, t.result1, t.result2}, c_MaxTimeout ));
         CHECK_ERR( t.result0->Status() == EStatus::Completed );
         CHECK_ERR( t.result1->Status() == EStatus::Completed );
         CHECK_ERR( t.result2->Status() == EStatus::Completed );

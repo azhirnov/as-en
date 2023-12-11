@@ -115,7 +115,7 @@ namespace AE::ResEditor
 
         T*  result = DynCast<T>( it->second.Get() );
         CHECK_THROW_MSG( result != null,
-            "Variable '"s << key << "' is not a '" << typeid(T).name() << "' type" );
+            "Variable '"s << key << "' is not a '" << TypeNameOf<T>() << "' type" );
 
         return ScriptRC<T>{result}.Detach();
     }

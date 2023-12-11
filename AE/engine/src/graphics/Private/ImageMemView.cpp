@@ -34,7 +34,7 @@ namespace
         uint    r_m : 6;
         uint    r_e : 5;
     };
-    STATIC_ASSERT( CT_SizeOfInBits<RGBBits> == (11+11+10) );
+    StaticAssert( CT_SizeOfInBits<RGBBits> == (11+11+10) );
 
 
 /*
@@ -45,7 +45,7 @@ namespace
     template <uint Bits>
     forceinline static float  ScaleUNorm (uint value) __NE___
     {
-        STATIC_ASSERT( Bits <= 32 );
+        StaticAssert( Bits <= 32 );
 
         FloatBits   f;
         f.bits.e    = 127 + Bits - 1;
@@ -62,7 +62,7 @@ namespace
     template <uint Bits>
     forceinline static float  ScaleSNorm (uint value) __NE___
     {
-        STATIC_ASSERT( Bits <= 32 );
+        StaticAssert( Bits <= 32 );
 
         if constexpr( Bits > 0 )
         {
@@ -97,8 +97,8 @@ namespace
     template <uint Bits, uint OffsetBits>
     forceinline uint  ReadUIntScalar (const StaticArray<uint,4> &data) __NE___
     {
-        STATIC_ASSERT( Bits <= 32 );
-        STATIC_ASSERT( Bits + (OffsetBits & 31) <= 32 );
+        StaticAssert( Bits <= 32 );
+        StaticAssert( Bits + (OffsetBits & 31) <= 32 );
 
         if constexpr( Bits == 0 )
         {
@@ -276,7 +276,7 @@ namespace
     template <uint Bits>
     ND_ forceinline static uint  UNormToUInt (float value) __NE___
     {
-        STATIC_ASSERT( Bits <= 32 );
+        StaticAssert( Bits <= 32 );
         value = Clamp( value, 0.0f, 1.0f );
 
         FloatBits   f;
@@ -296,7 +296,7 @@ namespace
     {
         if constexpr( Bits > 0 )
         {
-            STATIC_ASSERT( Bits <= 32 );
+            StaticAssert( Bits <= 32 );
             value = Clamp( value, -1.0f, +1.0f );
 
             FloatBits   f;
@@ -324,8 +324,8 @@ namespace
     template <uint Bits, uint OffsetBits>
     forceinline static void  WriteUIntScalar (uint col, OUT StaticArray<uint,4> &data) __NE___
     {
-        STATIC_ASSERT( Bits <= 32 );
-        STATIC_ASSERT( Bits + (OffsetBits & 31) <= 32 );
+        StaticAssert( Bits <= 32 );
+        StaticAssert( Bits + (OffsetBits & 31) <= 32 );
 
         if constexpr( Bits == 0 )
         {
@@ -446,7 +446,7 @@ namespace
 
         if constexpr( R == 16 )
         {
-            STATIC_ASSERT( (G == 16 or G == 0) and (B == 16 or B == 0) and (A == 16 or A == 0) );
+            StaticAssert( (G == 16 or G == 0) and (B == 16 or B == 0) and (A == 16 or A == 0) );
 
             StaticArray< half, 4 >  dst = {};
 
@@ -458,7 +458,7 @@ namespace
         else
         if constexpr( R == 32 )
         {
-            STATIC_ASSERT( (G == 32 or G == 0) and (B == 32 or B == 0) and (A == 32 or A == 0) );
+            StaticAssert( (G == 32 or G == 0) and (B == 32 or B == 0) and (A == 32 or A == 0) );
 
             MemCopy( OUT row.ptr + Bytes{x * px_size}, result.data(), Bytes{px_size} );
         }
@@ -528,13 +528,13 @@ namespace
         if ( _rowPitch == 0 )
         {
             ASSERT( aspect <= EImageAspect::Stencil );  // calculation is valid for Color/Depth/Stencil
-            _rowPitch = CheckCast<Bytes32u>( MinRowSize() );
+            _rowPitch = CheckCast<Byte32u>( MinRowSize() );
         }
 
         if ( _slicePitch == 0 )
         {
             ASSERT( aspect <= EImageAspect::Stencil );  // calculation is valid for Color/Depth/Stencil
-            _slicePitch = CheckCast<Bytes32u>( MinSliceSize() );
+            _slicePitch = CheckCast<Byte32u>( MinSliceSize() );
         }
 
         ASSERT( BytesPerBlock() > 0_b );
@@ -548,7 +548,7 @@ namespace
         }
     }
 
-    ImageMemView::ImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
+    ImageMemView::ImageMemView (void* content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
         ImageMemView{ BufferMemView{content, contentSize}, off, dim, rowPitch, slicePitch, format, aspect }
     {}
 
@@ -887,7 +887,7 @@ namespace
         RWImageMemView{ ImageMemView{ content, off, dim, rowPitch, slicePitch, format, aspect }}
     {}
 
-    RWImageMemView::RWImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
+    RWImageMemView::RWImageMemView (void* content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
         RWImageMemView{ ImageMemView{ content, contentSize, off, dim, rowPitch, slicePitch, format, aspect }}
     {}
 
@@ -1524,11 +1524,11 @@ namespace
 =================================================
 */
     template <typename T>
-    bool  RWImageMemView::_Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, 
+    bool  RWImageMemView::_Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
                                  const uint3 &dim, const Swizzle &swizzle, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst,
                                  StorePixelTFn_t<T> store, OUT Bytes &readn, OUT Bytes &written) __NE___
     {
-        STATIC_ASSERT( sizeof(T) == sizeof(PixStorage_t) );
+        StaticAssert( sizeof(T) == sizeof(PixStorage_t) );
 
         readn   = 0_b;
         written = 0_b;

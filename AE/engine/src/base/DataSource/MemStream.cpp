@@ -67,7 +67,7 @@ namespace AE::Base
     ReadSeq
 =================================================
 */
-    Bytes  MemRefRStream::ReadSeq (OUT void *buffer, Bytes size) __NE___
+    Bytes  MemRefRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         size = Min( size, _size - _pos );
 
@@ -132,7 +132,7 @@ namespace AE::Base
     RC<MemRefRStream>  MemRefRStream::ToSubStream (Bytes offset, Bytes size) C_Th___
     {
         CHECK_ERR( size + offset <= _size );
-        return MakeRC<MemRefRStream>( _dataPtr + offset, size );    // throw
+        return MakeRC<MemRefRStream>( _dataPtr + offset, size );
     }
 //-----------------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ namespace AE::Base
 
     MemRStream::MemRStream (const void* ptr, Bytes size) __NE___
     {
-        CATCH( _data.assign( Cast<ubyte>(ptr), Cast<ubyte>(ptr + size) ));
+        NOTHROW( _data.assign( Cast<ubyte>(ptr), Cast<ubyte>(ptr + size) ));
 
         _Set( _data.data(), ArraySizeOf(_data) );
     }
@@ -215,12 +215,12 @@ namespace AE::Base
 */
     MemWStream::MemWStream () __NE___
     {
-        CATCH( _data.reserve( usize(DefaultAllocationSize) ));
+        NOTHROW( _data.reserve( usize(DefaultAllocationSize) ));
     }
 
     MemWStream::MemWStream (Bytes bufferSize) __NE___
     {
-        CATCH( _data.reserve( usize(bufferSize) ));
+        NOTHROW( _data.reserve( usize(bufferSize) ));
     }
 
 /*
@@ -255,7 +255,7 @@ namespace AE::Base
 */
     Bytes  MemWStream::Reserve (Bytes additionalSize) __NE___
     {
-        CATCH( _data.reserve( Max( _data.capacity(), usize(_pos + additionalSize) )));
+        NOTHROW( _data.reserve( Max( _data.capacity(), usize(_pos + additionalSize) )));
 
         return ArraySizeOf(_data) - _pos;
     }
@@ -265,9 +265,9 @@ namespace AE::Base
     WriteSeq
 =================================================
 */
-    Bytes  MemWStream::WriteSeq (const void *buffer, Bytes size) __NE___
+    Bytes  MemWStream::WriteSeq (const void* buffer, Bytes size) __NE___
     {
-        CATCH_ERR( _data.resize( Max( _data.size(), usize(_pos + size) )));
+        NOTHROW_ERR( _data.resize( Max( _data.size(), usize(_pos + size) )));
 
         MemCopy( OUT _data.data() + _pos, buffer, size );
 

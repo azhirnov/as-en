@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Purpose:
-        * lock-free multiple producers
-        * non-lock-free for extracting multiple elements (single consumer)
-        * lock-free for extracting single element
+     * lock-free multiple producers
+     * non-lock-free for extracting multiple elements (single consumer)
+     * lock-free for extracting single element
 */
 
 #pragma once
@@ -31,7 +31,7 @@ namespace AE::Threading
         using Value_t       = Value;
 
     private:
-        static constexpr bool   _NonTrivialDtor = not (IsZeroMemAvailable<Value> or std::is_trivially_destructible_v<Value>);
+        static constexpr bool   _NonTrivialDtor = not (IsZeroMemAvailable<Value> or IsTriviallyDestructible<Value>);
         static constexpr uint   _MaxSize        = 1 << 12;
         static constexpr uint   _MaxSpin        = 2'000;
 
@@ -57,9 +57,7 @@ namespace AE::Threading
         NO_UNIQUE_ADDRESS
          Allocator_t        _allocator;
 
-        DRC_ONLY(
-            RWDataRaceCheck _drCheck;
-        )
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
 
 
     // methods

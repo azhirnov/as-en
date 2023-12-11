@@ -20,7 +20,7 @@ namespace AE::ResEditor
     {
         CHECK_THROW( _dstGeometry );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = GraphicsScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
 
@@ -80,7 +80,7 @@ namespace AE::ResEditor
     {
         CHECK_THROW( _dstScene );
 
-        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        auto&   fs = GraphicsScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
 

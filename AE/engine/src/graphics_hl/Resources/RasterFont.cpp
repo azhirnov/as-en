@@ -16,7 +16,7 @@ namespace AE::Graphics
     RasterFont::~RasterFont () __NE___
     {
         if ( _imageId )
-            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
+            GraphicsScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
     }
 
 /*
@@ -169,7 +169,7 @@ namespace AE::Graphics
         }
 
         auto    font        = MakeRC<RasterFont>();
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
 
         font->_imageId = res_mngr.CreateImage( unpacker.Header().ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
         CHECK_ERR( font->_imageId );

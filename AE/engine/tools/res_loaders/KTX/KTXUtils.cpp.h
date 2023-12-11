@@ -38,7 +38,7 @@ namespace
 {
 
     //
-    // RStream as ktxStream 
+    // RStream as ktxStream
     //
     class ktxStream_RStream
     {
@@ -62,7 +62,7 @@ namespace
                         KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
         }
 
-        static KTX_error_code  Write (ktxStream* str, const void *src, const ktx_size_t size, const ktx_size_t count) __NE___
+        static KTX_error_code  Write (ktxStream* str, const void* src, const ktx_size_t size, const ktx_size_t count) __NE___
         {
             Unused( str, src, size, count );
             return  KTX_FILE_WRITE_ERROR;
@@ -93,7 +93,7 @@ namespace
 
 
     //
-    // WStream as ktxStream 
+    // WStream as ktxStream
     //
     class ktxStream_WStream
     {
@@ -117,7 +117,7 @@ namespace
                         KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
         }
 
-        static KTX_error_code  Write (ktxStream* str, const void *src, const ktx_size_t size, const ktx_size_t count) __NE___
+        static KTX_error_code  Write (ktxStream* str, const void* src, const ktx_size_t size, const ktx_size_t count) __NE___
         {
             return  _Cast(str).Write( src, Bytes{size * count} ) ?
                         KTX_SUCCESS : KTX_FILE_WRITE_ERROR;

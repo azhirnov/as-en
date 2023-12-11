@@ -49,7 +49,7 @@
 
             array<float3>   positions;
             array<uint>     indices;
-            GetSphere( 7, OUT positions, OUT indices );
+            GetSphere( 3, OUT positions, OUT indices );
 
             array<float3>   normals = positions;
 

@@ -5,37 +5,34 @@
   <!-- min Vulkan API version: 1.0.82 -->
   <uses-feature android:name="android.hardware.vulkan.version" android:version="0x400052" android:required="false" />
 
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:required="true" />
   <uses-permission android:name="android.permission.INTERNET" android:required="true" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" android:required="true" />
 
   <application
-      android:name=".DemoApplication"
-      android:allowBackup="false"
-      android:fullBackupContent="false"
-      android:label="AE Demo"
-      android:hardwareAccelerated="true"
-      android:isGame="true">
+	  android:name=".DemoApplication"
+	  android:label="AE Demo"
+	  android:hardwareAccelerated="true"
+	  android:isGame="true">
 
-    <activity
-        android:name=".DemoActivity"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-        android:launchMode="singleTask"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-        android:resizeableActivity="true"
-        android:screenOrientation="userLandscape"
-        android:windowSoftInputMode="adjustPan"
-        android:exported="true">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-        
+	<activity
+		android:name=".DemoActivity"
+		android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+		android:launchMode="singleTask"
+		android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+		android:resizeableActivity="true"
+		android:screenOrientation="userLandscape"
+		android:windowSoftInputMode="adjustPan"
+		android:exported="true">
+	  <intent-filter>
+		<action android:name="android.intent.action.MAIN" />
+		<category android:name="android.intent.category.LAUNCHER" />
+		
 		<!-- for profiling -->
 		<action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-        <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
-        <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
-      </intent-filter>
-    </activity>
+		<action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
+		<action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
+	  </intent-filter>
+	</activity>
 
   </application>
 </manifest>

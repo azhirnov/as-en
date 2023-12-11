@@ -42,7 +42,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 4 );
+            StaticAssert( (IA.actionCount - BaseIA.actionCount) == 4 );
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Rotate :
@@ -67,6 +67,11 @@ namespace AE::ResEditor
 
         _camera.Rotate( Rad{rotation.x * _rotationScale.x}, Rad{rotation.y * _rotationScale.y} );
         _camera.AddOffset( offset * _offsetScale * timeDelta.count() );
+
+        if_unlikely( _dynDim->IsChanged( INOUT _dimAspect ))
+        {
+            _camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+        }
 
         _UpdateMatrix();
     }

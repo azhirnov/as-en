@@ -16,9 +16,14 @@
 # endif
 #endif
 
+#define DRC_EXLOCK( ... )
+#define DRC_SHAREDLOCK( ... )
+#define DRC_ONLY( ... )
+
 using namespace LFAS;
 using namespace LFAS::CPP;
 
 #include "base/Math/BitMath.h"
 #include "base/Math/Math.h"
 #include "base/Memory/UntypedAllocator.h"
+#include "base/Memory/IAllocator.h"

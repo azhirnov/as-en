@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_WINAPI_WINDOW
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "platform/WinAPI/WindowWinAPI.h"
 # include "platform/WinAPI/ApplicationWinAPI.h"
 
@@ -14,7 +14,8 @@ namespace AE::App
 */
     WindowWinAPI::WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener> listener, IInputActions* dstActions) __NE___ :
         WindowBase{ app, RVRef(listener) },
-        _input{ InputActionsBase::GetQueue( dstActions )}
+        _input{ InputActionsBase::GetQueue( dstActions )},
+        _lastWindowSize{100, 100, 800, 600}  // default size
     {}
 
 /*
@@ -132,11 +133,22 @@ namespace AE::App
         int2    wnd_pos, wnd_size;
         CHECK_ERR( _WindowModeToStyle( mode, monitorId, OUT wnd_style, OUT wnd_ext_style, INOUT wnd_size, OUT wnd_pos ));
 
-        if ( was_fullscreen ) {
-            wnd_pos     = _lastWindowSize.LeftTop();
-            wnd_size    = _lastWindowSize.Size();
-        }else
-            _lastWindowSize = RectI{old_rect.left, old_rect.top, old_rect.right, old_rect.bottom};
+        if ( was_fullscreen )
+        {
+            if ( Any(IsZero( _lastWindowSize.Size() )))
+            {
+                wnd_pos     = int2{ old_rect.left, old_rect.top };
+                wnd_size    = int2{ old_rect.right - old_rect.left, old_rect.bottom - old_rect.top };
+                wnd_pos     += wnd_size/2;
+                wnd_size    = Max( wnd_size/3, Min( wnd_size, int2{800,600} ));
+                wnd_pos     -= wnd_size/2;
+            }else{
+                wnd_pos     = _lastWindowSize.LeftTop();
+                wnd_size    = _lastWindowSize.Size();
+            }
+        }else{
+            _lastWindowSize = RectI{ old_rect.left, old_rect.top, old_rect.right, old_rect.bottom };
+        }
 
         ::SetWindowLongA( hwnd, GWL_STYLE, wnd_style );         // win2000
         ::SetWindowLongA( hwnd, GWL_EXSTYLE, wnd_ext_style );   // win2000
@@ -359,7 +371,7 @@ namespace AE::App
                 {
                     // In window mode there is a bug with incorrect render area.
                     // Force to update render area by changing window position.
-                    // Borderless and fullscreen window modes doesn't have this bug. 
+                    // Borderless and fullscreen window modes doesn't have this bug.
                     if ( AnyEqual( _wndMode, EWindowMode::NonResizable, EWindowMode::Resizable ))
                     {
                         _windowPos.x += (IsEven( _windowPos.x ) ? +1 : -1);

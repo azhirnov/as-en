@@ -46,7 +46,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        Postprocess () {}
+        Postprocess ()                                                  __NE___ {}
         ~Postprocess ();
 
     // IPass //

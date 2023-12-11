@@ -44,7 +44,7 @@ namespace AE::ResLoader
     LoadImage
 =================================================
 */
-    bool  STBImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  STBImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         Unused( fileFormat );
 
@@ -102,7 +102,7 @@ namespace AE::ResLoader
         }
 
         bool    result = false;
-        if ( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )))
+        if ( image_level.SetPixelData( SharedMem::Create( RVRef(allocator), image_level.slicePitch * image_level.dimension.z )))
         {
             MemCopy( OUT image_level.PixelData(), data_ptr, image_level.DataSize() );
             result = true;

@@ -84,7 +84,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 =================================================
 */
 extern bool ShaderTrace_Test11 (TestDevice& vulkan)
-{   
+{
     // create image
     VkImage         image;
     VkImageView     image_view;

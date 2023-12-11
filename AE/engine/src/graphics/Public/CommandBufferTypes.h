@@ -23,9 +23,9 @@ namespace AE::Graphics
     {
         EImageAspect    aspectMask      = Default;
         MipmapLevel     baseMipLevel;
-        uint            mipmapCount     = 1;
+        ushort          mipmapCount     = 1;
         ImageLayer      baseLayer;
-        uint            layerCount      = 1;
+        ushort          layerCount      = 1;
 
         ImageSubresourceRange ()                                                __NE___ = default;
 
@@ -37,8 +37,8 @@ namespace AE::Graphics
                                MipmapLevel baseMipLevel, uint mipmapCount,
                                ImageLayer baseLayer, uint layerCount)           __NE___ :
             aspectMask{aspectMask},
-            baseMipLevel{baseMipLevel}, mipmapCount{mipmapCount},
-            baseLayer{baseLayer}, layerCount{layerCount} {}
+            baseMipLevel{baseMipLevel}, mipmapCount{ushort(mipmapCount)},
+            baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
     };
 
 
@@ -47,14 +47,14 @@ namespace AE::Graphics
         EImageAspect    aspectMask      = Default;
         MipmapLevel     mipLevel;
         ImageLayer      baseLayer;
-        uint            layerCount      = 1;
+        ushort          layerCount      = 1;
 
         ImageSubresourceLayers ()                                               __NE___ = default;
 
         ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
                                 ImageLayer baseLayer, uint layerCount = 1)      __NE___ :
             aspectMask{aspectMask}, mipLevel{mipLevel},
-            baseLayer{baseLayer}, layerCount{layerCount} {}
+            baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
     };
 
 
@@ -260,8 +260,8 @@ namespace AE::Graphics
     {
         packed_uint3    groupCount;
     };
-    STATIC_ASSERT( sizeof(DispatchIndirectCommand) == 12 );
-    STATIC_ASSERT( alignof(DispatchIndirectCommand) == 4 );
+    StaticAssert( sizeof(DispatchIndirectCommand) == 12 );
+    StaticAssert( alignof(DispatchIndirectCommand) == 4 );
 
 
     struct DrawIndirectCommand
@@ -271,8 +271,8 @@ namespace AE::Graphics
         uint    firstVertex;
         uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
-    STATIC_ASSERT( sizeof(DrawIndirectCommand) == 16 );
-    STATIC_ASSERT( alignof(DrawIndirectCommand) == 4 );
+    StaticAssert( sizeof(DrawIndirectCommand) == 16 );
+    StaticAssert( alignof(DrawIndirectCommand) == 4 );
 
 
     struct DrawIndexedIndirectCommand
@@ -283,24 +283,24 @@ namespace AE::Graphics
         int     vertexOffset;
         uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
-    STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand) == 20 );
-    STATIC_ASSERT( alignof(DrawIndexedIndirectCommand) == 4 );
+    StaticAssert( sizeof(DrawIndexedIndirectCommand) == 20 );
+    StaticAssert( alignof(DrawIndexedIndirectCommand) == 4 );
 
 
     struct DrawMeshTasksIndirectCommand
     {
         packed_uint3    taskCount;
     };
-    STATIC_ASSERT( sizeof(DrawMeshTasksIndirectCommand) == 12 );
-    STATIC_ASSERT( alignof(DrawMeshTasksIndirectCommand) == 4 );
+    StaticAssert( sizeof(DrawMeshTasksIndirectCommand) == 12 );
+    StaticAssert( alignof(DrawMeshTasksIndirectCommand) == 4 );
 
 
     struct TraceRayIndirectCommand
     {
         packed_uint3    dim;
     };
-    STATIC_ASSERT( sizeof(TraceRayIndirectCommand) == 12 );
-    STATIC_ASSERT( alignof(TraceRayIndirectCommand) == 4 );
+    StaticAssert( sizeof(TraceRayIndirectCommand) == 12 );
+    StaticAssert( alignof(TraceRayIndirectCommand) == 4 );
 
 
     struct TraceRayIndirectCommand2
@@ -332,8 +332,8 @@ namespace AE::Graphics
       #endif
     };
     #ifdef AE_ENABLE_VULKAN
-      STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
-      STATIC_ASSERT( alignof(TraceRayIndirectCommand2) == 8 );
+      StaticAssert( sizeof(TraceRayIndirectCommand2) == 104 );
+      StaticAssert( alignof(TraceRayIndirectCommand2) == 8 );
     #endif
 
 
@@ -346,8 +346,8 @@ namespace AE::Graphics
         uint        firstVertex;
         uint        transformOffset;
     };
-    STATIC_ASSERT( sizeof(ASBuildIndirectCommand) == 16 );
-    STATIC_ASSERT( alignof(ASBuildIndirectCommand) == 4 );
+    StaticAssert( sizeof(ASBuildIndirectCommand) == 16 );
+    StaticAssert( alignof(ASBuildIndirectCommand) == 4 );
 
 
 //-----------------------------------------------------------------------------
@@ -440,7 +440,7 @@ namespace AE::Graphics
         BufferStream&  SetBlockSize (Bytes value)               __NE___ { _desc.blockSize = value;  return *this; }
         BufferStream&  MaxBlockSize ()                          __NE___ { _desc.MaxBlockSize();     return *this; }
 
-        ND_ BufferID            Buffer ()                       C_NE___ { return _bufferId; }
+        ND_ BufferID            BufferId ()                     C_NE___ { return _bufferId; }
         ND_ Bytes               DataSize ()                     C_NE___ { return _desc.size; }
         ND_ Bytes               OffsetAndPos ()                 C_NE___ { return _desc.offset + pos; }
         ND_ Bytes               Begin ()                        C_NE___ { return _desc.offset; }
@@ -478,7 +478,7 @@ namespace AE::Graphics
 
         ImageStream&  SetHeapType (EStagingHeapType type)       __NE___ { _desc.heapType = type;  return *this; }
 
-        ND_ ImageID             Image ()                        C_NE___ { return _imageId; }
+        ND_ ImageID             ImageId ()                      C_NE___ { return _imageId; }
         ND_ uint3 const&        Begin ()                        C_NE___ { return _desc.imageOffset; }
         ND_ uint3               End ()                          C_NE___ { return _desc.imageOffset + _desc.imageSize; }
         ND_ uint3 const&        RegionSize ()                   C_NE___ { return _desc.imageSize; }
@@ -565,8 +565,8 @@ namespace AE::Graphics
     {
         // limit for dynamic staging buffers
         struct {
-            Bytes32u    write   {UMax};
-            Bytes32u    read    {UMax};
+            Byte32u     write   {UMax};
+            Byte32u     read    {UMax};
         }   stagingBufferPerFrameLimits;
 
         BeginFrameConfig () __NE___ = default;

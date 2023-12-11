@@ -16,14 +16,19 @@ namespace AE::ResEditor
     public:
         enum class EPostprocess : uint
         {
-            Unknown             = 0,        // entry: Main
-            Shadertoy           = 1 << 0,   // entry: mainImage
-            ShadertoyVR         = 1 << 1,   // entry: mainVR
-            ShadertoyVR_180     = 1 << 2,
-            ShadertoyVR_360     = 1 << 3,
-            Shadertoy_360       = 1 << 4,
-            _Last,
-            _ShadertoyBits      = Shadertoy | ShadertoyVR | ShadertoyVR_180 | ShadertoyVR_360 | Shadertoy_360,
+            Unknown         = 0,    // entry: Main
+            Shadertoy,              // entry: mainImage
+
+            ShadertoyVR,            // entry: mainVR
+            ShadertoyVR_180,
+            ShadertoyVR_360,
+            Shadertoy_360,
+
+            Curved_1000R,           // entry: mainVR,   human eye field of view
+            Curved_1500R,
+            Curved_1800R,
+
+            _Count,
         };
 
 
@@ -35,7 +40,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptPostprocess ();
+        ScriptPostprocess () = delete;
         ScriptPostprocess (const String &pipelineName, EPostprocess ppFlags,
                            const String &defines, EFlags baseFlags)                                     __Th___;
 

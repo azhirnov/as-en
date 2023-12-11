@@ -20,7 +20,6 @@ namespace AE::Graphics
         using Header    = Graphics::_hidden_::SoftwareCmdBufBase::Header;
 
 
-
     // variables
     protected:
         void *      _root   = null;
@@ -28,31 +27,13 @@ namespace AE::Graphics
 
     // methods
     public:
-        VBakedCommands ()                       __NE___
-        {}
+        VBakedCommands ()                                   __NE___ {}
+        explicit VBakedCommands (void* root)                __NE___ : _root{ root } {}
+        VBakedCommands (VBakedCommands &&other)             __NE___ : _root{ other._root }  { other._root = null; }
 
-        explicit VBakedCommands (void* root)    __NE___ :
-            _root{ root }
-        {}
-
-        VBakedCommands (VBakedCommands &&other) __NE___ :
-            _root{ other._root }
-        {
-            other._root = null;
-        }
-
-        void  Destroy ()                        __NE___
-        {
-            Graphics::_hidden_::SoftwareCmdBufBase::Deallocate( _root );
-            _root = null;
-        }
-
+            void  Destroy ()                                __NE___ { Graphics::_hidden_::SoftwareCmdBufBase::Deallocate( _root );  _root = null; }
         ND_ bool  Execute (VulkanDeviceFn, VkCommandBuffer) C_NE___;
-
-        ND_ bool  IsValid ()                    C_NE___
-        {
-            return _root != null;
-        }
+        ND_ bool  IsValid ()                                C_NE___ { return _root != null; }
     };
 
 

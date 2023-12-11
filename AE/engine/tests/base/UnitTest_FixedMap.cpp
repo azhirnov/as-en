@@ -176,6 +176,16 @@ namespace
         TEST( T1::CheckStatistic() );
         TEST( T2::CheckStatistic() );
     }
+
+
+    static void  FixedMap_Test7 ()
+    {
+        struct alignas(64) Elem {};
+
+        using Map_t = FixedMap< int, Elem, 8 >;
+
+        StaticAssert( alignof(Map_t) == alignof(Elem) );
+    }
 }
 
 
@@ -187,6 +197,7 @@ extern void UnitTest_FixedMap ()
     FixedMap_Test4();
     FixedMap_Test5();
     FixedMap_Test6();
+    FixedMap_Test7();
 
     TEST_PASSED();
 }

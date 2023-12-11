@@ -25,20 +25,20 @@
         else
         {
             const uint2 dim = uint2(1024);
-            @height_map = Image( EPixelFormat::RGBA16F, dim );      height_map.Name( "height" );
-            @normal_map = Image( EPixelFormat::RGBA16F, dim );      normal_map.Name( "normal" );
-            @albedo_map = Image( EPixelFormat::RGBA16F, dim );      albedo_map.Name( "albedo" );
-            @emission_map = Image( EPixelFormat::RGBA16F, dim );    emission_map.Name( "emission" );
+            @height_map     = Image( EPixelFormat::RGBA16F, dim );  height_map.Name( "height" );
+            @normal_map     = Image( EPixelFormat::RGBA16F, dim );  normal_map.Name( "normal" );
+            @albedo_map     = Image( EPixelFormat::RGBA16F, dim );  albedo_map.Name( "albedo" );
+            @emission_map   = Image( EPixelFormat::RGBA16F, dim );  emission_map.Name( "emission" );
         }
 
         string  defines;
-        if ( height_map.Is2D() )    defines += "COORD(_uv_)  _uv_.xy";  else
-        if ( height_map.IsCube() )  defines += "COORD(_uv_)  _uv_";
+        if ( height_map.Is2D() )    defines += "COORD(_uv_)  (_uv_).xy";    else
+        if ( height_map.IsCube() )  defines += "COORD(_uv_)  (_uv_)";
         Assert( defines.length() > 0 );
 
-        const uint2     local_size      = uint2( 8, 8 );
-        const uint2     face_size       = height_map.Dimension2();
-        const uint      layers          = height_map.ArrayLayers();
+        const uint2     local_size  = uint2( 8, 8 );
+        const uint2     face_size   = height_map.Dimension2();
+        const uint      layers      = height_map.ArrayLayers();
 
         // height & normal
         {
@@ -78,7 +78,7 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#ifdef GEN_HEIGHT
+#ifdef SH_COMPUTE
     #define PROJECTION  CM_TangentialSC_Forward
 
     #include "GlobalIndex.glsl"
@@ -88,11 +88,20 @@
     #include "Noise.glsl"
     #include "Normal.glsl"
     #include "Geometry.glsl"
+    #include "Color.glsl"
+    #include "Spline.glsl"
 
-    int2    faceDim;
-    int     face;
+    float2  faceDim;
 
-    float  FBM (in float3 coord)
+    int  FaceIdx () {
+        return GetGroupCoord().z;
+    }
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef GEN_HEIGHT
+
+    float  FBM (const float3 coord)
     {
         float   total       = 0.0;
         float   amplitude   = 1.0;
@@ -111,7 +120,7 @@
     float4  GetPosition (const int2 coord)
     {
         float2  ncoord  = ToSNorm( float2(coord) / float2(faceDim - 1) );
-        float3  pos     = PROJECTION( ncoord, face );
+        float3  pos     = PROJECTION( ncoord, FaceIdx() );
         float   height  = FBM( pos ) * 0.1;
 
         return float4( pos, height );
@@ -135,15 +144,13 @@
 
     void  Main ()
     {
-        faceDim = gl.image.GetSize( un_OutHeight ).xy;
-        face    = GetGroupCoord().z;
+        faceDim = float2(gl.image.GetSize( un_OutHeight ).xy);
 
-        const int2      local       = GetLocalCoord().xy - 1;
-        const int2      lsize       = GetLocalSize().xy - 2;
+        const int2      local       = GetLocalCoord().xy - 1;   // \__ 1 px border
+        const int2      lsize       = GetLocalSize().xy - 2;    // /
         const int2      group       = GetGroupCoord().xy;
-        const int2      coord       = local + lsize * group;
-        const int3      coord3      = int3( coord, face );
-        const float4    pos_h       = GetPosition( coord );
+        const int3      coord       = int3( local + lsize * group, FaceIdx() );
+        const float4    pos_h       = GetPosition( coord.xy );
         const float3    pos         = pos_h.xyz * (1.0 + pos_h.w);
         const bool      is_active   = IsInsideRect( local, int2(0), lsize );
 
@@ -159,25 +166,14 @@
             float3  normal;
             SmoothNormal3x3i( OUT normal, ReadPosition, local );
 
-            gl.image.Store( un_OutHeight, COORD(coord3), float4(pos_h.w) );
-            gl.image.Store( un_OutNormal, COORD(coord3), float4(normal, 0.0) );
+            gl.image.Store( un_OutHeight, COORD(coord), float4(pos_h.w) );
+            gl.image.Store( un_OutNormal, COORD(coord), float4(normal, 0.0) );
         }
     }
 
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_COLOR
-    #define PROJECTION  CM_TangentialSC_Forward
-
-    #include "GlobalIndex.glsl"
-    #include "SDF.glsl"
-    #include "CubeMap.glsl"
-    #include "Hash.glsl"
-    #include "Noise.glsl"
-    #include "Color.glsl"
-
-    int2    faceDim;
-    int     face;
 
     shared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
     shared float3  s_Normals  [ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
@@ -185,19 +181,17 @@
 
     void Main ()
     {
-        faceDim = gl.image.GetSize( un_HeightMap ).xy;
-        face    = GetGroupCoord().z;
+        faceDim = float2(gl.image.GetSize( un_HeightMap ).xy);
 
-        const int3  coord3  = GetGlobalCoord();
-        const int2  coord   = coord3.xy;
+        const int3  coord   = GetGlobalCoord();
 
         // read height map
         float3  sphere_pos;
         {
-            float   height  = gl.image.Load( un_HeightMap, COORD(coord3) ).r;
-            float3  norm    = gl.image.Load( un_NormalMap, COORD(coord3) ).rgb;
-            float2  ncoord  = ToSNorm( float2(coord) / float2(faceDim - 1) );
-            sphere_pos      = PROJECTION( ncoord, face );
+            float   height  = gl.image.Load( un_HeightMap, COORD(coord) ).r;
+            float3  norm    = gl.image.Load( un_NormalMap, COORD(coord) ).rgb;
+            float2  ncoord  = UIndexToSNormRound( float2(coord.xy), faceDim );
+            sphere_pos      = PROJECTION( ncoord, FaceIdx() );
 
             s_Positions[ GetLocalIndex() ] = sphere_pos * (1.0 + height);
             s_Normals[ GetLocalIndex() ]   = norm;
@@ -218,8 +212,8 @@
 
         albedo = HSVtoRGB( float3( biom, 1.0, 1.0 ));
 
-        gl.image.Store( un_OutAlbedo, COORD(coord3), float4(albedo, 0.0) );
-        gl.image.Store( un_OutEmission, COORD(coord3), float4(emission, temperature, 0.0, 0.0) );
+        gl.image.Store( un_OutAlbedo,   COORD(coord), float4(albedo, 0.0) );
+        gl.image.Store( un_OutEmission, COORD(coord), float4(emission, temperature, 0.0, 0.0) );
     }
 
 #endif

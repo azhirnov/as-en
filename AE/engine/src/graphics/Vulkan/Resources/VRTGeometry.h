@@ -35,7 +35,7 @@ namespace AE::Graphics
         VRTGeometry ()                                                                                                      __NE___ {}
         ~VRTGeometry ()                                                                                                     __NE___;
 
-        ND_ bool  Create (VResourceManager &, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
+        ND_ bool  Create (VResourceManager &, const RTGeometryDesc &, GfxMemAllocatorPtr, StringView dbgName)               __NE___;
             void  Destroy (VResourceManager &)                                                                              __NE___;
 
         ND_ VkAccelerationStructureKHR  Handle ()                                                                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }

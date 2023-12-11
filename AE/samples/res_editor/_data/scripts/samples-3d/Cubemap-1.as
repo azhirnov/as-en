@@ -56,10 +56,10 @@ void ASmain ()
     // render loop
     {
         RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-        draw.AddPipeline( "VertexInput.as" );       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/VertexInput.as)
         draw.AddPipeline( "samples/Cubemap.as" );   // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Cubemap.as)
         draw.Output( "out_Color", rt, RGBA32f(0.0) );
         draw.Output( ds, DepthStencil(1.f, 0) );
+        draw.Slider( "iUVMode", 0, 1, 1 );
     }
     Present( rt );
 }

@@ -27,20 +27,22 @@ namespace AE::Base
     // methods
     public:
         template <typename B>
-        explicit RDataSourceAsStream (B && dataSource) __Th___ :
+        explicit RDataSourceAsStream (B &&dataSource) __NE___ :
             _dataSource{ FwdArg<B>(dataSource) },
             _offset{ 0_b },
             _size{ _dataSource->Size() }
         {
+            CheckNothrow( IsNoExcept( T{ FwdArg<B>(dataSource) }));
             CHECK( AllBits( _dataSource->GetSourceType(), _TypeMask ));
         }
 
         template <typename B>
-        RDataSourceAsStream (B && dataSource, Bytes offset, Bytes size) __Th___ :
+        RDataSourceAsStream (B &&dataSource, Bytes offset, Bytes size) __NE___ :
             _dataSource{ FwdArg<B>(dataSource) },
             _offset{ Min( offset, _dataSource->Size() )},
             _size{ Min( size, _dataSource->Size() - _offset )}
         {
+            CheckNothrow( IsNoExcept( T{ FwdArg<B>(dataSource) }));
             CHECK( AllBits( _dataSource->GetSourceType(), _TypeMask ));
         }
 
@@ -53,7 +55,7 @@ namespace AE::Base
         bool        SeekSet (Bytes pos)                     __NE_OV;
         bool        SeekFwd (Bytes offset)                  __NE_OV;
 
-        Bytes       ReadSeq (OUT void *buffer, Bytes size) __NE_OV;
+        Bytes       ReadSeq (OUT void* buffer, Bytes size)  __NE_OV;
     };
 //-----------------------------------------------------------------------------
 
@@ -112,7 +114,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    Bytes  RDataSourceAsStream<T>::ReadSeq (OUT void *buffer, Bytes size) __NE___
+    Bytes  RDataSourceAsStream<T>::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 

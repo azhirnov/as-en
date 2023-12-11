@@ -55,8 +55,8 @@ namespace
         DA1_TestData&   t;
         const uint      firstVertex;
 
-        DA1_DrawTask (DA1_TestData* t, uint first, RC<DrawCommandBatch> batch, DebugLabel dbg) :
-            DrawTask{ batch, dbg }, // throw
+        DA1_DrawTask (DA1_TestData* t, uint first, RC<DrawCommandBatch> batch, DebugLabel dbg) __NE___ :
+            DrawTask{ batch, dbg },
             t{ *t },
             firstVertex{ first }
         {}
@@ -90,7 +90,7 @@ namespace
         RC<DrawCommandBatch>                drawBatch;
         typename CtxTypes::CommandBuffer    cmdbuf;
 
-        DA1_RenderPassTask (DA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        DA1_RenderPassTask (DA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -103,7 +103,7 @@ namespace
             const auto  img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
             constexpr auto&     rtech_pass = RTech.Draw_1;
-            STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+            StaticAssert( rtech_pass.attachmentsCount == 1 );
 
             const auto  rp_desc = RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -211,7 +211,7 @@ namespace
     public:
         DA1_TestData&   t;
 
-        DA1_CopyTask (DA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        DA1_CopyTask (DA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -237,9 +237,9 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  DrawAsync1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  DrawAsync1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         DA1_TestData    t;
@@ -266,22 +266,25 @@ namespace
         t.ppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.draw2 );
         CHECK_ERR( t.ppln );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawAsync1"} );
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch->Run< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw task"} );
+        AsyncTask   task1   = t.batch->Run< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{},                    {"Draw task"} );
         AsyncTask   task2   = t.batch->Run< DA1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

@@ -18,7 +18,7 @@ namespace AE::Math
     template <typename T1, typename T2>
     ND_ constexpr EnableIf<IsSignedInteger<T1> and IsSignedInteger<T2>, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
     {
-        STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
+        StaticAssert( IsScalar<T1> and IsScalar<T2> );
 
         using T = decltype(a + b);
 
@@ -40,7 +40,7 @@ namespace AE::Math
     template <typename T1, typename T2>
     ND_ constexpr EnableIf<IsUnsignedInteger<T1> and IsUnsignedInteger<T2>, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
     {
-        STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
+        StaticAssert( IsScalar<T1> and IsScalar<T2> );
 
         using T = decltype(a + b);
 
@@ -69,9 +69,9 @@ namespace AE::Math
     }
 
     template <typename T>
-    ND_ constexpr TBytes<T>  Average (TBytes<T> begin, TBytes<T> end) __NE___
+    ND_ constexpr TByte<T>  Average (TByte<T> begin, TByte<T> end) __NE___
     {
-        return TBytes<T>{ Average( T{begin}, T{end} )};
+        return TByte<T>{ Average( T{begin}, T{end} )};
     }
 
 /*
@@ -79,10 +79,15 @@ namespace AE::Math
     AlignDown
 =================================================
 */
-    template <typename T0, typename T1>
+    template <typename T0, typename T1,
+              ENABLEIF( IsScalar<T0> or IsBytes<T0> )
+             >
     ND_ constexpr auto  AlignDown (const T0 &value, const T1 &align) __NE___
     {
+        StaticAssert( (IsScalar<T0> or IsBytes<T0>) and (IsScalar<T1> or IsBytes<T1>) );
+        StaticAssert( not IsFloatPoint<T0> and not IsFloatPoint<T1> );
         ASSERT( align > 0 );
+
         if constexpr( IsPointer<T0> )
         {
             Bytes   byte_align{ align };
@@ -97,10 +102,15 @@ namespace AE::Math
     AlignUp
 =================================================
 */
-    template <typename T0, typename T1>
+    template <typename T0, typename T1,
+              ENABLEIF( IsScalar<T0> or IsBytes<T0> )
+             >
     ND_ constexpr auto  AlignUp (const T0 &value, const T1 &align) __NE___
     {
+        StaticAssert( (IsScalar<T0> or IsBytes<T0>) and (IsScalar<T1> or IsBytes<T1>) );
+        StaticAssert( not IsFloatPoint<T0> and not IsFloatPoint<T1> );
         ASSERT( align > 0 );
+
         if constexpr( IsPointer<T0> )
         {
             Bytes   byte_align{ align };
@@ -116,9 +126,12 @@ namespace AE::Math
 =================================================
 */
     template <typename T0, typename T1>
-    ND_ constexpr bool  IsMultipleOf (const T0 &value, const T1 &align) __NE___
+    ND_ constexpr EnableIf<IsScalar<T0> or IsBytes<T0>, bool>  IsMultipleOf (const T0 &value, const T1 &align) __NE___
     {
+        StaticAssert( (IsScalar<T0> or IsBytes<T0>) and (IsScalar<T1> or IsBytes<T1>) );
+        StaticAssert( not IsFloatPoint<T0> and not IsFloatPoint<T1> );
         ASSERT( align > 0 );
+
         if constexpr( IsPointer<T0> )
         {
             return BitCast<usize>(value) % Bytes{align} == 0;
@@ -188,11 +201,11 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals (scalar)
+    Equal (scalar)
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const T err = Epsilon<T>()) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equal (const T &lhs, const T &rhs, const T err = Epsilon<T>()) __NE___
     {
         if constexpr( IsUnsignedInteger<T> )
         {
@@ -203,11 +216,11 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals (Optional)
+    Equal (Optional)
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
+    ND_ constexpr bool  Equal (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
     {
         return  lhs.has_value() == rhs.has_value()  and
                 (lhs.has_value() ? All( *lhs == *rhs ) : false);
@@ -221,7 +234,7 @@ namespace AE::Math
     template <typename T>
     ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const T &x) __NE___
     {
-        return Equals( x, T{0}, Epsilon<T>() );
+        return Equal( x, T{0}, Epsilon<T>() );
     }
 
     template <typename T>
@@ -232,11 +245,11 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const Percent err) __NE___
+    ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  Equal (const T &lhs, const T &rhs, const Percent err) __NE___
     {
         T   pct = std::abs( std::min( lhs, rhs ) / std::max( lhs, rhs ) - T{1});
 
@@ -285,7 +298,7 @@ namespace AE::Math
     template <typename T>
     ND_ auto  RoundToInt (const T& x) __NE___
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
+        StaticAssert( IsFloatPoint<T> );
 
         if constexpr( sizeof(T) >= sizeof(slong) )
             return slong(std::round( x ));
@@ -297,7 +310,7 @@ namespace AE::Math
     template <typename T>
     ND_ auto  RoundToUint (const T& x) __NE___
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
+        StaticAssert( IsFloatPoint<T> );
 
         if constexpr( sizeof(T) >= sizeof(ulong) )
             return ulong(std::round( x ));
@@ -321,16 +334,58 @@ namespace AE::Math
 
 /*
 =================================================
+    Wrap (float)
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue) __NE___
+    {
+        // check for NaN
+        if_unlikely( minValue >= maxValue )
+            return minValue;
+
+        T   result = T( minValue + std::fmod( value - minValue, maxValue - minValue ));
+
+        if ( result < minValue )
+            result += (maxValue - minValue);
+
+        return result;
+    }
+
+/*
+=================================================
+    Wrap (int)
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsInteger<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue) __NE___
+    {
+        // check for div by zero
+        if_unlikely( minValue > maxValue )
+            return minValue;
+
+        T   result = T( minValue + ((value - minValue) % (maxValue - minValue + 1)) );
+
+        if ( result < minValue )
+            result += (maxValue - minValue + 1);
+
+        return result;
+    }
+
+/*
+=================================================
     IsIntersects
 ----
     1D intersection check
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  IsIntersects (const T& begin1, const T& end1,
-                                      const T& begin2, const T& end2) __NE___
+    ND_ constexpr bool  IsIntersects (const T begin1, const T end1,
+                                      const T begin2, const T end2) __NE___
     {
-        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
+        StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
+        ASSERT( begin1 <= end1 );
+        ASSERT( begin2 <= end2 );
         return (end1 > begin2) & (begin1 < end2);
     }
 
@@ -343,7 +398,7 @@ namespace AE::Math
     ND_ constexpr bool  IsCompletelyInside (const T& largeBlockBegin, const T& largeBlockEnd,
                                             const T& smallBlockBegin, const T& smallBlockEnd) __NE___
     {
-        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
+        StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
         return (smallBlockBegin >= largeBlockBegin) & (smallBlockEnd <= largeBlockEnd);
     }
 
@@ -357,7 +412,7 @@ namespace AE::Math
                                          const T& begin2, const T& end2,
                                          OUT T& outBegin, OUT T& outEnd) __NE___
     {
-        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
+        StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
         outBegin = Max( begin1, begin2 );
         outEnd   = Min( end1, end2 );
         return outBegin < outEnd;
@@ -617,5 +672,80 @@ namespace AE::Math
         return unorm * T(2.0) - T(1.0);
     }
 
+/*
+=================================================
+    UIndexToUNormFloor / UIndexToUNormRound
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  UIndexToUNormFloor (const T index, const T count) __NE___
+    {
+        // range [0, 1]
+        using F = ToFloatPoint<T>;
+        return F(index) / F(count - T(1));
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  UIndexToUNormRound (const T index, const T count) __NE___
+    {
+        // range (0, 1)
+        using F = ToFloatPoint<T>;
+        return (F(index) + F(0.5)) / F(count);
+    }
+
+/*
+=================================================
+    UIndexToSNormFloor / UIndexToSNormRound
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  UIndexToSNormFloor (const T index, const T count) __NE___
+    {
+        return ToSNorm( UIndexToUNormFloor( index, count ));
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  UIndexToSNormRound (const T index, const T count) __NE___
+    {
+        return ToSNorm( UIndexToUNormRound( index, count ));
+    }
+
+/*
+=================================================
+    SIndexToUNormFloor / SIndexToUNormRound
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  SIndexToUNormFloor (const T index, const T min, const T max) __NE___
+    {
+        // range [-1 .. +1]
+        using F = ToFloatPoint<T>;
+        return F(index - min) / F(max - min - T(1));
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  SIndexToUNormRound (const T index, const T min, const T max) __NE___
+    {
+        // range (-1 .. +1)
+        using F = ToFloatPoint<T>;
+        return (F(index - min) + F(0.5)) / F(max - min);
+    }
+
+/*
+=================================================
+    SIndexToSNormFloor / SIndexToSNormRound
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  SIndexToSNormFloor (const T index, const T min, const T max) __NE___
+    {
+        return ToSNorm( SIndexToUNormFloor( index, min, max ));
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, ToFloatPoint<T>>  SIndexToSNormRound (const T index, const T min, const T max) __NE___
+    {
+        return ToSNorm( SIndexToUNormRound( index, min, max ));
+    }
 
 } // AE::Math

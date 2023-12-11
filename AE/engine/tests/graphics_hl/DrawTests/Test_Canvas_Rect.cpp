@@ -37,7 +37,7 @@ namespace
     public:
         CR1_TestData&   t;
 
-        CR1_DrawTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        CR1_DrawTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t }
         {}
@@ -104,7 +104,7 @@ namespace
     public:
         CR1_TestData&   t;
 
-        CR1_CopyTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        CR1_CopyTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t }
         {}
@@ -130,9 +130,9 @@ namespace
 
 
     template <typename CtxType, typename CopyCtx>
-    static bool  CanvasRect (Canvas* canvas, RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  CanvasRect (Canvas* canvas, RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         CR1_TestData    t           {*canvas};
@@ -158,22 +158,25 @@ namespace
         t.ppln_trilist_lines = renderTech->GetGraphicsPipeline( PipelineName{"rect_trilist_lines"} );
         CHECK_ERR( t.ppln_trilist_lines );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Canvas batch"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw task"} );
+        AsyncTask   task1   = batch->Run< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                    {"Draw task"} );
         AsyncTask   task2   = batch->Run< CR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

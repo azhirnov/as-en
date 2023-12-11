@@ -58,11 +58,11 @@
             gen_map.DispatchThreads( sdf_map.Dimension2() );
 
 
-            RC<ComputePass>     logic = ComputePass( "", "GAME_LOGIC", EPassFlags::Enable_ShaderTrace );
+            RC<ComputePass>     logic = ComputePass( "", "GAME_LOGIC" );
             logic.ArgIn(    "un_SDFMap",    sdf_map,    Sampler_LinearClamp );
             logic.ArgIn(    "un_RT",        rt,         Sampler_LinearClamp );
             logic.ArgInOut( "un_CBuf",      cbuf );
-            logic.ArgIn(    camera );
+            logic.Set(      camera );
             logic.LocalSize( 1 );
             logic.DispatchGroups( 1 );
 

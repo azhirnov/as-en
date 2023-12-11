@@ -15,7 +15,7 @@ namespace AE::Base
     //
 
     template <typename AllocatorType, uint MaxBlocks>
-    class StackAllocator< AllocatorType, MaxBlocks, true > final : public MovableOnly
+    class StackAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
     {
     // types
     private:
@@ -24,8 +24,6 @@ namespace AE::Base
         using Self              = StackAllocator< AllocatorType, MaxBlocks, true >;
         using Allocator_t       = AllocatorType;
         using Bookmark          = typename BaseAllocator_t::Bookmark;
-
-        static constexpr bool   IsThreadSafe = true;
 
 
     // variables
@@ -36,29 +34,30 @@ namespace AE::Base
 
     // methods
     public:
-        StackAllocator ()                                       __NE___ {}
-        StackAllocator (Self &&other)                           __NE___;
-        explicit StackAllocator (const Allocator_t &alloc)      __NE___ : _base{ alloc } {}
-        ~StackAllocator ()                                      __NE___ { Release(); }
+        StackAllocator ()                                               __NE___ {}
+        StackAllocator (Self &&other)                                   __NE___;
+        explicit StackAllocator (const Allocator_t &alloc)              __NE___ : _base{ alloc } {}
+        ~StackAllocator ()                                              __NE___ { Release(); }
 
-            Self&  operator = (Self &&rhs)                      __NE___;
+            Self&       operator = (Self &&rhs)                         __NE___;
 
-        ND_ void*  Allocate (const SizeAndAlign sizeAndAlign)   __NE___;
+            void        SetBlockSize (Bytes size)                       __NE___;
 
-        template <typename T>
-        ND_ T*  Allocate (usize count = 1)                      __NE___;
+        ND_ Bookmark    Push ()                                         __NE___;
+            void        Pop (Bookmark bm)                               __NE___;
 
-            void  Deallocate (void* ptr)                        __NE___ { Deallocate( ptr, 1_b ); }
-            void  Deallocate (void* ptr, Bytes size)            __NE___;
-            void  Deallocate (void* ptr, const SizeAndAlign sa) __NE___ { Deallocate( ptr, sa.size ); }
+            void        Discard ()                                      __NE___;
+            void        Release ()                                      __NE___;
 
-            void  SetBlockSize (Bytes size)                     __NE___;
 
-        ND_ Bookmark  Push ()                                   __NE___;
-            void  Pop (Bookmark bm)                             __NE___;
+        // IAllocator //
+        ND_ void*       Allocate (const SizeAndAlign sizeAndAlign)      __NE_OV;
 
-            void  Discard ()                                    __NE___;
-            void  Release ()                                    __NE___;
+            void        Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
+            void        Deallocate (void* ptr, Bytes size)              __NE_OV;
+            void        Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
+
+            using IAllocator::Allocate;
     };
 
 
@@ -110,14 +109,6 @@ namespace AE::Base
     {
         EXLOCK( _guard );
         return _base.Allocate( sizeAndAlign );
-    }
-
-    template <typename A, uint MB>
-    template <typename T>
-    T*  StackAllocator<A,MB,true>::Allocate (usize count) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.template Allocate<T>( count );
     }
 
 /*

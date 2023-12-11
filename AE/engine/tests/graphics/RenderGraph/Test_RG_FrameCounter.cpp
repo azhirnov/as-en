@@ -20,7 +20,7 @@ namespace
     public:
         FC_TestData&    t;
 
-        FC_TestTask (FC_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        FC_TestTask (FC_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -41,7 +41,7 @@ namespace
     public:
         FC_TestData&    t;
 
-        FC_FrameTask (FC_TestData& t) :
+        FC_FrameTask (FC_TestData& t) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ t }
         {}
@@ -51,14 +51,15 @@ namespace
             if ( t.counter.load() >= t.maxCount )
                 return;
 
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
 
-            AsyncTask   begin = rts.BeginFrame();
+            CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+            CHECK_TE( rts.BeginFrame() );
 
             t.batch  = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"FrameCounter"} );
             CHECK_TE( t.batch );
 
-            AsyncTask   test    = t.batch->Run< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+            AsyncTask   test    = t.batch->Run< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
             AsyncTask   end     = rts.EndFrame( Tuple{test} );
 
             return Continue( Tuple{end} );
@@ -70,7 +71,7 @@ namespace
 
     static bool  FrameCounterTest ()
     {
-        auto&       rts         = RenderTaskScheduler();
+        auto&       rts         = GraphicsScheduler();
         auto&       res_mngr    = rts.GetResourceManager();
         FC_TestData t;
 
@@ -80,8 +81,10 @@ namespace
 
         auto    task = Scheduler().Run<FC_FrameTask>( Tuple{ArgRef(t)} );
 
-        CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+
+        CHECK_ERR( task->IsCompleted() );
         CHECK_ERR( t.counter.load() >= t.maxCount );
 
         return true;

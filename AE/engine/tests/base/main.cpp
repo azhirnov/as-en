@@ -2,9 +2,9 @@
 
 #include "UnitTest_Common.h"
 
-
 extern void UnitTest_Array ();
 extern void UnitTest_Atomic ();
+extern void UnitTest_ChunkList ();
 extern void UnitTest_Color ();
 extern void UnitTest_Cast ();
 extern void UnitTest_Date ();
@@ -32,6 +32,7 @@ extern void UnitTest_Math_Rectangle ();
 extern void UnitTest_Math_SIMD ();
 extern void UnitTest_Math_Transformation ();
 extern void UnitTest_Math_Vec ();
+extern void UnitTest_MemChunkList ();
 extern void UnitTest_NamedID ();
 extern void UnitTest_NtStringView ();
 extern void UnitTest_RingBuffer ();
@@ -52,7 +53,6 @@ int main ()
 #endif
 {
     StaticLogger::LoggerDbgScope log{};
-    //StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
     AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
              "\nCPU arch: " << AE_CPU_ARCH_NAME <<
@@ -63,6 +63,7 @@ int main ()
 
     UnitTest_Array();
     UnitTest_Atomic();
+    UnitTest_ChunkList();
     UnitTest_Color();
     UnitTest_Cast();
     UnitTest_Date();
@@ -91,6 +92,7 @@ int main ()
     UnitTest_Math_SIMD();
     UnitTest_Math_Transformation();
     UnitTest_Math_Vec();
+    UnitTest_MemChunkList();
     UnitTest_NamedID();
     UnitTest_NtStringView();
     UnitTest_RingBuffer();

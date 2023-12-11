@@ -110,7 +110,7 @@ namespace AE::Base::_hidden_
     template <usize ReqIndex, usize I>
     struct TL_GetTypeByIndex2< ReqIndex, I >
     {
-        STATIC_ASSERT( "index is out of range" );
+        StaticAssert( "index is out of range" );
     };
 
     template <usize ReqIndex, usize I, typename Head, typename... Tail>

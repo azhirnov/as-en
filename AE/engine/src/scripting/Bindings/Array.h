@@ -15,7 +15,7 @@ namespace AE::Scripting::_hidden_
     {
     // types
     private:
-        STATIC_ASSERT( not (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted) );
+        StaticAssert( not (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted) );
 
         using Self              = ScriptPODArray< T >;
         using View_t            = StructView< T >;
@@ -85,7 +85,7 @@ namespace AE::Scripting::_hidden_
     {
     // types
     private:
-        STATIC_ASSERT( ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted );
+        StaticAssert( ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted );
 
         using Self  = ScriptObjArray< T >;
 

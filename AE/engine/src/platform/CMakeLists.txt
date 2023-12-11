@@ -9,22 +9,27 @@ if (MSVC OR APPLE)
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
 
-add_library( "Platform" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
+set( ANDROID_SRC_PATH "${MAIN_SOURCE_DIR}/android/engine/src/main" )
+if (NOT EXISTS "${ANDROID_SRC_PATH}")
+    message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH}" )
+endif()
+file( GLOB_RECURSE JAVA_SOURCES "${ANDROID_SRC_PATH}/*.*" )
+
+add_library( "Platform" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} ${JAVA_SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+source_group( "Android/Apk" FILES ${JAVA_SOURCES} )
 
 set_property( TARGET "Platform" PROPERTY FOLDER "Engine" )
-target_link_libraries( "Platform" PUBLIC "Threading" "VFS" )
+target_link_libraries( "Platform" PUBLIC "Threading" "VFS" "Networking" )
 
 if (TARGET "Graphics")
     target_link_libraries( "Platform" PUBLIC "Graphics" )
-endif()
-if (TARGET "RenderDoc-lib")
-    target_link_libraries( "Platform" PRIVATE "RenderDoc-lib" )
 endif()
 
 if (MSVC)
     set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
+set_source_files_properties( ${JAVA_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 
 # choose window library
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
@@ -52,14 +57,12 @@ else()
     message( FATAL_ERROR "At least one window library must be supported" )
 endif()
 
-if (${AE_ENABLE_OPENVR})
+if (TARGET "OpenVR-lib")
     target_link_libraries( "Platform" PUBLIC "OpenVR-lib" )
 endif()
-
-if (${AE_ENABLE_OPENXR})
+if (TARGET "OpenXR-lib")
     target_link_libraries( "Platform" PUBLIC "OpenXR-lib" )
 endif()
-
 if (${AE_ENABLE_VULKAN})
     target_link_libraries( "Platform" PUBLIC "VulkanSyncLog" )
 endif()

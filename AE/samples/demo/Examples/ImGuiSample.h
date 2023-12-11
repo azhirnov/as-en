@@ -26,14 +26,14 @@ namespace AE::Samples::Demo
 
     // methods
     public:
-        ImGuiSample () : imgui{null} {}
-        explicit ImGuiSample (ImGuiContext* ctx) : imgui{ctx} {}
+        ImGuiSample ()                                                                      __NE___ : imgui{null} {}
+        explicit ImGuiSample (ImGuiContext* ctx)                                            __NE___ : imgui{ctx} {}
 
         // ISample //
-        bool            Init (PipelinePackID pack)                                          override;
-        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   override;
-        InputModeName   GetInputMode ()                                                     const override;
+        bool            Init (PipelinePackID pack)                                          __NE_OV;
+        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE_OV;
+        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   __NE_OV;
+        InputModeName   GetInputMode ()                                                     C_NE_OV;
     };
 
 

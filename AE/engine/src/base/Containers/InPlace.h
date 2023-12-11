@@ -42,19 +42,23 @@ namespace AE::Base
             DEBUG_ONLY( DbgFreeMem( OUT _value ));
         }
 
-        InPlace (const Self &other)                         noexcept(IsNothrowCopyCtor<T>) :
+        InPlace (const Self &other)                         __NE___ :
             _value{ other.AsRef() }
             DEBUG_ONLY(, _isCreated{ true })
-        {}
+        {
+            CheckNothrow( IsNothrowCopyCtor< T >);
+        }
 
-        InPlace (Self && other)                             __NE___ :
+        InPlace (Self &&other)                              __NE___ :
             _value{ other.AsRVRef() }
             DEBUG_ONLY(, _isCreated{ true })
-        {}
+        {
+            CheckNothrow( IsNothrowMoveCtor< T >);
+        }
 
         ~InPlace ()                                         __NE___
         {
-            STATIC_ASSERT( alignof(Self) >= alignof(T) );
+            StaticAssert( alignof(Self) >= alignof(T) );
             ASSERT( not _isCreated );
         }
 
@@ -64,10 +68,27 @@ namespace AE::Base
 
 
         template <typename ...Args>
-        Self&  Create (Args&& ...args)                      noexcept(IsNothrowCtor<T, Args...>)
+        Self&  Create (Args&& ...args)                      __NE___
         {
             ASSERT( not _isCreated );
-            new (&_value) T{ FwdArg<Args &&>( args )... };  // throw
+
+            CheckNothrow( IsNoExcept( T{ FwdArg<Args>( args )... }));
+            CheckNothrow( IsNoExcept( new (&_value) T{ FwdArg<Args>( args )... }));
+
+            new (&_value) T{ FwdArg<Args>( args )... };
+
+            DEBUG_ONLY( _isCreated = true;)
+            return *this;
+        }
+
+        template <typename ...Args>
+        Self&  CreateTh (Args&& ...args)                    __Th___
+        {
+            ASSERT( not _isCreated );
+
+            CheckNothrow( not IsNoExcept( new (&_value) T{ FwdArg<Args>( args )... }));
+
+            new (&_value) T{ FwdArg<Args>( args )... };
 
             DEBUG_ONLY( _isCreated = true;)
             return *this;
@@ -86,19 +107,23 @@ namespace AE::Base
 
 
         template <typename Fn>
-        Self&  CustomCtor (const Fn &fn)                    noexcept(IsNothrowInvocable<Fn>)
+        Self&  CustomCtor (const Fn &fn)                    __NE___
         {
+            CheckNothrow( IsNoExcept( fn( _value )));
             ASSERT( not _isCreated );
-            fn( OUT _value );   // throw
+
+            fn( OUT _value );
 
             DEBUG_ONLY( _isCreated = true;)
             return *this;
         }
 
         template <typename Fn>
-        void  CustomDtor (const Fn &fn)                     noexcept(IsNothrowInvocable<Fn>)
+        void  CustomDtor (const Fn &fn)                     __NE___
         {
+            CheckNothrow( IsNoExcept( fn( _value )));
             ASSERT( _isCreated );
+
             fn( OUT _value );
 
             DEBUG_ONLY(
@@ -127,6 +152,10 @@ namespace AE::Base
             ND_ bool    IsCreated ()                        C_NE___ { return _isCreated; }
         )
     };
+
+
+    template <typename T>   struct TMemCopyAvailable< InPlace<T> >      { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TTriviallyDestructible< InPlace<T> > { static constexpr bool  value = IsTriviallyDestructible<T>; };
 
 
 } // AE::Base

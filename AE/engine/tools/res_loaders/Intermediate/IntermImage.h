@@ -88,12 +88,12 @@ namespace AE::ResLoader
         ND_ bool  SetData (Mipmaps_t data, EImage type)                                                             __NE___;
         ND_ bool  SetData (const ImageMemView &memView, RC<SharedMem> storage)                                      __NE___;
 
-        ND_ bool  Copy (const ImageMemView &memView, SharedMem::Allocator_t allocator)                              __NE___;
+        ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator)                                      __NE___;
         ND_ bool  Copy (const ImageMemView &memView)                                                                __NE___;
 
         ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers,
-                            MipmapLevel mipmaps, SharedMem::Allocator_t allocator)                                  __NE___;
-        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, SharedMem::Allocator_t allocator)      __NE___;
+                            MipmapLevel mipmaps, RC<IAllocator> allocator)                                          __NE___;
+        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, RC<IAllocator> allocator)              __NE___;
 
         // with default allocator
         ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps)__NE___;

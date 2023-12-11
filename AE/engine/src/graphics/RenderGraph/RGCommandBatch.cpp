@@ -94,24 +94,24 @@ namespace AE::RG::_hidden_
 */
     RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResource (ImageViewID id, EResourceState initial, EResourceState final) rvNE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         auto*   view     = res_mngr.GetResource( id );
         CHECK( view != null );
 
         if_likely( view != null )
-            return RVRef(*this).UseResource( view->Image(), initial, final );
+            return RVRef(*this).UseResource( view->ImageId(), initial, final );
 
         return RVRef(*this);
     }
 
     RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResource (BufferViewID id, EResourceState initial, EResourceState final) rvNE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         auto*   view     = res_mngr.GetResource( id );
         CHECK( view != null );
 
         if_likely( view != null )
-            return RVRef(*this).UseResource( view->Buffer(), initial, final );
+            return RVRef(*this).UseResource( view->BufferId(), initial, final );
 
         return RVRef(*this);
     }
@@ -133,7 +133,7 @@ namespace AE::RG::_hidden_
 
             for (const auto& [id, state] : rg_batch._batchStates)
             {
-                rs.map.emplace( id, InTaskState{ state.current, _last ? state.final : state.current });
+                rs.map.emplace( id, InTaskState{ state.current, _last ? state.final : state.current });  // throw
             }
         }
 
@@ -170,7 +170,7 @@ namespace AE::RG::_hidden_
     constructor
 =================================================
 */
-    RGCommandBatchPtr::RGBatchData::RGBatchData (RGBatchData && other) __NE___ :
+    RGCommandBatchPtr::RGBatchData::RGBatchData (RGBatchData &&other) __NE___ :
         _batchStates{ RVRef(other._batchStates) },
         _perTask{ RVRef(other._perTask) },
         _globalStates{ other._globalStates },
@@ -188,7 +188,7 @@ namespace AE::RG::_hidden_
     void  RGCommandBatchPtr::RGBatchData::SetRenderPassInitialStates (uint taskIdx, INOUT RenderPassDesc &desc) __Th___
     {
         constexpr auto  rs_mask     = EResourceState::Invalidate;   // keep only 'Invalidate' flag
-        auto&           res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&           res_mngr    = GraphicsScheduler().GetResourceManager();
         constexpr auto  new_state   = EResourceState::Unknown;      // disable transitions in render pass
 
         DRC_EXLOCK( _perTask[taskIdx].drCheck );
@@ -198,7 +198,7 @@ namespace AE::RG::_hidden_
             auto&   view = res_mngr.GetResourcesOrThrow( att.imageView );
 
             EResourceState  old_state;
-            if_likely( _ResourceState( taskIdx, ResourceKey{view.Image()}, new_state, OUT old_state ))
+            if_likely( _ResourceState( taskIdx, ResourceKey{view.ImageId()}, new_state, OUT old_state ))
             {
                 att.initial                 = old_state | (att.initial & rs_mask);
                 att.final                   = new_state;
@@ -248,7 +248,7 @@ namespace AE::RG::_hidden_
     _ResourceState
 =================================================
 */
-    bool  RGCommandBatchPtr::RGBatchData::_ResourceState (uint taskIdx, ResourceKey key, EResourceState newState, OUT EResourceState &oldState) __Th___
+    bool  RGCommandBatchPtr::RGBatchData::_ResourceState (uint taskIdx, ResourceKey key, EResourceState newState, OUT EResourceState &oldState) __NE___
     {
         auto&   rs = _perTask[ taskIdx ];
         DRC_EXLOCK( rs.drCheck );
@@ -265,7 +265,7 @@ namespace AE::RG::_hidden_
             auto [def_state, is_undef]  = _globalStates.GetDefaultState( key );
             EResourceState  current     = def_state | (is_undef and key.IsImage() ? EResourceState::Invalidate : Default);
 
-            it = rs.map.emplace( key, InTaskState{ current, def_state }).first;
+            it = rs.map.emplace( key, InTaskState{ current, def_state }).first;  // throw
         }
 
         oldState = it->second.current;
@@ -284,7 +284,7 @@ namespace AE::RG::_hidden_
     _CheckResourceState
 =================================================
 */
-    bool  RGCommandBatchPtr::RGBatchData::_CheckResourceState (uint taskIdx, ResourceKey key, const EResourceState state) C_Th___
+    bool  RGCommandBatchPtr::RGBatchData::_CheckResourceState (uint taskIdx, ResourceKey key, const EResourceState state) C_NE___
     {
         constexpr auto  mask1   = EResourceState(_EResState::AccessMask);
         constexpr auto  mask2   = EResourceState(~_EResState::AccessMask);

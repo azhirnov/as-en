@@ -18,17 +18,18 @@ namespace AE::Threading
 
     class MemoryManagerImpl final : public Noncopyable
     {
-        friend struct InPlace<MemoryManagerImpl>;
+        friend struct Base::TNothrowCtor<MemoryManagerImpl>;
+        friend struct Base::InPlace<MemoryManagerImpl>;
 
     // types
     public:
-        using GlobalLinearAllocator_t   = LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
-        using FrameAllocator_t          = LfLinearAllocator< 4u<<20, AE_CACHE_LINE, 8 >;
+        using GlobalLinearAllocator_t   = LfLinearAllocator< usize{16_Mb}, AE_CACHE_LINE, 32 >;
+        using FrameAllocator_t          = LfLinearAllocator< usize{ 4_Mb}, AE_CACHE_LINE,  8 >;
 
-        class TaskSchedulerApi {
+        class InstanceCtor {
             friend class TaskScheduler;
-            static void  CreateInstance ()  __NE___;
-            static void  DestroyInstance () __NE___;
+            static void  Create ()  __NE___;
+            static void  Destroy () __NE___;
         };
 
 
@@ -48,7 +49,7 @@ namespace AE::Threading
 
             DEBUG_ONLY(
                 AtomicFrameUID  _dbgFrameId;
-            )   
+            )
 
         // methods
         public:

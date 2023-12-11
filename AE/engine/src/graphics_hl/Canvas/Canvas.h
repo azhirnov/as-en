@@ -59,22 +59,22 @@ namespace AE::Graphics
         // variables
             void *          ptr;
 
-            Bytes32u        posSize;
-            Bytes32u        attribsSize;
-            Bytes32u        indexSize;
+            Byte32u         posSize;
+            Byte32u         attribsSize;
+            Byte32u         indexSize;
 
-            Bytes32u        posCapacity;
-            Bytes32u        attribsCapacity;
-            Bytes32u        indexCapacity;
+            Byte32u         posCapacity;
+            Byte32u         attribsCapacity;
+            Byte32u         indexCapacity;
 
             Bytes           offset;
             NativeBuffer_t  handle;
 
 
         // methods
-            ND_ Bytes32u    _PositionOffset ()                      C_NE___ { return 0_b; }
-            ND_ Bytes32u    _AttribsOffset ()                       C_NE___ { return posCapacity; }
-            ND_ Bytes32u    _IndicesOffset ()                       C_NE___ { return posCapacity + attribsCapacity; }
+            ND_ Byte32u     _PositionOffset ()                      C_NE___ { return 0_b; }
+            ND_ Byte32u     _AttribsOffset ()                       C_NE___ { return posCapacity; }
+            ND_ Byte32u     _IndicesOffset ()                       C_NE___ { return posCapacity + attribsCapacity; }
 
             ND_ Bytes       PositionOffset ()                       C_NE___ { return offset + _PositionOffset(); }
             ND_ Bytes       AttribsOffset ()                        C_NE___ { return offset + _AttribsOffset(); }
@@ -103,9 +103,9 @@ namespace AE::Graphics
         using Allocator_t       = LinearAllocator< UntypedAllocator, 8, false >;
 
         static constexpr uint       _MaxVertsPerBatch   = 1u << 12;
-        static constexpr Bytes32u   _PositionVBufSize   {8_b * _MaxVertsPerBatch};
-        static constexpr Bytes32u   _AttribsVBufSize    {16_b * _MaxVertsPerBatch};
-        static constexpr Bytes32u   _IndexBufSize       {SizeOf<BatchIndex_t> * _MaxVertsPerBatch * 3};
+        static constexpr Byte32u    _PositionVBufSize   {8_b * _MaxVertsPerBatch};
+        static constexpr Byte32u    _AttribsVBufSize    {16_b * _MaxVertsPerBatch};
+        static constexpr Byte32u    _IndexBufSize       {SizeOf<BatchIndex_t> * _MaxVertsPerBatch * 3};
 
         using FontPosition_t    = VB_Position_f2;
         using FontAttribs_t     = VB_UVs2_SCs1_Col8;
@@ -163,7 +163,7 @@ namespace AE::Graphics
         template <typename PrimitiveType>   void  _BreakStrip    (const PrimitiveType &primitive, uint indexCount, uint vertexCount);
         template <typename PrimitiveType>   void  _ContinueStrip (const PrimitiveType &primitive, uint indexCount, uint vertexCount);
 
-        ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Bytes32u posSize, Bytes32u attrSize, Bytes32u idxDataSize);
+        ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Byte32u posSize, Byte32u attrSize, Byte32u idxDataSize);
         ND_ bool  _Alloc ();
     };
 
@@ -243,9 +243,9 @@ namespace AE::Graphics
 
         const uint      idx_count   = primitive.IndexCount();
         const uint      vert_count  = primitive.VertexCount();
-        const Bytes32u  pos_size    = SizeOf< typename PrimitiveType::Position_t >;
-        const Bytes32u  attr_size   = SizeOf< typename PrimitiveType::Attribs_t  >;
-        const Bytes32u  idx_size    = SizeOf< BatchIndex_t > * idx_count;
+        const Byte32u   pos_size    = SizeOf< typename PrimitiveType::Position_t >;
+        const Byte32u   attr_size   = SizeOf< typename PrimitiveType::Attribs_t  >;
+        const Byte32u   idx_size    = SizeOf< BatchIndex_t > * idx_count;
 
         // add primitive to draw call
         if constexpr( PrimitiveType::Topology() == EPrimitive::LineStrip    or

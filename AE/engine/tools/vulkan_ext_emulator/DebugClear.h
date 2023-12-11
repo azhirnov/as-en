@@ -170,7 +170,7 @@
                         VkClearColorValue   color;
 
                         MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
-                        STATIC_ASSERT( sizeof(color.float32) == sizeof(rgba) );
+                        StaticAssert( sizeof(color.float32) == sizeof(rgba) );
 
                         emulator.origin_vkCmdClearColorImage( commandBuffer, bar.image, bar.newLayout, &color, 1, &bar.subresourceRange );
                     }
@@ -300,7 +300,7 @@
                         VkClearColorValue   color;
 
                         MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
-                        STATIC_ASSERT( sizeof(color.float32) == sizeof(rgba) );
+                        StaticAssert( sizeof(color.float32) == sizeof(rgba) );
 
                         emulator.origin_vkCmdClearColorImage( commandBuffer, bar.image, bar.newLayout, &color, 1, &bar.subresourceRange );
                     }
@@ -654,7 +654,7 @@
             {
                 const RGBA32f   rgba = self.rnd.UniformColor();
                 MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
-                STATIC_ASSERT( sizeof(color.float32) == sizeof(rgba) );
+                StaticAssert( sizeof(color.float32) == sizeof(rgba) );
             }
             else
             {
@@ -734,7 +734,7 @@
             const RGBA32f       rgba        = self.rnd.UniformColor();
 
             MemCopy( OUT clear_att.clearValue.color.float32, &rgba, Sizeof(rgba) );
-            STATIC_ASSERT( sizeof(clear_att.clearValue.color.float32) == sizeof(rgba) );
+            StaticAssert( sizeof(clear_att.clearValue.color.float32) == sizeof(rgba) );
 
             clear_att.aspectMask        = VK_IMAGE_ASPECT_COLOR_BIT;
             clear_att.colorAttachment   = idx;
@@ -862,7 +862,7 @@
                 VkClearColorValue   color;
 
                 MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
-                STATIC_ASSERT( sizeof(color.float32) == sizeof(rgba) );
+                StaticAssert( sizeof(color.float32) == sizeof(rgba) );
 
                 emulator.origin_vkCmdClearColorImage( commandBuffer, barrier.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, 1, &barrier.subresourceRange );
             }

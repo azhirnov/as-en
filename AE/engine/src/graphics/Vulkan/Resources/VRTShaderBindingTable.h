@@ -49,8 +49,8 @@ namespace AE::Graphics
             void  Destroy (VResourceManager &)                      __NE___;
 
         ND_ RTShaderBindingTable const& GetSBT ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _sbt; }
-        ND_ BufferID                    GetBufferID ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
-        ND_ RayTracingPipelineID        GetRTPipelineId ()          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _pipelineId; }
+        ND_ BufferID                    BufferId ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
+        ND_ RayTracingPipelineID        RTPipelineId ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _pipelineId; }
 
         ND_ RTShaderBindingDesc const&  Description ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
 

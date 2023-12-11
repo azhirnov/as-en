@@ -27,7 +27,7 @@ namespace AE::Base
         return true;
     }
 
-    bool  UnixProcess::Execute (const String &commandLine, INOUT String &output, Mutex *outputGuard, milliseconds timeout)
+    bool  UnixProcess::Execute (const String &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         Unused( timeout );
 

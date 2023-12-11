@@ -3,21 +3,21 @@
     Command batch allows to records multiple command buffers in parallel and submit them as a single batch.
     Software command buffers are supported to and will be automatically recorded to Vulkan command buffer before submitting.
 
-        Dependencies.
+    --- Dependencies ---
 
     Dependencies are added to the whole batch.
 
     Batch in graphics queue depends on batch in compute/transfer queue -> insert semaphore dependency.
     Batch depends on batch in the same queue -> use 'submitIdx' to manually reorder batches.
 
-        CmdBatchOnSubmit.
+    --- CmdBatchOnSubmit ---
 
     Used as AsyncTask input dependency to run task when command batch was submitted to the GPU.
     For example for present image in swapchain.
 
     Warning: don't use CmdBatchOnSubmit with deferred submission!
 
-        Resource state tracking.
+    --- Resource state tracking ---
 
     Use 'DeferredBarriers()' and 'initialBarriers' & 'finalBarriers' arguments in 'Run()' method
     to transit states in batch planning stage.
@@ -49,15 +49,20 @@ namespace AE::RG::_hidden_ { class RGCommandBatchPtr; }
 namespace AE::Threading::_hidden_ { class RenderTaskCoro; }
 #endif
 
+namespace AE::Graphics::_hidden_
+{
+    class AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
+}
+
 namespace AE::Graphics
 {
 
     //
     // Command Batch
     //
-    class CMDBATCH final : public IDeviceToHostSync
+    class CMDBATCH final : public EnableRC< CMDBATCH >
     {
-        friend class AE_PRIVATE_UNITE_RAW( SUFFIX, RenderTaskScheduler );
+        friend class RenderTaskScheduler;
         friend class AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch );
         friend class RenderTask;
         friend struct CmdBatchOnSubmit;
@@ -137,8 +142,6 @@ namespace AE::Graphics
       # error not implemented
       #endif
 
-        using RenderTaskScheduler_t = AE_PRIVATE_UNITE_RAW( SUFFIX, RenderTaskScheduler );
-
 
         //
         // Submit Batch Task
@@ -173,7 +176,6 @@ namespace AE::Graphics
         // variables
         private:
             Atomic<bool>    _complete       {false};
-            ubyte           _indexInPool    = UMax;
             VkFence         _fence          = Default;
 
 
@@ -187,7 +189,7 @@ namespace AE::Graphics
             ND_ bool    IsCompleted (const VDevice &dev)                __NE___;
             ND_ bool    Wait (const VDevice &dev, nanoseconds timeout)  __NE___;
 
-            ND_ bool    Create (const VDevice &dev, uint indexInPool)   __NE___;
+            ND_ bool    Create (const VDevice &dev)                     __NE___;
 
                 void    _ReleaseObject ()                               __NE_OV;
         };
@@ -229,7 +231,6 @@ namespace AE::Graphics
 
         FrameUID                    _frameId;
         EQueueType                  _queueType      = Default;
-        const ubyte                 _indexInPool;
         ubyte                       _submitIdx      = UMax;
         ESubmitMode                 _submitMode     = ESubmitMode::Auto;
 
@@ -284,7 +285,8 @@ namespace AE::Graphics
 
     // methods
     public:
-        ~CMDBATCH ()                                                            __NE___;
+        CMDBATCH ()                                                             __NE___;
+        ~CMDBATCH ()                                                            __NE_OV;
 
 
     // user api (thread safe)
@@ -380,17 +382,12 @@ namespace AE::Graphics
             ND_ Ptr<IGraphicsProfiler>  GetProfiler ()                          C_NE___ { return _profiler.get(); }
         )
 
-
-    // IDeviceToHostSync
-    public:
-        ND_ bool  Wait (nanoseconds timeout)                                    __NE_OV;
-        ND_ bool  IsCompleted ()                                                __NE_OV { return _status.load() == EStatus::Completed; }
+        ND_ bool  Wait (nanoseconds timeout)                                    __NE___;
+        ND_ bool  IsCompleted ()                                                __NE___ { return _status.load() == EStatus::Completed; }
 
 
     // render task scheduler api
     private:
-        explicit CMDBATCH (uint indexInPool)                                    __NE___;
-
         ND_ bool  _Create (EQueueType queue, FrameUID frameId, uint submitIdx,
                            DebugLabel dbg, void* userData)                      __NE___;
             void  _OnSubmit2 ()                                                 __NE___;
@@ -484,7 +481,7 @@ namespace AE::Graphics
                                   const TaskBarriers_t* finalBarriers,
                                   Bool                  submitBatchAtTheEnd) __NE___
     {
-        STATIC_ASSERT( IsBaseOf< RenderTask, RemoveRC<TaskType> >);
+        StaticAssert( IsBaseOf< RenderTask, RemoveRC<TaskType> >);
         CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 
         if_likely( task )
@@ -511,7 +508,7 @@ namespace AE::Graphics
                               Bool                  submitBatchAtTheEnd,
                               DebugLabel            dbg) __NE___
     {
-        STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
+        StaticAssert( IsBaseOf< RenderTask, TaskType >);
         CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 
         DBG_GRAPHICS_ONLY(
@@ -519,19 +516,16 @@ namespace AE::Graphics
                 dbg.color = _dbgColor;
         )
 
-        // RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-        // RenderTask internally creates command buffer and throw exception if can't.
-        try {
-            auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args)
-                                          { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });   // throw
+        auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
+                                      { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
 
+        if_likely( task and task->IsValid() )
+        {
             _InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
 
             if_likely( Scheduler().Run( task, deps ))
                 return task;
         }
-        catch(...) {}
-
         return Scheduler().GetCanceledTask();
     }
 
@@ -574,13 +568,10 @@ namespace AE::Graphics
                 dbg.color = _dbgColor;
         )
 
-        // RenderTask internally calls '_cmdPool.Acquire()' and return error on pool overflow.
-        // RenderTask internally creates command buffer and throw exception if can't.
+        auto&   task = coro.AsRenderTask();
+        CHECK_ERR( task._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
 
-        auto&   rtask = coro.AsRenderTask();
-        CHECK_ERR( rtask._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
-
-        _InitTask( rtask, initialBarriers, finalBarriers, submitBatchAtTheEnd );
+        _InitTask( task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
 
         if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
             return coro;

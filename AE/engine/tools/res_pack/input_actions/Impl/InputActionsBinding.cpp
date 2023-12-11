@@ -13,7 +13,7 @@ namespace
     ConvertInputActionsImpl
 =================================================
 */
-    static bool  ConvertInputActionsImpl (const InputActionsInfo *info)
+    static bool  ConvertInputActionsImpl (const InputActionsInfo* info)
     {
         CHECK_ERR( info != null );
         CHECK_ERR( (info->inFileCount > 0) == (info->inFiles != null) );
@@ -23,7 +23,7 @@ namespace
         const Path          pack_fname      = FileSystem::ToAbsolute( info->outputPackName );
         ObjectStorage       obj_storage;
 
-        CATCH_ERR( obj_storage.Bind( script_engine ));
+        NOTHROW_ERR( obj_storage.Bind( script_engine ));
         ObjectStorage::SetInstance( &obj_storage );
 
         // run script files
@@ -63,7 +63,7 @@ namespace
     ConvertInputActions
 =================================================
 */
-    extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo *info)
+    extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo* info)
     {
         AE::Base::StaticLogger::LoggerScope log{};
 

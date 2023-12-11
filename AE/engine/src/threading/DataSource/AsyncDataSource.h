@@ -1,4 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    AsyncRDataSource / AsyncWDataSource and AsyncRStream / AsyncWStream must be created only as RC<> object,
+    because Request may internally keep reference to it data source object.
+
+    Synchronous DataSource defined in 'base' module:
+      [DataSource](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/base/DataSource/DataSource.h)
+
+    Network DataSource defined in 'VFS' module:
+      [NetworkStorageClient](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/vfs/Network/NetworkStorageClient.h)
+      [NetworkStorageServer](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/vfs/Network/NetworkStorageServer.h)
+*/
 
 #pragma once
 
@@ -7,6 +18,8 @@
 
 namespace AE::Threading
 {
+    class AsyncDSRequestDependencyManager;
+
 namespace _hidden_
 {
 
@@ -31,7 +44,7 @@ namespace _hidden_
         {
             Bytes           pos;                    // 'pos' argument from 'ReadBlock()' or 'WriteBlock()'
             Bytes           dataSize;               // actually readn / written
-            void const*     data        = null;     // if successfully completed non-null memory for read request.
+            void const*     data        = null;     // non-null pointer if read request is successfully completed
 
             template <typename T>
             ND_ ArrayView<T>    AsArray ()  C_NE___ { return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
@@ -44,16 +57,23 @@ namespace _hidden_
 
         using Promise_t = Promise< ResultWithRC >;
 
+    protected:
+        using TaskDependency    = IAsyncTask::TaskDependency;
+        using Dependencies_t    = FixedTupleArray< 4, AsyncTask, TaskDependency >;
+
 
     // variables
     protected:
-        Atomic<EStatus>     _status         {EStatus::Destroyed};
-        Atomic<uint>        _actualSize     {0};    // readn / written
+        Atomic<EStatus>         _status         {EStatus::Destroyed};
+        AtomicByte<Byte32u>     _actualSize;    // readn / written
+
+        SpinLock                _depsGuard;
+        Dependencies_t          _deps;
 
 
     // interface
     public:
-        // returns 'true' if cancelled, 'false' if already completed/cancelled or on other error.
+        // Returns 'true' if cancelled, 'false' if already completed/cancelled or on error.
             virtual bool        Cancel ()                                           __NE___ = 0;
 
         ND_ EStatus             Status ()                                           C_NE___ { return _status.load(); }
@@ -67,6 +87,11 @@ namespace _hidden_
         // Use 'promise.Then()' to process result of async IO.
         // Or use 'result = co_await request->AsPromise()'.
         ND_ virtual Promise_t   AsPromise (ETaskQueue q = ETaskQueue::Background)   __NE___ = 0;
+
+    protected:
+        friend class Threading::AsyncDSRequestDependencyManager;
+        ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, Bool isStrong)   __NE___;
+            void  _SetDependencyCompleteStatus (bool complete)                                  __NE___;
     };
 
 } // _hidden_
@@ -91,30 +116,30 @@ namespace _hidden_
 
     // interface
     public:
-        AsyncRDataSource ()                                                                 __NE___ {}
-
-        ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+        ND_ ESourceType  GetSourceType ()       C_NE_OV { return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
         // Returns file size.
+        // If 'GetSourceType()' doesn't returns 'FixedSize'
+        // size may be unknown and 'UMax' will be returned.
+        //
         ND_ virtual Bytes   Size ()                                                         C_NE___ = 0;
 
 
         // Read file from 'pos' to 'pos + dataSize'.
-        // 'pos'        - position in the file where data will be readn.
-        // 'data'       - pointer to memory where to put data.
-        // 'dataSize'   - size of the 'data'.
-        // 'mem'        - holds 'data' memory until it in use.
+        //  'pos'       - position in the file where data will be readn.
+        //  'data'      - pointer to memory where to put data.
+        //  'dataSize'  - size of the 'data'.
+        //  'mem'       - holds 'data' memory until it in use.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
-        ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, void* data,
-                                               Bytes dataSize, RC<> mem)                    __NE___ = 0;
+        ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___ = 0;
 
 
         // Read file from 'pos' to 'pos + size'.
-        // 'pos'    - position in the file where data will be readn.
-        // 'size'   - size of the data.
-        // 'mem'    - container for memory.
+        //  'pos'   - position in the file where data will be readn.
+        //  'size'  - size of the data.
+        //  'mem'   - container for memory.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ ReadRequestPtr  ReadBlock (Bytes pos, Bytes size, RC<SharedMem> mem)            __NE___
@@ -127,8 +152,8 @@ namespace _hidden_
 
         // Read file from 'pos' to 'pos + size'.
         // Memory will be allocated by internal allocator.
-        // 'pos'    - position in the file where data will be readn.
-        // 'size'   - size of the data.
+        //  'pos'   - position in the file where data will be readn.
+        //  'size'  - size of the data.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)                       __NE___ = 0;
@@ -164,33 +189,30 @@ namespace _hidden_
 
     // interface
     public:
-        AsyncWDataSource ()                                                                 __NE___ {}
-
-        ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+        ND_ ESourceType  GetSourceType ()   C_NE_OV { return ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
         // Allocate memory block using internal allocator.
         // Returns 'null' on error.
         //
         ND_ virtual RC<SharedMem>   Alloc (SizeAndAlign)                                    __NE___ = 0;
-        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, 4_b }); }
+        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, DefaultAllocatorAlign }); }
 
 
         // Write data to the file.
-        // 'pos'        - position in the file where data will be written.
-        // 'data'       - pointer to memory with the data.
-        // 'dataSize'   - size of data.
-        // 'mem'        - holds 'data' memory until it in use.
+        //  'pos'       - position in the file where data will be written.
+        //  'data'      - pointer to memory with the data.
+        //  'dataSize'  - size of data.
+        //  'mem'       - holds 'data' memory until it in use.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
-        ND_ virtual WriteRequestPtr  WriteBlock (Bytes pos, const void* data,
-                                                 Bytes dataSize, RC<> mem)                  __NE___ = 0;
+        ND_ virtual WriteRequestPtr  WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___ = 0;
 
 
         // Write data from 'mem' to the file.
-        // 'pos'    - position in the file where data will be written.
-        // 'size'   - size of data.
-        // 'mem'    - container for memory.
+        //  'pos'   - position in the file where data will be written.
+        //  'size'  - size of data.
+        //  'mem'   - container for memory.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ WriteRequestPtr  WriteBlock (Bytes pos, Bytes size, RC<SharedMem> mem)          __NE___
@@ -225,10 +247,12 @@ namespace _hidden_
 
     // interface
     public:
-        AsyncRStream ()                                                                     __NE___ {}
+        ND_ ESourceType  GetSourceType ()   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
-        ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
-
+        // Returns:
+        //  - current position in stream, this value must be valid.
+        //  - file size if it is known, 'UMax' otherwise.
+        //
         ND_ virtual PosAndSize  PositionAndSize ()                                          C_NE___ = 0;
 
 
@@ -266,32 +290,34 @@ namespace _hidden_
 
     // interface
     public:
-        AsyncWStream ()                                                                     __NE___ {}
+        ND_ ESourceType  GetSourceType ()   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
-        ND_ ESourceType  GetSourceType ()                                                   C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
-        ND_ virtual Bytes   Position ()                                                     C_NE___ = 0;    // same as 'Size()'
+        // Returns current position in stream.
+        // This value should be equal to the file size.
+        //
+        ND_ virtual Bytes   Position ()                                                     C_NE___ = 0;
 
 
         // Allocate memory block using internal allocator.
         // Returns 'null' on error.
         //
         ND_ virtual RC<SharedMem>   Alloc (SizeAndAlign)                                    __NE___ = 0;
-        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, 4_b }); }
+        ND_ RC<SharedMem>           Alloc (Bytes size)                                      __NE___ { return Alloc( SizeAndAlign{ size, DefaultAllocatorAlign }); }
 
 
         // Write data to the file.
-        // 'data'       - pointer to memory with the data.
-        // 'dataSize'   - size of data.
-        // 'mem'        - holds 'data' memory until it in use.
+        //  'data'      - pointer to memory with the data.
+        //  'dataSize'  - size of data.
+        //  'mem'       - holds 'data' memory until it in use.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ virtual WriteRequestPtr  WriteSeq (const void* data, Bytes dataSize, RC<> mem)  __NE___ = 0;
 
 
         // Write data from 'mem' to the file.
-        // 'size'   - size of data.
-        // 'mem'    - container for memory.
+        //  'size'  - size of data.
+        //  'mem'   - container for memory.
         // Returns non-null pointer, request in pending state on success, request in canceled state on error.
         //
         ND_ WriteRequestPtr  WriteSeq (Bytes size, RC<SharedMem> mem)                       __NE___
@@ -308,6 +334,24 @@ namespace _hidden_
         //  'false' if all requests already completed/cancelled or on other error.
         //
             virtual bool    CancelAllRequests ()                                            __NE___ = 0;
+    };
+
+
+
+    //
+    // Async Data Source Request Dependency Manager
+    //
+    class AsyncDSRequestDependencyManager final : public ITaskDependencyManager
+    {
+    // methods
+    public:
+
+        // ITaskDependencyManager //
+        bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)   __NE_OV;
+
+    private:
+        friend class TaskScheduler;
+        AsyncDSRequestDependencyManager ()                                      __NE___ = default;
     };
 
 

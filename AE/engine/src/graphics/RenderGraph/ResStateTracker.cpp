@@ -226,7 +226,7 @@ namespace AE::RG::_hidden_
 */
     IResourceManager&  ResStateTracker::_ResMngr () C_NE___
     {
-        return RenderTaskScheduler().GetResourceManager();
+        return GraphicsScheduler().GetResourceManager();
     }
 
 /*

@@ -31,7 +31,7 @@ namespace
             case EShader::Compute :     str << (has_attribs ? "[[kernel]"    : "kernel");       break;
             case EShader::Tile :        str << (has_attribs ? "[[kernel]"    : "kernel");       break;
             case EShader::MeshTask :    str << "[[object]]";                                    break;
-            case EShader::Mesh :        str << "[[mesh]]";                                      break;      
+            case EShader::Mesh :        str << "[[mesh]]";                                      break;
 
             case EShader::TessControl :
             case EShader::TessEvaluation :
@@ -766,7 +766,7 @@ namespace
     constructor
 =================================================
 */
-    BasePipelineSpec::BasePipelineSpec (const BasePipelineTmpl *tmpl, const String &name) __Th___ :
+    BasePipelineSpec::BasePipelineSpec (const BasePipelineTmpl* tmpl, const String &name) __Th___ :
         _name{ PipelineName{name} },
         _tmpl{ tmpl },
         _options{ ObjectStorage::Instance()->defaultPipelineOpt }
@@ -854,6 +854,11 @@ namespace
                 case EPipelineOpt::RT_SkipAABBs :
                     CHECK_THROW_MSG( AnyBits( GetBase()->GetStages(), EShaderStages::AllRayTracing ),
                         ToString(opt) << " requires any RayTracing stage" );
+                    break;
+
+                case EPipelineOpt::DontCompile :
+                case EPipelineOpt::CaptureStatistics :
+                case EPipelineOpt::CaptureInternalRepresentation :
                     break;
 
                 case EPipelineOpt::_Last :

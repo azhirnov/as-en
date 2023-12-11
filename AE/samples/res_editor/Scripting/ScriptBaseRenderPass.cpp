@@ -45,7 +45,10 @@ namespace AE::ResEditor
         if ( args.IsArg< ImageLayer const& >(idx) )
         {
             dst.layer = args.Arg< ImageLayer const& >(idx++);
+            if ( args.IsArg<uint>(idx) )
+                dst.layerCount = args.Arg<uint>(idx++);
         }
+
         if ( args.IsArg< MipmapLevel const& >(idx) )
         {
             dst.mipmap = args.Arg< MipmapLevel const& >(idx++);
@@ -118,7 +121,10 @@ namespace AE::ResEditor
         if ( args.IsArg< ImageLayer const& >(idx) )
         {
             dst.layer = args.Arg< ImageLayer const& >(idx++);
+            if ( args.IsArg<uint>(idx) )
+                dst.layerCount = args.Arg<uint>(idx++);
         }
+
         if ( args.IsArg< MipmapLevel const& >(idx) )
         {
             dst.mipmap = args.Arg< MipmapLevel const& >(idx++);

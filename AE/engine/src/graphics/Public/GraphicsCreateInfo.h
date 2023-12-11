@@ -55,7 +55,7 @@ namespace AE::Graphics
         uint                    maxFrames   = 2;
 
         // staging buffers //
-        using SizePerQueue_t = StaticArray< Bytes32u, 5 >;
+        using SizePerQueue_t = StaticArray< Byte32u, uint(EQueueType::_Count) >;
         struct {
             // static staging buffers allocated at engine start
             SizePerQueue_t          writeStaticSize         = {};
@@ -63,30 +63,33 @@ namespace AE::Graphics
 
             // dynamic buffers will be allocated when needed and will be released after,
             // but total size can be limited
-            Bytes                   maxWriteDynamicSize     = 1_Gb;
-            Bytes                   maxReadDynamicSize      = 1_Gb;
+            //   expected FPS:           60
+            //   PCI-E 3 x16 bandwidth:  16 Gb/s
+            //   bandwidth per frame:   ~273 Mb
+            Bytes                   maxWriteDynamicSize     = 256_Mb;
+            Bytes                   maxReadDynamicSize      = 64_Mb;    // some GPUs has limited bandwidth for read access
 
             // granularity of the dynamic staging buffers
-            Bytes                   dynamicBlockSize        = 32_Mb;
+            Bytes                   dynamicBlockSize        = 16_Mb;
 
             // wait X frames before release dynamic buffer
             uint                    maxFramesToRelease      = 1 << 10;
 
             // vertex & index buffer size for single frame
-            Bytes32u                vstreamSize             = 4_Mb;
+            Byte32u                 vstreamSize             = 4_Mb;
 
             // total size of staging memory is:
             //   (writeStaticSize + readStaticSize) * maxFrames + (maxWriteDynamicSize + maxReadDynamicSize)
         }                       staging;
 
 
-        GfxMemAllocatorPtr      defaultGfxAllocator;
-        DescriptorAllocatorPtr  defaultDescAllocator;
+        IGfxMemAllocator *      defaultGfxAllocator     = null;
+        IDescriptorAllocator *  defaultDescAllocator    = null;
 
         struct
         {
-            String                  appName         = "Test";
-            String                  deviceName;     // keep empty for auto-detect
+            StringView              appName;
+            StringView              deviceName;     // keep empty for auto-detect
             EQueueMask              requiredQueues  = EQueueMask::Graphics;
             EQueueMask              optionalQueues  = Default;
             EDeviceValidation       validation      = EDeviceValidation::Enabled;

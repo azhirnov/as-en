@@ -61,6 +61,39 @@ namespace AE::Graphics
 
 /*
 =================================================
+    ImageDesc::ViewFormatListSize
+=================================================
+*/
+    usize  ImageDesc::ViewFormatListSize () C_NE___
+    {
+        usize   size = 0;
+        for (auto& dst : viewFormats)
+            size += (dst != Default);
+        return size;
+    }
+
+/*
+=================================================
+    ImageDesc::AddViewFormat
+=================================================
+*/
+    ImageDesc&  ImageDesc::AddViewFormat (EPixelFormat value) __NE___
+    {
+        for (auto& dst : viewFormats)
+        {
+            if ( dst == Default )
+            {
+                dst = value;
+                return *this;
+            }
+        }
+
+        DBG_WARNING( "'viewFormats' overflow" );
+        return *this;
+    }
+
+/*
+=================================================
     Validate
 =================================================
 */
@@ -162,7 +195,7 @@ namespace AE::Graphics
             maxLevel = MipmapLevel( Clamp( maxLevel.Get(), 1u, ImageUtils::NumberOfMipmaps( dimension )));
         }
 
-        /*if ( viewFormats.size() > 1 )
+        /*if ( ViewFormatListSize() > 1 )
         {
             if ( not AllBits( options, EImageOpt::MutableFormat ))
             {
@@ -239,7 +272,7 @@ namespace AE::Graphics
 =================================================
     ImageViewDesc
 =================================================
-*/  
+*/
     ImageViewDesc::ImageViewDesc (EImage            viewType,
                                   EPixelFormat      format,
                                   MipmapLevel       baseMipmap,

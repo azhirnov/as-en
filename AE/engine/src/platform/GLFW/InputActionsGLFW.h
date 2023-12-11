@@ -41,7 +41,7 @@ namespace AE::App
 
     // methods
     public:
-        explicit InputActionsGLFW (DubleBufferedQueue *q)                           __NE___;
+        explicit InputActionsGLFW (DubleBufferedQueue* q)                           __NE___;
 
         // api for window
         void  SetKey (int key, EGestureState state, Duration_t timestamp)           __NE___;

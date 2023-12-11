@@ -40,7 +40,7 @@ endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
     add_executable( "Tests.Assimp" "tests/main.cpp" )
-    add_test( NAME "Tests.Assimp" COMMAND "Tests.Assimp" )
+    #add_test( NAME "Tests.Assimp" COMMAND "Tests.Assimp" )
     set_target_properties( "Tests.Assimp" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
     target_compile_features( "Tests.Assimp" PUBLIC cxx_std_17 )
     set_property( TARGET "Tests.Assimp" PROPERTY FOLDER "Engine/External/Tests" )

@@ -40,7 +40,7 @@ namespace AE::Base
         bool    SeekSet (Bytes pos)                                             __NE_OF;
         bool    SeekFwd (Bytes offset)                                          __NE_OF;
 
-        Bytes   ReadSeq (OUT void *buffer, Bytes size)                          __NE_OF;
+        Bytes   ReadSeq (OUT void* buffer, Bytes size)                          __NE_OF;
 
         void    UpdateFastStream (OUT const void* &begin, OUT const void* &end) __NE_OF;
         void    EndFastStream (const void* ptr)                                 __NE_OF;
@@ -113,7 +113,7 @@ namespace AE::Base
 
         bool        SeekFwd (Bytes offset)                                      __NE_OV;
         Bytes       Reserve (Bytes additionalSize)                              __NE_OV;
-        Bytes       WriteSeq (const void *, Bytes)                              __NE_OV;
+        Bytes       WriteSeq (const void*, Bytes)                               __NE_OV;
         void        Flush ()                                                    __NE_OV {}
 
         void        UpdateFastStream (OUT void* &begin, OUT const void* &end,
@@ -128,7 +128,7 @@ namespace AE::Base
 
         ND_ ArrayView<ubyte>    GetData ()                                      C_NE___ { return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
         ND_ Array<ubyte>        ReleaseData ()                                  __NE___;
-        ND_ RC<MemRefRStream>   ToRStream ()                                    C_Th___ { return MakeRC<MemRefRStream>( GetData() ); }
+        ND_ RC<MemRefRStream>   ToRStream ()                                    C_NE___ { return MakeRC<MemRefRStream>( GetData() ); }
     };
 
 

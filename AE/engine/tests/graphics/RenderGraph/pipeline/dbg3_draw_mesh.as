@@ -38,7 +38,7 @@ void ASmain ()
     // specialization
     {
         RC<MeshPipelineSpec>    spec = ppln.AddSpecialization( "dbg3_draw" );
-        spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
+        spec.AddToRenderTech( "DrawMeshesTestRT", "DrawMeshes_1" );
 
         spec.SetMeshLocalSize( 3 );
 

@@ -25,31 +25,37 @@ name: 'Compute1 |0| Compute task'
 
   BindPipeline
     pipeline:  'compute-ppln-27'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-0', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-28'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-1', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-29'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-2', layout: GENERAL
   ----------
 
@@ -81,21 +87,21 @@ name: 'Compute1 |1| Readback task'
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1024) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-1'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [1024, 2048) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-2'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [2048, 3072) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
   ----------
 
   PipelineBarrier2
@@ -153,31 +159,37 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'compute-ppln-30'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-0', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-31'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-1', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-32'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-2', layout: GENERAL
   ----------
 
@@ -204,21 +216,21 @@ name: 'IndirectCmdBuffers'
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1024) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-1'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [1024, 2048) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-2'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [2048, 3072) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
   ----------
 
   PipelineBarrier2
@@ -276,31 +288,37 @@ name: 'Compute1 |0| Compute task'
 
   BindPipeline
     pipeline:  'compute-ppln-33'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-0', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-34'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-1', layout: GENERAL
   ----------
 
   BindPipeline
     pipeline:  'compute-ppln-35'
+    layout:    '0'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '0'
       image: 'Image-2', layout: GENERAL
   ----------
 
@@ -332,21 +350,21 @@ name: 'IndirectCmdBuffers'
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1024) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-1'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [1024, 2048) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
   ----------
 
   CopyImageToBuffer
     src:       'Image-2'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [2048, 3072) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
   ----------
 
   PipelineBarrier2
@@ -355,17 +373,17 @@ name: 'IndirectCmdBuffers'
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
     ImageBarrier:
-      name:    'Image-0'
-      stage:   COPY ---> COMPUTE_SHADER
-      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
-      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
-    ImageBarrier:
       name:    'Image-1'
       stage:   COPY ---> COMPUTE_SHADER
       access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
       name:    'Image-2'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'Image-0'
       stage:   COPY ---> COMPUTE_SHADER
       access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL

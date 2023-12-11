@@ -17,7 +17,7 @@ namespace AE::Graphics
     StaticImageAtlas::~StaticImageAtlas () __NE___
     {
         if ( _imageId )
-            RenderTaskScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
+            GraphicsScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
     }
 
 /*
@@ -63,7 +63,7 @@ namespace AE::Graphics
         }
 
         auto    atlas       = MakeRC<StaticImageAtlas>();
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
 
         atlas->_imageId = res_mngr.CreateImage( unpacker.Header().ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
         CHECK_ERR( atlas->_imageId );

@@ -26,8 +26,6 @@ set( AE_ENABLE_KTX              ON  CACHE BOOL "use KTX" )
 set( AE_ENABLE_MSDFGEN          ON  CACHE BOOL "use msdfgen" )
 set( AE_ENABLE_METAL            OFF CACHE BOOL "enable Metal API" )
 
-set( AE_ENABLE_OPENGL           OFF CACHE BOOL "enable OpenGL (ES) API" )
-
 set( AE_ENABLE_REMOTE_GRAPHICS  OFF CACHE BOOL "enable Remote Graphics" )
 set( AE_ENABLE_RGRAPHICS_SERVER ON  CACHE BOOL "enable Remote Graphics server" )
 
@@ -41,11 +39,7 @@ set( AE_ENABLE_VMA              ON  CACHE BOOL "use Vulkan Memory Allocator" )
 
 set( AE_ENABLE_UTF8PROC         ON  CACHE BOOL "use Utf8Proc" )
 
-if (APPLE)
-    set( AE_ENABLE_METAL        ON  CACHE INTERNAL "" FORCE )
-    set( AE_ENABLE_OPENGL       OFF CACHE INTERNAL "" FORCE )
-    set( AE_ENABLE_VULKAN       OFF CACHE INTERNAL "" FORCE )
-endif()
+set( AE_ENABLE_XXHASH           ON  CACHE BOOL "use xxHash" )
 
 if (${AE_ENABLE_REMOTE_GRAPHICS} AND ${AE_ENABLE_RGRAPHICS_SERVER})
     message( FATAL_ERROR "AE_ENABLE_REMOTE_GRAPHICS and AE_ENABLE_RGRAPHICS_SERVER are not compatible" )
@@ -102,6 +96,8 @@ if (${AE_ENABLE_FREETYPE})
     add_subdirectory( "FreeType" )
 endif()
 
+add_subdirectory( "fameta-counter" )
+
 if (${AE_ENABLE_IMGUI})
     add_subdirectory( "imgui" )
 endif()
@@ -112,10 +108,6 @@ endif()
 
 if (${AE_ENABLE_MSDFGEN})
     add_subdirectory( "msdfgen" )
-endif()
-
-if (${AE_ENABLE_OPENGL})
-    add_subdirectory( "OpenGL" )
 endif()
 
 if (${AE_ENABLE_SPIRV_CROSS})
@@ -130,7 +122,7 @@ if (${AE_ENABLE_VULKAN})
     add_subdirectory( "Vulkan" )
 endif()
 
-if (${AE_ENABLE_VMA})
+if (${AE_ENABLE_VMA} AND ${AE_ENABLE_VULKAN})
     add_subdirectory( "VMA" )
 endif()
 
@@ -142,3 +134,6 @@ if (${AE_ENABLE_TINYGLTF})
     add_subdirectory( "tinygltf" )
 endif()
 
+if (${AE_ENABLE_XXHASH})
+    add_subdirectory( "xxHash" )
+endif()

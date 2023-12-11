@@ -3,6 +3,7 @@
 #include "base/Common.h"
 
 extern void UnitTest_ArchiveStorage ();
+extern void UnitTest_NetworkStorage ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -14,6 +15,7 @@ int main ()
     AE::Base::StaticLogger::LoggerDbgScope log{};
 
     UnitTest_ArchiveStorage();
+    UnitTest_NetworkStorage();
 
     AE_LOGI( "Tests.VFS finished" );
     return 0;

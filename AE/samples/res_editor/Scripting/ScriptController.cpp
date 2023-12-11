@@ -20,7 +20,7 @@ namespace
     template <typename T>
     static ScriptBaseController*  ScriptBaseController_ToBase (T* ptr)
     {
-        STATIC_ASSERT( IsBaseOf< ScriptBaseController, T >);
+        StaticAssert( IsBaseOf< ScriptBaseController, T >);
 
         ScriptBaseControllerPtr result{ ptr };
         return result.Detach();
@@ -121,7 +121,7 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<ScaleBiasCamera>( _dynamicDim->Get() );
+        _controller = MakeRCTh<ScaleBiasCamera>( _dynamicDim->Get() );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<TopDownCamera>( _dynamicDim->Get(), _movingScale, _rotationScale, _initialPos );
+        _controller = MakeRCTh<TopDownCamera>( _dynamicDim->Get(), _movingScale, _rotationScale, _initialPos );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -302,9 +302,9 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<OrbitalCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
-                                             _rotationScale, _offsetScale, _initialPos, _initialOffset,
-                                             _reverseZ );
+        _controller = MakeRCTh<OrbitalCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
+                                               _rotationScale, _offsetScale, _initialPos, _initialOffset,
+                                               _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -473,8 +473,8 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<FlightCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
-                                            _engineThrustRange, _rotationScale, _initialPos, _reverseZ );
+        _controller = MakeRCTh<FlightCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
+                                              _engineThrustRange, _rotationScale, _initialPos, _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -521,8 +521,8 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                         float2{_rotationScale}, _initialPos, _reverseZ );
+        _controller = MakeRCTh<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
+                                           float2{_rotationScale}, _initialPos, _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------
@@ -569,8 +569,8 @@ namespace
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<FPVCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                         float2{_rotationScale}, _initialPos, _reverseZ );
+        _controller = MakeRCTh<FPVCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
+                                           float2{_rotationScale}, _initialPos, _reverseZ );
         return _controller;
     }
 

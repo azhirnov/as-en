@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_COMPILER_MSVC) and defined(AE_PLATFORM_WINDOWS)
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include <intrin.h>
 # include <powerbase.h>
 
@@ -106,7 +106,7 @@ namespace AE::Base
                     break;
             }
 
-            // TODO: _may_i_use_cpu_feature 
+            // TODO: _may_i_use_cpu_feature
         }
 
         if ( HasSubString( StringView{cpu_name}, "AMD" ))
@@ -141,7 +141,7 @@ namespace AE::Base
 
             fnGetSystemCpuSetInformation( null, 0, OUT &buf_size, process, 0 ); // win10
 
-            DynUntypedStorage<> info_data   { Bytes{buf_size}, AlignOf<SYSTEM_CPU_SET_INFORMATION> };
+            DynUntypedStorage   info_data   { Bytes{buf_size}, AlignOf<SYSTEM_CPU_SET_INFORMATION> };
             auto*               infos       = info_data.Ptr<SYSTEM_CPU_SET_INFORMATION>();
 
             CHECK( fnGetSystemCpuSetInformation( OUT infos, uint(info_data.Size()), OUT &buf_size, process, 0 ) != FALSE ); // win10
@@ -225,7 +225,7 @@ namespace AE::Base
             DWORD   buf_size    = 0;
             ::GetLogicalProcessorInformationEx( RelationCache, null, OUT &buf_size );   // win7
 
-            DynUntypedStorage<> info_data   { Bytes{buf_size}, AlignOf<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX> };
+            DynUntypedStorage   info_data   { Bytes{buf_size}, AlignOf<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX> };
             auto*               infos       = info_data.Ptr<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>();
 
             if ( ::GetLogicalProcessorInformationEx( RelationCache, OUT infos, INOUT &buf_size ) == TRUE )
@@ -241,22 +241,22 @@ namespace AE::Base
                     if ( info.Level == 1 and info.Type == CacheInstruction ) {
                         cache.L1_Inst.lineSize      = info.LineSize;
                         cache.L1_Inst.associativity = info.Associativity;
-                        cache.L1_Inst.size          = Bytes32u{info.CacheSize};
+                        cache.L1_Inst.size          = Byte32u{info.CacheSize};
                     }else
                     if ( info.Level == 1 and info.Type == CacheData ) {
                         cache.L1_Data.lineSize      = info.LineSize;
                         cache.L1_Data.associativity = info.Associativity;
-                        cache.L1_Data.size          = Bytes32u{info.CacheSize};
+                        cache.L1_Data.size          = Byte32u{info.CacheSize};
                     }else
                     if ( info.Level == 2 and info.Type == CacheData ) {
                         cache.L2.lineSize           = info.LineSize;
                         cache.L2.associativity      = info.Associativity;
-                        cache.L2.size               = Bytes32u{info.CacheSize};
+                        cache.L2.size               = Byte32u{info.CacheSize};
                     }else
                     if ( info.Level == 3 and info.Type == CacheData ) {
                         cache.L3.lineSize           = info.LineSize;
                         cache.L3.associativity      = info.Associativity;
-                        cache.L3.size               = Bytes32u{info.CacheSize};
+                        cache.L3.size               = Byte32u{info.CacheSize};
                     }
                 }
             }

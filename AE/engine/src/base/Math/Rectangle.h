@@ -11,7 +11,7 @@ namespace AE::Math
     template <typename T>
     struct Rectangle
     {
-        STATIC_ASSERT( IsScalar<T> );
+        StaticAssert( IsScalar<T> );
 
     // types
     public:
@@ -33,10 +33,10 @@ namespace AE::Math
         {
           #ifdef AE_COMPILETIME_OFFSETOF
             // check if supported cast Rectangle to array
-            STATIC_ASSERT( offsetof(Self, left)  + sizeof(T) == offsetof(Self, top) );
-            STATIC_ASSERT( offsetof(Self, top)   + sizeof(T) == offsetof(Self, right) );
-            STATIC_ASSERT( offsetof(Self, right) + sizeof(T) == offsetof(Self, bottom) );
-            STATIC_ASSERT( sizeof(T[3]) == (offsetof(Self, bottom) - offsetof(Self, left)) );
+            StaticAssert( offsetof(Self, left)  + sizeof(T) == offsetof(Self, top) );
+            StaticAssert( offsetof(Self, top)   + sizeof(T) == offsetof(Self, right) );
+            StaticAssert( offsetof(Self, right) + sizeof(T) == offsetof(Self, bottom) );
+            StaticAssert( sizeof(T[3]) == (offsetof(Self, bottom) - offsetof(Self, left)) );
           #endif
         }
 
@@ -86,7 +86,7 @@ namespace AE::Math
         ND_ T const*            data ()                             C_NE___ { return std::addressof( left ); }
         ND_ T *                 data ()                             __NE___ { return std::addressof( left ); }
 
-        ND_ constexpr bool      IsEmpty ()                          C_NE___ { return Equals( left, right ) | Equals( top, bottom ); }
+        ND_ constexpr bool      IsEmpty ()                          C_NE___ { return Equal( left, right ) | Equal( top, bottom ); }
         ND_ constexpr bool      IsInvalid ()                        C_NE___ { return (right < left) | (bottom < top); }
         ND_ constexpr bool      IsValid ()                          C_NE___ { return (not IsEmpty()) & (not IsInvalid()); }
 
@@ -415,25 +415,25 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T>
-    ND_ bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T err = Epsilon<T>()) __NE___
+    ND_ bool4  Equal (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        return bool4{ Math::Equals( lhs.left,   rhs.left,   err ),
-                      Math::Equals( lhs.top,    rhs.top,    err ),
-                      Math::Equals( lhs.right,  rhs.right,  err ),
-                      Math::Equals( lhs.bottom, rhs.bottom, err )};
+        return bool4{ Math::Equal( lhs.left,   rhs.left,   err ),
+                      Math::Equal( lhs.top,    rhs.top,    err ),
+                      Math::Equal( lhs.right,  rhs.right,  err ),
+                      Math::Equal( lhs.bottom, rhs.bottom, err )};
     }
 
     template <typename T>
-    ND_ bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const Percent err) __NE___
+    ND_ bool4  Equal (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const Percent err) __NE___
     {
-        return bool4{ Math::Equals( lhs.left,   rhs.left,   err ),
-                      Math::Equals( lhs.top,    rhs.top,    err ),
-                      Math::Equals( lhs.right,  rhs.right,  err ),
-                      Math::Equals( lhs.bottom, rhs.bottom, err )};
+        return bool4{ Math::Equal( lhs.left,   rhs.left,   err ),
+                      Math::Equal( lhs.top,    rhs.top,    err ),
+                      Math::Equal( lhs.right,  rhs.right,  err ),
+                      Math::Equal( lhs.bottom, rhs.bottom, err )};
     }
 
 /*

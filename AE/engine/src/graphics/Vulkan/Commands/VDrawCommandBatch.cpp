@@ -23,7 +23,7 @@ namespace AE::Graphics
         _cmdPool.Lock();
         CHECK_ERR( _cmdPool.IsReady() );
 
-        auto&   rts = RenderTaskScheduler();
+        auto&   rts = GraphicsScheduler();
         CHECK_ERR( _cmdPool.CommitIndirectBuffers( rts.GetCommandPoolManager(), GetQueueType(), GetCmdBufType(), &GetPrimaryCtxState() ));
 
         _cmdPool.GetCommands( cmdbufs.data(), OUT count, uint(cmdbufs.size()) );

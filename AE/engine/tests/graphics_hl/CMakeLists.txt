@@ -38,8 +38,15 @@ if (TARGET "GraphicsHL")
         add_dependencies( "PACK_RES" "Tests.GraphicsHL.PackRes" )
     endif()
 
-    if (${AE_ENABLE_VULKAN})
+    if (DEFINED ANDROID AND ${AE_ENABLE_VULKAN})
         target_compile_definitions( "Tests.GraphicsHL" PRIVATE
+            AE_REFDUMP_PATH="tests_graphicshl_vulkan_refdump"
+            AE_REF_IMG_PATH="tests_graphicshl_vulkan_refimg"
+            AE_RES_PACK="pipelines.bin" )
+
+    elseif (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
+        target_compile_definitions( "Tests.GraphicsHL" PRIVATE
+            AE_REFDUMP_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Vulkan/ref"
             AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics_hl/vulkan"
             AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics_hl/vk/pipelines.bin" )
 

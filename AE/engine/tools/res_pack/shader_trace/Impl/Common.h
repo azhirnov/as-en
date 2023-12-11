@@ -48,7 +48,7 @@ namespace AE::PipelineCompiler
 
 # ifdef AE_ENABLE_GLSLANG
 
-    ND_ String  GetFunctionName (glslang::TIntermOperator *op);
+    ND_ String  GetFunctionName (glslang::TIntermOperator* op);
 
     ND_ bool  ValidateInterm (glslang::TIntermediate &intermediate);
 
@@ -100,7 +100,7 @@ namespace AE::PipelineCompiler
     SourcePoint
 =================================================
 */
-    inline ShaderTrace::SourcePoint::SourcePoint (const glslang::TSourceLoc &loc) :
+    inline ShaderTrace::SourcePoint::SourcePoint (const glslang::TSourceLoc &loc) __NE___ :
         SourcePoint{ uint(loc.line), uint(loc.column) }
     {}
 

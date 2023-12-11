@@ -1,12 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#ifdef AE_COMPILER_MSVC
+#   include "base/Platforms/WindowsHeader.cpp.h"
+#endif
+
 #include "base/Common.h"
 #include "base/Containers/InPlace.h"
 #include "base/Utils/Atomic.h"
 
-#ifdef AE_COMPILER_MSVC
-#   include "base/Platforms/WindowsHeader.h"
-#endif
+#ifdef AE_ENABLE_LOGS
 
 namespace AE::Base
 {
@@ -68,7 +70,6 @@ namespace
     }
 
 } // namespace
-
 
 
 /*
@@ -173,14 +174,14 @@ namespace
     {
         Initialize();
 
-        try {
+        TRY{
             AddLogger( ILogger::CreateIDEOutput() );
             AddLogger( ILogger::CreateConsoleOutput() );
             //AddLogger( ILogger::CreateFileOutput( "log.txt" ));
             //AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
             AddLogger( ILogger::CreateDialogOutput() );
-        } catch(...)
-        {}
+        }
+        CATCH_ALL();
 
         SetCurrentThreadName( "main" );
     }
@@ -192,6 +193,7 @@ namespace
 */
     StaticLogger::EResult  StaticLogger::Process (StringView msg, StringView func, StringView file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
     {
+    #ifdef AE_ENABLE_LOGS
         ILogger::MessageInfo    info;
         info.message    = msg;
         info.func       = func;
@@ -202,9 +204,14 @@ namespace
         info.scope      = scope;
 
         return ProcessMessage( info );
+
+    #else
+        Unused( msg, func, file, line, level, scope );
+
+    #endif
     }
 
-    StaticLogger::EResult  StaticLogger::Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
+    StaticLogger::EResult  StaticLogger::Process (const char* msg, const char* func, const char* file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
     {
         return Process( StringView{msg}, StringView{func}, StringView{file}, line, level, scope );
     }
@@ -231,3 +238,23 @@ namespace
     }
 
 } // AE::Base
+//-----------------------------------------------------------------------------
+
+#else
+
+namespace AE::Base
+{
+    void  StaticLogger::Initialize ()                           __NE___ {}
+    void  StaticLogger::Deinitialize (bool)                     __NE___ {}
+    void  StaticLogger::SetFilter (LevelBits, ScopeBits)        __NE___ {}
+    void  StaticLogger::ClearLoggers ()                         __NE___ {}
+    void  StaticLogger::AddLogger (Unique<ILogger>)             __NE___ {}
+    void  StaticLogger::InitDefault ()                          __NE___ {}
+    void  StaticLogger::SetCurrentThreadName (std::string_view) __NE___ {}
+
+    StaticLogger::EResult  StaticLogger::Process (StringView, StringView, StringView, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }
+    StaticLogger::EResult  StaticLogger::Process (const char*, const char*, const char*, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }
+
+} // AE::Base
+
+#endif // AE_ENABLE_LOGS

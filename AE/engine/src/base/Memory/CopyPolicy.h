@@ -34,40 +34,39 @@ private:
     template <typename T, uint Flags>
     struct _DefaultImpl : public Noninstanceable
     {
-        static void  Create (OUT T *ptr, const usize count) __NE___
+        static void  Create (OUT T* ptr, const usize count) __NE___
         {
             ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
             if constexpr( !!(Flags & NonTrivialCtor) )
             {
                 for (usize i = 0; i < count; ++i)
-                    PlacementNew<T>( OUT ptr + i );     // nothrow
+                    PlacementNew<T>( OUT ptr + i );
             }
             else
             {
-                STATIC_ASSERT( IsZeroMemAvailable<T> );
+                StaticAssert( IsZeroMemAvailable<T> );
                 ZeroMem( OUT ptr, SizeOf<T> * count );
             }
         }
 
-        static void  Destroy (INOUT T *ptr, const usize count) __NE___
+        static void  Destroy (INOUT T* ptr, const usize count) __NE___
         {
             ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
             if constexpr( !!(Flags & NonTrivialDtor) )
             {
-                STATIC_ASSERT( IsNothrowDtor<T> );
                 for (usize i = 0; i < count; ++i)
                     ptr[i].~T();
             }
             else
             {
-                STATIC_ASSERT( IsZeroMemAvailable<T> or std::is_trivially_destructible_v<T> );
+                StaticAssert( IsTriviallyDestructible<T> );
             }
             DEBUG_ONLY( DbgInitMem( OUT ptr, SizeOf<T> * count ));
         }
 
-        static void  Copy (OUT T *dst, const T * const src, const usize count)  noexcept(IsNothrowCopyCtor<T>)
+        static void  Copy (OUT T* dst, const T * const src, const usize count)  NoExcept(IsNothrowCopyCtor<T>)
         {
             ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
             ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -79,12 +78,12 @@ private:
             }
             else
             {
-                STATIC_ASSERT( IsMemCopyAvailable<T> );
+                StaticAssert( IsMemCopyAvailable<T> );
                 MemCopy( OUT dst, src, SizeOf<T> * count );
             }
         }
 
-        static void  Move (OUT T *dst, INOUT T *src, const usize count) __NE___
+        static void  Move (OUT T* dst, INOUT T* src, const usize count) __NE___
         {
             ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
             ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -92,16 +91,16 @@ private:
             if constexpr( !!(Flags & NonTrivialMoveCtor) )
             {
                 for (usize i = 0; i < count; ++i)
-                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));
             }
             else
             {
-                STATIC_ASSERT( IsMemCopyAvailable<T> );
+                StaticAssert( IsMemCopyAvailable<T> );
                 MemMove( OUT dst, src, SizeOf<T> * count );
             }
         }
 
-        static void  Replace (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false) __NE___
+        static void  Replace (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
         {
             ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
             ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -112,19 +111,18 @@ private:
             {
                 for (usize i = 0; i < count; ++i)
                 {
-                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));
 
                     if constexpr( !!(Flags & NonTrivialDtor) )
                     {
-                        STATIC_ASSERT( IsNothrowDtor<T> );
                         src[i].~T();
                     }else
-                        STATIC_ASSERT( IsZeroMemAvailable<T> or std::is_trivially_destructible_v<T> );
+                        StaticAssert( IsTriviallyDestructible<T> );
                 }
             }
             else
             {
-                STATIC_ASSERT( IsMemCopyAvailable<T> );
+                StaticAssert( IsMemCopyAvailable<T> );
                 MemMove( OUT dst, src, SizeOf<T> * count );
             }
 
@@ -138,7 +136,7 @@ private:
             })
         }
 
-        static void  ReplaceRev (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false) __NE___
+        static void  ReplaceRev (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
         {
             ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
             ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -149,19 +147,19 @@ private:
             {
                 for (usize i = count-1; i < count; --i)
                 {
-                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));
 
                     if constexpr( !!(Flags & NonTrivialDtor) )
                     {
-                        STATIC_ASSERT( std::is_nothrow_destructible_v<T> );
+                        StaticAssert( std::is_nothrow_destructible_v<T> );
                         src[i].~T();
                     }else
-                        STATIC_ASSERT( IsZeroMemAvailable<T> or std::is_trivially_destructible_v<T> );
+                        StaticAssert( IsTriviallyDestructible<T> );
                 }
             }
             else
             {
-                STATIC_ASSERT( IsMemCopyAvailable<T> );
+                StaticAssert( IsMemCopyAvailable<T> );
                 MemMove( OUT dst, src, SizeOf<T> * count );
             }
 
@@ -179,9 +177,9 @@ private:
     template <typename T>
     struct _AutoDetect
     {
-        static constexpr uint   Flags = (IsMemCopyAvailable<T>               ? 0 : (NonTrivialCopyCtor | NonTrivialMoveCtor))   |
-                                        (std::is_trivially_destructible_v<T> ? 0 : NonTrivialDtor)                              |
-                                        (IsZeroMemAvailable<T>               ? 0 : NonTrivialCtor);
+        static constexpr uint   Flags = (IsMemCopyAvailable<T>      ? 0 : (NonTrivialCopyCtor | NonTrivialMoveCtor))    |
+                                        (IsTriviallyDestructible<T> ? 0 : NonTrivialDtor)                               |
+                                        (IsZeroMemAvailable<T>      ? 0 : NonTrivialCtor);
         using type = _DefaultImpl< T, Flags >;
     };
 

@@ -16,8 +16,7 @@ namespace AE::Profiler
     {
     // methods
     public:
-        explicit MemoryProfiler (TimePoint_t startTime);
-        ~MemoryProfiler () {}
+        explicit MemoryProfiler (TimePoint_t startTime)     __NE___;
 
         void  DrawImGUI () {}
         void  Draw (Canvas &) {}

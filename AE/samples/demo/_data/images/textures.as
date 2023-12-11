@@ -21,6 +21,6 @@ void ASmain ()
         tex.AddLayer( "cubemap.png", RectU(128, 128) + uint2(130,   1), ECubeFace::YPos );
         tex.AddLayer( "cubemap.png", RectU(128, 128) + uint2(388, 130), ECubeFace::ZNeg );
 
-        tex.Store( "simple3d.cube" );
+        tex.Store( "camera3d.cube" );
     }
 }

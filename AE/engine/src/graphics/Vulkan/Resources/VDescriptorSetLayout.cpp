@@ -133,7 +133,7 @@ namespace AE::Graphics
     _AddUniform
 =================================================
 */
-    bool  VDescriptorSetLayout::_AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Bytes16u* offset, INOUT DescriptorBinding &binding) C_NE___
+    bool  VDescriptorSetLayout::_AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Byte16u* offset, INOUT DescriptorBinding &binding) C_NE___
     {
         static constexpr Bytes  align = Max( Max( AlignOf<VkDescriptorBufferInfo>, AlignOf<VkBufferView> ),
                                              Max( AlignOf<VkDescriptorImageInfo>, AlignOf<VkWriteDescriptorSetAccelerationStructureKHR> ));
@@ -257,7 +257,7 @@ namespace AE::Graphics
         const bool  is_dynamic = buf.dynamicOffsetIndex != UMax;
 
         if ( is_dynamic ) {
-            bind.descriptorType = 
+            bind.descriptorType =
                 bind.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :
                 bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_MAX_ENUM;
         }

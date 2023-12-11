@@ -41,7 +41,7 @@ namespace AE::Profiler
     constructor
 =================================================
 */
-    GraphicsProfiler::GraphicsProfiler (TimePoint_t startTime) :
+    GraphicsProfiler::GraphicsProfiler (TimePoint_t startTime) __NE___ :
         ProfilerUtils{startTime}
     {}
 
@@ -77,9 +77,9 @@ namespace AE::Profiler
             // memory usage
             if ( _memInfo.has_value() )
             {
-                const double    dev_usage_pct   = Max( 100.0 * double(ulong(_memInfo->deviceUsage))  / double(ulong(_memInfo->deviceAvailable)),  0.0 );
-                const double    host_usage_pct  = Max( 100.0 * double(ulong(_memInfo->hostUsage))    / double(ulong(_memInfo->hostAvailable)),    0.0 );
-                const double    uni_usage_pct   = Max( 100.0 * double(ulong{_memInfo->unifiedUsage}) / double(ulong{_memInfo->unifiedAvailable}), 0.0 );
+                const double    dev_usage_pct   = Max( 100.0 * double(ulong(_memInfo->deviceUsage))  / double(ulong(_memInfo->deviceAvailable  + _memInfo->deviceUsage)),  0.0 );
+                const double    host_usage_pct  = Max( 100.0 * double(ulong(_memInfo->hostUsage))    / double(ulong(_memInfo->hostAvailable    + _memInfo->hostUsage)),    0.0 );
+                const double    uni_usage_pct   = Max( 100.0 * double(ulong{_memInfo->unifiedUsage}) / double(ulong{_memInfo->unifiedAvailable + _memInfo->unifiedUsage}), 0.0 );
 
                 str.clear();
                 str << "mem:  dev(" << ToString( _memInfo->deviceUsage ) << ' ' << ToString( dev_usage_pct, 1 ) << "%)";
@@ -90,6 +90,13 @@ namespace AE::Profiler
                 if ( _memInfo->unifiedAvailable > 0 )
                     str << "  unified(" << ToString( _memInfo->unifiedUsage ) << ' ' << ToString( uni_usage_pct, 1 ) << "%)";
 
+                ImGui::TextUnformatted( str.c_str() );
+            }
+
+            // memory traffic
+            {
+                str.clear();
+                str << "to_dev: " << ToString( _memTraffic.avgWrite ) << "  to_host: " << ToString( _memTraffic.avgRead );
                 ImGui::TextUnformatted( str.c_str() );
             }
 
@@ -138,16 +145,27 @@ namespace AE::Profiler
 */
     void  GraphicsProfiler::Update (secondsf dt)
     {
+        auto&       rts         = GraphicsScheduler();
+        const uint  frame_count = _fps.frameCount.exchange( 0 );
+
         // fps
         {
-            uint    count       = _fps.frameCount.exchange( 0 );
             double  accum_time  = _fps.accumframeTime.exchange( 0.0 );
 
-            _fps.result     = float(count) / dt.count();
-            _fps.dt         = float(accum_time / count);
+            _fps.result = float(frame_count) / dt.count();
+            _fps.dt     = float(accum_time / frame_count);
         }
 
-        _memInfo = RenderTaskScheduler().GetDevice().GetMemoryUsage();
+        _memInfo = rts.GetDevice().GetMemoryUsage();
+
+        // mem traffic
+        {
+            Bytes   write   = _memTraffic.accumWrite.exchange( 0_b );
+            Bytes   read    = _memTraffic.accumRead.exchange( 0_b );
+
+            _memTraffic.avgWrite    = Bytes{ulong(double(ulong{write}) / double(frame_count))};
+            _memTraffic.avgRead     = Bytes{ulong(double(ulong{read}) / double(frame_count))};
+        }
     }
 
 /*
@@ -202,31 +220,29 @@ namespace AE::Profiler
 
 /*
 =================================================
-    RequestNextFrame
-=================================================
-*/
-    void  GraphicsProfiler::RequestNextFrame (FrameUID frameId) __NE___
-    {
-        Unused( frameId );
-    }
-
-/*
-=================================================
     NextFrame
 =================================================
 */
-    void  GraphicsProfiler::NextFrame (FrameUID) __NE___
+    void  GraphicsProfiler::NextFrame (FrameUID frameId) __NE___
     {
-        auto&   rts = RenderTaskScheduler();
-        auto&   qm  = rts.GetResourceManager().GetQueryManager();
+        auto&   rts = GraphicsScheduler();
 
-        uint2   idx = qm.ReadAndWriteIndices();
-        _writeIndex = idx[1];
-        _readIndex  = idx[0];
+        {
+            auto&   qm  = rts.GetResourceManager().GetQueryManager();
+            uint2   idx = qm.ReadAndWriteIndices();
 
-        auto    task = MakeRC< Threading::AsyncTaskFn >( [this]() { _ReadResults(); }, "GraphicsProfiler::ReadResults", ETaskQueue::PerFrame );
-        if ( Scheduler().Run( task ))
-            rts.AddNextFrameDeps( task );
+            _writeIndex = idx[1];
+            _readIndex  = idx[0];
+        }{
+            auto    task = MakeRCTh< Threading::AsyncTaskFn >( [this]() { _ReadResults(); }, "GraphicsProfiler::ReadResults", ETaskQueue::PerFrame );
+            if ( Scheduler().Run( task ))
+                rts.AddNextFrameDeps( task );
+        }{
+            auto    stat = rts.GetResourceManager().GetStagingBufferFrameStat( frameId.Sub(1).value() );
+
+            _memTraffic.accumWrite.fetch_add( stat.dynamicWrite + stat.staticWrite );
+            _memTraffic.accumRead.fetch_add( stat.dynamicRead + stat.staticRead );
+        }
 
         ++_fps.frameCount;
         _perFrame[ _writeIndex ].Clear();
@@ -250,7 +266,7 @@ namespace AE::Profiler
 
         _gpuTime.min = MaxValue<double>();
 
-        auto&   qm  = RenderTaskScheduler().GetResourceManager().GetQueryManager();
+        auto&   qm  = GraphicsScheduler().GetResourceManager().GetQueryManager();
 
         _imHistory.Begin();
 
@@ -382,7 +398,7 @@ namespace AE::Profiler
 
         ASSERT( not taskName.empty() );
 
-        auto&       rts     = RenderTaskScheduler();
+        auto&       rts     = GraphicsScheduler();
         auto&       dev     = rts.GetDevice();
         auto&       qm      = rts.GetResourceManager().GetQueryManager();
         auto*       vbatch  = Cast<VCommandBatch>(batch);
@@ -431,7 +447,7 @@ namespace AE::Profiler
         if ( type == EContextType::Graphics )
             return;
 
-        auto&   rts = RenderTaskScheduler();
+        auto&   rts = GraphicsScheduler();
         auto&   dev = rts.GetDevice();
         Pass    pass;
 

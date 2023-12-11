@@ -58,7 +58,7 @@ namespace
         AC1_TestData&   t;
         const uint      fi;
 
-        AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+        AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t },
             fi{ frameIdx & 1 }
@@ -79,7 +79,7 @@ namespace
             // draw
             {
                 constexpr auto&     rtech_pass = RTech.Draw_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.imageSize }
                                     .AddViewport( t.imageSize )
@@ -106,7 +106,7 @@ namespace
         AC1_TestData&   t;
         const uint      fi;
 
-        AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+        AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ batch, dbg },
             t{ t },
             fi{ frameIdx & 1 }
@@ -136,7 +136,7 @@ namespace
     public:
         AC1_TestData&   t;
 
-        AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -180,26 +180,27 @@ namespace
         AC1_TestData&       t;
         CommandBatchPtr     lastBatch;
 
-        AC1_FrameTask (AC1_TestData& t) :
+        AC1_FrameTask (AC1_TestData& t) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ t }
         {}
 
         void  Run () __Th_OV
         {
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
 
             if ( t.frameIdx.load() == 3 )
             {
                 // frame 3
-                AsyncTask   begin = rts.BeginFrame();
+                CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+                CHECK_TE( rts.BeginFrame() );
 
                 auto        batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"copy task"} );
                 CHECK_TE( batch );
 
                 CHECK_TE( batch->AddInputDependency( lastBatch ));
 
-                AsyncTask   read_task   = batch->Run< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
+                AsyncTask   read_task   = batch->Run< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"Readback task"} );
                 AsyncTask   end         = rts.EndFrame( Tuple{read_task} );
 
                 ++t.frameIdx;
@@ -210,7 +211,8 @@ namespace
                 return; // frame 4+
 
             // frames [0..2]:
-            AsyncTask   begin       = rts.BeginFrame();
+            CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+            CHECK_TE( rts.BeginFrame() );
 
             auto        batch_gfx   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"graphics batch"} );
             CHECK_TE( batch_gfx );
@@ -224,7 +226,7 @@ namespace
             // graphics to compute sync
             CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
 
-            AsyncTask   gfx_task    = batch_gfx->Run< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },  Tuple{begin},    True{"Last"}, {"graphics task"} );
+            AsyncTask   gfx_task    = batch_gfx->Run< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },  Tuple{},         True{"Last"}, {"graphics task"} );
             AsyncTask   comp_task   = batch_ac ->Run< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },  Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
             AsyncTask   end         = rts.EndFrame( Tuple{ gfx_task, comp_task });
 
@@ -239,9 +241,9 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  AsyncCompute1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  AsyncCompute1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         AC1_TestData    t;
         const auto      format      = EPixelFormat::RGBA8_UNorm;
@@ -295,12 +297,12 @@ namespace
         // draw 3 frames
         auto    task = Scheduler().Run< AC1_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
 
-        CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
         CHECK_ERR( t.frameIdx.load() == 4 );
 
-        CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
+        CHECK_ERR( Scheduler().Wait( {t.result[0], t.result[1]}, c_MaxTimeout ));
         CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
         CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
         CHECK_ERR( t.isOK[0] );
@@ -314,7 +316,7 @@ namespace
 
 bool RGTest::Test_AsyncCompute1 ()
 {
-    if ( not AllBits( RenderTaskScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
+    if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
         return true; // skip
 
     auto    img_cmp = _LoadReference( TEST_NAME );

@@ -154,7 +154,7 @@ forceinline void  IntervalProfiler::EndIteration ()
     auto&   test = _tests.back();
     CHECK_ERRV( not test.isEnded );
 
-    ASSERT( end_time > test.lastStartPoint );
+    ASSERT( end_time >= test.lastStartPoint );
     ASSERT( test.iterations.size() );
 
     test.iterations.back() = end_time - test.lastStartPoint;

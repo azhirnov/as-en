@@ -14,7 +14,6 @@
         {
             RC<ShaderStructType>    st = ShaderStructType( "io.vs-fs" );
             st.Set( EStructLayout::InternalIO,
-                    "float3     normal;" +
                     "float3     texcoord;" );
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
@@ -76,7 +75,7 @@
     {
         gl.Position     = LocalPosToClipSpace( in_Position.xyz );
         Out.texcoord    = in_Texcoord.xyz;
-        Out.normal      = in_Position.xyz;
+        //Out.normal    = LocalVecToWorldSpace( in_Position.xyz );
     }
 
 #endif
@@ -86,7 +85,7 @@
 
     void Main ()
     {
-        const float3    light_dir   = float3( 0.f, 0.f, -1.f );
+        const float3    light_dir   = float3( 0.f, 0.f, 1.f );
         const float3    norm        = gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
         const float3    color       = gl.texture.Sample( un_AlbedoMap, In.texcoord ).xyz;
         const float     light       = Dot( norm, light_dir );

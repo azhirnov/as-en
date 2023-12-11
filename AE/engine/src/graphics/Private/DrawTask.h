@@ -44,13 +44,13 @@ namespace AE::Graphics
 
     // methods
     protected:
-        DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg)       __Th___ :
+        DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg)       __NE___ :
             IAsyncTask{ ETaskQueue::Renderer },
             _batch{ RVRef(batch) },
             _drawIndex{ _GetPool().Acquire() }
             DBG_GRAPHICS_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( dbg.color )})
         {
-            CHECK_THROW( IsValid() );   // command buffer pool overflow
+            ASSERT( IsValid() );    // command buffer pool overflow
             Unused( dbg );
         }
 
@@ -135,7 +135,7 @@ namespace AE::Graphics
     // methods
     public:
         template <typename Fn>
-        DrawTaskFn (Fn && fn, RC<DRAWCMDBATCH> batch, DebugLabel dbg) __Th___ :
+        DrawTaskFn (Fn &&fn, RC<DRAWCMDBATCH> batch, DebugLabel dbg) __NE___ :
             DrawTask{ RVRef(batch), dbg },
             _fn{ FwdArg<Fn>(fn) }
         {}
@@ -257,12 +257,12 @@ namespace AE::Threading::_hidden_
 
             ND_ DrawTaskCoro        get_return_object ()        __NE___ { return DrawTaskCoro{ *this }; }
 
-            ND_ std::suspend_always initial_suspend ()          C_NE___ { return {}; }          // delayed start
-            ND_ std::suspend_always final_suspend ()            C_NE___ { return {}; }          // must not be 'suspend_never'  // TODO: don't suspend
+            ND_ std::suspend_always initial_suspend ()          C_NE___ { return {}; }  // delayed start
+            ND_ std::suspend_always final_suspend ()            C_NE___ { return {}; }  // must not be 'suspend_never'
 
                 void                return_void ()              C_NE___ {}
 
-                void                unhandled_exception ()      C_Th___ { throw; }              // rethrow exceptions
+                void                unhandled_exception ()      C_Th___ { throw; }      // rethrow exceptions
 
         public:
                 void  Cancel ()                                 __NE___ { Unused( DrawTask::_SetCancellationState() ); }

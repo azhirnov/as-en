@@ -53,8 +53,8 @@ namespace
                 const uint  r   = uint(float(x % blockSize) * 255.0f / float(blockSize) + 0.5f);
                 const uint  g   = uint(float(y % blockSize) * 255.0f / float(blockSize) + 0.5f);
 
-                const bool  is_equal = (Equals( dst[0], r, 1u ) and
-                                        Equals( dst[1], g, 1u ) and
+                const bool  is_equal = (Equal( dst[0], r, 1u )  and
+                                        Equal( dst[1], g, 1u )  and
                                         dst[2] == 255           and
                                         dst[3] == 0);
 
@@ -72,7 +72,7 @@ namespace
     public:
         C2_TestData&    t;
 
-        C2_ComputeTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        C2_ComputeTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -106,7 +106,7 @@ namespace
     public:
         C2_TestData&    t;
 
-        C2_CopyTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        C2_CopyTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -142,8 +142,8 @@ namespace
     template <typename CompCtx, typename CopyCtx>
     static bool  Compute2Test ()
     {
-        auto&           res_mngr    = RenderTaskScheduler().GetResourceManager();
-        auto&           rg          = RenderTaskScheduler().GetRenderGraph();
+        auto&           res_mngr    = GraphicsScheduler().GetResourceManager();
+        auto&           rg          = GraphicsScheduler().GetRenderGraph();
         C2_TestData     t;
         const uint2     img_dim     {16, 16};
         const auto      format      = EPixelFormat::RGBA8_UNorm;
@@ -207,7 +207,9 @@ namespace
             CHECK_ERR( updater.Flush() );
         }
 
-        AsyncTask   begin   = rg.BeginFrame();
+
+        CHECK_ERR( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rg.BeginFrame() );
 
         auto        batch   = rg.CmdBatch( EQueueType::Graphics, {"Compute1"} )
                                     .UseResources( t.img0, t.img1, t.img2 )
@@ -216,7 +218,7 @@ namespace
         CHECK_ERR( batch );
 
         AsyncTask   task1   = batch.Task< C2_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, {"Compute task"} )
-                                    .Run( Tuple{begin} );
+                                    .Run();
 
         AsyncTask   task2   = batch.Task< C2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
                                     .UseResources( ArrayView<ImageID>{t.img0, t.img1, t.img2}, EResourceState::CopySrc )
@@ -225,12 +227,13 @@ namespace
 
         AsyncTask   end     = rg.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rg.WaitAll() );
+        CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result0, t.result1, t.result2 }));
+        CHECK_ERR( Scheduler().Wait( {t.result0, t.result1, t.result2}, c_MaxTimeout ));
         CHECK_ERR( t.result0->Status() == EStatus::Completed );
         CHECK_ERR( t.result1->Status() == EStatus::Completed );
         CHECK_ERR( t.result2->Status() == EStatus::Completed );

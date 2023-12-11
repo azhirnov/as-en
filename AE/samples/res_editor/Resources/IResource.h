@@ -88,7 +88,7 @@ namespace AE::ResEditor
             if ( AnyEqual( status, EUploadStatus::Completed, EUploadStatus::Canceled ))
                 break;
 
-            if ( _uploadStatus.CAS( INOUT status, EUploadStatus::Canceled ))
+            if_likely( _uploadStatus.CAS( INOUT status, EUploadStatus::Canceled ))
                 break;
 
             ThreadUtils::Pause();
@@ -107,7 +107,7 @@ namespace AE::ResEditor
             if ( AnyEqual( status, EUploadStatus::Completed, EUploadStatus::Canceled, newStatus ))
                 break;
 
-            if ( _uploadStatus.CAS( INOUT status, newStatus ))
+            if_likely( _uploadStatus.CAS( INOUT status, newStatus ))
                 break;
 
             ThreadUtils::Pause();

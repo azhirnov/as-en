@@ -10,7 +10,7 @@ namespace AE::Graphics
 {
     enum class VQueueFamily : uint
     {
-        _Count      = VConfig::MaxQueues,
+        _Count      = uint(EQueueType::_Count),
         External    = VK_QUEUE_FAMILY_EXTERNAL,
         Foreign     = VK_QUEUE_FAMILY_FOREIGN_EXT,
         Ignored     = VK_QUEUE_FAMILY_IGNORED,
@@ -48,23 +48,6 @@ namespace AE::Graphics
 
     // methods
         VQueue () __NE___ {}
-
-        // move-ctor used only during device initialization, mutex is not moved
-        VQueue (VQueue &&other) __NE___ :
-            handle{other.handle}, type{other.type}, familyIndex{other.familyIndex}, familyFlags{other.familyFlags},
-            queueIndex{other.queueIndex}, priority{other.priority}, globalPriority{other.globalPriority},
-            supportedStages{other.supportedStages}, supportedAccess{other.supportedAccess},
-            minImageTransferGranularity{other.minImageTransferGranularity}, timestampValidBits{other.timestampValidBits},
-            debugName{other.debugName}
-        {}
-
-        VQueue (const VQueue &other) __NE___ :
-            handle{other.handle}, type{other.type}, familyIndex{other.familyIndex}, familyFlags{other.familyFlags},
-            queueIndex{other.queueIndex}, priority{other.priority}, globalPriority{other.globalPriority},
-            supportedStages{other.supportedStages}, supportedAccess{other.supportedAccess},
-            minImageTransferGranularity{other.minImageTransferGranularity}, timestampValidBits{other.timestampValidBits},
-            debugName{other.debugName}
-        {}
 
         ND_ bool  HasUnsupportedStages (VkPipelineStageFlagBits2 stages)    C_NE___ { return AnyBits( stages, ~supportedStages ); }
         ND_ bool  HasUnsupportedAccess (VkAccessFlagBits2 access)           C_NE___ { return AnyBits( access, ~supportedAccess ); }
@@ -114,7 +97,7 @@ namespace AE::Graphics
             VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT |
             VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;                 // VK_KHR_ray_tracing_pipeline
 
-        static constexpr auto   _GraphicsStageMask = 
+        static constexpr auto   _GraphicsStageMask =
             //VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT |
             VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT |
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT |
@@ -249,8 +232,8 @@ namespace AE::Graphics
             _AllAccessMask                              // All
         };
 
-        STATIC_ASSERT( CountOf(_StageScopes)  == uint(EPipelineScope::_Count) );
-        STATIC_ASSERT( CountOf(_AccessScopes) == uint(EPipelineScope::_Count) );
+        StaticAssert( CountOf(_StageScopes)  == uint(EPipelineScope::_Count) );
+        StaticAssert( CountOf(_AccessScopes) == uint(EPipelineScope::_Count) );
 
     public:
         static constexpr auto   ReadOnlyAccessMask =
@@ -268,7 +251,7 @@ namespace AE::Graphics
             VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT |
             VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT |
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-            VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR |     // VK_KHR_fragment_shading_rate 
+            VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR |     // VK_KHR_fragment_shading_rate
             VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT |                 // VK_EXT_fragment_density_map
             VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR |                 // VK_KHR_ray_tracing_maintenance1
             VK_ACCESS_2_MICROMAP_READ_BIT_EXT |                             // VK_EXT_opacity_micromap

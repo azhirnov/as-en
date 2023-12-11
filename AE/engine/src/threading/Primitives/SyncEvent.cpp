@@ -3,7 +3,7 @@
 #include "threading/Primitives/SyncEvent.h"
 
 #if (AE_SYNC_EVENT_MODE == 0)
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 
 namespace AE::Threading
 {
@@ -15,7 +15,7 @@ namespace AE::Threading
 */
     SyncEvent::SyncEvent (EFlags flags) __NE___
     {
-        STATIC_ASSERT( sizeof(_event) == sizeof(HANDLE) );
+        StaticAssert( sizeof(_event) == sizeof(HANDLE) );
 
         _event = ::CreateEventA( null,
                                  not AllBits( flags, EFlags::AutoReset ),

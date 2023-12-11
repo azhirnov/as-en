@@ -165,3 +165,17 @@ namespace _hidden_
 */
 
 } // AE::Math
+
+
+namespace AE::Base
+{
+    template <typename Qt, uint C, uint R, glm::qualifier Ql>
+    struct TMemCopyAvailable< PhysicalQuantityMatrix<Qt,C,R,Ql> >       { static constexpr bool  value = IsMemCopyAvailable<Qt>; };
+
+    template <typename Qt, uint C, uint R, glm::qualifier Ql>
+    struct TZeroMemAvailable< PhysicalQuantityMatrix<Qt,C,R,Ql> >       { static constexpr bool  value = IsZeroMemAvailable<Qt>; };
+
+    // 'IsTriviallySerializable< PhysicalQuantityMatrix<> > = false' - because SIMD and packed types has different alignment
+
+} // AE::Base
+

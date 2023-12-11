@@ -29,7 +29,7 @@ name: 'CopyImage2 |0| Copy image task'
     src:       'SSWB {f:0} {q:Graphics}'
     dst:       'SrcImage'
     dstLayout: TRANSFER_DST_OPTIMAL
-      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR }
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
   ----------
 
   PipelineBarrier2
@@ -51,7 +51,7 @@ name: 'CopyImage2 |0| Copy image task'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'DstImage'
     dstLayout: TRANSFER_DST_OPTIMAL
-      copy { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR }
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
   ----------
 
   PipelineBarrier2
@@ -67,7 +67,7 @@ name: 'CopyImage2 |0| Copy image task'
     src:       'DstImage'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'SSRB {f:0} {q:Graphics}'
-      copy { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 16384) }
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
   ----------
 
   PipelineBarrier2
@@ -128,7 +128,7 @@ name: 'IndirectCmdBuffers'
     src:       'SSWB {f:1} {q:Graphics}'
     dst:       'SrcImage'
     dstLayout: TRANSFER_DST_OPTIMAL
-      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR }
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
   ----------
 
   PipelineBarrier2
@@ -150,7 +150,7 @@ name: 'IndirectCmdBuffers'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'DstImage'
     dstLayout: TRANSFER_DST_OPTIMAL
-      copy { off:(0, 0, 0), ext:(64, 64, 1), mip:0, layers:[0, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR }
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
   ----------
 
   PipelineBarrier2
@@ -166,7 +166,7 @@ name: 'IndirectCmdBuffers'
     src:       'DstImage'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'SSRB {f:1} {q:Graphics}'
-      copy { off:(16, 27, 0), ext:(80, 91, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 16384) }
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
   ----------
 
   PipelineBarrier2

@@ -10,35 +10,35 @@ namespace AE::Graphics
 {
 namespace
 {
-    STATIC_ASSERT( sizeof(DispatchIndirectCommand)      == sizeof(VkDispatchIndirectCommand) );
-    STATIC_ASSERT( sizeof(DrawIndirectCommand)          == sizeof(VkDrawIndirectCommand) );
-    STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand)   == sizeof(VkDrawIndexedIndirectCommand) );
-    STATIC_ASSERT( sizeof(DrawMeshTasksIndirectCommand) == sizeof(VkDrawMeshTasksIndirectCommandEXT) );
-    STATIC_ASSERT( sizeof(TraceRayIndirectCommand)      == sizeof(VkTraceRaysIndirectCommandKHR) );
-    STATIC_ASSERT( sizeof(TraceRayIndirectCommand2)     == sizeof(VkTraceRaysIndirectCommand2KHR) );
-    STATIC_ASSERT( sizeof(ASBuildIndirectCommand)       == sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
-    STATIC_ASSERT( sizeof(DeviceAddress)                == sizeof(VkDeviceAddress) );
+    StaticAssert( sizeof(DispatchIndirectCommand)       == sizeof(VkDispatchIndirectCommand) );
+    StaticAssert( sizeof(DrawIndirectCommand)           == sizeof(VkDrawIndirectCommand) );
+    StaticAssert( sizeof(DrawIndexedIndirectCommand)    == sizeof(VkDrawIndexedIndirectCommand) );
+    StaticAssert( sizeof(DrawMeshTasksIndirectCommand)  == sizeof(VkDrawMeshTasksIndirectCommandEXT) );
+    StaticAssert( sizeof(TraceRayIndirectCommand)       == sizeof(VkTraceRaysIndirectCommandKHR) );
+    StaticAssert( sizeof(TraceRayIndirectCommand2)      == sizeof(VkTraceRaysIndirectCommand2KHR) );
+    StaticAssert( sizeof(ASBuildIndirectCommand)        == sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
+    StaticAssert( sizeof(DeviceAddress)             == sizeof(VkDeviceAddress) );
 
-    STATIC_ASSERT( offsetof(DrawIndirectCommand, vertexCount)   == offsetof(VkDrawIndirectCommand, vertexCount) );
-    STATIC_ASSERT( offsetof(DrawIndirectCommand, instanceCount) == offsetof(VkDrawIndirectCommand, instanceCount) );
-    STATIC_ASSERT( offsetof(DrawIndirectCommand, firstVertex)   == offsetof(VkDrawIndirectCommand, firstVertex) );
-    STATIC_ASSERT( offsetof(DrawIndirectCommand, firstInstance) == offsetof(VkDrawIndirectCommand, firstInstance) );
+    StaticAssert( offsetof(DrawIndirectCommand, vertexCount)    == offsetof(VkDrawIndirectCommand, vertexCount) );
+    StaticAssert( offsetof(DrawIndirectCommand, instanceCount)  == offsetof(VkDrawIndirectCommand, instanceCount) );
+    StaticAssert( offsetof(DrawIndirectCommand, firstVertex)    == offsetof(VkDrawIndirectCommand, firstVertex) );
+    StaticAssert( offsetof(DrawIndirectCommand, firstInstance)  == offsetof(VkDrawIndirectCommand, firstInstance) );
 
-    STATIC_ASSERT( offsetof(DrawIndexedIndirectCommand, indexCount)     == offsetof(VkDrawIndexedIndirectCommand, indexCount) );
-    STATIC_ASSERT( offsetof(DrawIndexedIndirectCommand, instanceCount)  == offsetof(VkDrawIndexedIndirectCommand, instanceCount) );
-    STATIC_ASSERT( offsetof(DrawIndexedIndirectCommand, firstIndex)     == offsetof(VkDrawIndexedIndirectCommand, firstIndex) );
-    STATIC_ASSERT( offsetof(DrawIndexedIndirectCommand, vertexOffset)   == offsetof(VkDrawIndexedIndirectCommand, vertexOffset) );
-    STATIC_ASSERT( offsetof(DrawIndexedIndirectCommand, firstInstance)  == offsetof(VkDrawIndexedIndirectCommand, firstInstance) );
+    StaticAssert( offsetof(DrawIndexedIndirectCommand, indexCount)      == offsetof(VkDrawIndexedIndirectCommand, indexCount) );
+    StaticAssert( offsetof(DrawIndexedIndirectCommand, instanceCount)   == offsetof(VkDrawIndexedIndirectCommand, instanceCount) );
+    StaticAssert( offsetof(DrawIndexedIndirectCommand, firstIndex)      == offsetof(VkDrawIndexedIndirectCommand, firstIndex) );
+    StaticAssert( offsetof(DrawIndexedIndirectCommand, vertexOffset)    == offsetof(VkDrawIndexedIndirectCommand, vertexOffset) );
+    StaticAssert( offsetof(DrawIndexedIndirectCommand, firstInstance)   == offsetof(VkDrawIndexedIndirectCommand, firstInstance) );
 
-    STATIC_ASSERT( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
+    StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-    STATIC_ASSERT( VK_HEADER_VERSION == 261 );
+    StaticAssert( VK_HEADER_VERSION == 261 );
 
     static constexpr usize  c_MaxMemTypes = std::initializer_list<EMemoryType>{
                                                 EMemoryType::DeviceLocal,   EMemoryType::Transient,     EMemoryType::HostCoherent,
                                                 EMemoryType::HostCached,    EMemoryType::Dedicated,     EMemoryType::HostCachedCoherent,
                                                 EMemoryType::Unified,       EMemoryType::UnifiedCached }.size();
-    STATIC_ASSERT( decltype(DeviceResourceFlags::memTypes)::capacity() >= c_MaxMemTypes );
+    StaticAssert( decltype(DeviceResourceFlags::memTypes)::capacity() >= c_MaxMemTypes );
 
 
 #   include "vulkan_loader/vkenum_to_str.h"
@@ -440,7 +440,6 @@ namespace
                 break;
 
             case EMemoryType::Transient :
-            //case EMemoryType::DeviceLocal | EMemoryType::Transient :
                 include_flags       = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
                 exclude_flags       = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
                 opt_exclude_flags   = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
@@ -484,6 +483,43 @@ namespace
         END_ENUM_CHECKS();
 
         return GetMemoryTypeIndex( memoryTypeBits, include_flags, opt_include_flags, exclude_flags, opt_exclude_flags, OUT memoryTypeIndex );
+    }
+
+/*
+=================================================
+    AllocateMemory
+=================================================
+*/
+    VkResult  VDevice::AllocateMemory (const VkMemoryAllocateInfo &allocateInfo, OUT VkDeviceMemory &memory) C_NE___
+    {
+        auto    err = vkAllocateMemory( GetVkDevice(), &allocateInfo, null, OUT &memory );
+
+        #ifdef AE_DEBUG
+        if_unlikely( err == VK_ERROR_OUT_OF_HOST_MEMORY or err == VK_ERROR_OUT_OF_DEVICE_MEMORY )
+        {
+            DRC_SHAREDLOCK( _drCheck );
+            if ( IsInitialized() and GetVExtensions().memoryBudget )
+            {
+                VkPhysicalDeviceMemoryBudgetPropertiesEXT   budget = {};
+                VkPhysicalDeviceMemoryProperties2           props  = {};
+                budget.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
+                props.sType     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+                props.pNext     = &budget;
+
+                vkGetPhysicalDeviceMemoryProperties2KHR( _vkPhysicalDevice, OUT &props );
+
+                const auto&     type    = props.memoryProperties.memoryTypes[ allocateInfo.memoryTypeIndex ];
+                const auto&     heap    = props.memoryProperties.memoryHeaps[ type.heapIndex ];
+
+                AE_LOGI( "Out of memory error, can't allocate memType("s << ToString(allocateInfo.memoryTypeIndex) << ") size(" <<
+                         ToString(Bytes{allocateInfo.allocationSize}) << ") heap(" << ToString(type.heapIndex) << ") heapSize(" <<
+                         ToString(Bytes{heap.size}) << ") heapUsage(" << ToString(Bytes{budget.heapUsage[ type.heapIndex ]}) <<
+                         ") heapAvailable(" << ToString(Bytes{budget.heapBudget[ type.heapIndex ]}) << ")" );
+            }
+        }
+        #endif
+
+        return err;
     }
 
 /*
@@ -572,11 +608,13 @@ namespace
 
         Bytes*  usage [] = { &result->deviceUsage, &result->hostUsage, &result->unifiedUsage };
         Bytes*  avail [] = { &result->deviceAvailable, &result->hostAvailable, &result->unifiedAvailable };
+        Bytes*  total [] = { &result->deviceTotal, &result->hostTotal, &result->unifiedTotal };
 
         for (uint i = 0; i < props.memoryProperties.memoryHeapCount; ++i)
         {
             *usage[ _memHeapToType[i] ] += budget.heapUsage[i];
-            *avail[ _memHeapToType[i] ] += budget.heapUsage[i] + budget.heapBudget[i];
+            *avail[ _memHeapToType[i] ] += budget.heapBudget[i];
+            *total[ _memHeapToType[i] ] += props.memoryProperties.memoryHeaps[i].size;
         }
 
         // driver bug: memory_budget extension enabled but not active
@@ -601,6 +639,281 @@ namespace
         }
         return false;
     }
+
+/*
+=================================================
+    PrintPipelineExecutableStatistics
+=================================================
+*/
+    bool  VDevice::PrintPipelineExecutableStatistics (StringView pplnName, const VkPipeline pipeline) C_NE___
+    {
+    #ifdef AE_ENABLE_LOGS
+        if ( not GetVExtensions().pplnExecProps )
+            return false;
+
+        TRY{
+            VkPipelineInfoKHR   ppln_info;
+            ppln_info.sType     = VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR;
+            ppln_info.pNext     = null;
+            ppln_info.pipeline  = pipeline;
+
+            uint    count = 0;
+            VK_CHECK_ERR( vkGetPipelineExecutablePropertiesKHR( GetVkDevice(), &ppln_info, OUT &count, null ));
+
+            Array<VkPipelineExecutablePropertiesKHR>    exec_props;
+            exec_props.resize( count );
+            for (auto& prop : exec_props) prop.sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_PROPERTIES_KHR;
+
+            VK_CHECK_ERR( vkGetPipelineExecutablePropertiesKHR( GetVkDevice(), &ppln_info, INOUT &count, OUT exec_props.data() ));
+
+            VkPipelineExecutableInfoKHR exec_info;
+            exec_info.sType     = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR;
+            exec_info.pNext     = null;
+            exec_info.pipeline  = pipeline;
+
+            Array<VkPipelineExecutableStatisticKHR> statistics;
+
+            const StringView    s_stages        {"stages"};
+            const StringView    s_name          {"name"};
+            const StringView    s_subgroupSize  {"subgroupSize"};
+
+            String  str;
+            for (const auto [prop, idx] : WithIndex(exec_props))
+            {
+                exec_info.executableIndex = uint(idx);
+                VK_CHECK_ERR( vkGetPipelineExecutableStatisticsKHR( GetVkDevice(), &exec_info, OUT &count, null ));
+
+                if ( count == 0 ) continue;
+
+                statistics.resize( count );
+                for (auto& stat : statistics) stat.sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR;
+                VK_CHECK_ERR( vkGetPipelineExecutableStatisticsKHR( GetVkDevice(), &exec_info, OUT &count, OUT statistics.data() ));
+
+                if ( exec_props.size() > 1 )
+                    str << "\n[" << ToString(idx) << "]";
+
+                uint    j       = 0;
+                usize   max_len = Max( s_stages.size(), s_name.size(), s_subgroupSize.size() );
+
+                for (auto& stat : statistics)
+                    AssignMax( INOUT max_len, StringView{stat.name}.size() );
+
+                str << "\n  " << s_stages << ": ";
+                AppendToString( INOUT str, s_stages.size(), max_len, !!(j++ & 1), '.', ' ' );
+                str << ' ' << ToString( AEEnumCast( VkShaderStageFlagBits( prop.stages )));
+
+                str << "\n  " << s_name << ": ";
+                AppendToString( INOUT str, s_name.size(), max_len, !!(j++ & 1), '.', ' ' );
+                str << ' ' << prop.name << " (" << prop.description << ')';
+
+                str << "\n  " << s_subgroupSize << ": ";
+                AppendToString( INOUT str, s_subgroupSize.size(), max_len, !!(j++ & 1), '.', ' ' );
+                str << ' ' << ToString( prop.subgroupSize );
+
+                for (const auto [stat, i] : WithIndex(statistics))
+                {
+                    StringView  name {stat.name};
+
+                    str << "\n  " << name << ": ";
+                    AppendToString( INOUT str, name.size(), max_len, !!(j++ & 1), '.', ' ' );
+                    str << ' ';
+
+                    BEGIN_ENUM_CHECKS();
+                    switch ( stat.format )
+                    {
+                        case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_BOOL32_KHR :   str << (stat.value.b32 ? "true" : "false");     break;
+                        case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_INT64_KHR :    str << ToString( stat.value.i64 );              break;
+                        case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR :   str << ToString( stat.value.u64 );              break;
+                        case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR :  str << ToString( stat.value.f64 );              break;
+                        case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_MAX_ENUM_KHR : break;
+                    }
+                    END_ENUM_CHECKS();
+                    str << "  (" << stat.description << ')';
+                }
+            }
+
+            if ( str.empty() )
+                return true;
+
+            ("\nPipeline '"s << pplnName << "' ExecutableStatistics {") >> str;
+            str << "\n}\n";
+
+            AE_LOGI( str );
+            return true;
+        }
+        CATCH_ALL(
+            return false;
+        )
+    #endif
+    }
+
+/*
+=================================================
+    PrintPipelineExecutableInternalRepresentations
+=================================================
+*/
+    bool  VDevice::PrintPipelineExecutableInternalRepresentations (StringView pplnName, const VkPipeline pipeline) C_NE___
+    {
+    #ifdef AE_ENABLE_LOGS
+        if ( not GetVExtensions().pplnExecProps )
+            return false;
+
+        TRY{
+            VkPipelineInfoKHR   ppln_info;
+            ppln_info.sType     = VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR;
+            ppln_info.pNext     = null;
+            ppln_info.pipeline  = pipeline;
+
+            uint    count = 0;
+            VK_CHECK_ERR( vkGetPipelineExecutablePropertiesKHR( GetVkDevice(), &ppln_info, OUT &count, null ));
+
+            Array<VkPipelineExecutablePropertiesKHR>    exec_props;
+            exec_props.resize( count );
+            for (auto& prop : exec_props) prop.sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_PROPERTIES_KHR;
+
+            VK_CHECK_ERR( vkGetPipelineExecutablePropertiesKHR( GetVkDevice(), &ppln_info, INOUT &count, OUT exec_props.data() ));
+
+            VkPipelineExecutableInfoKHR exec_info;
+            exec_info.sType     = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR;
+            exec_info.pNext     = null;
+            exec_info.pipeline  = pipeline;
+
+            Array<VkPipelineExecutableInternalRepresentationKHR>    exec_irep;
+
+            String  str;
+            for (const auto [prop, idx] : WithIndex(exec_props))
+            {
+                exec_info.executableIndex = uint(idx);
+                VK_CHECK_ERR( vkGetPipelineExecutableInternalRepresentationsKHR( GetVkDevice(), &exec_info, OUT &count, null ));
+
+                if ( count == 0 ) continue;
+
+                exec_irep.resize( count );
+                for (auto& stat : exec_irep) stat.sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR;
+                VK_CHECK_ERR( vkGetPipelineExecutableInternalRepresentationsKHR( GetVkDevice(), &exec_info, OUT &count, OUT exec_irep.data() ));
+
+                str << "\n[" << ToString(idx) << "]"
+                    << "\n  stages:       " << ToString( AEEnumCast( VkShaderStageFlagBits( prop.stages )))
+                    << "\n  name:         " << prop.name << " (" << prop.description << ')'
+                    << "\n  subgroupSize: " << ToString( prop.subgroupSize );
+
+                for (const auto [rep, i] : WithIndex(exec_irep))
+                {
+                    str << "\n  [" << ToString(i) << "]"
+                        << "\n    name:        " << rep.name
+                        << "\n    description: " << rep.description;
+
+                    if ( rep.isText )
+                        str << "\n    text:        " << StringView{ Cast<char>(rep.pData), rep.dataSize };
+                }
+            }
+
+            if ( str.empty() )
+                return true;
+
+            ("\nPipeline '"s << pplnName << "' ExecutableInternalRepresentations {") >> str;
+            str << "\n}\n";
+
+            AE_LOGI( str );
+            return true;
+        }
+        CATCH_ALL(
+            return false;
+        )
+    #endif
+    }
+
+/*
+=================================================
+    PrintPipelineExecutableInfo
+=================================================
+*/
+    bool  VDevice::PrintPipelineExecutableInfo (StringView name, VkPipeline pipeline, EPipelineOpt options) C_NE___
+    {
+        bool    res = GetVExtensions().pplnExecProps;
+
+        if ( AllBits( options, EPipelineOpt::CaptureStatistics ))
+            res &= PrintPipelineExecutableStatistics( name, pipeline );
+
+        if ( AllBits( options, EPipelineOpt::CaptureInternalRepresentation ))
+            res &= PrintPipelineExecutableInternalRepresentations( name, pipeline );
+
+        return res;
+    }
+
+/*
+=================================================
+    GetMemoryRequirements (buffer)
+=================================================
+*/
+    bool  VDevice::GetMemoryRequirements (const VkBufferCreateInfo &ci, OUT VkMemoryRequirements2* memReq) C_NE___
+    {
+        CHECK_ERR( memReq != null );
+
+        if ( _extensions.maintenance4 )
+        {
+            VkDeviceBufferMemoryRequirements    info = {};
+            info.sType          = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS;
+            info.pCreateInfo    = &ci;
+
+            vkGetDeviceBufferMemoryRequirementsKHR( _vkLogicalDevice, &info, OUT memReq );
+            return true;
+        }
+
+        VkBuffer    buf = Default;
+        VK_CHECK_ERR( vkCreateBuffer( _vkLogicalDevice, &ci, null, OUT &buf ));
+
+        if ( _extensions.bindMemory2 )
+        {
+            VkBufferMemoryRequirementsInfo2 info = {};
+            info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
+            info.buffer = buf;
+            vkGetBufferMemoryRequirements2KHR( _vkLogicalDevice, &info, OUT memReq );
+        }else
+            vkGetBufferMemoryRequirements( _vkLogicalDevice, buf, OUT &memReq->memoryRequirements );
+
+        vkDestroyBuffer( _vkLogicalDevice, buf, null );
+        return true;
+    }
+
+/*
+=================================================
+    GetMemoryRequirements (image)
+=================================================
+*/
+    bool  VDevice::GetMemoryRequirements (const VkImageCreateInfo &ci, OUT VkMemoryRequirements2* memReq) C_NE___
+    {
+        CHECK_ERR( memReq != null );
+
+        if ( _extensions.maintenance4 )
+        {
+            VkDeviceImageMemoryRequirements info = {};
+            info.sType          = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS;
+            info.pCreateInfo    = &ci;
+
+            // This parameter is ignored unless pCreateInfo::tiling is VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT,
+            // or pCreateInfo::flags has VK_IMAGE_CREATE_DISJOINT_BIT set.
+            //info.planeAspect
+
+            vkGetDeviceImageMemoryRequirementsKHR( _vkLogicalDevice, &info, OUT memReq );
+            return true;
+        }
+
+        VkImage img = Default;
+        VK_CHECK_ERR( vkCreateImage( _vkLogicalDevice, &ci, null, OUT &img ));
+
+        if ( _extensions.bindMemory2 )
+        {
+            VkImageMemoryRequirementsInfo2  info = {};
+            info.sType  = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2;
+            info.image  = img;
+            vkGetImageMemoryRequirements2KHR( _vkLogicalDevice, &info, OUT memReq );
+        }else
+            vkGetImageMemoryRequirements( _vkLogicalDevice, img, OUT &memReq->memoryRequirements );
+
+        vkDestroyImage( _vkLogicalDevice, img, null );
+        return true;
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -616,7 +929,7 @@ namespace
         auto    dbg_report = _dbgReport.WriteNoLock();
         EXLOCK( dbg_report );
 
-        CATCH( dbg_report->tempObjectDbgInfos.reserve( 16 ));
+        NOTHROW( dbg_report->tempObjectDbgInfos.reserve( 16 ));
         dbg_report->tempString.reserve( 1024 );
     }
 
@@ -645,6 +958,21 @@ namespace
         Unused( vkEnumerateInstanceVersion( OUT &ver ));
 
         return InstanceVersion{ VK_VERSION_MAJOR(ver), VK_VERSION_MINOR(ver) };
+    }
+
+/*
+=================================================
+    LoadNvPerf
+=================================================
+*/
+    bool  VDeviceInitializer::LoadNvPerf () __NE___
+    {
+        //DRC_EXLOCK( _drCheck );
+        //CHECK_ERR( not _nvPerf.IsLoaded() );
+        //CHECK_ERR( GetVkInstance() == Default );
+
+        //return _nvPerf.Load();
+        return false;
     }
 
 /*
@@ -690,7 +1018,7 @@ namespace
         validation.disabledValidationFeatureCount   = uint(ci.disableValidations.size());
         validation.pDisabledValidationFeatures      = ci.disableValidations.data();
 
-        CATCH_ERR(
+        NOTHROW_ERR(
             return _CreateInstance( ci.appName, ci.engineName, ci.instanceLayers, ci.instanceExtensions,
                                     ci.version, ci.appVer, ci.engineVer, &validation );
         )
@@ -698,15 +1026,15 @@ namespace
 
     bool  VDeviceInitializer::_CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> layers,
                                                ArrayView<const char*> extensions, InstanceVersion version,
-                                               uint appVer, uint engineVer, const VkValidationFeaturesEXT *pValidation) __Th___
+                                               uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation) __Th___
     {
         CHECK_ERR( _vkInstance == Default );
+        CHECK_ERR( VulkanLoader::Initialize() );
 
         uint    vk_ver = VK_MAKE_VERSION( version.major, version.minor, 0 );
-        _ValidateInstanceVersion( Default, layers, INOUT vk_ver );
+        _ValidateInstanceVersion( Default, layers, extensions, INOUT vk_ver );
         _vkInstanceVersion = {VK_VERSION_MAJOR(vk_ver), VK_VERSION_MINOR(vk_ver)};
 
-        CHECK_ERR( VulkanLoader::Initialize() );
         _extEmulation.OnInitialize();
 
         Array< const char* >    instance_layers;
@@ -718,8 +1046,8 @@ namespace
         //if ( _nvPerf.IsLoaded() )
         //    _nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
 
-        _ValidateInstanceLayers( INOUT instance_layers );                           // throw
-        _ValidateInstanceExtensions( instance_layers, INOUT instance_extensions );  // throw
+        _ValidateInstanceLayers( INOUT instance_layers, Bool{not _enableInfoLog} );                             // throw
+        _ValidateInstanceExtensions( instance_layers, INOUT instance_extensions, Bool{not _enableInfoLog} );    // throw
 
 
         VkApplicationInfo   app_info = {};
@@ -737,6 +1065,9 @@ namespace
         instance_ci.ppEnabledExtensionNames = instance_extensions.size() ? instance_extensions.data() : null;
         instance_ci.enabledLayerCount       = uint(instance_layers.size());
         instance_ci.ppEnabledLayerNames     = instance_layers.size() ? instance_layers.data() : null;
+
+        if ( ArrayContains( instance_extensions.begin(), instance_extensions.end(), StringView{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME} ))
+            instance_ci.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
         if ( pValidation != null                                                                            and
              (pValidation->enabledValidationFeatureCount | pValidation->disabledValidationFeatureCount) != 0 )
@@ -769,13 +1100,13 @@ namespace
         _vkInstance = newInstance;
         CHECK_ERR( VulkanLoader::LoadInstance( _vkInstance ));
 
-        CATCH_ERR(
+        NOTHROW_ERR(
         for (auto inst : instanceExtensions) {
             _instanceExtensions.insert( inst ); // throw
         })
 
         uint    vk_ver = VK_MAKE_VERSION( version.major, version.minor, 0 );
-        _ValidateInstanceVersion( _vkInstance, Default, INOUT vk_ver );
+        _ValidateInstanceVersion( _vkInstance, instanceLayers, instanceExtensions, INOUT vk_ver );
         _vkInstanceVersion = {VK_VERSION_MAJOR(vk_ver), VK_VERSION_MINOR(vk_ver)};
 
         _OnCreateInstance( instanceExtensions, instanceLayers );    // throw
@@ -913,7 +1244,7 @@ namespace {
 */
     bool  VDeviceInitializer::ChooseHighPerformanceDevice () __NE___
     {
-        CATCH_ERR(
+        NOTHROW_ERR(
             return _ChooseHighPerformanceDevice();
         )
     }
@@ -1127,30 +1458,9 @@ namespace {
 
         // memory type
         {
-            const auto& mem_props = props.memoryProperties;
-
-            for (uint i = 0; i < mem_props.memoryTypeCount; ++i)
-            {
-                auto&       mt  = mem_props.memoryTypes[i];
-                EMemoryType dst = AEEnumCast( VkMemoryPropertyFlagBits(mt.propertyFlags), false );
-
-                if ( dst == Default )
-                    continue;
-
-                outResFlags.memTypes.insert( dst );
-
-                if ( _extensions.dedicatedAllocation and AllBits( dst, EMemoryType::DeviceLocal ))
-                    outResFlags.memTypes.insert( EMemoryType::DeviceLocal | EMemoryType::Dedicated );
-
-                if ( AllBits( dst, EMemoryType::DeviceLocal ))
-                    outResFlags.memTypes.insert( EMemoryType::DeviceLocal );
-
-                if ( AllBits( dst, EMemoryType::HostCached ))
-                    outResFlags.memTypes.insert( EMemoryType::HostCached );
-
-                if ( AllBits( dst, EMemoryType::HostCoherent ))
-                    outResFlags.memTypes.insert( EMemoryType::HostCoherent );
-            }
+            ASSERT( not _memTypeToBits.empty() );
+            for (auto t : _memTypeToBits.GetKeyArray())
+                outResFlags.memTypes.insert( t );
         }
 
         // descriptor types
@@ -1170,7 +1480,7 @@ namespace {
             if ( props.accelerationStructureFeats.accelerationStructure )
                 outResFlags.descrTypes.insert( EDescriptorType::RayTracingScene );
 
-            STATIC_ASSERT( uint(EDescriptorType::_Count) == 12 );
+            StaticAssert( uint(EDescriptorType::_Count) == 12 );
         }
 
         // image & buffer flags
@@ -1235,11 +1545,15 @@ namespace {
     {
         const auto& mem_props = GetVProperties().memoryProperties;
 
-        // for discrete GPU
+        // Is all memory types are device local or has separated device and host memory.
+        bool    all_device_local = true;
+        for (uint i = 0; i < mem_props.memoryTypeCount; ++i) {
+            all_device_local &= AnyBits( mem_props.memoryTypes[i].propertyFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+        }
+
         for (uint i = 0; i < mem_props.memoryTypeCount; ++i)
         {
             const auto&     mt      = mem_props.memoryTypes[i];
-            //const auto&   heap    = mem_props.memoryHeaps[ mt.heapIndex ];
             EMemoryType     dst     = AEEnumCast( VkMemoryPropertyFlagBits(mt.propertyFlags), false );
             const uint      bit     = 1u << i;
 
@@ -1248,35 +1562,33 @@ namespace {
 
             if ( AllBits( dst, EMemoryType::Transient ))  { result( EMemoryType::Transient ) |= bit; continue; }
 
-            if ( AllBits( dst, EMemoryType::Unified ))
+            if ( all_device_local )
             {
-                result( EMemoryType::Unified ) |= bit;
-                if ( AllBits( dst, EMemoryType::UnifiedCached ))  result( EMemoryType::UnifiedCached ) |= bit;
-                continue;
+                // integrated GPU
+                if ( AllBits( dst, EMemoryType::Unified ))              result( EMemoryType::Unified )              |= bit;
+                if ( AllBits( dst, EMemoryType::UnifiedCached ))        result( EMemoryType::UnifiedCached )        |= bit;
+                if ( AllBits( dst, EMemoryType::HostCoherent ))         result( EMemoryType::HostCoherent )         |= bit;
+                if ( AllBits( dst, EMemoryType::HostCached ))           result( EMemoryType::HostCached )           |= bit;
+                if ( AllBits( dst, EMemoryType::HostCachedCoherent ))   result( EMemoryType::HostCachedCoherent )   |= bit;
+                if ( not AllBits( dst, EMemoryType::HostCached ))       result( EMemoryType::DeviceLocal )          |= bit;
             }
+            else
+            {
+                // discrete GPU
+                if ( AllBits( dst, EMemoryType::Unified ))
+                {
+                    result( EMemoryType::Unified ) |= bit;
+                    if ( AllBits( dst, EMemoryType::UnifiedCached ))  result( EMemoryType::UnifiedCached ) |= bit;
+                    continue;
+                }
 
-            if ( AllBits( dst, EMemoryType::DeviceLocal ))          { result( EMemoryType::DeviceLocal ) |= bit; continue; }
+                if ( AllBits( dst, EMemoryType::DeviceLocal ))          { result( EMemoryType::DeviceLocal ) |= bit; continue; }
 
-            if ( AllBits( dst, EMemoryType::HostCoherent ))         result( EMemoryType::HostCoherent )         |= bit;
-            if ( AllBits( dst, EMemoryType::HostCached ))           result( EMemoryType::HostCached )           |= bit;
-            if ( AllBits( dst, EMemoryType::HostCachedCoherent ))   result( EMemoryType::HostCachedCoherent )   |= bit;
+                if ( AllBits( dst, EMemoryType::HostCoherent ))         result( EMemoryType::HostCoherent )         |= bit;
+                if ( AllBits( dst, EMemoryType::HostCached ))           result( EMemoryType::HostCached )           |= bit;
+                if ( AllBits( dst, EMemoryType::HostCachedCoherent ))   result( EMemoryType::HostCachedCoherent )   |= bit;
+            }
         }
-
-        // for integrated GPUs add alias 'HostCoherent' for 'Unified'
-        if ( auto it = result.find( EMemoryType::Unified );  (it != result.end()) and (not result.contains( EMemoryType::HostCoherent )) )
-            result.emplace( EMemoryType::HostCoherent, it->second );
-
-        // for integrated GPUs add alias 'HostCached' for 'UnifiedCached'
-        if ( auto it = result.find( EMemoryType::UnifiedCached );  (it != result.end()) and (not result.contains( EMemoryType::HostCached )) )
-        {
-            uint    tmp = it->second;
-            result.emplace( EMemoryType::HostCached, tmp );
-            result.emplace( EMemoryType::HostCachedCoherent, tmp );
-        }
-
-        // for integrated GPUs add alias 'DeviceLocal' for 'Unified'
-        if ( auto it = result.find( EMemoryType::Unified );  (it != result.end()) and (not result.contains( EMemoryType::DeviceLocal )) )
-            result.emplace( EMemoryType::DeviceLocal, it->second );
 
         // validate
         ASSERT( result.contains( EMemoryType::DeviceLocal ));
@@ -1312,7 +1624,7 @@ namespace {
                 result[ heap_idx ]  =  memType;
             }
 
-            ASSERT( not AnyBits( heap_bits, new_heap_bits ));   // must not intersects
+            //ASSERT( not AnyBits( heap_bits, new_heap_bits )); // must not intersects
             heap_bits |= new_heap_bits;
         }};
 
@@ -1348,29 +1660,15 @@ namespace {
 
 /*
 =================================================
-    _LogResourceFlags
-=================================================
-*/
-    void  VDeviceInitializer::_LogResourceFlags () C_Th___
-    {
-        String  str;
-
-        str << "memory types:";
-
-        for (EMemoryType mem : _resFlags.memTypes) {
-            str << "\n  " << ToString( mem );
-        }
-
-        AE_LOG_DBG( str );
-    }
-
-/*
-=================================================
     _LogExternalTools
 =================================================
 */
     void  VDeviceInitializer::_LogExternalTools () C_Th___
     {
+    #ifdef AE_ENABLE_LOGS
+        if ( not _extensions.toolingInfo )
+            return;
+
         uint    count = 0;
         VK_CHECK( vkGetPhysicalDeviceToolPropertiesEXT( _vkPhysicalDevice, OUT &count, null ));
 
@@ -1418,6 +1716,7 @@ namespace {
         }
 
         AE_LOGI( str );
+    #endif
     }
 
 /*
@@ -1457,7 +1756,7 @@ namespace {
 */
     bool  VDeviceInitializer::CreateDefaultQueues (EQueueMask required, EQueueMask optional) __NE___
     {
-        CHECK_ERR( _queues.empty() );
+        CHECK_ERR( _queueCount == 0 );
 
         uint    count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties( _vkPhysicalDevice, OUT &count, null );
@@ -1518,7 +1817,7 @@ namespace {
 
                 if ( qcount[i] < q.queueCount and AllBits( q.queueFlags, include_flags ))
                 {
-                    auto&   vq = _queues.emplace_back();
+                    auto&   vq = _queues[ _queueCount++ ];
                     vq.familyIndex      = VQueueFamily(i);
                     vq.priority         = 0.0f;
                     vq.globalPriority   = VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT;
@@ -1540,6 +1839,9 @@ namespace {
         }
 
         _InitQueues( queue_family_props, INOUT _queues, INOUT _queueTypes );
+
+        CHECK_ERR(  _queueCount != 0            and
+                    _queueCount <= _queues.size() );
         return true;
     }
 
@@ -1550,7 +1852,7 @@ namespace {
 */
     bool  VDeviceInitializer::CreateQueues (ArrayView<QueueCreateInfo> queues) __NE___
     {
-        CHECK_ERR( _queues.empty() );
+        CHECK_ERR( _queueCount == 0 );
 
         uint    count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties( _vkPhysicalDevice, OUT &count, null );
@@ -1575,7 +1877,7 @@ namespace {
 
                 if ( qcount[i] < prop.queueCount and AllBits( prop.queueFlags, q.includeFlags ))
                 {
-                    auto&   vq = _queues.emplace_back();
+                    auto&   vq = _queues[ _queueCount++ ];
                     vq.familyIndex      = VQueueFamily(i);
                     vq.priority         = q.priority;
                     vq.debugName        = q.debugName;
@@ -1588,7 +1890,8 @@ namespace {
 
         _InitQueues( queue_family_props, INOUT _queues, INOUT _queueTypes );
 
-        CHECK_ERR( _queues.size() );
+        CHECK_ERR(  _queueCount != 0            and
+                    _queueCount <= _queues.size() );
         return true;
     }
 
@@ -1599,7 +1902,7 @@ namespace {
 */
     bool  VDeviceInitializer::CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures) __NE___
     {
-        CATCH_ERR(
+        NOTHROW_ERR(
             return _CreateLogicalDevice( extensions, fsToDeviceFeatures );
         )
     }
@@ -1609,7 +1912,7 @@ namespace {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( _vkPhysicalDevice != Default );
         CHECK_ERR( _vkLogicalDevice == Default );
-        CHECK_ERR( not _queues.empty() );
+        CHECK_ERR( _queueCount != 0 );
 
         // setup device create info
         VkDeviceCreateInfo  device_info = {};
@@ -1625,7 +1928,7 @@ namespace {
 
         _ValidateDeviceExtensions( _vkPhysicalDevice, INOUT device_extensions );    // throw
 
-        CATCH_ERR(
+        NOTHROW_ERR(
         for (auto* ext : device_extensions) {
             _deviceExtensions.insert( ext );
         })
@@ -1639,9 +1942,10 @@ namespace {
 
 
         // setup queues
-        StaticArray< VkDeviceQueueCreateInfo, VConfig::MaxQueues >                  queue_infos;
-        StaticArray< StaticArray<float, VConfig::MaxQueues>, VConfig::MaxQueues >   priorities      = {};
-        StaticArray< VkDeviceQueueGlobalPriorityCreateInfoKHR, VConfig::MaxQueues > global_priority = {};
+        constexpr uint                                                      max_queues      = uint(EQueueType::_Count);
+        StaticArray< VkDeviceQueueCreateInfo, max_queues >                  queue_infos;
+        StaticArray< StaticArray<float, max_queues>, max_queues >           priorities      = {};
+        StaticArray< VkDeviceQueueGlobalPriorityCreateInfoKHR, max_queues > global_priority = {};
         {
             device_info.queueCreateInfoCount    = 0;
             device_info.pQueueCreateInfos       = queue_infos.data();
@@ -1668,8 +1972,9 @@ namespace {
                 }
             }
 
-            for (auto& q : _queues)
+            for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
             {
+                auto&   q = _queues[i];
                 CHECK_ERR( uint(q.familyIndex) < queue_infos.size() );
 
                 auto&   qinfo   = queue_infos[ uint(q.familyIndex) ];
@@ -1742,22 +2047,24 @@ namespace {
         VulkanLoader::SetupDeviceBackwardCompatibility( _vkDeviceVersion.Cast<0>(), INOUT _deviceFnTable );
 
         _queueMask = Default;
-        for (auto& q : _queues)
+        for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
         {
+            auto&   q = _queues[i];
             _queueMask |= q.type;
             vkGetDeviceQueue( _vkLogicalDevice, uint(q.familyIndex), q.queueIndex, OUT &q.handle );
         }
+        ASSERT( _queueCount == BitCount( _queueMask ));
 
         _ValidateQueueStages( _queues );
-        _SetResourceFlags( OUT _resFlags );
         _ValidateSpirvVersion( OUT _spirvVersion );
         _InitMemoryTypeToTypeBits( OUT _memTypeToBits );
         _InitMemHeapToMemType( OUT _memHeapToType );
+        _SetResourceFlags( OUT _resFlags );
         _devProps.InitVulkan( _extensions, _properties );
 
         if ( _enableInfoLog )
         {
-            _LogResourceFlags();    // throw
+            _resFlags.Print();
             _LogLogicalDevice();    // throw
             _devProps.Print();
             _LogExternalTools();    // throw
@@ -1778,9 +2085,8 @@ namespace {
     {
         CHECK_ERR( _vkPhysicalDevice );
         CHECK_ERR( _vkLogicalDevice == Default );
-        CHECK_ERR( not _queues.empty() );
+        CHECK_ERR( _queueCount != 0 );
         CHECK_ERR( newDevice != Default );
-        CHECK_ERR( _queues.empty() );
 
         _vkLogicalDevice = newDevice;
 
@@ -1816,13 +2122,13 @@ namespace {
 
         _vkLogicalDevice    = Default;
         _queueMask          = Default;
+        _queueCount         = 0;
 
-        _queues.clear();
         _queueTypes.fill( Default );
         _deviceExtensions.clear();
 
         if ( _enableInfoLog )
-            AE_LOG_DBG( "Destroyed Vulkan logical device" );
+            AE_LOGI( "Destroyed Vulkan logical device" );
 
         return true;
     }
@@ -1834,6 +2140,7 @@ namespace {
 */
     void  VDeviceInitializer::_LogLogicalDevice () C_Th___
     {
+    #ifdef AE_ENABLE_LOGS
         String  str = "\nCreated Vulkan device:";
 
         str << "\n  requiredApiVersion: . . . . " << ToString( _vkDeviceVersion.major ) << '.' << ToString( _vkDeviceVersion.minor )
@@ -1888,10 +2195,10 @@ namespace {
         }
         str << _GetVulkanExtensionsString();
         str << "\n----";
-        AE_LOG_DBG( str );
+        AE_LOGI( str );
 
         str = "Vulkan device queues:";
-        for (usize i = 0; i < _queues.size(); ++i)
+        for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
         {
             auto&   q = _queues[i];
             str << "\n  [" << ToString(i) << "] "
@@ -1900,7 +2207,8 @@ namespace {
                 << ", familyFlags: " << VkQueueFlagsToString( q.familyFlags );
         }
         str << "\n----";
-        AE_LOG_DBG( str );
+        AE_LOGI( str );
+    #endif
     }
 
 /*
@@ -1912,8 +2220,9 @@ namespace {
     {
         qtypes = {};
 
-        for (auto& vq : queues)
+        for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
         {
+            auto&       vq          = queues[i];
             auto&       q           = props[ uint(vq.familyIndex) ];
             const bool  is_video    = AnyBits( q.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR );
 
@@ -1924,7 +2233,7 @@ namespace {
                                                 q.minImageTransferGranularity.height,
                                                 q.minImageTransferGranularity.depth };
 
-            STATIC_ASSERT( uint(EQueueMask::All) == 0x1F );
+            StaticAssert( uint(EQueueMask::All) == 0x1F );
 
             if ( AllBits( q.queueFlags, VK_QUEUE_GRAPHICS_BIT ) and
                  not is_video                                   and
@@ -2062,8 +2371,10 @@ namespace {
             remove_access |= VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;
         }
 
-        for (auto& q : queues)
+        for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
         {
+            auto&   q = queues[i];
+
             q.supportedStages   &= ~remove_stages;
             q.supportedAccess   &= ~remove_access;
 
@@ -2077,14 +2388,13 @@ namespace {
     _ValidateInstanceVersion
 =================================================
 */
-    void  VDeviceInitializer::_ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version) C_Th___
+    void  VDeviceInitializer::_ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, ArrayView<const char*> extensions, INOUT uint &version) C_Th___
     {
         const uint  min_ver     = VK_API_VERSION_1_0;
         const uint  old_ver     = version;
         uint        current_ver = 0;
 
-        if ( VulkanLoader::Initialize() )
-            VK_CHECK( vkEnumerateInstanceVersion( OUT &current_ver ));
+        VK_CHECK( vkEnumerateInstanceVersion( OUT &current_ver ));
 
         version = Min( Max( version, min_ver ), Max( current_ver, min_ver ));
 
@@ -2097,9 +2407,13 @@ namespace {
             if ( instance == Default )
             {
                 Array< const char* >    instance_layers;
-                instance_layers.assign( layers.begin(), layers.end() ); // throw
+                Array< const char* >    instance_extensions = _GetInstanceExtensions( InstanceVersion{VK_VERSION_MAJOR(min_ver), VK_VERSION_MINOR(min_ver)} );
 
-                _ValidateInstanceLayers( INOUT instance_layers );       // throw
+                instance_layers.assign( layers.begin(), layers.end() );                                         // throw
+                instance_extensions.insert( instance_extensions.end(), extensions.begin(), extensions.end() );  // throw
+
+                _ValidateInstanceLayers( INOUT instance_layers, True{"silent"} );                               // throw
+                _ValidateInstanceExtensions( instance_layers, INOUT instance_extensions, True{"silent"} );      // throw
 
                 VkApplicationInfo       app_info = {};
                 app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -2108,12 +2422,17 @@ namespace {
                 app_info.pEngineName        = "temp";
 
                 VkInstanceCreateInfo    instance_ci = {};
-                instance_ci.sType               = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-                instance_ci.pApplicationInfo    = &app_info;
-                instance_ci.enabledLayerCount   = uint(instance_layers.size());
-                instance_ci.ppEnabledLayerNames = instance_layers.size() ? instance_layers.data() : null;
+                instance_ci.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+                instance_ci.pApplicationInfo        = &app_info;
+                instance_ci.enabledLayerCount       = uint(instance_layers.size());
+                instance_ci.ppEnabledLayerNames     = instance_layers.size() ? instance_layers.data() : null;
+                instance_ci.enabledExtensionCount   = uint(instance_extensions.size());
+                instance_ci.ppEnabledExtensionNames = instance_extensions.size() ? instance_extensions.data() : null;
 
-                VK_CHECK( vkCreateInstance( &instance_ci, null, OUT &tmp_inst ));
+                if ( ArrayContains( instance_extensions.begin(), instance_extensions.end(), StringView{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME} ))
+                    instance_ci.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+
+                VK_CHECK_ERRV( vkCreateInstance( &instance_ci, null, OUT &tmp_inst ));
 
                 instance = tmp_inst;
                 CHECK( VulkanLoader::LoadInstance( instance ));
@@ -2149,7 +2468,7 @@ namespace {
             if ( tmp_inst != Default )
             {
                 vkDestroyInstance( tmp_inst, null );
-                VulkanLoader::Unload();
+                VulkanLoader::ResetInstance();
             }
         }
 
@@ -2162,7 +2481,7 @@ namespace {
     _ValidateInstanceLayers
 =================================================
 */
-    void  VDeviceInitializer::_ValidateInstanceLayers (INOUT Array<const char*> &layers) C_Th___
+    void  VDeviceInitializer::_ValidateInstanceLayers (INOUT Array<const char*> &layers, Bool silent) C_Th___
     {
         // load supported layers
         uint    count = 0;
@@ -2198,7 +2517,7 @@ namespace {
 
             if ( not found )
             {
-                if_unlikely( _enableInfoLog )
+                if_unlikely( not silent )
                     AE_LOG_DBG( "Removed layer '"s << (*iter) << "'" );
 
                 iter = layers.erase( iter );
@@ -2206,14 +2525,14 @@ namespace {
             else
             {
                 #ifdef AE_DEBUG
-                if ( spec_ver < VK_HEADER_VERSION_COMPLETE )
+                if ( spec_ver < VK_HEADER_VERSION_COMPLETE and not silent )
                 {
                     // this may cause a crash or false-positive in validation layer, you should update vulkan SDK.
                     AE_LOG_SE( "Instance layer '"s << *iter << "' version (" << ToString(VK_API_VERSION_MAJOR(spec_ver))
-                                    << '.' << ToString(VK_API_VERSION_MINOR(spec_ver)) << '.' << ToString(VK_API_VERSION_PATCH(spec_ver))
-                                    << ") is less than header version (" << ToString(VK_API_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE))
-                                    << '.' << ToString(VK_API_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE)) << '.' << ToString(VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE))
-                                    << ")" );
+                                << '.' << ToString(VK_API_VERSION_MINOR(spec_ver)) << '.' << ToString(VK_API_VERSION_PATCH(spec_ver))
+                                << ") is less than header version (" << ToString(VK_API_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE))
+                                << '.' << ToString(VK_API_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE)) << '.' << ToString(VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE))
+                                << ")" );
                 }
                 #endif
 
@@ -2227,7 +2546,7 @@ namespace {
     _ValidateInstanceExtensions
 =================================================
 */
-    void  VDeviceInitializer::_ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &extensions) C_Th___
+    void  VDeviceInitializer::_ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &extensions, Bool silent) C_Th___
     {
         FlatHashSet<StringView> instance_extensions;
 
@@ -2262,7 +2581,7 @@ namespace {
         {
             if ( instance_extensions.find( StringView{*iter} ) == instance_extensions.end() )
             {
-                if_unlikely( _enableInfoLog )
+                if_unlikely( not silent )
                     AE_LOG_DBG( "Removed instance extension '"s << (*iter) << "'" );
 
                 iter = extensions.erase( iter );
@@ -2329,6 +2648,7 @@ namespace {
 */
     void  VDeviceInitializer::_LogInstance (ArrayView<const char*> instanceLayers) C_Th___
     {
+    #ifdef AE_ENABLE_LOGS
         String  str;
         str << "Created Vulkan instance " << ToString(_vkInstanceVersion.major) << '.' << ToString(_vkInstanceVersion.minor) << '\n';
 
@@ -2340,7 +2660,8 @@ namespace {
         for (auto& ext :  _instanceExtensions)
             str << "  " << ext.c_str() << '\n';
 
-        AE_LOG_DBG( str );
+        AE_LOGI( str );
+    #endif
     }
 
 /*
@@ -2526,7 +2847,7 @@ namespace {
         auto    dbg_report  = self->_dbgReport.WriteNoLock();
         EXLOCK( dbg_report );
 
-        try{
+        TRY{
             dbg_report->tempObjectDbgInfos.resize( 1 ); // throw
 
             dbg_report->tempObjectDbgInfos[0] = { VkObjectTypeToString(DebugReportObjectTypeToObjectType( objectType )), "", object };
@@ -2536,8 +2857,8 @@ namespace {
                                 dbg_report->callback,
                                 { dbg_report->tempObjectDbgInfos, pMessage, AllBits( flags, VK_DEBUG_REPORT_ERROR_BIT_EXT ) }); // throw
         }
-        catch(...)
-        {}
+        CATCH_ALL()
+
         return VK_FALSE;
     }
 
@@ -2551,6 +2872,7 @@ namespace {
         if ( callback )
             return callback( msg );
 
+      #ifdef AE_ENABLE_LOGS
         str << msg.message << '\n';
 
         for (auto& obj : msg.objects)
@@ -2559,10 +2881,12 @@ namespace {
         }
         str << "----------------------------\n";
 
-        if ( breakOnError and msg.isError )
-            AE_LOGE( str )
-        else
+        if ( breakOnError and msg.isError ){
+            AE_LOGE( str );
+        }else{
             AE_LOG_SE( str );
+        }
+      #endif
     }
 
 /*
@@ -2608,15 +2932,25 @@ namespace {
         _vkDeviceVersion    = otherDev._vkDeviceVersion;
 
         // copy queues
-        _queues = otherDev._queues;
+        _queueMask  = otherDev._queueMask;
+        _queueCount = otherDev._queueCount;
 
-        for (auto& q : _queues) {
+        ASSERT( _queueCount == BitCount( _queueMask ));
+
+        for (usize i = 0, cnt = _queueCount; i < cnt; ++i)
+        {
+            auto&   q = _queues[i];
+
+            // copy fields except mutex
+            constexpr Bytes offset {offsetof( VQueue, handle )};
+            MemCopy( &q + offset, &otherDev._queues[i] + offset, Sizeof(q) - offset );
+
             _queueTypes[ uint(q.type) ] = &q;
         }
 
-        _extensions         = otherDev._extensions;
+        _extensions = otherDev._extensions;
 
-        CATCH(
+        NOTHROW(
             _instanceExtensions = otherDev._instanceExtensions;
             _deviceExtensions   = otherDev._deviceExtensions;
         )
@@ -2660,8 +2994,8 @@ namespace {
         }
         #endif
 
-        //if ( AnyBits( dev_flags, EDeviceFlags::_NvApiMask ))
-        //    LoadNvPerf();
+        if ( AnyBits( dev_flags, EDeviceFlags::_NvApiMask ))
+            LoadNvPerf();
 
         if ( AnyBits( dev_flags, EDeviceFlags::_ArmProfMask ))
             LoadArmProfiler();

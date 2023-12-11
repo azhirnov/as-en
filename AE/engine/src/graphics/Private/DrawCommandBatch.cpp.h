@@ -47,7 +47,7 @@
         _scissors       = scissors;
 
         DBG_GRAPHICS_ONLY(
-            _profiler = RenderTaskScheduler().GetProfiler();
+            _profiler = GraphicsScheduler().GetProfiler();
             if ( _profiler )
                 _profiler->BeginDrawBatch( this, dbg.label );
 
@@ -92,5 +92,5 @@
             _profiler = null;
         )
         MemoryBarrier( EMemoryOrder::Release );
-        RenderTaskScheduler_t::DrawCommandBatchApi::Recycle( _indexInPool );
+        RenderTaskScheduler::DrawCommandBatchApi::Recycle( this );
     }

@@ -17,7 +17,7 @@ namespace AE::Threading
         static constexpr uint   TasksPerChunk       = (1u << 7) - 2;    // 2 pointers are reserved
         static constexpr uint   MaxChunks           = 2;
         static constexpr uint   MaxDepth            = 128*4;
-        static constexpr uint   SpinlockWaitCount   = 3;
+        static constexpr uint   SpinlockWaitCount   = 8;
 
         using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
         using TaskArr_t     = StaticArray< AsyncTask, TasksPerChunk >;
@@ -48,8 +48,8 @@ namespace AE::Threading
             Chunk () __NE___ {}
         };
 
-        STATIC_ASSERT_64( sizeof(Chunk) == 1_Kb );
-        STATIC_ASSERT( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
+        StaticAssert64( sizeof(Chunk) == 1_Kb );
+        StaticAssert( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
 
         using ChunkArray_t  = StaticArray< Chunk *, MaxChunks >;
 
@@ -76,9 +76,9 @@ namespace AE::Threading
         LfTaskQueue (POTValue seedMask, StringView name)                    __Th___;
         ~LfTaskQueue ()                                                     __NE___ { Release(); }
 
-        ND_ AsyncTask   Pull (usize seed)                                   __NE___;
-            bool        Process (usize seed)                                __NE___;
-            void        Add (AsyncTask task, usize seed)                    __NE___;
+        ND_ AsyncTask   Pull (EThreadSeed seed)                             __NE___;
+            bool        Process (EThreadSeed seed)                          __NE___;
+            void        Add (AsyncTask task, EThreadSeed seed)              __NE___;
 
             void        WriteProfilerStat ()                                __NE___;
 
@@ -86,6 +86,7 @@ namespace AE::Threading
         ND_ Bytes       AllocatedSize ()                                    C_NE___;
 
             void        Release ()                                          __NE___;
+            void        CancelAll ()                                        __NE___;
 
 
       // debugging //

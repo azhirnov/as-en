@@ -26,20 +26,17 @@ namespace AE::Base
     public:
         FastRStream (FastRStream &&)                                    __NE___ = default;
 
+        explicit FastRStream (const void* ptr, const void* end)         __NE___ : _ptr{ptr}, _end{end} { ASSERT( _ptr <= _end ); }
         explicit FastRStream (RC<RStream> stream)                       __NE___;
 
         ~FastRStream ()                                                 __NE___;
 
-        ND_ bool    Empty ()                                            C_NE___ { return _ptr == _end; }
-        ND_ Bytes   RemainingSize ()                                    C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
-        ND_ Bytes   Position ()                                         C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
+        ND_ bool    Empty ()                                            C_NE___ { return _ptr >= _end; }
+        ND_ Bytes   RemainingSize ()                                    C_NE___ { ASSERT( _ptr <= _end );  return Bytes{_end} - Bytes{_ptr}; }
+        ND_ Bytes   Position ()                                         C_NE___;
 
         template <typename T>
-        ND_ forceinline bool  Read (OUT T& value)                       __NE___
-        {
-            return Read( OUT &value, SizeOf<T> );
-        }
-
+        ND_ forceinline bool  Read (OUT T& value)                       __NE___ { return Read( OUT &value, SizeOf<T> ); }
         ND_ forceinline bool  Read (OUT void* buffer, Bytes size)       __NE___;
     };
 
@@ -60,20 +57,17 @@ namespace AE::Base
     public:
         FastWStream (FastWStream &&)                                    __NE___ = default;
 
+        explicit FastWStream (void* ptr, const void* end)               __NE___ : _ptr{ptr}, _end{end} { ASSERT( _ptr <= _end ); }
         explicit FastWStream (RC<WStream> stream)                       __NE___;
 
         ~FastWStream ()                                                 __NE___;
 
-        ND_ bool    Empty ()                                            C_NE___ { return _ptr == _end; }
-        ND_ Bytes   RemainingSize ()                                    C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
-        ND_ Bytes   Position ()                                         C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
+        ND_ bool    Empty ()                                            C_NE___ { return _ptr >= _end; }
+        ND_ Bytes   RemainingSize ()                                    C_NE___ { ASSERT( _ptr <= _end );  return Bytes{_end} - Bytes{_ptr}; }
+        ND_ Bytes   Position ()                                         C_NE___;
 
         template <typename T>
-        ND_ forceinline bool  Write (const T& value)                    __NE___
-        {
-            return Write( &value, SizeOf<T> );
-        }
-
+        ND_ forceinline bool  Write (const T& value)                    __NE___ { return Write( &value, SizeOf<T> ); }
         ND_ forceinline bool  Write (const void* buffer, Bytes size)    __NE___;
     };
 //-----------------------------------------------------------------------------
@@ -105,8 +99,23 @@ namespace AE::Base
 */
     inline FastRStream::~FastRStream () __NE___
     {
-        if ( (_stream != null) & (_ptr <= _end) )
+        if ( (_stream != null) & (not Empty()) )
             _stream->EndFastStream( _ptr );
+    }
+
+/*
+=================================================
+    Position
+----
+    returns current position in stream
+=================================================
+*/
+    inline Bytes  FastRStream::Position () C_NE___
+    {
+        if_likely( _stream )
+            return _stream->GetFastStreamPosition( _ptr );
+        else
+            return UMax;  // error
     }
 
 /*
@@ -131,10 +140,13 @@ namespace AE::Base
             buffer += part_size;
             size   -= part_size;
 
-            _stream->UpdateFastStream( OUT _ptr, OUT _end );
-            CHECK( _ptr != null );
+            if_likely( _stream )
+            {
+                _stream->UpdateFastStream( OUT _ptr, OUT _end );
+                CHECK( _ptr != null );
+            }
 
-            if_unlikely( _ptr == _end )
+            if_unlikely( Empty() )
                 return false; // stream is completely read
         }
 
@@ -169,8 +181,23 @@ namespace AE::Base
 */
     inline FastWStream::~FastWStream () __NE___
     {
-        if ( (_stream != null) & (_ptr <= _end) )
+        if ( (_stream != null) & (not Empty()) )
             _stream->EndFastStream( _ptr );
+    }
+
+/*
+=================================================
+    Position
+----
+    returns current position in stream
+=================================================
+*/
+    inline Bytes  FastWStream::Position () C_NE___
+    {
+        if_likely( _stream )
+            return _stream->GetFastStreamPosition( _ptr );
+        else
+            return UMax;  // error
     }
 
 /*
@@ -195,10 +222,13 @@ namespace AE::Base
             buffer += part_size;
             size   -= part_size;
 
-            _stream->UpdateFastStream( OUT _ptr, OUT _end );
-            CHECK( _ptr != null );
+            if_likely( _stream )
+            {
+                _stream->UpdateFastStream( OUT _ptr, OUT _end );
+                CHECK( _ptr != null );
+            }
 
-            if_unlikely( _ptr == _end )
+            if_unlikely( Empty() )
                 return false; // stream is completely read
         }
 

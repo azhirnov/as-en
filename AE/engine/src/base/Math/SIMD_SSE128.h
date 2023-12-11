@@ -24,7 +24,7 @@ namespace AE::Math
         using Self      = SimdFloat4;
         using Array_t   = StaticArray< Value_t, 4 >;
 
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(__m128) );
+        StaticAssert( sizeof(Array_t) == sizeof(__m128) );
 
 
         struct Bool4
@@ -193,7 +193,7 @@ namespace AE::Math
         using Self      = SimdDouble2;
         using Array_t   = StaticArray< Value_t, 2 >;
 
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(__m128d) );
+        StaticAssert( sizeof(Array_t) == sizeof(__m128d) );
 
 
         struct Bool2
@@ -228,7 +228,7 @@ namespace AE::Math
     public:
         SimdDouble2 ()                                      __NE___ : _value{ _mm_setzero_pd() } {}
         explicit SimdDouble2 (double v)                     __NE___ : _value{ _mm_set1_pd( v )} {}
-        explicit SimdDouble2 (const double *v)              __NE___ : _value{ _mm_loadu_pd( v )} {}
+        explicit SimdDouble2 (const double* v)              __NE___ : _value{ _mm_loadu_pd( v )} {}
         explicit SimdDouble2 (const __m128d &v)             __NE___ : _value{ v } {}
         SimdDouble2 (double x, double y)                    __NE___ : _value{_mm_set_pd( x, y )} {}
 
@@ -328,10 +328,11 @@ namespace AE::Math
     //  ND_ Self  FastSqrt ()                               C_NE___ { return Self{ _mm_mul_pd( _value, _mm_rsqrt14_pd( _value ))}; }    // x / sqrt(x)
         ND_ Self  Scale (const Self &rhs)                   C_NE___ { return Self{ _mm_scalef_pd( _value, rhs._value )}; }              // a * 2^b
 
+        // fused multiply (FM) / fused negative multiply (FNM)
         ND_ Self  FMAdd (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmadd_pd(    _value, b._value, c._value )}; }    // a * b + c
         ND_ Self  FMSub (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmsub_pd(    _value, b._value, c._value )}; }    // a * b - c
-        ND_ Self  FMAddSub (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1, a2 * b2 - c2, a3 * b3 + c3 }
-        ND_ Self  FMSubAdd (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1, a2 * b2 + c2, a3 * b3 - c3 }
+        ND_ Self  FMAddSub (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1 }
+        ND_ Self  FMSubAdd (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1 }
         ND_ Self  FNMAdd (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmadd_pd(   _value, b._value, c._value )}; }    // -a * b + c
         ND_ Self  FNMSub (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmsub_pd(   _value, b._value, c._value )}; }    // -a * b - c
 
@@ -387,7 +388,7 @@ namespace AE::Math
         template <typename T>
         ND_ auto    ToArray ()                          C_NE___
         {
-            STATIC_ASSERT( IsInteger<T> );
+            StaticAssert( IsInteger<T> );
             struct m128i_no_attr { __m128i a; };
             StaticArray< T, sizeof(m128i_no_attr) / sizeof(T) > arr;
             //if constexpr( sizeof(T) == 1 )_mm_storeu_epi8(  OUT static_cast<void*>(arr.data()), _value );     // avx512
@@ -407,7 +408,7 @@ namespace AE::Math
     template <typename IntType>
     struct SimdTInt128
     {
-        STATIC_ASSERT( IsInteger<IntType> );
+        StaticAssert( IsInteger<IntType> );
 
     // types
     public:
@@ -418,7 +419,7 @@ namespace AE::Math
 
         static constexpr uint   count   = sizeof(Native_t) / sizeof(IntType);
         using Array_t                   = StaticArray< Value_t, count >;
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(Native_t) );
+        StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
 
     // variables
@@ -459,7 +460,7 @@ namespace AE::Math
         {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte >>
+                  ENABLEIF( IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte >)
                  >
         SimdTInt128 (T v00, T v01, T v02, T v03,
                      T v04, T v05, T v06, T v07,
@@ -469,20 +470,20 @@ namespace AE::Math
                                   v08, v09, v10, v11, v12, v13, v14, v15 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ushort > or IsSameTypes< T, sshort >>
+                  ENABLEIF( IsSameTypes< T, ushort > or IsSameTypes< T, sshort >)
                  >
         SimdTInt128 (T v0, T v1, T v2, T v3,
                      T v4, T v5, T v6, T v7)            __NE___ :
             _value{ _mm_set_epi16( v0, v1, v2, v3, v4, v5, v6, v7 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, uint > or IsSameTypes< T, sint >>
+                  ENABLEIF( IsSameTypes< T, uint > or IsSameTypes< T, sint >)
                  >
         SimdTInt128 (T v0, T v1, T v2, T v3)            __NE___ :
             _value{ _mm_set_epi32( v0, v1, v2, v3 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ulong > or IsSameTypes< T, slong >>
+                  ENABLEIF( IsSameTypes< T, ulong > or IsSameTypes< T, slong >)
                  >
         SimdTInt128 (T v0, T v1)                        __NE___ :
             _value{ _mm_set_epi64x( v0, v1 )} {}

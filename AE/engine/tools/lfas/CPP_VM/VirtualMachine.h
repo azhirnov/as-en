@@ -29,7 +29,7 @@ namespace LFAS::CPP
 
         public:
             AtomicGlobalLock () {}
-            explicit AtomicGlobalLock (std::mutex *lock);
+            explicit AtomicGlobalLock (std::mutex* lock);
             AtomicGlobalLock (const AtomicGlobalLock &) = delete;
             AtomicGlobalLock (AtomicGlobalLock &&);
             ~AtomicGlobalLock ();
@@ -106,19 +106,19 @@ namespace LFAS::CPP
 
 
     // atomics
-        void  AtomicCreate (const void *ptr);
-        void  AtomicDestroy (const void *ptr);
+        void  AtomicCreate (const void* ptr);
+        void  AtomicDestroy (const void* ptr);
 
-        ND_ bool  AtomicCompareExchangeWeakFalsePositive (const void *ptr);
+        ND_ bool  AtomicCompareExchangeWeakFalsePositive (const void* ptr);
 
         ND_ AtomicGlobalLock  GetAtomicGlobalLock (bool isSequentiallyConsistent);
 
 
     // memory ranges
-        void  StorageCreate (const void *ptr, Bytes size);
-        void  StorageDestroy (const void *ptr);
-        void  StorageReadAccess (const void *ptr, Bytes offset, Bytes size);
-        void  StorageWriteAccess (const void *ptr, Bytes offset, Bytes size);
+        void  StorageCreate (const void* ptr, Bytes size);
+        void  StorageDestroy (const void* ptr);
+        void  StorageReadAccess (const void* ptr, Bytes offset, Bytes size);
+        void  StorageWriteAccess (const void* ptr, Bytes offset, Bytes size);
 
 
     // instance

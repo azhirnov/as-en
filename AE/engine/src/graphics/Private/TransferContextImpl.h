@@ -1,32 +1,31 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_ENABLE_VULKAN)
-#   define TRANSFER_CTX     _VTransferContextImpl
-#   define STAGINGBUF_MNGR  VStagingBufferManager
+#   define TRANSFER_CTX( _res_, _name_ )    template <typename C>  _res_  _VTransferContextImpl<C>::_name_
+#   define STAGINGBUF_MNGR                  VStagingBufferManager
+namespace AE::Graphics::_hidden_ {
 
 #elif defined(AE_ENABLE_METAL)
-#   define TRANSFER_CTX     _MTransferContextImpl
-#   define STAGINGBUF_MNGR  MStagingBufferManager
+#   define TRANSFER_CTX( _res_, _name_ )    template <typename C>  _res_  _MTransferContextImpl<C>::_name_
+#   define STAGINGBUF_MNGR                  MStagingBufferManager
+namespace AE::Graphics::_hidden_ {
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#   define TRANSFER_CTX     _RTransferContextImpl
-#   define STAGINGBUF_MNGR  RStagingBufferManager
+#   define TRANSFER_CTX( _res_, _name_ )    _res_  RTransferContext::_name_
+#   define STAGINGBUF_MNGR                  RStagingBufferManager
+namespace AE::Graphics {
 
 #else
 #   error not implemented
 #endif
 
 
-namespace AE::Graphics::_hidden_
-{
-
 /*
 =================================================
     UploadBuffer
 =================================================
 */
-    template <typename C>
-    void  TRANSFER_CTX<C>::UploadBuffer (BufferID bufferId, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
+    TRANSFER_CTX( void, UploadBuffer )(BufferID bufferId, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
     {
         auto&       dst_buf         = _GetResourcesOrThrow( bufferId );
         const Bytes dst_buf_size    = dst_buf.Size();
@@ -39,7 +38,8 @@ namespace AE::Graphics::_hidden_
         STAGINGBUF_MNGR&                sbm = this->_mngr.GetStagingManager();
         STAGINGBUF_MNGR::BufferRanges_t buffers;
 
-        sbm.GetBufferRanges( OUT buffers, size, uploadDesc.blockSize, _StagingBufOffsetAlign, GetFrameId(), uploadDesc.heapType, this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetBufferRanges( OUT buffers, size, uploadDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
+                             GetFrameId(), uploadDesc.heapType, this->_mngr.GetQueueType(), True{"upload"} );
 
         for (auto& src_buf : buffers)
         {
@@ -60,12 +60,11 @@ namespace AE::Graphics::_hidden_
     UploadBuffer
 =================================================
 */
-    template <typename C>
-    void  TRANSFER_CTX<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView) __Th___
+    TRANSFER_CTX( void, UploadBuffer )(BufferStream &stream, OUT BufferMemView &memView) __Th___
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   dst_buf = _GetResourcesOrThrow( stream.Buffer() );
+        auto&   dst_buf = _GetResourcesOrThrow( stream.BufferId() );
         auto    handle  = dst_buf.Handle();
 
         VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), stream.pos, stream.RemainSize(), memView ));
@@ -73,7 +72,8 @@ namespace AE::Graphics::_hidden_
         STAGINGBUF_MNGR&                sbm = this->_mngr.GetStagingManager();
         STAGINGBUF_MNGR::BufferRanges_t buffers;
 
-        sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
+                             GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"upload"} );
 
         for (auto& src_buf : buffers)
         {
@@ -94,8 +94,7 @@ namespace AE::Graphics::_hidden_
     UploadImage
 =================================================
 */
-    template <typename C>
-    void  TRANSFER_CTX<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
+    TRANSFER_CTX( void, UploadImage )(ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
     {
         auto&   dst_img = _GetResourcesOrThrow( imageId );
         VALIDATE_GCTX( UploadImage( dst_img.Description() ));
@@ -163,12 +162,11 @@ namespace AE::Graphics::_hidden_
     UploadImage
 =================================================
 */
-    template <typename C>
-    void  TRANSFER_CTX<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView) __Th___
+    TRANSFER_CTX( void, UploadImage )(ImageStream &stream, OUT ImageMemView &memView) __Th___
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   dst_img = _GetResourcesOrThrow( stream.Image() );
+        auto&   dst_img = _GetResourcesOrThrow( stream.ImageId() );
         VALIDATE_GCTX( UploadImage( dst_img.Description() ));
 
         const ImageDesc&    img_desc    = dst_img.Description();
@@ -253,8 +251,7 @@ namespace AE::Graphics::_hidden_
     ReadbackBuffer
 =================================================
 */
-    template <typename C>
-    Promise<BufferMemView>  TRANSFER_CTX<C>::ReadbackBuffer (BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
+    TRANSFER_CTX( Promise<BufferMemView>, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
     {
         auto&       src_buf         = _GetResourcesOrThrow( bufferId );
         auto        handle          = src_buf.Handle();
@@ -266,7 +263,8 @@ namespace AE::Graphics::_hidden_
 
         STAGINGBUF_MNGR&                sbm = this->_mngr.GetStagingManager();
         STAGINGBUF_MNGR::BufferRanges_t buffers;
-        sbm.GetBufferRanges( OUT buffers, data_size, readDesc.blockSize, _StagingBufOffsetAlign, GetFrameId(), readDesc.heapType, this->_mngr.GetQueueType(), False{"readback"} );
+        sbm.GetBufferRanges( OUT buffers, data_size, readDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
+                             GetFrameId(), readDesc.heapType, this->_mngr.GetQueueType(), False{"readback"} );
 
         BufferMemView   mem_view;
         for (auto& dst_buf : buffers)
@@ -294,19 +292,19 @@ namespace AE::Graphics::_hidden_
     ReadbackBuffer
 =================================================
 */
-    template <typename C>
-    Promise<BufferMemView>  TRANSFER_CTX<C>::ReadbackBuffer (INOUT BufferStream &stream) __Th___
+    TRANSFER_CTX( Promise<BufferMemView>, ReadbackBuffer )(INOUT BufferStream &stream) __Th___
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   src_buf = _GetResourcesOrThrow( stream.Buffer() );
+        auto&   src_buf = _GetResourcesOrThrow( stream.BufferId() );
         auto    handle  = src_buf.Handle();
 
         VALIDATE_GCTX( ReadbackBuffer( src_buf.Description(), stream.pos, stream.RemainSize() ));
 
         STAGINGBUF_MNGR&                sbm = this->_mngr.GetStagingManager();
         STAGINGBUF_MNGR::BufferRanges_t buffers;
-        sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), False{"readback"} );
+        sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
+                             GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), False{"readback"} );
 
         BufferMemView   mem_view;
         for (auto& dst_buf : buffers)
@@ -334,8 +332,7 @@ namespace AE::Graphics::_hidden_
     ReadbackImage
 =================================================
 */
-    template <typename C>
-    Promise<ImageMemView>   TRANSFER_CTX<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc) __Th___
+    TRANSFER_CTX( Promise<ImageMemView>, ReadbackImage )(ImageID imageId, const ReadbackImageDesc &readDesc) __Th___
     {
         auto&   src_img = _GetResourcesOrThrow( imageId );
         VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
@@ -409,12 +406,11 @@ namespace AE::Graphics::_hidden_
     ReadbackImage
 =================================================
 */
-    template <typename C>
-    Promise<ImageMemView>  TRANSFER_CTX<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
+    TRANSFER_CTX( Promise<ImageMemView>, ReadbackImage )(INOUT ImageStream &stream) __Th___
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   src_img = _GetResourcesOrThrow( stream.Image() );
+        auto&   src_img = _GetResourcesOrThrow( stream.ImageId() );
         VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
 
         const ImageDesc&    img_desc    = src_img.Description();
@@ -495,7 +491,7 @@ namespace AE::Graphics::_hidden_
     }
 
 
-} // AE::Graphics::_hidden_
+} // AE::Graphics (_hidden_)
 
 #undef TRANSFER_CTX
 #undef STAGINGBUF_MNGR

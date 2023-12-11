@@ -43,11 +43,9 @@
 # ifdef AE_CFG_DEBUG
 #   define DBG_CHECK                                CHECK
 #   define DBG_CHECK_MSG                            CHECK_MSG
-#   define DBG_WARNING( _msg_ )                     CHECK_MSG( false, _msg_ )
 # else
 #   define DBG_CHECK( /* expr */... )               {}
 #   define DBG_CHECK_MSG( /* expr, message */... )  {}
-#   define DBG_WARNING( /* message */... )          {}
 # endif
 
 
@@ -77,11 +75,11 @@
 #ifdef AE_DEBUG
 #   define DEV_CHECK                                CHECK
 #   define DEV_CHECK_MSG                            CHECK_MSG
-#   define DEV_WARNING( _msg_ )                     CHECK_MSG( false, _msg_ )
+#   define DBG_WARNING( _msg_ )                     CHECK_MSG( false, _msg_ )
 #else
 #   define DEV_CHECK( /* expr */... )               {}
 #   define DEV_CHECK_MSG( /* expr, message */... )  {}
-#   define DEV_WARNING( /* message */... )          {}
+#   define DBG_WARNING( /* message */... )          {}
 #endif
 
 
@@ -167,8 +165,9 @@
             AE_PRIVATE_EXIT();                                                      \
         }}
 
-#   define CHECK_FATAL( /* expr */... )                                             \
-        CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
+#   define CHECK_FATAL( /* expr, message */... )                                    \
+        CHECK_FATAL_MSG( AE_PRIVATE_GETARG_0( __VA_ARGS__ ),                        \
+                         AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__ ))) )
 #endif
 
 
@@ -178,7 +177,8 @@
         { AE_LOGE( _text_ );  return (_ret_); }
 
 #   define RETURN_ERR( /* msg, return */... )                                       \
-        AE_PRIVATE_RETURN_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+        AE_PRIVATE_RETURN_ERR(  AE_PRIVATE_GETARG_0( __VA_ARGS__ ),                 \
+                                AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
 #   define RETURN_ERRV( _text_ )                                                    \
         { AE_LOGE( _text_ );  return; }
@@ -191,7 +191,7 @@
         {if_likely(( _expr_ )) {}                                                                           \
          else_unlikely {                                                                                    \
             AE_LOGE( AE_TOSTRING( _text_ ));                                                                \
-            STATIC_ASSERT( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);         \
+            StaticAssert( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);          \
             ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );                                      \
             return this->OnFailure(); /* call 'IAsyncTask::OnFailure()' */                                  \
         }}
@@ -233,15 +233,30 @@
 
 // compile time assert
 #if 1
-#   define STATIC_ASSERT( /* expr, msg */... )                                                              \
-        static_assert(  AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_0( __VA_ARGS__ )),                             \
-                        AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING(__VA_ARGS__))) )
+#   define StaticAssert                             static_assert
 
-    // only for 64 bit
 # if AE_PLATFORM_BITS == 64
-#   define STATIC_ASSERT_64( /* expr, msg */... )       STATIC_ASSERT( __VA_ARGS__ )
+#   define StaticAssert64                           static_assert
 # else
-#   define STATIC_ASSERT_64( /* expr, msg */... )
+#   define StaticAssert64( /* expr, msg */... )     static_assert(true)
+# endif
+
+# ifdef AE_ENABLE_EXCEPTIONS
+#   define CheckNothrow                             static_assert
+# else
+#   define CheckNothrow( /* expr, msg */... )       static_assert(true)
+#endif
+
+# ifdef AE_DEBUG
+#   define StaticAssertDbg                          static_assert
+# else
+#   define StaticAssertDbg( /* expr, msg */... )    static_assert(true)
+# endif
+
+# ifdef AE_RELEASE
+#   define StaticAssertRel                          static_assert
+# else
+#   define StaticAssertRel( /* expr, msg */... )    static_assert(true)
 # endif
 #endif
 
@@ -280,8 +295,8 @@
 #endif
 
 
-// throw exception
-#if 1
+// check and throw exception
+#ifdef AE_ENABLE_EXCEPTIONS
 #   define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )                                                 \
         {if_likely(( _expr_ )) {}                                                                       \
          else_unlikely {                                                                                \
@@ -319,12 +334,20 @@
 #   define CHECK_THROW_GE( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), >=, (_rhs_) )
 #   define CHECK_THROW_Lt( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), <,  (_rhs_) )
 #   define CHECK_THROW_LE( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), <=, (_rhs_) )
+
+#else
+
+// TODO: emulate exceptions
+
+#   define CHECK_THROW( /*expr, exception*/... )    CHECK_FATAL( AE_PRIVATE_GETARG_0( __VA_ARGS__ ))
+#   define CHECK_THROW_MSG( /* expr, msg */... )    CHECK_FATAL( __VA_ARGS__ )
+
 #endif
 
 
 // catch exceptions
-#if 1
-#   define CATCH( ... )                                                                                 \
+#ifdef AE_ENABLE_EXCEPTIONS
+#   define NOTHROW( ... )                                                                               \
         try { __VA_ARGS__; }                                                                            \
         catch(...) {}
 
@@ -336,13 +359,17 @@
             return _return_on_exc_;                                                                     \
         }
 
-#   define CATCH_ERR( /* expr, return_on_exc*/... )                                                     \
+#   define NOTHROW_ERR( /* expr, return_on_exc*/... )                                                   \
         AE_PRIVATE_CATCH_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ),                                       \
                               AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
-#   define CATCH_ERRV( _expr_ )                                                                         \
-        CATCH_ERR( (_expr_), void() )
+#   define NOTHROW_ERRV( _expr_ )                                                                       \
+        NOTHROW_ERR( (_expr_), void() )
 
+#else
+#   define NOTHROW( ... )                               {__VA_ARGS__;}
+#   define NOTHROW_ERR( /* expr, return_on_exc*/... )       {AE_PRIVATE_GETARG_0( __VA_ARGS__ );}
+#   define NOTHROW_ERRV( _expr_ )                           {_expr_;}
 #endif
 
 

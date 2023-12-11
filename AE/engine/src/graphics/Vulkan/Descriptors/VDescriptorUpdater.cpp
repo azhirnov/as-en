@@ -48,7 +48,7 @@ namespace
 =================================================
 */
     VDescriptorUpdater::VDescriptorUpdater () __NE___ :
-        _resMngr{RenderTaskScheduler().GetResourceManager()}
+        _resMngr{GraphicsScheduler().GetResourceManager()}
     {}
 
 /*
@@ -118,7 +118,7 @@ namespace
         _descSetId.Attach( descrSetId );
         _dsHandle = desc_set->Handle();
 
-        auto*   ds_layout = _resMngr.GetResource( desc_set->LayoutID(), False{"don't inc ref"}, True{"quiet"} );
+        auto*   ds_layout = _resMngr.GetResource( desc_set->LayoutId(), False{"don't inc ref"}, True{"quiet"} );
         CHECK_ERR( ds_layout != null );
         _dsLayout = ds_layout;
 
@@ -200,7 +200,7 @@ namespace
 =================================================
 */
     template <EDescriptorType DescType>
-    Tuple< const VDescriptorUpdater::Uniform_t*, const Bytes16u* >
+    Tuple< const VDescriptorUpdater::Uniform_t*, const Byte16u* >
         VDescriptorUpdater::_FindUniform (const UniformName &name) const
     {
         const auto  uniforms    = _dsLayout->GetUniformRange<DescType>();
@@ -244,32 +244,32 @@ namespace
 
     uint  VDescriptorUpdater::ImageCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::StorageImage>( name );
+        return _GetArraySize<DT::StorageImage>( name );
     }
 
     uint  VDescriptorUpdater::TextureCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::StorageImage>( name );
+        return _GetArraySize<DT::StorageImage>( name );
     }
 
     uint  VDescriptorUpdater::SamplerCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::Sampler>( name );
+        return _GetArraySize<DT::Sampler>( name );
     }
 
     uint  VDescriptorUpdater::BufferCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::UniformBuffer>( name );
+        return _GetArraySize<DT::UniformBuffer>( name );
     }
 
     uint  VDescriptorUpdater::TexelBufferCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::UniformTexelBuffer>( name );
+        return _GetArraySize<DT::UniformTexelBuffer>( name );
     }
 
     uint  VDescriptorUpdater::RayTracingSceneCount (const UniformName &name) C_NE___
     {
-        return _GetArraySize<EDescriptorType::RayTracingScene>( name );
+        return _GetArraySize<DT::RayTracingScene>( name );
     }
 
 /*
@@ -302,7 +302,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::StorageImage>( name );
+        auto [un, off] = _FindUniform<DT::StorageImage>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( AnyEqual( un->type, DT::StorageImage, DT::SampledImage, DT::CombinedImage_ImmutableSampler, DT::SubpassInput ));
@@ -325,10 +325,10 @@ namespace
             VkWriteDescriptorSet&   wds = _updDesc.descriptors[ _updDesc.index++ ];
             wds = {};
             wds.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            wds.descriptorType  = un->type == EDescriptorType::StorageImage ?   VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
-                                  un->type == EDescriptorType::SampledImage ?   VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
-                                  un->type == EDescriptorType::SubpassInput ?   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
-                                  un->type == EDescriptorType::CombinedImage_ImmutableSampler ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
+            wds.descriptorType  = un->type == DT::StorageImage ?    VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
+                                  un->type == DT::SampledImage ?    VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
+                                  un->type == DT::SubpassInput ?    VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
+                                  un->type == DT::CombinedImage_ImmutableSampler ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
                                                                                 VK_DESCRIPTOR_TYPE_MAX_ENUM;
             wds.dstArrayElement = firstIndex;
             wds.descriptorCount = uint(images.size());
@@ -345,13 +345,13 @@ namespace
                 CHECK_ERR( view != null );
 
                 DEBUG_ONLY(
-                    auto*   img = _resMngr.GetResource( view->Image() );
+                    auto*   img = _resMngr.GetResource( view->ImageId() );
                     CHECK_ERR( img != null );
 
                     const auto& desc        = img->Description();
-                    const bool  is_sampled  = un->type == EDescriptorType::SampledImage and un->type == EDescriptorType::CombinedImage_ImmutableSampler;
-                    const bool  is_storage  = un->type == EDescriptorType::StorageImage;
-                    const bool  is_sp_input = un->type == EDescriptorType::SubpassInput;
+                    const bool  is_sampled  = un->type == DT::SampledImage and un->type == DT::CombinedImage_ImmutableSampler;
+                    const bool  is_storage  = un->type == DT::StorageImage;
+                    const bool  is_sp_input = un->type == DT::SubpassInput;
                     const auto  img_type    = GetImageType( desc, view->Description() );
 
                     ASSERT( not is_sampled  or is_sampled  == AllBits( desc.usage, EImageUsage::Sampled ));
@@ -426,7 +426,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::StorageImage>( name );
+        auto [un, off] = _FindUniform<DT::StorageImage>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( un->type == DT::CombinedImage );
@@ -468,7 +468,7 @@ namespace
                 CHECK_ERR( view != null );
 
                 DEBUG_ONLY(
-                    auto*   img = _resMngr.GetResource( view->Image() );
+                    auto*   img = _resMngr.GetResource( view->ImageId() );
                     CHECK_ERR( img != null );
 
                     const auto& desc        = img->Description();
@@ -533,7 +533,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::Sampler>( name );
+        auto [un, off] = _FindUniform<DT::Sampler>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( un->type == DT::Sampler );
@@ -621,7 +621,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::UniformBuffer>( name );
+        auto [un, off] = _FindUniform<DT::UniformBuffer>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( AnyEqual( un->type, DT::UniformBuffer, DT::StorageBuffer ));
@@ -630,8 +630,8 @@ namespace
         CHECK_ERR( typeName == Default or typeName == un->buffer.typeName );
 
         DEBUG_ONLY(
-            const bool  is_uniform  = un->type == EDescriptorType::UniformBuffer;
-            const bool  is_storage  = un->type == EDescriptorType::StorageBuffer;
+            const bool  is_uniform  = un->type == DT::UniformBuffer;
+            const bool  is_storage  = un->type == DT::StorageBuffer;
             const auto& props       = _resMngr.GetDevice().GetDeviceProperties().res;
             const auto  max_size    = is_uniform ? Bytes{props.maxUniformBufferRange} : UMax;
         )
@@ -653,8 +653,8 @@ namespace
             VkWriteDescriptorSet&   wds = _updDesc.descriptors[ _updDesc.index++ ];
             wds = {};
             wds.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            wds.descriptorType  = un->type == EDescriptorType::UniformBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) :
-                                  un->type == EDescriptorType::StorageBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) :
+            wds.descriptorType  = un->type == DT::UniformBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) :
+                                  un->type == DT::StorageBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) :
                                                                                 VK_DESCRIPTOR_TYPE_MAX_ENUM;
             wds.dstArrayElement = firstIndex;
             wds.descriptorCount = uint(buffers.size());
@@ -708,7 +708,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::UniformBuffer>( name );
+        auto [un, off] = _FindUniform<DT::UniformBuffer>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( AnyEqual( un->type, DT::UniformBuffer, DT::StorageBuffer ));
@@ -716,8 +716,8 @@ namespace
         CHECK_ERR( typeName == Default or typeName == un->buffer.typeName );
 
         DEBUG_ONLY(
-            const bool  is_uniform  = un->type == EDescriptorType::UniformBuffer;
-            const bool  is_storage  = un->type == EDescriptorType::StorageBuffer;
+            const bool  is_uniform  = un->type == DT::UniformBuffer;
+            const bool  is_storage  = un->type == DT::StorageBuffer;
             const auto& props       = _resMngr.GetDevice().GetDeviceProperties().res;
             const auto  min_align   = Bytes{ is_uniform ? props.minUniformBufferOffsetAlign : props.minStorageBufferOffsetAlign };
             const auto  max_size    = is_uniform ? Bytes{props.maxUniformBufferRange} : UMax;
@@ -740,8 +740,8 @@ namespace
             VkWriteDescriptorSet&   wds = _updDesc.descriptors[ _updDesc.index++ ];
             wds = {};
             wds.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            wds.descriptorType  = un->type == EDescriptorType::UniformBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) :
-                                  un->type == EDescriptorType::StorageBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) :
+            wds.descriptorType  = un->type == DT::UniformBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) :
+                                  un->type == DT::StorageBuffer ? (is_dynamic ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) :
                                                                                 VK_DESCRIPTOR_TYPE_MAX_ENUM;
             wds.dstArrayElement = elementIndex;
             wds.descriptorCount = 1;
@@ -803,7 +803,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::UniformBuffer>( name );
+        auto [un, off] = _FindUniform<DT::UniformBuffer>( name );
         CHECK_ERR( un != null );
 
         return un->buffer.typeName;
@@ -839,7 +839,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::UniformTexelBuffer>( name );
+        auto [un, off] = _FindUniform<DT::UniformTexelBuffer>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( AnyEqual( un->type, DT::UniformTexelBuffer, DT::StorageTexelBuffer ));
@@ -861,8 +861,8 @@ namespace
             VkWriteDescriptorSet&   wds = _updDesc.descriptors[ _updDesc.index++ ];
             wds = {};
             wds.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            wds.descriptorType  = un->type == EDescriptorType::UniformTexelBuffer ? VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER :
-                                  un->type == EDescriptorType::StorageTexelBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER :
+            wds.descriptorType  = un->type == DT::UniformTexelBuffer ? VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER :
+                                  un->type == DT::StorageTexelBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER :
                                                                                     VK_DESCRIPTOR_TYPE_MAX_ENUM;
             wds.dstArrayElement = firstIndex;
             wds.descriptorCount = uint(views.size());
@@ -879,12 +879,12 @@ namespace
                 CHECK_ERR( view != null );
 
                 DEBUG_ONLY(
-                    auto*   buf = _resMngr.GetResource( view->Buffer() );
+                    auto*   buf = _resMngr.GetResource( view->BufferId() );
                     CHECK_ERR( buf != null );
 
                     const auto& desc        = buf->Description();
-                    const bool  is_uniform  = un->type == EDescriptorType::UniformTexelBuffer;
-                    const bool  is_storage  = un->type == EDescriptorType::StorageTexelBuffer;
+                    const bool  is_uniform  = un->type == DT::UniformTexelBuffer;
+                    const bool  is_storage  = un->type == DT::StorageTexelBuffer;
                     const auto  img_type    = GetImageType( view->Description() );
 
                     ASSERT( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::UniformTexel ));
@@ -942,7 +942,7 @@ namespace
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        auto [un, off] = _FindUniform<EDescriptorType::RayTracingScene>( name );
+        auto [un, off] = _FindUniform<DT::RayTracingScene>( name );
 
         CHECK_ERR( un != null );
         CHECK_ERR( un->type == DT::RayTracingScene );

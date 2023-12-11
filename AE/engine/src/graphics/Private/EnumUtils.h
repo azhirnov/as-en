@@ -75,7 +75,7 @@ namespace AE::Graphics
             4,
             5
         };
-        STATIC_ASSERT( CountOf(indices) == usize(EDescriptorType::_Count)+1 );
+        StaticAssert( CountOf(indices) == usize(EDescriptorType::_Count)+1 );
         return indices[ uint(type) ];
     }
 //-----------------------------------------------------------------------------
@@ -230,7 +230,7 @@ namespace AE::Graphics
             format{fmt}, aspectMask{aspect}, channels{0} {}
 
         PixelFormatInfo (EPixelFormat fmt, uint bpp, uint usedBPP, uint channels, EType type, EImageAspect aspect) __NE___ :
-            valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect}, 
+            valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect},
             channels{ CheckCast<ubyte>( channels )}, srcBitsPerPix{ CheckCast<ubyte>( usedBPP )} {}
 
         ND_ bool    IsValid ()                      C_NE___ { return format != Default; }

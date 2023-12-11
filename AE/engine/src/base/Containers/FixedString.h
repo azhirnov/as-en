@@ -4,6 +4,7 @@
 
 #include "base/Math/Vec.h"
 #include "base/Memory/MemUtils.h"
+#include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
@@ -12,10 +13,12 @@ namespace AE::Base
     // Fixed Size String
     //
 
-    template <typename CharT, usize StringSize>
-    struct TFixedString
+    template <typename CharT,
+              usize StringSize
+             >
+    struct TFixedString : NothrowAllocatable
     {
-        STATIC_ASSERT( StringSize <= 512 );
+        StaticAssert( StringSize <= 512 );
 
     // type
     public:
@@ -26,7 +29,7 @@ namespace AE::Base
         using Self              = TFixedString< CharT, StringSize >;
 
     private:
-        using Length_t          = Conditional< alignof(CharT) < 4, ubyte, uint >;
+        using Length_t          = Conditional< alignof(CharT) == 1 and StringSize <= 256, ubyte, ushort >;
 
 
     // variables
@@ -40,7 +43,7 @@ namespace AE::Base
         constexpr TFixedString ()                           __NE___ = default;
         constexpr TFixedString (const View_t &view)         __NE___ : TFixedString{ view.data(), view.length() } {}
 
-        constexpr TFixedString (const CharT *str)           __NE___
+        constexpr TFixedString (const CharT* str)           __NE___
         {
             for (; str[_length] and _length < StringSize; ++_length) {
                 _array[_length] = str[_length];
@@ -48,7 +51,7 @@ namespace AE::Base
             _array[_length] = CharT{0};
         }
 
-        constexpr TFixedString (const CharT *str, usize length) __NE___
+        constexpr TFixedString (const CharT* str, usize length) __NE___
         {
             ASSERT( length < StringSize );
 
@@ -60,8 +63,6 @@ namespace AE::Base
 
         constexpr TFixedString (Self &&)                    __NE___ = default;
         constexpr TFixedString (const Self &)               __NE___ = default;
-
-        constexpr ~TFixedString ()                          __NE___ = default;
 
         Self&  operator = (Self &&)                         __NE___ = default;
         Self&  operator = (const Self &)                    __NE___ = default;
@@ -125,6 +126,11 @@ namespace AE::Base
 
     template <usize StringSize>
     using FixedString = TFixedString< char, StringSize >;
+//-----------------------------------------------------------------------------
+
+
+    template <typename T, usize S>  struct TMemCopyAvailable< TFixedString<T,S> >   { static constexpr bool  value = true; };
+    template <typename T, usize S>  struct TZeroMemAvailable< TFixedString<T,S> >   { static constexpr bool  value = true; };
 
 } // AE::Base
 

@@ -24,7 +24,7 @@ namespace AE::Video
 
         struct Config
         {
-            uint2               dstSize         = {};               // can be used for scaling
+            uint2               dstDim          = {};               // can be used for scaling
             EPixelFormat        dstFormat       = Default;
             EFilter             filter          = Default;
         //  bool                hwAccelerated   = false;            // use hardware acceleration on GPU or CPU
@@ -32,6 +32,7 @@ namespace AE::Video
         //  ECPUVendor          targetCPU       = Default;
             int                 videoStreamIdx  = -1;               // use 'GetFileProperties()' to enum all streams
         //  int                 audioStreamIdx  = -1;
+            uint                threadCount     = 0;
         };
 
         struct StreamInfo
@@ -47,7 +48,9 @@ namespace AE::Video
             FrameRate_t         avgFrameRate;               // average
             FrameRate_t         minFrameRate;               // minimal
             Bitrate_t           bitrate;
-            uint2               size            = {};       // video only
+            uint2               dimension       = {};       // video only
+
+            StreamInfo ()   __NE___ {}
         };
         using StreamInfos_t = FixedArray< StreamInfo, 8 >;
 
@@ -76,13 +79,11 @@ namespace AE::Video
         ND_ virtual bool  SeekTo (ulong frameIdx)                               __NE___ = 0;
         ND_ virtual bool  SeekTo (Second_t timestamp)                           __NE___ = 0;
 
-        ND_ virtual bool  GetFrame (OUT ImageMemView &  view,
-                                    OUT FrameInfo &     info)                   __NE___ = 0;
+        ND_ virtual bool  GetNextFrame (INOUT ImageMemView &    memView,
+                                        OUT FrameInfo &         info)           __NE___ = 0;
 
-        ND_ virtual bool  GetFrame (OUT VideoImageID &  id,
-                                    OUT FrameInfo &     info)                   __NE___ = 0;
-
-        // TODO: GetFrameAsync()
+    //  ND_ virtual bool  GetNextFrame (OUT VideoImageID &  id,
+    //                                  OUT FrameInfo &     info)               __NE___ = 0;
 
         ND_ virtual bool  End ()                                                __NE___ = 0;
 
@@ -93,10 +94,37 @@ namespace AE::Video
         // stateless
         ND_ virtual Properties  GetFileProperties (const Path &filename)        C_NE___ = 0;
         ND_ virtual Properties  GetFileProperties (RC<RStream> stream)          C_NE___ = 0;
-        ND_ virtual String      PrintFileProperties (const Path &filename)      C_NE___ = 0;
-        ND_ virtual String      PrintFileProperties (RC<RStream> stream)        C_NE___ = 0;
+        ND_ virtual String      PrintFileProperties (const Path &filename)      C_Th___ = 0;
+        ND_ virtual String      PrintFileProperties (RC<RStream> stream)        C_Th___ = 0;
         // TODO: get codecs
+
+        // helpers
+        template <typename A>
+        ND_ static bool  AllocMemView (const Config         &cfg,
+                                       OUT ImageMemView     &memView,
+                                       A                    &allocator)         __NE___;
     };
+
+
+/*
+=================================================
+    AllocMemView
+=================================================
+*/
+    template <typename A>
+    bool  IVideoDecoder::AllocMemView (const Config         &cfg,
+                                       OUT ImageMemView     &memView,
+                                       A                    &allocator) __NE___
+    {
+        auto&   fmt_info    = EPixelFormat_GetInfo( cfg.dstFormat );
+        Bytes   row_pitch   = Graphics::ImageUtils::RowSize( cfg.dstDim.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
+        Bytes   img_size    = row_pitch * cfg.dstDim.y;
+        void*   data        = allocator.Allocate( SizeAndAlign{ img_size, AE_CACHE_LINE });
+        CHECK_ERR( data != null );
+
+        memView = ImageMemView{ data, img_size, uint3{}, uint3{cfg.dstDim, 1}, row_pitch, img_size, cfg.dstFormat, Graphics::EImageAspect::Color };
+        return true;
+    }
 
 
 } // AE::Video

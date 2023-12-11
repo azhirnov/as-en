@@ -16,7 +16,7 @@
 
         // render loop
         {
-            RC<Postprocess>     pass = Postprocess( EPostprocess::None );
+            RC<Postprocess>     pass = Postprocess();
             pass.Output( "out_Color",   rt );
             pass.Slider( "iMode",       0, 3 );
         }

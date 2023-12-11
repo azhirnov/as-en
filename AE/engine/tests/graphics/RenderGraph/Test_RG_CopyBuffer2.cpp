@@ -23,7 +23,7 @@ namespace
     public:
         CB2_TestData&   t;
 
-        CB2_CopyBufferTask (CB2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        CB2_CopyBufferTask (CB2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -56,7 +56,7 @@ namespace
     template <typename Ctx>
     static bool  CopyBuffer2Test ()
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         EMemoryType     host_mem    = Default;
         CB2_TestData    t;
@@ -81,20 +81,23 @@ namespace
             t.buffer_data[i] = ubyte(i);
         }
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyBuffer2"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< CB2_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy buffer task"} );
+        AsyncTask   task1   = batch->Run< CB2_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"Copy buffer task"} );
         AsyncTask   end     = rts.EndFrame( Tuple{task1} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

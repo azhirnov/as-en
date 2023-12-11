@@ -31,8 +31,8 @@ namespace AE::Threading
         virtual void  AddThread (RC<IThread>)                           __NE___ = 0;
 
         // Used for work outside of task.
-        virtual void  BeginNonTaskWork (const void *id, StringView name)__NE___ = 0;
-        virtual void  EndNonTaskWork (const void *id, StringView name)  __NE___ = 0;
+        virtual void  BeginNonTaskWork (const void* id, StringView name)__NE___ = 0;
+        virtual void  EndNonTaskWork (const void* id, StringView name)  __NE___ = 0;
     };
 
 

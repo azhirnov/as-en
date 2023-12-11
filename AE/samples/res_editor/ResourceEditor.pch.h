@@ -13,3 +13,8 @@
 #include "res_loaders/AllImages/AllImageSavers.h"
 #include "res_loaders/Intermediate/IntermImage.h"
 
+#ifdef AE_ENABLE_VULKAN
+# define PIPELINE_STATISTICS    0   // 0 or 1
+#else
+# define PIPELINE_STATISTICS    0   // not supported
+#endif

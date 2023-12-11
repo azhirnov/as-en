@@ -37,6 +37,6 @@ namespace AE::InputActions
         const CharType *        outputCppFile       = null;     // reflection
     };
 
-    extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo *info);
+    extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo* info);
 
 } // AE::InputActions

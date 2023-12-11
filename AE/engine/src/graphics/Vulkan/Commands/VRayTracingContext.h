@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    RayTracingCtx --> DirectRayTracingCtx   --> BarrierMngr --> Vulkan device 
+    RayTracingCtx --> DirectRayTracingCtx   --> BarrierMngr --> Vulkan device
                   \-> IndirectRayTracingCtx --> BarrierMngr --> Backed commands
 */
 
@@ -53,7 +53,7 @@ namespace AE::Graphics::_hidden_
         _VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)                       __Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
         void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
-        void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
         void  _SetStackSize (Bytes size);
 
         void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
@@ -104,7 +104,7 @@ namespace AE::Graphics::_hidden_
         _VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)                 __Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
         void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
-        void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
         void  _SetStackSize (Bytes size);
 
         void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
@@ -126,9 +126,6 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsRayTracingContext         = true;
-        static constexpr bool   IsVulkanRayTracingContext   = true;
-
         using CmdBuf_t      = typename CtxImpl::CmdBuf_t;
     private:
         using RawCtx        = CtxImpl;
@@ -149,7 +146,7 @@ namespace AE::Graphics::_hidden_
         void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th_OV;
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV;
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV;
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV;
         using IRayTracingContext::PushConstant;
 
         void  SetStackSize (Bytes size)                                                                                     __Th_OV { RawCtx::_SetStackSize( size ); }
@@ -228,7 +225,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
+    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         Unused( typeName );
@@ -393,7 +390,7 @@ namespace AE::Graphics::_hidden_
     _PushConstant
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    inline void  _VDirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 
@@ -443,7 +440,7 @@ namespace AE::Graphics::_hidden_
     _PushConstant
 =================================================
 */
-    inline void  _VIndirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    inline void  _VIndirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Thread-safe:    yes (mutex)
+    Thread-safe:    yes (locks in allocator)
 */
 
 #pragma once

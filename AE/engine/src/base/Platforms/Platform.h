@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Platforms/ThreadUtils.h"
 #include "base/Platforms/CPUInfo.h"
 
 #if defined(AE_PLATFORM_WINDOWS)
@@ -68,3 +67,5 @@ namespace AE::Base
     #endif
 
 } // AE::Base
+
+#include "base/Platforms/ThreadUtils.h"

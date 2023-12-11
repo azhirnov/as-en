@@ -3,7 +3,7 @@
     docs:
         [Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html)
 
-    [supported features](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/VulkanFeatures.md)
+    [supported features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanFeatures.md)
 */
 
 #pragma once
@@ -38,7 +38,7 @@ namespace AE::Graphics
     class VFramebuffer;
     class VCommandPoolManager;
     class VCommandBatch;
-    class VRenderTaskScheduler;
+    class RenderTaskScheduler;
 
     DEBUG_ONLY(
         using DebugName_t = FixedString<64>;
@@ -58,9 +58,7 @@ namespace AE::Graphics
     //
     struct VConfig final : Noninstanceable
     {
-        static constexpr uint   MaxQueues       = uint(EQueueType::_Count) + 1;
-
-        static constexpr uint   MaxVideoMaxReq  = 8;
+        static constexpr uint   MaxVideoMemReq  = 8;
 
         // for query manager
         static constexpr uint   TimestampQueryPerFrame          = 1000;

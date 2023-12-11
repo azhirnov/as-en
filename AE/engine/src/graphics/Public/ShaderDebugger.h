@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+    Thread-safe:  no
+
     Exceptions only in fatal error:
         - transfer context exceptions (failed to allocate space for command).
         - Array allocation exceptions.
@@ -26,14 +28,14 @@ namespace AE::Graphics
         enum class ELogFormat : uint
         {
             Unknown,
-            Text,           // as plane text with part of source code 
+            Text,           // as plane text with part of source code
             VS_Console,     // compatible with VS output, allow navigation to code by click
             VS,             // click to file path will open shader source file
             VSCode,         // click to file path will open shader source file in specified line
             _Count
         };
 
-        using ParseTraceFn_t = bool (*) (const void* ppln, const void *ptr, Bytes maxSize, ELogFormat, OUT Array<String> &result);
+        using ParseTraceFn_t = bool (*) (const void* ppln, const void* ptr, Bytes maxSize, ELogFormat, OUT Array<String> &result);
 
         struct Result
         {
@@ -167,7 +169,7 @@ namespace AE::Graphics
             return false;
 
         const uint  data[4] = { fragCoord.x, fragCoord.y, 0, 0 };
-        STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
+        StaticAssert( _TraceHeaderSize == sizeof(data) );
 
         _FillBuffer( result, ctx, Sizeof(data), data );
         return true;

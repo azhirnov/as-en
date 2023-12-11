@@ -1,4 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    There are 2 concepts:
+     - allocator as static object which doesn't add 8-byte overhead for pointer to allocator.
+     - allocator as RC<IAllocator>.
+*/
 
 #pragma once
 
@@ -22,7 +27,6 @@ namespace AE::Base
     template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
     class StackAllocator;
 
-    class MtAllocator;
 
     template <typename AllocatorType>
     class AllocatorRef;

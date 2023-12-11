@@ -8,7 +8,10 @@ set( AE_ENABLE_MEMLEAK_CHECKS ON CACHE BOOL "enable memory leak checks" )
 set( AE_USE_SANITIZER           OFF CACHE BOOL "enable (address/...) sanitizer" )
 set( AE_CI_BUILD_NO_GRAPHICS    OFF CACHE BOOL "CI settings (without graphics)" )
 set( AE_CI_BUILD                OFF CACHE BOOL "CI settings" )
-mark_as_advanced( AE_NO_EXCEPTIONS AE_CI_BUILD_NO_GRAPHICS AE_CI_BUILD )
+set( AE_ENABLE_EXCEPTIONS       ON  CACHE BOOL "enable exception and RTTI" )
+set( AE_ENABLE_LOGS             ON  CACHE BOOL "enable logging, disable to remove a lot of strings" )
+
+mark_as_advanced( AE_CI_BUILD_NO_GRAPHICS AE_CI_BUILD AE_ENABLE_LOGS )
 
 #----------------------------------------------------------
 # internal constants

@@ -11,7 +11,7 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    DataTransferQueue::DataTransferQueue () :
+    DataTransferQueue::DataTransferQueue () __NE___ :
         _destroy{0}
     {
         {
@@ -149,7 +149,7 @@ namespace AE::ResEditor
             // upload
             {
                 auto    status = EUploadStatus::Failed;
-                CATCH( status = res->Upload( ctx ));
+                NOTHROW( status = res->Upload( ctx ));
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -259,7 +259,7 @@ namespace AE::ResEditor
             // upload
             {
                 auto    status = EUploadStatus::Failed;
-                CATCH( status = res->Readback( ctx ));
+                NOTHROW( status = res->Readback( ctx ));
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -274,7 +274,7 @@ namespace AE::ResEditor
                         ASSERT( cnt >= 0 );
                         Unused( cnt );
                         break;
-                    }           
+                    }
                     case EUploadStatus::NoMemory :
                     {
                         ++low_mem;

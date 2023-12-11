@@ -57,14 +57,14 @@ namespace AE::Samples::Demo
 
     // methods
     public:
-        Canvas2DSample () {}
-        ~Canvas2DSample () override;
+        Canvas2DSample ()                                                                   __NE___ {}
+        ~Canvas2DSample ()                                                                  __NE_OV;
 
         // ISample //
-        bool            Init (PipelinePackID pack)                                          override;
-        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   override;
-        InputModeName   GetInputMode ()                                                     const override;
+        bool            Init (PipelinePackID pack)                                          __NE_OV;
+        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE_OV;
+        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   __NE_OV;
+        InputModeName   GetInputMode ()                                                     C_NE_OV;
     };
 
 } // AE::Samples::Demo

@@ -34,7 +34,7 @@ void ASmain ()
         samp.AddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
     }
     {
-        RC<Sampler>     samp = Sampler( "AnisotrophyRepeat" );
+        RC<Sampler>     samp = Sampler( "AnisotropyRepeat" );
         samp.AddFeatureSet( "MinDesktop" );
         samp.Filter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
         samp.AddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );

@@ -11,6 +11,8 @@ namespace AE::Threading
     LfStaticIndexedPool<V,I,C,A>::LfStaticIndexedPool (const Allocator_t &alloc) __NE___ :
         _allocator{ alloc }
     {
+        DRC_EXLOCK( _drCheck );
+
         _arr = Cast<ChunkArray_t>( _allocator.Allocate( SizeAndAlignOf<ChunkArray_t> ));
         CHECK( _arr != null );
 
@@ -27,8 +29,10 @@ namespace AE::Threading
 */
     template <typename V, typename I, usize C, typename A>
     template <typename FN>
-    void  LfStaticIndexedPool<V,I,C,A>::ForEach (FN && fn) noexcept(IsNothrowInvocable<FN>)
+    void  LfStaticIndexedPool<V,I,C,A>::ForEach (FN &&fn) __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         if ( _arr == null )
             return;
 
@@ -38,7 +42,8 @@ namespace AE::Threading
 
             for (usize j = 0; j < ChunkSize; ++j)
             {
-                fn( INOUT chunk.arr[j], Index_t(i*ChunkSize + j) );
+                CheckNothrow( IsNoExcept( fn( chunk.values[j], Index_t(i*ChunkSize + j) )));
+                fn( INOUT chunk.values[j], Index_t(i*ChunkSize + j) );
             }
         }
     }
@@ -53,6 +58,8 @@ namespace AE::Threading
     template <typename V, typename I, usize C, typename A>
     void  LfStaticIndexedPool<V,I,C,A>::Release (Bool checkForAssigned) __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         if ( _arr == null )
             return;
 
@@ -80,8 +87,10 @@ namespace AE::Threading
 */
     template <typename V, typename I, usize C, typename A>
     template <typename FN>
-    void  LfStaticIndexedPool<V,I,C,A>::UnassignAll (FN && fn) noexcept(IsNothrowInvocable<FN>)
+    void  LfStaticIndexedPool<V,I,C,A>::UnassignAll (FN &&fn) __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         if ( _arr == null )
             return;
 
@@ -95,7 +104,8 @@ namespace AE::Threading
             {
                 Bitfield_t  mask = Bitfield_t{1} << idx;
 
-                fn( INOUT chunk.arr[idx] );
+                CheckNothrow( IsNoExcept( fn( chunk.values[idx] )));
+                fn( INOUT chunk.values[idx] );
 
                 bits &= ~mask;                  // 1 -> 0
                 idx  = BitScanForward( bits );  // first 1 bit
@@ -112,8 +122,10 @@ namespace AE::Threading
 */
     template <typename V, typename I, usize C, typename A>
     template <typename FN>
-    void  LfStaticIndexedPool<V,I,C,A>::ForEachAssigned (FN && fn) const noexcept(IsNothrowInvocable<FN>)
+    void  LfStaticIndexedPool<V,I,C,A>::ForEachAssigned (FN &&fn) C_NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         if ( _arr == null )
             return;
 
@@ -127,7 +139,8 @@ namespace AE::Threading
             {
                 Bitfield_t  mask = Bitfield_t{1} << idx;
 
-                fn( chunk.arr[idx] );
+                CheckNothrow( IsNoExcept( fn( chunk.values[idx] )));
+                fn( chunk.values[idx] );
 
                 bits &= ~mask;                  // 1 -> 0
                 idx  = BitScanForward( bits );  // first 1 bit
@@ -143,6 +156,8 @@ namespace AE::Threading
     template <typename V, typename I, usize C, typename A>
     bool  LfStaticIndexedPool<V,I,C,A>::Assign (OUT Index_t &outIndex) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         CHECK_ERR( _arr != null );
 
         const usize     initial_idx = ThreadUtils::GetIntID() & ThreadToChunkMask;
@@ -183,8 +198,10 @@ namespace AE::Threading
 =================================================
 */
     template <typename V, typename I, usize C, typename A>
-    void  LfStaticIndexedPool<V,I,C,A>::Unassign (Index_t index) __NE___
+    bool  LfStaticIndexedPool<V,I,C,A>::Unassign (Index_t index) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
         ASSERT( index < capacity() );
 
@@ -194,6 +211,8 @@ namespace AE::Threading
         Bitfield_t  old_bits    = (*_arr)[ chunk_idx ].assigned.fetch_and( ~mask ); // 1 -> 0
         Unused( old_bits );
         ASSERT( old_bits & mask );  // prev bit must be 1
+
+        return !!(old_bits & mask);
     }
 
 /*
@@ -204,6 +223,8 @@ namespace AE::Threading
     template <typename V, typename I, usize C, typename A>
     bool  LfStaticIndexedPool<V,I,C,A>::IsAssigned (Index_t index) C_NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         if_likely( (_arr != null) & (index < capacity()) )
         {
             const uint  chunk_idx   = index / ChunkSize;
@@ -224,6 +245,8 @@ namespace AE::Threading
     typename LfStaticIndexedPool<V,I,C,A>::Value_t&
         LfStaticIndexedPool<V,I,C,A>::operator [] (Index_t index) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
         ASSERT( index < capacity() );
         ASSERT( IsAssigned( index ));
@@ -232,7 +255,7 @@ namespace AE::Threading
         const uint      bit_idx     = index % ChunkSize;
         auto&           chunk       = (*_arr)[ chunk_idx ];
 
-        return chunk.arr[ bit_idx ];
+        return chunk.values[ bit_idx ];
     }
 
 /*
@@ -244,13 +267,15 @@ namespace AE::Threading
     typename LfStaticIndexedPool<V,I,C,A>::Value_t*
         LfStaticIndexedPool<V,I,C,A>::At (Index_t index) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         if_likely( _arr != null and index < capacity() )
         {
             const uint      chunk_idx   = index / ChunkSize;
             const uint      bit_idx     = index % ChunkSize;
             auto&           chunk       = (*_arr)[ chunk_idx ];
 
-            return &chunk.arr[ bit_idx ];
+            return &chunk.values[ bit_idx ];
         }
         return null;
     }
@@ -263,6 +288,8 @@ namespace AE::Threading
     template <typename V, typename I, usize C, typename A>
     usize  LfStaticIndexedPool<V,I,C,A>::size () C_NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         if_unlikely( _arr == null )
             return 0;
 
@@ -273,5 +300,46 @@ namespace AE::Threading
         }
         return count;
     }
+
+/*
+=================================================
+    IndexOf
+=================================================
+*/
+    template <typename V, typename I, usize C, typename A>
+    typename LfStaticIndexedPool<V,I,C,A>::Index_t  LfStaticIndexedPool<V,I,C,A>::IndexOf (const void* ptr) C_NE___
+    {
+        DRC_SHAREDLOCK( _drCheck );
+
+        if_unlikely( not _arr )
+            return UMax;
+
+        if ( IsIntersects<const void*>( ptr, ptr, _arr->data(), _arr->data() + _arr->size() ))
+        {
+            usize   a           = (usize(ptr) - usize(_arr->data())) / sizeof(Chunk);
+            auto&   ll_chunk    = (*_arr)[a];
+            usize   b           = (usize(ptr) - usize(ll_chunk.values.data())) / sizeof(Value_t);
+
+            return CheckCast<Index_t>( b + (a * ChunkSize) );
+        }
+
+        // out of bounds
+        return UMax;
+    }
+
+/*
+=================================================
+    Unassign
+=================================================
+*/
+    template <typename V, typename I, usize C, typename A>
+    bool  LfStaticIndexedPool<V,I,C,A>::Unassign (const void* ptr) __NE___
+    {
+        if_likely( Index_t  idx = IndexOf( ptr );  idx != UMax )
+            return Unassign( idx );
+
+        return false;
+    }
+
 
 } // AE::Threading

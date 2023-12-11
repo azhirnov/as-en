@@ -43,7 +43,7 @@ namespace AE::Base
     ND_ forceinline CharUtf32  Utf8Decode (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
     {
         ASSERT( pos < length );
-        STATIC_ASSERT( sizeof(utf8proc_uint8_t) == sizeof(*str) );
+        StaticAssert( sizeof(utf8proc_uint8_t) == sizeof(*str) );
 
         utf8proc_int32_t    symb;
         utf8proc_ssize_t    res = utf8proc_iterate( Cast<utf8proc_uint8_t>(str + pos), length - pos, OUT &symb );
@@ -68,7 +68,7 @@ namespace AE::Base
     {
         Unused( size );
         ASSERT( pos+4 <= size );
-        STATIC_ASSERT( sizeof(utf8proc_uint8_t) == sizeof(*dst) );
+        StaticAssert( sizeof(utf8proc_uint8_t) == sizeof(*dst) );
 
         ssize   cnt = utf8proc_encode_char( symb, Cast<utf8proc_uint8_t>(dst + pos) );
         ASSERT( cnt > 0 and cnt <= 4 );

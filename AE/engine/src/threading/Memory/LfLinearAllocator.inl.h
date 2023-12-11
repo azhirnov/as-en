@@ -11,10 +11,7 @@ namespace AE::Threading
     template <usize BS, usize MA, usize MB, typename A>
     LfLinearAllocator<BS,MA,MB,A>::LfLinearAllocator (const Allocator_t &alloc) __NE___ :
         _allocator{ alloc }
-    {
-        // make visible changes in '_blocks'
-        MemoryBarrier( EMemoryOrder::Release );
-    }
+    {}
 
 /*
 =================================================
@@ -24,6 +21,8 @@ namespace AE::Threading
     template <usize BS, usize MA, usize MB, typename A>
     Bytes  LfLinearAllocator<BS,MA,MB,A>::CurrentSize () C_NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         Bytes   result;
 
         for (auto& block : _blocks)
@@ -37,12 +36,13 @@ namespace AE::Threading
 =================================================
     Release
 ----
-    must be externally synchronized
+    Must be externally synchronized
 =================================================
 */
     template <usize BS, usize MA, usize MB, typename A>
     void  LfLinearAllocator<BS,MA,MB,A>::Release () __NE___
     {
+        DRC_EXLOCK( _drCheck );
         EXLOCK( _allocGuard );
 
         Bytes   allocated;
@@ -67,16 +67,28 @@ namespace AE::Threading
 =================================================
     Discard
 ----
-    must be externally synchronized
+    Must be externally synchronized
 =================================================
 */
     template <usize BS, usize MA, usize MB, typename A>
     void  LfLinearAllocator<BS,MA,MB,A>::Discard () __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         for (auto& block : _blocks)
         {
             block.size.store( 0 );
         }
+
+    #ifdef AE_DEBUG
+        MemoryBarrier( EMemoryOrder::Acquire );
+        for (auto& block : _blocks)
+        {
+            if ( auto* ptr = block.mem.load() )
+                DbgInitMem( OUT ptr, BlockSize() );
+        }
+        MemoryBarrier( EMemoryOrder::Release );
+    #endif
     }
 
 /*
@@ -87,6 +99,8 @@ namespace AE::Threading
     template <usize BS, usize MA, usize MB, typename A>
     void*  LfLinearAllocator<BS,MA,MB,A>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         for (auto block_it = _blocks.begin(); block_it != _blocks.end();)
         {
             void*   ptr = block_it->mem.load();
@@ -136,9 +150,11 @@ namespace AE::Threading
 =================================================
 */
     template <usize BS, usize MA, usize MB, typename A>
-    void  LfLinearAllocator<BS,MA,MB,A>::Deallocate (void *ptr, Bytes size) __NE___
+    void  LfLinearAllocator<BS,MA,MB,A>::Deallocate (void* ptr, Bytes size) __NE___
     {
     #ifdef AE_DEBUG
+        DRC_SHAREDLOCK( _drCheck );
+
         for (auto& block : _blocks)
         {
             if ( void* mem = block.mem.load() )

@@ -29,7 +29,7 @@ namespace AE::Graphics
     {
         DRC_EXLOCK( _drCheck );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         {
             auto    buffers = _buffers.WriteNoLock();
@@ -105,7 +105,7 @@ namespace AE::Graphics
             }
         }
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         // create allocator
         GfxMemAllocatorPtr  gfx_alloc = _gfxAlloc.load();
@@ -116,7 +116,7 @@ namespace AE::Graphics
                 gfx_alloc = new_alloc;
         }
 
-        // create new
+        // create new buffer
         {
             Buffer      buf;
             EMemoryType host_mem_type = EMemoryType::HostCachedCoherent;
@@ -162,7 +162,7 @@ namespace AE::Graphics
 */
 namespace {
     template <typename PplnType>
-    static bool  ParseShaderTrace (const void* ppln, const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result)
+    static bool  ParseShaderTrace (const void* ppln, const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result)
     {
     #ifdef AE_ENABLE_VULKAN
         return Cast<PplnType>( ppln )->ParseShaderTrace( ptr, maxSize, format, OUT result );
@@ -220,7 +220,7 @@ namespace {
     template <typename PplnID>
     bool  ShaderDebugger::_GetPipeline (PplnID ppln, const DescriptorSetName &dsName, OUT Result &result)
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         if ( auto* res = res_mngr.GetResource( ppln ))
         {
@@ -283,7 +283,7 @@ namespace {
 
         if ( not ds_arr->empty() )
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
             for (auto& ds : *ds_arr) {
                 res_mngr.DelayedRelease( ds );
@@ -308,7 +308,7 @@ namespace {
             return false;
 
         const uint  data[4] = { globalID.x, globalID.y, globalID.z, 0 };
-        STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
+        StaticAssert( _TraceHeaderSize == sizeof(data) );
 
         _FillBuffer( result, ctx, Sizeof(data), data );
         return true;
@@ -335,7 +335,7 @@ namespace {
             return false;
 
         const uint  data[4] = { launchID.x, launchID.y, launchID.z, 0 };
-        STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
+        StaticAssert( _TraceHeaderSize == sizeof(data) );
 
         _FillBuffer( result, ctx, Sizeof(data), data );
         return true;

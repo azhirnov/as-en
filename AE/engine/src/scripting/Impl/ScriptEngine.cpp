@@ -123,7 +123,7 @@ namespace AE::Scripting
     Create
 =================================================
 */
-    bool  ScriptEngine::Create (AngelScript::asIScriptEngine *se, Bool genCppHeader) __NE___
+    bool  ScriptEngine::Create (AngelScript::asIScriptEngine* se, Bool genCppHeader) __NE___
     {
         CHECK_ERR( not _engine );
         CHECK_ERR( se != null );
@@ -287,7 +287,9 @@ namespace
             }
         }};
 
+        bool    multiline_strings_assert_once = true;
         usize   pos = 1;
+
         for (; pos < str.size();)
         {
             const char  c = str[pos-1];
@@ -352,26 +354,24 @@ namespace
                 {
                     const char  a = str[pos-1];
                     const char  b = str[pos];
+                    ++pos;
 
-                    // new line
-                    if_unlikely( (a == '\r') & (b == '\n') )
+                    #ifdef AE_DEBUG
+                    if ( a == '\n' and multiline_strings_assert_once ) {
+                        multiline_strings_assert_once = false;
+                        CHECK_MSG( false, "multiline strings are not supported" );
+                    }
+                    #endif
+                    Unused( multiline_strings_assert_once );
+
+                    if_unlikely( a == '"' )
+                        break;
+
+                    if_unlikely( (a != '\\') & (b == '"') )
                     {
                         ++pos;
-                        continue;
-                    }
-                    if_unlikely( (a == '\n') | (a == '\r') )
-                    {
-                        if ( not include_scope.back() )
-                            dst << '\n';
-                    }
-
-                    if_unlikely( (a == '"') | ((a != '\\') & (b == '"')) )
-                    {
-                        pos += ((a == '"') ? 1 : 2);
                         break;
                     }
-
-                    ++pos;
                 }
                 continue;
             }
@@ -560,9 +560,10 @@ namespace
             RETURN_ERR( "failed to find included file: '"s << fname << "'" );
         }};
 
-        try {
+        TRY{
             Array<Pair< StringView, usize >>    file_and_pos;
 
+            dst.clear();
             CHECK_ERR( _Preprocessor( str, OUT dst, file_and_pos, defines ));
             CHECK_ERR( file_and_pos.empty() or not includeDirs.empty() );
 
@@ -578,9 +579,9 @@ namespace
             }
             return true;
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
 /*
@@ -726,7 +727,6 @@ namespace
 
         str << "\n";
 
-        hash = HashVal32{0};
         for (auto& hdr : _cppHeaders)
         {
             str << hdr;
@@ -764,7 +764,6 @@ namespace
     {
     #if AE_SCRIPT_CPP_REFLECTION
         HashVal32   prev_hash;
-        char        hash_str [2+8+1] = {};
 
         if ( FileSystem::IsFile( fname ))
         {
@@ -772,29 +771,13 @@ namespace
 
             if ( file.IsOpen() )
             {
+                char    hash_str [2+8+1] = {};
                 if ( file.Read( OUT hash_str, Sizeof(hash_str) ))
                 {
                     ASSERT( hash_str[0] == '/' );
                     ASSERT( hash_str[1] == '/' );
                     ASSERT( hash_str[10] == '\n' );
-
-                    const auto  FromHChar = [] (char x) -> uint
-                    {{
-                        return  ((x >= '0') & (x <= '9')) ? (x - '0') :
-                                ((x >= 'A') & (x <= 'F')) ? (x - 'A' + 10) :
-                                0;
-                    }};
-
-                    uint    h = 0;
-                    h |= FromHChar( hash_str[2] ) << 0;
-                    h |= FromHChar( hash_str[3] ) << 4;
-                    h |= FromHChar( hash_str[4] ) << 8;
-                    h |= FromHChar( hash_str[5] ) << 12;
-                    h |= FromHChar( hash_str[6] ) << 16;
-                    h |= FromHChar( hash_str[7] ) << 20;
-                    h |= FromHChar( hash_str[8] ) << 24;
-                    h |= FromHChar( hash_str[9] ) << 28;
-                    prev_hash = HashVal32{h};
+                    prev_hash = HashVal32{StringToUInt( StringView{hash_str}.substr( 2 ), 16 )};
                 }
             }
         }
@@ -809,22 +792,7 @@ namespace
         {
             FileWStream file {fname};
             CHECK_ERR( file.IsOpen() );
-
-            const auto  ToHChar = [] (uint x) -> char  {{ x &= 0xF;  return char(x < 10 ? '0' + x : 'A' + x - 10); }};
-
-            hash_str[0] = '/';
-            hash_str[1] = '/';
-            hash_str[2] = ToHChar( uint{hash} >> 0 );
-            hash_str[3] = ToHChar( uint{hash} >> 4 );
-            hash_str[4] = ToHChar( uint{hash} >> 8 );
-            hash_str[5] = ToHChar( uint{hash} >> 12 );
-            hash_str[6] = ToHChar( uint{hash} >> 16 );
-            hash_str[7] = ToHChar( uint{hash} >> 20 );
-            hash_str[8] = ToHChar( uint{hash} >> 24 );
-            hash_str[9] = ToHChar( uint{hash} >> 28 );
-            hash_str[10] = '\n';
-
-            CHECK_ERR( file.Write( hash_str, Sizeof(hash_str) ));
+            CHECK_ERR( file.Write( "//"s << ToString<16>(uint{hash}) << "\n" ));
             CHECK_ERR( file.Write( src ));
         }
         return true;

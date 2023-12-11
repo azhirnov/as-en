@@ -37,7 +37,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 5 );
+            StaticAssert( (IA.actionCount - BaseIA.actionCount) == 5 );
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Move :

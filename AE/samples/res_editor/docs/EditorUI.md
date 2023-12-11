@@ -59,7 +59,7 @@ Draw some statistics:
 **Linear filter** - enable linear filter when blit the image to the surface, this will add a slight blur effect.<br/>
 ![](img/UI-Graphics-1.png)
 
-**Surface format** - allows to change window surface format, `RGBA16F` format enables [HDR output](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/HDR_Display.md).<br/>
+**Surface format** - allows to change window surface format, `RGBA16F` format enables [HDR output](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display.md).<br/>
 ![](img/UI-Graphics-2.png)
 
 **Present mode** - allows to change present mode. `FIFO` - enable vertical synchronization.<br/>
@@ -68,4 +68,4 @@ Draw some statistics:
 
 # Profiler windows
 
-See [Engine Profiling](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Profiling.md) docs.
+See [Engine Profiling](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Profiling.md) docs.

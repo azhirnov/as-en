@@ -20,12 +20,10 @@ namespace AE::Scripting
             ScriptArgList const&    self;
             bool                    result  = true;
 
-            Visitor (ScriptArgList const& s) : self{s} {}
+            Visitor (ScriptArgList const& s)    __NE___ : self{s} {}
 
             template <typename T, usize I>
-            void  operator () () {
-                result &= self.IsArg<T>( uint(I) );
-            }
+            void  operator () ()                __NE___ { result &= self.IsArg<T>( uint(I) ); }
         };
 
 
@@ -86,7 +84,7 @@ namespace AE::Scripting
         ND_ int             _Return (const T &value)        C_NE___;
     };
 
-    STATIC_ASSERT( sizeof(ScriptArgList) == sizeof(AngelScript::asIScriptGeneric*) );
+    StaticAssert( sizeof(ScriptArgList) == sizeof(AngelScript::asIScriptGeneric*) );
 
 } // AE::Scripting
 

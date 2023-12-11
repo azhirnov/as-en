@@ -500,7 +500,7 @@ namespace
             binder.Create();
             binder.AddValue( "Unknown",     EPathParamsFlags::Unknown   );
             binder.AddValue( "Recursive",   EPathParamsFlags::Recursive );
-            STATIC_ASSERT( uint(EPathParamsFlags::All) == 1 );
+            StaticAssert( uint(EPathParamsFlags::All) == 1 );
         }
 
         // pipeline compiler path params
@@ -511,10 +511,10 @@ namespace
             binder.AddValue( "Brotli",          EFileType::Brotli   );
             binder.AddValue( "InMemory",        EFileType::InMemory );
             binder.AddValue( "BrotliInMemory",  EFileType::BrotliInMemory   );
-            STATIC_ASSERT( uint(EFileType::All) == 7 );
+            StaticAssert( uint(EFileType::All) == 7 );
         }
 
-        // 
+        //
         {
             EnumBinder<EReflectionFlags>    binder{ se };
             binder.Create();
@@ -522,7 +522,7 @@ namespace
             binder.AddValue( "RTechPass_Pipelines",         EReflectionFlags::RTechPass_Pipelines   );
             binder.AddValue( "RTech_ShaderBindingTable",    EReflectionFlags::RTech_ShaderBindingTable  );
             binder.AddValue( "All",                         EReflectionFlags::All   );
-            STATIC_ASSERT( uint(EReflectionFlags::All) == 7 );
+            StaticAssert( uint(EReflectionFlags::All) == 7 );
         }
 
         // pipeline compiler
@@ -617,7 +617,7 @@ namespace
         ScriptEnginePtr se = MakeRC<ScriptEngine>();
         CHECK_ERR( se->Create( True{"gen cpp header"} ));
 
-        CATCH_ERR( Bind( se ));
+        NOTHROW_ERR( Bind( se ));
 
         auto    mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), SourceLoc{ansi_path}, True{"preprocessor"} }});
         CHECK_ERR( mod );

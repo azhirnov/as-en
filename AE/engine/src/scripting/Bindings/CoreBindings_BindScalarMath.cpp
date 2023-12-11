@@ -61,14 +61,14 @@ namespace
         template <typename T>   static T  BitRotateLeft (T x, uint shift)   { return Math::BitRotateLeft( x, shift ); }
         template <typename T>   static T  BitRotateRight (T x, uint shift)  { return Math::BitRotateRight( x, shift ); }
 
-        template <typename T>   static T  Sin (T value)                     { return Math::Sin( TRadians<T>{value} ); }
-        template <typename T>   static T  SinH (T value)                    { return Math::SinH( TRadians<T>{value} ); }
+        template <typename T>   static T  Sin (T value)                     { return Math::Sin( TRadian<T>{value} ); }
+        template <typename T>   static T  SinH (T value)                    { return Math::SinH( TRadian<T>{value} ); }
         template <typename T>   static T  ASin (T value)                    { return T(Math::ASin( value )); }
-        template <typename T>   static T  Cos (T value)                     { return Math::Cos( TRadians<T>{value} ); }
-        template <typename T>   static T  CosH (T value)                    { return Math::CosH( TRadians<T>{value} ); }
+        template <typename T>   static T  Cos (T value)                     { return Math::Cos( TRadian<T>{value} ); }
+        template <typename T>   static T  CosH (T value)                    { return Math::CosH( TRadian<T>{value} ); }
         template <typename T>   static T  ACos (T value)                    { return T(Math::ACos( value )); }
-        template <typename T>   static T  Tan (T value)                     { return Math::Tan( TRadians<T>{value} ); }
-        template <typename T>   static T  TanH (T value)                    { return Math::TanH( TRadians<T>{value} ); }
+        template <typename T>   static T  Tan (T value)                     { return Math::Tan( TRadian<T>{value} ); }
+        template <typename T>   static T  TanH (T value)                    { return Math::TanH( TRadian<T>{value} ); }
         template <typename T>   static T  ATan (T y, T x)                   { return T(Math::ATan( y, x )); }
 
         template <typename T>   static T  Square (T value)                  { return Math::Square( value ); }
@@ -90,8 +90,8 @@ namespace
         template <typename T>   static T  Wrap (T x, T min, T max)          { return Math::Wrap( x, min, max ); }
         template <typename T>   static T  MirroredWrap (T x, T min, T max)  { return Math::MirroredWrap( x, min, max ); }
 
-        template <typename T>   static T  ToRad (T x)                       { return TRadians<T>::DegToRad() * x; }
-        template <typename T>   static T  ToDeg (T x)                       { return TRadians<T>::RadToDeg() * x; }
+        template <typename T>   static T  ToRad (T x)                       { return TRadian<T>::DegToRad() * x; }
+        template <typename T>   static T  ToDeg (T x)                       { return TRadian<T>::RadToDeg() * x; }
 
         template <typename T>   static T  ToSNorm (T x)                     { return Math::ToSNorm( x ); }
         template <typename T>   static T  ToUNorm (T x)                     { return Math::ToUNorm( x ); }
@@ -101,7 +101,7 @@ namespace
         template <typename T>   static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)           { return Math::Remap( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
         template <typename T>   static T  RemapClamped (T srcMin, T srcMax, T dstMin, T dstMax, T x)    { return Math::RemapClamped( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
 
-        template <typename T>   static T  Pi ()                             { return T{Math::TRadians<T>::Pi()}; }
+        template <typename T>   static T  Pi ()                             { return T{Math::TRadian<T>::Pi()}; }
     };
 
 /*

@@ -77,12 +77,12 @@ namespace AE::Graphics
     // methods
     protected:
         void  VulkanDeviceFn_Init (const VulkanDeviceFn &other)         __NE___;
-        void  VulkanDeviceFn_Init (const VulkanDeviceFnTable *table)    __NE___;
+        void  VulkanDeviceFn_Init (const VulkanDeviceFnTable* table)    __NE___;
 
     public:
         VulkanDeviceFn ()                                               __NE___ : _table{null} {}
         VulkanDeviceFn (const VulkanDeviceFn &)                         __NE___ = default;
-        explicit VulkanDeviceFn (VulkanDeviceFnTable *table)            __NE___ : _table{table} {}
+        explicit VulkanDeviceFn (VulkanDeviceFnTable* table)            __NE___ : _table{table} {}
 
         ND_ VulkanDeviceFnTable const* _GetVkTable ()                   C_NE___ { return _table; }
 
@@ -99,8 +99,10 @@ namespace AE::Graphics
     struct VulkanLoader final : Noninstanceable
     {
         ND_ static bool  Initialize (NtStringView libName = {})                                                         __NE___;
-        ND_ static bool  LoadInstance (VkInstance instance)                                                             __NE___;
             static void  Unload ()                                                                                      __NE___;
+
+        ND_ static bool  LoadInstance (VkInstance instance)                                                             __NE___;
+            static void  ResetInstance ()                                                                               __NE___;
 
         ND_ static bool  LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table)                                   __NE___;
             static void  ResetDevice (OUT VulkanDeviceFnTable &table)                                                   __NE___;

@@ -42,16 +42,16 @@ namespace
         int     _value  = 0;
 
     public:
-        ProtectedObject ()                                                      {}
-        explicit ProtectedObject (int val) : _value{val}                        {}
+        ProtectedObject ()                                      __NE___ {}
+        explicit ProtectedObject (int val)                      __NE___ : _value{val}   {}
 
-        ProtectedObject (const ProtectedObject &other) : _value{other._value}   { s_Events->push_back( Event::ObjCopyCtor ); }
+        ProtectedObject (const ProtectedObject &other)          __NE___ : _value{other._value}  { s_Events->push_back( Event::ObjCopyCtor ); }
 
-        ProtectedObject&  operator = (const ProtectedObject &)                  = delete;
-        ProtectedObject&  operator = (ProtectedObject &&)                       = delete;
+        ProtectedObject&  operator = (const ProtectedObject &)          = delete;
+        ProtectedObject&  operator = (ProtectedObject &&)               = delete;
 
-            void    Set (int val)                                               { _value = val;  s_Events->push_back( Event::ObjSet ); }
-        ND_ int     Get ()                                              const   { s_Events->push_back( Event::ObjGet );  return _value; }
+            void    Set (int val)                               __NE___ { _value = val;  s_Events->push_back( Event::ObjSet ); }
+        ND_ int     Get ()                                      C_NE___ { s_Events->push_back( Event::ObjGet );  return _value; }
     };
 
 

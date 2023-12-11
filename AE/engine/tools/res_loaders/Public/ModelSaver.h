@@ -2,8 +2,8 @@
 /*
     Thread-safe: yes
 
-    Assimp  - 
-    glTF    - 
+    Assimp  - locks in allocator
+    glTF    -
 */
 
 #pragma once
@@ -21,11 +21,6 @@ namespace AE::ResLoader
 
     class IModelSaver
     {
-    // types
-    public:
-        using Allocator_t   = SharedMem::Allocator_t;
-
-
     // methods
     public:
         virtual ~IModelSaver ()                                 __NE___ {}

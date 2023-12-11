@@ -134,18 +134,17 @@
     }
 
 
-    ND_ float4  ReliefMapping (const float2 uv, const float3 viewDir, const float3 worldPos, const float3 lightDir)
+    ND_ float3  ReliefMapping (const float2 uv, const float3 viewDir, const float3 worldPos, const float3 lightDir)
     {
         float3x3        TBN;
         if ( iScreenSpaceTBN == 0 ){
             TBN = float3x3( Normalize( In.tangent ),
-                            Normalize( In.bitangent ), 
+                            Normalize( In.bitangent ),
                             Normalize( In.normal ));
         }else{
             TBN = ComputeTBNinWS_dxdy( uv, worldPos );
         }
-
-        const float3    tan_view_dir    = Normalize( TBN * viewDir );
+        const float3    tan_view_dir    = Normalize( MatTranspose(TBN) * viewDir );
               float2    distorted_uv    = uv;
         const int       num_layers      = 64;
 
@@ -168,7 +167,7 @@
         const float     shadow          = 1.0;
         const float3    color           = ambient + (diffuse * shadow) + (specular * shadow);
 
-        return float4( Lerp( color, (left_src ? normal : -normal), float(iShowNormals) ), 1.0f );
+        return Lerp( color, (left_src ? normal : -normal), float(iShowNormals) );
     }
 
 
@@ -176,7 +175,7 @@
     {
         const float3    view_dir = ViewDir( un_PerPass.camera.invViewProj, gl.FragCoord.xy, un_PerPass.resolution.xy );
 
-        out_Color = ReliefMapping( In.texcoord, view_dir, In.worldPos, un_Geometry.lightDir );
+        out_Color = float4( ReliefMapping( In.texcoord, view_dir, In.worldPos, un_Geometry.lightDir ), 1.0 );
     }
 
 #endif

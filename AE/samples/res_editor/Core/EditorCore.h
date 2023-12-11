@@ -57,7 +57,7 @@ namespace AE::ResEditor
     // Resource Editor Application
     //
 
-    class ResEditorApplication final : public AppV1::DefaultAppListener
+    class ResEditorApplication final : public AppV1::AppCoreV1
     {
     // variables
     private:
@@ -99,9 +99,10 @@ namespace AE::ResEditor
             Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
             Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
             RC<Renderer>            renderer;
-            AsyncTask               endFrame;
         };
         using MainLoopDataSync  = Synchronized< SharedMutex, MainLoopData >;
+
+        using MonitorSync       = Synchronized< SharedMutex, App::Monitor >;
 
 
     // variables
@@ -110,6 +111,9 @@ namespace AE::ResEditor
 
         EditorUI                    _ui;
         Unique<ScriptExe>           _script;
+
+        Ptr<IWindow>                _window;
+        MonitorSync                 _monitor;
 
         RC<MemRStream>              _inputActionsData;
 
@@ -136,9 +140,8 @@ namespace AE::ResEditor
 
     // main loop
     private:
-        ND_ static CoroTask     _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
-        ND_ static CoroTask     _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
-        ND_ AsyncTask           _DrawFrame ();
+        ND_ static CoroTask  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
+        ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
 
 
     // IBaseApp //

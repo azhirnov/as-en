@@ -238,6 +238,8 @@
 #   define /*float3*/   GetCommittedIntersectionObjectRayOrigin(/*gl::RayQuery*/ _rquery_)      gl.rayQuery.GetIntersectionObjectRayOrigin( _rquery_, true )
 #   define /*float4x3*/ GetCommittedIntersectionObjectToWorld(/*gl::RayQuery*/ _rquery_)        gl.rayQuery.GetIntersectionObjectToWorld( _rquery_, true )
 #   define /*float4x3*/ GetCommittedIntersectionWorldToObject(/*gl::RayQuery*/ _rquery_)        gl.rayQuery.GetIntersectionWorldToObject( _rquery_, true )
+#   define /*float3x4*/ GetCommittedIntersectionObjectToWorld3x4(/*gl::RayQuery*/ _rquery_)     MatTranspose(gl.rayQuery.GetIntersectionObjectToWorld( _rquery_, true ))
+#   define /*float3x4*/ GetCommittedIntersectionWorldToObject3x4(/*gl::RayQuery*/ _rquery_)     MatTranspose(gl.rayQuery.GetIntersectionWorldToObject( _rquery_, true ))
 #   define /*void*/     GetCommittedIntersectionTriangleVertexPositions(/*gl::RayQuery*/ _rquery_, /*float3[3]*/_pos_)  gl.rayQuery.GetIntersectionTriangleVertexPositions( _rquery_, true, _pos_ )
 
 // Candidate
@@ -255,6 +257,8 @@
 #   define /*float3*/   GetCandidateIntersectionObjectRayOrigin(/*gl::RayQuery*/ _rquery_)      gl.rayQuery.GetIntersectionObjectRayOrigin( _rquery_, false )
 #   define /*float4x3*/ GetCandidateIntersectionObjectToWorld(/*gl::RayQuery*/ _rquery_)        gl.rayQuery.GetIntersectionObjectToWorld( _rquery_, false )
 #   define /*float4x3*/ GetCandidateIntersectionWorldToObject(/*gl::RayQuery*/ _rquery_)        gl.rayQuery.GetIntersectionWorldToObject( _rquery_, false )
+#   define /*float3x4*/ GetCandidateIntersectionObjectToWorld3x4(/*gl::RayQuery*/ _rquery_)     MatTranspose(gl.rayQuery.GetIntersectionObjectToWorld( _rquery_, false ))
+#   define /*float3x4*/ GetCandidateIntersectionWorldToObject3x4(/*gl::RayQuery*/ _rquery_)     MatTranspose(gl.rayQuery.GetIntersectionWorldToObject( _rquery_, false ))
 #   define /*void*/     GetCandidateIntersectionTriangleVertexPositions(/*gl::RayQuery*/ _rquery_, /*float3[3]*/_pos_)  gl.rayQuery.GetIntersectionTriangleVertexPositions( _rquery_, false, _pos_ )
 
 #endif // AE_RAY_QUERY

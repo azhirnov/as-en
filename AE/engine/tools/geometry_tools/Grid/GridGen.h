@@ -21,7 +21,7 @@ namespace AE::GeometryTools
         {
             float2  uv;     // TODO: unorm
         };
-        STATIC_ASSERT( sizeof(Vertex) == 8 );
+        StaticAssert( sizeof(Vertex) == 8 );
 
         using Index = ushort;
 

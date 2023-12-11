@@ -17,7 +17,7 @@ name: 'Draw1 |0| Draw task'
     src:       'SSWB {f:0} {q:Graphics}'
     dst:       'VRS-image'
     dstLayout: TRANSFER_DST_OPTIMAL
-      copy { [0, 1024) } ---> { off:(0, 0, 0), ext:(32, 32, 1), mip:0, layers:[0, 1), COLOR }
+      copy { [0, 1024) } ---> { off:(0, 0, 0), ext:(32, 32, 1), COLOR }
   ----------
 
   PipelineBarrier2
@@ -59,6 +59,7 @@ name: 'Draw1 |0| Draw task'
 
   BindPipeline
     pipeline:  'per_draw'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -91,6 +92,7 @@ name: 'Draw1 |0| Draw task'
 
   BindPipeline
     pipeline:  'per_primitive'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -127,6 +129,7 @@ name: 'Draw1 |0| Draw task'
 
   BindPipeline
     pipeline:  'vrs_attachment'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -176,21 +179,21 @@ name: 'Draw1 |1| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(512, 512, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1048576) }
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [0, 1048576) }
   ----------
 
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(512, 512, 1), mip:0, layers:[0, 1), COLOR } ---> { [1048576, 2097152) }
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [1048576, 2097152) }
   ----------
 
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(512, 512, 1), mip:0, layers:[0, 1), COLOR } ---> { [2097152, 3145728) }
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [2097152, 3145728) }
   ----------
 
   PipelineBarrier2

@@ -62,7 +62,7 @@
             VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT | VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT |
             VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
 
-        constexpr VkPipelineStageFlags2     copy_stages = 
+        constexpr VkPipelineStageFlags2     copy_stages =
             VK_PIPELINE_STAGE_2_COPY_BIT | VK_PIPELINE_STAGE_2_RESOLVE_BIT | VK_PIPELINE_STAGE_2_CLEAR_BIT |
             VK_PIPELINE_STAGE_2_BLIT_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
 
@@ -263,7 +263,7 @@
             dst_stages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
         emulator.origin_vkCmdPipelineBarrier(
-            commandBuffer, src_stages, dst_stages, deps_flags, 
+            commandBuffer, src_stages, dst_stages, deps_flags,
             ((mem_barrier.srcAccessMask != 0) or (mem_barrier.dstAccessMask != 0) ? 1 : 0), &mem_barrier,
             uint(buffer_barriers.size()), buffer_barriers.data(),
             uint(image_barriers.size()), image_barriers.data() );

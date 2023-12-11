@@ -5,7 +5,6 @@
 #include "base/Common.h"
 #include "base/Containers/Ptr.h"
 
-
 namespace AE::Base
 {
 
@@ -26,7 +25,7 @@ namespace AE::Base
     {
         constexpr usize align = alignof(R);
 
-        STATIC_ASSERT( ((align & (align - 1)) == 0), "Align must be power of 2" );
+        StaticAssert( ((align & (align - 1)) == 0), "Align must be power of 2" );
 
         return (usize(ptr) & (align-1)) == 0;
     }
@@ -45,7 +44,7 @@ namespace AE::Base
             if ( not CheckPointerAlignment<R>( ptr ))
             {
                 std::stringstream   str;
-                str << "Failed to cast pointer from '" << typeid(T).name() << "' to '" << typeid(R).name()
+                str << "Failed to cast pointer from '" << TypeNameOf<T>() << "' to '" << TypeNameOf<R>()
                     << "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
                     << ", it may cause undefined behavior";
                 AE_LOGE( str.str() );
@@ -64,7 +63,7 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ constexpr R const volatile*  Cast (T const volatile* value) __NE___
     {
-        STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
         return static_cast< R const volatile *>( static_cast< void const volatile *>(value) );
     }
@@ -72,7 +71,7 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ constexpr R volatile*  Cast (T volatile* value) __NE___
     {
-        STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
         return static_cast< R volatile *>( static_cast< void volatile *>(value) );
     }
@@ -80,7 +79,7 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ constexpr R const*  Cast (T const* value) __NE___
     {
-        STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
         return static_cast< R const *>( static_cast< void const *>(value) );
     }
@@ -88,7 +87,7 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ constexpr R*  Cast (T* value) __NE___
     {
-        STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
         return static_cast< R *>( static_cast< void *>(value) );
     }
@@ -157,13 +156,13 @@ namespace AE::Base
     TimeCast (chrono)
 =================================================
 */
-    template <typename To, typename Rep, typename Period, EnableIf<IsDuration<To>, int> = 0>
+    template <typename To, typename Rep, typename Period, ENABLEIF( IsDuration<To> )>
     ND_ constexpr To  TimeCast (const std::chrono::duration<Rep, Period> &value) __NE___
     {
         return std::chrono::duration_cast<To>( value );
     }
 
-    template <typename ToDuration, typename Clock, typename Duration, EnableIf<IsDuration<ToDuration>, int> = 0>
+    template <typename ToDuration, typename Clock, typename Duration, ENABLEIF( IsDuration<ToDuration> )>
     ND_ constexpr std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> &value) __NE___
     {
         return std::chrono::time_point_cast<ToDuration>( value );
@@ -204,6 +203,27 @@ namespace AE::Base
     {
         return std::dynamic_pointer_cast<R>( other );
     }
+
+    template <typename R, typename T>
+    ND_ bool  CastAllowed (T const* value) __NE___
+    {
+        return (dynamic_cast<R const*>( value ) != null) == (value != null);
+    }
+
+    template <typename R, typename T>
+    ND_ bool  CastNotAllowed (T const* value) __NE___
+    {
+        return not CastAllowed<R>( value );
+    }
+
+#else
+
+    template <typename R, typename T>
+    ND_ bool  CastAllowed (T const* value)      __NE___ { return true; }
+
+    template <typename R, typename T>
+    ND_ bool  CastNotAllowed (T const* value)   __NE___ { return true; }
+
 #endif
 
 /*
@@ -214,9 +234,9 @@ namespace AE::Base
     template <typename To, typename From>
     ND_ constexpr To  BitCast (const From& src) __NE___
     {
-        STATIC_ASSERT( sizeof(To) == sizeof(From), "must be same size!" );
-        STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
-        //STATIC_ASSERT( not IsSameTypes< To, From >);  // to find unnecessary cast
+        StaticAssert( sizeof(To) == sizeof(From), "must be same size!" );
+        StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
+        //StaticAssert( not IsSameTypes< To, From >);   // to find unnecessary cast
 
       #ifdef __cpp_lib_bit_cast
         if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> ){
@@ -241,9 +261,9 @@ namespace AE::Base
     template <typename To, typename From>
     ND_ constexpr To  UnsafeBitCast (const From& src) __NE___
     {
-        //STATIC_ASSERT( sizeof(From) <= sizeof(To), "cast will lost data!" );
-        STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
-        //STATIC_ASSERT( not IsSameTypes< To, From >);  // to find unnecessary cast
+        //StaticAssert( sizeof(From) <= sizeof(To), "cast will lost data!" );
+        StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
+        //StaticAssert( not IsSameTypes< To, From >);   // to find unnecessary cast
 
         To  dst = {};
         std::memcpy( OUT &dst, &src, std::min( sizeof(From), sizeof(To) ));
@@ -298,7 +318,7 @@ namespace AE::Base
     template <typename To, typename From>
     ND_ constexpr To  LimitCast (const From& src) __NE___
     {
-        STATIC_ASSERT( MaxValue<From>() >= MaxValue<To>() );
+        StaticAssert( MaxValue<From>() >= MaxValue<To>() );
 
         if constexpr( IsSigned<From> and IsUnsigned<To> )
         {
@@ -308,7 +328,7 @@ namespace AE::Base
         }
         else
         {
-            STATIC_ASSERT( MinValue<From>() <= MinValue<To>() );
+            StaticAssert( MinValue<From>() <= MinValue<To>() );
 
             return  src > static_cast<From>(MaxValue<To>()) ? MaxValue<To>() :
                     src < static_cast<From>(MinValue<To>()) ? MinValue<To>() :

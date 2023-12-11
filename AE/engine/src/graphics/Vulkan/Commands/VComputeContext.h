@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    ComputeCtx  --> DirectComputeCtx   --> BarrierMngr --> Vulkan device 
+    ComputeCtx  --> DirectComputeCtx   --> BarrierMngr --> Vulkan device
                 \-> IndirectComputeCtx --> BarrierMngr --> Backed commands
 */
 
@@ -51,7 +51,7 @@ namespace AE::Graphics::_hidden_
         void  _Dispatch (const uint3 &groupCount)                                                                   __Th___;
         void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)                                       __Th___;
         void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
-        void  _PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
     };
 
 
@@ -92,7 +92,7 @@ namespace AE::Graphics::_hidden_
         void  _Dispatch (const uint3 &groupCount)                                                                   __Th___;
         void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)                                       __Th___;
         void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
-        void  _PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
     };
 
 
@@ -106,9 +106,6 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsComputeContext        = true;
-        static constexpr bool   IsVulkanComputeContext  = true;
-
         using CmdBuf_t      = typename CtxImpl::CmdBuf_t;
     private:
         static constexpr uint   _LocalArraySize         = 16;
@@ -131,7 +128,7 @@ namespace AE::Graphics::_hidden_
         void  BindPipeline (ComputePipelineID ppln)                                                                         __Th_OV;
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV;
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV;
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV;
         using IComputeContext::PushConstant;
 
         using IComputeContext::Dispatch;
@@ -205,7 +202,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
+    void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         Unused( typeName );
@@ -323,7 +320,7 @@ namespace AE::Graphics::_hidden_
     _PushComputeConstant
 =================================================
 */
-    inline void  _VIndirectComputeCtx::_PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+    inline void  _VIndirectComputeCtx::_PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)
     {
         VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 

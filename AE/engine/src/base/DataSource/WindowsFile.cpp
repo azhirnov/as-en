@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Algorithms/StringUtils.h"
 # include "base/DataSource/WindowsFile.h"
@@ -156,7 +156,7 @@ namespace AE::Base
             WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
     }
 
-    WinWFileStream::WinWFileStream (const wchar_t *filename, EFlags flags)  __NE___ :
+    WinWFileStream::WinWFileStream (const wchar_t* filename, EFlags flags)  __NE___ :
         WinWFileStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
     {
         if_unlikely( not IsOpen() )
@@ -273,7 +273,7 @@ namespace AE::Base
     WriteSeq
 =================================================
 */
-    Bytes  WinWFileStream::WriteSeq (const void *buffer, Bytes size) __NE___
+    Bytes  WinWFileStream::WriteSeq (const void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
@@ -373,13 +373,13 @@ namespace AE::Base
     https://learn.microsoft.com/en-us/troubleshoot/windows/win32/asynchronous-disk-io-synchronous
 =================================================
 */
-    Bytes  WinRFileDataSource::ReadBlock (Bytes offset, OUT void* buffer, Bytes size) __NE___
+    Bytes  WinRFileDataSource::ReadBlock (const Bytes pos, OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
 
         OVERLAPPED  ov = {};
-        SetOverlappedOffset( INOUT ov, offset );
+        SetOverlappedOffset( INOUT ov, pos );
 
         DWORD   readn = 0;
         if_likely( ::ReadFile( _file.Ref<HANDLE>(), OUT buffer, DWORD(size), OUT &readn, INOUT &ov ) != FALSE )
@@ -512,13 +512,13 @@ namespace AE::Base
     WriteBlock
 =================================================
 */
-    Bytes  WinWFileDataSource::WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE___
+    Bytes  WinWFileDataSource::WriteBlock (const Bytes pos, const void* buffer, const Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
 
         OVERLAPPED  ov = {};
-        SetOverlappedOffset( INOUT ov, offset );
+        SetOverlappedOffset( INOUT ov, pos );
 
         DWORD   written = 0;
         if_likely( ::WriteFile( _file.Ref<HANDLE>(), buffer, DWORD(size), OUT &written, INOUT &ov ) != FALSE )

@@ -271,14 +271,14 @@ namespace
         // copy vertices
         outVertices.resize( cdt.vertices.size() );  // throw
 
-        for (auto [v,i] : WithIndex( cdt.vertices )) {
+        for (const auto [v,i] : WithIndex( cdt.vertices )) {
             outVertices[i] = float2{ v.x, v.y };
         }
 
         // copy indices
         outIndices.resize( cdt.triangles.size() * 3 );  // throw
 
-        for (const auto& [tri, i] : WithIndex( cdt.triangles ))
+        for (const auto [tri, i] : WithIndex( cdt.triangles ))
         {
             const usize j = i*3;
             outIndices[j+0] = tri.vertices[0];
@@ -304,7 +304,7 @@ namespace
             optBoundary->clear();
             optBoundary->reserve( cdt.fixedEdges.size()*2 );  // throw
 
-            for (const auto& [tri, i] : WithIndex( cdt.triangles ))
+            for (const auto [tri, i] : WithIndex( cdt.triangles ))
             {
                 if ( tri.neighbors[0] == CDT::noNeighbor )
                 {
@@ -342,13 +342,13 @@ namespace
                                          OUT OutIndices_t           &outIndices,
                                          OUT OutBoundaryEdges_t*    optBoundary) __NE___
     {
-        try {
+        TRY{
             return _Triangulate( verticesArray, indicesArray, flags,
                                  OUT outVertices, OUT outIndices, OUT optBoundary );
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
     bool  CDT_Triangulator::Triangulate (InVertices_t               vertices,
@@ -358,13 +358,13 @@ namespace
                                          OUT OutIndices_t           &outIndices,
                                          OUT OutBoundaryEdges_t*    optBoundary) __NE___
     {
-        try {
+        TRY{
             return _Triangulate( InArrayOfVertices_t{vertices}, InArrayOfIndices_t{indices}, flags,
                                  OUT outVertices, OUT outIndices, OUT optBoundary );
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
     bool  CDT_Triangulator::Triangulate (InVertices_t               contour,
@@ -373,15 +373,15 @@ namespace
                                          OUT OutIndices_t           &outIndices,
                                          OUT OutBoundaryEdges_t*    optBoundary) __NE___
     {
-        try {
+        TRY{
             CHECK_ERR( AllBits( flags, EFlags::LineStrip ));
 
             return _Triangulate( InArrayOfVertices_t{contour}, InArrayOfIndices_t{}, flags,
                                  OUT outVertices, OUT outIndices, OUT optBoundary );
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
 

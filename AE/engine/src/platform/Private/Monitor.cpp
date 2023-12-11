@@ -19,9 +19,9 @@ namespace AE::App
             "workArea:     " << ToString( workArea.pixels ) << " pix\n"
             "region:       " << ToString( region.pixels ) << " pix\n"
             "physicalSize: " << ToString( physicalSize.meters ) << " meters\n"
-            "ppi:          " << ToString( ppi ) << " pixels/inch\n"
+            "ppi:          " << ToString( ppi ) << " pix/inch\n"
             "frequency:    " << ToString( freq ) << " Hz\n"
-            //"orientation:  " << 
+            //"orientation:  " <<
             "external:     " << ToString( isExternal ) << "\n"
         );
     }

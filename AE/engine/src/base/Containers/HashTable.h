@@ -87,36 +87,6 @@ namespace AE::Base
              >
     using FlatHashSet = absl::flat_hash_set< Key, Hasher, KeyEq, Alloc >;
 
-
-    /*//
-    // Hash Map
-    //
-    template <typename Key,
-              typename Value,
-              typename Hasher   = std::hash< Key >,
-              typename KeyEq    = std::equal_to< Key >,
-              typename Alloc    = std::allocator< std::pair< const Key, Value >>
-             >
-    using HashMap = absl::node_hash_map< Key, Value, Hasher, KeyEq, Alloc >;
-
-    template <typename Key,
-              typename Value,
-              typename Hasher = std::hash<Key>,
-              typename KeyEq  = std::equal_to<Key>,
-              typename Alloc  = std::allocator<std::pair<const Key, Value>>>
-    using HashMultiMap  = std::unordered_multimap< Key, Value, Hasher, KeyEq, Alloc >;
-
-
-    //
-    // Hash Set
-    //
-    template <typename Key,
-              typename Hasher   = std::hash< Key >,
-              typename KeyEq    = std::equal_to< Key >,
-              typename Alloc    = std::allocator< Key >
-             >
-    using HashSet = absl::node_hash_set< Key, Hasher, KeyEq, Alloc >;*/
-
 #else
 
     // fallback

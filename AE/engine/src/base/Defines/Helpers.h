@@ -108,10 +108,25 @@
 
 
 // enable/disable exceptions
-#if 1
+#ifdef AE_ENABLE_EXCEPTIONS
 #   define TRY                  try
 #   define CATCH_ALL( ... )     catch(...) { __VA_ARGS__ }
+#   define IsNoExcept( ... )    noexcept( __VA_ARGS__ )
+#   define NoExcept( ... )      noexcept( __VA_ARGS__ )
+#   define CNoExcept( ... )     const noexcept( __VA_ARGS__ )
 #else
 #   define TRY
 #   define CATCH_ALL( ... )     {}
+#   define IsNoExcept( ... )    true
+#   define NoExcept( ... )
+#   define CNoExcept( ... )     const
 #endif
+
+
+// helper for 'template <..., EnableIf<..., bool>=true >'
+#define ENABLEIF( ... )     EnableIf< (__VA_ARGS__), bool > = true
+#define ENABLEIF2( ... )    EnableIf< (__VA_ARGS__), bool >
+
+#define DISABLEIF( ... )    DisableIf< (__VA_ARGS__), bool > = true
+#define DISABLEIF2( ... )   DisableIf< (__VA_ARGS__), bool >
+

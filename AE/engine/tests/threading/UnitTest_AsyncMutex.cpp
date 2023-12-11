@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// [Performance test](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/threading/Perf_AsyncMutex.cpp)
+
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -26,7 +28,7 @@ namespace
         Test1_SharedData&   data;
         uint                counter = 0;
 
-        Test1_Task (Test1_SharedData &d) : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
+        Test1_Task (Test1_SharedData &d) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
 
         void  Run () __Th_OV
         {
@@ -51,8 +53,8 @@ namespace
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
         Test1_SharedData    data;
         Array<AsyncTask>    tasks;
@@ -62,7 +64,7 @@ namespace
             tasks.push_back( scheduler->Run<Test1_Task>( Tuple{ArgRef(data)} ));
         }
 
-        TEST( scheduler->Wait( tasks ));
+        TEST( scheduler->Wait( tasks, c_MaxTimeout ));
 
         TEST( not data.mutex.IsLocked() );
         TEST( data.counter == (data.repeat_count * data.task_count) );

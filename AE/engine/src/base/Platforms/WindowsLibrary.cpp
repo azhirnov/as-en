@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsLibrary.h"
 
 namespace AE::Base
@@ -72,7 +72,7 @@ namespace AE::Base
         wchar_t buf[MAX_PATH] = {};
         CHECK_ERR( ::GetModuleFileNameW( BitCast<HMODULE>(_handle), buf, DWORD(CountOf(buf)) ) != FALSE );
 
-        CATCH_ERR( return Path{ buf };)
+        NOTHROW_ERR( return Path{ buf };)
     }
 
 /*

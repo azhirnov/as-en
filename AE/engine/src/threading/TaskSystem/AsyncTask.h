@@ -11,10 +11,10 @@
     <custom>            - use Scheduler().RegisterDependency< custom >(...)
 
     Weak dependency     - if task in weak dependency is canceled then dependent task will be executed.
-                          Call chain:  task depends on weak,  weak.Cancel(),  weak.OnCancel(),  task.Run().
+                          Call chain:  'task' depends on 'weak',  weak.Cancel(),  weak.OnCancel(),  task.Run().
 
     Strong dependency   - if task in strong dependency is canceled then dependent task will be canceled.
-                          Call chain:  task depends on strong,  strong.Cancel(),  strong.OnCancel(),  task.OnCancel().
+                          Call chain:  'task' depends on 'strong',  strong.Cancel(),  strong.OnCancel(),  task.OnCancel().
 
 
         Coroutines
@@ -125,18 +125,17 @@ namespace AE::Threading
         {
         // variables
             OutputChunk *                               next        = null;
-            uint                                        selfIndex   = UMax;
             uint                                        count       = 0;
             StaticArray< AsyncTask, ElemInChunk >       tasks       {};
             StaticArray< TaskDependency, ElemInChunk >  deps        {};
 
         // methods
-            OutputChunk ()          __NE___ {}
+            OutputChunk ()  __NE___ {}
 
-            void  Init (uint idx)   __NE___;
+            void  Init ()   __NE___;
         };
 
-        STATIC_ASSERT_64( sizeof(OutputChunk) == 128 );
+        StaticAssert64( sizeof(OutputChunk) == 128 );
 
         using WaitBits_t = ulong;
 
@@ -179,40 +178,57 @@ namespace AE::Threading
     protected:
         explicit IAsyncTask (ETaskQueue type)           __NE___;
 
-            // can throw exception
+
+        // Execute task.
+        // Can be executed multiple times if used 'Continue()'.
+        // Can throw exception.
+        //
             virtual void  Run ()                        __Th___ = 0;
 
-            virtual void  OnCancel ()                   __NE___ { ASSERT( not _isRunning.load() ); }
 
-            // call this only inside 'Run()' method.
+        // Executed in the same thread as 'Run()' was/could be executed.
+        // Status before: 'Cancellation', status after: 'Canceled'.
+        // You can free some resources here, otherwise they will be released later,
+        // when all reference to this task will be nulled.
+        //
+            virtual void  OnCancel ()                   __NE___ { ASSERT( not _isRunning.load() );  ASSERT( Status() == EStatus::Cancellation ); }
+
+
+        // Call this only inside 'Run()' method.
+        //
         ND_ bool  IsCanceled () const                   __NE___ { ASSERT( _isRunning.load() );  return Status() == EStatus::Cancellation; }
 
-            // call this only inside 'Run()' method
+
+        // Call this only inside 'Run()' method.
+        // 'OnCancel()' method will be used outside of 'Run()'.
+        //
             void  OnFailure ()                          __NE___;
 
-            // call this only inside 'Run()' method.
-            // doesn't restart if have been canceled in another thread.
-            // throw exception if failed to add dependencies.
+        // Call this only inside 'Run()' method.
+        // Doesn't restart if have been canceled in another thread.
+        // Throw exception if failed to add dependencies.
+        //
             template <typename ...Deps>
             void  Continue (const Tuple<Deps...> &)     __NE___;
             void  Continue ()                           __NE___ { return Continue( Tuple{} ); }
 
-            // call this before reusing task
+
+        // Call this before reusing task.
         ND_ bool  _ResetState ()                        __NE___;
 
-            // Only for debugging!
+        // Only for debugging!
             void  _DbgSet (EStatus status)              __NE___;
 
-            // Only during initialization
+        // Only during initialization
             void  _SetQueueType (ETaskQueue type)       __NE___;
 
-            // Only in constructor!
+        // Only in constructor!
             void  _MakeCompleted ()                     __NE___;
 
             bool  _SetCancellationState ()              __NE___;
 
     private:
-        // call this methods only after 'Run()' method
+        // Call this methods only after 'Run()' method.
         void  _OnFinish (OUT bool& rerun)               __NE___;
         void  _Cancel ()                                __NE___;
         void  _FreeOutputChunks (bool isCanceled)       __NE___;
@@ -246,13 +262,14 @@ namespace AE::Threading
     // methods
     public:
         template <typename Fn>
-        explicit AsyncTaskFn (Fn && fn, StringView dbgName = Default, ETaskQueue type = ETaskQueue::PerFrame) :
+        explicit AsyncTaskFn (Fn &&fn, StringView dbgName = Default, ETaskQueue type = ETaskQueue::PerFrame) __NE___ :
             IAsyncTask{ type },
             _fn{ FwdArg<Fn>(fn) }
             #ifdef AE_DEBUG
             , _dbgName{ dbgName }
             #endif
         {
+            //CheckNothrow( IsNoExcept( Func_t{ FwdArg<Fn>(fn) }));
             Unused( dbgName );
         }
 
@@ -406,8 +423,8 @@ namespace AE::Threading
         template <typename P>
         ND_ static bool  AwaitSuspendImpl (std::coroutine_handle<P> curCoro, const AsyncTask &dep) __NE___
         {
-            // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-            STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+            // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+            StaticAssert( IsBaseOf< IAsyncTask, P >);
 
             using EStatus = IAsyncTask::EStatus;
 
@@ -435,12 +452,13 @@ namespace AE::Threading
         template <typename P, typename ...Deps>
         ND_ static bool  AwaitSuspendImpl2 (std::coroutine_handle<P> curCoro, const Tuple<Deps...> &deps) __NE___
         {
-            // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-            STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+            // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+            StaticAssert( IsBaseOf< IAsyncTask, P >);
 
             using EStatus = IAsyncTask::EStatus;
 
-            const auto  stats_arr   = deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, CountOf<Deps...>() >{ _GetStatus( args ) ... }; });
+            const auto  stats_arr   = deps.Apply([] (auto&& ...args) __NE___
+                                                 { return StaticArray< EStatus, CountOf<Deps...>() >{ _GetStatus( args ) ... }; });
             const auto  stats       = ArrayView<EStatus>{ stats_arr };
 
             if ( stats.AllEqual( EStatus::Completed ))
@@ -453,7 +471,8 @@ namespace AE::Threading
                 return true;    // suspend & cancel
             }
 
-            curCoro.promise().Continue( deps.Apply( [] (auto&& ...args) { return Tuple{ AsyncTask{args} ... }; }));
+            curCoro.promise().Continue( deps.Apply([] (auto&& ...args) __NE___
+                                                   { return Tuple{ AsyncTask{args} ... }; }));
 
             // task may be cancelled
             if_unlikely( curCoro.promise().IsFinished() )
@@ -528,8 +547,8 @@ namespace AE::Threading
             template <typename P>
             ND_ bool    await_suspend (std::coroutine_handle<P> curCoro)__NE___
             {
-                // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-                STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+                // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+                StaticAssert( IsBaseOf< IAsyncTask, P >);
 
                 curCoro.promise().Fail();
                 return false;   // always resume coroutine
@@ -561,10 +580,10 @@ namespace AE::Threading
             template <typename P>
             ND_ bool    await_suspend (std::coroutine_handle<P> curCoro)__NE___
             {
-                // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-                STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+                // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+                StaticAssert( IsBaseOf< IAsyncTask, P >);
 
-                _isCanceled = curCoro.promise().IsCanceled();   
+                _isCanceled = curCoro.promise().IsCanceled();
                 return false;   // always resume coroutine
             }
         };
@@ -594,10 +613,10 @@ namespace AE::Threading
             template <typename P>
             ND_ bool    await_suspend (std::coroutine_handle<P> curCoro)__NE___
             {
-                // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-                STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+                // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+                StaticAssert( IsBaseOf< IAsyncTask, P >);
 
-                _status = curCoro.promise().Status();   
+                _status = curCoro.promise().Status();
                 return false;   // always resume coroutine
             }
         };
@@ -627,10 +646,10 @@ namespace AE::Threading
             template <typename P>
             ND_ bool    await_suspend (std::coroutine_handle<P> curCoro)__NE___
             {
-                // compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
-                STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+                // compatible with all 'promise_type' which is inherited from 'IAsyncTask'
+                StaticAssert( IsBaseOf< IAsyncTask, P >);
 
-                _queue = curCoro.promise().QueueType(); 
+                _queue = curCoro.promise().QueueType();
                 return false;   // always resume coroutine
             }
         };

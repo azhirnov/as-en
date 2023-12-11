@@ -72,7 +72,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        SceneGraphicsPass () {}
+        SceneGraphicsPass ()                                            __NE___ {}
         ~SceneGraphicsPass ();
 
     // IPass //
@@ -121,7 +121,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        SceneRayTracingPass () {}
+        SceneRayTracingPass ()                                          __NE___ {}
         ~SceneRayTracingPass ();
 
     // IPass //

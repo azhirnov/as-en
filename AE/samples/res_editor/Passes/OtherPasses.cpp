@@ -19,10 +19,10 @@ namespace AE::ResEditor
 */
     AsyncTask  Present::PresentAsync (const PresentPassData &pd) __Th___
     {
-        const auto  sizes = pd.surface->GetTargetSizes();
+        const auto  infos = pd.surface->GetTargetInfo();
 
-        if ( _dynSize and not sizes.empty() )
-            _dynSize->Resize( sizes[0] );
+        if ( _dynSize and not infos.empty() )
+            _dynSize->Resize( infos[0].dimension );
 
         {
             auto&       ui      = UIInteraction::Instance();
@@ -97,7 +97,7 @@ namespace AE::ResEditor
                                         sp->pos     = uint2{view.Offset()};
                                         sp->color   = color;
                                     });
-            //RenderTaskScheduler().AddNextCycleDeps( AsyncTask{task} );
+            //GraphicsScheduler().AddNextCycleDeps( AsyncTask{task} );
         }
 
         // read image for screenshot / video
@@ -122,7 +122,7 @@ namespace AE::ResEditor
                                             if ( capture.video and encoder )
                                                 Unused( encoder->AddFrame( inView, True{"end encoding on error"} ));
                                         });
-                //RenderTaskScheduler().AddNextCycleDeps( AsyncTask{task} );
+                //GraphicsScheduler().AddNextCycleDeps( AsyncTask{task} );
             }
         }
 
@@ -175,13 +175,13 @@ namespace AE::ResEditor
         CHECK_ERR( _src.size() == 1 );
 
         const auto  desc    = _src[0]->GetImageDesc();
-        const auto& fs      = RenderTaskScheduler().GetFeatureSet();
+        const auto& fs      = GraphicsScheduler().GetFeatureSet();
 
         IVideoEncoder::Config   cfg;
         cfg.srcFormat       = desc.format;
         cfg.dstFormat       = videoFormat;
-        cfg.srcSize         = uint2{desc.dimension};
-        cfg.dstSize         = cfg.srcSize;
+        cfg.srcDim          = uint2{desc.dimension};
+        cfg.dstDim          = cfg.srcDim;
         cfg.codec           = videoCodec;
         cfg.colorPreset     = preset;
         cfg.filter          = Video::EFilter::Bilinear;
@@ -361,7 +361,7 @@ namespace AE::ResEditor
         {
             dbg_name << "-Copy";
 
-            auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
             auto    image_id    = res_mngr.CreateImage( img_desc, dbg_name, renderer->GetAllocator() );
             CHECK_THROW( image_id );
 
@@ -370,8 +370,8 @@ namespace AE::ResEditor
 
             renderer->GetDataTransferQueue().EnqueueImageTransition( image_id );
 
-            _copy = MakeRC<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
-                                   img_desc, ImageViewDesc{img_desc}, null, null, dbg_name );
+            _copy = MakeRCTh<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
+                                     img_desc, ImageViewDesc{img_desc}, null, null, dbg_name );
         }else{
             _copy = _src;
         }
@@ -441,8 +441,8 @@ namespace AE::ResEditor
         CHECK_THROW( &src != &copy );
         CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::RGBA8_UNorm );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
         CHECK_THROW( _rtech );
@@ -470,7 +470,7 @@ namespace AE::ResEditor
 */
     DebugView::Histogram::~Histogram ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.ReleaseResourceArray( _ppln1DS );
         res_mngr.ReleaseResourceArray( _ppln3DS );
@@ -545,7 +545,7 @@ namespace AE::ResEditor
             gfx_ctx.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderStorage_Read | EResourceState::VertexProcessingShaders );
             gfx_ctx.MemoryBarrier( EResourceState::ShaderStorage_RW | EResourceState::ComputeShader, EResourceState::ShaderStorage_Read | EResourceState::VertexProcessingShaders );
 
-            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 1 );
+            StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
             RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId(), RGBA32f{0.f} );
@@ -579,8 +579,8 @@ namespace AE::ResEditor
         CHECK_THROW( &src != &copy );
         CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::R32F );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
         CHECK_THROW( _rtech );
@@ -601,7 +601,7 @@ namespace AE::ResEditor
 */
     DebugView::LinearDepth::~LinearDepth ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.ReleaseResourceArray( _pplnDS );
     }
@@ -631,7 +631,7 @@ namespace AE::ResEditor
         {
             ctx.ResourceState( srcImage.GetViewId(), EResourceState::ShaderSample | EResourceState::FragmentShader );
 
-            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 1 );
+            StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
             RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
@@ -666,8 +666,8 @@ namespace AE::ResEditor
         CHECK_THROW( &src != &copy );
         CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::RGBA8_UNorm );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
         CHECK_THROW( _rtech );
@@ -685,7 +685,7 @@ namespace AE::ResEditor
 */
     DebugView::StencilView::~StencilView ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.ReleaseResourceArray( _pplnDS );
     }
@@ -715,7 +715,7 @@ namespace AE::ResEditor
         {
             ctx.ResourceState( srcImage.GetViewId(), EResourceState::ShaderSample | EResourceState::FragmentShader );
 
-            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 2 );
+            StaticAssert( RTech.Graphics.attachmentsCount == 2 );
 
             RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );

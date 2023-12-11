@@ -58,17 +58,17 @@ namespace AE::ResEditor
         RC<DynamicUInt>         _maxRayRecursion;
         RC<DynamicUInt>         _maxCallRecursion;
 
-        Bytes16u                _rayGenStackMax;
-        Bytes16u                _closestHitStackMax;
-        Bytes16u                _missStackMax;
-        Bytes16u                _intersectionStackMax;
-        Bytes16u                _anyHitStackMax;
-        Bytes16u                _callableStackMax;
+        Byte16u                 _rayGenStackMax;
+        Byte16u                 _closestHitStackMax;
+        Byte16u                 _missStackMax;
+        Byte16u                 _intersectionStackMax;
+        Byte16u                 _anyHitStackMax;
+        Byte16u                 _callableStackMax;
 
 
     // methods
     public:
-        RayTracingPass () {}
+        RayTracingPass ()                                               __NE___ {}
         ~RayTracingPass ();
 
     // IPass //

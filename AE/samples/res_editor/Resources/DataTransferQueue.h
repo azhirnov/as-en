@@ -46,7 +46,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        DataTransferQueue ();
+        DataTransferQueue ()                                                            __NE___;
         ~DataTransferQueue ();
 
         void  EnqueueForUpload (RC<IResource> res);

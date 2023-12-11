@@ -8,27 +8,34 @@ namespace AE::VFS
 
 /*
 =================================================
-    Create
+    _Create
 =================================================
 */
-    bool  DiskDynamicStorage::Create (const Path &folder, StringView prefix)
+    bool  DiskDynamicStorage::_Create (const Path &folder, StringView prefix, bool createFolder) __NE___
     {
-        {
+        TRY{
             auto    file_map = _fileMap.WriteNoLock();
             EXLOCK( file_map );
 
             CHECK_ERR( _folder.empty() );
+
+            if ( createFolder )
+                FileSystem::CreateDirectories( folder );
+
             CHECK_ERR( FileSystem::IsDirectory( folder ));
 
             file_map->map.clear();
-            file_map->map.reserve( 128 );
+            file_map->map.reserve( 128 );   // throw
             file_map->lastUpdate = Default;
 
             _folder = FileSystem::ToAbsolute( folder );
             _prefix = String{prefix};
         }
+        CATCH_ALL(
+            return false;
+        )
 
-        CHECK_ERR( _Update() );
+        Unused( _Update() );
         return true;
     }
 
@@ -39,7 +46,7 @@ namespace AE::VFS
 */
     bool  DiskDynamicStorage::_Update () C_NE___
     {
-        try{
+        TRY{
             auto    cur_time = TimePoint_t::clock::now();
 
             if ( TimeCast<seconds>( cur_time - _fileMap.ConstPtr()->lastUpdate ) < _UpdateInterval )
@@ -84,8 +91,8 @@ namespace AE::VFS
 
             _fileMap->lastUpdate = TimePoint_t::clock::now();
         }
-        catch (...)
-        {}
+        CATCH_ALL()
+
         return true;
     }
 
@@ -192,7 +199,9 @@ namespace AE::VFS
     bool  DiskDynamicStorage::CreateFile (OUT FileName &name, const Path &inPath) C_NE___
     {
         Path    path = (_folder / inPath).lexically_normal();   // path without '..'
-                path = FileSystem::ToRelative( path, _folder );
+        FileSystem::CreateDirectories( path.parent_path() );
+
+        path = FileSystem::ToRelative( path, _folder );
 
         String  str;
         CHECK_ERR( Convert<Path::value_type>( OUT str, path.native() ));
@@ -289,10 +298,10 @@ namespace AE::VFS
     CreateDynamicFolder
 =================================================
 */
-    RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateDynamicFolder (const Path &folder, StringView prefix) __NE___
+    RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateDynamicFolder (const Path &folder, StringView prefix, Bool createFolder) __NE___
     {
-        auto    result = MakeRC<DiskDynamicStorage>();
-        CHECK_ERR( result->Create( folder, prefix ));
+        auto    result = RC<DiskDynamicStorage>{ new DiskDynamicStorage{}};
+        CHECK_ERR( result->_Create( folder, prefix, createFolder ));
         return result;
     }
 

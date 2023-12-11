@@ -4,7 +4,6 @@
 
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
-#include "base/Math/Radians.h"
 
 namespace AE::Math
 {
@@ -25,7 +24,7 @@ namespace AE::Math
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = TRadians<T>;
+        using Rad_t         = TRadian<T>;
         using Rad3_t        = RadianVec<T, 3>;
         using Transform_t   = typename Camera_t::Transform_t;
 

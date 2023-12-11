@@ -35,17 +35,17 @@ namespace AE::Samples::Demo
 
     // interface
     public:
-        virtual ~ISample () {}
+        virtual ~ISample ()                                                                         __NE___ {}
 
-        ND_ virtual bool            Init (PipelinePackID pack)                                      = 0;
+        ND_ virtual bool            Init (PipelinePackID pack)                                      __NE___ = 0;
 
-        ND_ virtual AsyncTask       Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)   { Unused( deps );  return null; }
+        ND_ virtual AsyncTask       Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)   __NE___ { Unused( deps );  return null; }
 
         // deps - must contains task which returned by 'Update()' or task which depends on it.
         //
-        ND_ virtual AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)               = 0;
+        ND_ virtual AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)               __NE___ = 0;
 
-        ND_ virtual InputModeName   GetInputMode ()                                                 const = 0;
+        ND_ virtual InputModeName   GetInputMode ()                                                 C_NE___ = 0;
     };
 
 

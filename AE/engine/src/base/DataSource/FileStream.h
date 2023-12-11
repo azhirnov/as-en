@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     TODO:
-        setbuf, setvbuf 
+        setbuf, setvbuf
 */
 
 #pragma once
@@ -57,7 +57,7 @@ namespace AE::Base
         bool        SeekSet (Bytes pos)         __NE_OV;    // require ESourceType::RandomAccess
         bool        SeekFwd (Bytes offset)      __NE_OV;
 
-        Bytes       ReadSeq (OUT void *, Bytes) __NE_OV;
+        Bytes       ReadSeq (OUT void*, Bytes)  __NE_OV;
 
         RC<RDataSource>  AsRDataSource ();
     };
@@ -115,9 +115,8 @@ namespace AE::Base
         ESourceType GetSourceType ()                                                C_NE_OV;
 
         bool        SeekFwd (Bytes offset)                                          __NE_OV;
-        Bytes       Reserve (Bytes)                                                 __NE_OV { return 0_b; }
 
-        Bytes       WriteSeq (const void *buffer, Bytes size)                       __NE_OV;
+        Bytes       WriteSeq (const void* buffer, Bytes size)                       __NE_OV;
         void        Flush ()                                                        __NE_OV;
     };
 //-----------------------------------------------------------------------------
@@ -166,7 +165,7 @@ namespace AE::Base
         ESourceType GetSourceType ()                                                C_NE_OV;
         Bytes       Size ()                                                         C_NE_OV { return _fileSize; }
 
-        Bytes       ReadBlock (Bytes offset, OUT void *buffer, Bytes size)          __NE_OV;
+        Bytes       ReadBlock (Bytes pos, OUT void* buffer, Bytes size)             __NE_OV;
     };
 
 
@@ -217,9 +216,7 @@ namespace AE::Base
         ESourceType GetSourceType ()                                                    C_NE_OV;
         Bytes       Capacity ()                                                         C_NE_OV;
 
-        Bytes       Reserve (Bytes)                                                     __NE_OV { return UMax; }
-
-        Bytes       WriteBlock (Bytes offset, const void *buffer, Bytes size)           __NE_OV;
+        Bytes       WriteBlock (Bytes pos, const void* buffer, Bytes size)              __NE_OV;
         void        Flush ()                                                            __NE_OV;
     };
 

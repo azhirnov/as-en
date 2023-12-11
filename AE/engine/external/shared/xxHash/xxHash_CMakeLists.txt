@@ -1,0 +1,15 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "xxHash-main" LANGUAGES CXX )
+
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
+set( XXHASH_BUILD_ENABLE_INLINE_API     ON   CACHE INTERNAL "" FORCE )
+set( XXHASH_BUILD_XXHSUM                OFF  CACHE INTERNAL "" FORCE )
+set( BUILD_SHARED_LIBS                  OFF  CACHE INTERNAL "" FORCE )
+set( DISPATCH                           OFF  CACHE INTERNAL "" FORCE )
+
+include( "origin_CMakeLists.txt" )
+
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE" DESTINATION "." )

@@ -14,7 +14,7 @@ namespace AE::Graphics
 =================================================
 */
     VDedicatedMemAllocator::VDedicatedMemAllocator () __NE___ :
-        _supportDedicated{ RenderTaskScheduler().GetDevice().GetVExtensions().dedicatedAllocation }
+        _supportDedicated{ GraphicsScheduler().GetDevice().GetVExtensions().dedicatedAllocation }
     {}
 
 /*
@@ -37,7 +37,7 @@ namespace AE::Graphics
         CHECK_ERR( image != Default );
         CHECK_ERR( desc.memType != Default );
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         // get memory requirements
         VkImageMemoryRequirementsInfo2  mem_info        = {};
@@ -83,7 +83,7 @@ namespace AE::Graphics
         {
             mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
                 break;
         }
         CHECK_ERR( memory.Get() != Default );
@@ -136,7 +136,7 @@ namespace AE::Graphics
         constexpr auto  dev_addr_mask = EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable |
                                         EBufferUsage::ASBuild_ReadOnly | EBufferUsage::ASBuild_Scratch;
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         // get memory requirements
         VkBufferMemoryRequirementsInfo2 mem_info        = {};
@@ -195,7 +195,7 @@ namespace AE::Graphics
         {
             mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
                 break;
         }
         CHECK_ERR( memory.Get() != Default );
@@ -266,7 +266,7 @@ namespace AE::Graphics
 
         if ( mem_data.mem != Default )
         {
-            auto&   dev = RenderTaskScheduler().GetDevice();
+            auto&   dev = GraphicsScheduler().GetDevice();
 
             if ( mem_data.mapped != null )
                 dev.vkUnmapMemory( dev.GetVkDevice(), mem_data.mem );
@@ -287,7 +287,7 @@ namespace AE::Graphics
 */
     bool  VDedicatedMemAllocator::GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) C_NE___
     {
-        auto&   dev         = RenderTaskScheduler().GetDevice();
+        auto&   dev         = GraphicsScheduler().GetDevice();
         auto&   mem_data    = _CastStorage( data );
         auto&   mem_props   = dev.GetVProperties().memoryProperties;
 
@@ -312,7 +312,7 @@ namespace AE::Graphics
 */
     Bytes  VDedicatedMemAllocator::MaxAllocationSize () C_NE___
     {
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
         return dev.GetVExtensions().maintenance3 ?
                     Bytes{dev.GetVProperties().maintenance3Props.maxMemoryAllocationSize} :
                     UMax;

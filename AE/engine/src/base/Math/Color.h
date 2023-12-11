@@ -26,10 +26,10 @@ namespace AE::Math
         {
           #ifdef AE_COMPILETIME_OFFSETOF
             // check if supported cast from Color to array
-            STATIC_ASSERT( offsetof(Self, r) + sizeof(T) == offsetof(Self, g) );
-            STATIC_ASSERT( offsetof(Self, g) + sizeof(T) == offsetof(Self, b) );
-            STATIC_ASSERT( offsetof(Self, b) + sizeof(T) == offsetof(Self, a) );
-            STATIC_ASSERT( sizeof(T)*(size()-1) == (offsetof(Self, a) - offsetof(Self, r)) );
+            StaticAssert( offsetof(Self, r) + sizeof(T) == offsetof(Self, g) );
+            StaticAssert( offsetof(Self, g) + sizeof(T) == offsetof(Self, b) );
+            StaticAssert( offsetof(Self, b) + sizeof(T) == offsetof(Self, a) );
+            StaticAssert( sizeof(T)*(size()-1) == (offsetof(Self, a) - offsetof(Self, r)) );
           #endif
         }
 
@@ -88,7 +88,7 @@ namespace AE::Math
         ND_ constexpr bool  operator == (const DepthStencil &rhs)           C_NE___
         {
             constexpr float eps = 0.001f;
-            return Equals( depth, rhs.depth, eps ) & (stencil == rhs.stencil);
+            return Equal( depth, rhs.depth, eps ) & (stencil == rhs.stencil);
         }
 
         ND_ constexpr bool  operator != (const DepthStencil &rhs)           C_NE___ { return not (*this == rhs); }
@@ -315,6 +315,24 @@ namespace AE::Math
 
 /*
 =================================================
+    Rainbow / RainbowWrap
+=================================================
+*/
+    ND_ inline RGBA32f  Rainbow (const float factor) __NE___
+    {
+        return RGBA32f{ HSVColor{ Saturate( factor * 0.74f )}};
+    }
+
+    ND_ inline RGBA32f  RainbowWrap (const float factor) __NE___
+    {
+        return RGBA32f{ HSVColor{ Wrap( factor * 0.74f, 0.0f, 1.0f )}};
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
     Min/Max/Clamp
 =================================================
 */
@@ -338,34 +356,34 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals (RGBAColor)
+    Equal (RGBAColor)
 =================================================
 */
     template <typename T>
-    ND_ bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T err = Epsilon<T>()) __NE___
+    ND_ bool4  Equal (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err )};
+        return bool4{ Equal( lhs.r, rhs.r, err ), Equal( lhs.g, rhs.g, err ), Equal( lhs.b, rhs.b, err ), Equal( lhs.a, rhs.a, err )};
     }
 
     template <typename T>
-    ND_ bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const Percent err) __NE___
+    ND_ bool4  Equal (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const Percent err) __NE___
     {
-        return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err )};
+        return bool4{ Equal( lhs.r, rhs.r, err ), Equal( lhs.g, rhs.g, err ), Equal( lhs.b, rhs.b, err ), Equal( lhs.a, rhs.a, err )};
     }
 
 /*
 =================================================
-    Equals (HSVColor)
+    Equal (HSVColor)
 =================================================
 */
-    ND_ inline bool3  Equals (const HSVColor &lhs, const HSVColor &rhs, const float err = Epsilon<float>()) __NE___
+    ND_ inline bool3  Equal (const HSVColor &lhs, const HSVColor &rhs, const float err = Epsilon<float>()) __NE___
     {
-        return bool3{ Equals( lhs.h, rhs.h, err ), Equals( lhs.s, rhs.s, err ), Equals( lhs.v, rhs.v, err )};
+        return bool3{ Equal( lhs.h, rhs.h, err ), Equal( lhs.s, rhs.s, err ), Equal( lhs.v, rhs.v, err )};
     }
 
-    ND_ inline bool3  Equals (const HSVColor &lhs, const HSVColor &rhs, const Percent err) __NE___
+    ND_ inline bool3  Equal (const HSVColor &lhs, const HSVColor &rhs, const Percent err) __NE___
     {
-        return bool3{ Equals( lhs.h, rhs.h, err ), Equals( lhs.s, rhs.s, err ), Equals( lhs.v, rhs.v, err )};
+        return bool3{ Equal( lhs.h, rhs.h, err ), Equal( lhs.s, rhs.s, err ), Equal( lhs.v, rhs.v, err )};
     }
 
 /*

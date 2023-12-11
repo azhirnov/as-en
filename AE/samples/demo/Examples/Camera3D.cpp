@@ -4,8 +4,8 @@
 
 namespace AE::Samples::Demo
 {
-    STATIC_ASSERT( sizeof(ShaderTypes::CubeVertex) == sizeof(GeometryTools::CubeRenderer::Vertex) );
-    STATIC_ASSERT( sizeof(ShaderTypes::SphericalCubeVertex) == sizeof(GeometryTools::SphericalCubeRenderer::Vertex) );
+    StaticAssert( sizeof(ShaderTypes::CubeVertex) == sizeof(GeometryTools::CubeRenderer::Vertex) );
+    StaticAssert( sizeof(ShaderTypes::SphericalCubeVertex) == sizeof(GeometryTools::SphericalCubeRenderer::Vertex) );
 
     INTERNAL_LINKAGE( constexpr auto&   RTech   = RenderTechs::Scene3D_RTech );
     INTERNAL_LINKAGE( constexpr auto&   IA      = InputActions::Camera3D );
@@ -19,7 +19,7 @@ namespace AE::Samples::Demo
     public:
         RC<Camera3DSample>  t;
 
-        UploadTextureTask (Camera3DSample* p, CommandBatchPtr batch, DebugLabel) :
+        UploadTextureTask (Camera3DSample* p, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Camera3D::UploadTexture"} },
             t{ p }
         {}
@@ -53,7 +53,7 @@ namespace AE::Samples::Demo
 
         // create cube
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
             CHECK_TE( t->cube1.Create( res_mngr, ctx, True{"cubeMap"}, t->gfxAlloc ));
             CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
@@ -86,7 +86,7 @@ namespace AE::Samples::Demo
         RC<Camera3DSample>  t;
         ActionQueueReader   reader;
 
-        ProcessInputTask (Camera3DSample* p, ActionQueueReader reader) :
+        ProcessInputTask (Camera3DSample* p, ActionQueueReader reader) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ p }, reader{ RVRef(reader) }
         {}
@@ -99,8 +99,8 @@ namespace AE::Samples::Demo
             ActionQueueReader::Header   hdr;
             for (; reader.ReadHeader( OUT hdr );)
             {
-                STATIC_ASSERT( IA.actionCount == 1 );
-                STATIC_ASSERT( IA.Desktop.actionCount == 1 );
+                StaticAssert( IA.actionCount == 1 );
+                StaticAssert( IA.Desktop.actionCount == 1 );
 
                 switch ( uint{hdr.name} )
                 {
@@ -131,7 +131,7 @@ namespace AE::Samples::Demo
         RC<Camera3DSample>  t;
         IOutputSurface &    surface;
 
-        DrawTask (Camera3DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+        DrawTask (Camera3DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Camera3D::Draw"} },
             t{ p }, surface{ surf }
         {}
@@ -153,7 +153,7 @@ namespace AE::Samples::Demo
 
         // resize depth buffer
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
             if_unlikely( not t->depthBuf.image or Any( uint2{res_mngr.GetDescription( t->depthBuf.image ).dimension} != view_size ))
             {
@@ -207,7 +207,7 @@ namespace AE::Samples::Demo
             const uint      off = uint(AlignUp( SizeOf<ShaderTypes::camera3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * i);
 
             constexpr auto& rtech_pass = RTech.Main;
-            STATIC_ASSERT( rtech_pass.attachmentsCount == 2 );
+            StaticAssert( rtech_pass.attachmentsCount == 2 );
 
             const auto      rp_desc =
                 RenderPassDesc{ t->rtech, rtech_pass, view_size }
@@ -239,9 +239,9 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  Camera3DSample::Init (PipelinePackID pack)
+    bool  Camera3DSample::Init (PipelinePackID pack) __NE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
                 gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
         rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
@@ -277,7 +277,7 @@ namespace AE::Samples::Demo
     Update
 =================================================
 */
-    AsyncTask  Camera3DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
+    AsyncTask  Camera3DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
     {
         return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{deps} );
     }
@@ -287,7 +287,7 @@ namespace AE::Samples::Demo
     GetInputMode
 =================================================
 */
-    InputModeName  Camera3DSample::GetInputMode () const
+    InputModeName  Camera3DSample::GetInputMode () C_NE___
     {
         return IA;
     }
@@ -297,7 +297,7 @@ namespace AE::Samples::Demo
     Draw
 =================================================
 */
-    AsyncTask  Camera3DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps)
+    AsyncTask  Camera3DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps) __NE___
     {
         auto    batch = rg.Render( "3D pass" );
         CHECK_ERR( batch );
@@ -323,9 +323,9 @@ namespace AE::Samples::Demo
     destructor
 =================================================
 */
-    Camera3DSample::~Camera3DSample ()
+    Camera3DSample::~Camera3DSample () __NE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         cube1.Destroy( res_mngr );
         cube2.Destroy( res_mngr );

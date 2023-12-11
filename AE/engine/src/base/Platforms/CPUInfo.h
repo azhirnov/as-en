@@ -41,7 +41,7 @@ namespace AE::Base
 
     enum class ECoreType : ubyte
     {
-        // ARM: Cortex X1, X2
+        // ARM: Cortex X1, X2, X3
         HighPerformance,
 
         // ARM: Cortex A72 - A78
@@ -109,7 +109,7 @@ namespace AE::Base
         {
             uint        lineSize        : 16;   // bytes
             uint        associativity   : 16;
-            Bytes32u    size;
+            Byte32u     size;
 
             CacheGeom () : lineSize{0}, associativity{0} {}
         };
@@ -133,8 +133,8 @@ namespace AE::Base
             ECoreType       type            = Default;
             MHz_t           baseClock       = 0;
             MHz_t           maxClock        = 0;
-            CoreBits_t      logicalBits     = {};   //  |- in global space, must not intersects with other cores
-            CoreBits_t      physicalBits    = {};   // / 
+            CoreBits_t      logicalBits     = {};   // \__ in global space, must not intersects with other cores
+            CoreBits_t      physicalBits    = {};   // /
 
             Core ()                         __NE___ = default;
 
@@ -188,7 +188,7 @@ namespace AE::Base
 
 
     //
-    // CPU Performance Info 
+    // CPU Performance Info
     //
 
     struct CpuPerformance

@@ -30,7 +30,7 @@
         {
             RC<Model>   model   = Model( "res/models/Sponza/Sponza.gltf" );
 
-            model.InitialTransform( float3(0.f, -1.f, 0.f), float3(0.f, ToRad(90.f), 0.f), 100.f );
+            model.InitialTransform( float3(0.f, -1.f, 0.f), float3(0.f, ToRad(90.f), ToRad(180.f)), 100.f );
 
             model.AddOmniLight( float3(0.f, -5.f, 0.f), float3(0.f, 0.f, 0.05f), RGBA32f(1.f) );
 

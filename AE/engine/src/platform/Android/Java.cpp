@@ -25,7 +25,7 @@ namespace {
     constructor
 =================================================
 */
-    JavaEnv::JavaEnv (JNIEnv *env) __NE___ :
+    JavaEnv::JavaEnv (JNIEnv* env) __NE___ :
         _env{ env }
     {
         Attach();
@@ -116,7 +116,7 @@ namespace {
     SetVM
 =================================================
 */
-    void JavaEnv::SetVM (JavaVM *ptr) __NE___
+    void JavaEnv::SetVM (JavaVM* ptr) __NE___
     {
         ASSERT( GetJavaVM() == null );
 

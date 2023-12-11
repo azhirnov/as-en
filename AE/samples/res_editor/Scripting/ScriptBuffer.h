@@ -66,7 +66,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptBuffer ()                                                                         __Th___;
+        ScriptBuffer ()                                                                         __Th___ {}
         ScriptBuffer (Bytes size)                                                               __Th___;
         ScriptBuffer (const String &filename)                                                   __Th___;
         ~ScriptBuffer ();

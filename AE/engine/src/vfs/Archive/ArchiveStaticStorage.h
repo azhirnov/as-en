@@ -14,6 +14,7 @@ namespace AE::VFS
     class ArchiveStaticStorage final : public IVirtualFileStorage
     {
         friend class ArchivePacker;
+        friend class VirtualFileStorageFactory;
 
     // types
     private:
@@ -54,7 +55,7 @@ namespace AE::VFS
             FileName::Optimized_t   name;
             FileInfo                info;
         };
-        STATIC_ASSERT( sizeof(FileHeader) == 20 );
+        StaticAssert( sizeof(FileHeader) == 20 );
 
         using FileMap_t = FlatHashMap< FileName::Optimized_t, FileInfo >;
 
@@ -74,12 +75,6 @@ namespace AE::VFS
 
     // methods
     public:
-        ArchiveStaticStorage ()                                                                 __NE___ {}
-        ~ArchiveStaticStorage ()                                                                __NE_OV {}
-
-        ND_ bool  Create (RC<RDataSource> archive);
-        ND_ bool  Create (const Path &filename);
-
 
       // IVirtualFileStorage //
         bool  Open (OUT RC<RStream> &stream, FileNameRef name)                                  C_NE_OV;
@@ -90,6 +85,7 @@ namespace AE::VFS
 
         bool  Exists (FileNameRef name)                                                         C_NE_OV;
         bool  Exists (FileGroupNameRef name)                                                    C_NE_OV;
+
 
     private:
         void  _Append (INOUT GlobalFileMap_t &)                                                 C_Th_OV;
@@ -105,6 +101,14 @@ namespace AE::VFS
     //  bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)                       C_NE___;
 
         ND_ bool  _ReadHeader (RDataSource &ds)                                                 __NE___;
+
+
+    private:
+        ArchiveStaticStorage ()                                                                 __NE___ {}
+        ~ArchiveStaticStorage ()                                                                __NE_OV {}
+
+        ND_ bool  _Create (RC<RDataSource> archive)                                             __NE___;
+        ND_ bool  _Create (const Path &filename)                                                __NE___;
     };
 
 

@@ -1779,7 +1779,7 @@ namespace
                     CHECK_ERR( ser( RenderPassPack_VkRpBlock, uint(compat->_specializations.size()) ));
 
                     Array<SerializableVkRenderPass> vk_rpasses;
-                    CATCH_ERR( vk_rpasses.reserve( compat->_specializations.size() + 1 ));
+                    NOTHROW_ERR( vk_rpasses.reserve( compat->_specializations.size() + 1 ));
 
                     {
                         SerializableVkRenderPass&   vk_rp = vk_rpasses.emplace_back();

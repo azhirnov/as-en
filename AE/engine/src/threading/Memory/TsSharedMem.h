@@ -20,8 +20,7 @@ namespace AE::Threading
     {
     // types
     public:
-        using Allocator_t   = RC<IAllocator>;
-        using Self          = TsSharedMem;
+        using Self  = TsSharedMem;
 
     private:
 
@@ -64,40 +63,39 @@ namespace AE::Threading
             ND_ Bytes   Align ()                C_NE___ { return _ref != null ? _ref->Align() : 0_b; }
 
             template <typename T>
-            ND_ ArrayView<T>  ToView ()         C_NE___
-            {
-                ASSERT( IsMultipleOf( Size(), SizeOf<T> ));
-                ASSERT( AlignOf<T> <= Align() );
-                return ArrayView<T>{ Cast<T>(Data()), Size() / SizeOf<T> };
-            }
+            ND_ ArrayView<T>  ToView ()         C_NE___;
         };
 
 
     // variables
     private:
         RWSpinLock      _guard;     // used to protect access to '_Data()'
-        Bytes32u        _size;
+        Byte32u         _size;
         POTBytes        _align;
-        Allocator_t     _allocator;
+        RC<IAllocator>  _allocator;
 
 
     // methods
     public:
-        ND_ Bytes       Size ()         C_NE___ { return _size; }
-        ND_ Bytes       Align ()        C_NE___ { return Bytes{ _align }; }
-        ND_ auto        Allocator ()    C_NE___ { return _allocator; }
+        ND_ Bytes           Size ()                 C_NE___ { return _size; }
+        ND_ Bytes           Align ()                C_NE___ { return Bytes{ _align }; }
+        ND_ IAllocator*     AllocatorPtr ()         C_NE___ { return _allocator.get(); }
+        ND_ RC<IAllocator>  AllocatorRC ()          C_NE___ { return _allocator; }
 
-        ND_ ReadAccess  Read ()         __NE___ { return ReadAccess{  _guard.try_lock_shared()  ? this : null }; }
-        ND_ WriteAccess Write ()        __NE___ { return WriteAccess{ _guard.try_lock()         ? this : null }; }
+        ND_ ReadAccess      Read ()                 __NE___ { return ReadAccess{  _guard.try_lock_shared()  ? this : null }; }
+        ND_ WriteAccess     Write ()                __NE___ { return WriteAccess{ _guard.try_lock()         ? this : null }; }
 
-        ND_ static RC<Self>  Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)                    __NE___;
-        ND_ static RC<Self>  Create (Allocator_t alloc, Bytes size, Bytes align = DefaultAllocatorAlign)    __NE___;
+        ND_ static RC<Self>  Create (RC<IAllocator> alloc, const SizeAndAlign sizeAndAlign)                 __NE___;
+        ND_ static RC<Self>  Create (RC<IAllocator> alloc, Bytes size, Bytes align = DefaultAllocatorAlign) __NE___;
         ND_ static RC<Self>  Create (Bytes size, Bytes align = DefaultAllocatorAlign)                       __NE___;
+
+        ND_ static void*  operator new (usize, void* where)             __NE___ { return where; }
+        //  static void   operator delete (void*, void*)                __NE___ {}
 
 
     private:
-        TsSharedMem (Bytes size, POTBytes align, Allocator_t alloc)     __NE___ : _size{size}, _align{align}, _allocator{RVRef(alloc)} {}
-        ~TsSharedMem ()                                                 __NE_OV {}
+        TsSharedMem (Bytes size, POTBytes align, RC<IAllocator> alloc)  __NE___ : _size{size}, _align{align}, _allocator{RVRef(alloc)} {}
+        ~TsSharedMem ()                                                 __NE_OV { DBG_WARNING( "never used" ); }
 
         ND_ void const*     _Data ()                                    C_NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
         ND_ void*           _Data ()                                    __NE___ { return this + AlignUp( SizeOf<Self>, _align ); }
@@ -139,6 +137,19 @@ namespace AE::Threading
         // don't call 'delete this'
 
         // TODO: flush cache ?
+    }
+
+/*
+=================================================
+    ReadAccess::ToView
+=================================================
+*/
+    template <typename T>
+    ArrayView<T>  TsSharedMem::ReadAccess::ToView () C_NE___
+    {
+        ASSERT( IsMultipleOf( Size(), SizeOf<T> ));
+        ASSERT( AlignOf<T> <= Align() );
+        return ArrayView<T>{ Cast<T>(Data()), Size() / SizeOf<T> };
     }
 
 

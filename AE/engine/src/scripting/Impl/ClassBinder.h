@@ -9,7 +9,7 @@ namespace AE::Scripting
 
     enum class EUnaryOperator
     {
-        Inverse,    
+        Inverse,
         Not,
         PreInc,
         PreDec,
@@ -135,7 +135,7 @@ namespace AE::Scripting
             template <typename OutType> Self &  ImplCast (OutType const* (*) (const T *))   __Th___;
 
             // compare
-            template <typename Fn>      Self &  Equals (Fn func)                            __Th___;    // x == y
+            template <typename Fn>      Self &  Equal (Fn func)                         __Th___;    // x == y
             template <typename Fn>      Self &  Compare (Fn func)                           __Th___;    // x <> y
         };
 

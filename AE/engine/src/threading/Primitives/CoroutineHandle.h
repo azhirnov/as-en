@@ -39,7 +39,7 @@ namespace AE::Threading
             _handle{ null }
         {}
 
-        CoroutineHandle (Self && other)         __NE___ :
+        CoroutineHandle (Self &&other)          __NE___ :
             _handle{ other._handle }
         {
             other._handle = null;
@@ -55,7 +55,7 @@ namespace AE::Threading
 
         Self&  operator = (const Self &)        = delete;
 
-        Self&  operator = (Self && rhs)         __NE___
+        Self&  operator = (Self &&rhs)          __NE___
         {
             if ( _handle )
                 _handle.destroy();

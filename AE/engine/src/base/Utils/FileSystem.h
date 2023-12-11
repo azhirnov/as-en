@@ -133,7 +133,7 @@ namespace AE::Base
         static bool  Search (const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)                      __Th___;
         static bool  Search (const Path &base, const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)    __Th___;
 
-        // 
+        //
         static void  FindUnusedFilename (const Function< void (OUT Path &, usize idx) > &   buildName,
                                          const Function< bool (const Path &) > &            consume)                        __Th___;
 
@@ -179,7 +179,7 @@ namespace AE::Base
         ND_ DirectoryEntry const&   operator *  ()          C_NE___;
         ND_ DirectoryEntry const*   operator -> ()          C_NE___;
 
-            DirectoryIter &         operator ++ ()          __NE___ { std::error_code ec;  _it.increment( OUT ec );  return *this; }    // throw 'std::bad_alloc'
+            DirectoryIter &         operator ++ ()          __Th___ { std::error_code ec;  _it.increment( OUT ec );  return *this; }    // throw 'std::bad_alloc'
 
         ND_ bool  operator == (const DirectoryIter &rhs)    C_NE___ { return _it == rhs._it; }
     };
@@ -208,7 +208,7 @@ namespace AE::Base
         ND_ DirectoryEntry const&   operator *  ()                          C_NE___;
         ND_ DirectoryEntry const*   operator -> ()                          C_NE___;
 
-            RecursiveDirectoryIter& operator ++ ()                          __NE___ { std::error_code ec;  _it.increment( OUT ec );  return *this; }    // throw 'std::bad_alloc'
+            RecursiveDirectoryIter& operator ++ ()                          __Th___ { std::error_code ec;  _it.increment( OUT ec );  return *this; }    // throw 'std::bad_alloc'
 
         ND_ bool  operator == (const RecursiveDirectoryIter &rhs)           C_NE___ { return _it == rhs._it; }
     };

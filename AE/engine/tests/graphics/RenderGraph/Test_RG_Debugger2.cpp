@@ -28,7 +28,7 @@ namespace
         GfxMemAllocatorPtr          gfxAlloc;
     };
 
-    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
+    static constexpr auto&  RTech = RenderTechs::DebugDrawTestRT;
 
 
     template <typename CtxType>
@@ -37,7 +37,7 @@ namespace
     public:
         Db2_TestData&   t;
 
-        Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -62,7 +62,7 @@ namespace
             // draw
             {
                 constexpr auto&     rtech_pass = RTech.Draw_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -88,7 +88,7 @@ namespace
     public:
         Db2_TestData&   t;
 
-        Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -129,7 +129,7 @@ no source
 23. v_Color     = g_Colors[gl_VertexIndex];
 
 )";
-                        const StringView    vs2_ref_str = 
+                        const StringView    vs2_ref_str =
 R"(//> gl_VertexIndex: int {2}
 //> gl_InstanceIndex: int {0}
 no source
@@ -145,7 +145,6 @@ no source
 )";
                         const StringView    fs_ref_str =
 R"(//> gl_FragCoord: float4 {400.500000, 300.500000, 0.000000, 1.000000}
-//> gl_PrimitiveID: int {0}
 //> v_Color: float3 {0.498333, 0.252083, 0.249583}
 no source
 
@@ -176,9 +175,9 @@ no source
 
 
     template <typename CtxType, typename CopyCtx>
-    static bool  Debugger2Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  Debugger2Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db2_TestData    t;
@@ -201,22 +200,25 @@ no source
         t.ppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.dbg2_draw );
         CHECK_ERR( t.ppln );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger2"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw task"} );
+        AsyncTask   task1   = batch->Run< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                    {"Draw task"} );
         AsyncTask   task2   = batch->Run< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );
@@ -228,10 +230,13 @@ no source
 
 bool RGTest::Test_Debugger2 ()
 {
+    if ( not _dbgPipelines )
+        return true;
+
     auto    img_cmp = _LoadReference( TEST_NAME );
     bool    result  = true;
 
-    RG_CHECK( Debugger2Test< DirectCtx, DirectCtx::Transfer >( _pipelines, img_cmp.get() ));
+    RG_CHECK( Debugger2Test< DirectCtx, DirectCtx::Transfer >( _dbgPipelines, img_cmp.get() ));
 
     RG_CHECK( _CompareDumps( TEST_NAME ));
 

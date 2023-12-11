@@ -19,7 +19,7 @@
             max buffers per desc set limit      = Min( maxStorageBuffers, maxUniformBuffers, maxAccelStructures )
             max buffers per desc set            = maxStorageBuffers + maxUniformBuffers + maxAccelStructures
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/FeatureSet.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/FeatureSet.md)
 */
 
 #pragma once
@@ -96,7 +96,7 @@ namespace AE::Graphics
         static constexpr uint   MaxSpirvVersion = 160;
 
         static constexpr uint   MinMetalVersion = 200;
-        static constexpr uint   MaxMetalVersion = 300;
+        static constexpr uint   MaxMetalVersion = 310;
 
         struct ShaderVersion
         {
@@ -209,7 +209,8 @@ namespace AE::Graphics
         _visitor_( EFeature,            shaderSubgroupClock,                    : 2 )   /* GL_ARB_shader_clock                                                              */\
         _visitor_( EFeature,            shaderDeviceClock,                      : 2 )   /* GL_EXT_shader_realtime_clock                                                     */\
         /*  */\
-        _visitor_( EFeature,            cooperativeMatrix,                      : 2 )   /* GL_KHR_cooperative_matrix                                                        */\
+        _visitor_( EFeature,            cooperativeMatrix,                      : 2 )   /*\                                                                                 */\
+        _visitor_( EShaderStages,       cooperativeMatrixStages,                    )   /*-'-- GL_KHR_cooperative_matrix                                                    */\
         \
         \
     /*---- shader features/limits ----*/\
@@ -393,6 +394,7 @@ namespace AE::Graphics
         /*_visitor_( EFeature,          filterMinmaxSingleComponentFormats,     : 2 )*/\
         _visitor_( EFeature,            samplerMipLodBias,                      : 2 )\
         _visitor_( EFeature,            samplerYcbcrConversion,                 : 2 )   /* VK_KHR_sampler_ycbcr_conversion                                                  */\
+        _visitor_( EFeature,            nonSeamlessCubeMap,                     : 2 )   /* VK_EXT_non_seamless_cube_map                                                     */\
         _visitor_( float,               maxSamplerAnisotropy,                       )\
         _visitor_( float,               maxSamplerLodBias,                          )\
         /*_visitor_( SampleCountBits,   sampledImageColorSampleCounts,              )*/\
@@ -488,7 +490,7 @@ namespace AE::Graphics
         template <bool Mutable>
         bool  _Validate ()                                                          __NE___;
     };
-    STATIC_ASSERT( sizeof(FeatureSet) == 680 );
+    StaticAssert( sizeof(FeatureSet) == 688 );
 
 } // AE::Graphics
 

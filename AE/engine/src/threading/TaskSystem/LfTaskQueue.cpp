@@ -65,7 +65,7 @@ namespace AE::Threading
     Process
 =================================================
 */
-    bool  LfTaskQueue::Process (usize seed) __NE___
+    bool  LfTaskQueue::Process (const EThreadSeed seed) __NE___
     {
         if_likely( AsyncTask task = Pull( seed ))
         {
@@ -80,12 +80,12 @@ namespace AE::Threading
             )
             //AE_LOG_DBG( "begin: "s << task->DbgName() );
 
-            try {
+            TRY{
                 task->Run();    // throw
             }
-            catch(...) {
+            CATCH_ALL(
                 task->_SetCancellationState();
-            }
+            )
 
             DEBUG_ONLY( task->_isRunning.store( false ));
             PROFILE_ONLY(
@@ -171,7 +171,7 @@ namespace AE::Threading
     Pull
 =================================================
 */
-    AsyncTask  LfTaskQueue::Pull (usize seed) __NE___
+    AsyncTask  LfTaskQueue::Pull (const EThreadSeed seed) __NE___
     {
         DEBUG_ONLY(
             const auto  start_time = TimePoint_t::clock::now();
@@ -179,7 +179,7 @@ namespace AE::Threading
 
         for (usize j = 0; j < MaxChunks; ++j)
         {
-            Chunk*  chunk_ptr = _chunks[ (j + seed) % MaxChunks ];
+            Chunk*  chunk_ptr = _chunks[ (j + usize(seed)) % MaxChunks ];
 
             for (; chunk_ptr != null; chunk_ptr = chunk_ptr->next.load())
             {
@@ -229,7 +229,7 @@ namespace AE::Threading
                 packed.pack.count   = count;
 
                 const bool  array_changed   = (old_packed.pack.count != count);
-                const auto  order           = 
+                const auto  order           =
                     (array_changed and task != null) ?  EMemoryOrder::AcquireRelease :  // both
                     array_changed                    ?  EMemoryOrder::Release :         // flush changes in 'Chunk::array'
                                                         EMemoryOrder::Relaxed;
@@ -262,12 +262,9 @@ namespace AE::Threading
 /*
 =================================================
     Add
-----
-    TODO: insert tasks without dependencies to the front,
-        with dependencies - to the back
 =================================================
 */
-    void  LfTaskQueue::Add (AsyncTask task, usize seed) __NE___
+    void  LfTaskQueue::Add (AsyncTask task, const EThreadSeed seed) __NE___
     {
         ASSERT( task != null );
 
@@ -279,7 +276,7 @@ namespace AE::Threading
         {
             for (usize j = 0; j < MaxChunks; ++j)
             {
-                Chunk*  chunk_ptr = _chunks[ (j + seed) % MaxChunks ];
+                Chunk*  chunk_ptr = _chunks[ (j + usize(seed)) % MaxChunks ];
 
                 for (uint depth = 0; chunk_ptr != null; ++depth)
                 {
@@ -332,7 +329,7 @@ namespace AE::Threading
 
                                 _maxTasks.fetch_max( _taskCount.Add( 1 ));
                             )
-                            return;
+                            return;  // ok
                         }
                     }
 
@@ -342,13 +339,16 @@ namespace AE::Threading
                     if_unlikely( next == null )
                     {
                         if ( depth >= MaxDepth )
+                        {
+                            AE_LOG_DBG( "task queue overflow" );
                             break;
+                        }
 
-                        next = new Chunk{};
+                        next = new Chunk{};  // throw
 
                         for (Chunk* exp_chunk = null;;)
                         {
-                            if ( chunk_ptr->next.CAS( INOUT exp_chunk, next ))
+                            if_likely( chunk_ptr->next.CAS( INOUT exp_chunk, next ))
                                 break;
 
                             // new chunk was added by another thread
@@ -367,11 +367,18 @@ namespace AE::Threading
                 }
             }
 
-            //AE_LOGI( "task queue overflow" );
-            ThreadUtils::YieldOrSleep();
-
-            // TODO: wait for event or sleep
+            ThreadUtils::Sleep_500us();
         }
+    }
+
+/*
+=================================================
+    CancelAll
+=================================================
+*/
+    void  LfTaskQueue::CancelAll () __NE___
+    {
+        // TODO
     }
 
 /*
@@ -386,6 +393,7 @@ namespace AE::Threading
             auto    search_time = _searchTime.exchange( 0 );
             auto    insert_time = _insertionTime.exchange( 0 );
             auto    max_tasks   = _maxTasks.exchange( 0 );
+            auto    task_count  = _totalProcessed.exchange( 0 );
 
             if ( (work_time == 0 and search_time == 0) or max_tasks == 0 )
                 return;
@@ -394,11 +402,12 @@ namespace AE::Threading
             double  search      = (work_time ? double(search_time) /  work : 1.0);
             double  insertion   = (work_time ? double(insert_time) /  work : 1.0);
 
-            AE_LOGI( _name
-                << " queue total work: " << ToString( nanoseconds(work_time) )
-                << ", search: " << ToString( search * 100.0, 2 ) << " %"
-                << ", insertion: " << ToString( insertion * 100.0, 2 ) << " %"
-                << ", max tasks: " << ToString( max_tasks ));
+            AE_LOGI( String{_name} << " queue "
+                << "\n  total work: " << ToString( nanoseconds{work_time} )
+                << "\n  search:     " << ToString( search * 100.0, 2 ) << " %"
+                << "\n  insertion:  " << ToString( insertion * 100.0, 2 ) << " %"
+                << "\n  max tasks:  " << ToString( max_tasks )
+                << "\n  avg task t: " << ToString( nanosecondsd{ work / task_count }));
         )
     }
 
@@ -423,22 +432,22 @@ namespace AE::Threading
                     continue;
 
                 // lock spinlock
-                for (uint i = 0;; ++i)
-                {
-                    // expect in unlocked state
-                    packed.pack.locked = 0;
-
-                    if_likely( chunk_ptr->packed.CAS( INOUT packed, packed.Lock() ))
-                        break;
-
-                    if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+                [&]() {
+                    for (uint p = 0;; ++p)
                     {
-                        i = 0;
-                        ThreadUtils::YieldOrSleep();
-                    }
+                        for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
+                        {
+                            // expect in unlocked state
+                            packed.pack.locked = 0;
 
-                    ThreadUtils::Pause();
-                }
+                            if_likely( chunk_ptr->packed.CAS( INOUT packed, packed.Lock() ))
+                                return;
+
+                            ThreadUtils::Pause();
+                        }
+                        ThreadUtils::ProgressiveSleep( p );
+                    }
+                }();
 
                 // load changes in 'Chunk::array'
                 MemoryBarrier( EMemoryOrder::Acquire );

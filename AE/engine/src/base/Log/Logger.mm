@@ -1,6 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "base/ObjC/NS.h"
+
+#undef null
 #import <Cocoa/Cocoa.h>
+#define null    nullptr
+
 #include "base/Log/Logger.h"
 
 #if defined(AE_PLATFORM_APPLE) and not defined(AE_CI_BUILD)
@@ -39,7 +44,7 @@ namespace
     DialogLogOutput
 =================================================
 */
-    ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg) __Th___
+    ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg, ELevel level) __Th___
     {
         if ( _mainThread != std::this_thread::get_id() )
         {
@@ -50,7 +55,7 @@ namespace
                                 ShowAlertDialog( caption, msg );
                             }
                           );*/
-            return EResult::Unknown;
+            return level >= ELevel::Error ? EResult::Break : EResult::Unknown;
         }
 
         NSModalResponse returnCode = ShowAlertDialog( caption, msg );

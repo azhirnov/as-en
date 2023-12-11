@@ -15,7 +15,7 @@ namespace AE::App
 # ifdef AE_PLATFORM_ANDROID
 
     #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ ) \
-        STATIC_ASSERT( uint(SerializableInputActionsAndroid::EInputType::_key_) == uint(_and_code_) );
+        StaticAssert( uint(SerializableInputActionsAndroid::EInputType::_key_) == uint(_and_code_) );
 
     AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
     #undef AE_ANDROID_KEY_CODES_VISITOR
@@ -182,15 +182,15 @@ namespace {
 
             binder.AddValue( "MultiTouch",          EInputType::MultiTouch );
 
-            STATIC_ASSERT( uint(EInputType::Cursor2DBegin) == 523 );
-            STATIC_ASSERT( uint(EInputType::Cursor2DEnd)   == 526 );
+            StaticAssert( uint(EInputType::Cursor2DBegin) == 523 );
+            StaticAssert( uint(EInputType::Cursor2DEnd)   == 526 );
             binder.AddValue( "TouchPos",            EInputType::TouchPos );
             binder.AddValue( "TouchPos_mm",         EInputType::TouchPos_mm );
             binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
             binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
 
-            STATIC_ASSERT( uint(EInputType::Sensors1fBegin) == 527 );
-            STATIC_ASSERT( uint(EInputType::Sensors1fEnd)   == 533 );
+            StaticAssert( uint(EInputType::Sensors1fBegin) == 527 );
+            StaticAssert( uint(EInputType::Sensors1fEnd)   == 533 );
             binder.AddValue( "AirTemperature",      EInputType::AirTemperature );
             binder.AddValue( "AmbientLight",        EInputType::AmbientLight );
             binder.AddValue( "AirPressure",         EInputType::AirPressure );
@@ -199,12 +199,12 @@ namespace {
             binder.AddValue( "StepCount",           EInputType::StepCount );
             binder.AddValue( "BatteryState",        EInputType::BatteryState );
 
-            STATIC_ASSERT( uint(EInputType::Sensors2dBegin) == 534 );
-            STATIC_ASSERT( uint(EInputType::Sensors2dEnd)   == 534 );
+            StaticAssert( uint(EInputType::Sensors2dBegin) == 534 );
+            StaticAssert( uint(EInputType::Sensors2dEnd)   == 534 );
             binder.AddValue( "GeoLocation",         EInputType::GeoLocation );
 
-            STATIC_ASSERT( uint(EInputType::Sensors3fBegin) == 535 );
-            STATIC_ASSERT( uint(EInputType::Sensors3fEnd)   == 540 );
+            StaticAssert( uint(EInputType::Sensors3fBegin) == 535 );
+            StaticAssert( uint(EInputType::Sensors3fEnd)   == 540 );
             binder.AddValue( "Accelerometer",       EInputType::Accelerometer );
             binder.AddValue( "Gravity",             EInputType::Gravity );
             binder.AddValue( "Gyroscope",           EInputType::Gyroscope );
@@ -212,8 +212,8 @@ namespace {
             binder.AddValue( "MagneticField",       EInputType::MagneticField );
             binder.AddValue( "RotationVector",      EInputType::RotationVector );
 
-            STATIC_ASSERT( uint(EInputType::Sensors4x4fBegin) == 541 );
-            STATIC_ASSERT( uint(EInputType::Sensors4x4fEnd)   == 541 );
+            StaticAssert( uint(EInputType::Sensors4x4fBegin) == 541 );
+            StaticAssert( uint(EInputType::Sensors4x4fEnd)   == 541 );
             binder.AddValue( "Pose6DOF",            EInputType::Pose6DOF );
         }
 

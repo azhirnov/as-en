@@ -456,7 +456,7 @@ namespace AE::ECS
     _OnNewArchetype
 =================================================
 */
-    void  Registry::_OnNewArchetype (ArchetypePair_t *arch) __NE___
+    void  Registry::_OnNewArchetype (ArchetypePair_t* arch) __NE___
     {
         for (usize i = 0; i < _queries.size(); ++i)
         {

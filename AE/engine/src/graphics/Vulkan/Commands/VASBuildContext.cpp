@@ -45,7 +45,7 @@ namespace AE::Graphics::_hidden_
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureBuildRangeInfoKHR*       ranges      = null;
-        AllocatorImpl2< VTempLinearAllocator >          allocator;
+        IAllocatorAdaptor< VTempLinearAllocator >       allocator;
 
         CHECK_THROW( VRTGeometry::ConvertBuildInfo( this->_mngr.GetResourceManager(), allocator, cmd, OUT ranges, OUT build_info ));
 
@@ -71,7 +71,7 @@ namespace AE::Graphics::_hidden_
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureBuildRangeInfoKHR*       ranges      = null;
-        AllocatorImpl2< VTempLinearAllocator >          allocator;
+        IAllocatorAdaptor< VTempLinearAllocator >       allocator;
 
         CHECK_THROW( VRTGeometry::ConvertBuildInfo( this->_mngr.GetResourceManager(), allocator, cmd, OUT ranges, OUT build_info ));
 
@@ -100,7 +100,7 @@ namespace AE::Graphics::_hidden_
                                       indirectStride ));
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
-        AllocatorImpl2< VTempLinearAllocator >          allocator;
+        IAllocatorAdaptor< VTempLinearAllocator >       allocator;
         uint*                                           max_prim_count  = null;
         const uint                                      stride          = uint(indirectStride);
 
@@ -319,7 +319,7 @@ namespace AE::Graphics::_hidden_
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureBuildRangeInfoKHR*       ranges      = null;
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator   {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator   {_GetFrameId()};
 
         CHECK_THROW( VRTGeometry::ConvertBuildInfo( this->_mngr.GetResourceManager(), allocator, cmd, OUT ranges, OUT build_info ));
 
@@ -346,7 +346,7 @@ namespace AE::Graphics::_hidden_
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureBuildRangeInfoKHR*       ranges      = null;
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator   {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator   {_GetFrameId()};
 
         CHECK_THROW( VRTGeometry::ConvertBuildInfo( this->_mngr.GetResourceManager(), allocator, cmd, OUT ranges, OUT build_info ));
 
@@ -373,7 +373,7 @@ namespace AE::Graphics::_hidden_
                               scratch_buf.Description(), cmd.scratch.offset,
                               inst_buf.Description(), cmd.instanceData.offset ));
 
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator   {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator   {_GetFrameId()};
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureGeometryKHR*             geom        = allocator.Allocate< VkAccelerationStructureGeometryKHR >();
         VkAccelerationStructureBuildRangeInfoKHR*       range       = allocator.Allocate< VkAccelerationStructureBuildRangeInfoKHR >();
@@ -406,7 +406,7 @@ namespace AE::Graphics::_hidden_
                                scratch_buf.Description(), cmd.scratch.offset,
                                inst_buf.Description(), cmd.instanceData.offset ));
 
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator   {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator   {_GetFrameId()};
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureGeometryKHR*             geom        = allocator.Allocate< VkAccelerationStructureGeometryKHR >();
         VkAccelerationStructureBuildRangeInfoKHR*       range       = allocator.Allocate< VkAccelerationStructureBuildRangeInfoKHR >();
@@ -478,7 +478,7 @@ namespace AE::Graphics::_hidden_
                                       indirectStride ));
 
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator       {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator       {_GetFrameId()};
         uint*                                           max_prim_count  = null;
 
         CHECK_THROW( VRTGeometry::ConvertBuildInfo( this->_mngr.GetResourceManager(), allocator, cmd, OUT max_prim_count, OUT build_info ));
@@ -505,7 +505,7 @@ namespace AE::Graphics::_hidden_
                                       scratch_buf.Description(), cmd.scratch.offset,
                                       inst_buf.Description(), cmd.instanceData.offset ));
 
-        AllocatorImpl< GraphicsFrameAllocatorRef >      allocator       {_GetFrameId()};
+        IAllocatorAdaptor< GraphicsFrameAllocatorRef >  allocator       {_GetFrameId()};
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureGeometryKHR*             geom            = allocator.Allocate< VkAccelerationStructureGeometryKHR >();
         VkAccelerationStructureBuildRangeInfoKHR        range;

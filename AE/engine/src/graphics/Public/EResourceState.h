@@ -98,7 +98,7 @@ namespace AE::Graphics
         static constexpr uint   ComputeShader               = 1 << 19;
         static constexpr uint   RayTracingShaders           = 1 << 20;
 
-        STATIC_ASSERT( uint(_AccessCount) < Read );
+        StaticAssert( uint(_AccessCount) < Read );
     };
 
 
@@ -200,7 +200,7 @@ namespace AE::Graphics
         _InvalidState                           = ~0u,
     };
 
-    STATIC_ASSERT( sizeof(EResourceState) == sizeof(_EResState::EState) );
+    StaticAssert( sizeof(EResourceState) == sizeof(_EResState::EState) );
 
 
 /*

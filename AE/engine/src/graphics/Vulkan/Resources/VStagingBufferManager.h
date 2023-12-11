@@ -1,13 +1,4 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-/*
-    hint:
-        upload      - write (on host)   - from host to device
-        readback    - read  (on host)   - from device to host
-
-    Upload staging buffer must use coherent memory and doesn't require FlushMemoryRanges.
-    Readback staging buffer can use cached non-coherent memory.
-    Vertex buffer use unified memory and doesn't require FlushMemoryRanges.
-*/
 
 #pragma once
 

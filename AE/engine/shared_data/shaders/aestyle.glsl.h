@@ -29,27 +29,49 @@
 #define INOUT
 #define OUT
 
+// used for vec/mat type building (templates)
+#define float_vec_t     float
+#define float_mat_t     float
+#define double_vec_t    double
+#define double_mat_t    double
+#define int_vec_t       int
+#define uint_vec_t      uint
+#define bool_vec_t      bool
+#define sbyte_vec_t     sbyte
+#define ubyte_vec_t     ubyte
+#define sshort_vec_t    sshort
+#define ushort_vec_t    ushort
+#define half_vec_t      half
+#define half_mat_t      half
+#define slong_vec_t     slong
+#define ulong_vec_t     ulong
+
 
 // Math types
 #if 1
 #include "aestyle_shared.h"
 
 template <typename T>           ND_ T               abs (const T);
-template <typename T>           ND_ T               acos (const T);
-template <typename T>           ND_ T               acosh (const T);
+template <typename T>           ND_ T               acos (const T x);                       // result in range [0, Pi], undefined if Abs(x) > 1
+template <typename T>           ND_ T               acosh (const T x);                      // result is non-negative inverse of cosh, undefined if x < 1
                                 ND_ bool            all (const bool2);
                                 ND_ bool            all (const bool3);
                                 ND_ bool            all (const bool4);
                                 ND_ bool            any (const bool2);
                                 ND_ bool            any (const bool3);
                                 ND_ bool            any (const bool4);
-template <typename T>           ND_ T               asin (const T);
-template <typename T>           ND_ T               asinh (const T);
-template <typename T>           ND_ T               atan (const T y, const T x);
-template <typename T>           ND_ T               atan (const T y_over_x);
-template <typename T>           ND_ T               atan (const T);
+template <typename T>           ND_ T               asin (const T);                         // result in range [-Pi/2, Pi/2], undefined if Abs(x) > 1
+template <typename T>           ND_ T               asinh (const T);                        // result is inverse of sinh
+template <typename T>           ND_ T               atan (const T y, const T x);            // result in range [-Pi, Pi], undefined if x = 0
+template <typename T>           ND_ T               atan (const T y_over_x);                // result in range [-Pi/2, Pi/2]
+template <typename T>           ND_ T               atanh (const T);                        // result is inverse of tanh, undefined if Abs(x) > 1
 template <typename T>           ND_ T               bitCount (const T);
+
+// For signed data types, the most significant bits will be set to the value of bit offset + base - 1 (i.e., it is sign extended to the width of the return type).
+// The result will be undefined if offset or bits is negative, or if the sum of offset and bits is greater than the number of bits used to store the operand.
 template <typename T>           ND_ T               bitfieldExtract (const T value, int offset, int bits);
+
+// The result will be undefined if offset or bits is negative, or if the sum of offset and bits is greater than the number of bits used to store the operand.
 template <typename T>           ND_ T               bitfieldInsert (const T base, const T insert, int offset, int bits);
 template <typename T>           ND_ T               bitfieldReverse (const T);
 template <typename T>           ND_ T               ceil (const T);
@@ -61,28 +83,18 @@ template <typename T>           ND_ T               cosh (const T);
                                 ND_ float3          cross (const float3 x, const float3 y);
                                 ND_ double3         cross (const double3 x, const double3 y);
 template <typename T>           ND_ T               degrees (const T);
-                                ND_ float           distance (const float2, const float2);
-                                ND_ float           distance (const float3, const float3);
-                                ND_ float           distance (const float4, const float4);
-                                ND_ double          distance (const double2, const double2);
-                                ND_ double          distance (const double3, const double3);
-                                ND_ double          distance (const double4, const double4);
-                                ND_ float           dot (const float2, const float2);
-                                ND_ float           dot (const float3, const float3);
-                                ND_ float           dot (const float4, const float4);
-                                ND_ double          dot (const double2, const double2);
-                                ND_ double          dot (const double3, const double3);
-                                ND_ double          dot (const double4, const double4);
+template <typename T, int I>    ND_ T               distance (const _Vec<T,I>, const _Vec<T,I>);
+template <typename T, int I>    ND_ T               dot (const _Vec<T,I>, const _Vec<T,I>);
 template <typename T, int I>    ND_ _Vec<bool,I>    equal (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T>           ND_ T               exp (const T);
 template <typename T>           ND_ T               exp2 (const T);
 template <typename T>           ND_ T               faceforward (const T n, const T i, const T Nref);
-template <typename T>           ND_ T               findLSB (const T);
-template <typename T>           ND_ T               findMSB (const T);
-                                ND_ int             floatBitsToInt (const float);           // intBitsToFloat
-template <int I>                ND_ _Vec<int,I>     floatBitsToInt (const _Vec<float,I>);   // intBitsToFloat
-                                ND_ uint            floatBitsToUint (const float);          // uintBitsToFloat
-template <int I>                ND_ _Vec<uint,I>    floatBitsToUint (const _Vec<float,I>);  // uintBitsToFloat
+template <typename T>           ND_ T               findLSB (const T);                      // -1 on incorrect input
+template <typename T>           ND_ T               findMSB (const T);                      // -1 on incorrect input
+                                ND_ int             floatBitsToInt (const float);           // inverse intBitsToFloat
+template <int I>                ND_ _Vec<int,I>     floatBitsToInt (const _Vec<float,I>);   // inverse intBitsToFloat
+                                ND_ uint            floatBitsToUint (const float);          // inverse uintBitsToFloat
+template <int I>                ND_ _Vec<uint,I>    floatBitsToUint (const _Vec<float,I>);  // inverse uintBitsToFloat
 template <typename T>           ND_ T               floor (const T);
 template <typename T>           ND_ T               fma (const T a, const T b, const T c);
 template <typename T>           ND_ T               fract (const T);
@@ -91,10 +103,10 @@ template <typename T, int I>    ND_ _Vec<bool,I>    greaterThan (const _Vec<T,I>
 template <typename T, int I>    ND_ _Vec<bool,I>    greaterThanEqual (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T>           ND_ void            umulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
 template <typename T>           ND_ void            imulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
-                                ND_ float           intBitsToFloat (const int);             // floatBitsToInt
-template <int I>                ND_ _Vec<float,I>   intBitsToFloat (const _Vec<int,I>);     // floatBitsToInt
-                                ND_ float           uintBitsToFloat (const uint);           // floatBitsToUint
-template <int I>                ND_ _Vec<float,I>   uintBitsToFloat (const _Vec<uint,I>);   // floatBitsToUint
+                                ND_ float           intBitsToFloat (const int);             // inverse floatBitsToInt
+template <int I>                ND_ _Vec<float,I>   intBitsToFloat (const _Vec<int,I>);     // inverse floatBitsToInt
+                                ND_ float           uintBitsToFloat (const uint);           // inverse floatBitsToUint
+template <int I>                ND_ _Vec<float,I>   uintBitsToFloat (const _Vec<uint,I>);   // inverse floatBitsToUint
 template <typename T>           ND_ T               inversesqrt (const T);
 template <typename T>           ND_ bool            isinf (const T);
 template <typename T, int I>    ND_ _Vec<bool,I>    isinf (const _Vec<T,I>);
@@ -107,8 +119,8 @@ template <int I>                ND_ float           length (const _Vec<float,I>)
 template <int I>                ND_ double          length (const _Vec<double,I>);
 template <typename T, int I>    ND_ _Vec<bool,I>    lessThan (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T, int I>    ND_ _Vec<bool,I>    lessThanEqual (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T>           ND_ T               log (const T);
-template <typename T>           ND_ T               log2 (const T);
+template <typename T>           ND_ T               log (const T);                                  // result is undefined if x <= 0
+template <typename T>           ND_ T               log2 (const T);                                 // result is undefined if x <= 0
 template <typename T, int I>    ND_ _Vec<T,I>       max (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T, int I>    ND_ _Vec<T,I>       max (const _Vec<T,I> x, const T y);
 template <typename T>           ND_ T               max (const T x, const T y);
@@ -211,35 +223,35 @@ template <typename T, int C, int R> ND_ _Matrix<T,R,C>  transpose (const _Matrix
                                 ND_ ushort2         unpackUint2x16 (const uint v);
                                 ND_ ushort4         unpackUint4x16 (const ulong v);
 
-                                ND_ short           halfBitsToInt16 (const half);               // int16BitsToHalf
-template <int I>                ND_ _Vec<short,I>   halfBitsToInt16 (const _Vec<half,I>);       // int16BitsToHalf
-                                ND_ ushort          halfBitsToUint16 (const half);              // uint16BitsToHalf
-template <int I>                ND_ _Vec<ushort,I>  halfBitsToUint16 (const _Vec<half,I>);      // uint16BitsToHalf
+                                ND_ short           halfBitsToInt16 (const half);               // inverse int16BitsToHalf
+template <int I>                ND_ _Vec<short,I>   halfBitsToInt16 (const _Vec<half,I>);       // inverse int16BitsToHalf
+                                ND_ ushort          halfBitsToUint16 (const half);              // inverse uint16BitsToHalf
+template <int I>                ND_ _Vec<ushort,I>  halfBitsToUint16 (const _Vec<half,I>);      // inverse uint16BitsToHalf
 
-                                ND_ short           float16BitsToInt16 (const half);            // int16BitsToFloat16
-template <int I>                ND_ _Vec<short,I>   float16BitsToInt16 (const _Vec<half,I>);    // int16BitsToFloat16
-                                ND_ ushort          float16BitsToUint16 (const half);           // uint16BitsToFloat16
-template <int I>                ND_ _Vec<ushort,I>  float16BitsToUint16 (const _Vec<half,I>);   // uint16BitsToFloat16
+                                ND_ short           float16BitsToInt16 (const half);            // inverse int16BitsToFloat16
+template <int I>                ND_ _Vec<short,I>   float16BitsToInt16 (const _Vec<half,I>);    // inverse int16BitsToFloat16
+                                ND_ ushort          float16BitsToUint16 (const half);           // inverse uint16BitsToFloat16
+template <int I>                ND_ _Vec<ushort,I>  float16BitsToUint16 (const _Vec<half,I>);   // inverse uint16BitsToFloat16
 
-                                ND_ slong           doubleBitsToInt64 (const double);           // int64BitsToDouble
-template <int I>                ND_ _Vec<slong,I>   doubleBitsToInt64 (const _Vec<double,I>);   // int64BitsToDouble
-                                ND_ ulong           doubleBitsToUint64 (const double);          // uint64BitsToDouble
-template <int I>                ND_ _Vec<ulong,I>   doubleBitsToUint64 (const _Vec<double,I>);  // uint64BitsToDouble
+                                ND_ slong           doubleBitsToInt64 (const double);           // inverse int64BitsToDouble
+template <int I>                ND_ _Vec<slong,I>   doubleBitsToInt64 (const _Vec<double,I>);   // inverse int64BitsToDouble
+                                ND_ ulong           doubleBitsToUint64 (const double);          // inverse uint64BitsToDouble
+template <int I>                ND_ _Vec<ulong,I>   doubleBitsToUint64 (const _Vec<double,I>);  // inverse uint64BitsToDouble
 
-                                ND_ half            int16BitsToHalf (const short);              // halfBitsToInt16
-template <int I>                ND_ _Vec<half,I>    int16BitsToHalf (const _Vec<short,I>);      // halfBitsToInt16
-                                ND_ half            uint16BitsToHalf (const ushort);            // halfBitsToUint16
-template <int I>                ND_ _Vec<half,I>    uint16BitsToHalf (const _Vec<ushort,I>);    // halfBitsToUint16
+                                ND_ half            int16BitsToHalf (const short);              // inverse halfBitsToInt16
+template <int I>                ND_ _Vec<half,I>    int16BitsToHalf (const _Vec<short,I>);      // inverse halfBitsToInt16
+                                ND_ half            uint16BitsToHalf (const ushort);            // inverse halfBitsToUint16
+template <int I>                ND_ _Vec<half,I>    uint16BitsToHalf (const _Vec<ushort,I>);    // inverse halfBitsToUint16
 
-                                ND_ half            int16BitsToFloat16 (const short);           // float16BitsToInt16
-template <int I>                ND_ _Vec<half,I>    int16BitsToFloat16 (const _Vec<short,I>);   // float16BitsToInt16
-                                ND_ half            uint16BitsToFloat16 (const ushort);         // float16BitsToUint16
-template <int I>                ND_ _Vec<half,I>    uint16BitsToFloat16 (const _Vec<ushort,I>); // float16BitsToUint16
+                                ND_ half            int16BitsToFloat16 (const short);           // inverse float16BitsToInt16
+template <int I>                ND_ _Vec<half,I>    int16BitsToFloat16 (const _Vec<short,I>);   // inverse float16BitsToInt16
+                                ND_ half            uint16BitsToFloat16 (const ushort);         // inverse float16BitsToUint16
+template <int I>                ND_ _Vec<half,I>    uint16BitsToFloat16 (const _Vec<ushort,I>); // inverse float16BitsToUint16
 
-                                ND_ double          int64BitsToDouble (const slong);            // doubleBitsToInt64
-template <int I>                ND_ _Vec<double,I>  int64BitsToDouble (const _Vec<slong,I>);    // doubleBitsToInt64
-                                ND_ double          uint64BitsToDouble (const ulong);           // doubleBitsToUint64
-template <int I>                ND_ _Vec<double,I>  uint64BitsToDouble (const _Vec<ulong,I>);   // doubleBitsToUint64
+                                ND_ double          int64BitsToDouble (const slong);            // inverse doubleBitsToInt64
+template <int I>                ND_ _Vec<double,I>  int64BitsToDouble (const _Vec<slong,I>);    // inverse doubleBitsToInt64
+                                ND_ double          uint64BitsToDouble (const ulong);           // inverse doubleBitsToUint64
+template <int I>                ND_ _Vec<double,I>  uint64BitsToDouble (const _Vec<ulong,I>);   // inverse doubleBitsToUint64
 #endif
 
 
@@ -253,6 +265,7 @@ private:
 
     enum class _Uns_ {};
 
+    // used some random constants because unsized arrays are not supported
     static constexpr uint   _MaxClipDistance                = 8;
     static constexpr uint   _MaxCullDistance                = 8;
     static constexpr uint   _MaxSampleMask                  = 1;
@@ -311,7 +324,7 @@ public:
     //  - Data from uniform buffer, for arrays it must be constant or dynamically uniform indexing.
     //  - Data from push constants.
     //  - 'DrawID'.
-    // 
+    //
     // Non-dynamically uniform:
     //  - 'VertexIndex', 'PrimitiveID', ...
     //  - 'InstanceIndex' - non-uniform on TBDR.
@@ -1116,7 +1129,7 @@ public:
 
   #else
 
-    // sync 
+    // sync
     #ifdef AE_MEM_SCOPE
     void  MemoryBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
     #endif
@@ -1384,7 +1397,9 @@ public:
     {
         A,              // 'a' argument in CoopMatMulAdd()
         B,              // 'b' argument in CoopMatMulAdd()
-        Accumulator     // 'c' argument in CoopMatMulAdd()
+        Accumulator,    // 'c' argument in CoopMatMulAdd()
+
+        C   = Accumulator
     };
 
     enum class MatrixOperands
@@ -1402,7 +1417,15 @@ public:
     template <typename T, Scope ScopeType, uint Rows, uint Columns, MatrixUse Use>
     struct CoopMat
     {
-        ND_ constexpr uint  length()                        { return Rows * Columns; }
+        explicit CoopMat (T scalar);
+
+        template <typename T2, Scope ScopeType, uint Rows, uint Columns, MatrixUse Use>
+        explicit CoopMat (const CoopMat<T2, ScopeType, Rows, Columns, Use> &);
+
+        ND_ uint    length()                const   { return Rows * Columns; }
+
+        ND_ T &     operator [] (int i);
+        ND_ T       operator [] (int i)     const;
     };
 
     template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
@@ -1411,8 +1434,9 @@ public:
     template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
     void  CoopMatStore (CoopMat<T,S,R,C,U> m, OUT B* buf, uint element, uint stride, CooperativeMatrixLayout layout);
 
-    template <typename T, Scope S, uint R, uint C, MatrixUse U, typename T>
-    ND_ CoopMat<T,S,R,C,U>  CoopMatMulAdd (CoopMat<T,S,R,C,U> a, CoopMat<T,S,R,C,U> b, CoopMat<T,S,R,C,U> c, MatrixOperands matrixOperands = MatrixOperands::None);
+    // a * b + c
+    template <typename T, Scope S, uint M, uint N, uint K>
+    ND_ CoopMat<T,S,M,N,MatrixUse::C>  CoopMatMulAdd (CoopMat<T,S,M,K,MatrixUse::A> a, CoopMat<T,S,K,N,MatrixUse::B> b, CoopMat<T,S,M,N,MatrixUse::C> c, MatrixOperands matrixOperands = MatrixOperands::None);
 
   #endif // AE_COOP_MATRIX and AE_MEM_SCOPE
 

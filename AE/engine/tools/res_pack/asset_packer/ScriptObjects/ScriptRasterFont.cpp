@@ -367,7 +367,7 @@ namespace AE::AssetPacker
 
             binder.Comment( "Multichannel SDF font, can be scaled, have sharp angles, but a bit less performance." );
             binder.AddValue( "MC_SDF",  ERasterFontMode::MC_SDF );
-            STATIC_ASSERT( uint(ERasterFontMode::_Count) == 3 );
+            StaticAssert( uint(ERasterFontMode::_Count) == 3 );
         }
         {
             Scripting::ClassBinder<ScriptRasterFont>    binder{ se };
@@ -448,7 +448,7 @@ namespace AE::AssetPacker
         const uint  w           = ft_face->glyph->bitmap.width;
         const uint  h           = ft_face->glyph->bitmap.rows;
         const uint  img_size    = w * h;
-        void *      data_ptr    = allocator.Allocate( SizeAndAlign{ Bytes{img_size}, 1_b });
+        void *      data_ptr    = allocator.Allocate( Bytes{img_size} );
         CHECK_ERR( data_ptr != null );
 
         MemCopy( OUT data_ptr, ft_face->glyph->bitmap.buffer, Bytes{img_size} );
@@ -612,7 +612,7 @@ namespace AE::AssetPacker
 
                 result.format   = EPixelFormat::R32F;
                 result.dataSize = uint(dst_row_size * region.Height());
-                result.data     = allocator.Allocate( SizeAndAlign{ Bytes{result.dataSize}, 1_b });
+                result.data     = allocator.Allocate( Bytes{result.dataSize} );
                 CHECK_ERR( result.data != null );
 
                 const uint  h   = region.Height();
@@ -642,7 +642,7 @@ namespace AE::AssetPacker
 
                 result.format   = EPixelFormat::RGB32F;
                 result.dataSize = uint(dst_row_size * region.Height());
-                result.data     = allocator.Allocate( SizeAndAlign{ Bytes{result.dataSize}, 1_b });
+                result.data     = allocator.Allocate( Bytes{result.dataSize} );
                 CHECK_ERR( result.data != null );
 
                 const uint  h   = region.Height();
@@ -657,7 +657,7 @@ namespace AE::AssetPacker
                              dst_row_size );
                 }
                 break;
-            }   
+            }
 
             case ERasterFontMode::Raster :
             case ERasterFontMode::_Count :
@@ -824,7 +824,7 @@ namespace AE::AssetPacker
                     tx_max = Max( tx_max, ptr[i] );
 
                     float   res = ptr[i] * outSdfScale + outSdfBias;
-                    CHECK( Equals( res, src, 1.0e-5f ));
+                    CHECK( Equal( res, src, 1.0e-5f ));
                   #endif
                 }
             }
@@ -851,7 +851,7 @@ namespace AE::AssetPacker
             RWImageMemView  src_view{ BufferMemView{ glyph.data, Bytes{glyph.dataSize} }, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
 
             glyph.dataSize  = glyph.dimension.x * glyph.dimension.y * (fmt_info.BitsPerPixel() / 8);
-            glyph.data      = allocator.Allocate( SizeAndAlign{ Bytes{glyph.dataSize}, 1_b });
+            glyph.data      = allocator.Allocate( Bytes{glyph.dataSize} );
             glyph.format    = _intermFormat;
 
             CHECK_ERR( glyph.data != null );

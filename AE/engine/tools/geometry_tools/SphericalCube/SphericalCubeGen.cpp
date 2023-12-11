@@ -1,9 +1,60 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "geometry_tools/SphericalCube/SphericalCubeGen.h"
+#include "geometry_tools/Utils/TBN.h"
 
 namespace AE::GeometryTools
 {
+namespace
+{
+
+    ND_ static uint  GetSCLod (uint lod) __NE___
+    {
+        return lod * 2 - 1;
+    }
+
+/*
+=================================================
+    RotateTangent
+=================================================
+*/
+    ND_ inline double3  RotateTangent (const double3 &c, ECubeFace face) __NE___
+    {
+        switch ( face )
+        {
+            case ECubeFace::XPos : return double3( c.x,  c.y,  c.z);    // X+   | +z
+            case ECubeFace::XNeg : return double3(-c.x,  c.y, -c.z);    // X-   | -z
+            case ECubeFace::YPos : return double3( c.z,  c.y, -c.x);    // Y+   | +x
+            case ECubeFace::YNeg : return double3( c.z,  c.y, -c.x);    // Y-   | +x
+            case ECubeFace::ZPos : return double3(-c.z,  c.y,  c.x);    // Z+   | -x
+            case ECubeFace::ZNeg : return double3( c.z,  c.y, -c.x);    // Z-   | +x
+        }
+        return {};
+    }
+
+/*
+=================================================
+    RotateBiTangent
+=================================================
+*/
+    ND_ inline double3  RotateBiTangent (const double3 &c, ECubeFace face) __NE___
+    {
+        switch ( face )
+        {
+            case ECubeFace::XPos : return double3( c.x,  c.z, -c.y);    // X+   | -y
+            case ECubeFace::XNeg : return double3( c.x,  c.z, -c.y);    // X-   | -y
+            case ECubeFace::YPos : return double3(-c.x,  c.y, -c.z);    // Y+   | -z
+            case ECubeFace::YNeg : return double3( c.x,  c.y,  c.z);    // Y-   | +z
+            case ECubeFace::ZPos : return double3( c.x,  c.z, -c.y);    // Z+   | -y
+            case ECubeFace::ZNeg : return double3( c.x,  c.z, -c.y);    // Z-   | -y
+        }
+        return {};
+    }
+
+} // namespace
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -13,11 +64,13 @@ namespace AE::GeometryTools
     uint2  SphericalCubeGen::CalcFaceVertCount2 (uint lod) __NE___
     {
         // on X/Y axis
+        lod = GetSCLod( lod );
         return uint2{ lod+2 };
     }
 
-    uint  SphericalCubeGen::CalcFaceVertCount (const uint lod) __NE___
+    uint  SphericalCubeGen::CalcFaceVertCount (uint lod) __NE___
     {
+        lod = GetSCLod( lod );
         return (lod+2) * (lod+2);
     }
 
@@ -26,8 +79,9 @@ namespace AE::GeometryTools
         return CalcFaceVertCount( lod ) * FaceCount;
     }
 
-    uint  SphericalCubeGen::CalcFaceIndexCount (const uint lod, const Bool useQuads) __NE___
+    uint  SphericalCubeGen::CalcFaceIndexCount (uint lod, const Bool useQuads) __NE___
     {
+        lod = GetSCLod( lod );
         return (useQuads ? 4 : 6) * (lod+1) * (lod+1);
     }
 
@@ -77,16 +131,14 @@ namespace AE::GeometryTools
             index_count += CalcIndexCount( lod, Bool{_quads} );
 
             // for cube sides
-            const uint  vcount  = lod + 2;
-            const uint  icount  = lod + 1;
+            const uint  vcount  = GetSCLod( lod ) + 2;
+            const uint  icount  = GetSCLod( lod ) + 1;
             uint        vert_i  = 0;
             uint        index_i = 0;
 
             // for top/bottom faces
             for (uint face = 0; face < 6; ++face)
             {
-                //AE_LOGI( "Lod: "s << ToString(lod) << ", Face: " << ToString(face) );
-
                 // generate indices
                 for (uint y = 0; y < icount; ++y)
                 for (uint x = 0; x < icount; ++x)
@@ -103,61 +155,56 @@ namespace AE::GeometryTools
                     {
                         if ( (x < icount/2 and y < icount/2) or (x >= icount/2 and y >= icount/2) )
                         {
-                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[1];    dst_indices[index_i++] = indices[3];
-                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[3];    dst_indices[index_i++] = indices[2];
+                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[3];    dst_indices[index_i++] = indices[1];
+                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[2];    dst_indices[index_i++] = indices[3];
                         }
                         else
                         if ( (x >= icount/2 and y < icount/2) or (x < icount/2 and y >= icount/2) )
                         {
-                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[1];    dst_indices[index_i++] = indices[2];
-                            dst_indices[index_i++] = indices[2];    dst_indices[index_i++] = indices[1];    dst_indices[index_i++] = indices[3];
+                            dst_indices[index_i++] = indices[0];    dst_indices[index_i++] = indices[2];    dst_indices[index_i++] = indices[1];
+                            dst_indices[index_i++] = indices[2];    dst_indices[index_i++] = indices[3];    dst_indices[index_i++] = indices[1];
                         }
                     }
-
-                    //AE_LOGI( "Indices: "s << ToString(dst_indices[index_i-6]) << ", " << ToString(dst_indices[index_i-5]) << ", "
-                    //              << ToString(dst_indices[index_i-4]) << ", " << ToString(dst_indices[index_i-3]) << ", "
-                    //              << ToString(dst_indices[index_i-2]) << ", " << ToString(dst_indices[index_i-1]) );
                 }
 
                 // generate vertices
                 for (uint y = 0; y < vcount; ++y)
                 for (uint x = 0; x < vcount; ++x)
                 {
-                    double2     ncoord      = ToSNorm( double2{ double(x)/(vcount-1), double(y)/(vcount-1) });
+                    double2     ncoord      = ToSNorm( double2{x,y} / double(vcount-1) );
                     auto&       vert        = dst_vertices[vert_i++];
-                    double3     pos         = Projection_t::Forward( ncoord, ECubeFace(face) );
+                    double3     pos         = ForwardProjection( ncoord, ECubeFace(face) );
+                    double2     proj        = VertexProjection_t::Forward( ncoord );
+                    double3     texc        = ForwardTexProjection( ncoord, ECubeFace(face) );
 
-                    vert.position   = FloatToSNormShort(float4{ pos, 0.f });
+                    // from https://iquilezles.org/articles/patchedsphere/
+                    double3     tangent     = VertexProjection_t::Forward2( -Normalize( double3{ 1.0 + Square(proj.y), -proj.x * proj.y, -proj.x }), ECubeFace(face) );
+                    double3     bitangent   = VertexProjection_t::Forward2( Normalize( double3{ -proj.x * proj.y, 1.0 + Square(proj.x), -proj.y }), ECubeFace(face) );
 
-                    if ( cubeMap )
+                    if ( AnyEqual( ECubeFace(face), ECubeFace::YPos, ECubeFace::YNeg ))
                     {
-                        double2     proj        = Projection_t::Forward( ncoord );
-                        double3     texc        = ForwardTexProjection( ncoord, ECubeFace(face) );  texc.y = -texc.y;
-
-                        // from https://iquilezles.org/articles/patchedsphere/
-                        double3     tangent     = Normalize( double3{ 1.0 + Square(proj.y), -proj.x * proj.y, -proj.x });
-                        double3     bitangent   = Normalize( double3{ -proj.x * proj.y, 1.0 + Square(proj.x), -proj.y });
-                        double3     norm2       = Normalize( Cross( tangent, bitangent ));
-                        double3     norm        {norm2.z, norm2.y, -norm2.x};
-
-
-                        //ASSERT( All( Equals( norm, pos, 0.000001 )));
-
-                        vert.texcoord   = FloatToSNormShort(float4{ texc, 0.f });
-                        vert.tangent    = FloatToSNormShort(float4{ Projection_t::Forward2( tangent, ECubeFace(face) ), 0.f });
-                        vert.bitangent  = FloatToSNormShort(float4{ Projection_t::Forward2( bitangent, ECubeFace(face) ), 0.f });
-                    }
-                    else
-                    {
-                        vert.texcoord   = FloatToSNormShort(float4{ ToUNorm(ncoord), 0.f, 0.f });
+                        tangent     = -tangent;
+                        bitangent   = -bitangent;
                     }
 
-                    //AE_LOGI( "Vertex["s << ToString(vert_i-1) << "] = " << ToString(pos)
-                    //          << "; TC: " << ToString(dst_vertices[vert_i-1].texcoord) );
+                    //CheckTBN( float3{pos}, float3{tangent}, float3{bitangent} );
+
+                    vert.position   = FloatToSNormShort(float4{ pos, float(face)/5.f });
+                    vert.texcoord   = FloatToSNormShort(float4{ texc, 0.f });
+                    vert.tangent    = FloatToSNormShort(float4{ tangent, 0.f });
+                    vert.bitangent  = FloatToSNormShort(float4{ bitangent, 0.f });
+
+                    if ( not cubeMap )
+                    {
+                        if ( AnyEqual( ECubeFace(face), ECubeFace::YPos, ECubeFace::YNeg ))
+                            ncoord.y = -ncoord.y;
+                        else
+                            ncoord.x = -ncoord.x;
+
+                        vert.texcoord   = FloatToSNormShort(float4{ ToUNorm( ncoord ), 0.f, 0.f });
+                    }
                 }
             }
-
-            //AE_LOGI( "--------------------------------\n\n" );
         }
 
         return true;
@@ -265,7 +312,7 @@ namespace AE::GeometryTools
         float   c = Square(center.x) + Square(center.y) + Square(center.z) + Square(begin.x) + Square(begin.y) + Square(begin.z) -
                     2.0f * ( center.x*begin.x + center.y*begin.y + center.z*begin.z ) - Square(radius);
 
-        float   i = b * b - 4 * a * c;
+        float   i = b * b - 4.f * a * c;
 
         // no intersection
         if ( i < 0.0f )
@@ -290,16 +337,10 @@ namespace AE::GeometryTools
         bool    mu2_valid   = (mu2 > -0.0001f) & (mu2 < 1.0001f);
         float   mu;
 
-        if ( mu1_valid & mu2_valid )
-            mu = Min( mu1, mu2 );
-        else
-        if ( mu1_valid )
-            mu = mu1;
-        else
-        if ( mu2_valid )
-            mu = mu2;
-        else
-            return false;
+        if ( mu1_valid & mu2_valid )    mu = Min( mu1, mu2 );   else
+        if ( mu1_valid )                mu = mu1;               else
+        if ( mu2_valid )                mu = mu2;               else
+                                        return false;
 
         outIntersection = begin + mu * (end - begin);
         return true;

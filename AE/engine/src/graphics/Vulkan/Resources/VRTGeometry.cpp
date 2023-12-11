@@ -259,7 +259,7 @@ namespace AE::Graphics
     {
         GRES_CHECK( IsSupported( resMngr, desc ));
 
-        AllocatorImpl2< VTempLinearAllocator >          allocator;
+        IAllocatorAdaptor< VTempLinearAllocator >       allocator;
         VkAccelerationStructureBuildGeometryInfoKHR     build_info;
         VkAccelerationStructureBuildSizesInfoKHR        size_info   = {};
         VkAccelerationStructureBuildRangeInfoKHR *      ranges      = null;

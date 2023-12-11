@@ -17,7 +17,7 @@ namespace AE::Graphics
     PageArr ctor
 =================================================
 */
-    VBlockMemAllocator::PageArr::PageArr ()
+    VBlockMemAllocator::PageArr::PageArr () __NE___
     {
         hiLevel.store( 0 ); // set empty & unallocated page bit
 
@@ -47,7 +47,7 @@ namespace AE::Graphics
     {
         EXLOCK( _pageMapGuard );
 
-        auto&               dev         = RenderTaskScheduler().GetDevice();
+        auto&               dev         = GraphicsScheduler().GetDevice();
         const       uint    low_mask    = ToBitMask<uint>( _bitsPerPage );
         constexpr   uint    hi_mask     = ToBitMask<uint>( _PageCount );
 
@@ -104,7 +104,7 @@ namespace AE::Graphics
                 {
                     const uint  low_lvl_bit = (1u << low_lvl_idx);
 
-                    if ( low_level.CAS( INOUT low_available, low_available | low_lvl_bit )) // 0 -> 1
+                    if_likely( low_level.CAS( INOUT low_available, low_available | low_lvl_bit ))   // 0 -> 1
                     {
                         // update high level
                         if_unlikely( low_available == (~low_lvl_bit & low_mask) )
@@ -179,7 +179,7 @@ namespace AE::Graphics
         {
             mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
                 break;
         }
         CHECK_ERR( memory.Get() != Default );
@@ -281,7 +281,7 @@ namespace AE::Graphics
 */
     bool  VBlockMemAllocator::GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) C_NE___
     {
-        auto&   dev         = RenderTaskScheduler().GetDevice();
+        auto&   dev         = GraphicsScheduler().GetDevice();
         auto&   mem_data    = _CastStorage( data );
         auto&   mem_props   = dev.GetVProperties().memoryProperties;
         CHECK_ERR( mem_data.page != null );

@@ -42,7 +42,7 @@ namespace AE::ResLoader
 
 namespace
 {
-    static void  StbiWriteFn (void *context, void *data, int size)
+    static void  StbiWriteFn (void* context, void* data, int size)
     {
         WStream&    stream = *Cast<WStream>(context);
         Unused( stream.WriteSeq( data, Bytes{uint(size)} ));

@@ -106,7 +106,7 @@ namespace
         ND_ TIntermAggregate*   GetCurrentFunction ();
 
         ND_ TIntermTyped*       GetInjection ();
-            void                InjectNode (TIntermTyped *node);
+            void                InjectNode (TIntermTyped* node);
 
         ND_ uint                GetSourceLocation (TIntermNode* node, const TSourceLoc &curr, bool setColumnToZero = false);
         ND_ uint                GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &curr);
@@ -224,7 +224,7 @@ TIntermTyped*  DebugInfo::GetInjection ()
     InjectNode
 =================================================
 */
-void  DebugInfo::InjectNode (TIntermTyped *node)
+void  DebugInfo::InjectNode (TIntermTyped* node)
 {
     if ( node == null )
         return;
@@ -472,7 +472,7 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 
     binary = swizzle_op.back();
 
-    const auto ProcessUnion = [&sw_mask] (TIntermConstantUnion *cu, const Array<uint> &mask) -> bool
+    const auto ProcessUnion = [&sw_mask] (TIntermConstantUnion* cu, const Array<uint> &mask) -> bool
     {
         TConstUnionArray const& cu_arr = cu->getConstArray();
         CHECK_ERR( cu_arr.size() == 1 and cu->getType().getBasicType() == EbtInt );
@@ -529,9 +529,9 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 */
 void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint &swizzle)
 {
-    if ( not node )
+    if ( node == null )
     {
-        CHECK( node );
+        CHECK( false );
         return;
     }
 
@@ -1010,7 +1010,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
     const auto  shader              = dbgInfo.GetShaderType();
     const bool  is_compute          = (shader == EShLangCompute or shader == EShLangTask or shader == EShLangMesh);
     const bool  need_invocation_id  = (shader == EShLangGeometry or shader == EShLangTessControl);
-    const bool  need_primitive_id   = (shader == EShLangFragment or shader == EShLangTessControl or shader == EShLangTessEvaluation);
+    const bool  need_primitive_id   = (shader == EShLangTessControl or shader == EShLangTessEvaluation);
     const bool  need_launch_id      = (shader == EShLangRayGen or shader == EShLangIntersect or shader == EShLangAnyHit or
                                        shader == EShLangClosestHit or shader == EShLangMiss or shader == EShLangCallable);
     TSourceLoc  loc     {};
@@ -1847,17 +1847,17 @@ ND_ static TIntermAggregate*  RecordVertexShaderInfo (const TSourceLoc &loc, Deb
     body->setType( TType{EbtVoid} );
 
     // "dbg_AppendToTrace( gl_VertexIndex, location )"
+    if ( auto* vert_index = dbgInfo.GetCachedSymbolNode( "gl_VertexIndex" ))
     {
-        TIntermSymbol*  vert_index  = dbgInfo.GetCachedSymbolNode( "gl_VertexIndex" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( vert_index, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( vert_index, loc );
         if ( auto* fncall = CreateAppendToTrace( vert_index, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_InstanceIndex, location )"
+    if ( auto* instance = dbgInfo.GetCachedSymbolNode( "gl_InstanceIndex" ))
     {
-        TIntermSymbol*  instance    = dbgInfo.GetCachedSymbolNode( "gl_InstanceIndex" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( instance, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( instance, loc );
         if ( auto* fncall = CreateAppendToTrace( instance, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -1884,17 +1884,17 @@ ND_ static TIntermAggregate*  RecordTessControlShaderInfo (const TSourceLoc &loc
     body->setType( TType{EbtVoid} );
 
     // "dbg_AppendToTrace( gl_InvocationID, location )"
+    if ( auto* invocation = dbgInfo.GetCachedSymbolNode( "gl_InvocationID" ))
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_InvocationID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_PrimitiveID, location )"
+    if ( auto* primitive = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" ))
     {
-        TIntermSymbol*  primitive   = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( primitive, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( primitive, loc );
         if ( auto* fncall = CreateAppendToTrace( primitive, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -1913,17 +1913,17 @@ ND_ static TIntermAggregate*  RecordTessEvaluationShaderInfo (const TSourceLoc &
     body->setType( TType{EbtVoid} );
 
     // "dbg_AppendToTrace( gl_PrimitiveID, location )"
+    if ( auto* primitive = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" ))
     {
-        TIntermSymbol*  primitive   = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( primitive, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( primitive, loc );
         if ( auto* fncall = CreateAppendToTrace( primitive, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_TessCoord, location )"
+    if ( auto* tess_coord = dbgInfo.GetCachedSymbolNode( "gl_TessCoord" ))
     {
-        TIntermSymbol*  tess_coord  = dbgInfo.GetCachedSymbolNode( "gl_TessCoord" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( tess_coord, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( tess_coord, loc );
         if ( auto* fncall = CreateAppendToTrace( tess_coord, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2011,17 +2011,17 @@ ND_ static TIntermAggregate*  RecordGeometryShaderInfo (const TSourceLoc &loc, D
     body->setType( TType{EbtVoid} );
 
     // "dbg_AppendToTrace( gl_InvocationID, location )"
+    if ( auto* invocation = dbgInfo.GetCachedSymbolNode( "gl_InvocationID" ))
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_InvocationID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_PrimitiveIDIn, location )"
+    if ( auto* primitive = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveIDIn" ))
     {
-        TIntermSymbol*  primitive   = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveIDIn" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( primitive, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( primitive, loc );
         if ( auto* fncall = CreateAppendToTrace( primitive, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2041,14 +2041,16 @@ ND_ static TIntermAggregate*  RecordFragmentShaderInfo (const TSourceLoc &loc, D
 
     // "dbg_AppendToTrace( gl_FragCoord, location )"
     {
-        TIntermSymbol*  fragcoord   = dbgInfo.GetCachedSymbolNode( "gl_FragCoord" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( fragcoord, loc );
+        TIntermSymbol*  fragcoord = dbgInfo.GetCachedSymbolNode( "gl_FragCoord" );
+        CHECK_ERR( fragcoord != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( fragcoord, loc );
         if ( auto* fncall = CreateAppendToTrace( fragcoord, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_SampleID, location )"
-    if ( TIntermSymbol*  sample_id = dbgInfo.GetCachedSymbolNode( "gl_SampleID" ))
+    if ( auto* sample_id = dbgInfo.GetCachedSymbolNode( "gl_SampleID" ))
     {
         const uint  loc_id = dbgInfo.GetCustomSourceLocation( sample_id, loc );
         if ( auto* fncall = CreateAppendToTrace( sample_id, loc_id, dbgInfo ))
@@ -2056,7 +2058,7 @@ ND_ static TIntermAggregate*  RecordFragmentShaderInfo (const TSourceLoc &loc, D
     }
 
     // "dbg_AppendToTrace( gl_SamplePosition, location )"
-    if ( TIntermSymbol*  sample_pos = dbgInfo.GetCachedSymbolNode( "gl_SamplePosition" ))
+    if ( auto* sample_pos = dbgInfo.GetCachedSymbolNode( "gl_SamplePosition" ))
     {
         const uint  loc_id = dbgInfo.GetCustomSourceLocation( sample_pos, loc );
         if ( auto* fncall = CreateAppendToTrace( sample_pos, loc_id, dbgInfo ))
@@ -2064,15 +2066,15 @@ ND_ static TIntermAggregate*  RecordFragmentShaderInfo (const TSourceLoc &loc, D
     }
 
     // "dbg_AppendToTrace( gl_PrimitiveID, location )"
+    if ( auto* primitive_id = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" ))
     {
-        TIntermSymbol*  primitive_id    = dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" );
-        const uint      loc_id          = dbgInfo.GetCustomSourceLocation( primitive_id, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( primitive_id, loc );
         if ( auto* fncall = CreateAppendToTrace( primitive_id, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_SamplePosition, location )"
-    if ( TIntermSymbol*  layer = dbgInfo.GetCachedSymbolNode( "gl_Layer" ))
+    if ( auto* layer = dbgInfo.GetCachedSymbolNode( "gl_Layer" ))
     {
         const uint  loc_id = dbgInfo.GetCustomSourceLocation( layer, loc );
         if ( auto* fncall = CreateAppendToTrace( layer, loc_id, dbgInfo ))
@@ -2080,7 +2082,7 @@ ND_ static TIntermAggregate*  RecordFragmentShaderInfo (const TSourceLoc &loc, D
     }
 
     // "dbg_AppendToTrace( gl_ViewportIndex, location )"
-    if ( TIntermSymbol*  viewport_idx = dbgInfo.GetCachedSymbolNode( "gl_ViewportIndex" ))
+    if ( auto* viewport_idx = dbgInfo.GetCachedSymbolNode( "gl_ViewportIndex" ))
     {
         const uint  loc_id = dbgInfo.GetCustomSourceLocation( viewport_idx, loc );
         if ( auto* fncall = CreateAppendToTrace( viewport_idx, loc_id, dbgInfo ))
@@ -2111,25 +2113,25 @@ ND_ static TIntermAggregate*  RecordComputeShaderInfo (const TSourceLoc &loc, De
     body->setType( TType{EbtVoid} );
 
     // "dbg_AppendToTrace( gl_GlobalInvocationID, location )"
+    if ( auto* invocation = dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" ))
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_LocalInvocationID, location )"
+    if ( auto* invocation = dbgInfo.GetCachedSymbolNode( "gl_LocalInvocationID" ))
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LocalInvocationID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
 
     // "dbg_AppendToTrace( gl_WorkGroupID, location )"
+    if ( auto* invocation = dbgInfo.GetCachedSymbolNode( "gl_WorkGroupID" ))
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_WorkGroupID" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2165,8 +2167,10 @@ ND_ static TIntermAggregate*  RecordRayGenShaderInfo (const TSourceLoc &loc, Deb
 
     // "dbg_AppendToTrace( gl_LaunchID, location )"
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        TIntermSymbol*  invocation = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
+        CHECK_ERR( invocation != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2185,8 +2189,10 @@ ND_ static TIntermAggregate*  RecordHitShaderInfo (const TSourceLoc &loc, DebugI
 
     // "dbg_AppendToTrace( gl_LaunchID, location )"
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        TIntermSymbol*  invocation = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
+        CHECK_ERR( invocation != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2321,8 +2327,10 @@ ND_ static TIntermAggregate*  RecordIntersectionShaderInfo (const TSourceLoc &lo
 
     // "dbg_AppendToTrace( gl_LaunchID, location )"
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        TIntermSymbol*  invocation = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
+        CHECK_ERR( invocation != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2437,8 +2445,10 @@ ND_ static TIntermAggregate*  RecordMissShaderInfo (const TSourceLoc &loc, Debug
 
     // "dbg_AppendToTrace( gl_LaunchID, location )"
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        TIntermSymbol*  invocation = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
+        CHECK_ERR( invocation != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2489,8 +2499,10 @@ ND_ static TIntermAggregate*  RecordCallableShaderInfo (const TSourceLoc &loc, D
 
     // "dbg_AppendToTrace( gl_LaunchID, location )"
     {
-        TIntermSymbol*  invocation  = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-        const uint      loc_id      = dbgInfo.GetCustomSourceLocation( invocation, loc );
+        TIntermSymbol*  invocation = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
+        CHECK_ERR( invocation != null );
+
+        const uint  loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
         if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
             body->getSequence().push_back( fncall );
     }
@@ -2723,7 +2735,7 @@ ND_ static TIntermOperator*  CreateComputeShaderIsDebugInvocation (DebugInfo &db
 =================================================
 */
 ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo &dbgInfo)
-{   
+{
     TPublicType     bool_type;  bool_type.init( Default );
     bool_type.basicType         = TBasicType::EbtBool;
     bool_type.qualifier.storage = TStorageQualifier::EvqTemporary;

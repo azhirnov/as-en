@@ -28,7 +28,7 @@ namespace
         GfxMemAllocatorPtr          gfxAlloc;
     };
 
-    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
+    static constexpr auto&  RTech = RenderTechs::DrawMeshesTestRT;
 
 
     template <typename CtxType>
@@ -37,7 +37,7 @@ namespace
     public:
         Db3_TestData&   t;
 
-        Db3_DrawTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db3_DrawTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -61,8 +61,8 @@ namespace
 
             // draw
             {
-                constexpr auto&     rtech_pass = RTech.Draw_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                constexpr auto&     rtech_pass = RTech.DrawMeshes_1;
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -88,7 +88,7 @@ namespace
     public:
         Db3_TestData&   t;
 
-        Db3_CopyTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db3_CopyTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -151,9 +151,9 @@ no source
 
 
     template <typename CtxType, typename CopyCtx>
-    static bool  Debugger3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  Debugger3Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db3_TestData    t;
@@ -173,25 +173,28 @@ no source
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = t.rtech->GetMeshPipeline( RTech.Draw_1.dbg3_draw );
+        t.ppln = t.rtech->GetMeshPipeline( RTech.DrawMeshes_1.dbg3_draw );
         CHECK_ERR( t.ppln );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger3"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< Db3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw mesh task"} );
+        AsyncTask   task1   = batch->Run< Db3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                    {"Draw mesh task"} );
         AsyncTask   task2   = batch->Run< Db3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );
@@ -203,10 +206,13 @@ no source
 
 bool RGTest::Test_Debugger3 ()
 {
+    if ( _msPipelines == null )
+        return true; // skip
+
     auto    img_cmp = _LoadReference( TEST_NAME );
     bool    result  = true;
 
-    RG_CHECK( Debugger3Test< DirectCtx, DirectCtx::Transfer >( _pipelines, img_cmp.get() ));
+    RG_CHECK( Debugger3Test< DirectCtx, DirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
 
     RG_CHECK( _CompareDumps( TEST_NAME ));
 

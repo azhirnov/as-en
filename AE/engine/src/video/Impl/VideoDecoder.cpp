@@ -27,7 +27,7 @@ namespace AE::Video
                 << "\n  avgFrameRate: " << Base::ToString( info.avgFrameRate )
                 << "\n  minFrameRate: " << Base::ToString( info.minFrameRate )
                 << "\n  bitrate:      " << Base::ToString( info.bitrate.GetScaled() )
-                << "\n  size: . . . . " << Base::ToString( info.size )
+                << "\n  dimension:  . " << Base::ToString( info.dimension )
                 << "\n--------";
         }
         return str;

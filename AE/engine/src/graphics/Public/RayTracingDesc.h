@@ -50,7 +50,7 @@ namespace AE::Graphics
             BufferID        vertexData;         // requires EBufferUsage::ASBuild_ReadOnly, content: 'vertexFormat',    access: EResourceState::BuildRTAS_Read
             BufferID        indexData;          // requires EBufferUsage::ASBuild_ReadOnly, content: 'indexType',       access: EResourceState::BuildRTAS_Read
             BufferID        transformData;      // requires EBufferUsage::ASBuild_ReadOnly, content: RTMatrixStorage,   access: EResourceState::BuildRTAS_Read
-            Bytes32u        vertexStride;
+            Byte32u         vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
             Bytes           transformDataOffset;
@@ -165,7 +165,7 @@ namespace AE::Graphics
                 Instance ()                                             __NE___;
                 Instance&  SetIdentity ()                               __NE___ { transform         = RTMatrixStorage::Identity();  return *this; }
                 Instance&  SetTransform (const RTMatrixStorage &value)  __NE___ { transform         = value;        return *this; }
-                Instance&  SetTransform (const float3x4 &value)         __NE___ { transform         = value;        return *this; }
+                Instance&  SetTransform (const float4x3 &value)         __NE___ { transform         = value;        return *this; }
                 Instance&  SetMask (uint value)                         __NE___ { mask              = value;        return *this; }
                 Instance&  SetInstanceOffset (uint value)               __NE___ { instanceSBTOffset = value;        return *this; }
                 Instance&  SetFlags (ERTInstanceOpt value)              __NE___;
@@ -174,7 +174,7 @@ namespace AE::Graphics
         #else
         #   error not implemented
         #endif
-        STATIC_ASSERT( sizeof(Instance) == 64 );
+        StaticAssert( sizeof(Instance) == 64 );
 
         // TODO: MTLAccelerationStructureUserIDInstanceDescriptor, MTLAccelerationStructureMotionInstanceDescriptor
 

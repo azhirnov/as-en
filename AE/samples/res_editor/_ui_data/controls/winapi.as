@@ -133,13 +133,13 @@ void ASmain (WinAPI_ActionBindings& bindings)
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(1.f, 1.f, 0.f, 0.f) * mouse_scale ));
 
         bind.Add( WinAPI_Input::ArrowLeft,
-                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("+0"), arrow_scale ));
-        bind.Add( WinAPI_Input::ArrowRight,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("-0"), arrow_scale ));
+        bind.Add( WinAPI_Input::ArrowRight,
+                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("+0"), arrow_scale ));
         bind.Add( WinAPI_Input::ArrowUp,
-                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
-        bind.Add( WinAPI_Input::ArrowDown,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-"), arrow_scale ));
+        bind.Add( WinAPI_Input::ArrowDown,
+                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
 
         bind.Add( WinAPI_Input::W,
                   ActionInfo( "Camera.Move", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-") ));

@@ -45,17 +45,14 @@ void ASmain ()
 
     // setup planet
     {
-        RC<DynamicFloat>    tess_level  = DynamicFloat();
-        RC<SphericalCube>   planet      = SphericalCube();
+        RC<SphericalCube>   planet = SphericalCube();
 
         planet.ArgIn( "un_HeightMap",   height_view,    Sampler_LinearMipmapRepeat );
         planet.ArgIn( "un_NormalMap",   normal_view,    Sampler_LinearMipmapRepeat );
         planet.ArgIn( "un_AlbedoMap",   albedo_view,    Sampler_LinearMipmapRepeat );
         planet.ArgIn( "un_EmissionMap", emission_view,  Sampler_LinearMipmapRepeat );
         planet.DetailLevel( 0, 9 );
-        planet.TessLevel( tess_level );
 
-        Slider( tess_level, "Tess level", 1.f, 64.f );
         scene.Add( planet, float3(0.f, 0.f, 2.f) );
     }
 
@@ -74,10 +71,10 @@ void ASmain ()
     // render loop
     {
         RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-        draw.AddPipeline( "VertexInput.as" );       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/VertexInput.as)
         draw.AddPipeline( "samples/Planet-2.as" );  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Planet-2.as)
         draw.Output( "out_Color", rt, RGBA32f(0.0) );
         draw.Output( ds, DepthStencil(1.f, 0) );
+        draw.Slider( "iTessLevel",  1.f,    64.f,   16.f );
     }
     Present( rt );
 }

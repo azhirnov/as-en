@@ -120,7 +120,7 @@ namespace AE::PipelineCompiler
     // methods
     public:
         BasePipelineSpec () {}
-        BasePipelineSpec (const BasePipelineTmpl *tmpl, const String &name) __Th___;
+        BasePipelineSpec (const BasePipelineTmpl* tmpl, const String &name) __Th___;
 
         ND_ const BasePipelineTmpl*         GetBase ()      const   { return _tmpl; }
         ND_ PipelineName const&             Name ()         const   { return _name; }

@@ -12,14 +12,14 @@ namespace _hidden_
     template <typename T, bool IsUnsigned>
     struct Random_Uniform_IntType2
     {
-        STATIC_ASSERT( IsUnsignedInteger<T> );
+        StaticAssert( IsUnsignedInteger<T> );
         using type = ByteSizeToUInt< Clamp( sizeof(T), 2u, 8u )>;
     };
 
     template <typename T>
     struct Random_Uniform_IntType2 <T, false>
     {
-        STATIC_ASSERT( IsSignedInteger<T> );
+        StaticAssert( IsSignedInteger<T> );
         using type = ByteSizeToInt< Clamp( sizeof(T), 2u, 8u )>;
     };
 
@@ -52,14 +52,14 @@ namespace _hidden_
         template <typename T>
         ND_ EnableIf<IsFloatPoint<T>, T>  Uniform (T min, T max)            __NE___
         {
-            STATIC_ASSERT( IsScalar<T> );
+            StaticAssert( IsScalar<T> );
             return std::uniform_real_distribution<T>{ min, max }( _gen );
         }
 
         template <typename T>
         ND_ EnableIf<IsInteger<T>, T>  Uniform (T min, T max)               __NE___
         {
-            STATIC_ASSERT( IsScalar<T> );
+            StaticAssert( IsScalar<T> );
             return std::uniform_int_distribution<T>{ min, max }( _gen );
         }
 
@@ -147,7 +147,7 @@ namespace _hidden_
     struct Random::_Binomial
     {
         friend struct Random;
-        STATIC_ASSERT( IsInteger<T> and IsScalar<T> );
+        StaticAssert( IsInteger<T> and IsScalar<T> );
 
     // variables
     private:
@@ -174,7 +174,7 @@ namespace _hidden_
     struct Random::_Binomial< Vec<T,I> >
     {
         friend struct Random;
-        STATIC_ASSERT( IsInteger<T> and IsScalar<T> );
+        StaticAssert( IsInteger<T> and IsScalar<T> );
 
     // variables
     private:
@@ -213,7 +213,7 @@ namespace _hidden_
     struct Random::_Normal
     {
         friend struct Random;
-        STATIC_ASSERT( IsFloatPoint<T> and IsScalar<T> );
+        StaticAssert( IsFloatPoint<T> and IsScalar<T> );
 
     // variables
     private:
@@ -240,7 +240,7 @@ namespace _hidden_
     struct Random::_Normal< Vec<T,I> >
     {
         friend struct Random;
-        STATIC_ASSERT( IsFloatPoint<T> and IsScalar<T> );
+        StaticAssert( IsFloatPoint<T> and IsScalar<T> );
 
     // variables
     private:
@@ -279,7 +279,7 @@ namespace _hidden_
     struct Random::_Normal2
     {
         friend struct Random;
-        STATIC_ASSERT( IsFloatPoint<T> and IsScalar<T> );
+        StaticAssert( IsFloatPoint<T> and IsScalar<T> );
 
     // variables
     private:
@@ -309,7 +309,7 @@ namespace _hidden_
             {
                 T ret = _dist( _rnd._gen );
 
-                if ( ret < _min or ret > _max )
+                if ( ret < _min or ret > _max ) // TODO: wtf?
                     continue;
 
                 return ret;
@@ -352,7 +352,7 @@ namespace _hidden_
             {
                 ret[i] = _dist( _rnd._gen );
 
-                if ( ret[i] < _min or ret[i] > _max )
+                if ( ret[i] < _min or ret[i] > _max )   // TODO: wtf?
                     continue;
 
                 ++i;

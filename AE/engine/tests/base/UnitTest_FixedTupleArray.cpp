@@ -197,6 +197,18 @@ namespace
         TEST( T1::CheckStatistic() );
         TEST( T2::CheckStatistic() );
     }
+
+
+    static void  FixedTupleArray_Test6 ()
+    {
+        struct alignas(64) Elem1 {};
+        struct alignas(16) Elem2 {};
+
+        using TupleArr_t = FixedTupleArray< 8, Elem1, Elem2 >;
+
+        StaticAssert( alignof(TupleArr_t) >= alignof(Elem1) );
+        StaticAssert( alignof(TupleArr_t) >= alignof(Elem2) );
+    }
 }
 
 
@@ -207,6 +219,7 @@ extern void UnitTest_FixedTupleArray ()
     FixedTupleArray_Test3();
     FixedTupleArray_Test4();
     FixedTupleArray_Test5();
+    FixedTupleArray_Test6();
 
     TEST_PASSED();
 }

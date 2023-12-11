@@ -144,14 +144,14 @@ namespace AE::Graphics
     public:
         GAutorelease ()                         __NE___ {}
         GAutorelease (Strong<ID_t> id)          __NE___ : _id{ RVRef(id) }          {}
-        GAutorelease (Self && other)            __NE___ : _id{ RVRef(other._id) }   {}
+        GAutorelease (Self &&other)             __NE___ : _id{ RVRef(other._id) }   {}
         ~GAutorelease ()                        __NE___ { _ReleaseRef(); }
 
         GAutorelease (const Self &)             = delete;
         Self&  operator = (const Self &)        = delete;
 
         Self&  operator = (Strong<ID_t> rhs)    __NE___ { _ReleaseRef();  _id = RVRef(rhs);     return *this; }
-        Self&  operator = (Self && rhs)         __NE___ { _ReleaseRef();  _id = RVRef(rhs._id); return *this; }
+        Self&  operator = (Self &&rhs)          __NE___ { _ReleaseRef();  _id = RVRef(rhs._id); return *this; }
 
         ND_ ID_t            Get ()              C_NE___ { return _id.Get(); }
         ND_ Strong<ID_t>    Release ()          __NE___ { Strong<ID_t> tmp = RVRef(_id);  return tmp; }

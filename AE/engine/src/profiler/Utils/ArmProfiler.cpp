@@ -42,7 +42,7 @@ namespace
             CPU_COUNTERS( CPU_COUNTERS_VISITOR )
             #undef CPU_COUNTERS_VISITOR
         }
-        STATIC_ASSERT( uint(hwcpipe::CpuCounter::MaxValue) == 17 );
+        StaticAssert( uint(hwcpipe::CpuCounter::MaxValue) == 17 );
         return hwcpipe::CpuCounter::MaxValue;
     }
 
@@ -112,7 +112,7 @@ namespace
             GPU_COUNTERS( GPU_COUNTERS_VISITOR )
             #undef GPU_COUNTERS_VISITOR
         }
-        STATIC_ASSERT( uint(hwcpipe::GpuCounter::MaxValue) == 37 );
+        StaticAssert( uint(hwcpipe::GpuCounter::MaxValue) == 37 );
         return hwcpipe::GpuCounter::MaxValue;
     }
 
@@ -209,7 +209,7 @@ namespace
     GetCpuCounterValue / GetGpuCounterValue
 =================================================
 */
-    ND_ static double  GetCpuCounterValue (const hwcpipe::CpuMeasurements *cpu, hwcpipe::CpuCounter counter)
+    ND_ static double  GetCpuCounterValue (const hwcpipe::CpuMeasurements* cpu, hwcpipe::CpuCounter counter)
     {
         auto    hwcpipe_ctr = cpu->find( counter );
         if ( hwcpipe_ctr != cpu->end() )
@@ -217,7 +217,7 @@ namespace
         return 0.0;
     }
 
-    ND_ static double  GetGpuCounterValue (const hwcpipe::GpuMeasurements *gpu, hwcpipe::GpuCounter counter)
+    ND_ static double  GetGpuCounterValue (const hwcpipe::GpuMeasurements* gpu, hwcpipe::GpuCounter counter)
     {
         auto    hwcpipe_ctr = gpu->find( counter );
         if ( hwcpipe_ctr != gpu->end() )
@@ -290,10 +290,10 @@ namespace
         CHECK_ERR( not IsInitialized() );
 
         bool    res = false;
-        try {
+        TRY{
             res = _Initialize( counterSet );
         }
-        catch(...) {}
+        CATCH_ALL();
 
         if ( res )
             return true;

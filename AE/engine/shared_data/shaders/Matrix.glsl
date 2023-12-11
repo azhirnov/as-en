@@ -205,11 +205,10 @@ float3x3  f3x3_Rotate (const float angle, const float3 inAxis)
     return result;
 }
 
-// TODO: set [3][3] = 1
-float4x4  f4x4_RotateX (const float angle)                      { return float4x4(f3x3_RotateX( angle )); }
-float4x4  f4x4_RotateY (const float angle)                      { return float4x4(f3x3_RotateY( angle )); }
-float4x4  f4x4_RotateZ (const float angle)                      { return float4x4(f3x3_RotateZ( angle )); }
-float4x4  f4x4_Rotate  (const float angle, const float3 axis)   { return float4x4(f3x3_Rotate( angle, axis )); }
+float4x4  f4x4_RotateX (const float angle)                      { float4x4 m = float4x4(f3x3_RotateX( angle ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_RotateY (const float angle)                      { float4x4 m = float4x4(f3x3_RotateY( angle ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_RotateZ (const float angle)                      { float4x4 m = float4x4(f3x3_RotateZ( angle ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_Rotate  (const float angle, const float3 axis)   { float4x4 m = float4x4(f3x3_Rotate( angle, axis ));  m[3][3] = 1.f;  return m; }
 //-----------------------------------------------------------------------------
 
 
@@ -253,7 +252,7 @@ float3  UnProject (const float4x4 invMat, const float3 pos, const float4 viewpor
 
 float3  ViewDir (const float4x4 invMat, const float2 unormPos)
 {
-    const float4    world_pos = invMat * float4(ToSNorm(unormPos), 1.0f, 1.0f);
+    const float4    world_pos = invMat * float4(ToSNorm(unormPos), -1.0f, 1.0f);
     return Normalize( world_pos.xyz / world_pos.w );
 }
 

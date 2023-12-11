@@ -4,7 +4,7 @@
 
 # ifdef AE_PLATFORM_WINDOWS
 #   define GLFW_EXPOSE_NATIVE_WIN32 1
-#   include "base/Platforms/WindowsHeader.h"
+#   include "base/Platforms/WindowsHeader.cpp.h"
 # endif
 
 # include "GLFW/glfw3.h"
@@ -14,7 +14,7 @@
 # include "platform/GLFW/ApplicationGLFW.h"
 
 # ifdef AE_PLATFORM_MACOS
-    extern AE::Graphics::MetalCALayerRC  GetNSWindowView (GLFWwindow* wnd);
+    extern bool  GetNSWindowView (GLFWwindow* wnd, OUT AE::Graphics::MetalNSViewRC &outNSView, OUT AE::Graphics::MetalCALayerRC &outMetalLayer);
 # endif
 
 namespace AE::App
@@ -124,7 +124,8 @@ namespace AE::App
 */
     NativeWindow  WindowGLFW::GetNative () C_NE___
     {
-        DRC_SHAREDLOCK( _drCheck );
+        DRC_EXLOCK( _drCheck );
+        DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
         NativeWindow    result;
 
@@ -139,7 +140,7 @@ namespace AE::App
             result.x11Display   = glfwGetX11Display();
 
         #elif defined(AE_PLATFORM_MACOS)
-            result.metalLayer   = GetNSWindowView( _window );
+            CHECK( GetNSWindowView( _window, OUT result.nsView, OUT result.metalLayer ));
 
         #else
         #   error unsupported platform!
@@ -285,6 +286,19 @@ namespace AE::App
         // set windowed mode
         if ( not fullscreen and was_fullscreen )
         {
+            if ( Any(IsZero( _lastWindowSize.Size() )))
+            {
+                if ( monitor == null )
+                    monitor = glfwGetPrimaryMonitor();
+
+                int2    work_area_pos, work_area_size;
+                glfwGetMonitorWorkarea( monitor, OUT &work_area_pos.x, OUT &work_area_pos.y, OUT &work_area_size.x, OUT &work_area_size.y );
+
+                int2    wnd_size = Max( work_area_size/3, Min( work_area_size, int2(800, 600) ));
+                _lastWindowSize = RectI{ wnd_size };
+                _lastWindowSize += work_area_pos + (work_area_size - wnd_size)/2;
+            }
+
             glfwSetWindowMonitor( _window, null,
                                   _lastWindowSize.left, _lastWindowSize.top, _lastWindowSize.Width(), _lastWindowSize.Height(),
                                   GLFW_DONT_CARE );

@@ -23,7 +23,7 @@ namespace AE::Threading
     // methods
     public:
         template <typename ...Args>
-        explicit TsRDataSource (Args && ...args)    __NE___ : _dataSource{ FwdArg<Args>(args)...} {}
+        explicit TsRDataSource (Args&& ...args)     __NE___ : _dataSource{ FwdArg<Args>(args)...} {}
         ~TsRDataSource ()                           __NE_OV {}
 
 
@@ -33,10 +33,10 @@ namespace AE::Threading
 
         Bytes       Size ()                         C_NE_OV { EXLOCK( _guard );  return _dataSource->Size(); }
 
-        Bytes  ReadBlock (Bytes offset, OUT void *buffer, Bytes size) __NE_OV
+        Bytes  ReadBlock (Bytes pos, OUT void* buffer, Bytes size) __NE_OV
         {
             EXLOCK( _guard );
-            return _dataSource->ReadBlock( offset, OUT buffer, size );
+            return _dataSource->ReadBlock( pos, OUT buffer, size );
         }
     };
 
@@ -47,7 +47,7 @@ namespace AE::Threading
     //
 
     template <typename T>
-    class TsWDataSource : public WDataSource
+    class TsWDataSource final : public WDataSource
     {
     // variables
     private:
@@ -58,7 +58,7 @@ namespace AE::Threading
     // methods
     public:
         template <typename ...Args>
-        explicit TsWDataSource (Args && ...args)    __NE___ : _dataSource{ FwdArg<Args>(args)...} {}
+        explicit TsWDataSource (Args&& ...args)     __NE___ : _dataSource{ FwdArg<Args>(args)...} {}
         ~TsWDataSource ()                           __NE_OV {}
 
 
@@ -66,13 +66,10 @@ namespace AE::Threading
         bool        IsOpen ()                       C_NE_OV { EXLOCK( _guard );  return _dataSource->IsOpen(); }
         ESourceType GetSourceType ()                C_NE_OV { EXLOCK( _guard );  return _dataSource->GetSourceType() | ESourceType::ThreadSafe; }
 
-        Bytes       Capacity ()                     C_NE_OV { return 0_b; }                         // TODO
-        Bytes       Reserve (Bytes capacity)        __NE_OV { Unused( capacity );  return 0_b; }    // TODO
-
-        Bytes  WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE_OV
+        Bytes  WriteBlock (Bytes pos, const void* buffer, Bytes size) __NE_OV
         {
             EXLOCK( _guard );
-            return _dataSource->WriteBlock( offset, buffer, size );
+            return _dataSource->WriteBlock( pos, buffer, size );
         }
 
         void  Flush ()                              __NE_OV

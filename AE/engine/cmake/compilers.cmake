@@ -12,9 +12,14 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 # options:
-#   AE_ENABLE_COMPILER_WARNINGS     BOOL :  TRUE - for engine,      FALSE - for external projects
+#   AE_ENABLE_COMPILER_WARNINGS     BOOL :      TRUE - for engine,  FALSE - for external projects
 #   AE_USE_SANITIZER                BOOL
-#   AE_DISABLE_THREADS              BOOL :  for emscripten
+#   AE_DISABLE_THREADS              BOOL :      for emscripten
+#   AE_ENABLE_EXCEPTIONS            BOOL :      TRUE - enable,      FALSE - disable exception and RTTI
+#   AE_ENABLE_LOGS                  BOOL
+#   AE_SIMD_AVX                     STRING :    0, 1, 2, 3(AVX512)
+#   AE_SIMD_SSE                     STRING :    0, 20, 30, 31, 41, 42
+#   AE_SIMD_AES                     STRING :    0, 1
 
 
 # detect target platform
@@ -101,7 +106,14 @@ set( "AE_CPU_ARCH_${TARGET_CPU_ARCH}" ON CACHE INTERNAL "" FORCE )
 # default compiler flags
 set( PROJECTS_SHARED_DEFINES
      "AE_${TARGET_PLATFORM}" "AE_PLATFORM_NAME=\"${CMAKE_SYSTEM_NAME}\"" "AE_PLATFORM_BITS=${PLATFORM_BITS}"
-     "AE_CPU_ARCH_${TARGET_CPU_ARCH}" "AE_CPU_ARCH_NAME=\"${TARGET_CPU_ARCH}\"" "AE_ENABLE_RTTI" )
+     "AE_CPU_ARCH_${TARGET_CPU_ARCH}" "AE_CPU_ARCH_NAME=\"${TARGET_CPU_ARCH}\"" )
+
+if (${AE_ENABLE_EXCEPTIONS})
+    set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_ENABLE_RTTI" "AE_ENABLE_EXCEPTIONS" )
+endif()
+if (${AE_ENABLE_LOGS})
+    set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_ENABLE_LOGS" )
+endif()
 
 set( CMAKE_CONFIGURATION_TYPES Release Profile Develop Debug )
 set( CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING "Configurations" FORCE )
@@ -200,27 +212,40 @@ if ( COMPILER_MSVC )
         message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
     endif()
     set( DETECTED_COMPILER "COMPILER_MSVC" )
+
+    set( TEMP_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+    string( REPLACE "/GR-"                  " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/GR"                   " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # RTTI
+    string( REPLACE "/EHa-"                 " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/EHa"                  " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # catches both structured (asynchronous) and standard C++ (synchronous) exceptions
+    string( REPLACE "/EHsc-"                " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/EHsc"                 " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # functions declared as extern "C" never throw a C++ exception.
+    string( REPLACE "/EHc-"                 " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/EHc"                  " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # ignored without /EHs
+    string( REPLACE "/EHs-"                 " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/EHs"                  " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # catches only standard C++ exceptions, functions declared as extern "C" may throw a C++ exception.
+    string( REPLACE "/EHr-"                 " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/EHr"                  " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" ) # forcing compiler to generate runtime checks for unhandled exceptions that escape a noexcept function
+    string( REPLACE "/D_HAS_EXCEPTIONS=0"   " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "/D_HAS_EXCEPTIONS=1"   " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+    string( REPLACE "   "                   " " TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS}" )
+
+    if (${AE_ENABLE_EXCEPTIONS})
+        set( TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS} /D_HAS_EXCEPTIONS=1 /EHsc /GR" )
+    else ()
+        # disable c++ exceptions
+        # _HAS_EXCEPTIONS=0 means 'there are no exceptions' and that the standard library can assume no exceptions.
+        # The standard library team does not test any _HAS_EXCEPTIONS=0 configuration.
+        set( TEMP_CXX_FLAGS "${TEMP_CXX_FLAGS} /D_HAS_EXCEPTIONS=0 /EHs- /GR-" )  # /EHc- /EHr- are not needed
+    endif()
+    #--------------------------------------------
+
     set( CURRENT_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "" FORCE )
-    set( CURRENT_CXX_FLAGS ${CMAKE_CXX_FLAGS} CACHE STRING "" FORCE )
+    set( CURRENT_CXX_FLAGS "${TEMP_CXX_FLAGS}" CACHE STRING "" FORCE )
+    set( CMAKE_CXX_FLAGS "${TEMP_CXX_FLAGS}" CACHE STRING "" FORCE )
     set( CURRENT_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} CACHE STRING "" FORCE )
     set( CURRENT_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS} CACHE STRING "" FORCE )
     set( CURRENT_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} CACHE STRING "" FORCE )
-
-    #[[ disable c++ exceptions
-    if (${AE_NO_EXCEPTIONS})
-        # _HAS_EXCEPTIONS=0 means 'there are no exceptions' and that the standard library can assume no exceptions.
-        # The standard library team does not test any _HAS_EXCEPTIONS=0 configuration.
-        string( REPLACE " /EHa"                 " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        string( REPLACE " /EHsc"                " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        string( REPLACE " /EHs"                 " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        string( REPLACE " /EHr"                 " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        string( REPLACE " /D_HAS_EXCEPTIONS=0"  " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        string( REPLACE " /D_HAS_EXCEPTIONS=1"  " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-        set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} /D_HAS_EXCEPTIONS=0 /EHsc" )
-    else ()
-        set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} /D_HAS_EXCEPTIONS=1 /EHsc" )
-    endif()]]
-    #--------------------------------------------
 
     set( CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
 
@@ -283,8 +308,6 @@ if ( COMPILER_MSVC )
         list( APPEND MSVC_SHARED_OPTS_DBG /w14100 )
     endif()
 
-    set( CMAKE_CXX_FLAGS "${CURRENT_CXX_FLAGS}" CACHE STRING "" FORCE )
-
     # Release
     set( CMAKE_C_FLAGS_RELEASE "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /MP " CACHE STRING "" FORCE )
     set( CMAKE_CXX_FLAGS_RELEASE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /MP " CACHE STRING "" FORCE )
@@ -299,7 +322,7 @@ if ( COMPILER_MSVC )
     set( CMAKE_EXE_LINKER_FLAGS_PROFILE "${CURRENT_EXE_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- /Zi /GR CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- /Zi CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG /PROFILE" CACHE INTERNAL "" FORCE )
     # Develop
     set( CMAKE_C_FLAGS_DEVELOP "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MT /Od /MP " CACHE STRING "" FORCE )
@@ -307,7 +330,7 @@ if ( COMPILER_MSVC )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Od /analyze- /Zi /GR CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Od /analyze- /Zi CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG" CACHE INTERNAL "" FORCE )
     # Debug
     set( CMAKE_C_FLAGS_DEBUG "${CURRENT_C_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MTd /Od /MP " CACHE STRING "" FORCE )
@@ -315,7 +338,7 @@ if ( COMPILER_MSVC )
     set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG} /sdl /Od /Ob0 /Oy- /GF- /GS /GR /analyze- /Zi /RTC1 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG} /sdl /Od /Ob0 /Oy- /GF- /GS /analyze- /Zi /RTC1 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:FULL" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -324,15 +347,23 @@ endif()
 # GCC/Clang shared settings
 #==================================================================================================
 set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "-Wno-unused -Wno-switch -Wno-undef -Wno-comment" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Werror=defaulted-function-deleted )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Werror=defaulted-function-deleted -Werror=format-security )
 
-#if (${AE_NO_EXCEPTIONS})
-#   set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-exceptions" )
-#   set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -fno-exceptions )
-#else()
-    set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fexceptions" )
-    set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -fexceptions )
-#endif()
+if (${AE_ENABLE_EXCEPTIONS})
+    set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -frtti -fexceptions" )
+    set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST}   -frtti -fexceptions )
+else()
+    # TODO: -fno-unwind-tables -fno-asynchronous-unwind-tables
+    set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-rtti -fno-exceptions" )
+    set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST}   -fno-rtti -fno-exceptions )
+endif()
+
+# TODO:
+#   -ffast-math
+#   -ffp-contract=fast
+#   -fvisibility-inlines-hidden -fvisibility=hidden
+#   -ffunction-sections -fdata-sections
+#   -no-canonical-prefixes
 
 
 #==================================================================================================
@@ -352,7 +383,7 @@ if ( COMPILER_GCC )
     #--------------------------------------------
     set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
-    # -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes 
+    # -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes
     set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} )
     set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_GCC" )
 
@@ -399,9 +430,8 @@ endif()
 # Clang shared settings
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
-set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins 
-set( CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -Wnarrowing -Wlogical-op-parentheses -frtti -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference )
-
+set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins
+set( CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference )
 
 #==================================================================================================
 # Clang Compilation settings
@@ -645,7 +675,7 @@ if ( COMPILER_CLANG_ANDROID )
     set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
     #--------------------------------------------
 
-    set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} -fstack-protector-strong -fPIC )
+    set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} -fstack-protector-strong -fPIC -fcoroutines-ts )
     # -mfloat-abi=hard
 
     set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )

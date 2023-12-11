@@ -5,7 +5,6 @@
 namespace AE::Base
 {
 
-
     //
     // Logger interface
     //
@@ -62,7 +61,8 @@ namespace AE::Base
 
     // interface
     public:
-        virtual ~ILogger () {}
+        ILogger ()                                                  __NE___ {}
+        virtual ~ILogger ()                                         __NE___ {}
 
         ND_ virtual EResult Process (const MessageInfo &info)       __Th___ = 0;
             virtual void    SetCurrentThreadName (std::string_view) __NE___ {}
@@ -72,14 +72,15 @@ namespace AE::Base
     public:
         using LoggerPtr = std::unique_ptr< ILogger >;
 
-        ND_ static LevelBits    GetDialogLevelBits () __NE___;
-        ND_ static ScopeBits    GetDialogScopeBits () __NE___;
+        ND_ static LevelBits    GetDialogLevelBits ()               __NE___;
+        ND_ static ScopeBits    GetDialogScopeBits ()               __NE___;
 
-        ND_ static LoggerPtr    CreateIDEOutput ();                                             // VS only
-        ND_ static LoggerPtr    CreateConsoleOutput (std::string_view tag = AE_ENGINE_NAME);    // cross platform
-        ND_ static LoggerPtr    CreateFileOutput (std::string_view fileName);
-        ND_ static LoggerPtr    CreateHtmlOutput (std::string_view fileName);
-        ND_ static LoggerPtr    CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(), ScopeBits scopeBits = GetDialogScopeBits());
+        ND_ static LoggerPtr    CreateIDEOutput ()                                              __NE___;    // VS only
+        ND_ static LoggerPtr    CreateConsoleOutput (std::string_view tag = {})                 __NE___;    // cross platform
+        ND_ static LoggerPtr    CreateFileOutput (std::string_view fileName)                    __NE___;
+        ND_ static LoggerPtr    CreateHtmlOutput (std::string_view fileName)                    __NE___;
+        ND_ static LoggerPtr    CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(),
+                                                    ScopeBits scopeBits = GetDialogScopeBits()) __NE___;
     };
 
 
@@ -97,7 +98,7 @@ namespace AE::Base
 
 
     // methods
-        ND_ static EResult  Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)                  __Th___;
+        ND_ static EResult  Process (const char* msg, const char* func, const char* file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)                  __Th___;
         ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)   __Th___;
 
             static void     SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
@@ -130,8 +131,9 @@ namespace AE
 
 } // AE
 
-#define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
-    try { \
+#ifdef AE_ENABLE_LOGS
+# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
+    TRY{ \
         BEGIN_ENUM_CHECKS() \
         {switch ( AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
         { \
@@ -140,7 +142,11 @@ namespace AE
             case        AE::Base::StaticLogger::EResult::Abort :        AE_PRIVATE_EXIT();          break; \
         }} \
         END_ENUM_CHECKS() \
-    } catch(...) {} // to catch exceptions in string formating
+    }CATCH_ALL();   // to catch exceptions in string formatting
+
+#else
+# define AE_PRIVATE_LOGX( ... ) {}
+#endif
 
 
 #define AE_PRIVATE_LOG_I(  _msg_, _file_, _line_ )  AE_PRIVATE_LOGX( AE::ELogLevel::Info,        AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )

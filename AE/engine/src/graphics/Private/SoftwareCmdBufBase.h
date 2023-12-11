@@ -24,7 +24,7 @@ namespace AE::Graphics::_hidden_
             Header *    next    = null;
             Bytes       size;
         };
-        STATIC_ASSERT( alignof(Header) <= BaseAlign );
+        StaticAssert( alignof(Header) <= BaseAlign );
 
 
         struct BaseCmd
@@ -38,7 +38,7 @@ namespace AE::Graphics::_hidden_
         };
 
     private:
-        using Allocator_t = AlignedAllocatorRefBaseAlign< Threading::GraphicsFrameAllocatorRef, BaseAlign >;
+        using Allocator_t = AllocatorRefBaseAlign< Threading::GraphicsFrameAllocatorRef, BaseAlign >;
 
 
     // variables
@@ -52,19 +52,19 @@ namespace AE::Graphics::_hidden_
 
     // methods
     public:
-        SoftwareCmdBufBase ()                   __NE___ {}
-        ~SoftwareCmdBufBase ()                  __NE___ { ASSERT( _root == null ); }
+        SoftwareCmdBufBase ()                                                           __NE___ {}
+        ~SoftwareCmdBufBase ()                                                          __NE___ { ASSERT( _root == null ); }
 
-        ND_ bool    IsValid ()                  C_NE___ { return true; }
+        ND_ bool    IsValid ()                                                          C_NE___ { return true; }
 
-        static void  Deallocate (void* root)    __NE___;
+        static void  Deallocate (void* root)                                            __NE___;
 
 
     protected:
-        ND_ void*  _Allocate (Bytes size)                       __Th___;
+        ND_ void*  _Allocate (Bytes size)                                               __Th___;
 
         template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
-        ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)   __Th___;
+        ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)                           __Th___;
 
         template <usize I, typename TL>
         ND_ static constexpr Bytes  _CalcCmdSize (Bytes size, usize dynamicArraySize)   __NE___;
@@ -83,13 +83,13 @@ namespace AE::Graphics::_hidden_
     CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize) __Th___
     {
         constexpr auto  max_align = TypeList< CmdType, DynamicTypes... >::template ForEach_Max< TypeListUtils::GetTypeAlign >();
-        STATIC_ASSERT( max_align <= BaseAlign );
+        StaticAssert( max_align <= BaseAlign );
 
         Bytes   size    = AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
         auto*   cmd     = Cast<CmdType>( _Allocate( size ));    // throw
 
         DEBUG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
-        STATIC_ASSERT( CommandsList::template HasType< CmdType >);
+        StaticAssert( CommandsList::template HasType< CmdType >);
 
         cmd->_commandID = CheckCast<ushort>( CommandsList::template Index< CmdType >);
         cmd->_size      = CheckCast<ushort>( size );
@@ -107,7 +107,7 @@ namespace AE::Graphics::_hidden_
         if constexpr( I < TL::Count )
         {
             using T = typename TL::template Get<I>;
-            return _CalcCmdSize< I+1, TL >( AlignUp( size, alignof(T) ) + sizeof(T) * dynamicArraySize, dynamicArraySize ); 
+            return _CalcCmdSize< I+1, TL >( AlignUp( size, alignof(T) ) + sizeof(T) * dynamicArraySize, dynamicArraySize );
         }
         else
             return size;

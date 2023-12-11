@@ -3,7 +3,7 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "threading/Primitives/SyncEvent.h"
+# include "threading/Primitives/DataRaceCheck.h"
 #endif
 
 namespace AE::Threading
@@ -15,33 +15,31 @@ namespace AE::Threading
     //
 
     template <usize BlockSize_v     = usize(SmallAllocationSize),   // in bytes
-              usize MemAlign        = 8,
-              usize MaxBlocks       = 16,
+              usize MemAlign        = AE_CACHE_LINE,                // in bytes
+              usize MaxBlocks_v     = 16,
               typename AllocatorType = UntypedAllocator
              >
-    class LfLinearAllocator final : public Noncopyable
+    class LfLinearAllocator final : public IAllocatorTS
     {
-        STATIC_ASSERT( BlockSize_v > 0 );
-        STATIC_ASSERT( MaxBlocks > 0 and MaxBlocks < 64 );
+        StaticAssert( BlockSize_v > 0 );
+        StaticAssert( MaxBlocks_v > 0 and MaxBlocks_v < 64 );
 
     // types
     public:
-        using Self          = LfLinearAllocator< BlockSize_v, MemAlign, MaxBlocks, AllocatorType >;
+        using Self          = LfLinearAllocator< BlockSize_v, MemAlign, MaxBlocks_v, AllocatorType >;
         using Index_t       = uint;
         using Allocator_t   = AllocatorType;
-
-        static constexpr bool   IsThreadSafe = true;
 
     private:
         struct alignas(AE_CACHE_LINE) MemBlock
         {
             Atomic< void *>     mem     {null};
-            Atomic< usize >     size    {0};            // <= _Capacity
+            Atomic< usize >     size    {0};            // <= BlockSize()
         };
-        using MemBlocks_t = StaticArray< MemBlock, MaxBlocks >;
+        using MemBlocks_t = StaticArray< MemBlock, MaxBlocks_v >;
 
         static constexpr Bytes  _Capacity {BlockSize_v};
-        static constexpr Bytes  _MemAlign {MemAlign};
+        static constexpr Bytes  _MemAlign {MemAlign};   // TODO: min align as cache line size?
 
 
     // variables
@@ -53,6 +51,8 @@ namespace AE::Threading
         NO_UNIQUE_ADDRESS
          Allocator_t        _allocator;
 
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
+
 
     // methods
     public:
@@ -61,24 +61,25 @@ namespace AE::Threading
 
 
         // must be externally synchronized
-            void   Release ()                                               __NE___;
-            void   Discard ()                                               __NE___;
-        ND_ Bytes  CurrentSize ()                                           C_NE___;
+            void    Release ()                                              __NE___;
+            void    Discard ()                                              __NE___;
 
-
-        template <typename T>
-        ND_ T*      Allocate (usize count = 1)                              __NE___ { return Cast<T>( Allocate( SizeAndAlignOf<T> * count )); }
-        ND_ void*   Allocate (Bytes size)                                   __NE___ { return Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
-        ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)              __NE___;
-
-        // only for debugging
-        void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)       __NE___ { Deallocate( ptr, sizeAndAlign.size ); }
-        void  Deallocate (void *ptr, const Bytes size)                      __NE___;
-        void  Deallocate (void *ptr)                                        __NE___ { Deallocate( ptr, 1_b ); }
-
+        ND_ Bytes   CurrentSize ()                                          C_NE___;
 
         ND_ static constexpr Bytes  BlockSize ()                            __NE___ { return _Capacity; }
-        ND_ static constexpr Bytes  MaxSize ()                              __NE___ { return MaxBlocks * _Capacity; }
+        ND_ static constexpr Bytes  MaxSize ()                              __NE___ { return MaxBlocks_v * _Capacity; }
+        ND_ static constexpr usize  MaxBlocks ()                            __NE___ { return MaxBlocks_v; }
+
+
+        // IAllocator //
+        ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)              __NE_OV;
+
+        // only for debugging
+            void    Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE_OV { Deallocate( ptr, sizeAndAlign.size ); }
+            void    Deallocate (void* ptr, const Bytes size)                __NE_OV;
+            void    Deallocate (void* ptr)                                  __NE_OV { Deallocate( ptr, 1_b ); }
+
+            using IAllocator::Allocate;
     };
 
 

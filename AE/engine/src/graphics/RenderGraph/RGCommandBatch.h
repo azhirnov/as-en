@@ -35,7 +35,7 @@ namespace AE::RG::_hidden_
 
         RGCommandBatchPtr&  operator = (std::nullptr_t)                 __NE___ { _cmdBatch = null;                 return *this; }
         RGCommandBatchPtr&  operator = (const RGCommandBatchPtr &rhs)   __NE___ { _cmdBatch = rhs._cmdBatch;        return *this; }
-        RGCommandBatchPtr&  operator = (RGCommandBatchPtr && rhs)       __NE___ { _cmdBatch = RVRef(rhs._cmdBatch); return *this; }
+        RGCommandBatchPtr&  operator = (RGCommandBatchPtr &&rhs)        __NE___ { _cmdBatch = RVRef(rhs._cmdBatch); return *this; }
 
         ND_ bool  operator == (const RGCommandBatchPtr &rhs)            C_NE___ { return _cmdBatch == rhs._cmdBatch; }
 
@@ -105,7 +105,7 @@ namespace AE::RG::_hidden_
             DRC_ONLY( RWDataRaceCheck   drCheck;)
 
             ResStateMap ()                      __NE___ {}
-            ResStateMap (ResStateMap && other)  __NE___ : map{RVRef(other.map)} {}
+            ResStateMap (ResStateMap &&other)   __NE___ : map{RVRef(other.map)} {}
         };
 
         using PerTaskStates_t   = StaticArray< ResStateMap, GraphicsConfig::MaxCmdBufPerBatch >;
@@ -113,7 +113,7 @@ namespace AE::RG::_hidden_
         using TaskArr_t         = FixedArray< AsyncTask, GraphicsConfig::MaxCmdBufPerBatch >;
         using AtomicBits_t      = Atomic< uint >;
 
-        STATIC_ASSERT( CT_SizeOfInBits<AtomicBits_t::value_type> >= GraphicsConfig::MaxCmdBufPerBatch );
+        StaticAssert( CT_SizeOfInBits<AtomicBits_t::value_type> >= GraphicsConfig::MaxCmdBufPerBatch );
 
 
     // variables
@@ -157,6 +157,9 @@ namespace AE::RG::_hidden_
             template <typename ID, typename Ctx>
             void  ResourceState (uint taskIdx, Ctx &ctx, ID id, EResourceState state)           __Th___;
 
+            template <typename ID>
+        ND_ auto  ResetResourceState (uint taskIdx, ID id, EResourceState state)                __NE___ -> EResourceState;
+
             template <typename Ctx>
             void  FinalBarriers (uint taskIdx, Ctx &ctx)                                        C_Th___;
 
@@ -165,8 +168,8 @@ namespace AE::RG::_hidden_
 
 
     private:
-        ND_ bool  _CheckResourceState (uint taskIdx, ResourceKey key, EResourceState state)                             C_Th___;
-        ND_ bool  _ResourceState (uint taskIdx, ResourceKey key, EResourceState newState, OUT EResourceState &oldState) __Th___;
+        ND_ bool  _CheckResourceState (uint taskIdx, ResourceKey key, EResourceState state)                             C_NE___;
+        ND_ bool  _ResourceState (uint taskIdx, ResourceKey key, EResourceState newState, OUT EResourceState &oldState) __NE___;
     };
 
 
@@ -278,6 +281,19 @@ namespace AE::RG::_hidden_
 
 /*
 =================================================
+    ResetResourceState
+=================================================
+*/
+    template <typename ID>
+    auto  RGCommandBatchPtr::RGBatchData::ResetResourceState (uint taskIdx, ID id, EResourceState newState) __NE___ -> EResourceState
+    {
+        EResourceState  old_state = Default;
+        Unused( _ResourceState( taskIdx, ResourceKey{id}, newState, OUT old_state ));
+        return old_state;
+    }
+
+/*
+=================================================
     CheckResourceState
 =================================================
 */
@@ -349,7 +365,7 @@ namespace AE::RG::_hidden_
 =================================================
     ReadbackMemoryBarrier
 =================================================
-*/  
+*/
     inline bool  RGCommandBatchPtr::RGBatchData::HasReadbackMemoryBarrier (uint taskIdx, EResourceState srcState) __NE___
     {
         ASSERT( taskIdx < GraphicsConfig::MaxCmdBufPerBatch );
@@ -395,17 +411,13 @@ namespace AE::RG::_hidden_
     template <typename TaskType, typename ...Ctor>
     RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (Tuple<Ctor...>&& ctorArgs, DebugLabel dbg) C_NE___
     {
-        RC<RenderTask>  task;
-
         DBG_GRAPHICS_ONLY(
             if ( dbg.color == DebugLabel::ColorTable::Undefined )
                 dbg.color = AsBatch()->DbgColor();
         )
-        try {
-            task = ctorArgs.Apply([this, dbg] (auto&& ...args)
-                                  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., AsBatchRC(), dbg ); });   // throw
-        }
-        catch(...) {}
+
+        auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
+                                      { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., AsBatchRC(), dbg ); });
 
         return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
     }

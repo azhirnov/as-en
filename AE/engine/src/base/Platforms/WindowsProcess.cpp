@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Platforms/WindowsProcess.h"
-#include "base/Platforms/WindowsUtils.h"
-
-#include "base/Algorithms/StringUtils.h"
-#include "base/Utils/Helpers.h"
-
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
+
+# include "base/Platforms/WindowsProcess.h"
+# include "base/Platforms/WindowsUtils.h"
+
+# include "base/Algorithms/StringUtils.h"
+# include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
@@ -29,7 +29,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    bool  WindowsProcess::_ExecuteAsync (BasicString<T> &commandLine, const Path *currentDir, EFlags flags)
+    bool  WindowsProcess::_ExecuteAsync (BasicString<T> &commandLine, const Path* currentDir, EFlags flags)
     {
         using STARTUPINFO_t = Conditional< IsSameTypes< T, char >, STARTUPINFOA, STARTUPINFOW >;
 
@@ -152,7 +152,7 @@ namespace AE::Base
         return result;
     }
 
-    bool  WindowsProcess::Execute (String &commandLine, INOUT String &output, Mutex *outputGuard, milliseconds timeout)
+    bool  WindowsProcess::Execute (String &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         WindowsProcess  proc;
         bool            result = true;
@@ -162,7 +162,7 @@ namespace AE::Base
         return result;
     }
 
-    bool  WindowsProcess::Execute (WString &commandLine, INOUT String &output, Mutex *outputGuard, milliseconds timeout)
+    bool  WindowsProcess::Execute (WString &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         WindowsProcess  proc;
         bool            result = true;
@@ -255,7 +255,7 @@ namespace AE::Base
     WaitAndClose
 =================================================
 */
-    bool  WindowsProcess::WaitAndClose (INOUT String &output, Mutex *outputGuard, milliseconds timeout)
+    bool  WindowsProcess::WaitAndClose (INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         if ( _thread == null or _process == null )
             return true;

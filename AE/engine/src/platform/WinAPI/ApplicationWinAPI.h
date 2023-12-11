@@ -55,7 +55,7 @@ namespace AE::App
 
         Locales_t   GetLocales ()                                                       C_NE_OV { return _locales; }
 
-        RC<IVirtualFileStorage> OpenBuiltinStorage ()                                   __NE_OV { return null; }
+        RC<IVirtualFileStorage> OpenStorage (EAppStorage)                               __NE_OV { return null; }
 
         ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
 
@@ -67,8 +67,7 @@ namespace AE::App
         ND_ bool  _RegisterClass ()                                                     __NE___;
             void  _MainLoop ()                                                          __NE___;
 
-            void  _UpdateMinitors (OUT Monitors_t &)                                    C_NE___;
-            void  _SetMinitorNames (INOUT Monitors_t &)                                 C_NE___;
+            void  _UpdateMonitors (OUT Monitors_t &)                                    C_NE___;
             void  _GetLocales (OUT Locales_t &)                                         C_NE___;
     };
 

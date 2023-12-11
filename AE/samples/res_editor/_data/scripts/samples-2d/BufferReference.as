@@ -26,12 +26,12 @@
 
         // render loop
         {
-            RC<ComputePass>     pass = ComputePass( "", "PASS1", EPassFlags::Enable_ShaderTrace );
+            RC<ComputePass>     pass = ComputePass( "", "PASS1" );
             pass.ArgInOut(  "un_CBuffer",   cbuffer );
             pass.LocalSize( 1 );
             pass.DispatchGroups( 1 );
         }{
-            RC<ComputePass>     pass = ComputePass( "", "PASS2", EPassFlags::Enable_ShaderTrace );
+            RC<ComputePass>     pass = ComputePass( "", "PASS2" );
             pass.ArgIn(     "un_CBuffer",   cbuffer );
             pass.ArgOut(    "un_OutImage",  rt );
             pass.LocalSize( 8, 8 );

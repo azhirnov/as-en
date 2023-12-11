@@ -34,8 +34,8 @@ void ASmain ()
 
         camera.ClipPlanes( 0.1f, 100.f );
         camera.FovY( 60.f );
-        camera.Offset( 3.f );
-        camera.OffsetScale( 10.0f );
+        camera.Offset( 2.f );
+        camera.OffsetScale( -10.0f );
 
         scene.Set( camera );
     }
@@ -68,7 +68,6 @@ void ASmain ()
     // render loop
     {
         RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-        draw.AddPipeline( "VertexInput.as" );       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/VertexInput.as)
         draw.AddPipeline( "samples/Planet-1.as" );  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Planet-1.as)
         draw.Output( "out_Color", rt, RGBA32f(0.0) );
         draw.Output( ds, DepthStencil(1.f, 0) );

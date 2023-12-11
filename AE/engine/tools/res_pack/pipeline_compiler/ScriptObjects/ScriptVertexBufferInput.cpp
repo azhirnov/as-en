@@ -174,7 +174,7 @@ namespace
 
         CHECK_THROW_MSG( ptr );
         CHECK_THROW_MSG( not ptr->HasDynamicArray() );
-        CHECK_THROW_MSG( _buffers.size() < _buffers.capacity(), "vertex buffer overflow" );
+        CHECK_THROW_MSG( _buffers.size() < GraphicsConfig::MaxVertexBuffers, "vertex buffer overflow" );
         CHECK_THROW_MSG( stride == 0 or ptr->StaticSize() <= stride );
 
         Buffer  buf;
@@ -291,7 +291,7 @@ namespace
     {
         Array<VertexInput>  temp_vi;
 
-        for (auto [name, vb] : _buffers)
+        for (auto& [name, vb] : _buffers)
         {
             uint    loc = vb.glslLoc;
             vb.ptr->GetVertexInput( loc, INOUT temp_vi );
@@ -333,7 +333,7 @@ namespace
 
         temp_vb.resize( _buffers.size() );
 
-        for (auto [name, vb] : _buffers)
+        for (auto& [name, vb] : _buffers)
         {
             uint    loc = vb.glslLoc;
             vb.ptr->GetVertexInput( loc, INOUT temp_vi );

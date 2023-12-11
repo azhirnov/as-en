@@ -29,8 +29,8 @@ namespace AE::Graphics
     // variables
     protected:
         BufferMemView       _content;
-        Bytes32u            _rowPitch;
-        Bytes32u            _slicePitch;
+        Byte32u             _rowPitch;
+        Byte32u             _slicePitch;
         ushort3             _offset;
         ushort3             _dimension;
         ushort              _bitsPerBlock   = 0;
@@ -43,7 +43,7 @@ namespace AE::Graphics
     public:
         ImageMemView () __NE___ {}
         ImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
-        ImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
+        ImageMemView (void* content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
 
         template <typename T>
         ImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
@@ -74,7 +74,7 @@ namespace AE::Graphics
         ND_ uint2           TexBlockDim ()                  C_NE___ { return uint2{_texBlockDim}; }
         ND_ uint2           TexelBlocks ()                  C_NE___ { return uint2{_dimension.x, _dimension.y} / TexBlockDim(); }
 
-            bool    PushBack (void *ptr, Bytes size)        __NE___ { return _content.PushBack( ptr, size ); }
+            bool    PushBack (void* ptr, Bytes size)        __NE___ { return _content.PushBack( ptr, size ); }
 
         ND_ Row_t   GetRow (uint y, uint z = 0)             __NE___;
         ND_ CRow_t  GetRow (uint y, uint z = 0)             C_NE___;
@@ -159,21 +159,21 @@ namespace AE::Graphics
         RWImageMemView ()                                           __NE___;
         RWImageMemView (const ImageMemView& other)                  __NE___;
         RWImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
-        RWImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
+        RWImageMemView (void* content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
 
         template <typename T>
         RWImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
             RWImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect } {}
 
-        void  Load (const uint3 &point, OUT RGBA32f &col)           C_NE___ { ASSERT( _loadF4 != null );    _loadF4( GetRow( point.y, point.z ), point.x, OUT col ); }
-        void  Load (const uint3 &point, OUT RGBA32u &col)           C_NE___ { ASSERT( _loadU4 != null );    _loadU4( GetRow( point.y, point.z ), point.x, OUT col ); }
-        void  Load (const uint3 &point, OUT RGBA32i &col)           C_NE___ { ASSERT( _loadI4 != null );    _loadI4( GetRow( point.y, point.z ), point.x, OUT col ); }
-        void  Load (const uint3 &point, OUT DepthStencil &ds)       C_NE___ { ASSERT( _loadDS != null );    _loadDS( GetRow( point.y, point.z ), point.x, OUT ds ); }
+            void  Load (const uint3 &point, OUT RGBA32f &col)           C_NE___ { ASSERT( _loadF4 != null );    _loadF4( GetRow( point.y, point.z ), point.x, OUT col ); }
+            void  Load (const uint3 &point, OUT RGBA32u &col)           C_NE___ { ASSERT( _loadU4 != null );    _loadU4( GetRow( point.y, point.z ), point.x, OUT col ); }
+            void  Load (const uint3 &point, OUT RGBA32i &col)           C_NE___ { ASSERT( _loadI4 != null );    _loadI4( GetRow( point.y, point.z ), point.x, OUT col ); }
+            void  Load (const uint3 &point, OUT DepthStencil &ds)       C_NE___ { ASSERT( _loadDS != null );    _loadDS( GetRow( point.y, point.z ), point.x, OUT ds ); }
 
-        void  Store (const uint3 &point, const RGBA32f &col)        __NE___ { ASSERT( _storeF4 != null );   _storeF4( GetRow( point.y, point.z ), point.x, col ); }
-        void  Store (const uint3 &point, const RGBA32u &col)        __NE___ { ASSERT( _storeU4 != null );   _storeU4( GetRow( point.y, point.z ), point.x, col ); }
-        void  Store (const uint3 &point, const RGBA32i &col)        __NE___ { ASSERT( _storeI4 != null );   _storeI4( GetRow( point.y, point.z ), point.x, col ); }
-        void  Store (const uint3 &point, const DepthStencil &ds)    __NE___ { ASSERT( _storeDS != null );   _storeDS( GetRow( point.y, point.z ), point.x, ds ); }
+            void  Store (const uint3 &point, const RGBA32f &col)        __NE___ { ASSERT( _storeF4 != null );   _storeF4( GetRow( point.y, point.z ), point.x, col ); }
+            void  Store (const uint3 &point, const RGBA32u &col)        __NE___ { ASSERT( _storeU4 != null );   _storeU4( GetRow( point.y, point.z ), point.x, col ); }
+            void  Store (const uint3 &point, const RGBA32i &col)        __NE___ { ASSERT( _storeI4 != null );   _storeI4( GetRow( point.y, point.z ), point.x, col ); }
+            void  Store (const uint3 &point, const DepthStencil &ds)    __NE___ { ASSERT( _storeDS != null );   _storeDS( GetRow( point.y, point.z ), point.x, ds ); }
 
         // convert between different formats without filtering
         ND_ bool  Blit (const RWImageMemView &src)                                                                          __NE___;

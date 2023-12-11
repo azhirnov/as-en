@@ -52,9 +52,9 @@ bool RGTest::Test_FeatureSets ()
     #endif
 
     #if defined(AE_ENABLE_VULKAN)
-        const EVendorID         vendor  = GetVendorTypeByID( _vulkan.GetVProperties().properties.vendorID );
-        const EGraphicsDeviceID dev     = GetEGraphicsDeviceByName( _vulkan.GetDeviceName() );
-        const bool              sra     = _vulkan.GetVProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
+        const EVendorID         vendor  = GetVendorTypeByID( _device.GetVProperties().properties.vendorID );
+        const EGraphicsDeviceID dev     = GetEGraphicsDeviceByName( _device.GetDeviceName() );
+        const bool              sra     = _device.GetVProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
 
         if ( sra )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.compat"} ));
@@ -98,23 +98,22 @@ bool RGTest::Test_FeatureSets ()
         }
         if ( (dev >= EGraphicsDeviceID::Adreno_600_QC5      and dev <= EGraphicsDeviceID::_Adreno_End)  or
              (dev >= EGraphicsDeviceID::Apple_A12           and dev <= EGraphicsDeviceID::_Apple_End)   or
-             (dev >= EGraphicsDeviceID::NV_Maxwell          and dev <= EGraphicsDeviceID::_NV_End)      or
-             (dev >= EGraphicsDeviceID::Mali_Valhall_Gen1   and dev <= EGraphicsDeviceID::_Mali_End) )
+             (dev >= EGraphicsDeviceID::NV_Maxwell          and dev <= EGraphicsDeviceID::_NV_End) )
         {
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.MinNonUniformDescriptorIndexing"} ));
         }
 
-        if ( _vulkan.GetVExtensions().rayQuery )
+        if ( _device.GetVExtensions().rayQuery )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinInlineRayTracing"} ));
 
-        if ( _vulkan.GetVExtensions().rayTracingPipeline )
+        if ( _device.GetVExtensions().rayTracingPipeline )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinRecursiveRayTracing"} ));
 
-        if ( _vulkan.GetVExtensions().meshShader )
+        if ( _device.GetVExtensions().meshShader )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
 
     #elif defined(AE_ENABLE_METAL)
-        StringView  dev_name = _metal.GetDeviceName();
+        StringView  dev_name = _device.GetDeviceName();
 
         if ( HasSubStringIC( dev_name, "Apple" ))
         {
@@ -160,13 +159,13 @@ bool RGTest::Test_FeatureSets ()
             }
         }
 
-        if ( _metal.GetFeatures().rayTracing() )
+        if ( _device.GetFeatures().rayTracing() )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinInlineRayTracing"} ));
 
-        //if ( _metal.GetFeatures().rayTracing() )
+        //if ( _device.GetFeatures().rayTracing() )
         //  TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinRecursiveRayTracing"} ));
 
-        if ( _metal.GetFeatures().meshShader )
+        if ( _device.GetFeatures().meshShader )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
 
     #elif defined(AE_ENABLE_REMOTE_GRAPHICS)

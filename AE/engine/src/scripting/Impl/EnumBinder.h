@@ -83,7 +83,7 @@ namespace AE::Scripting
         int res = GetASEngine()->RegisterEnum( _name.c_str() );
 
         if ( res == AngelScript::asALREADY_REGISTERED )
-            AE_LOGE( "enum '" + String{Name()} + "' already registerd" );
+            AE_LOGE( "enum '" + String{Name()} + "' already registered" );
 
         AS_CHECK_THROW( res );
 

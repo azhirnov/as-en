@@ -29,6 +29,9 @@ namespace AE::RG::_hidden_
         ND_ uint                            _ExeIdx ()                                                                           __NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
         ND_ auto&                           _ResMngr ()                                                                          C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
         \
+        ND_ auto  _SetResourceState (ImageID      id, EResourceState state)                                                      __NE___ { return _RGBatch().ResetResourceState( _ExeIdx(), id, state ); } \
+        ND_ auto  _SetResourceState (ImageViewID  id, EResourceState state)                                                      __NE___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  return _RGBatch().ResetResourceState( _ExeIdx(), v.ImageId(),  state ); } \
+        \
     public: \
         void  CommitBarriers ()                                                                                                  __Th_OV { return _ctx.CommitBarriers(); } \
         \
@@ -53,8 +56,8 @@ namespace AE::RG::_hidden_
         \
         void  ResourceState (BufferID     id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
         void  ResourceState (ImageID      id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-        void  ResourceState (ImageViewID  id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.Image(),  state ); } \
-        void  ResourceState (BufferViewID id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.Buffer(), state ); } \
+        void  ResourceState (ImageViewID  id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.ImageId(),  state ); } \
+        void  ResourceState (BufferViewID id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
         void  ResourceState (RTSceneID    id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
         void  ResourceState (RTGeometryID id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
         \
@@ -80,10 +83,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsTransferContext );
+        StaticAssert( IsBaseOf< ITransferContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsTransferContext   = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -132,8 +134,8 @@ namespace AE::RG::_hidden_
 
         void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)  __Th_OV;
 
-        void  GenerateMipmaps (ImageID image)                                                                   __Th_OV;
-        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)                          __Th_OV;
+        void  GenerateMipmaps (ImageID image, EResourceState state = Default)                                                   __Th_OV;
+        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state = Default)          __Th_OV;
 
         using ITransferContext::UpdateHostBuffer;
         using ITransferContext::UploadBuffer;
@@ -162,10 +164,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsComputeContext );
+        StaticAssert( IsBaseOf< IComputeContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsComputeContext    = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -187,7 +188,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (ComputePipelineID ppln)                                                                         __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IComputeContext::PushConstant;
 
         using IComputeContext::Dispatch;
@@ -209,10 +210,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsDrawContext );
+        StaticAssert( IsBaseOf< IDrawContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsDrawContext       = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -225,7 +225,7 @@ namespace AE::RG::_hidden_
     // methods
     public:
         explicit DrawContext (const DrawTask &task)                                                                         __Th___ : _ctx{ task } {}
-        explicit DrawContext (BaseCtx && ctx)                                                                               __Th___ : _ctx{ RVRef(ctx) } {}
+        explicit DrawContext (BaseCtx &&ctx)                                                                                __Th___ : _ctx{ RVRef(ctx) } {}
 
         DrawContext ()                                                                                                      = delete;
         DrawContext (const DrawContext &)                                                                                   = delete;
@@ -238,7 +238,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (TilePipelineID ppln)                                                                            __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IDrawContext::PushConstant;
 
     // dynamic states //
@@ -378,10 +378,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsGraphicsContext );
+        StaticAssert( IsBaseOf< IGraphicsContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsGraphicsContext   = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using DrawCtx   = DrawContext< typename BaseCtx::DrawCtx >;
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
@@ -432,10 +431,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsRayTracingContext );
+        StaticAssert( IsBaseOf< IRayTracingContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsRayTracingContext = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -457,7 +455,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IRayTracingContext::PushConstant;
 
         void  SetStackSize (Bytes size)                                                                                     __Th_OV { return _ctx.SetStackSize( size ); }
@@ -487,10 +485,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsASBuildContext );
+        StaticAssert( IsBaseOf< IASBuildContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext   = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsASBuildContext    = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -556,10 +553,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsVideoDecodeContext );
+        StaticAssert( IsBaseOf< IVideoDecodeContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext       = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsVideoDecodeContext    = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -592,10 +588,9 @@ namespace AE::RG::_hidden_
     {
     // types
     public:
-        STATIC_ASSERT( BaseCtx::IsVideoEncodeContext );
+        StaticAssert( IsBaseOf< IVideoEncodeContext, BaseCtx >);
 
-        static constexpr bool   IsIndirectContext       = BaseCtx::IsIndirectContext;
-        static constexpr bool   IsVideoEncodeContext    = true;
+        static constexpr bool   IsIndirectContext = BaseCtx::IsIndirectContext;
 
         using CmdBuf_t  = typename BaseCtx::CmdBuf_t;
 
@@ -723,7 +718,7 @@ namespace AE::RG::_hidden_
     template <typename C>
     Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (INOUT BufferStream &stream) __Th___
     {
-        ResourceState( stream.Buffer(), EResourceState::CopySrc );
+        ResourceState( stream.BufferId(), EResourceState::CopySrc );
         ReadbackMemoryBarrier( EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
@@ -743,7 +738,7 @@ namespace AE::RG::_hidden_
     template <typename C>
     Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
     {
-        ResourceState( stream.Image(), EResourceState::CopySrc );
+        ResourceState( stream.ImageId(), EResourceState::CopySrc );
         ReadbackMemoryBarrier( EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
@@ -754,7 +749,7 @@ namespace AE::RG::_hidden_
     void  TransferContext<C>::UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView) __Th___
     {
         UploadMemoryBarrier( EResourceState::CopySrc );
-        ResourceState( stream.Buffer(), EResourceState::CopyDst );
+        ResourceState( stream.BufferId(), EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
         _ctx.UploadBuffer( INOUT stream, OUT memView );
@@ -764,7 +759,7 @@ namespace AE::RG::_hidden_
     void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView) __Th___
     {
         UploadMemoryBarrier( EResourceState::CopySrc );
-        ResourceState( stream.Image(), EResourceState::CopyDst );
+        ResourceState( stream.ImageId(), EResourceState::CopyDst );
 
         _ctx.CommitBarriers();
         _ctx.UploadImage( INOUT stream, OUT memView );
@@ -786,19 +781,25 @@ namespace AE::RG::_hidden_
     }
 
     template <typename C>
-    void  TransferContext<C>::GenerateMipmaps (ImageID image) __Th___
+    void  TransferContext<C>::GenerateMipmaps (ImageID image, EResourceState state) __Th___
     {
-        ResourceState( image, EResourceState::BlitSrc );
+        const EResourceState    prev_state = _SetResourceState( image, EResourceState::BlitSrc );
+        ASSERT( prev_state == state or state == Default );
+        Unused( state );
+
         _ctx.CommitBarriers();
-        _ctx.GenerateMipmaps( image );
+        _ctx.GenerateMipmaps( image, prev_state );
     }
 
     template <typename C>
-    void  TransferContext<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges) __Th___
+    void  TransferContext<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state) __Th___
     {
-        ResourceState( image, EResourceState::BlitSrc );
+        const EResourceState    prev_state = _SetResourceState( image, EResourceState::BlitSrc );
+        ASSERT( prev_state == state or state == Default );
+        Unused( state );
+
         _ctx.CommitBarriers();
-        _ctx.GenerateMipmaps( image, ranges );
+        _ctx.GenerateMipmaps( image, ranges, prev_state );
     }
 
     template <typename C>

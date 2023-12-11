@@ -25,6 +25,15 @@ namespace AE::App
         using WinID         = WindowAndroid::WinID;
         using AWindows_t    = FixedArray<Pair< WinID, Window >, PlatformConfig::MaxWindows >;
 
+        struct StoragePath {
+            AAssetManager *     jniAssetMngr    = null;
+            Path                internalAppData;
+            Path                internalCache;
+            Path                externalAppData;
+            Path                externalCache;
+        };
+        using StoragePathSync_t = Threading::Synchronized< Threading::RWSpinLock, StoragePath >;
+
 
     // variables
     private:
@@ -36,16 +45,16 @@ namespace AE::App
         bool                    _started        = false;
 
         Locales_t               _locales;
+        StoragePathSync_t       _paths;
 
         struct {
             JavaObj                 application;
             JavaObj                 assetManager;
-            AAssetManager *         jniAssetMngr    = null;
         }                       _java;
         struct {
             JavaMethod< jboolean () >               isNetworkConnected;
             JavaMethod< void (jstring, jboolean) >  showToast;
-            JavaMethod< void () >                   createWindow;
+            //JavaMethod< void () >                 createWindow;
         }                       _methods;
 
         DRC_ONLY(
@@ -79,7 +88,7 @@ namespace AE::App
 
         Monitors_t      GetMonitors (bool update = false)                               __NE_OV;
 
-        RC<IVirtualFileStorage> OpenBuiltinStorage ()                                   __NE_OV;
+        RC<IVirtualFileStorage> OpenStorage (EAppStorage type)                          __NE_OV;
 
         ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
 
@@ -92,14 +101,14 @@ namespace AE::App
 
     // called from java
     private:
-        static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)                      __NE___;
-        static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring)   __NE___;
+        static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)              __NE___;
+        static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring)    __NE___;
         static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height,
-                                                    float xdpi, float ydpi, jint orientation)                       __NE___;
-        static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)                               __NE___;
+                                                    float xdpi, float ydpi, jint orientation)               __NE___;
+        static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)                       __NE___;
     public:
-        static jint  OnJniLoad (JavaVM* vm)                                                                         __NE___;
-        static void  OnJniUnload (JavaVM* vm)                                                                       __NE___;
+        static jint  OnJniLoad (JavaVM* vm)                                                                 __NE___;
+        static void  OnJniUnload (JavaVM* vm)                                                               __NE___;
     };
 
 

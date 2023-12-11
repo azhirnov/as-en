@@ -4,7 +4,7 @@
     Use 'DeviceProperties'  for runtime limits like a alignment.
     Use 'DeviceLimits'      for compile time limits like a alignment.
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/DeviceProperties.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/DeviceProperties.md)
 */
 
 #pragma once
@@ -70,7 +70,7 @@ namespace AE::Graphics
             POTBytes    minVertexBufferOffsetAlign;
             uint        minVertexBufferElementsAlign    {1};
 
-            Bytes32u    maxUniformBufferRange           {1};
+            Byte32u     maxUniformBufferRange           {1};
 
             uint        maxBoundDescriptorSets          = 0;
 
@@ -122,6 +122,7 @@ namespace AE::Graphics
     //
     struct DeviceResourceFlags
     {
+    // variables
         // contains all available resource usage & options and memory types
 
         EBufferUsage    bufferUsage     = Default;
@@ -133,6 +134,10 @@ namespace AE::Graphics
         EnumBitSet<EDescriptorType> descrTypes;
 
         FixedSet<EMemoryType, 8>    memTypes;
+
+
+    // methods
+        void  Print ()  C_NE___;
     };
 
 
@@ -143,13 +148,16 @@ namespace AE::Graphics
     struct DeviceMemoryInfo
     {
         Bytes   deviceUsage;        // VRAM used by process
-        Bytes   deviceAvailable;    // VRAM totally available (used and free)
+        Bytes   deviceAvailable;    // VRAM available for allocation
+        Bytes   deviceTotal;        // VRAM heap size
 
         Bytes   hostUsage;          // RAM used by GPU process
-        Bytes   hostAvailable;      // RAM totally available (used and free)
+        Bytes   hostAvailable;      // RAM available for allocation
+        Bytes   hostTotal;          // RAM heap size
 
         Bytes   unifiedUsage;       // host visible VRAM used by process
-        Bytes   unifiedAvailable;   // host visible VRAM totally available (used and free)
+        Bytes   unifiedAvailable;   // host visible VRAM available for allocation
+        Bytes   unifiedTotal;       // host visible VRAM heap size
     };
 
 
@@ -163,9 +171,9 @@ namespace AE::Graphics
         {
             constexpr CT_DeviceProperties ()
             {
-                STATIC_ASSERT( sizeof(DeviceProperties) == 88 );
+                StaticAssert( sizeof(DeviceProperties) == 88 );
 
-                STATIC_ASSERT( sizeof(res) == 24 );
+                StaticAssert( sizeof(res) == 24 );
                 {
                     res.minUniformBufferOffsetAlign         = POTBytes_From< 256 >;     // nvidia - 64/256,  amd -  16,   intel -  64,   mali -  16,   adreno -  64,   apple - 16/32/256
                     res.minStorageBufferOffsetAlign         = POTBytes_From< 256 >;     // nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16
@@ -182,7 +190,7 @@ namespace AE::Graphics
                     res.minBufferCopyOffsetAlign            = POTBytes_From< 256 >;     // nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
                     res.minBufferCopyRowPitchAlign          = POTBytes_From< 256 >;     // nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
                 }
-                STATIC_ASSERT( sizeof(rayTracing) == 48 );
+                StaticAssert( sizeof(rayTracing) == 48 );
                 {
                     rayTracing.vertexDataAlign              = POTBytes_From< 4 >;       // vulkan - 4,  metal - 4
                     rayTracing.vertexStrideAlign            = POTBytes_From< 4 >;       // vulkan - 4,  metal - 4
@@ -211,5 +219,11 @@ namespace AE::Graphics
     }
     static constexpr Graphics::_hidden_::CT_DeviceProperties    DeviceLimits {};
 
-
 } // AE::Graphics
+
+
+namespace AE::Base
+{
+    template <> struct TTriviallySerializable< Graphics::DeviceProperties > { static constexpr bool  value = true; };
+    template <> struct TTriviallySerializable< Graphics::DeviceMemoryInfo > { static constexpr bool  value = true; };
+}

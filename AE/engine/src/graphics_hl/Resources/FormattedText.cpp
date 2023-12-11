@@ -88,7 +88,7 @@ namespace {
 
         const auto  ParseOpeningTag = [&states, str] (INOUT usize &pos) -> bool
         {
-            const uint  u = *(str.data() + pos) | ((str.data() + pos)[1] << 8);
+            const uint  u = uint((str.data() + pos)[0]) | (uint((str.data() + pos)[1]) << 8);
             switch ( u )
             {
                 case tag_bold : {
@@ -263,7 +263,7 @@ namespace {
 
             MemCopy( OUT chunk->string, tag, Bytes{length} );
             chunk->string[length] = '\0';
-            chunk->length       = length;
+            chunk->length       = uint(length);
             chunk->color        = state.color;
             chunk->height       = state.height;
             chunk->bold         = state.bold;
@@ -337,11 +337,12 @@ namespace {
 */
     U8String  FormattedText::ToString () C_NE___
     {
-        try{
+        TRY{
             return _ToString();
-        }catch(...){
-            return Default;
         }
+        CATCH_ALL(
+            return Default;
+        )
     }
 
     U8String  FormattedText::_ToString () C_Th___

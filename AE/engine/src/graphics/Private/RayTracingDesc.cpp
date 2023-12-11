@@ -55,7 +55,7 @@ namespace AE::Graphics
             this->options = uint(MEnumCast( value ));
 
         #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-            this->flags = uint(value);
+            this->options = uint(value);
 
         #else
         #   error not implemented
@@ -74,7 +74,7 @@ namespace AE::Graphics
         ASSERT( id );
         ASSERT( inst.rtas == Default );
 
-        auto*   geom = RenderTaskScheduler().GetResourceManager().GetResource( id, False{"don't inc ref"}, True{"quiet"} );
+        auto*   geom = GraphicsScheduler().GetResourceManager().GetResource( id, False{"don't inc ref"}, True{"quiet"} );
         if_likely( geom != null )
         {
             CHECK( uniqueGeoms.insert( id ).first != null );

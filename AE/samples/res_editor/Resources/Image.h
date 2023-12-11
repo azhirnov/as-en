@@ -165,7 +165,7 @@ namespace AE::ResEditor
 
 
     private:
-        ND_ bool  _OnResize (const ImageViewDesc &);
+        ND_ bool  _UpdateView (const ImageViewDesc &);
 
         template <typename CtxType>
         ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer,

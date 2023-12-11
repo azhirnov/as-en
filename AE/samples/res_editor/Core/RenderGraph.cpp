@@ -14,7 +14,7 @@ namespace {
 =================================================
 */
     RenderGraphImpl::RenderGraphImpl () __Th___ :
-        _rg{ RenderTaskScheduler().GetRenderGraph() }
+        _rg{ GraphicsScheduler().GetRenderGraph() }
     {
         CHECK_THROW( _rgInstance == null );
         _rgInstance = this;
@@ -27,7 +27,7 @@ namespace {
 */
     RenderGraphImpl::~RenderGraphImpl ()
     {
-        CHECK( _rg.WaitAll() );
+        CHECK( _rg.WaitAll( AE::DefaultTimeout ));
 
         CHECK( _rgInstance == this );
         _rgInstance = null;

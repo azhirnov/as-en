@@ -36,6 +36,47 @@ namespace RenderTechs
         } Compute_1;
     } AsyncCompTestRT;
 
+    static constexpr struct _DebugDrawTestRT
+    {
+        constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x403d33e7u}};}  // 'DebugDrawTestRT'
+
+        // graphics (0)
+        static constexpr struct _Draw_1
+        {
+            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x18c0f564u}};}  // 'Draw_1'
+
+            // RenderPass 'DrawTest.Draw_1' subpass 'Main'
+
+            static constexpr uint  attachmentsCount = 1;
+            static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+            // pipelines
+            static constexpr PipelineName_t  dbg2_draw {Hash_t{0x991e8d04u}};  // 'dbg2_draw'
+        } Draw_1;
+
+        // graphics (1)
+        static constexpr struct _Test4_1
+        {
+            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1a76367eu}};}  // 'Test4-1'
+
+            // RenderPass 'DrawTest4.Pass1' subpass 'Main'
+
+            static constexpr uint  attachmentsCount = 1;
+            static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+        } Test4_1;
+
+        // graphics (2)
+        static constexpr struct _Test4_2
+        {
+            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x837f67c4u}};}  // 'Test4-2'
+
+            // RenderPass 'DrawTest4.Pass2' subpass 'Main'
+
+            static constexpr uint  attachmentsCount = 1;
+            static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+        } Test4_2;
+    } DebugDrawTestRT;
+
     static constexpr struct _DrawMeshesTestRT
     {
         constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x564eaca5u}};}  // 'DrawMeshesTestRT'
@@ -51,6 +92,7 @@ namespace RenderTechs
             static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
 
             // pipelines
+            static constexpr PipelineName_t  dbg3_draw {Hash_t{0x52425ea1u}};  // 'dbg3_draw'
             static constexpr PipelineName_t  draw_mesh1 {Hash_t{0xea9250dcu}};  // 'draw_mesh1'
             static constexpr PipelineName_t  draw_mesh2 {Hash_t{0x739b0166u}};  // 'draw_mesh2'
         } DrawMeshes_1;
@@ -71,8 +113,6 @@ namespace RenderTechs
             static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
 
             // pipelines
-            static constexpr PipelineName_t  dbg2_draw {Hash_t{0x991e8d04u}};  // 'dbg2_draw'
-            static constexpr PipelineName_t  dbg3_draw {Hash_t{0x52425ea1u}};  // 'dbg3_draw'
             static constexpr PipelineName_t  draw1 {Hash_t{0x1313009bu}};  // 'draw1'
             static constexpr PipelineName_t  draw2 {Hash_t{0x8a1a5121u}};  // 'draw2'
             static constexpr PipelineName_t  draw3 {Hash_t{0xfd1d61b7u}};  // 'draw3'

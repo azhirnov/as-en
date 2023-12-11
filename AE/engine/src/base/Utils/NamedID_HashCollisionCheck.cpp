@@ -23,7 +23,7 @@ namespace AE::Base
 */
     void  NamedID_HashCollisionCheck::CheckAndClear () __NE___
     {
-        try {
+        TRY{
             for (auto& id : _uidMap)
             {
                 if_unlikely( id.second.hasCollisions )
@@ -33,8 +33,7 @@ namespace AE::Base
                 }
             }
         }
-        catch (...)
-        {}
+        CATCH_ALL()
 
         _uidMap.clear();
     }

@@ -15,7 +15,7 @@ namespace AE::Base
     //
 
     template <typename AllocatorType, uint MaxBlocks>
-    class LinearAllocator< AllocatorType, MaxBlocks, true > final : public MovableOnly
+    class LinearAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
     {
     // types
     private:
@@ -23,8 +23,6 @@ namespace AE::Base
     public:
         using Allocator_t   = AllocatorType;
         using Self          = LinearAllocator< AllocatorType, MaxBlocks, true >;
-
-        static constexpr bool   IsThreadSafe = true;
 
 
     // variables
@@ -35,26 +33,25 @@ namespace AE::Base
 
     // methods
     public:
-        LinearAllocator ()                                      __NE___ {}
-        LinearAllocator (Self &&other)                          __NE___;
-        explicit LinearAllocator (const Allocator_t &alloc)     __NE___ : _base{ alloc } {}
-        explicit LinearAllocator (Bytes blockSize)              __NE___ : _base{ blockSize } {}
-        ~LinearAllocator ()                                     __NE___ { Release(); }
+        LinearAllocator ()                                          __NE___ {}
+        LinearAllocator (Self &&other)                              __NE___;
+        explicit LinearAllocator (const Allocator_t &alloc)         __NE___ : _base{ alloc } {}
+        explicit LinearAllocator (Bytes blockSize)                  __NE___ : _base{ blockSize } {}
+        ~LinearAllocator ()                                         __NE___ { Release(); }
 
-        Self& operator = (Self &&rhs)                           __NE___;
+            Self&   operator = (Self &&rhs)                         __NE___;
 
-        ND_ void*  Allocate (const SizeAndAlign sizeAndAlign)   __NE___;
+            void    SetBlockSize (Bytes size)                       __NE___;
+            void    Discard ()                                      __NE___;
+            void    Release ()                                      __NE___;
 
-        template <typename T>
-        ND_ T*  Allocate (usize count = 1)                      __NE___;
 
-        void  Deallocate (void* ptr)                            __NE___ { Deallocate( ptr, 1_b ); }
-        void  Deallocate (void* ptr, Bytes size)                __NE___;
-        void  Deallocate (void* ptr, const SizeAndAlign sa)     __NE___ { Deallocate( ptr, sa.size ); }
+        // IAllocator //
+        ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)      __NE_OV;
 
-        void  SetBlockSize (Bytes size)                         __NE___;
-        void  Discard ()                                        __NE___;
-        void  Release ()                                        __NE___;
+            void    Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
+            void    Deallocate (void* ptr, Bytes size)              __NE_OV;
+            void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
     };
 
 
@@ -101,14 +98,6 @@ namespace AE::Base
     {
         EXLOCK( _guard );
         return _base.Allocate( sizeAndAlign );
-    }
-
-    template <typename A, uint MB>
-    template <typename T>
-    T*  LinearAllocator<A,MB,true>::Allocate (usize count) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.template Allocate<T>( count );
     }
 
 /*

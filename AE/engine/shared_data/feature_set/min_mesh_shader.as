@@ -9,6 +9,7 @@ void ASmain ()
     //  NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
     //  Apple8
     //  Apple8_Mac
     //  Apple7_Metal3

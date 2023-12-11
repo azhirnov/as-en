@@ -1,4 +1,4 @@
-//2C45077E
+//eda3b3b4
 #include <vector>
 #include <string>
 
@@ -20,47 +20,47 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct ubyte2;
-struct ubyte3;
-struct EGestureType;
-struct EGestureState;
-struct WinAPI_ActionBindings;
-struct OpenVR_Input;
-struct ubyte4;
-struct VecSwizzle;
-struct Android_ActionBindings;
-struct EValueType;
+struct uint4;
 struct WinAPI_Input;
-struct OpenVR_BindingsMode;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct ActionInfo;
-struct Android_BindingsMode;
-struct short4;
-struct bool4;
-struct int2;
-struct bool3;
-struct int3;
-struct bool2;
+struct EValueType;
+struct Android_ActionBindings;
+struct VecSwizzle;
 struct GLFW_Input;
 struct int4;
-struct GLFW_BindingsMode;
+struct int3;
+struct bool2;
+struct int2;
+struct bool3;
+struct bool4;
+struct short4;
+struct ushort3;
+struct ActionInfo;
+struct Android_BindingsMode;
+struct ushort2;
+struct OpenVR_BindingsMode;
+struct sbyte2;
+struct EGestureType;
+struct ubyte3;
+struct ubyte2;
+struct ubyte4;
+struct WinAPI_ActionBindings;
+struct EGestureState;
+struct OpenVR_Input;
+struct float3;
+struct float2;
+struct OpenVR_ActionBindings;
+struct WinAPI_BindingsMode;
+struct GLFW_ActionBindings;
+struct sbyte3;
+struct sbyte4;
 struct short3;
 struct short2;
 struct ushort4;
-struct sbyte3;
-struct sbyte4;
-struct uint4;
-struct float4;
+struct GLFW_BindingsMode;
 struct uint3;
 struct uint2;
 struct Android_Input;
-struct float2;
-struct float3;
-struct GLFW_ActionBindings;
-struct WinAPI_BindingsMode;
-struct OpenVR_ActionBindings;
+struct float4;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1509,7 +1509,7 @@ struct Android_Input
     static constexpr uint16 Delete = 67;
     static constexpr uint16 Grave = 68;
     static constexpr uint16 Minus = 69;
-    static constexpr uint16 Equals = 70;
+    static constexpr uint16 Equal = 70;
     static constexpr uint16 LeftBracket = 71;
     static constexpr uint16 RightBracket = 72;
     static constexpr uint16 BackSlash = 73;
@@ -1787,21 +1787,9 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
-{
-    RC (const WinAPI_ActionBindings &);
-};
-
-template <>
 struct RC<Android_ActionBindings> : Android_ActionBindings
 {
     RC (const Android_ActionBindings &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-    RC (const OpenVR_BindingsMode &);
 };
 
 template <>
@@ -1811,15 +1799,21 @@ struct RC<Android_BindingsMode> : Android_BindingsMode
 };
 
 template <>
-struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
 {
-    RC (const GLFW_BindingsMode &);
+    RC (const OpenVR_BindingsMode &);
 };
 
 template <>
-struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
 {
-    RC (const GLFW_ActionBindings &);
+    RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+{
+    RC (const OpenVR_ActionBindings &);
 };
 
 template <>
@@ -1829,8 +1823,14 @@ struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
 };
 
 template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
 {
-    RC (const OpenVR_ActionBindings &);
+    RC (const GLFW_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+{
+    RC (const GLFW_BindingsMode &);
 };
 

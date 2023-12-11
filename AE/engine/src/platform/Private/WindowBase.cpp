@@ -46,6 +46,7 @@ namespace
     {
         DRC_EXLOCK( _drCheck );
         CHECK( _wndState == EState::Destroyed );
+        ASSERT( not _surface.IsInitialized() );
     }
 
 /*

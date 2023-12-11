@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Radians.h"
+#include "base/Math/Radian.h"
 
 namespace AE::Math
 {
@@ -14,32 +14,32 @@ namespace AE::Math
     template <typename T>
     struct TSpherical
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
+        StaticAssert( IsFloatPoint<T> );
 
     // types
     public:
         using Value_t   = T;
-        using Angle_t   = TRadians< T >;
+        using Angle_t   = TRadian< T >;
         using Self      = TSpherical< T >;
         using Vec3_t    = Vec< T, 3 >;
 
 
     // variables
     public:
-        Angle_t     theta;      // polar angle (vertical)
-        Angle_t     phi;        // azimuthal angle (horizontal)
+        Angle_t     phi;        // azimuthal angle (horizontal - X)
+        Angle_t     theta;      // polar angle (vertical - Y)
 
 
     // methods
     public:
         constexpr TSpherical ()                                                 __NE___ {}
-        constexpr TSpherical (T theta, T phi)                                   __NE___ : theta{theta}, phi{phi} {}
-        constexpr TSpherical (Angle_t theta, Angle_t phi)                       __NE___ : theta{theta}, phi{phi} {}
-        constexpr explicit TSpherical (const Vec<T,2> &angle)                   __NE___ : theta{angle.x}, phi{angle.y} {}
-        constexpr explicit TSpherical (const Vec<Angle_t, 2> &angle)            __NE___ : theta{angle.x}, phi{angle.y} {}
+        constexpr TSpherical (T phi, T theta)                                   __NE___ : phi{phi}, theta{theta} {}
+        constexpr TSpherical (Angle_t phi, Angle_t theta)                       __NE___ : phi{phi}, theta{theta} {}
+        constexpr explicit TSpherical (const Vec<T,2> &angle)                   __NE___ : phi{angle.y}, theta{angle.x} {}
+        constexpr explicit TSpherical (const Vec<Angle_t, 2> &angle)            __NE___ : phi{angle.y}, theta{angle.x} {}
 
-        ND_ constexpr explicit operator Vec<T,2> ()                             C_NE___ { return Vec<T,2>{ T(theta), T(phi) }; }
-        ND_ constexpr explicit operator Vec<Angle_t,2> ()                       C_NE___ { return Vec<Angle_t,2>{ theta, phi }; }
+        ND_ constexpr explicit operator Vec<T,2> ()                             C_NE___ { return Vec<T,2>{ T{phi}, T{theta} }; }
+        ND_ constexpr explicit operator Vec<Angle_t,2> ()                       C_NE___ { return Vec<Angle_t,2>{ phi, theta }; }
 
         ND_ constexpr Self  operator + (const Self &rhs)                        C_NE___;
         ND_ constexpr Self  operator - (const Self &rhs)                        C_NE___;
@@ -50,7 +50,7 @@ namespace AE::Math
     };
 
 
-    using SphericalF    = TSpherical< float >;
+    using Spherical     = TSpherical< float >;
     using SphericalD    = TSpherical< double >;
 
 
@@ -64,14 +64,14 @@ namespace AE::Math
     constexpr TSpherical<T>  TSpherical<T>::operator + (const Self &rhs) C_NE___
     {
         // TODO: wrap?
-        return Self{ theta + rhs.theta, phi + rhs.phi };
+        return Self{ phi + rhs.phi, theta + rhs.theta };
     }
 
     template <typename T>
     constexpr TSpherical<T>  TSpherical<T>::operator - (const Self &rhs) C_NE___
     {
         // TODO: wrap?
-        return Self{ theta - rhs.theta, phi - rhs.phi };
+        return Self{ phi - rhs.phi, theta - rhs.theta };
     }
 
 /*
@@ -87,8 +87,8 @@ namespace AE::Math
         const auto  c       = cartesian / len;
 
         TSpherical<T>   spherical;
-        spherical.theta = ACos(Saturate( c.z ));
-        spherical.phi   = ATan( c.y, c.x ).WrapTo0_2Pi();
+        spherical.theta = ACos( c.y );
+        spherical.phi   = ATan( c.z, c.x );
 
         return { spherical, radius };
     }
@@ -102,12 +102,11 @@ namespace AE::Math
     Vec<T,3>  TSpherical<T>::ToCartesian () C_NE___
     {
         Vec<T,3>    cartesian;
+        const T     sin_t   = Sin( theta );
 
-        const T     sin_phi = Sin( phi );
-        cartesian.x = sin_phi * Cos( theta );
-        cartesian.y = sin_phi * Sin( theta );
-        cartesian.z = Cos( phi );
-
+        cartesian.x = sin_t * Cos( phi );
+        cartesian.y = Cos( theta );
+        cartesian.z = sin_t * Sin( phi );
         return cartesian;
     }
 
@@ -117,5 +116,61 @@ namespace AE::Math
         return ToCartesian() * radius;
     }
 
+/*
+=================================================
+    Lerp
+=================================================
+*/
+    template <typename T>
+    TSpherical<T>  Lerp (const TSpherical<T> &lhs, const TSpherical<T> &rhs, const T factor) __NE___
+    {
+        TSpherical<T>   result;
+        result.theta    = Math::Lerp( lhs.theta, rhs.theta, factor );
+        result.phi      = Math::Lerp( lhs.phi,   rhs.phi,   factor );
+        return result;
+    }
+
+/*
+=================================================
+    Equal / BitEqual
+=================================================
+*/
+    template <typename T>
+    ND_ bool2  Equal (const TSpherical<T> &lhs, const TSpherical<T> &rhs, const T err = Epsilon<T>()) __NE___
+    {
+        return bool2{ Math::Equal( lhs.phi, rhs.phi, err ),
+                      Math::Equal( lhs.theta, rhs.theta, err )};
+    }
+
+    template <typename T>
+    ND_ bool2  Equal (const TSpherical<T> &lhs, const TSpherical<T> &rhs, const Percent err) __NE___
+    {
+        return bool2{ Math::Equal( lhs.phi, rhs.phi, err ),
+                      Math::Equal( lhs.theta, rhs.theta, err )};
+    }
+
+    template <typename T>
+    ND_ bool2  BitEqual (const TSpherical<T> &lhs, const TSpherical<T> &rhs, const EnabledBitCount bitCount) __NE___
+    {
+        return bool2{ Math::BitEqual( lhs.phi, rhs.phi, bitCount ),
+                      Math::BitEqual( lhs.theta, rhs.theta, bitCount )};
+    }
+
+    template <typename T>
+    ND_ bool2  BitEqual (const TSpherical<T> &lhs, const TSpherical<T> &rhs) __NE___
+    {
+        return bool2{ Math::BitEqual( lhs.phi, rhs.phi ),
+                      Math::BitEqual( lhs.theta, rhs.theta )};
+    }
+
 
 } // AE::Math
+
+
+namespace AE::Base
+{
+    template <typename T>   struct TMemCopyAvailable< TSpherical<T> >       { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TSpherical<T> >       { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< TSpherical<T> >  { static constexpr bool  value = IsTriviallySerializable<T>; };
+
+} // AE::Base

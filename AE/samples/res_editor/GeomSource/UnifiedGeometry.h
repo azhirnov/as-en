@@ -24,14 +24,14 @@ namespace AE::ResEditor
         // types
         public:
             using PplnID_t      = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
-            using PplnPerDraw_t = Array< PplnID_t >;
+            using PipelineMap_t = FlatHashMap< Pair<usize, EDebugMode>, PplnID_t >;
 
 
         // variables
         public:
             RenderTechPipelinesPtr      rtech;
 
-            PplnPerDraw_t               pplns;
+            PipelineMap_t               pipelineMap;
             PerFrameDescSet_t           descSets;
 
             DescSetBinding              passDSIndex;
@@ -42,8 +42,10 @@ namespace AE::ResEditor
 
         // methods
         public:
-            Material () {}
+            Material ()     __NE___ {}
             ~Material ();
+
+            DebugModeBits  GetDebugModeBits ()  C_NE_OV;
         };
 
 
@@ -129,16 +131,18 @@ namespace AE::ResEditor
 
     // methods
     public:
-        UnifiedGeometry (Renderer &r)                                       __Th___;
+        UnifiedGeometry (Renderer &r)                                               __NE___;
         ~UnifiedGeometry ();
 
 
     // IGeomSource //
-        void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)       __Th_OV;
+        void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
+                                   const Debugger &, OUT ShaderDebugger::Result &)  __Th_OV;
+        void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)               __Th_OV;
         using IGeomSource::StateTransition;
 
-        bool  Draw (const DrawData &)                                       __Th_OV;
-        bool  Update (const UpdateData &)                                   __Th_OV;
+        bool  Draw (const DrawData &)                                               __Th_OV;
+        bool  Update (const UpdateData &)                                           __Th_OV;
     };
 
 

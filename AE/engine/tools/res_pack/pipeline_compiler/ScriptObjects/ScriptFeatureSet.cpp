@@ -57,7 +57,7 @@ namespace
     template <>             struct FS_ReplaceType< ESubgroupTypes > { using dst = uint; using src = ESubgroupTypes; };
 
     #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ ) \
-        static void  Set_FS_ ## _name_ (ScriptFeatureSet *ptr, const typename FS_ReplaceType<_type_>::dst val) {\
+        static void  Set_FS_ ## _name_ (ScriptFeatureSet* ptr, const typename FS_ReplaceType<_type_>::dst val) {\
             ptr->fs._name_ = typename FS_ReplaceType<_type_>::src( val );\
         }
     AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
@@ -73,31 +73,31 @@ namespace
         _visitor_( uint,    maxAccelStructures  );\
         _visitor_( uint,    maxTotalResources   );\
 
-    #define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )   static void  Set_FS_perDescrSet_ ## _name_ (ScriptFeatureSet *ptr, const _type_ val) { ptr->fs.perDescrSet._name_ = val; }
+    #define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )   static void  Set_FS_perDescrSet_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perDescrSet._name_ = val; }
     AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
     #undef AE_FEATURE_SET_PER_DS_VISIT
 
-    #define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )   static void  Set_FS_perStage_ ## _name_ (ScriptFeatureSet *ptr, const _type_ val) { ptr->fs.perStage._name_ = val; }
+    #define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )   static void  Set_FS_perStage_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perStage._name_ = val; }
     AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
     #undef AE_FEATURE_SET_PER_DS_VISIT
 
-    static void  FS_AddSubgroupOperation (ScriptFeatureSet *ptr, ESubgroupOperation val) {
+    static void  FS_AddSubgroupOperation (ScriptFeatureSet* ptr, ESubgroupOperation val) {
         ptr->fs.subgroupOperations.insert( val );
     }
 
-    static void  FS_AddSubgroupOperations (ScriptFeatureSet *ptr, const ScriptArray<ESubgroupOperation> &arr)
+    static void  FS_AddSubgroupOperations (ScriptFeatureSet* ptr, const ScriptArray<ESubgroupOperation> &arr)
     {
         for (auto val : arr) {
             ptr->fs.subgroupOperations.insert( val );
         }
     }
 
-    static void  FS_AddSubgroupOperationRange (ScriptFeatureSet *ptr, ESubgroupOperation first, ESubgroupOperation last) {
+    static void  FS_AddSubgroupOperationRange (ScriptFeatureSet* ptr, ESubgroupOperation first, ESubgroupOperation last) {
         CHECK_THROW_MSG( first <= last );
         ptr->fs.subgroupOperations.InsertRange( first, last );
     }
 
-    static void  FS_AddTexelFormats (ScriptFeatureSet *ptr, EFormatFeature features, const ScriptArray<EPixelFormat> &arr) __Th___
+    static void  FS_AddTexelFormats (ScriptFeatureSet* ptr, EFormatFeature features, const ScriptArray<EPixelFormat> &arr) __Th___
     {
         PixelFormatSet_t    set;
         for (auto fmt : arr) {
@@ -130,7 +130,7 @@ namespace
         ptr->fs.attachmentFormats       |= ptr->fs.lossyCompressedAttachmentFormats;
     }
 
-    static void  FS_AddSurfaceFormats (ScriptFeatureSet *ptr, const ScriptArray<ESurfaceFormat> &arr) __Th___
+    static void  FS_AddSurfaceFormats (ScriptFeatureSet* ptr, const ScriptArray<ESurfaceFormat> &arr) __Th___
     {
         for (auto sf : arr)
         {
@@ -139,81 +139,81 @@ namespace
         }
     }
 
-    static void  FS_AddVertexFormats (ScriptFeatureSet *ptr, const ScriptArray<EVertexType> &arr) {
+    static void  FS_AddVertexFormats (ScriptFeatureSet* ptr, const ScriptArray<EVertexType> &arr) {
         for (auto vt : arr) {
             ptr->fs.vertexFormats.insert( vt );
         }
     }
 
-    static void  FS_AddAccelStructVertexFormats (ScriptFeatureSet *ptr, const ScriptArray<EVertexType> &arr) {
+    static void  FS_AddAccelStructVertexFormats (ScriptFeatureSet* ptr, const ScriptArray<EVertexType> &arr) {
         for (auto vt : arr) {
             ptr->fs.accelStructVertexFormats.insert( vt );
         }
     }
 
-    static void  FS_framebufferColorSampleCounts (ScriptFeatureSet *ptr, const ScriptArray<uint> &arr) __Th___
+    static void  FS_framebufferColorSampleCounts (ScriptFeatureSet* ptr, const ScriptArray<uint> &arr) __Th___
     {
-        for (auto val : arr)
+        for (uint val : arr)
         {
             CHECK_THROW_MSG( val > 0 and IsPowerOfTwo( val ));
-            ptr->fs.framebufferColorSampleCounts = SampleCountBits( uint(ptr->fs.framebufferColorSampleCounts) | IntLog2( val ));
+            ptr->fs.framebufferColorSampleCounts = SampleCountBits( uint(ptr->fs.framebufferColorSampleCounts) | val );
         }
     }
 
-    static void  FS_framebufferDepthSampleCounts (ScriptFeatureSet *ptr, const ScriptArray<uint> &arr) __Th___
+    static void  FS_framebufferDepthSampleCounts (ScriptFeatureSet* ptr, const ScriptArray<uint> &arr) __Th___
     {
-        for (auto val : arr)
+        for (uint val : arr)
         {
             CHECK_THROW_MSG( val > 0 and IsPowerOfTwo( val ));
-            ptr->fs.framebufferDepthSampleCounts = SampleCountBits( uint(ptr->fs.framebufferDepthSampleCounts) | IntLog2( val ));
+            ptr->fs.framebufferDepthSampleCounts = SampleCountBits( uint(ptr->fs.framebufferDepthSampleCounts) | val );
         }
     }
 
-    static void  FS_IncludeVendorId (ScriptFeatureSet *ptr, EVendorID val) {
+    static void  FS_IncludeVendorId (ScriptFeatureSet* ptr, EVendorID val) {
         ptr->fs.vendorIds.include.insert( val );
     }
 
-    static void  FS_ExcludeVendorId (ScriptFeatureSet *ptr, EVendorID val) {
+    static void  FS_ExcludeVendorId (ScriptFeatureSet* ptr, EVendorID val) {
         ptr->fs.vendorIds.exclude.insert( val );
     }
 
-    static void  FS_IncludeVendorIds (ScriptFeatureSet *ptr, const ScriptArray<EVendorID> &arr) {
+    static void  FS_IncludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EVendorID> &arr) {
         for (auto val : arr) {
             ptr->fs.vendorIds.include.insert( val );
         }
     }
 
-    static void  FS_ExcludeVendorIds (ScriptFeatureSet *ptr, const ScriptArray<EVendorID> &arr) {
+    static void  FS_ExcludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EVendorID> &arr) {
         for (auto val : arr) {
             ptr->fs.vendorIds.exclude.insert( val );
         }
     }
 
-    static void  FS_IncludeGraphicsDevice (ScriptFeatureSet *ptr, EGraphicsDeviceID val) {
+    static void  FS_IncludeGraphicsDevice (ScriptFeatureSet* ptr, EGraphicsDeviceID val) {
         ptr->fs.devicesIds.include.insert( val );
     }
 
-    static void  FS_ExcludeGraphicsDevice (ScriptFeatureSet *ptr, EGraphicsDeviceID val) {
+    static void  FS_ExcludeGraphicsDevice (ScriptFeatureSet* ptr, EGraphicsDeviceID val) {
         ptr->fs.devicesIds.exclude.insert( val );
     }
 
-    static void  FS_minSpirvVersion (ScriptFeatureSet *ptr, uint val) {
+    static void  FS_minSpirvVersion (ScriptFeatureSet* ptr, uint val) {
         ptr->fs.maxShaderVersion.spirv = CheckCast<ushort>(val);
     }
 
-    static void  FS_minMetalVersion (ScriptFeatureSet *ptr, uint val) {
+    static void  FS_minMetalVersion (ScriptFeatureSet* ptr, uint val) {
         ptr->fs.maxShaderVersion.metal = CheckCast<ushort>(val);
     }
 
-    static void  FS_supportedQueues (ScriptFeatureSet *ptr, EQueueMask val) {
+    static void  FS_supportedQueues (ScriptFeatureSet* ptr, EQueueMask val) {
         ptr->fs.queues.supported = val;
     }
 
-    static void  FS_requiredQueues (ScriptFeatureSet *ptr, EQueueMask val) {
+    static void  FS_requiredQueues (ScriptFeatureSet* ptr, EQueueMask val) {
         ptr->fs.queues.required = val;
     }
 
-    static void  FS_AddShadingRate (ScriptFeatureSet *ptr, const ScriptArray<uint> &fragSize, const ScriptArray<uint> &samples) __Th___
+    static void  FS_AddShadingRate (ScriptFeatureSet* ptr, const ScriptArray<uint> &fragSize, const ScriptArray<uint> &samples) __Th___
     {
         CHECK_THROW_MSG( fragSize.size() == 2 );
         CHECK_THROW_MSG( fragSize[0] > 0 and fragSize[1] > 0 );
@@ -233,7 +233,7 @@ namespace
     }
 
 
-    static void  FS_fragmentShadingRateTexelSize (ScriptFeatureSet *ptr, const ScriptArray<uint> &minTexelSize, const ScriptArray<uint> &maxTexelSize, uint aspect)
+    static void  FS_fragmentShadingRateTexelSize (ScriptFeatureSet* ptr, const ScriptArray<uint> &minTexelSize, const ScriptArray<uint> &maxTexelSize, uint aspect)
     {
         CHECK_THROW_MSG( minTexelSize.size() == 2 );
         CHECK_THROW_MSG( maxTexelSize.size() == 2 );
@@ -255,19 +255,19 @@ namespace
         ptr->fs.fragmentShadingRateTexelSize.aspect = POTValue{ aspect }.GetPOT();
     }
 
-    static void  FS_MergeMin (ScriptFeatureSet *ptr, ScriptFeatureSet* from) __Th___
+    static void  FS_MergeMin (ScriptFeatureSet* ptr, ScriptFeatureSet* from) __Th___
     {
         CHECK_THROW_MSG( from != null );
         ptr->fs.MergeMin( from->fs );
     }
 
-    static void  FS_MergeMax (ScriptFeatureSet *ptr, ScriptFeatureSet* from) __Th___
+    static void  FS_MergeMax (ScriptFeatureSet* ptr, ScriptFeatureSet* from) __Th___
     {
         CHECK_THROW_MSG( from != null );
         ptr->fs.MergeMax( from->fs );
     }
 
-    static void  FS_Copy (ScriptFeatureSet *ptr, ScriptFeatureSet* from) __Th___
+    static void  FS_Copy (ScriptFeatureSet* ptr, ScriptFeatureSet* from) __Th___
     {
         CHECK_THROW_MSG( from != null );
         ptr->fs = from->fs;
@@ -348,7 +348,7 @@ namespace
             binder.AddValue( "StorageTexelBufferAtomic",    EFormatFeature::StorageTexelBufferAtomic );
             binder.AddValue( "HWCompressedAttachment",      EFormatFeature::HWCompressedAttachment );
             binder.AddValue( "LossyCompressedAttachment",   EFormatFeature::LossyCompressedAttachment );
-            STATIC_ASSERT( uint(EFormatFeature::_Count) == 11 );
+            StaticAssert( uint(EFormatFeature::_Count) == 11 );
         }
         {
             ClassBinder<ScriptFeatureSet>   binder{ se };

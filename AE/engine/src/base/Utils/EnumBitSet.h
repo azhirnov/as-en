@@ -28,10 +28,10 @@ namespace AE::Base
         using BitArr_t  = StaticArray< Elem_t, _ArraySize >;
         using Index_t   = ByteSizeToUInt< Max( sizeof(E), sizeof(usize) )>;
 
-        STATIC_ASSERT( sizeof(E) <= sizeof(Index_t) );
-        STATIC_ASSERT( _BitCount <= _ElemSize * _ArraySize );
-        STATIC_ASSERT( _BitCount > 0 );
-        STATIC_ASSERT( _BitCount <= CT_SizeOfInBits<BitArr_t> );
+        StaticAssert( sizeof(E) <= sizeof(Index_t) );
+        StaticAssert( _BitCount <= _ElemSize * _ArraySize );
+        StaticAssert( _BitCount > 0 );
+        StaticAssert( _BitCount <= CT_SizeOfInBits<BitArr_t> );
 
 
         struct ConstIterator
@@ -281,7 +281,7 @@ namespace AE::Base
         Self    res;
         for (uint i = 0; i < _ArraySize - 1; ++i)
         {
-            res._bits[i] = ~_bits[i]; 
+            res._bits[i] = ~_bits[i];
         }
         res._bits.back() = (~_bits.back()) & _LastElemMask;
         return res;
@@ -564,6 +564,12 @@ namespace AE::Base
 
         return h;
     }
+//-----------------------------------------------------------------------------
+
+    template <typename E> struct TMemCopyAvailable< EnumBitSet<E> >     { static constexpr bool  value = true; };
+    template <typename E> struct TZeroMemAvailable< EnumBitSet<E> >     { static constexpr bool  value = true; };
+    template <typename E> struct TTriviallySerializable< EnumBitSet<E> >{ static constexpr bool  value = true; };
+    template <typename E> struct TTriviallyDestructible< EnumBitSet<E> >{ static constexpr bool  value = true; };
 
 } // AE::Base
 

@@ -53,7 +53,7 @@ namespace
     public:
         RT3_TestData&   t;
 
-        RT3_UploadTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT3_UploadTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -100,7 +100,7 @@ namespace
     public:
         RT3_TestData&   t;
 
-        RT3_RayTracingTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT3_RayTracingTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -127,7 +127,7 @@ namespace
     public:
         RT3_TestData&   t;
 
-        RT3_CopyTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT3_CopyTask (RT3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -151,11 +151,11 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  RayTracing3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  RayTracing3Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         RT3_TestData    t;
-        auto&           rg          = RenderTaskScheduler().GetRenderGraph();
+        auto&           rg          = GraphicsScheduler().GetRenderGraph();
         auto&           res_mngr    = rg.GetResourceManager();
 
         t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
@@ -226,14 +226,16 @@ namespace
         }
         CHECK_ERR( t.ds );
 
-        AsyncTask   begin   = rg.BeginFrame();
+
+        CHECK_ERR( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rg.BeginFrame() );
 
         t.batch = rg.CmdBatch( EQueueType::Graphics, {"RayTracing1"} )
                     .UseResource( t.img )
                     .Begin();
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch.template Task< RT3_UploadTask<CtxTypes> >( Tuple{ArgRef(t)}, {"Upload RTAS task"} ).Run( Tuple{begin} );
+        AsyncTask   task1   = t.batch.template Task< RT3_UploadTask<CtxTypes> >( Tuple{ArgRef(t)}, {"Upload RTAS task"} ).Run();
 
         AsyncTask   task2   = t.batch.template Task< RT3_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, {"Ray tracing task"} )
                                 .UseResource( t.img, EResourceState::ShaderStorage_Write | EResourceState::RayTracingShaders )
@@ -245,12 +247,13 @@ namespace
 
         AsyncTask   end     = rg.EndFrame( Tuple{task3} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rg.WaitAll() );
+        CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

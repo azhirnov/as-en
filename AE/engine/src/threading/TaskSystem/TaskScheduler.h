@@ -48,22 +48,32 @@
         - If null task used as dependency                           -> ignore
         - If null coroutine used as dependency (co_await noop_coro) -> cancel coroutine
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/TaskScheduler.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/TaskScheduler-ru.md)
 */
 
 #pragma once
 
 #include "threading/TaskSystem/AsyncTask.h"
 #include "threading/TaskSystem/Coroutine.h"
-#include "threading/Containers/LfIndexedPool2.h"
+#include "threading/Containers/LfIndexedPool.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
 
 namespace AE::Threading { class TaskScheduler; }
-namespace AE { Threading::TaskScheduler&  Scheduler () __NE___; }
+namespace AE
+{
+    Threading::TaskScheduler&  Scheduler () __NE___;
+
+#ifdef AE_DEBUG
+    static constexpr AE::Base::minutes      DefaultTimeout  {60};   // 60 min - for debugging
+#else
+    static constexpr AE::Base::milliseconds DefaultTimeout  {500};  // 0.5 sec
+#endif
+}
 
 namespace AE::Threading
 {
-    using TaskDependencyManagerPtr  = RC< class ITaskDependencyManager >;
+    enum class EThreadSeed : usize {};
+    enum class ECpuCoreId  : ubyte  { Unknown = 0xFF };
 
 
     //
@@ -78,7 +88,7 @@ namespace AE::Threading
             StringView      threadName;
             StringView      coreName;
             usize           threadId    = 0;
-            uint            coreId      = 0;
+            ECpuCoreId      coreId      = ECpuCoreId(0);
             uint            curFreq     = 0;    // MHz
             uint            minFreq     = 0;    // MHz
             uint            maxFreq     = 0;    // MHz
@@ -87,11 +97,11 @@ namespace AE::Threading
 
     // interface
     public:
-            virtual bool  Attach (uint uid, uint coreId)    __NE___ = 0;
-            virtual void  Detach ()                         __NE___ = 0;
+            virtual bool  Attach (uint uid, ECpuCoreId coreId)  __NE___ = 0;
+            virtual void  Detach ()                             __NE___ = 0;
 
-        ND_ virtual usize           DbgID ()                C_NE___ = 0;
-        ND_ virtual ProfilingInfo   GetProfilingInfo ()     C_NE___ = 0;
+        ND_ virtual usize           DbgID ()                    C_NE___ = 0;
+        ND_ virtual ProfilingInfo   GetProfilingInfo ()         C_NE___ = 0;
     };
 //-----------------------------------------------------------------------------
 
@@ -133,7 +143,7 @@ namespace AE::Threading
     //
     // Input/Output Service
     //
-    class IOService : public ITaskDependencyManager
+    class IOService : public EnableRC< IOService >
     {
     // interface
     public:
@@ -159,15 +169,49 @@ namespace AE::Threading
     public:
         struct Config
         {
-            ubyte   maxPerFrameQueues   = 2;
-            ubyte   maxBackgroundQueues = 2;
-            ubyte   maxRenderQueues     = 2;
-            ubyte   maxIOThreads        = 0;
-            ubyte   mainThreadCoreId    = UMax;
+            ubyte       maxPerFrameQueues   = 2;
+            ubyte       maxBackgroundQueues = 2;
+            ubyte       maxRenderQueues     = 2;
+            ubyte       maxIOThreads        = 0;
+            ECpuCoreId  mainThreadCoreId    = Default;
+        };
+
+        class InstanceCtor {
+        public:
+            static void  Create ()  __NE___;
+            static void  Destroy () __NE___;
+        };
+
+        using LoopingFlag_t = Atomic<uint>;
+        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
+
+
+        struct ThreadWakeup : Noncopyable
+        {
+        // variables
+        private:
+            ConditionVariable   _cv;
+            Mutex               _mutex;
+            EThreadBits         _activeThreads;
+
+        // methods
+        public:
+            ThreadWakeup ()                                         __NE___ {}
+
+            void  Wakeup (ETaskQueueBits)                           __NE___;
+            void  Wakeup (EThreadBits)                              __NE___;
+
+            void  Wakeup (ETaskQueue type)                          __NE___ { Wakeup( ETaskQueueBits{ type }); }
+            void  Wakeup (EThread type)                             __NE___ { Wakeup( EThreadBits{ type }); }
+
+            void  WakeupAndDetach (LoopingFlag_t &)                 __NE___;
+
+            void  Suspend (ETaskQueueBits, LoopingFlag_t &)         __NE___;
+            void  Suspend (EThreadBits, LoopingFlag_t &)            __NE___;
+            void  Suspend (const EThreadArray &, LoopingFlag_t &)   __NE___;
         };
 
     private:
-        using TimePoint_t       = std::chrono::high_resolution_clock::time_point;
         using EStatus           = IAsyncTask::EStatus;
         using OutputChunk_t     = IAsyncTask::OutputChunk;
         using WaitBits_t        = IAsyncTask::WaitBits_t;
@@ -176,45 +220,27 @@ namespace AE::Threading
         {
             Unique<class LfTaskQueue>   ptr;
 
-            DEBUG_ONLY(
-                ulong                   totalProcessed  = 0;
-            )
+            DEBUG_ONLY( ulong           totalProcessed  = 0;)
         };
 
         using TaskQueues_t      = StaticArray< PerQueue, uint(ETaskQueue::_Count) >;
-        using ThreadPtr         = RC< IThread >;
+        using TaskDepsMngr_t    = FlatHashMap< TypeId, RC<ITaskDependencyManager> >;
+        using OutputChunkPool_t = LfIndexedPool< IAsyncTask::OutputChunk, uint, 64*64, 64, GlobalLinearAllocatorRef >;
 
-        using TaskDepsMngr_t    = FlatHashMap< std::type_index, TaskDependencyManagerPtr >;
-
-        using OutputChunkPool_t = LfIndexedPool2< IAsyncTask::OutputChunk, uint, 64*64, 64 >;
-
-        static constexpr uint           _WaitAll_SpinCount  = 20'000;
-        static constexpr microseconds   _WaitAll_SleepTime  {100};
-
-        class CanceledTask final : public IAsyncTask
-        {
-        public:
-            CanceledTask () : IAsyncTask{ETaskQueue::PerFrame} { _DbgSet( EStatus::Canceled ); }
-
-            void        Run ()      __Th_OV {}
-            StringView  DbgName ()  C_NE_OV { return "canceled"; }
-        };
-
-        class WaitAsyncTask final : public IAsyncTask
-        {
-        public:
-            explicit WaitAsyncTask (ETaskQueue type) : IAsyncTask{type} {}
-
-            void        Run ()      __Th_OV {}
-            StringView  DbgName ()  C_NE_OV { return "WaitAsync"; }
-        };
+        class _CanceledTask;
+        class _WaitAsyncTask;
+        class _DummyRequest;
 
 
     // variables
     private:
+      #if AE_USE_THREAD_WAKEUP
+        ThreadWakeup        _wakeup;
+      #endif
         TaskQueues_t        _queues;
 
-        AsyncTask           _canceledTask;          // readonly
+        AsyncTask           _canceledTask;          //                  readonly
+        RC<>                _cancelledRequest;      // (AsyncDSRequest) readonly
 
         OutputChunkPool_t   _chunkPool;
 
@@ -222,11 +248,10 @@ namespace AE::Threading
         TaskDepsMngr_t      _taskDepsMngrs;
 
         Mutex               _threadGuard;
-        Array<ThreadPtr>    _threads;
-        ThreadPtr           _mainThread;
+        Array<RC<IThread>>  _threads;
+        RC<IThread>         _mainThread;
 
         RC<IOService>       _fileIOService;
-        Atomic<uint>        _coreId             {0};
 
         PROFILE_ONLY(
             AtomicRC<ITaskProfiler> _profiler;
@@ -242,28 +267,37 @@ namespace AE::Threading
 
     // methods
     public:
-            static void  CreateInstance ()                                          __NE___;
-            static void  DestroyInstance ()                                         __NE___;
-
         ND_ bool  Setup (const Config &cfg)                                         __NE___;
             void  SetProfiler (RC<ITaskProfiler> profiler)                          __NE___;
             void  Release ()                                                        __NE___;
 
             template <typename T>
-            bool  RegisterDependency (TaskDependencyManagerPtr mngr)                __NE___;
+            bool  RegisterDependency (RC<ITaskDependencyManager> mngr)              __NE___;
 
             template <typename T>
             bool  UnregisterDependency ()                                           __NE___;
 
 
     // thread api //
-            bool  AddThread (ThreadPtr thread)                                      __NE___;
-            bool  AddThread (ThreadPtr thread, uint coreId)                         __NE___;
+            bool  AddThread (RC<IThread> thread, ECpuCoreId coreId = Default)       __NE___;
 
-            bool  ProcessTask (ETaskQueue type, uint seed)                          __NE___;
-            bool  ProcessTasks (const EThreadArray &threads, uint seed)             __NE___;
+            bool  ProcessTask (ETaskQueue type, EThreadSeed seed)                   __NE___;
+            bool  ProcessTasks (const EThreadArray &threads, EThreadSeed seed)      __NE___;
+            bool  ProcessTasks (const EThreadArray &threads, EThreadSeed seed,
+                                uint maxTasks)                                      __NE___;
+            bool  ProcessFileIO ()                                                  __NE___;
 
-        ND_ AsyncTask  PullTask (ETaskQueue type, uint seed)                        __NE___;
+        ND_ AsyncTask  PullTask (ETaskQueue type, EThreadSeed seed)                 __NE___;
+
+            void  SuspendThread (const EThreadArray &,
+                                 LoopingFlag_t      &,
+                                 uint               iteration)                      __NE___;
+            void  WakeupAndDetach (LoopingFlag_t &)                                 __NE___;
+
+      #if AE_USE_THREAD_WAKEUP
+        ND_ Ptr<ThreadWakeup>   GetThreadWakeup ()                                  __NE___ { return &_wakeup; }
+      #endif
+        ND_ static EThreadSeed  GetDefaultSeed ()                                   __NE___;
 
 
     // task api //
@@ -316,20 +350,25 @@ namespace AE::Threading
         ND_ AsyncTask   WaitAsync (ETaskQueue queue, const Tuple<Deps...> &deps)    __NE___;
 
         ND_ bool        Wait (ArrayView<AsyncTask>  tasks,
-                              const EThreadArray &  threads = Default,
-                              nanoseconds           timeout = GetDefaultTimeout())  __NE___;
+                              const EThreadArray &  threads,
+                              nanoseconds           timeout)                        __NE___;
+        ND_ bool        Wait (ArrayView<AsyncTask>  tasks,
+                              nanoseconds           timeout)                        __NE___;
+        ND_ bool        Wait (ArrayView<AsyncTask>  tasks,
+                              const EThreadArray &  threads,
+                              TimePoint_t           endTime,
+                              uint                  maxTasksPerTick)                __NE___;
 
 
     // other //
         ND_ Ptr<IOService>      GetFileIOService ()                                 C_NE___ { return _fileIOService.get(); }
 
         ND_ AsyncTask           GetCanceledTask ()                                  C_NE___ { return _canceledTask; }
+        ND_ RC<>                GetCanceledDSRequest ()                             C_NE___ { return _cancelledRequest; }
 
         ND_ IThread const*      GetMainThread ()                                    C_NE___ { return _mainThread.get(); }
 
         friend TaskScheduler&   AE::Scheduler ()                                    __NE___;
-
-        ND_ static constexpr nanoseconds  GetDefaultTimeout ()                      __NE___;
 
         PROFILE_ONLY(
             ND_ RC<ITaskProfiler>   GetProfiler ()                                  __NE___ { return _profiler.load(); }
@@ -352,6 +391,8 @@ namespace AE::Threading
 
         ND_ OutputChunkPool_t&  _GetChunkPool ()                                    __NE___ { return _chunkPool; }
 
+        ND_ static bool _IsAllComplete (ArrayView<AsyncTask> tasks)                 __NE___;
+
         template <usize I, typename ...Args>
         ND_ constexpr bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)      __NE___;
 
@@ -366,29 +407,15 @@ namespace AE::Threading
 
 /*
 =================================================
-    GetDefaultTimeout
-=================================================
-*/
-    constexpr nanoseconds  TaskScheduler::GetDefaultTimeout () __NE___
-    {
-        #ifdef AE_DEBUG
-            return minutes{60};     // 60 min - for debugging
-        #else
-            return seconds{30};     // 30 sec
-        #endif
-    }
-
-/*
-=================================================
     RegisterDependency
 =================================================
 */
     template <typename T>
-    bool  TaskScheduler::RegisterDependency (TaskDependencyManagerPtr mngr) __NE___
+    bool  TaskScheduler::RegisterDependency (RC<ITaskDependencyManager> mngr) __NE___
     {
         CHECK_ERR( mngr );
         EXLOCK( _taskDepsMngrsGuard );
-        return _taskDepsMngrs.insert_or_assign( typeid(T), mngr ).second;   // should not throw
+        return _taskDepsMngrs.insert_or_assign( TypeIdOf<T>(), RVRef(mngr) ).second;    // should not throw
     }
 
 /*
@@ -400,7 +427,7 @@ namespace AE::Threading
     bool  TaskScheduler::UnregisterDependency () __NE___
     {
         EXLOCK( _taskDepsMngrsGuard );
-        return _taskDepsMngrs.erase( typeid(T) ) > 0;
+        return _taskDepsMngrs.erase( TypeIdOf<T>() ) > 0;
     }
 
 /*
@@ -411,28 +438,50 @@ namespace AE::Threading
 =================================================
 */
     template <typename TaskType, typename ...Ctor, typename ...Deps>
-    AsyncTask  TaskScheduler::Run (Tuple<Ctor...>&& ctorArgs, const Tuple<Deps...> &deps) __NE___
+    AsyncTask  TaskScheduler::Run (Tuple<Ctor...> &&ctorArgs, const Tuple<Deps...> &deps) __NE___
     {
-        STATIC_ASSERT( IsBaseOf< IAsyncTask, TaskType > );
+        StaticAssert( IsBaseOf< IAsyncTask, TaskType > );
 
-        AsyncTask   task;
-        uint        bit_index   = 0;
-        try{
-            task = ctorArgs.Apply([] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)... ); }); // throw
-        }
-        catch(...) {
-            return GetCanceledTask();
-        }
-
-        if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
+        if constexpr( IsNothrowCtor< TaskType, Ctor&&... >)
         {
-            // add task to queue only to call 'OnCancel()'
-            task->_SetCancellationState();
-            bit_index = 0;  // no dependencies
-        }
+            uint        bit_index   = 0;
+            AsyncTask   task        = ctorArgs.Apply([] (auto&& ...args) __NE___
+                                                    { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)... ); });
+            if_unlikely( not task )
+                return GetCanceledTask();
 
-        CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
-        return task;
+            if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
+            {
+                // add task to queue only to call 'OnCancel()'
+                task->_SetCancellationState();
+                bit_index = 0;  // no dependencies
+            }
+
+            CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
+            return task;
+        }
+        else
+        {
+            uint        bit_index   = 0;
+            AsyncTask   task;
+            TRY{
+                task = ctorArgs.Apply([] (auto&& ...args) __Th___
+                                    { return MakeRCTh<TaskType>( FwdArg<decltype(args)>(args)... ); });
+
+                if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
+                {
+                    // add task to queue only to call 'OnCancel()'
+                    task->_SetCancellationState();
+                    bit_index = 0;  // no dependencies
+                }
+
+                CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
+                return task;
+            }
+            CATCH_ALL(
+                return GetCanceledTask();
+            )
+        }
     }
 
 /*
@@ -572,12 +621,12 @@ namespace AE::Threading
     template <typename T>
     bool  TaskScheduler::_AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex) __NE___
     {
-        STATIC_ASSERT( not IsConst<T> );
+        StaticAssert( not IsConst<T> );
         SHAREDLOCK( _taskDepsMngrsGuard );
 
-        auto    iter = _taskDepsMngrs.find( typeid(T) );
+        auto    iter = _taskDepsMngrs.find( TypeIdOf<T>() );
         CHECK_ERR_MSG( iter != _taskDepsMngrs.end(),
-            "Can't find dependency manager for type: "s << typeid(T).name() );
+            "Can't find dependency manager for type: "s << TypeNameOf<T>() );
 
         return iter->second->Resolve( AnyTypeCRef{dep}, task, INOUT bitIndex );
     }
@@ -587,10 +636,19 @@ namespace AE::Threading
     WaitAsync
 =================================================
 */
+    class TaskScheduler::_WaitAsyncTask final : public IAsyncTask
+    {
+    public:
+        explicit _WaitAsyncTask (ETaskQueue type) __NE___ : IAsyncTask{type} {}
+
+        void        Run ()      __Th_OV {}
+        StringView  DbgName ()  C_NE_OV { return "WaitAsync"; }
+    };
+
     template <typename ...Deps>
     AsyncTask  TaskScheduler::WaitAsync (ETaskQueue queue, const Tuple<Deps...> &deps) __NE___
     {
-        return Run<WaitAsyncTask>( Tuple{queue}, deps );
+        return Run<_WaitAsyncTask>( Tuple{queue}, deps );
     }
 //-----------------------------------------------------------------------------
 

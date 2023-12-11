@@ -85,7 +85,7 @@ namespace AE::PipelineCompiler
     };
 
 
-    extern "C" bool AE_PC_API CompilePipelines (const PipelinesInfo *info);
+    extern "C" bool AE_PC_API CompilePipelines (const PipelinesInfo* info);
 
 
 } // AE::PipelineCompiler

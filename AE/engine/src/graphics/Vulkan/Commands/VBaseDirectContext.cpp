@@ -54,7 +54,7 @@ namespace AE::Graphics::_hidden_
             return RVRef(cmdbuf);
         }
 
-        auto&   rts = RenderTaskScheduler();
+        auto&   rts = GraphicsScheduler();
         cmdbuf = rts.GetCommandPoolManager().GetCommandBuffer(
                         batch.GetQueueType(),
                         batch.GetCmdBufType(),
@@ -84,7 +84,7 @@ namespace AE::Graphics::_hidden_
             return RVRef(cmdbuf);
         }
 
-        auto&   rts = RenderTaskScheduler();
+        auto&   rts = GraphicsScheduler();
         cmdbuf = rts.GetCommandPoolManager().GetCommandBuffer(
                         batch.GetQueueType(),
                         batch.GetCmdBufType(),

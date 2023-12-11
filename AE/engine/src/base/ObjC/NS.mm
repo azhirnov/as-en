@@ -20,7 +20,7 @@
 
 namespace AE::NS
 {
-    STATIC_ASSERT( sizeof(NS::UInteger) == sizeof(NSUInteger) );
+    StaticAssert( sizeof(NS::UInteger) == sizeof(NSUInteger) );
 
 
     Object::Object (const Object& other) __NE___ :
@@ -30,7 +30,7 @@ namespace AE::NS
             CFRetain( _ptr );
     }
 
-    Object::Object (Object && other) __NE___ :
+    Object::Object (Object &&other) __NE___ :
         _ptr{ other._ptr }
     {
         other._ptr = null;
@@ -57,7 +57,7 @@ namespace AE::NS
         return *this;
     }
 
-    Object&  Object::operator = (Object && rhs) __NE___
+    Object&  Object::operator = (Object &&rhs) __NE___
     {
         if ( rhs._ptr == _ptr )
             return *this;
@@ -233,7 +233,7 @@ namespace _hidden_
     {
         Base::String    result;
         const usize     size_in_bytes = [(__bridge NSString *)Ptr() lengthOfBytesUsingEncoding : NSASCIIStringEncoding ];
-        CATCH_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
+        NOTHROW_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
 
         [(__bridge NSString *)Ptr() getCString : &result[0]
                                      maxLength : result.size() * sizeof(result[0])
@@ -245,7 +245,7 @@ namespace _hidden_
     {
         Base::U8String  result;
         const usize     size_in_bytes = [(__bridge NSString *)Ptr() lengthOfBytesUsingEncoding : NSUTF8StringEncoding ];
-        CATCH_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
+        NOTHROW_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
 
         [(__bridge NSString *)Ptr() getCString : Base::Cast<char>(&result[0])
                                      maxLength : result.size() * sizeof(result[0])
@@ -257,7 +257,7 @@ namespace _hidden_
     {
         Base::U16String result;
         const usize     size_in_bytes = [(__bridge NSString *)Ptr() lengthOfBytesUsingEncoding : NSUTF16StringEncoding ];
-        CATCH_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
+        NOTHROW_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
 
         [(__bridge NSString *)Ptr() getCString : Base::Cast<char>(&result[0])
                                      maxLength : result.size() * sizeof(result[0])
@@ -269,7 +269,7 @@ namespace _hidden_
     {
         Base::U32String result;
         const usize     size_in_bytes = [(__bridge NSString *)Ptr() lengthOfBytesUsingEncoding : NSUTF32StringEncoding ];
-        CATCH_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
+        NOTHROW_ERR( result.resize( size_in_bytes / sizeof(result[0]) ));
 
         [(__bridge NSString *)Ptr() getCString : Base::Cast<char>(&result[0])
                                      maxLength : result.size() * sizeof(result[0])

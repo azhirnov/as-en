@@ -53,7 +53,7 @@ namespace AE::Base::_hidden_
         0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
     };
 
-    ND_ inline constexpr uint  crc32_hash (char const *str, usize len, uint prev_crc) __NE___
+    ND_ inline constexpr uint  crc32_hash (char const* str, usize len, uint prev_crc) __NE___
     {
         for (; (*str != '\0') & (len != 0); ++str, --len)
         {
@@ -73,7 +73,7 @@ namespace AE::Base
     CT_Hash (string)
 =================================================
 */
-    ND_ inline constexpr HashVal32  CT_Hash (const char *str, usize len, uint seed) __NE___
+    ND_ inline constexpr HashVal32  CT_Hash (const char* str, usize len, uint seed) __NE___
     {
         return HashVal32{ Base::_hidden_::crc32_hash( str, len, seed )};
     }

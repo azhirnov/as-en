@@ -13,30 +13,33 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct TBytes
+    struct TByte
     {
-        STATIC_ASSERT( IsInteger<T> and IsScalar<T>, "must be integer scalar" );
+        StaticAssert( IsInteger<T> and IsScalar<T>, "must be integer scalar" );
 
     // types
     public:
         using Value_t   = T;
-        using Self      = TBytes<T>;
+        using Self      = TByte<T>;
 
         struct SizeAndAlign
         {
             Self    size;
             Self    align;
 
-            constexpr SizeAndAlign ()                               __NE___ {}
-            constexpr SizeAndAlign (const SizeAndAlign &)           __NE___ = default;
+            constexpr SizeAndAlign ()                                                   __NE___ {}
+            constexpr SizeAndAlign (const SizeAndAlign &)                               __NE___ = default;
+            constexpr SizeAndAlign (SizeAndAlign &&)                                    __NE___ = default;
 
             template <typename B1, typename B2>
-            constexpr explicit SizeAndAlign (B1 inSize, B2 inAlign) __NE___ : size{inSize}, align{inAlign} {}
+            constexpr explicit SizeAndAlign (B1 inSize, B2 inAlign)                     __NE___ : size{inSize}, align{inAlign} {}
 
             template <typename B>
-            constexpr explicit SizeAndAlign (const B &other)        __NE___ : size{other.size}, align{other.align} {}
+            constexpr explicit SizeAndAlign (const B &other)                            __NE___ : size{other.size}, align{other.align} {}
 
-            constexpr SizeAndAlign  operator * (usize count)        C_NE___ { SizeAndAlign tmp{*this};  tmp.size *= count;  return tmp; }
+            constexpr explicit SizeAndAlign (std::size_t size, std::align_val_t align)  __NE___ : size{size}, align{align} {}
+
+            constexpr SizeAndAlign  operator * (usize count)                            C_NE___ { SizeAndAlign tmp{*this};  tmp.size *= count;  return tmp; }
         };
 
 
@@ -47,15 +50,15 @@ namespace AE::Math
 
     // methods
     public:
-        constexpr TBytes ()                                             __NE___ : _value{0} {}
-        constexpr TBytes (Base::_hidden_::_UMax)                        __NE___ : _value{UMax} {}
+        constexpr TByte ()                                              __NE___ : _value{0} {}
+        constexpr TByte (Base::_hidden_::_UMax)                         __NE___ : _value{UMax} {}
 
-        explicit constexpr TBytes (T value)                             __NE___ : _value{value} {}
-        explicit constexpr TBytes (std::align_val_t val)                __NE___ : _value{usize(val)} {}
-        explicit constexpr TBytes (const void* ptr)                     __NE___ : _value{BitCast<usize>(ptr)} {}
+        explicit constexpr TByte (T value)                              __NE___ : _value{value} {}
+        explicit constexpr TByte (std::align_val_t val)                 __NE___ : _value{usize(val)} {}
+        explicit constexpr TByte (const void* ptr)                      __NE___ : _value{BitCast<usize>(ptr)} {}
 
         template <typename B>
-        constexpr TBytes (const TBytes<B> &other)                       __NE___ : _value{CheckCast<T>(other)} {}
+        constexpr TByte (const TByte<B> &other)                         __NE___ : _value{CheckCast<T>(other)} {}
 
         ND_ explicit constexpr operator sbyte ()                        C_NE___ { return static_cast<sbyte >(_value); }
         ND_ explicit constexpr operator sshort ()                       C_NE___ { return static_cast<sshort>(_value); }
@@ -90,21 +93,21 @@ namespace AE::Math
         ND_ static constexpr Self   FromGb (T value)                    __NE___ { return Self( value << 30 ); }
 
 
-        template <typename B>   ND_ static constexpr Self           SizeOf ()                   __NE___ { STATIC_ASSERT( not IsVoid<B> );  return Self( sizeof(B) ); }
-        template <typename B>   ND_ static constexpr Self           SizeOf (const B &)          __NE___ { STATIC_ASSERT( not IsVoid<B> );  return Self( sizeof(B) ); }
+        template <typename B>   ND_ static constexpr Self           SizeOf ()                   __NE___ { StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
+        template <typename B>   ND_ static constexpr Self           SizeOf (const B &)          __NE___ { StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
 
-        template <typename B>   ND_ static constexpr Self           AlignOf ()                  __NE___ { STATIC_ASSERT( not IsVoid<B> );  return Self( alignof(B) ); }
-        template <typename B>   ND_ static constexpr Self           AlignOf (const B &)         __NE___ { STATIC_ASSERT( not IsVoid<B> );  return Self( alignof(B) ); }
+        template <typename B>   ND_ static constexpr Self           AlignOf ()                  __NE___ { StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
+        template <typename B>   ND_ static constexpr Self           AlignOf (const B &)         __NE___ { StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
 
         template <typename B>   ND_ static constexpr SizeAndAlign   SizeAndAlignOf ()           __NE___ { return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
         template <typename B>   ND_ static constexpr SizeAndAlign   SizeAndAlignOf (const B &)  __NE___ { return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
 
 
         // move any pointer
-        template <typename B>   ND_ friend B*  operator +  (B *lhs, const Self &rhs)    __NE___ { return BitCast<B *>( usize(lhs) + usize(rhs._value) ); }
-        template <typename B>   ND_ friend B*  operator -  (B *lhs, const Self &rhs)    __NE___ { return BitCast<B *>( usize(lhs) - usize(rhs._value) ); }
-        template <typename B>       friend B*& operator += (B* &lhs, const Self &rhs)   __NE___ { return (lhs = lhs + rhs); }
-        template <typename B>       friend B*& operator -= (B* &lhs, const Self &rhs)   __NE___ { return (lhs = lhs + rhs); }
+        template <typename B>   ND_ friend B*   operator +  (B* lhs, const Self &rhs)           __NE___ { return BitCast<B *>( usize(lhs) + usize(rhs._value) ); }
+        template <typename B>   ND_ friend B*   operator -  (B* lhs, const Self &rhs)           __NE___ { return BitCast<B *>( usize(lhs) - usize(rhs._value) ); }
+        template <typename B>       friend B*&  operator += (B* &lhs, const Self &rhs)          __NE___ { return (lhs = lhs + rhs); }
+        template <typename B>       friend B*&  operator -= (B* &lhs, const Self &rhs)          __NE___ { return (lhs = lhs + rhs); }
 
 
             constexpr Self& operator = (Base::_hidden_::_UMax)          __NE___ { _value = UMax;    return *this; }
@@ -185,18 +188,18 @@ namespace AE::Math
     };
 
 
-    using Bytes64u      = TBytes< ulong >;
-    using Bytes32u      = TBytes< uint >;
-    using Bytes16u      = TBytes< ushort >;
-    using Bytes8u       = TBytes< ubyte >;
-    using BytesUSize    = TBytes< usize >;
+    using Byte64u       = TByte< ulong >;
+    using Byte32u       = TByte< uint >;
+    using Byte16u       = TByte< ushort >;
+    using Byte8u        = TByte< ubyte >;
+    using ByteUSize     = TByte< usize >;
 
-    using Bytes64s      = TBytes< slong >;
-    using Bytes32s      = TBytes< int >;
-    using Bytes16s      = TBytes< short >;
-    using BytesSSize    = TBytes< ssize >;
+    using Byte64s       = TByte< slong >;
+    using Byte32s       = TByte< int >;
+    using Byte16s       = TByte< short >;
+    using ByteSSize     = TByte< ssize >;
 
-    using Bytes         = Bytes64u;
+    using Bytes         = Byte64u;
     using SizeAndAlign  = Bytes::SizeAndAlign;
 
     template <typename T>
@@ -232,7 +235,7 @@ namespace AE::Math
         };
 
         template <typename T>
-        struct _IsBytes< TBytes<T> > {
+        struct _IsBytes< TByte<T> > {
             static constexpr bool   value = true;
         };
     }
@@ -263,15 +266,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ TBytes<T>  FloorPOT (const TBytes<T> x) __NE___
+    ND_ TByte<T>  FloorPOT (const TByte<T> x) __NE___
     {
-        return TBytes<T>{ FloorPOT( T{x} )};
+        return TByte<T>{ FloorPOT( T{x} )};
     }
 
     template <typename T>
-    ND_ TBytes<T>  CeilPOT (const TBytes<T> x) __NE___
+    ND_ TByte<T>  CeilPOT (const TByte<T> x) __NE___
     {
-        return TBytes<T>{ CeilPOT( T{x} )};
+        return TByte<T>{ CeilPOT( T{x} )};
     }
 
 /*
@@ -280,7 +283,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  IsPowerOfTwo (const TBytes<T> x) __NE___
+    ND_ constexpr bool  IsPowerOfTwo (const TByte<T> x) __NE___
     {
         return IsPowerOfTwo( T{x} );
     }
@@ -290,27 +293,27 @@ namespace AE::Math
 
 namespace AE::Base
 {
-    template <typename T>   struct TMemCopyAvailable< TBytes<T> >       { static constexpr bool  value = IsMemCopyAvailable<T>; };
-    template <typename T>   struct TZeroMemAvailable< TBytes<T> >       { static constexpr bool  value = IsZeroMemAvailable<T>; };
-    template <typename T>   struct TTriviallySerializable< TBytes<T> >  { static constexpr bool  value = IsTriviallySerializable<T>; };
+    template <typename T>   struct TMemCopyAvailable< TByte<T> >        { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TByte<T> >        { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< TByte<T> >   { static constexpr bool  value = IsTriviallySerializable<T>; };
 
 } // AE::Base
 
 
 template <typename T>
-struct std::hash< AE::Math::TBytes<T> >
+struct std::hash< AE::Math::TByte<T> >
 {
-    ND_ size_t  operator () (const AE::Math::TBytes<T> &value) C_NE___
+    ND_ size_t  operator () (const AE::Math::TByte<T> &value) C_NE___
     {
         return size_t(AE::Base::HashOf( T(value) ));
     }
 };
 
 template <typename T>
-class std::numeric_limits< AE::Math::TBytes<T> >
+class std::numeric_limits< AE::Math::TByte<T> >
 {
 private:
-    using Bytes = AE::Math::TBytes<T>;
+    using Bytes = AE::Math::TByte<T>;
     using Base  = std::numeric_limits<T>;
 
 public:

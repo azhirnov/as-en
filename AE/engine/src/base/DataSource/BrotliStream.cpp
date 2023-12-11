@@ -14,7 +14,7 @@
 namespace AE::Base
 {
 namespace
-{   
+{
     static void*  BrotliAlloc (void* opaque, size_t size) __NE___
     {
         return Cast<IAllocator>(opaque)->Allocate( Bytes{size} );
@@ -93,7 +93,7 @@ namespace
     ReadSeq
 =================================================
 */
-    Bytes  BrotliRStream::ReadSeq (OUT void *buffer, Bytes size) __NE___
+    Bytes  BrotliRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Eq( _position, _stream->Position() );
@@ -109,7 +109,7 @@ namespace
             usize           available_in    = 0;
             ubyte const*    next_in         = null;
 
-            result = BrotliDecoderDecompressStream( static_cast<BrotliDecoderState *>(_instance), INOUT &available_in, INOUT &next_in, 
+            result = BrotliDecoderDecompressStream( static_cast<BrotliDecoderState *>(_instance), INOUT &available_in, INOUT &next_in,
                                                     INOUT &available_out, INOUT &next_out, null );
 
             written += (size - available_out);
@@ -130,7 +130,7 @@ namespace
 
             _position += available_in;
 
-            result = BrotliDecoderDecompressStream( static_cast<BrotliDecoderState *>(_instance), INOUT &available_in, INOUT &next_in, 
+            result = BrotliDecoderDecompressStream( static_cast<BrotliDecoderState *>(_instance), INOUT &available_in, INOUT &next_in,
                                                     INOUT &available_out, INOUT &next_out, null );
 
             written += ((size - written) - available_out);
@@ -235,7 +235,7 @@ namespace
     WriteSeq
 =================================================
 */
-    Bytes   BrotliWStream::WriteSeq (const void *buffer, Bytes size) __NE___
+    Bytes   BrotliWStream::WriteSeq (const void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT( not BrotliEncoderIsFinished( static_cast<BrotliEncoderState *>(_instance) ));

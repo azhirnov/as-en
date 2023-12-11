@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/VulkanLoader.h"
 
 # ifdef AE_PLATFORM_WINDOWS
-#   include "base/Platforms/WindowsHeader.h"
+#   include "base/Platforms/WindowsHeader.cpp.h"
 #   include <vulkan/vulkan_win32.h>
 # endif
 
@@ -17,7 +17,15 @@
 #   include <vulkan/vulkan_android.h>
 # endif
 
-# include "base/Algorithms/StringUtils.h"
+# ifdef AE_PLATFORM_APPLE
+#   include <vulkan/vulkan_metal.h>
+# endif
+# ifdef AE_PLATFORM_MACOS
+#   include <vulkan/vulkan_macos.h>
+# endif
+# ifdef AE_PLATFORM_IOS
+#   include <vulkan/vulkan_ios.h>
+# endif
 
 # include "graphics/Vulkan/VSwapchain.h"
 # include "graphics/Vulkan/VResourceManager.h"
@@ -87,7 +95,7 @@ namespace AE::Graphics
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
         CHECK_ERR( count > 0 );
 
-        CATCH_ERR( surf_formats.resize( count ));
+        NOTHROW_ERR( surf_formats.resize( count ));
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT surf_formats.data() ));
 
         for (auto& fmt : surf_formats)
@@ -118,7 +126,7 @@ namespace AE::Graphics
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
         CHECK_ERR( count > 0 );
 
-        CATCH_ERR( surf_formats.resize( count ));
+        NOTHROW_ERR( surf_formats.resize( count ));
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT surf_formats.data() ));
 
         for (usize i = 0, cnt = Min( maxCount, surf_formats.size() ); i < cnt; ++i)
@@ -147,7 +155,7 @@ namespace AE::Graphics
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
         CHECK_ERR( count > 0 );
 
-        CATCH_ERR( present_modes.resize( count ));
+        NOTHROW_ERR( present_modes.resize( count ));
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT present_modes.data() ));
 
         for (usize i = 0, cnt = Min( maxCount, present_modes.size() ); i < cnt; ++i)
@@ -204,7 +212,7 @@ namespace AE::Graphics
 ----
     Fence is not used because on all tested platforms it doesn't change anything.
 ----
-    Intel: when used vsync vkAcquireNextImage() stalls on 1/refresh_rate.
+    Intel in windowed mode: when used vsync vkAcquireNextImage() stalls on 1/refresh_rate.
 =================================================
 */
     VkResult  VSwapchain::AcquireNextImage () __NE___
@@ -234,7 +242,7 @@ namespace AE::Graphics
 =================================================
     Present
 ----
-    NV: when used vsync vkAcquireNextImage() stalls on 1/refresh_rate.
+    Nvidia in windowed mode: when used vsync vkAcquireNextImage() stalls on 1/refresh_rate.
 =================================================
 */
     VkResult  VSwapchain::Present (VQueuePtr queue, ArrayView<VkSemaphore> renderFinished) __NE___
@@ -248,7 +256,7 @@ namespace AE::Graphics
 
         const VkSwapchainKHR    swap_chains[]   = { _vkSwapchain };
         const uint              image_indices[] = { cur_idx.imageIdx };
-        STATIC_ASSERT( CountOf(swap_chains) == CountOf(image_indices) );
+        StaticAssert( CountOf(swap_chains) == CountOf(image_indices) );
 
         if ( renderFinished.empty() )
             renderFinished = ArrayView<VkSemaphore>{ &_renderFinishedSem[cur_idx.semaphoreId], 1 };
@@ -279,6 +287,36 @@ namespace AE::Graphics
         EXLOCK( queue->guard );
         return _device->vkQueuePresentKHR( queue->handle, &present_info );
     }
+
+/*
+=================================================
+    GetInstanceExtensions
+=================================================
+*/
+    ArrayView<const char*>  VSwapchain::GetInstanceExtensions () __NE___
+    {
+        static const char*  extensions[] = {
+            #ifdef AE_PLATFORM_WINDOWS
+                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+            #endif
+            #ifdef AE_PLATFORM_ANDROID
+                VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+            #endif
+            #ifdef AE_PLATFORM_LINUX
+                VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
+            #endif
+            #ifdef AE_PLATFORM_MACOS
+                VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
+            #endif
+            #ifdef AE_PLATFORM_IOS
+                VK_MVK_IOS_SURFACE_EXTENSION_NAME,
+            #endif
+            #ifdef AE_PLATFORM_APPLE
+                VK_EXT_METAL_SURFACE_EXTENSION_NAME,
+            #endif
+        };
+        return extensions;
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -300,15 +338,14 @@ namespace AE::Graphics
     {
         EXLOCK( _guard );
 
-        _device = &RenderTaskScheduler().GetDevice();
+        _device = &GraphicsScheduler().GetDevice();
         CHECK_ERR( _device->GetVkInstance() != Default );
         CHECK_ERR( _device->GetVExtensions().surface );
         CHECK_ERR( _vkSurface == Default );
+        CHECK_ERR( window );
 
         #if defined(AE_PLATFORM_WINDOWS)
         {
-            CHECK_ERR( window.hInstance != null and window.hWnd != null );
-
             VkWin32SurfaceCreateInfoKHR     surface_info = {};
 
             surface_info.sType      = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -319,15 +356,10 @@ namespace AE::Graphics
             CHECK_ERR( fpCreateWin32SurfaceKHR );
 
             VK_CHECK_ERR( fpCreateWin32SurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
-
-            _device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
-
             AE_LOG_DBG( "Created WinAPI Vulkan surface" );
         }
         #elif defined(AE_PLATFORM_ANDROID)
         {
-            CHECK_ERR( window.nativeWindow != null );
-
             VkAndroidSurfaceCreateInfoKHR   surface_info = {};
 
             surface_info.sType  = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
@@ -338,15 +370,10 @@ namespace AE::Graphics
             CHECK_ERR( fpCreateAndroidSurfaceKHR );
 
             VK_CHECK_ERR( fpCreateAndroidSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
-
-            _device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
-
             AE_LOG_DBG( "Created Android Vulkan surface" );
         }
         #elif defined(AE_PLATFORM_LINUX)
         {
-            CHECK_ERR( window.x11Window != null and window.x11Display != null );
-
             VkXlibSurfaceCreateInfoKHR  surface_info = {};
             surface_info.sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
             surface_info.dpy    = BitCast< ::Display *>( window.x11Display );
@@ -356,15 +383,61 @@ namespace AE::Graphics
             CHECK_ERR( fpCreateXlibSurfaceKHR );
 
             VK_CHECK_ERR( fpCreateXlibSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
-
-            _device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
-
             AE_LOG_DBG( "Created X11 Vulkan surface" );
+        }
+        #elif defined(AE_PLATFORM_APPLE)
+        {
+            // VK_EXT_metal_surface
+            if ( _device->HasInstanceExtension( VK_EXT_METAL_SURFACE_EXTENSION_NAME ))
+            {
+                VkMetalSurfaceCreateInfoEXT surface_info = {};
+                surface_info.sType  = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+                surface_info.pLayer = window.metalLayer.Ptr();
+
+                auto  fpCreateMetalSurfaceEXT = BitCast<PFN_vkCreateMetalSurfaceEXT>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateMetalSurfaceEXT" ));
+                if ( fpCreateMetalSurfaceEXT != null )
+                {
+                    auto err = fpCreateMetalSurfaceEXT( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface );
+                    if ( err == VK_SUCCESS ) {
+                        AE_LOG_DBG( "Created Metal surface" );
+                    }else
+                        VK_CHECK( err );
+                }
+            }
+            #if defined(AE_PLATFORM_MACOS)
+            if ( _vkSurface == Default )
+            {
+                VkMacOSSurfaceCreateInfoMVK surface_info = {};
+                surface_info.sType  = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+                surface_info.pView  = window.nsView.Ptr();
+
+                auto  fpCreateMacOSSurfaceMVK = BitCast<PFN_vkCreateMacOSSurfaceMVK>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateMacOSSurfaceMVK" ));
+                CHECK_ERR( fpCreateMacOSSurfaceMVK );
+
+                VK_CHECK_ERR( fpCreateMacOSSurfaceMVK( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
+                AE_LOG_DBG( "Created MacOS MoltenVK surface" );
+            }
+            #elif defined(AE_PLATFORM_IOS)
+            if ( _vkSurface == Default )
+            {
+                VkIOSSurfaceCreateInfoMVK   surface_info = {};
+                surface_info.sType  = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
+                surface_info.pView  = window.metalLayer.Ptr();
+
+                auto  fpCreateIOSSurfaceMVK = BitCast<PFN_vkCreateIOSSurfaceMVK>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateIOSSurfaceMVK" ));
+                CHECK_ERR( fpCreateIOSSurfaceMVK );
+
+                VK_CHECK_ERR( fpCreateIOSSurfaceMVK( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
+                AE_LOG_DBG( "Created iOS MoltenVK surface" );
+            }
+            #endif
         }
         #else
             #error unsupported platform!
             return false;
         #endif
+
+        _device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
 
         // check that surface supported with current device
         bool    present_supported = false;
@@ -388,33 +461,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-    GetInstanceExtensions
-=================================================
-*/
-    ArrayView<const char*>  VSwapchainInitializer::GetInstanceExtensions () __NE___
-    {
-        static const char*  extensions[] = {
-            #ifdef AE_PLATFORM_WINDOWS
-                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-            #endif
-            #ifdef AE_PLATFORM_ANDROID
-                VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
-            #endif
-            #ifdef AE_PLATFORM_LINUX
-                VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
-            #endif
-            #ifdef AE_PLATFORM_MACOS
-                VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
-            #endif
-            #ifdef AE_PLATFORM_IOS
-                VK_MVK_IOS_SURFACE_EXTENSION_NAME,
-            #endif
-        };
-        return extensions;
-    }
-
-/*
-=================================================
     DestroySurface
 =================================================
 */
@@ -423,17 +469,20 @@ namespace AE::Graphics
         EXLOCK( _guard );
         CHECK( _vkSwapchain == Default );
 
-        if ( _vkSurface != Default )
+        if ( _device != null )
         {
-            vkDestroySurfaceKHR( _device->GetVkInstance(), _vkSurface, null );
-            _vkSurface = Default;
+            if ( _vkSurface != Default )
+            {
+                vkDestroySurfaceKHR( _device->GetVkInstance(), _vkSurface, null );
+                _vkSurface = Default;
 
-            AE_LOG_DBG( "Destroyed Vulkan surface" );
-        }
+                AE_LOG_DBG( "Destroyed Vulkan surface" );
+            }
 
-        if ( _device->GetVkDevice() != Default )
-        {
-            _DestroySemaphores();
+            if ( _device->GetVkDevice() != Default )
+            {
+                _DestroySemaphores();
+            }
         }
     }
 
@@ -450,80 +499,75 @@ namespace AE::Graphics
 
     bool  VSwapchainInitializer::_ChooseColorFormat (INOUT VkFormat &colorFormat, INOUT VkColorSpaceKHR &colorSpace) C_NE___
     {
-        CHECK_ERR( _device->GetVkPhysicalDevice() and _vkSurface != Default );
+        CHECK_ERR( _device != null                and
+                   _device->GetVkPhysicalDevice() and
+                   _vkSurface != Default );
 
         uint                        count               = 0;
         Array< VkSurfaceFormatKHR > surf_formats;
-        const VkFormat              def_format          = VK_FORMAT_B8G8R8A8_UNORM;
-        const VkColorSpaceKHR       def_space           = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-        const VkFormat              required_format     = colorFormat;
         const VkColorSpaceKHR       required_colorspace = colorSpace;
+        const VkFormat              required_format1    = colorFormat;
+        const VkFormat              required_format2    = colorFormat == VK_FORMAT_B8G8R8A8_UNORM ? VK_FORMAT_R8G8B8A8_UNORM :
+                                                          (colorFormat == VK_FORMAT_R8G8B8A8_UNORM ? VK_FORMAT_B8G8R8A8_UNORM : colorFormat);
 
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
         CHECK_ERR( count > 0 );
 
-        CATCH_ERR( surf_formats.resize( count ));
+        NOTHROW_ERR( surf_formats.resize( count ));
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT surf_formats.data() ));
 
         if ( count == 1                                     and
              surf_formats[0].format == VK_FORMAT_UNDEFINED )
         {
-            colorFormat = required_format;
+            colorFormat = required_format1;
             colorSpace  = surf_formats[0].colorSpace;
+            return true;
         }
-        else
+
+        usize   both_match_idx      = UMax;
+        usize   format_match_idx    = UMax;
+        usize   space_match_idx     = UMax;
+        usize   def_format_idx      = UMax;
+        usize   def_space_idx       = UMax;
+
+        for (usize i = 0; i < surf_formats.size(); ++i)
         {
-            usize   both_match_idx      = UMax;
-            usize   format_match_idx    = UMax;
-            usize   space_match_idx     = UMax;
-            usize   def_format_idx      = 0;
-            usize   def_space_idx       = 0;
+            const auto& surf_fmt = surf_formats[i];
 
-            for (usize i = 0; i < surf_formats.size(); ++i)
+            if ( AnyEqual( surf_fmt.format, required_format1, required_format2 )    and
+                 surf_fmt.colorSpace == required_colorspace )
             {
-                const auto& surf_fmt = surf_formats[i];
-
-                if ( surf_fmt.format     == required_format     and
-                     surf_fmt.colorSpace == required_colorspace )
-                {
-                    both_match_idx = i;
-                }
-                else
-                // separate check
-                if ( surf_fmt.format     == required_format )
-                    format_match_idx = i;
-                else
-                if ( surf_fmt.colorSpace == required_colorspace )
-                    space_match_idx = i;
-
-                // check with default
-                if ( surf_fmt.format     == def_format )
-                    def_format_idx = i;
-
-                if ( surf_fmt.colorSpace == def_space )
-                    def_space_idx = i;
+                both_match_idx = i;
+                break;
             }
-
-            usize   idx = UMax;
-
-            if ( both_match_idx != UMax )
-                idx = both_match_idx;
             else
-            if ( format_match_idx != UMax )
-                idx = format_match_idx;
+            // separate check
+            if ( AnyEqual( surf_fmt.format, required_format1, required_format2 ))
+                format_match_idx = i;
             else
-            if ( def_format_idx != UMax )
-                idx = def_format_idx;
+            if ( surf_fmt.colorSpace == required_colorspace )
+                space_match_idx = i;
 
-            // TODO: space_match_idx and def_space_idx are unused yet
+            // check with default
+            if ( AnyEqual( surf_fmt.format, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM ))
+                def_format_idx = i;
 
-            if ( idx >= surf_formats.size() )
-                idx = 0;
-
-            colorFormat = surf_formats[ idx ].format;
-            colorSpace  = surf_formats[ idx ].colorSpace;
+            if ( surf_fmt.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
+                def_space_idx = i;
         }
 
+        usize   idx = UMax;
+        if ( both_match_idx     != UMax )   idx = both_match_idx;   else
+        if ( format_match_idx   != UMax )   idx = format_match_idx; else
+        if ( space_match_idx    != UMax )   idx = space_match_idx;  else
+        if ( def_format_idx     != UMax )   idx = def_format_idx;   else
+        if ( def_space_idx      != UMax )   idx = def_space_idx;
+
+        if ( idx >= surf_formats.size() )
+            idx = 0;
+
+        colorFormat = surf_formats[ idx ].format;
+        colorSpace  = surf_formats[ idx ].colorSpace;
         return true;
     }
 
@@ -535,7 +579,9 @@ namespace AE::Graphics
     bool  VSwapchainInitializer::IsSupported (const VkPresentModeKHR presentMode, const VkFormat colorFormat, const VkImageUsageFlagBits colorImageUsage) C_NE___
     {
         SHAREDLOCK( _guard );
-        CHECK_ERR( _device->GetVkPhysicalDevice() and _vkSurface != Default );
+        CHECK_ERR( _device != null                and
+                   _device->GetVkPhysicalDevice() and
+                   _vkSurface != Default );
 
         VkSurfaceCapabilitiesKHR    surf_caps;
         VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &surf_caps ));
@@ -631,7 +677,7 @@ namespace AE::Graphics
         }
 
         // destroy obsolete resources
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         {
             for (auto& id : _imageViewIDs)
             {
@@ -693,9 +739,12 @@ namespace AE::Graphics
     {
         EXLOCK( _guard );
 
-        CHECK( not IsImageAcquired() );
+        CHECK( not IsImageAcquired() );     // TODO: use vkReleaseSwapchainImagesEXT (VK_EXT_swapchain_maintenance1)
 
-        if ( _device->GetVkDevice() != Default )
+        if ( _vkSwapchain == Default )
+            return;
+
+        if ( _device != null and _device->GetVkDevice() != Default )
         {
             if ( _vkSwapchain != Default )
             {
@@ -705,7 +754,7 @@ namespace AE::Graphics
             }
         }
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         for (auto& id : _imageViewIDs)
         {
@@ -832,7 +881,7 @@ namespace AE::Graphics
         VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
         CHECK_ERRV( count > 0 );
 
-        CATCH_ERRV( present_modes.resize( count ));
+        NOTHROW_ERRV( present_modes.resize( count ));
         VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT present_modes.data() ));
 
         bool    required_mode_supported     = false;

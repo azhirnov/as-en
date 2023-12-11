@@ -7,7 +7,7 @@
 // Previous content will be discarded.
 // On error: returns empty object.
 // On success: returns new object.
-// 
+//
 // OUT for reference - argument will be replaced by the new object.
 // OUT for pointer   - memory pointed to will be overwritten.
 //
@@ -17,10 +17,10 @@
 
 // Previous content will be modified or added new content.
 // On error: fallback to previous content is implementation defined, content may be partially modified.
-// 
+//
 // INOUT for reference - argument has read-write access.
 // INOUT for pointer   - memory pointed to has read-write access.
-// 
+//
 #ifndef INOUT
 #   define INOUT
 #endif
@@ -32,6 +32,7 @@
 #define __NE_OV             noexcept        override
 #define __NE_OF             noexcept        override final
 #define C_NE___     const   noexcept
+#define M_NE___     mutable noexcept
 #define CrNE___     const&  noexcept
 #define r_NE___     &       noexcept
 #define rvNE___     &&      noexcept
@@ -41,10 +42,12 @@
 #define rvTh___     &&      noexcept(false)
 #define __Th___             noexcept(false)
 #define C_Th___     const   noexcept(false)
+#define M_Th___     mutable noexcept(false)
 #define C_Th_OV     const   noexcept(false) override
 #define __Th_OV             noexcept(false) override
 #define C_Th_OF     const   noexcept(false) override final
 #define __Th_OF             noexcept(false) override final
+
 
 // function prefix attribs
 /*
@@ -96,14 +99,14 @@
 
 // force inline
 #ifndef forceinline
-# if defined(AE_DEBUG)
+# if defined(AE_CFG_DEBUG)
 #   define forceinline          inline
 
 # elif defined(AE_COMPILER_MSVC)
 #   define forceinline          __forceinline
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#   define forceinline          __inline__ __attribute__((always_inline))
+#   define forceinline          __inline__ __attribute__((__always_inline__))
 
 # else
 #   pragma warning ("'forceinline' is not supported")
@@ -299,12 +302,7 @@
 #   define AE_SIMD_NEON_HALF    0
 #endif
 
-
-#if (AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON)
-#   define AE_HAS_SIMD          1
-#else
-#   define AE_HAS_SIMD          0
-#endif
+#define AE_HAS_SIMD             (AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON)
 
 
 // allow to use 'offsetof()' in 'static_assert()'
@@ -313,4 +311,25 @@
 #endif
 
 
-#define INTERNAL_LINKAGE( ... )     namespace { static __VA_ARGS__ ; }
+#define INTERNAL_LINKAGE( /* type  name */... )     namespace { static __VA_ARGS__ ; }
+
+
+// Keep exactly the same type.
+// 'auto' will deduce the value type instead of reference type.
+// 'exact_t' will use reference type where it is possible.
+//#define exact_t       decltype(auto)
+/*
+example of variable initialization:
+    int i;
+    int&& f();
+    auto x3a = i;                  // decltype(x3a) is int
+    decltype(auto) x3d = i;        // decltype(x3d) is int
+    auto x4a = (i);                // decltype(x4a) is int
+    decltype(auto) x4d = (i);      // decltype(x4d) is int&
+    auto x5a = f();                // decltype(x5a) is int
+    decltype(auto) x5d = f();      // decltype(x5d) is int&&
+    auto x6a = { 1, 2 };           // decltype(x6a) is std::initializer_list<int>
+    decltype(auto) x6d = { 1, 2 }; // error, { 1, 2 } is not an expression
+    auto *x7a = &i;                // decltype(x7a) is int*
+    decltype(auto)*x7d = &i;       // error, declared type is not plain decltype(auto)
+*/

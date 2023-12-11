@@ -76,18 +76,14 @@ namespace AE::Base
         //return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
 
         Unused( handle, coreIdx );
-        return false;
+        return true;
     }
 
     bool  AppleUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
     {
         ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
 
-        ::cpu_set_t  mask;
-        CPU_ZERO( OUT &mask );
-        CPU_SET( coreIdx, INOUT &mask );
-
-        return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
+        return true;
     }
 
 /*
@@ -116,32 +112,8 @@ namespace AE::Base
 */
     uint  AppleUtils::GetProcessorCoreIndex () __NE___
     {
-        return ::sched_getcpu();
-    }
-
-/*
-=================================================
-    ThreadPause
-=================================================
-*/
-    void  AppleUtils::ThreadPause () __NE___
-    {
-    #if defined(AE_CPU_ARCH_X86)
-        #if AE_SIMD_SSE >= 2
-            _mm_pause();    // requires SSE2
-        #endif
-    #elif defined(AE_CPU_ARCH_X64)
-        _mm_pause();        // SSE2 always supported on x64
-
-    #elif defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
-        //__builtin_arm_yield();
-        //__yield();
-        asm volatile("yield");
-        //dispatch_hardware_pause();
-
-    #else
-        // TODO
-    #endif
+        return 0;
+        //return ::sched_getcpu();
     }
 
 

@@ -65,7 +65,7 @@ namespace
     public:
         SR1_TestData&   t;
 
-        SR1_DrawTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        SR1_DrawTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -116,7 +116,7 @@ namespace
             // per draw
             {
                 constexpr auto&     rtech_pass = RTech.nonVRS;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -134,7 +134,7 @@ namespace
             // per primitive
             {
                 constexpr auto&     rtech_pass = RTech.nonVRS;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -158,7 +158,7 @@ namespace
             // VRS attachment
             {
                 constexpr auto&     rtech_pass = RTech.VRS;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 2 );
+                StaticAssert( rtech_pass.attachmentsCount == 2 );
 
                 auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -192,7 +192,7 @@ namespace
     public:
         SR1_TestData&   t;
 
-        SR1_CopyTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        SR1_CopyTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -223,7 +223,7 @@ namespace
     template <typename CtxType, typename CopyCtx>
     static bool  ShadingRate1Test (RenderTechPipelinesPtr renderTech, Array<ImageComparator*> imgCmps)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         SR1_TestData    t;
 
@@ -261,22 +261,25 @@ namespace
         t.ppln[2] = renderTech->GetGraphicsPipeline( RTech.VRS.vrs_attachment );
         CHECK_ERR( t.ppln[0] and t.ppln[1] and t.ppln[2] );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw1"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< SR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw task"} );
+        AsyncTask   task1   = batch->Run< SR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                    {"Draw task"} );
         AsyncTask   task2   = batch->Run< SR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
         CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
         CHECK_ERR( t.result[2]->Status() == EStatus::Completed );
@@ -290,6 +293,9 @@ namespace
 
 bool RGTest::Test_ShadingRate1 ()
 {
+    if ( _vrsPipelines == null )
+        return true; // skip
+
     auto    img_cmp1    = _LoadReference( TEST_NAME + "-1" );
     auto    img_cmp2    = _LoadReference( TEST_NAME + "-2" );
     auto    img_cmp3    = _LoadReference( TEST_NAME + "-3" );

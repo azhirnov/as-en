@@ -441,6 +441,9 @@ namespace AE::Vulkan
 
             { "deviceGroupCreation",            VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME,                {1,1},  {1,0},  {} },
             { "deviceProps2",                   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,     {1,1},  {1,0},  {} },
+
+        // extensions //
+            { "portabilityEnum",                VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,              NoVer,  {1,0},  {} },
         };
 
         const FeatureInfo   deviceFeatures[] =
@@ -525,6 +528,7 @@ namespace AE::Vulkan
             { "rasterOrderAttachment",          VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
         //  { "maintenance5",                   VK_KHR_MAINTENANCE_5_EXTENSION_NAME,                        NoVer,  {1,1},  {VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
             { "cooperativeMatrix",              VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME,                   NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+            { "nonSeamlessCubeMap",             VK_EXT_NON_SEAMLESS_CUBE_MAP_EXTENSION_NAME,                NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
         // shaders //
             { "fragShaderInterlock",            VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,            NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -534,6 +538,7 @@ namespace AE::Vulkan
             { "shaderSubgroupUniformControlFlow",VK_KHR_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_EXTENSION_NAME,NoVer,  {1,1},  {} },
             { "workgroupMemExplicitLayout",     VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME,     NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
             { "shaderImageAtomicInt64",         VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,            NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+            { "pplnExecProps",                  VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME,       NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
         // queue priority //
             { "queueGlobalPriority",            VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME,                      NoVer,  {1,0},  {} },
@@ -1082,7 +1087,7 @@ namespace AE::Vulkan
                 continue;
 
             str << "\t\t_extensions." << feat.shortName;
-            AppendToString( INOUT str, feats.maxNameLen - feat.shortName.size() ); 
+            AppendToString( INOUT str, feats.maxNameLen - feat.shortName.size() );
             str << " = ";
 
             bool    has_ver_check = false;

@@ -2,8 +2,8 @@
 /*
     Thread-safe: yes
 
-    Assimp  - internal mutex for instance
-    glTF    - 
+    Assimp  - locks in allocator
+    glTF    -
 */
 
 #pragma once
@@ -23,8 +23,6 @@ namespace AE::ResLoader
     {
     // types
     public:
-        using Allocator_t   = SharedMem::Allocator_t;
-
         struct Config
         {
             uint    maxTrianglesPerMesh = UMax;

@@ -22,6 +22,9 @@ ND_ bool  IsInsideRect (const float2 pos, const float2 minBound, const float2 ma
 ND_ bool  IsInsideRect (const int2   pos, const int4   rect)                                { return IsInsideRect( pos, rect.xy, rect.zw ); }
 ND_ bool  IsInsideRect (const float2 pos, const float4 rect)                                { return IsInsideRect( pos, rect.xy, rect.zw ); }
 
+ND_ bool  IsInsideRect (const int2   pos, const int2   halfSize)                            { return AllLess( Abs(pos), halfSize ); }
+ND_ bool  IsInsideRect (const float2 pos, const float2 halfSize)                            { return AllLess( Abs(pos), halfSize ); }
+
 ND_ bool  IsOutsideRect (const float2 pos, const float2 minBound, const float2 maxBound)    { return Any(bool4( Less( pos, minBound ), Greater( pos, maxBound ))); }
 ND_ bool  IsOutsideRect (const float2 pos, const float4 rect)                               { return IsOutsideRect( pos, rect.xy, rect.zw ); }
 
@@ -34,14 +37,30 @@ ND_ float2  Rect_HalfSize (const float4 rect)                                   
 //-----------------------------------------------------------------------------
 
 
-ND_ int2    LeftVector  (const int2   v)        { return int2  ( -v.y,  v.x ); }
-ND_ float2  LeftVector  (const float2 v)        { return float2( -v.y,  v.x ); }
+ND_ int2    LeftVector  (const int2   v)                                                    { return int2  ( -v.y,  v.x ); }
+ND_ float2  LeftVector  (const float2 v)                                                    { return float2( -v.y,  v.x ); }
 
-ND_ int2    RightVector (const int2   v)        { return int2  (  v.y, -v.x ); }
-ND_ float2  RightVector (const float2 v)        { return float2(  v.y, -v.x ); }
+ND_ int2    RightVector (const int2   v)                                                    { return int2  (  v.y, -v.x ); }
+ND_ float2  RightVector (const float2 v)                                                    { return float2(  v.y, -v.x ); }
 
-ND_ float3  LeftVectorXZ  (const float3 v)      { return float3( -v.z, v.y,  v.x ); }
-ND_ float3  RightVectorXZ (const float3 v)      { return float3(  v.z, v.y, -v.x ); }
+ND_ float3  LeftVectorXZ  (const float3 v)                                                  { return float3( -v.z, v.y,  v.x ); }
+ND_ float3  RightVectorXZ (const float3 v)                                                  { return float3(  v.z, v.y, -v.x ); }
+//-----------------------------------------------------------------------------
+
+
+ND_ float  TriangleArea (const float3 a, const float3 b, const float3 c)                    { return Length(Cross( b - a, c - a )) * 0.5; }
+ND_ float  TriangleArea (const float2 a, const float2 b, const float2 c)                    { return TriangleArea( float3(a, 0.f), float3(b, 0.f), float3(c, 0.f) ); }
+//-----------------------------------------------------------------------------
+
+
+// spherical coordinates
+ND_ float3  SphericalToCartesian (const float2 spherical);
+ND_ float3  SphericalToCartesian (const float3 sphericalAndRadius);
+ND_ float3  CartesianToSpherical (const float3 cartesian);
+
+ND_ float   DistanceOnSphere (const float3 n0, const float3 n1)                             { return ACos( Dot( n0, n1 )); }
+ND_ float   DistanceSqOnSphereApprox (const float3 n0, const float3 n1)                     { return (2.0 - 2.0 * Dot( n0, n1 )); }
+
 //-----------------------------------------------------------------------------
 
 
@@ -67,3 +86,25 @@ float  ToNonlinearDepth (const float linearDepth, const float zNear, const float
 {
     return ((zFar + zNear) - 2.0 * zNear / linearDepth) / (zFar - zNear);
 }
+
+
+float3  SphericalToCartesian (const float2 spherical)
+{
+    float   phi     = spherical.x;
+    float   theta   = spherical.y;
+    float   sin_t   = Sin(theta);
+    return float3( sin_t * Cos(phi),  Cos(theta),  sin_t * Sin(phi) );
+}
+
+float3  SphericalToCartesian (const float3 sphericalAndRadius)
+{
+    return SphericalToCartesian( sphericalAndRadius.xy ) * sphericalAndRadius.z;
+}
+
+float3  CartesianToSpherical (const float3 cartesian)
+{
+    float   theta   = ACos( cartesian.y );
+    float   phi     = ATan( cartesian.z, cartesian.x );
+    return float3( phi, theta, 1.0f );
+}
+

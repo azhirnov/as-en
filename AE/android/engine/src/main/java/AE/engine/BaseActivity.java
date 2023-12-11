@@ -38,7 +38,7 @@ public class BaseActivity
                     View.OnTouchListener,
                     SensorEventListener
 {
-    public static final String  TAG = "AE";
+    public static final String  TAG = "<<<< AE >>>>";
 
     private int                 _wndID      = 0;
 
@@ -291,7 +291,7 @@ public class BaseActivity
 //-----------------------------------------------------------------------------
 // native
 
-    private static native int  native_OnCreate (Object wnd);
+    private static native int   native_OnCreate (Object wnd);
     private static native void  native_OnDestroy (int id);
     private static native void  native_OnStart (int id);
     private static native void  native_OnStop (int id);
@@ -299,7 +299,7 @@ public class BaseActivity
     private static native void  native_OnEnterBackground (int id);
     private static native void  native_SurfaceChanged (int id, Object surface);
     private static native void  native_SurfaceDestroyed (int id);
-    private static native int  native_Update (int id);
+    private static native int   native_Update (int id);
     private static native void  native_OnKey (int id, int keycode, int action, int repeatCount);
     private static native void  native_OnTouch (int id, int action, int index, int count, float[] data);
     private static native void  native_OnOrientationChanged (int id, int newOrientation);

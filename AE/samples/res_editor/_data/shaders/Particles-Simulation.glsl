@@ -91,39 +91,40 @@ ND_ uint  ParticleColor_FromVelocityLength (const float3 velocity)
 }
 
 
-ND_ float3  ParticleEmitter_Plane (const float pointIndex, const float pointsCount)
+ND_ float3  ParticleEmitter_Plane (const float index, const float count)
 {
-    const float side = Sqrt( pointsCount );
-    return float3( ToSNorm( float2(Mod( pointIndex, side ), Floor( pointIndex / side )) / side ), 0.0 );
+    const float side = Sqrt( count );
+    return float3( ToSNorm( float2(Mod( index, side ), Floor( index / side )) / side ), 0.0 );
 }
 
 
-ND_ float3  ParticleEmitter_Plane (const float pointIndex, const float pointsCount, const float ratio)
+ND_ float3  ParticleEmitter_Plane (const float index, const float count, const float ratio)
 {
-    const float side_x   = Sqrt( pointsCount * ratio );
-    const float side_y   = pointsCount / side_x;
+    const float side_x   = Sqrt( count * ratio );
+    const float side_y   = count / side_x;
     const float max_side = Max( side_x, side_y );
 
-    return float3( (float2(Mod( pointIndex, side_x ), Floor( pointIndex / side_x )) * 2.0 - float2(side_x, side_y)) / max_side, 0.0 );
+    return float3( (float2(Mod( index, side_x ), Floor( index / side_x )) * 2.0 - float2(side_x, side_y)) / max_side, 0.0 );
 }
 
 
-ND_ float3  ParticleEmitter_Circle (const float pointIndex, const float pointsCount)
+ND_ float3  ParticleEmitter_Circle (const float index, const float count)
 {
-    return float3( SinCos( Pi() * 2.0 * pointIndex / (pointsCount - 1.0) ), 0.0 );
+    return float3( SinCos( Pi() * 2.0 * index / (count - 1.0) ), 0.0 );
 }
 
 
-ND_ float3  ParticleEmitter_FillCircle (const float pointIndex, const float pointsCount)
+ND_ float3  ParticleEmitter_FillCircle (const float index, const float count)
 {
-    const float2    p = ParticleEmitter_Plane( pointIndex, pointsCount ).xy;
+    const float2    p = ParticleEmitter_Plane( index, count ).xy;
     return float3( SinCos( Pi() * 2.0 * p.x ) * p.y, 0.0 );
 }
 
 
-ND_ float3  ParticleEmitter_Sphere (const float pointIndex, const float pointsCount)
+ND_ float3  ParticleEmitter_Sphere (const float index, const float count)
 {
-    const float2    angle   = ParticleEmitter_Plane( pointIndex, pointsCount, 0.5 ).yx * Pi();
+    // TODO: spherical cube
+    const float2    angle   = ParticleEmitter_Plane( index, count, 0.5 ).yx * Pi();
     const float2    theta   = SinCos( angle.x );
     const float2    phi     = SinCos( angle.y );
 
@@ -131,9 +132,9 @@ ND_ float3  ParticleEmitter_Sphere (const float pointIndex, const float pointsCo
 }
 
 
-ND_ float3  ParticleEmitter_ConeVector (const float pointIndex, const float pointsCount, const float zLength)
+ND_ float3  ParticleEmitter_ConeVector (const float index, const float count, const float zLength)
 {
-    const float2    p = ParticleEmitter_Plane( pointIndex, pointsCount ).xy;
+    const float2    p = ParticleEmitter_Plane( index, count ).xy;
     const float2    c = SinCos( Pi() * 2.0 * p.x ) * p.y;
     return Normalize( float3( c, zLength ));
 }

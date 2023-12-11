@@ -221,10 +221,10 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
         int2  ii;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType1, ff) == 0 );
-    STATIC_ASSERT( offsetof(StType1, uu) == 16 );
-    STATIC_ASSERT( offsetof(StType1, ii) == 24 );
-    STATIC_ASSERT( sizeof(StType1) == 32 );
+    StaticAssert( offsetof(StType1, ff) == 0 );
+    StaticAssert( offsetof(StType1, uu) == 16 );
+    StaticAssert( offsetof(StType1, ii) == 24 );
+    StaticAssert( sizeof(StType1) == 32 );
 
 #ifndef StType2_DEFINED
 #   define StType2_DEFINED
@@ -237,9 +237,9 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
         StaticArray< uint4, 4 >    ua;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType2, st) == 0 );
-    STATIC_ASSERT( offsetof(StType2, ua) == 32 );
-    STATIC_ASSERT( sizeof(StType2) == 96 );
+    StaticAssert( offsetof(StType2, st) == 0 );
+    StaticAssert( offsetof(StType2, ua) == 32 );
+    StaticAssert( sizeof(StType2) == 96 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -260,10 +260,10 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
         int2  ii;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType1, ff) == 0 );
-    STATIC_ASSERT( offsetof(StType1, uu) == 16 );
-    STATIC_ASSERT( offsetof(StType1, ii) == 24 );
-    STATIC_ASSERT( sizeof(StType1) == 32 );
+    StaticAssert( offsetof(StType1, ff) == 0 );
+    StaticAssert( offsetof(StType1, uu) == 16 );
+    StaticAssert( offsetof(StType1, ii) == 24 );
+    StaticAssert( sizeof(StType1) == 32 );
 
 #ifndef StType2_DEFINED
 #   define StType2_DEFINED
@@ -276,9 +276,9 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
         StaticArray< uint4, 4 >    ua;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType2, st) == 0 );
-    STATIC_ASSERT( offsetof(StType2, ua) == 32 );
-    STATIC_ASSERT( sizeof(StType2) == 96 );
+    StaticAssert( offsetof(StType2, st) == 0 );
+    StaticAssert( offsetof(StType2, ua) == 32 );
+    StaticAssert( sizeof(StType2) == 96 );
 //-----------------------------------------------------------------------------
 
 
@@ -403,11 +403,11 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
         packed_short2  s;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType3, f) == 0 );
-    STATIC_ASSERT( offsetof(StType3, u) == 4 );
-    STATIC_ASSERT( offsetof(StType3, i) == 16 );
-    STATIC_ASSERT( offsetof(StType3, s) == 28 );
-    STATIC_ASSERT( sizeof(StType3) == 32 );
+    StaticAssert( offsetof(StType3, f) == 0 );
+    StaticAssert( offsetof(StType3, u) == 4 );
+    StaticAssert( offsetof(StType3, i) == 16 );
+    StaticAssert( offsetof(StType3, s) == 28 );
+    StaticAssert( sizeof(StType3) == 32 );
 
 #ifndef StType4_DEFINED
 #   define StType4_DEFINED
@@ -421,10 +421,10 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
         StaticArray< packed_short2, 8 >    ua;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType4, h3) == 0 );
-    STATIC_ASSERT( offsetof(StType4, st) == 8 );
-    STATIC_ASSERT( offsetof(StType4, ua) == 40 );
-    STATIC_ASSERT( sizeof(StType4) == 72 );
+    StaticAssert( offsetof(StType4, h3) == 0 );
+    StaticAssert( offsetof(StType4, st) == 8 );
+    StaticAssert( offsetof(StType4, ua) == 40 );
+    StaticAssert( sizeof(StType4) == 72 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -446,11 +446,11 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
         packed_short2  s;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType3, f) == 0 );
-    STATIC_ASSERT( offsetof(StType3, u) == 4 );
-    STATIC_ASSERT( offsetof(StType3, i) == 16 );
-    STATIC_ASSERT( offsetof(StType3, s) == 28 );
-    STATIC_ASSERT( sizeof(StType3) == 32 );
+    StaticAssert( offsetof(StType3, f) == 0 );
+    StaticAssert( offsetof(StType3, u) == 4 );
+    StaticAssert( offsetof(StType3, i) == 16 );
+    StaticAssert( offsetof(StType3, s) == 28 );
+    StaticAssert( sizeof(StType3) == 32 );
 
 #ifndef StType4_DEFINED
 #   define StType4_DEFINED
@@ -464,10 +464,10 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
         StaticArray< packed_short2, 8 >    ua;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType4, h3) == 0 );
-    STATIC_ASSERT( offsetof(StType4, st) == 8 );
-    STATIC_ASSERT( offsetof(StType4, ua) == 40 );
-    STATIC_ASSERT( sizeof(StType4) == 72 );
+    StaticAssert( offsetof(StType4, h3) == 0 );
+    StaticAssert( offsetof(StType4, st) == 8 );
+    StaticAssert( offsetof(StType4, ua) == 40 );
+    StaticAssert( sizeof(StType4) == 72 );
 //-----------------------------------------------------------------------------
 
 
@@ -527,10 +527,10 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
         packed_float3  Texcoord;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType5, Position) == 0 );
-    STATIC_ASSERT( offsetof(StType5, Normal) == 12 );
-    STATIC_ASSERT( offsetof(StType5, Texcoord) == 24 );
-    STATIC_ASSERT( sizeof(StType5) == 36 );
+    StaticAssert( offsetof(StType5, Position) == 0 );
+    StaticAssert( offsetof(StType5, Normal) == 12 );
+    StaticAssert( offsetof(StType5, Texcoord) == 24 );
+    StaticAssert( sizeof(StType5) == 36 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -551,10 +551,10 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
         packed_float3  Texcoord;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType5, Position) == 0 );
-    STATIC_ASSERT( offsetof(StType5, Normal) == 12 );
-    STATIC_ASSERT( offsetof(StType5, Texcoord) == 24 );
-    STATIC_ASSERT( sizeof(StType5) == 36 );
+    StaticAssert( offsetof(StType5, Position) == 0 );
+    StaticAssert( offsetof(StType5, Normal) == 12 );
+    StaticAssert( offsetof(StType5, Texcoord) == 24 );
+    StaticAssert( sizeof(StType5) == 36 );
 //-----------------------------------------------------------------------------
 
 
@@ -657,14 +657,14 @@ Buffer {
         StaticArray< float3x3_storage, 2 >    Mat2;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType6, Count) == 0 );
-    STATIC_ASSERT( offsetof(StType6, Positions) == 4 );
-    STATIC_ASSERT( offsetof(StType6, Indices) == 28 );
-    STATIC_ASSERT( offsetof(StType6, Mat) == 40 );
-    STATIC_ASSERT( offsetof(StType6, Positions2) == 112 );
-    STATIC_ASSERT( offsetof(StType6, Indices2) == 136 );
-    STATIC_ASSERT( offsetof(StType6, Mat2) == 160 );
-    STATIC_ASSERT( sizeof(StType6) == 256 );
+    StaticAssert( offsetof(StType6, Count) == 0 );
+    StaticAssert( offsetof(StType6, Positions) == 4 );
+    StaticAssert( offsetof(StType6, Indices) == 28 );
+    StaticAssert( offsetof(StType6, Mat) == 40 );
+    StaticAssert( offsetof(StType6, Positions2) == 112 );
+    StaticAssert( offsetof(StType6, Indices2) == 136 );
+    StaticAssert( offsetof(StType6, Mat2) == 160 );
+    StaticAssert( sizeof(StType6) == 256 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -689,14 +689,14 @@ Buffer {
         StaticArray< float3x3_storage, 2 >    Mat2;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType6, Count) == 0 );
-    STATIC_ASSERT( offsetof(StType6, Positions) == 4 );
-    STATIC_ASSERT( offsetof(StType6, Indices) == 28 );
-    STATIC_ASSERT( offsetof(StType6, Mat) == 40 );
-    STATIC_ASSERT( offsetof(StType6, Positions2) == 112 );
-    STATIC_ASSERT( offsetof(StType6, Indices2) == 136 );
-    STATIC_ASSERT( offsetof(StType6, Mat2) == 160 );
-    STATIC_ASSERT( sizeof(StType6) == 256 );
+    StaticAssert( offsetof(StType6, Count) == 0 );
+    StaticAssert( offsetof(StType6, Positions) == 4 );
+    StaticAssert( offsetof(StType6, Indices) == 28 );
+    StaticAssert( offsetof(StType6, Mat) == 40 );
+    StaticAssert( offsetof(StType6, Positions2) == 112 );
+    StaticAssert( offsetof(StType6, Indices2) == 136 );
+    StaticAssert( offsetof(StType6, Mat2) == 160 );
+    StaticAssert( sizeof(StType6) == 256 );
 //-----------------------------------------------------------------------------
 
 
@@ -846,9 +846,9 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         float3  norm;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9A, pos) == 0 );
-    STATIC_ASSERT( offsetof(StType9A, norm) == 16 );
-    STATIC_ASSERT( sizeof(StType9A) == 32 );
+    StaticAssert( offsetof(StType9A, pos) == 0 );
+    StaticAssert( offsetof(StType9A, norm) == 16 );
+    StaticAssert( sizeof(StType9A) == 32 );
 
 #ifndef StType9B_DEFINED
 #   define StType9B_DEFINED
@@ -861,9 +861,9 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         int  b;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9B, a) == 0 );
-    STATIC_ASSERT( offsetof(StType9B, b) == 8 );
-    STATIC_ASSERT( sizeof(StType9B) == 16 );
+    StaticAssert( offsetof(StType9B, a) == 0 );
+    StaticAssert( offsetof(StType9B, b) == 8 );
+    StaticAssert( sizeof(StType9B) == 16 );
 
 #ifndef StType9_DEFINED
 #   define StType9_DEFINED
@@ -877,10 +877,10 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         TDeviceAddress< StType9B *>  st_arr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9, ref) == 0 );
-    STATIC_ASSERT( offsetof(StType9, arr) == 8 );
-    STATIC_ASSERT( offsetof(StType9, st_arr) == 16 );
-    STATIC_ASSERT( sizeof(StType9) == 24 );
+    StaticAssert( offsetof(StType9, ref) == 0 );
+    StaticAssert( offsetof(StType9, arr) == 8 );
+    StaticAssert( offsetof(StType9, st_arr) == 16 );
+    StaticAssert( sizeof(StType9) == 24 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -900,9 +900,9 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         float3  norm;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9A, pos) == 0 );
-    STATIC_ASSERT( offsetof(StType9A, norm) == 16 );
-    STATIC_ASSERT( sizeof(StType9A) == 32 );
+    StaticAssert( offsetof(StType9A, pos) == 0 );
+    StaticAssert( offsetof(StType9A, norm) == 16 );
+    StaticAssert( sizeof(StType9A) == 32 );
 
 #ifndef StType9B_DEFINED
 #   define StType9B_DEFINED
@@ -915,9 +915,9 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         int  b;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9B, a) == 0 );
-    STATIC_ASSERT( offsetof(StType9B, b) == 8 );
-    STATIC_ASSERT( sizeof(StType9B) == 16 );
+    StaticAssert( offsetof(StType9B, a) == 0 );
+    StaticAssert( offsetof(StType9B, b) == 8 );
+    StaticAssert( sizeof(StType9B) == 16 );
 
 #ifndef StType9_DEFINED
 #   define StType9_DEFINED
@@ -931,10 +931,10 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
         TDeviceAddress< StType9B *>  st_arr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType9, ref) == 0 );
-    STATIC_ASSERT( offsetof(StType9, arr) == 8 );
-    STATIC_ASSERT( offsetof(StType9, st_arr) == 16 );
-    STATIC_ASSERT( sizeof(StType9) == 24 );
+    StaticAssert( offsetof(StType9, ref) == 0 );
+    StaticAssert( offsetof(StType9, arr) == 8 );
+    StaticAssert( offsetof(StType9, st_arr) == 16 );
+    StaticAssert( sizeof(StType9) == 24 );
 //-----------------------------------------------------------------------------
 
 
@@ -972,8 +972,8 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
         float4  pos;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType_10, pos) == 0 );
-    STATIC_ASSERT( sizeof(StType_10) == 16 );
+    StaticAssert( offsetof(StType_10, pos) == 0 );
+    StaticAssert( sizeof(StType_10) == 16 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -992,8 +992,8 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
         float4  pos;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType_10, pos) == 0 );
-    STATIC_ASSERT( sizeof(StType_10) == 16 );
+    StaticAssert( offsetof(StType_10, pos) == 0 );
+    StaticAssert( sizeof(StType_10) == 16 );
 //-----------------------------------------------------------------------------
 
 
@@ -1042,10 +1042,10 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
         uint  materialIdx;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType11, transform) == 0 );
-    STATIC_ASSERT( offsetof(StType11, meshIdx) == 64 );
-    STATIC_ASSERT( offsetof(StType11, materialIdx) == 68 );
-    STATIC_ASSERT( sizeof(StType11) == 80 );
+    StaticAssert( offsetof(StType11, transform) == 0 );
+    StaticAssert( offsetof(StType11, meshIdx) == 64 );
+    StaticAssert( offsetof(StType11, materialIdx) == 68 );
+    StaticAssert( sizeof(StType11) == 80 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -1066,10 +1066,10 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
         uint  materialIdx;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType11, transform) == 0 );
-    STATIC_ASSERT( offsetof(StType11, meshIdx) == 64 );
-    STATIC_ASSERT( offsetof(StType11, materialIdx) == 68 );
-    STATIC_ASSERT( sizeof(StType11) == 80 );
+    StaticAssert( offsetof(StType11, transform) == 0 );
+    StaticAssert( offsetof(StType11, meshIdx) == 64 );
+    StaticAssert( offsetof(StType11, materialIdx) == 68 );
+    StaticAssert( sizeof(StType11) == 80 );
 //-----------------------------------------------------------------------------
 
 
@@ -1114,8 +1114,8 @@ struct StType12
     //  float4  arr [];
     };
 #endif
-    STATIC_ASSERT( offsetof(StType12, count) == 0 );
-    STATIC_ASSERT( sizeof(StType12) == 16 );
+    StaticAssert( offsetof(StType12, count) == 0 );
+    StaticAssert( sizeof(StType12) == 16 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -1135,8 +1135,8 @@ struct StType12
     //  float4  arr [];
     };
 #endif
-    STATIC_ASSERT( offsetof(StType12, count) == 0 );
-    STATIC_ASSERT( sizeof(StType12) == 16 );
+    StaticAssert( offsetof(StType12, count) == 0 );
+    StaticAssert( sizeof(StType12) == 16 );
 //-----------------------------------------------------------------------------
 
 
@@ -1220,10 +1220,10 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
         ulong  l;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType13A, pos) == 0 );
-    STATIC_ASSERT( offsetof(StType13A, norm) == 16 );
-    STATIC_ASSERT( offsetof(StType13A, l) == 32 );
-    STATIC_ASSERT( sizeof(StType13A) == 48 );
+    StaticAssert( offsetof(StType13A, pos) == 0 );
+    StaticAssert( offsetof(StType13A, norm) == 16 );
+    StaticAssert( offsetof(StType13A, l) == 32 );
+    StaticAssert( sizeof(StType13A) == 48 );
 
 #ifndef StType13_DEFINED
 #   define StType13_DEFINED
@@ -1239,12 +1239,12 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
         StaticArray< TDeviceAddress< StType13A *>, 7 >    typedArrArr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType13, untypedAddrArr) == 0 );
-    STATIC_ASSERT( offsetof(StType13, untypedAddrArrArr) == 8 );
-    STATIC_ASSERT( offsetof(StType13, typedRef) == 72 );
-    STATIC_ASSERT( offsetof(StType13, typedArr) == 80 );
-    STATIC_ASSERT( offsetof(StType13, typedArrArr) == 88 );
-    STATIC_ASSERT( sizeof(StType13) == 144 );
+    StaticAssert( offsetof(StType13, untypedAddrArr) == 0 );
+    StaticAssert( offsetof(StType13, untypedAddrArrArr) == 8 );
+    StaticAssert( offsetof(StType13, typedRef) == 72 );
+    StaticAssert( offsetof(StType13, typedArr) == 80 );
+    StaticAssert( offsetof(StType13, typedArrArr) == 88 );
+    StaticAssert( sizeof(StType13) == 144 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -1265,10 +1265,10 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
         ulong  l;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType13A, pos) == 0 );
-    STATIC_ASSERT( offsetof(StType13A, norm) == 16 );
-    STATIC_ASSERT( offsetof(StType13A, l) == 32 );
-    STATIC_ASSERT( sizeof(StType13A) == 48 );
+    StaticAssert( offsetof(StType13A, pos) == 0 );
+    StaticAssert( offsetof(StType13A, norm) == 16 );
+    StaticAssert( offsetof(StType13A, l) == 32 );
+    StaticAssert( sizeof(StType13A) == 48 );
 
 #ifndef StType13_DEFINED
 #   define StType13_DEFINED
@@ -1284,12 +1284,12 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
         StaticArray< TDeviceAddress< StType13A *>, 7 >    typedArrArr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType13, untypedAddrArr) == 0 );
-    STATIC_ASSERT( offsetof(StType13, untypedAddrArrArr) == 8 );
-    STATIC_ASSERT( offsetof(StType13, typedRef) == 72 );
-    STATIC_ASSERT( offsetof(StType13, typedArr) == 80 );
-    STATIC_ASSERT( offsetof(StType13, typedArrArr) == 88 );
-    STATIC_ASSERT( sizeof(StType13) == 144 );
+    StaticAssert( offsetof(StType13, untypedAddrArr) == 0 );
+    StaticAssert( offsetof(StType13, untypedAddrArrArr) == 8 );
+    StaticAssert( offsetof(StType13, typedRef) == 72 );
+    StaticAssert( offsetof(StType13, typedArr) == 80 );
+    StaticAssert( offsetof(StType13, typedArrArr) == 88 );
+    StaticAssert( sizeof(StType13) == 144 );
 //-----------------------------------------------------------------------------
 
 
@@ -1342,8 +1342,8 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
         TDeviceAddress< packed_float3 *>  normals;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType14, normals) == 0 );
-    STATIC_ASSERT( sizeof(StType14) == 8 );
+    StaticAssert( offsetof(StType14, normals) == 0 );
+    StaticAssert( sizeof(StType14) == 8 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -1362,8 +1362,8 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
         TDeviceAddress< packed_float3 *>  normals;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType14, normals) == 0 );
-    STATIC_ASSERT( sizeof(StType14) == 8 );
+    StaticAssert( offsetof(StType14, normals) == 0 );
+    StaticAssert( sizeof(StType14) == 8 );
 //-----------------------------------------------------------------------------
 
 
@@ -1422,9 +1422,9 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
         float  b;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType15A, a) == 0 );
-    STATIC_ASSERT( offsetof(StType15A, b) == 16 );
-    STATIC_ASSERT( sizeof(StType15A) == 32 );
+    StaticAssert( offsetof(StType15A, a) == 0 );
+    StaticAssert( offsetof(StType15A, b) == 16 );
+    StaticAssert( sizeof(StType15A) == 32 );
 
 #ifndef StType15_DEFINED
 #   define StType15_DEFINED
@@ -1436,8 +1436,8 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
         StaticArray< StType15A, 8 >    arr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType15, arr) == 0 );
-    STATIC_ASSERT( sizeof(StType15) == 256 );
+    StaticAssert( offsetof(StType15, arr) == 0 );
+    StaticAssert( sizeof(StType15) == 256 );
 
 )#";
         TEST( glsl == ref_glsl );
@@ -1457,9 +1457,9 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
         float  b;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType15A, a) == 0 );
-    STATIC_ASSERT( offsetof(StType15A, b) == 16 );
-    STATIC_ASSERT( sizeof(StType15A) == 32 );
+    StaticAssert( offsetof(StType15A, a) == 0 );
+    StaticAssert( offsetof(StType15A, b) == 16 );
+    StaticAssert( sizeof(StType15A) == 32 );
 
 #ifndef StType15_DEFINED
 #   define StType15_DEFINED
@@ -1471,8 +1471,8 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
         StaticArray< StType15A, 8 >    arr;
     };
 #endif
-    STATIC_ASSERT( offsetof(StType15, arr) == 0 );
-    STATIC_ASSERT( sizeof(StType15) == 256 );
+    StaticAssert( offsetof(StType15, arr) == 0 );
+    StaticAssert( sizeof(StType15) == 256 );
 //-----------------------------------------------------------------------------
 }
 

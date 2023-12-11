@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Common.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Basic/ObjectFactory.h"
 
 namespace AE::PipelineCompiler
 {
@@ -11,7 +11,7 @@ namespace AE::PipelineCompiler
     ExprInfo
 =================================================
 */
-    bool  ShaderTrace::ExprInfo::operator == (const ExprInfo &rhs) const
+    bool  ShaderTrace::ExprInfo::operator == (const ExprInfo &rhs) C_NE___
     {
         return  (varID      == rhs.varID)   &
                 (swizzle    == rhs.swizzle) &
@@ -27,7 +27,7 @@ namespace AE::PipelineCompiler
     SourceInfo
 =================================================
 */
-    bool  ShaderTrace::SourceInfo::operator == (const SourceInfo &rhs) const
+    bool  ShaderTrace::SourceInfo::operator == (const SourceInfo &rhs) C_NE___
     {
         return  (code       == rhs.code)        &
                 (filename   == rhs.filename)    &
@@ -43,20 +43,20 @@ namespace AE::PipelineCompiler
     SourceLocation
 =================================================
 */
-    ShaderTrace::SourceLocation::SourceLocation (uint sourceId, uint line, uint column) :
+    ShaderTrace::SourceLocation::SourceLocation (uint sourceId, uint line, uint column) __NE___ :
         sourceId{sourceId},
         begin{line, column},
         end{line, column}
     {}
 
-    bool  ShaderTrace::SourceLocation::operator == (const SourceLocation &rhs) const
+    bool  ShaderTrace::SourceLocation::operator == (const SourceLocation &rhs) C_NE___
     {
         return  (sourceId   == rhs.sourceId)    &
                 (begin      == rhs.begin)       &
                 (end        == rhs.end);
     }
 
-    bool  ShaderTrace::SourceLocation::IsNotDefined () const
+    bool  ShaderTrace::SourceLocation::IsNotDefined () C_NE___
     {
         return  (sourceId   == 0)   &
                 (begin._ul  == 0)   &

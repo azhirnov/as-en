@@ -15,7 +15,7 @@ namespace AE::ResLoader
     LoadImage
 =================================================
 */
-    bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         // multithreaded
         if ( fileFormat == Default or fileFormat == EImageFormat::DDS )

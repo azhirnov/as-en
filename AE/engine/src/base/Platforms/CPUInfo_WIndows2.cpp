@@ -104,7 +104,7 @@ namespace
     // 0x0138 bytes in versions 3.10 to 6.0;
     // 0x0148 bytes in version 6.1;
     // 0x0158 bytes in version 6.2 and higher.
-    STATIC_ASSERT( sizeof(SystemPerfInfo) == 0x0158 );
+    StaticAssert( sizeof(SystemPerfInfo) == 0x0158 );
 //-----------------------------------------------------------------------------
 
 
@@ -118,7 +118,7 @@ namespace
         LONGLONG InterruptTime;
         ULONG InterruptCount;
     };
-    STATIC_ASSERT( sizeof(SystemProcessorPerfInfo) == 0x30 );
+    StaticAssert( sizeof(SystemProcessorPerfInfo) == 0x30 );
 //-----------------------------------------------------------------------------
 
 

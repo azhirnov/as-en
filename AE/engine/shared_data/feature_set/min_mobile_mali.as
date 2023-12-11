@@ -18,7 +18,6 @@ void ASmain ()
     //  Mali-G52 MC2 driver 26.0.0 on Android 11.0
     //  Mali-G72 driver 26.0.0 on Android 11.0
     //  Mali-G76 driver 32.1.0 on Android 12.0
-    //  Mali-G57 driver 21.0.0 on Android 10.0
 
     const EFeature  True = EFeature::RequireTrue;
 
@@ -51,7 +50,7 @@ void ASmain ()
     fset.perDescrSet_maxStorageBuffers (24);
     fset.perDescrSet_maxStorageImages (24);
     fset.perDescrSet_maxUniformBuffers (72);
-    fset.perDescrSet_maxTotalResources (1024);
+    fset.perDescrSet_maxTotalResources (512);
     fset.perStage_maxInputAttachments (4);
     fset.perStage_maxSampledImages (16);
     fset.perStage_maxSamplers (128);
@@ -171,9 +170,9 @@ void ASmain ()
         EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, 
         EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12
     });
-    fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
-        EPixelFormat::RGBA8_UNorm
-    });
+    //fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
+    //  EPixelFormat::RGBA8_UNorm
+    //});
     fset.samplerMipLodBias (True);
     fset.maxSamplerAnisotropy (1.00);
     fset.maxSamplerLodBias (2.00);

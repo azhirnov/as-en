@@ -6,7 +6,7 @@ namespace
 {
     static bool  ImageFormat1Test1 ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         GfxMemAllocatorPtr          gfx_alloc = res_mngr.CreateLinearGfxMemAllocator();
         GAutorelease<ImageID>       image_id;
@@ -39,7 +39,7 @@ namespace
 
     static bool  ImageFormat1Test2 ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         GfxMemAllocatorPtr          gfx_alloc = res_mngr.CreateLinearGfxMemAllocator();
         GAutorelease<ImageID>       image_id;

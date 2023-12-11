@@ -14,7 +14,7 @@ namespace
     {
         CHECK_ERR( allocator );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         auto    buf_id = res_mngr.CreateBuffer( BufferDesc{ 1_Kb, EBufferUsage::Storage }.SetMemory( memType ), "", allocator );
         CHECK_ERR( buf_id );
@@ -40,6 +40,22 @@ namespace
         CHECK_ERR( TestAllocators( MakeRC<VDedicatedMemAllocator>() ));
         CHECK_ERR( TestAllocators( MakeRC<VBlockMemAllocator>( 2_Kb, 64_Kb )));
         CHECK_ERR( TestAllocators( MakeRC<VLinearMemAllocator>( 64_Kb )));
+        return true;
+    }
+#endif
+
+#ifdef AE_ENABLE_METAL
+    ND_ static bool  TestCustomAllocators ()
+    {
+        // TODO
+        return true;
+    }
+#endif
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+    ND_ static bool  TestCustomAllocators ()
+    {
+        // TODO
         return true;
     }
 #endif

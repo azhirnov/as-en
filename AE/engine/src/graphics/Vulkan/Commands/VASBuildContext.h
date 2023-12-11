@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    ASBuildCtx -->  DirectASBuildCtx   --> BarrierMngr --> Vulkan device 
+    ASBuildCtx -->  DirectASBuildCtx   --> BarrierMngr --> Vulkan device
                 \-> IndirectASBuildCtx --> BarrierMngr --> Backed commands
 */
 
@@ -123,9 +123,6 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsASBuildContext        = true;
-        static constexpr bool   IsVulkanASBuildContext  = true;
-
         using CmdBuf_t      = typename CtxImpl::CmdBuf_t;
     private:
         using RawCtx        = CtxImpl;
@@ -204,7 +201,7 @@ namespace AE::Graphics
 
 
 namespace AE::Graphics::_hidden_
-{   
+{
 /*
 =================================================
     Copy***
@@ -358,7 +355,7 @@ namespace AE::Graphics::_hidden_
 
         return Threading::MakePromise(  [query] () -> Threading::PromiseResult<Bytes>
                                         {
-                                            auto&   query_mngr  = RenderTaskScheduler().GetQueryManager();
+                                            auto&   query_mngr  = GraphicsScheduler().GetQueryManager();
                                             Bytes   size;
                                             CHECK_PE( query_mngr.GetRTASProperty( query, OUT &size, Sizeof(size) ));
                                             return size;

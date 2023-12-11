@@ -96,7 +96,7 @@ namespace AE::Graphics
         ASSERT( _guard.IsLocked() );
     }
 
-    VCommandBuffer::VCommandBuffer (VCommandBuffer && other) __NE___ :
+    VCommandBuffer::VCommandBuffer (VCommandBuffer &&other) __NE___ :
         _cmdbuf{ other._cmdbuf },
         _queueType{ other._queueType },
         _cmdType{ other._cmdType },
@@ -134,7 +134,7 @@ namespace AE::Graphics
 
             if_unlikely( _recording )
             {
-                auto&   dev = RenderTaskScheduler().GetDevice();
+                auto&   dev = GraphicsScheduler().GetDevice();
 
                 _recording = false;
                 VK_CHECK_ERR( dev.vkEndCommandBuffer( _cmdbuf ));
@@ -155,7 +155,7 @@ namespace AE::Graphics
     operator =
 =================================================
 */
-    VCommandBuffer&  VCommandBuffer::operator = (VCommandBuffer && rhs) __NE___
+    VCommandBuffer&  VCommandBuffer::operator = (VCommandBuffer &&rhs) __NE___
     {
         Unused( EndAndRelease() );
 
@@ -181,7 +181,7 @@ namespace AE::Graphics
 */
     VQueuePtr  VCommandBuffer::GetQueue () C_NE___
     {
-        return RenderTaskScheduler().GetDevice().GetQueue( _queueType );
+        return GraphicsScheduler().GetDevice().GetQueue( _queueType );
     }
 
 /*
@@ -243,7 +243,7 @@ namespace AE::Graphics
     void  VCommandBuffer::SetDebugName (NtStringView label) __NE___
     {
     #if AE_DBG_GRAPHICS
-        RenderTaskScheduler().GetDevice().SetObjectName( _cmdbuf, label, VK_OBJECT_TYPE_COMMAND_BUFFER );
+        GraphicsScheduler().GetDevice().SetObjectName( _cmdbuf, label, VK_OBJECT_TYPE_COMMAND_BUFFER );
     #else
         Unused( label );
     #endif
@@ -364,7 +364,7 @@ namespace AE::Graphics
     GetCommandBuffer
 =================================================
 */
-    VCommandBuffer  VCommandPoolManager::GetCommandBuffer (EQueueType queueType, ECommandBufferType cmdType, const VPrimaryCmdBufState *primaryState) __NE___
+    VCommandBuffer  VCommandPoolManager::GetCommandBuffer (EQueueType queueType, ECommandBufferType cmdType, const VPrimaryCmdBufState* primaryState) __NE___
     {
         auto&   per_frame_queues    = _perFrame[ _frameId.Index() ];
         auto&   queue               = per_frame_queues[ uint(queueType) ];
@@ -405,9 +405,9 @@ namespace AE::Graphics
                     inheritance_info.renderPass     = primaryState->renderPass->Handle();
                     inheritance_info.subpass        = primaryState->subpassIndex;
                     inheritance_info.framebuffer    = primaryState->framebuffer->Handle();  // can be null
-                    //inheritance_info.occlusionQueryEnable = 
-                    //inheritance_info.queryFlags           = 
-                    //inheritance_info.pipelineStatistics   = 
+                    //inheritance_info.occlusionQueryEnable =
+                    //inheritance_info.queryFlags           =
+                    //inheritance_info.pipelineStatistics   =
                     break;
 
                 case ECommandBufferType::_Count :

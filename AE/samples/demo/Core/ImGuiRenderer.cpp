@@ -21,7 +21,7 @@ namespace AE::Samples::Demo
         CHECK_ERR( rtech );
         _rtech = rtech;
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         // init ImGUI context
         if ( _imguiCtx == null )
@@ -125,7 +125,7 @@ namespace AE::Samples::Demo
     Draw
 =================================================
 */
-    bool  ImGuiRenderer::Draw (RenderTask &rtask, DirectCtx::CommandBuffer cmdbuf, const RenderTechPassName &passName, 
+    bool  ImGuiRenderer::Draw (RenderTask &rtask, DirectCtx::CommandBuffer cmdbuf, const RenderTechPassName &passName,
                                const IOutputSurface::RenderTarget &rt, const Function<void()> &ui, const Function<void(DirectCtx::Draw &)> &draw)
     {
         return Draw( rtask, RVRef(cmdbuf), passName, rt, RGBA32f{ 0.45f, 0.55f, 0.60f, 1.00f }, ui, draw );
@@ -198,7 +198,7 @@ namespace AE::Samples::Demo
 
         ImGui::SetCurrentContext( _imguiCtx );
 
-        const float     dt      = RenderTaskScheduler().GetFrameTimeDelta().count();
+        const float     dt      = GraphicsScheduler().GetFrameTimeDelta().count();
         ImGuiIO &       io      = ImGui::GetIO();
         const float2    size    = rt.RegionSizePxf() * _pixToUI;
         const float2    pos     = mousePos * _pixToUI;
@@ -387,7 +387,7 @@ namespace AE::Samples::Demo
 */
     ImGuiRenderer::~ImGuiRenderer ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.DelayedReleaseResources( _descSet, _font.image, _font.view );
 

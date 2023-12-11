@@ -11,15 +11,18 @@ using namespace AE::Threading;
 enum class WorkerQueueCount : uint {};
 enum class IOThreadCount    : uint {};
 
+static constexpr seconds  c_MaxTimeout {100};
+
 
 struct LocalTaskScheduler
 {
-    explicit LocalTaskScheduler (WorkerQueueCount)
+    explicit LocalTaskScheduler (WorkerQueueCount count)
     {
         TaskScheduler::Config   cfg;
-        cfg.maxPerFrameQueues   = 2;
+        cfg.maxPerFrameQueues   = ubyte(Max( 2u, uint(count) ));
+        cfg.mainThreadCoreId    = ECpuCoreId(0);
 
-        TaskScheduler::CreateInstance();
+        TaskScheduler::InstanceCtor::Create();
         TEST( Scheduler().Setup( cfg ));
     }
 
@@ -27,16 +30,17 @@ struct LocalTaskScheduler
     {
         TaskScheduler::Config   cfg;
         cfg.maxPerFrameQueues   = 1;
-        cfg.maxIOThreads        = ubyte(count);
+        cfg.maxIOThreads        = ubyte(Max( 1u, uint(count) ));
+        cfg.mainThreadCoreId    = ECpuCoreId(0);
 
-        TaskScheduler::CreateInstance();
+        TaskScheduler::InstanceCtor::Create();
         TEST( Scheduler().Setup( cfg ));
     }
 
     ~LocalTaskScheduler ()
     {
         Scheduler().Release();
-        TaskScheduler::DestroyInstance();
+        TaskScheduler::InstanceCtor::Destroy();
     }
 
     TaskScheduler* operator -> ()

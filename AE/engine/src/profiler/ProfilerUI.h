@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Profiling.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Profiling.md)
 */
 
 #pragma once

@@ -25,7 +25,7 @@ namespace AE::Graphics
         range.attribsCapacity   = _AttribsVBufSize;
         range.indexCapacity     = _IndexBufSize;
 
-        auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&           res_mngr = GraphicsScheduler().GetResourceManager();
         VertexStream    vstream;
 
         CHECK_ERR( res_mngr.GetStagingManager().AllocVStream( _frameId, range.BufferSize(), OUT vstream ));
@@ -43,10 +43,10 @@ namespace AE::Graphics
     _AllocDrawCall
 =================================================
 */
-    bool  Canvas::_AllocDrawCall (uint instanceCount, uint vertCount, Bytes32u posSize, Bytes32u attrSize, Bytes32u idxDataSize)
+    bool  Canvas::_AllocDrawCall (uint instanceCount, uint vertCount, Byte32u posSize, Byte32u attrSize, Byte32u idxDataSize)
     {
-        const Bytes32u  pos_data_size   = posSize * vertCount;
-        const Bytes32u  attr_data_size  = attrSize * vertCount;
+        const Byte32u   pos_data_size   = posSize * vertCount;
+        const Byte32u   attr_data_size  = attrSize * vertCount;
 
         // allocate buffer
         if_unlikely( _buffers.empty() or not _buffers.back().HasSpace( pos_data_size, attr_data_size, idxDataSize ))

@@ -321,9 +321,9 @@ namespace AE::ResLoader
         DDS_MISC_FLAGS2           miscFlags2;
     };
 
-    STATIC_ASSERT( sizeof(DDS_PIXELFORMAT)  == 32 );
-    STATIC_ASSERT( sizeof(DDS_HEADER)       == 128 );
-    STATIC_ASSERT( sizeof(DDS_HEADER_DXT10) == 20 );
+    StaticAssert( sizeof(DDS_PIXELFORMAT)  == 32 );
+    StaticAssert( sizeof(DDS_HEADER)       == 128 );
+    StaticAssert( sizeof(DDS_HEADER_DXT10) == 20 );
 
 
 /*

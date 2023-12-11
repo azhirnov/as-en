@@ -27,15 +27,15 @@ namespace AE::Graphics
 
     class RESMNGR final : public IResourceManager
     {
-        friend class AE_PRIVATE_UNITE_RAW( SUFFIX, RenderTaskScheduler );
+        friend class RenderTaskScheduler;
 
     // types
     private:
         template <typename T, typename ID, usize ChunkSize, usize MaxChunks>
-        using PoolTmpl      = Threading::LfIndexedPool3< ResourceBase<T>, typename ID::Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
+        using PoolTmpl      = Threading::LfIndexedPool< ResourceBase<T,ID>, typename ID::Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 
         template <typename T, typename ID, usize PoolSize>
-        using StPoolTmpl    = Threading::LfStaticIndexedPool< ResourceBase<T>, typename ID::Index_t, PoolSize, GlobalLinearAllocatorRef >;
+        using StPoolTmpl    = Threading::LfStaticIndexedPool< ResourceBase<T,ID>, typename ID::Index_t, PoolSize, GlobalLinearAllocatorRef >;
 
         // chunk size
         static constexpr uint   MaxImages       = 1u << 10;
@@ -223,9 +223,9 @@ namespace AE::Graphics
 
     // methods
     private:
-        explicit RESMNGR (const Device_t &)                                                                                                         __Th___;
+        explicit RESMNGR (const Device_t &)                                                                                                         __NE___;
 
-        ND_ bool  Initialize (const GraphicsCreateInfo &)                                                                                           __Th___;
+        ND_ bool  Initialize (const GraphicsCreateInfo &)                                                                                           __NE___;
             void  Deinitialize ()                                                                                                                   __NE___;
 
 
@@ -339,7 +339,7 @@ namespace AE::Graphics
         ND_ Strong<RayTracingPipelineID>CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache = Default) __NE_OV;
         ND_ Strong<TilePipelineID>      CreateTilePipeline       (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache = Default) __NE_OV;
 
-            bool    GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)                            C_NE_OV;
+            bool    GetMemoryInfo (ImageID  id, OUT NativeMemObjInfo_t &info)                           C_NE_OV;
             bool    GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)                           C_NE_OV;
             bool    GetMemoryInfo (MemoryID id, OUT NativeMemObjInfo_t &info)                           C_NE___;
 
@@ -560,11 +560,11 @@ namespace AE::Graphics
         ND_ StringView  _GetResourcePoolName (const VFramebufferID &)           __NE___ { return "framebuffers"; }
       #endif
 
-    // 
+    //
         template <typename ID>  ND_ bool   _Assign (OUT ID &id)                 __NE___;
         template <typename ID>      void   _Unassign (ID id)                    __NE___;
 
-    // 
+    //
         template <typename ID>
         ND_ auto const&         _GetDescription (ID id)                         C_NE___;
 
@@ -686,7 +686,7 @@ namespace AE::Graphics
     template <typename ID>
     void  RESMNGR::_DelayedReleaseResource2 (ID id) __NE___
     {
-        STATIC_ASSERT( AllVkResources_t::HasType<ID> );
+        StaticAssert( AllVkResources_t::HasType<ID> );
         ASSERT( id != Default );
 
         VExpiredResource    expired;
@@ -745,11 +745,32 @@ namespace AE::Graphics
     int  RESMNGR::_DelayedReleaseResource (ID id, uint refCount) __NE___
     {
         // TODO: delayed destruction required for untracked resources
+        // TODO: different behaviour in Vulkan and Metal, in Metal it may cause data race, see 'GetResource()'
 
         return _ImmediatelyReleaseResource( id, refCount );
     }
 
 #endif // AE_ENABLE_METAL
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+/*
+=================================================
+    _DelayedReleaseResource
+=================================================
+*/
+    template <typename ID>
+    int  RESMNGR::_DelayedReleaseResource (ID id, uint refCount) __NE___
+    {
+        // TODO: delayed destruction required for untracked resources
+        // TODO: different behaviour in Vulkan and Metal, in Metal it may cause data race, see 'GetResource()'
+
+        return _ImmediatelyReleaseResource( id, refCount );
+    }
+
+#endif // AE_ENABLE_REMOTE_GRAPHICS
 //-----------------------------------------------------------------------------
 
 
@@ -770,6 +791,12 @@ namespace AE::Graphics
         {
             if_likely( res->IsCreated() & (res->GetGeneration() == id.Generation()) )
             {
+                // Without ref increment access to the resource is not safe,
+                // but resource is still alive because of delayed destruction.
+
+                // When used 'ImmediatelyReleaseResource()' user must take control on resource lifetime
+                // and must not use same ID in different threads.
+
                 if_unlikely( incRef )
                     res->AddRef();
 

@@ -49,7 +49,7 @@ namespace AE::Java
 
     // methods
     public:
-        explicit JavaEnv (JNIEnv *env)                  __NE___;
+        explicit JavaEnv (JNIEnv* env)                  __NE___;
         JavaEnv ()                                      __NE___;
         ~JavaEnv ()                                     __NE___;
 
@@ -58,12 +58,12 @@ namespace AE::Java
 
             void  ThrowException (NtStringView msg)     C_NE___;
             void  ExceptionClear ()                     C_NE___;
-        ND_ bool HasException ()                        C_NE___;
+        ND_ bool  HasException ()                       C_NE___;
 
-        ND_ JNIEnv* Env ()                              C_NE___ { ASSERT( _env );  return _env; }
-        ND_ JNIEnv* operator -> ()                      C_NE___ { ASSERT( _env );  return _env; }
+        ND_ JNIEnv*  Env ()                             C_NE___ { ASSERT( _env );  return _env; }
+        ND_ JNIEnv*  operator -> ()                     C_NE___ { ASSERT( _env );  return _env; }
 
-            static void SetVM (JavaVM *ptr)             __NE___;
+            static void  SetVM (JavaVM* ptr)            __NE___;
     };
 
 
@@ -167,7 +167,7 @@ namespace AE::Java
             ND_ jarray_t        Get ()          C_NE___ { return _jarray; }                             \
                                                                                                         \
         private:                                                                                        \
-            void _Release ()                                                                            \
+            void  _Release ()                                                                           \
             {                                                                                           \
                 if ( _fromNative )                                                                      \
                 {                                                                                       \
@@ -231,6 +231,8 @@ namespace AE::Java
         ND_ usize           size ()                                     C_NE___ { return _length; }
 
         ND_ operator StringView ()                                      C_NE___ { return StringView{ c_str(), length() }; }
+        ND_ explicit operator String ()                                 C_Th___ { return String{ c_str(), length() }; }
+        ND_ explicit operator Path ()                                   C_Th___ { return Path{StringView{ c_str(), length() }}; }
 
     private:
         void  _Release ();
@@ -649,7 +651,7 @@ namespace AE::Java
         struct JniTypeName< T* >
         {
             using type = T*;
-            static void Append (INOUT String &s) __Th___ { s += '['; JniTypeName<T>::Append( INOUT s ); }
+            static void  Append (INOUT String &s) __Th___ { s += '['; JniTypeName<T>::Append( INOUT s ); }
         };
 
 
@@ -673,7 +675,7 @@ namespace AE::Java
         public:
             JavaMethodSignature () __NE___
             {
-                try {
+                TRY{
                     _sig += '(';
 
                     if constexpr( CountOf< Args... >() > 0 )
@@ -682,9 +684,9 @@ namespace AE::Java
                     _sig += ')';
                     JniTypeName<Ret>::Append( INOUT _sig );
                 }
-                catch (...) {
+                CATCH_ALL(
                     _sig.clear();
-                }
+                )
             }
 
             ND_ String const&  signature ()     C_NE___ { return _sig; }

@@ -12,7 +12,7 @@
        * commands are not sorted.
      - Supported concurrent and explicit sharing between queue families.
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/RenderGraph.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/RenderGraph-ru.md)
 */
 
 #pragma once

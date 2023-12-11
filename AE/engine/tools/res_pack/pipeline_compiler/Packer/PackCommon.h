@@ -23,7 +23,7 @@ namespace AE::PipelineCompiler
     static constexpr uint   RenderPassPack_Name         = "RPpack"_Hash;
     static constexpr uint   RenderPassPack_VkRpBlock    = "VKRP"_Hash;
     static constexpr uint   RenderPassPack_MtlRpBlock   = "MtlRP"_Hash;
-    STATIC_ASSERT( RenderPassPack_VkRpBlock != RenderPassPack_MtlRpBlock );
+    StaticAssert( RenderPassPack_VkRpBlock != RenderPassPack_MtlRpBlock );
 
     static constexpr uint   SamplerPack_Version         = 1;
     static constexpr uint   SamplerPack_Name            = "SampPack"_Hash;
@@ -35,32 +35,32 @@ namespace AE::PipelineCompiler
     static constexpr uint   ShaderPack_Name             = "ShPack"_Hash;
 
 
-    STATIC_ASSERT( PackOffsets_Name != NameMapping_Name );
-    STATIC_ASSERT( PackOffsets_Name != FeatureSetPack_Name );
-    STATIC_ASSERT( PackOffsets_Name != RenderPassPack_Name );
-    STATIC_ASSERT( PackOffsets_Name != SamplerPack_Name );
-    STATIC_ASSERT( PackOffsets_Name != PipelinePack_Name );
-    STATIC_ASSERT( PackOffsets_Name != ShaderPack_Name );
+    StaticAssert( PackOffsets_Name != NameMapping_Name );
+    StaticAssert( PackOffsets_Name != FeatureSetPack_Name );
+    StaticAssert( PackOffsets_Name != RenderPassPack_Name );
+    StaticAssert( PackOffsets_Name != SamplerPack_Name );
+    StaticAssert( PackOffsets_Name != PipelinePack_Name );
+    StaticAssert( PackOffsets_Name != ShaderPack_Name );
 
-    STATIC_ASSERT( NameMapping_Name != FeatureSetPack_Name );
-    STATIC_ASSERT( NameMapping_Name != RenderPassPack_Name );
-    STATIC_ASSERT( NameMapping_Name != SamplerPack_Name );
-    STATIC_ASSERT( NameMapping_Name != PipelinePack_Name );
-    STATIC_ASSERT( NameMapping_Name != ShaderPack_Name );
+    StaticAssert( NameMapping_Name != FeatureSetPack_Name );
+    StaticAssert( NameMapping_Name != RenderPassPack_Name );
+    StaticAssert( NameMapping_Name != SamplerPack_Name );
+    StaticAssert( NameMapping_Name != PipelinePack_Name );
+    StaticAssert( NameMapping_Name != ShaderPack_Name );
 
-    STATIC_ASSERT( FeatureSetPack_Name != RenderPassPack_Name );
-    STATIC_ASSERT( FeatureSetPack_Name != SamplerPack_Name );
-    STATIC_ASSERT( FeatureSetPack_Name != PipelinePack_Name );
-    STATIC_ASSERT( FeatureSetPack_Name != ShaderPack_Name );
+    StaticAssert( FeatureSetPack_Name != RenderPassPack_Name );
+    StaticAssert( FeatureSetPack_Name != SamplerPack_Name );
+    StaticAssert( FeatureSetPack_Name != PipelinePack_Name );
+    StaticAssert( FeatureSetPack_Name != ShaderPack_Name );
 
-    STATIC_ASSERT( RenderPassPack_Name != SamplerPack_Name );
-    STATIC_ASSERT( RenderPassPack_Name != PipelinePack_Name );
-    STATIC_ASSERT( RenderPassPack_Name != ShaderPack_Name );
+    StaticAssert( RenderPassPack_Name != SamplerPack_Name );
+    StaticAssert( RenderPassPack_Name != PipelinePack_Name );
+    StaticAssert( RenderPassPack_Name != ShaderPack_Name );
 
-    STATIC_ASSERT( SamplerPack_Name != PipelinePack_Name );
-    STATIC_ASSERT( SamplerPack_Name != ShaderPack_Name );
+    StaticAssert( SamplerPack_Name != PipelinePack_Name );
+    StaticAssert( SamplerPack_Name != ShaderPack_Name );
 
-    STATIC_ASSERT( PipelinePack_Name != ShaderPack_Name );
+    StaticAssert( PipelinePack_Name != ShaderPack_Name );
 
 
     //

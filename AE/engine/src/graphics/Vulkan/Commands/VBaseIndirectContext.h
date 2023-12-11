@@ -122,7 +122,7 @@ namespace AE::Graphics::_hidden_
         {
             VkBuffer            buffer;
             Bytes               offset;
-            Bytes32u            size;
+            Byte32u             size;
             //ubyte             data[];
         };
 
@@ -198,7 +198,7 @@ namespace AE::Graphics::_hidden_
             uint                srcCount;
             VkBuffer            dstBuffer;
             Bytes               dstOffset;
-            Bytes32u            stride;
+            Byte32u             stride;
             VkQueryResultFlags  flags;
         };
 
@@ -573,7 +573,7 @@ namespace AE::Graphics::_hidden_
         using CmdContent_t  = TypeList<
                 // shared commands
                 uint, VkMemoryBarrier2, VkBufferMemoryBarrier2, VkImageMemoryBarrier2,
-                // transfer commands 
+                // transfer commands
                 VkImageSubresourceRange, VkBufferCopy, VkImageCopy, VkBufferImageCopy, VkImageBlit,
                 // compute commands
                 // graphics commands
@@ -609,7 +609,7 @@ namespace AE::Graphics::_hidden_
         void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln,
                             VkPipelineLayout layout)                                    __Th___;
         void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size,
-                            const void *values, EShaderStages stages)                   __Th___;
+                            const void* values, EShaderStages stages)                   __Th___;
 
         void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch,
                                     StringView taskName, RGBA8u color,
@@ -740,7 +740,7 @@ namespace AE::Graphics::_hidden_
         DBG_GRAPHICS_ONLY(
             _mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
 
-            RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
+            GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
         )
         Unused( ctxType );
 

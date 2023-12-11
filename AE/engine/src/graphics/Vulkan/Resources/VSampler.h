@@ -21,23 +21,23 @@ namespace AE::Graphics
         VkSamplerYcbcrConversion    _ycbcrConversion    = Default;
         VkFormat                    _ycbcrFormat        = VK_FORMAT_UNDEFINED;
 
-        DRC_ONLY( RWDataRaceCheck   _drCheck;   )
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
 
 
     // methods
     public:
-        VSampler ()                                                                             __NE___ {}
-        ~VSampler ()                                                                            __NE___;
+        VSampler ()                                                                         __NE___ {}
+        ~VSampler ()                                                                        __NE___;
 
-        ND_ bool  Create (const VResourceManager &resMngr, const VkSamplerCreateInfo &,
-                          const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)       __NE___;
-            void  Destroy (VResourceManager &)                                                  __NE___;
+        ND_ bool  Create (const VResourceManager &, const VkSamplerCreateInfo &,
+                          const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)   __NE___;
+            void  Destroy (VResourceManager &)                                              __NE___;
 
-        ND_ VkSampler                   Handle ()                                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _sampler; }
-        ND_ VkSamplerYcbcrConversion    YcbcrConversion ()                                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }
-        ND_ VkFormat                    YcbcrFormat ()                                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrFormat; }
+        ND_ VkSampler                   Handle ()                                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _sampler; }
+        ND_ VkSamplerYcbcrConversion    YcbcrConversion ()                                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }
+        ND_ VkFormat                    YcbcrFormat ()                                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _ycbcrFormat; }
 
-        DEBUG_ONLY( ND_ StringView      GetDebugName ()                                         C_NE___ { return Default; })
+        DEBUG_ONLY( ND_ StringView      GetDebugName ()                                     C_NE___ { return Default; })
 
 
             static void  ConvertSampler (const SamplerDesc &desc, OUT VkSamplerCreateInfo &info)                                    __NE___;

@@ -8,14 +8,14 @@ extern void UnitTest_Promise ();
 extern void UnitTest_TaskDeps ();
 extern void UnitTest_TaskUsage ();
 
-extern void UnitTest_LfIndexedPool2 ();
-extern void UnitTest_LfIndexedPool3 ();
+extern void UnitTest_LfChunkList ();
+extern void UnitTest_LfIndexedPool ();
 extern void UnitTest_LfStaticPool ();
 extern void UnitTest_LfStaticIndexedPool ();
 extern void UnitTest_LfTaskQueue ();
 extern void UnitTest_LfStaticQueue ();
 
-extern void UnitTest_LfFixedBlockAllocator ();
+extern void UnitTest_LfFixedBlockAllocator3 ();
 extern void UnitTest_LfLinearAllocator ();
 
 extern void UnitTest_SpinLock ();
@@ -34,20 +34,20 @@ int main ()
     AE::Base::StaticLogger::LoggerDbgScope log{};
 
     // minimize disk usage for debug build
-  #ifdef AE_RELEASE
+  #if defined(AE_RELEASE) and not defined(AE_PLATFORM_ANDROID)
     UnitTest_AsyncDataSource();
   #endif
 
     UnitTest_TsSharedMem();
 
-    UnitTest_LfIndexedPool2();
-    UnitTest_LfIndexedPool3();
+    UnitTest_LfChunkList();
+    UnitTest_LfIndexedPool();
     UnitTest_LfStaticPool();
     UnitTest_LfStaticIndexedPool();
     UnitTest_LfTaskQueue();
     UnitTest_LfStaticQueue();
 
-    UnitTest_LfFixedBlockAllocator();
+    UnitTest_LfFixedBlockAllocator3();
     UnitTest_LfLinearAllocator();
 
     UnitTest_SpinLock();

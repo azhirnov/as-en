@@ -10,10 +10,10 @@ namespace AE::Base
 {
 
     //
-    // Resize Policy
+    // Default Resize Policy
     //
 
-    struct ResizePolicy
+    struct DefaultResizePolicy
     {
     private:
         static constexpr usize  _MinSize    = 16;
@@ -46,5 +46,19 @@ namespace AE::Base
             return Resize( SizeOf<T>, count, allowReserve );
         }
     };
+
+
+    //
+    // Resize Policy template
+    //
+
+    template <typename Allocator>
+    struct TResizePolicy {
+        using type = DefaultResizePolicy;
+    };
+
+    template <typename Allocator>
+    using ResizePolicy = typename TResizePolicy< Allocator >::type;
+
 
 } // AE::Base

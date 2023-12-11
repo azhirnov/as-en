@@ -83,7 +83,7 @@ namespace AE::ECS
         else
         {
             idx = Index_t(_entities.size());
-            CATCH_ERR( _entities.push_back( EntityRef{} ));
+            NOTHROW_ERR( _entities.push_back( EntityRef{} ));
         }
 
         id = EntityID{ idx, _entities[idx].generation };
@@ -105,7 +105,7 @@ namespace AE::ECS
         item.index   = InvalidIndex;
 
         ++item.generation;
-        CATCH_ERR( _available.push_back( id.Index() ));
+        NOTHROW_ERR( _available.push_back( id.Index() ));
         return true;
     }
 

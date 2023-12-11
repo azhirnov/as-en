@@ -69,6 +69,7 @@ namespace AE::ResEditor
             Array<Path>     includeDirs;
             Array<Path>     pipelineDirs;
             Path            scriptDir;
+            App::Monitor    monitor;
         };
 
 
@@ -213,6 +214,10 @@ namespace AE::ResEditor
                                 OUT ScriptArray<packed_float3>  &texcoords,         // cubemap
                                 OUT ScriptArray<uint>           &indices)                                       __Th___;
 
+        static void  _GetSphericalCube1 (uint                           lod,
+                                         OUT ScriptArray<packed_float3> &positions,
+                                         OUT ScriptArray<uint>          &indices)                               __Th___;
+
         static void  _GetSphere1 (uint                              lod,
                                   OUT ScriptArray<packed_float3>    &positions,
                                   OUT ScriptArray<uint>             &indices)                                   __Th___;
@@ -309,6 +314,10 @@ namespace AE::ResEditor
         static void  _WhiteColorSpectrumStep50nm (OUT ScriptArray<packed_float4> &, bool)                       __Th___;
         static void  _WhiteColorSpectrumStep100nm (OUT ScriptArray<packed_float4> &, bool)                      __Th___;
 
+        static packed_float3  _CM_CubeSC_Forward (const packed_float3 &);
+        static packed_float3  _CM_IdentitySC_Forward (const packed_float3 &);
+        static packed_float3  _CM_TangentialSC_Forward (const packed_float3 &);
+
         static void  _DbgView1 (const ScriptImagePtr &rt, DebugView::EFlags flags)                                                              __Th___;
         static void  _DbgView2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap, DebugView::EFlags flags)                                   __Th___;
         static void  _DbgView3 (const ScriptImagePtr &rt, const ImageLayer &layer, DebugView::EFlags flags)                                     __Th___;
@@ -382,6 +391,8 @@ namespace AE::ResEditor
         ND_ static Renderer&    GetRenderer ()                                          __Th___;
 
         ND_ static ArrayView<Path>  GetPipelineIncludeDirs ()                           __NE___;
+
+        ND_ static App::Monitor const&  GetMonitor ()                                   __Th___;
     };
 
 
@@ -398,6 +409,7 @@ namespace AE::ResEditor
         friend class ScriptRTGeometry;
         friend class ScriptRTScene;
         friend class ScriptModelGeometrySrc;
+        friend class ScriptChunkedTerrain;
 
         ND_ static Renderer&    GetRenderer ()                                          __Th___;
         ND_ static bool         IsPassGroup (const ScriptBasePassPtr &pass)             __NE___;
@@ -442,6 +454,7 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptGeomSource,                "GeomSou
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSphericalCube,             "SphericalCube"     );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptUniGeometry,               "UnifiedGeometry"   );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptModelGeometrySrc,          "Model"             );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptChunkedTerrain,            "ChunkedTerrain"    );
 
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::ScriptUniGeometry::DrawCmd3,                         "UnifiedGeometry_Draw" );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::ScriptUniGeometry::DrawIndexedCmd3,                  "UnifiedGeometry_DrawIndexed" );

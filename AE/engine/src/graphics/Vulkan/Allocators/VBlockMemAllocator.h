@@ -44,8 +44,8 @@ namespace AE::Graphics
 
             Page            pages [_PageCount];     // write access protected by 'allocated' bit in 'hiLevel'
 
-            PageArr ();
-            PageArr (const PageArr &other) : PageArr{} { ASSERT( other.hiLevel.load() == 0 );  Unused( other ); }
+            PageArr ()                      __NE___;
+            PageArr (const PageArr &other)  __NE___ : PageArr{} { ASSERT( other.hiLevel.load() == 0 );  Unused( other ); }
         };
 
         struct Data

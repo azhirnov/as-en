@@ -12,8 +12,8 @@ namespace AE::Graphics::_hidden_
 =================================================
     GenerateMipmapsImpl
 ----
-    src layout:  transfer_src (mip 0)
-    dst layout:  transfer_src (all mips)
+    src layout:  transfer_src (base mip)
+    dst layout:  transfer_src (all other mips)
 =================================================
 */
     static void  GenerateMipmapsImpl (VulkanDeviceFn fn, VkCommandBuffer cmdbuf,
@@ -42,6 +42,16 @@ namespace AE::Graphics::_hidden_
             subres.aspectMask       = VEnumCast( range.aspectMask );
             subres.baseArrayLayer   = range.baseLayer.Get();
             subres.layerCount       = range.layerCount;
+            subres.baseMipLevel     = range.baseMipLevel.Get()+1;
+            subres.levelCount       = range.mipmapCount-1;
+
+            // undefined -> transfer_dst
+            img_bar.oldLayout       = VK_IMAGE_LAYOUT_UNDEFINED;
+            img_bar.newLayout       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            img_bar.srcAccessMask   = VK_ACCESS_2_NONE;
+            img_bar.dstAccessMask   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+            fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
+
             subres.levelCount       = 1;
 
             for (uint mip = range.baseMipLevel.Get()+1; mip < range.mipmapCount; ++mip)
@@ -50,14 +60,6 @@ namespace AE::Graphics::_hidden_
                 const uint  dst_mip     = mip;
                 const int3  src_size    = int3{Max( 1u, dimension >> src_mip )};
                 const int3  dst_size    = int3{Max( 1u, dimension >> dst_mip )};
-
-                // undefined -> transfer_dst
-                img_bar.oldLayout       = VK_IMAGE_LAYOUT_UNDEFINED;
-                img_bar.newLayout       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                img_bar.srcAccessMask   = VK_ACCESS_2_NONE;
-                img_bar.dstAccessMask   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-                subres.baseMipLevel     = dst_mip;
-                fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
 
                 VkImageBlit     region  = {};
                 region.srcOffsets[0]    = { 0, 0, 0 };
@@ -75,6 +77,7 @@ namespace AE::Graphics::_hidden_
                 img_bar.newLayout       = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
                 img_bar.srcAccessMask   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
                 img_bar.dstAccessMask   = VK_ACCESS_2_TRANSFER_READ_BIT;
+                subres.baseMipLevel     = dst_mip;
                 fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
             }
         }

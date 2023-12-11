@@ -584,7 +584,7 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
     AssignMin( min_fs.maxComputeWorkGroupSizeZ,         64u );
 
     min_fs.maxShaderVersion.metal = 0;
-    min_fs.hwCompressedAttachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
+    //min_fs.hwCompressedAttachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
 
     ValidateFS( INOUT min_fs );
     min_fs.Validate();

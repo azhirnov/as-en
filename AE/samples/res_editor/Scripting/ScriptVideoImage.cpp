@@ -150,7 +150,7 @@ namespace
 
         Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
-        _resource = MakeRC<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), _dbgName );  // throw
+        _resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), _dbgName );
         return _resource;
     }
 

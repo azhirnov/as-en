@@ -49,12 +49,49 @@ namespace
         }
         TEST( T::CheckStatistic() );
     }
+
+
+    static void  LfStaticIndexedPool_Test2 ()
+    {
+        struct Value {
+            int     a;
+            float   b;
+            uint    c;
+        };
+        LfStaticIndexedPool< Value, uint, 128*8 >   pool;
+
+        for (usize i = 0; i < pool.capacity(); ++i)
+        {
+            auto    a = pool.Assign();
+            TEST( a != UMax );  // unordered
+        }
+
+        {
+            uint    b0  = 125;
+            auto*   b1  = pool.At( b0 );
+            auto    b2  = pool.IndexOf( b1 );
+            TEST_Eq( b2, b0 );
+        }{
+            uint    b0  = 500;
+            auto*   b1  = pool.At( b0 );
+            auto    b2  = pool.IndexOf( &b1->b );
+            TEST_Eq( b2, b0 );
+        }{
+            uint    b0  = 600;
+            auto*   b1  = pool.At( b0 );
+            auto    b2  = pool.IndexOf( b1 );
+            TEST_Eq( b2, b0 );
+        }
+
+        pool.Release( False{} );
+    }
 }
 
 
 extern void UnitTest_LfStaticIndexedPool ()
 {
     LfStaticIndexedPool_Test1();
+    LfStaticIndexedPool_Test2();
 
     TEST_PASSED();
 }

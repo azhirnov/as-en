@@ -12,6 +12,13 @@ namespace AE::VFS::_hidden_
 } // AE::VFS::_hidden_
 
 
+namespace AE::Networking
+{
+    class ClientServerBase;
+
+} // AE::Networking
+
+
 namespace AE::VFS
 {
     using namespace AE::Base;

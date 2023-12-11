@@ -68,7 +68,7 @@
 
             array<float3>   positions;
             array<uint>     indices;
-            GetSphere( 7, OUT positions, OUT indices );
+            GetSphere( 3, OUT positions, OUT indices );
 
             sphere.FloatArray( "positions", positions );
             sphere.UIntArray(  "indices",   indices );
@@ -99,7 +99,7 @@
             draw.Output( ds, DepthStencil( 1.f, 0 ));
         }
         {
-            RC<Postprocess>     pass = Postprocess( EPostprocess::None, EPassFlags::Enable_ShaderTrace );
+            RC<Postprocess>     pass = Postprocess();
             pass.ArgIn( "un_ABuffer",   abuf );
             pass.ArgIn( "un_Storage",   storage );
             pass.ArgIn( "un_DrawTasks", drawtasks );

@@ -45,7 +45,7 @@ namespace AE::PipelineCompiler
     // methods
     public:
         RTBasePass () {}
-        RTBasePass (RenderTechnique *rtech, const String &name, usize passIdx)  __Th___;
+        RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx)  __Th___;
 
         ND_ StringView              Name ()                                     const   { return _name; }
         ND_ usize                   PassIndex ()                                const   { return _passIndex; }
@@ -80,7 +80,7 @@ namespace AE::PipelineCompiler
     // methods
     public:
         RTGraphicsPass () {}
-        RTGraphicsPass (RenderTechnique *rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
+        RTGraphicsPass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
 
         void  SetRenderPass (const String &rp, const String &subpass)   __Th___;
 
@@ -118,7 +118,7 @@ namespace AE::PipelineCompiler
     // methods
     public:
         RTComputePass () {}
-        RTComputePass (RenderTechnique *rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
+        RTComputePass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
 
         void  SetDSLayout (const String &typeName)              __Th___ { return _SetDSLayout( typeName ); }
 

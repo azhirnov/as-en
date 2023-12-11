@@ -11,9 +11,9 @@ namespace AE::RG::_hidden_
 =================================================
 */
     RenderGraph::RenderGraph () __NE___ :
-        _rts{ RenderTaskScheduler() }
+        _rts{ GraphicsScheduler() }
     {
-        CATCH( _semToBatch.reserve( GraphicsConfig::MaxPendingCmdBatches );)
+        NOTHROW( _semToBatch.reserve( GraphicsConfig::MaxPendingCmdBatches );)
     }
 
 /*
@@ -50,7 +50,6 @@ namespace AE::RG::_hidden_
         _rgDataPool.clear();
         _semToBatch.clear();
         _outSurfaces.clear();
-        _beginFrame = null;
     }
 
 /*
@@ -58,7 +57,7 @@ namespace AE::RG::_hidden_
     _CmdBatch
 =================================================
 */
-    RGCommandBatchPtr  RenderGraph::_CmdBatch (EQueueType queue, DebugLabel dbg) __NE___
+    RGCommandBatchPtr  RenderGraph::_CmdBatch (const EQueueType queue, DebugLabel dbg) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( _rgDataPool.size() < _rgDataPool.capacity() );   // overflow
@@ -95,6 +94,8 @@ namespace AE::RG::_hidden_
 /*
 =================================================
     BeginOnSurface
+----
+    always use 'ctx.AddSurfaceTargets()' to start image state tracking
 =================================================
 */
     AsyncTask  RenderGraph::BeginOnSurface (Ptr<App::IOutputSurface> surface, RGCommandBatchPtr batch) __NE___
@@ -111,7 +112,7 @@ namespace AE::RG::_hidden_
 
             batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately );
 
-            it->second.acquireImageTask = surface->Begin( batch.AsBatchRC(), batch.AsBatchRC(), {_beginFrame} );
+            it->second.acquireImageTask = surface->Begin( batch.AsBatchRC(), batch.AsBatchRC(), Default );
             it->second.forBatch         = RVRef(batch);
         }
         else
@@ -229,6 +230,8 @@ namespace AE::RG::_hidden_
                 // so content of the resource may be invalidated
 
                 prev_state |= EResourceState::Invalidate;
+
+                AE_LOG_DBG( "source batch is not known, resource content will be invalidated" );
             }
         }
 
@@ -297,7 +300,7 @@ namespace AE::RG::_hidden_
         CHECK( view != null );
 
         if_likely( view != null )
-            return RVRef(*this).UseResource( view->Image(), initial, final );
+            return RVRef(*this).UseResource( view->ImageId(), initial, final );
 
         return RVRef(*this);
     }
@@ -309,7 +312,7 @@ namespace AE::RG::_hidden_
         CHECK( view != null );
 
         if_likely( view != null )
-            return RVRef(*this).UseResource( view->Buffer(), initial, final );
+            return RVRef(*this).UseResource( view->BufferId(), initial, final );
 
         return RVRef(*this);
     }

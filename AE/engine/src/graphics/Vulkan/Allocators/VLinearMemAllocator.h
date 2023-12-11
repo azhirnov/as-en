@@ -21,21 +21,30 @@ namespace AE::Graphics
     class VLinearMemAllocator final : public IGfxMemAllocator
     {
     // types
-    private:
-        struct alignas(AE_CACHE_LINE) Page
+    public:
+        struct Statistic
         {
-            Atomic<int>         counter         {0};        // reference counter, for debugging
-            VkDeviceMemory      memory          = Default;
-            Bytes               capacity;
-            Bytes               size;
-            void*               mapped          = null;
-            uint                memTypeIndex    = UMax;
+            Bytes   totalAllocated;         // sum of page capacity
+            Bytes   totalUsed;              // sum of page size
+            uint    pageCount       = 0;
+            uint    refCount        = 0;
+        };
 
-            Page ()                 __NE___ {}
+    private:
+        struct Page
+        {
+            VkDeviceMemory              memory          = Default;
+            Bytes                       capacity;
+            Bytes                       size;
+            void*                       mapped          = null;
+            Atomic<int>                 dbgCounter      {0};        // reference counter, for debugging
+            VkMemoryPropertyFlagBits    propertyFlags   = Zero;
 
-            Page (Page && other)    __NE___ :
+            Page ()             __NE___ {}
+
+            Page (Page &&other) __NE___ :
                 memory{ other.memory }, capacity{ other.capacity }, size{ other.size },
-                mapped{ other.mapped }, memTypeIndex{ other.memTypeIndex }
+                mapped{ other.mapped }, propertyFlags{ other.propertyFlags }
             {}
         };
 
@@ -49,24 +58,23 @@ namespace AE::Graphics
         using Key       = VGfxMemAllocatorUtils::Key;
         using PageMap_t = FixedMap< Key, FixedArray< Page, 8 >, 4 >;
 
-        static constexpr Bytes  _Align              {4 << 10};
-        static constexpr Bytes  _DefaultPageSize    {64 << 20};
-
 
     // variables
     private:
         mutable SharedMutex     _pageGuard;
-        Bytes                   _pageSize;
+        const Bytes             _pageSize;
         PageMap_t               _pages;
 
 
     // methods
     public:
-        explicit VLinearMemAllocator (Bytes pageSize = _DefaultPageSize)                        __NE___;
+        explicit VLinearMemAllocator (Bytes pageSize = 0_b)                                     __NE___;
         ~VLinearMemAllocator ()                                                                 __NE_OV;
 
-        void  SetPageSize (Bytes size)                                                          __NE___;
         void  Discard ()                                                                        __NE___;
+
+        ND_ Statistic  GetStatistic ()                                                          C_NE___;
+
 
       // IGfxMemAllocator //
         bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)         __NE_OV;

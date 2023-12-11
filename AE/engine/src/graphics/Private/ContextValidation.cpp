@@ -16,7 +16,7 @@ namespace AE::Graphics::_hidden_
 namespace
 {
     ND_ static FeatureSet const&  _GetFeatureSet () __NE___ {
-        return RenderTaskScheduler().GetFeatureSet();
+        return GraphicsScheduler().GetFeatureSet();
     }
 
 /*
@@ -136,20 +136,20 @@ namespace
 
 #ifdef AE_ENABLE_VULKAN
     ND_ static auto const&  _GetDeviceExtensions () __NE___ {
-        return RenderTaskScheduler().GetDevice().GetVExtensions();
+        return GraphicsScheduler().GetDevice().GetVExtensions();
     }
 
     ND_ static auto const&  _GetVkDeviceProperties () __NE___ {
-        return RenderTaskScheduler().GetDevice().GetVProperties();
+        return GraphicsScheduler().GetDevice().GetVProperties();
     }
 #endif
 
     ND_ static auto const&  _GetRayTracingProps () __NE___ {
-        return RenderTaskScheduler().GetDevice().GetDeviceProperties().rayTracing;
+        return GraphicsScheduler().GetDevice().GetDeviceProperties().rayTracing;
     }
 
     ND_ static auto const&  _GetResourceProps () __NE___ {
-        return RenderTaskScheduler().GetDevice().GetDeviceProperties().res;
+        return GraphicsScheduler().GetDevice().GetDeviceProperties().res;
     }
 
 } // namespace
@@ -603,15 +603,16 @@ namespace
         ASSERT( not ranges.empty() );
         GCTX_CHECK( IsDeviceMemory( imgDesc ));
         GCTX_CHECK( AllBits( imgDesc.usage, EImageUsage::Transfer ));
+        GCTX_CHECK( imgDesc.maxLevel.Get() > 1 );
 
         for (auto& range : ranges)
         {
             GCTX_CHECK( AllBits( imgDesc.options, EImageOpt::BlitSrc | EImageOpt::BlitDst ));
             GCTX_CHECK( range.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
             GCTX_CHECK( range.baseLayer.Get() < imgDesc.arrayLayers.Get() );
-            GCTX_CHECK( range.layerCount <= (imgDesc.arrayLayers.Get() - range.baseLayer.Get()) );
+            GCTX_CHECK( range.layerCount + range.baseLayer.Get() <= imgDesc.arrayLayers.Get() );
             GCTX_CHECK( range.baseMipLevel.Get() < imgDesc.maxLevel.Get() );
-            GCTX_CHECK( range.mipmapCount <= (imgDesc.maxLevel.Get() - range.baseMipLevel.Get()) );
+            GCTX_CHECK( range.baseMipLevel.Get() + range.mipmapCount <= imgDesc.maxLevel.Get() );
         }
     }
 
@@ -647,7 +648,7 @@ namespace
     }
 
 # ifdef AE_ENABLE_VULKAN
-    void  ComputeContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    void  ComputeContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         GCTX_CHECK( size > 0 );
         GCTX_CHECK( IsMultipleOf( size, 4 ));
@@ -745,7 +746,7 @@ namespace
     }
 
 # ifdef AE_ENABLE_VULKAN
-    void  DrawContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    void  DrawContextValidation::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         GCTX_CHECK( size > 0 );
         GCTX_CHECK( IsMultipleOf( size, 4 ));
@@ -1200,7 +1201,7 @@ namespace
     SetDepthBounds
 =================================================
 */
-    void  DrawContextValidation::SetDepthBounds (EPipelineDynamicState dynState) __Th___
+    void  DrawContextValidation::SetDepthBounds (EPipelineDynamicState) __Th___
     {
         GCTX_CHECK( DepthBoundsSupported() );
         //GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::DepthBounds ));     // TODO
@@ -1458,7 +1459,7 @@ namespace
 # ifdef AE_ENABLE_VULKAN
     void  ASBuildContextValidation::ReadProperty (ERTASProperty property) __Th___
     {
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         BEGIN_ENUM_CHECKS();
         switch ( property )
@@ -1475,7 +1476,7 @@ namespace
 
     void  ASBuildContextValidation::WriteProperty (ERTASProperty property, const BufferDesc &dstBufferDesc, Bytes dstOffset, Bytes size) __Th___
     {
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         BEGIN_ENUM_CHECKS();
         switch ( property )

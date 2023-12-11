@@ -39,7 +39,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 4 );
+            StaticAssert( (IA.actionCount - BaseIA.actionCount) == 4 );
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Rotate :
@@ -69,7 +69,7 @@ namespace AE::ResEditor
         _camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
         _camera.Move( move );
 
-        if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
+        if_unlikely( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
             zoom  = Clamp( zoom, -2.f, 2.f );
             zoom  = zoom * _zoomSpeed * timeDelta.count();
@@ -88,7 +88,7 @@ namespace AE::ResEditor
     void  FPSCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( Quat::Identity() );
+        _camera.ResetRotation();
         _zoom       = 1.0f;
         _dimAspect  = _dynDim->Aspect();
 

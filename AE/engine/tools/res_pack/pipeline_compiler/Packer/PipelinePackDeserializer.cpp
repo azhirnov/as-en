@@ -29,7 +29,7 @@ namespace AE::PipelineCompiler
 */
     SpirvWithTrace::SpirvWithTrace () __NE___ {}
 
-    SpirvWithTrace::SpirvWithTrace (SpirvWithTrace && other) __NE___ :
+    SpirvWithTrace::SpirvWithTrace (SpirvWithTrace &&other) __NE___ :
         bytecode{ RVRef(other.bytecode) },
         trace{ RVRef(other.trace) }
     {}
@@ -41,7 +41,7 @@ namespace AE::PipelineCompiler
         trace{other.trace ? other.trace->Clone() : Default}
     {}
 
-    SpirvWithTrace&  SpirvWithTrace::operator = (SpirvWithTrace && rhs) __NE___
+    SpirvWithTrace&  SpirvWithTrace::operator = (SpirvWithTrace &&rhs) __NE___
     {
         this->bytecode  = RVRef(rhs.bytecode);
         this->trace     = RVRef(rhs.trace);
@@ -506,7 +506,7 @@ namespace {
 */
     bool  SerializableGraphicsPipelineSpec::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        STATIC_ASSERT_64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8+4+4+16+16+1, 8 ));
+        StaticAssert64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8+4+4+16+16+1, 8 ));
 
         bool    result = true;
         result &= des( OUT templUID, OUT rStateUID, OUT dsStateUID );
@@ -540,7 +540,7 @@ namespace {
 */
     bool  SerializableComputePipelineSpec::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        STATIC_ASSERT_64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8, 8 ));
+        StaticAssert64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8, 8 ));
 
         bool    result = true;
         result &= des( OUT templUID );
@@ -572,7 +572,7 @@ namespace {
 */
     bool  SerializableTilePipelineSpec::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        STATIC_ASSERT_64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 4+4+4, 8 ));
+        StaticAssert64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 4+4+4, 8 ));
 
         bool    result = true;
         result &= des( OUT templUID );
@@ -606,7 +606,7 @@ namespace {
 */
     bool  SerializableMeshPipelineSpec::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        STATIC_ASSERT_64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8+4+4+2+6+6, 8 ));
+        StaticAssert64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 8+4+4+2+6+6, 8 ));
 
         bool    result = true;
         result &= des( OUT templUID, OUT rStateUID, OUT dsStateUID );
@@ -643,7 +643,7 @@ namespace {
 */
     bool  SerializableRayTracingPipelineSpec::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        STATIC_ASSERT_64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 4+4+4, 8 ));
+        StaticAssert64( (sizeof(desc) - sizeof(BasePipelineDesc)) == AlignUp( 4+4+4, 8 ));
 
         bool    result = true;
         result &= des( OUT templUID );
@@ -766,7 +766,7 @@ namespace {
             spec.emplace( SpecializationName{HashVal32{ptr[0]}}, ptr[1] );
         }
 
-        CATCH_ERR( outCode.resize( outCode.size() - spec_count*2 - 1 ));
+        NOTHROW_ERR( outCode.resize( outCode.size() - spec_count*2 - 1 ));
         return true;
     }
 
@@ -780,10 +780,10 @@ namespace {
     #ifdef AE_ENABLE_GLSL_TRACE
         try{
             const Bytes start       = stream.Position();
-            auto        buf_stream  = MakeRC<BufferedRStream>( stream.GetRC() );    // throw
+            auto        buf_stream  = MakeRC<BufferedRStream>( stream.GetRC<RStream>() );
             {
                 Serializing::Deserializer   des{ buf_stream };
-                outCode.trace = MakeUnique<ShaderTrace>();          // throw
+                outCode.trace = MakeUnique<ShaderTrace>();
 
                 CHECK_ERR( outCode.trace->Deserialize( des ));
                 CHECK_ERR( stream.SeekSet( buf_stream->Position() - des.stream.RemainingSize() ));
@@ -828,7 +828,7 @@ namespace {
             spec.emplace( SpecializationName{HashVal32{ptr[0]}}, ptr[1] );
         }
 
-        CATCH_ERR( outCode.resize( outCode.size() - spec_size ));
+        NOTHROW_ERR( outCode.resize( outCode.size() - spec_size ));
         return true;
     }
 //-----------------------------------------------------------------------------

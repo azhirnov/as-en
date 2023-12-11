@@ -19,10 +19,10 @@ namespace AE::PipelineCompiler
         uint        value   = 0;
 
     // methods
-        VertexDivisor () {}
-        explicit VertexDivisor (uint v) : value{v} {}
+        VertexDivisor ()                                __NE___ {}
+        explicit VertexDivisor (uint v)                 __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -41,12 +41,12 @@ namespace AE::PipelineCompiler
             uint                    glslLoc     = UMax;
             uint                    mslIndex    = UMax;
             ubyte                   index       = UMax;
-            Bytes16u                stride;
+            Byte16u                 stride;
             EVertexInputRate        rate        = EVertexInputRate::Vertex;
             uint                    divisor     = 0;
         };
 
-        using VB_t          = FixedMap< String, Buffer, GraphicsConfig::MaxVertexBuffers >;
+        using VB_t          = FlatHashMap< String, Buffer >;
         using VertexAttrib  = SerializableGraphicsPipeline::VertexAttrib;
         using VertexInput   = GraphicsPipelineDesc::VertexInput;
         using VertexBuffer  = GraphicsPipelineDesc::VertexBuffer;

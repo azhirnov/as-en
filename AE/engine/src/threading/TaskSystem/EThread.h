@@ -18,7 +18,7 @@ namespace AE::Threading
                         // Allowed:
                         //      - RenderTask, RenderTaskCoro
                         // Note:
-                        //      Command pool allocated per thread, so number of threads with active command pool should be small
+                        //      Command pool allocated per thread, so number of threads with active command pools should be small
                         //      to minimize memory usage. Software command buffers can be used in any thread.
 
         Background,     // Worker thread with low priority.
@@ -43,9 +43,9 @@ namespace AE::Threading
                         // Used only to check if OS complete async IO and mark task dependency as complete.
         _Count
     };
-    STATIC_ASSERT( sizeof(EThread) == sizeof(ETaskQueue) );
-    STATIC_ASSERT( uint(ETaskQueue::_Count) == 4 );
-    STATIC_ASSERT( uint(EThread::_Count) == 6 );
+    StaticAssert( sizeof(EThread) == sizeof(ETaskQueue) );
+    StaticAssert( uint(ETaskQueue::_Count) == 4 );
+    StaticAssert( uint(EThread::_Count) == 6 );
 
 
     using ETaskQueueBits    = EnumBitSet< ETaskQueue >;
@@ -110,7 +110,7 @@ namespace AE::Threading
         template <typename Arg0, typename ...Args>
         constexpr void  _Insert (Arg0 arg0, Args ...args)           __NE___
         {
-            STATIC_ASSERT(( IsSameTypes< Arg0, ETaskQueue > or IsSameTypes< Arg0, EThread > ));
+            StaticAssert(( IsSameTypes< Arg0, ETaskQueue > or IsSameTypes< Arg0, EThread > ));
 
             _arr.try_push_back( EThread(arg0) );
 

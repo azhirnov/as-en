@@ -42,7 +42,7 @@ namespace AE::Math
 
         ND_ static constexpr VecSwizzle  VecDefault (usize size)                                __NE___;
 
-        friend constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len) __NE___;
+        friend constexpr VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___;
 
 
     private:
@@ -74,7 +74,7 @@ namespace AE::Math
     operator ""
 =================================================
 */
-    ND_ constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len) __NE___
+    ND_ constexpr VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___
     {
         ASSERT( len > 0 and len <= 4 );
 

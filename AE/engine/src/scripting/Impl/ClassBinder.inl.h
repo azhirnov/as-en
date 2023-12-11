@@ -112,7 +112,7 @@ namespace _hidden_ {
     {
         using namespace AngelScript;
 
-        STATIC_ASSERT( alignof(T) <= 16 );
+        StaticAssert( alignof(T) <= 16 );
 
         _flags = asOBJ_VALUE | asOBJ_POD | flags;
 
@@ -312,8 +312,8 @@ namespace _hidden_ {
     {
         using namespace AngelScript;
 
-        STATIC_ASSERT(( not IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
-        STATIC_ASSERT(( IsSameTypes< void *, typename GlobalFunction<Fn>::TypeList_t::Front::type > ));
+        StaticAssert(( not IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
+        StaticAssert(( IsSameTypes< void *, typename GlobalFunction<Fn>::TypeList_t::Front::type > ));
 
         String  signature("void f ");
         GlobalFunction<Fn>::GetArgs( INOUT signature, 1 );  // skip (void *)
@@ -339,8 +339,8 @@ namespace _hidden_ {
     {
         using namespace AngelScript;
 
-        STATIC_ASSERT(( IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
-        STATIC_ASSERT(( IsSameTypes< T*, typename GlobalFunction<Fn>::Result_t > ));
+        StaticAssert(( IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
+        StaticAssert(( IsSameTypes< T*, typename GlobalFunction<Fn>::Result_t > ));
 
         String  signature(_name + "@ new_" + _name);
         GlobalFunction<Fn>::GetArgs( INOUT signature );
@@ -491,8 +491,8 @@ namespace _hidden_ {
         using namespace AngelScript;
 
         using C = typename FunctionInfo<Fn>::clazz;
-        STATIC_ASSERT( not IsVoid<C>, "'Fn' must be class method" );
-        STATIC_ASSERT( IsBaseOf< C, T >, "'Fn' must be from this class or from base class");
+        StaticAssert( not IsVoid<C>, "'Fn' must be class method" );
+        StaticAssert( IsBaseOf< C, T >, "'Fn' must be from this class or from base class");
 
         String  signature;
         MemberFunction<Fn>::GetDescriptor( INOUT signature, name );
@@ -543,15 +543,15 @@ namespace _hidden_ {
     void  ClassBinder<T>::AddMethodFromGlobal (Fn funcPtr, StringView name, ArgNames_t argNames) __Th___
     {
         using Args = typename GlobalFunction<Fn>::TypeList_t;
-        STATIC_ASSERT( Args::Count > 0 );
+        StaticAssert( Args::Count > 0 );
 
         constexpr bool  obj_first   = _IsSame< typename Args::Front::type >::value;
         constexpr bool  obj_last    = _IsSame< typename Args::Back::type >::value;
 
         if constexpr( Args::Count == 1 ){
-            STATIC_ASSERT( obj_first and obj_last );
+            StaticAssert( obj_first and obj_last );
         }else{
-            STATIC_ASSERT( obj_first or obj_last );
+            StaticAssert( obj_first or obj_last );
         }
         if constexpr( obj_first )
             return AddMethodFromGlobalObjFirst( funcPtr, name, argNames );
@@ -572,8 +572,8 @@ namespace _hidden_ {
         using FuncInfo  = FunctionInfo<Fn>;
         using FrontArg  = typename FuncInfo::args::Front::type;
 
-        STATIC_ASSERT( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
-        STATIC_ASSERT( _IsSame< FrontArg >::value );
+        StaticAssert( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
+        StaticAssert( _IsSame< FrontArg >::value );
 
         String  signature;
         GlobalFunction<Fn>::GetDescriptor( INOUT signature, name, 1, 0 );
@@ -605,8 +605,8 @@ namespace _hidden_ {
         using FuncInfo  = FunctionInfo<Fn>;
         using BackArg   = typename FuncInfo::args::template Get< FuncInfo::args::Count-1 >;
 
-        STATIC_ASSERT( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
-        STATIC_ASSERT( _IsSame< BackArg >::value );
+        StaticAssert( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
+        StaticAssert( _IsSame< BackArg >::value );
 
         String  signature;
         GlobalFunction<Fn>::GetDescriptor( INOUT signature, name, 0, 1 );
@@ -639,12 +639,12 @@ namespace _hidden_ {
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 1 );
+            StaticAssert( FuncInfo::args::Count == 1 );
             _binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ), {} );
         }
         else
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 0 );
+            StaticAssert( FuncInfo::args::Count == 0 );
             _binder->AddMethod( func, _UnaryToStr( op ), {} );
         }
         return *this;
@@ -664,12 +664,12 @@ namespace _hidden_ {
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 2 );
+            StaticAssert( FuncInfo::args::Count == 2 );
             _binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ), {} );
         }
         else
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 1 );
+            StaticAssert( FuncInfo::args::Count == 1 );
             _binder->AddMethod( func, _BinAssignToStr( op ), {} );
         }
         return *this;
@@ -954,12 +954,12 @@ namespace _hidden_ {
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 2 );
+            StaticAssert( FuncInfo::args::Count == 2 );
             _binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ), {} );
         }
         else
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 1 );
+            StaticAssert( FuncInfo::args::Count == 1 );
             _binder->AddMethod( func, _BinToStr( op ), {} );
         }
         return *this;
@@ -973,8 +973,8 @@ namespace _hidden_ {
     template <typename T> template <typename Fn>
     typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Fn func) __Th___
     {
-        STATIC_ASSERT( Scripting::_hidden_::IsGlobal<Fn>() );
-        STATIC_ASSERT( FunctionInfo<Fn>::args::Count == 2 );
+        StaticAssert( Scripting::_hidden_::IsGlobal<Fn>() );
+        StaticAssert( FunctionInfo<Fn>::args::Count == 2 );
 
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -984,29 +984,29 @@ namespace _hidden_ {
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T> template <typename Fn>
-    typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equals (Fn func) __Th___
+    typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equal (Fn func) __Th___
     {
         using FuncInfo = FunctionInfo<Fn>;
 
-        STATIC_ASSERT( IsSameTypes< typename FuncInfo::result, bool > );
+        StaticAssert( IsSameTypes< typename FuncInfo::result, bool > );
 
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 2 );
-            STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
-            STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
+            StaticAssert( FuncInfo::args::Count == 2 );
+            StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
+            StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
 
             _binder->AddMethodFromGlobalObjFirst( func, "opEquals", {} );
         }
         else
         {
-            STATIC_ASSERT( FuncInfo::args::Count == 1 );
+            StaticAssert( FuncInfo::args::Count == 1 );
             _binder->AddMethod( func, "opEquals", {} );
         }
         return *this;
@@ -1022,10 +1022,10 @@ namespace _hidden_ {
     {
         using FuncInfo = FunctionInfo<Fn>;
 
-        STATIC_ASSERT( IsSameTypes< typename FuncInfo::result, int > );
-        STATIC_ASSERT( FuncInfo::args::Count == 2 );
-        STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
-        STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
+        StaticAssert( IsSameTypes< typename FuncInfo::result, int > );
+        StaticAssert( FuncInfo::args::Count == 2 );
+        StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
+        StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
 
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 

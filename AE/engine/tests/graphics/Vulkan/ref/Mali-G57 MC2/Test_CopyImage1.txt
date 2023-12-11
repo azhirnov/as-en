@@ -1,0 +1,146 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+Fence: 'fence-0'
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY
+      access: HOST_WRITE ---> TRANSFER_READ
+    ImageBarrier:
+      name:    'image-10'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'buffer-1'
+    dst:       'image-10'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-10'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-11'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'image-10'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'image-11'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-11'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-11'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-3'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+Fence: 'fence-0'
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY
+      access: HOST_WRITE ---> TRANSFER_READ
+    ImageBarrier:
+      name:    'image-12'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'buffer-2'
+    dst:       'image-12'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-12'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-13'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'image-12'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'image-13'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-13'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-13'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-4'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+==================================================

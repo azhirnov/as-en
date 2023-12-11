@@ -11,7 +11,7 @@
 #   include <emscripten.h>
 #endif
 #ifdef AE_COMPILER_MSVC
-#   include "base/Platforms/WindowsHeader.h"
+#   include "base/Platforms/WindowsHeader.cpp.h"
 #endif
 
 #include "base/Log/Logger.h"
@@ -159,7 +159,7 @@ namespace
     CreateIDEOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateIDEOutput ()
+    ILogger::LoggerPtr  ILogger::CreateIDEOutput () __NE___
     {
     #ifdef AE_COMPILER_MSVC
         if ( ::IsDebuggerPresent() )
@@ -203,7 +203,7 @@ namespace
                 str << info.message;
         }
 
-        return _ProcessImpl( caption, str );
+        return _ProcessImpl( caption, str, info.level );
     }
 #endif
 
@@ -213,7 +213,7 @@ namespace
     DialogLogOutput
 =================================================
 */
-    ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg)
+    ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg, ELevel)
     {
         UINT    flags = MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST;
 
@@ -251,15 +251,13 @@ namespace
 
         String  msg = "confirm( \""s << info.message << "\" )";
 
-        try {
+        TRY{
             int ok = emscripten_run_script_int( msg.c_str() );
-
             return ok == 0 ? EResult::Break : EResult::Continue;
         }
-        catch(...)
-        {
+        CATCH_ALL(
             return EResult::Unknown;
-        }
+        )
     }
 #endif
 
@@ -268,7 +266,7 @@ namespace
     CreateDialogOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateDialogOutput (LevelBits levelBits, ScopeBits scopeBits)
+    ILogger::LoggerPtr  ILogger::CreateDialogOutput (LevelBits levelBits, ScopeBits scopeBits) __NE___
     {
         #if not defined(AE_CI_BUILD)
         # if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
@@ -319,11 +317,9 @@ namespace
 
         for (; offset < info.message.size();)
         {
-            const usize max = Min( offset + CountOf(buf), info.message.size() );
-            usize       end = max;
-            end = (info.message.size() <= end ? StringView::npos : info.message.rfind( '\n', end ));
-            end = (end == StringView::npos or end <= offset ? max : end);
-
+            const usize max = Min( offset + CountOf(buf)-1, info.message.size() );
+            usize       end = Clamp( info.message.rfind( '\n', max ), offset, max );
+                        end = (max - end < 5 ? max : ((float(end - offset) / float(max - offset)) < 0.7f ? max : end));
             const usize pos = end - offset;
 
             MemCopy( OUT buf, Sizeof(buf), info.message.data() + offset, Bytes{pos} );
@@ -349,8 +345,11 @@ namespace
     CreateConsoleOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateConsoleOutput (StringView tag)
+    ILogger::LoggerPtr  ILogger::CreateConsoleOutput (StringView tag) __NE___
     {
+        if ( tag.empty() )
+            tag = "<<<< AE >>>>";
+
         return MakeUnique<AndroidLogOutput>( tag );
     }
 
@@ -392,7 +391,7 @@ namespace
     CreateConsoleOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateConsoleOutput (StringView)
+    ILogger::LoggerPtr  ILogger::CreateConsoleOutput (StringView) __NE___
     {
         // enable console colors
         #ifdef AE_PLATFORM_WINDOWS
@@ -417,7 +416,7 @@ namespace
     FileLogOutput::ctor
 =================================================
 */
-    FileLogOutput::FileLogOutput (RC<WStream> file) :
+    FileLogOutput::FileLogOutput (RC<WStream> file) __NE___ :
         _file{ RVRef(file) }
     {
         CHECK( _file and _file->IsOpen() );
@@ -466,13 +465,13 @@ namespace
 */
     void  FileLogOutput::SetCurrentThreadName (StringView name) __NE___
     {
-        try {
+        TRY{
             EXLOCK( _guard );
             const usize     tid = ThreadUtils::GetIntID();
 
             _threadNames.insert_or_assign( tid, String{name} );
         }
-        catch(...) {}
+        CATCH_ALL()
     }
 
 /*
@@ -480,7 +479,7 @@ namespace
     CreateFileOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateFileOutput (StringView fileName)
+    ILogger::LoggerPtr  ILogger::CreateFileOutput (StringView fileName) __NE___
     {
         auto    file = MakeRC<FileWStream>( NtStringView{fileName} );
 
@@ -498,7 +497,7 @@ namespace
     HtmlLogOutput::ctor
 =================================================
 */
-    HtmlLogOutput::HtmlLogOutput (RC<WStream> file) :
+    HtmlLogOutput::HtmlLogOutput (RC<WStream> file) __NE___ :
         _file{ RVRef(file) },
         _txtColor{ uint(EColor::Black) },
         _bgColor{ uint(EColor::White) }
@@ -518,7 +517,7 @@ namespace
     HtmlLogOutput::dtor
 =================================================
 */
-    HtmlLogOutput::~HtmlLogOutput ()
+    HtmlLogOutput::~HtmlLogOutput () __NE___
     {
         EXLOCK( _guard );
 
@@ -655,7 +654,7 @@ namespace
 */
     void  HtmlLogOutput::SetCurrentThreadName (StringView name) __NE___
     {
-        try {
+        TRY{
             EXLOCK( _guard );
             const usize tid = ThreadUtils::GetIntID();
 
@@ -676,7 +675,7 @@ namespace
 
             _threadInfos.insert_or_assign( tid, RVRef(info) );
         }
-        catch(...) {}
+        CATCH_ALL()
     }
 
 /*
@@ -684,7 +683,7 @@ namespace
     CreateHtmlOutput
 =================================================
 */
-    ILogger::LoggerPtr  ILogger::CreateHtmlOutput (StringView fileName)
+    ILogger::LoggerPtr  ILogger::CreateHtmlOutput (StringView fileName) __NE___
     {
         auto    file = MakeRC<FileWStream>( NtStringView{fileName} );
 

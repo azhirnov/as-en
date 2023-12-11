@@ -16,7 +16,7 @@ namespace AE::Math
     template <typename T>
     struct TTransformation
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
+        StaticAssert( IsFloatPoint<T> );
 
     // types
     public:
@@ -71,7 +71,7 @@ namespace AE::Math
         ND_ Mat4_t  ToRotationScaleMatrix ()                                            C_NE___ { return Mat4_t{ orientation } * Mat4_t::Scaled( scale ); } // view matrix
         ND_ Mat4_t  ToModelMatrix ()                                                    C_NE___ { return Mat4_t::Translated( position ); }
 
-        ND_ bool    IsIdentity ()                                                       C_NE___ { return Equals( *this, Self{} ); }
+        ND_ bool    IsIdentity ()                                                       C_NE___ { return Equal( *this, Self{} ); }
 
 
         // local space to global
@@ -98,7 +98,7 @@ namespace AE::Math
         bool        ok = glm::decompose( mat._value, OUT scale3, OUT orientation._value, OUT position, OUT skew, OUT perspective );
 
         ASSERT( ok );  Unused( ok );
-        ASSERT( Equals( scale3.x, scale3.y ) and Equals( scale3.x, scale3.z ));
+        ASSERT( Equal( scale3.x, scale3.y ) and Equal( scale3.x, scale3.z ));
         scale = scale3.x;
     }
 
@@ -142,23 +142,23 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T>
-    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T err = Epsilon<T>()) __NE___
+    ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T err = Epsilon<T>()) __NE___
     {
-        return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
-                All( Math::Equals( lhs.position, rhs.position, err ))       &
-                Math::Equals( lhs.scale, rhs.scale, err );
+        return  All( Math::Equal( lhs.orientation, rhs.orientation, err ))  &
+                All( Math::Equal( lhs.position, rhs.position, err ))        &
+                Math::Equal( lhs.scale, rhs.scale, err );
     }
 
     template <typename T>
-    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const Percent err) __NE___
+    ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const Percent err) __NE___
     {
-        return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
-                All( Math::Equals( lhs.position, rhs.position, err ))       &
-                Math::Equals( lhs.scale, rhs.scale, err );
+        return  All( Math::Equal( lhs.orientation, rhs.orientation, err ))  &
+                All( Math::Equal( lhs.position, rhs.position, err ))        &
+                Math::Equal( lhs.scale, rhs.scale, err );
     }
 
 /*
@@ -219,8 +219,9 @@ namespace AE::Math
 
 namespace AE::Base
 {
-    template <typename T>   struct TMemCopyAvailable< TTransformation<T> >      { static constexpr bool  value = IsMemCopyAvailable<T>; };
-    template <typename T>   struct TZeroMemAvailable< TTransformation<T> >      { static constexpr bool  value = IsZeroMemAvailable<T>; };
-    template <typename T>   struct TTriviallySerializable< TTransformation<T> > { static constexpr bool  value = IsTriviallySerializable<T>; };
+    template <typename T>   struct TMemCopyAvailable< TTransformation<T> >  { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TTransformation<T> >  { static constexpr bool  value = IsZeroMemAvailable<T>; };
+
+    // 'IsTriviallySerializable< TTransformation<> > = false' - because SIMD and packed types has different alignment
 
 } // AE::Base

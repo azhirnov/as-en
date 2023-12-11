@@ -64,7 +64,7 @@ namespace AE::App
 
         // Generate low resolution ray grid to support specific screen types.
         // Should be used for VR, curved screens and other.
-        // 
+        //
         // 'grid' - must contains preallocated memory for rays and non-zero dimension.
             virtual void  GenerateRays (RaysGrid &grid)                 C_NE___ = 0;
     };

@@ -135,7 +135,7 @@ namespace AE::Video
             static void  Unload ()  __NE___;
     };
 
-    ND_ bool  _ffmpeg_CheckError (int err, const char *ffcall, const char *func, const SourceLoc &loc);
+    ND_ bool  _ffmpeg_CheckError (int err, const char* ffcall, const char* func, const SourceLoc &loc);
 
 } // AE::Video
 

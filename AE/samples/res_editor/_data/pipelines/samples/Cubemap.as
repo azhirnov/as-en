@@ -57,7 +57,7 @@
                 rs.inputAssembly.topology       = EPrimitive::TriangleList;
 
                 rs.rasterization.frontFaceCCW   = true;
-                rs.rasterization.cullMode       = ECullMode::None;
+                rs.rasterization.cullMode       = ECullMode::Front;
 
                 spec.SetRenderState( rs );
             }
@@ -69,11 +69,19 @@
 #ifdef SH_VERT
     #include "Transform.glsl"
 
+    #ifndef iUVMode
+    # define iUVMode    0
+    #endif
+
     void Main ()
     {
-        gl.Position     = LocalPosToClipSpace( in_Position.xyz );
-        Out.texcoord    = in_Texcoord.xyz;
-        Out.normal      = in_Position.xyz;
+        Out.texcoord = in_Texcoord.xyz;
+
+        if ( iUVMode == 1 ) Out.texcoord = in_Position.xyz;
+        Out.texcoord.y = -Out.texcoord.y;
+
+        gl.Position = LocalPosToClipSpace( in_Position.xyz );
+        Out.normal  = in_Position.xyz;
     }
 
 #endif

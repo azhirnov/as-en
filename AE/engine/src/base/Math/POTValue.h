@@ -20,7 +20,7 @@ namespace AE::Math
     template <typename T>
     struct TPowerOf2Value
     {
-        STATIC_ASSERT( IsInteger<T> or IsBytes<T> );
+        StaticAssert( IsInteger<T> or IsBytes<T> );
 
     // types
     public:
@@ -69,7 +69,7 @@ namespace AE::Math
         ND_ constexpr uint      GetPOT ()                           C_NE___ { return _pot; }
 
         template <typename IT>
-        ND_ constexpr IT        BitMask ()                          C_NE___ { STATIC_ASSERT( IsUnsignedInteger<IT> );  return _pot < CT_SizeOfInBits<IT> ? (IT{1} << _pot) - 1 : ~IT{0}; }
+        ND_ constexpr IT        BitMask ()                          C_NE___ { StaticAssert( IsUnsignedInteger<IT> );  return _pot < CT_SizeOfInBits<IT> ? (IT{1} << _pot) - 1 : ~IT{0}; }
 
         template <typename IT>
         ND_ constexpr IT        InvBitMask ()                       C_NE___ { return ~BitMask(); }
@@ -132,10 +132,10 @@ namespace AE::Math
 
 
     template <typename T>
-    inline static constexpr POTValue    POTSizeOf       {PowerOfTwo( CT_IntLog2<sizeof(T)> )};
+    inline static constexpr POTBytes    POTSizeOf       {PowerOfTwo( CT_IntLog2<sizeof(T)> )};
 
     template <typename T>
-    inline static constexpr POTValue    POTAlignOf      {PowerOfTwo( CT_IntLog2<alignof(T)> )};
+    inline static constexpr POTBytes    POTAlignOf      {PowerOfTwo( CT_IntLog2<alignof(T)> )};
 
     template <auto X>
     inline static constexpr POTValue    POTValue_From   {PowerOfTwo( CT_IntLog2<X> )};
@@ -194,7 +194,7 @@ namespace AE::Math
     template <typename T, typename T1>
     ND_ constexpr auto  AlignDown (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
     {
-        STATIC_ASSERT( not IsPowerOf2Value<T> );
+        StaticAssert( not IsPowerOf2Value<T> );
 
         const auto  pot = alignPOT.GetPOT();
 
@@ -206,6 +206,9 @@ namespace AE::Math
         else
         if constexpr( IsInteger<T> )
             return (value >> pot) << pot;
+        else
+        if constexpr( IsIntegerVec<T> )
+            return (value >> pot) << pot;
     }
 
 /*
@@ -216,7 +219,7 @@ namespace AE::Math
     template <typename T, typename T1>
     ND_ constexpr auto  AlignUp (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
     {
-        STATIC_ASSERT( not IsPowerOf2Value<T> );
+        StaticAssert( not IsPowerOf2Value<T> );
 
         const auto  pot = alignPOT.GetPOT();
 
@@ -234,6 +237,11 @@ namespace AE::Math
         {
             const auto  mask = (T{1} << pot) - 1;
             return (value + mask) & ~mask;
+        }else
+        if constexpr( IsIntegerVec<T> )
+        {
+            const auto  mask = (T{1} << pot) - 1;
+            return (value + mask) & ~mask;
         }
     }
 
@@ -245,7 +253,7 @@ namespace AE::Math
     template <typename T, typename T1>
     ND_ constexpr bool  IsMultipleOf (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
     {
-        STATIC_ASSERT( not IsPowerOf2Value<T> );
+        StaticAssert( not IsPowerOf2Value<T> );
 
         const auto  pot = alignPOT.GetPOT();
 
@@ -260,3 +268,11 @@ namespace AE::Math
     }
 
 } // AE::Math
+
+namespace AE::Base
+{
+    template <typename T>   struct TMemCopyAvailable< TPowerOf2Value<T> >       { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TPowerOf2Value<T> >       { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< TPowerOf2Value<T> >  { static constexpr bool  value = IsTriviallySerializable<T>; };
+
+} // AE::Base

@@ -1,3 +1,13 @@
+## 12.2023
+
+
+## 11.2023
+- VR Video projection sample.
+- VR Video player sample (VR to 2D).
+- Curved screen support.
+- Spherical cube tests.
+- Use dynamic variable as per-pass constant, allow to use global slider in multiple passes.
+
 
 ## 10.2023
 - Dispersion sample.

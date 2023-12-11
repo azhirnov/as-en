@@ -16,9 +16,10 @@ namespace AE::Base
         Function<void ()>   _fn;
 
     public:
-        explicit OnDestroy (Function<void ()> &&fn)     __NE___ : _fn{ RVRef(fn) } {}
-        ~OnDestroy ()                                   __NE___ { _fn(); }
+        explicit OnDestroy (Function<void ()> &&fn)         __NE___ : _fn{ RVRef(fn) } {}
+        ~OnDestroy ()                                       __NE___ { _fn(); }
     };
+
 
 
     //
@@ -27,13 +28,13 @@ namespace AE::Base
     class Noncopyable
     {
     public:
-        Noncopyable ()                                  __NE___ = default;
+        Noncopyable ()                                      __NE___ = default;
 
-        Noncopyable (const Noncopyable &)                       = delete;
-        Noncopyable (Noncopyable &&)                            = delete;
+        Noncopyable (const Noncopyable &)                           = delete;
+        Noncopyable (Noncopyable &&)                                = delete;
 
-        Noncopyable& operator = (const Noncopyable &)           = delete;
-        Noncopyable& operator = (Noncopyable &&)                = delete;
+        Noncopyable& operator = (const Noncopyable &)               = delete;
+        Noncopyable& operator = (Noncopyable &&)                    = delete;
     };
 
 
@@ -44,13 +45,13 @@ namespace AE::Base
     class MovableOnly
     {
     public:
-        MovableOnly ()                                  __NE___ = default;
+        MovableOnly ()                                      __NE___ = default;
 
-        MovableOnly (MovableOnly &&)                    __NE___ = default;
-        MovableOnly& operator = (MovableOnly &&)        __NE___ = default;
+        MovableOnly (MovableOnly &&)                        __NE___ = default;
+        MovableOnly& operator = (MovableOnly &&)            __NE___ = default;
 
-        MovableOnly (const MovableOnly &)                       = delete;
-        MovableOnly& operator = (const MovableOnly &)           = delete;
+        MovableOnly (const MovableOnly &)                           = delete;
+        MovableOnly& operator = (const MovableOnly &)               = delete;
     };
 
 
@@ -61,17 +62,14 @@ namespace AE::Base
     class Noninstanceable
     {
     protected:
-        Noninstanceable ()                                      = delete;
+        Noninstanceable ()                                          = delete;
+        //~Noninstanceable ()                                       = delete;
 
-        //~Noninstanceable () = delete;
+        Noninstanceable (const Noninstanceable &)                   = delete;
+        Noninstanceable (Noninstanceable &&)                        = delete;
 
-        Noninstanceable (const Noninstanceable &)               = delete;
-
-        Noninstanceable (Noninstanceable &&)                    = delete;
-
-        Noninstanceable& operator = (const Noninstanceable &)   = delete;
-
-        Noninstanceable& operator = (Noninstanceable &&)        = delete;
+        Noninstanceable& operator = (const Noninstanceable &)       = delete;
+        Noninstanceable& operator = (Noninstanceable &&)            = delete;
     };
 
 
@@ -81,16 +79,38 @@ namespace AE::Base
     //
     class NonAllocatable
     {
-    public:
-        ND_ static void*    operator new   (usize)              __NE___ { return null; }
-        ND_ static void*    operator new[] (usize)              __NE___ { return null; }
+    private:
+        ND_ static void*  operator new   (usize)                                __NE___ { return null; }
+        ND_ static void*  operator new[] (usize)                                __NE___ { return null; }
+        ND_ static void*  operator new   (usize, std::align_val_t)              __NE___ { return null; }
+        ND_ static void*  operator new[] (usize, std::align_val_t)              __NE___ { return null; }
 
-            static void     operator delete   (void*, usize)    __NE___ {}
-            static void     operator delete[] (void*, usize)    __NE___ {}
+    public:
+            static void   operator delete   (void*)                             __NE___ {}
+            static void   operator delete[] (void*)                             __NE___ {}
+            static void   operator delete   (void*, std::align_val_t)           __NE___ {}
+            static void   operator delete[] (void*, std::align_val_t)           __NE___ {}
+            static void   operator delete   (void*, usize)                      __NE___ {}
+            static void   operator delete[] (void*, usize)                      __NE___ {}
+            static void   operator delete   (void*, usize, std::align_val_t)    __NE___ {}
+            static void   operator delete[] (void*, usize, std::align_val_t)    __NE___ {}
+    };
+
+
+
+    //
+    // Nothrow Allocatable
+    //
+    class NothrowAllocatable
+    {
+    public:
+        ND_ static void*  operator new   (usize size)                           __NE___ { return ::operator new( size, std::nothrow ); }
+        ND_ static void*  operator new[] (usize size)                           __NE___ { return ::operator new( size, std::nothrow ); }
+        ND_ static void*  operator new   (usize size, std::align_val_t align)   __NE___ { return ::operator new( size, align, std::nothrow ); }
+        ND_ static void*  operator new[] (usize size, std::align_val_t align)   __NE___ { return ::operator new( size, align, std::nothrow ); }
 
             // placement new
-        ND_ static void*    operator new (usize, void* where)   __NE___ { return where; }
-            static void     operator delete (void*, void*)      __NE___ {}
+        ND_ static void*  operator new (usize, void* where)                     __NE___ { return where; }
     };
 
 
@@ -102,8 +122,8 @@ namespace AE::Base
     class ScopedSet : public Noncopyable
     {
     private:
-        T &         _ref;
-        T           _finalValue;
+        T &     _ref;
+        T       _finalValue;
 
     public:
         ScopedSet (T& ref, T initial, T final)                  __NE___ :
@@ -134,7 +154,7 @@ namespace AE::Base
 
     public:
         template <typename B>
-        explicit AsPointer (B && val)                           __NE___ : _value{ FwdArg<B>(val) } {}
+        explicit AsPointer (B &&val)                            __NE___ : _value{ FwdArg<B>(val) } {}
 
         AsPointer ()                                                    = delete;
         AsPointer (AsPointer<T> &&)                             __NE___ = default;
@@ -206,5 +226,6 @@ namespace AE::Base
     template <auto AllBits>
     struct AllCombinations : AllCombinationsInRange< decltype(AllBits){0}, AllBits >
     {};
+
 
 } // AE::Base

@@ -11,7 +11,7 @@ namespace AE::PipelineCompiler
     GetFunctionName
 =================================================
 */
-    String  GetFunctionName (TIntermOperator *op)
+    String  GetFunctionName (TIntermOperator* op)
     {
         if ( TIntermAggregate* aggr = op->getAsAggregate(); aggr and aggr->getOp() == TOperator::EOpFunctionCall )
         {

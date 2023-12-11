@@ -10,7 +10,7 @@ float4  Blur5 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, 
     color += gl.texture.Sample( image, uv ) * 0.29411764705882354;
     color += gl.texture.Sample( image, uv + (off1 * invResolution) ) * 0.35294117647058826;
     color += gl.texture.Sample( image, uv - (off1 * invResolution) ) * 0.35294117647058826;
-    return color; 
+    return color;
 }
 
 float4  Blur9 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, float2 direction)

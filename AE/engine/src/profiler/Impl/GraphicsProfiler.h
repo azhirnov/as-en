@@ -138,6 +138,13 @@ namespace AE::Profiler
             double              max = 0;
         }                   _gpuTime;
 
+        struct {
+            AtomicByte<Bytes>   accumWrite;
+            AtomicByte<Bytes>   accumRead;
+            Bytes               avgWrite;
+            Bytes               avgRead;
+        }                   _memTraffic;
+
         MemoryInfo_t        _memInfo;
 
         PerFrame_t          _perFrame;
@@ -152,8 +159,7 @@ namespace AE::Profiler
 
     // methods
     public:
-        explicit GraphicsProfiler (TimePoint_t startTime);
-        ~GraphicsProfiler () {}
+        explicit GraphicsProfiler (TimePoint_t startTime)                                                                       __NE___;
 
         void  DrawImGUI ();
         void  Draw (Canvas &canvas);
@@ -194,7 +200,6 @@ namespace AE::Profiler
       #endif
 
         // frames
-        void  RequestNextFrame (FrameUID frameId)                                                                               __NE_OV;
         void  NextFrame (FrameUID frameId)                                                                                      __NE_OV;
 
 

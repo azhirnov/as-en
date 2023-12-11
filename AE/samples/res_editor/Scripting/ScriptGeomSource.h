@@ -23,15 +23,18 @@ namespace AE::ResEditor
     {
     // types
     public:
+        using EDebugMode    = IPass::EDebugMode;
+
         struct PplnNameAndObjectId
         {
             PipelineName    pplnName;
             usize           objId       = 0;
+            EDebugMode      dbgMode     = Default;
 
-            PplnNameAndObjectId ()                                      = default;
-            PplnNameAndObjectId (const PplnNameAndObjectId &)           = default;
-            explicit PplnNameAndObjectId (const PipelineName &name)     : pplnName{name} {}
-            PplnNameAndObjectId (const PipelineName &name, usize objId) : pplnName{name}, objId{objId} {}
+            PplnNameAndObjectId ()                                                      = default;
+            PplnNameAndObjectId (const PplnNameAndObjectId &)                           = default;
+            explicit PplnNameAndObjectId (const PipelineName &name)                     : pplnName{name} {}
+            PplnNameAndObjectId (const PipelineName &name, usize objId, EDebugMode dbg) : pplnName{name}, objId{objId}, dbgMode{dbg} {}
         };
 
         using PipelineNames_t           = Array< PplnNameAndObjectId >;
@@ -93,7 +96,6 @@ namespace AE::ResEditor
     private:
         uint                _minLod     = 0;
         uint                _maxLod     = 0;
-        RC<DynamicFloat>    _tessLevel;
 
         RC<IGeomSource>     _geomSrc;
 
@@ -105,9 +107,6 @@ namespace AE::ResEditor
 
         void  SetDetailLevel1 (uint maxLod)                                                                 __Th___;
         void  SetDetailLevel2 (uint minLod, uint maxLod)                                                    __Th___;
-
-        void  SetTessLevel1 (float level)                                                                   __Th___;
-        void  SetTessLevel2 (const ScriptDynamicFloatPtr &level)                                            __Th___;
 
         static void  Bind (const ScriptEnginePtr &se)                                                       __Th___;
         static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                         __Th___;
@@ -380,7 +379,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptModelGeometrySrc ()                                                                           __Th___;
+        ScriptModelGeometrySrc () = delete;
         ScriptModelGeometrySrc (const String &filename)                                                     __Th___;
         ~ScriptModelGeometrySrc ();
 

@@ -67,7 +67,7 @@ namespace AE::App
             struct Header
             {
                 InputActionName name;
-                Bytes32u        offset;         // TODO: use ushort ?
+                Byte32u         offset;         // TODO: use ushort ?
                 ControllerID    controllerId;
                 EGestureState   state;
             };
@@ -82,9 +82,9 @@ namespace AE::App
             Header *        _headers    = null;
             void *          _data       = null;
 
-            Bytes32u        _dataPos;
+            Byte32u         _dataPos;
             const uint      _maxHeaders = 0;
-            const Bytes32u  _dataSize;
+            const Byte32u   _dataSize;
 
 
         // methods
@@ -283,7 +283,7 @@ namespace AE::App
     template <typename T>
     T const&  IInputActions::ActionQueueReader::Data (Bytes offset) C_NE___
     {
-        STATIC_ASSERT( AlignOf<T> <= IInputActions::ActionQueue::_DataAlign );
+        StaticAssert( AlignOf<T> <= IInputActions::ActionQueue::_DataAlign );
         return *Cast<T>( _queue->GetData() + offset );
     }
 

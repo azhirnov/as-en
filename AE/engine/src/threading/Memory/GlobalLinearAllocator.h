@@ -11,11 +11,11 @@ namespace AE::Threading
     // GlobalLinearAllocatorRef
     //
 
-    class GlobalLinearAllocatorRef final : public AllocatorRef2< MemoryManagerImpl::GlobalLinearAllocator_t >
+    class GlobalLinearAllocatorRef final : public AllocatorRef< MemoryManagerImpl::GlobalLinearAllocator_t >
     {
     public:
         GlobalLinearAllocatorRef () __NE___ :
-            AllocatorRef2{ MemoryManager().GetGlobalLinearAllocator() }
+            AllocatorRef{ MemoryManager().GetGlobalLinearAllocator() }
         {}
     };
 
@@ -41,23 +41,29 @@ namespace AE::Threading
     };
 
 
-#   define AE_GLOBALLY_ALLOC \
-    void*  operator new (std::size_t size) __NE___ \
-    { \
-        return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, DefaultAllocatorAlign }); \
-    } \
-    void*  operator new (std::size_t size, std::align_val_t align) __NE___ \
-    { \
-        return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, Bytes{align} }); \
-    } \
-    void operator delete (void *) __NE___ \
-    {} \
-    void operator delete (void *, std::align_val_t) __NE___ \
-    {} \
-    void operator delete (void *, std::size_t) __NE___ \
-    {} \
-    void operator delete (void *, std::size_t, std::align_val_t) __NE___ \
-    {}
+#   define AE_GLOBALLY_ALLOC                                                                                                    \
+        void*  operator new (std::size_t size) __NE___                                                                          \
+        {                                                                                                                       \
+            return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, DefaultAllocatorAlign });\
+        }                                                                                                                       \
+        void*  operator new (std::size_t size, std::align_val_t align) __NE___                                                  \
+        {                                                                                                                       \
+            return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ size, align });                       \
+        }                                                                                                                       \
+                                                                                                                                \
+        void operator delete (void *)                                   __NE___ {}                                              \
+        void operator delete (void *, std::align_val_t)                 __NE___ {}                                              \
+        void operator delete (void *, std::size_t)                      __NE___ {}                                              \
+        void operator delete (void *, std::size_t, std::align_val_t)    __NE___ {}                                              \
+
+
+    //
+    // GlobalLinearAllocatorBase
+    //
+    struct GlobalLinearAllocatorBase
+    {
+        AE_GLOBALLY_ALLOC
+    };
 
 
 } // AE::Threading

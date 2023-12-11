@@ -39,7 +39,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        PassGroup (EFlags flags, DataTransferQueue &dtq)                : IPass{""}, _flags{flags}, _dtQueue{dtq} {}
+        PassGroup (EFlags flags, DataTransferQueue &dtq)                __NE___ : IPass{""}, _flags{flags}, _dtQueue{dtq} {}
         ~PassGroup ()                                                   {}
 
         void  AddPass (RC<IPass> pass)                                  __Th___;

@@ -19,7 +19,7 @@ namespace AE::RG::_hidden_
         using Generation_t  = ImageID::Generation_t;
 
         static constexpr usize  _Size = TypeList_t::ForEach_Max< TypeListUtils::GetTypeSize >();
-        STATIC_ASSERT( _Size == sizeof(Value_t) );
+        StaticAssert( _Size == sizeof(Value_t) );
 
         static constexpr Value_t    _IndexMask  = Math::ToBitMask<Value_t>( CT_SizeOfInBits<Index_t> );
         static constexpr Value_t    _GenMask    = Math::ToBitMask<Value_t>( CT_SizeOfInBits<Generation_t> );
@@ -102,6 +102,7 @@ namespace AE::RG::_hidden_
         struct ResGlobalState
         {
             // TODO: separate default states for graphics & compute queues
+            // TODO: currentReadState, currentWriteState
             EResourceState          defaultState        = Default;  // must be supported in all queues where resource will be used
             EResourceState          currentState        = Default;
             CmdBatchDependency_t    lastBatch;
@@ -126,7 +127,7 @@ namespace AE::RG::_hidden_
             static constexpr uint   MaxChunks   = CT_FloorPOT< MaxValue<Index_t>() / ChunkSize >;
             using IDtoIdxChunk_t                = StaticArray< Atomic<Index_t>, ChunkSize >;
             using IDtoIdxChunkArr_t             = StaticArray< Atomic< IDtoIdxChunk_t *>, MaxChunks >;
-            using GlobalStates_t                = Threading::LfIndexedPool3< ResGlobalState2, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
+            using GlobalStates_t                = Threading::LfIndexedPool< ResGlobalState2, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 
             struct SearchResult
             {
@@ -135,7 +136,7 @@ namespace AE::RG::_hidden_
 
             public:
                 explicit SearchResult (ResGlobalState2* res)        __NE___ : _result{res}              { ASSERT( _result == null or _result->guard.is_locked() ); }
-                SearchResult (SearchResult && other)                __NE___ : _result{other._result}    { other._result = null; }
+                SearchResult (SearchResult &&other)                 __NE___ : _result{other._result}    { other._result = null; }
                 ~SearchResult ()                                    __NE___ { if ( _result != null ) _result->guard.unlock(); }
 
                 ND_ explicit operator bool ()                       C_NE___ { return _result != null; }
@@ -151,7 +152,7 @@ namespace AE::RG::_hidden_
 
             public:
                 explicit CSearchResult (ResGlobalState2 const* res) __NE___ : _result{res}              { ASSERT( _result == null or _result->guard.is_shared_locked() ); }
-                CSearchResult (CSearchResult && other)              __NE___ : _result{other._result}    { other._result = null; }
+                CSearchResult (CSearchResult &&other)               __NE___ : _result{other._result}    { other._result = null; }
                 ~CSearchResult ()                                   __NE___ { if ( _result != null ) _result->guard.unlock_shared(); }
 
                 ND_ explicit operator bool ()                       C_NE___ { return _result != null; }

@@ -30,11 +30,11 @@ namespace LFAS::CPP
     template <typename T>
     class StdAtomic
     {
-        STATIC_ASSERT( std::is_trivially_copyable_v<T> );
-        STATIC_ASSERT( std::is_copy_constructible_v<T> );
-        STATIC_ASSERT( std::is_move_constructible_v<T> );
-        STATIC_ASSERT( std::is_copy_assignable_v<T> );
-        STATIC_ASSERT( std::is_move_assignable_v<T> );
+        StaticAssert( std::is_trivially_copyable_v<T> );
+        StaticAssert( std::is_copy_constructible_v<T> );
+        StaticAssert( std::is_move_constructible_v<T> );
+        StaticAssert( std::is_copy_assignable_v<T> );
+        StaticAssert( std::is_move_assignable_v<T> );
 
     // types
     public:
@@ -305,7 +305,7 @@ namespace LFAS::CPP
     template <typename T>
     T  StdAtomic<T>::fetch_add (const T val, TMemoryOrder order)
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         T       result;
         auto&   vm = VirtualMachine::Instance();
@@ -330,7 +330,7 @@ namespace LFAS::CPP
     template <typename T>
     T  StdAtomic<T>::fetch_sub (const T val, TMemoryOrder order)
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         T       result;
         auto&   vm = VirtualMachine::Instance();
@@ -355,7 +355,7 @@ namespace LFAS::CPP
     template <typename T>
     T  StdAtomic<T>::fetch_and (const T val, TMemoryOrder order)
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         T       result;
         auto&   vm = VirtualMachine::Instance();
@@ -380,7 +380,7 @@ namespace LFAS::CPP
     template <typename T>
     T  StdAtomic<T>::fetch_or (const T val, TMemoryOrder order)
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         T       result;
         auto&   vm = VirtualMachine::Instance();
@@ -405,7 +405,7 @@ namespace LFAS::CPP
     template <typename T>
     T  StdAtomic<T>::fetch_xor (const T val, TMemoryOrder order)
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         T       result;
         auto&   vm = VirtualMachine::Instance();

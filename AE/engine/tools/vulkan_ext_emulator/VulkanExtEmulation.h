@@ -17,7 +17,7 @@ namespace AE::Graphics
     class VulkanExtEmulation
     {
     public:
-        explicit VulkanExtEmulation (VulkanDeviceFnTable *fnTable)      __NE___;
+        explicit VulkanExtEmulation (VulkanDeviceFnTable* fnTable)      __NE___;
         ~VulkanExtEmulation ()                                          __NE___;
 
         void  OnInitialize ()                                           __NE___;    // after  VulkanLoader::Initialize()

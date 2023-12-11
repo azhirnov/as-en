@@ -14,7 +14,7 @@ Standalone library for shader trace recording.
 
 ```cpp
 // use glslang to compile shader from source
-// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp' 
+// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'
 glslang::TProgram  program;
 ...
 
@@ -166,7 +166,7 @@ VkPhysicalDeviceShaderClockFeaturesKHR  shaderClockFeat;
 ...
 
 // use glslang to compile shader from source
-// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'  
+// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'
 glslang::TProgram  program;
 ...
 
@@ -290,7 +290,7 @@ if ( !shaderClockFeat.shaderDeviceClock )
     return; // not supported
 
 // use glslang to compile shader from source
-// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'  
+// for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'
 glslang::TProgram  program;
 ...
 
@@ -355,7 +355,7 @@ Library is already integrated into AsEn Graphics module. See graphics tests as a
 
 To integrate glsl-trace into another program, follow these steps:
 
-**Setup:**</br> 
+**Setup:**</br>
  * Use [glslang](https://github.com/KhronosGroup/glslang) to parse GLSL or HLSL source code and build AST
  * Convert glslang AST to SPIRV and create pipeline for reqular rendering.
  * Create `ShaderTrace` object to store debug information
@@ -367,7 +367,7 @@ To integrate glsl-trace into another program, follow these steps:
  * Convert AST with trace recording to SPIRV and create pipeline for debugging.
 
 
-**To debug draw or compute or ray tracing invocation:**</br> 
+**To debug draw or compute or ray tracing invocation:**</br>
 
  * Bind pipeline that contains shader with inserted trace recording.
  * Bind descriptor set with storage buffer to index `descSetIndex`.

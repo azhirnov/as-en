@@ -11,24 +11,24 @@ namespace AE::GeometryTools
     // Spherical Cube Generator
     //
 
-    class SphericalCubeGen : public SphericalCubeProjection< TangentialSphericalCube, TextureProjection >
+    class SphericalCubeGen final : public SphericalCubeProjection< SCProj2_Spherical< SCProj1_Tangential >,
+                                                                   SCProj2_Texture< SCProj1_Identity >>
     {
     // types
     public:
         struct Vertex
         {
-            packed_short4   position;   // position == normal
+            packed_short4   position;   // position == normal, w - face/5
             packed_short4   texcoord;
             packed_short4   tangent;
             packed_short4   bitangent;
         };
-        STATIC_ASSERT( sizeof(Vertex) == 32 );
+        StaticAssert( sizeof(Vertex) == 32 );
 
         struct UnpackedVertex
         {
             float3      position;   // in normalized coords, position == normal
             float3      texcoord;
-            //float3    projection; // TODO: use it for distortion correction and for tessellation (instead of linear interpolation)
             float3      tangent;
             float3      bitangent;
 

@@ -134,7 +134,7 @@ namespace AE::PipelineCompiler
         ND_ bool  _CreateResources ();
             void  _DestroyResources ();
 
-        ND_ bool  _GetDebugOutput (VkShaderModule shaderModule, const void *ptr, VkDeviceSize maxSize, OUT Array<String> &result) const;
+        ND_ bool  _GetDebugOutput (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const;
 
         ND_ bool  _Compile (OUT Array<uint> &       spirvData,
                             OUT ShaderTrace *       dbgInfo,

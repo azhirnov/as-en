@@ -124,39 +124,6 @@ namespace AE::Base
 
 /*
 =================================================
-    ThreadPause
-=================================================
-*/
-    void  LinuxUtils::ThreadPause () __NE___
-    {
-    #if defined(AE_CPU_ARCH_X86)
-        #if AE_SIMD_SSE >= 2
-            _mm_pause();    // requires SSE2
-        #endif
-    #elif defined(AE_CPU_ARCH_X64)
-        _mm_pause();        // SSE2 always supported on x64
-        // __builtin_ia32_pause 
-
-    #elif defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
-        //__builtin_arm_yield();
-        __yield();
-        //asm volatile("yield")
-
-    #else
-        // TODO
-    #endif
-    }
-
-    // TODO:
-    //  pthread_getcpuclockid() - check (allow to get frequency per core?)
-    // https://gist.github.com/stevedoyle/1319053
-    // https://android.stackexchange.com/questions/19810/how-can-i-determine-max-cpu-speed-at-runtime
-    // http://www.java2s.com/Code/Android/Hardware/GetCPUFrequencyCurrent.htm
-    // https://stackoverflow.com/questions/3021054/how-to-read-cpu-frequency-on-android-device
-    //  all code also valid for MacOS/iOS/Android
-
-/*
-=================================================
     GetOSName
 =================================================
 */
@@ -166,7 +133,7 @@ namespace AE::Base
         utsname     os_info = {};
         CHECK_ERR( ::uname( OUT &os_info ) == 0 );
 
-        CATCH_ERR(
+        NOTHROW_ERR(
             String  result;
             result  << os_info.sysname << ' '
                     << os_info.nodename << ' '

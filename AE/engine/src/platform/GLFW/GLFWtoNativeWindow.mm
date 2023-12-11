@@ -10,9 +10,10 @@
 # include <GLFW/glfw3native.h>
 # define null nullptr
 
+using AE::Graphics::MetalNSViewRC;
 using AE::Graphics::MetalCALayerRC;
 
-extern MetalCALayerRC  GetNSWindowView (GLFWwindow* wnd)
+extern bool  GetNSWindowView (GLFWwindow* wnd, OUT MetalNSViewRC &outNSView, OUT MetalCALayerRC &outMetalLayer)
 {
     id  ms_window = glfwGetCocoaWindow( wnd );  // NSWindow
     CHECK_ERR( ms_window != nil );
@@ -35,9 +36,9 @@ extern MetalCALayerRC  GetNSWindowView (GLFWwindow* wnd)
         [ns_layer setContentsScale : MIN(view_scale.width, view_scale.height)];
     }
 
-    MetalCALayerRC  result;
-    result.Retain( (__bridge void *)ns_layer );
-    return result;
+    outNSView.Retain( (__bridge void *)ns_view );
+    outMetalLayer.Retain( (__bridge void *)ns_layer );
+    return true;
 }
 
 #endif // AE_ENABLE_GLFW and AE_PLATFORM_MACOS

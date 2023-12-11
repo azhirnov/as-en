@@ -31,6 +31,83 @@ struct std::hash< AE::Graphics::FeatureSet::VRSTexelSize > :
 {};
 
 
+namespace AE::Base
+{
+    using namespace AE::Graphics;
+
+
+    ND_ StringView  ToString (EFeature f)
+    {
+        switch ( f ) {
+            case EFeature::Ignore :         return "Ignore";
+            case EFeature::RequireFalse :   return "RequireFalse";
+            case EFeature::RequireTrue :    return "RequireTrue";
+        }
+        return "";
+    }
+
+    ND_ StringView  ToString (ESubgroupTypes)
+    {
+        return "";
+    }
+
+    ND_ String  ToString (FeatureSet::SampleCountBits bits)
+    {
+        return Base::ToString<16>( uint(bits) );
+    }
+
+    ND_ String  ToString (const FeatureSet::VRSTexelSize &size)
+    {
+        return "min: "s << Base::ToString( size.Min() ) << " max: " << Base::ToString( size.Max() );
+    }
+
+    ND_ String  ToString (EShadingRate type)
+    {
+        return "size: "s << Base::ToString( EShadingRate_Size( type )) << " samples: " << Base::ToString<16>( EShadingRate_SampleBits( type ));
+    }
+
+    ND_ String  ToString (const FeatureSet::ShadingRateSet_t &set)
+    {
+        String  str;
+        for (auto& sr : set)    str << Base::ToString( sr );
+        return str;
+    }
+
+    ND_ StringView  ToString (FeatureSet::ShaderVersion)
+    {
+        return "";
+    }
+
+    ND_ StringView  ToString (const FeatureSet::PerDescriptorSet &ds)
+    {
+        return  "\n    maxInputAttachments: "s << Base::ToString( ds.maxInputAttachments ) <<
+                "\n    maxSampledImages:    " << Base::ToString( ds.maxSampledImages ) <<
+                "\n    maxSamplers:         " << Base::ToString( ds.maxSamplers ) <<
+                "\n    maxStorageBuffers:   " << Base::ToString( ds.maxStorageBuffers ) <<
+                "\n    maxStorageImages:    " << Base::ToString( ds.maxStorageImages ) <<
+                "\n    maxUniformBuffers:   " << Base::ToString( ds.maxUniformBuffers ) <<
+                "\n    maxAccelStructures:  " << Base::ToString( ds.maxAccelStructures ) <<
+                "\n    maxTotalResources:   " << Base::ToString( ds.maxTotalResources );
+    }
+
+    ND_ StringView  ToString (FeatureSet::Queues)
+    {
+        return "";
+    }
+
+    ND_ StringView  ToString (FeatureSet::VendorIDs_t)
+    {
+        return "";
+    }
+
+    ND_ StringView  ToString (FeatureSet::GraphicsDevices_t)
+    {
+        return "";
+    }
+
+} // AE::Base
+
+
 namespace AE::Graphics
 {
 namespace
@@ -363,7 +440,7 @@ namespace
         res.maxUniformBuffers   = FS_MergeMin( lhs.maxUniformBuffers,   rhs.maxUniformBuffers,  "maxUniformBuffers"     );
         res.maxAccelStructures  = FS_MergeMin( lhs.maxAccelStructures,  rhs.maxAccelStructures, "maxAccelStructures"    );
         res.maxTotalResources   = FS_MergeMin( lhs.maxTotalResources,   rhs.maxTotalResources,  "maxTotalResources"     );
-        STATIC_ASSERT( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
+        StaticAssert( sizeof(FeatureSet::PerDescriptorSet) == sizeof(uint)*8 );
         return res;
     }
 
@@ -937,6 +1014,12 @@ namespace
             // TODO
         }
 
+        if ( fEqual( cooperativeMatrix, EFeature::RequireTrue )) {
+            chNotEqual2( cooperativeMatrixStages, EShaderStages::Unknown, EShaderStages::Compute );
+        }else{
+            chEqual( cooperativeMatrixStages, EShaderStages::Unknown );
+        }
+
         chNotEqual2( queues.supported, EQueueMask::Unknown, EQueueMask::Graphics );
         chEqual2(    AnyBits( queues.required, ~queues.supported ),  false,  queues.required &= queues.supported );
 
@@ -1057,7 +1140,7 @@ namespace
 */
     bool  FeatureSet::IsSupported (const BufferDesc &desc) C_NE___
     {
-        STATIC_ASSERT( uint(EBufferOpt::All) == 0x1F );
+        StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
         bool    result = true;
 
@@ -1093,8 +1176,8 @@ namespace
 */
     bool  FeatureSet::IsSupported (const BufferDesc &desc, const BufferViewDesc &view) C_NE___
     {
-        STATIC_ASSERT( uint(EBufferUsage::All) == 0x1FFF );
-        STATIC_ASSERT( uint(EBufferOpt::All) == 0x1F );
+        StaticAssert( uint(EBufferUsage::All) == 0x1FFF );
+        StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
         bool    result = true;
 
@@ -1117,8 +1200,8 @@ namespace
 */
     bool  FeatureSet::IsSupported (const ImageDesc &desc) C_NE___
     {
-        STATIC_ASSERT( uint(EImageUsage::All) == 0xFF );
-        STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
+        StaticAssert( uint(EImageUsage::All) == 0xFF );
+        StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
 
         bool    result = true;
 
@@ -1263,7 +1346,12 @@ namespace
 
     bool  FeatureSet::DbgIsCompatible (const FeatureSet &rhs) C_NE___
     {
-        #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  CHECK_ERR( FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) ));
+        #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )                                                                          \
+            if ( not FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) )) {                                                     \
+                AE_LOG_SE( String{AE_TOSTRING(_name_)} << "\n  lhs: " << ToString(_name_) << "\n  rhs: " << ToString(rhs. _name_) );    \
+                return false;                                                                                                           \
+            }
+
         AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
         #undef AE_FEATURE_SET_VISIT
         return true;
@@ -1459,7 +1547,7 @@ namespace {
 */
     HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
     {
-        return HashVal64{0x92bc3d49423bcd36ull};
+        return HashVal64{0x150500622c548de0ull};
     }
 
 /*

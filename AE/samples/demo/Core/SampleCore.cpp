@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "demo/Core/SampleCore.h"
-#include "base/DataSource/MemStream.h"
-#include "base/Utils/Helpers.h"
-
 #include "graphics/Private/EnumToString.h"
 #include "vfs/Archive/ArchiveStaticStorage.h"
 
@@ -22,11 +19,11 @@ namespace AE::Samples::Demo
     SampleCore ctor
 =================================================
 */
-    SampleCore::SampleCore ()
+    SampleCore::SampleCore () __NE___
     {
         //_sample = MakeRC< ImGuiSample >();
-        _sample = MakeRC< Canvas2DSample >();
-        //_sample = MakeRC< Camera3DSample >();
+        //_sample = MakeRC< Canvas2DSample >();
+        _sample = MakeRC< Camera3DSample >();
     }
 //-----------------------------------------------------------------------------
 
@@ -60,14 +57,14 @@ namespace
             cfg.graphics.staging.dynamicBlockSize       = 16_Mb;
             cfg.graphics.staging.vstreamSize            = 4_Mb;
 
-            cfg.graphics.device.appName         = "Demo";
+            cfg.graphics.device.appName         = "Demo 2";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
             cfg.graphics.device.optionalQueues  = Default; //EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer;
             cfg.graphics.device.validation      = EDeviceValidation::Enabled;
         //  cfg.graphics.device.devFlags        = EDeviceFlags::SetStableClock;
 
           #if 0
-            cfg.graphics.swapchain.format       = EPixelFormat::RGBA16F;
+            cfg.graphics.swapchain.colorFormat  = EPixelFormat::RGBA16F;
             cfg.graphics.swapchain.colorSpace   = EColorSpace::Extended_sRGB_linear;
           #else
             cfg.graphics.swapchain.colorFormat  = EPixelFormat::RGBA8_UNorm;
@@ -75,12 +72,12 @@ namespace
             cfg.graphics.swapchain.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
             cfg.graphics.swapchain.options      = EImageOpt::BlitDst;
             cfg.graphics.swapchain.presentMode  = EPresentMode::FIFO;
-            cfg.graphics.swapchain.minImageCount= 3;
+            cfg.graphics.swapchain.minImageCount= 2;
         }
 
         // window
         {
-            cfg.window.title    = "Demo";
+            cfg.window.title    = "Demo 2";
             cfg.window.size     = {1024, 768};
             cfg.window.mode     = EWindowMode::Resizable;
         }
@@ -110,8 +107,8 @@ namespace
     constructor
 =================================================
 */
-    SampleApplication::SampleApplication () :
-        DefaultAppListener{ GetAppConfig(), MakeRC<SampleCore>() }
+    SampleApplication::SampleApplication () __NE___ :
+        AppCoreV1{ GetAppConfig(), MakeRC<SampleCore>() }
     {
         if ( not FileSystem::SetCurrentPath( AE_RES_FOLDER ))
             FileSystem::FindAndSetCurrent( "samples/demo", 5 );
@@ -125,11 +122,11 @@ namespace
     bool  SampleApplication::_InitVFS (IApplication &app)
     {
     #ifdef AE_PLATFORM_ANDROID
-        auto    assets = app.OpenBuiltinStorage();
+        auto    assets = app.OpenStorage( EAppStorage::Builtin );
         CHECK_ERR( assets );
 
         RC<RDataSource> ds;
-        CHECK_ERR( assets->Open( OUT ds, VFS::FileName{"resources.bin"} )); 
+        CHECK_ERR( assets->Open( OUT ds, VFS::FileName{"resources.bin"} ));
 
         auto    storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( RVRef(ds) );
     #else
@@ -139,6 +136,8 @@ namespace
 
         CHECK_ERR( storage );
         CHECK_ERR( GetVFS().AddStorage( storage ));
+
+        GetVFS().MakeImmutable();
         return true;
     }
 
@@ -152,7 +151,7 @@ namespace
         CHECK_FATAL( _InitVFS( app ));
         CHECK_FATAL( Cast<SampleCore>(&GetBaseApp())->LoadInputActions() );
 
-        DefaultAppListener::OnStart( app );
+        AppCoreV1::OnStart( app );
 
         CHECK_FATAL( _OnStartImpl( app ));
     }
@@ -170,7 +169,7 @@ namespace
         _mainLoop.Write( Default );
         _sample = null;
 
-        RenderTaskScheduler().GetResourceManager().ReleaseResource( _pplnPack );
+        GraphicsScheduler().GetResourceManager().ReleaseResource( _pplnPack );
     }
 
 /*
@@ -235,16 +234,18 @@ namespace
     {
         CHECK_ERR( output.IsInitialized() );
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         auto    rp_info = output.GetRenderPassInfo();
         CHECK_ERR( rp_info.attachments.size() == 1 );
         CHECK_ERR( rp_info.attachments[0].samples == 1_samples );
 
-        #ifdef AE_PLATFORM_APPLE
+        #ifdef AE_ENABLE_VULKAN
+            constexpr auto  fname = VFS::FileName{"vk/render_passes"};
+        #elif defined(AE_ENABLE_METAL)
             constexpr auto  fname = VFS::FileName{"mac/render_passes"};
         #else
-            constexpr auto  fname = VFS::FileName{"vk/render_passes"};
+        #   error unsupported platform!
         #endif
 
         auto    file = GetVFS().Open<RStream>( fname );
@@ -269,17 +270,19 @@ namespace
 */
     bool  SampleCore::_CompileResources (IOutputSurface &output)
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResource( _pplnPack );
 
         auto    rp_info = output.GetRenderPassInfo();
         CHECK_ERR( rp_info.attachments.size() == 1 );
         CHECK_ERR( rp_info.attachments[0].samples == 1_samples );
 
-        #ifdef AE_PLATFORM_APPLE
+        #ifdef AE_ENABLE_VULKAN
+            constexpr auto  fname = VFS::FileName{"vk/pipelines"};
+        #elif defined(AE_ENABLE_METAL)
             constexpr auto  fname = VFS::FileName{"mac/pipelines"};
         #else
-            constexpr auto  fname = VFS::FileName{"vk/pipelines"};
+        #   error unsupported platform!
         #endif
 
         auto    file = GetVFS().Open<RStream>( fname );
@@ -351,18 +354,7 @@ namespace
                                  Ptr<IWindow>                   ,
                                  Ptr<IVRDevice>                 ) __NE___
     {
-        AsyncTask   task;
-        std::swap( task, _mainLoop->endFrame );
-
-        for (;;)
-        {
-            if ( task == null or task->IsFinished() )
-                break;
-
-            Scheduler().ProcessTasks( threadMask, 0 );
-
-            Scheduler().DbgDetectDeadlock();
-        }
+        CHECK( GraphicsScheduler().WaitNextFrame( threadMask, AE::DefaultTimeout ));
     }
 
 /*
@@ -372,8 +364,6 @@ namespace
 */
     void  SampleCore::RenderFrame () __NE___
     {
-        _mainLoop->endFrame = null;
-
         Ptr<IInputActions>      input;
         Ptr<IOutputSurface>     output;
         RenderGraph             rg;
@@ -391,22 +381,18 @@ namespace
             output  = main_loop->output;
         }
 
+        if ( not rg.BeginFrame( output ))
+            return;
 
         AsyncTask   proc_input  = _sample->Update( input->ReadInput( rg.GetPrevFrameId() ), Default );
         // 'proc_input' can be null
 
-        AsyncTask   begin_frame = rg.BeginFrame( output );
-        if ( begin_frame->IsInterrupted() )
-            return;
-
-        AsyncTask   draw_task   = _sample->Draw( rg, { begin_frame, proc_input });
+        AsyncTask   draw_task   = _sample->Draw( rg, {proc_input} );
         CHECK_ERRV( draw_task );
 
-        AsyncTask   end_frame   = rg.EndFrame( Default, Tuple{ draw_task });
+        Unused( rg.EndFrame( Default, Tuple{ draw_task }));
 
         input->NextFrame( rg.GetNextFrameId() );
-
-        _mainLoop->endFrame = end_frame;
     }
 
 } // AE::Samples::Demo
@@ -446,7 +432,7 @@ void  AE_OnAppDestroyed ()
         return ApplicationAndroid::OnJniLoad( vm );
     }
 
-    extern "C" void JNI_OnUnload (JavaVM *vm, void *)
+    extern "C" void JNI_OnUnload (JavaVM* vm, void *)
     {
         return ApplicationAndroid::OnJniUnload( vm );
     }

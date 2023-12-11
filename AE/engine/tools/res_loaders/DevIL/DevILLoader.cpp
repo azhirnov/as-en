@@ -176,7 +176,7 @@ namespace {
     LoadFromDevIL
 =================================================
 */
-    ND_ static bool  LoadFromDevIL (OUT IntermImage::Level &imageLevel, SharedMem::Allocator_t allocator)
+    ND_ static bool  LoadFromDevIL (OUT IntermImage::Level &imageLevel, RC<IAllocator> allocator)
     {
         auto&           devil           = DevILUtils::Instance();
 
@@ -203,7 +203,7 @@ namespace {
         {
             ILuint  dxt_size = devil.ilGetDXTCData( null, 0, dxtc );
 
-            CHECK_ERR( imageLevel.SetPixelData( SharedMem::Create( allocator, Bytes{dxt_size} )));
+            CHECK_ERR( imageLevel.SetPixelData( SharedMem::Create( RVRef(allocator), Bytes{dxt_size} )));
 
             CHECK_ERR( devil.ilGetDXTCData( OUT imageLevel.PixelData(), dxt_size, dxtc ) == dxt_size );
         }
@@ -212,7 +212,7 @@ namespace {
             Bytes   data_size {ulong( Max( 0, devil.ilGetInteger(IL_IMAGE_SIZE_OF_DATA) ))};
             CHECK_ERR( data_size == calc_data_size );
 
-            CHECK_ERR( imageLevel.SetPixelData( SharedMem::Create( allocator, data_size )));
+            CHECK_ERR( imageLevel.SetPixelData( SharedMem::Create( RVRef(allocator), data_size )));
 
             MemCopy( OUT imageLevel.PixelData(), devil.ilGetData(), data_size );
         }
@@ -229,7 +229,7 @@ namespace {
     LoadImage
 =================================================
 */
-    bool DevILLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool DevILLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         CHECK_ERR( stream.IsOpen() );
 

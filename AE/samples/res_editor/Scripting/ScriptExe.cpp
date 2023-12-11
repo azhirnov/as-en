@@ -87,8 +87,8 @@ namespace {
 
         RC<IPass>   ToPass () C_Th_OV
         {
-            return MakeRC<ResEditor::DebugView>( rt->ToResource(), index, flags, layer, mipmap,
-                                                 s_scriptExe->_GetRenderer(), "DbgView" );
+            return MakeRCTh<ResEditor::DebugView>( rt->ToResource(), index, flags, layer, mipmap,
+                                                   s_scriptExe->_GetRenderer(), "DbgView" );
         }
     };
 //-----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ namespace {
 
         RC<IPass>   ToPass () C_Th_OV
         {
-            return MakeRC<ResEditor::CopyImagePass>( src->ToResource(), dst->ToResource(), "CopyImage" );
+            return MakeRCTh<ResEditor::CopyImagePass>( src->ToResource(), dst->ToResource(), "CopyImage" );
         }
     };
 //-----------------------------------------------------------------------------
@@ -519,7 +519,7 @@ namespace {
                 st_type = it->second;
             });
 
-        return MakeRC<ResEditor::ExportBuffer>( buf, RVRef(prefix),
+        return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix),
                                                 [st_type] (const BufferMemView &memView, WStream &stream) {
                                                     _Utils{ *st_type, memView }.Parse( stream );
                                                 });
@@ -566,7 +566,7 @@ namespace {
                 dst_geom = _dstGeometry->ToResource();
             });
 
-        return MakeRC<ResEditor::BuildRTGeometry>(
+        return MakeRCTh<ResEditor::BuildRTGeometry>(
                     dst_geom, _indirect,
                     "BuildRTGeometry" );
     }
@@ -612,7 +612,7 @@ namespace {
                 dst_scene = _dstScene->ToResource();
             });
 
-        return MakeRC<ResEditor::BuildRTScene>(
+        return MakeRCTh<ResEditor::BuildRTScene>(
                     dst_scene, _indirect,
                     "BuildRTScene" );
     }
@@ -686,6 +686,7 @@ namespace {
         const String    Anisotropy16MirrorRepeat{"Anisotropy16MirrorRepeat"};
         const String    Anisotropy16Clamp       {"Anisotropy16Clamp"};
     };
+
 /*
 =================================================
     constructor
@@ -777,7 +778,7 @@ namespace {
         CHECK_ERR( not _tempData );
 
         _tempData.reset( new TempData{} );
-        _tempData->renderer = MakeRC<Renderer>( _rand.Uniform( 0u, 0xFFFF'FFFFu ));
+        _tempData->renderer = MakeRCTh<Renderer>( _rand.Uniform( 0u, 0xFFFF'FFFFu ));  // throw
         _tempData->currPath.push_back( FileSystem::ToAbsolute( filePath ));
         _tempData->dependencies.push_back( _tempData->currPath.front() );
         _tempData->cfg = cfg;
@@ -992,7 +993,7 @@ namespace {
     RTechInfo  ScriptExe::_ConvertAndLoad () __Th___
     {
         auto    mem3     = _ConvertAndLoad2();
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         PipelinePackDesc    desc;
         desc.stream         = mem3;
@@ -1638,8 +1639,8 @@ namespace {
             binder.AddValue( "Extended_sRGB_linear",    EColorSpace::Extended_sRGB_linear );
             binder.AddValue( "HDR10_ST2084",            EColorSpace::HDR10_ST2084 );
             binder.AddValue( "BT2020_linear",           EColorSpace::BT2020_linear );
-            STATIC_ASSERT( uint(EColorSpace::_Count) == 15 );
-            STATIC_ASSERT( uint(ESurfaceFormat::_Count) == 10 );
+            StaticAssert( uint(EColorSpace::_Count) == 15 );
+            StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
 
             // not compatible with ESurfaceFormat
             //binder.AddValue( "Display_P3_nonlinear",      EColorSpace::Display_P3_nonlinear );
@@ -1700,7 +1701,7 @@ namespace {
         ScriptSceneRayTracingPass::Bind( se );
         ScriptScene::Bind( se );
 
-        se->AddFunction( &ScriptExe::_SurfaceSize,              "SurfaceSize",              {},     "Returns dynamic dimensions of the screen size."    );
+        se->AddFunction( &ScriptExe::_SurfaceSize,              "SurfaceSize",              {},     "Returns dynamic dimensions of the screen surface." );
 
         se->AddFunction( &ScriptExe::_Present1,                 "Present",                  {},     "Present image to the screen." );
         se->AddFunction( &ScriptExe::_Present2,                 "Present",                  {} );
@@ -1744,6 +1745,8 @@ namespace {
         se->AddFunction( &ScriptExe::_GetSphere4,               "GetSphere",                {"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},        "Returns spherical cube" );
         se->AddFunction( &ScriptExe::_GetCylinder1,             "GetCylinder",              {"segmentCount", "isInner", "positions", "texcoords", "indices"},           "Returns cylinder" );
         se->AddFunction( &ScriptExe::_GetCylinder2,             "GetCylinder",              {"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},  "Returns cylinder" );
+
+        se->AddFunction( &ScriptExe::_GetSphericalCube1,        "GetSphericalCube",         {"lod", "positions", "indices"},                        "Returns spherical cube without projection and rotation" );
 
         se->AddFunction( &ScriptExe::_IndicesToPrimitives,      "IndicesToPrimitives",      {"indices", "primitives"},      "Helper function to convert array of indices to array of uint3 indices per triangle" );
         se->AddFunction( &ScriptExe::_GetFrustumPlanes,         "GetFrustumPlanes",         {"viewProj", "outPlanes"},      "Helper function to convert matrix to 6 planes of the frustum." );
@@ -1796,6 +1799,10 @@ namespace {
         se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,   "WhiteColorSpectrumStep50nm",   {"wavelengthToRGB", "normalized"} );
         se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,  "WhiteColorSpectrumStep100nm",  {"wavelengthToRGB", "normalized"} );
 
+        se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,        "CM_CubeSC_Forward",        {} );
+        se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,    "CM_IdentitySC_Forward",    {} );
+        se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,  "CM_TangentialSC_Forward",  {} );
+
         // TODO:
         //  PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
 
@@ -1821,7 +1828,7 @@ namespace {
         binder.AddValue( "Histogram",   DebugView::EFlags::Histogram );
         binder.AddValue( "LinearDepth", DebugView::EFlags::LinearDepth );
         binder.AddValue( "Stencil",     DebugView::EFlags::Stencil );
-        STATIC_ASSERT( uint(DebugView::EFlags::_Count) == 5 );
+        StaticAssert( uint(DebugView::EFlags::_Count) == 5 );
     }
 
 /*
@@ -1836,7 +1843,7 @@ namespace {
         binder.AddValue( "RunOnce",                 PassGroup::EFlags::RunOnce );
         binder.AddValue( "OnRequest",               PassGroup::EFlags::OnRequest );
         binder.AddValue( "RunOnce_AfterLoading",    PassGroup::EFlags::RunOnce_AfterLoading );
-        STATIC_ASSERT( uint(PassGroup::EFlags::_Count) == 4 );
+        StaticAssert( uint(PassGroup::EFlags::_Count) == 4 );
     }
 
 /*
@@ -1862,7 +1869,7 @@ namespace {
         se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,    "Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
         se->AddConstProperty( _sampConsts->Anisotropy16Clamp,           "Sampler_" + _sampConsts->Anisotropy16Clamp );
 
-        STATIC_ASSERT( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
+        StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
     }
 
 /*
@@ -1890,10 +1897,32 @@ namespace {
         if ( data.cpp.empty() )
             return;
 
-        FileWStream     file {fname};
-        CHECK_ERRV( file.IsOpen() );
+        HashVal32   prev_hash;
 
-        CHECK_ERRV( file.Write( data.cpp ));
+        if ( FileSystem::IsFile( fname ))
+        {
+            FileRStream file {fname};
+            if ( file.IsOpen() )
+            {
+                char    hash_str [2+8+1] = {};
+                if ( file.Read( OUT hash_str, Sizeof(hash_str) ))
+                {
+                    ASSERT( hash_str[0] == '/' );
+                    ASSERT( hash_str[1] == '/' );
+                    ASSERT( hash_str[10] == '\n' );
+                    prev_hash = HashVal32{StringToUInt( StringView{hash_str}.substr( 2 ), 16 )};
+                }
+            }
+        }
+
+        const HashVal32 hash = CT_Hash( data.cpp.data(), data.cpp.length(), 0 );
+        if ( hash != prev_hash )
+        {
+            FileWStream     file {fname};
+            CHECK_ERRV( file.IsOpen() );
+            CHECK_ERRV( file.Write( "//"s << ToString<16>(uint{hash}) << "\n" ));
+            CHECK_ERRV( file.Write( data.cpp ));
+        }
     }
 
 /*
@@ -2078,6 +2107,18 @@ namespace {
     {
         return ResEditorAppConfig::Get().pipelineIncludeDirs;
     }
+
+/*
+=================================================
+    GetMonitor
+=================================================
+*/
+    App::Monitor const&  ScriptExe::ScriptPassApi::GetMonitor () __Th___
+    {
+        CHECK_THROW( s_scriptExe != null );
+        CHECK_THROW( s_scriptExe->_tempData );
+        return s_scriptExe->_tempData->cfg.monitor;
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -2138,7 +2179,7 @@ namespace {
 */
     Graphics::FeatureSet const&  ScriptExe::ScriptResourceApi::GetFeatureSet () __NE___
     {
-        return RenderTaskScheduler().GetFeatureSet();
+        return GraphicsScheduler().GetFeatureSet();
     }
 //-----------------------------------------------------------------------------
 
@@ -2171,8 +2212,13 @@ namespace {
                 cfg.SetShaderVersion( EShaderVersion::SPIRV_1_5 );
                 cfg.SetShaderOptions( EShaderOpt::Optimize );
                 cfg.SetDefaultLayout( EStructLayout::Std140 );
-                cfg.SetPipelineOptions( EPipelineOpt::Unknown );
                 cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
+
+              #if PIPELINE_STATISTICS
+                cfg.SetPipelineOptions( EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation );
+              #else
+                cfg.SetPipelineOptions( EPipelineOpt::Optimize );
+              #endif
 
                 ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
                 fs->fs = ScriptResourceApi::GetFeatureSet();
@@ -2330,7 +2376,7 @@ namespace {
             samp->SetAnisotropy( 16.0f );
         }
 
-        STATIC_ASSERT( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
+        StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
         CHECK_THROW( obj_storage->Build() );
     }
 
@@ -2356,6 +2402,17 @@ namespace {
                     float4      frustum [6];
                 )#");
         }
+
+        /*if ( not obj_storage.structTypes.contains( "CameraSet" ))
+        {
+            ShaderStructTypePtr st{ new ShaderStructType{"CameraSet"}};
+            st->Set( EStructLayout::Std140, R"#(
+                    float       ipd;        // for VR video
+                    float3      globalPos;  // actual position: 'globalPos + data[0].localPos'
+                    uint        count;
+                    CameraData  data [4];
+                )#");
+        }*/
 
         if ( not obj_storage.structTypes.contains( "AccelStructInstance" ))
         {
@@ -2462,9 +2519,9 @@ namespace {
 */
     bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs)
     {
-        const auto  t0 = GetDescriptorImageTypeRelaxed( lhs );
-        const auto  t1 = GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), false );
-        return t0 == t1;
+        const auto  [lhs_t0, lhs_t1]    = GetDescriptorImageTypeRelaxed( lhs );
+        const auto  rhs_t               = GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), false );
+        return lhs_t0 == rhs_t or lhs_t1 == rhs_t;
     }
 
 } // AE::ResEditor

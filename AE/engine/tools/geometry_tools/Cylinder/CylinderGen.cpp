@@ -135,9 +135,9 @@ namespace AE::GeometryTools
 
             CheckTBN( normal, tangent, bitangent );
 
-            ASSERT( All(Equals( normal,     norm0,  0.1f )));
-            ASSERT( All(Equals( tangent,    tan0,   0.1f )));
-            ASSERT( All(Equals( bitangent,  bitan0, 0.1f )));
+            ASSERT( All(Equal( normal,      norm0,  0.1f )));
+            ASSERT( All(Equal( tangent, tan0,   0.1f )));
+            ASSERT( All(Equal( bitangent,   bitan0, 0.1f )));
         }
     #endif
 

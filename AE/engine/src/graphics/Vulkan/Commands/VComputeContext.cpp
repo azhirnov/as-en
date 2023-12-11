@@ -11,7 +11,7 @@ namespace AE::Graphics::_hidden_
     _PushComputeConstant
 =================================================
 */
-    void  _VDirectComputeCtx::_PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+    void  _VDirectComputeCtx::_PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)
     {
         VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 

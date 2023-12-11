@@ -35,7 +35,7 @@ namespace
     public:
         DM1_TestData&   t;
 
-        DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -55,7 +55,7 @@ namespace
             // draw
             {
                 constexpr auto&     rtech_pass = RTech.DrawMeshes_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -80,7 +80,7 @@ namespace
     public:
         DM1_TestData&   t;
 
-        DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -106,9 +106,9 @@ namespace
 
 
     template <typename CtxType, typename CopyCtx>
-    static bool  DrawMesh1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  DrawMesh1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         DM1_TestData    t;
@@ -129,22 +129,25 @@ namespace
         t.ppln = t.rtech->GetMeshPipeline( RTech.DrawMeshes_1.draw_mesh1 );
         CHECK_ERR( t.ppln );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawMesh1"} );
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch->Run< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},                {"Draw task"} );
+        AsyncTask   task1   = t.batch->Run< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                     {"Draw task"} );
         AsyncTask   task2   = t.batch->Run< DM1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},  {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

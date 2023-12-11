@@ -69,7 +69,7 @@ namespace AE::Graphics
         BufferMemView (const BufferMemView &)                               __NE___ = default;
         BufferMemView (BufferMemView &&)                                    __NE___ = default;
 
-        BufferMemView (void *ptr, Bytes size)                               __NE___ { PushBack( ptr, size ); }
+        BufferMemView (void* ptr, Bytes size)                               __NE___ { PushBack( ptr, size ); }
 
         template <typename T>
         explicit BufferMemView (Array<T> &arr)                              __NE___ : BufferMemView{ arr.data(), ArraySizeOf(arr) } {}
@@ -92,7 +92,7 @@ namespace AE::Graphics
 
             void    Clear ()                                                __NE___ { _parts.clear(); }
 
-            bool    PushBack (void *ptr, Bytes size)                        __NE___ { return _parts.try_push_back( Data{ ptr, size }); }
+            bool    PushBack (void* ptr, Bytes size)                        __NE___ { return _parts.try_push_back( Data{ ptr, size }); }
 
         ND_ Bytes   DataSize ()                                             C_NE___;
 

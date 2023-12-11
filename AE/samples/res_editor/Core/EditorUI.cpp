@@ -351,7 +351,7 @@ namespace
 
     // methods
     public:
-        DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) :
+        DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"UI::Draw", HtmlColor::Aqua} },
             t{ *t }, surface{ surf },
             imgui{ this->t._imgui.WriteNoLock() },
@@ -460,7 +460,7 @@ namespace
     {
         ImGui::SetCurrentContext( imgui->ctx );
 
-        const float dt = RenderTaskScheduler().GetFrameTimeDelta().count();
+        const float dt = GraphicsScheduler().GetFrameTimeDelta().count();
         ImGuiIO &   io = ImGui::GetIO();
 
         io.DisplaySize  = ImVec2{float(rtSize.x), float(rtSize.y)};
@@ -1172,7 +1172,7 @@ namespace
                 pauseRendering.store( false );
                 co_return;
             }
-            ( t._core.GetRC(), path, t._compiling, t._pauseRendering ),
+            ( t._core.GetRC<ResEditorCore>(), path, t._compiling, t._pauseRendering ),
             Tuple{},
             "UI::LoadScript"
         );
@@ -1197,7 +1197,7 @@ namespace
             idx_size += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
         }
 
-        auto&       staging_mngr    = RenderTaskScheduler().GetResourceManager().GetStagingManager();
+        auto&       staging_mngr    = GraphicsScheduler().GetResourceManager().GetStagingManager();
         const auto  frame_id        = GetFrameId();
 
         VertexStream    vstream;
@@ -1351,7 +1351,7 @@ namespace
     public:
         EditorUI&   t;
 
-        UploadTask (EditorUI* t, CommandBatchPtr batch, DebugLabel) :
+        UploadTask (EditorUI* t, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"UI::Upload"} },
             t{ *t }
         {}
@@ -1404,7 +1404,7 @@ namespace
 */
     EditorUI::~EditorUI ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.ImmediatelyReleaseResources( _res.fontImg, _res.fontView );
         res_mngr.ReleaseResourceArray( _res.descSets );
@@ -1478,12 +1478,14 @@ namespace
 */
     bool  EditorUI::_LoadPipelinePack ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
-        #ifdef AE_PLATFORM_APPLE
-            const char  fname[] = "mac/ui_pipelines.bin";
+        #ifdef AE_ENABLE_VULKAN
+            constexpr char  fname[] = "vk/ui_pipelines.bin";
+        #elif defined(AE_ENABLE_METAL)
+            constexpr char  fname[] ="mac/ui_pipelines.bin";
         #else
-            const char  fname[] = "vk/ui_pipelines.bin";
+        #   error unsupported platform!
         #endif
 
         auto    file = MakeRC<FileRStream>( fname );
@@ -1525,8 +1527,8 @@ namespace
         }
 
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
         auto&       rg          = RenderGraph();
 
         // initialize font atlas
@@ -1648,7 +1650,7 @@ namespace
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( IA.actionCount == 15 );
+            StaticAssert( IA.actionCount == 15 );
             switch ( uint{hdr.name} )
             {
                 case IA.UI_MousePos :

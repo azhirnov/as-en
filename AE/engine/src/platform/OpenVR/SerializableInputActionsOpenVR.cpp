@@ -14,7 +14,7 @@ namespace AE::App
 # ifdef AE_ENABLE_OPENVR
 
     #define AE_OPENVR_KEY_CODES_VISITOR( _key_, _code_, _name_, _ovr_code_ )
-    //  STATIC_ASSERT( uint(SerializableInputActionsOpenVR::EInputType::_key_) == uint(_ovr_code_) );
+    //  StaticAssert( uint(SerializableInputActionsOpenVR::EInputType::_key_) == uint(_ovr_code_) );
 
     AE_OPENVR_KEY_CODES( AE_OPENVR_KEY_CODES_VISITOR )
     #undef AE_OPENVR_KEY_CODES_VISITOR

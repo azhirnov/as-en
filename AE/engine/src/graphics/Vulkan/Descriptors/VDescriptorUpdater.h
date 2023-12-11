@@ -43,7 +43,7 @@ namespace AE::Graphics
     private:
         VResourceManager &              _resMngr;
         Ptr<const VDescriptorSetLayout> _dsLayout;      // strong ref in '_descSetId'
-        VkDescriptorSet                 _dsHandle       = Default;  
+        VkDescriptorSet                 _dsHandle       = Default;
 
         EDescUpdateMode                 _mode           = Default;
         union {
@@ -137,7 +137,7 @@ namespace AE::Graphics
         ND_ bool  _UseUpdateTemplate () const   { return _mode == EDescUpdateMode::UpdateTemplate; }
 
         template <EDescriptorType DescType>
-        ND_ Tuple< const Uniform_t*, const Bytes16u* >  _FindUniform (const UniformName &name) const;
+        ND_ Tuple< const Uniform_t*, const Byte16u* >  _FindUniform (const UniformName &name) const;
 
         template <EDescriptorType DescType>
         ND_ uint  _GetArraySize (const UniformName &name) const;

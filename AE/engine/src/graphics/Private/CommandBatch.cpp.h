@@ -11,6 +11,10 @@
 #   define SUFFIX           M
 #   define CMDBATCH         MCommandBatch
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#   define SUFFIX           R
+#   define CMDBATCH         RCommandBatch
+
 #else
 #   error not implemented
 #endif
@@ -77,7 +81,7 @@
         })
 
         MemoryBarrier( EMemoryOrder::Release );
-        RenderTaskScheduler_t::CommandBatchApi::Recycle( _indexInPool );
+        RenderTaskScheduler::CommandBatchApi::Recycle( this );
     }
 
 /*
@@ -93,14 +97,16 @@
         CHECK_ERR( _cmdPool.IsReady() );
 
       #if defined(AE_ENABLE_VULKAN)
-        CHECK_ERR( _cmdPool.CommitIndirectBuffers( RenderTaskScheduler().GetCommandPoolManager(), GetQueueType(), GetCmdBufType() ));
+        CHECK_ERR( _cmdPool.CommitIndirectBuffers( GraphicsScheduler().GetCommandPoolManager(), GetQueueType(), GetCmdBufType() ));
       #elif defined(AE_ENABLE_METAL)
+        CHECK_ERR( _cmdPool.CommitIndirectBuffers( GetQueueType(), GetCmdBufType() ));
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
         CHECK_ERR( _cmdPool.CommitIndirectBuffers( GetQueueType(), GetCmdBufType() ));
       #else
       # error not implemented
       #endif
 
-        RenderTaskScheduler_t::CommandBatchApi::Submit( *this, _submitMode );
+        RenderTaskScheduler::CommandBatchApi::Submit( *this, _submitMode );
         return true;
     }
 
@@ -237,6 +243,6 @@
 #if AE_DBG_GRAPHICS
     void  RenderTask::_DbgCheckFrameId () C_NE___
     {
-        RenderTaskScheduler().DbgCheckFrameId( GetFrameId(), DbgFullName() );
+        GraphicsScheduler().DbgCheckFrameId( GetFrameId(), DbgFullName() );
     }
 #endif

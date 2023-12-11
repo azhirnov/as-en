@@ -21,7 +21,8 @@ void ASmain ()
         pl.DSLayout( 0, "camera3d.ds0" );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "CubeVertex" );
-        st.Set( "packed_short_norm4     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_short_norm4     Position;" +
                 "packed_short_norm4     Texcoord;" +
                 "packed_short_norm4     Normal;" +
                 "packed_short_norm4     Tangent;" +
@@ -31,7 +32,8 @@ void ASmain ()
         vb.Add( "Position", st );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "SphericalCubeVertex" );
-        st.Set( "packed_short_norm4     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_short_norm4     Position;" +
                 "packed_short_norm4     Texcoord;" +
                 "packed_short_norm4     Tangent;" +
                 "packed_short_norm4     BiTangent;" );
@@ -74,7 +76,7 @@ void ASmain ()
             rs.inputAssembly.topology       = EPrimitive::TriangleList;
 
             rs.rasterization.frontFaceCCW   = true;
-            rs.rasterization.cullMode       = ECullMode::Front;
+            rs.rasterization.cullMode       = ECullMode::Back;
 
             spec.SetRenderState( rs );
         }
@@ -111,8 +113,8 @@ void ASmain ()
 
             rs.inputAssembly.topology       = EPrimitive::TriangleList;
 
-            rs.rasterization.frontFaceCCW   = true;
-            rs.rasterization.cullMode       = ECullMode::Front;
+            rs.rasterization.frontFaceCCW   = false;
+            rs.rasterization.cullMode       = ECullMode::Back;
 
             spec.SetRenderState( rs );
         }

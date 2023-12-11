@@ -155,7 +155,7 @@ namespace {
 =================================================
 */
     VUniMemAllocator::VUniMemAllocator (Bytes pageSize) __NE___ :
-        _device{ RenderTaskScheduler().GetDevice() },
+        _device{ GraphicsScheduler().GetDevice() },
         _allocator{ null }
     {
         if ( pageSize == 0 )
@@ -197,10 +197,10 @@ namespace {
         info.pool           = Default;
         info.pUserData      = null;
         info.priority       = 0.f;
-        STATIC_ASSERT_64( sizeof(info) == 48 );
+        StaticAssert64( sizeof(info) == 48 );
 
       #if USE_AE_MEM_SELECTOR
-        info.memoryTypeBits = RenderTaskScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
+        info.memoryTypeBits = GraphicsScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
       #else
         info.requiredFlags  = VEnumCast( desc.memType );
       #endif
@@ -247,10 +247,10 @@ namespace {
         info.pool           = Default;
         info.pUserData      = null;
         info.priority       = 0.f;
-        STATIC_ASSERT_64( sizeof(info) == 48 );
+        StaticAssert64( sizeof(info) == 48 );
 
       #if USE_AE_MEM_SELECTOR
-        info.memoryTypeBits = RenderTaskScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
+        info.memoryTypeBits = GraphicsScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
       #else
         info.requiredFlags  = VEnumCast( desc.memType );
       #endif

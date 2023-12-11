@@ -11,9 +11,9 @@ namespace
     template <typename T>
     static void  TestResult (Promise<T> &p, const T &expected)
     {
-        auto    task = AsyncTask{ p.Then( [expected] (const T& res) { TEST( res == expected ); })};
+        auto    task = AsyncTask{ p.Then( [expected] (const T& res) __NE___ { TEST( res == expected ); })};
 
-        TEST( Scheduler().Wait( {task} ));
+        TEST( Scheduler().Wait( {task}, c_MaxTimeout ));
         TEST( task->Status() == EStatus::Completed );
     }
 
@@ -21,10 +21,10 @@ namespace
     static void  Promise_Test1 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
         auto p = MakePromise( [] () { return "a"s; })
-            .Then([] (const String &in) { return in + "b"; });
+            .Then([] (const String &in) __NE___ { return in + "b"; });
 
         TestResult( p, "ab"s );
     }
@@ -42,9 +42,9 @@ namespace
         TEST( AsyncTask{p0}->Status() == EStatus::Pending );
         TEST( AsyncTask{p1}->Status() == EStatus::Completed );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) {
+        auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) __NE___ {
                 return in.Get<0>() + in.Get<1>() + ToString( in.Get<2>() );
             });
 
@@ -55,7 +55,7 @@ namespace
     static void  Promise_Test3 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
         auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
         auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });   // canceled promise
@@ -64,11 +64,11 @@ namespace
         StdAtomic<bool> p3_ok = false;
         StdAtomic<bool> p4_ok = false;
 
-        auto p2 = p0.Then( [&p2_ok] (const String &in) { p2_ok = (in == "a"); });
-        auto p3 = p1.Except( [&p3_ok] () { p3_ok = true; });
-        auto p4 = p3.Then( [&p4_ok] () { p4_ok = true; });
+        auto p2 = p0.Then( [&p2_ok] (const String &in) __NE___ { p2_ok = (in == "a"); });
+        auto p3 = p1.Except( [&p3_ok] () __NE___ { p3_ok = true; });
+        auto p4 = p3.Then( [&p4_ok] () __NE___ { p4_ok = true; });
 
-        TEST( Scheduler().Wait({ AsyncTask(p2), AsyncTask(p3), AsyncTask(p4) }));
+        TEST( Scheduler().Wait( {AsyncTask(p2), AsyncTask(p3), AsyncTask(p4)}, c_MaxTimeout ));
         TEST( AsyncTask(p0)->Status() == EStatus::Completed );
         TEST( AsyncTask(p1)->Status() == EStatus::Failed );
         TEST( AsyncTask(p2)->Status() == EStatus::Completed );
@@ -83,7 +83,7 @@ namespace
     static void  Promise_Test4 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
         Promise<int> pe;
 
@@ -92,7 +92,7 @@ namespace
         auto p2 = MakePromise( [] () { return 1u; });
         auto p3 = MakePromiseFrom( p0, p1, p2, pe );
 
-        auto p4 = p3.Then( [] (const Tuple<String, String, uint, int> &in) {
+        auto p4 = p3.Then( [] (const Tuple<String, String, uint, int> &in) __NE___ {
                 return in.Get<0>()  + '.' + in.Get<1>() + '.' + ToString( in.Get<2>() ) + '.' + ToString( in.Get<3>() );
             });
 
@@ -103,22 +103,22 @@ namespace
     static void  Promise_Test5 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
         auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
         auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });   // canceled promise
 
-        TEST( Scheduler().Wait({ AsyncTask(p0), AsyncTask(p1) }));
+        TEST( Scheduler().Wait( {AsyncTask(p0), AsyncTask(p1)}, c_MaxTimeout ));
         TEST( AsyncTask(p0)->Status() == EStatus::Completed );
         TEST( AsyncTask(p1)->Status() == EStatus::Failed );
 
         StdAtomic<bool> p2_ok = false;
         StdAtomic<bool> p3_ok = false;
 
-        auto p2 = p1.Except( [&p2_ok] () { p2_ok = true; });
-        auto p3 = p2.Then( [&p3_ok] () { p3_ok = true; });
+        auto p2 = p1.Except( [&p2_ok] () __NE___ { p2_ok = true; });
+        auto p3 = p2.Then( [&p3_ok] () __NE___ { p3_ok = true; });
 
-        TEST( Scheduler().Wait({ AsyncTask(p3) }));
+        TEST( Scheduler().Wait( {AsyncTask(p3)}, c_MaxTimeout ));
 
         TEST( p2_ok );
         TEST( p3_ok );

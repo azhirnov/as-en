@@ -7,7 +7,6 @@
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Public/Common.h"
 # include "platform/Private/WindowBase.h"
-# include "platform/Android/Java.h"
 # include "platform/Android/InputActionsAndroid.h"
 # include "platform/Private/WindowSurface.h"
 

@@ -70,9 +70,9 @@ namespace AE::Base
     private:
         static constexpr uint   DBG_VIEW_COUNT = 400;
 
-        struct _IViewer
+        struct _IViewer : NothrowAllocatable
         {
-            virtual ~_IViewer () {}
+            virtual ~_IViewer () __NE___ {}
 
             ND_ virtual Unique<_IViewer>  Clone () = 0;
         };
@@ -94,8 +94,8 @@ namespace AE::Base
             ElementsPtr_t const     elements;
 
         // methods
-            explicit _ViewerWithPaddingUnaligned (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
-                STATIC_ASSERT( sizeof(Element) == sizeof(St) );
+            explicit _ViewerWithPaddingUnaligned (const void* ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
+                StaticAssert( sizeof(Element) == sizeof(St) );
             }
 
             Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
@@ -116,8 +116,8 @@ namespace AE::Base
             ElementsPtr_t const     elements;
 
         // methods
-            explicit _ViewerWithPadding (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
-                STATIC_ASSERT( sizeof(Element) == sizeof(St) );
+            explicit _ViewerWithPadding (const void* ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
+                StaticAssert( sizeof(Element) == sizeof(St) );
             }
 
             Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
@@ -134,9 +134,9 @@ namespace AE::Base
             ElementsPtr_t const     elements;
 
         // methods
-            explicit _ViewerImpl (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
+            explicit _ViewerImpl (const void* ptr)  __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
 
-            Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
+            Unique<_IViewer>  Clone ()              __Th_OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
         };
 
 
@@ -144,10 +144,10 @@ namespace AE::Base
     private:
         void const *    _array      = null;
         uint            _count      = 0;
-        Bytes32u        _stride;
+        Byte32u         _stride;
 
         DEBUG_ONLY(
-            Unique<_IViewer>    _dbgView;   
+            Unique<_IViewer>    _dbgView;
         )
 
 
@@ -157,7 +157,7 @@ namespace AE::Base
 
         StructView (ArrayView<T> arr)                   __NE___ : _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<T> }
         {
-            DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
+            DEBUG_ONLY( _dbgView = _CreateView< T, sizeof(T) >( _array ));
         }
 
         StructView (const Self &other)                  __NE___ : _array{other._array}, _count{other._count}, _stride{other._stride}
@@ -172,22 +172,22 @@ namespace AE::Base
 
         StructView (const T* ptr, usize count)          __NE___ : _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ SizeOf<T> }
         {
-            DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
+            DEBUG_ONLY( _dbgView = _CreateView< T, sizeof(T) >( _array ));
         }
 
         template <typename Class>
         StructView (ArrayView<Class> arr, T (Class::*member)) __NE___ :
             _array{ arr.data() + OffsetOf(member) }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<Class> }
         {
-            DEBUG_ONLY( _dbgView = _CreateView<Class, sizeof(Class)>( _array ));
+            DEBUG_ONLY( _dbgView = _CreateView< Class, sizeof(Class) >( _array ));
         }
 
-        StructView (const void *ptr, usize count, Bytes stride) __NE___ :
-            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
+        StructView (const void* ptr, usize count, Bytes stride) __NE___ :
+            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Byte32u(stride)}
         {}
 
-            Self&  operator = (const Self &rhs)         __NE___;
-            Self&  operator = (Self && rhs)             __NE___;
+            Self&   operator = (const Self &rhs)        __NE___;
+            Self&   operator = (Self &&rhs)             __NE___;
 
 
         ND_ usize           size ()                     C_NE___ { return _count; }
@@ -209,11 +209,11 @@ namespace AE::Base
         ND_ Bytes           Stride ()                   C_NE___ { return Bytes{_stride}; }
         ND_ Bytes           DataSize ()                 C_NE___ { return SizeOf<T> * size(); }
 
-        ND_ bool  operator == (const Self &rhs)         C_NE___;
+        ND_ bool    operator == (const Self &rhs)       C_NE___;
 
-        ND_ Self  section (usize first, usize count)    C_NE___;
+        ND_ Self    section (usize first, usize count)  C_NE___;
 
-        ND_ usize  IndexOf (const const_iterator &it)   C_NE___;
+        ND_ usize   IndexOf (const const_iterator &it)  C_NE___;
 
         ND_ explicit operator Array<T> ()               C_NE___
         {
@@ -229,7 +229,7 @@ namespace AE::Base
 
     private:
         template <typename Class, usize Stride>
-        ND_ static Unique<_IViewer>  _CreateView (const void *ptr);
+        ND_ static Unique<_IViewer>  _CreateView (const void* ptr);
     };
 
 
@@ -241,7 +241,7 @@ namespace AE::Base
     template <typename SrcType, typename DstType>
     struct StructViewTransform_CastConverter
     {
-        STATIC_ASSERT( std::is_convertible_v< SrcType, DstType >);
+        StaticAssert( std::is_convertible_v< SrcType, DstType >);
 
         ND_ DstType  operator () (SrcType src)          C_NE___ { return DstType{src}; }
     };
@@ -378,7 +378,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    StructView<T>&  StructView<T>::operator = (StructView<T> && rhs) __NE___
+    StructView<T>&  StructView<T>::operator = (StructView<T> &&rhs) __NE___
     {
         _array  = rhs._array;
         _count  = rhs._count;
@@ -428,19 +428,19 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    template <typename Class, usize Stride>
-    Unique<typename StructView<T>::_IViewer>  StructView<T>::_CreateView (const void *ptr)
+    template <typename C, usize S>
+    Unique<typename StructView<T>::_IViewer>  StructView<T>::_CreateView (const void* ptr)
     {
-        STATIC_ASSERT( Stride >= sizeof(T) );
-        const usize padding = Stride - sizeof(T);
+        StaticAssert( S >= sizeof(T) );
+        const usize padding = S - sizeof(T);
 
         if constexpr( padding == 0 )
-            return MakeUnique< _ViewerImpl< Class >>( ptr );
+            return MakeUnique< _ViewerImpl< C >>( ptr );
         else
         if constexpr( IsMultipleOf( padding, alignof(T) ))
-            return MakeUnique< _ViewerWithPadding< Class, padding >>( ptr );
+            return MakeUnique< _ViewerWithPadding< C, padding >>( ptr );
         else
-            return MakeUnique< _ViewerWithPaddingUnaligned< Class, padding >>( ptr );
+            return MakeUnique< _ViewerWithPaddingUnaligned< C, padding >>( ptr );
     }
 
 /*

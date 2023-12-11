@@ -16,7 +16,7 @@ namespace AE::ResLoader
     {
     // methods
     public:
-        bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE_OV;
+        bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE_OV;
         using IImageLoader::LoadImage;
     };
 

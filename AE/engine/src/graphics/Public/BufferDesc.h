@@ -93,7 +93,7 @@ namespace AE::Graphics
         DeviceAddress       _addr   = Default;
 
     public:
-        constexpr TDeviceAddress ()                     __NE___ = default; 
+        constexpr TDeviceAddress ()                     __NE___ = default;
         constexpr TDeviceAddress (DeviceAddress addr)   __NE___ : _addr{addr} {}
     };
 

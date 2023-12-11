@@ -460,7 +460,7 @@ namespace
     bool  VVideoImage::Validate (const VDevice &dev, INOUT VideoImageDesc &desc, OUT VkImageCreateInfo &imageCI,
                                  OUT VkImageViewCreateInfo &viewCI, OUT ushort2 &pictureAccessGranularity) __NE___
     {
-        return WithVideoProfile( dev, desc.profile, 
+        return WithVideoProfile( dev, desc.profile,
                 [&] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
                 {
                     if ( All( desc.dimension == uint2{0} )) {
@@ -486,7 +486,7 @@ namespace
                     prof_list.profileCount  = 1;
                     prof_list.pProfiles     = &profileInfo;
 
-                    STATIC_ASSERT( uint(EVideoCodecMode::_Count) == 2 );
+                    StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
 
                     if ( desc.profile.mode == EVideoCodecMode::Decode )
                     {

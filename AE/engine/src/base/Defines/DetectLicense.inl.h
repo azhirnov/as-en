@@ -28,6 +28,7 @@
      * AE_LICENSE_MPL_2     - Mozilla Public License    // https://en.wikipedia.org/wiki/Mozilla_Public_License
      * AE_LICENSE_ZLIB                                  // https://en.wikipedia.org/wiki/Zlib_License
      * AE_LICENSE_FREE_NON_COMMERCIAL
+     * AE_LICENSE_UNLICENSE
 
     reference:
     https://en.wikipedia.org/wiki/Comparison_of_free_and_open-source_software_licenses
@@ -42,6 +43,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_MPL_2            - ?
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_APACHE_2)
 #     error Apache 2.0 is not compatible with MIT/BSD
@@ -66,6 +68,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_MPL_2            - ?
 //  AE_LICENSE_ZLIB             - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_GPLv2) or defined(AE_LICENSE_GPLv3) or defined(AE_LICENSE_LGPLv2) or defined(AE_LICENSE_LGPLv3)
 #     error GPL/LGPL 2/3 is not compatible with Apache 2.0
@@ -82,6 +85,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
 //  AE_LICENSE_MPL_2            - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_APACHE_2) or defined(AE_LICENSE_MPL_2)
 #     error Apache 2.0 / MPL is not compatible with LGPLv2
@@ -101,6 +105,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
 //  AE_LICENSE_MPL_2            - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_GPLv2)
 #     error GPLv2 is not compatible with LGPLv3
@@ -119,6 +124,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
 //  AE_LICENSE_MPL_2            - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_APACHE_2)
 #     error Apache 2.0 is not compatible with GPLv2, try GPLv3
@@ -142,6 +148,7 @@
 //  AE_LICENSE_MIT              - ok
 //  AE_LICENSE_ZLIB             - ok
 //  AE_LICENSE_MPL_2            - ok
+//  AE_LICENSE_UNLICENSE        - ok
 
 #   if defined(AE_LICENSE_GPLv2)
 #     error GPLv3 is not compatible with GPLv2

@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Public/DeviceProperties.h"
+#include "graphics/Private/EnumToString.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/VDevice.h"
@@ -131,7 +132,7 @@ namespace
 */
     bool  DeviceProperties::CompareWithConstant (AnyTypeCRef vkExt_mtlFS) C_NE___
     {
-        STATIC_ASSERT( sizeof(DeviceProperties) == 88 );
+        StaticAssert( sizeof(DeviceProperties) == 88 );
 
         const auto  CheckLimitLess = [] (auto curr, auto constant, const char* name)
         {{
@@ -171,7 +172,7 @@ namespace
 
         bool    result = true;
 
-        STATIC_ASSERT( sizeof(res) == 24 );
+        StaticAssert( sizeof(res) == 24 );
         {
             #undef CMP_L
             #undef CMP_G
@@ -194,7 +195,7 @@ namespace
             CMP_L( minBufferCopyRowPitchAlign );
         }
 
-        STATIC_ASSERT( sizeof(rayTracing) == 48 );
+        StaticAssert( sizeof(rayTracing) == 48 );
         if ( accel_struct )
         {
             #undef CMP_L
@@ -237,7 +238,7 @@ namespace
 
         // resource alignment
         {
-            STATIC_ASSERT( sizeof(res) == 24 );
+            StaticAssert( sizeof(res) == 24 );
 
             const auto&     limits  = vk_props.properties.limits;
 
@@ -271,7 +272,7 @@ namespace
 
         if ( vk_ext.accelerationStructure )
         {
-            STATIC_ASSERT( sizeof(rayTracing) == 48 );
+            StaticAssert( sizeof(rayTracing) == 48 );
 
             const auto&     ac_props    = vk_props.accelerationStructureProps;
             const auto&     rt_props    = vk_props.rayTracingPipelineProps;
@@ -296,7 +297,7 @@ namespace
 
         // shader HW
         {
-            STATIC_ASSERT( sizeof(shaderHW) == sizeof(uint)*3 );
+            StaticAssert( sizeof(shaderHW) == sizeof(uint)*3 );
 
             // AMD
             if ( vk_ext.shaderCorePropsAMD )
@@ -350,7 +351,7 @@ namespace
 
         // resource alignment
         {
-            STATIC_ASSERT( sizeof(res) == 24 );
+            StaticAssert( sizeof(res) == 24 );
 
             res.minUniformBufferOffsetAlign         = POTBytes{ mtl_props.minUniformBufferOffsetAlign };
             res.minStorageBufferOffsetAlign         = POTBytes{ mtl_props.minStorageBufferOffsetAlign };
@@ -360,7 +361,7 @@ namespace
             res.maxVerticesPerRenderPass            = POTValue{ UMax };     // not defined
             res.minVertexBufferOffsetAlign          = POTBytes{ 4_b };
             res.minVertexBufferElementsAlign        = 1;                    // TODO
-            res.maxUniformBufferRange               = LimitCast<Bytes32u>(mtl_props.maxBufferSize);
+            res.maxUniformBufferRange               = LimitCast<Byte32u>(mtl_props.maxBufferSize);
             res.maxBoundDescriptorSets              = 31;                   // minus VBcount
             res.minMemoryMapAlign                   = POTBytes{ Max( mtl_props.minUniformBufferOffsetAlign, mtl_props.minStorageBufferOffsetAlign )};
             res.minNonCoherentAtomSize              = POTBytes{ res.minMemoryMapAlign };
@@ -370,7 +371,7 @@ namespace
 
         if ( mtl_feats.accelerationStructure() )
         {
-            STATIC_ASSERT( sizeof(rayTracing) == 48 );
+            StaticAssert( sizeof(rayTracing) == 48 );
 
             const POTBytes      buf_align   {mtl_props.minStorageBufferOffsetAlign};
 
@@ -421,7 +422,7 @@ namespace
 
         // shader HW
         {
-            STATIC_ASSERT( sizeof(shaderHW) == sizeof(uint)*3 );
+            StaticAssert( sizeof(shaderHW) == sizeof(uint)*3 );
 
             if ( HasSubStringIC( devName, "Apple" ))
                 InitAppleShaderHWProperties( OUT shaderHW, devName );
@@ -437,12 +438,13 @@ namespace
 */
     void  DeviceProperties::Print () C_NE___
     {
-        try {
+    #ifdef AE_ENABLE_LOGS
+        TRY{
             String  str = "\nDeviceProperties:";
 
             // resource alignment
             {
-                STATIC_ASSERT( sizeof(res) == 24 );
+                StaticAssert( sizeof(res) == 24 );
                 str << "\n  ResourceAlignment:"
                     << "\n    minUniformBufferOffsetAlign: . . . " << ToString( Bytes{ res.minUniformBufferOffsetAlign })
                     << "\n    minStorageBufferOffsetAlign:       " << ToString( Bytes{ res.minStorageBufferOffsetAlign })
@@ -463,7 +465,7 @@ namespace
 
             // ray tracing
             {
-                STATIC_ASSERT( sizeof(rayTracing) == 48 );
+                StaticAssert( sizeof(rayTracing) == 48 );
                 str << "\n  RayTracingProperties:"
                     << "\n    vertexDataAlign: . . . . . . . . . " << ToString( Bytes{ rayTracing.vertexDataAlign })
                     << "\n    vertexStrideAlign:                 " << ToString( Bytes{ rayTracing.vertexStrideAlign })
@@ -484,7 +486,7 @@ namespace
 
             // shader HW
             {
-                STATIC_ASSERT( sizeof(shaderHW) == sizeof(uint)*3 );
+                StaticAssert( sizeof(shaderHW) == sizeof(uint)*3 );
                 str << "\n  ShaderHWProperties:"
                     << "\n    cores: . . . . . . . . . . . . . . " << ToString( shaderHW.cores )
                     << "\n    warpsPerCore:                      " << ToString( shaderHW.warpsPerCore )
@@ -495,8 +497,32 @@ namespace
             }
 
             AE_LOGI( str );
-        } catch(...)
-        {}
+        }
+        CATCH_ALL()
+    #endif
+    }
+
+/*
+=================================================
+    Print
+=================================================
+*/
+    void  DeviceResourceFlags::Print () C_NE___
+    {
+    #ifdef AE_ENABLE_LOGS
+        TRY{
+            String  str;
+
+            str << "memory types:";
+
+            for (EMemoryType mem : memTypes) {
+                str << "\n  " << ToString( mem );
+            }
+
+            AE_LOGI( str );
+        }
+        CATCH_ALL()
+    #endif
     }
 
 

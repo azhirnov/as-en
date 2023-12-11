@@ -4,7 +4,7 @@
 
 #include "base/Math/Vec.h"
 #include "base/Math/Quat.h"
-#include "base/Math/Radians.h"
+#include "base/Math/Radian.h"
 #include "base/Math/Rectangle.h"
 
 namespace AE::Math
@@ -155,25 +155,25 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T, uint C, uint R, glm::qualifier Q>
-    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T err = Epsilon<T>()) __NE___
+    ND_ bool  Equal (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T err = Epsilon<T>()) __NE___
     {
         uint    eq = 1;
         for (uint i = 0; i < C; ++i) {
-            eq &= All( Equals( lhs[i], rhs[i], err ));
+            eq &= All( Equal( lhs[i], rhs[i], err ));
         }
         return eq == 1;
     }
 
     template <typename T, uint C, uint R, glm::qualifier Q>
-    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const Percent err) __NE___
+    ND_ bool  Equal (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const Percent err) __NE___
     {
         uint    eq = 1;
         for (uint i = 0; i < C; ++i) {
-            eq &= All( Equals( lhs[i], rhs[i], err ));
+            eq &= All( Equal( lhs[i], rhs[i], err ));
         }
         return eq == 1;
     }

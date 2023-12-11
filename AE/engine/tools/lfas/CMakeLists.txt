@@ -7,3 +7,5 @@ set_property( TARGET "LockFreeAlgSandbox" PROPERTY FOLDER "Engine/ToolApps" )
 target_link_libraries( "LockFreeAlgSandbox" PUBLIC "Base" )
 target_include_directories( "LockFreeAlgSandbox" PRIVATE "." "../../tests" )
 target_compile_definitions( "LockFreeAlgSandbox" PUBLIC "AE_LFAS_ENABLED" )
+
+add_test( NAME "LockFreeAlgSandbox" COMMAND "LockFreeAlgSandbox" )

@@ -30,7 +30,7 @@
         {
             RC<Model>   model = Model( "res/models/Sponza/Sponza.gltf" );
 
-            model.InitialTransform( float3(0.f, -1.f, 0.f), float3(0.f, ToRad(90.f), 0.f), 100.f );
+            model.InitialTransform( float3(0.f, -1.f, 0.f), float3(0.f, ToRad(90.f), ToRad(180.f)), 100.f );
 
             model.AddOmniLight( float3(0.f, -5.f, 0.f), float3(0.f, 0.f, 0.05f), RGBA32f(1.f) );
 
@@ -42,17 +42,16 @@
 
         // render loop
         {
-            RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw opaque" );
-            draw_pass.AddPipeline( "samples/Model-1.as" );  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model-1.as)
-            draw_pass.Output( "out_Color", rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
-            draw_pass.Output( ds, DepthStencil(1.f, 0) );
-            draw_pass.Layer( ERenderLayer::Opaque );
-            draw_pass.EnableIfEqual( view_mode, 0 );
+            RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "draw opaque" );
+            draw.AddPipeline( "samples/Model-1.as" );       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model-1.as)
+            draw.Output( "out_Color", rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
+            draw.Output( ds, DepthStencil(1.f, 0) );
+            draw.Layer( ERenderLayer::Opaque );
+            draw.EnableIfEqual( view_mode, 0 );
         }
         {
             RC<SceneRayTracingPass> pass = scene.AddRayTracingPass( "rtrace" );
             pass.SetPipeline( "samples/Model-RT-1.as" );    // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Model-RT-1.as)
-            pass.Set( camera );
             pass.ArgOut( "un_OutImage", rt );
             pass.Dispatch( rt.Dimension() );
             pass.EnableIfEqual( view_mode, 1 );

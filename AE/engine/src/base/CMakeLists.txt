@@ -33,6 +33,12 @@ if (TARGET "Abseil-lib")
     target_link_libraries( "Base" PUBLIC "Abseil-lib" )
 endif()
 
+if (TARGET "xxHash-lib")
+    target_link_libraries( "Base" PUBLIC "xxHash-lib" )
+endif()
+
+target_link_libraries( "Base" PUBLIC "FametaCounter-lib" )
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # for sockets
     target_link_libraries( "Base" PUBLIC "ws2_32" )

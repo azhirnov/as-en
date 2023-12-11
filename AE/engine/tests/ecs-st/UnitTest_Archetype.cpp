@@ -117,11 +117,11 @@ namespace
 
         // a1
         {
-            TEST( a1.Equals( a1 ));
-            TEST( not a1.Equals( a2 ));
-            TEST( not a1.Equals( a3 ));
-            TEST( not a1.Equals( a4 ));
-            TEST( not a1.Equals( a5 ));
+            TEST( a1.Equal( a1 ));
+            TEST( not a1.Equal( a2 ));
+            TEST( not a1.Equal( a3 ));
+            TEST( not a1.Equal( a4 ));
+            TEST( not a1.Equal( a5 ));
 
             TEST( a1.Any( a2 ));
             TEST( a1.Any( a3 ));
@@ -136,11 +136,11 @@ namespace
 
         // a2
         {
-            TEST( not a2.Equals( a1 ));
-            TEST( a2.Equals( a2 ));
-            TEST( not a2.Equals( a3 ));
-            TEST( not a2.Equals( a4 ));
-            TEST( not a2.Equals( a5 ));
+            TEST( not a2.Equal( a1 ));
+            TEST( a2.Equal( a2 ));
+            TEST( not a2.Equal( a3 ));
+            TEST( not a2.Equal( a4 ));
+            TEST( not a2.Equal( a5 ));
 
             TEST( not a2.All( a3 ));
             TEST( not a2.All( a4 ));
@@ -153,11 +153,11 @@ namespace
 
         // a3
         {
-            TEST( not a3.Equals( a1 ));
-            TEST( not a3.Equals( a2 ));
-            TEST( a3.Equals( a3 ));
-            TEST( not a3.Equals( a4 ));
-            TEST( not a3.Equals( a5 ));
+            TEST( not a3.Equal( a1 ));
+            TEST( not a3.Equal( a2 ));
+            TEST( a3.Equal( a3 ));
+            TEST( not a3.Equal( a4 ));
+            TEST( not a3.Equal( a5 ));
 
             TEST( not a3.All( a4 ));
             TEST( a3.All( a5 ));
@@ -168,19 +168,19 @@ namespace
 
         // a4
         {
-            TEST( not a4.Equals( a1 ));
-            TEST( not a4.Equals( a2 ));
-            TEST( not a4.Equals( a3 ));
-            TEST( a4.Equals( a4 ));
-            TEST( not a4.Equals( a5 ));
+            TEST( not a4.Equal( a1 ));
+            TEST( not a4.Equal( a2 ));
+            TEST( not a4.Equal( a3 ));
+            TEST( a4.Equal( a4 ));
+            TEST( not a4.Equal( a5 ));
 
-            TEST( not a4.Equals( a1 ));
+            TEST( not a4.Equal( a1 ));
             TEST( a4.All( a1 ));
             TEST( a4.Any( a1 ));
             TEST( a4.All( a5 ));
 
             a4.Remove<Tag2>();
-            TEST( a4.Equals( a1 ));
+            TEST( a4.Equal( a1 ));
             TEST( a1.All( a4 ));
         }
 

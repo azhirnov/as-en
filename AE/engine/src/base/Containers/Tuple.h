@@ -43,20 +43,20 @@ namespace _hidden_
     // methods
         constexpr Tuple ()                                          __NE___ = default;
 
-        constexpr Tuple (const Self &)                              __Th___ = default;
+        constexpr Tuple (const Self &)                              __NE___ = default;
         constexpr Tuple (Self &&)                                   __NE___ = default;
 
         template <typename ...UTypes>
-        constexpr explicit Tuple (UTypes&& ...args)                 __Th___ : Base_t{ FwdArg<UTypes>(args)... } {}
+        constexpr explicit Tuple (UTypes&& ...args)                 __NE___ : Base_t{ FwdArg<UTypes>(args)... } {}
 
         template <typename ...UTypes>
-        constexpr Tuple (const Tuple<UTypes...> &other)             __Th___ : Base_t{ other.AsBase() } {}
+        constexpr Tuple (const Tuple<UTypes...> &other)             __NE___ : Base_t{ other.AsBase() } {}
 
         template <typename ...UTypes>
-        constexpr Tuple (Tuple<UTypes...>&& other)                  __Th___ : Base_t{ RVRef(other).AsBase() } {}
+        constexpr Tuple (Tuple<UTypes...>&& other)                  __NE___ : Base_t{ RVRef(other).AsBase() } {}
 
 
-        constexpr Self&  operator = (const Self &)                  __Th___ = default;
+        constexpr Self&  operator = (const Self &)                  __NE___ = default;
         constexpr Self&  operator = (Self &&)                       __NE___ = default;
 
         template <typename ...UTypes>
@@ -101,16 +101,16 @@ namespace _hidden_
         ND_ HashVal                     CalcHash ()                 C_NE___ { return _RecursiveCalcHash<0>(); }
 
         template <typename ...Args>
-        constexpr void                  Set (Args && ...args)       __Th___ { _RecursiveSet<0>( FwdArg<Args>(args)... ); }
+        constexpr void                  Set (Args&& ...args)        __NE___ { _RecursiveSet<0>( FwdArg<Args>(args)... ); }
 
         template <typename Fn>
-        constexpr decltype(auto)        Apply (Fn &&fn)             __Th___
+        constexpr decltype(auto)        Apply (Fn &&fn)             NoExcept(IsNothrowInvocable< Fn, Types&... >)
         {
             return std::apply( FwdArg<Fn>(fn), static_cast<Base_t &>(*this) );
         }
 
         template <typename Fn>
-        constexpr decltype(auto)        Apply (Fn &&fn)             C_Th___
+        constexpr decltype(auto)        Apply (Fn &&fn)             CNoExcept(IsNothrowInvocable< Fn, const Types&... >)
         {
             return std::apply( FwdArg<Fn>(fn), static_cast<const Base_t &>(*this) );
         }
@@ -126,8 +126,9 @@ namespace _hidden_
         }
 
         template <usize I, typename Arg0, typename ...Args>
-        constexpr void  _RecursiveSet (Arg0 &&arg0, Args&& ...args) __Th___
+        constexpr void  _RecursiveSet (Arg0 &&arg0, Args&& ...args) __NE___
         {
+            CheckNothrow( IsNoExcept( Get<I>() = FwdArg<Arg0>(arg0) ));
             Get<I>() = FwdArg<Arg0>(arg0);
 
             if constexpr( I+1 < sizeof... (Types) )
@@ -290,8 +291,8 @@ namespace _hidden_
     template <typename Tuple1, typename Tuple2>
     ND_ constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2) __Th___
     {
-        STATIC_ASSERT( IsTuple<Tuple1> );
-        STATIC_ASSERT( IsTuple<Tuple2> );
+        StaticAssert( IsTuple<Tuple1> );
+        StaticAssert( IsTuple<Tuple2> );
         return Base::_hidden_::_TupleConcat( FwdArg<Tuple1>(tuple1), FwdArg<Tuple2>(tuple2),
                                              typename RemoveCVRef< Tuple1 >::Indices_t{},
                                              typename RemoveCVRef< Tuple2 >::Indices_t{} );

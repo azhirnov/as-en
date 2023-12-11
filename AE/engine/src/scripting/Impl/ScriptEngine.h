@@ -155,7 +155,7 @@ namespace AE::Scripting
       #endif
 
         ND_ bool  Create (Bool genCppHeader = False{})                                              __NE___;
-        ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})            __NE___;
+        ND_ bool  Create (AngelScript::asIScriptEngine* se, Bool genCppHeader = False{})            __NE___;
 
         ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource>  src,
                                            ArrayView<StringView>    defines     = Default,
@@ -213,7 +213,7 @@ namespace AE::Scripting
     private:
         ND_ bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);
 
-            static void  _MessageCallback (const AngelScript::asSMessageInfo *msg, void *param);
+            static void  _MessageCallback (const AngelScript::asSMessageInfo* msg, void* param);
 
         ND_ static bool  _Preprocessor (StringView str,
                                         OUT String &,

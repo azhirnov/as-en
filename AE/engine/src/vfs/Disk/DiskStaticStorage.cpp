@@ -8,17 +8,17 @@ namespace AE::VFS
 
 /*
 =================================================
-    Create
+    _Create
 =================================================
 */
-    bool  DiskStaticStorage::Create (const Path &folder, StringView prefix) __NE___
+    bool  DiskStaticStorage::_Create (const Path &folder, StringView prefix) __NE___
     {
-        CATCH_ERR(
-            return _Create( folder, prefix );
+        NOTHROW_ERR(
+            return _Create2( folder, prefix );
         )
     }
 
-    bool  DiskStaticStorage::_Create (const Path &folder, StringView prefix) __Th___
+    bool  DiskStaticStorage::_Create2 (const Path &folder, StringView prefix) __Th___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -117,7 +117,7 @@ namespace AE::VFS
             Path    path{ _folder };
             path /= Path{ iter->second };
 
-            auto    file = MakeRC<ImplType>( path );    // throw
+            auto    file = MakeRC<ImplType>( path );
             if_likely( file->IsOpen() )
             {
                 result = file;
@@ -189,6 +189,32 @@ namespace AE::VFS
 
 /*
 =================================================
+    _OpenByIter
+=================================================
+*/
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<WStream> &stream, FileNameRef name, const void* ref) C_NE___
+    {
+        return _OpenByIter2<FileWStream>( OUT stream, name, ref );
+    }
+
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<WDataSource> &ds, FileNameRef name, const void* ref) C_NE___
+    {
+        return _OpenByIter2<FileWDataSource>( OUT ds, name, ref );
+    }
+
+    bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncWDataSource> &ds, FileNameRef name, const void* ref) C_NE___
+    {
+    #if defined(AE_PLATFORM_WINDOWS)
+        return _OpenByIter2< Threading::WinAsyncWDataSource >( OUT ds, name, ref );
+
+    #else
+        Unused( ds, name, ref );
+        return false;
+    #endif
+    }
+
+/*
+=================================================
     _OpenByIter2
 =================================================
 */
@@ -223,8 +249,8 @@ namespace AE::VFS
 */
     RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticFolder (const Path &folder, StringView prefix) __NE___
     {
-        auto    result = MakeRC<DiskStaticStorage>();
-        CHECK_ERR( result->Create( folder, prefix ));
+        auto    result = RC<DiskStaticStorage>{ new DiskStaticStorage{}};
+        CHECK_ERR( result->_Create( folder, prefix ));
         return result;
     }
 

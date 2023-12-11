@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Memory/AllocatorFwdDecl.h"
-#include "base/Memory/AllocatorHelper.h"
+#include "base/Memory/IAllocator.h"
 #include "base/Containers/FixedArray.h"
 
 namespace AE::Base
@@ -14,14 +13,12 @@ namespace AE::Base
     //
 
     template <typename AllocatorType, uint MaxBlocks>
-    class LinearAllocator< AllocatorType, MaxBlocks, false > final : public MovableOnly
+    class LinearAllocator< AllocatorType, MaxBlocks, false > final : public IAllocator
     {
     // types
     public:
         using Allocator_t   = AllocatorType;
         using Self          = LinearAllocator< AllocatorType, MaxBlocks, false >;
-
-        static constexpr bool   IsThreadSafe = false;
 
     private:
         struct Block
@@ -48,29 +45,31 @@ namespace AE::Base
 
     // methods
     public:
-        LinearAllocator ()                                      __NE___ {}
-        LinearAllocator (Self &&other)                          __NE___ ;
-        explicit LinearAllocator (const Allocator_t &alloc)     __NE___ : _alloc{alloc}             {}
-        explicit LinearAllocator (Bytes blockSize)              __NE___ : _blockSize{ blockSize }   {}
-        ~LinearAllocator ()                                     __NE___ { Release(); }
+        LinearAllocator ()                                          __NE___ {}
+        LinearAllocator (Self &&other)                              __NE___ ;
+        explicit LinearAllocator (const Allocator_t &alloc)         __NE___ : _alloc{alloc}             {}
+        explicit LinearAllocator (Bytes blockSize)                  __NE___ : _blockSize{ blockSize }   {}
+        ~LinearAllocator ()                                         __NE_OV { Release(); }
 
-        Self&  operator = (Self &&rhs)                          __NE___;
+            Self&   operator = (Self &&rhs)                         __NE___;
 
-        void  SetBlockSize (Bytes size)                         __NE___ { _blockSize = size; }
+            void    SetBlockSize (Bytes size)                       __NE___ { _blockSize = size; }
 
-        template <typename T>
-        ND_ T*      Allocate (usize count = 1)                  __NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
-        ND_ void*   Allocate (const SizeAndAlign)               __NE___;
+            void    Discard ()                                      __NE___;
+            void    Release ()                                      __NE___;
 
-        void  Deallocate (void *ptr)                            __NE___ { Deallocate( ptr, 1_b ); }
-        void  Deallocate (void *ptr, Bytes size)                __NE___;
-        void  Deallocate (void *ptr, const SizeAndAlign sa)     __NE___ { Deallocate( ptr, sa.size ); }
+        ND_ Bytes               TotalSize ()                        C_NE___;
+        ND_ ArrayView<Block>    GetBlocks ()                        C_NE___ { return _blocks; }
 
-        void  Discard ()                                        __NE___;
-        void  Release ()                                        __NE___;
 
-        ND_ Bytes               TotalSize ()                    C_NE___;
-        ND_ ArrayView<Block>    GetBlocks ()                    C_NE___ { return _blocks; }
+        // IAllocator //
+        ND_ void*   Allocate (const SizeAndAlign)                   __NE_OV;
+
+            void    Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
+            void    Deallocate (void* ptr, Bytes size)              __NE_OV;
+            void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
+
+            using IAllocator::Allocate;
     };
 
 
@@ -157,7 +156,7 @@ namespace AE::Base
 =================================================
 */
     template <typename A, uint MB>
-    void  LinearAllocator<A,MB,false>::Deallocate (void *ptr, Bytes size) __NE___
+    void  LinearAllocator<A,MB,false>::Deallocate (void* ptr, Bytes size) __NE___
     {
     #ifdef AE_DEBUG
         for (auto& block : _blocks)

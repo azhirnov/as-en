@@ -84,7 +84,7 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightColor, const float3
             float   alpha   = rough * rough;
             float   alpha2  = alpha * alpha;
             float   denom   = n_dot_h * n_dot_h * (alpha2 - 1.0f) + 1.0f;
-            D = (alpha2) / (Pi() * denom*denom); 
+            D = (alpha2) / (Pi() * denom*denom);
         }
 
         float  G;
@@ -99,7 +99,7 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightColor, const float3
         float3 F;
         {
             float3  F0 = Lerp( float3(0.04f), albedo, metallic );
-            F = F0 + (1.0f - F0) * Pow( 1.0f - n_dot_v, 5.0f ); 
+            F = F0 + (1.0f - F0) * Pow( 1.0f - n_dot_v, 5.0f );
         }
 
         float3  spec = D * F * G / (4.0f * n_dot_l * n_dot_v);

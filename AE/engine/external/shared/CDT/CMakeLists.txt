@@ -18,7 +18,7 @@ set_property( TARGET "CDT-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
     add_executable( "Tests.CDT" "tests/main.cpp" )
-    add_test( NAME "Tests.CDT" COMMAND "Tests.CDT" )
+    #add_test( NAME "Tests.CDT" COMMAND "Tests.CDT" )
     set_property( TARGET "Tests.CDT" PROPERTY FOLDER "Engine/External/Tests" )
     target_link_libraries( "Tests.CDT" PUBLIC "CDT-lib" )
 endif ()

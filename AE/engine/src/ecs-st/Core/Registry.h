@@ -40,8 +40,8 @@ namespace AE::ECS
             using Ctor_t = void (*) (void *);
 
             Ctor_t      ctor        = null;
-            Bytes16u    align;
-            Bytes16u    size;
+            Byte16u     align;
+            Byte16u     size;
             bool        created     = false;
 
             DEBUG_ONLY(

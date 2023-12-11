@@ -70,7 +70,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const ColorBuffer &rhs)    C_NE___;
             ND_ HashVal CalcHash ()                             C_NE___;
         };
-        STATIC_ASSERT( sizeof(ColorBuffer) == 8 );
+        StaticAssert( sizeof(ColorBuffer) == 8 );
 
 
         //
@@ -92,7 +92,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const ColorBuffersState &rhs)  C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(ColorBuffersState) == 84 );
+        StaticAssert( sizeof(ColorBuffersState) == 84 );
 
 
         //
@@ -115,7 +115,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const StencilFaceState &rhs)   C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(StencilFaceState) == 7 );
+        StaticAssert( sizeof(StencilFaceState) == 7 );
 
 
         //
@@ -134,7 +134,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const StencilBufferState &rhs) C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(StencilBufferState) == 15 );
+        StaticAssert( sizeof(StencilBufferState) == 15 );
 
 
         //
@@ -156,7 +156,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const DepthBufferState &rhs)   C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(DepthBufferState) == 12 );
+        StaticAssert( sizeof(DepthBufferState) == 12 );
 
 
         //
@@ -174,7 +174,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const InputAssemblyState &rhs) C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(InputAssemblyState) == 2 );
+        StaticAssert( sizeof(InputAssemblyState) == 2 );
 
 
         //
@@ -204,7 +204,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const RasterizationState &rhs) C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(RasterizationState) == 20 );
+        StaticAssert( sizeof(RasterizationState) == 20 );
 
 
         //
@@ -214,7 +214,7 @@ namespace AE::Graphics
         {
         // types
             //using SampleMask  = StaticArray< uint, GraphicsConfig::MaxSamples / CT_SizeOfInBits<uint> >;
-            STATIC_ASSERT( GraphicsConfig::MaxSamples / CT_SizeOfInBits<uint> == 1 );
+            StaticAssert( GraphicsConfig::MaxSamples / CT_SizeOfInBits<uint> == 1 );
 
         // variables
             uint                sampleMask          = UMax;
@@ -231,7 +231,7 @@ namespace AE::Graphics
             ND_ bool    operator == (const MultisampleState &rhs)   C_NE___;
             ND_ HashVal CalcHash ()                                 C_NE___;
         };
-        STATIC_ASSERT( sizeof(MultisampleState) == 12 );
+        StaticAssert( sizeof(MultisampleState) == 12 );
 
 
     // variables
@@ -254,7 +254,7 @@ namespace AE::Graphics
             void    Set (const MDepthStencilState &ds, const MDynamicRenderState &rs)   __NE___;
             void    SetDefault (EPipelineDynamicState)                                  __NE___;
     };
-    STATIC_ASSERT( sizeof(RenderState) == 148 );
+    StaticAssert( sizeof(RenderState) == 148 );
 
 
 

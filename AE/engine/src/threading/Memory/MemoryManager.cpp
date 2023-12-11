@@ -67,20 +67,15 @@ namespace AE::Threading
 
 /*
 =================================================
-    CreateInstance
+    InstanceCtor
 =================================================
 */
-    void  MemoryManagerImpl::TaskSchedulerApi::CreateInstance () __NE___
+    void  MemoryManagerImpl::InstanceCtor::Create () __NE___
     {
         s_MemoryManager.Create();
     }
 
-/*
-=================================================
-    DestroyInstance
-=================================================
-*/
-    void  MemoryManagerImpl::TaskSchedulerApi::DestroyInstance () __NE___
+    void  MemoryManagerImpl::InstanceCtor::Destroy () __NE___
     {
         s_MemoryManager.Destroy();
     }
@@ -93,7 +88,7 @@ namespace AE::Threading
     void  MemoryManagerImpl::SetProfiler (RC<IMemoryProfiler> profiler) __NE___
     {
         PROFILE_ONLY(
-            _profiler = RVRef(profiler);
+            _profiler.store( RVRef(profiler) );
         )
     }
 //-----------------------------------------------------------------------------
@@ -104,7 +99,7 @@ namespace AE::Threading
     TsSharedMem::Create
 =================================================
 */
-    RC<TsSharedMem>  TsSharedMem::Create (Allocator_t alloc, Bytes size, Bytes align) __NE___
+    RC<TsSharedMem>  TsSharedMem::Create (RC<IAllocator> alloc, Bytes size, Bytes align) __NE___
     {
         if_likely( alloc and size > 0 )
         {
@@ -117,9 +112,9 @@ namespace AE::Threading
         return Default;
     }
 
-    RC<TsSharedMem>  TsSharedMem::Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign) __NE___
+    RC<TsSharedMem>  TsSharedMem::Create (RC<IAllocator> alloc, const SizeAndAlign sizeAndAlign) __NE___
     {
-        return TsSharedMem::Create( alloc, sizeAndAlign.size, sizeAndAlign.align );
+        return TsSharedMem::Create( RVRef(alloc), sizeAndAlign.size, sizeAndAlign.align );
     }
 
     RC<TsSharedMem>  TsSharedMem::Create (Bytes size, Bytes align) __NE___

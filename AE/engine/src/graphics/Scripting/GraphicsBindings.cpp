@@ -21,14 +21,23 @@ namespace
     {
         EnumBinder<EImage>  binder{ se };
         binder.Create();
-        binder.AddValue( "1D",          EImage::_1D );
-        binder.AddValue( "2D",          EImage::_2D );
-        binder.AddValue( "3D",          EImage::_3D );
-        binder.AddValue( "1DArray",     EImage::_1DArray );
-        binder.AddValue( "2DArray",     EImage::_2DArray );
-        binder.AddValue( "Cube",        EImage::Cube );
-        binder.AddValue( "CubeArray",   EImage::CubeArray );
-        STATIC_ASSERT( uint(EImage::_Count) == 7 );
+        BEGIN_ENUM_CHECKS();
+        switch ( EImage(0) )
+        {
+            #define BIND( _name_ )  case EImage_ ## _name_ : binder.AddValue( #_name_, EImage_ ## _name_ )
+            BIND( 1D );
+            BIND( 2D );
+            BIND( 3D );
+            BIND( 1DArray );
+            BIND( 2DArray );
+            BIND( Cube );
+            BIND( CubeArray );
+            case EImage::_Count :
+            case EImage::Unknown :
+            default :               break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -42,7 +51,7 @@ namespace
         binder.Create();
         binder.AddValue( "UShort",      EIndex::UShort );
         binder.AddValue( "UInt",        EIndex::UInt );
-        STATIC_ASSERT( uint(EIndex::_Count) == 2 );
+        StaticAssert( uint(EIndex::_Count) == 2 );
     }
 
 /*
@@ -75,7 +84,7 @@ namespace
         binder.AddValue( "Load",        EAttachmentLoadOp::Load );
         binder.AddValue( "Clear",       EAttachmentLoadOp::Clear );
         binder.AddValue( "None",        EAttachmentLoadOp::None );
-        STATIC_ASSERT( uint(EAttachmentLoadOp::_Count) == 4 );
+        StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
     }
 
 /*
@@ -90,7 +99,7 @@ namespace
         binder.AddValue( "Invalidate",  EAttachmentStoreOp::Invalidate );
         binder.AddValue( "Store",       EAttachmentStoreOp::Store );
         binder.AddValue( "None",        EAttachmentStoreOp::None );
-        STATIC_ASSERT( uint(EAttachmentStoreOp::_Count) == 4 );
+        StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
     }
 
 /*
@@ -102,19 +111,28 @@ namespace
     {
         EnumBinder<ECompareOp>  binder{ se };
         binder.Create();
-        binder.AddValue( "Never",       ECompareOp::Never );
-        binder.AddValue( "Less",        ECompareOp::Less );
-        binder.AddValue( "Equal",       ECompareOp::Equal );
-        binder.AddValue( "LEqual",      ECompareOp::LEqual );
-        binder.AddValue( "Greater",     ECompareOp::Greater );
-        binder.AddValue( "NotEqual",    ECompareOp::NotEqual );
-        binder.AddValue( "GEqual",      ECompareOp::GEqual );
-        binder.AddValue( "Always",      ECompareOp::Always );
-        STATIC_ASSERT( uint(ECompareOp::_Count) == 8 );
-
-        // alias
-        binder.AddValue( "LessOrEqual",     ECompareOp::LEqual );
-        binder.AddValue( "GreaterOrEqual",  ECompareOp::GEqual );
+        BEGIN_ENUM_CHECKS();
+        switch ( ECompareOp(0) )
+        {
+            #define BIND( _name_ )  case ECompareOp::_name_ : binder.AddValue( #_name_, ECompareOp::_name_ )
+            BIND( Never );
+            BIND( Less );
+            BIND( Equal );
+            BIND( LEqual );
+            BIND( Greater );
+            BIND( NotEqual );
+            BIND( GEqual );
+            BIND( Always );
+            case ECompareOp::_Count :
+            case ECompareOp::Unknown :
+            default :
+                // alias
+                binder.AddValue( "LessOrEqual",     ECompareOp::LEqual );
+                binder.AddValue( "GreaterOrEqual",  ECompareOp::GEqual );
+                break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -126,26 +144,35 @@ namespace
     {
         EnumBinder<EBlendFactor>    binder{ se };
         binder.Create();
-        binder.AddValue( "Zero",                EBlendFactor::Zero );
-        binder.AddValue( "One",                 EBlendFactor::One );
-        binder.AddValue( "SrcColor",            EBlendFactor::SrcColor );
-        binder.AddValue( "OneMinusSrcColor",    EBlendFactor::OneMinusSrcColor );
-        binder.AddValue( "DstColor",            EBlendFactor::DstColor );
-        binder.AddValue( "OneMinusDstColor",    EBlendFactor::OneMinusDstColor );
-        binder.AddValue( "SrcAlpha",            EBlendFactor::SrcAlpha );
-        binder.AddValue( "OneMinusSrcAlpha",    EBlendFactor::OneMinusSrcAlpha );
-        binder.AddValue( "DstAlpha",            EBlendFactor::DstAlpha );
-        binder.AddValue( "OneMinusDstAlpha",    EBlendFactor::OneMinusDstAlpha );
-        binder.AddValue( "ConstColor",          EBlendFactor::ConstColor );
-        binder.AddValue( "OneMinusConstColor",  EBlendFactor::OneMinusConstColor );
-        binder.AddValue( "ConstAlpha",          EBlendFactor::ConstAlpha );
-        binder.AddValue( "OneMinusConstAlpha",  EBlendFactor::OneMinusConstAlpha );
-        binder.AddValue( "SrcAlphaSaturate",    EBlendFactor::SrcAlphaSaturate );
-        binder.AddValue( "Src1Color",           EBlendFactor::Src1Color );
-        binder.AddValue( "OneMinusSrc1Color",   EBlendFactor::OneMinusSrc1Color );
-        binder.AddValue( "Src1Alpha",           EBlendFactor::Src1Alpha );
-        binder.AddValue( "OneMinusSrc1Alpha",   EBlendFactor::OneMinusSrc1Alpha );
-        STATIC_ASSERT( uint(EBlendFactor::_Count) == 19 );
+        BEGIN_ENUM_CHECKS();
+        switch ( EBlendFactor(0) )
+        {
+            #define BIND( _name_ )  case EBlendFactor::_name_ : binder.AddValue( #_name_, EBlendFactor::_name_ )
+            BIND( Zero );
+            BIND( One );
+            BIND( SrcColor );
+            BIND( OneMinusSrcColor );
+            BIND( DstColor );
+            BIND( OneMinusDstColor );
+            BIND( SrcAlpha );
+            BIND( OneMinusSrcAlpha );
+            BIND( DstAlpha );
+            BIND( OneMinusDstAlpha );
+            BIND( ConstColor );
+            BIND( OneMinusConstColor );
+            BIND( ConstAlpha );
+            BIND( OneMinusConstAlpha );
+            BIND( SrcAlphaSaturate );
+            BIND( Src1Color );
+            BIND( OneMinusSrc1Color );
+            BIND( Src1Alpha );
+            BIND( OneMinusSrc1Alpha );
+            case EBlendFactor::_Count :
+            case EBlendFactor::Unknown :
+            default : break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -162,7 +189,7 @@ namespace
         binder.AddValue( "RevSub",  EBlendOp::RevSub );
         binder.AddValue( "Min",     EBlendOp::Min );
         binder.AddValue( "Max",     EBlendOp::Max );
-        STATIC_ASSERT( uint(EBlendOp::_Count) == 5 );
+        StaticAssert( uint(EBlendOp::_Count) == 5 );
     }
 
 /*
@@ -174,24 +201,33 @@ namespace
     {
         EnumBinder<ELogicOp>    binder{ se };
         binder.Create();
-        binder.AddValue( "None",        ELogicOp::None );
-        binder.AddValue( "Clear",       ELogicOp::Clear );
-        binder.AddValue( "Set",         ELogicOp::Set );
-        binder.AddValue( "Copy",        ELogicOp::Copy );
-        binder.AddValue( "CopyInverted",ELogicOp::CopyInverted );
-        binder.AddValue( "NoOp",        ELogicOp::NoOp );
-        binder.AddValue( "Invert",      ELogicOp::Invert );
-        binder.AddValue( "And",         ELogicOp::And );
-        binder.AddValue( "NotAnd",      ELogicOp::NotAnd );
-        binder.AddValue( "Or",          ELogicOp::Or );
-        binder.AddValue( "NotOr",       ELogicOp::NotOr );
-        binder.AddValue( "Xor",         ELogicOp::Xor );
-        binder.AddValue( "Equiv",       ELogicOp::Equiv );
-        binder.AddValue( "AndReverse",  ELogicOp::AndReverse );
-        binder.AddValue( "AndInverted", ELogicOp::AndInverted );
-        binder.AddValue( "OrReverse",   ELogicOp::OrReverse );
-        binder.AddValue( "OrInverted",  ELogicOp::OrInverted );
-        STATIC_ASSERT( uint(ELogicOp::_Count) == 17 );
+        BEGIN_ENUM_CHECKS();
+        switch ( ELogicOp(0) )
+        {
+            #define BIND( _name_ )  case ELogicOp::_name_ : binder.AddValue( #_name_, ELogicOp::_name_ )
+            BIND( None );
+            BIND( Clear );
+            BIND( Set );
+            BIND( Copy );
+            BIND( CopyInverted );
+            BIND( NoOp );
+            BIND( Invert );
+            BIND( And );
+            BIND( NotAnd );
+            BIND( Or );
+            BIND( NotOr );
+            BIND( Xor );
+            BIND( Equiv );
+            BIND( AndReverse );
+            BIND( AndInverted );
+            BIND( OrReverse );
+            BIND( OrInverted );
+            case ELogicOp::_Count :
+            case ELogicOp::Unknown :
+            default : break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -211,7 +247,7 @@ namespace
         binder.AddValue( "Decr",        EStencilOp::Decr );
         binder.AddValue( "DecrWrap",    EStencilOp::DecrWrap );
         binder.AddValue( "Invert",      EStencilOp::Invert );
-        STATIC_ASSERT( uint(EStencilOp::_Count) == 8 );
+        StaticAssert( uint(EStencilOp::_Count) == 8 );
     }
 
 /*
@@ -226,7 +262,7 @@ namespace
         binder.AddValue( "Point",   EPolygonMode::Point );
         binder.AddValue( "Line",    EPolygonMode::Line );
         binder.AddValue( "Fill",    EPolygonMode::Fill );
-        STATIC_ASSERT( uint(EPolygonMode::_Count) == 3 );
+        StaticAssert( uint(EPolygonMode::_Count) == 3 );
     }
 
 /*
@@ -249,7 +285,7 @@ namespace
         binder.AddValue( "TriangleListAdjacency",   EPrimitive::TriangleListAdjacency );
         binder.AddValue( "TriangleStripAdjacency",  EPrimitive::TriangleStripAdjacency );
         binder.AddValue( "Patch",                   EPrimitive::Patch );
-        STATIC_ASSERT( uint(EPrimitive::_Count) == 11 );
+        StaticAssert( uint(EPrimitive::_Count) == 11 );
     }
 
 /*
@@ -265,7 +301,7 @@ namespace
         binder.AddValue( "Front",       ECullMode::Front );
         binder.AddValue( "Back",        ECullMode::Back );
         binder.AddValue( "FontAndBack", ECullMode::FontAndBack );
-        STATIC_ASSERT( uint(ECullMode::_Last) == 3 );
+        StaticAssert( uint(ECullMode::_Last) == 3 );
     }
 
 /*
@@ -277,16 +313,25 @@ namespace
     {
         EnumBinder<EPipelineDynamicState>   binder{ se };
         binder.Create();
-        binder.AddValue( "None",                EPipelineDynamicState::Unknown );
-        binder.AddValue( "StencilCompareMask",  EPipelineDynamicState::StencilCompareMask );
-        binder.AddValue( "StencilWriteMask",    EPipelineDynamicState::StencilWriteMask );
-        binder.AddValue( "StencilReference",    EPipelineDynamicState::StencilReference );
-        binder.AddValue( "DepthBias",           EPipelineDynamicState::DepthBias );
-        binder.AddValue( "BlendConstants",      EPipelineDynamicState::BlendConstants );
-        //binder.AddValue( "DepthBounds",       EPipelineDynamicState::DepthBounds );
-        binder.AddValue( "RTStackSize",         EPipelineDynamicState::RTStackSize );
-        binder.AddValue( "FragmentShadingRate", EPipelineDynamicState::FragmentShadingRate );
-        STATIC_ASSERT( uint(EPipelineDynamicState::_Last) == 129 );
+        BEGIN_ENUM_CHECKS();
+        switch ( EPipelineDynamicState::Unknown )
+        {
+            #define BIND( _name_ )  case EPipelineDynamicState::_name_ : binder.AddValue( #_name_, EPipelineDynamicState::_name_ )
+            case EPipelineDynamicState::Unknown :   binder.AddValue( "None", EPipelineDynamicState::Unknown );
+            BIND( StencilCompareMask );
+            BIND( StencilWriteMask );
+            BIND( StencilReference );
+            BIND( DepthBias );
+            BIND( BlendConstants );
+            BIND( RTStackSize );
+            BIND( FragmentShadingRate );
+            case EPipelineDynamicState::_Last :
+            case EPipelineDynamicState::All :
+            case EPipelineDynamicState::GraphicsPipelineMask :
+            default : break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -305,7 +350,7 @@ namespace
         binder.AddValue( "Plane_0",     EImageAspect::Plane_0 );
         binder.AddValue( "Plane_1",     EImageAspect::Plane_1 );
         binder.AddValue( "Plane_2",     EImageAspect::Plane_2 );
-        STATIC_ASSERT( uint(EImageAspect::_Last) == 65 );
+        StaticAssert( uint(EImageAspect::_Last) == 65 );
     }
 
 /*
@@ -329,7 +374,7 @@ namespace
         binder.AddValue( "Depth",       EShaderIO::Depth );
         binder.AddValue( "Stencil",     EShaderIO::Stencil );
         binder.AddValue( "DepthStencil",EShaderIO::DepthStencil );
-        STATIC_ASSERT( uint(EShaderIO::_Count) == 13 );
+        StaticAssert( uint(EShaderIO::_Count) == 13 );
     }
 
 /*
@@ -347,7 +392,7 @@ namespace
         binder.AddValue( "Int16",   ESubgroupTypes::Int16 );
         binder.AddValue( "Int32",   ESubgroupTypes::Int32 );
         binder.AddValue( "Int64",   ESubgroupTypes::Int64 );
-        STATIC_ASSERT( uint(ESubgroupTypes::All) == 63 );
+        StaticAssert( uint(ESubgroupTypes::All) == 63 );
     }
 
 /*
@@ -436,7 +481,7 @@ namespace
         binder.AddValue( "_Clustered_End",          ESubgroupOperation::_Clustered_End );
         binder.AddValue( "_Quad_Begin",             ESubgroupOperation::_Quad_Begin );
         binder.AddValue( "_Quad_End",               ESubgroupOperation::_Quad_End );
-        STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 52 );
+        StaticAssert( uint(ESubgroupOperation::_Count) == 52 );
     }
 
 /*
@@ -451,7 +496,7 @@ namespace
         binder.AddValue( "Ignore",          EFeature::Ignore );
         binder.AddValue( "RequireTrue",     EFeature::RequireTrue );
         binder.AddValue( "RequireFalse",    EFeature::RequireFalse );
-        STATIC_ASSERT( uint(EFeature::_Count) == 3 );
+        StaticAssert( uint(EFeature::_Count) == 3 );
     }
 
 /*
@@ -478,7 +523,7 @@ namespace
         binder.AddValue( "RayMiss",         EShader::RayMiss );
         binder.AddValue( "RayIntersection", EShader::RayIntersection );
         binder.AddValue( "RayCallable",     EShader::RayCallable );
-        STATIC_ASSERT( uint(EShader::_Count) == 15 );
+        StaticAssert( uint(EShader::_Count) == 15 );
     }
 
 /*
@@ -514,7 +559,7 @@ namespace
         binder.AddValue( "VertexProcessingStages",  EShaderStages::VertexProcessingStages );
         binder.AddValue( "PreRasterizationStages",  EShaderStages::PreRasterizationStages );
         binder.AddValue( "PostRasterizationStages", EShaderStages::PostRasterizationStages );
-        STATIC_ASSERT( uint(EShaderStages::All) == 0x7FFF );
+        StaticAssert( uint(EShaderStages::All) == 0x7FFF );
     }
 
 /*
@@ -538,7 +583,7 @@ namespace
         binder.AddValue( "Broadcom",    EVendorID::Broadcom );
         binder.AddValue( "Samsung",     EVendorID::Samsung );
         binder.AddValue( "VeriSilicon", EVendorID::VeriSilicon );
-        STATIC_ASSERT( uint(EVendorID::_Count) == 12 );
+        StaticAssert( uint(EVendorID::_Count) == 12 );
     }
 
 /*
@@ -582,7 +627,7 @@ namespace
         binder.Create();
         binder.AddValue( "Nearest",     EFilter::Nearest );
         binder.AddValue( "Linear",      EFilter::Linear );
-        STATIC_ASSERT( uint(EFilter::_Count) == 2 );
+        StaticAssert( uint(EFilter::_Count) == 2 );
     }
 
 /*
@@ -597,7 +642,7 @@ namespace
         binder.AddValue( "None",        EMipmapFilter::None );
         binder.AddValue( "Nearest",     EMipmapFilter::Nearest );
         binder.AddValue( "Linear",      EMipmapFilter::Linear );
-        STATIC_ASSERT( uint(EMipmapFilter::_Count) == 3 );
+        StaticAssert( uint(EMipmapFilter::_Count) == 3 );
     }
 
 /*
@@ -617,7 +662,7 @@ namespace
         // alias:
         binder.AddValue( "Clamp",               EAddressMode::ClampToEdge );
         binder.AddValue( "MirrorClamp",         EAddressMode::MirrorClampToEdge );
-        STATIC_ASSERT( uint(EAddressMode::_Count) == 5 );
+        StaticAssert( uint(EAddressMode::_Count) == 5 );
     }
 
 /*
@@ -635,7 +680,7 @@ namespace
         binder.AddValue( "IntTransparentBlack",     EBorderColor::IntTransparentBlack );
         binder.AddValue( "IntOpaqueBlack",          EBorderColor::IntOpaqueBlack );
         binder.AddValue( "IntOpaqueWhite",          EBorderColor::IntOpaqueWhite );
-        STATIC_ASSERT( uint(EBorderColor::_Count) == 6 );
+        StaticAssert( uint(EBorderColor::_Count) == 6 );
     }
 
 /*
@@ -650,7 +695,7 @@ namespace
         binder.AddValue( "Average", EReductionMode::Average );
         binder.AddValue( "Min",     EReductionMode::Min );
         binder.AddValue( "Max",     EReductionMode::Max );
-        STATIC_ASSERT( uint(EReductionMode::_Count) == 3 );
+        StaticAssert( uint(EReductionMode::_Count) == 3 );
     }
 
 /*
@@ -663,9 +708,10 @@ namespace
         EnumBinder<ESamplerUsage>       binder{ se };
         binder.Create();
         binder.AddValue( "Default",                         ESamplerUsage::Default );
-        binder.AddValue( "Subsampled",                      ESamplerUsage::Subsampled );
-        binder.AddValue( "SubsampledCoarseReconstruction",  ESamplerUsage::SubsampledCoarseReconstruction );
-        STATIC_ASSERT( uint(ESamplerUsage::_Count) == 3 );
+    //  binder.AddValue( "Subsampled",                      ESamplerUsage::Subsampled );
+    //  binder.AddValue( "SubsampledCoarseReconstruction",  ESamplerUsage::SubsampledCoarseReconstruction );
+        binder.AddValue( "NonSeamlessCubeMap",              ESamplerUsage::NonSeamlessCubeMap );
+        StaticAssert( uint(ESamplerUsage::_Count) == 2 );
     }
 
 /*
@@ -694,7 +740,7 @@ namespace
         binder.AddValue( "UpdateTemplate",      EDescSetUsage::UpdateTemplate );
         binder.AddValue( "ArgumentBuffer",      EDescSetUsage::ArgumentBuffer );
         binder.AddValue( "MutableArgBuffer",    EDescSetUsage::MutableArgBuffer );
-        STATIC_ASSERT( uint(EDescSetUsage::All) == 0xF );
+        StaticAssert( uint(EDescSetUsage::All) == 0xF );
     }
 
 /*
@@ -706,15 +752,28 @@ namespace
     {
         EnumBinder<EPipelineOpt>    binder{ se };
         binder.Create();
-        binder.AddValue( "Optimize",                        EPipelineOpt::Optimize                      );
-        binder.AddValue( "CS_DispatchBase",                 EPipelineOpt::CS_DispatchBase               );
-        binder.AddValue( "RT_NoNullAnyHitShaders",          EPipelineOpt::RT_NoNullAnyHitShaders        );
-        binder.AddValue( "RT_NoNullClosestHitShaders",      EPipelineOpt::RT_NoNullClosestHitShaders    );
-        binder.AddValue( "RT_NoNullMissShaders",            EPipelineOpt::RT_NoNullMissShaders          );
-        binder.AddValue( "RT_NoNullIntersectionShaders",    EPipelineOpt::RT_NoNullIntersectionShaders  );
-        binder.AddValue( "RT_SkipTriangles",                EPipelineOpt::RT_SkipTriangles              );
-        binder.AddValue( "RT_SkipAABBs",                    EPipelineOpt::RT_SkipAABBs                  );
-        STATIC_ASSERT( uint(EPipelineOpt::All) == 0xFF );
+        BEGIN_ENUM_CHECKS();
+        switch ( EPipelineOpt::Unknown )
+        {
+            #define BIND( _name_ )  case EPipelineOpt::_name_ : binder.AddValue( #_name_, EPipelineOpt::_name_ )
+            case EPipelineOpt::Unknown :
+            BIND( Optimize );
+            BIND( CS_DispatchBase );
+            BIND( RT_NoNullAnyHitShaders );
+            BIND( RT_NoNullClosestHitShaders );
+            BIND( RT_NoNullMissShaders );
+            BIND( RT_NoNullIntersectionShaders );
+            BIND( RT_SkipTriangles );
+            BIND( RT_SkipAABBs );
+            BIND( DontCompile );
+            BIND( CaptureStatistics );
+            BIND( CaptureInternalRepresentation );
+            case EPipelineOpt::_Last :
+            case EPipelineOpt::All :
+            default : break;
+            #undef BIND
+        }
+        END_ENUM_CHECKS();
     }
 
 /*
@@ -731,7 +790,7 @@ namespace
         binder.AddValue( "AsyncTransfer",   EQueueMask::AsyncTransfer   );
         binder.AddValue( "VideoEncode",     EQueueMask::VideoEncode     );
         binder.AddValue( "VideoDecode",     EQueueMask::VideoDecode     );
-        STATIC_ASSERT( uint(EQueueMask::All) == 31 );
+        StaticAssert( uint(EQueueMask::All) == 31 );
     }
 
 /*
@@ -745,7 +804,7 @@ namespace
         binder.Create();
         binder.AddValue( "CositedEven",     ESamplerChromaLocation::CositedEven     );
         binder.AddValue( "Midpoint",        ESamplerChromaLocation::Midpoint        );
-        STATIC_ASSERT( uint(ESamplerChromaLocation::_Count) == 2 );
+        StaticAssert( uint(ESamplerChromaLocation::_Count) == 2 );
     }
 
 /*
@@ -762,7 +821,7 @@ namespace
         binder.AddValue( "Ycbcr_709",       ESamplerYcbcrModelConversion::Ycbcr_709     );
         binder.AddValue( "Ycbcr_601",       ESamplerYcbcrModelConversion::Ycbcr_601     );
         binder.AddValue( "Ycbcr_2020",      ESamplerYcbcrModelConversion::Ycbcr_2020    );
-        STATIC_ASSERT( uint(ESamplerYcbcrModelConversion::_Count) == 5 );
+        StaticAssert( uint(ESamplerYcbcrModelConversion::_Count) == 5 );
     }
 
 /*
@@ -776,7 +835,7 @@ namespace
         binder.Create();
         binder.AddValue( "ITU_Full",        ESamplerYcbcrRange::ITU_Full    );
         binder.AddValue( "ITU_Narrow",      ESamplerYcbcrRange::ITU_Narrow  );
-        STATIC_ASSERT( uint(ESamplerYcbcrRange::_Count) == 2 );
+        StaticAssert( uint(ESamplerYcbcrRange::_Count) == 2 );
     }
 
 /*
@@ -798,7 +857,7 @@ namespace
         binder.AddValue( "RGBA16F_BT2020_linear",           ESurfaceFormat::RGBA16F_BT2020_linear           );
         binder.AddValue( "RGB10A2_sRGB_nonlinear",          ESurfaceFormat::RGB10A2_sRGB_nonlinear          );
         binder.AddValue( "RGB10A2_HDR10_ST2084",            ESurfaceFormat::RGB10A2_HDR10_ST2084            );
-        STATIC_ASSERT( uint(ESurfaceFormat::_Count) == 10 );
+        StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
     }
 
 /*
@@ -816,7 +875,7 @@ namespace
         binder.AddValue( "ForceNonOpaque",      ERTInstanceOpt::ForceNonOpaque      );
         binder.AddValue( "TriangleCullBack",    ERTInstanceOpt::TriangleCullBack    );
         binder.AddValue( "TriangleFrontCW",     ERTInstanceOpt::TriangleFrontCW     );
-        STATIC_ASSERT( uint(ERTInstanceOpt::All) == 15 );
+        StaticAssert( uint(ERTInstanceOpt::All) == 15 );
     }
 
 /*
@@ -835,7 +894,7 @@ namespace
         #define BIND( _name_ )\
             case EResourceState::_name_ :  binder.AddValue( AE_TOSTRING(_name_), EResourceState::_name_ );
 
-            case EResourceState::_InvalidState :    break;
+            case EResourceState::_InvalidState :
             BIND( Unknown );
             BIND( Preserve );
             BIND( ShaderStorage_Read );
@@ -951,36 +1010,6 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-
-/*
-=================================================
-    Bind_RenderState_ColorBuffer_ColorPair
-=================================================
-*
-    template <typename T>
-    static void  RenderState_ColorBuffer_ColorPair_Set1 (RenderState::ColorBuffer::ColorPair<T> &self, T value) {
-        self.color  = value;
-        self.alpha  = value;
-    }
-
-    template <typename T>
-    static void  RenderState_ColorBuffer_ColorPair_Set2 (RenderState::ColorBuffer::ColorPair<T> &self, T color, T alpha) {
-        self.color  = color;
-        self.alpha  = alpha;
-    }
-
-    template <typename T>
-    static void  Bind_RenderState_ColorBuffer_ColorPair (const ScriptEnginePtr &se) __Th___
-    {
-        using ColorPair = RenderState::ColorBuffer::ColorPair<T>;
-
-        ClassBinder<ColorPair>  binder{ se };
-        binder.CreateClassValue();
-        binder.AddProperty( &ColorPair::color, "color" );
-        binder.AddProperty( &ColorPair::alpha, "alpha" );
-        binder.AddMethodFromGlobal( &RenderState_ColorBuffer_ColorPair_Set1<T>, "set" );
-        binder.AddMethodFromGlobal( &RenderState_ColorBuffer_ColorPair_Set2<T>, "set" );
-    }
 
 /*
 =================================================

@@ -10,7 +10,7 @@
 */
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "threading/DataSource/WinAsyncDataSource.h"
 
 namespace AE::Threading
@@ -66,16 +66,41 @@ namespace
 
 
 
+    class WindowsIOService::ReadRequestApi
+    {
+        friend class ReadRequest;
+        static void  Recycle (ReadRequest*) __NE___;
+    };
+
+    class WindowsIOService::AsyncRDataSourceApi
+    {
+        friend class WinAsyncRDataSource;
+        ND_ static bool  CreateResult (OUT AsyncDSRequest &, RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___;
+    };
+
+    class WindowsIOService::WriteRequestApi
+    {
+        friend class WriteRequest;
+        static void  Recycle (WriteRequest*) __NE___;
+    };
+
+    class WindowsIOService::AsyncWDataSourceApi
+    {
+        friend class WinAsyncWDataSource;
+        ND_ static bool  CreateResult (OUT AsyncDSRequest &, RC<WinAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___;
+    };
+//-----------------------------------------------------------------------------
+
+
+
 /*
 =================================================
     constructor
 =================================================
 */
-    WindowsIOService::_RequestBase::_RequestBase (Index_t idx) __NE___ :
-        _indexInPool{ idx }
+    WindowsIOService::_RequestBase::_RequestBase () __NE___
     {
-        STATIC_ASSERT( sizeof(_overlapped) == sizeof(OVERLAPPED) );
-        STATIC_ASSERT( OverlappedOffset == offsetof( _RequestBase, _overlapped ));
+        StaticAssert( sizeof(_overlapped) == sizeof(OVERLAPPED) );
     }
 
 /*
@@ -115,8 +140,7 @@ namespace
         SetOverlappedOffset( INOUT ov, pos );
 
         _memRC = RVRef(mem);
-
-        _actualSize.store( 0 );
+        _actualSize.store( 0_b );
 
         CHECK( _status.exchange( EStatus::InProgress ) == EStatus::Destroyed );
 
@@ -132,8 +156,7 @@ namespace
     void  WindowsIOService::_RequestBase::_Cleanup () __NE___
     {
         _memRC = null;
-
-        _actualSize.store( 0 );
+        _actualSize.store( 0_b );
 
         ASSERT( AnyEqual( _status.load(), EStatus::Cancelled, EStatus::Completed ));
         _status.store( EStatus::Destroyed );
@@ -151,7 +174,7 @@ namespace
 */
     void  WindowsIOService::_RequestBase::_Complete (const Bytes size, const long err, const void* ovPtr) __NE___
     {
-        _actualSize.store( uint(size) );
+        _actualSize.store( size );
 
         const auto*     ov = _overlapped.Ptr<OVERLAPPED>();
         ASSERT( ovPtr == ov );  Unused( ovPtr );
@@ -162,20 +185,7 @@ namespace
         ASSERT( complete );
         ASSERT( stat == EStatus::InProgress );  Unused( stat );
 
-        // allow to run tasks which waits when request is completed
-        {
-            EXLOCK( _depsGuard );
-            for (auto dep : _deps)
-            {
-                //  weak/strong & complete  -> complete
-                //  strong      & cancelled -> cancelled
-                //  weak        & cancelled -> complete
-                const bool  cancel = dep.Get<1>().isStrong and (not complete);
-
-                ITaskDependencyManager::_SetDependencyCompletionStatus( dep.Get<0>(), dep.Get<1>().bitIndex, cancel );
-            }
-            _deps.clear();
-        }
+        _SetDependencyCompleteStatus( complete );
 
         // Ref count was increased in '_Init()' to keep request alive until it is complete.
         // Cancelled request may be destroyed here, successfully completed request should not be destroyed here!
@@ -187,29 +197,6 @@ namespace
             DBG_CHECK_MSG( not complete or cnt > 1, "request complete but result is never used" );
         }
     }
-
-/*
-=================================================
-    _AddOnCompleteDependency
-=================================================
-*/
-    bool  WindowsIOService::_RequestBase::_AddOnCompleteDependency (AsyncTask task, INOUT uint &index, Bool isStrong) __NE___
-    {
-        EXLOCK( _depsGuard );
-
-        // skip dependency if already completed
-        if_unlikely( EStatus stat = Status();  stat > EStatus::_Finished )
-            return stat == EStatus::Completed;
-
-        CHECK_ERR( _deps.size() < _deps.capacity() );   // check for overflow
-
-        TaskDependency  bits;
-        bits.bitIndex   = index++;
-        bits.isStrong   = isStrong;
-
-        _deps.push_back( RVRef(task), bits );
-        return true;
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -219,7 +206,7 @@ namespace
     _Create
 =================================================
 */
-    bool  WindowsIOService::ReadRequest::_Create (RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<SharedMem> mem) __NE___
+    bool  WindowsIOService::ReadRequest::_Create (RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
     {
         ASSERT_LE( dataSize, MaxValue<DWORD>() );
 
@@ -276,7 +263,7 @@ namespace
 
         Result  res;
         res.pos         = GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-        res.dataSize    = Bytes{_actualSize.load()};
+        res.dataSize    = _actualSize.load();
         res.data        = IsCompleted() ? _data : null;
         return res;
     }
@@ -292,7 +279,7 @@ namespace
 
         ResultWithRC    res;
         res.pos         = GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-        res.dataSize    = Bytes{_actualSize.load()};
+        res.dataSize    = _actualSize.load();
         res.data        = IsCompleted() ? _data : null;
         res.rc          = _memRC;
         return res;
@@ -327,7 +314,7 @@ namespace
         }
         MemoryBarrier( EMemoryOrder::Release );
 
-        WindowsIOService::ReadRequestApi::Recycle( _indexInPool );
+        WindowsIOService::ReadRequestApi::Recycle( this );
     }
 //-----------------------------------------------------------------------------
 
@@ -393,7 +380,7 @@ namespace
 
         Result  res;
         res.pos         = GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-        res.dataSize    = Bytes{_actualSize.load()};
+        res.dataSize    = _actualSize.load();
         res.data        = null;
         return res;
     }
@@ -409,7 +396,7 @@ namespace
 
         ResultWithRC    res;
         res.pos         = GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-        res.dataSize    = Bytes{_actualSize.load()};
+        res.dataSize    = _actualSize.load();
         return res;
     }
 
@@ -441,7 +428,7 @@ namespace
         }
         MemoryBarrier( EMemoryOrder::Release );
 
-        WindowsIOService::WriteRequestApi::Recycle( _indexInPool );
+        WindowsIOService::WriteRequestApi::Recycle( this );
     }
 //-----------------------------------------------------------------------------
 
@@ -530,7 +517,7 @@ namespace
         AsyncDSRequest  req;
         if_likely( WindowsIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
         else
-            req = Cast<WindowsIOService>(Scheduler().GetFileIOService())->GetCancelledRequest();
+            req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
         return req;
     }
 
@@ -645,7 +632,7 @@ namespace
         AsyncDSRequest  req;
         if_likely( WindowsIOService::AsyncWDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncWDataSource>(), pos, data, dataSize, RVRef(mem) ));
         else
-            req = Cast<WindowsIOService>(Scheduler().GetFileIOService())->GetCancelledRequest();
+            req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
         return req;
     }
 
@@ -656,6 +643,8 @@ namespace
 */
     RC<SharedMem>  WinAsyncWDataSource::Alloc (const SizeAndAlign value) __NE___
     {
+        // TODO: use LfFixedBlockAllocator and MemChunkList
+
         return SharedMem::Create( AE::GetDefaultAllocator(), value );   // TODO: optimize
     }
 
@@ -689,11 +678,11 @@ namespace
     ReadRequestApi::Recycle
 =================================================
 */
-    void  WindowsIOService::ReadRequestApi::Recycle (Index_t indexInPool) __NE___
+    inline void  WindowsIOService::ReadRequestApi::Recycle (ReadRequest* ptr) __NE___
     {
         auto    self = Cast<WindowsIOService>(Scheduler().GetFileIOService());
 
-        CHECK( self->_readResultPool.Unassign( indexInPool ));
+        CHECK( self->_readResultPool.Unassign( ptr ));
     }
 
 /*
@@ -708,7 +697,7 @@ namespace
         auto    self = Cast<WindowsIOService>(Scheduler().GetFileIOService());
         Index_t index;
 
-        CHECK_ERR( self->_readResultPool.Assign( OUT index, [](auto* ptr, Index_t idx) { new(ptr) ReadRequest{ idx }; }));
+        CHECK_ERR( self->_readResultPool.Assign( OUT index ));
 
         // request may complete immediately
         RC<ReadRequest> res { &self->_readResultPool[ index ]};
@@ -719,6 +708,7 @@ namespace
             return true;
         }
 
+        UNTESTED;
         self->_readResultPool.Unassign( index );
         RETURN_ERR( "failed to allocate read result" );
     }
@@ -728,11 +718,11 @@ namespace
     WriteRequestApi::Recycle
 =================================================
 */
-    void  WindowsIOService::WriteRequestApi::Recycle (Index_t indexInPool) __NE___
+    inline void  WindowsIOService::WriteRequestApi::Recycle (WriteRequest* ptr) __NE___
     {
         auto    self = Cast<WindowsIOService>(Scheduler().GetFileIOService());
 
-        CHECK( self->_writeResultPool.Unassign( indexInPool ));
+        CHECK( self->_writeResultPool.Unassign( ptr ));
     }
 
 /*
@@ -747,7 +737,7 @@ namespace
         auto    self = Cast<WindowsIOService>(Scheduler().GetFileIOService());
         Index_t index;
 
-        CHECK_ERR( self->_writeResultPool.Assign( OUT index, [](auto* ptr, Index_t idx) { new(ptr) WriteRequest{ idx }; }));
+        CHECK_ERR( self->_writeResultPool.Assign( OUT index ));
 
         // request may complete immediately
         RC<WriteRequest>    res { &self->_writeResultPool[ index ]};
@@ -758,6 +748,7 @@ namespace
             return true;
         }
 
+        UNTESTED;
         self->_writeResultPool.Unassign( index );
         RETURN_ERR( "failed to allocate write result" );
     }
@@ -773,8 +764,7 @@ namespace
 =================================================
 */
     WindowsIOService::WindowsIOService (uint maxThreads) __NE___ :
-        _ioCompletionPort{ ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, null, 0, maxThreads )},
-        _cancelledRequest{ MakeRC<_DummyRequest>() }
+        _ioCompletionPort{ ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, null, 0, maxThreads )}
     {
         ASSERT( maxThreads > 0 );
 
@@ -831,7 +821,7 @@ namespace
 
             if_likely( AnyEqual( err, ERROR_SUCCESS, ERROR_HANDLE_EOF, ERROR_OPERATION_ABORTED ) & (overlapped != null) )
             {
-                _RequestBase*   res = Cast<_RequestBase>( overlapped - Bytes{OverlappedOffset});
+                _RequestBase*   res = Cast<_RequestBase>( overlapped - Bytes{_OverlappedOffset});
 
                 res->_Complete( Bytes{byte_transferred}, err, overlapped );
 
@@ -847,49 +837,6 @@ namespace
         }
 
         return num_events;
-    }
-
-/*
-=================================================
-    Resolve
-=================================================
-*/
-    bool  WindowsIOService::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
-    {
-        using EStatus = AsyncDSRequest::Value_t::EStatus;
-
-        CHECK_ERR( IsInitialized() );
-
-        if_likely( auto* request_pp = dep.GetIf< AsyncDSRequest >() )
-        {
-            if_unlikely( *request_pp == null )
-                return true;
-
-            auto*   request = (*request_pp).get();  // non-null
-
-            ASSERT( DynCast<_RequestBase>(request) != null );
-            ASSERT( DynCast<_RequestBase>(request) == Cast<_RequestBase>(request) );
-
-            // 'true'   - dependency added or successfully complete.
-            // 'false'  - dependency is cancelled or on an error.
-            return Cast<_RequestBase>(request)->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, True{"strong"} );
-        }
-
-        if_likely( auto* weak_req_pp = dep.GetIf< WeakAsyncDSRequest >() )
-        {
-            if_unlikely( weak_req_pp->_task == null )
-                return true;
-
-            auto*   request = weak_req_pp->_task.get(); // non-null
-
-            ASSERT( DynCast<_RequestBase>(request) != null );
-            ASSERT( DynCast<_RequestBase>(request) == Cast<_RequestBase>(request) );
-
-            Unused( Cast<_RequestBase>(request)->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, False{"weak"} ));
-            return true;    // always return 'true' because it is weak dependency
-        }
-
-        RETURN_ERR( "unsupported dependency type" );
     }
 
 

@@ -88,7 +88,7 @@ namespace _hidden_
     template <auto Power, typename T>
     inline constexpr T  CT_Pow (const T &base)
     {
-        STATIC_ASSERT( IsInteger<T> and IsInteger<decltype(Power)> and Power >= 0 );
+        StaticAssert( IsInteger<T> and IsInteger<decltype(Power)> and Power >= 0 );
 
         if constexpr( Power == 0 )
         {
@@ -145,7 +145,7 @@ namespace _hidden_
 {
     template <typename R, auto Count>
     struct _ToBitMask {
-        STATIC_ASSERT( IsUnsignedInteger<R> );
+        StaticAssert( IsUnsignedInteger<R> );
         static constexpr R  mask    =   Count >= CT_SizeOfInBits<R> ? ~R{0} :
                                         Count <  0                  ?  R{0} :
                                                                       (R{1} << Count) - 1;

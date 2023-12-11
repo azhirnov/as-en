@@ -2,9 +2,26 @@
 
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
+# CMAKE_BUILD_TYPE is not defined if used IDE
+if (DEFINED CMAKE_BUILD_TYPE)
+    if ((${CMAKE_BUILD_TYPE} STREQUAL "Debug")   OR
+        (${CMAKE_BUILD_TYPE} STREQUAL "Develop") OR
+        (${CMAKE_BUILD_TYPE} STREQUAL "Profile") OR
+        (${CMAKE_BUILD_TYPE} STREQUAL "Release") )
+        # ok
+    else()
+        message( STATUS "override unsupported CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}' by 'Release', see CMAKE_CONFIGURATION_TYPES in 'compilers.cmake'" )
+        set( CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "" FORCE )
+    endif()
+endif()
+
+#----------------------------------------------------------
+
 project( "AE"
-         VERSION 23.10.199   # year, month, version
-         LANGUAGES C CXX )
+         VERSION 23.12.214  # year, month, version
+         LANGUAGES C CXX
+         DESCRIPTION "async game engine"
+        )
 if (APPLE)
     enable_language(OBJC)
 endif()

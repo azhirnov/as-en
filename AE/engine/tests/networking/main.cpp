@@ -4,6 +4,9 @@
 
 extern void UnitTest_UDP ();
 extern void UnitTest_TCP ();
+extern void UnitTest_TcpChannel ();
+extern void UnitTest_UdpChannel ();
+extern void UnitTest_AsyncCSMessageProducer ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -16,6 +19,11 @@ int main ()
 
     UnitTest_UDP();
     UnitTest_TCP();
+
+    UnitTest_AsyncCSMessageProducer();
+
+    UnitTest_TcpChannel();
+    //UnitTest_UdpChannel();
 
     AE_LOGI( "Tests.Network finished" );
     return 0;

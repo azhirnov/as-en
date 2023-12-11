@@ -95,7 +95,7 @@ namespace AE::ResEditor
 
                 ppln = it->second;
 
-                RG::DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+                DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
                 CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{uint2{pd.dbg.coord * float2{dim} + 0.5f}, 0u }));
                 pd.cmdbuf = tctx.ReleaseCommandBuffer();
             }
@@ -195,7 +195,7 @@ namespace AE::ResEditor
 */
     ComputePass::~ComputePass ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT _descSets );
         res_mngr.ReleaseResource( _ubuffer );
     }

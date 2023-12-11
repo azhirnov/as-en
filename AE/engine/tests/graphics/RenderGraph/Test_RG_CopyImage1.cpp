@@ -25,7 +25,7 @@ namespace
     public:
         CI1_TestData&   t;
 
-        CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -84,7 +84,7 @@ namespace
     template <typename Ctx>
     static bool  CopyImage1Test ()
     {
-        auto&           rts             = RenderTaskScheduler();
+        auto&           rts             = GraphicsScheduler();
         auto&           res_mngr        = rts.GetResourceManager();
         Array<ubyte>    img_data;
         CI1_TestData    t;
@@ -119,20 +119,23 @@ namespace
         t.copy_dim      = src_dim;
         t.img_view      = ImageMemView{ img_data, uint3{}, uint3{src_dim, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyImage2"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy image task"} );
+        AsyncTask   task1   = batch->Run< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"Copy image task"} );
         AsyncTask   end     = rts.EndFrame( Tuple{task1} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

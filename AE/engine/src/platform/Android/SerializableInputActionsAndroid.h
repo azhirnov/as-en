@@ -80,7 +80,7 @@ namespace AE::App
             _visitor_( Key_Delete,          67,     "Delete",           AKEYCODE_DEL                )\
             _visitor_( Key_Grave,           68,     "Grave",            AKEYCODE_GRAVE              )   /* '`' */\
             _visitor_( Key_Minus,           69,     "Minus",            AKEYCODE_MINUS              )   /* '-' */\
-            _visitor_( Key_Equals,          70,     "Equals",           AKEYCODE_EQUALS             )   /* '=' */\
+            _visitor_( Key_Equals,          70,     "Equal",            AKEYCODE_EQUALS             )   /* '=' */\
             _visitor_( Key_LeftBracket,     71,     "LeftBracket",      AKEYCODE_LEFT_BRACKET       )   /* '[' */\
             _visitor_( Key_RightBracket,    72,     "RightBracket",     AKEYCODE_RIGHT_BRACKET      )   /* ']' */\
             _visitor_( Key_BackSlash,       73,     "BackSlash",        AKEYCODE_BACKSLASH          )   /* '\' */\

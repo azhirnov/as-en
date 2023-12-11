@@ -30,7 +30,7 @@ namespace AE::ResEditor
         {
             RC<Buffer>      vbuffer;
             RC<Buffer>      ibuffer;
-            Bytes32u        vertexStride;
+            Byte32u         vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
 

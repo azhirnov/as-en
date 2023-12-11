@@ -7,7 +7,6 @@
 
 extern void Test_VulkanDevice ()
 {
-    using namespace AE::Graphics;
     {
         VDeviceInitializer  dev;
 
@@ -19,10 +18,14 @@ extern void Test_VulkanDevice ()
         CHECK_FATAL( dev.ChooseHighPerformanceDevice() );
         CHECK_FATAL( dev.CreateDefaultQueue() );
         CHECK_FATAL( dev.CreateLogicalDevice() );
+
+        CHECK_FATAL( dev.IsInitialized() );
         CHECK_FATAL( dev.CheckConstantLimits() );
         CHECK_FATAL( dev.CheckExtensions() );
+
         CHECK_FATAL( dev.DestroyLogicalDevice() );
         CHECK_FATAL( dev.DestroyInstance() );
+        CHECK_FATAL( not dev.IsInitialized() );
     }
     TEST_PASSED();
 }

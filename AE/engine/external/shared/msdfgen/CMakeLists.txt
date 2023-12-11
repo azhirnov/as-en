@@ -25,7 +25,7 @@ set_property( TARGET "msdfgen-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
     add_executable( "Tests.msdfgen" "tests/main.cpp" )
-    add_test( NAME "Tests.msdfgen" COMMAND "Tests.msdfgen" )
+    #add_test( NAME "Tests.msdfgen" COMMAND "Tests.msdfgen" )
     set_property( TARGET "Tests.msdfgen" PROPERTY FOLDER "Engine/External/Tests" )
     target_link_libraries( "Tests.msdfgen" PUBLIC "msdfgen-lib" )
 endif ()

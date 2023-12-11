@@ -15,47 +15,47 @@ namespace AE::Base
     struct TypeList
     {
     public:
-        struct AsTuple { using          type            = Tuple< Types... >; };
+        struct AsTuple { using          type                = Tuple< Types... >; };
 
         template <typename T>
-        inline static constexpr usize   FirstIndex      = Base::_hidden_::TL_GetFirstIndex< T, 0, Types... >::value;
+        inline static constexpr usize   FirstIndex          = Base::_hidden_::TL_GetFirstIndex< T, 0, Types... >::value;
 
         template <typename T>
-        inline static constexpr usize   LastIndex       = Base::_hidden_::TL_GetLastIndex< T, 0, Types... >::value;
+        inline static constexpr usize   LastIndex           = Base::_hidden_::TL_GetLastIndex< T, 0, Types... >::value;
 
         template <template <typename...> class Templ>
         inline static constexpr usize   FirstSpecializationOf = Base::_hidden_::TL_GetFirstSpecializationOf< Templ, 0, Types... >::value;
 
         template <typename T>
-        inline static constexpr usize   Index           = FirstIndex<T>;
+        inline static constexpr usize   Index               = FirstIndex<T>;
 
-        inline static constexpr usize   Count           = sizeof...(Types);
-
-        template <typename T>
-        inline static constexpr bool    HasType         = (Index<T> != UMax);
+        inline static constexpr usize   Count               = sizeof...(Types);
 
         template <typename T>
-        inline static constexpr bool    HasSingle       = HasType<T> and (FirstIndex<T> == LastIndex<T>);
+        inline static constexpr bool    HasType             = (Index<T> != UMax);
 
-        template <usize I>      using   GetT            = Base::_hidden_::TL_GetTypeByIndex< I, Types... >;                 // usage: GetT<0>::type
-        template <usize I>      using   Get             = typename Base::_hidden_::TL_GetTypeByIndex< I, Types... >::type;  // usage: Get<0>
+        template <typename T>
+        inline static constexpr bool    HasSingle           = HasType<T> and (FirstIndex<T> == LastIndex<T>);
 
-        struct Front { using            type            = Get<0>; };
-        struct Back  { using            type            = Get<Count-1>; };
+        template <usize I>      using   GetT                = Base::_hidden_::TL_GetTypeByIndex< I, Types... >;                 // usage: GetT<0>::type
+        template <usize I>      using   Get                 = typename Base::_hidden_::TL_GetTypeByIndex< I, Types... >::type;  // usage: Get<0>
 
-        struct Self  { using            type            = TypeList< Types... >; };
+        struct Front { using            type                = Get<0>; };
+        struct Back  { using            type                = Get<Count-1>; };
 
-        struct PopFront { using         type            = typename Base::_hidden_::TL_PopFront< TypeList<>, Types... >::type; };
-        struct PopBack  { using         type            = typename Base::_hidden_::TL_PopBack< TypeList<>, Types... >::type; };
+        struct Self  { using            type                = TypeList< Types... >; };
 
-        template <typename T>   using   PushBack        = TypeList< Types..., T >;
-        template <typename T>   using   PushFront       = TypeList< T, Types... >;
+        struct PopFront { using         type                = typename Base::_hidden_::TL_PopFront< TypeList<>, Types... >::type; };
+        struct PopBack  { using         type                = typename Base::_hidden_::TL_PopBack< TypeList<>, Types... >::type; };
+
+        template <typename T>   using   PushBack            = TypeList< Types..., T >;
+        template <typename T>   using   PushFront           = TypeList< T, Types... >;
 
         template <template <typename> class Tmpl>
-        using                           Apply           = TypeList< Tmpl< Types >... >;
+        using                           Apply               = TypeList< Tmpl< Types >... >;
 
         template <template <typename> class Tmpl>
-        using                           Apply2          = TypeList< typename Tmpl< Types >::type ... >;
+        using                           Apply_t             = TypeList< typename Tmpl< Types >::type ... >;
 
         template <template <typename> class Tmpl>
         static constexpr auto           ForEach_Or ()       __NE___ { return (... or Tmpl<Types>::value); }
@@ -74,27 +74,37 @@ namespace AE::Base
 
 
         template <typename FN>
-        static constexpr void           Visit (FN&& fn)     noexcept(IsNothrowInvocable<FN>)    { return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
+        static constexpr void           Visit (FN&& fn)     __NE___ { return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
 
-
-        static constexpr bool           AllNothrowDtor              = ForEach_And< IsNothrowDtor_t >();
-        static constexpr bool           AllNothrowCopyCtor          = ForEach_And< IsNothrowCopyCtor_t >();
-        static constexpr bool           AllNothrowMoveCtor          = ForEach_And< IsNothrowMoveCtor_t >();
-        static constexpr bool           AllNothrowDefaultCtor       = ForEach_And< IsNothrowDefaultCtor_t >();
-        static constexpr bool           AllNothrowInvocable         = ForEach_And< IsNothrowInvocable_t >();
-        static constexpr bool           AllNothrowCopyAssignable    = ForEach_And< IsNothrowCopyAssignable_t >();
-        static constexpr bool           AllNothrowMoveAssignable    = ForEach_And< IsNothrowMoveAssignable_t >();
+        template <typename FN>
+        static constexpr void           VisitTh (FN&& fn)   __Th___ { return _RecursiveVisit2<0>( FwdArg<FN>(fn) ); }
 
 
     private:
         template <usize I, typename FN>
-        static constexpr void  _RecursiveVisit (FN&& fn)    noexcept(IsNothrowInvocable<FN>)
+        static constexpr void  _RecursiveVisit (FN&& fn)    __NE___
         {
             if constexpr( I < Count )
             {
                 using T = Get<I>;
+                CheckNothrow( IsNoExcept( fn.template operator()<T,I>() ));
+
                 fn.template operator()<T,I>();
                 _RecursiveVisit< I+1 >( FwdArg<FN>(fn) );
+            }
+            Unused( fn );
+        }
+
+        template <usize I, typename FN>
+        static constexpr void  _RecursiveVisit2 (FN&& fn)   __Th___
+        {
+            if constexpr( I < Count )
+            {
+                using T = Get<I>;
+                CheckNothrow( not IsNoExcept( fn.template operator()<T,I>() )); // use 'Visit'
+
+                fn.template operator()<T,I>();
+                _RecursiveVisit2< I+1 >( FwdArg<FN>(fn) );
             }
             Unused( fn );
         }
@@ -153,25 +163,22 @@ namespace _hidden_
     static constexpr bool   AllAreSameTypes             = TypeList< Types... >::template ForEach_And< Base::_hidden_::AreSameTypes<T>::Impl >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowDtor              = TypeList< Types... >::template ForEach_And< IsNothrowDtor_t >();
+    static constexpr bool   AllNothrowCopyCtor          = TypeList< Types... >::template ForEach_And< TNothrowCopyCtor >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowCopyCtor          = TypeList< Types... >::template ForEach_And< IsNothrowCopyCtor_t >();
+    static constexpr bool   AllNothrowMoveCtor          = TypeList< Types... >::template ForEach_And< TNothrowMoveCtor >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowMoveCtor          = TypeList< Types... >::template ForEach_And< IsNothrowMoveCtor_t >();
+    static constexpr bool   AllNothrowDefaultCtor       = TypeList< Types... >::template ForEach_And< TNothrowDefaultCtor >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowDefaultCtor       = TypeList< Types... >::template ForEach_And< IsNothrowDefaultCtor_t >();
+    static constexpr bool   AllNothrowCopyAssignable    = TypeList< Types... >::template ForEach_And< TNothrowCopyAssignable >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowCopyAssignable    = TypeList< Types... >::template ForEach_And< IsNothrowCopyAssignable_t >();
+    static constexpr bool   AllNothrowMoveAssignable    = TypeList< Types... >::template ForEach_And< TNothrowMoveAssignable >();
 
     template <typename ...Types>
-    static constexpr bool   AllNothrowMoveAssignable    = TypeList< Types... >::template ForEach_And< IsNothrowMoveAssignable_t >();
-
-    template <typename ...Types>
-    static constexpr bool   AllNothrowInvocable         = TypeList< Types... >::template ForEach_And< IsNothrowInvocable_t >();
+    static constexpr bool   AllNothrowInvocable         = TypeList< Types... >::template ForEach_And< TNothrowInvocable >();
 
 } // AE::Base
 

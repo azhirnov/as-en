@@ -3,7 +3,7 @@
 /crash_report_server/output
 /build_server/output
 /ecs-st/Vulkan/temp
-/vfs/vfs_test
+/vfs/vfs_test*
 /base/ds_test/*.bin
 /threading/ds_test/*.bin
 /video/video_test

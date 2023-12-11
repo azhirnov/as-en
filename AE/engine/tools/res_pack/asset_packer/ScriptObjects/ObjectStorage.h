@@ -37,6 +37,8 @@ namespace AE::AssetPacker
             String              _name;
 
         public:
+            ImageAtlasInfo ()                       __NE___ {}
+
             void  SetName (const String &name)      __Th___;
             void  Add (const String &name)          __Th___;
             void  Contains (const String &name)     C_Th___;

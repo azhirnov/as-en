@@ -15,11 +15,6 @@ namespace AE::Video
 
     class FFmpegVideoDecoder final : public IVideoDecoder
     {
-    // types
-    private:
-        using Allocator_t = UntypedAllocator;
-
-
     // variables
     private:
         mutable SharedMutex     _guard;
@@ -37,10 +32,6 @@ namespace AE::Video
         AVIOContext *           _ioCtx              = null;     // wrapper for file stream
         RC<RStream>             _rstream;
 
-        Bytes32u                _frameDataSize;
-        Bytes32u                _frameRowPitch;
-        ubyte *                 _frameData          = null;     // allocated by Allocator_t
-
         bool                    _decodingStarted    = false;
         const bool              _ffmpegLoaded       = false;
 
@@ -57,18 +48,18 @@ namespace AE::Video
         bool  SeekTo (ulong frameIdx)                               __NE_OV;
         bool  SeekTo (Second_t timestamp)                           __NE_OV;
 
-        bool  GetFrame (OUT ImageMemView &  view,
-                        OUT FrameInfo &     info)                   __NE_OV;
+        bool  GetNextFrame (INOUT ImageMemView &    memView,
+                            OUT FrameInfo &         info)           __NE_OV;
 
-        bool  GetFrame (OUT VideoImageID &  id,
-                        OUT FrameInfo &     info)                   __NE_OV;
+    //  bool  GetNextFrame (OUT VideoImageID &  id,
+    //                      OUT FrameInfo &     info)               __NE_OV;
 
         bool  End ()                                                __NE_OV;
 
         Properties  GetFileProperties (const Path &filename)        C_NE_OV;
         Properties  GetFileProperties (RC<RStream> stream)          C_NE_OV;
-        String      PrintFileProperties (const Path &filename)      C_NE_OV;
-        String      PrintFileProperties (RC<RStream> stream)        C_NE_OV;
+        String      PrintFileProperties (const Path &filename)      C_Th_OV;
+        String      PrintFileProperties (RC<RStream> stream)        C_Th_OV;
 
         Config      GetConfig ()                                    C_NE_OV { SHAREDLOCK( _guard );  return _config; }
         Properties  GetProperties ()                                C_NE_OV;
@@ -86,8 +77,8 @@ namespace AE::Video
 
         static Properties  _ReadProperties (AVFormatContext* formatCtx);
 
-        static int      _IOReadPacket (void *opaque, ubyte *buf, int buf_size);
-        static slong    _IOSeek (void *opaque, slong offset, int whence);
+        static int      _IOReadPacket (void* opaque, ubyte* buf, int buf_size);
+        static slong    _IOSeek (void* opaque, slong offset, int whence);
     };
 
 

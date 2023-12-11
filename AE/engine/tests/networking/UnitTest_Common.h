@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "networking/Raw/SocketService.h"
+#include "pch/Networking.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Threading;
@@ -13,9 +13,10 @@ struct LocalSocketMngr
 {
     LocalSocketMngr ()
     {
-        TaskScheduler::CreateInstance();
+        TaskScheduler::InstanceCtor::Create();
 
         TaskScheduler::Config   cfg;
+        cfg.mainThreadCoreId    = ECpuCoreId(0);
         TEST( Scheduler().Setup( cfg ));
 
         TEST( SocketService::Instance().Initialize() );
@@ -24,7 +25,7 @@ struct LocalSocketMngr
     ~LocalSocketMngr ()
     {
         Scheduler().Release();
-        TaskScheduler::DestroyInstance();
+        TaskScheduler::InstanceCtor::Destroy();
 
         SocketService::Instance().Deinitialize();
     }

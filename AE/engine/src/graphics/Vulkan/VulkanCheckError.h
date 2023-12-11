@@ -30,7 +30,7 @@
         AE_PRIVATE_VK_CHECK2_R( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
 # define VK_CHECK_ERRV( _expr_ )                                                                                                            \
-        AE_PRIVATE_VK_CHECK2_R( (_expr_), )
+        AE_PRIVATE_VK_CHECK2_R( (_expr_), void() )
 
 # define VK_ERR( _err_, /* msg, return_on_error */... )                                                                                     \
         AE_PRIVATE_VK_CHECK_R( (_err_), AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
@@ -52,7 +52,7 @@ namespace AE::Graphics
 {
     using namespace AE::Base;
 
-    ND_ bool __vk_CheckErrors (VkResult errCode, const char *vkcall, const char *func, const SourceLoc &loc) __NE___;
+    ND_ bool __vk_CheckErrors (VkResult errCode, const char* vkcall, const char* func, const SourceLoc &loc) __NE___;
 
     enum class VkException {};
 

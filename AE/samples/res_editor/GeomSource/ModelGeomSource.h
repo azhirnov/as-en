@@ -51,7 +51,7 @@ namespace AE::ResEditor
 
         // methods
         public:
-            Material () {}
+            Material ()     __NE___ {}
             ~Material ();
         };
 

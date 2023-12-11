@@ -18,7 +18,7 @@ namespace AE
     using ssize     = intptr_t;
     using usize     = size_t;
 
-#if defined(__cpp_char8_t) and not defined(AE_PLATFORM_APPLE)
+#if defined(__cpp_char8_t)
     using CharUtf8  = char8_t;  // C++20
 #else
     enum class CharUtf8 : char {};
@@ -66,13 +66,13 @@ namespace AE::Base
 
     template <typename T,
               typename A = std::allocator<T>>
-    using BasicString   = std::basic_string< T, std::char_traits<T>, A >;
+    using BasicString       = std::basic_string< T, std::char_traits<T>, A >;
 
-    using String        = BasicString< CharAnsi >;
-    using WString       = BasicString< wchar_t >;
-    using U8String      = BasicString< CharUtf8 >;
-    using U16String     = BasicString< CharUtf16 >;
-    using U32String     = BasicString< CharUtf32 >;
+    using String            = BasicString< CharAnsi >;
+    using WString           = BasicString< wchar_t >;
+    using U8String          = BasicString< CharUtf8 >;
+    using U16String         = BasicString< CharUtf16 >;
+    using U32String         = BasicString< CharUtf32 >;
 
 
     template <typename T>
@@ -83,10 +83,6 @@ namespace AE::Base
     using U16StringView     = BasicStringView< CharUtf16 >;
     using U32StringView     = BasicStringView< CharUtf32 >;
 
-
-    template <typename T,
-              typename A = std::allocator<T>>
-    using Array = std::vector< T, A >;
 
     template <typename T>   using SharedPtr     = std::shared_ptr< T >;
     template <typename T>   using WeakPtr       = std::weak_ptr< T >;
@@ -103,6 +99,10 @@ namespace AE::Base
 
 
     template <typename T,
+              typename A = std::allocator<T>>
+    using Array         = std::vector< T, A >;
+
+    template <typename T,
               typename Deleter = std::default_delete<T>>
     using Unique        = std::unique_ptr< T, Deleter >;
 
@@ -114,7 +114,6 @@ namespace AE::Base
     template <typename FirstT,
               typename SecondT>
     using Pair          = std::pair< FirstT, SecondT >;
-
 
 
 
@@ -134,10 +133,10 @@ namespace AE::Base
     MakeShared
 =================================================
 */
-    template <typename T, typename ...Types>
-    ND_ SharedPtr<T>  MakeShared (Types&&... args)  __Th___
+    template <typename T, typename ...Args>
+    ND_ SharedPtr<T>  MakeShared (Args&&... args) __Th___
     {
-        return std::make_shared<T>( FwdArg<Types>( args )... );
+        return std::make_shared<T>( FwdArg<Args>( args )... );
     }
 
 /*
@@ -145,10 +144,13 @@ namespace AE::Base
     MakeUnique
 =================================================
 */
-    template <typename T, typename ...Types>
-    ND_ Unique<T>  MakeUnique (Types&&... args)  __Th___
+    template <typename T, typename ...Args>
+    ND_ Unique<T>  MakeUnique (Args&&... args) __NE___
     {
-        return std::make_unique<T>( FwdArg<Types>( args )... );
+        CheckNothrow( IsNothrowCtor< T, Args... >);
+        //CheckNothrow( IsNoExcept( new T{ FwdArg<Args>(args)... }));
+
+        return Unique<T>( new T{ FwdArg<Args>( args )... });
     }
 
 /*
@@ -176,6 +178,37 @@ namespace AE::Base
       #endif
     }
 
+/*
+=================================================
+    TypeNameOf
+=================================================
+*/
+#ifdef AE_ENABLE_RTTI
+    template <typename T>
+    ND_ constexpr StringView  TypeNameOf () __NE___
+    {
+        return StringView{ typeid(T).name() };
+    }
+
+# if defined(__cpp_char8_t) and defined(AE_PLATFORM_APPLE)
+    // bugfix: link error in MacOS clang14-15
+    template <>
+    ND_ constexpr StringView  TypeNameOf<char8_t> () __NE___
+    {
+        return StringView{"char8_t"};
+    }
+# endif
+#endif
+//-----------------------------------------------------------------------------
+
+
+    template <typename T>   struct TMemCopyAvailable< BasicStringView<T> >      { static constexpr bool  value = true; };
+    template <typename T>   struct TZeroMemAvailable< BasicStringView<T> >      { static constexpr bool  value = false; };
+    template <typename T>   struct TTriviallySerializable< BasicStringView<T> > { static constexpr bool  value = false; };
+    template <typename T>   struct TTriviallyDestructible< BasicStringView<T> > { static constexpr bool  value = true; };
+
+    template <usize N>      struct TTriviallyDestructible< BitSet<N> >          { static constexpr bool  value = true; };
+
 } // AE::Base
 
 
@@ -189,7 +222,7 @@ namespace AE
 
     // methods
     public:
-        explicit Exception (const char *str)        __NE___ : _what{str} {}
+        explicit Exception (const char* str)        __NE___ : _what{str} {}
         explicit Exception (const std::string &str) __NE___ : _what{str.c_str()} {}
 
         ND_ const char*  what ()                    C_NE___ { return _what; }

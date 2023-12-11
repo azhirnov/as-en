@@ -3,25 +3,22 @@
 #if defined(AE_ENABLE_VULKAN)
 #   define SUFFIX           V
 #   define CMDPOOLMNGR      VCommandPoolManager
-#   define RTSCHEDULER      VRenderTaskScheduler
 #   if not AE_VK_TIMELINE_SEMAPHORE
 #     define ENABLE_VK_TIMELINE_SEMAPHORE
 #   endif
 
 #elif defined(AE_ENABLE_METAL)
 #   define SUFFIX           M
-#   define RTSCHEDULER      MRenderTaskScheduler
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 #   define SUFFIX           R
-#   define RTSCHEDULER      RRenderTaskScheduler
 
 #else
 #   error not implemented
 #endif
 //-----------------------------------------------------------------------------
 
-namespace AE { Graphics::RTSCHEDULER&  RenderTaskScheduler () __NE___; }
+namespace AE { Graphics::RenderTaskScheduler&  GraphicsScheduler () __NE___; }
 namespace AE::RG::_hidden_ { class RenderGraph; }
 
 namespace AE::Graphics
@@ -31,9 +28,9 @@ namespace AE::Graphics
     // Render Task Scheduler
     //
 
-    class RTSCHEDULER final
+    class RenderTaskScheduler final
     {
-        friend struct InPlace<RTSCHEDULER>;
+        friend struct InPlace<RenderTaskScheduler>;
 
     // types
     private:
@@ -45,28 +42,33 @@ namespace AE::Graphics
 
 
     public:
+        class InstanceCtor {
+        public:
+            static void  Create (const Device_t &dev)   __NE___;
+            static void  Destroy ()                     __NE___;
+        };
+
         class CommandBatchApi : Noninstanceable
         {
             friend class AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch );
-            static void  Recycle (uint indexInPool)                 __NE___;
+            static void  Recycle (CommandBatch_t*)                  __NE___;
             static void  Submit (CommandBatch_t&, ESubmitMode mode) __NE___;
         };
 
         class DrawCommandBatchApi : Noninstanceable
         {
             friend class AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch );
-            static void  Recycle (uint indexInPool)                 __NE___;
+            static void  Recycle (DrawCommandBatch_t*)              __NE___;
         };
 
         #ifdef ENABLE_VK_TIMELINE_SEMAPHORE
         class VirtualFenceApi : Noninstanceable
         {
             friend class CommandBatch_t::VirtualFence;
-            static void  Recycle (uint indexInPool)                 __NE___;
+            static void  Recycle (CommandBatch_t::VirtualFence*)    __NE___;
         };
         #endif
 
-        static constexpr auto   DefaultWaitTime         = seconds{10};
     private:
         static constexpr uint   _MaxPendingBatches      = GraphicsConfig::MaxPendingCmdBatches;
         static constexpr uint   _MaxSubmittedBatches    = 32;
@@ -74,7 +76,7 @@ namespace AE::Graphics
         static constexpr uint   _BatchPerChunk          = 64;
         static constexpr uint   _ChunkCount             = (_MaxPendingBatches * GraphicsConfig::MaxFrames + _BatchPerChunk - 1) / _BatchPerChunk;
 
-        STATIC_ASSERT( _MaxPendingBatches*2 <= _MaxSubmittedBatches );
+        StaticAssert( _MaxPendingBatches*2 <= _MaxSubmittedBatches );
 
         using TempBatches_t = FixedArray< RC<CommandBatch_t>, _MaxPendingBatches >;
 
@@ -96,7 +98,7 @@ namespace AE::Graphics
                 }       packed;
                 ulong   value   = 0;
             };
-            STATIC_ASSERT( sizeof(Bitfield) == sizeof(ulong) );
+            StaticAssert( sizeof(Bitfield) == sizeof(ulong) );
 
             Atomic<ulong>   bits        {0};    // 1 - required/pending/submitted, 0 - empty
             BatchArray_t    pending     {};
@@ -115,8 +117,8 @@ namespace AE::Graphics
         using FrameUIDs_t   = StaticArray< AtomicFrameUID, GraphicsConfig::MaxFrames >;
 
 
-        using BatchPool_t       = Threading::LfIndexedPool2< CommandBatch_t,        uint, _BatchPerChunk, _ChunkCount >;
-        using DrawBatchPool_t   = Threading::LfIndexedPool2< DrawCommandBatch_t,    uint, _BatchPerChunk, _ChunkCount >;
+        using BatchPool_t       = Threading::LfIndexedPool< CommandBatch_t,     uint, _BatchPerChunk, _ChunkCount, GlobalLinearAllocatorRef >;
+        using DrawBatchPool_t   = Threading::LfIndexedPool< DrawCommandBatch_t, uint, _BatchPerChunk, _ChunkCount, GlobalLinearAllocatorRef >;
 
         using BeginDepsArray_t  = FixedArray< AsyncTask, _MaxBeginFrameDeps >;
         using BeginDepsFrames_t = StaticArray< BeginDepsArray_t, GraphicsConfig::MaxFrames >;
@@ -128,7 +130,6 @@ namespace AE::Graphics
         class BatchSubmitDepsManager;
         class BatchCompleteDepsManager;
 
-        class BeginFrameTask;
         class EndFrameTask;
 
         enum class EState : uint
@@ -151,8 +152,8 @@ namespace AE::Graphics
         FrameUIDs_t                         _perFrameUID    = {};
 
         // CPU side time
-        BitAtomic<TimePoint_t>              _lastUpdate;            // -|-- changed in 'BeginFrameTask'
-        FAtomic<float>                      _timeDelta      {0.f};  // -/
+        BitAtomic<TimePoint_t>              _lastUpdate;            // \__ changed in 'BeginFrame()'
+        FAtomic<float>                      _timeDelta      {0.f};  // /
 
         alignas(AE_CACHE_LINE)
           BatchPool_t                       _batchPool;
@@ -179,31 +180,26 @@ namespace AE::Graphics
           BeginDepsSync_t                   _beginDeps;
 
         DBG_GRAPHICS_ONLY(
-            AtomicFrameUID                  _dbgFrameId;            // valid between 'BeginFrameTask::Run()' and 'EndFrameTask::Run()'
+            AtomicFrameUID                  _dbgFrameId;            // valid between 'BeginFrame()' and 'EndFrameTask::Run()'
             AtomicRC<IGraphicsProfiler>     _profiler;
         )
 
 
     // methods
     public:
-            static void  CreateInstance (const Device_t &dev)                           __NE___;
-            static void  DestroyInstance ()                                             __NE___;
-
         ND_ bool        Initialize (const GraphicsCreateInfo &)                         __NE___;
             void        Deinitialize ()                                                 __NE___;
             void        SetProfiler (RC<IGraphicsProfiler> profiler)                    __NE___;
 
-        template <typename ...Deps>
-        ND_ AsyncTask   BeginFrame (const BeginFrameConfig& cfg  = Default,
-                                    const Tuple<Deps...>  & deps = Default)             __Th___;
+        ND_ bool        WaitNextFrame (const EThreadArray & threads,
+                                       nanoseconds          timeout)                    __NE___;
+
+        ND_ bool        BeginFrame (const BeginFrameConfig &cfg = Default)              __NE___;
 
         template <typename ...Deps>
-        ND_ AsyncTask   EndFrame (const Tuple<Deps...> &deps = Default)                 __Th___;
+        ND_ AsyncTask   EndFrame (const Tuple<Deps...> &deps = Default)                 __NE___;
 
-        ND_ AsyncTask   WaitFrame (FrameUID)                                            __NE___;
-        ND_ AsyncTask   WaitNextFrame ()                                                __NE___ { return WaitFrame( GetFrameId().Inc() ); }
-
-        ND_ bool        WaitAll (milliseconds timeout = DefaultWaitTime)                __NE___;
+        ND_ bool        WaitAll (nanoseconds timeout)                                   __NE___;
 
             void        AddFrameDeps (FrameUID, ArrayView<AsyncTask> deps)              __NE___;
             void        AddFrameDeps (FrameUID, AsyncTask dep)                          __NE___;
@@ -249,7 +245,7 @@ namespace AE::Graphics
         ND_ RC<IGraphicsProfiler>   GetProfiler ()                                      __NE___ { return _profiler.load(); }
 
         ND_ FrameUID                DbgFrameId ()                                       C_NE___ { return _dbgFrameId.load(); }
-            void                    DbgCheckFrameId (FrameUID, StringView name)         C_NE___;
+            void                    DbgCheckFrameId (FrameUID, StringView taskName)     C_NE___;
       #endif
 
         DEBUG_ONLY(
@@ -257,21 +253,21 @@ namespace AE::Graphics
 
 
     private:
-        explicit RTSCHEDULER (const Device_t &dev)                                      __NE___;
-        ~RTSCHEDULER ()                                                                 __NE___;
+        explicit RenderTaskScheduler (const Device_t &dev)                              __NE___;
+        ~RenderTaskScheduler ()                                                         __NE___;
 
-        ND_ static RTSCHEDULER& _Instance ()                                            __NE___;
-        friend RTSCHEDULER&     AE::RenderTaskScheduler ()                              __NE___;
+        ND_ static RenderTaskScheduler& _Instance ()                                    __NE___;
+        friend RenderTaskScheduler&     AE::GraphicsScheduler ()                        __NE___;
 
             bool    _FlushQueue (EQueueType q, FrameUID frameId, bool forceFlush);
 
         // returns 'false' if not complete
         ND_ bool    _IsFrameCompleted (FrameUID frameId);
 
-        ND_ bool    _WaitAll (milliseconds timeout);
+        ND_ bool    _WaitAll (nanoseconds timeout);
 
         ND_ bool    _SetState (EState expected, EState newState)                        __NE___ { return _state.CAS_Loop( INOUT expected, newState ); }
-            void    _SetState (EState newState)                                         __NE___ { _state.store( newState ); }
+        ND_ EState  _SetState (EState newState)                                         __NE___ { return _state.exchange( newState ); }
         ND_ EState  _GetState ()                                                        __NE___ { return _state.load(); }
 
 
@@ -316,7 +312,7 @@ namespace AE::Graphics
     // methods
     private:
         ND_ RC<MDrawCommandBatch>  _CreateDrawBatch (MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
-                                                     ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)                         __NE___;
+                                                     ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg) __NE___;
 
         ND_ bool    _FlushQueue2 (EQueueType queueType, TempBatches_t &pending);
 
@@ -324,7 +320,7 @@ namespace AE::Graphics
     //-----------------------------------------------------
     #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
-        // TODO
+        class GraphicsContextApi;
 
     //-----------------------------------------------------
     #else
@@ -342,17 +338,13 @@ namespace AE::Graphics
         class _VIndirectGraphicsCtx;
     }
 
-    class VRenderTaskScheduler::GraphicsContextApi : Noninstanceable
+    class RenderTaskScheduler::GraphicsContextApi : Noninstanceable
     {
         friend class _hidden_::_VDirectGraphicsCtx;
         friend class _hidden_::_VIndirectGraphicsCtx;
 
-        ND_ static RC<VDrawCommandBatch>  CreateFirstPassBatch (VRenderTaskScheduler &rts,
-                                                                const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
-                                                                DebugLabel dbg)                                                     __NE___;
-
-        ND_ static RC<VDrawCommandBatch>  CreateNextPassBatch (VRenderTaskScheduler &rts,
-                                                               const VDrawCommandBatch &prevBatch, DebugLabel dbg)                  __NE___;
+        ND_ static RC<VDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, const VPrimaryCmdBufState &, const RenderPassDesc &, DebugLabel) __NE___;
+        ND_ static RC<VDrawCommandBatch>  CreateNextPassBatch  (RenderTaskScheduler &, const VDrawCommandBatch &, DebugLabel)                           __NE___;
     };
 
 # elif defined(AE_ENABLE_METAL)
@@ -363,33 +355,34 @@ namespace AE::Graphics
         class _MIndirectGraphicsCtx;
     }
 
-    class MRenderTaskScheduler::DirectGraphicsContextApi : Noninstanceable
+    class RenderTaskScheduler::DirectGraphicsContextApi : Noninstanceable
     {
         friend class _hidden_::_MDirectGraphicsCtx;
 
-        ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (MRenderTaskScheduler &rts,
-                                                                MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
-                                                                ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)                      __NE___;
+        ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
+                                                                const MPrimaryCmdBufState &, ArrayView<RenderPassDesc::Viewport>, DebugLabel)   __NE___;
 
-        ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (MRenderTaskScheduler &rts,
-                                                                MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
-                                                                ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)                      __NE___;
+        ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, MetalParallelRenderCommandEncoderRC,
+                                                               const MPrimaryCmdBufState &, ArrayView<RenderPassDesc::Viewport>, DebugLabel)    __NE___;
     };
 
-    class MRenderTaskScheduler::IndirectGraphicsContextApi : Noninstanceable
+    class RenderTaskScheduler::IndirectGraphicsContextApi : Noninstanceable
     {
         friend class _hidden_::_MIndirectGraphicsCtx;
 
-        ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (MRenderTaskScheduler &rts, const MPrimaryCmdBufState &primaryState,
-                                                                ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)                      __NE___;
-
-        ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (MRenderTaskScheduler &rts, const MPrimaryCmdBufState &primaryState,
-                                                                ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)                      __NE___;
+        ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<RenderPassDesc::Viewport>, DebugLabel)__NE___;
+        ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (RenderTaskScheduler &, const MPrimaryCmdBufState &, ArrayView<RenderPassDesc::Viewport>, DebugLabel) __NE___;
     };
 
 # elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
-    // TODO
+    class RenderTaskScheduler::GraphicsContextApi : Noninstanceable
+    {
+        friend class RGraphicsCtx;
+
+        ND_ static RC<RDrawCommandBatch>  CreateFirstPassBatch (RenderTaskScheduler &, const RPrimaryCmdBufState &, const RenderPassDesc &, DebugLabel) __NE___;
+        ND_ static RC<RDrawCommandBatch>  CreateNextPassBatch  (RenderTaskScheduler &, const RDrawCommandBatch &, DebugLabel)                           __NE___;
+    };
 
 #else
 #   error not implemented
@@ -401,7 +394,7 @@ namespace AE::Graphics
     // Batch Complete Dependency Manager
     //
 
-    class RTSCHEDULER::BatchCompleteDepsManager final : public Threading::ITaskDependencyManager
+    class RenderTaskScheduler::BatchCompleteDepsManager final : public Threading::ITaskDependencyManager
     {
     // methods
     public:
@@ -419,7 +412,7 @@ namespace AE::Graphics
     // Batch Submit Dependency Manager
     //
 
-    class RTSCHEDULER::BatchSubmitDepsManager final : public Threading::ITaskDependencyManager
+    class RenderTaskScheduler::BatchSubmitDepsManager final : public Threading::ITaskDependencyManager
     {
     // methods
     public:
@@ -434,37 +427,10 @@ namespace AE::Graphics
 
 
     //
-    // Begin Frame Task
-    //
-
-    class RTSCHEDULER::BeginFrameTask final : public Threading::IAsyncTask
-    {
-    private:
-        const FrameUID          _frameId;       // new frame id
-        const BeginFrameConfig  _config;
-
-    public:
-        BeginFrameTask (FrameUID frameId, const BeginFrameConfig &cfg) __NE___ :
-            IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}, _config{cfg}
-        {}
-
-        void  Run ()            __Th_OV;
-        void  OnCancel ()       __NE_OV;
-
-        StringView  DbgName ()  C_NE_OF { return "BeginFrame"; }
-
-    private:
-        bool  _RunImpl ()       __Th___;
-        void  _ResetStates()    __NE___;
-    };
-
-
-
-    //
     // End Frame Task
     //
 
-    class RTSCHEDULER::EndFrameTask final : public Threading::IAsyncTask
+    class RenderTaskScheduler::EndFrameTask final : public Threading::IAsyncTask
     {
     private:
         const FrameUID  _frameId;       // current frame id
@@ -489,57 +455,16 @@ namespace AE::Graphics
 
 /*
 =================================================
-    BeginFrame
-=================================================
-*/
-    template <typename ...Deps>
-    inline AsyncTask  RTSCHEDULER::BeginFrame (const BeginFrameConfig &cfg, const Tuple<Deps...> &deps) __Th___
-    {
-        CHECK_ERR( _SetState( EState::Idle, EState::BeginFrame ),
-                   Scheduler().GetCanceledTask() );
-
-        FrameUID    frame_id = _frameId.Inc();
-        _perFrameUID[ frame_id.Index() ].store( frame_id );
-
-        AsyncTask   task = MakeRC< RTSCHEDULER::BeginFrameTask >( frame_id, cfg );  // throw    // TODO: catch
-
-        DBG_GRAPHICS_ONLY(
-            if ( auto prof = GetProfiler() )
-                prof->RequestNextFrame( frame_id );
-        )
-
-        // recycle per-frame memory
-        MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
-
-        auto    begin_deps2 = _beginDeps.WriteNoLock();
-        EXLOCK( begin_deps2 );
-
-        auto&   begin_deps = (*begin_deps2)[ frame_id.Index() ];
-
-        if_likely( Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ begin_deps }}, deps )))
-        {
-            begin_deps.clear();
-            return task;
-        }
-        else
-        {
-            CHECK( _SetState( EState::BeginFrame, EState::Idle ));
-            return Scheduler().GetCanceledTask();
-        }
-    }
-
-/*
-=================================================
     EndFrame
 =================================================
 */
     template <typename ...Deps>
-    inline AsyncTask  RTSCHEDULER::EndFrame (const Tuple<Deps...> &deps) __Th___
+    inline AsyncTask  RenderTaskScheduler::EndFrame (const Tuple<Deps...> &deps) __NE___
     {
         CHECK_ERR( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame ),
                    Scheduler().GetCanceledTask() );
 
-        AsyncTask   task = MakeRC< RTSCHEDULER::EndFrameTask >( GetFrameId() ); // throw    // TODO: catch
+        AsyncTask   task = MakeRC< RenderTaskScheduler::EndFrameTask >( GetFrameId() );
 
         if_likely( Scheduler().Run( task, deps ))
         {
@@ -559,7 +484,7 @@ namespace AE::Graphics
     void  GAutorelease< HandleTmpl< IndexSize, GenerationSize, UID >>::_ReleaseRef () __NE___
     {
         if ( _id )
-            RenderTaskScheduler().GetResourceManager().DelayedRelease( INOUT _id );
+            GraphicsScheduler().GetResourceManager().DelayedRelease( INOUT _id );
 
         ASSERT( not _id.IsValid() );
     }
@@ -571,12 +496,12 @@ namespace AE
 {
 /*
 =================================================
-    RenderTaskScheduler
+    GraphicsScheduler
 =================================================
 */
-    ND_ inline Graphics::RTSCHEDULER&  RenderTaskScheduler () __NE___
+    ND_ inline Graphics::RenderTaskScheduler&  GraphicsScheduler () __NE___
     {
-        return Graphics::RTSCHEDULER::_Instance();
+        return Graphics::RenderTaskScheduler::_Instance();
     }
 
 } // AE
@@ -585,4 +510,4 @@ namespace AE
 #undef SUFFIX
 #undef CMDPOOLMNGR
 #undef ENABLE_VK_TIMELINE_SEMAPHORE
-#undef RTSCHEDULER
+#undef RenderTaskScheduler

@@ -5,7 +5,7 @@
 #include "Math.glsl"
 
 
-// DHash from https://www.shadertoy.com/view/4djSRW 
+// DHash from https://www.shadertoy.com/view/4djSRW
 // MIT License...
 // Copyright (c) 2014 David Hoskins.
 

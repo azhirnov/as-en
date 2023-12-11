@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Input actions redirections:
-        VR window input -> VR emulator InputActions -> (optional) Window InputActions 
+        VR window input -> VR emulator InputActions -> (optional) Window InputActions
 */
 
 #pragma once
@@ -76,7 +76,7 @@ namespace AE::App
 
         // methods
         public:
-            InputActions (VRDeviceEmulator &vr, DubleBufferedQueue *q)                                                              __NE___ :
+            InputActions (VRDeviceEmulator &vr, DubleBufferedQueue* q)                                                              __NE___ :
                 InputActionsBase{q ? *q : _dbQueue}, _vrDev{vr}
             {}
 

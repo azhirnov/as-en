@@ -50,7 +50,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptImage () {}
+        ScriptImage () = delete;
         ScriptImage (uint imageType, const String &filename)                        __Th___;
         ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds)            __Th___;
         ScriptImage (EPixelFormat format, const packed_uint3 &dim)                  __Th___;
@@ -117,6 +117,8 @@ namespace AE::ResEditor
 
 
     private:
+        ScriptImage (int) {}
+
         void  _Load (const String &filename, MipmapLevel mipmap,
                      ImageLayer layer, ELoadOpFlags flags)                          __Th___;
 

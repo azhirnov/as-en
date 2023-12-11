@@ -11,15 +11,15 @@ namespace AE::Threading
     // GraphicsFrameAllocatorRef
     //
 
-    class GraphicsFrameAllocatorRef final : public AllocatorRef2< MemoryManagerImpl::FrameAllocator_t >
+    class GraphicsFrameAllocatorRef final : public AllocatorRef< MemoryManagerImpl::FrameAllocator_t >
     {
     public:
         GraphicsFrameAllocatorRef () __NE___ :
-            AllocatorRef2{ MemoryManager().GetGraphicsFrameAllocator().Get() }
+            AllocatorRef{ MemoryManager().GetGraphicsFrameAllocator().Get() }
         {}
 
         explicit GraphicsFrameAllocatorRef (FrameUID frameId) __NE___ :
-            AllocatorRef2{ MemoryManager().GetGraphicsFrameAllocator().Get( frameId )}
+            AllocatorRef{ MemoryManager().GetGraphicsFrameAllocator().Get( frameId )}
         {}
     };
 

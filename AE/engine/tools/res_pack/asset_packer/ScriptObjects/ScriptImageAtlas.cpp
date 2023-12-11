@@ -5,7 +5,7 @@
 
 #include "graphics/Private/EnumUtils.h"
 
-#include "serializing/ObjectFactory.h"
+#include "serializing/Basic/ObjectFactory.h"
 
 #include "scripting/Impl/ClassBinder.h"
 

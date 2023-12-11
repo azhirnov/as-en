@@ -15,10 +15,10 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    void  VRenderTaskScheduler::VirtualFenceApi::Recycle (uint indexInPool) __NE___
+    void  RenderTaskScheduler::VirtualFenceApi::Recycle (VirtualFence* ptr) __NE___
     {
-        auto&   rts = RenderTaskScheduler();
-        rts._virtFencePool.Unassign( indexInPool );
+        auto&   rts = GraphicsScheduler();
+        rts._virtFencePool.Unassign( ptr );
     }
 #endif
 //-----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace AE::Graphics
     GraphicsContextApi
 =================================================
 */
-    RC<VDrawCommandBatch>  VRenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (VRenderTaskScheduler &rts,
+    RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
                                                                                            const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
                                                                                            DebugLabel dbg) __NE___
     {
@@ -43,7 +43,7 @@ namespace AE::Graphics
         return rts._CreateDrawBatch( primaryState, viewports, scissors, dbg );
     }
 
-    RC<VDrawCommandBatch>  VRenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (VRenderTaskScheduler &rts,
+    RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
                                                                                           const VDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
     {
         VPrimaryCmdBufState draw_state = prevBatch.GetPrimaryCtxState();
@@ -63,13 +63,13 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    RC<VRenderTaskScheduler::VirtualFence>  VRenderTaskScheduler::_CreateFence ()
+    RC<RenderTaskScheduler::VirtualFence>  RenderTaskScheduler::_CreateFence ()
     {
         uint    idx;
         CHECK_ERR( _virtFencePool.Assign( OUT idx ));
 
         auto&   virt = _virtFencePool[ idx ];
-        CHECK_ERR( virt.Create( GetDevice(), idx ));
+        CHECK_ERR( virt.Create( GetDevice() ));
 
         return RC<VirtualFence>{ &virt };
     }
@@ -81,7 +81,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    bool  VRenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending)
+    bool  RenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending)
     {
         VTempStackAllocator allocator;
 
@@ -146,7 +146,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-    bool  VRenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending)
+    bool  RenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending)
     {
         VTempStackAllocator allocator;
 
@@ -209,7 +209,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    bool  VRenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId)
+    bool  RenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId)
     {
         auto&   dev             = GetDevice();
         auto&   frame           = _perFrame[ frameId.Index() ];
@@ -248,7 +248,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-    bool  VRenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId)
+    bool  RenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId)
     {
         auto&   dev             = GetDevice();
         auto&   frame           = _perFrame[ frameId.Index() ];
@@ -289,7 +289,7 @@ namespace AE::Graphics
     _IsFrameCompleted
 =================================================
 */
-    bool  VRenderTaskScheduler::_IsFrameCompleted (FrameUID frameId)
+    bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId)
     {
         #if AE_VK_TIMELINE_SEMAPHORE
             bool res = _IsFrameComplete_Timeline( frameId );
@@ -308,14 +308,14 @@ namespace AE::Graphics
     _CreateDrawBatch
 =================================================
 */
-    RC<VDrawCommandBatch>  VRenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
+    RC<VDrawCommandBatch>  RenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
                                                                    ArrayView<VkRect2D> scissors, DebugLabel dbg) __NE___
     {
         ASSERT( primaryState.IsValid() );
         CHECK_ERR( AnyEqual( _GetState(), EState::Idle, EState::BeginFrame, EState::RecordFrame ));
 
         uint    index;
-        CHECK_ERR( _drawBatchPool.Assign( OUT index, [](auto* ptr, uint idx) { new (ptr) VDrawCommandBatch{ idx }; }));
+        CHECK_ERR( _drawBatchPool.Assign( OUT index ));
 
         auto&   batch = _drawBatchPool[ index ];
 

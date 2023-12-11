@@ -45,7 +45,7 @@ namespace LFAS::CPP::_hidden_
     template <typename T>
     class ClassStorage : public ValueStorage<T>
     {
-        STATIC_ASSERT( IsClass<T> );
+        StaticAssert( IsClass<T> );
 
     // methods
     public:
@@ -117,7 +117,7 @@ namespace LFAS::CPP::_hidden_
     template <typename T, typename Count>
     class ArrayClassStorage : public ArrayValueStorage< T, Count >
     {
-        STATIC_ASSERT( IsClass<T> );
+        StaticAssert( IsClass<T> );
 
     // methods
     public:
@@ -338,7 +338,7 @@ namespace LFAS::CPP::_hidden_
     Write
 =================================================
 */
-    template <typename T, typename C>   
+    template <typename T, typename C>
     template <typename M, typename V>
     void  ArrayClassStorage<T,C>::Write (usize idx, M T::*member, V&& value)
     {

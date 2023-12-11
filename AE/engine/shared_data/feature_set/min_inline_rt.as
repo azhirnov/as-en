@@ -11,7 +11,9 @@ void ASmain ()
     //  NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
     //  Samsung Xclipse 920 driver 2.0.0 on Android 12.0
+    //  vivo V2324A driver 44.1.0 on Android 14.0
     //  Apple8
     //  Apple8_Mac
     //  Apple7_Metal3
@@ -27,8 +29,6 @@ void ASmain ()
     RC<FeatureSet>  fset = FeatureSet( "MinInlineRayTracing" );
 
     fset.depthBiasClamp (True);
-    fset.dualSrcBlend (True);
-    fset.fillModeNonSolid (True);
     fset.independentBlend (True);
     fset.sampleRateShading (True);
     fset.constantAlphaColorBlendFactors (True);
@@ -55,14 +55,13 @@ void ASmain ()
         EShaderStages::Compute
     ));
     fset.subgroupQuadStages(EShaderStages(
-        EShaderStages::Vertex | 
         EShaderStages::Fragment | 
         EShaderStages::Compute
     ));
     fset.subgroup (True);
     fset.subgroupSizeControl (True);
     fset.minSubgroupSize (4);
-    fset.maxSubgroupSize (32);
+    fset.maxSubgroupSize (16);
     fset.shaderInt8 (True);
     fset.shaderInt16 (True);
     fset.shaderFloat16 (True);
@@ -72,8 +71,6 @@ void ASmain ()
     fset.scalarBlockLayout (True);
     fset.bufferDeviceAddress (True);
     fset.fragmentStoresAndAtomics (True);
-    fset.vertexPipelineStoresAndAtomics (True);
-    fset.shaderClipDistance (True);
     fset.runtimeDescriptorArray (True);
     fset.shaderSampledImageArrayDynamicIndexing (True);
     fset.shaderStorageBufferArrayDynamicIndexing (True);
@@ -92,33 +89,31 @@ void ASmain ()
     fset.minSpirvVersion (140);
     fset.minMetalVersion (240);
     fset.drawIndirectFirstInstance (True);
-    fset.multiViewport (True);
-    fset.maxViewports (16);
+    fset.maxViewports (1);
     fset.maxTexelBufferElements (64 << 20);
     fset.maxUniformBufferSize (64 << 10);
     fset.maxStorageBufferSize (64 << 10);
-    fset.perDescrSet_maxInputAttachments (1000000);
-    fset.perDescrSet_maxSampledImages (1000000);
+    fset.perDescrSet_maxInputAttachments (9);
+    fset.perDescrSet_maxSampledImages (500000);
     fset.perDescrSet_maxSamplers (1024);
-    fset.perDescrSet_maxStorageBuffers (1048576);
-    fset.perDescrSet_maxStorageImages (1000000);
-    fset.perDescrSet_maxUniformBuffers (1048576);
-    fset.perDescrSet_maxAccelStructures (1048576);
-    fset.perDescrSet_maxTotalResources (1024);
-    fset.perStage_maxInputAttachments (1048576);
-    fset.perStage_maxSampledImages (1048576);
+    fset.perDescrSet_maxStorageBuffers (500000);
+    fset.perDescrSet_maxStorageImages (500000);
+    fset.perDescrSet_maxUniformBuffers (216);
+    fset.perDescrSet_maxAccelStructures (500000);
+    fset.perDescrSet_maxTotalResources (512);
+    fset.perStage_maxInputAttachments (9);
+    fset.perStage_maxSampledImages (500000);
     fset.perStage_maxSamplers (8192);
-    fset.perStage_maxStorageBuffers (1048576);
-    fset.perStage_maxStorageImages (1048576);
-    fset.perStage_maxUniformBuffers (1048576);
-    fset.perStage_maxAccelStructures (1048576);
-    fset.perStage_maxTotalResources (8008184);
-    fset.maxDescriptorSets (8);
+    fset.perStage_maxStorageBuffers (500000);
+    fset.perStage_maxStorageImages (500000);
+    fset.perStage_maxUniformBuffers (36);
+    fset.perStage_maxAccelStructures (500000);
+    fset.perStage_maxTotalResources (500000);
+    fset.maxDescriptorSets (7);
     fset.maxTexelOffset (7);
     fset.maxTexelGatherOffset (7);
     fset.maxFragmentOutputAttachments (8);
-    fset.maxFragmentDualSrcAttachments (1);
-    fset.maxFragmentCombinedOutputResources (8008184);
+    fset.maxFragmentCombinedOutputResources (1000008);
     fset.maxPushConstantsSize (128);
     fset.maxComputeSharedMemorySize (32 << 10);
     fset.maxComputeWorkGroupInvocations (1 << 10);
@@ -196,8 +191,7 @@ void ASmain ()
         EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
         EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
         EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
-        EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
-        EPixelFormat::RG32F, EPixelFormat::RGB_11_11_10F
+        EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F
     });
     fset.AddTexelFormats( EFormatFeature::Attachment, {
         EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -222,6 +216,6 @@ void ASmain ()
     fset.samplerAnisotropy (True);
     fset.maxSamplerAnisotropy (16.00);
     fset.maxSamplerLodBias (4.00);
-    fset.maxFramebufferLayers (1 << 10);
+    fset.maxFramebufferLayers (256);
     fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

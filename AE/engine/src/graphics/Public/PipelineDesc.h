@@ -14,24 +14,34 @@ namespace AE::Graphics
     //
     // Pipeline Options
     //
-    enum class EPipelineOpt : ubyte
+    enum class EPipelineOpt : ushort
     {
-        Optimize                    = 1 << 0,
+        Optimize                        = 1 << 0,
 
         // compute only
-        CS_DispatchBase             = 1 << 1,       // Vulkan only
+        CS_DispatchBase                 = 1 << 1,       // Vulkan only
 
         // ray tracing only
-        RT_NoNullAnyHitShaders      = 1 << 2,
-        RT_NoNullClosestHitShaders  = 1 << 3,
-        RT_NoNullMissShaders        = 1 << 4,
-        RT_NoNullIntersectionShaders= 1 << 5,
-        RT_SkipTriangles            = 1 << 6,
-        RT_SkipAABBs                = 1 << 7,
+        RT_NoNullAnyHitShaders          = 1 << 2,
+        RT_NoNullClosestHitShaders      = 1 << 3,
+        RT_NoNullMissShaders            = 1 << 4,
+        RT_NoNullIntersectionShaders    = 1 << 5,
+        RT_SkipTriangles                = 1 << 6,
+        RT_SkipAABBs                    = 1 << 7,
+        //RT_AllowMotion
+        //RT_OpacityMicromap
+        //RT_DisplacementMicromap
+
+        // cache
+        DontCompile                     = 1 << 8,       // pipeline creation will fail if it is not exists in cache
+
+        // debug / profile
+        CaptureStatistics               = 1 << 9,
+        CaptureInternalRepresentation   = 1 << 10,
 
         _Last,
-        All                         = ((_Last - 1) << 1) - 1,
-        Unknown                     = 0,
+        All                             = ((_Last - 1) << 1) - 1,
+        Unknown                         = 0,
     };
     AE_BIT_OPERATORS( EPipelineOpt );
 
@@ -156,7 +166,7 @@ namespace AE::Graphics
         struct VertexInput
         {
             EVertexType     type            = Default;
-            Bytes16u        offset;
+            Byte16u         offset;
             ubyte           index           = UMax;     // attrib index in shader
             ubyte           bufferBinding   = UMax;     // index in 'vertexBuffers'
         };
@@ -167,11 +177,11 @@ namespace AE::Graphics
             ShaderStructName::Optimized_t   typeName;
             EVertexInputRate                rate        = Default;
             ubyte                           index       = UMax;         // for 'ctx.BindVertexBuffer()'
-            Bytes16u                        stride;
+            Byte16u                         stride;
             uint                            divisor     = 0;
         };
-        STATIC_ASSERT( sizeof(VertexInput) == 6 );
-        STATIC_ASSERT( sizeof(VertexBuffer) == 16 );
+        StaticAssert( sizeof(VertexInput) == 6 );
+        StaticAssert( sizeof(VertexBuffer) == 16 );
 
     // variables
         Ptr<const RenderState>              renderStatePtr;
@@ -215,8 +225,8 @@ namespace AE::Graphics
     struct RayTracingPipelineDesc : BasePipelineDesc
     {
         uint        maxRecursionDepth           = 1;
-        Bytes32u    maxPipelineRayPayloadSize;
-        Bytes32u    maxPipelineRayHitAttributeSize;
+        Byte32u     maxPipelineRayPayloadSize;
+        Byte32u     maxPipelineRayHitAttributeSize;
     };
 
 

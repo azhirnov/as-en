@@ -102,6 +102,11 @@ namespace
         return tokens;
     }
 
+/*
+=================================================
+    GetToken
+=================================================
+*/
     ND_ static StringView  GetToken (ArrayView<StringView> tokens)
     {
         // TODO: -value "-value"
@@ -123,6 +128,16 @@ namespace
         return tokens[0];
     }
 
+    ND_ static StringView  GetToken1Of3 (ArrayView<StringView> tokens)
+    {
+        CHECK( tokens.size() == 7 );
+        CHECK( tokens[0] == "[" );
+        CHECK( tokens[2] == "," );
+        CHECK( tokens[4] == "," );
+        CHECK( tokens[6] == "]" );
+        return tokens[1];
+    }
+
     ND_ static int  GetUIntToken (ArrayView<StringView> tokens)
     {
         StringView  value_str = GetToken( tokens );
@@ -131,14 +146,29 @@ namespace
         return val;
     }
 
+/*
+=================================================
+    FS_ParseJSON_1
+=================================================
+*/
     ND_ static StringView  FS_ParseJSON_1 (StringView json, StringView name)
     {
         Array<StringView>   tokens = FS_ParseJSON_N( json, name );
         if ( tokens.empty() )
             return {};
+
+        if ( name == "\"maxTaskWorkGroupSize\"" or
+             name == "\"maxMeshWorkGroupSize\"" )
+            return GetToken1Of3( tokens );
+
         return GetToken( tokens );
     }
 
+/*
+=================================================
+    FS_ParseJSON_Str
+=================================================
+*/
     ND_ static StringView  FS_ParseJSON_Str (StringView json, StringView name)
     {
         usize   pos = json.find( name );
@@ -372,7 +402,7 @@ namespace
             prev.maxStorageImages   = FS_ParseJSON( 0u,     json, "maxDescriptorSetStorageImages" );
             prev.maxUniformBuffers  = FS_ParseJSON( 0u,     json, "maxDescriptorSetUniformBuffers" );
             prev.maxAccelStructures = FS_ParseJSON( 0u,     json, "maxDescriptorSetAccelerationStructures" );
-            prev.maxTotalResources  = FS_ParseJSON( 1024u,  json, "maxPerSetDescriptors" );
+            prev.maxTotalResources  = FS_ParseJSON( 512u,   json, "maxPerSetDescriptors" );
         }
         else
         if ( name == "\"perStage\"" )
@@ -1650,7 +1680,7 @@ namespace
 
         if ( val ) {
             str << "\tfset.fragmentShadingRateTexelSize ( {" << ToStr( val.minX ) << ", " << ToStr( val.minY )
-                << "}, {" << ToStr( val.maxX ) << ", " << ToStr( val.maxY ) << "}, " << ToStr( val.aspect ) << " );\n"; 
+                << "}, {" << ToStr( val.maxX ) << ", " << ToStr( val.maxY ) << "}, " << ToStr( val.aspect ) << " );\n";
         }
     }
 

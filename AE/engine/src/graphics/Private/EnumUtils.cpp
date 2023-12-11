@@ -164,7 +164,7 @@ namespace AE::Graphics
     {
         EResourceState  result = Zero;
 
-        for (EShaderStages t = EShaderStages(1 << 0); t < EShaderStages::All; t = EShaderStages(uint(t) << 1)) 
+        for (EShaderStages t = EShaderStages(1 << 0); t < EShaderStages::All; t = EShaderStages(uint(t) << 1))
         {
             if ( not AllBits( values, t ))
                 continue;
@@ -468,7 +468,7 @@ namespace AE::Graphics
 
             { EPixelFormat::Unknown,                0,               0, EType::Unknown }
         };
-        STATIC_ASSERT( CountOf(fmt_infos) == uint(EPixelFormat::_Count)+1 );
+        StaticAssert( CountOf(fmt_infos) == uint(EPixelFormat::_Count)+1 );
 
         ASSERT( value < EPixelFormat::_Count );
 
@@ -916,7 +916,8 @@ namespace AE::Graphics
         switch ( id )
         {
             case EGraphicsDeviceID::VeriSilicon :   return EVendorID::VeriSilicon;
-            case EGraphicsDeviceID::V3D_4 :         return EVendorID::Broadcom;
+        //  case EGraphicsDeviceID::V3D_4 :
+        //  case EGraphicsDeviceID::V3D_6 :         return EVendorID::Broadcom;
         }
         return Default;
     }
@@ -959,7 +960,7 @@ namespace AE::Graphics
                 return EGraphicsDeviceID::Adreno_500;
 
             if ( HasSubString( name, " 643" )       or
-                 HasSubString( name, " 650" )       or 
+                 HasSubString( name, " 650" )       or
                  HasSubString( name, " 660" ))
                 return EGraphicsDeviceID::Adreno_600_QC5;
 
@@ -1158,9 +1159,6 @@ namespace AE::Graphics
             if ( HasSubStringIC( name, "VeriSilicon" ))
                 return EGraphicsDeviceID::VeriSilicon;
 
-            if ( HasSubStringIC( name, "V3D 4." ))
-                return EGraphicsDeviceID::V3D_4;
-
             if ( HasSubStringIC( name, "SwiftShader" ))
                 return EGraphicsDeviceID::SwiftShader;
         }
@@ -1207,7 +1205,7 @@ namespace AE::Graphics
 */
     ESurfaceFormat  ESurfaceFormat_Cast (EPixelFormat format, EColorSpace space) __NE___
     {
-        STATIC_ASSERT( uint(ESurfaceFormat::_Count) == 10 );
+        StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
 
         if ( format == EPixelFormat::BGRA8_UNorm    and space == EColorSpace::sRGB_nonlinear )          return ESurfaceFormat::BGRA8_sRGB_nonlinear;
         if ( format == EPixelFormat::RGBA8_UNorm    and space == EColorSpace::sRGB_nonlinear )          return ESurfaceFormat::RGBA8_sRGB_nonlinear;

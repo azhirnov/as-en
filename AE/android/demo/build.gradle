@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -11,14 +11,14 @@ android {
     defaultConfig {
         applicationId 		'AE.Demo'
         minSdkVersion 		24 // for vulkan
-        targetSdkVersion 	33
+        targetSdkVersion 	34
 		
         ndk {
             abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
         }
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_static',
+                arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
 						  '-DANDROID_ARM_NEON=ON',
 						  '-DAE_ENABLE_VULKAN=ON'
             }
@@ -30,6 +30,7 @@ android {
             //debuggable true // to enable logcat in release
             minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
 

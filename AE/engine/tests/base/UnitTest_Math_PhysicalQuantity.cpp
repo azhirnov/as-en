@@ -8,17 +8,17 @@ namespace
     {
         using Dim = DefaultPhysicalDimensions;
 
-        STATIC_ASSERT( Dim::MeterPerSecond::meters.num == 1 );
-        STATIC_ASSERT( Dim::MeterPerSecond::meters.den == 1 );
-        STATIC_ASSERT( Dim::MeterPerSecond::seconds.num == -1 );
-        STATIC_ASSERT( Dim::MeterPerSecond::seconds.den == 1 );
+        StaticAssert( Dim::MeterPerSecond::meters.num == 1 );
+        StaticAssert( Dim::MeterPerSecond::meters.den == 1 );
+        StaticAssert( Dim::MeterPerSecond::seconds.num == -1 );
+        StaticAssert( Dim::MeterPerSecond::seconds.den == 1 );
 
         using M2 = DefaultPhysicalDimensions::Meter::Pow<2>;
 
-        STATIC_ASSERT( M2::meters.num == 2 );
-        STATIC_ASSERT( M2::meters.den == 1 );
-        STATIC_ASSERT( M2::seconds.num == 0 );
-        STATIC_ASSERT( M2::seconds.den == 1 );
+        StaticAssert( M2::meters.num == 2 );
+        StaticAssert( M2::meters.den == 1 );
+        StaticAssert( M2::seconds.num == 0 );
+        StaticAssert( M2::seconds.den == 1 );
     }
 
 
@@ -53,7 +53,7 @@ namespace
 
         Kilogram    a1 = SolarMass{3.0e+6};                     TEST(BitEqual( a1.GetNonScaled(),   1.98847e+30 * 3.0e+6 ));
         auto        a2 = GConstant{1.0} * SolarMass{3.0e+6};    TEST(BitEqual( a2.GetScaled(),      6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
-        Accel       a3 = a2 / LightYear{26000.0}.Pow<2>();      TEST(Equals( a3.GetScaled(),        6.58e-15,  10_pct ));
+        Accel       a3 = a2 / LightYear{26000.0}.Pow<2>();      TEST(Equal( a3.GetScaled(),     6.58e-15,  10_pct ));
 
         TEST_Eq( ToString( GConstant{1.0},  2, True{"exponent"} ), "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
         TEST_Eq( ToString( a2,              2, True{"exponent"} ), "3.98e+26[m^3 / s^-2]" );

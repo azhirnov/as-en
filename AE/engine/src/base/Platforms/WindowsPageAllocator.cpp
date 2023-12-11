@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsPageAllocator.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Algorithms/StringUtils.h"

@@ -13,7 +13,7 @@ namespace
     LoadDX10Image
 =================================================
 */
-    static bool  LoadDX10Image (INOUT IntermImage &image, const DDS_HEADER &header, const DDS_HEADER_DXT10 &headerDX10, RStream &stream, SharedMem::Allocator_t allocator)
+    static bool  LoadDX10Image (INOUT IntermImage &image, const DDS_HEADER &header, const DDS_HEADER_DXT10 &headerDX10, RStream &stream, RC<IAllocator> allocator)
     {
         CHECK_ERR( AllBits( header.dwFlags, DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT ));
 
@@ -126,7 +126,7 @@ namespace
     LoadDDSImage
 =================================================
 */
-    static bool  LoadDDSImage (INOUT IntermImage &image, const DDS_HEADER &header, RStream &stream, SharedMem::Allocator_t allocator)
+    static bool  LoadDDSImage (INOUT IntermImage &image, const DDS_HEADER &header, RStream &stream, RC<IAllocator> allocator)
     {
         Unused( image, header, stream );
         // TODO
@@ -143,7 +143,7 @@ namespace
     LoadImage
 =================================================
 */
-    bool  DDSImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  DDSImageLoader::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         CHECK( not flipY );
 
@@ -168,11 +168,11 @@ namespace
         {
             header_10 = DDS_HEADER_DXT10{};
             CHECK_ERR( stream.Read( OUT *header_10 ));
-            CHECK_ERR( LoadDX10Image( INOUT image, header, *header_10, stream, allocator ));
+            CHECK_ERR( LoadDX10Image( INOUT image, header, *header_10, stream, RVRef(allocator) ));
         }
         else
         {
-            CHECK_ERR( LoadDDSImage( INOUT image, header, stream, allocator ));
+            CHECK_ERR( LoadDDSImage( INOUT image, header, stream, RVRef(allocator) ));
         }
         return true;
     }

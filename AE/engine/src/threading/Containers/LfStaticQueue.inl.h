@@ -6,13 +6,14 @@ namespace AE::Threading
 =================================================
     Init
 ----
-    must be externally synchronized
+    Must be externally synchronized
 =================================================
 */
     template <typename V, typename A>
     bool  LfStaticQueue<V,A>::Init (usize size) __NE___
     {
         DRC_EXLOCK( _drCheck );
+
         CHECK_ERR( size > 0 and size < _MaxSize );
         CHECK_ERR( _arr == null );
 
@@ -20,7 +21,6 @@ namespace AE::Threading
         _arr    = _allocator.Allocate( SizeAndAlignOf<Value_t> * _count );
         CHECK_ERR( _arr != null );
 
-        MemoryBarrier( EMemoryOrder::Release );
         return true;
     }
 
@@ -28,15 +28,13 @@ namespace AE::Threading
 =================================================
     Release
 ----
-    must be externally synchronized
+    Must be externally synchronized
 =================================================
 */
     template <typename V, typename A>
     void  LfStaticQueue<V,A>::Release () __NE___
     {
         DRC_EXLOCK( _drCheck );
-
-        MemoryBarrier( EMemoryOrder::Acquire );
 
         if ( _arr == null )
             return;
@@ -59,6 +57,7 @@ namespace AE::Threading
     void  LfStaticQueue<V,A>::Clear () __NE___
     {
         DRC_EXLOCK( _drCheck );
+
         ASSERT( _arr != null );
 
         const Bits  pack = _packed.exchange( Bits{} );
@@ -78,6 +77,7 @@ namespace AE::Threading
     bool  LfStaticQueue<V,A>::Push (const Value_t &value) __NE___
     {
         DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
 
         Bits    pack = _packed.load();
@@ -112,6 +112,7 @@ namespace AE::Threading
     bool  LfStaticQueue<V,A>::Push (Value_t &&value) __NE___
     {
         DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
 
         Bits    pack = _packed.load();
@@ -182,6 +183,7 @@ namespace AE::Threading
     bool  LfStaticQueue<V,A>::First (OUT Value_t &value) __NE___
     {
         DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
 
         Bits    pack = _packed.load();
@@ -203,6 +205,7 @@ namespace AE::Threading
     bool  LfStaticQueue<V,A>::Pop (OUT Value_t &value) __NE___
     {
         DRC_SHAREDLOCK( _drCheck );
+
         ASSERT( _arr != null );
 
         Bits    pack = _packed.load();

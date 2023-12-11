@@ -53,7 +53,7 @@ namespace
     public:
         RT2_TestData&   t;
 
-        RT2_UploadTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT2_UploadTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -117,7 +117,7 @@ namespace
     public:
         RT2_TestData&   t;
 
-        RT2_RayTracingTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT2_RayTracingTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -156,7 +156,7 @@ namespace
     public:
         RT2_TestData&   t;
 
-        RT2_CopyTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        RT2_CopyTask (RT2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -182,9 +182,9 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  RayTracing2Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  RayTracing2Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         RT2_TestData    t;
@@ -262,23 +262,26 @@ namespace
         }
         CHECK_ERR( t.ds );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"RayTracing1"} );
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch->Run< RT2_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},                 {"Upload RTAS task"} );
+        AsyncTask   task1   = t.batch->Run< RT2_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{},                      {"Upload RTAS task"} );
         AsyncTask   task2   = t.batch->Run< RT2_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},                 {"Ray tracing task"} );
         AsyncTask   task3   = t.batch->Run< RT2_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},   {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task3} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );
@@ -293,7 +296,7 @@ bool RGTest::Test_RayTracing2 ()
     if ( _rtPipelines == null )
         return true; // skip
 
-    if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+    if ( GraphicsScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
         return true; // skip
 
     auto    img_cmp = _LoadReference( TEST_NAME );

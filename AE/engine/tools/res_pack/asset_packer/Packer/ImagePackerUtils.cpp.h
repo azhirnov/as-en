@@ -45,7 +45,7 @@ using ImageUtils_t      = Graphics::ImageUtils;
         dataOffset = 0_b;
         for (uint mip = 0;; ++mip)
         {
-            imageDim    = ImageUtils_t::MipmapDimension( uint3{header.dimension}, mipmap.Get(), texblock_dim );
+            imageDim    = ImageUtils_t::MipmapDimension( uint3{header.dimension}, mip, texblock_dim );
             rowSize     = AlignUp( ImageUtils_t::RowSize( imageDim.x, fmt_info.bitsPerBlock, texblock_dim ), row_align );
             sliceSize   = ImageUtils_t::SliceSize( imageDim.y, rowSize, texblock_dim );
 

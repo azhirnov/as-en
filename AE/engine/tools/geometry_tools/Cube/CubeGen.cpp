@@ -47,10 +47,10 @@ namespace AE::GeometryTools
              0.f,  0.f,  1.f,   // +Y
              0.f,  1.f,  0.f,   // -X
         };
-        STATIC_ASSERT( CountOf(a_positions) == (CountOf(a_texcoords2d)*3/2)*6 );
-        STATIC_ASSERT( CountOf(a_positions) == CountOf(a_normals)*4 );
-        STATIC_ASSERT( CountOf(a_positions) == CountOf(a_tangents)*4 );
-        STATIC_ASSERT( CountOf(a_positions) == CountOf(a_bitangents)*4 );
+        StaticAssert( CountOf(a_positions) == (CountOf(a_texcoords2d)*3/2)*6 );
+        StaticAssert( CountOf(a_positions) == CountOf(a_normals)*4 );
+        StaticAssert( CountOf(a_positions) == CountOf(a_tangents)*4 );
+        StaticAssert( CountOf(a_positions) == CountOf(a_bitangents)*4 );
 
         _vertices.resize( CountOf(a_positions)/3 );
 
@@ -136,9 +136,9 @@ namespace AE::GeometryTools
                         pos2, uv2,
                         OUT normal, OUT tangent, OUT bitangent );
 
-            ASSERT( All(Equals( normal, norm0 )));
-            ASSERT( All(Equals( tangent, tan0 )));
-            ASSERT( All(Equals( bitangent, bitan0 )));
+            ASSERT( All(Equal( normal, norm0 )));
+            ASSERT( All(Equal( tangent, tan0 )));
+            ASSERT( All(Equal( bitangent, bitan0 )));
         }
     #endif
 

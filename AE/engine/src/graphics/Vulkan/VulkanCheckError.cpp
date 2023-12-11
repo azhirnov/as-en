@@ -12,12 +12,13 @@ namespace AE::Graphics
     __vk_CheckErrors
 =================================================
 */
-    bool __vk_CheckErrors (VkResult errCode, const char *vkcall, const char *func, const SourceLoc &loc) __NE___
+    bool __vk_CheckErrors (VkResult errCode, const char* vkcall, const char* func, const SourceLoc &loc) __NE___
     {
-        if ( errCode == VK_SUCCESS )
+        if_likely( errCode == VK_SUCCESS )
             return true;
 
-        try {
+      #ifdef AE_ENABLE_LOGS
+        TRY{
             #define VK1_CASE_ERR( _code_ )\
                 case _code_ :   msg += AE_TOSTRING( _code_ ); break;
 
@@ -84,8 +85,11 @@ namespace AE::Graphics
 
             AE_LOGE( msg, loc.file, loc.line );
         }
-        catch(...)
-        {}
+        CATCH_ALL()
+      #else
+        Unused( vkcall, func, loc );
+      #endif
+
         return false;
     }
 

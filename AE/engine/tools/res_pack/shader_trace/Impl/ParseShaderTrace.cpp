@@ -43,7 +43,7 @@ namespace
         EbtNumTypes
     };
 #endif
-    STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 24 );
+    StaticAssert( uint(TBasicType::EbtNumTypes) == 24 );
 
 
     //
@@ -100,10 +100,10 @@ namespace
 
 
     public:
-        ND_ bool  AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint *data,
+        ND_ bool  AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint* data,
                             const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 
-        ND_ bool  AddTime (const ExprInfo &expr, uint rows, uint cols, const uint *data);
+        ND_ bool  AddTime (const ExprInfo &expr, uint rows, uint cols, const uint* data);
 
         ND_ bool  Flush (const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 
@@ -121,7 +121,7 @@ namespace
     CopyValue
 =================================================
 */
-    inline void  CopyValue (TBasicType type, INOUT Trace::Value &value, uint valueIndex, const uint *data, INOUT uint &dataIndex)
+    inline void  CopyValue (TBasicType type, INOUT Trace::Value &value, uint valueIndex, const uint* data, INOUT uint &dataIndex)
     {
         switch ( type )
         {
@@ -167,7 +167,7 @@ namespace
     Trace::AddState
 =================================================
 */
-    bool  Trace::AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint *data,
+    bool  Trace::AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint* data,
                            const VarNames_t &varNames, const Sources_t &sources, ELogFormat format,
                            INOUT String &result)
     {
@@ -248,7 +248,7 @@ namespace
     AddTime
 =================================================
 */
-    bool  Trace::AddTime (const ExprInfo &expr, uint, uint, const uint *data)
+    bool  Trace::AddTime (const ExprInfo &expr, uint, uint, const uint* data)
     {
         auto&   fn = _profiling[ &expr ];
 
@@ -604,7 +604,7 @@ namespace
     ParseShaderTrace
 =================================================
 */
-    bool  ShaderTrace::ParseShaderTrace (const void *ptr, const Bytes inMaxSize, ELogFormat format, OUT Array<String> &result) const
+    bool  ShaderTrace::ParseShaderTrace (const void* ptr, const Bytes inMaxSize, ELogFormat format, OUT Array<String> &result) const
     {
         if ( format == Default )
             format = ELogFormat::Text;

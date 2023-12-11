@@ -4,7 +4,7 @@
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/FileStream.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Basic/ObjectFactory.h"
 
 #include "res_loaders/Intermediate/IntermImage.h"
 #include "res_loaders/DDS/DDSImageSaver.h"
@@ -481,7 +481,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&            spirvData,
     #endif
 
     // disassembly
-    #if 0 //defined(ENABLE_OPT) 
+    #if 0 //defined(ENABLE_OPT)
     {
         spv_context ctx = spvContextCreate( SPV_ENV_VULKAN_1_1 );
         CHECK_ERR( ctx != null );
@@ -507,7 +507,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&            spirvData,
     _GetDebugOutput
 =================================================
 */
-bool  TestDevice::_GetDebugOutput (VkShaderModule shaderModule, const void *ptr, VkDeviceSize maxSize, OUT Array<String> &result) const
+bool  TestDevice::_GetDebugOutput (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const
 {
     auto    iter = _debuggableShaders.find( shaderModule );
     CHECK_ERR( iter != _debuggableShaders.end() );
@@ -1577,7 +1577,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 
             for (uint i = 0; i < numGroups; ++i) {
                 VK_CHECK( vkGetRayTracingShaderGroupHandlesKHR( GetVkDevice(), rtPipeline, i, 1, GetRayTracingProps().shaderGroupHandleSize, OUT handles.data() + Bytes{alignment * i} ));
-            }   
+            }
             vkCmdUpdateBuffer( cmd, sbt, 0, handles.size() * sizeof(handles[0]), handles.data() );
         });
     }

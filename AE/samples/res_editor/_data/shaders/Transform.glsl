@@ -13,6 +13,8 @@
 /*
 =================================================
     LocalPosToWorldSpace
+----
+    world space where camera in zero coords
 =================================================
 */
 ND_ float4  LocalPosToWorldSpace (const float4 pos)
@@ -34,7 +36,7 @@ ND_ float4  LocalPosToWorldSpace (const float3 pos)
 */
 ND_ float3  LocalVecToWorldSpace (const float3 dir)
 {
-    return Normalize( float3x3(un_PerObject.transform) * dir );
+    return Normalize( un_PerObject.normalMat * dir );
 }
 
 #else

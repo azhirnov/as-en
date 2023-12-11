@@ -3,12 +3,11 @@
     Set emulation on static array with binary/linear search.
     Use only for small number of elements.
 
-    Recomended maximum size is 8..16 elements.
+    Recommended maximum size is 8..16 elements.
 
-    References are not invalidated.
-
-    Exceptions:
-        - key may throw exceptions (in copy-ctor)
+    On insertion references are not invalidated.
+    On erase references may be invalidated.
+    Iterators are not invalidated.
 */
 
 #pragma once
@@ -24,21 +23,17 @@ namespace AE::Base
 
     template <typename Value,
               usize ArraySize,
-              typename Policy = CopyPolicy::AutoDetect< Value >
+              typename CopyPolicy = CopyPolicy::AutoDetect< Value >
              >
-    struct FixedSet
+    struct FixedSet : NothrowAllocatable
     {
-        STATIC_ASSERT( ArraySize < 256 );
-        STATIC_ASSERT( IsNothrowDtor< Value >);
-        //STATIC_ASSERT( IsNothrowMoveCtor< Value >);
-
     // types
     private:
-        using Self          = FixedSet< Value, ArraySize, Policy >;
-        using Index_t       = Conditional< (ArraySize < 0xFF), ubyte, Conditional< (ArraySize < 0xFFFF), ushort, uint >>;
-        using CPolicy_t     = Policy;
+        using Self          = FixedSet< Value, ArraySize, CopyPolicy >;
+        using Index_t       = Conditional< (ArraySize <= MaxValue<ubyte>()), ubyte, ushort >;
+        using CPolicy_t     = CopyPolicy;
 
-        static constexpr bool   _IsNothrowCopy = IsNothrowCopyCtor<Value>;
+        StaticAssert( ArraySize <= MaxValue<Index_t>() );
 
     public:
         using value_type        = Value;
@@ -48,11 +43,11 @@ namespace AE::Base
 
     // variables
     private:
-        Index_t             _count      = 0;
-        mutable Index_t     _indices [ArraySize];
+        Index_t         _count      = 0;
+        Index_t         _indices [ArraySize];
         union {
-            value_type      _array  [ArraySize];
-            char            _buffer [sizeof(value_type) * ArraySize];       // don't use this field!
+            value_type  _array  [ArraySize];
+            char        _buffer [sizeof(value_type) * ArraySize];       // don't use this field!
         };
 
 
@@ -60,9 +55,9 @@ namespace AE::Base
     public:
         FixedSet ()                                                 __NE___;
         FixedSet (Self &&)                                          __NE___;
-        FixedSet (const Self &)                                     noexcept(_IsNothrowCopy);
+        FixedSet (const Self &)                                     __NE___;
 
-        ~FixedSet ()                                                __NE___ { clear(); }
+        ~FixedSet ()                                                __NE___ { clear(); }    // TODO: remove for trivial destructor
 
         ND_ usize       size ()                                     C_NE___ { return _count; }
         ND_ bool        empty ()                                    C_NE___ { return _count == 0; }
@@ -73,19 +68,19 @@ namespace AE::Base
         ND_ static constexpr usize  capacity ()                     __NE___ { return ArraySize; }
 
             Self&   operator = (Self &&)                            __NE___;
-            Self&   operator = (const Self &)                       noexcept(_IsNothrowCopy);
+            Self&   operator = (const Self &)                       __NE___;
 
         ND_ bool    operator == (const Self &rhs)                   C_NE___;
         ND_ bool    operator != (const Self &rhs)                   C_NE___ { return not (*this == rhs); }
 
             template <typename ValueType>
-            Pair<iterator,bool>  emplace (ValueType&& value)        noexcept(_IsNothrowCopy);
+            Pair<iterator,bool>  emplace (ValueType&& value)        __NE___;
 
-            Pair<iterator,bool>  insert (const Value &value)        noexcept(_IsNothrowCopy)    { return emplace( value ); }
-            Pair<iterator,bool>  insert (Value&& value)             __NE___                     { return emplace( RVRef(value) ); }
+            Pair<iterator,bool>  insert (const Value &value)        __NE___ { return emplace( value ); }
+            Pair<iterator,bool>  insert (Value&& value)             __NE___ { return emplace( RVRef(value) ); }
 
             template <typename ValueType>
-            Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(_IsNothrowCopy);
+            Pair<iterator,bool>  insert_or_assign (ValueType&& value) __NE___;
 
             template <typename KeyType>
             bool        erase (const KeyType &key)                  __NE___;
@@ -108,7 +103,8 @@ namespace AE::Base
 
         // cache friendly access to unsorted data
 
-        ND_ explicit operator ArrayView<Value> ()                   C_NE___ { return { &_array[0], size() }; }
+        ND_ ArrayView<Value>    GetValueArray ()                    C_NE___ { return { &_array[0], size() }; }
+        ND_ explicit operator ArrayView<Value> ()                   C_NE___ { return GetValueArray(); }
 
         ND_ Value const&    operator [] (usize i)                   C_NE___;
 
@@ -140,11 +136,12 @@ namespace AE::Base
 =================================================
 */
     template <typename V, usize S, typename CS>
-    FixedSet<V,S,CS>::FixedSet (const Self &other) noexcept(_IsNothrowCopy) : _count{ other._count }
+    FixedSet<V,S,CS>::FixedSet (const Self &other) __NE___ : _count{ other._count }
     {
         ASSERT( not _IsMemoryAliased( &other ));
+        CheckNothrow( IsNothrowDefaultCtor< V >);
 
-        CPolicy_t::Copy( OUT _array, other._array, _count );    // throw
+        CPolicy_t::Copy( OUT _array, other._array, _count );
         MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
     }
 
@@ -157,6 +154,7 @@ namespace AE::Base
     FixedSet<V,S,CS>::FixedSet (Self &&other) __NE___ : _count{ other._count }
     {
         ASSERT( not _IsMemoryAliased( &other ));
+        CheckNothrow( IsNothrowMoveCtor< V >);
 
         CPolicy_t::Replace( OUT _array, INOUT other._array, _count );
         MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
@@ -174,6 +172,7 @@ namespace AE::Base
     FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (Self &&rhs) __NE___
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
+        CheckNothrow( IsNothrowMoveCtor< V >);
 
         CPolicy_t::Destroy( INOUT _array, _count );
 
@@ -194,15 +193,16 @@ namespace AE::Base
 =================================================
 */
     template <typename V, usize S, typename CS>
-    FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) noexcept(_IsNothrowCopy)
+    FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) __NE___
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
+        CheckNothrow( IsNothrowCopyCtor< V >);
 
         CPolicy_t::Destroy( INOUT _array, _count );
 
         _count = rhs._count;
 
-        CPolicy_t::Copy( OUT _array, rhs._array, _count );  // throw
+        CPolicy_t::Copy( OUT _array, rhs._array, _count );
         MemCopy( OUT _indices, rhs._indices, SizeOf<Index_t> * _count );
 
         return *this;
@@ -250,7 +250,7 @@ namespace AE::Base
     template <typename V, usize S, typename CS>
     template <typename ValueType>
     Pair< typename FixedSet<V,S,CS>::iterator, bool >
-        FixedSet<V,S,CS>::emplace (ValueType&& value) noexcept(_IsNothrowCopy)
+        FixedSet<V,S,CS>::emplace (ValueType&& value) __NE___
     {
         using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 
@@ -263,7 +263,7 @@ namespace AE::Base
         if_likely( _count < capacity() )
         {
             const usize j = _count++;
-            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );   // throw
+            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );
 
             if ( i < _count )
                 for (usize k = _count-1; k > i; --k) {
@@ -290,7 +290,7 @@ namespace AE::Base
     template <typename V, usize S, typename CS>
     template <typename ValueType>
     Pair< typename FixedSet<V,S,CS>::iterator, bool >
-        FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) noexcept(_IsNothrowCopy)
+        FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) __NE___
     {
         using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 
@@ -306,7 +306,7 @@ namespace AE::Base
         if_likely( _count < capacity() )
         {
             const usize j = _count++;
-            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );   // throw
+            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );
 
             if ( i < _count )
                 for (usize k = _count-1; k > i; --k) {
@@ -390,8 +390,10 @@ namespace AE::Base
             }
 
             if ( idx != _count )
-                CPolicy_t::Replace( OUT &_array[idx], INOUT &_array[_count], 1, true );
-
+            {
+                CheckNothrow( IsNothrowMoveCtor< V >);
+                CPolicy_t::Replace( OUT &_array[idx], INOUT &_array[_count], 1, True{"single mem block"} );
+            }
             DEBUG_ONLY(
                 DbgInitMem( _indices[_count] );
             )
@@ -442,7 +444,23 @@ namespace AE::Base
         ASSERT( it >= begin() and it < end() );
         return usize(it) - usize(begin());
     }
+//-----------------------------------------------------------------------------
 
+
+    template <typename V, usize S, typename CS>
+    struct TMemCopyAvailable< FixedSet<V,S,CS> > {
+        static constexpr bool  value = IsMemCopyAvailable<V>;
+    };
+
+    template <typename V, usize S, typename CS>
+    struct TZeroMemAvailable< FixedSet<V,S,CS> > {
+        static constexpr bool  value = IsZeroMemAvailable<V>;
+    };
+
+    template <typename V, usize S, typename CS>
+    struct TTriviallyDestructible< FixedSet<V,S,CS> > {
+        static constexpr bool  value = IsTriviallyDestructible<V>;
+    };
 
 } // AE::Base
 

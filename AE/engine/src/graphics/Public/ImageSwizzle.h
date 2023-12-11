@@ -33,14 +33,14 @@ namespace AE::Graphics
         ND_ constexpr bool  operator == (const ImageSwizzle &rhs)                               C_NE___ { return _value == rhs._value; }
         ND_ constexpr bool  operator >  (const ImageSwizzle &rhs)                               C_NE___ { return _value >  rhs._value; }
 
-        ND_ static constexpr ImageSwizzle  FromString (const char *str, const usize len)        __NE___;
+        ND_ static constexpr ImageSwizzle  FromString (const char* str, const usize len)        __NE___;
         ND_ static constexpr ImageSwizzle  FromString (StringView str)                          __NE___ { return FromString( str.data(), str.size() ); }
 
         // 0..3 - src0
         // 4..7 - src1
         ND_ static uint4  Mix (ImageSwizzle src0, ImageSwizzle src1)                            __NE___;
 
-        friend constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len)  __NE___;
+        friend constexpr ImageSwizzle  operator "" _swizzle (const char* str, const usize len)  __NE___;
 
 
     private:
@@ -53,7 +53,7 @@ namespace AE::Graphics
     operator ""
 =================================================
 */
-    ND_ constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len) __NE___
+    ND_ constexpr ImageSwizzle  operator "" _swizzle (const char* str, const usize len) __NE___
     {
         return ImageSwizzle::FromString( str, len );
     }
@@ -103,7 +103,7 @@ namespace AE::Graphics
     FromString
 =================================================
 */
-    inline constexpr ImageSwizzle  ImageSwizzle::FromString (const char *str, const usize len) __NE___
+    inline constexpr ImageSwizzle  ImageSwizzle::FromString (const char* str, const usize len) __NE___
     {
         ASSERT( len <= 4 );
 

@@ -1,8 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_GLFW
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "platform/GLFW/ApplicationGLFW.h"
+# include "platform/WinAPI/UtilsWinAPI.h"
+
+# include "graphics/Vulkan/VSwapchain.h"
 
 # include "GLFW/glfw3.h"
 # include "GLFW/glfw3native.h"
@@ -36,7 +39,7 @@ namespace {
         Unused( &GLFW_ErrorCallback );
       #endif
 
-        _UpdateMinitors( OUT _cachedMonitors );
+        _UpdateMonitors( OUT _cachedMonitors );
         _GetLocales( OUT _locales );
 
         DEBUG_ONLY(
@@ -97,17 +100,17 @@ namespace {
 
         if_unlikely( _cachedMonitors.empty() or update )
         {
-            _UpdateMinitors( OUT _cachedMonitors );
+            _UpdateMonitors( OUT _cachedMonitors );
         }
         return _cachedMonitors;
     }
 
 /*
 =================================================
-    _UpdateMinitors
+    _UpdateMonitors
 =================================================
 */
-    void  ApplicationGLFW::_UpdateMinitors (OUT Monitors_t &outMonitors) C_NE___
+    void  ApplicationGLFW::_UpdateMonitors (OUT Monitors_t &outMonitors) C_NE___
     {
         outMonitors.clear();
 
@@ -125,6 +128,10 @@ namespace {
 
             outMonitors[i].id = Monitor::ID(i);
         }
+
+      #ifdef AE_PLATFORM_WINDOWS
+        UtilsWinAPI::SetMonitorNames( INOUT outMonitors );
+      #endif
     }
 
 /*
@@ -136,7 +143,7 @@ namespace {
     {
         outLocales.clear();
 
-    #ifdef AE_PLATFORM_WINDOWS
+      #ifdef AE_PLATFORM_WINDOWS
 
         Array<String>   locales_str;
         if ( WindowsUtils::GetLocales( OUT locales_str ))
@@ -146,7 +153,7 @@ namespace {
                 outLocales.push_back( LocaleName{locales_str[i]} );
             }
         }
-    #endif
+      #endif
     }
 
 /*
@@ -168,6 +175,9 @@ namespace {
         int2    size_mm;
         glfwGetMonitorPhysicalSize( ptr, OUT &size_mm.x, OUT &size_mm.y );
 
+        //float2    dpi_scale;  // DPI / DefaultDPI - not correct in Windows
+        //glfwGetMonitorContentScale( ptr, OUT &dpi_scale.x, OUT &dpi_scale.y );
+
         result.workArea     = PixelsRectI{ RectI{ pos, pos + size }};
         result.physicalSize = Meters2f{ float2(size_mm) * 1.0e-3f };
 
@@ -181,10 +191,10 @@ namespace {
             result.region   = result.workArea;
         }
 
-        // calc PPI
-        result.ppi = result.RegionSize() / result.physicalSize.meters * Monitor::_MetersInInch();
+        result.ppi = result._CalculatePPI();
 
-        result.name = glfwGetMonitorName( ptr );    // TODO: returns 'Generic PnP Monitor'
+        // WinAPI returns 'Generic PnP Monitor', correct name will be set later in 'UtilsWinAPI::SetMonitorNames()'
+        result.name = glfwGetMonitorName( ptr );
 
         // set native handle
         #if defined(AE_PLATFORM_WINDOWS)
@@ -195,7 +205,7 @@ namespace {
             result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetX11Monitor( ptr ));
 
         #elif defined(AE_PLATFORM_MACOS)
-            result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetCocoaMonitor( ptr ));
+            result.native = BitCast<Monitor::NativeMonitor_t>( usize(::glfwGetCocoaMonitor( ptr )));
 
         #else
         #   error no implementation for current platform!
@@ -211,10 +221,18 @@ namespace {
 */
     ArrayView<const char*>  ApplicationGLFW::GetVulkanInstanceExtensions () __NE___
     {
+    #if 0
         uint            required_extension_count = 0;
         const char **   required_extensions      = glfwGetRequiredInstanceExtensions( OUT &required_extension_count );
 
         return ArrayView<const char*>{ required_extensions, required_extension_count };
+
+    #elif defined(AE_ENABLE_VULKAN)
+        return Graphics::VSwapchain::GetInstanceExtensions();
+
+    #else
+        return Default;
+    #endif
     }
 
 /*
@@ -255,7 +273,7 @@ namespace {
 
             if_unlikely( wnd_is_empty )
             {
-                ThreadUtils::Sleep( milliseconds{1} );
+                ThreadUtils::Sleep_15ms();
             }
         }
 
@@ -272,7 +290,6 @@ namespace {
         int res = 0;
         {
             CHECK_ERR( glfwInit() == GLFW_TRUE, -1 );
-            CHECK_ERR( glfwVulkanSupported() == GLFW_TRUE, -1 );
 
             AE::App::ApplicationGLFW    app{ RVRef(listener) };
             app._MainLoop();

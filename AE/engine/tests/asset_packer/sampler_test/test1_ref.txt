@@ -28,6 +28,22 @@ Sampler{
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
+name:  'AnisotropyRepeat'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Linear
+  addressMode:   ( Repeat, Repeat, Repeat )
+  mipLodBias:    0.000000
+  maxAnisotropy: 12.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS', 'MinDesktop' }
+--------------
 name:  'LinearMipmapClamp'
 Sampler{
   usage:         Default
@@ -72,22 +88,6 @@ Sampler{
   unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
---------------
-name:  'AnisotrophyRepeat'
-Sampler{
-  usage:         Default
-  magFilter:     Linear
-  minFilter:     Linear
-  mipmapMode:    Linear
-  addressMode:   ( Repeat, Repeat, Repeat )
-  mipLodBias:    0.000000
-  maxAnisotropy: 12.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
-  borderColor:   FloatTransparentBlack
-  unnormCoord:   false
-  reductionMode: Average
-  features:      { 'MinimalFS', 'MinDesktop' }
 --------------
 name:  'LinearRepeat'
 Sampler{

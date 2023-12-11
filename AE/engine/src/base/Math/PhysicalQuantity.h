@@ -26,8 +26,8 @@ namespace AE::Math
              >
     struct PhysicalQuantity
     {
-        STATIC_ASSERT( IsScalar<ValueType> );
-        //STATIC_ASSERT( IsFloatPoint<ValueType> );
+        StaticAssert( IsScalar<ValueType> );
+        //StaticAssert( IsFloatPoint<ValueType> );
 
     // types
     public:
@@ -113,7 +113,7 @@ namespace AE::Math
         template <typename D, typename S>
         ND_ constexpr auto  operator /  (const PhysicalQuantity<Value_t,D,S> &rhs) C_NE___
         {
-            using Scale = PhysicalQuantity_Scale::template Div< Scale_t, S >; 
+            using Scale = PhysicalQuantity_Scale::template Div< Scale_t, S >;
             return PhysicalQuantity< Value_t, typename Dimension_t::template Div<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
         }
 
@@ -155,8 +155,8 @@ namespace AE::Math
              >
     struct PhysicalQuantity< ValueType, DefaultPhysicalDimensions::NonDimensional, ValueScale >
     {
-        STATIC_ASSERT( IsScalar<ValueType> );
-        //STATIC_ASSERT( IsFloatPoint<ValueType> );
+        StaticAssert( IsScalar<ValueType> );
+        //StaticAssert( IsFloatPoint<ValueType> );
 
     // types
     public:
@@ -277,31 +277,31 @@ namespace AE::Math
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
     template <typename T, typename Dimension, typename Scale>
-    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, Scale> &a,
+    ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, Scale> &a,
                                 const PhysicalQuantity<T, Dimension, Scale> &b,
                                 const T err = Epsilon<T>()) __NE___
     {
-        return Math::Equals( a.GetNonScaled(), b.GetNonScaled(), err );
+        return Math::Equal( a.GetNonScaled(), b.GetNonScaled(), err );
     }
 
     template <typename T, typename Dimension, typename LhsScale, typename RhsScale, typename ErrScale>
-    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+    ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
                                 const PhysicalQuantity<T, Dimension, RhsScale> &b,
                                 const PhysicalQuantity<T, Dimension, ErrScale> &err) __NE___
     {
-        return Math::Equals( a.GetScaled(), b.GetScaled(), err.GetScaled() );   // TODO: average scale
+        return Math::Equal( a.GetScaled(), b.GetScaled(), err.GetScaled() );    // TODO: average scale
     }
 
     template <typename T, typename Dimension, typename LhsScale, typename RhsScale>
-    ND_ constexpr bool  Equals (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+    ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
                                 const PhysicalQuantity<T, Dimension, RhsScale> &b,
                                 const Percent err) __NE___
     {
-        return Math::Equals( a.GetScaled(), b.GetScaled(), err );
+        return Math::Equal( a.GetScaled(), b.GetScaled(), err );
     }
 
 /*
@@ -426,6 +426,8 @@ namespace AE::Math
             struct BoltzmannConst           { static constexpr T  Value = T{1.380649e-23}; };           // J / K                    - SI
             struct LuminousEfficacyOf540THzRadiation
                                             { static constexpr T  Value = T{683}; };                    // lm / W                   - SI
+
+            struct Horsepower               { static constexpr T  Value = T(735.5); };
         };
 
 
@@ -532,6 +534,7 @@ namespace AE::Math
         using KiloWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Kilo >;               // KW
         using MegaWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Mega >;               // MW
         using GigaWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Giga >;               // GW
+        using Horsepower                = PhysicalQuantity< T, Dim::Watt, typename Scale::Horsepower >;
 
         using Bar                       = PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;              // bar
         using Atmosphere                = PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;       // atm
@@ -581,10 +584,10 @@ namespace AE::Math
 namespace AE::Base
 {
     template <typename V, typename D, typename S>
-    struct TMemCopyAvailable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsMemCopyAvailable<V>; };
+    struct TMemCopyAvailable< PhysicalQuantity< V, D, S >>      { static constexpr bool  value = IsMemCopyAvailable<V>; };
 
     template <typename V, typename D, typename S>
-    struct TZeroMemAvailable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsZeroMemAvailable<V>; };
+    struct TZeroMemAvailable< PhysicalQuantity< V, D, S >>      { static constexpr bool  value = IsZeroMemAvailable<V>; };
 
     template <typename V, typename D, typename S>
     struct TTriviallySerializable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsTriviallySerializable<V>; };

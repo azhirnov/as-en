@@ -34,9 +34,9 @@ namespace AE::Graphics
         VBuffer ()                                      __NE___ {}
         ~VBuffer ()                                     __NE___;
 
-        ND_ bool  Create (VResourceManager &, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)         __NE___;
-        ND_ bool  Create (VResourceManager &, const VulkanBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)   __NE___;
-            void  Destroy (VResourceManager &)                                                                                  __NE___;
+        ND_ bool  Create (VResourceManager &, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)       __NE___;
+        ND_ bool  Create (VResourceManager &, const VulkanBufferDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
+            void  Destroy (VResourceManager &)                                                                  __NE___;
 
         ND_ VulkanBufferDesc    GetNativeDescription () C_NE___;
 

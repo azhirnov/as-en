@@ -896,7 +896,7 @@ namespace AE::Graphics
         outVideoUsage   = Default;
         outMemType      = Default;
 
-        STATIC_ASSERT( uint(EImageUsage::All) == 0xFF );
+        StaticAssert( uint(EImageUsage::All) == 0xFF );
         for (auto t : BitfieldIterate( usage ))
         {
             BEGIN_ENUM_CHECKS();
@@ -964,7 +964,7 @@ namespace AE::Graphics
     {
         EImageOpt   result = Zero;
 
-        STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
+        StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
         for (auto t : BitfieldIterate( values ))
         {
             BEGIN_ENUM_CHECKS();
@@ -1009,7 +1009,7 @@ namespace AE::Graphics
     {
         EBufferUsage    result = Default;
 
-        STATIC_ASSERT( uint(EBufferUsage::All) == 0x1FFF );
+        StaticAssert( uint(EBufferUsage::All) == 0x1FFF );
         for (auto t : BitfieldIterate( values ))
         {
             BEGIN_ENUM_CHECKS();
@@ -1099,10 +1099,10 @@ namespace AE::Graphics
             switch ( t )
             {
                 case VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :      result |= EMemoryType::DeviceLocal;     break;
-                case VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT :
                 case VK_MEMORY_PROPERTY_HOST_COHERENT_BIT :     result |= EMemoryType::HostCoherent;    break;
                 case VK_MEMORY_PROPERTY_HOST_CACHED_BIT :       result |= EMemoryType::HostCached;      break;
                 case VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT :  result |= EMemoryType::Transient;       break;
+                case VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT :
                 case VK_MEMORY_PROPERTY_PROTECTED_BIT :
                 case VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD :
                 case VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD :
@@ -1184,6 +1184,9 @@ namespace AE::Graphics
                 case EPipelineOpt::RT_NoNullIntersectionShaders :   result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR;  break;
                 case EPipelineOpt::RT_SkipTriangles :               result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR;                break;
                 case EPipelineOpt::RT_SkipAABBs :                   result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR;                    break;
+                case EPipelineOpt::DontCompile :                    result |= VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT;             break;
+                case EPipelineOpt::CaptureStatistics :              result |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;                        break;
+                case EPipelineOpt::CaptureInternalRepresentation :  result |= VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR;          break;
 
                 case EPipelineOpt::_Last :
                 case EPipelineOpt::All :
@@ -1757,8 +1760,14 @@ namespace AE::Graphics
         switch ( value )
         {
             case ESamplerUsage::Default :                           return Zero;
-            case ESamplerUsage::Subsampled :                        return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
-            case ESamplerUsage::SubsampledCoarseReconstruction :    return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
+
+            // VK_EXT_fragment_density_map
+            //case ESamplerUsage::Subsampled :                      return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
+            //case ESamplerUsage::SubsampledCoarseReconstruction :  return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
+
+            // VK_EXT_non_seamless_cube_map
+            case ESamplerUsage::NonSeamlessCubeMap :                return VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;
+
             case ESamplerUsage::_Count :                            break;
         }
         END_ENUM_CHECKS();

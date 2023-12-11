@@ -23,7 +23,7 @@ namespace
     public:
         US2_TestData&   t;
 
-        US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg }, t{ t }
         {}
 
@@ -36,7 +36,7 @@ namespace
             if ( t.counter.fetch_add(1) == 0 )
             {
                 ctx.AccumBarriers()
-                    .ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
+                    .ImageBarrier( t.stream.ImageId(), EResourceState::Invalidate, EResourceState::CopyDst );
             }
 
             ImageMemView    mem_view;
@@ -48,8 +48,8 @@ namespace
 
             Execute( ctx );
 
-            const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
-            ASSERT( stat.dynamicWrite <= upload_limit );
+            const auto  stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            CHECK( stat.dynamicWrite <= upload_limit );
         }
     };
 
@@ -59,7 +59,7 @@ namespace
     public:
         US2_TestData&   t;
 
-        US2_FrameTask (US2_TestData& t) :
+        US2_FrameTask (US2_TestData& t) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ t }
         {}
@@ -69,12 +69,13 @@ namespace
             if ( t.stream.IsCompleted() )
                 return;
 
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
 
             BeginFrameConfig    cfg;
             cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
-            AsyncTask   begin = rts.BeginFrame( cfg );
+            CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+            CHECK_TE( rts.BeginFrame( cfg ));
 
             t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
             CHECK_TE( t.batch );
@@ -97,7 +98,7 @@ namespace
                     if ( t.counter.fetch_add(1) == 0 )
                     {
                         ctx.AccumBarriers()
-                            .ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
+                            .ImageBarrier( t.stream.ImageId(), EResourceState::Invalidate, EResourceState::CopyDst );
                     }
 
                     ImageMemView    mem_view;
@@ -109,14 +110,14 @@ namespace
 
                     co_await RenderTask_Execute( ctx );
 
-                    const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
+                    const auto  stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
                     ASSERT( stat.dynamicWrite <= upload_limit );
 
                     co_return;
                 }( t ),
-                Tuple{begin}, True{"Last"}, {"test task"} );
+                Tuple{}, True{"Last"}, {"test task"} );
         #else
-            AsyncTask   test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+            AsyncTask   test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
         #endif
 
             AsyncTask   end = rts.EndFrame( Tuple{test} );
@@ -130,7 +131,7 @@ namespace
 
     static bool  UploadStream2Test ()
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         Array<ubyte>    img_data;
         US2_TestData    t;
@@ -165,8 +166,8 @@ namespace
 
         auto    task = Scheduler().Run<US2_FrameTask>( Tuple{ArgRef(t)} );
 
-        CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
         CHECK_ERR( t.stream.IsCompleted() );
         CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / upload_limit) );

@@ -11,12 +11,13 @@ namespace AE::Graphics
 
     using AE::Threading::Promise;
     using AE::Threading::Atomic;
-    using AE::Threading::BytesAtomic;
+    using AE::Threading::AtomicByte;
     using AE::Threading::DeferExLock;
     using AE::Threading::DeferSharedLock;
     using AE::Threading::EMemoryOrder;
     using AE::Threading::MemoryBarrier;
     using AE::Threading::Synchronized;
+    using AE::Threading::EThreadArray;
 
 #   if AE_ENABLE_DATA_RACE_CHECK
     using AE::Threading::RWDataRaceCheck;
@@ -62,6 +63,8 @@ namespace AE::Graphics
 
         // staging buffer
         static constexpr uint   MaxStagingBufferParts   = 4;
+
+        static constexpr Bytes  StagingBufferOffsetAlign    {AE_CACHE_LINE};
     };
 
 

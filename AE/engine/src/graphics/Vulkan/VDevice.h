@@ -3,11 +3,9 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics/Public/DeviceProperties.h"
-# include "graphics/Public/ResourceEnums.h"
-# include "graphics/Public/FeatureSet.h"
-# include "graphics/Public/DescriptorSet.h"
+# include "graphics/Public/IDevice.h"
 # include "graphics/Vulkan/VQueue.h"
+//# include "graphics/Vulkan/Utils/VNvPerf.h"
 # include "graphics/Vulkan/Utils/RenderDocApi.h"
 # include "VulkanExtEmulation.h"
 
@@ -18,7 +16,7 @@ namespace AE::Graphics
     // Vulkan Device
     //
 
-    class VDevice : public VulkanDeviceFn, public Noncopyable
+    class VDevice : public VulkanDeviceFn, public IDevice
     {
     // types
     public:
@@ -30,12 +28,9 @@ namespace AE::Graphics
         #include "vulkan_loader/vk_features.h"
         #undef  VKFEATS_STRUCT
 
-        using ResourceFlags     = DeviceResourceFlags;
-        using DevMemoryInfoOpt  = Optional< DeviceMemoryInfo >;
-
 
     protected:
-        using Queues_t          = FixedArray< VQueue, VConfig::MaxQueues >;
+        using Queues_t          = StaticArray< VQueue, uint(EQueueType::_Count) >;
         using QueueTypes_t      = StaticArray< VQueuePtr, uint(EQueueType::_Count) >;
 
         using ExtensionName_t   = FixedString<VK_MAX_EXTENSION_NAME_SIZE>;
@@ -60,6 +55,7 @@ namespace AE::Graphics
         MemHeapToMemType_t      _memHeapToType;
 
         EQueueMask              _queueMask              = Default;
+        ubyte                   _queueCount             = 0;
         QueueTypes_t            _queueTypes             = {};
         Queues_t                _queues;
 
@@ -68,8 +64,10 @@ namespace AE::Graphics
         InstanceVersion         _vkInstanceVersion;
         DeviceVersion           _vkDeviceVersion;
         SpirvVersion            _spirvVersion;
+        VExtensions             _extensions;
 
         // tools
+        //VNvPerf               _nvPerf;
         RenderDocApi            _rdc;
 
         NO_UNIQUE_ADDRESS
@@ -78,12 +76,10 @@ namespace AE::Graphics
         DRC_ONLY(
             RWDataRaceCheck     _drCheck;)
 
-        VExtensions             _extensions;            // large
-        VulkanDeviceFnTable     _deviceFnTable;         // large
-
         ExtensionSet_t          _instanceExtensions;
         ExtensionSet_t          _deviceExtensions;
 
+        VulkanDeviceFnTable     _deviceFnTable;         // large
         VProperties             _properties;            // very large
 
 
@@ -94,8 +90,8 @@ namespace AE::Graphics
 
         ND_ VExtensions const&      GetVExtensions ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _extensions; }
         ND_ VProperties const&      GetVProperties ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties; }
-        ND_ ResourceFlags const&    GetResourceFlags ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
-        ND_ DeviceProperties const& GetDeviceProperties ()                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _devProps; }
+        ND_ ResourceFlags const&    GetResourceFlags ()                             C_NE_OF { DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
+        ND_ DeviceProperties const& GetDeviceProperties ()                          C_NE_OF { DRC_SHAREDLOCK( _drCheck );  return _devProps; }
 
         ND_ VkDevice                GetVkDevice ()                                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
         ND_ VkPhysicalDevice        GetVkPhysicalDevice ()                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
@@ -104,19 +100,22 @@ namespace AE::Graphics
         ND_ DeviceVersion           GetDeviceVersion ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkDeviceVersion; }
         ND_ SpirvVersion            GetSpirvVersion ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _spirvVersion; }
         ND_ Version2                GetVkVersion ()                                 C_NE___ { return GetDeviceVersion().Cast<0>(); }
-        ND_ ArrayView<VQueue>       GetQueues ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queues; }
+        ND_ ArrayView<VQueue>       GetQueues ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return ArrayView<VQueue>{ _queues.data(), _queueCount }; }
         ND_ VQueuePtr               GetQueue (EQueueType type)                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
-        ND_ EQueueMask              GetAvailableQueues ()                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
-        ND_ StringView              GetDeviceName ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties.properties.deviceName; }
+        ND_ EQueueMask              GetAvailableQueues ()                           C_NE_OF { DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+        ND_ StringView              GetDeviceName ()                                C_NE_OF { DRC_SHAREDLOCK( _drCheck );  return _properties.properties.deviceName; }
 
-        ND_ bool                    IsInitialized ()                                C_NE___ { return GetVkDevice() != Default; }
+        ND_ bool                    IsInitialized ()                                C_NE_OF { return GetVkDevice() != Default; }
+
+        //ND_ VNvPerf const&        GetNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
+        //ND_ bool                  HasNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
 
         ND_ RenderDocApi const&     GetRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc; }
         ND_ bool                    HasRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }
 
-        ND_ DevMemoryInfoOpt        GetMemoryUsage ()                               C_NE___;
+        ND_ DevMemoryInfoOpt        GetMemoryUsage ()                               C_NE_OF;
 
-        ND_ bool                    IsUnderDebugger ()                              C_NE___;
+        ND_ bool                    IsUnderDebugger ()                              C_NE_OF;
 
 
         // check extensions
@@ -138,12 +137,26 @@ namespace AE::Graphics
         ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType,
                                       OUT uint &memoryTypeIndex)                    C_NE___;
 
+        ND_ VkResult  AllocateMemory (const VkMemoryAllocateInfo    &allocateInfo,
+                                      OUT VkDeviceMemory            &memory)        C_NE___;
+
         ND_ uint  GetMemoryTypeBits (EMemoryType)                                   C_NE___;
 
-        ND_ bool  CheckConstantLimits ()                                            C_NE___;
-        ND_ bool  CheckExtensions ()                                                C_NE___;
+        ND_ bool  CheckConstantLimits ()                                            C_NE_OF;
+        ND_ bool  CheckExtensions ()                                                C_NE_OF;
 
             void  InitFeatureSet (OUT FeatureSet &)                                 C_NE___;
+
+        // requires 'EPipelineOpt::CaptureStatistics'
+            bool  PrintPipelineExecutableStatistics (StringView name, VkPipeline)                   C_NE___;
+
+        // requires 'EPipelineOpt::CaptureInternalRepresentation'
+            bool  PrintPipelineExecutableInternalRepresentations (StringView name, VkPipeline)      C_NE___;
+
+            bool  PrintPipelineExecutableInfo (StringView name, VkPipeline, EPipelineOpt options)   C_NE___;
+
+        ND_ bool  GetMemoryRequirements (const VkBufferCreateInfo &, OUT VkMemoryRequirements2*)    C_NE___;
+        ND_ bool  GetMemoryRequirements (const VkImageCreateInfo &, OUT VkMemoryRequirements2*)     C_NE___;
     };
 
 
@@ -234,17 +247,22 @@ namespace AE::Graphics
         explicit VDeviceInitializer (Bool enableInfoLog = False{})                                  __NE___;
         ~VDeviceInitializer ()                                                                      __NE___;
 
+
+      // LowLevel //
         ND_ InstanceVersion  GetMaxInstanceVersion ()                                               C_NE___;
 
             bool  LoadNvPerf ()                                                                     __NE___;
             bool  LoadArmProfiler ()                                                                __NE___;
-            bool  LoadRenderDoc ()                                                                  __NE___;
 
         ND_ bool  CreateInstance (const InstanceCreateInfo &ci)                                     __NE___;
-
-        //ND_ bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)                    __NE___;
-
+        //  bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)                      __NE___;
             bool  DestroyInstance ()                                                                __NE___;
+
+            bool  LoadRenderDoc ()                                                                  __NE___;
+
+            bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT  severity,
+                                       DebugReport_t &&                     callback = Default)     __NE___;
+            void  DestroyDebugCallback ()                                                           __NE___;
 
         ND_ bool  ChooseDevice (StringView deviceName)                                              __NE___;
         ND_ bool  ChooseHighPerformanceDevice ()                                                    __NE___;
@@ -256,17 +274,16 @@ namespace AE::Graphics
 
         ND_ bool  CreateLogicalDevice (ArrayView<const char*>   extensions          = {},
                                        const FeatureSet*        fsToDeviceFeatures  = null)         __NE___;
-            //bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})       __NE___;
+        //  bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})         __NE___;
             bool  DestroyLogicalDevice ()                                                           __NE___;
 
-            bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT  severity,
-                                       DebugReport_t &&                     callback = Default)     __NE___;
-            void  DestroyDebugCallback ()                                                           __NE___;
+        ND_ static ArrayView<const char*>   GetRecommendedInstanceLayers ()                         __NE___;
 
+
+      // HighLevel //
         ND_ bool  Init (const VDeviceInitializer &otherDev)                                         __NE___;
         ND_ bool  Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions)    __NE___;
 
-        ND_ static ArrayView<const char*>   GetRecommendedInstanceLayers ()                         __NE___;
 
         ND_ VulkanDeviceFnTable &           EditDeviceFnTable ()                                    __NE___ { DRC_EXLOCK( _drCheck ); return _deviceFnTable; }
 
@@ -278,11 +295,12 @@ namespace AE::Graphics
 
         ND_ bool  _CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> instanceLayers,
                                    ArrayView<const char*> instanceExtensions, InstanceVersion version,
-                                   uint appVer, uint engineVer, const VkValidationFeaturesEXT *pValidation)             __Th___;
+                                   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation)             __Th___;
 
-        void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version)        C_Th___;
-        void  _ValidateInstanceLayers (INOUT Array<const char*> &layers)                                                C_Th___;
-        void  _ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &ext)                    C_Th___;
+        void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers,
+                                        ArrayView<const char*> extensions, INOUT uint &version)                         C_Th___;
+        void  _ValidateInstanceLayers (INOUT Array<const char*> &layers, Bool silent)                                   C_Th___;
+        void  _ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &ext, Bool silent)       C_Th___;
         bool  _ChooseHighPerformanceDevice ()                                                                           __Th___;
         bool  _CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures)            __Th___;
         void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)                       C_Th___;
@@ -296,7 +314,6 @@ namespace AE::Graphics
         void  _LogInstance (ArrayView<const char*> instanceLayers)                                                      C_Th___;
         void  _LogPhysicalDevices ()                                                                                    C_NE___;
         void  _LogLogicalDevice ()                                                                                      C_Th___;
-        void  _LogResourceFlags ()                                                                                      C_Th___;
         void  _LogExternalTools ()                                                                                      C_Th___;
 
         void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
@@ -338,7 +355,7 @@ namespace AE::Graphics
     template <typename T>
     bool  VDevice::SetObjectName (T id, NtStringView name, VkObjectType type) C_NE___
     {
-        STATIC_ASSERT( sizeof(T) <= sizeof(ulong) );
+        StaticAssert( sizeof(T) <= sizeof(ulong) );
         return SetObjectName( ulong(id), name, type );
     }
 

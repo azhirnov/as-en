@@ -22,7 +22,7 @@ namespace AE::Math
         using Vec2_t        = TVec< T, 2, Q >;
         using Vec3_t        = TVec< T, 3, Q >;
         using Vec4_t        = TVec< T, 4, Q >;
-        using Rad_t         = TRadians<T>;
+        using Rad_t         = TRadian<T>;
 
 
     // variables
@@ -79,7 +79,7 @@ namespace AE::Math
         ND_ Self    operator - ()                                                       C_NE___ { return Self{ -_value }; }
 
             Self&   operator = (const Self &rhs)                                        __NE___ = default;
-            Self&   operator = (Self && rhs)                                            __NE___ = default;
+            Self&   operator = (Self &&rhs)                                             __NE___ = default;
 
         ND_ Self    operator +  (T rhs)                                                 C_NE___ { return Self{ _value + rhs }; }
         ND_ Self    operator -  (T rhs)                                                 C_NE___ { return Self{ _value - rhs }; }
@@ -110,16 +110,16 @@ namespace AE::Math
         ND_ Col_t const&            operator [] (usize c)                               C_NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
         ND_ Col_t&                  operator [] (usize c)                               __NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
 
-        template <uint C>           ND_ Col_t const&    get ()                          C_NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
-        template <uint C>           ND_ Col_t &         get ()                          __NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
+        template <uint C>           ND_ Col_t const&    get ()                          C_NE___ { StaticAssert( C < Columns );  return _value[C]; }
+        template <uint C>           ND_ Col_t &         get ()                          __NE___ { StaticAssert( C < Columns );  return _value[C]; }
 
 
         // return scalar
         ND_ const T                 operator () (usize c, usize r)                      C_NE___ { ASSERT( c < Columns and r < Rows );  return _value[glm::length_t(c)][glm::length_t(r)]; }
         ND_ T &                     operator () (usize c, usize r)                      __NE___ { ASSERT( c < Columns and r < Rows );  return _value[glm::length_t(c)][glm::length_t(r)]; }
 
-        template <uint C, uint R>   ND_ const T get ()                                  C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
-        template <uint C, uint R>   ND_ T &     get ()                                  __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
+        template <uint C, uint R>   ND_ const T get ()                                  C_NE___ { StaticAssert( C < Columns and R < Rows );  return _value[C][R]; }
+        template <uint C, uint R>   ND_ T &     get ()                                  __NE___ { StaticAssert( C < Columns and R < Rows );  return _value[C][R]; }
 
 
         // access to array
@@ -352,7 +352,7 @@ namespace AE::Math
         result[2][3] = T(1);
         result[3][2] = - zNear;
         return result;
-    }   
+    }
 
 /*
 =================================================

@@ -17,10 +17,10 @@ namespace AE::ResEditor
         uint        value   = 0;
 
     // methods
-        RTInstanceCustomIndex () {}
-        explicit RTInstanceCustomIndex (uint v) : value{v} {}
+        RTInstanceCustomIndex ()                        __NE___ {}
+        explicit RTInstanceCustomIndex (uint v)         __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -33,10 +33,10 @@ namespace AE::ResEditor
         uint        value   = 0xFF;
 
     // methods
-        RTInstanceMask () {}
-        explicit RTInstanceMask (uint v) : value{v} {}
+        RTInstanceMask ()                               __NE___ {}
+        explicit RTInstanceMask (uint v)                __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -49,10 +49,10 @@ namespace AE::ResEditor
         uint        value   = 0;
 
     // methods
-        RTInstanceSBTOffset () {}
-        explicit RTInstanceSBTOffset (uint v) : value{v} {}
+        RTInstanceSBTOffset ()                          __NE___ {}
+        explicit RTInstanceSBTOffset (uint v)           __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -67,10 +67,10 @@ namespace AE::ResEditor
         float           scale   = 1.f;
 
     // methods
-        RTInstanceTransform () {}
-        RTInstanceTransform (const packed_float3 &pos, const packed_float3 &angles, float scale = 1.f) : pos{pos}, angles{angles}, scale{scale} {}
+        RTInstanceTransform ()                          __NE___ {}
+        RTInstanceTransform (const packed_float3 &pos, const packed_float3 &angles, float scale = 1.f) __NE___ : pos{pos}, angles{angles}, scale{scale} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -91,7 +91,7 @@ namespace AE::ResEditor
             String              vbufferField;
             String              ibufferField;
 
-            Bytes32u            vertexStride;
+            Byte32u             vertexStride;
             Bytes               vertexDataOffset;
             Bytes               indexDataOffset;
         };

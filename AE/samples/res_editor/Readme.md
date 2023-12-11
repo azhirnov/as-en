@@ -51,4 +51,5 @@ Content:
 ## Release
 
 Precompiled editor with resources:<br/>
+[Win64 - v23.10.199](https://drive.google.com/file/d/1kicA14gnlIwC3ah1qPszUznnFa2WCt6s/view?usp=share_link)
 [Win64 - v23.09.187](https://drive.google.com/file/d/1e_TyVnyi61r8Fk0iXVc_vIxzYEuoPxZS/view?usp=drive_link)

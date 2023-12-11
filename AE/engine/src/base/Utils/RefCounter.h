@@ -20,7 +20,7 @@ namespace AE::Base
     //
     // Enable Reference Counting
     //
-    class EnableRCBase : public Noncopyable
+    class EnableRCBase : public Noncopyable, public NothrowAllocatable
     {
         friend struct RefCounterUtils;
 
@@ -31,11 +31,14 @@ namespace AE::Base
 
     // methods
     public:
+        EnableRCBase ()                 __NE___ {}
         virtual ~EnableRCBase ()        __NE___ { ASSERT( _counter.load() == 0 ); }
 
     protected:
-        // this methods allows to catch object destruction and change behavior,
+
+        // This methods allows to catch object destruction and change behavior,
         // for example - add back to object pool.
+        //
         virtual void  _ReleaseObject () __NE___
         {
             // update cache before calling destructor
@@ -99,13 +102,28 @@ namespace AE::Base
         enum class DontIncRef {};
         explicit RC (T* ptr, DontIncRef)                __NE___ : _ptr{ptr}             {}
 
-        RC (T* ptr)                                     __NE___ : _ptr{ptr}             { _Inc(); }
-        RC (Ptr<T> ptr)                                 __NE___ : _ptr{ptr}             { _Inc(); }
+        RC (T* ptr)                                     __NE___ : _ptr{ptr}             { _IncSelf(); }
+        RC (Ptr<T> ptr)                                 __NE___ : _ptr{ptr}             { _IncSelf(); }
         RC (Self &&other)                               __NE___ : _ptr{other.release()} {}
-        RC (const Self &other)                          __NE___ : _ptr{other._ptr}      { _Inc(); }
+        RC (const Self &other)                          __NE___ : _ptr{other._ptr}      { _IncSelf(); }
 
-        template <typename B>   RC (RC<B> &&other)      __NE___ : _ptr{static_cast<T*>(other.release())}    {}
-        template <typename B>   RC (const RC<B> &other) __NE___ : _ptr{static_cast<T*>(other.get())}        { _Inc(); }
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< T, B >)>
+        RC (RC<B> &&other)                              __NE___ : _ptr{other.release()} {}
+
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< T, B >)>
+        RC (const RC<B> &other)                         __NE___ : _ptr{other.get()}     { _IncSelf(); }
+
+
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< B, T >)>
+        explicit RC (RC<B> &&other)                     __NE___ : _ptr{static_cast<T*>(other.release())}    {}
+
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< B, T >)>
+        explicit RC (const RC<B> &other)                __NE___ : _ptr{static_cast<T*>(other.get())}        { _IncSelf(); }
+
 
         ~RC ()                                          __NE___ { _Dec(); }
 
@@ -115,10 +133,12 @@ namespace AE::Base
         Self&  operator = (const Self &rhs)             __NE___ { _Inc( rhs._ptr );     _Dec();  _ptr = rhs._ptr;       return *this; }
         Self&  operator = (Self &&rhs)                  __NE___ {                       _Dec();  _ptr = rhs.release();  return *this; }
 
-        template <typename B>
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< T, B >)>
         Self&  operator = (RC<B> &&rhs)                 __NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());        return *this; }
 
-        template <typename B>
+        template <typename B,
+                  ENABLEIF( IsBaseOfNotSame< T, B >)>
         Self&  operator = (const RC<B> &rhs)            __NE___ { _Inc( static_cast<T*>(rhs.get()) );  _Dec();  _ptr = static_cast<T*>(rhs.get());  return *this; }
 
         ND_ bool  operator == (const T* rhs)            C_NE___ { return _ptr == rhs; }
@@ -150,7 +170,7 @@ namespace AE::Base
 
     private:
         static  void    _Inc (T* ptr)                   __NE___;
-                void    _Inc ()                         __NE___;
+                void    _IncSelf ()                     __NE___;
                 void    _Dec ()                         __NE___;
     };
 
@@ -165,68 +185,11 @@ namespace AE::Base
     {
     // methods
     public:
-        EnableRC ()             __NE___ {}
-
         ND_ RC<T>  GetRC ()     __NE___ { return RC<T>{ static_cast<T*>(this) }; }
 
         template <typename B>
-        ND_ RC<B>  GetRC ()     __NE___ { return RC<B>{ static_cast<B*>(this) }; }
+        ND_ RC<B>  GetRC ()     __NE___ { StaticAssert( IsBaseOf< T, B >);  return RC<B>{ static_cast<B*>(this) }; }
     };
-
-
-
-    //
-    // Pointer which depends on RC (unused)
-    //
-    /*
-    template <typename T>
-    class WithRC
-    {
-    // types
-    public:
-        using RC_t  = RC< EnableRCBase >;
-        using Self  = WithRC< T >;
-
-        STATIC_ASSERT( not IsBaseOf< EnableRCBase, T >);
-
-
-    // variables
-    private:
-        T *     _ptr    = null;
-        RC_t    _rc;
-
-
-    // methods
-    public:
-        WithRC ()                                           __NE___ {}
-        WithRC (Self &&)                                    __NE___ = default;
-        WithRC (const Self &)                               __NE___ = default;
-        template <typename B>   WithRC (T* ptr, RC<B> rc)   __NE___ : _ptr{ptr}, _rc{RVRef(rc)} { ASSERT( (_ptr != null) == bool{_rc} ); }
-
-            Self&   operator = (const Self &)               __NE___ = default;
-            Self&   operator = (Self &&)                    __NE___ = default;
-
-        ND_ bool    operator == (const T* rhs)              C_NE___ { return _ptr == rhs; }
-        ND_ bool    operator == (Ptr<T> rhs)                C_NE___ { return _ptr == rhs; }
-        ND_ bool    operator == (const Self &rhs)           C_NE___ { return _ptr == rhs._ptr; }
-        ND_ bool    operator == (std::nullptr_t)            C_NE___ { return _ptr == null; }
-
-        template <typename B>
-        ND_ bool    operator != (const B& rhs)              C_NE___ { return not (*this == rhs); }
-
-        ND_ bool    operator <  (const Self &rhs)           C_NE___ { return _ptr <  rhs._ptr; }
-        ND_ bool    operator >  (const Self &rhs)           C_NE___ { return _ptr >  rhs._ptr; }
-        ND_ bool    operator <= (const Self &rhs)           C_NE___ { return _ptr <= rhs._ptr; }
-        ND_ bool    operator >= (const Self &rhs)           C_NE___ { return _ptr >= rhs._ptr; }
-
-        ND_ T *     operator -> ()                          C_NE___ { ASSERT( _ptr != null );  return _ptr; }
-        ND_ T &     operator *  ()                          C_NE___ { ASSERT( _ptr != null );  return *_ptr; }
-        ND_ T *     get ()                                  C_NE___ { return _ptr; }
-
-        ND_ explicit operator bool ()                       C_NE___ { return _ptr != null; }
-
-        ND_ int     use_count ()                            C_NE___ { return _rc.use_count(); }
-    };*/
 
 
 
@@ -234,31 +197,40 @@ namespace AE::Base
     // Static Reference Counter
     //
 
-    struct StaticRC final : Noninstanceable
+    template <typename T>
+    class StaticRC final
     {
-        template <typename T, typename ...Args>
-        static void  New (INOUT T& obj, Args&& ...args) __Th___
-        {
-            // warning: don't use 'GetRC()' inside ctor!
-            PlacementNew<T>( OUT &obj, FwdArg<Args>( args )... );   // throw
+    // variables
+    private:
+        T   _value;
 
-            const int   cnt = RefCounterUtils::IncRef( obj );
+
+    // methods
+    public:
+        template <typename ...Args>
+        explicit StaticRC (Args&& ...args) __NE___ :
+            _value{ FwdArg<Args>( args )... }
+        {
+            StaticAssert( IsBaseOf< EnableRCBase, T > );
+            CheckNothrow( IsNothrowCtor< T, Args... >);
+
+            const int   cnt = RefCounterUtils::IncRef( _value );
             Unused( cnt );
             ASSERT( cnt == 0 );
         }
 
-        template <typename T>
-        static void  Delete (INOUT T& obj)              __NE___
+        ~StaticRC () __NE___
         {
-            const int   cnt = RefCounterUtils::DecRef( obj );
+            const int   cnt = RefCounterUtils::DecRef( _value );
             Unused( cnt );
             ASSERT( cnt == 1 );
-
-            // update cache before calling destructor
-            MemoryBarrier( EMemoryOrder::Acquire );
-
-            PlacementDelete( INOUT obj );
         }
+
+        ND_ T *         operator -> ()  __NE___ { return &_value; }
+        ND_ T const*    operator -> ()  C_NE___ { return &_value; }
+
+        ND_ T &         operator * ()   __NE___ { return _value; }
+        ND_ T const&    operator * ()   C_NE___ { return _value; }
     };
 
 
@@ -285,22 +257,17 @@ namespace AE::Base
     // methods
     public:
         AtomicRC ()                                                 __NE___ {}
-        AtomicRC (RC_t && rc)                                       __NE___ { _ptr.store( rc.release().release() ); }
-        AtomicRC (const RC_t &rc)                                   __NE___ { _IncSet( rc.get() ); }
-
-        explicit AtomicRC (std::nullptr_t)                          __NE___ {}
-        explicit AtomicRC (T* ptr)                                  __NE___ { _IncSet( ptr ); }
-        explicit AtomicRC (Ptr<T> ptr)                              __NE___ { _IncSet( ptr.get() ); }
-
-        ~AtomicRC ()                                                __NE___ { _ResetDec();  STATIC_ASSERT( alignof(T) > 1 ); /* because first bit is used for lock bit */}
+        ~AtomicRC ()                                                __NE___ { _ResetDec();  StaticAssert( alignof(T) > 1, "first bit is used for lock bit" ); }
 
         ND_ T *     unsafe_get ()                                   C_NE___ { return _RemoveLockBit( _ptr.load() ); }
         ND_ RC_t    release ()                                      __NE___;
 
         ND_ RC_t    load ()                                         __NE___;
 
-            void    store (T* ptr)                                  __NE___;
-            void    store (RC_t ptr)                                __NE___ { store( ptr.get() ); }     // TODO: optimize
+            void    store (T* ptr)                                  __NE___ { _Inc( ptr );  _Dec( _Exchange( ptr )); }
+            void    store (RC_t ptr)                                __NE___ { _Dec( _Exchange( ptr.release() )); }
+
+            void    reset ()                                        __NE___ { _ResetDec(); }
 
         ND_ RC_t    exchange (T* desired)                           __NE___;
         ND_ RC_t    exchange (RC_t desired)                         __NE___;
@@ -309,15 +276,9 @@ namespace AE::Base
         ND_ bool    CAS_Loop (INOUT RC_t& expected, RC_t desired)   __NE___ { return _CAS<true>( INOUT expected, RVRef(desired) ); }
 
 
-        Self&  operator = (std::nullptr_t)                          __NE___ { _ResetDec();          return *this; }
-        Self&  operator = (T* rhs)                                  __NE___ { store( rhs );         return *this; }
-        Self&  operator = (Ptr<T> rhs)                              __NE___ { store( rhs );         return *this; }
-        Self&  operator = (const RC_t &rhs)                         __NE___ { store( rhs.get() );   return *this; }
-        Self&  operator = (RC_t && rhs)                             __NE___;
-
     private:
-        void  _IncSet (T *ptr)                                      __NE___;
-        void  _ResetDec ()                                          __NE___;
+            void    _IncSet (T* ptr)                                __NE___;
+            void    _ResetDec ()                                    __NE___ { _Dec( _Exchange( null )); }
 
         ND_ T*      _Lock ()                                        __NE___;
             void    _Unlock ()                                      __NE___;
@@ -326,13 +287,11 @@ namespace AE::Base
         template <bool IsStrong>
         ND_ bool    _CAS (INOUT RC_t& expected, RC_t desired)       __NE___;
 
-        static void  _Inc (T *ptr)                                  __NE___;
-        static void  _Dec (T *ptr)                                  __NE___;
+            static void _Inc (T* ptr)                               __NE___;
+            static void _Dec (T* ptr)                               __NE___;
 
         ND_ static bool _HasLockBit (T* ptr)                        __NE___ { return (usize(ptr) & usize{1}); }
-
         ND_ static T*   _SetLockBit (T* ptr)                        __NE___ { return reinterpret_cast< T *>((usize(ptr) | usize{1})); }
-
         ND_ static T*   _RemoveLockBit (T* ptr)                     __NE___ { return reinterpret_cast< T *>((usize(ptr) & ~usize{1})); }
     };
 
@@ -372,23 +331,24 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    ND_ RC<T>  MakeRC (Args&& ...args) __Th___
+    ND_ RC<T>  MakeRC (Args&& ...args) __NE___
     {
-        STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
+        StaticAssert( not IsBaseOf< NonAllocatable, T >);
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
 
-        return RC<T>{ new T{ FwdArg<Args>(args)... }};  // throw
+        CheckNothrow( IsNothrowCtor< T, Args... >);
+        //CheckNothrow( IsNoExcept( new T{ FwdArg<Args>(args)... }));
+
+        return RC<T>{ new T{ FwdArg<Args>(args)... }};
     }
 
     template <typename T, typename ...Args>
-    ND_ RC<T>  MakeRC_NE (Args&& ...args) __NE___
+    ND_ RC<T>  MakeRCTh (Args&& ...args) __Th___
     {
-        STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
-        try {
-            return RC<T>{ new T{ FwdArg<Args>(args)... }};
-        }
-        catch(...) {
-            return null;
-        }
+        StaticAssert( not IsBaseOf< NonAllocatable, T >);
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
+
+        return RC<T>{ new T{ FwdArg<Args>(args)... }};
     }
 
 /*
@@ -399,7 +359,7 @@ namespace AE::Base
     template <typename T>
     int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr) __NE___
     {
-        STATIC_ASSERT( sizeof(T) > 0 );
+        StaticAssert( sizeof(T) > 0 );
 
         if_likely( ptr != null )
         {
@@ -418,31 +378,31 @@ namespace AE::Base
 
 /*
 =================================================
-    _Inc
+    _Inc / _Dec
 =================================================
 */
     template <typename T>
     void  RC<T>::_Inc (T* ptr) __NE___
     {
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
+
         if_likely( ptr != null )
             RefCounterUtils::IncRef( *ptr );
     }
 
     template <typename T>
-    void  RC<T>::_Inc () __NE___
+    void  RC<T>::_IncSelf () __NE___
     {
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
+
         if_likely( _ptr != null )
             RefCounterUtils::IncRef( *_ptr );
     }
 
-/*
-=================================================
-    _Dec
-=================================================
-*/
     template <typename T>
     void  RC<T>::_Dec () __NE___
     {
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
         RefCounterUtils::DecRefAndRelease( INOUT _ptr );
     }
 
@@ -462,39 +422,11 @@ namespace AE::Base
 
 /*
 =================================================
-    MakeAtomicRC
-=================================================
-*/
-    template <typename T, typename ...Args>
-    ND_ AtomicRC<T>  MakeAtomicRC (Args&& ...args) __Th___
-    {
-        return AtomicRC<T>{ new T{ FwdArg<Args>(args)... }};
-    }
-
-/*
-=================================================
-    operator =
-=================================================
-*/
-    template <typename T>
-    AtomicRC<T>&  AtomicRC<T>::operator = (RC_t &&rhs) __NE___
-    {
-        _ResetDec();
-
-        T*  old = _Exchange( rhs.release() );
-
-        // pointer may be changed in another thread
-        _Dec( old );
-        return *this;
-    }
-
-/*
-=================================================
     _Inc
 =================================================
 */
     template <typename T>
-    void  AtomicRC<T>::_Inc (T *ptr) __NE___
+    void  AtomicRC<T>::_Inc (T* ptr) __NE___
     {
         ASSERT( not _HasLockBit( ptr ));
 
@@ -508,7 +440,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    void  AtomicRC<T>::_Dec (T *ptr) __NE___
+    void  AtomicRC<T>::_Dec (T* ptr) __NE___
     {
         ASSERT( not _HasLockBit( ptr ));
 
@@ -521,26 +453,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    void  AtomicRC<T>::_IncSet (T *ptr) __NE___
+    void  AtomicRC<T>::_IncSet (T* ptr) __NE___
     {
         _Inc( ptr );
 
         T*  old = _Exchange( ptr );
 
         // pointer may be changed in another thread
-        _Dec( old );
-    }
-
-/*
-=================================================
-    _ResetDec
-=================================================
-*/
-    template <typename T>
-    void  AtomicRC<T>::_ResetDec () __NE___
-    {
-        T*  old = _Exchange( null );
-
         _Dec( old );
     }
 
@@ -572,18 +491,6 @@ namespace AE::Base
         RC_t    res{ _Lock() };
         _Unlock();
         return res;
-    }
-
-/*
-=================================================
-    store
-=================================================
-*/
-    template <typename T>
-    void  AtomicRC<T>::store (T* ptr) __NE___
-    {
-        _ResetDec();
-        _IncSet( ptr );
     }
 
 /*
@@ -648,24 +555,25 @@ namespace AE::Base
     template <typename T>
     T*  AtomicRC<T>::_Exchange (T* desired) __NE___
     {
-        T*  exp = _RemoveLockBit( _ptr.load() );
-
-        for (uint i = 0;
-             not _ptr.CAS( INOUT exp, desired );
-             ++i)
+        T*  exp = _ptr.load();
+        for (;;)
         {
-            if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+            for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
             {
-                i = 0;
-                ThreadUtils::Yield();
+                exp = _RemoveLockBit( exp );
+
+                // wait until it unlocks, then set new value
+                if_likely( _ptr.CAS( INOUT exp, desired ))
+                {
+                    ASSERT( not _HasLockBit( exp ));
+                    return exp;
+                }
+
+                ThreadUtils::Pause();
             }
 
-            exp = _RemoveLockBit( exp );
-            ThreadUtils::Pause();
+            ThreadUtils::Sleep_1us();
         }
-
-        ASSERT( not _HasLockBit( exp ));
-        return exp;
     }
 
 /*
@@ -676,23 +584,25 @@ namespace AE::Base
     template <typename T>
     T*  AtomicRC<T>::_Lock () __NE___
     {
-        T*  exp = _RemoveLockBit( _ptr.load() );
-        for (uint i = 0;
-             not _ptr.CAS( INOUT exp, _SetLockBit( exp ));
-             ++i)
+        T*  exp = _ptr.load();
+        for (;;)
         {
-            if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+            // spin until we can set the lock bit
+            for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
             {
-                i = 0;
-                ThreadUtils::Yield();
+                exp = _RemoveLockBit( exp );
+
+                if_likely( _ptr.CAS( INOUT exp, _SetLockBit( exp )) )
+                {
+                    ASSERT( not _HasLockBit( exp ));
+                    return exp;
+                }
+
+                ThreadUtils::Pause();
             }
 
-            exp = _RemoveLockBit( exp );
-            ThreadUtils::Pause();
+            ThreadUtils::Sleep_1us();
         }
-
-        ASSERT( not _HasLockBit( exp ));
-        return exp;
     }
 
 /*
@@ -711,6 +621,7 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
+
 /*
 =================================================
     Cast
@@ -719,7 +630,7 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ constexpr RC<R>  Cast (const RC<T> &value) __NE___
     {
-        STATIC_ASSERT( sizeof(R) > 0 );
+        StaticAssert( sizeof(R) > 0 );
         return RC<R>{ static_cast<R*>( value.get() )};
     }
 

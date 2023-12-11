@@ -118,7 +118,7 @@ namespace {
         auto        img_and_view = renderer.GetDummyImage( desc );
         CHECK_THROW( img_and_view );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         RC<Image>   result      {new Image{ renderer, dbgName }};
 
         desc            = res_mngr.GetDescription( img_and_view.image );
@@ -258,7 +258,7 @@ namespace {
 */
     bool  Image::_ResizeImage (TransferCtx_t &ctx, const ImageDesc &imageDesc, const ImageViewDesc &viewDesc)
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         {
             CHECK_ERR_MSG( res_mngr.IsSupported( imageDesc ),
@@ -297,7 +297,7 @@ namespace {
         SHAREDLOCK( derived );
 
         for (auto* img : *derived) {
-            CHECK( img->_OnResize( img->GetViewDesc() ));
+            CHECK( img->_UpdateView( img->GetViewDesc() ));
         }
 
         return true;
@@ -353,7 +353,7 @@ namespace {
                             op.stream           = ImageStream{ _id, upload };
                         }
 
-                        ASSERT( op.stream.Image() == _id );
+                        ASSERT( op.stream.ImageId() == _id );
 
                         ImageMemView    src_mem = imageData->ToView( op.curMipmap, op.curLayer );
                         ImageMemView    dst_mem;
@@ -411,7 +411,28 @@ namespace {
 */
     void  Image::_GenMipmaps (TransferCtx_t &ctx) const
     {
-        const auto  desc = GetImageDesc();
+        const auto  desc        = GetImageDesc();
+        uint        num_layers  = 0;
+        bool        gen_mipmaps = false;
+
+        for (auto& op : _loadOps) {
+            gen_mipmaps |= AllBits( op.flags, ELoadOpFlags::GenMipmaps );
+            num_layers  += uint(AllBits( op.flags, ELoadOpFlags::GenMipmaps ) and op.mipmap == 0_mipmap);
+        }
+
+        if ( not gen_mipmaps )
+            return;
+
+        if ( num_layers == desc.arrayLayers.Get() and
+             num_layers == _loadOps.size() )
+        {
+            ctx.GenerateMipmaps( _id );
+            return;
+        }
+
+        // RenderGraph doesn't tack specific image layers, so we need to put explicit barriers
+        ctx.ResourceState( _id, EResourceState::BlitSrc );
+        ctx.CommitBarriers();
 
         for (auto& op : _loadOps)
         {
@@ -424,10 +445,10 @@ namespace {
                 range.baseLayer     = op.layer;
                 range.layerCount    = 1;
                 range.baseMipLevel  = op.mipmap;
-                range.mipmapCount   = desc.maxLevel.Get() - op.mipmap.Get();
+                range.mipmapCount   = ushort(desc.maxLevel.Get() - op.mipmap.Get());
 
                 if ( range.mipmapCount > 1 )
-                    ctx.GenerateMipmaps( _id, {range} );
+                    ctx.GetBaseContext().GenerateMipmaps( _id, {range}, EResourceState::BlitSrc );
             }
         }
     }
@@ -444,7 +465,7 @@ namespace {
         CHECK_ERR( not src._isDummy.load() );
         CHECK_ERR( not storeOps.empty() );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         RC<Image>   result      {new Image{ src._Renderer(), dbgName }};
 
         Unused( result->_id.Attach( res_mngr.AcquireResource( src._id.Get() )));
@@ -531,7 +552,7 @@ namespace {
                             const uint3     mip_dim     = ImageUtils::MipmapDimension( img_desc.dimension, mipmap.Get(), fmt_info.TexBlockDim() );
 
                             AssetPacker::ImagePacker::Header    header;
-                            header.dimension    = packed_ushort3{mip_dim};
+                            header.dimension    = packed_ushort3{img_desc.dimension};
                             header.arrayLayers  = ushort(img_desc.arrayLayers.Get());
                             header.mipmaps      = ushort(img_desc.maxLevel.Get());
                             header.viewType     = view_type;
@@ -563,11 +584,15 @@ namespace {
                 op.stream = Default;
 
                 if ( ++op.curLayer < img_desc.arrayLayers )
+                {
+                    all_complete    = false;
                     continue;
+                }
 
                 if ( ++op.curMipmap < img_desc.maxLevel )
                 {
-                    op.curLayer = ImageLayer{};
+                    all_complete    = false;
+                    op.curLayer     = ImageLayer{};
                     continue;
                 }
 
@@ -627,23 +652,23 @@ namespace {
         RC<Image>   result  {new Image{ _Renderer(), dbgName }};
 
         result->_inDynSize  = _inDynSize;
-        result->_base       = GetRC();
+        result->_base       = GetRC<Image>();
         result->_uploadStatus.store( EUploadStatus::Completed );
 
         _derived->insert( result.get() );
 
-        CHECK_ERR( result->_OnResize( viewDesc ));
+        CHECK_ERR( result->_UpdateView( viewDesc ));
         return result;
     }
 
 /*
 =================================================
-    _OnResize
+    _UpdateView
 =================================================
 */
-    bool  Image::_OnResize (const ImageViewDesc &viewDesc)
+    bool  Image::_UpdateView (const ImageViewDesc &viewDesc)
     {
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto&   base        = *_base;
 
         auto    image       = res_mngr.AcquireResource( base._id.Get() );
@@ -686,7 +711,7 @@ namespace {
         ASSERT( _isDummy.load() );
         ASSERT( not intermImg.IsEmpty() );
 
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr = GraphicsScheduler().GetResourceManager();
 
         const auto  Create   = [&] (auto& intermImg) -> bool
         {{
@@ -764,6 +789,14 @@ namespace {
             auto    id      = _id.Release();
             res_mngr.ImmediatelyReleaseResources( view, id );
         }
+
+        auto    derived = _derived.ReadNoLock();
+        SHAREDLOCK( derived );
+
+        for (auto* img : *derived) {
+            CHECK( img->_UpdateView( img->GetViewDesc() ));
+        }
+
         return res;
     }
 

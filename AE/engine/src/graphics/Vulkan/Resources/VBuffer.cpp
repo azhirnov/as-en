@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_VULKAN
+# include "graphics/Private/ResourceValidation.h"
 # include "graphics/Vulkan/Resources/VBuffer.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
@@ -35,7 +36,6 @@ namespace AE::Graphics
 
         _desc = desc;
         _desc.Validate();
-
         GRES_CHECK( IsSupported( resMngr, _desc ));
 
         auto&   dev = resMngr.GetDevice();
@@ -205,34 +205,7 @@ namespace AE::Graphics
 */
     bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferDesc &desc) __NE___
     {
-        STATIC_ASSERT( uint(EBufferOpt::All) == 0x1F );
-
-        const auto&     dev         = resMngr.GetDevice();
-        const auto&     res_flags   = dev.GetResourceFlags();
-
-        if_unlikely( desc.size == 0 )
-            return false;
-
-        if_unlikely( desc.usage == Default or desc.memType == Default )
-            return false;
-
-        // validate usage
-        if_unlikely( not AllBits( res_flags.bufferUsage, desc.usage ))
-            return false;
-
-        // validate options
-        if_unlikely( desc.options != Default and not AllBits( res_flags.bufferOptions, desc.options ))
-            return false;
-
-        // validate memory type
-        if_unlikely( not res_flags.memTypes.contains( desc.memType & ~EMemoryType::_External ))
-            return false;
-
-        // check supported features in FS
-        if_unlikely( not resMngr.GetFeatureSet().IsSupported( desc ))
-            return false;
-
-        return true;
+        return Buffer_IsSupported( resMngr, desc );
     }
 
 /*
@@ -243,18 +216,14 @@ namespace AE::Graphics
     bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferViewDesc &view) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( uint(EBufferUsage::All) == 0x1FFF );
-        STATIC_ASSERT( uint(EBufferOpt::All) == 0x1F );
+        StaticAssert( uint(EBufferUsage::All) == 0x1FFF );
+        StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
-        const auto&     dev         = resMngr.GetDevice();
-        constexpr auto  view_usage  = EBufferUsage::UniformTexel | EBufferUsage::StorageTexel;
-        const auto&     props       = dev.GetDeviceProperties();
-
-        if_unlikely( not AnyBits( _desc.usage, view_usage ))
+        if_unlikely( not BufferView_IsSupported( resMngr, _desc, view ))
             return false;
 
-        if_unlikely( view.format == Default or view.format >= EPixelFormat::_Count )
-            return false;
+        const auto&     dev     = resMngr.GetDevice();
+        const auto&     props   = dev.GetDeviceProperties();
 
         VkFormatProperties  fmt_props = {};
         vkGetPhysicalDeviceFormatProperties( dev.GetVkPhysicalDevice(), VEnumCast( view.format ), OUT &fmt_props );
@@ -283,10 +252,6 @@ namespace AE::Graphics
 
         if_unlikely( AllBits( _desc.usage, EBufferUsage::StorageTexel )                     and
                      not IsMultipleOf( view.offset, props.res.minStorageTexelBufferOffsetAlign ))
-            return false;
-
-        // check supported view formats in FS
-        if_unlikely( not resMngr.GetFeatureSet().IsSupported( _desc, view ))
             return false;
 
         return true;

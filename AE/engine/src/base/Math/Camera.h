@@ -3,7 +3,6 @@
 #pragma once
 
 #include "base/Math/Transformation.h"
-#include "base/Math/Radians.h"
 #include "base/Math/Rectangle.h"
 
 namespace AE::Math
@@ -23,7 +22,7 @@ namespace AE::Math
         using Quat_t        = typename Transform_t::Quat_t;
         using Rect_t        = Rectangle<T>;
         using Vec2_t        = Vec< T, 2 >;
-        using Radians_t     = TRadians<T>;
+        using Radians_t     = TRadian<T>;
         using Self          = TCamera<T>;
         using Value_t       = T;
 

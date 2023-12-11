@@ -30,12 +30,19 @@ ND_ float3  XYYtoRGB (const float3 xyY);
 ND_ float3  RGBtoXYY_v2 (float3 rgb);
 ND_ float3  XYYtoRGB_v2 (float3 xyY);
 
+ND_ float3  RGBtoOklab (float3 rgb);
+ND_ float3  OklabToRGB (float3 oklab);
+
 ND_ float  RGBtoLuminance (const float3 linear);
 ND_ float  RGBtoLogLuminance (const float3 linear, float gamma);
 ND_ float  RGBtoLogLuminance (const float3 linear);
 
 ND_ float3  FromRGBM (const float4 rgbm);
 ND_ float4  ToRGBM (const float3 rgb);
+
+ND_ float3  LerpHSV (float3 a, float3 b, float factor);
+ND_ float3  RGBLerpHSV (float3 a, float3 b, const float factor);
+ND_ float3  RGBLerpOklab (const float3 a, const float3 b, const float factor);
 //-----------------------------------------------------------------------------
 
 #include "../3party_shaders/ColorUtils-1.glsl"
@@ -54,7 +61,7 @@ float4  RainbowWrap (const float factor)
 //-----------------------------------------------------------------------------
 
 
-float3  ColorLerpHSV (float3 a, float3 b, float factor)
+float3  RGBLerpHSV (float3 a, float3 b, const float factor)
 {
     a = RGBtoHSV( a );
     b = RGBtoHSV( b );

@@ -3,7 +3,7 @@
 #include "UnitTest_Common.h"
 
 #include "threading/Primitives/SpinLock.h"
-#include "threading/Containers/LfIndexedPool2.h"
+#include "deprecated/threading/LfIndexedPool2.h"
 
 namespace
 {

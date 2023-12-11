@@ -23,7 +23,8 @@ void ASmain ()
     }
     {
         RC<ShaderStructType>    st = ShaderStructType( "imgui.vertex" );
-        st.Set( "packed_float2      Position;"  +
+        st.Set( EStructLayout::InternalIO,
+                "packed_float2      Position;"  +
                 "packed_float2      UV;"        +
                 "packed_ubyte_norm4 Color;"     );
 

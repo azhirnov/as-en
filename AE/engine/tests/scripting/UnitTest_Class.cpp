@@ -161,7 +161,7 @@ namespace
             arr.push_back( p );
         }
 
-        Test9_1_CL*  Add2 (const String &s) { 
+        Test9_1_CL*  Add2 (const String &s) {
             return arr.emplace_back( new Test9_1_CL{ int(s.length()) }).Retain();
         }
     };
@@ -513,8 +513,8 @@ namespace
             binder.AddGenericMethod< uint(int) >( &Test10_CL::Gen1, "gen" );
         )
 
-        STATIC_ASSERT( ScriptTypeInfo<Test10_CL>::is_object );
-        STATIC_ASSERT( ScriptTypeInfo<Test10_CL>::is_ref_counted );
+        StaticAssert( ScriptTypeInfo<Test10_CL>::is_object );
+        StaticAssert( ScriptTypeInfo<Test10_CL>::is_ref_counted );
 
         static const int  line      = __LINE__ + 1;
         static const char script[]  = R"#(

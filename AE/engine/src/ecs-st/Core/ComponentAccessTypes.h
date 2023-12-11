@@ -10,7 +10,7 @@ namespace AE::ECS
     template <typename T>
     struct WriteAccess
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
     private:
         T*  _elements;
 
@@ -24,7 +24,7 @@ namespace AE::ECS
     template <typename T>
     struct ReadAccess
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
     private:
         T const*  _elements;
 
@@ -38,7 +38,7 @@ namespace AE::ECS
     template <typename T>
     struct OptionalWriteAccess
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
     private:
         T*  _elements;          // can be null
 
@@ -53,7 +53,7 @@ namespace AE::ECS
     template <typename T>
     struct OptionalReadAccess
     {
-        STATIC_ASSERT( not IsEmpty<T> );
+        StaticAssert( not IsEmpty<T> );
     private:
         T const*  _elements;    // can be null
 

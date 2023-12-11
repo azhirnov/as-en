@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Always included for GraphicsPass
+*/
 #include <pipeline_compiler.as>
 
 void ASmain ()
@@ -6,7 +9,8 @@ void ASmain ()
     // spherical cube
     {
         RC<ShaderStructType>    st = ShaderStructType( "CubeVertex" );
-        st.Set( "packed_short_norm4     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_short_norm4     Position;" +
                 "packed_short_norm4     Texcoord;" +
                 "packed_short_norm4     Normal;" +
                 "packed_short_norm4     Tangent;" +
@@ -17,7 +21,8 @@ void ASmain ()
         vb.Add( "All", st );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "SphericalCubeVertex" );
-        st.Set( "packed_short_norm4     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_short_norm4     Position;" +
                 "packed_short_norm4     Texcoord;" +
                 "packed_short_norm4     Tangent;" +
                 "packed_short_norm4     BiTangent;" );

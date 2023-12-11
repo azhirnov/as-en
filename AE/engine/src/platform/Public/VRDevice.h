@@ -25,7 +25,7 @@ namespace AE::App
 
         using EState = IWindow::EState;
 
-        class IVRDeviceEventListener
+        class IVRDeviceEventListener : public NothrowAllocatable
         {
         // types
         public:

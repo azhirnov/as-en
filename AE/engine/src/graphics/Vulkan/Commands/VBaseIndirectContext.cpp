@@ -115,7 +115,7 @@ namespace AE::Graphics::_hidden_
     PushConstant
 =================================================
 */
-    void  VSoftwareCmdBuf::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    void  VSoftwareCmdBuf::PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         auto&   cmd = CreateCmd< PushConstantCmd, ubyte >( usize(size) );   // throw
         auto*   dst = Cast<ubyte>( AlignUp( static_cast<void*>(&cmd + 1), AlignOf<ubyte> ));
@@ -688,7 +688,7 @@ namespace AE::Graphics::_hidden_
             fn.vkCmdTraceRaysIndirect2KHR( cmdbuf, cmd.indirectDeviceAddress );
         }
 
-        static void  Fn_RayTracingSetStackSizeCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const RayTracingSetStackSizeCmd &cmd) 
+        static void  Fn_RayTracingSetStackSizeCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const RayTracingSetStackSizeCmd &cmd)
         {
             fn.vkCmdSetRayTracingPipelineStackSizeKHR( cmdbuf, cmd.size );
         }

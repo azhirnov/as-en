@@ -12,15 +12,18 @@ void  VertexBuffers ()
     // vertex components
     {
         RC<ShaderStructType>    st1 = ShaderStructType( "Posf3" );
-        st1.Set( "packed_float3     Position;" );
+        st1.Set( EStructLayout::InternalIO,
+                 "packed_float3     Position;" );
         st1.AddUsage( ShaderStructTypeUsage::VertexLayout );
 
         RC<ShaderStructType>    st2 = ShaderStructType( "Normf3" );
-        st2.Set( "packed_float3     Normal;" );
+        st2.Set( EStructLayout::InternalIO,
+                 "packed_float3     Normal;" );
         st2.AddUsage( ShaderStructTypeUsage::VertexLayout );
 
         RC<ShaderStructType>    st3 = ShaderStructType( "UVf2" );
-        st3.Set( "packed_float2     Texcoord;" );
+        st3.Set( EStructLayout::InternalIO,
+                 "packed_float2     Texcoord;" );
         st3.AddUsage( ShaderStructTypeUsage::VertexLayout );
     }
 

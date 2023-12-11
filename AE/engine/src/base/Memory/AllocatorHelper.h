@@ -41,20 +41,20 @@ namespace AE::Base
             Unused( ptr, sizeAndAlign );
         }
 
-        static void  OnDeallocate (void *ptr)                                   __NE___
+        static void  OnDeallocate (void* ptr)                                   __NE___
         {
             // TODO: profiler
             Unused( ptr );
         }
 
-        static void  OnDeallocate (void *ptr, Bytes size)                       __NE___
+        static void  OnDeallocate (void* ptr, Bytes size)                       __NE___
         {
             // TODO: profiler
             ASSERT( size > 0 );
             Unused( ptr, size );
         }
 
-        static void  OnDeallocate (void *ptr, const SizeAndAlign sizeAndAlign)  __NE___
+        static void  OnDeallocate (void* ptr, const SizeAndAlign sizeAndAlign)  __NE___
         {
             // TODO: profiler
             ASSERT( sizeAndAlign.size >= sizeAndAlign.align );

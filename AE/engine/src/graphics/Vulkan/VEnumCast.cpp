@@ -73,7 +73,7 @@ namespace AE::Graphics
             StateInfo{ VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,            VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT,                                                                                                  VK_IMAGE_LAYOUT_MAX_ENUM,                                   _EResState::BuildRTAS_IndirectBuffer        },
             StateInfo{ VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR,                      VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR | VK_ACCESS_2_SHADER_STORAGE_READ_BIT,                                                    VK_IMAGE_LAYOUT_MAX_ENUM,                                   _EResState::RTShaderBindingTable            }
         };
-        STATIC_ASSERT( CountOf(info_arr) == _EResState::_AccessCount );
+        StaticAssert( CountOf(info_arr) == _EResState::_AccessCount );
 
         constexpr auto VertexProcessingShaders =
             VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT |

@@ -4,23 +4,32 @@
 #include <ctime>
 
 #include "base/Utils/Date.h"
+#include "base/Utils/Threading.h"
 #include "base/Algorithms/Parser.h"
 #include "base/Algorithms/StringUtils.h"
 
+#include "base/Platforms/WindowsHeader.cpp.h"
+
 // 'localtime_s' in C has different signature
 #ifdef AE_COMPILER_MSVC
-#   define localtime2   localtime_s
+#   define localtime2( _outBuf_, _inTime_ )     (localtime_s( _outBuf_, _inTime_ ) == 0)
+#elif 1
+#   define localtime2( _outBuf_, _inTime_ )     (localtime_r( _inTime_, _outBuf_ ) != null)
 #else
 namespace
 {
-    ND_ static int  localtime2 (OUT struct tm* const Tm, time_t const* const Time)
+    ND_ static bool  localtime2 (OUT struct tm* const Tm, time_t const* const Time)
     {
+        // from specs:
+        //  This function may not be thread-safe.
+        //  The structure may be shared between std::gmtime, std::localtime, and std::ctime, and may be overwritten on each invocation.
+
         if ( const tm* res = std::localtime( Time ))
         {
             *Tm = *res;
-            return 0;
+            return true;
         }
-        return -1;
+        return false;
     }
 }
 #endif
@@ -90,7 +99,7 @@ namespace AE::Base
     _SetMilliseconds
 =================================================
 */
-    Date&  Date::_SetMilliseconds (uint startYear, ulong ms)
+    Date&  Date::_SetMilliseconds (const uint startYear, const ulong ms)
     {
         _millis     = uint(ms % MillisInSecond());
         _second     = (ms / MillisInSecond()) % 60;
@@ -123,30 +132,29 @@ namespace AE::Base
 /*
 =================================================
     ToString
+----
+    yy      - year short
+    yyyy    - year full
+    mm      - month
+    mmm     - month short name
+    mmmm... - month name
+    we      - week of year
+    dm      - day of month
+    de      - day of year
+    dee     - day of year aligned
+    dw      - day of week
+    dww     - day of week short name
+    dwww... - day of week full name
+    hh      - hour
+    mi      - minute
+    ss      - second
+    ms      - millisecond
 =================================================
 */
     String  Date::ToString (StringView fmt) C_NE___
     {
-        // yy - year short
-        // yyyy - year full
-        // mm - month
-        // mmm - month short name
-        // mmmm... - month name
-        // we - week of year
-        // dm - day of month
-        // de - day of year
-        // dee - day of year aligned
-        // dw - day of week
-        // dww - day of week short name
-        // dwww... - day of week full name
-        // hh - hour
-        // mi - minute
-        // ss - second
-        // ms - millisecond
-
-        String  str;
-
-        try{
+        TRY{
+            String              str;
             Array< StringView > tokens;
             Parser::DivideString_Words( fmt, OUT tokens );
 
@@ -159,7 +167,7 @@ namespace AE::Base
                     str << FormatAlignedI<10>( Year(), 4, '0' );
                 else
                 if ( t == "mm" )
-                    str << (_month+1 ? "0"s : ""s) << Base::ToString( _month+1 );
+                    str << (_month < 10 ? "0"s : ""s) << Base::ToString( _month+1 );
                 else
                 if ( t == "mmm" )
                     str << MonthName().substr( 0, 3 );
@@ -200,13 +208,14 @@ namespace AE::Base
                 if ( t == "ms" )
                     str << FormatAlignedI<10>( Milliseconds(), 3, '0' );
                 else
-                    // TODO: it may be unsuported token, need some way to detect it
+                    // TODO: it may be unsupported token, need some way to detect it
                     str << t;
             }
+            return str;
         }
-        catch (...){}
-
-        return str;
+        CATCH_ALL(
+            return Default;
+        )
     }
 
 /*
@@ -216,12 +225,12 @@ namespace AE::Base
 */
     bool  Date::operator == (const Date &other) C_NE___
     {
-        return  Year()          == other.Year()         and
-                DayOfYear()     == other.DayOfYear()    and
-                Hour()          == other.Hour()         and
-                Minute()        == other.Minute()       and
-                Second()        == other.Second()       and
-                Milliseconds()  == other.Milliseconds();
+        return  (Year()         == other.Year())        &
+                (DayOfYear()    == other.DayOfYear())   &
+                (Hour()         == other.Hour())        &
+                (Minute()       == other.Minute())      &
+                (Second()       == other.Second())      &
+                (Milliseconds() == other.Milliseconds());
     }
 
 /*
@@ -261,7 +270,7 @@ namespace AE::Base
 */
     bool  Date::_IsLeapYear (uint year)
     {
-        return ((year & 0x3) == 0 and year % 100 != 0);
+        return ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0);
     }
 
 /*
@@ -307,21 +316,9 @@ namespace AE::Base
 */
     uint  Date::_CalcDayOfWeek (uint year, uint month, uint dayOfMonth)
     {
-        int m = month;
-        int y = year;
-
-        if ( m <= 0 )
-        {
-            m += 12;
-            y--;
-        }
-
-        int n = (dayOfMonth + (13 * m - 1) / 5 + (y % 100) + (y / 100) / 4 + (y % 100) / 4 - 2 * (y / 100)) % 7;
-
-        if ( n < 0 )
-            n += 7;
-
-        return n == 0 ? 6 : n-1;
+        const ubyte t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+        year -= month < 2;
+        return (year + year/4 - year/100 + year/400 + t[month] + dayOfMonth) % 7;
     }
 
 /*
@@ -333,10 +330,10 @@ namespace AE::Base
     {
         uint days_in_month = _DaysInMonth( year, 0 );
 
-        for (month = 0; dayOfYear >= days_in_month; ++month)
+        for (month = 0; dayOfYear >= days_in_month;)
         {
             dayOfYear       -= days_in_month;
-            days_in_month    = _DaysInMonth( year, month );
+            days_in_month    = _DaysInMonth( year, ++month );
         }
 
         dayOfMonth = dayOfYear;
@@ -376,13 +373,13 @@ namespace AE::Base
         #if 1
         {
             std::time_t t   = std::time(0);
-            std::tm     now;
-            Unused( localtime2( OUT &now, &t ));    // TODO: check error?
+            std::tm     now = {};
+            Unused( localtime2( OUT &now, &t ));
 
             res._year       = now.tm_year + 1900;
             res._month      = now.tm_mon;
             res._dayOfMonth = now.tm_mday - 1;
-            res._dayOfWeek  = now.tm_wday;
+            res._dayOfWeek  = now.tm_wday == 0 ? 6 : now.tm_wday-1;
             res._dayOfYear  = now.tm_yday;
             res._hour       = now.tm_hour;
             res._minute     = now.tm_min;
@@ -409,10 +406,64 @@ namespace AE::Base
         }
         #endif
 
-        //ASSERT( res._dayOfWeek == _CalcDayOfWeek( res._year, res._month, res._dayOfMonth ));
+        ASSERT_Eq( res._dayOfWeek, _CalcDayOfWeek( res._year, res._month, res._dayOfMonth ));
         ASSERT_Eq( res._dayOfYear, _CalcDayOfYear( res._year, res._month, res._dayOfMonth ));
 
+        DEBUG_ONLY({
+            uint    m, dm;
+            _CalcMonthAndDayOfMonth( res._year, res._dayOfYear, OUT m, OUT dm );
+            CHECK( m == res._month );
+            CHECK( dm == res._dayOfMonth );
+        })
         return res;
     }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Calc*
+=================================================
+*/
+    Date::Builder&  Date::Builder::CalcDayOfYear () __NE___
+    {
+        return DayOfYear( Date::_CalcDayOfYear( _date._year, _date._month, _date._dayOfMonth ));
+    }
+
+    Date::Builder&  Date::Builder::CalcDayOfWeek () __NE___
+    {
+        return DayOfWeek( Date::_CalcDayOfWeek( _date._year, _date._month, _date._dayOfMonth ));
+    }
+
+    Date::Builder&  Date::Builder::CalcMonthAndDayOfMonth () __NE___
+    {
+        uint    m, dm;
+        Date::_CalcMonthAndDayOfMonth( _date._year, _date._dayOfYear, OUT m, OUT dm );
+
+        _date._month        = m;
+        _date._dayOfMonth   = dm;
+        return *this;
+    }
+
+/*
+=================================================
+    AddDayOfYear
+=================================================
+*
+    Date::Builder&  Date::Builder::AddDayOfYear (uint value) __NE___
+    {
+        return *this;
+    }
+
+/*
+=================================================
+    SubDayOfYear
+=================================================
+*
+    Date::Builder&  Date::Builder::SubDayOfYear (uint value) __NE___
+    {
+    }
+*/
 
 } // AE::Base

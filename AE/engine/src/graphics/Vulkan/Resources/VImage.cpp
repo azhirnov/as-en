@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_VULKAN
+# include "graphics/Private/ResourceValidation.h"
 # include "graphics/Vulkan/Resources/VImage.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "graphics/Private/EnumUtils.h"
 # include "graphics/Vulkan/VResourceManager.h"
 
 namespace AE::Graphics
@@ -199,9 +199,10 @@ namespace {
 
 
         // VK_KHR_image_format_list
-        FixedArray< VkFormat, ImageDesc::FormatList_t::capacity() >     fmt_list;
+        FixedArray< VkFormat, ImageDesc::FormatList_t{}.max_size() >        fmt_list;
         for (auto fmt : _desc.viewFormats) {
-            fmt_list.try_push_back( VEnumCast( fmt ));
+            if ( fmt != Default )
+                fmt_list.push_back( VEnumCast( fmt ));
         }
         VkImageFormatListCreateInfo     fmt_list_info = {};
         fmt_list_info.sType             = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO;
@@ -341,15 +342,14 @@ namespace {
 */
     bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageDesc &desc) __NE___
     {
-        STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
+        StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
 
         const auto&     dev         = resMngr.GetDevice();
-        const auto&     res_flags   = dev.GetResourceFlags();
         const auto&     dev_props   = dev.GetVProperties();
         const bool      opt_tiling  = AllBits( desc.memType, EMemoryType::DeviceLocal );
         const VkFormat  format      = VEnumCast( desc.format );
 
-        if_unlikely( desc.imageDim == Default or desc.usage == Default or desc.format == Default or desc.memType == Default )
+        if_unlikely( not Image_IsSupported( resMngr, desc, Bool{dev.GetVExtensions().imageFormatList} ))
             return false;
 
         // check format features
@@ -357,82 +357,69 @@ namespace {
             return false;
 
         // validate options
+        for (auto option : BitfieldIterate( desc.options ))
         {
-            if_unlikely( not AllBits( res_flags.imageOptions, desc.options ))
-                return false;
-
-            for (auto option : BitfieldIterate( desc.options ))
+            BEGIN_ENUM_CHECKS();
+            switch ( option )
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( option )
-                {
-                    case EImageOpt::BlitSrc :                   if_unlikely( not AllBits( desc.usage, EImageUsage::TransferSrc )) return false;         break;
-                    case EImageOpt::BlitDst :                   if_unlikely( not AllBits( desc.usage, EImageUsage::TransferDst )) return false;         break;
-                    case EImageOpt::BlockTexelViewCompatible :  if_unlikely( not EPixelFormat_IsCompressed( desc.format )) return false;                break;
+                case EImageOpt::LossyRTCompression :        return false;
 
-                    case EImageOpt::StorageAtomic :
-                    case EImageOpt::VertexPplnStore :
-                    case EImageOpt::FragmentPplnStore :         if_unlikely( not AllBits( desc.usage, EImageUsage::Storage )) return false;             break;
+                case EImageOpt::SparseAliased :             if_unlikely( not dev_props.features.sparseBinding ) return false;                       break;
+                case EImageOpt::SparseResidencyAliased :    if_unlikely( not dev_props.features.sparseResidencyAliased ) return false;              break;
+                case EImageOpt::SparseResidency : {
+                    switch ( desc.imageDim )
+                    {
+                        case EImageDim_1D :
+                            return false;
 
-                    case EImageOpt::SampledLinear :
-                    case EImageOpt::SampledMinMax :             if_unlikely( not AllBits( desc.usage, EImageUsage::Sampled )) return false;             break;
-
-                    case EImageOpt::ColorAttachmentBlend :      if_unlikely( not AllBits( desc.usage, EImageUsage::ColorAttachment )) return false;     break;
-
-                    case EImageOpt::LossyRTCompression :        return false;
-
-                    case EImageOpt::SparseAliased :             if_unlikely( not dev_props.features.sparseBinding ) return false;                       break;
-                    case EImageOpt::SparseResidencyAliased :    if_unlikely( not dev_props.features.sparseResidencyAliased ) return false;              break;
-                    case EImageOpt::SparseResidency : {
-                        switch ( desc.imageDim )
-                        {
-                            case EImageDim_1D :
+                        case EImageDim_2D :
+                            if_unlikely( not dev_props.features.sparseResidencyImage2D )
                                 return false;
 
-                            case EImageDim_2D :
-                                if_unlikely( not dev_props.features.sparseResidencyImage2D )
-                                    return false;
+                            switch ( desc.samples.Get() )
+                            {
+                                case 1 :            break;
+                                case 2 :            if_unlikely( not dev_props.features.sparseResidency2Samples )  return false;    break;
+                                case 4 :            if_unlikely( not dev_props.features.sparseResidency4Samples )  return false;    break;
+                                case 8 :            if_unlikely( not dev_props.features.sparseResidency8Samples )  return false;    break;
+                                case 16 :           if_unlikely( not dev_props.features.sparseResidency16Samples ) return false;    break;
+                                default_unlikely :  DBG_WARNING( "unsupported sample count" );  return false;
+                            }
+                            break;
 
-                                switch ( desc.samples.Get() )
-                                {
-                                    case 1 :            break;
-                                    case 2 :            if_unlikely( not dev_props.features.sparseResidency2Samples )  return false;    break;
-                                    case 4 :            if_unlikely( not dev_props.features.sparseResidency4Samples )  return false;    break;
-                                    case 8 :            if_unlikely( not dev_props.features.sparseResidency8Samples )  return false;    break;
-                                    case 16 :           if_unlikely( not dev_props.features.sparseResidency16Samples ) return false;    break;
-                                    default_unlikely :  DBG_WARNING( "unsupported sample count" );  return false;
-                                }
-                                break;
+                        case EImageDim_3D :
+                            if_unlikely( not dev_props.features.sparseResidencyImage3D )
+                                return false;
+                            break;
 
-                            case EImageDim_3D :
-                                if_unlikely( not dev_props.features.sparseResidencyImage3D )
-                                    return false;
-                                break;
-
-                            case EImageDim::Unknown :
-                            default_unlikely :          DBG_WARNING( "unknown image dimension" );   return false;
-                        }
-                        break;
+                        case EImageDim::Unknown :
+                        default_unlikely :          DBG_WARNING( "unknown image dimension" );   return false;
                     }
-
-                    case EImageOpt::CubeCompatible :
-                    case EImageOpt::MutableFormat :
-                    case EImageOpt::Array2DCompatible :
-                    case EImageOpt::Alias :
-                    case EImageOpt::SampleLocationsCompatible : break;
-
-                    case EImageOpt::_Last :
-                    case EImageOpt::All :
-                    case EImageOpt::Unknown :
-                    default_unlikely :          DBG_WARNING( "unknown image option" );  break;
+                    break;
                 }
-                END_ENUM_CHECKS();
-            }
-        }
 
-        // validate memory type
-        if_unlikely( not res_flags.memTypes.contains( desc.memType & ~EMemoryType::_External ))
-            return false;
+                case EImageOpt::BlitSrc :
+                case EImageOpt::BlitDst :
+                case EImageOpt::BlockTexelViewCompatible :
+                case EImageOpt::StorageAtomic :
+                case EImageOpt::VertexPplnStore :
+                case EImageOpt::FragmentPplnStore :
+                case EImageOpt::SampledLinear :
+                case EImageOpt::SampledMinMax :
+                case EImageOpt::ColorAttachmentBlend :
+                case EImageOpt::CubeCompatible :
+                case EImageOpt::MutableFormat :
+                case EImageOpt::Array2DCompatible :
+                case EImageOpt::Alias :
+                case EImageOpt::SampleLocationsCompatible : break;
+
+                case EImageOpt::_Last :
+                case EImageOpt::All :
+                case EImageOpt::Unknown :
+                default_unlikely :          DBG_WARNING( "unknown image option" );  break;
+            }
+            END_ENUM_CHECKS();
+        }
 
         // check image properties
         {
@@ -456,46 +443,6 @@ namespace {
                 return false;
         }
 
-        // validate format list
-        if ( dev.GetVExtensions().imageFormatList and not desc.viewFormats.empty() )
-        {
-            using EFmtType = PixelFormatInfo::EType;
-
-            if_unlikely( not AllBits( desc.options, EImageOpt::MutableFormat ) and desc.viewFormats.size() > 1 )
-                return false;
-
-            const auto&     origin_fmt_info = EPixelFormat_GetInfo( desc.format );
-            const bool      uncompress      = AllBits( desc.options, EImageOpt::BlockTexelViewCompatible ) and origin_fmt_info.IsCompressed();
-
-            for (EPixelFormat fmt : desc.viewFormats)
-            {
-                const auto&     fmt_info    = EPixelFormat_GetInfo( fmt );
-                bool            compatible  = fmt_info.bitsPerBlock     == origin_fmt_info.bitsPerBlock     and
-                                              fmt_info.bitsPerBlock2    == origin_fmt_info.bitsPerBlock2;
-
-                if ( uncompress and not fmt_info.IsCompressed() )
-                {
-                    compatible &= fmt_info.channels == origin_fmt_info.channels;
-                    compatible &= (fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm))  == (origin_fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm));
-                    compatible &= (fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat)) == (origin_fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat));
-                    compatible &= (fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt))   == (origin_fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt));
-                }
-                else
-                {
-                    compatible &= All( fmt_info.blockDim == origin_fmt_info.blockDim );
-                    compatible &= fmt_info.IsCompressed() == origin_fmt_info.IsCompressed();
-                }
-                if_unlikely( not compatible )
-                    return false;
-            }
-        }
-        else
-        if_unlikely( not desc.viewFormats.empty() )
-            return false;
-
-        if_unlikely( not resMngr.GetFeatureSet().IsSupported( desc ))
-            return false;
-
         return true;
     }
 
@@ -507,89 +454,11 @@ namespace {
     bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageViewDesc &view) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
-        STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
 
-        const auto&             dev         = resMngr.GetDevice();
-        constexpr EImageUsage   view_usage  =
-            EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment |
-            EImageUsage::InputAttachment | EImageUsage::ShadingRate;
-
-        if_unlikely( not AnyBits( _desc.usage, view_usage ))
+        if_unlikely( not ImageView_IsSupported( resMngr, _desc, view ))
             return false;
 
-        if ( view.viewType == EImage_CubeArray )
-        {
-            if_unlikely( not dev.GetVProperties().features.imageCubeArray )
-                return false;
-
-            if_unlikely( _desc.imageDim != EImageDim_2D or (_desc.imageDim == EImageDim_3D and AllBits( _desc.options, EImageOpt::Array2DCompatible)) )
-                return false;
-
-            if_unlikely( not AllBits( _desc.options, EImageOpt::CubeCompatible ))
-                return false;
-
-            if_unlikely( not IsMultipleOf( view.layerCount, 6 ))
-                return false;
-        }
-
-        if ( view.viewType == EImage_Cube )
-        {
-            if_unlikely( not AllBits( _desc.options, EImageOpt::CubeCompatible ))
-                return false;
-
-            if_unlikely( view.layerCount != 6 )
-                return false;
-        }
-
-        if ( _desc.imageDim == EImageDim_3D and view.viewType != EImage_3D )
-        {
-            if_unlikely( not AllBits( _desc.options, EImageOpt::Array2DCompatible ))
-                return false;
-        }
-
-        if ( not _desc.viewFormats.empty() )
-        {
-            if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{_desc.viewFormats}, view.format ))
-                return false;
-        }
-
-        if ( view.format != Default and view.format != _desc.format )
-        {
-            const auto&     required    = EPixelFormat_GetInfo( _desc.format );
-            const auto&     origin      = EPixelFormat_GetInfo( view.format );
-            const bool      req_comp    = Any( required.TexBlockDim() > 1u );
-            const bool      orig_comp   = Any( origin.TexBlockDim() > 1u );
-
-            if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{_desc.viewFormats}, view.format ) and
-                         not AllBits( _desc.options, EImageOpt::MutableFormat ))
-                return false;
-
-            // compressed to uncompressed
-            if ( AllBits( _desc.options, EImageOpt::BlockTexelViewCompatible ) and orig_comp and not req_comp )
-            {
-                if_unlikely( required.bitsPerBlock != origin.bitsPerBlock )
-                    return false;
-            }
-            else
-            {
-                if_unlikely( req_comp != orig_comp )
-                    return false;
-
-                if_unlikely( Any( required.blockDim != origin.blockDim ))
-                    return false;
-
-                if ( view.aspectMask == EImageAspect::Stencil )
-                {
-                    if_unlikely( required.bitsPerBlock2 != origin.bitsPerBlock2 )
-                        return false;
-                }
-                else
-                {
-                    if_unlikely( required.bitsPerBlock != origin.bitsPerBlock )
-                        return false;
-                }
-            }
-        }
+        const auto&     dev = resMngr.GetDevice();
 
         if ( view.extUsage != Default )
         {
@@ -599,9 +468,6 @@ namespace {
             if_unlikely( not CheckFormatFeatures( resMngr, VEnumCast( view.format ), view.extUsage, Default, true ))
                 return false;
         }
-
-        if_unlikely( not resMngr.GetFeatureSet().IsSupported( _desc, view ))
-            return false;
 
         return true;
     }

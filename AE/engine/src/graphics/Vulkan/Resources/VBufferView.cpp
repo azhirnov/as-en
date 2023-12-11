@@ -33,6 +33,7 @@ namespace AE::Graphics
         CHECK_ERR( buffer != null );
 
         _bufferId = Strong<BufferID>{bufferId};
+        _canBeDestroyed = true;
 
         _desc = desc;
         _desc.Validate( buffer->Description() );

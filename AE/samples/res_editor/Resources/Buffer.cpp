@@ -86,7 +86,7 @@ namespace
 
         if ( AnyBits( desc.usage, c_DevAddrUsage ))
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr = GraphicsScheduler().GetResourceManager();
             for (usize i = 0; i < _ids.size(); ++i) {
                 _address[i] = BitCast<ulong>(res_mngr.GetResource( _ids[i].Get() )->GetDeviceAddress());
             }
@@ -152,7 +152,7 @@ namespace
         BufferDesc  desc = _bufDesc.Read();
         desc.size = Max( count, 1u ) * _elemSize;
 
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto&   rs_track    = RenderGraph().GetStateTracker();
 
         auto    buf = res_mngr.CreateBuffer( desc, _dbgName, _GfxDynamicAllocator() );
@@ -251,7 +251,7 @@ namespace
         {
             _loadOp.stream = BufferStream{ _ids[0].Get(), 0_b, _bufDesc->size, 0_b, EStagingHeapType::Dynamic };
         }
-        ASSERT( _loadOp.stream.Buffer() == _ids[0] );
+        ASSERT( _loadOp.stream.BufferId() == _ids[0] );
 
         BufferMemView   dst_mem;
         ctx.UploadBuffer( _loadOp.stream, OUT dst_mem );

@@ -6,6 +6,9 @@
 #elif defined(AE_ENABLE_METAL)
 #   define STBUFMNGR        MStagingBufferManager
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#   define STBUFMNGR        RStagingBufferManager
+
 #else
 #   error not implemented
 #endif
@@ -20,7 +23,7 @@
     STBUFMNGR::STBUFMNGR (ResourceManager_t &resMngr) __NE___ :
         _resMngr{ resMngr }
     {
-        STATIC_ASSERT( SizePerQueue_t{}.max_size() == _QueueCount );
+        StaticAssert( SizePerQueue_t{}.max_size() == _QueueCount );
     }
 
 /*
@@ -33,11 +36,14 @@
       #if defined(AE_ENABLE_VULKAN)
         ASSERT( _static.memoryForWrite == Default );
         ASSERT( _static.memoryForRead  == Default );
+        ASSERT( _vstream.memory == Default );
 
         ASSERT( _memRanges.ranges.empty() );
 
       #elif defined(AE_ENABLE_METAL)
         ASSERT( not _static.memory );
+
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
       #else
       # error not implemented
@@ -61,6 +67,8 @@
     {
         Deinitialize();
 
+        _memSizeAlign = Byte16u{_resMngr.GetDevice().GetDeviceProperties().res.minNonCoherentAtomSize};
+
         // staging buffer for host to device requires coherent memory
         CHECK_ERR( _resMngr.IsSupported( EMemoryType::Unified ) or _resMngr.IsSupported( EMemoryType::HostCoherent ));
 
@@ -79,27 +87,9 @@
     void  STBUFMNGR::Deinitialize () __NE___
     {
       #ifdef AE_ENABLE_VULKAN
-        auto&   dev = _resMngr.GetDevice();
-
-        if ( _static.memoryForWrite != Default )
-        {
-            dev.vkUnmapMemory( dev.GetVkDevice(), _static.memoryForWrite );
-            dev.vkFreeMemory( dev.GetVkDevice(), _static.memoryForWrite, null );
-            _static.memoryForWrite = Default;
-        }
-        if ( _static.memoryForRead != Default )
-        {
-            dev.vkUnmapMemory( dev.GetVkDevice(), _static.memoryForRead );
-            dev.vkFreeMemory( dev.GetVkDevice(), _static.memoryForRead, null );
-            _static.memoryForRead       = Default;
-            _static.memoryFlagsForRead  = Zero;
-        }
-        if ( _vstream.memory != Default )
-        {
-            dev.vkUnmapMemory( dev.GetVkDevice(), _vstream.memory );
-            dev.vkFreeMemory( dev.GetVkDevice(), _vstream.memory, null );
-            _vstream.memory = Default;
-        }
+        _static.memoryForWrite  = Default;
+        _static.memoryForRead   = Default;
+        _vstream.memory         = Default;
         {
             EXLOCK( _memRanges.guard );
             _memRanges.ranges.clear();
@@ -108,6 +98,8 @@
       #elif defined(AE_ENABLE_METAL)
         _static.memory = null;
         _vstream.memory = null;
+
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
       #else
       # error not implemented
@@ -210,13 +202,13 @@
 
       #ifdef AE_ENABLE_VULKAN
         // invalidate static staging buffer memory
-        if_unlikely( not AllBits( _static.memoryFlagsForRead, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
+        if_unlikely( not _static.isReadCoherent )
         {
             for (uint q = 0; q < _QueueCount; ++q)
             {
                 const uint  i = frameId.Index() * _QueueCount + q;
 
-                AcquireMappedMemory( frameId, _static.memoryForRead, 0_b, _static.buffersForRead[i].size.load() );
+                AcquireMappedMemory( frameId, _static.memoryForRead, 0_b, AlignUp( _static.buffersForRead[i].size.load(), _memSizeAlign ));
             }
         }
 
@@ -227,7 +219,7 @@
 
             for (auto& sb : _dynamic.read.buffers.current)
             {
-                AcquireMappedMemory( frameId, sb.memory, sb.memOffset, sb.size.load() );
+                AcquireMappedMemory( frameId, sb.memory, sb.memOffset, AlignUp( sb.size.load(), _memSizeAlign ));
             }
         }
       #endif
@@ -253,12 +245,12 @@
 
                 for (; not dyn.buffers.available.empty();)
                 {
-                    auto&   db = dyn.buffers.available.front();
+                    auto&   av_buf = dyn.buffers.available.front();
 
-                    if_likely( frameId.Diff( db.lastUsage ) < max_diff )
+                    if_likely( frameId.Diff( av_buf.lastUsage ) < max_diff )
                         break;
 
-                    _resMngr.ImmediatelyRelease( db.id );
+                    _resMngr.ImmediatelyRelease( av_buf.id );
                     dyn.buffers.available.pop_front();
                     ++num_released;
                 }
@@ -310,12 +302,12 @@
 =================================================
 */
     template <typename RangeType, typename BufferType>
-    bool  STBUFMNGR::_AllocStatic (const Bytes32u reqSize, const Bytes32u blockSize, const Bytes32u memOffsetAlign,
+    bool  STBUFMNGR::_AllocStatic (const Byte32u reqSize, const Byte32u blockSize, const Byte32u memOffsetAlign,
                                    INOUT RangeType &result, BufferType& sb)
     {
-        Bytes32u    expected    = 0_b;
-        Bytes32u    new_size    = 0_b;
-        Bytes32u    offset      = 0_b;
+        Byte32u     expected    = 0_b;
+        Byte32u     new_size    = 0_b;
+        Byte32u     offset      = 0_b;
 
         for (;;)
         {
@@ -340,6 +332,8 @@
         res.bufferOffset    = offset;
         res.size            = new_size;
         res.mapped          = sb.mapped + res.bufferOffset;
+
+        ASSERT( IsMultipleOf( res.mapped, memOffsetAlign ));
 
         return true;
     }
@@ -367,8 +361,10 @@
 
           #if defined(AE_ENABLE_VULKAN)
             res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockSize.y) / rowPitch ));
-          #elif defined(AE_ENABLE_METAL)
+
+          #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
             res.bufferSlicePitch    = slicePitch;
+
           #else
           # error not implemented
           #endif
@@ -392,8 +388,10 @@
 
           #if defined(AE_ENABLE_VULKAN)
             res.bufferImageHeight   = y_size;
-          #elif defined(AE_ENABLE_METAL)
+
+          #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
             res.bufferSlicePitch    = slicePitch;
+
           #else
           # error not implemented
           #endif
@@ -432,12 +430,12 @@
 
         sb.size.store( 0_b );
         sb.capacity     = buf_desc.size;
-        sb.memOffset    = mem_desc.offset;
         sb.buffer       = RVRef(id);
         sb.bufferHandle = buf->Handle();
         sb.mapped       = mem_desc.mappedPtr;
 
-      #if defined(AE_ENABLE_VULKAN)
+      #ifdef AE_ENABLE_VULKAN
+        sb.memOffset    = mem_desc.offset;
         sb.memory       = mem_desc.memory;
       #endif
 
@@ -520,7 +518,7 @@
 
                 auto&   av_buf = db.available.front();
 
-                if_unlikely( frameId.Diff( av_buf.lastUsage ) < frameId.MaxFrames() )
+                if_unlikely( frameId.Diff( av_buf.lastUsage ) <= frameId.MaxFrames() )
                     break;
 
                 buf_id = RVRef(av_buf.id);
@@ -596,8 +594,10 @@
 
               #if defined(AE_ENABLE_VULKAN)
                 res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockSize.y) / rowPitch ));
-              #elif defined(AE_ENABLE_METAL)
+
+              #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
                 res.bufferSlicePitch    = slicePitch;
+
               #else
               # error not implemented
               #endif
@@ -630,8 +630,10 @@
 
               #if defined(AE_ENABLE_VULKAN)
                 res.bufferImageHeight   = y_size;
-              #elif defined(AE_ENABLE_METAL)
+
+              #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
                 res.bufferSlicePitch    = slicePitch;
+
               #else
               # error not implemented
               #endif
@@ -706,11 +708,11 @@
     {
         ASSERT( _frameId.load() == frameId );
 
-        auto&           vb          = _vstream.buffers[ frameId.Index() ];
-        const Bytes32u  offset_align = 64_b;        // TODO
-        Bytes32u        expected    = 0_b;
-        const Bytes32u  new_size    = reqSize;
-        Bytes32u        offset      = 0_b;
+        auto&           vb              = _vstream.buffers[ frameId.Index() ];
+        const Byte32u   offset_align    = 64_b;     // TODO
+        Byte32u         expected        = 0_b;
+        const Byte32u   new_size        = reqSize;
+        Byte32u         offset          = 0_b;
 
         for (;;)
         {
@@ -834,7 +836,7 @@
             _dynamic.gfxAllocator = MakeRC<VBlockMemAllocator>( _dynamic.blockSize, page_size );
             _memRanges.ranges.resize( info.maxFrames );
         }
-      #elif defined(AE_ENABLE_METAL)
+      #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
         // TODO: _dynamic.gfxAllocator = MakeRC<MBlockMemAllocator>();
 
       #else

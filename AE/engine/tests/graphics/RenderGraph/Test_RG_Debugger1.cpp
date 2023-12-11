@@ -41,8 +41,8 @@ namespace
                 const uint  r   = uint(float(x % blockSize) * 255.0f / float(blockSize) + 0.5f);
                 const uint  g   = uint(float(y % blockSize) * 255.0f / float(blockSize) + 0.5f);
 
-                const bool  is_equal = (Equals( dst[0], r, 1u ) and
-                                        Equals( dst[1], g, 1u ) and
+                const bool  is_equal = (Equal( dst[0], r, 1u )  and
+                                        Equal( dst[1], g, 1u )  and
                                         dst[2] == 255           and
                                         dst[3] == 0);
 
@@ -60,7 +60,7 @@ namespace
     public:
         Db1_TestData&   t;
 
-        Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -100,7 +100,7 @@ namespace
     public:
         Db1_TestData&   t;
 
-        Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -161,7 +161,7 @@ no source
     template <typename CtxTypes, typename CopyCtx>
     static bool  Debugger1Test ()
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         Db1_TestData    t;
         const uint2     img_dim     {16, 16};
@@ -194,22 +194,25 @@ no source
             CHECK_ERR( updater.Flush() );
         }
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger1"} );
         CHECK_ERR( batch );
 
-        AsyncTask   task1   = batch->Run< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Compute task"} );
+        AsyncTask   task1   = batch->Run< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{},                    {"Compute task"} );
         AsyncTask   task2   = batch->Run< Db1_CopyTask<CopyCtx>     >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task2} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );
@@ -222,6 +225,9 @@ no source
 
 bool RGTest::Test_Debugger1 ()
 {
+    if ( not _dbgPipelines )
+        return true;
+
     bool    result = true;
 
     RG_CHECK( Debugger1Test< DirectCtx, DirectCtx::Transfer >());

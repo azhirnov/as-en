@@ -420,7 +420,7 @@ namespace
         if ( viewType == EImage::Cube or viewType == EImage::CubeArray )
             _desc.options |= EImageOpt::CubeCompatible;
 
-        ScriptImagePtr  result {new ScriptImage{}};
+        ScriptImagePtr  result {new ScriptImage{0}};
 
         result->_base       = ScriptImagePtr{this};
         result->_viewDesc   = ImageViewDesc{ viewType, Default, baseMipmap, mipmapCount, baseLayer, layerCount };
@@ -496,10 +496,10 @@ namespace
             binder.Comment( "Generate mipmaps after loading" );
             binder.AddValue( "GenMipmaps",  ELoadOpFlags::GenMipmaps );
 
-            STATIC_ASSERT( uint(ELoadOpFlags::All) == 0x1 );
+            StaticAssert( uint(ELoadOpFlags::All) == 0x1 );
         }{
             ClassBinder<ScriptImage>    binder{ se };
-            binder.CreateRef();
+            binder.CreateRef( 0, False{"no ctor"} );
 
             binder.Comment( "Create image from file.\n"
                             "File will be searched in VFS." );
@@ -657,7 +657,7 @@ namespace
         if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and not AnyBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
             _desc.options |= EImageOpt::BlitSrc;
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
         const auto  mutable_res_usage = EImageUsage::Storage | EImageUsage::ColorAttachment |
@@ -693,9 +693,9 @@ namespace
             renderer.GetDataTransferQueue().EnqueueImageTransition( id.image );
         }
 
-        _resource = MakeRC<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
-                                   (_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
-                                   _dbgName );  // throw
+        _resource = MakeRCTh<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
+                                     (_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
+                                     _dbgName );    // throw
         return _resource;
     }
 

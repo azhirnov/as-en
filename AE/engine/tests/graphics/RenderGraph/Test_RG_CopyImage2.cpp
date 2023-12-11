@@ -26,7 +26,7 @@ namespace
     public:
         CI2_TestData&   t;
 
-        CI2_CopyImageTask (CI2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        CI2_CopyImageTask (CI2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -81,7 +81,7 @@ namespace
         const Bytes     bpp             = 4_b;
         const Bytes     src_row_pitch   = src_dim.x * bpp;
         const auto      format          = EPixelFormat::RGBA8_UNorm;
-        auto&           rg              = RenderTaskScheduler().GetRenderGraph();
+        auto&           rg              = GraphicsScheduler().GetRenderGraph();
 
         t.gfxAlloc = rg.GetResourceManager().CreateLinearGfxMemAllocator();
 
@@ -107,7 +107,9 @@ namespace
         t.copy_dim      = src_dim;
         t.img_view      = ImageMemView{ img_data, uint3{}, uint3{src_dim, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
-        AsyncTask   begin   = rg.BeginFrame();
+
+        CHECK_ERR( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rg.BeginFrame() );
 
         auto        batch   = rg.CmdBatch( EQueueType::Graphics, {"CopyImage2"} )
                                 .UseResource( t.img_1 )
@@ -118,15 +120,16 @@ namespace
 
         AsyncTask   task1   = batch.Task< CI2_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, {"Copy image task"} )
                                 .UseResource( t.img_2 )
-                                .SubmitBatch().Run( Tuple{begin} );
+                                .SubmitBatch().Run();
         AsyncTask   end     = rg.EndFrame( Tuple{task1} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rg.WaitAll() );
+        CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

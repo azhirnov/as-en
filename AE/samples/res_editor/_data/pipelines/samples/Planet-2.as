@@ -66,7 +66,7 @@
                 RC<Shader>  tes = Shader();
                 tes.LoadSelf();
                 tes.Define( use_quads ? "USE_QUADS=1" : "USE_QUADS=0" );
-                tes.TessPatchMode( (use_quads ? ETessPatch::Quads : ETessPatch::Triangles), ETessSpacing::Equal, true );
+                tes.TessPatchMode( (use_quads ? ETessPatch::Quads : ETessPatch::Triangles), ETessSpacing::Equal, /*ccw*/false );
                 ppln.SetTessEvalShader( tes );
             }{
                 RC<Shader>  fs = Shader();
@@ -86,7 +86,7 @@
 
                 rs.inputAssembly.topology       = EPrimitive::Patch;
 
-                rs.rasterization.frontFaceCCW   = false;
+                rs.rasterization.frontFaceCCW   = true;
                 rs.rasterization.cullMode       = ECullMode::Back;
 
                 spec.SetRenderState( rs );
@@ -107,19 +107,23 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_TESS_CTRL
+
+# ifndef iTessLevel
+#   define iTessLevel   1.f
+# endif
+# define I  gl.InvocationID
+
 # if USE_QUADS
 
     void Main ()
     {
-    #   define I    gl.InvocationID
-
         if ( I == 0 ) {
-            gl.TessLevelInner[0] = un_PerObject.tessLevel;
-            gl.TessLevelInner[1] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[0] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[1] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[2] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[3] = un_PerObject.tessLevel;
+            gl.TessLevelInner[0] = iTessLevel;
+            gl.TessLevelInner[1] = iTessLevel;
+            gl.TessLevelOuter[0] = iTessLevel;
+            gl.TessLevelOuter[1] = iTessLevel;
+            gl.TessLevelOuter[2] = iTessLevel;
+            gl.TessLevelOuter[3] = iTessLevel;
         }
         Out[I].position = In[I].position;
         Out[I].texcoord = In[I].texcoord;
@@ -129,13 +133,11 @@
 
     void Main ()
     {
-    #   define I    gl.InvocationID
-
         if ( I == 0 ) {
-            gl.TessLevelInner[0] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[0] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[1] = un_PerObject.tessLevel;
-            gl.TessLevelOuter[2] = un_PerObject.tessLevel;
+            gl.TessLevelInner[0] = iTessLevel;
+            gl.TessLevelOuter[0] = iTessLevel;
+            gl.TessLevelOuter[1] = iTessLevel;
+            gl.TessLevelOuter[2] = iTessLevel;
         }
         Out[I].position = In[I].position;
         Out[I].texcoord = In[I].texcoord;
@@ -172,7 +174,7 @@
 
     void Main ()
     {
-        const float3    light_dir   = float3( 0.f, 0.f, -1.f );
+        const float3    light_dir   = float3( 0.f, 0.f, 1.f );
         const float3    norm        = gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
         const float3    color       = gl.texture.Sample( un_AlbedoMap, In.texcoord ).rgb;
         const float     light       = Dot( norm, light_dir );

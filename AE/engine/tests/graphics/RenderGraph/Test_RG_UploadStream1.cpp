@@ -23,7 +23,7 @@ namespace
     public:
         US1_TestData&   t;
 
-        US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg }, t{ t }
         {}
 
@@ -41,8 +41,8 @@ namespace
 
             Execute( ctx );
 
-            const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
-            ASSERT( stat.dynamicWrite <= upload_limit );
+            const auto  stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            CHECK( stat.dynamicWrite <= upload_limit );
         }
     };
 
@@ -52,7 +52,7 @@ namespace
     public:
         US1_TestData&   t;
 
-        US1_FrameTask (US1_TestData& t) :
+        US1_FrameTask (US1_TestData& t) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ t }
         {}
@@ -64,17 +64,18 @@ namespace
 
             ++t.counter;
 
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
 
             BeginFrameConfig    cfg;
             cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
-            AsyncTask   begin = rts.BeginFrame( cfg );
+            CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+            CHECK_TE( rts.BeginFrame( cfg ));
 
             t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream1"} );
             CHECK_TE( t.batch );
 
-            AsyncTask   test    = t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+            AsyncTask   test    = t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
             AsyncTask   end     = rts.EndFrame( Tuple{test} );
 
             return Continue( Tuple{end} );
@@ -86,7 +87,7 @@ namespace
 
     static bool  UploadStream1Test ()
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         US1_TestData    t;
 
@@ -103,8 +104,8 @@ namespace
 
         auto    task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
 
-        CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
         CHECK_ERR( t.stream.IsCompleted() );
         CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );

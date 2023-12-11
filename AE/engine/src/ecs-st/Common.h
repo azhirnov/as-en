@@ -13,7 +13,7 @@
 namespace AE::ECS::_hidden_
 {
     // tag: HandleTmpl UID
-    static constexpr uint   ECSIDs_Start    = 4 << 24;
+    static constexpr uint   ECSIDs_Start    = 8 << 24;
 
 } // AE::ECS::_hidden_
 

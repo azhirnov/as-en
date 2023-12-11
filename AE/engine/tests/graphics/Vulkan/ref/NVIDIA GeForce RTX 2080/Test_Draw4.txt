@@ -38,6 +38,7 @@ name: 'Draw4 |0| Draw task1'
 
   BindPipeline
     pipeline:  'draw4-1'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -73,6 +74,7 @@ name: 'Draw4 |0| Draw task1'
 
   BindPipeline
     pipeline:  'draw4-2'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -113,6 +115,7 @@ name: 'Draw4 |1| Draw task2'
 
   BindPipeline
     pipeline:  'draw4-2'
+    layout:    '7'
     bindPoint: GRAPHICS
   ----------
 
@@ -144,7 +147,7 @@ name: 'Draw4 |2| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2

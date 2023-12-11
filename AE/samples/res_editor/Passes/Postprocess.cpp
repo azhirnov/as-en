@@ -33,7 +33,7 @@ namespace AE::ResEditor
             {
                 ppln = it->second;
 
-                RG::DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+                DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
                 CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2{dim} + 0.5f} ));
                 pd.cmdbuf = tctx.ReleaseCommandBuffer();
             }
@@ -108,6 +108,7 @@ namespace AE::ResEditor
             ub_data.seed        = pd.seed;
             ub_data.mouse       = pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
             ub_data.customKeys  = pd.customKeys[0];
+            ub_data.pixToMm     = pd.pixToMm;
 
             if ( _controller )
                 _controller->CopyTo( OUT ub_data.camera );
@@ -155,7 +156,7 @@ namespace AE::ResEditor
 */
     Postprocess::~Postprocess ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT _descSets );
         res_mngr.ReleaseResource( _ubuffer );
     }

@@ -11,3 +11,5 @@ rmdir /Q /S "engine\build"
 
 rmdir /Q /S "test\.cxx"
 rmdir /Q /S "test\build"
+
+cd ../build_scripts/android

@@ -23,7 +23,7 @@ namespace AE::PipelineCompiler
 
     CompiledShader::~CompiledShader () __NE___ {}
 
-    CompiledShader::CompiledShader (CompiledShader && other) __NE___ :
+    CompiledShader::CompiledShader (CompiledShader &&other) __NE___ :
         uid{ other.uid },
         version{ other.version },
         type{ other.type },
@@ -578,7 +578,7 @@ namespace AE::PipelineCompiler
 
             CHECK_ERR( st->ToCPP( INOUT types, INOUT unique ));
         }
-        
+
       #if not AE_PRIVATE_USE_TABS
         types = Parser::TabsToSpaces( types );
       #endif
@@ -938,7 +938,7 @@ namespace {
         binder.AddValue( "SPIRV_1_5",       EShaderVersion::SPIRV_1_5 );
         binder.Comment( "Vulkan 1.3" );
         binder.AddValue( "SPIRV_1_6",       EShaderVersion::SPIRV_1_6 );
-        STATIC_ASSERT( EShaderVersion::_SPIRV_Last == EShaderVersion::SPIRV_1_6 );
+        StaticAssert( EShaderVersion::_SPIRV_Last == EShaderVersion::SPIRV_1_6 );
 
         binder.AddValue( "Metal_2_0",       EShaderVersion::Metal_2_0 );
         binder.AddValue( "Metal_2_1",       EShaderVersion::Metal_2_1 );
@@ -948,7 +948,8 @@ namespace {
         binder.AddValue( "Metal_2_4",       EShaderVersion::Metal_2_4 );
         binder.Comment( "Added mesh shading." );
         binder.AddValue( "Metal_3_0",       EShaderVersion::Metal_3_0 );
-        STATIC_ASSERT( EShaderVersion::_Metal_Last == EShaderVersion::Metal_3_0 );
+        binder.AddValue( "Metal_3_1",       EShaderVersion::Metal_3_1 );
+        StaticAssert( EShaderVersion::_Metal_Last == EShaderVersion::Metal_3_1 );
 
         binder.Comment( "Compile for iOS." );
         binder.AddValue( "Metal_iOS_2_0",   EShaderVersion::Metal_iOS_2_0 );
@@ -957,7 +958,8 @@ namespace {
         binder.AddValue( "Metal_iOS_2_3",   EShaderVersion::Metal_iOS_2_3 );
         binder.AddValue( "Metal_iOS_2_4",   EShaderVersion::Metal_iOS_2_4 );
         binder.AddValue( "Metal_iOS_3_0",   EShaderVersion::Metal_iOS_3_0 );
-        STATIC_ASSERT( EShaderVersion::_Metal_iOS_Last == EShaderVersion::Metal_iOS_3_0 );
+        binder.AddValue( "Metal_iOS_3_1",   EShaderVersion::Metal_iOS_3_1 );
+        StaticAssert( EShaderVersion::_Metal_iOS_Last == EShaderVersion::Metal_iOS_3_1 );
 
         binder.Comment( "Compile for MacOS." );
         binder.AddValue( "Metal_Mac_2_0",   EShaderVersion::Metal_Mac_2_0 );
@@ -966,7 +968,8 @@ namespace {
         binder.AddValue( "Metal_Mac_2_3",   EShaderVersion::Metal_Mac_2_3 );
         binder.AddValue( "Metal_Mac_2_4",   EShaderVersion::Metal_Mac_2_4 );
         binder.AddValue( "Metal_Mac_3_0",   EShaderVersion::Metal_Mac_3_0 );
-        STATIC_ASSERT( EShaderVersion::_Metal_Mac_Last == EShaderVersion::Metal_Mac_3_0 );
+        binder.AddValue( "Metal_Mac_3_1",   EShaderVersion::Metal_Mac_3_1 );
+        StaticAssert( EShaderVersion::_Metal_Mac_Last == EShaderVersion::Metal_Mac_3_1 );
     }
 
     void  ObjectStorage::Bind_EShaderOpt (const ScriptEnginePtr &se)
@@ -991,7 +994,7 @@ namespace {
         binder.AddValue( "StrongOptimization",  EShaderOpt::StrongOptimization );
         // options
         binder.AddValue( "WarnAsError",         EShaderOpt::WarnAsError );
-        STATIC_ASSERT( uint(EShaderOpt::All) == 0x7FF );
+        StaticAssert( uint(EShaderOpt::All) == 0x7FF );
     }
 
     void  ObjectStorage::Bind_EAccessType (const ScriptEnginePtr &se)
@@ -1008,7 +1011,7 @@ namespace {
         binder.AddValue( "WorkgroupCoherent",   EAccessType::WorkgroupCoherent );
         binder.AddValue( "SubgroupCoherent",    EAccessType::SubgroupCoherent );
         binder.AddValue( "NonPrivate",          EAccessType::NonPrivate );
-        STATIC_ASSERT( uint(EAccessType::_Count) == 10 );
+        StaticAssert( uint(EAccessType::_Count) == 10 );
     }
 
     void  ObjectStorage::Bind_EImageType (const ScriptEnginePtr &se)
@@ -1092,9 +1095,9 @@ namespace {
         binder.AddValue( "UImage2DMSArray",     EImageType::Img2DMSArray    | EImageType::UInt );
         binder.AddValue( "UImageBuffer",        EImageType::Buffer          | EImageType::UInt );
 
-        STATIC_ASSERT( uint(EImageType::_TexCount)   == 11 );
-        STATIC_ASSERT( uint(EImageType::_LastVal)-1  == 0xA0 );
-        STATIC_ASSERT( uint(EImageType::_LastQual)-1 == 0x100 );
+        StaticAssert( uint(EImageType::_TexCount)   == 11 );
+        StaticAssert( uint(EImageType::_LastVal)-1  == 0xA0 );
+        StaticAssert( uint(EImageType::_LastQual)-1 == 0x100 );
     }
 
     void  ObjectStorage::Bind_ECompilationTarget (const ScriptEnginePtr &se)
@@ -1104,7 +1107,7 @@ namespace {
         binder.AddValue( "Vulkan",      ECompilationTarget::Vulkan );
         binder.AddValue( "Metal_iOS",   ECompilationTarget::Metal_iOS );
         binder.AddValue( "Metal_Mac",   ECompilationTarget::Metal_Mac );
-        STATIC_ASSERT( uint(ECompilationTarget::_Count) == 4 );
+        StaticAssert( uint(ECompilationTarget::_Count) == 4 );
     }
 
     void  ObjectStorage::Bind_EStructLayout (const ScriptEnginePtr &se)
@@ -1123,7 +1126,7 @@ namespace {
         binder.AddValue( "Std430",              EStructLayout::Std430 );
         binder.Comment( "Platform depended layout." );
         binder.AddValue( "InternalIO",          EStructLayout::InternalIO );
-        STATIC_ASSERT( uint(EStructLayout::_Count) == 6 );
+        StaticAssert( uint(EStructLayout::_Count) == 6 );
     }
 
     void  ObjectStorage::Bind_EValueType (const ScriptEnginePtr &se)
@@ -1148,7 +1151,7 @@ namespace {
         binder.AddValue( "UInt8_Norm",      EValueType::UInt8_Norm );
         binder.AddValue( "UInt16_Norm",     EValueType::UInt16_Norm );
         binder.AddValue( "DeviceAddress",   EValueType::DeviceAddress );
-        STATIC_ASSERT( uint(EValueType::_Count) == 19 );
+        StaticAssert( uint(EValueType::_Count) == 19 );
     }
 
     void  ObjectStorage::Bind_EShaderPreprocessor (const ScriptEnginePtr &se)
@@ -1158,7 +1161,7 @@ namespace {
         binder.AddValue( "None",    EShaderPreprocessor::None );
         binder.Comment( "Use <aestyle.glsl.h> for auto-complete in IDE." );
         binder.AddValue( "AEStyle", EShaderPreprocessor::AEStyle );
-        STATIC_ASSERT( uint(EShaderPreprocessor::_Count) == 2 );
+        StaticAssert( uint(EShaderPreprocessor::_Count) == 2 );
     }
 
 

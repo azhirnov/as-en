@@ -1,4 +1,4 @@
-//F104D754
+//457d401f
 #include <vector>
 #include <string>
 
@@ -20,37 +20,37 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct int3;
-struct bool2;
-struct int2;
-struct bool3;
-struct EPathParamsFlags;
-struct int4;
-struct bool4;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct short4;
-struct Archive;
-struct InputActions;
-struct ubyte3;
-struct EFileType;
-struct ubyte2;
-struct ubyte4;
+struct PipelineCompiler;
 struct float2;
 struct float3;
-struct PipelineCompiler;
+struct float4;
+struct uint4;
+struct uint2;
+struct uint3;
+struct AssetPacker;
+struct EReflectionFlags;
 struct short2;
 struct ushort4;
 struct short3;
 struct sbyte4;
 struct sbyte3;
-struct AssetPacker;
-struct EReflectionFlags;
-struct uint3;
-struct uint2;
-struct float4;
-struct uint4;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct short4;
+struct Archive;
+struct bool2;
+struct int3;
+struct int2;
+struct bool3;
+struct int4;
+struct EPathParamsFlags;
+struct bool4;
+struct ubyte4;
+struct ubyte3;
+struct EFileType;
+struct ubyte2;
+struct InputActions;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1098,18 +1098,6 @@ struct Archive
 };
 
 template <>
-struct RC<Archive> : Archive
-{
-    RC (const Archive &);
-};
-
-template <>
-struct RC<InputActions> : InputActions
-{
-    RC (const InputActions &);
-};
-
-template <>
 struct RC<PipelineCompiler> : PipelineCompiler
 {
     RC (const PipelineCompiler &);
@@ -1119,5 +1107,17 @@ template <>
 struct RC<AssetPacker> : AssetPacker
 {
     RC (const AssetPacker &);
+};
+
+template <>
+struct RC<Archive> : Archive
+{
+    RC (const Archive &);
+};
+
+template <>
+struct RC<InputActions> : InputActions
+{
+    RC (const InputActions &);
 };
 

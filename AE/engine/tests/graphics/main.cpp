@@ -24,7 +24,7 @@ extern void UnitTest_PixelFormat ();
     extern void Test_MetalRenderGraph (IApplication &app, IWindow &wnd);
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-    extern void Test_RemoteDevice ();
+    extern void Test_RemoteDevice (IApplication &, IWindow &wnd);
     extern void Test_RemoteRenderGraph (IApplication &app, IWindow &wnd);
 
 #else
@@ -55,7 +55,7 @@ static void  RenderTests (IApplication &app, IWindow &wnd)
         Test_MetalRenderGraph( app, wnd );
 
     #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-        //Test_RemoteDevice();
+        //Test_RemoteDevice( app, wnd );
         Test_RemoteRenderGraph( app, wnd );
 
     #else
@@ -67,8 +67,17 @@ static void  RenderTests (IApplication &app, IWindow &wnd)
 #ifdef AE_PLATFORM_ANDROID
 extern int Test_Graphics (IApplication &app, IWindow &wnd)
 {
+    TaskScheduler::InstanceCtor::Create();
+
+    TaskScheduler::Config   cfg;
+    cfg.mainThreadCoreId    = ECpuCoreId(0);
+    CHECK_FATAL( Scheduler().Setup( cfg ));
+
     UnitTests();
     RenderTests( app, wnd );
+
+    Scheduler().Release();
+    TaskScheduler::InstanceCtor::Destroy();
 
     AE_LOGI( "Tests.Graphics finished" );
     return 0;
@@ -81,7 +90,7 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
         IApplication&   _app;
 
     public:
-        WndListener (IApplication &app) : _app{app} {}
+        WndListener (IApplication &app)             __NE___ : _app{app} {}
         ~WndListener ()                             __NE_OV {}
 
         void OnStateChanged (IWindow &, EState)     __NE_OV {}
@@ -103,18 +112,29 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
         WindowPtr   _window;
 
     public:
-        AppListener ()
+        AppListener ()                              __NE___
         {
-            TaskScheduler::CreateInstance();
+            TaskScheduler::InstanceCtor::Create();
 
             TaskScheduler::Config   cfg;
+            cfg.mainThreadCoreId    = ECpuCoreId(0);
+
             CHECK_FATAL( Scheduler().Setup( cfg ));
+
+          #ifdef AE_ENABLE_REMOTE_GRAPHICS
+            CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
+          #endif
         }
 
         ~AppListener ()                             __NE_OV
         {
             Scheduler().Release();
-            TaskScheduler::DestroyInstance();
+
+          #ifdef AE_ENABLE_REMOTE_GRAPHICS
+            Networking::SocketService::Instance().Deinitialize();
+          #endif
+
+            TaskScheduler::InstanceCtor::Destroy();
         }
 
         void  OnStart (IApplication &app)           __NE_OV
@@ -140,7 +160,6 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
     Unique<IApplication::IAppListener>  AE_OnAppCreated ()
     {
         StaticLogger::InitDefault();
-        //StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
         return MakeUnique<AppListener>();
     }

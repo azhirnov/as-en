@@ -1,0 +1,170 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'Draw4 |0| Draw task1'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ
+    ImageBarrier:
+      name:    'Image'
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> COLOR_ATTACHMENT_OUTPUT
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      layout:  UNDEFINED ---> COLOR_ATTACHMENT_OPTIMAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COLOR_ATTACHMENT_OUTPUT ---> COLOR_ATTACHMENT_OUTPUT
+      access: COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest4.Pass1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+  ----------
+
+  BindVertexBuffers
+    [0] buffer: 'vstream', offset: 64
+  ----------
+
+  BindPipeline
+    pipeline:  'draw4-1'
+    layout:    '7'
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      storeOp: STORE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COLOR_ATTACHMENT_OUTPUT ---> COLOR_ATTACHMENT_OUTPUT
+      access: COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest4.Pass2'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  LOAD
+  ----------
+
+  BindVertexBuffers
+    [0] buffer: 'vstream', offset: 128
+  ----------
+
+  BindPipeline
+    pipeline:  'draw4-2'
+    layout:    '7'
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      storeOp: STORE
+  ----------
+
+}
+--------------------------------------------------
+name: 'Draw4 |1| Draw task2'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COLOR_ATTACHMENT_OUTPUT ---> COLOR_ATTACHMENT_OUTPUT
+      access: COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest4.Pass2'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  LOAD
+  ----------
+
+  BindVertexBuffers
+    [0] buffer: 'vstream', offset: 0
+  ----------
+
+  BindPipeline
+    pipeline:  'draw4-2'
+    layout:    '7'
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL
+      storeOp: STORE
+  ----------
+
+}
+--------------------------------------------------
+name: 'Draw4 |2| Readback task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> COPY
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> TRANSFER_READ
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+    ImageBarrier:
+      name:    'Image'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

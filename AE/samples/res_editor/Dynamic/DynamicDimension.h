@@ -230,7 +230,7 @@ namespace AE::ResEditor
     {
         const float new_aspect = Aspect();
 
-        if ( not Equals( new_aspect, oldAspect ))
+        if ( not Equal( new_aspect, oldAspect ))
         {
             oldAspect = new_aspect;
             return true;

@@ -39,4 +39,9 @@ public final class DemoActivity
         Log.i(TAG, "onStop");
         super.onStop();
     }
+
+    @Override public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
+    }
 }

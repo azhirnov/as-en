@@ -42,7 +42,7 @@ namespace AE::Base
         constexpr NamedID ()                                __NE___ : _hash{_emptyHash}                                     {}
         explicit constexpr NamedID (HashVal32 hash)         __NE___ : _hash{hash}                                           {}
         explicit constexpr NamedID (StringView name)        __NE___ : _hash{CT_Hash( name.data(), name.length(), Seed )}    {}
-        explicit constexpr NamedID (const char *name)       __NE___ : _hash{CT_Hash( name, UMax, Seed )}                    {}
+        explicit constexpr NamedID (const char* name)       __NE___ : _hash{CT_Hash( name, UMax, Seed )}                    {}
 
         constexpr NamedID (Self &&)                         __NE___ = default;
         constexpr NamedID (const Self &)                    __NE___ = default;
@@ -105,7 +105,7 @@ namespace AE::Base
         constexpr NamedID ()                                    __NE___ : _hash{_emptyHash}                                                     {}
         explicit constexpr NamedID (HashVal32 hash)             __NE___ :  _hash{hash}                                                          {}
         explicit constexpr NamedID (StringView name)            __NE___ : _hash{ CT_Hash( name.data(), name.length(), Seed )}, _name{name}      {}
-        explicit constexpr NamedID (const char *name)           __NE___ : _hash{ CT_Hash( name, UMax, Seed )}, _name{name}                      {}
+        explicit constexpr NamedID (const char* name)           __NE___ : _hash{ CT_Hash( name, UMax, Seed )}, _name{name}                      {}
 
         template <usize StrSize>
         explicit constexpr NamedID (const FixedString<StrSize> &name) __NE___ : _hash{CT_Hash( name.data(), name.length(), Seed )}, _name{name} {}
@@ -153,10 +153,12 @@ namespace AE::Base
     template <usize Size, uint UID, uint Seed>  struct TMemCopyAvailable<       NamedID< Size, UID, true, Seed >>   { static constexpr bool  value = true;  };
     template <usize Size, uint UID, uint Seed>  struct TZeroMemAvailable<       NamedID< Size, UID, true, Seed >>   { static constexpr bool  value = false; };
     template <usize Size, uint UID, uint Seed>  struct TTriviallySerializable<  NamedID< Size, UID, true, Seed >>   { static constexpr bool  value = true;  };
+    template <usize Size, uint UID, uint Seed>  struct TTriviallyDestructible<  NamedID< Size, UID, true, Seed >>   { static constexpr bool  value = true;  };
 
     template <usize Size, uint UID, uint Seed>  struct TMemCopyAvailable<       NamedID< Size, UID, false, Seed >>  { static constexpr bool  value = true;  };
     template <usize Size, uint UID, uint Seed>  struct TZeroMemAvailable<       NamedID< Size, UID, false, Seed >>  { static constexpr bool  value = false; };
     template <usize Size, uint UID, uint Seed>  struct TTriviallySerializable<  NamedID< Size, UID, false, Seed >>  { static constexpr bool  value = false; };
+    template <usize Size, uint UID, uint Seed>  struct TTriviallyDestructible<  NamedID< Size, UID, false, Seed >>  { static constexpr bool  value = true;  };
 
 } // AE::Base
 

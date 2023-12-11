@@ -15,9 +15,23 @@ namespace AE::ResEditor
 */
     UnifiedGeometry::Material::~Material ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT descSets );
         res_mngr.ReleaseResource( INOUT ubuffer );
+    }
+
+/*
+=================================================
+    GetDebugModeBits
+=================================================
+*/
+    IGSMaterials::DebugModeBits  UnifiedGeometry::Material::GetDebugModeBits () C_NE___
+    {
+        DebugModeBits   result;
+        for (auto& [key, ppln] : pipelineMap) {
+            result.insert( key.second );
+        }
+        return result;
     }
 //-----------------------------------------------------------------------------
 
@@ -28,7 +42,7 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    UnifiedGeometry::UnifiedGeometry (Renderer &r) __Th___ :
+    UnifiedGeometry::UnifiedGeometry (Renderer &r) __NE___ :
         IGeomSource{ r }
     {
     }
@@ -38,11 +52,40 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    PrepareForDebugging
+=================================================
+*/
+    void  UnifiedGeometry::PrepareForDebugging (IGSMaterials &inMtr, DirectCtx::Transfer &ctx,
+                                                const Debugger &dbg, OUT ShaderDebugger::Result &dbgStorage) __Th___
+    {
+        // TODO: array of dbgStorage
+        /*ASSERT( dbg.IsEnabled() );
+
+        auto&   mtr = RefCast<Material>(inMtr);
+
+        for (usize i = 0; i < _drawCommands.size(); ++i)
+        {
+            auto    it = mtr.pipelineMap.find( Pair{ i, dbg.mode });
+            if ( it != mtr.pipelineMap.end() )
+            {
+                Visit( it->second,
+                    [&] (GraphicsPipelineID ppln)   { CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
+                    [&] (MeshPipelineID ppln)       { CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
+                    [] (NullUnion)                  { CHECK_MSG( false, "pipeline is not defined" ); }
+                );
+            }
+        }*/
+    }
+
+/*
+=================================================
     StateTransition
 =================================================
 */
     void  UnifiedGeometry::StateTransition (IGSMaterials &, DirectCtx::Graphics &ctx) __Th___
     {
+        ctx.MemoryBarrier( EResourceState::CopyDst, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
+
         _resources.SetStates( ctx, EResourceState::AllGraphicsShaders );
 
         for (usize i = 0; i < _drawCommands.size(); ++i)
@@ -92,9 +135,9 @@ namespace AE::ResEditor
         DescriptorSetID     mtr_ds      = mtr.descSets[ ctx.GetFrameId().Index() ];
         Material::PplnID_t  prev_ppln;
 
-        CHECK( _drawCommands.size() == mtr.pplns.size() );
+        CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
 
-        const auto      BindPipeline = [&ctx, &prev_ppln] (const auto &pplnId)
+        auto    BindPipeline = [&, first = true] (const auto &pplnId) M_Th___
         {{
             if ( prev_ppln == pplnId )
                 return;
@@ -105,15 +148,25 @@ namespace AE::ResEditor
                 [&ctx] (MeshPipelineID ppln)        { ctx.BindPipeline( ppln ); },
                 [] (NullUnion)                      { CHECK_MSG( false, "pipeline is not defined" ); }
             );
-        }};
 
-        BindPipeline( mtr.pplns.front() );
-        ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
-        ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
+            if_unlikely( first )
+            {
+                first = false;
+                ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
+                ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
+            }
+
+            if ( in.IsDebuggerEnabled() )
+                ctx.BindDescriptorSet( in.dbgStorage->DSIndex(), in.dbgStorage->DescSet() );
+        }};
 
         for (usize i = 0; i < _drawCommands.size(); ++i)
         {
-            BindPipeline( mtr.pplns[i] );
+            auto    ppln_it = mtr.pipelineMap.find( Pair{ i, in.dbgMode });
+            if ( ppln_it == mtr.pipelineMap.end() )
+                continue;
+
+            BindPipeline( ppln_it->second );
 
             Visit( _drawCommands[i],
 
@@ -214,6 +267,7 @@ namespace AE::ResEditor
         {
             ShaderTypes::UnifiedGeometryMaterialUB  ub_data;
             ub_data.transform   = in.transform;
+            ub_data.normalMat   = float3x3{in.transform}.Inverse();
 
             CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
         }

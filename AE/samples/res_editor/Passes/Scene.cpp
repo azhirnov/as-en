@@ -20,9 +20,24 @@ namespace AE::ResEditor
 
         CHECK_ERR( _scene );
 
-        const uint2             dim         {_renderTargets[0].image->GetImageDesc().dimension};
-        DirectCtx::Graphics     ctx         { pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
-        const auto&             instances   = _scene->_geomInstances;
+        const auto&                     instances   = _scene->_geomInstances;
+        Array<ShaderDebugger::Result>   dbg_result;
+        EDebugMode                      dbg_mode    = Default;
+
+        if ( pd.dbg.IsEnabled( this ))
+        {
+            DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+
+            dbg_result.resize( instances.size() );
+            for (usize i = 0; i < instances.size(); ++i) {
+                instances[i].geometry->PrepareForDebugging( *_materials[i], tctx, pd.dbg, OUT dbg_result[i] );
+            }
+            pd.cmdbuf   = tctx.ReleaseCommandBuffer();
+            dbg_mode    = pd.dbg.mode;
+        }
+
+        const uint2             dim {_renderTargets[0].image->GetImageDesc().dimension};
+        DirectCtx::Graphics     ctx { pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 
         // state transition
         {
@@ -56,14 +71,20 @@ namespace AE::ResEditor
                 case ERenderLayer::Translucent :
                     for (usize i = 0; i < instances.size(); ++i)
                     {
-                        CHECK_ERR( instances[i].geometry->Draw( IGeomSource::DrawData{ *_materials[i], dctx, ds }));
+                        CHECK_ERR( instances[i].geometry->Draw( IGeomSource::DrawData{
+                                        *_materials[i], dctx, ds,
+                                        (dbg_result.empty() ? null : &dbg_result[i]), dbg_mode
+                                    }));
                     }
                     break;
 
                 case ERenderLayer::PostProcess :
                     for (usize i = 0; i < instances.size(); ++i)
                     {
-                        CHECK_ERR( instances[i].geometry->PostProcess( IGeomSource::DrawData{ *_materials[i], dctx, ds }));
+                        CHECK_ERR( instances[i].geometry->PostProcess( IGeomSource::DrawData{
+                                        *_materials[i], dctx, ds,
+                                        (dbg_result.empty() ? null : &dbg_result[i]), dbg_mode
+                                    }));
                     }
                     break;
             }
@@ -167,7 +188,7 @@ namespace AE::ResEditor
 */
     SceneGraphicsPass::~SceneGraphicsPass ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT _descSets );
         res_mngr.ReleaseResource( INOUT _ubuffer );
     }
@@ -296,7 +317,7 @@ namespace AE::ResEditor
 */
     SceneRayTracingPass::~SceneRayTracingPass ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT _passDescSets );
         res_mngr.ReleaseResourceArray( INOUT _objDescSets );
         res_mngr.ReleaseResource( INOUT _ubuffer );

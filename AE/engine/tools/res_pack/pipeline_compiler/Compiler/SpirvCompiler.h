@@ -23,7 +23,7 @@ namespace AE::PipelineCompiler
     // SPIRV Compiler
     //
 
-    class SpirvCompiler final
+    class SpirvCompiler final : public NothrowAllocatable
     {
     // types
     private:
@@ -108,7 +108,7 @@ namespace AE::PipelineCompiler
             StringView      source;
             PathAndLine     fileLoc;                        // only for output parser
             bool            shaderSubgroupClock = false;    // \__ only for shader profiling
-            bool            shaderDeviceClock   = false;    // / 
+            bool            shaderDeviceClock   = false;    // /
         };
 
         struct Output
@@ -135,7 +135,7 @@ namespace AE::PipelineCompiler
 
     // variables
     private:
-        const Array< Path >             _directories;
+        Array< Path >                   _directories;
 
         glslang::TIntermediate *        _intermediate       = null;
         EShaderStages                   _currentStage       = Default;
@@ -150,7 +150,7 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        explicit SpirvCompiler (Array<Path> includeDirs);
+        explicit SpirvCompiler (ArrayView<Path> includeDirs) __NE___;
         ~SpirvCompiler ();
 
             bool  SetDefaultResourceLimits ();
@@ -182,7 +182,7 @@ namespace AE::PipelineCompiler
 
         ND_ bool  _ProcessShaderInfo (INOUT ShaderReflection &result) const;
 
-        ND_ bool  _CalculateStructSize (const glslang::TType &bufferType, OUT Bytes32u &staticSize, OUT Bytes32u &arrayStride, OUT Bytes32u &offset) const;
+        ND_ bool  _CalculateStructSize (const glslang::TType &bufferType, OUT Byte32u &staticSize, OUT Byte32u &arrayStride, OUT Byte32u &offset) const;
 
             void  _MergeWithGeometryInputPrimitive (INOUT TopologyBits_t &topologyBits, /*TLayoutGeometry*/uint type) const;
 

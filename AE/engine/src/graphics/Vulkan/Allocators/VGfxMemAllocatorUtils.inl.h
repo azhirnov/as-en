@@ -16,7 +16,7 @@ namespace AE::Graphics
         ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
                     "Dedicated allocation is not supported" );
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         // get memory requirements
         VkMemoryRequirements    mem_req = {};
@@ -59,7 +59,7 @@ namespace AE::Graphics
         ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
                     "Dedicated allocation is not supported" );
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         // get memory requirements
         VkMemoryRequirements    mem_req = {};
@@ -96,11 +96,11 @@ namespace AE::Graphics
     {
         CHECK_ERR( videoSession != Default );
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         // get memory requirements
-        VkVideoSessionMemoryRequirementsKHR     mem_reqs [VConfig::MaxVideoMaxReq]  = {};
-        uint                                    count                               = VConfig::MaxVideoMaxReq;
+        VkVideoSessionMemoryRequirementsKHR     mem_reqs [VConfig::MaxVideoMemReq]  = {};
+        uint                                    count                               = VConfig::MaxVideoMemReq;
         const uint                              membits_mask                        = dev.GetMemoryTypeBits( memType );
 
         VK_CHECK_ERR( dev.vkGetVideoSessionMemoryRequirementsKHR( dev.GetVkDevice(), videoSession, INOUT &count, OUT mem_reqs ));
@@ -129,7 +129,7 @@ namespace AE::Graphics
             RETURN_ERR( "failed to allocate memory for video session" );
         }
 
-        VkBindVideoSessionMemoryInfoKHR     bind_infos [VConfig::MaxVideoMaxReq] = {};
+        VkBindVideoSessionMemoryInfoKHR     bind_infos [VConfig::MaxVideoMemReq] = {};
 
         for (i = 0; i < count; ++i)
         {
@@ -166,7 +166,7 @@ namespace AE::Graphics
         CHECK_ERR( image != Default );
         CHECK_ERR( desc.memType != Default );
 
-        auto&       dev         = RenderTaskScheduler().GetDevice();
+        auto&       dev         = GraphicsScheduler().GetDevice();
         const uint  max_planes  = 3;
 
         const uint  plane_count = EPixelFormat_PlaneCount( desc.format );
@@ -226,7 +226,7 @@ namespace AE::Graphics
                 VkImageMemoryRequirementsInfo2      mem_info        = {};
                 VkMemoryRequirements2               mem_req         = {};
                 const VkImageAspectFlagBits         img_aspects []  = { VK_IMAGE_ASPECT_PLANE_0_BIT, VK_IMAGE_ASPECT_PLANE_1_BIT, VK_IMAGE_ASPECT_PLANE_2_BIT };
-                STATIC_ASSERT( CountOf(img_aspects) == max_planes );
+                StaticAssert( CountOf(img_aspects) == max_planes );
 
                 mem_req_plane.sType         = VK_STRUCTURE_TYPE_IMAGE_PLANE_MEMORY_REQUIREMENTS_INFO;
                 mem_req_plane.planeAspect   = img_aspects [plane];

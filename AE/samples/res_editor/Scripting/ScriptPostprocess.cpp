@@ -9,20 +9,24 @@ namespace AE::ResEditor
 {
 namespace
 {
+    static ScriptPostprocess*  ScriptPostprocess_Ctor0 () {
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ "", Default, Default, Default }}.Detach();
+    }
+
     static ScriptPostprocess*  ScriptPostprocess_Ctor1 (const String &name) {
-        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, Default, ScriptBasePass::EFlags::Enable_AllShaderDbg }}.Detach();
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, Default, Default}}.Detach();
     }
 
     static ScriptPostprocess*  ScriptPostprocess_Ctor2 (const String &name, ScriptPostprocess::EPostprocess ppFlags) {
-        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, Default, ScriptBasePass::EFlags::Enable_AllShaderDbg }}.Detach();
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, Default, Default }}.Detach();
     }
 
     static ScriptPostprocess*  ScriptPostprocess_Ctor3 (ScriptPostprocess::EPostprocess ppFlags) {
-        return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, Default, ScriptBasePass::EFlags::Enable_AllShaderDbg }}.Detach();
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, Default, Default }}.Detach();
     }
 
     static ScriptPostprocess*  ScriptPostprocess_Ctor4 (ScriptPostprocess::EPostprocess ppFlags, const String &defines) {
-        return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, defines, ScriptBasePass::EFlags::Enable_AllShaderDbg }}.Detach();
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, defines, Default }}.Detach();
     }
 
     static ScriptPostprocess*  ScriptPostprocess_Ctor5 (ScriptPostprocess::EPostprocess ppFlags, ScriptBasePass::EFlags baseFlags) {
@@ -49,7 +53,7 @@ namespace
         return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines, baseFlags }}.Detach();
     }
 
-    static constexpr float  DefaultIPD  = 64.0e-3f;
+    //static constexpr float    DefaultIPD  = 64.0e-3f;
 
 } // namespace
 
@@ -59,10 +63,6 @@ namespace
     constructor
 =================================================
 */
-    ScriptPostprocess::ScriptPostprocess () :
-        ScriptBaseRenderPass{ EFlags::Unknown }, _ppFlags{ Default }
-    {}
-
     ScriptPostprocess::ScriptPostprocess (const String &name, EPostprocess ppFlags, const String &defines, EFlags baseFlags) __Th___ :
         ScriptBaseRenderPass{ baseFlags },
         _pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
@@ -116,16 +116,20 @@ namespace
             binder.AddValue( "ShadertoyVR_180", EPostprocess::ShadertoyVR_180 );
             binder.AddValue( "ShadertoyVR_360", EPostprocess::ShadertoyVR_360 );
             binder.AddValue( "Shadertoy_360",   EPostprocess::Shadertoy_360 );
-            STATIC_ASSERT( uint(EPostprocess::_Last) == 17 );
+            binder.AddValue( "Curved_1000R",    EPostprocess::Curved_1000R );
+            binder.AddValue( "Curved_1500R",    EPostprocess::Curved_1500R );
+            binder.AddValue( "Curved_1800R",    EPostprocess::Curved_1800R );
+            StaticAssert( uint(EPostprocess::_Count) == 9 );
         }
         {
             ClassBinder<ScriptPostprocess>  binder{ se };
-            binder.CreateRef();
+            binder.CreateRef( 0, False{"no ctor"} );
 
             _BindBase( binder, True{"withArgs"} );
             _BindBaseRenderPass( binder, True{"withBlending"} );
 
             binder.Comment( "Set path to fragment shader, empty - load current file." );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor0,    {} );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor1,    {"shaderPath"} );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor2,    {"shaderPath", "postprocessFlags"} );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor3,    {"postprocessFlags"} );
@@ -160,18 +164,13 @@ namespace
     RC<IPass>  ScriptPostprocess::ToPass () C_Th___
     {
         auto        result      = MakeRC<Postprocess>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
         Bytes       ub_size;
 
         result->_rtech = _CompilePipeline( OUT ub_size ); // throw
-
-        result->_rpDesc.renderPassName  = RenderPassName{"rp"};
-        result->_rpDesc.subpassName     = SubpassName{"main"};
-        result->_rpDesc.packId          = result->_rtech.packId;
-        result->_rpDesc.layerCount      = 1_layer;
-        result->_depthRange             = this->_depthRange;
+        result->_depthRange = this->_depthRange;
 
         EnumBitSet<IPass::EDebugMode>   dbg_modes;
 
@@ -194,6 +193,13 @@ namespace
 
         auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+        }
+        #endif
+
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "ShadertoyUB", renderer.GetAllocator() );
         CHECK_ERR( result->_ubuffer );
@@ -205,6 +211,24 @@ namespace
                                                       ppln, DescriptorSetName{"ds0"} ));
             _args.InitResources( OUT result->_resources );  // throw
         }
+
+        uint    min_layer_count = UMax;
+        for (auto& src : _output)
+        {
+            const uint  layers  = src.rt->Description().arrayLayers.Get();
+            const uint  count   = (src.layerCount == UMax ? (layers - src.layer.Get()) : src.layerCount);
+
+            CHECK_ERR( src.layer.Get() < layers );
+            CHECK_ERR( src.layer.Get() + count <= layers );
+
+            AssignMin( INOUT min_layer_count, count );
+        }
+        CHECK_ERR( min_layer_count > 0 );
+
+        result->_rpDesc.renderPassName  = RenderPassName{"rp"};
+        result->_rpDesc.subpassName     = SubpassName{"main"};
+        result->_rpDesc.packId          = result->_rtech.packId;
+        result->_rpDesc.layerCount      = ImageLayer{min_layer_count};
 
         for (usize i = 0; i < _output.size(); ++i)
         {
@@ -220,9 +244,9 @@ namespace
             }
 
             ImageViewDesc   view;
-            view.viewType       = EImage_2D;
+            view.viewType       = (min_layer_count > 1 ? EImage_2DArray : EImage_2D);
             view.baseLayer      = src.layer;
-            view.layerCount     = 1;
+            view.layerCount     = ushort(min_layer_count);
             view.baseMipmap     = src.mipmap;
             view.mipmapCount    = 1;
 
@@ -236,7 +260,7 @@ namespace
         }
         CHECK_ERR( not result->_renderTargets.empty() );
 
-        _Init( *result );
+        _Init( *result, null );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
 
         return result;
@@ -284,6 +308,7 @@ namespace AE::ResEditor
                 float4      date;                   // (year, month, day, time in seconds)
                 float       sampleRate;             // sound sample rate (i.e., 44100)
                 float       customKeys;
+                float       pixToMm;
 
                 // controller //
                 CameraData  camera;
@@ -298,9 +323,9 @@ namespace AE::ResEditor
                 int4        intConst [4];
             )#");
 
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
-        STATIC_ASSERT( IPass::CustomKeys_t{}.max_size() == 1 );
+        StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
+        StaticAssert( IPass::Constants::MaxCount == 4 );
+        StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
         return st;
     }
 
@@ -404,12 +429,10 @@ ND_ int3  GetGlobalSize() {
     return int3(un_PerPass.resolution);
 }
 )#";
-            if ( AnyBits( _ppFlags, EPostprocess::_ShadertoyBits ))
+            if ( _ppFlags != EPostprocess::Unknown )
             {
                 CHECK_THROW( _output.size() == 1 );
-
                 header
-                    << "#define _ColorOutput0 " << _output.front().name << "\n"
                     << R"#(
 #define iResolution         un_PerPass.resolution
 #define iTime               un_PerPass.time
@@ -420,64 +443,80 @@ ND_ int3  GetGlobalSize() {
 #define iMouse              float4( un_PerPass.mouse.xy * un_PerPass.resolution.xy, un_PerPass.mouse.zw )
 #define iDate               un_PerPass.date
 #define iSampleRate         un_PerPass.sampleRate
-
-#if defined(VIEW_MODE_VR)
-    void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);
-
-    void Main ()
-    {
-        float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
-        float2 uv    = coord / iResolution.xy;
-        float3 dir   = mix( mix( un_PerPass.cameraFrustumLB, un_PerPass.cameraFrustumRB, uv.x ),
-                            mix( un_PerPass.cameraFrustumLT, un_PerPass.cameraFrustumRT, uv.x ),
-                            uv.y );
-        coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( _ColorOutput0, coord, un_PerPass.cameraPos, dir );
-    }
-
-#elif defined(VIEW_MODE_VR180) || defined(VIEW_MODE_VR360) || defined(VIEW_MODE_360)
-    void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);
-
-    void Main ()
-    {
-        // from https://developers.google.com/vr/jump/rendering-ods-content.pdf
-        float2  coord   = gl.FragCoord.xy;      // + gl.SamplePosition;
-        float2  uv      = coord / iResolution.xy;
-        float   pi      = 3.14159265358979323846f;
-
-    #if defined(VIEW_MODE_VR360)
-        float   scale   = un_PerPass.cameraIPD * 0.5 * (uv.y < 0.5 ? -1.0 : 1.0);           // vr360 top-bottom
-                uv      = float2( uv.x, (uv.y < 0.5 ? uv.y : uv.y - 0.5) * 2.0 );
-    #elif defined(VIEW_MODE_VR180)
-        float   scale   = un_PerPass.cameraIPD * 0.5 * (uv.x < 0.5 ? -1.0 : 1.0);           // vr180 left-right
-                uv      = float2( (uv.x < 0.5 ? uv.x : uv.x - 0.5) * 0.5 + 0.25, uv.y );    // map [0, 1] to [0.25, 0.75]
-    #elif defined(VIEW_MODE_360)
-        float   scale   = 1.0;
-    #endif
-
-        float   theta   = (uv.x) * 2.0 * pi - pi;
-        float   phi     = pi * 0.5 - uv.y * pi;
-
-        float3  origin  = float3(cos(theta), 0.0, sin(theta)) * scale;
-        float3  dir     = float3(sin(theta) * cos(phi), sin(phi), -cos(theta) * cos(phi));
-
-        coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( _ColorOutput0, coord, un_PerPass.cameraPos + origin, dir );
-    }
-
-#else
-    void mainImage (out float4 fragColor, in float2 fragCoord);
-
-    void Main ()
-    {
-        float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
-        coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-
-        mainImage( _ColorOutput0, coord );
-    }
-#endif
-#undef _ColorOutput0
 )#";
+                BEGIN_ENUM_CHECKS();
+                switch ( _ppFlags )
+                {
+                    case EPostprocess::Shadertoy :
+                        header << R"#(
+void mainImage (out float4 fragColor, in float2 fragCoord);
+
+void Main ()
+{
+    float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
+    coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
+
+    mainImage( )#" << _output.front().name << R"#(, coord );
+}
+)#";
+                        break;
+
+                    case EPostprocess::ShadertoyVR :
+                    case EPostprocess::ShadertoyVR_180 :
+                    case EPostprocess::ShadertoyVR_360 :
+                    case EPostprocess::Shadertoy_360 :
+                    case EPostprocess::Curved_1000R :
+                    case EPostprocess::Curved_1500R :
+                    case EPostprocess::Curved_1800R :
+                    {
+                        header << R"#(
+#include "Ray.glsl"
+void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);
+
+void Main ()
+{
+    Ray ray = )#";
+                        END_ENUM_CHECKS();
+                        switch ( _ppFlags )
+                        {
+                            case EPostprocess::ShadertoyVR :
+                                header << "Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                break;
+                            case EPostprocess::ShadertoyVR_180 :
+                                header << "Ray_PlaneToVR180( un_PerPass.cameraIPD, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                break;
+                            case EPostprocess::ShadertoyVR_360 :
+                                header << "Ray_PlaneToVR360( un_PerPass.cameraIPD, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                break;
+                            case EPostprocess::Shadertoy_360 :
+                                header << "Ray_PlaneTo360( un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                break;
+                            case EPostprocess::Curved_1000R :
+                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1000.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
+                                break;
+                            case EPostprocess::Curved_1500R :
+                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1500.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
+                                break;
+                            case EPostprocess::Curved_1800R :
+                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1800.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
+                                break;
+                        }
+                        BEGIN_ENUM_CHECKS();
+                        header << R"#(
+    float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
+    coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
+    mainVR( )#" << _output.front().name << R"#(, coord, ray.origin, ray.dir );
+})#";
+                        break;
+                    }
+                    case EPostprocess::Unknown :
+                    case EPostprocess::_Count :
+                        break;
+                }
+                END_ENUM_CHECKS();
             }
 
             _AddSliders( INOUT header );
@@ -499,7 +538,13 @@ ND_ int3  GetGlobalSize() {
         const EShaderOpt    sh_opt = EShaderOpt::Optimize | EShaderOpt::OptimizeSize;
     //  const EShaderOpt    sh_opt = EShaderOpt::DebugInfo; // for shader debugging in RenderDoc
 
-        _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), EPipelineOpt::Optimize );
+      #if PIPELINE_STATISTICS
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
+      #else
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize;
+      #endif
+
+        _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), ppln_opt );
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
@@ -536,20 +581,6 @@ ND_ int3  GetGlobalSize() {
         }
         {
             ScriptShaderPtr sh{ new ScriptShader{}};
-            BEGIN_ENUM_CHECKS();
-            switch ( _ppFlags )
-            {
-                case EPostprocess::Shadertoy :                                                      break;
-                case EPostprocess::ShadertoyVR :        sh->Define( "#define VIEW_MODE_VR" );       break;
-                case EPostprocess::ShadertoyVR_180 :    sh->Define( "#define VIEW_MODE_VR180" );    break;
-                case EPostprocess::ShadertoyVR_360 :    sh->Define( "#define VIEW_MODE_VR360" );    break;
-                case EPostprocess::Shadertoy_360 :      sh->Define( "#define VIEW_MODE_360" );      break;
-                case EPostprocess::Unknown :            break;
-                case EPostprocess::_Last :
-                case EPostprocess::_ShadertoyBits :
-                default :                               CHECK_THROW_MSG( false, "unsupported flags" );
-            }
-            END_ENUM_CHECKS();
             sh->SetSource2( EShader::Fragment, fs, PathAndLine{_pplnPath, fsLine} );
             sh->options = EShaderOpt(shaderOpts);
 

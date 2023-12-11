@@ -9,6 +9,7 @@
 # include <pthread.h>
 # include <sched.h>
 # include <sys/system_properties.h>
+# include <arm_acle.h>
 
 # include "base/Platforms/AndroidUtils.h"
 # include "base/Algorithms/ArrayUtils.h"
@@ -37,7 +38,7 @@ namespace AE::Base
 
         ASSERT( name.length() <= 16 );
         int res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
-        ASSERT( res == 0 );
+        ASSERT( res == 0 );  Unused( res );
     }
 
 /*
@@ -49,7 +50,7 @@ namespace AE::Base
     {
         char    buf [16];
         int     res = prctl( PR_GET_NAME, buf, 0, 0, 0 );
-        ASSERT( res == 0 );
+        ASSERT( res == 0 );  Unused( res );
         return String{buf};
     }
 /*
@@ -111,32 +112,6 @@ namespace AE::Base
     uint  AndroidUtils::GetProcessorCoreIndex () __NE___
     {
         return ::sched_getcpu();
-    }
-
-/*
-=================================================
-    ThreadPause
-----
-  ARM:
-    In a Symmetric Multi-Threading (SMT) design, a thread can use a Yield instruction
-    to give a hint to the processor that it is running on. The Yield hint indicates that whatever
-    the thread is currently doing is of low importance, and so could yield.
-    For example, the thread might be sitting in a spin-lock.
-    Similar behavior might be used to modify the arbitration priority of the snoop bus in a multiprocessor (MP) system.
-    Defining such an instruction permits binary compatibility between SMT and SMP systems.
-    ARMv7 defines a YIELD instruction as a specific NOP-hint instruction, see YIELD.
-=================================================
-*/
-    void  AndroidUtils::ThreadPause () __NE___
-    {
-    #if defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
-        __builtin_arm_yield();
-        //__yield();
-        //asm volatile("yield")
-        //__wfe()   or __wfi()
-    #else
-        // TODO
-    #endif
     }
 
 /*

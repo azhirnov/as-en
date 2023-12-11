@@ -2,18 +2,16 @@
 /*
     GLSL Trace project.
 
-    old project:
-        https://github.com/azhirnov/glsl_trace
-    new project:
-        https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace
-        https://github.com/azhirnov/as-en/tree/preview/engine/tools/res_pack/shader_trace
-        https://github.com/azhirnov/glsl_trace/tree/v2023
+    [old standalone project](https://github.com/azhirnov/glsl_trace)
+    [new project as part of AsEn](https://github.com/azhirnov/as-en/tree/preview/engine/tools/res_pack/shader_trace)
+    [new project as part of AsEn - mirror](https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace)
+    [new standalone project](https://github.com/azhirnov/glsl_trace/tree/v2023)
 */
 
 #pragma once
 
 #include "base/Utils/FileSystem.h"
-#include "serializing/ISerializable.h"
+#include "serializing/Basic/ISerializable.h"
 
 namespace glslang {
     class TIntermediate;
@@ -30,15 +28,17 @@ namespace AE::PipelineCompiler
     // Shader Trace
     //
 
-    struct ShaderTrace final : public Serializing::ISerializable
+    struct ShaderTrace final :
+        public Serializing::ISerializable,
+        public NothrowAllocatable
     {
     // types
     public:
         enum class ELogFormat : uint
         {
             Unknown,
-            Text,           // as plane text with part of source code 
-            VS_Console,     // compatible with VS outpit, allow navigation to code by click
+            Text,           // as plane text with part of source code
+            VS_Console,     // compatible with VS output, allow navigation to code by click
             VS,             // click to file path will open shader source file
             VSCode,         // click to file path will open shader source file in specified line
             _Count
@@ -54,18 +54,18 @@ namespace AE::PipelineCompiler
             }       _packed;
             ulong   _ul         = UMax;
 
-            SourcePoint () {}
-            SourcePoint (uint line, uint column) : _ul{(ulong(line) << 32) | column } {}
-            explicit SourcePoint (const glslang::TSourceLoc &);
+            SourcePoint ()                                          __NE___ {}
+            SourcePoint (uint line, uint column)                    __NE___ : _ul{(ulong(line) << 32) | column } {}
+            explicit SourcePoint (const glslang::TSourceLoc &)      __NE___;
 
-            ND_ bool  operator == (const SourcePoint &rhs)  const   { return _ul == rhs._ul; }
-            ND_ bool  operator >  (const SourcePoint &rhs)  const   { return _ul >  rhs._ul; }
+            ND_ bool  operator == (const SourcePoint &rhs)          C_NE___ { return _ul == rhs._ul; }
+            ND_ bool  operator >  (const SourcePoint &rhs)          C_NE___ { return _ul >  rhs._ul; }
 
-                void  SetMin (const SourcePoint &rhs)               { _ul = Min( _ul, rhs._ul ); }
-                void  SetMax (const SourcePoint &rhs)               { _ul = Max( _ul, rhs._ul ); }
+                void  SetMin (const SourcePoint &rhs)               __NE___ { _ul = Min( _ul, rhs._ul ); }
+                void  SetMax (const SourcePoint &rhs)               __NE___ { _ul = Max( _ul, rhs._ul ); }
 
-            ND_ uint  Line ()                               const   { return uint(_ul >> 32); }
-            ND_ uint  Column ()                             const   { return uint(_ul & 0xFFFFFFFF); }
+            ND_ uint  Line ()                                       C_NE___ { return uint(_ul >> 32); }
+            ND_ uint  Column ()                                     C_NE___ { return uint(_ul & 0xFFFFFFFF); }
         };
 
         struct SourceLocation
@@ -74,11 +74,11 @@ namespace AE::PipelineCompiler
             SourcePoint     begin;
             SourcePoint     end;
 
-            SourceLocation () {}
-            SourceLocation (uint sourceId, uint line, uint column);
+            SourceLocation ()                                       __NE___ {}
+            SourceLocation (uint sourceId, uint line, uint column)  __NE___;
 
-            ND_ bool  operator == (const SourceLocation &rhs)   const;
-            ND_ bool  IsNotDefined ()                           const;
+            ND_ bool  operator == (const SourceLocation &rhs)       C_NE___;
+            ND_ bool  IsNotDefined ()                               C_NE___;
         };
 
         struct ExprInfo
@@ -89,10 +89,10 @@ namespace AE::PipelineCompiler
             SourcePoint         point;              // location of operator
             Array<VariableID>   vars;               // all variables IDs in this expression
 
-            ExprInfo () = default;
-            ExprInfo (VariableID id, uint sw, const SourceLocation &range, const SourcePoint &pt) : varID{id}, swizzle{sw}, range{range}, point{pt} {} 
+            ExprInfo ()                                             __NE___ = default;
+            ExprInfo (VariableID id, uint sw, const SourceLocation &range, const SourcePoint &pt) __NE___ : varID{id}, swizzle{sw}, range{range}, point{pt} {}
 
-            ND_ bool  operator == (const ExprInfo &rhs) const;
+            ND_ bool  operator == (const ExprInfo &rhs)             C_NE___;
         };
 
         struct SourceInfo
@@ -104,7 +104,7 @@ namespace AE::PipelineCompiler
             uint                firstLine   = 0;
             Array<LineRange>    lines;              // offset in bytes for each line in 'code'
 
-            ND_ bool  operator == (const SourceInfo &rhs) const;
+            ND_ bool  operator == (const SourceInfo &rhs)           C_NE___;
         };
 
         using VarNames_t    = HashMap< VariableID, String >;
@@ -132,12 +132,12 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        ShaderTrace () {}
+        ShaderTrace ()                                  __NE___ {}
 
-        ShaderTrace (ShaderTrace &&) = delete;
-        ShaderTrace (const ShaderTrace &) = delete;
-        ShaderTrace& operator = (ShaderTrace &&) = delete;
-        ShaderTrace& operator = (const ShaderTrace &) = delete;
+        ShaderTrace (ShaderTrace &&)                    = delete;
+        ShaderTrace (const ShaderTrace &)               = delete;
+        ShaderTrace& operator = (ShaderTrace &&)        = delete;
+        ShaderTrace& operator = (const ShaderTrace &)   = delete;
 
         // Log all function results, log all function calls, log some operator results.
         // Use 'ParseShaderTrace' to get trace as string.
@@ -151,7 +151,7 @@ namespace AE::PipelineCompiler
         ND_ bool  InsertShaderClockHeatmap (glslang::TIntermediate &, uint descSetIndex);
 
         // Converts binary trace into string.
-        ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ELogFormat format, OUT Array<String> &result) const;
+        ND_ bool  ParseShaderTrace (const void* ptr, Bytes maxSize, ELogFormat format, OUT Array<String> &result) const;
 
         // Source code required for 'ParseShaderTrace' function.
         void  AddSource (StringView source);

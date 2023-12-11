@@ -32,7 +32,7 @@ float  GradientNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)
     // cubic interpolant
     float3 u = w*w*(3.0-2.0*w);
     float3 du = 6.0*w*(1.0-w);
-    #endif    
+    #endif
 
     // gradients
     float3 ga = hash( i+float3(0.0,0.0,0.0) );
@@ -76,7 +76,7 @@ float  GradientNoise (const float3 pos)
     // cubic interpolant
     float3 u = w*w*(3.0-2.0*w);
     float3 du = 6.0*w*(1.0-w);
-    #endif    
+    #endif
 
     // gradients
     float3 ga = hash( i+float3(0.0,0.0,0.0) );
@@ -193,11 +193,11 @@ float  ValueNoise (gl::CombinedTex2D<float> greyNoise, const float3 pos)
     return  Lerp(
                 Lerp(
                     Lerp(hash(pi + float3(0, 0, 0)), hash(pi + float3(1, 0, 0)), w.x),
-                    Lerp(hash(pi + float3(0, 0, 1)), hash(pi + float3(1, 0, 1)), w.x), 
+                    Lerp(hash(pi + float3(0, 0, 1)), hash(pi + float3(1, 0, 1)), w.x),
                     w.z),
                 Lerp(
                     Lerp(hash(pi + float3(0, 1, 0)), hash(pi + float3(1, 1, 0)), w.x),
-                    Lerp(hash(pi + float3(0, 1, 1)), hash(pi + float3(1, 1, 1)), w.x), 
+                    Lerp(hash(pi + float3(0, 1, 1)), hash(pi + float3(1, 1, 1)), w.x),
                     w.z),
                 w.y);
     #undef hash
@@ -215,11 +215,11 @@ float  ValueNoise (const float3 pos)
     return  Lerp(
                 Lerp(
                     Lerp(hash(pi + float3(0, 0, 0)), hash(pi + float3(1, 0, 0)), w.x),
-                    Lerp(hash(pi + float3(0, 0, 1)), hash(pi + float3(1, 0, 1)), w.x), 
+                    Lerp(hash(pi + float3(0, 0, 1)), hash(pi + float3(1, 0, 1)), w.x),
                     w.z),
                 Lerp(
                     Lerp(hash(pi + float3(0, 1, 0)), hash(pi + float3(1, 1, 0)), w.x),
-                    Lerp(hash(pi + float3(0, 1, 1)), hash(pi + float3(1, 1, 1)), w.x), 
+                    Lerp(hash(pi + float3(0, 1, 1)), hash(pi + float3(1, 1, 1)), w.x),
                     w.z),
                 w.y);
     #undef hash
@@ -246,18 +246,18 @@ float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)
 
     return  Lerp(
                 Lerp(
-                    Lerp(Dot(pf - float3(0, 0, 0), hash(pi + float3(0, 0, 0))), 
+                    Lerp(Dot(pf - float3(0, 0, 0), hash(pi + float3(0, 0, 0))),
                          Dot(pf - float3(1, 0, 0), hash(pi + float3(1, 0, 0))),
                          w.x),
-                    Lerp(Dot(pf - float3(0, 0, 1), hash(pi + float3(0, 0, 1))), 
+                    Lerp(Dot(pf - float3(0, 0, 1), hash(pi + float3(0, 0, 1))),
                          Dot(pf - float3(1, 0, 1), hash(pi + float3(1, 0, 1))),
                          w.x),
                     w.z),
                 Lerp(
-                    Lerp(Dot(pf - float3(0, 1, 0), hash(pi + float3(0, 1, 0))), 
+                    Lerp(Dot(pf - float3(0, 1, 0), hash(pi + float3(0, 1, 0))),
                          Dot(pf - float3(1, 1, 0), hash(pi + float3(1, 1, 0))),
                          w.x),
-                    Lerp(Dot(pf - float3(0, 1, 1), hash(pi + float3(0, 1, 1))), 
+                    Lerp(Dot(pf - float3(0, 1, 1), hash(pi + float3(0, 1, 1))),
                          Dot(pf - float3(1, 1, 1), hash(pi + float3(1, 1, 1))),
                          w.x),
                     w.z),
@@ -276,18 +276,18 @@ float  PerlinNoise (const float3 pos)
 
     return  Lerp(
                 Lerp(
-                    Lerp(Dot(pf - float3(0, 0, 0), hash(pi + float3(0, 0, 0))), 
+                    Lerp(Dot(pf - float3(0, 0, 0), hash(pi + float3(0, 0, 0))),
                          Dot(pf - float3(1, 0, 0), hash(pi + float3(1, 0, 0))),
                          w.x),
-                    Lerp(Dot(pf - float3(0, 0, 1), hash(pi + float3(0, 0, 1))), 
+                    Lerp(Dot(pf - float3(0, 0, 1), hash(pi + float3(0, 0, 1))),
                          Dot(pf - float3(1, 0, 1), hash(pi + float3(1, 0, 1))),
                          w.x),
                     w.z),
                 Lerp(
-                    Lerp(Dot(pf - float3(0, 1, 0), hash(pi + float3(0, 1, 0))), 
+                    Lerp(Dot(pf - float3(0, 1, 0), hash(pi + float3(0, 1, 0))),
                          Dot(pf - float3(1, 1, 0), hash(pi + float3(1, 1, 0))),
                          w.x),
-                    Lerp(Dot(pf - float3(0, 1, 1), hash(pi + float3(0, 1, 1))), 
+                    Lerp(Dot(pf - float3(0, 1, 1), hash(pi + float3(0, 1, 1))),
                          Dot(pf - float3(1, 1, 1), hash(pi + float3(1, 1, 1))),
                          w.x),
                     w.z),

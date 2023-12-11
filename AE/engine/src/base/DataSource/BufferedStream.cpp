@@ -17,7 +17,7 @@ namespace AE::Base
     {
         if ( not _stream ) return;
 
-        CATCH( _data.reserve( usize(bufferSize) ));
+        NOTHROW( _data.reserve( usize(bufferSize) ));
 
         if ( IsOpen() )
             _ReadNext();
@@ -119,7 +119,7 @@ namespace AE::Base
     ReadSeq
 =================================================
 */
-    Bytes  BufferedRStream::ReadSeq (OUT void *buffer, const Bytes size) __NE___
+    Bytes  BufferedRStream::ReadSeq (OUT void* buffer, const Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -189,7 +189,7 @@ namespace AE::Base
     BufferedWStream::BufferedWStream (RC<WStream> stream, Bytes bufferSize) __NE___ :
         _stream{ RVRef(stream) }
     {
-        CATCH( _data.resize( usize(bufferSize) ));
+        NOTHROW( _data.resize( usize(bufferSize) ));
     }
 
 /*
@@ -211,17 +211,6 @@ namespace AE::Base
     {
         ASSERT( IsOpen() );
         return _stream->Position() + _pos;
-    }
-
-/*
-=================================================
-    Reserve
-=================================================
-*/
-    Bytes  BufferedWStream::Reserve (Bytes) __NE___
-    {
-        // TODO
-        return 0_b;
     }
 
 /*
@@ -258,7 +247,7 @@ namespace AE::Base
     WriteSeq
 =================================================
 */
-    Bytes  BufferedWStream::WriteSeq (const void *buffer, const Bytes size) __NE___
+    Bytes  BufferedWStream::WriteSeq (const void* buffer, const Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 

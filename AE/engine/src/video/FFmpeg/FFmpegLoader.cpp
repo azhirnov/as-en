@@ -21,7 +21,7 @@
 
 
 namespace AE::Video
-{   
+{
 /*
 =================================================
     FFMpegLib
@@ -171,7 +171,7 @@ namespace {
     _ffmpeg_CheckError
 =================================================
 */
-    bool  _ffmpeg_CheckError (int err, const char *ffcall, const char *func, const SourceLoc &loc)
+    bool  _ffmpeg_CheckError (int err, const char* ffcall, const char* func, const SourceLoc &loc)
     {
         if_likely( err == 0 )
             return true;

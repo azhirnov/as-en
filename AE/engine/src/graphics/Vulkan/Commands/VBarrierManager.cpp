@@ -17,7 +17,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     VBarrierManager::VBarrierManager (const RenderTask &task) __NE___ :
-        _resMngr{ RenderTaskScheduler().GetResourceManager() },
+        _resMngr{ GraphicsScheduler().GetResourceManager() },
         _batch{ *task.GetBatchPtr() },
         _task{ &task }
     {
@@ -27,7 +27,7 @@ namespace AE::Graphics::_hidden_
     }
 
     VBarrierManager::VBarrierManager (VCommandBatch &batch) __NE___ :
-        _resMngr{ RenderTaskScheduler().GetResourceManager() },
+        _resMngr{ GraphicsScheduler().GetResourceManager() },
         _batch{ batch },
         _task{ null }
     {
@@ -55,13 +55,13 @@ namespace AE::Graphics::_hidden_
     void  VBarrierManager::_AddBufferBarrier (const VkBufferMemoryBarrier2 &barrier) __NE___
     {
         ASSERT( barrier.pNext == null );
-        CATCH( _bufferBarriers.push_back( barrier ));
+        NOTHROW( _bufferBarriers.push_back( barrier ));
     }
 
     void  VBarrierManager::_AddImageBarrier (const VkImageMemoryBarrier2 &barrier) __NE___
     {
         ASSERT( barrier.pNext == null );
-        CATCH( _imageBarriers.push_back( barrier ));    // TODO: use fixed array and commit barriers on overflow
+        NOTHROW( _imageBarriers.push_back( barrier ));  // TODO: use fixed array and commit barriers on overflow
     }
 
 /*
@@ -207,7 +207,7 @@ namespace AE::Graphics::_hidden_
         auto*   view    = _resMngr.GetResource( viewId );
         CHECK_ERRV( view != null );
 
-        auto*   buffer  = _resMngr.GetResource( view->Buffer() );
+        auto*   buffer  = _resMngr.GetResource( view->BufferId() );
         CHECK_ERRV( buffer != null );
 
         BufferBarrier( buffer->Handle(), srcState, dstState );
@@ -292,7 +292,7 @@ namespace AE::Graphics::_hidden_
 
         auto&   desc    = view->Description();
 
-        auto*   image   = _resMngr.GetResource( view->Image() );
+        auto*   image   = _resMngr.GetResource( view->ImageId() );
         CHECK_ERRV( image != null );
 
         VkImageSubresourceRange subres;

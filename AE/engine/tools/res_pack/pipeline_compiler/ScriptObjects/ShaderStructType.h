@@ -14,10 +14,10 @@ namespace AE::PipelineCompiler
         uint        value   = 0;
 
     // methods
-        ArraySize () {}
-        explicit ArraySize (uint v) : value{v} {}
+        ArraySize ()                                    __NE___ {}
+        explicit ArraySize (uint v)                     __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 
@@ -31,10 +31,10 @@ namespace AE::PipelineCompiler
         uint        value   = 0;
 
     // methods
-        Align () {}
-        explicit Align (uint v) : value{v} {}
+        Align ()                                        __NE___ {}
+        explicit Align (uint v)                         __NE___ : value{v} {}
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
+        static void  Bind (const ScriptEnginePtr &se)   __Th___;
     };
 
 

@@ -24,8 +24,8 @@ namespace
     {
         return float4x4{
                 float4{ mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0] },
-                float4{ mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1] }, 
-                float4{ mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2] }, 
+                float4{ mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1] },
+                float4{ mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2] },
                 float4{ mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3] }};
     }
 
@@ -95,7 +95,7 @@ namespace
         {
             EXLOCK( _surface._guard );
 
-            auto&           rts         = RenderTaskScheduler();
+            auto&           rts         = GraphicsScheduler();
             const auto&     res_mngr    = rts.GetResourceManager();
             const auto&     dev         = rts.GetDevice();
             const auto&     vr_dev      = _surface._vrDev;
@@ -162,7 +162,7 @@ namespace
                                                              Tuple{ CmdBatchOnSubmit{cmdBatch}, deps });
 
         // next frame will wait for present task
-        //RenderTaskScheduler().AddNextFrameDeps( task );
+        //GraphicsScheduler().AddNextFrameDeps( task );
 
         return task;*/
         return null;
@@ -197,14 +197,14 @@ namespace
     _GetTrackedDeviceString
 =================================================
 */
-    String  OpenVRDevice::_GetTrackedDeviceString (TrackedDeviceIndex_t device, TrackedDeviceProperty prop, OUT TrackedPropertyError *peError) C_NE___
+    String  OpenVRDevice::_GetTrackedDeviceString (TrackedDeviceIndex_t device, TrackedDeviceProperty prop, OUT TrackedPropertyError* peError) C_NE___
     {
         uint    req_len = _vrSystem->GetStringTrackedDeviceProperty( device, prop, null, 0, OUT peError );
         if_unlikely( req_len == 0 )
             return "";
 
         String  result;
-        CATCH_ERR( result.resize( req_len );)
+        NOTHROW_ERR( result.resize( req_len );)
 
         req_len = _vrSystem->GetStringTrackedDeviceProperty( device, prop, OUT result.data(), uint(result.size()), OUT peError );
         ASSERT( req_len == result.size() );

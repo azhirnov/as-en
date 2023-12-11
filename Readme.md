@@ -7,24 +7,30 @@ Platforms: Windows, Android, Linux, MacOS, Emscripten (without graphics)<br/>
 GraphicsAPI: Vulkan, Metal<br/>
 Shaders: GLSL, MSL<br/>
 
-**Public version**: some features are removed.
+Not available in public version:
+ * Metal backend
+ * Remote graphics backend
+ * Encrypted stream
+ * Performance tests
 
-Technical documentation:
- * [Build instructions](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Build.md)
- * [Licensing information](https://github.com/azhirnov/as-en/blob/dev/AE/LICENSE.md)
- * [Engine Concept](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Concept.md)
- * Graphics: [DeviceProperties](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/DeviceProperties.md)
- * Graphics: [FeatureSet](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/FeatureSet.md)
- * Graphics features: [Vulkan](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/VulkanFeatures.md), [Metal](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/MetalFeatures.md)
- * [Graphics Resources](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/GraphicsResources.md)
- * [Supported platforms](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Platforms.md)
- * [Profiling](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Profiling.md)
- * [Resource Compilation](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ResourceCompilation.md)
- * [HDR Display](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/HDR_Display.md)
+Engine documentation:
+ * [Build instructions](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Build.md)
+ * [Licensing information](https://github.com/azhirnov/as-en/blob/dev/AE/LICENSE)
+ * [Engine Concept](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Concept.md)
+ * Graphics: [DeviceProperties](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/DeviceProperties.md)
+ * Graphics: [FeatureSet](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/FeatureSet.md)
+ * Low-level Graphics features: [Vulkan](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanFeatures.md), [Metal](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/MetalFeatures.md)
+ * [Graphics Resources](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/GraphicsResources.md)
+ * [Supported platforms](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Platforms.md)
+ * [Profiling](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Profiling.md)
+ * [Resource Compilation](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/ResourceCompilation.md)
+
+Papers:
+ * [HDR Display](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display.md)
 
 Samples and tools:
- * [Resource Editor](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/Readme.md) (Windows only)
- * [Demo](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/Readme.md) (Cross platform)
+ * [Shader Playground](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/Readme.md), [Samples](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/docs/Samples.md)
+ * [Demo](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/Readme.md) (in progress)
  * [Lock-Free Algorithms Sandbox](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/lfas/Readme.md)
  * [GLSL-Trace](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/res_pack/shader_trace/Readme.md)
  * [Detect Image Z-Curve](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/vulkan_image_zcurve/Readme.md)
@@ -42,14 +48,17 @@ __AsEn__ - полностью асинхронный движок для исп�
 Графика: Vulkan, Metal<br/>
 Шейдеры: GLSL, MSL<br/>
 
+Документация по движку:
+ * [Планировщик асинхронных задач](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/TaskScheduler-ru.md)
+ * [Планировщик графических задач](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/RenderTaskScheduler-ru.md)
+ * [Рендер граф](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/RenderGraph-ru.md)
+ * [Файловая система](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VirtualFileSystem-ru.md)
+
 Статьи:
- * [Планировщик асинхронных задач](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/TaskScheduler.md)
- * [Планировщик графических задач](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/RenderTaskScheduler.md)
- * [Рендер граф](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/RenderGraph.md)
- * [Файловая система](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/VirtualFileSystem.md)
- * [HDR дисплеи](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/HDR_Display.md)
- * [Асинхронное программирование](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/AsyncProgramming.md)
- * [Заметки по архитектуре](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/ArchitectureNotes.md)
+ * [HDR дисплеи](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display-ru.md)
+ * [Асинхронное программирование](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/AsyncProgramming-ru.md)
+ * [Заметки по архитектуре](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/ArchitectureNotes-ru.md)
+ * [Сферический куб](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/SphericalCube-ru.md)
 
 Обсуждение:
- * [форум gamedev](https://gamedev.ru/flame/forum/?id=277212) 
+ * [форум gamedev](https://gamedev.ru/flame/forum/?id=277212)

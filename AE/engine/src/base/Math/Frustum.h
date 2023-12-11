@@ -141,7 +141,7 @@ namespace AE::Math
     inline void  TFrustum<T>::_SetPlane (EPlane type, T a, T b, T c, T d) __NE___
     {
         const T len     = Length(Vec3_t{ a, b, c });
-        const T inv_len = Equals( len, T{0}, _err ) ? T{1} : (T{1} / len); 
+        const T inv_len = Equal( len, T{0}, _err ) ? T{1} : (T{1} / len);
 
         _planes[ uint(type) ] = { Vec3_t{a, b, c} * inv_len, Abs(d) * inv_len };
     }
@@ -392,7 +392,7 @@ namespace AE::Math
         auto    dir = Cross( lp.norm, rp.norm );
         auto    len = LengthSq( dir );
 
-        if_unlikely( Equals( len, T{0}, _err ))
+        if_unlikely( Equal( len, T{0}, _err ))
             return false;
 
         result = dir * (T{1} / Sqrt(len));

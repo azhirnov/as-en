@@ -36,9 +36,9 @@ namespace AE::Graphics
         VImage ()                                           __NE___ {}
         ~VImage ()                                          __NE___;
 
-        ND_ bool  Create (VResourceManager &, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)          __NE___;
-        ND_ bool  Create (VResourceManager &dev, const VulkanImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
-            void  Destroy (VResourceManager &)                                                                                  __NE___;
+        ND_ bool  Create (VResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)        __NE___;
+        ND_ bool  Create (VResourceManager &, const VulkanImageDesc &, GfxMemAllocatorPtr, StringView dbgName)  __NE___;
+            void  Destroy (VResourceManager &)                                                                  __NE___;
 
         ND_ VulkanImageDesc     GetNativeDescription ()     C_NE___;
 

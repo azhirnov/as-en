@@ -314,7 +314,7 @@ namespace
     Define
 =================================================
 */
-    void  ScriptShader::Define (const String &value) __Th___ 
+    void  ScriptShader::Define (const String &value) __Th___
     {
         _defines << '\n' << value;
     }
@@ -609,7 +609,7 @@ namespace
 
         if ( type == EShader::TessEvaluation ) {
             str << "layout(" << ETessPatch_ToString( _tesPatchMode ) << ", "
-                << ETessSpacing_ToString( _tesPatchSpacing ) << ", " 
+                << ETessSpacing_ToString( _tesPatchSpacing ) << ", "
                 << (_tesFrontFaceCCW ? "ccw" : "cw") << ") in;\n";
         }
 
@@ -805,14 +805,14 @@ namespace
             binder.AddValue( "Isolines",    ETessPatch::Isolines );
             binder.AddValue( "Triangles",   ETessPatch::Triangles );
             binder.AddValue( "Quads",       ETessPatch::Quads );
-            STATIC_ASSERT( uint(ETessPatch::_Count) == 5 );
+            StaticAssert( uint(ETessPatch::_Count) == 5 );
         }{
             EnumBinder<ETessSpacing>    binder{ se };
             binder.Create();
             binder.AddValue( "Equal",           ETessSpacing::Equal );
             binder.AddValue( "FractionalEven",  ETessSpacing::FractionalEven );
             binder.AddValue( "FractionalOdd",   ETessSpacing::FractionalOdd );
-            STATIC_ASSERT( uint(ETessSpacing::_Count) == 4 );
+            StaticAssert( uint(ETessSpacing::_Count) == 4 );
         }
 
         ClassBinder<ScriptShader>   binder{ se };

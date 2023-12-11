@@ -225,7 +225,7 @@ namespace {
     native_OnCreate
 =================================================
 */
-    WindowAndroid::WinID JNICALL  WindowAndroid::native_OnCreate (JNIEnv *env, jclass, jobject jwnd) __NE___
+    WindowAndroid::WinID JNICALL  WindowAndroid::native_OnCreate (JNIEnv* env, jclass, jobject jwnd) __NE___
     {
         auto [window, id] = ApplicationAndroid::_GetNewWindow();
 
@@ -346,7 +346,7 @@ namespace {
     native_SurfaceChanged
 =================================================
 */
-    void JNICALL  WindowAndroid::native_SurfaceChanged (JNIEnv *env, jclass, WinID wndId, jobject surface) __NE___
+    void JNICALL  WindowAndroid::native_SurfaceChanged (JNIEnv* env, jclass, WinID wndId, jobject surface) __NE___
     {
         if_likely( auto window = GetAppWindow( wndId ))
         {

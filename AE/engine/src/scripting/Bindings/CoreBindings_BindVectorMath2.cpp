@@ -17,7 +17,7 @@ namespace AE::Scripting
         // bind
         BindVector_Func func{ se };
 
-        VecTypes::Visit( func );
+        VecTypes::VisitTh( func );
     }
 
 

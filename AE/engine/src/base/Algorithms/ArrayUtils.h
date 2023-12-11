@@ -110,19 +110,19 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ constexpr ssize  Distance (T *lhs, T *rhs) __NE___
+    ND_ constexpr ssize  Distance (T* lhs, T* rhs) __NE___
     {
         return std::distance< T *>( lhs, rhs );
     }
 
     template <typename T>
-    ND_ constexpr ssize  Distance (const T *lhs, T *rhs) __NE___
+    ND_ constexpr ssize  Distance (const T* lhs, T* rhs) __NE___
     {
         return std::distance< T const *>( lhs, rhs );
     }
 
     template <typename T>
-    ND_ constexpr ssize  Distance (T *lhs, const T *rhs) __NE___
+    ND_ constexpr ssize  Distance (T* lhs, const T* rhs) __NE___
     {
         return std::distance< T const *>( lhs, rhs );
     }
@@ -238,9 +238,9 @@ namespace AE::Base
 =================================================
 */
     template <typename Iter, typename Cmp>
-    ND_ bool  IsSorted (Iter begin, Iter end, Cmp && fn) __NE___
+    ND_ bool  IsSorted (Iter begin, Iter end, Cmp &&fn) __NE___
     {
-        //STATIC_ASSERT( IsNothrowInvocable<Cmp> );
+        CheckNothrow( IsNoExcept( fn( begin, end )));
 
         if ( begin == end )
             return true;
@@ -297,10 +297,21 @@ namespace AE::Base
     template <typename T, typename Compare>
     void  RemoveDuplicates (INOUT Array<T> &arr, Compare comp) __NE___
     {
-        STATIC_ASSERT( IsNothrowInvocable<Compare> );
+        CheckNothrow( IsNothrowInvocable<Compare> );
 
         std::sort( arr.begin(), arr.end(), comp );
         arr.erase( std::unique( arr.begin(), arr.end() ), arr.end() );
+    }
+
+/*
+=================================================
+    EraseIfEqual
+=================================================
+*/
+    template <typename T, typename B>
+    void  EraseIfEqual (INOUT Array<T> &arr, const B &value) __NE___
+    {
+        arr.erase( std::remove( arr.begin(), arr.end(), value ), arr.end() );
     }
 
 /*
@@ -461,9 +472,7 @@ namespace AE::Base
     } // _hidden_
 
 
-    template <typename Container,
-              typename = EnableIf< IsClass<Container> >
-             >
+    template <typename Container, ENABLEIF( IsClass<Container> )>
     ND_ constexpr auto  IndicesOnly (const Container& container) __NE___
     {
         return Base::_hidden_::IndicesOnlyRange{ 0, container.size() };
@@ -480,9 +489,7 @@ namespace AE::Base
         return Base::_hidden_::IndicesOnlyRange{ 0, count };
     }
 
-    template <typename T,
-              typename = EnableIf< IsEnum<T> >
-             >
+    template <typename T, ENABLEIF( IsEnum<T> )>
     ND_ constexpr inline auto  IndicesOnly () __NE___
     {
         return Base::_hidden_::IndicesOnlyRange{ 0, usize(T::_Count) };
@@ -540,9 +547,7 @@ namespace AE::Base
     } // _hidden_
 
 
-    template <typename Container,
-              typename = EnableIf< IsClass<Container> >
-             >
+    template <typename Container, ENABLEIF( IsClass<Container> )>
     ND_ constexpr auto  ReverseIndices (const Container& container) __NE___
     {
         return Base::_hidden_::ReverseIndicesRange{ container.size()-1, container.size() };
@@ -662,8 +667,18 @@ namespace AE::Base
     template <typename T>
     ND_ constexpr auto  BitfieldIterate (const T &bits) __NE___
     {
-        STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
+        StaticAssert( IsEnum<T> or IsUnsignedInteger<T> );
         return Base::_hidden_::BitfieldIterateView<T>{ bits };
+    }
+
+    template <usize C>
+    ND_ constexpr auto  BitfieldIterate (const BitSet<C> &bits) __NE___
+    {
+        if constexpr( C <= 32 )
+            return Base::_hidden_::BitfieldIterateView<uint>{ uint(bits.to_ulong()) };
+        else
+        if constexpr( C <= 64 )
+            return Base::_hidden_::BitfieldIterateView<ulong>{ bits.to_ullong() };
     }
 
 /*
@@ -721,16 +736,25 @@ namespace AE::Base
     template <typename T>
     ND_ constexpr auto  BitIndexIterate (const T &bits) __NE___
     {
-        STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
+        StaticAssert( IsEnum<T> or IsUnsignedInteger<T> );
         return Base::_hidden_::BitIndexIterateView< uint, T >{ bits };
     }
 
     template <typename R, typename T>
     ND_ constexpr auto  BitIndexIterate (const T &bits) __NE___
     {
-        STATIC_ASSERT( IsEnum<T> or IsUnsignedInteger<T> );
+        StaticAssert( IsEnum<T> or IsUnsignedInteger<T> );
         return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
     }
 
+    template <usize C>
+    ND_ constexpr auto  BitIndexIterate (const BitSet<C> &bits) __NE___
+    {
+        if constexpr( C <= 32 )
+            return Base::_hidden_::BitIndexIterateView< uint, uint >{ uint(bits.to_ulong()) };
+        else
+        if constexpr( C <= 64 )
+            return Base::_hidden_::BitIndexIterateView< uint, ulong >{ bits.to_ullong() };
+    }
 
 } // AE::Base

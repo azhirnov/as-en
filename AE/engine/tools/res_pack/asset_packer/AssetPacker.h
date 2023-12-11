@@ -33,7 +33,7 @@ namespace AE::AssetPacker
     };
 
 
-    extern "C" bool AE_AP_API PackAssets (const AssetInfo *info);
+    extern "C" bool AE_AP_API PackAssets (const AssetInfo* info);
 
 
 } // AE::AssetPacker

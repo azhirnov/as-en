@@ -18,7 +18,7 @@
 
 namespace AE::Graphics
 {
-    STATIC_ASSERT( IGfxMemAllocator::VideoStorageArr_t::capacity() == VConfig::MaxVideoMaxReq );
+    StaticAssert( IGfxMemAllocator::VideoStorageArr_t::capacity() == VConfig::MaxVideoMemReq );
 
 /*
 =================================================
@@ -327,7 +327,7 @@ namespace
 */
     bool  VVideoSession::Validate (const VDevice &dev, INOUT VideoSessionDesc &desc) __NE___
     {
-        return WithVideoProfile( dev, desc.profile, 
+        return WithVideoProfile( dev, desc.profile,
                 [&dev, &desc] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
                 {
                     desc.maxDpbSlots                = Min( desc.maxDpbSlots, capabilities.maxDpbSlots );
@@ -346,7 +346,7 @@ namespace
 
                     // TODO: minBitstreamBufferOffsetAlignment, minBitstreamBufferSizeAlignment
 
-                    STATIC_ASSERT( uint(EVideoCodecMode::_Count) == 2 );
+                    StaticAssert( uint(EVideoCodecMode::_Count) == 2 );
 
                     if ( desc.profile.mode == EVideoCodecMode::Decode )
                     {

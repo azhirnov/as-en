@@ -18,7 +18,7 @@
         // render loop
         {
             RC<Postprocess>     pass = Postprocess( EPostprocess::Shadertoy );
-            pass.ArgIn( "iTexture1",    vtex,   Sampler_LinearClamp );
+            pass.ArgIn( "un_Video", vtex,   Sampler_LinearClamp );
             pass.Output( rt );
         }
         Present( rt );
@@ -32,7 +32,7 @@
     {
         float2 uv = gl.FragCoord.xy / iResolution.xy;
 
-        fragColor = gl.texture.Sample( iTexture1, uv );
+        fragColor = gl.texture.Sample( un_Video, uv );
     }
 
 #endif

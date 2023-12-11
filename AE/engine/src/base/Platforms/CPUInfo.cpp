@@ -123,7 +123,8 @@ namespace
 */
     String  CpuArchInfo::Print () C_NE___
     {
-        try{
+    #ifdef AE_ENABLE_LOGS
+        TRY{
             String  str;
 
             str << "CPU features:";
@@ -188,9 +189,12 @@ namespace
 
             return str;
         }
-        catch (...)
-        {}
+        CATCH_ALL(
+            return Default;
+        )
+    #else
         return Default;
+    #endif
     }
 
 /*

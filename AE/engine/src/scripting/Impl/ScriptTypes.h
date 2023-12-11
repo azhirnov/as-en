@@ -276,7 +276,7 @@ namespace AE::Scripting
         template <typename T>
         struct SharedPtr
         {
-            //STATIC_ASSERT( IsBaseOf< SimpleRefCounter, T > );
+            //StaticAssert( IsBaseOf< SimpleRefCounter, T > );
 
         // types
         public:
@@ -296,7 +296,7 @@ namespace AE::Scripting
         public:
             SharedPtr ()                                        __NE___ {}
             SharedPtr (std::nullptr_t)                          __NE___ {}
-            explicit SharedPtr (T *ptr)                         __NE___ : _ptr{ptr}         { _IncRef(); }
+            explicit SharedPtr (T* ptr)                         __NE___ : _ptr{ptr}         { _IncRef(); }
             SharedPtr (const SharedPtr<T> &other)               __NE___ : _ptr{other._ptr}  { _IncRef(); }
             SharedPtr (SharedPtr<T> &&other)                    __NE___ : _ptr{other._ptr}  { other._ptr = null; }
             ~SharedPtr ()                                       __NE___ { _DecRef(); }
@@ -352,7 +352,7 @@ namespace AE::Scripting
         template <typename T>
         static T *  FactoryCreate ()
         {
-            STATIC_ASSERT( not IsBaseOf< SimpleRefCounter, T > );
+            StaticAssert( not IsBaseOf< SimpleRefCounter, T > );
             return new T{};
         }
 
@@ -364,7 +364,7 @@ namespace AE::Scripting
 
 
         template <typename T>
-        static void  Constructor (AngelScript::asIScriptGeneric *gen)
+        static void  Constructor (AngelScript::asIScriptGeneric* gen)
         {
             // TODO: bug in AngelScript: address is not aligned
             PlacementNew<T>( OUT gen->GetObject() );    // throw
@@ -372,7 +372,7 @@ namespace AE::Scripting
 
 
         template <typename T>
-        static void  CopyConstructor (AngelScript::asIScriptGeneric *gen) __Th___
+        static void  CopyConstructor (AngelScript::asIScriptGeneric* gen) __Th___
         {
             T const*    src = static_cast< const T *>( gen->GetArgObject(0) );
             void *      dst = gen->GetObject();
@@ -381,14 +381,14 @@ namespace AE::Scripting
 
 
         template <typename T>
-        static void  Destructor (AngelScript::asIScriptGeneric *gen)
+        static void  Destructor (AngelScript::asIScriptGeneric* gen)
         {
             static_cast<T *>(gen->GetObject())->~T();
         }
 
 
         template <typename T>
-        static void  CopyAssign (AngelScript::asIScriptGeneric *gen) __Th___
+        static void  CopyAssign (AngelScript::asIScriptGeneric* gen) __Th___
         {
             T const*    src = static_cast< const T *>( gen->GetArgObject(0) );
             T*          dst = static_cast< T *>( gen->GetObject() );
@@ -421,14 +421,14 @@ namespace AE::Scripting
             const uint  first;
             const uint  last;
 
-            ArgsToString_Func (uint first, uint last, INOUT String &str) : 
+            ArgsToString_Func (uint first, uint last, INOUT String &str) __NE___ :
                 result(str), first(first), last(last)
             {
                 ASSERT( first <= last );
             }
 
             template <typename T, usize Index>
-            void  operator () ()
+            void  operator () () __NE___
             {
                 if ( Index < first or Index > last )    return;
                 if ( Index > first )                    result << ", ";
@@ -464,7 +464,7 @@ namespace AE::Scripting
             const uint              last;
             ArrayView<StringView>   argNames;
 
-            CppArgsToString_Func (uint first, uint last, ArrayView<StringView> argNames, INOUT String &str) : 
+            CppArgsToString_Func (uint first, uint last, ArrayView<StringView> argNames, INOUT String &str) __NE___ :
                 result{str}, first{first}, last{last}, argNames{argNames}
             {
                 ASSERT( first <= last );
@@ -472,7 +472,7 @@ namespace AE::Scripting
             }
 
             template <typename T, usize Index>
-            void  operator () ()
+            void  operator () () __NE___
             {
                 if ( Index < first or Index > last )    return;
                 if ( Index > first )                    result << ", ";
@@ -513,7 +513,7 @@ namespace AE::Scripting
             static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
                 // can not convert between R* to SharedPtr<R>
-                STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+                StaticAssert( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::Name( INOUT str );
                 str << ' ' << name;
@@ -528,7 +528,7 @@ namespace AE::Scripting
             static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
                 // can not convert between R* to SharedPtr<R>
-                STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+                StaticAssert( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::CppArg( INOUT str );
                 str << "  " << name << ' ';
@@ -554,7 +554,7 @@ namespace AE::Scripting
             static void  GetDescriptor (INOUT String &str, StringView name, uint = 0, uint = 0)
             {
                 // can not convert between R* to SharedPtr<R>
-                STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+                StaticAssert( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::Name( INOUT str );
                 str << ' ' << name << "()";
@@ -568,7 +568,7 @@ namespace AE::Scripting
             static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView>, uint = 0, uint = 0)
             {
                 // can not convert between R* to SharedPtr<R>
-                STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+                StaticAssert( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::CppArg( INOUT str );
                 str << "  " << name << " ()";
@@ -749,20 +749,20 @@ namespace AE::Scripting
         template <typename T, bool IsObject>
         struct ContextSetterGetter_Var
         {
-            ND_ static T    Get (AngelScript::asIScriptContext *ctx)                    { return *static_cast<T *>(ctx->GetReturnObject()); }
-                static int  Set (AngelScript::asIScriptContext *ctx, int arg, T& value) { return ctx->SetArgObject( arg, static_cast<void *>(&value) ); }
+            ND_ static T    Get (AngelScript::asIScriptContext* ctx)                    { return *static_cast<T *>(ctx->GetReturnObject()); }
+                static int  Set (AngelScript::asIScriptContext* ctx, int arg, T& value) { return ctx->SetArgObject( arg, static_cast<void *>(&value) ); }
         };
 
         template <typename T>
         struct ContextSetterGetter_Var< AngelScriptHelper::SharedPtr<T>, true >
         {
-            STATIC_ASSERT( ScriptTypeInfo<T*>::is_ref_counted );
+            StaticAssert( ScriptTypeInfo<T*>::is_ref_counted );
 
-            ND_ static AngelScriptHelper::SharedPtr<T>  Get (AngelScript::asIScriptContext *ctx) {
+            ND_ static AngelScriptHelper::SharedPtr<T>  Get (AngelScript::asIScriptContext* ctx) {
                 return AngelScriptHelper::SharedPtr<T>{ static_cast<T *>(ctx->GetReturnObject()) };
             }
 
-            static int  Set (AngelScript::asIScriptContext *ctx, int arg, const AngelScriptHelper::SharedPtr<T> &ptr) {
+            static int  Set (AngelScript::asIScriptContext* ctx, int arg, const AngelScriptHelper::SharedPtr<T> &ptr) {
                 return ctx->SetArgObject( arg, reinterpret_cast<void *>(ptr.Get()) );
             }
         };
@@ -771,8 +771,8 @@ namespace AE::Scripting
             template <> \
             struct ContextSetterGetter_Var< _type_, false > \
             { \
-                ND_ static _type_ Get (AngelScript::asIScriptContext *ctx)                                  { return _type_(ctx->_get_()); } \
-                    static int    Set (AngelScript::asIScriptContext *ctx, int arg, const _type_ &value)    { return ctx->_set_( arg, value ); } \
+                ND_ static _type_ Get (AngelScript::asIScriptContext* ctx)                                  { return _type_(ctx->_get_()); } \
+                    static int    Set (AngelScript::asIScriptContext* ctx, int arg, const _type_ &value)    { return ctx->_set_( arg, value ); } \
             }
 
         DECL_CONTEXT_RESULT( sbyte,     GetReturnByte,      SetArgByte );
@@ -790,21 +790,21 @@ namespace AE::Scripting
         template <typename T, bool IsObject>
         struct _ContextSetterGetter_Ptr
         {
-            ND_ static T *  Get (AngelScript::asIScriptContext *ctx)                    { return static_cast<T *>(ctx->GetReturnAddress()); }
-                static int  Set (AngelScript::asIScriptContext *ctx, int arg, T* ptr)   { return ctx->SetArgAddress( arg, (void *)(ptr) ); }
+            ND_ static T *  Get (AngelScript::asIScriptContext* ctx)                    { return static_cast<T *>(ctx->GetReturnAddress()); }
+                static int  Set (AngelScript::asIScriptContext* ctx, int arg, T* ptr)   { return ctx->SetArgAddress( arg, (void *)(ptr) ); }
         };
 
         template <typename T>
         struct _ContextSetterGetter_Ptr < T, true >
         {
-            ND_ static T *  Get (AngelScript::asIScriptContext *ctx)
+            ND_ static T *  Get (AngelScript::asIScriptContext* ctx)
             {
                 T* result = static_cast<T *>(ctx->GetReturnObject());
                 if ( result != null ) result->__AddRef();
                 return result;
             }
 
-            static int  Set (AngelScript::asIScriptContext *ctx, int arg, T* ptr)   { return ctx->SetArgObject( arg, static_cast<void *>(ptr) ); }
+            static int  Set (AngelScript::asIScriptContext* ctx, int arg, T* ptr)   { return ctx->SetArgObject( arg, static_cast<void *>(ptr) ); }
         };
 
         template <typename T>
@@ -848,7 +848,7 @@ namespace AE::Scripting
         template <typename Arg0, typename ...Args>
         struct SetContextArgs< Arg0, Args...>
         {
-            static void  Set (AngelScript::asIScriptContext *ctx, int index, Arg0&& arg0, Args&& ...args)
+            static void  Set (AngelScript::asIScriptContext* ctx, int index, Arg0&& arg0, Args&& ...args)
             {
                 ValidateRC( arg0 );
                 AS_CHECK( ContextSetterGetter<Arg0>::Set( ctx, index, arg0 ));
@@ -859,7 +859,7 @@ namespace AE::Scripting
         template <typename Arg0>
         struct SetContextArgs< Arg0 >
         {
-            static void  Set (AngelScript::asIScriptContext *ctx, int index, Arg0&& arg0)
+            static void  Set (AngelScript::asIScriptContext* ctx, int index, Arg0&& arg0)
             {
                 ValidateRC( arg0 );
                 AS_CHECK( ContextSetterGetter<Arg0>::Set( ctx, index, FwdArg<Arg0>(arg0) ));
@@ -900,7 +900,7 @@ namespace AE::Scripting
             using T1 = RemoveCVRef< typename TL1::template Get< Idx-1 >>;
             using T2 = RemoveCVRef< typename TL2::template Get< Idx-1 >>;
 
-            STATIC_ASSERT( _IsSame< T1, T2 >::value );
+            StaticAssert( _IsSame< T1, T2 >::value );
 
             static constexpr bool   value = _IsSame< T1, T2 >::value and CheckInputArgTypes1< TL1, TL2, Idx-1 >::value;
         };
@@ -914,7 +914,7 @@ namespace AE::Scripting
         template <typename TL1, typename TL2>
         struct CheckInputArgTypes
         {
-            STATIC_ASSERT( TL1::Count == TL2::Count );
+            StaticAssert( TL1::Count == TL2::Count );
 
             static constexpr bool   value = CheckInputArgTypes1< TL1, TL2, TL1::Count >::value;
         };
@@ -993,7 +993,7 @@ namespace AE::Scripting
                                               ScriptTypeInfo<T2*>::is_ref_counted   or
                                               AngelScriptHelper::IsSharedPtrNoQual<T>;
                 constexpr bool  is_value    = not (is_obj or is_rc) and IsClass<T>;
-                STATIC_ASSERT( is_obj or is_rc or is_value );
+                StaticAssert( is_obj or is_rc or is_value );
 
                 const asDWORD   obj_flags   = is_rc ? asOBJ_REF : asOBJ_VALUE;
                 asITypeInfo*    info        = se->GetTypeInfoById( typeId );

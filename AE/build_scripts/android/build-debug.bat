@@ -1,1 +1,1 @@
-"_build-debug.bat" && pause
+"cleanup.bat" && "_build-debug.bat" && pause

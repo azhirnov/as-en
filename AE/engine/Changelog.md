@@ -1,4 +1,29 @@
 
+## 23.12.214
+
+- Graphics: remote graphics server
+- CMake: added AE_ENABLE_EXCEPTIONS to switch on/off exceptions and RTTI
+- CMake: added AE_ENABLE_LOGS
+- Graphics: added VK_KHR_pipeline_executable_properties
+- Graphics: added MoltenVk (MacOS)
+- Graphics: BeginFrame() refactoring, now it completes synchronously
+- Android: bugfix, run unit and performance tests
+- Threading: progressive sleep if no tasks to process
+- Networking: AsyncConnect() for TcpSocket
+
+
+## 23.11.207
+
+- Networking: TCP channel
+- Networking: IPv6 support
+- LfIndexedPool2 replaced by LfIndexedPool3
+- Removed: LfIndexedPool2, LfFixedBlockAllocator
+- Rename LfIndexedPool3 -> LfIndexedPool, LfFixedBlockAllocator2 -> LfFixedBlockAllocator
+- Added: ChunkList, MemChunkList, LfChunkList
+- VFS: network storage client/server
+- VFS: network storage server application
+
+
 ## 23.10.199
 
 - CMake: remove AE_NO_EXCEPTIONS

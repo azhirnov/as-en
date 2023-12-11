@@ -14,7 +14,7 @@
 
     if AE_GRAPHICS_STRONG_VALIDATION enabled then 'IResourceManager::Create***()' may return error if resource description is not valid or not supported.
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/GraphicsResources.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/GraphicsResources.md)
 */
 
 #pragma once
@@ -240,10 +240,10 @@ namespace AE::Graphics
         using NativeMemObjInfo_t    = MetalMemoryObjInfo;
 
         #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-        using NativeBuffer_t        = R_BufferID;
-        using NativeImage_t         = R_ImageID;
-        using NativeBufferView_t    = R_BufferViewID;
-        using NativeImageView_t     = R_ImageViewID;
+        using NativeBuffer_t        = RmBufferID;
+        using NativeImage_t         = RmImageID;
+        using NativeBufferView_t    = RmBufferViewID;
+        using NativeImageView_t     = RmImageViewID;
         using NativeImageDesc_t     = Noninstanceable;
         using NativeBufferDesc_t    = Noninstanceable;
         using NativeImageViewDesc_t = Noninstanceable;

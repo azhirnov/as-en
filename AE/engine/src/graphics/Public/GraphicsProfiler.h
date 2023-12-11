@@ -70,7 +70,6 @@ namespace AE::Graphics
       #endif
 
         // frames
-        virtual void  RequestNextFrame (FrameUID frameId)                                                                               __NE___ = 0;
         virtual void  NextFrame (FrameUID frameId)                                                                                      __NE___ = 0;
 
         // memory

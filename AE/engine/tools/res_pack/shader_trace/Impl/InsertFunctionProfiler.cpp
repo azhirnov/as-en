@@ -536,7 +536,7 @@ ND_ static uint  GetVectorSwizzleMask (TIntermBinary* binary)
 
     binary = swizzle_op.back();
 
-    const auto ProcessUnion = [&sw_mask] (TIntermConstantUnion *cu, const Array<uint> &mask) -> bool
+    const auto ProcessUnion = [&sw_mask] (TIntermConstantUnion* cu, const Array<uint> &mask) -> bool
     {
         TConstUnionArray const& cu_arr = cu->getConstArray();
         CHECK_ERR( cu_arr.size() == 1 and cu->getType().getBasicType() == EbtInt );
@@ -3412,7 +3412,7 @@ ND_ static TIntermOperator*  CreateComputeShaderIsDebugInvocation (DebugInfo &db
 =================================================
 */
 ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo &dbgInfo)
-{   
+{
     TPublicType     bool_type;  bool_type.init( Default );
     bool_type.basicType         = TBasicType::EbtBool;
     bool_type.qualifier.storage = TStorageQualifier::EvqTemporary;

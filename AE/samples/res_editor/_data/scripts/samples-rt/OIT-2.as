@@ -40,7 +40,7 @@
         {
             array<float3>   positions;
             array<uint>     indices;
-            GetSphere( 7, OUT positions, OUT indices );
+            GetSphere( 3, OUT positions, OUT indices );
 
             sphere.FloatArray( "positions", positions );
             sphere.UIntArray(  "indices",   indices );
@@ -63,8 +63,8 @@
 
         // render loop
         {
-            RC<ComputePass>     pass = ComputePass( "", EPassFlags::Enable_ShaderTrace );
-            pass.ArgIn(  camera );
+            RC<ComputePass>     pass = ComputePass();
+            pass.Set(    camera );
             pass.ArgOut( "un_OutImage",         rt );
             pass.ArgIn(  "un_RtScene",          scene );
             pass.ArgIn(  "un_Geometry",         sphere );

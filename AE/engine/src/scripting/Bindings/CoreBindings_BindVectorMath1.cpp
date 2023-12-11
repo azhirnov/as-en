@@ -17,7 +17,7 @@ namespace AE::Scripting
         // declare
         DefineVector_Func   func{ se };
 
-        VecTypes::Visit( func );
+        VecTypes::VisitTh( func );
     }
 
 

@@ -141,7 +141,7 @@
         {
             ClearBuffer( rtrace_raybuf, 0, 8, 0 );  // reset counter
 
-            RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::Enable_ShaderTrace );
+            RC<RayTracingPass>      pass = RayTracingPass();
             pass.ArgIn(     "un_RtScene",       rtrace_scene );
             pass.ArgIn(     "un_Constants",     rtrace_cbuf );
             pass.ArgOut(    "un_RayStorage",    rtrace_raybuf );
@@ -173,7 +173,7 @@
             draw.Output( "out_Color", hdr, RGBA32f(0.0, 0.0, 0.0, 1.0) );
             draw.EnableIfEqual( dbg_mode, 0 );
         }{
-            RC<Postprocess>     pass = Postprocess( EPostprocess::None, "TONEMAPPING", EPassFlags::None );
+            RC<Postprocess>     pass = Postprocess( EPostprocess::None, "TONEMAPPING" );
             pass.ArgIn(  "un_HDR",          hdr,    Sampler_LinearClamp );
             pass.Output( "out_Color",       rt );
             pass.Slider( "iTonemapping",    0,      2 );
@@ -374,13 +374,13 @@
             {
                 hit.mtrId       = GetCommittedIntersectionInstanceId( ray_query );
                 prim_id         = GetCommittedIntersectionPrimitiveIndex( ray_query );
-                normal_mat      = float3x3(MatTranspose( GetCommittedIntersectionObjectToWorld( ray_query )));
+                normal_mat      = float3x3( GetCommittedIntersectionObjectToWorld3x4( ray_query ));
                 hit.t           = GetCommittedIntersectionT( ray_query );
                 hit.frontFace   = true;
             }
 
             // Find back face.
-            // 
+            //
             gl.rayQuery.Initialize( ray_query, un_RtScene, gl::RayFlags::Opaque | gl::RayFlags::CullFrontFacingTriangles,
                                     /*cullMask*/0xFF, ToV3(origin),
                                     /*Tmin*/0.0f, ToV3(dir), /*Tmax*/c_MaxRayLen );
@@ -396,7 +396,7 @@
             {
                 hit.mtrId       = GetCommittedIntersectionInstanceId( ray_query );
                 prim_id         = GetCommittedIntersectionPrimitiveIndex( ray_query );
-                normal_mat      = float3x3(MatTranspose( GetCommittedIntersectionObjectToWorld( ray_query )));
+                normal_mat      = float3x3( GetCommittedIntersectionObjectToWorld3x4( ray_query ));
                 hit.t           = GetCommittedIntersectionT( ray_query );
                 hit.frontFace   = false;
             }

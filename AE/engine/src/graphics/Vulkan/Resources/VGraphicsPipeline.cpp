@@ -179,7 +179,7 @@ namespace AE::Graphics
     ParseShaderTrace
 =================================================
 */
-    bool  VGraphicsPipeline::ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
+    bool  VGraphicsPipeline::ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
     {
         result.clear();
         DRC_SHAREDLOCK( _drCheck );

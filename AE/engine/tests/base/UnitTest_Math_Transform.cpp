@@ -14,16 +14,9 @@ namespace
 
         Transform_t t{ m };
 
-        TEST( BitEqual( q.x, t.orientation.x ));
-        TEST( BitEqual( q.y, t.orientation.y ));
-        TEST( BitEqual( q.z, t.orientation.z ));
-        TEST( BitEqual( q.w, t.orientation.w ));
-
-        TEST( BitEqual( p.x, t.position.x ));
-        TEST( BitEqual( p.y, t.position.y ));
-        TEST( BitEqual( p.z, t.position.z ));
-
-        TEST( BitEqual( 1.0f, t.scale ));
+        TEST( All( BitEqual( q, t.orientation )));
+        TEST( All( BitEqual( p, t.position )));
+        TEST( All( BitEqual( 1.0f, t.scale )));
     }
 
 
@@ -44,13 +37,8 @@ namespace
         const float3    tr_point0   = tr.ToGlobalPosition( point0 );
         const float3    tr_point1   = tr.ToGlobalPosition( point1 );
 
-        TEST( BitEqual( mat_point0.x, tr_point0.x ));
-        TEST( BitEqual( mat_point0.y, tr_point0.y ));
-        TEST( BitEqual( mat_point0.z, tr_point0.z ));
-
-        TEST( BitEqual( mat_point1.x, tr_point1.x ));
-        TEST( BitEqual( mat_point1.y, tr_point1.y ));
-        TEST( BitEqual( mat_point1.z, tr_point1.z ));
+        TEST( All( BitEqual( mat_point0, tr_point0 )));
+        TEST( All( BitEqual( mat_point1, tr_point1 )));
     }
 
 

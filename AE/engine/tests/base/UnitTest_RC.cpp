@@ -9,9 +9,8 @@ namespace
     class RCObj final : public EnableRC<RCObj>, public Obj_t
     {
     public:
-        RCObj () : Obj_t{ 0 } {}
-
-        explicit RCObj (int i) : Obj_t{ i } {}
+        RCObj ()                __NE___ : Obj_t{ 0 } {}
+        explicit RCObj (int i)  __NE___ : Obj_t{ i } {}
     };
 
     using RC_t          = RC<RCObj>;
@@ -30,6 +29,25 @@ namespace
     }
 
 
+    static void  RC_Test2 ()
+    {
+        struct C1 : EnableRC<C1> {};
+        struct C2 : C1 {};
+
+        StaticAssert( IsBaseOfNotSame< C1, C2 >);
+        StaticAssert( not IsBaseOfNotSame< C2, C1 >);
+        StaticAssert( not IsBaseOfNotSame< C1, C1 >);
+
+        RC<C1>  a0;
+        RC<C2>  a1;
+
+        a0 = a1;
+    //  a1 = a0;            // error
+        a1 = RC<C2>{ a0 };
+        a0 = RC<C1>{ a1 };
+    }
+
+
     static void  AtomicRC_Test1 ()
     {
         Obj_t::ClearStatistic();
@@ -40,7 +58,7 @@ namespace
             AtomicRC_t  b0;
             RC_t        b1;
 
-            b0 = a0;
+            b0.store( a0 );
 
             TEST( a0.use_count() == 2 );
             TEST( a1.use_count() == 1 );
@@ -57,7 +75,7 @@ namespace
             TEST( a0.use_count() == 2 );    // b1
             TEST( a1.use_count() == 2 );    // b0
 
-            b0 = null;
+            b0.reset();
             b1.reset( null );
             TEST( a0.use_count() == 1 );
             TEST( a1.use_count() == 1 );
@@ -70,6 +88,7 @@ namespace
 extern void UnitTest_RC ()
 {
     RC_Test1();
+    RC_Test2();
 
     AtomicRC_Test1();
 

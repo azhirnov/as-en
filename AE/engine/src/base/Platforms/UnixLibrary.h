@@ -116,11 +116,9 @@ namespace AE::Base
 */
     inline Path  UnixLibrary::GetPath () C_NE___
     {
-    #ifdef AE_PLATFORM_ANDROID
+    #if defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_APPLE)
         // not supported
         return Default;
-    #elif defined(AE_PLATFORM_APPLE)
-        RETURN_ERR( "not supported" );
     #else
 
         CHECK_ERR( _handle != null );
@@ -128,7 +126,7 @@ namespace AE::Base
         char    buf [PATH_MAX] = {};
         CHECK_ERR( ::dlinfo( _handle, RTLD_DI_ORIGIN, buf ) == 0 );
 
-        CATCH_ERR( return Path{ buf };)
+        NOTHROW_ERR( return Path{ buf };)
     #endif
     }
 

@@ -48,7 +48,7 @@ namespace AE::Threading
 
     // variables
     private:
-        AtomicRC< IAsyncTask >      _currentTask    {null};
+        AtomicRC< IAsyncTask >      _currentTask;
 
 
     // methods
@@ -80,12 +80,12 @@ namespace AE::Threading
 #   define AE_PRIVATE_ASYNC_EXCLUSIVE_LOCK( _amutex_, _index_ )                                                 \
         decltype(_amutex_)::ExclusiveLock  AE_PRIVATE_UNITE_RAW( __asyncExLock, _index_ ){ _amutex_, this };    \
                                                                                                                 \
-        STATIC_ASSERT( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);                 \
+        StaticAssert( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);                  \
         ASSERT( this->DbgIsRunning() );                                                                         \
         ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );                                              \
                                                                                                                 \
         if ( AE::Threading::AsyncTask  task = AE_PRIVATE_UNITE_RAW( __asyncExLock, _index_ ).Lock() ) {         \
-            return this->Continue( Tuple{task} );                                                               \
+            return this->Continue( Tuple{WeakDep{task}} );                                                      \
         }
 
 #   define ASYNC_EXLOCK( _amutex_ ) \

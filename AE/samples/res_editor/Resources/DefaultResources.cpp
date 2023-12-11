@@ -12,14 +12,14 @@ namespace AE::ResEditor
 */
     DefaultResources::DefaultResources () :
         _dtQueue{ MakeRC<DataTransferQueue>() },
-        _gfxLinearAlloc{ RenderTaskScheduler().GetResourceManager().CreateLinearGfxMemAllocator( 256_Mb )},
+        _gfxLinearAlloc{ GraphicsScheduler().GetResourceManager().CreateLinearGfxMemAllocator( 256_Mb )},
         _gfxDynamicAlloc{}  // TODO
     {
         _CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );
         _CreateDummyImage3D( OUT _dummyRes.image3D, _gfxLinearAlloc );
         _CreateDummyImageCube( OUT _dummyRes.imageCube, _gfxLinearAlloc );
 
-        if ( RenderTaskScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue )
+        if ( GraphicsScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue )
         {
             _CreateDummyRTGeometry( OUT _dummyRes.rtGeometry, _gfxLinearAlloc );
             _CreateDummyRTScene( OUT _dummyRes.rtScene, _gfxLinearAlloc );
@@ -33,7 +33,7 @@ namespace AE::ResEditor
 */
     DefaultResources::~DefaultResources ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.ReleaseResources( _dummyRes.image2D.image,     _dummyRes.image2D.view );
         res_mngr.ReleaseResources( _dummyRes.image3D.image,     _dummyRes.image3D.view );
@@ -50,7 +50,7 @@ namespace AE::ResEditor
     {
         ASSERT( desc.imageDim != Default );
 
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         const bool  is_cube     = (desc.imageDim == EImageDim_2D and AllBits( desc.options, EImageOpt::CubeCompatible ));
         const bool  is_2darr    = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() > 1);
         const bool  is_2d       = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() == 1);
@@ -86,7 +86,7 @@ namespace AE::ResEditor
 */
     Strong<RTGeometryID>  DefaultResources::GetDummyRTGeometry () C_NE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         return res_mngr.AcquireResource( _dummyRes.rtGeometry.Get() );
     }
@@ -98,7 +98,7 @@ namespace AE::ResEditor
 */
     Strong<RTSceneID>  DefaultResources::GetDummyRTScene () C_NE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         return res_mngr.AcquireResource( _dummyRes.rtScene.Get() );
     }
@@ -110,7 +110,7 @@ namespace AE::ResEditor
 */
     void  DefaultResources::_CreateDummyImage2D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
     {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr = GraphicsScheduler().GetResourceManager();
         ImageDesc   desc;
 
         desc.SetFormat( EPixelFormat::R8_UNorm );
@@ -137,7 +137,7 @@ namespace AE::ResEditor
 */
     void  DefaultResources::_CreateDummyImage3D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
     {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr = GraphicsScheduler().GetResourceManager();
         ImageDesc   desc;
 
         desc.SetFormat( EPixelFormat::R8_UNorm );
@@ -164,7 +164,7 @@ namespace AE::ResEditor
 */
     void  DefaultResources::_CreateDummyImageCube (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
     {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr = GraphicsScheduler().GetResourceManager();
         ImageDesc   desc;
 
         desc.SetFormat( EPixelFormat::R8_UNorm );
@@ -193,7 +193,7 @@ namespace AE::ResEditor
 */
     void  DefaultResources::_CreateDummyRTGeometry (OUT Strong<RTGeometryID> &dst, GfxMemAllocatorPtr gfxAlloc) const
     {
-        auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&           res_mngr = GraphicsScheduler().GetResourceManager();
         RTGeometryDesc  desc;
 
         desc.options    = Default;
@@ -210,7 +210,7 @@ namespace AE::ResEditor
 */
     void  DefaultResources::_CreateDummyRTScene (OUT Strong<RTSceneID> &dst, GfxMemAllocatorPtr gfxAlloc) const
     {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr = GraphicsScheduler().GetResourceManager();
         RTSceneDesc desc;
 
         desc.options    = Default;

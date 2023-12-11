@@ -2,7 +2,7 @@
 
 #pragma once
 
-#ifdef AE_ENABLE_METAL
+#if defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS)
 
 # include "base/ObjC/NS.h"
 # include "graphics/Public/IDs.h"
@@ -267,7 +267,7 @@ namespace AE::Graphics
     // methods
         MetalSampleBufferAttachments ()                 __NE___ {}
         MetalSampleBufferAttachments (std::nullptr_t)   __NE___ {}
-        MetalSampleBufferAttachments (Self && other)    __NE___ : _obj{ RVRef(other._obj) }, _pass{other._pass} { other._pass = Default; }
+        MetalSampleBufferAttachments (Self &&other)     __NE___ : _obj{ RVRef(other._obj) }, _pass{other._pass} { other._pass = Default; }
 
         Self&  operator = (std::nullptr_t)              __NE___ { _obj = Default;  _pass = Default;  return *this; }
 
@@ -283,4 +283,4 @@ namespace AE::Graphics
 
 } // AE::Graphics
 
-#endif // AE_ENABLE_METAL
+#endif // AE_PLATFORM_MACOS or AE_PLATFORM_IOS

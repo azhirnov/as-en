@@ -1,12 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "../shared/UnitTest_Shared.h"
-#include "base/Math/Random.h"
-#include "base/DataSource/FileStream.h"
-#include "base/DataSource/DataSourceAsStream.h"
+#include "UnitTest_Common.h"
 #include "vfs/Archive/ArchiveStaticStorage.h"
 #include "vfs/Archive/ArchivePacker.h"
-using namespace AE::VFS;
 
 namespace
 {
@@ -98,24 +94,24 @@ namespace
 
         // read archive
         {
-            ArchiveStaticStorage    storage;
-            TEST( storage.Create( arch ));
+            auto    storage = VirtualFileStorageFactory::CreateStaticArchive( arch );
+            TEST( storage );
 
             {
                 RC<RStream>     stream;
-                TEST( storage.Open( OUT stream, name1 ));
+                TEST( storage->Open( OUT stream, name1 ));
                 TEST( CompareFiles( file1, *stream, file1_size ));
             }{
                 RC<RStream>     stream;
-                TEST( storage.Open( OUT stream, name2 ));
+                TEST( storage->Open( OUT stream, name2 ));
                 TEST( CompareFiles( file2, *stream, file2_size ));
             }{
                 RC<RStream>     stream;
-                TEST( storage.Open( OUT stream, name3 ));
+                TEST( storage->Open( OUT stream, name3 ));
                 TEST( CompareFiles( file3, *stream, file3_size ));
             }{
                 RC<RDataSource> ds;
-                TEST( storage.Open( OUT ds, name4 ));
+                TEST( storage->Open( OUT ds, name4 ));
                 TEST( CompareFiles( file4, *ds, file4_size ));
             }
         }
@@ -125,7 +121,7 @@ namespace
 extern void UnitTest_ArchiveStorage ()
 {
     const Path  curr    = FileSystem::CurrentPath();
-    const Path  folder  {AE_CURRENT_DIR "/vfs_test"};
+    const Path  folder  {AE_CURRENT_DIR "/vfs_test1"};
 
     FileSystem::RemoveAll( folder );
     FileSystem::CreateDirectories( folder );

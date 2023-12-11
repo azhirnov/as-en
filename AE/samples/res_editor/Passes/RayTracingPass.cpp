@@ -79,7 +79,7 @@ namespace AE::ResEditor
                 ppln = it->second.Get<0>();
                 sbt  = it->second.Get<1>();
 
-                RG::DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+                DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
                 CHECK( pd.dbg.debugger->AllocForRayTracing( OUT dbg, tctx, ppln, uint3{uint2{pd.dbg.coord * float2{dim} + 0.5f}, 0u }));
                 pd.cmdbuf = tctx.ReleaseCommandBuffer();
             }
@@ -198,7 +198,7 @@ namespace AE::ResEditor
 */
     RayTracingPass::~RayTracingPass ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT _descSets );
         res_mngr.ReleaseResource( _ubuffer );
     }

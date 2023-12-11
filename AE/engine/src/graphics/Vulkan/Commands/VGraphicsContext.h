@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    GraphicsCtx --> DirectGraphicsCtx   --> BarrierMngr --> Vulkan device 
+    GraphicsCtx --> DirectGraphicsCtx   --> BarrierMngr --> Vulkan device
                 \-> IndirectGraphicsCtx --> BarrierMngr --> Backed commands
 */
 
@@ -89,9 +89,6 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsGraphicsContext       = true;
-        static constexpr bool   IsVulkanGraphicsContext = true;
-
         using DrawCtx       = typename CtxImpl::_DrawCtx;
         using CmdBuf_t      = typename CtxImpl::CmdBuf_t;
     private:

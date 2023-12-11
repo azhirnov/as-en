@@ -91,7 +91,7 @@ namespace AE::Scripting
     void  InterfaceBinder<T>::AddMethod (Func methodPtr, StringView name) __Th___
     {
         using C = typename FunctionInfo<Func>::clazz;
-        STATIC_ASSERT( IsBaseOf< C, T >);
+        StaticAssert( IsBaseOf< C, T >);
 
         String  signature;
         MemberFunction<Func>::GetDescriptor( INOUT signature, name );

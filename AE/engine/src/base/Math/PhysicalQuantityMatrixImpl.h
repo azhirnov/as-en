@@ -17,8 +17,8 @@ namespace AE::Math
         using Quantity_t    = Quantity;
         using Dimension_t   = typename Quantity::Dimension_t;
 
-        STATIC_ASSERT( IsPhysicalDimension< Dimension_t >);
-        STATIC_ASSERT( IsPhysicalQuantity< Quantity_t >);
+        StaticAssert( IsPhysicalDimension< Dimension_t >);
+        StaticAssert( IsPhysicalQuantity< Quantity_t >);
 
         using Self          = PhysicalQuantityMatrix< Quantity, Columns, Rows, Q >;
         using VQuat_t       = TQuat< Value_t, Q >;
@@ -29,9 +29,9 @@ namespace AE::Math
         using QCol_t        = PhysicalQuantity_FromVec< typename VMatrix_t::Col_t, Dimension_t, Scale_t >;  // PhysicalQuantityVec< Rows >
         using QRow_t        = PhysicalQuantity_FromVec< typename VMatrix_t::Row_t, Dimension_t, Scale_t >;  // PhysicalQuantityVec< Columns >
 
-        STATIC_ASSERT( sizeof(QMatrix_t) == sizeof(VMatrix_t) );
-        STATIC_ASSERT( sizeof(VCol_t) == sizeof(QCol_t) );
-        STATIC_ASSERT( sizeof(VRow_t) == sizeof(QRow_t) );
+        StaticAssert( sizeof(QMatrix_t) == sizeof(VMatrix_t) );
+        StaticAssert( sizeof(VCol_t) == sizeof(QCol_t) );
+        StaticAssert( sizeof(VRow_t) == sizeof(QRow_t) );
 
         using Inversed_t    = PhysicalQuantityMatrix< typename Quantity::Inversed_t, Columns, Rows, Q >;
         using _Dim_t        = typename VMatrix_t::Dim_t;
@@ -46,7 +46,7 @@ namespace AE::Math
     public:
         PhysicalQuantityMatrix ()                                               __NE___ {}
         PhysicalQuantityMatrix (const Self &other)                              __NE___ = default;
-        PhysicalQuantityMatrix (Self && other)                                  __NE___ = default;
+        PhysicalQuantityMatrix (Self &&other)                                   __NE___ = default;
 
         explicit PhysicalQuantityMatrix (const VMatrix_t &other)                __NE___ : _value{other} {}
         explicit PhysicalQuantityMatrix (const QMatrix_t &other)                __NE___ : _value{ reinterpret_cast< VMatrix_t const &>(other) } {}
@@ -110,7 +110,7 @@ namespace AE::Math
         ND_ Self                operator - ()                                   C_NE___ { return Self{ -_value }; }
 
             Self&               operator = (const Self &rhs)                    __NE___ = default;
-            Self&               operator = (Self && rhs)                        __NE___ = default;
+            Self&               operator = (Self &&rhs)                         __NE___ = default;
 
         // return column
         ND_ QCol_t const&       operator [] (usize c)                           C_NE___ { return reinterpret_cast< QCol_t const &>(_value[c]); }

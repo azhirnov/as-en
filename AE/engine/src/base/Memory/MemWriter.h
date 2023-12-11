@@ -3,7 +3,7 @@
     1. Without allocation:
         - Create 'MemWriter' with base align.
         - use only Reserve methods.
-        - get current size with 'AllocatedSize()' 
+        - get current size with 'AllocatedSize()'
 
     2. With allocation:
         - Create 'MemWriter' with preallocated memory.
@@ -36,7 +36,7 @@ namespace AE::Base
 
     // methods
     public:
-        MemWriter (void *ptr, Bytes size)                           __NE___;
+        MemWriter (void* ptr, Bytes size)                           __NE___;
         explicit MemWriter (Bytes align)                            __NE___;
 
             void    AlignTo (Bytes align)                           __NE___ { Unused( Reserve( 0_b, align )); }
@@ -51,18 +51,18 @@ namespace AE::Base
 
 
         template <typename T, typename ...Args>
-        ND_ T&      Emplace (Args&& ...args)                        __Th___;
+        ND_ T&      Emplace (Args&& ...args)                        __NE___;
 
         template <typename T, typename ...Args>
-        ND_ T&      EmplaceSized (Bytes size, Args&& ...args)       __Th___;
+        ND_ T&      EmplaceSized (Bytes size, Args&& ...args)       __NE___;
 
         template <typename T, typename ...Args>
-        ND_ T*      EmplaceArray (usize count, Args&& ...args)      __Th___;
+        ND_ T*      EmplaceArray (usize count, Args&& ...args)      __NE___;
 
 
             void    Clear ()                                        __NE___;
 
-        ND_ Bytes   OffsetOf (void *ptr, Bytes defaultValue = UMax) C_NE___;
+        ND_ Bytes   OffsetOf (void* ptr, Bytes defaultValue = UMax) C_NE___;
 
         ND_ bool    IsAllocated ()                                  C_NE___ { return Bytes{_ptr} > _MaxAlign; }
         ND_ Bytes   AllocatedSize ()                                C_NE___ { return Bytes{_offset}; }
@@ -77,7 +77,7 @@ namespace AE::Base
     constructor
 =================================================
 */
-    inline MemWriter::MemWriter (void *ptr, Bytes size) __NE___ :
+    inline MemWriter::MemWriter (void* ptr, Bytes size) __NE___ :
         _ptr{ptr}, _size{usize(size)}
     {
         ASSERT( Bytes{ptr} > _MaxAlign );
@@ -113,10 +113,10 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    T&  MemWriter::Emplace (Args&& ...args) __Th___
+    T&  MemWriter::Emplace (Args&& ...args) __NE___
     {
         ASSERT( IsAllocated() );
-        return *PlacementNew<T>( OUT &Reserve<T>(), FwdArg<Args>( args )... ); // throw
+        return *PlacementNew<T>( OUT &Reserve<T>(), FwdArg<Args>( args )... );
     }
 
 /*
@@ -125,11 +125,11 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    T&  MemWriter::EmplaceSized (Bytes size, Args&& ...args) __Th___
+    T&  MemWriter::EmplaceSized (Bytes size, Args&& ...args) __NE___
     {
         ASSERT( IsAllocated() );
         ASSERT( size >= SizeOf<T> );
-        return *PlacementNew<T>( OUT Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );  // throw
+        return *PlacementNew<T>( OUT Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );
     }
 
 /*
@@ -149,13 +149,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    T*  MemWriter::EmplaceArray (usize count, Args&& ...args) __Th___
+    T*  MemWriter::EmplaceArray (usize count, Args&& ...args) __NE___
     {
         ASSERT( IsAllocated() );
         T*  result = ReserveArray<T>( count );
 
         for (usize i = 0; i < count; ++i) {
-            PlacementNew<T>( OUT result + i, FwdArg<Args>( args )... );  // throw
+            PlacementNew<T>( OUT result + i, FwdArg<Args>( args )... );
         }
         return result;
     }
@@ -176,7 +176,7 @@ namespace AE::Base
     OffsetOf
 =================================================
 */
-    inline Bytes  MemWriter::OffsetOf (void *ptr, Bytes defaultValue) C_NE___
+    inline Bytes  MemWriter::OffsetOf (void* ptr, Bytes defaultValue) C_NE___
     {
         if_likely( ptr != null )
         {

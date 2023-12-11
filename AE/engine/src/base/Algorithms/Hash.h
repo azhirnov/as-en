@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifdef AE_ENABLE_XXHASH
+# include "xxhash.h"
+#endif
+
 namespace AE::Base
 {
 
@@ -139,6 +143,37 @@ namespace AE::Base
         dst &= ~((1 << ignoreMantissaBits)-1);
         return HashVal( std::hash<ulong>()( dst ));
     }
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_ENABLE_XXHASH
+/*
+=================================================
+    XXHash32 (buffer)
+=================================================
+*/
+    ND_ inline HashVal32  XXHash32 (const void* ptr, const usize sizeInBytes) __NE___
+    {
+        return HashVal32{ XXH32( ptr, sizeInBytes, 0 )};
+    }
+
+/*
+=================================================
+    XXHash64 (buffer)
+=================================================
+*/
+    ND_ inline HashVal64  XXHash64 (const void* ptr, const usize sizeInBytes) __NE___
+    {
+      #if AE_HAS_SIMD
+        return HashVal64{ XXH3_64bits( ptr, sizeInBytes )};
+      #else
+        return HashVal64{ XXH64( ptr, sizeInBytes, 0 )};
+      #endif
+    }
+
+#endif // AE_ENABLE_XXHASH
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -147,11 +182,18 @@ namespace AE::Base
     use private api to calculate hash of buffer
 =================================================
 */
-    ND_ inline HashVal  HashOf (const void *ptr, usize sizeInBytes) __NE___
+    ND_ inline HashVal  HashOf (const void* ptr, const usize sizeInBytes) __NE___
     {
-        ASSERT( ptr != null and sizeInBytes );
+        ASSERT( ptr != null and sizeInBytes > 0 );
 
-        # if defined(AE_HAS_HASHFN_HashArrayRepresentation)
+        #if defined(AE_ENABLE_XXHASH)
+            if constexpr( sizeof(HashVal) == sizeof(HashVal64) )
+                return HashVal{XXHash64( ptr, sizeInBytes )};
+            else
+            if constexpr( sizeof(HashVal) == sizeof(HashVal32) )
+                return HashVal{XXHash32( ptr, sizeInBytes )};
+
+        #elif defined(AE_HAS_HASHFN_HashArrayRepresentation)
             return HashVal{std::_Hash_array_representation( static_cast<const unsigned char*>(ptr), sizeInBytes )};
 
         #elif defined(AE_HAS_HASHFN_Murmur2OrCityhash)

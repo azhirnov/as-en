@@ -22,6 +22,7 @@
 namespace AE::Base
 {
     using namespace std::string_literals;
+    using namespace std::string_view_literals;
 
 /*
 =================================================
@@ -510,7 +511,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  IsAnsiString (const T *ptr, usize length) __NE___
+    ND_ constexpr bool  IsAnsiString (const T* ptr, usize length) __NE___
     {
         for (usize i = 0; i < length; ++i)
         {
@@ -575,7 +576,7 @@ namespace AE::Base
 =================================================
 */
     template <int Radix, typename T>
-    ND_ EnableIf< IsEnum<T> or IsInteger<T>, String>  ToString (const T &value) __Th___
+    ND_ EnableIf<IsEnum<T> or IsInteger<T>, String>  ToString (const T &value) __Th___
     {
         if constexpr( Radix == 10 )
         {
@@ -703,7 +704,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ String  ToString (const TBytes<T> &value) __Th___
+    ND_ String  ToString (const TByte<T> &value) __Th___
     {
         const T kb  = SafeLeftBitShift( T{1}, 12 );
         const T mb  = SafeLeftBitShift( T{1}, 22 );
@@ -748,6 +749,8 @@ namespace AE::Base
         const double    abs_time = Abs( time );
         String          str;
 
+        if ( not IsFinite( time )) {}
+        else
         if ( abs_time > 59.0 * 60.0 )
             str << ToString( time * (1.0/3600.0), precission ) << " h";
         else
@@ -788,7 +791,7 @@ namespace AE::Base
         return ToAnsiString<char>( str );
     }
 
-    ND_ inline String  ToString (const wchar_t *str) __Th___
+    ND_ inline String  ToString (const wchar_t* str) __Th___
     {
         return ToAnsiString<char>( WStringView{str} );
     }
@@ -1087,7 +1090,7 @@ namespace AE::Base
 
         int     val = 0;
         auto    err = std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-
+        Unused( err );
         ASSERT( err.ec == std::errc() );
         return val;
     }
@@ -1099,7 +1102,7 @@ namespace AE::Base
 
         uint    val = 0;
         auto    err = std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-
+        Unused( err );
         ASSERT( err.ec == std::errc() );
         return val;
     }
@@ -1111,7 +1114,7 @@ namespace AE::Base
 
         ulong   val = 0;
         auto    err = std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-
+        Unused( err );
         ASSERT( err.ec == std::errc() );
         return val;
     }

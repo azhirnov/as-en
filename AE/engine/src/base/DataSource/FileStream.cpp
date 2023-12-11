@@ -30,7 +30,7 @@ namespace
     OpenFile
 =================================================
 */
-    ND_ static FILE*  OpenFile (const char *filename, const char* access) __NE___
+    ND_ static FILE*  OpenFile (const char* filename, const char* access) __NE___
     {
         FILE*   file = null;
         fopen_s( OUT &file, filename, access );
@@ -38,7 +38,7 @@ namespace
     }
 
 #ifdef AE_PLATFORM_WINDOWS
-    ND_ static FILE*  OpenFile (const wchar_t *filename, const wchar_t* access) __NE___
+    ND_ static FILE*  OpenFile (const wchar_t* filename, const wchar_t* access) __NE___
     {
         FILE*   file = null;
         _wfopen_s( OUT &file, filename, access );
@@ -216,7 +216,7 @@ DEBUG_ONLY(
     ReadSeq
 =================================================
 */
-    Bytes  FileRStream::ReadSeq (OUT void *buffer, Bytes size) __NE___
+    Bytes  FileRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -330,7 +330,7 @@ DEBUG_ONLY(
     WriteSeq
 =================================================
 */
-    Bytes  FileWStream::WriteSeq (const void *buffer, Bytes size) __NE___
+    Bytes  FileWStream::WriteSeq (const void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -430,19 +430,19 @@ DEBUG_ONLY(
     ReadBlock
 =================================================
 */
-    Bytes  FileRDataSource::ReadBlock (Bytes offset, OUT void *buffer, Bytes size) __NE___
+    Bytes  FileRDataSource::ReadBlock (Bytes pos, OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 
-        if ( _lastPos != offset )
+        if ( _lastPos != pos )
         {
-            if_unlikely( fseek( _file, slong(offset), SEEK_SET ) != 0 )
+            if_unlikely( fseek( _file, slong(pos), SEEK_SET ) != 0 )
                 return 0_b;     // error
         }
 
         Bytes   readn{ fread( buffer, 1, usize(size), _file )};
 
-        _lastPos = offset + readn;
+        _lastPos = pos + readn;
         ASSERT_Eq( slong(_lastPos), GetPositionInFile( _file ));
 
         return readn;
@@ -540,19 +540,19 @@ DEBUG_ONLY(
     WriteBlock
 =================================================
 */
-    Bytes  FileWDataSource::WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE___
+    Bytes  FileWDataSource::WriteBlock (const Bytes pos, const void* buffer, const Bytes size) __NE___
     {
         ASSERT( IsOpen() );
 
-        if ( _lastPos != offset )
+        if ( _lastPos != pos )
         {
-            if_unlikely( fseek( _file, slong(offset), SEEK_SET ) != 0 )
+            if_unlikely( fseek( _file, slong(pos), SEEK_SET ) != 0 )
                 return 0_b;     // error
         }
 
         Bytes   written{ fwrite( buffer, 1, usize(size), _file )};
 
-        _lastPos = offset + written;
+        _lastPos = pos + written;
         ASSERT_Eq( slong(_lastPos), GetPositionInFile( _file ));
 
         return written;

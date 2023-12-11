@@ -1,26 +1,63 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "threading/TaskSystem/TaskScheduler.h"
-#include "threading/Containers/LfIndexedPool2.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
 #include "threading/TaskSystem/ThreadManager.h"
 #include "threading/TaskSystem/LfTaskQueue.h"
 
 #include "threading/DataSource/WinAsyncDataSource.h"
+//#include "threading/DataSource/UnixAsyncDataSource.h"
 
 namespace AE::Threading
 {
+/*
+=================================================
+    constants
+=================================================
+*/
+namespace {
+    static constexpr uint   c_AvgTaskTime_us    {128};      // ~0.1ms
+    static constexpr uint   c_WaitTimeStep_us   {2 << 10};  // ~2ms
+
+
+    ND_ static uint  CalcMaxTasksPerTick (nanoseconds timeout) __NE___
+    {
+        uint    max_tasks = (Min( uint((timeout.count() + 512) >> 10), c_WaitTimeStep_us ) + c_AvgTaskTime_us/2) / c_AvgTaskTime_us;
+        return Clamp( max_tasks, 2u, 32u );
+    }
+}
+
+/*
+=================================================
+    SeedFromThreadID
+----
+    return 8 bit seed
+=================================================
+*/
+namespace {
+    ND_ inline EThreadSeed  SeedFromThreadID () __NE___
+    {
+        usize   seed = ThreadUtils::GetIntID();
+    #if AE_PLATFORM_BITS >= 64
+        seed = (seed >> 32) ^ (seed & 0xFFFFFFFF);
+    #endif
+        seed = (seed >> 16) ^ (seed & 0xFFFF);
+        seed = (seed >> 8) ^ (seed & 0xFF);
+        return EThreadSeed(seed);
+    }
+}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
     OutputChunk::Init
 =================================================
 */
-    void  IAsyncTask::OutputChunk::Init (uint idx) __NE___
+    void  IAsyncTask::OutputChunk::Init () __NE___
     {
-        next        = null;
-        selfIndex   = idx;
-        count       = 0;
+        next    = null;
+        count   = 0;
     }
 //-----------------------------------------------------------------------------
 
@@ -198,7 +235,7 @@ DEBUG_ONLY(
 */
     void  IAsyncTask::_FreeOutputChunks (bool isCanceled) __NE___
     {
-        ASSERT( _output.IsLocked() );
+        ASSERT( _output.is_locked() );
 
         auto&   chunk_pool = Scheduler()._GetChunkPool();
 
@@ -231,7 +268,7 @@ DEBUG_ONLY(
 
             chunk           = old_chunk->next;
             old_chunk->next = null;
-            chunk_pool.Unassign( old_chunk->selfIndex );
+            CHECK( chunk_pool.Unassign( old_chunk ));
         }
 
         _output.set( null );
@@ -321,6 +358,117 @@ DEBUG_ONLY(
 
 /*
 =================================================
+    Wakeup
+----
+    Windows: 5..20us to wakeup thread
+=================================================
+*/
+    void  TaskScheduler::ThreadWakeup::Wakeup (EThreadBits bits) __NE___
+    {
+        {
+            std::unique_lock    lock {_mutex};
+            _activeThreads = bits;
+        }
+        _cv.notify_all();
+    }
+
+    void  TaskScheduler::ThreadWakeup::Wakeup (ETaskQueueBits bits) __NE___
+    {
+        EThreadBits     threads;
+        for (ETaskQueue q : bits) {
+            threads.insert( EThread(q) );
+        }
+        return Wakeup( threads );
+    }
+
+/*
+=================================================
+    WakeupAndDetach
+=================================================
+*/
+    void  TaskScheduler::ThreadWakeup::WakeupAndDetach (LoopingFlag_t &looping) __NE___
+    {
+        {
+            std::unique_lock    lock {_mutex};  // TODO: not needed?
+            looping.store( 0 );
+        }
+        _cv.notify_all();
+    }
+
+/*
+=================================================
+    Suspend
+=================================================
+*/
+    void  TaskScheduler::ThreadWakeup::Suspend (EThreadBits waitThreads, LoopingFlag_t &looping) __NE___
+    {
+        std::unique_lock    lock {_mutex};
+
+        for (;;)
+        {
+            if ( (waitThreads & _activeThreads).Any() )
+            {
+                _activeThreads &= waitThreads;
+                return;
+            }
+
+            // wakeup if thread will be terminated (joined)
+            if ( looping.load() == 0 )
+                return;
+
+            _cv.wait( lock );
+        }
+    }
+
+    void  TaskScheduler::ThreadWakeup::Suspend (ETaskQueueBits waitQueues, LoopingFlag_t &looping) __NE___
+    {
+        EThreadBits     wait_threads;
+        for (ETaskQueue q : waitQueues) {
+            wait_threads.insert( EThread(q) );
+        }
+        return Suspend( wait_threads, looping );
+    }
+
+    void  TaskScheduler::ThreadWakeup::Suspend (const EThreadArray &waitThreads, LoopingFlag_t &looping) __NE___
+    {
+        return Suspend( waitThreads.ToThreadMask(), looping );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+    //
+    // Canceled Task
+    //
+    class TaskScheduler::_CanceledTask final : public IAsyncTask
+    {
+    public:
+        _CanceledTask ()        __NE___ : IAsyncTask{ETaskQueue::PerFrame} { _DbgSet( EStatus::Canceled ); }
+
+        void        Run ()      __Th_OV {}
+        StringView  DbgName ()  C_NE_OV { return "canceled"; }
+    };
+
+
+    //
+    // Dummy Request
+    //
+    class TaskScheduler::_DummyRequest final : public Threading::_hidden_::IAsyncDataSourceRequest
+    {
+    // methods
+    public:
+        _DummyRequest ()                    __NE___ { _status.store( EStatus::Cancelled ); }
+
+        // IAsyncDataSourceRequest //
+        Result      GetResult ()            C_NE_OV { return Default; }
+        bool        Cancel ()               __NE_OV { return false; }
+        Promise_t   AsPromise (ETaskQueue)  __NE_OV { return Default; }
+    };
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
     _Instance
 =================================================
 */
@@ -333,23 +481,18 @@ DEBUG_ONLY(
 
 /*
 =================================================
-    CreateInstance
+    InstanceCtor
 =================================================
 */
-    void  TaskScheduler::CreateInstance () __NE___
+    void  TaskScheduler::InstanceCtor::Create () __NE___
     {
-        MemoryManagerImpl::TaskSchedulerApi::CreateInstance();
+        MemoryManagerImpl::InstanceCtor::Create();
 
         s_TaskScheduler.Create();
         MemoryBarrier( EMemoryOrder::Release );
     }
 
-/*
-=================================================
-    DestroyInstance
-=================================================
-*/
-    void  TaskScheduler::DestroyInstance () __NE___
+    void  TaskScheduler::InstanceCtor::Destroy () __NE___
     {
         MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -357,7 +500,7 @@ DEBUG_ONLY(
 
         MemoryBarrier( EMemoryOrder::Release );
 
-        MemoryManagerImpl::TaskSchedulerApi::DestroyInstance();
+        MemoryManagerImpl::InstanceCtor::Destroy();
     }
 
 /*
@@ -366,7 +509,8 @@ DEBUG_ONLY(
 =================================================
 */
     TaskScheduler::TaskScheduler () __NE___ :
-        _canceledTask{ MakeRC<CanceledTask>() } // throw
+        _canceledTask{ MakeRC<_CanceledTask>() },
+        _cancelledRequest{ MakeRC<_DummyRequest>() }
     {
         DEBUG_ONLY(
             _deadlockCheck.lastUpdate.store( TimePoint_t::clock::now() );
@@ -392,16 +536,15 @@ DEBUG_ONLY(
 */
     bool  TaskScheduler::Setup (const Config &cfg) __NE___
     {
+        CHECK_ERR( uint(cfg.mainThreadCoreId) < ThreadUtils::MaxThreadCount() );
+
         // add main thread
         {
-            uint    core_id = (cfg.mainThreadCoreId == UMax ? 0 : cfg.mainThreadCoreId);
-            _coreId.store( core_id+1 );
-
             EXLOCK( _threadGuard );
             CHECK_ERR( _threads.empty() );
 
             _mainThread = ThreadMngr::_CreateMainThread();
-            CHECK_ERR( _mainThread->Attach( 0, core_id ));
+            CHECK_ERR( _mainThread->Attach( 0, cfg.mainThreadCoreId ));
         }
 
         // all queues must be null
@@ -410,16 +553,16 @@ DEBUG_ONLY(
         }
 
         // setup queues
-        try{
+        TRY{
             _queues[uint( ETaskQueue::Main      )].ptr.reset( new LfTaskQueue{ POTValue{ 2 },                       "main"      });
             _queues[uint( ETaskQueue::PerFrame  )].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxPerFrameQueues },   "perFrame"  });
             _queues[uint( ETaskQueue::Renderer  )].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxRenderQueues },     "renderer"  });
             _queues[uint( ETaskQueue::Background)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxBackgroundQueues }, "background"});
-            STATIC_ASSERT( uint(ETaskQueue::_Count) == 4 );
+            StaticAssert( uint(ETaskQueue::_Count) == 4 );
         }
-        catch (...) {
+        CATCH_ALL(
             RETURN_ERR( "failed to initialize task queues" );
-        }
+        )
 
         // all queues must not be null
         for (auto& q : _queues) {
@@ -439,26 +582,19 @@ DEBUG_ONLY(
 */
     bool  TaskScheduler::_InitIOServices (const Config &cfg) __NE___
     {
+        auto    io_dep_mngr = RC<AsyncDSRequestDependencyManager>{ new AsyncDSRequestDependencyManager{} };
+        CHECK_ERR( RegisterDependency< AsyncDSRequest >( io_dep_mngr ));
+        CHECK_ERR( RegisterDependency< WeakAsyncDSRequest >( io_dep_mngr ));
+        //CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io_dep_mngr ));
+
         #ifdef AE_PLATFORM_WINDOWS
         if ( cfg.maxIOThreads > 0 )
-        {
-            auto    io = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOThreads }};
-            CHECK_ERR( RegisterDependency< AsyncDSRequest >( io ));
-            CHECK_ERR( RegisterDependency< WeakAsyncDSRequest >( io ));
-            //CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io ));
-            _fileIOService = io;
-        }
+            _fileIOService = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOThreads }};
         #endif
 
         #if 0 //def AE_PLATFORM_UNIX_BASED
         if ( cfg.maxIOThreads > 0 )
-        {
-            auto    io = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOThreads }};
-            CHECK_ERR( RegisterDependency< AsyncDSRequest >( io ));
-            CHECK_ERR( RegisterDependency< WeakAsyncDSRequest >( io ));
-            //CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io ));
-            _fileIOService = io;
-        }
+            _fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOThreads }};
         #endif
 
         return true;
@@ -494,7 +630,8 @@ DEBUG_ONLY(
             _taskDepsMngrs.clear();
         }
 
-        _canceledTask = null;
+        _canceledTask       = null;
+        _cancelledRequest   = null;
         ASSERT_Eq( IAsyncTask::_AsyncTaskTotalCount(), 0 );
 
         _chunkPool.Release( True{"check for assigned"} );
@@ -509,12 +646,7 @@ DEBUG_ONLY(
     AddThread
 =================================================
 */
-    bool  TaskScheduler::AddThread (ThreadPtr thread) __NE___
-    {
-        return AddThread( RVRef(thread), _coreId.fetch_add(1) );
-    }
-
-    bool  TaskScheduler::AddThread (ThreadPtr thread, uint coreId) __NE___
+    bool  TaskScheduler::AddThread (RC<IThread> thread, ECpuCoreId coreId) __NE___
     {
         EXLOCK( _threadGuard );
 
@@ -535,15 +667,27 @@ DEBUG_ONLY(
 
 /*
 =================================================
+    GetDefaultSeed
+=================================================
+*/
+    EThreadSeed  TaskScheduler::GetDefaultSeed () __NE___
+    {
+        return SeedFromThreadID();
+    }
+
+/*
+=================================================
     ProcessTask
 ----
     Returns 'true' if task is processed.
     Result can be used to choose behavior:
         - on 'true' process next task with same queue type.
-        - on 'false' try to process task with different queue type or change seed.
+        - on 'false' try to process task with different queue type.
+    The 'seed' is used only to distribute access from different threads to different chunks
+    to avoid access to the same atomic value from multiple threads.
 =================================================
 */
-    bool  TaskScheduler::ProcessTask (ETaskQueue type, uint seed) __NE___
+    bool  TaskScheduler::ProcessTask (const ETaskQueue type, const EThreadSeed seed) __NE___
     {
         CHECK_ERR( type < ETaskQueue::_Count );
 
@@ -552,35 +696,78 @@ DEBUG_ONLY(
 
 /*
 =================================================
-    ProcessTasks
+    ProcessFileIO
 =================================================
 */
-    bool  TaskScheduler::ProcessTasks (const EThreadArray &threads, const uint seed) __NE___
+    bool  TaskScheduler::ProcessFileIO () __NE___
     {
-        uint    processed = 0;
+        if_likely( auto io_service = GetFileIOService() )
+            return (io_service->ProcessEvents() > 0);
 
+        return false;
+    }
+
+/*
+=================================================
+    ProcessTasks
+----
+    Process all tasks in specified 'threads' with the specified 'seed'.
+    Returns 'true' if at least one task is processed.
+    The 'seed' is used only to distribute access from different threads to different chunks
+    to avoid access to the same atomic value from multiple threads.
+=================================================
+*/
+    bool  TaskScheduler::ProcessTasks (const EThreadArray &threads, const EThreadSeed seed) __NE___
+    {
+        ASSERT( not threads.empty() );
+
+        constexpr uint  max_task_per_queue = 16;
+
+        uint    processed = 0;
         for (auto tt : threads)
         {
             if_likely( tt < EThread::_Last )
             {
-                while ( ProcessTask( ETaskQueue(tt), seed )) {
-                    processed = 1;
-                }
+                uint i = 0;
+                for (; (i < max_task_per_queue) and ProcessTask( ETaskQueue(tt), seed ); ++i) {}
+                processed |= i;
             }
             else
-            switch ( tt )
-            {
-                case_likely EThread::FileIO :
-                {
-                    if_likely( auto io_service = GetFileIOService() )
-                        processed |= (io_service->ProcessEvents() > 0);
-                    break;
-                }
-                default :
-                    DBG_WARNING( "unknown thread type" );
-            }
+            if ( tt == EThread::FileIO )
+                processed |= uint(ProcessFileIO());
+            else
+                DBG_WARNING( "unknown thread type" );
         }
+        return processed != 0;
+    }
 
+/*
+=================================================
+    ProcessTasks
+----
+    Process all tasks in specified 'threads' with the specified 'seed'.
+    Returns 'true' if at least one task is processed.
+    The 'seed' is used only to distribute access from different threads to different chunks
+    to avoid access to the same atomic value from multiple threads.
+=================================================
+*/
+    bool  TaskScheduler::ProcessTasks (const EThreadArray &threads, const EThreadSeed seed, const uint maxTasks) __NE___
+    {
+        ASSERT( not threads.empty() );
+
+        uint    processed = 0;
+        for (auto tt = threads.begin(); (processed < maxTasks) & (tt != threads.end()); ++tt)
+        {
+            if_likely( *tt < EThread::_Last )
+            {
+                for (; (processed < maxTasks) and ProcessTask( ETaskQueue(*tt), seed ); ++processed) {}
+            }
+            else
+            if ( *tt == EThread::FileIO )
+                processed |= uint(ProcessFileIO());
+            else
+                DBG_WARNING( "unknown thread type" );
+        }
         return processed != 0;
     }
 
@@ -588,10 +775,14 @@ DEBUG_ONLY(
 =================================================
     PullTask
 ----
-    cache is already invalidated when non-null task is returned
+    Extract one task from specified queue 'type'.
+    Canceled tasks processed immediately.
+    Cache is already invalidated when non-null task is returned.
+    The 'seed' is used only to distribute access from different threads to different chunks
+    to avoid access to the same atomic value from multiple threads.
 =================================================
 */
-    AsyncTask  TaskScheduler::PullTask (ETaskQueue type, uint seed) __NE___
+    AsyncTask  TaskScheduler::PullTask (const ETaskQueue type, const EThreadSeed seed) __NE___
     {
         CHECK_ERR( type < ETaskQueue::_Count );
 
@@ -606,55 +797,80 @@ DEBUG_ONLY(
     use it only for debugging and testing
 =================================================
 */
-    bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, const EThreadArray &threads, nanoseconds timeout) __NE___
+    inline bool  TaskScheduler::_IsAllComplete (ArrayView<AsyncTask> tasks) __NE___
     {
-        const auto  start_time  = TimePoint_t::clock::now();
+        // TODO: optimization: use bitfield to mark null and complete tasks
+        usize   complete_count = 0;
 
+        for (auto& task : tasks)
+        {
+            if_likely( not task )
+                ++complete_count;
+            else
+            if_likely( task->IsFinished() )
+                ++complete_count;
+        }
+        return complete_count >= tasks.size();
+    }
+
+    bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, nanoseconds timeout) __NE___
+    {
         if_unlikely( tasks.empty() )
             return true;
 
-        const auto  mask = threads.ToThreadMask();
+        const auto  end_time = TimePoint_t::clock::now() + timeout;
 
         for (;;)
         {
-            usize   complete_count = 0;
-
-            for (auto& task : tasks)
-            {
-                if_unlikely( not task )
-                {
-                    ++complete_count;
-                    continue;
-                }
-
-                if ( task->Status() > EStatus::_Finished )
-                {
-                    ++complete_count;
-                    continue;
-                }
-
-                bool    sleep = true;
-                if ( mask.contains( EThread(task->_queueType) ))
-                {
-                    // try to avoid deadlock if task must be processed in current thread
-                    sleep = not ProcessTask( task->_queueType, 0 );
-                }
-
-                if ( sleep )
-                {
-                    if_likely( auto io_service = GetFileIOService() )
-                        sleep = (io_service->ProcessEvents() == 0);
-                }
-
-                if ( sleep )
-                    ThreadUtils::Sleep( _WaitAll_SleepTime );
-            }
-
-            if ( complete_count >= tasks.size() )
+            if ( _IsAllComplete( tasks ))
                 return true;
 
-            if_unlikely( (TimePoint_t::clock::now() - start_time) >= timeout )
+            const auto  tp = TimePoint_t::clock::now();
+            if_unlikely( tp >= end_time )
                 return false;   // time is out
+
+            DbgDetectDeadlock();
+            ThreadUtils::Sleep_500us();
+        }
+    }
+
+    bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, const EThreadArray &threads, const nanoseconds timeout) __NE___
+    {
+        return Wait( tasks, threads, (TimePoint_t::clock::now() + timeout), CalcMaxTasksPerTick( timeout ));
+    }
+
+    bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, const EThreadArray &threads, const TimePoint_t endTime, const uint maxTasksPerTick) __NE___
+    {
+        ASSERT( not threads.empty() );
+        if_unlikely( tasks.empty() )
+            return true;
+
+        const auto  seed = SeedFromThreadID();
+        for (;;)
+        {
+            if ( _IsAllComplete( tasks ))
+                return true;
+
+            uint    processed = 0;
+            for (auto tt = threads.begin(); (processed < maxTasksPerTick) & (tt != threads.end()); ++tt)
+            {
+                if_likely( *tt < EThread::_Last )
+                    for (; (processed < maxTasksPerTick) and ProcessTask( ETaskQueue(*tt), seed ); ++processed) {}
+                else
+                if ( *tt == EThread::FileIO )
+                    processed |= uint(ProcessFileIO());
+                else
+                    DBG_WARNING( "unknown thread type" );
+            }
+
+            if_unlikely( TimePoint_t::clock::now() >= endTime )
+                return false;   // time is out
+
+            if_unlikely( processed == 0 )
+            {
+                DbgDetectDeadlock();
+                ThreadUtils::Sleep_500us();
+            }
         }
     }
 
@@ -709,7 +925,7 @@ DEBUG_ONLY(
                     CHECK_ERR( _chunkPool.Assign( OUT idx ));
 
                     *chunk_ref = &_chunkPool[ idx ];
-                    (*chunk_ref)->Init( idx );
+                    (*chunk_ref)->Init();
                 }
 
                 if ( (*chunk_ref)->next != null )
@@ -742,26 +958,6 @@ DEBUG_ONLY(
 
         return true;
     }
-
-/*
-=================================================
-    SeedFromThreadID
-----
-    return 8 bit seed
-=================================================
-*/
-namespace {
-    ND_ static usize  SeedFromThreadID () __NE___
-    {
-        usize   seed = ThreadUtils::GetIntID();
-    #if AE_PLATFORM_BITS >= 64
-        seed = (seed >> 32) ^ (seed & 0xFFFFFFFF);
-    #endif
-        seed = (seed >> 16) ^ (seed & 0xFFFF);
-        seed = (seed >> 8) ^ (seed & 0xFF);
-        return seed;
-    }
-}
 
 /*
 =================================================
@@ -817,10 +1013,52 @@ namespace {
                 prof->Enqueue( *task );
             })
 
+      #if AE_USE_THREAD_WAKEUP
+        _wakeup.Wakeup( task->QueueType() );
+      #endif
+
         const uint  tid = uint(task->QueueType());
 
         _queues[tid].ptr->Add( RVRef(task), SeedFromThreadID() );
         return true;
+    }
+
+/*
+=================================================
+    SuspendThread
+=================================================
+*/
+    void  TaskScheduler::SuspendThread (const EThreadArray &threads, LoopingFlag_t &looping, uint iteration) __NE___
+    {
+      #if AE_USE_THREAD_WAKEUP
+
+        if_likely( iteration < 4 )
+            ThreadUtils::Sleep_500us();
+        else
+            _wakeup.Suspend( threads, looping );
+
+      #else
+
+        Unused( threads, looping );
+        ThreadUtils::ProgressiveSleep( iteration );
+
+      #endif
+    }
+
+/*
+=================================================
+    SuspendThread
+=================================================
+*/
+    void  TaskScheduler::WakeupAndDetach (LoopingFlag_t &looping) __NE___
+    {
+      #if AE_USE_THREAD_WAKEUP
+        _wakeup.WakeupAndDetach( looping );
+
+      #else
+        Unused( looping );
+
+      #endif
     }
 
 /*
@@ -839,7 +1077,7 @@ namespace {
                 }
                 profiler->AddThread( _mainThread );
             }
-            _profiler = RVRef(profiler);
+            _profiler.store( RVRef(profiler) );
         )
     }
 

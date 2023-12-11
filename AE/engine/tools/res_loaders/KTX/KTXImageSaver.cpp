@@ -92,7 +92,7 @@ namespace
                 case EImage_Cube :      ci.numDimensions = 2;   ci.isArray = false;     ci.numFaces = 6;    break;
                 case EImage_CubeArray : ci.numDimensions = 2;   ci.isArray = true;      ci.numFaces = 6;    break;
                 case EImage::Unknown :
-                case EImage::_Count :   
+                case EImage::_Count :
                 default :               RETURN_ERR( "unsupported image type" );
             }
             END_ENUM_CHECKS();

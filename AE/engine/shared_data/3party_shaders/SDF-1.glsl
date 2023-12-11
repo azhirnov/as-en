@@ -22,7 +22,7 @@ float  SDF2_Line (const float2 position, const float2 point0, const float2 point
 float  SDF2_Rect (const float2 position, const float2 hsize)
 {
     const float2  d = Abs( position ) - hsize;
-    return Length(Max( d, float2(0.0f) )) + Min(Max( d.x, d.y ), 0.0f );
+    return Length( Max( d, float2(0.0f) )) + Min( Max( d.x, d.y ), 0.0f );
 }
 
 
@@ -37,30 +37,30 @@ float  SDF2_Pentagon (const float2 position, const float radius)
     const float3  k = float3( 0.809016994f, 0.587785252f, 0.726542528f );
           float2  p = position;
     p.x = Abs(p.x);
-    p -= 2.0f * Min(Dot( float2(-k.x,k.y), p ), 0.0f) * float2(-k.x,k.y);
-    p -= 2.0f * Min(Dot( float2( k.x,k.y), p ), 0.0f) * float2( k.x,k.y);
+    p -= 2.0f * Min( Dot( float2(-k.x, k.y ), p ), 0.0f ) * float2(-k.x, k.y);
+    p -= 2.0f * Min( Dot( float2( k.x, k.y ), p ), 0.0f ) * float2( k.x, k.y);
     p -= float2( Clamp( p.x, -radius * k.z, radius * k.z ), radius );
-    return Length(p) * SignOrZero(p.y);
+    return Length( p ) * SignOrZero( p.y );
 }
 
 
 float  SDF2_Hexagon (const float2 position, const float radius)
 {
     const float3    k = float3( -0.866025404, 0.5, 0.577350269 );
-          float2    p = Abs(position);
+          float2    p = Abs( position );
     p -= 2.0 * Min(Dot( k.xy, p ), 0.0f ) * k.xy;
-    p -= float2(Clamp( p.x, -k.z * radius, k.z * radius ), radius );
-    return Length(p) * SignOrZero(p.y);
+    p -= float2( Clamp( p.x, -k.z * radius, k.z * radius ), radius );
+    return Length( p ) * SignOrZero( p.y );
 }
 
 
 float  SDF2_Octagon (const float2 position, const float radius)
 {
-    const float3    k = float3( -0.9238795325, 0.3826834323, 0.4142135623 );
-          float2    p = Abs(position);
-    p -= 2.0 * Min(Dot( float2( k.x, k.y), p ), 0.0 ) * float2( k.x,k.y);
-    p -= 2.0 * Min(Dot( float2(-k.x, k.y), p ), 0.0 ) * float2(-k.x,k.y);
-    p -= float2(Clamp( p.x, -k.z * radius, k.z * radius ), radius );
+    const float3    k = float3( -0.9238795325f, 0.3826834323f, 0.4142135623f );
+          float2    p = Abs( position );
+    p -= 2.0 * Min( Dot( float2( k.x, k.y), p ), 0.0f ) * float2( k.x,k.y);
+    p -= 2.0 * Min( Dot( float2(-k.x, k.y), p ), 0.0f ) * float2(-k.x,k.y);
+    p -= float2( Clamp( p.x, -k.z * radius, k.z * radius ), radius );
     return Length(p) * SignOrZero(p.y);
 }
 
@@ -69,8 +69,8 @@ float  SDF2_RoundedRect (const float2 position, const float2 hsize, float4 radiu
 {
             radius.xy   = (position.x > 0.0) ? radius.xy : radius.zw;
             radius.x    = (position.y > 0.0) ? radius.x  : radius.y;
-    float2  q           = Abs(position) - hsize + radius.x;
-    return Min(Max( q.x, q.y ), 0.0f ) + Length(Max( q, 0.0f )) - radius.x;
+    float2  q           = Abs( position ) - hsize + radius.x;
+    return Min( Max( q.x, q.y ), 0.0f ) + Length( Max( q, 0.0f )) - radius.x;
 }
 
 
@@ -81,14 +81,14 @@ float  SDF2_OrientedRect (const float2 position, const float2 a, const float2 b,
     float2  q = (position - (a + b) * 0.5f);
             q = float2x2( d.x, -d.y, d.y, d.x ) * q;
             q = Abs(q) - float2( l, angle ) * 0.5f;
-    return Length(Max( q, 0.0f )) + Min(Max( q.x, q.y ), 0.0f );
+    return Length( Max( q, 0.0f )) + Min( Max( q.x, q.y ), 0.0f );
 }
 
 
 float  SDF2_EquilateralTriangle (float2 p, const float size)
 {
     const float k = Sqrt(3.0);  // TODO
-    p.x = Abs(p.x) - size;
+    p.x = Abs( p.x ) - size;
     p.y = p.y + size / k;
     if ( p.x + k * p.y > 0.0 )  p = float2( p.x - k * p.y, -k * p.x - p.y ) / 2.0;
     p.x -= Clamp( p.x, -2.0 * size, 0.0 );
@@ -108,7 +108,7 @@ float  SDF2_Triangle (const float2 position, const float2 p0, const float2 p1, c
     float2  pq1 = v1 - e1 * Saturate( Dot( v1, e1 ) / Dot( e1, e1 ));
     float2  pq2 = v2 - e2 * Saturate( Dot( v2, e2 ) / Dot( e2, e2 ));
     float   s   = SignOrZero( e0.x * e2.y - e0.y * e2.x );
-    float2  d   = Min(  Min(float2( Dot( pq0, pq0 ), s * (v0.x * e0.y - v0.y * e0.x)),
+    float2  d   = Min(  Min( float2( Dot( pq0, pq0 ), s * (v0.x * e0.y - v0.y * e0.x)),
                         float2( Dot( pq1, pq1 ), s * (v1.x * e1.y - v1.y * e1.x) )),
                         float2( Dot( pq2, pq2 ), s * (v2.x * e2.y - v2.y * e2.x) ));
     return -Sqrt(d.x) * SignOrZero(d.y);
@@ -241,8 +241,8 @@ float  SDF_Octahedron (const float3 position, const float size)
     if ( 3.0 * p.z < m )    q = p.zxy;          else
                             return m * 0.57735027f;
 
-    const float  k = Clamp( 0.5f * (q.z - q.y + size), 0.0f, size ); 
-    return Length( float3( q.x, q.y - size + k, q.z - k )); 
+    const float  k = Clamp( 0.5f * (q.z - q.y + size), 0.0f, size );
+    return Length( float3( q.x, q.y - size + k, q.z - k ));
 }
 
 
@@ -410,16 +410,16 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
     (_sdf_( (_pos_)/(_scale_) ) * _scale_)
 
 #define SDF_OpSymX( _pos_, _sdf_ )\
-    _sdf_(float3( Abs((_pos_).x), (_pos_).yz ))
+    (_sdf_(float3( Abs((_pos_).x), (_pos_).yz )))
 
 #define SDF_OpSymXZ( _pos_, _sdf_ )\
-    _sdf_(float3( Abs((_pos_).x), (_pos_).y, Abs((_pos_).z) ))
+    (_sdf_(float3( Abs((_pos_).x), (_pos_).y, Abs((_pos_).z) )))
 
-#define SDF_InfRepetition( _pos_, _center_, _sdf_ )\
-    _sdf_( Mod( (_pos_) + 0.5f * (_center_), (_center_) ) - 0.5f * (_center_) )
+#define SDF_InfRepetition( _pos_, _step_, _sdf_ )\
+    (_sdf_( Mod( (_pos_) + 0.5f * (_step_), (_step_) ) - 0.5f * (_step_) ))
 
-#define SDF_Repetition( _pos_, _c_, _l_, _sdf_ )\
-    _sdf_( (_pos_) - (_c_) * Clamp( Round( (_pos_)/(_c_) ), -(_l_), (_l_) ))
+#define SDF_Repetition( _pos_, _step_, _count_, _sdf_ )\
+    (_sdf_( (_pos_) - (_step_) * Clamp( Round( (_pos_)/(_step_) ), -(_count_), (_count_) )))
 
 
 //-----------------------------------------------------------------------------

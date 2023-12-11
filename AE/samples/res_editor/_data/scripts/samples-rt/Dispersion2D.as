@@ -123,7 +123,7 @@
         {
             ClearBuffer( rtrace_raybuf, 0, 8, 0 );  // reset counter
 
-            RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::Enable_ShaderTrace );
+            RC<RayTracingPass>      pass = RayTracingPass();
             pass.ArgIn(     "un_RtScene",       rtrace_scene );
             pass.ArgIn(     "un_Constants",     rtrace_cbuf );
             pass.ArgOut(    "un_RayStorage",    rtrace_raybuf );
@@ -155,7 +155,7 @@
             draw.Output( "out_Color", hdr, RGBA32f(0.0, 0.0, 0.0, 1.0) );
             draw.EnableIfEqual( dbg_mode, 0 );
         }{
-            RC<Postprocess>     pass = Postprocess( EPostprocess::None, "TONEMAPPING", EPassFlags::None );
+            RC<Postprocess>     pass = Postprocess( EPostprocess::None, "TONEMAPPING" );
             pass.ArgIn(  "un_HDR",          hdr,    Sampler_LinearClamp );
             pass.Output( "out_Color",       rt );
             pass.Slider( "iTonemapping",    0,      2 );
@@ -321,7 +321,7 @@
             float2          obj_norm    = ToV2( ComputeNormal( pos_addr.positions[ idx_addr.indices[ idx+0 ]],
                                                                pos_addr.positions[ idx_addr.indices[ idx+1 ]],
                                                                pos_addr.positions[ idx_addr.indices[ idx+2 ]] )
-                                                * float3x3(MatTranspose( GetCommittedIntersectionObjectToWorld( ray_query ))) );
+                                                * float3x3( GetCommittedIntersectionObjectToWorld3x4( ray_query )) );
 
             hit.t           = GetCommittedIntersectionT( ray_query );
             hit.mtrId       = mtr_id;

@@ -180,13 +180,13 @@ namespace AE::Graphics
     // variables
     public:
         union {
-            Bytes16u    offset;
+            Byte16u     offset;
             ushort      bufferId;
         };
         EShader         stage   = Default;
 
         DEBUG_ONLY(
-            Bytes16u            dbgDataSize;
+            Byte16u             dbgDataSize;
             ShaderStructName    dbgTypeName;
         )
 
@@ -194,10 +194,10 @@ namespace AE::Graphics
     // methods
     public:
         explicit constexpr PushConstantIndex ()                                                 __NE___ {}
-        explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage)             __NE___ : offset{vulkanOffset}, stage{stage} {}
+        explicit constexpr PushConstantIndex (Byte16u vulkanOffset, EShader stage)              __NE___ : offset{vulkanOffset}, stage{stage} {}
         explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage)                __NE___ : bufferId{ushort(metalBufferId)}, stage{stage} {}
 
-        explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage,
+        explicit constexpr PushConstantIndex (Byte16u vulkanOffset, EShader stage,
                                               const ShaderStructName &typeName, Bytes dataSize) __NE___ :
             offset{vulkanOffset}, stage{stage}
             DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )

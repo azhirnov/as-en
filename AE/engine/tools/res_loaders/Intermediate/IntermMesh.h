@@ -90,7 +90,7 @@ namespace AE::ResLoader
         _vertexStride{ SizeOf<V> }, _attribs{ RVRef(attribs) },
         _topology{ topology }, _indexType{ sizeof(I) == sizeof(uint) ? EIndex::UInt : EIndex::UShort }
     {
-        STATIC_ASSERT(( IsSameTypes< I, uint > or IsSameTypes< I, ushort >));
+        StaticAssert(( IsSameTypes< I, uint > or IsSameTypes< I, ushort >));
 
         auto*   verts   = vertices.data();
         auto*   indcs   = indices.data();

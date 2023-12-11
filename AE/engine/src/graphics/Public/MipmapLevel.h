@@ -22,7 +22,7 @@ namespace AE::Graphics
     public:
         constexpr MipmapLevel ()                                    __NE___ {}
 
-        template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
+        template <typename T, ENABLEIF( IsUnsignedInteger<T> )>
         explicit constexpr MipmapLevel (T value)                    __NE___ : _value( CheckCast<ushort>(value)) {}
 
         ND_ constexpr uint  Get ()                                  C_NE___ { return _value; }

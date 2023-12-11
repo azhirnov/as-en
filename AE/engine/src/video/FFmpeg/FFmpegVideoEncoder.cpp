@@ -124,8 +124,8 @@ namespace {
     void  FFmpegVideoEncoder::_ValidateResolution ()
     {
         // round to multiple of 4
-        _config.dstSize.x = AlignDown( _config.srcSize.x, 2_pot );
-        _config.dstSize.y = AlignDown( _config.srcSize.y, 2_pot );
+        _config.dstDim.x = AlignDown( _config.srcDim.x, 2_pot );
+        _config.dstDim.y = AlignDown( _config.srcDim.y, 2_pot );
     }
 
 /*
@@ -137,8 +137,8 @@ namespace {
     {
         bool    scaling = false;
 
-        if ( All( IsZero( _config.dstSize )) )
-            _config.dstSize = _config.srcSize;
+        if ( All( IsZero( _config.dstDim )) )
+            _config.dstDim = _config.srcDim;
 
         if ( _config.bitrate == Bitrate_t{0} )
             _config.bitrate = _CalcBitrate( _config );
@@ -318,7 +318,7 @@ namespace {
     _CreateStream
 =================================================
 */
-    bool  FFmpegVideoEncoder::_CreateStream (const AVCodec* codec, const char *videoFormat)
+    bool  FFmpegVideoEncoder::_CreateStream (const AVCodec* codec, const char* videoFormat)
     {
         _DestroyStream();
 
@@ -343,8 +343,8 @@ namespace {
 
             _videoStream->codecpar->codec_id    = _codec->id;
             _videoStream->codecpar->codec_type  = _codec->type;
-            _videoStream->codecpar->width       = int(_config.dstSize.x);
-            _videoStream->codecpar->height      = int(_config.dstSize.y);
+            _videoStream->codecpar->width       = int(_config.dstDim.x);
+            _videoStream->codecpar->height      = int(_config.dstDim.y);
             _videoStream->codecpar->format      = EnumCast( _config.dstFormat );
             _videoStream->codecpar->bit_rate    = slong(_config.bitrate.GetNonScaled());
             _videoStream->time_base             = ToAVRational( _config.framerate );
@@ -406,8 +406,8 @@ namespace {
 
             _videoFrame                     = ffmpeg.av_frame_alloc();
             _videoFrame->format             = _codecCtx->pix_fmt;
-            _videoFrame->width              = int(_config.dstSize.x);
-            _videoFrame->height             = int(_config.dstSize.y);
+            _videoFrame->width              = int(_config.dstDim.x);
+            _videoFrame->height             = int(_config.dstDim.y);
             _videoFrame->color_range        = _codecCtx->color_range;
             _videoFrame->color_primaries    = _codecCtx->color_primaries;
             _videoFrame->color_trc          = _codecCtx->color_trc;
@@ -424,7 +424,7 @@ namespace {
 
             CHECK_ERR( src_fmt != AV_PIX_FMT_NONE );
 
-            _swsCtx = ffmpeg.sws_getContext( int(_config.srcSize.x), int(_config.srcSize.y), src_fmt,
+            _swsCtx = ffmpeg.sws_getContext( int(_config.srcDim.x), int(_config.srcDim.y), src_fmt,
                                              _codecCtx->width, _codecCtx->height, _codecCtx->pix_fmt,
                                              filter, null, null, null );
             CHECK_ERR( _swsCtx != null );
@@ -565,7 +565,7 @@ namespace {
 =================================================
     AddFrame
 =================================================
-*/
+*
     bool  FFmpegVideoEncoder::AddFrame (VideoImageID, Bool) __NE___
     {
         // not supported
@@ -588,7 +588,7 @@ namespace {
         const ubyte*    src_slice   [AV_NUM_DATA_POINTERS]  = { Cast<ubyte>( view.Parts().front().ptr )};
         const int       src_slice_y                         = 0;
 
-        const int   scaled_h = ffmpeg.sws_scale( _swsCtx, src_slice, src_stride, src_slice_y, int(_config.srcSize.y),
+        const int   scaled_h = ffmpeg.sws_scale( _swsCtx, src_slice, src_stride, src_slice_y, int(_config.srcDim.y),
                                                  OUT _videoFrame->data, _videoFrame->linesize );
 
         if_unlikely( scaled_h < 0 or scaled_h != _codecCtx->height )
@@ -917,7 +917,7 @@ namespace {
     _IOWritePacket
 =================================================
 */
-    int  FFmpegVideoEncoder::_IOWritePacket (void *opaque, ubyte *buf, int buf_size)
+    int  FFmpegVideoEncoder::_IOWritePacket (void* opaque, ubyte* buf, int buf_size)
     {
         auto*   stream = Cast<WStream>( opaque );
 

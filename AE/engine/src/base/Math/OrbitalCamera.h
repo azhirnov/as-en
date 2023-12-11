@@ -4,7 +4,6 @@
 
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
-#include "base/Math/Radians.h"
 
 namespace AE::Math
 {
@@ -25,7 +24,7 @@ namespace AE::Math
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = TRadians<T>;
+        using Rad_t         = TRadian<T>;
         using Rad2_t        = RadianVec<T,2>;
         using Transform_t   = typename Camera_t::Transform_t;
 
@@ -99,7 +98,7 @@ namespace AE::Math
 
         Quat_t&     q = _camera.transform.orientation;
 
-        q = Quat_t::RotateY( horizontal ) * q;
+        q = Quat_t::RotateY( -horizontal ) * q;
         q = Quat_t::Rotate( vertical, q * Vec3_t{ T{1}, T{0}, T{0} }) * q;
         q.Normalize();
 

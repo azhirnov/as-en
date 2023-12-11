@@ -14,13 +14,18 @@ namespace AE::GeometryTools
 */
     inline void  CheckTBN (const float3 &normal, const float3 &tangent, const float3 &bitangent)
     {
+        ASSERT( IsNormalized( normal ));
+        ASSERT( IsNormalized( tangent ));
+        ASSERT( IsNormalized( bitangent ));
+
         const float3    normal2     = Normalize( Cross( bitangent, tangent ));
         const float3    tangent2    = Normalize( Cross( normal, bitangent ));
         const float3    bitangent2  = Normalize( Cross( tangent, normal ));
 
-        ASSERT( All(Equals( normal,     normal2,    0.0001f )));
-        ASSERT( All(Equals( tangent,    tangent2,   0.0001f )));
-        ASSERT( All(Equals( bitangent,  bitangent2, 0.0001f )));
+        ASSERT( All(Equal( normal,      normal2,    1_pct )));
+        ASSERT( All(Equal( tangent,     tangent2,   1_pct )));
+        ASSERT( All(Equal( bitangent,   bitangent2, 1_pct )));
+        Unused( normal2, tangent2, bitangent2 );
     }
 
 /*

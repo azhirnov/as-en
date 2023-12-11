@@ -6,6 +6,9 @@
         Lf      - lock-free / wait-free
         Ts      - thread-safe (with locks)
         Async   - thread-safe (with task system)
+
+    'Must be externally synchronized' - means that mutex must be used
+        with at least 'Acquire' memory barrier when locked and 'Release' memory barrier when unlocked.
 */
 
 #pragma once
@@ -17,6 +20,9 @@
 #else
 #   define AE_ENABLE_DATA_RACE_CHECK    0
 #endif
+
+// TODO: ThreadWakeup is slow
+#define AE_USE_THREAD_WAKEUP    0
 
 
 namespace AE::Threading

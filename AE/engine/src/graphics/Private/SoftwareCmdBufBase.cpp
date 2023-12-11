@@ -57,6 +57,8 @@ namespace AE::Graphics::_hidden_
 */
     void  SoftwareCmdBufBase::Deallocate (void* root) __NE___
     {
+        // TODO: not needed because used frame allocator
+
         Allocator_t::Allocator_t    alloc;
         Allocator_t                 alloc_ref{ alloc };
 

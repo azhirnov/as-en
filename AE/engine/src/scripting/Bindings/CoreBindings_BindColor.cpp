@@ -7,54 +7,54 @@
 namespace AE::Scripting
 {
 namespace
-{   
+{
 /*
 =================================================
     constructors
 =================================================
 */
     template <typename T>
-    static void  RGBAColor_Ctor1 (void *mem, T val)
+    static void  RGBAColor_Ctor1 (void* mem, T val)
     {
         PlacementNew< RGBAColor<T> >( OUT mem, val );
     }
 
     template <typename T>
-    static void  RGBAColor_Ctor4 (void *mem, T r, T g, T b, T a)
+    static void  RGBAColor_Ctor4 (void* mem, T r, T g, T b, T a)
     {
         PlacementNew< RGBAColor<T> >( OUT mem, r, g, b, a );
     }
 
-    static void  RGBA32f_Ctor_HSV_Alpha (void *mem, const HSVColor &c, float alpha)
+    static void  RGBA32f_Ctor_HSV_Alpha (void* mem, const HSVColor &c, float alpha)
     {
         PlacementNew< RGBA32f >( OUT mem, c, alpha );
     }
 
     template <typename T>
-    static void  RGBA32f_Ctor_RGBA (void *mem, const RGBAColor<T> &c)
+    static void  RGBA32f_Ctor_RGBA (void* mem, const RGBAColor<T> &c)
     {
         PlacementNew< RGBA32f >( OUT mem, c );
     }
 
     template <typename T>
-    static void  RGBA32i_Ctor_RGBA (void *mem, const RGBAColor<T> &c)
+    static void  RGBA32i_Ctor_RGBA (void* mem, const RGBAColor<T> &c)
     {
         PlacementNew< RGBA32i >( OUT mem, c );
     }
 
     template <typename T>
-    static void  RGBA32u_Ctor_RGBA (void *mem, const RGBAColor<T> &c)
+    static void  RGBA32u_Ctor_RGBA (void* mem, const RGBAColor<T> &c)
     {
         PlacementNew< RGBA32u >( OUT mem, c );
     }
 
     template <typename T>
-    static void  RGBA8u_Ctor_RGBA (void *mem, const RGBAColor<T> &c)
+    static void  RGBA8u_Ctor_RGBA (void* mem, const RGBAColor<T> &c)
     {
         PlacementNew< RGBA8u >( OUT mem, c );
     }
 
-    static void  float4_Ctor_RGBA32f (void *mem, const RGBA32f &c)
+    static void  float4_Ctor_RGBA32f (void* mem, const RGBA32f &c)
     {
         PlacementNew< packed_float4 >( OUT mem, c );
     }
@@ -139,7 +139,7 @@ namespace
         binder.AddProperty( &T::a, "a" );
 
         binder.Operators()
-            .Equals( &T::operator== );
+            .Equal( &T::operator== );
 
         if constexpr( IsSameTypes< typename T::value_type, float >)
         {
@@ -210,22 +210,22 @@ namespace
     constructors
 =================================================
 */
-    static void  HSVColor_Ctor1 (void *mem, float h)
+    static void  HSVColor_Ctor1 (void* mem, float h)
     {
         PlacementNew< HSVColor >( OUT mem, h );
     }
 
-    static void  HSVColor_Ctor2 (void *mem, float h, float s)
+    static void  HSVColor_Ctor2 (void* mem, float h, float s)
     {
         PlacementNew< HSVColor >( OUT mem, h, s );
     }
 
-    static void  HSVColor_Ctor3 (void *mem, float h, float s, float v)
+    static void  HSVColor_Ctor3 (void* mem, float h, float s, float v)
     {
         PlacementNew< HSVColor >( OUT mem, h, s, v );
     }
 
-    static void  HSVColor_Ctor_RGBA32f (void *mem, const RGBA32f &c)
+    static void  HSVColor_Ctor_RGBA32f (void* mem, const RGBA32f &c)
     {
         PlacementNew< HSVColor >( OUT mem, c );
     }
@@ -251,7 +251,7 @@ namespace
         binder.AddConstructor( &HSVColor_Ctor_RGBA32f,  {"col"} );
 
         binder.Operators()
-            .Equals( &HSVColor::operator== );
+            .Equal( &HSVColor::operator== );
     }
 
 /*
@@ -259,7 +259,7 @@ namespace
     constructors
 =================================================
 */
-    static void  DepthStencil_Ctor (void *mem, float d, int s)
+    static void  DepthStencil_Ctor (void* mem, float d, int s)
     {
         PlacementNew< DepthStencil >( OUT mem, d, uint(s) );
     }
@@ -281,7 +281,7 @@ namespace
         binder.AddConstructor( &DepthStencil_Ctor,  {"depth", "stencil"} );
 
         binder.Operators()
-            .Equals( &DepthStencil::operator== );
+            .Equal( &DepthStencil::operator== );
     }
 
 } // namespace

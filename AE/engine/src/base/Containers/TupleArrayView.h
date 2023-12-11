@@ -34,7 +34,7 @@ namespace AE::Base
         using Types_t   = TypeList< Types... >;
         using CResult_t = TupleRef< const Types ...>;
 
-        STATIC_ASSERT( Types_t::Count > 0 );
+        StaticAssert( Types_t::Count > 0 );
 
 
         struct TIterator
@@ -49,7 +49,7 @@ namespace AE::Base
             TIterator ()                                __NE___ {}
             TIterator (const TIterator &)               __NE___ = default;
             TIterator (TIterator &&)                    __NE___ = default;
-            TIterator (const Self *ptr, usize idx)      __NE___ : _ptr{ptr}, _index{idx} { ASSERT( _ptr != null ); }
+            TIterator (const Self* ptr, usize idx)      __NE___ : _ptr{ptr}, _index{idx} { ASSERT( _ptr != null ); }
 
             TIterator&  operator = (const TIterator &)  __NE___ = default;
             TIterator&  operator = (TIterator &&)       __NE___ = default;

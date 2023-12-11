@@ -193,9 +193,9 @@ namespace AE::App
 
         auto    key_it = _pressedKeys.begin();
 
-        STATIC_ASSERT( uint(EGestureType::Click)+1       == uint(EGestureType::DoubleClick) );
-        STATIC_ASSERT( uint(EGestureType::DoubleClick)+1 == uint(EGestureType::Hold) );
-        STATIC_ASSERT( uint(EGestureType::Hold)+1        == uint(EGestureType::LongPress) );
+        StaticAssert( uint(EGestureType::Click)+1        == uint(EGestureType::DoubleClick) );
+        StaticAssert( uint(EGestureType::DoubleClick)+1 == uint(EGestureType::Hold) );
+        StaticAssert( uint(EGestureType::Hold)+1         == uint(EGestureType::LongPress) );
 
         _Skip< EGestureType::Click >( INOUT key_it );
 
@@ -288,10 +288,11 @@ namespace AE::App
 */
     InputActionsBase::DubleBufferedQueue*  InputActionsBase::GetQueue (IInputActions* act) __NE___
     {
-        if ( auto* base = DynCast<InputActionsBase>( act ))
-        {
-            return base->_dbQueueRef.Get();
-        }
+        ASSERT( CastAllowed<InputActionsBase>( act ));
+
+        if ( act != null )
+            return Cast<InputActionsBase>( act )->_dbQueueRef.Get();
+
         return null;
     }
 
@@ -330,7 +331,7 @@ namespace AE::App
                           GestureType == EGestureType::LongPress )
             {
                 if ( state == EGestureState::Begin ){
-                    _pressedKeys.emplace( key, timestamp );
+                    _pressedKeys.emplace( key, PressedKey{ timestamp, id });
                 }else{
                     _pressedKeys.EraseByKey( key );
                 }
@@ -338,7 +339,7 @@ namespace AE::App
             else
             if constexpr( GestureType == EGestureType::Down )
             {
-                if ( state == EGestureState::Begin and _pressedKeys.emplace( key, timestamp ).second ){
+                if ( state == EGestureState::Begin and _pressedKeys.emplace( key, PressedKey{ timestamp, id }).second ){
                     _dbQueueRef.Insert( info.name, id, EGestureState::End, &v[0], v_size );
                 }
                 if ( state == EGestureState::End ){
@@ -349,7 +350,7 @@ namespace AE::App
             if constexpr( GestureType == EGestureType::Click )
             {
                 if ( state == EGestureState::Begin ){
-                    _pressedKeys.emplace( key, timestamp );
+                    _pressedKeys.emplace( key, PressedKey{ timestamp, id });
                 }else
                 if ( PressedKey pressed;
                      _pressedKeys.Extract( key, OUT pressed ) and (timestamp - pressed.timestamp) <= _ClickMaxDuration )
@@ -361,7 +362,7 @@ namespace AE::App
             if constexpr( GestureType == EGestureType::DoubleClick )
             {
                 if ( state == EGestureState::Begin ){
-                    _pressedKeys.emplace( key, timestamp );
+                    _pressedKeys.emplace( key, PressedKey{ timestamp, id });
                 }else
                 if ( auto key_it = _pressedKeys.find( key );  key_it != _pressedKeys.end() )
                 {

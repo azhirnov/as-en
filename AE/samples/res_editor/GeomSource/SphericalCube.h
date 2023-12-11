@@ -18,7 +18,8 @@ namespace AE::ResEditor
 
     // types
     private:
-        using PplnID_t  = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
+        using PplnID_t      = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
+        using PipelineMap_t = FixedMap< EDebugMode, PplnID_t, uint(EDebugMode::_Count) >;
 
         class Material final : public IGSMaterials
         {
@@ -26,7 +27,7 @@ namespace AE::ResEditor
         public:
             RenderTechPipelinesPtr      rtech;
 
-            PplnID_t                    ppln;
+            PipelineMap_t               pplnMap;
             PerFrameDescSet_t           descSets;
 
             DescSetBinding              passDSIndex;
@@ -37,8 +38,10 @@ namespace AE::ResEditor
 
         // methods
         public:
-            Material () {}
+            Material ()     __NE___ {}
             ~Material ();
+
+            DebugModeBits  GetDebugModeBits ()  C_NE_OV;
         };
 
 
@@ -47,24 +50,24 @@ namespace AE::ResEditor
         GeometryTools::SphericalCubeRenderer    _cube;
         ResourceArray                           _resources;
 
-        RC<DynamicFloat>                        _tessLevel;
-
         const uint                              _minLod     = 0;
         const uint                              _maxLod     = 0;
 
 
     // methods
     public:
-        SphericalCube (Renderer &r, uint minLod, uint maxLod, RC<DynamicFloat> tessLevel) __Th___;
+        SphericalCube (Renderer &r, uint minLod, uint maxLod)                       __NE___;
         ~SphericalCube ();
 
 
     // IGeomSource //
-        void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)   __Th_OV;
+        void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
+                                   const Debugger &, OUT ShaderDebugger::Result &)  __Th_OV;
+        void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)               __Th_OV;
         using IGeomSource::StateTransition;
 
-        bool  Draw (const DrawData &)                                   __Th_OV;
-        bool  Update (const UpdateData &)                               __Th_OV;
+        bool  Draw (const DrawData &)                                               __Th_OV;
+        bool  Update (const UpdateData &)                                           __Th_OV;
     };
 
 

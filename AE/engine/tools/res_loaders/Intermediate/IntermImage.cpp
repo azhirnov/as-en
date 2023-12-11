@@ -104,7 +104,7 @@ namespace AE::ResLoader
     operator =
 =================================================
 */
-    IntermImage&  IntermImage::operator = (IntermImage && rhs) __NE___
+    IntermImage&  IntermImage::operator = (IntermImage &&rhs) __NE___
     {
         _srcPath    = RVRef(rhs._srcPath);
         _data       = RVRef(rhs._data);
@@ -177,7 +177,7 @@ namespace AE::ResLoader
         return Copy( memView, null );
     }
 
-    bool  IntermImage::Copy (const ImageMemView &memView, SharedMem::Allocator_t allocator) __NE___
+    bool  IntermImage::Copy (const ImageMemView &memView, RC<IAllocator> allocator) __NE___
     {
         CHECK_ERR( IsMutable() );
 
@@ -295,11 +295,11 @@ namespace AE::ResLoader
         auto&   fmt_info = EPixelFormat_GetInfo( fmt );
         CHECK_ERR( fmt_info.IsValid() );
 
-        CATCH_ERR( _data.resize( mipmaps.Get() ));
+        NOTHROW_ERR( _data.resize( mipmaps.Get() ));
 
         for (usize mip = 0; mip < _data.size(); ++mip)
         {
-            CATCH_ERR( _data[mip].resize( layers.Get() ));
+            NOTHROW_ERR( _data[mip].resize( layers.Get() ));
 
             for (uint layer = 0; layer < layers.Get(); ++layer)
             {
@@ -325,7 +325,7 @@ namespace AE::ResLoader
     Allocate
 =================================================
 */
-    bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps, SharedMem::Allocator_t allocator) __NE___
+    bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps, RC<IAllocator> allocator) __NE___
     {
         if ( not allocator )
             allocator = AE::GetDefaultAllocator();
@@ -347,7 +347,7 @@ namespace AE::ResLoader
         return true;
     }
 
-    bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, SharedMem::Allocator_t allocator) __NE___
+    bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, RC<IAllocator> allocator) __NE___
     {
         return Allocate( type, fmt, dim, ImageLayer{1u}, MipmapLevel{1u}, RVRef(allocator) );
     }

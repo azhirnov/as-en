@@ -30,7 +30,7 @@ namespace
         uint        iter    = 0;
 
     public:
-        Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test1_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -67,7 +67,7 @@ namespace
     public:
         ExeOrder&   value;
 
-        Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test1_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -86,9 +86,9 @@ namespace
         ExeOrder    value;  // access to value protected by internal synchronizations
         auto        task1 = Cast<Test1_Task1>( scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1 }));
+        TEST( scheduler->Wait( {task1}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
 
         TEST( value.guard.try_lock() );
@@ -101,7 +101,7 @@ namespace
 
         AsyncTask   task2 = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        TEST( scheduler->Wait({ task1, task2 }));
+        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( task2->Status() == EStatus::Completed );
 
@@ -120,7 +120,7 @@ namespace
         uint        iter    = 0;
 
     public:
-        Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test2_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -153,7 +153,7 @@ namespace
     public:
         ExeOrder&   value;
 
-        Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test2_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -173,9 +173,9 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1, task2 }));
+        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( task2->Status() == EStatus::Completed );
 
@@ -194,7 +194,7 @@ namespace
         const uint  id;
 
     public:
-        Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ ETaskQueue::PerFrame }, value{val}, id{id} {}
+        Test3_Task1 (ExeOrder &val, uint id) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val}, id{id} {}
 
         void  Run () __Th_OV
         {
@@ -213,7 +213,7 @@ namespace
         uint        iter    = 0;
 
     public:
-        Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test3_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -256,7 +256,7 @@ namespace
     public:
         ExeOrder&   value;
 
-        Test3_Task3 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+        Test3_Task3 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
         void  Run () __Th_OV
         {
@@ -276,10 +276,10 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test3_Task3>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1, task2 }));
+        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( task2->Status() == EStatus::Completed );
 

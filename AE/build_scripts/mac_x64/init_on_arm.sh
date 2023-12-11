@@ -10,3 +10,6 @@ rm -rf _build_x64
 mkdir _build_x64
 cd _build_x64
 arch -x86_64 /usr/local/bin/cmake -G "Xcode" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=x86_64 -DAE_SIMD_SSE=20 "../AE"
+
+read -p "open project?"
+open ./AE.xcodeproj

@@ -60,7 +60,7 @@ namespace AE::App
     {
     // types
     public:
-        class IWndListener
+        class IWndListener : public NothrowAllocatable
         {
         // types
         public:

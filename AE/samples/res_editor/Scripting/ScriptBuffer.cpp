@@ -57,9 +57,6 @@ namespace
     constructor
 =================================================
 */
-    ScriptBuffer::ScriptBuffer () __Th___
-    {}
-
     ScriptBuffer::ScriptBuffer (Bytes size) __Th___ :
         _type{ EBufferType::MutableData_NonInitialized }
     {
@@ -552,7 +549,7 @@ namespace
 =================================================
     ULong*
 =================================================
-*/  
+*/
     uint  ScriptBuffer::ULong1 (const String &name, ulong x) __Th___
     {
         _InitConstDataFromScriptLayout();
@@ -1087,7 +1084,7 @@ namespace
         // allow 'FillBuffer' on init
         _desc.usage |= EBufferUsage::TransferDst;
 
-        auto&               res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&               res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&           renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
         GfxMemAllocatorPtr  gfx_alloc   = _dynCount ? renderer.GetDynamicAllocator() : renderer.GetAllocator();
 
@@ -1157,8 +1154,8 @@ namespace
             }
         }
 
-        _resource = MakeRC<Buffer>( RVRef(buf_ids), _desc, elem_size, RVRef(load_op), struct_type,
-                                    renderer, (_dynCount ? _dynCount->Get() : null), _dbgName, flags, RVRef(_refBuffers) );  // throw
+        _resource = MakeRCTh<Buffer>( RVRef(buf_ids), _desc, elem_size, RVRef(load_op), struct_type,
+                                      renderer, (_dynCount ? _dynCount->Get() : null), _dbgName, flags, RVRef(_refBuffers) );  // throw
         return _resource;
     }
 

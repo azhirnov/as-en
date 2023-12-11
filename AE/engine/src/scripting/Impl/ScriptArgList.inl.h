@@ -63,7 +63,7 @@ namespace AE::Scripting
                 }
                 else
                 {
-                    STATIC_ASSERT( IsClass<T2> );
+                    StaticAssert( IsClass<T2> );
                     T2* arg = *static_cast<T2 **>(_gen->GetArgAddress( idx ));
                     ASSERT( arg == null );
                     return *arg;
@@ -71,7 +71,7 @@ namespace AE::Scripting
             }
             else
             {
-                STATIC_ASSERT( IsClass<T2> );
+                StaticAssert( IsClass<T2> );
                 return *Cast<CT2>(_gen->GetArgAddress( idx ));
             }
         }
@@ -143,7 +143,7 @@ namespace AE::Scripting
             return _gen->SetReturnAddress( const_cast<T*>(&value) );
         else
         {
-            STATIC_ASSERT( ScriptTypeInfo<T>::is_object );
+            StaticAssert( ScriptTypeInfo<T>::is_object );
             return _gen->SetReturnObject( const_cast<T*>(&value) );
         }
     }
@@ -177,7 +177,7 @@ namespace AE::Scripting
 
         constexpr bool  is_obj  = Info::is_object;
         constexpr bool  is_rc   = Info::is_ref_counted or AngelScriptHelper::IsSharedPtrNoQual<T>;
-        STATIC_ASSERT( is_obj or is_rc );
+        StaticAssert( is_obj or is_rc );
 
         const asDWORD   obj_flags   = is_rc ? asOBJ_REF : asOBJ_VALUE;
         asITypeInfo*    info        = _gen->GetEngine()->GetTypeInfoById( _gen->GetObjectTypeId() );
@@ -230,7 +230,7 @@ namespace AE::Scripting
         Visitor     vis {*this};
         FnInfo::args::Visit( vis );
 
-        return  IsReturn< typename FnInfo::result >() and vis.result;
+        return IsReturn< typename FnInfo::result >() and vis.result;
     }
 
 /*

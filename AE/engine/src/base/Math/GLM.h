@@ -174,16 +174,14 @@
 #include "gtc/type_precision.hpp"
 #include "gtc/type_ptr.hpp"
 #include "gtc/ulp.hpp"
-#include "gtc/vec1.hpp"
 
 #include "gtx/matrix_decompose.hpp"
 #include "gtx/matrix_major_storage.hpp"
 #include "gtx/norm.hpp"
 #include "gtx/easing.hpp"
-
+#include "gtx/rotate_vector.hpp"
 #include "gtx/dual_quaternion.hpp"
 #include "gtx/intersect.hpp"
-
 #include "gtx/fast_exponential.hpp"
 #include "gtx/fast_square_root.hpp"
 #include "gtx/fast_trigonometry.hpp"
@@ -227,8 +225,17 @@ namespace AE::Base
     template <typename T, int I, glm::qualifier Q>
     struct TZeroMemAvailable< TVec<T,I,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 
-    //template <typename T, int I, glm::qualifier Q>
-    //struct TTriviallySerializable< TVec<T,I,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
+    // 'IsTriviallySerializable< TVec<> > = false' - because SIMD and packed types has different alignment
+
+    template <typename T, int I, glm::qualifier Q>
+    struct TNothrowCopyCtor< TVec<T,I,Q> > { static constexpr bool  value = true; };
+
+    template <typename T, int I, glm::qualifier Q>
+    struct TNothrowDefaultCtor< TVec<T,I,Q> > { static constexpr bool  value = true; };
+
+    template <typename T, int I, glm::qualifier Q, typename ...Args>
+    struct TNothrowCtor< TVec<T,I,Q>, Args... > { static constexpr bool  value = true; };
+
 
     template <typename T, glm::qualifier Q>
     struct TMemCopyAvailable< TQuat<T,Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
@@ -236,8 +243,8 @@ namespace AE::Base
     template <typename T, glm::qualifier Q>
     struct TZeroMemAvailable< TQuat<T,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 
-    //template <typename T, glm::qualifier Q>
-    //struct TTriviallySerializable< TQuat<T,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
+    // 'IsTriviallySerializable< TQuat<> > = false' - because SIMD and packed types has different alignment
+
 
     template <typename T, uint Columns, uint Rows, glm::qualifier Q>
     struct TMemCopyAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
@@ -245,8 +252,7 @@ namespace AE::Base
     template <typename T, uint Columns, uint Rows, glm::qualifier Q>
     struct TZeroMemAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 
-    //template <typename T, uint Columns, uint Rows, glm::qualifier Q>
-    //struct TTriviallySerializable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
+    // 'IsTriviallySerializable< TMatrix<> > = false' - because SIMD and packed types has different alignment
 
 } // AE::Base
 

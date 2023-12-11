@@ -16,8 +16,8 @@ namespace AE::App
         VRRenderSurface &   t;
 
     public:
-        BlitImageTask (VRRenderSurface* t, CommandBatchPtr batch, DebugLabel) __Th___ :
-            RenderTask{ batch, {"VRDeviceEmulator::BlitImage"} },   // throw
+        BlitImageTask (VRRenderSurface* t, CommandBatchPtr batch, DebugLabel) __NE___ :
+            RenderTask{ batch, {"VRDeviceEmulator::BlitImage"} },
             t{ *t }
         {}
 
@@ -41,8 +41,8 @@ namespace AE::App
         auto&   src_rt1 = src_targets[1];
         auto&   dst_rt  = dst_targets[0];
 
-        //ASSERT( src_rt0.colorSpace == dst_rt.colorSpace );  // TODO
-        //ASSERT( src_rt1.colorSpace == dst_rt.colorSpace );
+        ASSERT( src_rt0.colorSpace == dst_rt.colorSpace );
+        ASSERT( src_rt1.colorSpace == dst_rt.colorSpace );
 
         DirectCtx::Transfer     ctx{ *this };
 
@@ -95,7 +95,7 @@ namespace AE::App
         if_unlikely( not surf.IsInitialized() )
             return null;
 
-        _presentBatch = RenderTaskScheduler().BeginCmdBatch( EQueueType::Graphics, 2, {"VR emulator present"} );
+        _presentBatch = GraphicsScheduler().BeginCmdBatch( EQueueType::Graphics, 2, {"VR emulator present"} );
         CHECK_ERR( _presentBatch );
 
         CHECK_ERR( _presentBatch->AddInputDependency( endCmdBatch ));
@@ -279,8 +279,8 @@ namespace AE::App
     {
         if_likely( _vrDev._window )
         {
-            if ( auto* base_acts = DynCast<InputActionsBase>( &_vrDev._window->InputActions() ))
-                base_acts->EnableVREmulation();
+            ASSERT( CastAllowed<InputActionsBase>( &_vrDev._window->InputActions() ));
+            Cast<InputActionsBase>( &_vrDev._window->InputActions() )->EnableVREmulation();
 
             return _vrDev._window->InputActions().LoadSerialized( stream );
         }
@@ -564,7 +564,7 @@ namespace AE::App
         }
 
         RadianVec<float,2>  angle;
-        const usize         idx = RenderTaskScheduler().GetFrameId().Remap2( 1 ) * 2;
+        const usize         idx = GraphicsScheduler().GetFrameId().Remap2( 1 ) * 2;
         {
             EXLOCK( _hmdRotationGuard );
             angle.x = Rad{_hmdRotation.x};

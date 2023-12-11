@@ -1,10 +1,22 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    hint:
+        upload      - write (on host)   - from host to device
+        readback    - read  (on host)   - from device to host
+
+    Upload staging buffer must use coherent memory and doesn't require FlushMemoryRanges.
+    Readback staging buffer can use cached non-coherent memory.
+    Vertex buffer use unified memory and doesn't require FlushMemoryRanges.
+*/
 
 #if defined(AE_ENABLE_VULKAN)
 #   define STBUFMNGR        VStagingBufferManager
 
 #elif defined(AE_ENABLE_METAL)
 #   define STBUFMNGR        MStagingBufferManager
+
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#   define STBUFMNGR        RStagingBufferManager
 
 #else
 #   error not implemented
@@ -33,6 +45,11 @@ namespace AE::Graphics
         using ResourceManager_t     = MResourceManager;
         using NativeMemObjInfo_t    = MetalMemoryObjInfo;
 
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        using NativeBuffer_t        = RmBufferID;
+        using ResourceManager_t     = RResourceManager;
+        using NativeMemObjInfo_t    = RemoteMemoryObjInfo;
+
       #else
       # error not implemented
       #endif
@@ -44,6 +61,8 @@ namespace AE::Graphics
             Bytes           bufferOffset;
             Bytes           size;
             void *          mapped      = null;
+
+            StagingBufferResult ()  __NE___ {}
         };
         using BufferRanges_t = FixedArray< StagingBufferResult, BufferMemView::Count >;
 
@@ -54,11 +73,12 @@ namespace AE::Graphics
             uint3           imageSize;
           #if defined(AE_ENABLE_VULKAN)
             uint            bufferImageHeight   = 0;    // in pixels, for BufferImageCopy::bufferImageHeight
-          #elif defined(AE_ENABLE_METAL)
+          #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
             Bytes           bufferSlicePitch;
           #else
           # error not implemented
           #endif
+            StagingImageResult ()   __NE___ {}
         };
         using ImageRanges_t = FixedArray< StagingImageResult, ImageMemView::Count >;
 
@@ -79,9 +99,11 @@ namespace AE::Graphics
 
         struct alignas(AE_CACHE_LINE) StaticBuffer
         {
-            BytesAtomic<uint>   size            {0_b};
-            Bytes32u            capacity;
-            Bytes32u            memOffset;
+            AtomicByte<uint>    size            {0_b};
+            Byte32u             capacity;
+          #ifdef AE_ENABLE_VULKAN
+            Byte32u             memOffset;
+          #endif
             Strong<BufferID>    buffer;
             NativeBuffer_t      bufferHandle    = Default;
             void*               mapped          = null;
@@ -101,10 +123,12 @@ namespace AE::Graphics
           #if defined(AE_ENABLE_VULKAN)
             VkDeviceMemory              memoryForWrite          = Default;
             VkDeviceMemory              memoryForRead           = Default;
-            VkMemoryPropertyFlagBits    memoryFlagsForRead      = Zero;
+            bool                        isReadCoherent          = false;
 
           #elif defined(AE_ENABLE_METAL)
             MetalMemoryRC               memory;
+
+          #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
           #else
           # error not implemented
@@ -125,7 +149,7 @@ namespace AE::Graphics
           #if defined(AE_ENABLE_VULKAN)
             VkDeviceMemory      memory  = Default;
 
-          #elif defined(AE_ENABLE_METAL)
+          #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
           #else
           # error not implemented
           #endif
@@ -146,10 +170,10 @@ namespace AE::Graphics
         struct DynamicPerType
         {
             // mutable
-            BytesAtomic<uint>           maxPerFrame     {0_b};
-            mutable BytesAtomic<uint>   usedPerFrame    {0_b};
+            AtomicByte<uint>            maxPerFrame     {0_b};
+            mutable AtomicByte<uint>    usedPerFrame    {0_b};
             DynamicBuffers              buffers;
-            mutable BytesAtomic<ulong>  allocated       {0_b};
+            mutable AtomicByte<ulong>   allocated       {0_b};
 
             // immutable
             Bytes                       maxSize;
@@ -179,6 +203,8 @@ namespace AE::Graphics
           #elif defined(AE_ENABLE_METAL)
             MetalMemoryRC       memory;
 
+          #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+
           #else
           # error not implemented
           #endif
@@ -200,6 +226,12 @@ namespace AE::Graphics
             // TODO
         };
 
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        struct alignas(AE_CACHE_LINE) MappedMemRanges
+        {
+            // TODO
+        };
+
       #else
       # error not implemented
       #endif
@@ -210,6 +242,8 @@ namespace AE::Graphics
         Static              _static;
         Dynamic             _dynamic;
         StaticVStream       _vstream;
+
+        Byte16u             _memSizeAlign   {1};
         MappedMemRanges     _memRanges;
 
         ResourceManager_t&  _resMngr;
@@ -238,7 +272,7 @@ namespace AE::Graphics
 
             bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result)                                         __NE___;
 
-        ND_ FrameStat_t  GetFrameStat (FrameUID frameId)                                                                        C_NE___; 
+        ND_ FrameStat_t  GetFrameStat (FrameUID frameId)                                                                        C_NE___;
 
       #if defined(AE_ENABLE_VULKAN)
             void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size)                       __NE___;
@@ -253,7 +287,7 @@ namespace AE::Graphics
         ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) const;
 
         template <typename RangeType, typename BufferType>
-        ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
+        ND_ static bool  _AllocStatic (Byte32u reqSize, Byte32u blockSize, Byte32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
 
         template <bool SingleAlloc, typename RangeType>
         ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload, INOUT RangeType& buffers, DynamicBuffers &db) const;

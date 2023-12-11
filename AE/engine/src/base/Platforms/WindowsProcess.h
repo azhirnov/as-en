@@ -26,6 +26,9 @@ namespace AE::Base
             Unknown         = None,
         };
 
+    private:
+        using Mutex = std::mutex;
+
 
     // variables
     private:
@@ -53,16 +56,16 @@ namespace AE::Base
         bool  Terminate (milliseconds timeout = _DefTimeout);
 
         bool  WaitAndClose (milliseconds timeout = _DefTimeout);
-        bool  WaitAndClose (INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+        bool  WaitAndClose (INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
 
         static bool  Execute (String &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
         static bool  Execute (WString &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
-        static bool  Execute (String &commandLine, INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
-        static bool  Execute (WString &commandLine, INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+        static bool  Execute (String &commandLine, INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
+        static bool  Execute (WString &commandLine, INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
 
     private:
         template <typename T>
-        bool  _ExecuteAsync (BasicString<T> &commandLine, const Path *currentDir, EFlags flags);
+        bool  _ExecuteAsync (BasicString<T> &commandLine, const Path* currentDir, EFlags flags);
     };
 
     AE_BIT_OPERATORS( WindowsProcess::EFlags );

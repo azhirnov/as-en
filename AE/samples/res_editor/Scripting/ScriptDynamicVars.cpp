@@ -7,6 +7,16 @@ namespace AE::ResEditor
 {
     using namespace AE::Scripting;
 
+namespace
+{
+    template <typename T1, typename T2, typename T3>
+    static T1*  ScriptDynamicT_Ctor (T3 value) {
+        return ScriptRC<T1>{ new T1{ MakeRC<T2>( value )}}.Detach();
+    }
+
+
+} // namespace
+
 //-----------------------------------------------------------------------------
 // ScriptDynamicDim
 
@@ -86,7 +96,7 @@ namespace AE::ResEditor
     void  ScriptDynamicDim::Bind (const ScriptEnginePtr &se) __Th___
     {
         ClassBinder<ScriptDynamicDim>   binder{ se };
-        binder.CreateRef();
+        binder.CreateRef( 0, False{"no ctor"} );
 
         binder.AddMethod( &ScriptDynamicDim::Mul1,      "opMul",        {} );
         binder.AddMethod( &ScriptDynamicDim::Div1,      "opDiv",        {} );
@@ -135,8 +145,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicUInt::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicUInt>  binder{ se };
+        ClassBinder<ScriptDynamicUInt>      binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt, DynamicUInt, uint >, {} );
     }
 
 /*
@@ -146,8 +157,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicUInt2::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicUInt2> binder{ se };
+        ClassBinder<ScriptDynamicUInt2>     binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt2, DynamicUInt2, const packed_uint2& >, {} );
     }
 
 /*
@@ -157,8 +169,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicUInt3::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicUInt3> binder{ se };
+        ClassBinder<ScriptDynamicUInt3>     binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt3, DynamicUInt3, const packed_uint3& >, {} );
     }
 
 /*
@@ -168,8 +181,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicUInt4::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicUInt4> binder{ se };
+        ClassBinder<ScriptDynamicUInt4>     binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt4, DynamicUInt4, const packed_uint4& >, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -182,8 +196,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicInt::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicInt>   binder{ se };
+        ClassBinder<ScriptDynamicInt>       binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt, DynamicInt, int >, {} );
     }
 
 /*
@@ -193,8 +208,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicInt2::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicInt2>  binder{ se };
+        ClassBinder<ScriptDynamicInt2>      binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt2, DynamicInt2, const packed_int2& >, {} );
     }
 
 /*
@@ -204,8 +220,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicInt3::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicInt3>  binder{ se };
+        ClassBinder<ScriptDynamicInt3>      binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt3, DynamicInt3, const packed_int3& >, {} );
     }
 
 /*
@@ -215,8 +232,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicInt4::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicInt4>  binder{ se };
+        ClassBinder<ScriptDynamicInt4>      binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicInt4, DynamicInt4, const packed_int4& >, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -229,8 +247,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicFloat::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicFloat> binder{ se };
+        ClassBinder<ScriptDynamicFloat>     binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat, DynamicFloat, float >, {} );
     }
 
 /*
@@ -242,6 +261,7 @@ namespace AE::ResEditor
     {
         ClassBinder<ScriptDynamicFloat2>    binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat2, DynamicFloat2, const packed_float2& >, {} );
     }
 
 /*
@@ -253,6 +273,7 @@ namespace AE::ResEditor
     {
         ClassBinder<ScriptDynamicFloat3>    binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat3, DynamicFloat3, const packed_float3& >, {} );
     }
 
 /*
@@ -264,6 +285,7 @@ namespace AE::ResEditor
     {
         ClassBinder<ScriptDynamicFloat4>    binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat4, DynamicFloat4, const packed_float4& >, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -276,8 +298,9 @@ namespace AE::ResEditor
 */
     void  ScriptDynamicULong::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptDynamicULong> binder{ se };
+        ClassBinder<ScriptDynamicULong>     binder{ se };
         binder.CreateRef();
+        binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicULong, DynamicULong, ulong >, {} );
     }
 
 

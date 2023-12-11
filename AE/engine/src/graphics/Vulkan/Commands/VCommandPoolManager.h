@@ -38,7 +38,7 @@ namespace _hidden_
         {
         private:
             static constexpr usize  _Mask = CT_ToBitMask< usize, CT_CeilIntLog2< GraphicsConfig::MaxCmdBuffersPerPool >>;
-            STATIC_ASSERT( _Mask <= alignof(CmdPoolPerQueue) );
+            StaticAssert( _Mask <= alignof(CmdPoolPerQueue) );
 
             usize   _ptr    = UMax;
 
@@ -46,10 +46,10 @@ namespace _hidden_
             CmdPoolGuard ()                                     __NE___ {}
             CmdPoolGuard (CmdPoolPerQueue &ref, usize idx)      __NE___ : _ptr{ usize(&ref) | idx } { ASSERT( _Ptr() == &ref );  ASSERT( idx == _BitIndex() ); }
             CmdPoolGuard (const CmdPoolGuard &)                 = delete;
-            CmdPoolGuard (CmdPoolGuard && other)                __NE___ : _ptr{other._ptr} { other._ptr = UMax; }
+            CmdPoolGuard (CmdPoolGuard &&other)                 __NE___ : _ptr{other._ptr} { other._ptr = UMax; }
 
             CmdPoolGuard&  operator = (const CmdPoolGuard&)     = delete;
-            CmdPoolGuard&  operator = (CmdPoolGuard && rhs)     __NE___ { ASSERT( not IsLocked() );  _ptr = rhs._ptr;  rhs._ptr = UMax;  return *this; }
+            CmdPoolGuard&  operator = (CmdPoolGuard &&rhs)      __NE___ { ASSERT( not IsLocked() );  _ptr = rhs._ptr;  rhs._ptr = UMax;  return *this; }
 
             ND_ bool            IsValid ()                      C_NE___ { return _ptr != UMax; }
             ND_ bool            IsLocked ()                     C_NE___ { return IsValid() and HasBit( _Ptr()->assignedBits.load(), _BitIndex() ); }
@@ -140,7 +140,7 @@ namespace _hidden_
         VCommandBuffer (VCommandBuffer &&)                      __NE___;
         ~VCommandBuffer ()                                      __NE___;
 
-        VCommandBuffer&  operator = (VCommandBuffer && rhs)     __NE___;
+        VCommandBuffer&  operator = (VCommandBuffer &&rhs)      __NE___;
 
         ND_ bool  EndAndRelease ()                              __NE___;
 
@@ -198,7 +198,7 @@ namespace _hidden_
         bool  NextFrame (FrameUID frameId)                  __NE___;
         bool  ReleaseResources (FrameUID frameId)           __NE___;
 
-        ND_ VCommandBuffer  GetCommandBuffer (EQueueType queue, ECommandBufferType type, const VPrimaryCmdBufState *primaryState) __NE___;
+        ND_ VCommandBuffer  GetCommandBuffer (EQueueType queue, ECommandBufferType type, const VPrimaryCmdBufState* primaryState) __NE___;
 
         ND_ VDevice const&  GetDevice ()                    C_NE___ { return _device; }
 

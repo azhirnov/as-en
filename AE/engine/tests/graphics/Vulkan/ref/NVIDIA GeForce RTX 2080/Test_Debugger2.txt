@@ -46,11 +46,13 @@ name: 'Debugger2 |0| Draw task'
 
   BindPipeline
     pipeline:  'dbg2_draw'
+    layout:    '3'
     bindPoint: GRAPHICS
   ----------
 
   Draw
     descriptors:
+    [0] pl: '3'
       buffer: 'debug storage buffer'
   ----------
 
@@ -83,7 +85,7 @@ name: 'Debugger2 |1| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2

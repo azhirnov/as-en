@@ -212,6 +212,13 @@ namespace AE::Base
     };
 
 
+
+    template <usize IndexSize, usize GenerationSize, uint UID>
+    struct TTriviallySerializable< HandleTmpl<IndexSize, GenerationSize, UID> >
+    {
+        static constexpr bool   value = true;
+    };
+
 /*
 =================================================
     GetHash

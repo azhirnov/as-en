@@ -14,7 +14,7 @@ namespace AE::App
 # ifdef AE_ENABLE_GLFW
 
     #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ ) \
-        STATIC_ASSERT( uint(SerializableInputActionsGLFW::EInputType::_key_) == uint(_glfw_code_) );
+        StaticAssert( uint(SerializableInputActionsGLFW::EInputType::_key_) == uint(_glfw_code_) );
 
     AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
     #undef AE_GLFW_KEY_CODES_VISITOR
@@ -180,8 +180,8 @@ namespace {
             binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
             binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
 
-            STATIC_ASSERT( uint(EInputType::Cursor2DBegin) == 359 );
-            STATIC_ASSERT( uint(EInputType::Cursor2DEnd) == 367 );
+            StaticAssert( uint(EInputType::Cursor2DBegin) == 359 );
+            StaticAssert( uint(EInputType::Cursor2DEnd) == 367 );
         }
 
         // BindingsMode

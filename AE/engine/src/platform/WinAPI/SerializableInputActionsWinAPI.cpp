@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Platforms/WindowsHeader.h"
+#include "base/Platforms/WindowsHeader.cpp.h"
 #include "pch/Scripting.h"
 
 #include "platform/Private/EnumToString.h"
@@ -11,7 +11,7 @@ namespace AE::App
 # ifdef AE_PLATFORM_WINDOWS
 
     #define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, _winapi_code_ ) \
-        STATIC_ASSERT( uint(SerializableInputActionsWinAPI::EInputType::_key_) == uint(_winapi_code_) );
+        StaticAssert( uint(SerializableInputActionsWinAPI::EInputType::_key_) == uint(_winapi_code_) );
 
     AE_WINAPI_KEY_CODES( AE_WINAPI_KEY_CODES_VISITOR )
     #undef AE_WINAPI_KEY_CODES_VISITOR
@@ -182,8 +182,8 @@ namespace {
             binder.AddValue( "TouchPos_mm",         EInputType::TouchPos_mm );
             binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
             binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
-            STATIC_ASSERT( uint(EInputType::Cursor2DBegin) == 57099 );
-            STATIC_ASSERT( uint(EInputType::Cursor2DEnd)   == 57107 );
+            StaticAssert( uint(EInputType::Cursor2DBegin) == 57099 );
+            StaticAssert( uint(EInputType::Cursor2DEnd)   == 57107 );
         }
 
         // BindingsMode

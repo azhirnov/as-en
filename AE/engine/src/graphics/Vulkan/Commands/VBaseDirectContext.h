@@ -105,7 +105,7 @@ namespace AE::Graphics::_hidden_
     {
         CHECK_THROW( _IsValid() );
 
-        VulkanDeviceFn_Init( RenderTaskScheduler().GetDevice() );
+        VulkanDeviceFn_Init( GraphicsScheduler().GetDevice() );
     }
 
 /*
@@ -147,7 +147,7 @@ namespace AE::Graphics::_hidden_
         DBG_GRAPHICS_ONLY(
             _mngr.ProfilerBeginContext( _cmdbuf.Get(), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
 
-            RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
+            GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
         )
         Unused( ctxType );
 

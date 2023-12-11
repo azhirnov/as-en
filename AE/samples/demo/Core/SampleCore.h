@@ -3,7 +3,6 @@
 #pragma once
 
 #include "demo/Common.h"
-#include "base/DataSource/MemStream.h"
 #include "demo/Core/ISample.h"
 #include "demo/Core/ImGuiRenderer.h"
 
@@ -14,11 +13,11 @@ namespace AE::Samples::Demo
     // Sample Application
     //
 
-    class SampleApplication final : public AppV1::DefaultAppListener
+    class SampleApplication final : public AppV1::AppCoreV1
     {
     // methods
     public:
-        SampleApplication ();
+        SampleApplication ()                __NE___;
 
         void  OnStart (IApplication &)      __NE_OV;
 
@@ -34,15 +33,12 @@ namespace AE::Samples::Demo
 
     class SampleCore final : public AppV1::IBaseApp
     {
-        friend class SampleVRListener;
-
     // types
     private:
         struct MainLoopData
         {
             Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
             Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
-            AsyncTask               endFrame;
         };
         using MainLoopSync_t    = Threading::DRCSynchronized< MainLoopData >;
 
@@ -60,7 +56,7 @@ namespace AE::Samples::Demo
 
     // methods
     public:
-        SampleCore ();
+        SampleCore ()                                                               __NE___;
         ~SampleCore ();
 
         ND_ bool  LoadInputActions ();

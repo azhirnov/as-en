@@ -146,12 +146,12 @@ namespace
 */
     RC<VDrawCommandBatch>  _VDirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
     {
-        return VRenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( RenderTaskScheduler(), primaryState, desc, dbg );
+        return RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( GraphicsScheduler(), primaryState, desc, dbg );
     }
 
     RC<VDrawCommandBatch>  _VDirectGraphicsCtx::_BeginNextAsyncPass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg)
     {
-        return VRenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( RenderTaskScheduler(), prevPassBatch, dbg );
+        return RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( GraphicsScheduler(), prevPassBatch, dbg );
     }
 
 /*
@@ -243,12 +243,12 @@ namespace
 */
     RC<VDrawCommandBatch>  _VIndirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
     {
-        return VRenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( RenderTaskScheduler(), primaryState, desc, dbg );
+        return RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( GraphicsScheduler(), primaryState, desc, dbg );
     }
 
     RC<VDrawCommandBatch>  _VIndirectGraphicsCtx::_BeginNextAsyncPass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg)
     {
-        return VRenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( RenderTaskScheduler(), prevPassBatch, dbg );
+        return RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( GraphicsScheduler(), prevPassBatch, dbg );
     }
 
 /*

@@ -57,7 +57,7 @@ namespace AE::Graphics
 
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
     // dynamic states //
@@ -345,11 +345,14 @@ namespace AE::Graphics
         //      image:
         //          in: { src level: EResourceState::BlitSrc, dst levels: EResourceState::Unknown }
         //          out: EResourceState::BlitSrc
-        virtual void  GenerateMipmaps (ImageID image)                                                                   __Th___ = 0;
-        virtual void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)                          __Th___ = 0;
+        virtual void  GenerateMipmaps (ImageID image, EResourceState state)                                             __Th___ = 0;
+        virtual void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)    __Th___ = 0;
 
 
     public:
+        template <typename T>   void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)                   __Th___ { return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+        template <typename T>   void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)                __Th___ { return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+
         // only for host-visible memory
         template <typename T>   ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)           __Th___ { return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
         template <typename T>   ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, const Array<T> &data)        __Th___ { return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
@@ -378,7 +381,7 @@ namespace AE::Graphics
         virtual void  BindPipeline (ComputePipelineID ppln)                                                                         __Th___ = 0;
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
         virtual void  Dispatch (const uint3 &groupCount)                                                                            __Th___ = 0;
@@ -430,7 +433,7 @@ namespace AE::Graphics
         virtual void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th___ = 0;
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
 

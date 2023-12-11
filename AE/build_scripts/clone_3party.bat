@@ -63,6 +63,9 @@ git clone --bare "https://github.com/google/hardware-perfcounter.git" "hardware-
 rmdir /Q /S "hardware-perfcounter-envytools"
 git clone --bare "https://github.com/freedreno/envytools.git" "hardware-perfcounter-envytools"
 
+rmdir /Q /S "xxHash"
+git clone --bare "https://github.com/Cyan4973/xxHash.git" "xxHash"
+
 rmdir /Q /S "Abseil"
 git clone --bare "https://github.com/abseil/abseil-cpp.git" "Abseil"
 

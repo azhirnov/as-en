@@ -28,10 +28,8 @@ namespace AE::ResEditor
         ~RenderGraphImpl ();
 
         // single threaded
-        template <typename ...Deps>
-        ND_ AsyncTask   BeginFrame (Ptr<IOutputSurface>     surface,
-                                    const BeginFrameConfig  &cfg    = Default,
-                                    const Tuple<Deps...>    &deps   = Default);
+        ND_ bool        BeginFrame (Ptr<IOutputSurface>     surface,
+                                    const BeginFrameConfig  &cfg    = Default);
 
         template <typename ...Deps>
         ND_ AsyncTask   EndFrame (const Tuple<Deps...>  &deps);
@@ -66,14 +64,13 @@ namespace AE::ResEditor
     BeginFrame
 =================================================
 */
-    template <typename ...Deps>
-    AsyncTask  RenderGraphImpl::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
+    inline bool  RenderGraphImpl::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg)
     {
         DRC_EXLOCK( _drCheck );
 
         _surface = surface;
 
-        return _rg.BeginFrame( cfg, deps );
+        return _rg.BeginFrame( cfg );
     }
 
 /*

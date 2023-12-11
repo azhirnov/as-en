@@ -6,7 +6,7 @@ namespace
 {
     static void  TsSharedMem_Test1 ()
     {
-        using Alloc_t = AllocatorImpl< UntypedAllocator >;
+        using Alloc_t = IAllocatorAdaptor< UntypedAllocator >;
 
         RC<IAllocator>  alloc = MakeRC<Alloc_t>();
         {
@@ -14,7 +14,7 @@ namespace
             TEST( mem );
             TEST( mem->Size() == 1024_b );
             TEST( mem->Align() == 16_b );
-            TEST( mem->Allocator() == alloc );
+            TEST( mem->AllocatorRC() == alloc );
         }
         TEST( alloc.use_count() == 1 );
     }

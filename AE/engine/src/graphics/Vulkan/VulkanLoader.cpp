@@ -56,7 +56,7 @@ namespace {
     must be externally synchronized!
 =================================================
 */
-    bool VulkanLoader::Initialize (NtStringView libName) __NE___
+    bool  VulkanLoader::Initialize (NtStringView libName) __NE___
     {
         VulkanLib&  lib = VulkanLib::Instance();
 
@@ -69,7 +69,8 @@ namespace {
         if ( not libName.empty() )
             Unused( lib.module.Load( libName ));
 
-    #ifdef AE_PLATFORM_WINDOWS
+
+    #if defined(AE_PLATFORM_WINDOWS)
         if ( not lib.module )
             Unused( lib.module.Load( NtStringView{ "vulkan-1.dll" }));
 
@@ -79,7 +80,14 @@ namespace {
         // software emulation
         if ( not lib.module )
             Unused( lib.module.Load( NtStringView{ "vkswiftshader.dll" }));
-    #else
+
+
+    #elif defined(AE_PLATFORM_APPLE)
+        if ( not lib.module )
+            Unused( lib.module.Load( NtStringView{ "/usr/local/lib/libvulkan.1.dylib" }));
+
+
+    #elif defined(AE_PLATFORM_UNIX_BASED)
         if ( not lib.module )
             Unused( lib.module.Load( NtStringView{ "libvulkan.so" }));
 
@@ -89,6 +97,9 @@ namespace {
         // software emulation
         if ( not lib.module )
             Unused( lib.module.Load( NtStringView{ "libvkswiftshader.so" }));
+
+    #else
+    #   error not implemented
     #endif
 
         if ( not lib.module  )
@@ -108,7 +119,7 @@ namespace {
         ++lib.refCounter;
 
         // it is allowed to use null instance handle in 'vkGetInstanceProcAddr'.
-        const auto  Load =  [&lib] (OUT auto& outResult, const char *procName, auto dummy)
+        const auto  Load =  [&lib] (OUT auto& outResult, const char* procName, auto dummy)
                             {{
                                 using FN = decltype(dummy);
                                 FN  result = BitCast<FN>( lib.getInstanceProcAddr( null, procName ));
@@ -131,7 +142,7 @@ namespace {
     warning: multiple instances are not supported!
 =================================================
 */
-    bool VulkanLoader::LoadInstance (VkInstance instance) __NE___
+    bool  VulkanLoader::LoadInstance (VkInstance instance) __NE___
     {
         VulkanLib&  lib = VulkanLib::Instance();
 
@@ -146,7 +157,7 @@ namespace {
 
         lib.instance = instance;
 
-        const auto  Load =  [&lib] (OUT auto& outResult, const char *procName, auto dummy)
+        const auto  Load =  [&lib] (OUT auto& outResult, const char* procName, auto dummy)
                             {{
                                 using FN = decltype(dummy);
                                 FN  result = BitCast<FN>( vkGetInstanceProcAddr( lib.instance, procName ));
@@ -162,16 +173,40 @@ namespace {
 
 /*
 =================================================
+    ResetInstance
+----
+    must be externally synchronized!
+=================================================
+*/
+    void  VulkanLoader::ResetInstance () __NE___
+    {
+        VulkanLib&  lib = VulkanLib::Instance();
+        ASSERT( lib.instance != Default );
+
+        lib.instance = Default;
+
+        const auto  Load =  [] (OUT auto& outResult, const char *, auto dummy) {
+                                outResult = dummy;
+                            };
+
+        #define VKLOADER_STAGE_GETADDRESS
+        #include "vulkan_loader/fn_vulkan_inst.h"
+        #undef  VKLOADER_STAGE_GETADDRESS
+    }
+
+
+/*
+=================================================
     LoadDevice
 ----
     access to the 'vkGetDeviceProcAddr' must be externally synchronized!
 =================================================
 */
-    bool VulkanLoader::LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table) __NE___
+    bool  VulkanLoader::LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table) __NE___
     {
         CHECK_ERR( _var_vkGetDeviceProcAddr != &Dummy_vkGetDeviceProcAddr );
 
-        const auto  Load =  [device] (OUT auto& outResult, const char *procName, auto dummy)
+        const auto  Load =  [device] (OUT auto& outResult, const char* procName, auto dummy)
                             {{
                                 using FN = decltype(dummy);
                                 FN  result = BitCast<FN>( vkGetDeviceProcAddr( device, procName ));
@@ -190,7 +225,7 @@ namespace {
     ResetDevice
 =================================================
 */
-    void VulkanLoader::ResetDevice (OUT VulkanDeviceFnTable &table) __NE___
+    void  VulkanLoader::ResetDevice (OUT VulkanDeviceFnTable &table) __NE___
     {
         const auto  Load =  [] (OUT auto& outResult, const char *, auto dummy) {
                                 outResult = dummy;
@@ -208,7 +243,7 @@ namespace {
     must be externally synchronized!
 =================================================
 */
-    void VulkanLoader::Unload () __NE___
+    void  VulkanLoader::Unload () __NE___
     {
         VulkanLib&  lib = VulkanLib::Instance();
 
@@ -237,12 +272,12 @@ namespace {
     VulkanDeviceFn_Init
 =================================================
 */
-    void VulkanDeviceFn::VulkanDeviceFn_Init (const VulkanDeviceFn &other) __NE___
+    void  VulkanDeviceFn::VulkanDeviceFn_Init (const VulkanDeviceFn &other) __NE___
     {
         _table = other._table;
     }
 
-    void VulkanDeviceFn::VulkanDeviceFn_Init (const VulkanDeviceFnTable *table) __NE___
+    void  VulkanDeviceFn::VulkanDeviceFn_Init (const VulkanDeviceFnTable* table) __NE___
     {
         _table = table;
     }
@@ -252,7 +287,7 @@ namespace {
     SetupInstanceBackwardCompatibility
 =================================================
 */
-    void VulkanLoader::SetupInstanceBackwardCompatibility (Version2 version) __NE___
+    void  VulkanLoader::SetupInstanceBackwardCompatibility (Version2 version) __NE___
     {
     #define VK_COMPAT( _dst_, _src_ )   \
         ASSERT( _var_##_src_ != null ); \
@@ -291,7 +326,7 @@ namespace {
     SetupDeviceBackwardCompatibility
 =================================================
 */
-    void VulkanLoader::SetupDeviceBackwardCompatibility (Version2 version, INOUT VulkanDeviceFnTable &table) __NE___
+    void  VulkanLoader::SetupDeviceBackwardCompatibility (Version2 version, INOUT VulkanDeviceFnTable &table) __NE___
     {
     #define VK_COMPAT( _dst_, _src_ )           \
         ASSERT( table._var_##_src_ != null );   \

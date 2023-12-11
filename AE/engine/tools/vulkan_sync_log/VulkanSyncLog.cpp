@@ -29,7 +29,7 @@ namespace
 #        include "vulkan_loader/fn_vulkan_dev.h"
 #       undef  VKLOADER_STAGE_FNPOINTER
     };
-    STATIC_ASSERT( sizeof(DeviceFnTable) == sizeof(VulkanDeviceFnTable) );
+    StaticAssert( sizeof(DeviceFnTable) == sizeof(VulkanDeviceFnTable) );
 
 
 
@@ -168,14 +168,20 @@ namespace
                 RayTracing,
             };
 
-            VkPipeline  pipeline    = Default;
-            EType       type        = EType::Unknown;
-            String      name;
+            VkPipeline          pipeline    = Default;
+            VkPipelineLayout    layout      = Default;
+            EType               type        = EType::Unknown;
+            String              name;
         };
         using PipelineMap_t = FlatHashMap< VkPipeline, PipelineData >;
 
 
-        using DescrSetArray_t = Array< VkDescriptorSet >;
+        struct DescSetAndPplnLayout
+        {
+            VkDescriptorSet     descSet;
+            VkPipelineLayout    layout;
+        };
+        using DescrSetArray_t = Array< DescSetAndPplnLayout >;
 
         struct CommandBufferData
         {
@@ -212,9 +218,10 @@ namespace
         using CommandPoolMap_t = FlatHashMap< VkCommandPool, CommandPoolData >;
 
 
-        using SemaphoreNameMap_t    = FlatHashMap< VkSemaphore, String >;
-        using FenceNameMap_t        = FlatHashMap< VkFence,     String >;
-        using QueueNameMap_t        = FlatHashMap< VkQueue,     String >;
+        using SemaphoreNameMap_t        = FlatHashMap< VkSemaphore, String >;
+        using FenceNameMap_t            = FlatHashMap< VkFence,     String >;
+        using QueueNameMap_t            = FlatHashMap< VkQueue,     String >;
+        using PipelineLayoutNameMap_t   = FlatHashMap< VkPipelineLayout, String >;
 
 
         struct ResourceStatistic
@@ -245,6 +252,7 @@ namespace
         QueueNameMap_t          queueMap;
         SemaphoreNameMap_t      semaphoreMap;
         FenceNameMap_t          fenceMap;
+        PipelineLayoutNameMap_t pplnLayoutMap;
         CommandPoolMap_t        commandPool;
         CommandBufferMap_t      commandBuffers;
         ImageMap_t              imageMap;
@@ -268,6 +276,8 @@ namespace
 
     // methods
     public:
+        VulkanLogger () __NE___ {}
+
         void  Initialize (INOUT VulkanDeviceFnTable& fnTable, FlatHashMap<VkQueue, String> queueNames);
         void  Deinitialize (OUT VulkanDeviceFnTable& fnTable);
 
@@ -718,6 +728,7 @@ namespace
         {
             auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
             ppln.pipeline   = pPipelines[i];
+            ppln.layout     = pCreateInfos[i].layout;
             ppln.type       = VulkanLogger::PipelineData::EType::Graphics;
             ppln.name       = "graphics-ppln-" + ToString( logger.resourceStat.pipelineCount );
             ++logger.resourceStat.pipelineCount;
@@ -745,6 +756,7 @@ namespace
         {
             auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
             ppln.pipeline   = pPipelines[i];
+            ppln.layout     = pCreateInfos[i].layout;
             ppln.type       = VulkanLogger::PipelineData::EType::Compute;
             ppln.name       = "compute-ppln-" + ToString( logger.resourceStat.pipelineCount );
             ++logger.resourceStat.pipelineCount;
@@ -772,7 +784,8 @@ namespace
         {
             auto& ppln      = logger.pipelineMap.insert_or_assign( pPipelines[i], VulkanLogger::PipelineData{} ).first->second;
             ppln.pipeline   = pPipelines[i];
-            ppln.type       = VulkanLogger::PipelineData::EType::Compute;
+            ppln.layout     = pCreateInfos[i].layout;
+            ppln.type       = VulkanLogger::PipelineData::EType::RayTracing;
             ppln.name       = "ray-tracing-ppln-" + ToString( logger.resourceStat.pipelineCount );
             ++logger.resourceStat.pipelineCount;
         }
@@ -1607,21 +1620,25 @@ namespace
                 break;
             }
 
-            case VK_OBJECT_TYPE_SEMAPHORE :
-            {
+            case VK_OBJECT_TYPE_SEMAPHORE : {
                 logger.semaphoreMap[ VBitCast<VkSemaphore>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
                 break;
             }
-
-            case VK_OBJECT_TYPE_FENCE :
-            {
+            case VK_OBJECT_TYPE_FENCE : {
                 logger.fenceMap[ VBitCast<VkFence>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
+                break;
+            }
+            case VK_OBJECT_TYPE_QUEUE : {
+                logger.queueMap[ VBitCast<VkQueue>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
+                break;
+            }
+            case VK_OBJECT_TYPE_PIPELINE_LAYOUT : {
+                logger.pplnLayoutMap[ VBitCast<VkPipelineLayout>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
                 break;
             }
 
             case VK_OBJECT_TYPE_UNKNOWN :
             case VK_OBJECT_TYPE_DEVICE :
-            case VK_OBJECT_TYPE_QUEUE :
             case VK_OBJECT_TYPE_INSTANCE :
             case VK_OBJECT_TYPE_PHYSICAL_DEVICE :
             case VK_OBJECT_TYPE_DEVICE_MEMORY :
@@ -1632,7 +1649,6 @@ namespace
             case VK_OBJECT_TYPE_DESCRIPTOR_SET :
             case VK_OBJECT_TYPE_SHADER_MODULE :
             case VK_OBJECT_TYPE_PIPELINE_CACHE :
-            case VK_OBJECT_TYPE_PIPELINE_LAYOUT :
             case VK_OBJECT_TYPE_COMMAND_POOL :
             case VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION :
             case VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE :
@@ -1666,6 +1682,55 @@ namespace
 
 /*
 =================================================
+    MipmapsToString / ArrayLayersToString
+=================================================
+*/
+    static void  MipmapsToString (INOUT String &log, StringView prefix, uint baseMipLevel, uint levelCount, uint maxMipmaps, bool packed = false)
+    {
+        if ( (baseMipLevel == 0 and levelCount == VK_REMAINING_MIP_LEVELS) or maxMipmaps == 1 )
+            return;
+
+        if ( levelCount == 1 or
+             (levelCount == VK_REMAINING_MIP_LEVELS and baseMipLevel+1 == maxMipmaps) )
+        {
+            log << prefix << "mipmap:" << (packed ? "" : "  ") << ToString( baseMipLevel );
+        }else{
+            log << prefix << "mipmaps:" << (packed ? "" : " ") << '[' << ToString( baseMipLevel ) << ", "
+                << (levelCount == VK_REMAINING_MIP_LEVELS ? "Remaining"s : ToString( baseMipLevel + levelCount )) << ')';
+        }
+    }
+
+    ND_ static String  MipmapsToString (StringView prefix, uint baseMipLevel, uint levelCount, uint maxMipmaps, bool packed)
+    {
+        String  str;
+        MipmapsToString( str, prefix, baseMipLevel, levelCount, maxMipmaps, packed );
+        return str;
+    }
+
+    static void  ArrayLayersToString (INOUT String &log, StringView prefix, uint baseArrayLayer, uint layerCount, uint maxLayers, bool packed = false)
+    {
+        if ( (baseArrayLayer == 0 and layerCount == VK_REMAINING_ARRAY_LAYERS) or maxLayers == 1 )
+            return;
+
+        if ( layerCount == 1 or
+             (layerCount == VK_REMAINING_MIP_LEVELS and baseArrayLayer+1 == maxLayers) )
+        {
+            log << prefix << "layer:" << (packed ? "" : "   ") << ToString( baseArrayLayer );
+        }else{
+            log << prefix << "layers:" << (packed ? "" : "  ") << '[' << ToString( baseArrayLayer ) << ", "
+                << (layerCount == VK_REMAINING_ARRAY_LAYERS ? "Remaining"s : ToString( baseArrayLayer + layerCount )) << ')';
+        }
+    }
+
+    ND_ static String  ArrayLayersToString (StringView prefix, uint baseArrayLayer, uint layerCount, uint maxLayers, bool packed)
+    {
+        String  str;
+        ArrayLayersToString( str, prefix, baseArrayLayer, layerCount, maxLayers, packed );
+        return str;
+    }
+
+/*
+=================================================
     Wrap_vkCmdPipelineBarrier
 =================================================
 */
@@ -1691,83 +1756,78 @@ namespace
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
 
-        log << "  PipelineBarrier\n";
-        log << "    stage:           " << VkPipelineStageToString( srcStageMask ) << " ---> " << VkPipelineStageToString( dstStageMask ) << '\n';
-        log << "    dependencyFlags: " << VkDependencyFlagsToString( dependencyFlags ) << "\n";
+        log << "  PipelineBarrier";
+        log << "\n    stage:           " << VkPipelineStageToString( srcStageMask ) << " ---> " << VkPipelineStageToString( dstStageMask );
+        log << "\n    dependencyFlags: " << VkDependencyFlagsToString( dependencyFlags );
 
         for (uint i = 0; i < memoryBarrierCount; ++i)
         {
             auto&   barrier = pMemoryBarriers[i];
             ASSERT( barrier.pNext == null );
-            log << "    MemoryBarrier:\n";
-            log << "      access: " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask ) << '\n';
+            log << "\n    MemoryBarrier:";
+            log << "\n      access: " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask );
         }
 
         for (uint i = 0; i < bufferMemoryBarrierCount; ++i)
         {
             auto&   barrier = pBufferMemoryBarriers[i];
             ASSERT( barrier.pNext == null );
-            log << "    BufferBarrier:\n";
+            log << "\n    BufferBarrier:";
 
             auto    buf = logger.bufferMap.find( barrier.buffer );
 
             if ( buf != logger.bufferMap.end() )
-                log << "      name:   '" << buf->second.name << "'\n";
+                log << "\n      name:   '" << buf->second.name << "'";
 
-            log << "      access: " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask ) << '\n';
+            log << "\n      access: " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask );
 
             if ( not (barrier.offset == 0 and barrier.size == VK_WHOLE_SIZE) )
-                log << "      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ")\n";
+                log << "\n      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ')';
 
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
-                log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+                log << "\n      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
                     << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "");
             }
         }
 
         for (uint i = 0; i < imageMemoryBarrierCount; ++i)
         {
             auto&   barrier = pImageMemoryBarriers[i];
+            auto&   subres  = barrier.subresourceRange;
             ASSERT( barrier.pNext == null );
-            log << "    ImageBarrier:\n";
+            log << "\n    ImageBarrier:";
 
-            auto    img = logger.imageMap.find( barrier.image );
+            auto                img     = logger.imageMap.find( barrier.image );
+            VkImageCreateInfo   img_ci  = {};
             if ( img != logger.imageMap.end() )
-                log << "      name:    '" << img->second.name << "'\n";
-
-            log << "      layout:  " << VkImageLayoutToString( barrier.oldLayout );
+            {
+                img_ci = img->second.info;
+                log << "\n      name:    '" << img->second.name << "'";
+            }
+            log << "\n      layout:  " << VkImageLayoutToString( barrier.oldLayout );
 
             if ( barrier.oldLayout != barrier.newLayout )
                 log << " ---> " << VkImageLayoutToString( barrier.newLayout );
 
-            log << '\n';
-            log << "      access:  " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask ) << '\n';
-            log << "      aspect:  " << VkImageAspectFlagsToString( barrier.subresourceRange.aspectMask ) << '\n';
+            log << "\n      access:  " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask );
+            log << "\n      aspect:  " << VkImageAspectFlagsToString( subres.aspectMask );
 
-            if ( not (barrier.subresourceRange.baseMipLevel == 0 and barrier.subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS) )
-            {
-                log << "      mipmaps: [" << ToString( barrier.subresourceRange.baseMipLevel ) << ", " 
-                    << (barrier.subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS ? "whole" : ToString( barrier.subresourceRange.baseMipLevel + barrier.subresourceRange.levelCount )) << ")\n";
-            }
-            if ( not (barrier.subresourceRange.baseArrayLayer == 0 and barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS) )
-            {
-                log << "      layers:  [" << ToString( barrier.subresourceRange.baseArrayLayer ) << ", "
-                    << (barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS ? "whole" : ToString( barrier.subresourceRange.baseArrayLayer + barrier.subresourceRange.layerCount )) << ")\n";
-            }
+            MipmapsToString( INOUT log, "\n      ", subres.baseMipLevel, subres.levelCount, img_ci.mipLevels );
+            ArrayLayersToString( INOUT log, "\n      ", subres.baseArrayLayer, subres.layerCount, img_ci.arrayLayers );
 
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
-                log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+                log << "\n      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
                     << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "");
             }
         }
         #if ENABLE_SEQNO
-        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
         #endif
-        log << "  ----------\n\n";
+        log << "\n  ----------\n\n";
     }
 
 /*
@@ -1793,87 +1853,81 @@ namespace
         if ( not EndsWith( log, "\n\n" ))
             log << '\n';
 
-        log << "  PipelineBarrier2\n";
+        log << "  PipelineBarrier2";
 
         if ( pInfo == null )
             return;
 
-        log << "    dependencyFlags: " << VkDependencyFlagsToString( pInfo->dependencyFlags ) << "\n";
+        log << "\n    dependencyFlags: " << VkDependencyFlagsToString( pInfo->dependencyFlags );
 
         for (uint i = 0; i < pInfo->memoryBarrierCount; ++i)
         {
             auto&   barrier = pInfo->pMemoryBarriers[i];
             ASSERT( barrier.pNext == null );
-            log << "    MemoryBarrier:\n";
-            log << "      stage:  " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask ) << '\n';
-            log << "      access: " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask ) << '\n';
+            log << "\n    MemoryBarrier:";
+            log << "\n      stage:  " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask );
+            log << "\n      access: " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask );
         }
 
         for (uint i = 0; i < pInfo->bufferMemoryBarrierCount; ++i)
         {
             auto&   barrier = pInfo->pBufferMemoryBarriers[i];
             ASSERT( barrier.pNext == null );
-            log << "    BufferBarrier:\n";
+            log << "\n    BufferBarrier:";
 
             auto    buf = logger.bufferMap.find( barrier.buffer );
             if ( buf != logger.bufferMap.end() )
-                log << "      name:   '" << buf->second.name << "'\n";
+                log << "\n      name:   '" << buf->second.name << "'";
 
-            log << "      stage:  " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask ) << '\n';
-            log << "      access: " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask ) << '\n';
+            log << "\n      stage:  " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask );
+            log << "\n      access: " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask );
 
             if ( not (barrier.offset == 0 and barrier.size == VK_WHOLE_SIZE) )
-                log << "      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ")\n";
+                log << "\n      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ')';
 
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
-                log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+                log << "\n      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
                     << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "");
             }
         }
 
         for (uint i = 0; i < pInfo->imageMemoryBarrierCount; ++i)
         {
             auto&   barrier = pInfo->pImageMemoryBarriers[i];
+            auto&   subres  = barrier.subresourceRange;
             ASSERT( barrier.pNext == null );
-            log << "    ImageBarrier:\n";
+            log << "\n    ImageBarrier:";
 
-            auto    img = logger.imageMap.find( barrier.image );
+            auto                img     = logger.imageMap.find( barrier.image );
+            VkImageCreateInfo   img_ci  = {};
             if ( img != logger.imageMap.end() )
-                log << "      name:    '" << img->second.name << "'\n";
+            {
+                img_ci = img->second.info;
+                log << "\n      name:    '" << img->second.name << "'";
+            }
+            log << "\n      stage:   " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask );
+            log << "\n      access:  " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask );
 
-            log << "      stage:   " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask ) << '\n';
-            log << "      access:  " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask ) << '\n';
-
-            log << "      layout:  " << VkImageLayoutToString( barrier.oldLayout );
-
+            log << "\n      layout:  " << VkImageLayoutToString( barrier.oldLayout );
             if ( barrier.oldLayout != barrier.newLayout )
                 log << " ---> " << VkImageLayoutToString( barrier.newLayout );
-            log << '\n';
 
-            if ( not (barrier.subresourceRange.baseMipLevel == 0 and barrier.subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS) )
-            {
-                log << "      mipmaps: [" << ToString( barrier.subresourceRange.baseMipLevel ) << ", " 
-                    << (barrier.subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS ? "whole" : ToString( barrier.subresourceRange.baseMipLevel + barrier.subresourceRange.levelCount )) << ")\n";
-            }
-            if ( not (barrier.subresourceRange.baseArrayLayer == 0 and barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS) )
-            {
-                log << "      layers:  [" << ToString( barrier.subresourceRange.baseArrayLayer ) << ", "
-                    << (barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS ? "whole" : ToString( barrier.subresourceRange.baseArrayLayer + barrier.subresourceRange.layerCount )) << ")\n";
-            }
+            MipmapsToString( INOUT log, "\n      ", subres.baseMipLevel, subres.levelCount, img_ci.mipLevels );
+            ArrayLayersToString( INOUT log, "\n      ", subres.baseArrayLayer, subres.layerCount, img_ci.arrayLayers );
 
             if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
             {
-                log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+                log << "\n      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
                     << (cmdbuf->queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
-                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+                        cmdbuf->queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "");
             }
         }
         #if ENABLE_SEQNO
-        log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
+        log << "\n    seq_no: " << ToString( cmdbuf->cmdIndex );
         #endif
-        log << "  ----------\n\n";
+        log << "\n  ----------\n\n";
     }
 
 /*
@@ -1882,7 +1936,7 @@ namespace
 =================================================
 */
     static VkImageLayout  GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
-                                             uint subpassIndex, uint attachmentIndex, VkImageLayout currentLasyout)
+                                             uint subpassIndex, uint attachmentIndex, VkImageLayout currentLayout)
     {
         Unused( framebuffer );
 
@@ -1910,7 +1964,7 @@ namespace
                     auto&   sp      = renderPass.subpasses[ dep.srcSubpass ];
                     bool    found   = false;
 
-                    for (uint i = 0; !found && i < sp.colorAttachmentCount; ++i)
+                    for (uint i = 0; (not found) and (i < sp.colorAttachmentCount); ++i)
                     {
                         if ( sp.pColorAttachments[i].attachment == attachmentIndex )
                         {
@@ -1918,7 +1972,7 @@ namespace
                             found = true;
                         }
                     }
-                    for (uint i = 0; sp.pResolveAttachments && !found && i < sp.colorAttachmentCount; ++i)
+                    for (uint i = 0; sp.pResolveAttachments and (not found) and (i < sp.colorAttachmentCount); ++i)
                     {
                         if ( sp.pResolveAttachments[i].attachment == attachmentIndex )
                         {
@@ -1926,12 +1980,12 @@ namespace
                             found = true;
                         }
                     }
-                    if ( sp.pDepthStencilAttachment && !found && sp.pDepthStencilAttachment->attachment == attachmentIndex )
+                    if ( sp.pDepthStencilAttachment and (not found) and (sp.pDepthStencilAttachment->attachment == attachmentIndex) )
                     {
                         stack[stack_size].layout = sp.pDepthStencilAttachment->layout;
                         found = true;
                     }
-                    for (uint i = 0; !found && sp.inputAttachmentCount; ++i)
+                    for (uint i = 0; (not found) and sp.inputAttachmentCount; ++i)
                     {
                         if ( sp.pInputAttachments[i].attachment == attachmentIndex )
                         {
@@ -1947,13 +2001,13 @@ namespace
         }
 
         if ( stack_size == 0 )
-            return currentLasyout;
+            return currentLayout;
 
         if ( stack_size == 1 )
             return stack[0].layout;
 
         DBG_WARNING( "TODO" );
-        return currentLasyout;
+        return currentLayout;
     }
 
 /*
@@ -1973,8 +2027,16 @@ namespace
         if ( img_it == logger.imageMap.end() )
             return false;
 
-        log << "      view:    '" << view_it->second.name << "'\n";
-        log << "      image:   '" << img_it->second.name << "'\n";
+        auto&   subres = view_it->second.info.subresourceRange;
+
+        log << "\n      view:    '" << view_it->second.name << "'";
+        log << "\n      image:   '" << img_it->second.name << "'";
+
+        if ( subres.baseMipLevel+1 != img_it->second.info.mipLevels )
+            log << "\n      mipmap:   " << ToString(subres.baseMipLevel);
+
+        ArrayLayersToString( INOUT log, "\n      ", subres.baseArrayLayer, subres.layerCount, img_it->second.info.arrayLayers );
+
         return true;
     }
 
@@ -2012,29 +2074,28 @@ namespace
             auto&   ref = pass.pColorAttachments[i];
             auto&   at  = rp.info.pAttachments[ref.attachment];
 
-            log << "    color attachment:\n";
+            log << "    color attachment:";
 
             if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                 return;
 
             if ( subpassIndex == 0 )
             {
-                log << "      layout:  " << VkImageLayoutToString( at.initialLayout );
-
+                log << "\n      layout:  " << VkImageLayoutToString( at.initialLayout );
                 if ( at.initialLayout != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
 
-                log << "\n      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp ) << "\n";
+                log << "\n      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp );
             }
             else
             {
                 auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
-                log << "      layout:  " << VkImageLayoutToString( prev );
+                log << "\n      layout:  " << VkImageLayoutToString( prev );
 
                 if ( prev != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
-                log << '\n';
             }
+            log << '\n';
         }
 
         if ( pass.pDepthStencilAttachment != null )
@@ -2042,30 +2103,30 @@ namespace
             auto&   ref = *pass.pDepthStencilAttachment;
             auto&   at  = rp.info.pAttachments[ref.attachment];
 
-            log << "    depth-stencil attachment:\n";
+            log << "    depth-stencil attachment:";
 
             if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                 return;
 
-            log << "      layout:        " << VkImageLayoutToString( at.initialLayout );
+            log << "\n      layout:        " << VkImageLayoutToString( at.initialLayout );
 
             if ( subpassIndex == 0 )
             {
                 if ( at.initialLayout != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
-                log << '\n';
-                log << "      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
-                log << "      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
+
+                log << "\n      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp );
+                log << "\n      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp );
             }
             else
             {
                 auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
-                log << "      layout:        " << VkImageLayoutToString( prev );
+                log << "\n      layout:        " << VkImageLayoutToString( prev );
 
                 if ( prev != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
-                log << '\n';
             }
+            log << '\n';
         }
 
         if ( subpassIndex != 0 and subpassIndex != VK_SUBPASS_EXTERNAL )
@@ -2077,12 +2138,12 @@ namespace
                     auto&   ref  = pass.pResolveAttachments[i];
                     auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
 
-                    log << "    resolve attachment:\n";
+                    log << "    resolve attachment:";
 
                     if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                         return;
 
-                    log << "      layout:  " << VkImageLayoutToString( prev );
+                    log << "\n      layout:  " << VkImageLayoutToString( prev );
 
                     if ( prev != ref.layout )
                         log << " ---> " << VkImageLayoutToString( ref.layout );
@@ -2096,12 +2157,12 @@ namespace
                 auto&   ref  = pass.pInputAttachments[i];
                 auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
 
-                log << "    input attachment:\n";
+                log << "    input attachment:";
 
                 if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                     return;
 
-                log << "      layout:  " << VkImageLayoutToString( prev );
+                log << "\n      layout:  " << VkImageLayoutToString( prev );
 
                 if ( prev != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
@@ -2365,12 +2426,12 @@ namespace
             auto&   at   = rp.info.pAttachments[i];
             auto    prev = GetPreviousLayout( fb, rp, VK_SUBPASS_EXTERNAL, uint(i), at.finalLayout );
 
-            log << "    attachment:\n";
+            log << "    attachment:";
 
             if ( not PrintRPImageViewName( log, fb.attachments[i] ))
                 return;
 
-            log << "      layout:  " << VkImageLayoutToString( prev );
+            log << "\n      layout:  " << VkImageLayoutToString( prev );
 
             if ( prev != at.finalLayout )
                 log << " ---> " << VkImageLayoutToString( at.finalLayout );
@@ -2457,13 +2518,13 @@ namespace
     SubresourceLayerToString
 =================================================
 */
-    ND_ static String  SubresourceLayerToString (const VkOffset3D &offset, const VkExtent3D &extent, const VkImageSubresourceLayers &subres)
+    ND_ static String  SubresourceLayerToString (const VkOffset3D &offset, const VkExtent3D &extent,
+                                                 const VkImageSubresourceLayers &subres, const VkImageCreateInfo &imgCI)
     {
         return  "{ off:("s << ToString( offset.x ) << ", " << ToString( offset.y ) << ", " << ToString( offset.z )
                 << "), ext:(" << ToString( offset.x + extent.width ) << ", " << ToString( offset.y + extent.height ) << ", " << ToString( offset.z + extent.depth )
-                << "), mip:" << ToString( subres.mipLevel )
-                << ", layers:[" << ToString( subres.baseArrayLayer )
-                << ", " << (subres.layerCount == VK_REMAINING_ARRAY_LAYERS ? "Remaining"s : ToString( subres.baseArrayLayer + subres.layerCount )) << "), "
+                << ')' << MipmapsToString( ", ", subres.mipLevel, 1, imgCI.mipLevels, true )
+                << ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, imgCI.arrayLayers, true ) << ", "
                 << VkImageAspectFlagsToString( subres.aspectMask ) << " }";
     }
 
@@ -2472,13 +2533,12 @@ namespace
     SubresourceRangeToString
 =================================================
 */
-    ND_ static String  SubresourceRangeToString (const VkImageSubresourceRange &subres)
+    ND_ static String  SubresourceRangeToString (const VkImageSubresourceRange &subres, const VkImageCreateInfo &imgCI)
     {
-        return  "{ mips:["s << ToString( subres.baseMipLevel ) << ", "
-                << (subres.levelCount == VK_REMAINING_MIP_LEVELS ? "Remaining"s : ToString( subres.baseMipLevel + subres.levelCount ))
-                << "), layers:[" << ToString( subres.baseArrayLayer ) << ", "
-                << (subres.layerCount == VK_REMAINING_ARRAY_LAYERS ? "Remaining"s : ToString( subres.baseArrayLayer + subres.layerCount )) << "), "
-                << VkImageAspectFlagsToString( subres.aspectMask ) << " }";
+        return  "{ "s << VkImageAspectFlagsToString( subres.aspectMask )
+                << MipmapsToString( ", ", subres.baseMipLevel, subres.levelCount, imgCI.mipLevels, true )
+                << ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, imgCI.arrayLayers, true )
+                << " }";
     }
 
 /*
@@ -2753,11 +2813,8 @@ namespace
         log << "  CopyImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
-        if ( src_it == logger.imageMap.end() )
-            return;
-
         auto    dst_it = logger.imageMap.find( dstImage );
-        if ( dst_it == logger.imageMap.end() )
+        if ( src_it == logger.imageMap.end() or  dst_it == logger.imageMap.end() )
             return;
 
         log << "    src:       '" << src_it->second.name << "'\n";
@@ -2768,8 +2825,9 @@ namespace
         for (uint i = 0; i < regionCount; ++i)
         {
             auto&   reg = pRegions[i];
-            log << "      copy " << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource ) << " ---> "
-                << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource ) << '\n';
+            log << "      copy "
+                << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource, src_it->second.info ) << " ---> "
+                << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource, dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -2800,11 +2858,8 @@ namespace
         log << "  BlitImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
-        if ( src_it == logger.imageMap.end() )
-            return;
-
         auto    dst_it = logger.imageMap.find( dstImage );
-        if ( dst_it == logger.imageMap.end( ))
+        if ( src_it == logger.imageMap.end() or dst_it == logger.imageMap.end( ))
             return;
 
         log << "    src:       '" << src_it->second.name << "'\n";
@@ -2818,8 +2873,9 @@ namespace
             VkExtent3D  src_ext { uint(reg.srcOffsets[1].x - reg.srcOffsets[0].x), uint(reg.srcOffsets[1].y - reg.srcOffsets[0].y), uint(reg.srcOffsets[1].z - reg.srcOffsets[0].z) };
             VkExtent3D  dst_ext { uint(reg.dstOffsets[1].x - reg.dstOffsets[0].x), uint(reg.dstOffsets[1].y - reg.dstOffsets[0].y), uint(reg.dstOffsets[1].z - reg.dstOffsets[0].z) };
 
-            log << "      blit " << SubresourceLayerToString( reg.srcOffsets[0], src_ext, reg.srcSubresource ) << " ---> "
-                << SubresourceLayerToString( reg.dstOffsets[0], dst_ext, reg.dstSubresource ) << '\n';
+            log << "      blit "
+                << SubresourceLayerToString( reg.srcOffsets[0], src_ext, reg.srcSubresource, src_it->second.info ) << " ---> "
+                << SubresourceLayerToString( reg.dstOffsets[0], dst_ext, reg.dstSubresource, dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -2850,11 +2906,8 @@ namespace
         log << "  CopyBufferToImage\n";
 
         auto    src_it = logger.bufferMap.find( srcBuffer );
-        if ( src_it == logger.bufferMap.end() )
-            return;
-
         auto    dst_it = logger.imageMap.find( dstImage );
-        if ( dst_it == logger.imageMap.end() )
+        if ( src_it == logger.bufferMap.end() or dst_it == logger.imageMap.end() )
             return;
 
         log << "    src:       '" << src_it->second.name << "'\n";
@@ -2865,7 +2918,7 @@ namespace
         {
             auto&   reg = pRegions[i];
             log << "      copy { [" << ToString( reg.bufferOffset ) << ", " << ToString( reg.bufferOffset + CalcMemorySize( reg, dst_it->second.info )) << ") } ---> "
-                << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource ) << '\n';
+                << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource, dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -2896,11 +2949,8 @@ namespace
         log << "  CopyImageToBuffer\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
-        if ( src_it == logger.imageMap.end() )
-            return;
-
         auto    dst_it = logger.bufferMap.find( dstBuffer );
-        if ( dst_it == logger.bufferMap.end() )
+        if ( src_it == logger.imageMap.end() or dst_it == logger.bufferMap.end() )
             return;
 
         log << "    src:       '" << src_it->second.name << "'\n";
@@ -2910,7 +2960,7 @@ namespace
         for (uint i = 0; i < regionCount; ++i)
         {
             auto&   reg = pRegions[i];
-            log << "      copy " << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource )
+            log << "      copy " << SubresourceLayerToString( reg.imageOffset, reg.imageExtent, reg.imageSubresource, src_it->second.info )
                 << " ---> { [" << ToString( reg.bufferOffset ) << ", " << ToString( reg.bufferOffset + CalcMemorySize( reg, src_it->second.info )) << ") }\n";
         }
         #if ENABLE_SEQNO
@@ -3017,7 +3067,7 @@ namespace
         log << "    layout: " << VkImageLayoutToString( imageLayout ) << '\n';
 
         for (uint i = 0; i < rangeCount; ++i) {
-            log << "      " << SubresourceRangeToString( pRanges[i] ) << '\n';
+            log << "      " << SubresourceRangeToString( pRanges[i], dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -3055,7 +3105,7 @@ namespace
         log << "    layout: " << VkImageLayoutToString( imageLayout ) << '\n';
 
         for (uint i = 0; i < rangeCount; ++i) {
-            log << "      " << SubresourceRangeToString( pRanges[i] ) << '\n';
+            log << "      " << SubresourceRangeToString( pRanges[i], dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -3112,11 +3162,8 @@ namespace
         log << "  ResolveImage\n";
 
         auto    src_it = logger.imageMap.find( srcImage );
-        if ( src_it == logger.imageMap.end() )
-            return;
-
         auto    dst_it = logger.imageMap.find( dstImage );
-        if ( dst_it == logger.imageMap.end() )
+        if ( src_it == logger.imageMap.end() or dst_it == logger.imageMap.end() )
             return;
 
         log << "    src:       '" << src_it->second.name << "'\n";
@@ -3127,8 +3174,9 @@ namespace
         for (uint i = 0; i < regionCount; ++i)
         {
             auto&   reg = pRegions[i];
-            log << "      resolve " << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource )
-                << " ---> " << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource ) << '\n';
+            log << "      resolve "
+                << SubresourceLayerToString( reg.srcOffset, reg.extent, reg.srcSubresource, src_it->second.info ) << " ---> "
+                << SubresourceLayerToString( reg.dstOffset, reg.extent, reg.dstSubresource, dst_it->second.info ) << '\n';
         }
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -3560,7 +3608,9 @@ namespace
 
         for (uint i = 0; i < descriptorSetCount; ++i)
         {
-            (*ds_array)[firstSet + i] = pDescriptorSets[i];
+            auto&   dst = (*ds_array)[firstSet + i];
+            dst.descSet = pDescriptorSets[i];
+            dst.layout  = layout;
 
             ASSERT( logger.descSetMap.contains( pDescriptorSets[i] ));
         }
@@ -4196,9 +4246,14 @@ namespace
         if ( ppln_it == logger.pipelineMap.end() )
             return;
 
+        auto    layout_it = logger.pplnLayoutMap.find( ppln_it->second.layout );
+        if ( layout_it == logger.pplnLayoutMap.end() )
+            return;
+
         auto&   log = cmdbuf->log;
         log << "  BindPipeline\n";
         log << "    pipeline:  '" << ppln_it->second.name << "'\n";
+        log << "    layout:    '" << layout_it->second << "'\n";
         log << "    bindPoint: " << VkPipelineBindPointToString( pipelineBindPoint ) << '\n';
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -4298,11 +4353,14 @@ namespace
 
         for (usize i = 0; i < ds_array->size(); ++i)
         {
-            auto&   ds      = (*ds_array)[i];
-            auto    ds_it   = descSetMap.find( ds );
+            auto&   ds_pl   = (*ds_array)[i];
+            auto    ds_it   = descSetMap.find( ds_pl.descSet );
+            auto    pl_it   = pplnLayoutMap.find( ds_pl.layout );
 
-            if ( ds_it == descSetMap.end() )
+            if ( ds_it == descSetMap.end() or pl_it == pplnLayoutMap.end() )
                 continue;
+
+            tmp_log << "    [" << ToString(i) << "] pl: '" << pl_it->second << "'\n";
 
             auto&   bindings = ds_it->second.bindings;
             for (usize j = 0; j < bindings.size(); ++j)
@@ -4362,7 +4420,7 @@ namespace
                                 continue;
 
                             auto&   buf = buffer_it->second;
-                            tmp_log << "      buffer: '" << buf.name << "'\n"; 
+                            tmp_log << "      buffer: '" << buf.name << "'\n";
                         }
                         break;
                     }
@@ -4558,15 +4616,15 @@ namespace
         //  vkCmdCopyBuffer, vkCmdCopyBuffer2,
         //  vkCmdCopyImage, vkCmdCopyImage2,
         //  vkCmdPipelineBarrier, vkCmdPipelineBarrier2,
-        //  vkCmdCopyBufferToImage, vkCmdCopyBufferToImage2, 
+        //  vkCmdCopyBufferToImage, vkCmdCopyBufferToImage2,
         //  vkCmdCopyImageToBuffer, vkCmdCopyImageToBuffer2,
         //  vkCmdBlitImage, vkCmdBlitImage2,
         //  vkCmdDispatch, vkCmdDispatchIndirect,
-        //  vkCmdDraw, vkCmdDrawIndexed, vkCmdDrawIndirect, vkCmdDrawIndexedIndirect, vkCmdDrawIndirectCount, vkCmdDrawIndexedIndirectCount, 
-        //  vkCmdClearColorImage, vkCmdClearDepthStencilImage, vkCmdClearAttachments, 
+        //  vkCmdDraw, vkCmdDrawIndexed, vkCmdDrawIndirect, vkCmdDrawIndexedIndirect, vkCmdDrawIndirectCount, vkCmdDrawIndexedIndirectCount,
+        //  vkCmdClearColorImage, vkCmdClearDepthStencilImage, vkCmdClearAttachments,
         //  vkCmdCopyQueryPoolResults, vkCmdFillBuffer, vkCmdResolveImage, vkCmdResolveImage2,
         //  vkCmdUpdateBuffer,
-        //  vkCmdExecuteCommands, 
+        //  vkCmdExecuteCommands,
         //  RecordBeginRenderPass, RecordNextSubpass, RecordEndRenderPass
         /*
         table._var_vkCmdSetStencilReference                 = &Wrap_vkCmdSetStencilReference;

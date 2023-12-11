@@ -12,15 +12,35 @@
 
 namespace AE::Graphics
 {
+namespace
+{
+    static constexpr Bytes  c_PageAlign         {4 << 10};
+    static constexpr Bytes  c_DefaultPageSize   {64 << 20};
+
+    ND_ static Bytes  ValidatePageSize (Bytes pageSize)
+    {
+        pageSize = (pageSize == 0 ? c_DefaultPageSize : pageSize);
+        pageSize = AlignUp( pageSize, c_PageAlign );
+
+        auto&   dev = GraphicsScheduler().GetDevice();
+        if ( dev.GetVExtensions().maintenance3 )
+        {
+            pageSize = Min( pageSize, Bytes{dev.GetVProperties().maintenance3Props.maxMemoryAllocationSize} );
+            ASSERT( pageSize > 0 );
+        }
+
+        return pageSize;
+    }
+}
+
 /*
 =================================================
     constructor
 =================================================
 */
-    VLinearMemAllocator::VLinearMemAllocator (Bytes pageSize) __NE___
-    {
-        SetPageSize( pageSize == 0 ? _DefaultPageSize : pageSize );
-    }
+    VLinearMemAllocator::VLinearMemAllocator (Bytes pageSize) __NE___ :
+        _pageSize{ ValidatePageSize( pageSize )}
+    {}
 
 /*
 =================================================
@@ -31,13 +51,13 @@ namespace AE::Graphics
     {
         EXLOCK( _pageGuard );
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         for (auto [key, pages] : _pages)
         {
             for (auto& page : pages)
             {
-                CHECK( page.counter.exchange( 0 ) == 0 );
+                CHECK( page.dbgCounter.exchange( 0 ) == 0 );
 
                 if ( page.mapped != null )
                     dev.vkUnmapMemory( dev.GetVkDevice(), page.memory );
@@ -46,24 +66,6 @@ namespace AE::Graphics
                 dev.vkFreeMemory( dev.GetVkDevice(), page.memory, null );
             }
         }
-    }
-
-/*
-=================================================
-    SetPageSize
-=================================================
-*/
-    void  VLinearMemAllocator::SetPageSize (Bytes size) __NE___
-    {
-        EXLOCK( _pageGuard );
-        ASSERT( size > 0 );
-
-        auto&   dev = RenderTaskScheduler().GetDevice();
-
-        size = AlignUp( size, _Align );
-        size = Min( size, Bytes{dev.GetVProperties().maintenance3Props.maxMemoryAllocationSize} );
-
-        _pageSize = size;
     }
 
 /*
@@ -79,7 +81,7 @@ namespace AE::Graphics
         {
             for (auto& page : pages)
             {
-                CHECK( page.counter.exchange( 0 ) == 0 );
+                CHECK( page.dbgCounter.exchange( 0 ) == 0 );
 
                 page.size = 0_b;
             }
@@ -115,7 +117,7 @@ namespace AE::Graphics
                     if_unlikely( offset + memSize <= page.capacity )
                     {
                         page.size = offset + memSize;
-                        page.counter.fetch_add( 1 );
+                        page.dbgCounter.fetch_add( 1 );
 
                         outData.page    = &page;
                         outData.offset  = offset;
@@ -133,7 +135,7 @@ namespace AE::Graphics
 
         mem_alloc.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mem_alloc.pNext          = shaderAddress ? &mem_flag : null;
-        mem_alloc.allocationSize = VkDeviceSize( Max( AlignUp( memSize*2, _Align ), _pageSize ));
+        mem_alloc.allocationSize = VkDeviceSize( Max( AlignUp( memSize*2, c_PageAlign ), _pageSize ));
 
         mem_flag.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
         mem_flag.flags           = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
@@ -142,7 +144,7 @@ namespace AE::Graphics
         {
             mem_alloc.memoryTypeIndex = type_idx;
 
-            if_likely( dev.vkAllocateMemory( dev.GetVkDevice(), &mem_alloc, null, OUT &memory ) == VK_SUCCESS )
+            if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
                 break;
         }
         CHECK_ERR( memory.Get() != Default );
@@ -161,14 +163,15 @@ namespace AE::Graphics
         auto&   page_arr = _pages( key );
         CHECK_ERR( page_arr.size() < page_arr.capacity() );
 
-        auto&   page = page_arr.emplace_back();
+        auto&   page        = page_arr.emplace_back();
+        auto&   mem_props   = dev.GetVProperties().memoryProperties;
 
-        page.counter.fetch_add( 1 );
+        page.dbgCounter.fetch_add( 1 );
         page.memory         = memory.Release();
         page.capacity       = Bytes{mem_alloc.allocationSize};
         page.size           = memSize;
         page.mapped         = mapped_ptr;
-        page.memTypeIndex   = mem_alloc.memoryTypeIndex;
+        page.propertyFlags  = VkMemoryPropertyFlagBits(mem_props.memoryTypes[ mem_alloc.memoryTypeIndex ].propertyFlags);
 
         outData.page        = &page;
         outData.offset      = 0_b;
@@ -192,7 +195,7 @@ namespace AE::Graphics
         EXLOCK( _pageGuard );
         ASSERT( _IsValidPage( mem_data.page ));
 
-        CHECK( mem_data.page->counter.fetch_sub( 1 ) > 0 );
+        CHECK( mem_data.page->dbgCounter.fetch_sub( 1 ) > 0 );
         return true;
     }
 
@@ -203,19 +206,14 @@ namespace AE::Graphics
 */
     bool  VLinearMemAllocator::GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) C_NE___
     {
-        auto&   dev         = RenderTaskScheduler().GetDevice();
-        auto&   mem_data    = _CastStorage( data );
-        auto&   mem_props   = dev.GetVProperties().memoryProperties;
+        auto&   mem_data = _CastStorage( data );
         CHECK_ERR( mem_data.page != null );
 
         SHAREDLOCK( _pageGuard );
         ASSERT( _IsValidPage( mem_data.page ));
 
-        CHECK_ERR( mem_data.page->memTypeIndex < mem_props.memoryTypeCount );
-        auto&   type = mem_props.memoryTypes[ mem_data.page->memTypeIndex ];
-
         info.memory     = mem_data.page->memory;
-        info.flags      = VkMemoryPropertyFlagBits(type.propertyFlags);
+        info.flags      = mem_data.page->propertyFlags;
         info.offset     = mem_data.offset;
         info.size       = mem_data.size;
         info.mappedPtr  = mem_data.page->mapped + mem_data.offset;
@@ -241,6 +239,29 @@ namespace AE::Graphics
             }
         }
         return false;
+    }
+
+/*
+=================================================
+    GetStatistic
+=================================================
+*/
+    VLinearMemAllocator::Statistic  VLinearMemAllocator::GetStatistic () C_NE___
+    {
+        SHAREDLOCK( _pageGuard );
+
+        Statistic   result;
+        for (auto [key, pages] : _pages)
+        {
+            for (auto& page : pages)
+            {
+                result.totalAllocated   += page.capacity;
+                result.totalUsed        += page.size;
+                result.pageCount        ++;
+                result.refCount         += uint(Max( 0, page.dbgCounter.load() ));
+            }
+        }
+        return result;
     }
 
 

@@ -18,6 +18,8 @@ namespace AE::ResEditor
 {
     using namespace AE::PipelineCompiler;
 
+    using EDebugMode = IGeomSource::EDebugMode;
+
 namespace
 {
     static ScriptModelGeometrySrc*  ScriptSceneGeometry_Ctor1 (const String &filename) {
@@ -41,7 +43,7 @@ namespace
     template <typename T>
     static ScriptGeomSource*  ScriptGeomSource_ToBase (T* ptr)
     {
-        STATIC_ASSERT( IsBaseOf< ScriptGeomSource, T >);
+        StaticAssert( IsBaseOf< ScriptGeomSource, T >);
 
         ScriptGeomSourcePtr  result{ ptr };
         return result.Detach();
@@ -59,7 +61,7 @@ namespace
         auto*   ppln = resMngr.GetResource( pplnId );
         CHECK_THROW( ppln != null );
 
-        auto*   layout = resMngr.GetResource( ppln->LayoutID() );
+        auto*   layout = resMngr.GetResource( ppln->LayoutId() );
         CHECK_THROW( layout != null );
 
         DescriptorSetLayoutID   dsl;
@@ -174,7 +176,7 @@ namespace
         CHECK_THROW_MSG( not out_pplns.empty(),
             "Can't find pipelines with DS '"s << dsName << "' and " <<
             (descType == EDescriptorType::UniformBuffer ? "UniformBuffer" :
-             descType == EDescriptorType::StorageBuffer ? "StorageBuffer" : "<unknown>") << 
+             descType == EDescriptorType::StorageBuffer ? "StorageBuffer" : "<unknown>") <<
             " with type '" << bufTypeName << "'" );
 
         inPipelines = RVRef(out_pplns);
@@ -566,18 +568,27 @@ namespace
 =================================================
 */
     template <typename PplnSpec>
-    ND_ static ScriptGeomSource::PipelineNames_t  _GetSuitablePipeline (Array<PplnSpec> &pipelines)
+    ND_ static ScriptGeomSource::PipelineNames_t  _GetSuitablePipeline (Array<PplnSpec> &pipelines, EShaderOpt opt = Default)
     {
         CHECK_THROW_MSG( not pipelines.empty(),
             "Failed to find suitable pipeline" );
 
-        if ( pipelines.size() > 1 )
+        ScriptGeomSource::PipelineNames_t   result;
+
+        for (auto& ppln : pipelines)
+        {
+            auto    pl = ppln->GetBase()->GetLayout();
+
+            if ( pl and pl->GetDebugDS().mode == opt )
+            {
+                result.emplace_back( ppln->Name() );
+            }
+        }
+
+        if ( result.size() > 1 )
             AE_LOGI( "More than one pipeline are match the requirements" );
 
-        if ( not pipelines.empty() )
-            return ScriptGeomSource::PipelineNames_t{ ScriptGeomSource::PplnNameAndObjectId{ pipelines.front()->Name() }};
-
-        return Default;
+        return result;
     }
 
 /*
@@ -718,25 +729,6 @@ namespace
 
 /*
 =================================================
-    SetTessLevel*
-=================================================
-*/
-    void  ScriptSphericalCube::SetTessLevel1 (float level) __Th___
-    {
-        return SetTessLevel2( ScriptDynamicFloatPtr{ new ScriptDynamicFloat{ new DynamicFloat{level} }});
-    }
-
-    void  ScriptSphericalCube::SetTessLevel2 (const ScriptDynamicFloatPtr &level) __Th___
-    {
-        CHECK_THROW_MSG( not _geomSrc );
-        CHECK_THROW_MSG( level and level->Get() );
-        CHECK_THROW_MSG( not _tessLevel, "already specified" );
-
-        _tessLevel = level->Get();
-    }
-
-/*
-=================================================
     Bind
 =================================================
 */
@@ -752,10 +744,6 @@ namespace
                         "Vertex count: (lod+2)^2, index count: 6*(lod+1)^2." );
         binder.AddMethod( &ScriptSphericalCube::SetDetailLevel1,    "DetailLevel",  {"maxLOD"} );
         binder.AddMethod( &ScriptSphericalCube::SetDetailLevel2,    "DetailLevel",  {"minLOD", "maxLOD"} );
-
-        binder.Comment( "Set constant or dynamic tessellation level." );
-        binder.AddMethod( &ScriptSphericalCube::SetTessLevel1,      "TessLevel",    {"level"} );
-        binder.AddMethod( &ScriptSphericalCube::SetTessLevel2,      "TessLevel",    {"level"} );
     }
 
 /*
@@ -769,7 +757,7 @@ namespace
             return _geomSrc;
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
-        auto        result      = MakeRC<SphericalCube>( renderer, _minLod, _maxLod, _tessLevel );
+        auto        result      = MakeRC<SphericalCube>( renderer, _minLod, _maxLod );
 
         _args.InitResources( result->_resources );
 
@@ -806,15 +794,22 @@ namespace
         CHECK_THROW( layer == ERenderLayer::Opaque );
 
         auto        result      = MakeRC<SphericalCube::Material>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         auto    ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
         CHECK_THROW( ppln );
 
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "SphericalCube", res.Handle(), res.Options() ));
+        }
+        #endif
+
         result->rtech   = rtech;
-        result->ppln    = ppln;
+        result->pplnMap.emplace( EDebugMode::Unknown, ppln );
 
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
 
@@ -843,7 +838,7 @@ namespace
         ShaderStructTypePtr st{ new ShaderStructType{"SphericalCubeMaterialUB"}};
         st->Set( EStructLayout::Std140, R"#(
                 float4x4    transform;
-                float       tessLevel;
+                float3x3    normalMat;
             )#");
 
         return st;
@@ -957,7 +952,7 @@ namespace
             }
 
             CHECK_THROW_MSG( false,
-                "IndexBuffer '"s << cmd._indexBuffer->GetName() << "' field '" << cmd._indexBufferField << 
+                "IndexBuffer '"s << cmd._indexBuffer->GetName() << "' field '" << cmd._indexBufferField <<
                 "' must be array of scalar/vec1/vec2/vec4 with uint16/uint32 type" );
         }
         else
@@ -1645,6 +1640,7 @@ namespace
         ShaderStructTypePtr st{ new ShaderStructType{"UnifiedGeometryMaterialUB"}};
         st->Set( EStructLayout::Std140, R"#(
                 float4x4    transform;
+                float3x3    normalMat;
             )#");
 
         return st;
@@ -1803,43 +1799,55 @@ namespace
         CHECK_THROW_MSG( layer == ERenderLayer::Opaque );
         CHECK_THROW_MSG( not _drawCommands.empty() );
 
-        const auto  GetMeshPipeline = [this] () -> PipelineName
+        const auto  GetMeshPipeline = [this] (PipelineNames_t &result, usize idx) __Th___
         {{
             Array<MeshPipelineSpecPtr>      pipelines;
             _GetMeshPipelines( OUT pipelines );
             _FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );    // throw
             _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
-            auto    tmp = _GetSuitablePipeline( pipelines );
-            CHECK_THROW_MSG( not tmp.empty() );
-            return tmp.front().pplnName;
+            {
+                auto    tmp = _GetSuitablePipeline( pipelines );
+                CHECK_THROW_MSG( not tmp.empty() );
+                result.emplace_back( tmp.front().pplnName, idx, EDebugMode::Unknown );
+            }{
+                auto    tmp = _GetSuitablePipeline( pipelines, EShaderOpt::Trace );
+                if ( not tmp.empty() )
+                    result.emplace_back( tmp.front().pplnName, idx, EDebugMode::Trace );
+            }
         }};
 
-        const auto  GetGraphicsPipeline = [this] () -> PipelineName
+        const auto  GetGraphicsPipeline = [this] (PipelineNames_t &result, usize idx) __Th___
         {{
             Array<GraphicsPipelineSpecPtr>  pipelines;
             _FindPipelinesWithoutVB( OUT pipelines );
             _FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );    // throw
             _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
-            auto    tmp = _GetSuitablePipeline( pipelines );
-            CHECK_THROW_MSG( not tmp.empty() );
-            return tmp.front().pplnName;
+            {
+                auto    tmp = _GetSuitablePipeline( pipelines );
+                CHECK_THROW_MSG( not tmp.empty() );
+                result.emplace_back( tmp.front().pplnName, idx, EDebugMode::Unknown );
+            }{
+                auto    tmp = _GetSuitablePipeline( pipelines, EShaderOpt::Trace );
+                if ( not tmp.empty() )
+                    result.emplace_back( tmp.front().pplnName, idx, EDebugMode::Trace );
+            }
         }};
 
         PipelineNames_t     result;
         result.reserve( _drawCommands.size() );
 
-        for (const auto& [src, idx] : WithIndex( _drawCommands ))
+        for (const auto [src, idx] : WithIndex( _drawCommands ))
         {
             Visit( src,
-                [&] (const DrawCmd3 &)                          { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawIndexedCmd3 &)                   { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawIndirectCmd3 &)                  { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawIndexedIndirectCmd3 &)           { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawIndirectCountCmd3 &)             { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawIndexedIndirectCountCmd3 &)      { result.emplace_back( GetGraphicsPipeline(), idx ); },
-                [&] (const DrawMeshTasksCmd3 &)                 { result.emplace_back( GetMeshPipeline(), idx ); },
-                [&] (const DrawMeshTasksIndirectCmd3 &)         { result.emplace_back( GetMeshPipeline(), idx ); },
-                [&] (const DrawMeshTasksIndirectCountCmd3 &)    { result.emplace_back( GetMeshPipeline(), idx ); }
+                [&] (const DrawCmd3 &)                          { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawIndexedCmd3 &)                   { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawIndirectCmd3 &)                  { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawIndexedIndirectCmd3 &)           { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawIndirectCountCmd3 &)             { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawIndexedIndirectCountCmd3 &)      { GetGraphicsPipeline( INOUT result, idx ); },
+                [&] (const DrawMeshTasksCmd3 &)                 { GetMeshPipeline( INOUT result, idx ); },
+                [&] (const DrawMeshTasksIndirectCmd3 &)         { GetMeshPipeline( INOUT result, idx ); },
+                [&] (const DrawMeshTasksIndirectCountCmd3 &)    { GetMeshPipeline( INOUT result, idx ); }
             );
         }
         return result;
@@ -1854,19 +1862,28 @@ namespace
     {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
-        CHECK_THROW( names.size() == _drawCommands.size() );
+        CHECK_THROW( names.size() >= _drawCommands.size() );
         CHECK_THROW( layer == ERenderLayer::Opaque );
 
         auto        result      = MakeRC<UnifiedGeometry::Material>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
         bool        ds_inited   = false;
 
-        const auto  FindMeshPpln    = [&] (const PipelineName &name)
+        result->pipelineMap.reserve( names.size() );
+
+        const auto  FindMeshPpln    = [&] (const PplnNameAndObjectId &info) __Th___
         {{
-            auto    ppln = rtech->GetMeshPipeline( name );
+            auto    ppln = rtech->GetMeshPipeline( info.pplnName );
             CHECK_THROW( ppln );
+
+            #if PIPELINE_STATISTICS
+            {
+                auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+                Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "UnifiedGeometry", res.Handle(), res.Options() ));
+            }
+            #endif
 
             if ( ds_inited ){
                 CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_MtrDS} ));
@@ -1876,13 +1893,20 @@ namespace
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
-            result->pplns.push_back( ppln );
+            CHECK_THROW( result->pipelineMap.emplace( Pair{info.objId, info.dbgMode}, ppln ).second );
         }};
 
-        const auto  FindGraphicsPpln = [&] (const PipelineName &name)
+        const auto  FindGraphicsPpln = [&] (const PplnNameAndObjectId &info) __Th___
         {{
-            auto    ppln = rtech->GetGraphicsPipeline( name );
+            auto    ppln = rtech->GetGraphicsPipeline( info.pplnName );
             CHECK_THROW( ppln );
+
+            #if PIPELINE_STATISTICS
+            {
+                auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+                Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "UnifiedGeometry", res.Handle(), res.Options() ));
+            }
+            #endif
 
             if ( ds_inited ){
                 CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_MtrDS} ));
@@ -1892,24 +1916,23 @@ namespace
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
-            result->pplns.push_back( ppln );
+            CHECK_THROW( result->pipelineMap.emplace( Pair{info.objId, info.dbgMode}, ppln ).second );
         }};
 
         result->rtech = rtech;
 
-        for (usize i = 0; i < _drawCommands.size(); ++i)
+        for (auto& info : names)
         {
-            const auto  name = names[i].pplnName;
-            Visit( _drawCommands[i],
-                [&] (const DrawCmd3 &)                      { FindGraphicsPpln( name ); },
-                [&] (const DrawIndexedCmd3 &)               { FindGraphicsPpln( name ); },
-                [&] (const DrawIndirectCmd3 &)              { FindGraphicsPpln( name ); },
-                [&] (const DrawIndexedIndirectCmd3 &)       { FindGraphicsPpln( name ); },
-                [&] (const DrawIndirectCountCmd3 &)         { FindGraphicsPpln( name ); },
-                [&] (const DrawIndexedIndirectCountCmd3 &)  { FindGraphicsPpln( name ); },
-                [&] (const DrawMeshTasksCmd3 &)             { FindMeshPpln( name ); },
-                [&] (const DrawMeshTasksIndirectCmd3 &)     { FindMeshPpln( name ); },
-                [&] (const DrawMeshTasksIndirectCountCmd3 &){ FindMeshPpln( name ); }
+            Visit( _drawCommands[ info.objId ],
+                [&] (const DrawCmd3 &)                      { FindGraphicsPpln( info ); },
+                [&] (const DrawIndexedCmd3 &)               { FindGraphicsPpln( info ); },
+                [&] (const DrawIndirectCmd3 &)              { FindGraphicsPpln( info ); },
+                [&] (const DrawIndexedIndirectCmd3 &)       { FindGraphicsPpln( info ); },
+                [&] (const DrawIndirectCountCmd3 &)         { FindGraphicsPpln( info ); },
+                [&] (const DrawIndexedIndirectCountCmd3 &)  { FindGraphicsPpln( info ); },
+                [&] (const DrawMeshTasksCmd3 &)             { FindMeshPpln( info ); },
+                [&] (const DrawMeshTasksIndirectCmd3 &)     { FindMeshPpln( info ); },
+                [&] (const DrawMeshTasksIndirectCountCmd3 &){ FindMeshPpln( info ); }
             );
         }
 
@@ -1929,7 +1952,7 @@ namespace {
         "-Translucent",
         "-Volumetric"
     };
-    STATIC_ASSERT( CountOf(c_RTGeometrySuffix) == uint(ScriptGeomSource::EGeometryType::_Count) );
+    StaticAssert( CountOf(c_RTGeometrySuffix) == uint(ScriptGeomSource::EGeometryType::_Count) );
 }
 
 /*
@@ -1937,9 +1960,6 @@ namespace {
     constructor
 =================================================
 */
-    ScriptModelGeometrySrc::ScriptModelGeometrySrc () __Th___
-    {}
-
     ScriptModelGeometrySrc::ScriptModelGeometrySrc (const String &filename) __Th___ :
         _scenePath{ ScriptExe::ScriptResourceApi::ToAbsolute( filename )}  // throw
     {
@@ -2101,18 +2121,18 @@ namespace {
         binder.AddFactoryCtor( &ScriptSceneGeometry_Ctor1,  {"scenePathInVFS"} );
 
         binder.Comment( "Set resource name. It is used for debugging." );
-        binder.AddMethod( &ScriptModelGeometrySrc::Name,                        "Name",                 {} );
+        binder.AddMethod( &ScriptModelGeometrySrc::Name,                    "Name",                 {} );
 
         binder.Comment( "Add directory where to search required textures." );
-        binder.AddMethod( &ScriptModelGeometrySrc::AddTextureSearchDir,         "TextureSearchDir",     {"folder"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddTextureSearchDir,     "TextureSearchDir",     {"folder"} );
 
         binder.Comment( "Set transformation for model root node." );
-        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform1,        "InitialTransform",     {} );
-        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform2,        "InitialTransform",     {"position", "rotation", "scale"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform1,    "InitialTransform",     {} );
+        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform2,    "InitialTransform",     {"position", "rotation", "scale"} );
 
-        binder.AddMethod( &ScriptModelGeometrySrc::AddOmniLight,                "AddOmniLight",         {"position", "attenuation", "color"} );
-        binder.AddMethod( &ScriptModelGeometrySrc::AddConeLight,                "AddConeLight",         {"position", "direction", "coneAngle", "attenuation", "color"} );
-        binder.AddMethod( &ScriptModelGeometrySrc::AddDirLight,                 "AddDirLight",          {"direction", "attenuation", "color"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddOmniLight,            "AddOmniLight",         {"position", "attenuation", "color"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddConeLight,            "AddConeLight",         {"position", "direction", "coneAngle", "attenuation", "color"} );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddDirLight,             "AddDirLight",          {"direction", "attenuation", "color"} );
     }
 
 /*
@@ -2231,8 +2251,8 @@ namespace {
         // search in scene dir
         _texSearchDirs.push_back( _scenePath.parent_path() );
 
-        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform,
-                                            _texSearchDirs, _maxTextures, RVRef(geom_types) );
+        _geomSrc = MakeRCTh<ModelGeomSource>( renderer, _intermScene, _initialTransform,
+                                              _texSearchDirs, _maxTextures, RVRef(geom_types) );
         return _geomSrc;
     }
 
@@ -2263,13 +2283,20 @@ namespace {
         CHECK_THROW( names.size() == 1 );
 
         auto        result      = MakeRC<ModelGeomSource::Material>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         result->rtech = rtech;
 
         GraphicsPipelineID  ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
         CHECK_THROW( ppln );
+
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+        }
+        #endif
 
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
 
@@ -2356,7 +2383,7 @@ namespace {
                 else
                     CHECK_THROW_MSG( shared_mtr_dsl == mtr_dsl, "All pipelines must use the same DescriptorSetLayout" );
 
-                ppln_per_obj.emplace_back( ppln_name[0].pplnName, obj_id-1 );
+                ppln_per_obj.emplace_back( ppln_name[0].pplnName, obj_id-1, EDebugMode::Unknown );
             });
 
         if ( not ppln_per_obj.empty() )
@@ -2386,8 +2413,8 @@ namespace {
         END_ENUM_CHECKS();
 
         auto        result      = MakeRC<ModelGeomSource::Material>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
 
         result->rtech = rtech;
 
@@ -2397,7 +2424,7 @@ namespace {
         Array<GraphicsPipelineID>   pipelines;
 
         _intermScene->ForEachModel(
-            [&, i = 0u, obj_id = 0u, init_ds = true] (const ResLoader::IntermScene::ModelData &model) mutable
+            [&, i = 0u, obj_id = 0u, init_ds = true] (const ResLoader::IntermScene::ModelData &model) M_Th___
             {
                 ++obj_id;
 
@@ -2410,6 +2437,13 @@ namespace {
 
                 auto    ppln = rtech->GetGraphicsPipeline( names[i].pplnName );
                 CHECK_THROW( ppln );
+
+                #if PIPELINE_STATISTICS
+                {
+                    auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+                    Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+                }
+                #endif
 
                 if ( init_ds )
                 {

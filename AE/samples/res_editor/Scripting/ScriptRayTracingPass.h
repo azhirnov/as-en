@@ -11,24 +11,24 @@ namespace AE::ResEditor
     {
         uint        value   = 0;
 
-        RTInstanceIndex () {}
-        explicit RTInstanceIndex (uint v) : value{v} {}
+        RTInstanceIndex ()                  __NE___ {}
+        explicit RTInstanceIndex (uint v)   __NE___ : value{v} {}
     };
 
     struct RTRayIndex
     {
         uint        value   = 0;
 
-        RTRayIndex () {}
-        explicit RTRayIndex (uint v) : value{v} {}
+        RTRayIndex ()                       __NE___ {}
+        explicit RTRayIndex (uint v)        __NE___ : value{v} {}
     };
 
     struct RTCallableIndex
     {
         uint        value   = 0;
 
-        RTCallableIndex () {}
-        explicit RTCallableIndex (uint v) : value{v} {}
+        RTCallableIndex ()                  __NE___ {}
+        explicit RTCallableIndex (uint v)   __NE___ : value{v} {}
     };
 
     struct RTShader
@@ -113,7 +113,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptRayTracingPass () : ScriptBasePass{EFlags::Unknown} {}
+        ScriptRayTracingPass () = delete;
         ScriptRayTracingPass (const String &defines, EFlags baseFlags)                          __Th___;
 
         void  DispatchThreads1  (uint threadsX)                                                 __Th___ { return DispatchThreads3v({ threadsX, 1u, 1u }); }

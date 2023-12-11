@@ -183,7 +183,7 @@ namespace
 extern void UnitTest_FeatureSet ()
 {
     const auto  h = FeatureSet::GetHashOfFS();
-    ASSERT( h == FeatureSet::GetHashOfFS_Precalculated() );
+    TEST( h == FeatureSet::GetHashOfFS_Precalculated() );
 
     FeatureSet_Test1();
     FeatureSet_Test2();

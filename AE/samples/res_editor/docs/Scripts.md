@@ -14,4 +14,4 @@ See '[res_editor.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared
 Second type of script is used to define pipelines which will be selected by the main script.
 The `pipelines` folder contains this type of scripts.
 
-See 'Pipelines' tab in [Resource Compilation](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ResourceCompilation.md) docs and '[pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as)' file with built-in docs.
+See 'Pipelines' tab in [Resource Compilation](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/ResourceCompilation.md) docs and '[pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as)' file with built-in docs.

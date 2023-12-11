@@ -21,7 +21,7 @@ namespace AE::Base
     // methods
     public:
         Ptr ()                                      __NE___ {}
-        Ptr (T *ptr)                                __NE___ : _value{ptr} {}
+        Ptr (T* ptr)                                __NE___ : _value{ptr} {}
 
         template <typename B>
         Ptr (const Ptr<B> &other)                   __NE___ : _value{static_cast<T*>( (B*)other )} {}
@@ -64,6 +64,10 @@ namespace AE::Base
 
     template <typename T>
     using RemovePtr = typename Base::_hidden_::_RemovePtr<T>::type;
+
+
+    template <typename T>   struct TMemCopyAvailable< Ptr<T> >  { static constexpr bool  value = true; };
+    template <typename T>   struct TZeroMemAvailable< Ptr<T> >  { static constexpr bool  value = true; };
 
 } // AE::Base
 

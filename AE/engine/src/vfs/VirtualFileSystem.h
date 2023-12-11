@@ -8,10 +8,10 @@
 ----
 
     RStream, RDataSource, AsyncRDataSource
-        Thread-safe:    depends on implementation
+        Thread-safe:    depends on implementation, use 'IsThreadSafe()' method.
 
     WStream, WDataSource, AsyncWDataSource
-        Thread-safe:    depends on implementation
+        Thread-safe:    depends on implementation, use 'IsThreadSafe()' method.
 
     IVirtualFileStorage
         Thread-safe:    yes (interface methods only)
@@ -20,7 +20,7 @@
         Thread-safe:    yes (const methods only)
 ----
 
-    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/VirtualFileSystem.md)
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VirtualFileSystem-ru.md)
 */
 
 #pragma once
@@ -31,18 +31,6 @@ namespace AE { VFS::VirtualFileSystem&  GetVFS () __NE___; }
 
 namespace AE::VFS
 {
-
-    /*enum class EVFStorageType : uint
-    {
-        Unknown     = 0,
-        Dynamic     = 1 << 0,       // allows to create files and rewrite existing, by default all storages are static
-        Remote      = 1 << 1,       // removable disk, network, etc
-        Cache       = 1 << 2,       // files may be lost
-        Temporary   = 1 << 3,       // files will be deleted at exit
-    };
-    AE_BIT_OPERATORS( EVFStorageType );*/
-
-
 
     //
     // Virtual File System Storage interface
@@ -61,6 +49,7 @@ namespace AE::VFS
 
         using GlobalFileMap_t   = FlatHashMap< FileName::Optimized_t, GlobalFileRef >;
 
+    public:
       #if AE_OPTIMIZE_IDS
         using FileNameRef       = FileName::Optimized_t;
         using FileGroupNameRef  = FileGroupName::Optimized_t;
@@ -76,12 +65,12 @@ namespace AE::VFS
         ND_ virtual bool  Open (OUT RC<RDataSource> &ds, FileNameRef name)                                  C_NE___ = 0;
         ND_ virtual bool  Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name)                             C_NE___ = 0;
 
-        ND_ virtual bool  Open (OUT RC<WStream> &stream, FileNameRef name)                                  C_NE___ { Unused( stream, name );  return false; }
-        ND_ virtual bool  Open (OUT RC<WDataSource> &ds, FileNameRef name)                                  C_NE___ { Unused( ds, name );  return false; }
-        ND_ virtual bool  Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name)                             C_NE___ { Unused( ds, name );  return false; }
+        ND_ virtual bool  Open (OUT RC<WStream> &stream, FileNameRef name)                                  C_NE___ { Unused( stream, name );   return false; }
+        ND_ virtual bool  Open (OUT RC<WDataSource> &ds, FileNameRef name)                                  C_NE___ { Unused( ds, name );       return false; }
+        ND_ virtual bool  Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name)                             C_NE___ { Unused( ds, name );       return false; }
 
-        ND_ virtual bool  CreateFile (OUT FileName &name, const Path &path)                                 C_NE___ { Unused( name, path );  return false; }
-        ND_ virtual bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)                           C_NE___ { Unused( name, path );  return false; }
+        ND_ virtual bool  CreateFile (OUT FileName &name, const Path &path)                                 C_NE___ { Unused( name, path );     return false; }
+        ND_ virtual bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)                           C_NE___ { Unused( name, path );     return false; }
 
         ND_ virtual bool  Exists (FileNameRef name)                                                         C_NE___ = 0;
         ND_ virtual bool  Exists (FileGroupNameRef name)                                                    C_NE___ = 0;
@@ -95,8 +84,8 @@ namespace AE::VFS
         ND_ virtual bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref)     C_NE___ = 0;
 
         ND_ virtual bool  _OpenByIter (OUT RC<WStream> &stream, FileNameRef name, const void* ref)          C_NE___ { Unused( stream, name, ref );  return false; }
-        ND_ virtual bool  _OpenByIter (OUT RC<WDataSource> &ds, FileNameRef name, const void* ref)          C_NE___ { Unused( ds, name, ref );  return false; }
-        ND_ virtual bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileNameRef name, const void* ref)     C_NE___ { Unused( ds, name, ref );  return false; }
+        ND_ virtual bool  _OpenByIter (OUT RC<WDataSource> &ds, FileNameRef name, const void* ref)          C_NE___ { Unused( ds, name, ref );      return false; }
+        ND_ virtual bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileNameRef name, const void* ref)     C_NE___ { Unused( ds, name, ref );      return false; }
     };
 
 
@@ -114,29 +103,42 @@ namespace AE::VFS
         using FileNameRef       = IVirtualFileStorage::FileNameRef;
         using FileGroupNameRef  = IVirtualFileStorage::FileGroupNameRef;
 
-        using StorageArray_t    = FixedMap< StorageName::Optimized_t, RC<IVirtualFileStorage>, 16 >;
+        using StorageArray_t    = FixedMap< StorageName::Optimized_t, RC<IVirtualFileStorage>, 8 >;
+
+    public:
+        class InstanceCtor {
+        public:
+            static void  Create ()  __NE___;
+            static void  Destroy () __NE___;
+        };
 
 
     // variables
     private:
-        GlobalFileMap_t             _globalMap;
-        StorageArray_t              _storageMap;
+        Atomic<bool>                _isImmutable    {false};
+
+        GlobalFileMap_t             _globalMap;     // \__ immutable if '_isImmutable' is 'true'.
+        StorageArray_t              _storageMap;    // /
 
         DRC_ONLY( RWDataRaceCheck   _drCheck;)
 
 
     // methods
     public:
-            static void  CreateInstance ()                                                      __NE___;
-            static void  DestroyInstance ()                                                     __NE___;
 
         // Add VF storage to the VFS.
         // All static files will be added to the global map.
         // FileName hash must be unique for all files in the VFS.
-        // Must be externally synchronized with 'Open()' and 'Exists()' methods.
         //
         ND_ bool  AddStorage (const StorageName &name, RC<IVirtualFileStorage> storage)         __NE___;
         ND_ bool  AddStorage (RC<IVirtualFileStorage> storage)                                  __NE___;
+
+
+        // VFS has 2 stages:
+        //  1 - mutable: you can add storage, but can not open files.
+        //  2 - immutable: you can open files for read/write, but can not add new storages.
+        //
+            bool  MakeImmutable ()                                                              __NE___;
 
 
         ND_ bool  Open (OUT RC<RStream> &stream, FileNameRef name)                              C_NE___;
@@ -152,13 +154,13 @@ namespace AE::VFS
         template <typename T>
         ND_ RC<T>  Open (FileNameRef name)                                                      C_NE___;
 
-        ND_ bool  CreateFile (const StorageName &storage,
-                              OUT FileName      &name,
-                              const Path        &path)                                          C_NE___;
+        ND_ bool  CreateFile (OUT FileName      &name,
+                              const Path        &path,
+                              const StorageName &storage)                                       C_NE___;
 
-        ND_ bool  CreateUniqueFile (const StorageName   &storage,
-                                    OUT FileName        &name,
-                                    INOUT Path          &path)                                  C_NE___;
+        ND_ bool  CreateUniqueFile (OUT FileName        &name,
+                                    INOUT Path          &path,
+                                    const StorageName   &storage)                               C_NE___;
 
         ND_ bool  Exists (FileNameRef name)                                                     C_NE___;
         ND_ bool  Exists (FileGroupNameRef name)                                                C_NE___;
@@ -167,6 +169,8 @@ namespace AE::VFS
     private:
         VirtualFileSystem ()                                                                    __NE___ {}
         ~VirtualFileSystem ()                                                                   __NE___ {}
+
+        ND_ bool  _AddStorage (StorageName::Optimized_t name, RC<IVirtualFileStorage>)          __NE___;
 
         template <typename ResultType>
         ND_ bool  _OpenForRead (OUT ResultType &, FileNameRef name)                             C_NE___;
@@ -190,9 +194,10 @@ namespace AE::VFS
         ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (const Path &filename)                              __NE___;
 
         ND_ static RC<IVirtualFileStorage>  CreateStaticFolder (const Path &folder, StringView prefix = Default)    __NE___;
-        ND_ static RC<IVirtualFileStorage>  CreateDynamicFolder (const Path &folder, StringView prefix = Default)   __NE___;
+        ND_ static RC<IVirtualFileStorage>  CreateDynamicFolder (const Path &folder, StringView prefix = Default,
+                                                                 Bool createFolder = False{})                       __NE___;
 
-        ND_ static RC<IVirtualFileStorage>  CreateNetworkStorage (StringView url)                                   __NE___;
+        ND_ static RC<IVirtualFileStorage>  CreateNetworkStorage (Networking::ClientServerBase &)                   __NE___;
     };
 
 

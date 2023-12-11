@@ -19,7 +19,7 @@ namespace AE::Graphics
         using NativeCmdBuffer_t     = NativeCmdBufferType;
         using BakedCommands_t       = BakedCommandsType;
 
-        STATIC_ASSERT( sizeof(NativeCmdBuffer_t) >= sizeof(BakedCommands_t) );
+        StaticAssert( sizeof(NativeCmdBuffer_t) >= sizeof(BakedCommands_t) );
 
         union Cmdbuf
         {
@@ -95,7 +95,7 @@ namespace AE::Graphics
         if_likely( idx < _pool.size() )
             return idx;
 
-        DEV_WARNING( "counter overflow" );
+        DBG_WARNING( "counter overflow" );
         return UMax;
     }
 
@@ -140,7 +140,7 @@ namespace AE::Graphics
         {
             DRC_SHAREDLOCK( _drCheck );
 
-            PlacementNew<BakedCommands_t>( OUT &_pool[idx].baked, RVRef(ctx) );     // nothrow
+            PlacementNew<BakedCommands_t>( OUT &_pool[idx].baked, RVRef(ctx) );
             _cmdTypes.fetch_or( 1u << idx );
 
             uint    old_bits = _ready.fetch_or( 1u << idx, EMemoryOrder::Release );

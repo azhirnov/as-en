@@ -13,8 +13,8 @@ namespace _hidden_
     ND_ inline uint3  IWeylConst ()
     {
         return uint3{
-            0x3504f333u,    // W0 = 3*2309*128413 
-            0xf1bbcdcbu,    // W1 = 7*349*1660097 
+            0x3504f333u,    // W0 = 3*2309*128413
+            0xf1bbcdcbu,    // W1 = 7*349*1660097
             741103597u      // M  = 13*83*686843
         };
     }
@@ -82,21 +82,6 @@ namespace _hidden_
 
 /*
 =================================================
-    Rainbow / RainbowWrap
-=================================================
-*/
-    ND_ inline RGBA32f  Rainbow (const float factor) __NE___
-    {
-        return RGBA32f{ HSVColor{ Saturate( factor * 0.74f )}};
-    }
-
-    ND_ inline RGBA32f  RainbowWrap (const float factor) __NE___
-    {
-        return RGBA32f{ HSVColor{ Wrap( factor * 0.74f, 0.0f, 1.0f )}};
-    }
-
-/*
-=================================================
     StringToColor
 =================================================
 */
@@ -133,7 +118,7 @@ namespace _hidden_
     template <typename C, typename T>
     void  IntToColor (OUT C &col, const T value) __NE___
     {
-        STATIC_ASSERT( IsInteger<T> );
+        StaticAssert( IsInteger<T> );
 
         HashVal u = HashOf( value );
         HashToColor( OUT col, u );

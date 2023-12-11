@@ -98,12 +98,10 @@ namespace AE::ResEditor
         ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName)              __Th___;
 
     public:
-        ScriptSceneGraphicsPass ()                                                          __Th___;
+        ScriptSceneGraphicsPass () = delete;
 
         void  AddPipeline (const String &pplnFile)                                          __Th___;
         void  AddPipelines (const String &pplnsFolder)                                      __Th___;
-
-        void  InputController (const ScriptBaseControllerPtr &)                             __Th___;
 
         void  SetLayer (ERenderLayer layer)                                                 __Th___;
 
@@ -154,11 +152,9 @@ namespace AE::ResEditor
         ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName)            __Th___;
 
     public:
-        ScriptSceneRayTracingPass ()                                                        __Th___;
+        ScriptSceneRayTracingPass () = delete;
 
         void  SetPipeline (const String &pplnFile)                                          __Th___;
-
-        void  InputController (const ScriptBaseControllerPtr &)                             __Th___;
 
         void  DispatchThreads1  (uint threadsX)                                             __Th___ { return DispatchThreads3v({ threadsX, 1u, 1u }); }
         void  DispatchThreads2  (uint threadsX, uint threadsY)                              __Th___ { return DispatchThreads3v({ threadsX, threadsY, 1u }); }

@@ -20,7 +20,7 @@ namespace AE::ResEditor
 */
     ModelGeomSource::Material::~Material ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResourceArray( INOUT descSets );
     }
 //-----------------------------------------------------------------------------
@@ -110,7 +110,7 @@ namespace AE::ResEditor
 */
     ModelGeomSource::Mesh::~Mesh ()
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         res_mngr.ReleaseResources( _meshData, _nodeBuffer, _materials, _rtInstances, _lights );
     }
 
@@ -277,7 +277,7 @@ namespace AE::ResEditor
         DEBUG_ONLY(
             float4  c2 = UIntToUNorm8x4( res );
             c2 = c2 * (c2.w * _RGBM_MaxRange);
-            ASSERT( All(Equals( col, float3{c2}, 0.002f )));
+            ASSERT( All(Equal( col, float3{c2}, 0.002f )));
         )
         return res;
     }
@@ -535,12 +535,12 @@ namespace AE::ResEditor
         StaticArray< Array<uint>, uint(ERTGeometryType::_Count) >                       rt_materials;
         StaticArray< Array<float3x3>, uint(ERTGeometryType::_Count) >                   rt_norm_mats;
 
-        STATIC_ASSERT( inst_to_mesh.meshesPerInstance.size() == rt_meshes.size() );
-        STATIC_ASSERT( inst_to_mesh.materialsPerInstance.size() == rt_materials.size() );
-        STATIC_ASSERT( inst_to_mesh.normalMatPerInstance.size() == rt_norm_mats.size() );
+        StaticAssert( inst_to_mesh.meshesPerInstance.size() == rt_meshes.size() );
+        StaticAssert( inst_to_mesh.materialsPerInstance.size() == rt_materials.size() );
+        StaticAssert( inst_to_mesh.normalMatPerInstance.size() == rt_norm_mats.size() );
 
-        const DeviceAddress     mesh_addr = RenderTaskScheduler().GetResourceManager().GetDeviceAddress( _meshData );
-        const DeviceAddress     inst_addr = RenderTaskScheduler().GetResourceManager().GetDeviceAddress( _rtInstances );
+        const DeviceAddress     mesh_addr = GraphicsScheduler().GetResourceManager().GetDeviceAddress( _meshData );
+        const DeviceAddress     inst_addr = GraphicsScheduler().GetResourceManager().GetDeviceAddress( _rtInstances );
         CHECK_ERR( mesh_addr != Default and inst_addr != Default );
 
         _intermScene->ForEachNode(

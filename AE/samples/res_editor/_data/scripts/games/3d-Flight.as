@@ -41,13 +41,13 @@
         {
             RC<ComputePass>     logic = ComputePass( "" );
             logic.ArgInOut( "un_CBuf",      cbuf );
-            logic.ArgIn(    camera );
+            logic.Set(      camera );
             logic.LocalSize( 1 );
             logic.DispatchGroups( 1 );
-
+        }{
             RC<Postprocess>     draw = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
             draw.ArgIn( "un_CBuf",  cbuf );
-            draw.ArgIn( camera );
+            draw.Set(   camera );
             draw.Output( rt );
         }
         Present( rt );
@@ -56,6 +56,8 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
+    #include "Geometry.glsl"
+
     // >>>> 3rd party code
     #include "Skyline.glsl"
 
@@ -96,7 +98,7 @@
         float3  v0  = (un_PerPass.camera.view * float4(-1.f, 0.f, 0.f, 0.f)).xyz;   v0.y = 0.f;
         float3  v1  = (un_PerPass.camera.view * float4( 1.f, 0.f, 0.f, 0.f)).xyz;   v1.y = 0.f;
         float3  v2  = (un_PerPass.camera.view * float4( 0.f, 0.f, 1.f, 0.f)).xyz;   v2.y = 0.f;
-        float   lift = Length(Cross( v2 - v0, v2 - v1 )) * 0.5f;            // area of triangle in XZ plane
+        float   lift = TriangleArea( v0, v1, v2 );  // area of triangle in XZ plane
 
         return Pow( Saturate( 1.f - lift ), 2.0 ) * un_PerPass.timeDelta * un_CBuf.liftScale;
     }

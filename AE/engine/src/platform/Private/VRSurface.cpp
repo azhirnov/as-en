@@ -36,7 +36,7 @@ namespace AE::App
 
         Destroy();
 
-        auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&           res_mngr = GraphicsScheduler().GetResourceManager();
         ImageDesc       img_desc;
         ImageViewDesc   view_desc;
 
@@ -73,9 +73,9 @@ namespace AE::App
     {
         EXLOCK( _guard );
 
-        CHECK( RenderTaskScheduler().WaitAll() );
+        CHECK( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         for (usize i = 0; i < _images.size(); ++i)
         {
@@ -147,14 +147,14 @@ namespace AE::App
 
 /*
 =================================================
-    GetTargetSizes
+    GetTargetInfo
 =================================================
 */
-    IOutputSurface::TargetSizes_t  VRSurface::GetTargetSizes () C_NE___
+    IOutputSurface::TargetInfos_t  VRSurface::GetTargetInfo () C_NE___
     {
-        TargetSizes_t   result;
+        TargetInfos_t   result;
         for (usize i = 0; i < _images.size(); ++i) {
-            result.push_back( _desc.dimension );
+            result.emplace_back( _desc.dimension, 0.f );
         }
         return result;
     }

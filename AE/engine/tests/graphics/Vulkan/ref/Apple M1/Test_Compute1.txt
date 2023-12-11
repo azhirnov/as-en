@@ -1,0 +1,350 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'Compute1 |0| Compute task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-8'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-9'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-10'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-2', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+}
+--------------------------------------------------
+name: 'Compute1 |1| Readback task'
+{
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-2'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-11'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-12'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-13'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-2', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-2'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'Compute1 |0| Compute task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-14'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-15'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+  BindPipeline
+    pipeline:  'compute-ppln-16'
+    layout:    '0'
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '0'
+      image: 'Image-2', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-2'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-2'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================

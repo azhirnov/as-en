@@ -11,10 +11,10 @@ namespace AE::VFS
 
 /*
 =================================================
-    Create
+    _Create
 =================================================
 */
-    bool  ArchiveStaticStorage::Create (RC<RDataSource> archive)
+    bool  ArchiveStaticStorage::_Create (RC<RDataSource> archive) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( archive and archive->IsOpen() );
@@ -31,14 +31,14 @@ namespace AE::VFS
 
 /*
 =================================================
-    Create
+    _Create
 =================================================
 */
-    bool  ArchiveStaticStorage::Create (const Path &filename)
+    bool  ArchiveStaticStorage::_Create (const Path &filename) __NE___
     {
         auto    file = MakeRC<TSFileRDataSource_t>( filename );
         CHECK_ERR( file );
-        return Create( file );
+        return _Create( file );
     }
 
 /*
@@ -48,7 +48,7 @@ namespace AE::VFS
 */
     bool  ArchiveStaticStorage::_ReadHeader (RDataSource &inDS) __NE___
     {
-        try{
+        TRY{
             ArchiveHeader   hdr;
             CHECK_ERR( inDS.ReadBlock( 0_b, OUT &hdr, Sizeof(hdr) ) == Sizeof(hdr) );
 
@@ -77,9 +77,9 @@ namespace AE::VFS
             }
             return true;
         }
-        catch (...)
-        {}
-        return false;
+        CATCH_ALL(
+            return false;
+        )
     }
 
 /*
@@ -315,6 +315,7 @@ namespace AE::VFS
 */
     bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, FileNameRef, const void*) C_NE___
     {
+        // TODO: replace '_archive' by asyncDS
         return false;
     }
 //-----------------------------------------------------------------------------
@@ -327,15 +328,15 @@ namespace AE::VFS
 */
     RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticArchive (RC<RDataSource> archive) __NE___
     {
-        auto    result = MakeRC<ArchiveStaticStorage>();
-        CHECK_ERR( result->Create( RVRef(archive) ));
+        auto    result = RC<ArchiveStaticStorage>{ new ArchiveStaticStorage{}};
+        CHECK_ERR( result->_Create( RVRef(archive) ));
         return result;
     }
 
     RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticArchive (const Path &filename) __NE___
     {
-        auto    result = MakeRC<ArchiveStaticStorage>();
-        CHECK_ERR( result->Create( filename ));
+        auto    result = RC<ArchiveStaticStorage>{ new ArchiveStaticStorage{}};
+        CHECK_ERR( result->_Create( filename ));
         return result;
     }
 

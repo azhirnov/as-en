@@ -57,7 +57,7 @@ namespace AE::Math
             constexpr FloatBits () : f{0.f} {}
         };
 
-        STATIC_ASSERT( sizeof(ubyte) == sizeof(Float8Bits) );
+        StaticAssert( sizeof(ubyte) == sizeof(Float8Bits) );
 
 
     // variables

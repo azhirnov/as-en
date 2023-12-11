@@ -56,7 +56,7 @@
             array<float3>   bitangents;
             array<float2>   texcoords;
             array<uint>     indices;
-            GetSphere( 8, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
+            GetSphere( 4, OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
 
             sphere.FloatArray( "positions", positions );
             sphere.FloatArray( "normals",   normals );

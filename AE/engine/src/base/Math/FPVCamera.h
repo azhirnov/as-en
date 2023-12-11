@@ -4,7 +4,6 @@
 
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
-#include "base/Math/Radians.h"
 
 namespace AE::Math
 {
@@ -25,7 +24,7 @@ namespace AE::Math
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = TRadians<T>;
+        using Rad_t         = TRadian<T>;
         using Rad2_t        = RadianVec<T,2>;
         using Transform_t   = typename Camera_t::Transform_t;
 
@@ -68,7 +67,7 @@ namespace AE::Math
         ND_ Vec3_t  Transform3D (const Vec3_t &delta)                       C_NE___;    // free FPS camera
 
             Self&   SetPosition (const Vec3_t &pos)                         __NE___;
-            Self&   SetRotation (const Quat_t &q)                           __NE___;
+            Self&   ResetRotation ()                                        __NE___;
 
     private:
             void    _LimitRotation (INOUT Rad_t &horizontal, INOUT Rad_t &vertical);
@@ -202,13 +201,14 @@ namespace AE::Math
 
 /*
 =================================================
-    SetRotation
+    ResetRotation
 =================================================
 */
     template <typename T>
-    TFPVCamera<T>&  TFPVCamera<T>::SetRotation (const Quat_t &q) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::ResetRotation () __NE___
     {
-        _camera.transform.orientation = q;
+        _camera.transform.orientation   = Quat_t::Identity();
+        _vertAngle                      = Rad_t{};
         return *this;
     }
 

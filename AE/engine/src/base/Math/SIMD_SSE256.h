@@ -23,7 +23,7 @@ namespace AE::Math
         using Self      = SimdFloat8;
         using Array_t   = StaticArray< Value_t, 8 >;
 
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(__m256) );
+        StaticAssert( sizeof(Array_t) == sizeof(__m256) );
 
 
         struct Bool8
@@ -136,7 +136,7 @@ namespace AE::Math
         ND_ Self  Round ()                                  C_NE___ { return Self{ _mm256_round_ps( _value, Mode )}; }
 
         template <uint Idx>
-        ND_ SimdFloat4  ToFloat4 ()                         C_NE___ { STATIC_ASSERT( Idx < 2 );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
+        ND_ SimdFloat4  ToFloat4 ()                         C_NE___ { StaticAssert( Idx < 2 );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
 
         ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm256_storeu_ps( OUT arr.data(), _value );  return arr; }
             void        ToArray (OUT Value_t* dst)          C_NE___ { _mm256_storeu_ps( OUT dst, _value ); }
@@ -159,7 +159,7 @@ namespace AE::Math
         using Self      = SimdDouble4;
         using Array_t   = StaticArray< Value_t, 4 >;
 
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(__m256d) );
+        StaticAssert( sizeof(Array_t) == sizeof(__m256d) );
 
 
         struct Bool4
@@ -192,7 +192,7 @@ namespace AE::Math
     public:
         SimdDouble4 ()                                      __NE___ : _value{ _mm256_setzero_pd() } {}
         explicit SimdDouble4 (double v)                     __NE___ : _value{ _mm256_set1_pd( v )} {}
-        explicit SimdDouble4 (const double *v)              __NE___ : _value{ _mm256_loadu_pd( v )} {}
+        explicit SimdDouble4 (const double* v)              __NE___ : _value{ _mm256_loadu_pd( v )} {}
         explicit SimdDouble4 (const __m256d &v)             __NE___ : _value{ v } {}
         SimdDouble4 (double x, double y, double z, double w)__NE___ : _value{ _mm256_set_pd( x, y, z, w )} {}
 
@@ -281,7 +281,7 @@ namespace AE::Math
             __m256d xy3 = _mm256_mul_pd( x[3]._value, y[3]._value );
 
             // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
-            __m256d temp01  = _mm256_hadd_pd( xy0, xy1 );   
+            __m256d temp01  = _mm256_hadd_pd( xy0, xy1 );
 
             // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
             __m256d temp23  = _mm256_hadd_pd( xy2, xy3 );
@@ -296,7 +296,7 @@ namespace AE::Math
         }
 
         template <uint Idx>
-        ND_ SimdDouble2 ToDouble2 ()                        C_NE___ { STATIC_ASSERT( Idx < 2 );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
+        ND_ SimdDouble2 ToDouble2 ()                        C_NE___ { StaticAssert( Idx < 2 );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
 
         ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm256_storeu_pd( OUT arr.data(), _value );  return arr; }
             void        ToArray (OUT Value_t* dst)          C_NE___ { _mm256_storeu_pd( OUT dst, _value ); }
@@ -350,7 +350,7 @@ namespace AE::Math
         template <typename T>
         ND_ auto    ToArray ()                          C_NE___
         {
-            STATIC_ASSERT( IsInteger<T> );
+            StaticAssert( IsInteger<T> );
             StaticArray< T, sizeof(__m256i) / sizeof(T) >   arr;
             if constexpr( sizeof(T) == 1 )  _mm256_storeu_epi8(   OUT static_cast<void*>(arr.data()), _value );
             if constexpr( sizeof(T) == 2 )  _mm256_storeu_epi16(  OUT static_cast<void*>(arr.data()), _value );
@@ -368,7 +368,7 @@ namespace AE::Math
     template <typename IntType>
     struct SimdTInt256
     {
-        STATIC_ASSERT(( IsSameTypes<IntType, Int128b> or IsInteger<IntType> ));
+        StaticAssert(( IsSameTypes<IntType, Int128b> or IsInteger<IntType> ));
 
     // types
     public:
@@ -379,7 +379,7 @@ namespace AE::Math
 
         static constexpr uint   count   = sizeof(Native_t) / sizeof(IntType);
         using Array_t                   = StaticArray< Value_t, count >;
-        STATIC_ASSERT( sizeof(Array_t) == sizeof(Native_t) );
+        StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
 
     // variables
@@ -434,7 +434,7 @@ namespace AE::Math
         }
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte >>
+                  ENABLEIF( IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte >)
                  >
         SimdTInt256 (T v00, T v01, T v02, T v03,
                      T v04, T v05, T v06, T v07,
@@ -450,7 +450,7 @@ namespace AE::Math
                                      v24, v25, v26, v27, v28, v29, v30, v31)} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ushort > or IsSameTypes< T, sshort >>
+                  ENABLEIF( IsSameTypes< T, ushort > or IsSameTypes< T, sshort >)
                  >
         SimdTInt256 (T v00, T v01, T v02, T v03,
                      T v04, T v05, T v06, T v07,
@@ -460,20 +460,20 @@ namespace AE::Math
                                       v08, v09, v10, v11, v12, v13, v14, v15 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, uint > or IsSameTypes< T, sint >>
+                  ENABLEIF( IsSameTypes< T, uint > or IsSameTypes< T, sint >)
                  >
         SimdTInt256 (T v0, T v1, T v2, T v3,
                      T v4, T v5, T v6, T v7)            __NE___ :
             _value{ _mm256_set_epi32( v0, v1, v2, v3, v4, v5, v6, v7 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, ulong > or IsSameTypes< T, slong >>
+                  ENABLEIF( IsSameTypes< T, ulong > or IsSameTypes< T, slong >)
                  >
         SimdTInt256 (T v0, T v1, T v2, T v3)            __NE___ :
             _value{ _mm256_set_epi64x( v0, v1, v2, v3 )} {}
 
         template <typename T,
-                  typename = EnableIf< IsSameTypes< T, __m128i >>
+                  ENABLEIF( IsSameTypes< T, __m128i >)
                  >
         SimdTInt256 (T v0, T v1)                        __NE___ :
             _value{ _mm256_set_m128( v0, v1 )} {}

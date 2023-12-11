@@ -14,7 +14,7 @@
 #endif
 
 // mem leak check
-#if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(AE_CFG_DEBUG)
+#if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(_DEBUG)
 #   define _CRTDBG_MAP_ALLOC
 #   include <crtdbg.h>
 #   include <stdlib.h>
@@ -22,11 +22,15 @@
 
     // call at exit
     // returns 'true' if no mem leaks
-#   define AE_DUMP_MEMLEAKS()   (::_CrtDumpMemoryLeaks() != 1)
+#   define AE_DUMP_MEMLEAKS()   (::_CrtDumpMemoryLeaks() != TRUE)
+
+    // returns 'true' if no mem corruptions
+#   define AE_CHECK_MEMORY()    (::_CrtCheckMemory() != TRUE)
 #else
 
 #   undef  AE_ENABLE_MEMLEAK_CHECKS
 #   define AE_DUMP_MEMLEAKS()   (true)
+#   define AE_CHECK_MEMORY()    (true)
 #endif
 
 #if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE)
@@ -68,7 +72,7 @@
 
 #ifdef AE_COMPILER_MSVC
 #   define AE_COMPILER_NAME         "MS Visual Studio"
-#   define AE_COMPILER_VERSION      AE::Base::Version3{ _MSC_FULL_VER / 10000000, (_MSC_FULL_VER % 10000000) / 100000, _MSC_FULL_VER % 100000 } // (4) _MSC_BUILD 
+#   define AE_COMPILER_VERSION      AE::Base::Version3{ _MSC_FULL_VER / 10000000, (_MSC_FULL_VER % 10000000) / 100000, _MSC_FULL_VER % 100000 } // (4) _MSC_BUILD
                                     // 2017: 19.10 - 19.16
                                     // 2019: 19.20 - 19.29
                                     // 2022: 19.30 - ...

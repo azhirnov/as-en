@@ -204,7 +204,7 @@ namespace
         EnumBitSet<EVertexType> bits;
 
         #define AE_VERTEXTYPE_VISIT( _name_, _value_ )                                          \
-            STATIC_ASSERT( EVertexType::_name_ < EVertexType::_Count );                         \
+            StaticAssert( EVertexType::_name_ < EVertexType::_Count );                          \
             TEST( unique.insert( EVertexType::_name_ ).second );                                \
             TEST( (bits & EnumBitSet<EVertexType>{}.insert( EVertexType::_name_ )).None() );    \
             bits.insert( EVertexType::_name_ );

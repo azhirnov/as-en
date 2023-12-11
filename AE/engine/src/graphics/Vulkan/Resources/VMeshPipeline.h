@@ -27,7 +27,7 @@ namespace AE::Graphics
             PipelineLayoutID                                    layoutId;
             ArrayView< VPipelinePack::ShaderModuleRef >         shaders;
             PipelineCacheID                                     cacheId;
-            VPipelinePack::Allocator_t *                        allocator       = null;
+            IAllocator *                                        allocator       = null;
         };
 
 
@@ -52,25 +52,29 @@ namespace AE::Graphics
 
     // methods
     public:
-        VMeshPipeline ()                                            __NE___ {}
-        ~VMeshPipeline ()                                           __NE___;
+        VMeshPipeline ()                                                    __NE___ {}
+        ~VMeshPipeline ()                                                   __NE___;
 
-        ND_ bool  Create (VResourceManager &, const CreateInfo &ci) __NE___;
-            void  Destroy (VResourceManager &)                      __NE___;
+        ND_ bool  Create (VResourceManager &, const CreateInfo &ci)         __NE___;
+            void  Destroy (VResourceManager &)                              __NE___;
 
-        ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result) C_NE___;
+        ND_ bool  ParseShaderTrace (const void*                 ptr,
+                                    Bytes                       maxSize,
+                                    ShaderDebugger::ELogFormat  logFmt,
+                                    OUT Array<String>           &result)    C_NE___;
 
-        ND_ VkPipeline              Handle ()                       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _handle; }
-        ND_ VkPipelineLayout        Layout ()                       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layout; }
-        ND_ VkPipelineBindPoint     BindPoint ()                    C_NE___ { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
-        ND_ PipelineLayoutID        LayoutID ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-        ND_ EPipelineDynamicState   DynamicState ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-        ND_ uint                    RenderPassSubpassIndex ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
+        ND_ VkPipeline              Handle ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _handle; }
+        ND_ VkPipelineLayout        Layout ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layout; }
+        ND_ VkPipelineBindPoint     BindPoint ()                            C_NE___ { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
+        ND_ PipelineLayoutID        LayoutId ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+        ND_ EPipelineDynamicState   DynamicState ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
+        ND_ uint                    RenderPassSubpassIndex ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
+        ND_ EPipelineOpt            Options ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _options; }
 
-        ND_ uint3                   TaskLocalSize ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
-        ND_ uint3                   MeshLocalSize ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
+        ND_ uint3                   TaskLocalSize ()                        C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
+        ND_ uint3                   MeshLocalSize ()                        C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
 
-        DEBUG_ONLY(  ND_ StringView  GetDebugName ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        DEBUG_ONLY(  ND_ StringView  GetDebugName ()                        C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
     };
 
 

@@ -184,12 +184,15 @@ namespace AE::Threading
     {
     // variables
     private:
-        mutable Atomic<usize>   _tid  {ThreadUtils::GetIntID()};
+        mutable Atomic<usize>   _tid;
 
 
     // methods
     public:
-        SingleThreadCheck ()    __NE___ {}
+        SingleThreadCheck ()    __NE___
+        {
+            Reset();
+        }
 
         void  Reset ()          __NE___
         {
@@ -377,8 +380,8 @@ struct std::scoped_lock< const AE::Threading::SingleThreadCheck > :
 
 #else // AE_ENABLE_DATA_RACE_CHECK
 
-# define DRC_EXLOCK( ... )
-# define DRC_SHAREDLOCK( ... )
+# define DRC_EXLOCK( ... )          {}
+# define DRC_SHAREDLOCK( ... )      {}
 # define DRC_ONLY( ... )
 
 namespace AE::Threading

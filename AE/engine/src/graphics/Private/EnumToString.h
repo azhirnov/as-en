@@ -57,6 +57,7 @@ namespace AE::Base
     using Graphics::ESamplerYcbcrModelConversion;
     using Graphics::ESamplerYcbcrRange;
     using Graphics::ImageSwizzle;
+    using Graphics::ESurfaceFormat;
 
 /*
 =================================================
@@ -454,8 +455,9 @@ namespace AE::Base
         switch ( value )
         {
             case ESamplerUsage::Default :                       return "Default";
-            case ESamplerUsage::Subsampled :                    return "Subsampled";
-            case ESamplerUsage::SubsampledCoarseReconstruction: return "SubsampledCoarseReconstruction";
+        //  case ESamplerUsage::Subsampled :                    return "Subsampled";
+        //  case ESamplerUsage::SubsampledCoarseReconstruction: return "SubsampledCoarseReconstruction";
+            case ESamplerUsage::NonSeamlessCubeMap :            return "NonSeamlessCubeMap";
             case ESamplerUsage::_Count :
             default :                                           break;
         }
@@ -763,6 +765,9 @@ namespace AE::Base
                 case EPipelineOpt::RT_NoNullIntersectionShaders :   str << "RT_NoNullIntersectionShaders";  break;
                 case EPipelineOpt::RT_SkipTriangles :               str << "RT_SkipTriangles";              break;
                 case EPipelineOpt::RT_SkipAABBs :                   str << "RT_SkipAABBs";                  break;
+                case EPipelineOpt::DontCompile :                    str << "DontCompile";                   break;
+                case EPipelineOpt::CaptureStatistics :              str << "CaptureStatistics";             break;
+                case EPipelineOpt::CaptureInternalRepresentation :  str << "CaptureInternalRepresentation"; break;
                 case EPipelineOpt::Unknown :
                 case EPipelineOpt::_Last :
                 case EPipelineOpt::All :
@@ -782,6 +787,13 @@ namespace AE::Base
 */
     ND_ inline String  ToString (EMemoryType values) __Th___
     {
+        switch ( values )
+        {
+            case EMemoryType::Unified :             return "Unified";
+            case EMemoryType::UnifiedCached :       return "UnifiedCached";
+            case EMemoryType::HostCachedCoherent :  return "HostCachedCoherent";
+        }
+
         String  str;
         for (auto t : BitfieldIterate( values ))
         {
@@ -1095,11 +1107,38 @@ namespace AE::Base
                     case EResourceState::RayTracingShaders :        str += "RayTracingShaders";         break;
                     default :                                       DBG_WARNING( "unknown resource state stage" );  break;
                 }
-                STATIC_ASSERT( uint(EResourceState::AllShaders) == 0x1F8000 );
+                StaticAssert( uint(EResourceState::AllShaders) == 0x1F8000 );
             }
         }
 
         return str;
+    }
+
+/*
+=================================================
+    ToString (ESurfaceFormat)
+=================================================
+*/
+    ND_ inline StringView  ToString (ESurfaceFormat value)
+    {
+        BEGIN_ENUM_CHECKS();
+        switch ( value )
+        {
+            case ESurfaceFormat::BGRA8_sRGB_nonlinear :         return "BGRA8_sRGB_nonlinear";
+            case ESurfaceFormat::RGBA8_sRGB_nonlinear :         return "RGBA8_sRGB_nonlinear";
+            case ESurfaceFormat::BGRA8_BT709_nonlinear :        return "BGRA8_BT709_nonlinear";
+            case ESurfaceFormat::RGBA16F_Extended_sRGB_linear : return "RGBA16F_Extended_sRGB_linear";
+            case ESurfaceFormat::RGBA16F_sRGB_nonlinear :       return "RGBA16F_sRGB_nonlinear";
+            case ESurfaceFormat::RGBA16F_BT709_nonlinear :      return "RGBA16F_BT709_nonlinear";
+            case ESurfaceFormat::RGBA16F_HDR10_ST2084 :         return "RGBA16F_HDR10_ST2084";
+            case ESurfaceFormat::RGBA16F_BT2020_linear :        return "RGBA16F_BT2020_linear";
+            case ESurfaceFormat::RGB10A2_sRGB_nonlinear :       return "RGB10A2_sRGB_nonlinear";
+            case ESurfaceFormat::RGB10A2_HDR10_ST2084 :         return "RGB10A2_HDR10_ST2084";
+            case ESurfaceFormat::_Count :
+            case ESurfaceFormat::Unknown :                      break;
+        }
+        END_ENUM_CHECKS();
+        RETURN_ERR( "unknown surface format" );
     }
 
 /*

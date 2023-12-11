@@ -82,11 +82,15 @@ ND_ float  SDF_OpSymX (const float3 position, float (*sdf)(float3));
 ND_ float  SDF_OpSymXZ (const float2 position, float (*sdf)(float2));
 ND_ float  SDF_OpSymXZ (const float3 position, float (*sdf)(float3));
 
-ND_ float  SDF_InfRepetition (const float2 position, const float2 center, float (*sdf)(float2));
-ND_ float  SDF_InfRepetition (const float3 position, const float3 center, float (*sdf)(float3));
+ND_ float  SDF_InfRepetition (const float2 position, const float  step, float (*sdf)(float2));
+ND_ float  SDF_InfRepetition (const float2 position, const float2 step, float (*sdf)(float2));
+ND_ float  SDF_InfRepetition (const float3 position, const float  step, float (*sdf)(float3));
+ND_ float  SDF_InfRepetition (const float3 position, const float3 step, float (*sdf)(float3));
 
-ND_ float  SDF_Repetition (const float2 position, const float step, const float2 count, float (*sdf)(float2));
-ND_ float  SDF_Repetition (const float3 position, const float step, const float3 count, float (*sdf)(float3));
+ND_ float  SDF_Repetition (const float2 position, const float  step, const float2 count, float (*sdf)(float2));
+ND_ float  SDF_Repetition (const float2 position, const float2 step, const float2 count, float (*sdf)(float2));
+ND_ float  SDF_Repetition (const float3 position, const float  step, const float3 count, float (*sdf)(float3));
+ND_ float  SDF_Repetition (const float3 position, const float3 step, const float3 count, float (*sdf)(float3));
 #endif
 
 

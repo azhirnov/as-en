@@ -5,7 +5,8 @@ void VertexBuffers ()
     // layouts
     {
         RC<ShaderStructType>    st = ShaderStructType( "vb_layout1" );
-        st.Set( "float3     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "float3     Position;" +
                 "float2     Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_layout1" );
@@ -13,7 +14,8 @@ void VertexBuffers ()
     }
     {
         RC<ShaderStructType>    st = ShaderStructType( "vb_layout2" );
-        st.Set( "float2     Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "float2     Position;" +
                 "float2     Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_layout2" );
@@ -23,7 +25,8 @@ void VertexBuffers ()
     // definition
     {
         RC<ShaderStructType>    st = ShaderStructType( "vb_input1" );
-        st.Set( "packed_float3          Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_float3          Position;" +
                 "packed_ushort_norm2    Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_input1" );
@@ -34,7 +37,8 @@ void VertexBuffers ()
     }
     {
         RC<ShaderStructType>    st = ShaderStructType( "vb_input2" );
-        st.Set( "packed_float2          Position;" +
+        st.Set( EStructLayout::InternalIO,
+                "packed_float2          Position;" +
                 "packed_ushort_norm2    Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_input2" );
@@ -43,10 +47,12 @@ void VertexBuffers ()
     }
     {
         RC<ShaderStructType>    st1 = ShaderStructType( "VB_3_Pos" );
-        st1.Set( "packed_float3     Position;" );
+        st1.Set( EStructLayout::InternalIO,
+                 "packed_float3     Position;" );
 
         RC<ShaderStructType>    st2 = ShaderStructType( "VB_3_Attribs" );
-        st2.Set( "packed_float2     Texcoord;" );
+        st2.Set( EStructLayout::InternalIO,
+                 "packed_float2     Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_input3" );
         vb.Add( "Position", st1 );

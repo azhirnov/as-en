@@ -51,7 +51,7 @@ namespace
         D4_TestData&    t;
         const uint      mode;
 
-        D4_DrawTask (D4_TestData& t, uint mode, CommandBatchPtr batch, DebugLabel dbg) :
+        D4_DrawTask (D4_TestData& t, uint mode, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }, mode{ mode }
         {}
@@ -64,7 +64,7 @@ namespace
             if ( mode == 0 )
             {
                 constexpr auto&     rtech_pass = RTech.Test4_1;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -86,7 +86,7 @@ namespace
             if ( mode == 0 )
             {
                 constexpr auto&     rtech_pass = RTech.Test4_2;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -108,7 +108,7 @@ namespace
             if ( mode == 1 )
             {
                 constexpr auto&     rtech_pass = RTech.Test4_2;
-                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+                StaticAssert( rtech_pass.attachmentsCount == 1 );
 
                 auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
@@ -137,7 +137,7 @@ namespace
     public:
         D4_TestData&    t;
 
-        D4_CopyTask (D4_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        D4_CopyTask (D4_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -158,10 +158,10 @@ namespace
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  Draw4Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  Draw4Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           res_mngr    = RenderTaskScheduler().GetResourceManager();
-        auto&           rg          = RenderTaskScheduler().GetRenderGraph();
+        auto&           res_mngr    = GraphicsScheduler().GetResourceManager();
+        auto&           rg          = GraphicsScheduler().GetRenderGraph();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         D4_TestData     t;
 
@@ -184,7 +184,9 @@ namespace
         t.ppln1 = t.rtech->GetGraphicsPipeline( RTech.Test4_2.draw4_2 );
         CHECK_ERR( t.ppln0 and t.ppln1 );
 
-        AsyncTask   begin   = rg.BeginFrame();
+
+        CHECK_ERR( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rg.BeginFrame() );
 
         auto        batch   = rg.CmdBatch( EQueueType::Graphics, {"Draw4"} )
                                     .UploadMemory()
@@ -194,10 +196,10 @@ namespace
 
         AsyncTask   task1   = batch.template Task< D4_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 0u}, {"Draw task1"} )
                                     .UseResource( t.img, EResourceState::ColorAttachment )
-                                    .Run( Tuple{begin} );
+                                    .Run();
         AsyncTask   task2   = batch.template Task< D4_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 1u}, {"Draw task2"} )
                                     .UseResource( t.img, EResourceState::ColorAttachment )
-                                    .Run( Tuple{begin} );
+                                    .Run();
 
         AsyncTask   task3   = batch.template Task< D4_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, {"Readback task"} )
                                     .UseResource( t.img, EResourceState::CopySrc )
@@ -205,12 +207,13 @@ namespace
 
         AsyncTask   end     = rg.EndFrame( Tuple{task1, task2, task3} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rg.WaitAll() );
+        CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

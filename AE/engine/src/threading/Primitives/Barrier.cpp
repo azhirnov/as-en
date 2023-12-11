@@ -3,8 +3,7 @@
 #include "threading/Primitives/Barrier.h"
 
 #if (AE_BARRIER_MODE == 0)
-
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 
 namespace AE::Threading
 {
@@ -14,11 +13,9 @@ namespace AE::Threading
     constructor
 =================================================
 */
-    Barrier::Barrier (usize numThreads)
+    Barrier::Barrier (usize numThreads) __NE___
     {
-        auto*   barrier_ptr = PlacementNew<SYNCHRONIZATION_BARRIER>( OUT _data );
-
-        CHECK( InitializeSynchronizationBarrier( barrier_ptr, CheckCast<LONG>(numThreads), -1 ));
+        CHECK( ::InitializeSynchronizationBarrier( OUT _data.Ptr<SYNCHRONIZATION_BARRIER>(), CheckCast<LONG>(numThreads), -1 ));
     }
 
 /*
@@ -26,9 +23,9 @@ namespace AE::Threading
     destructor
 =================================================
 */
-    Barrier::~Barrier ()
+    Barrier::~Barrier () __NE___
     {
-        CHECK( DeleteSynchronizationBarrier( BitCast<SYNCHRONIZATION_BARRIER *>( &_data[0] )));
+        CHECK( ::DeleteSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>() ));
     }
 
 /*
@@ -36,9 +33,9 @@ namespace AE::Threading
     wait
 =================================================
 */
-    void Barrier::wait ()
+    void  Barrier::wait () __NE___
     {
-        EnterSynchronizationBarrier( BitCast<SYNCHRONIZATION_BARRIER *>( &_data[0] ), SYNCHRONIZATION_BARRIER_FLAGS_NO_DELETE );
+        ::EnterSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>(), SYNCHRONIZATION_BARRIER_FLAGS_NO_DELETE );
     }
 
 } // AE::Threading

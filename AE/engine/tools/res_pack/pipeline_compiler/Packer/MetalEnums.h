@@ -80,7 +80,7 @@ namespace AE::PipelineCompiler
 
 
     //
-    // MTLPixelFormat 
+    // MTLPixelFormat
     //
     enum class MtlPixelFormat : ushort
     {

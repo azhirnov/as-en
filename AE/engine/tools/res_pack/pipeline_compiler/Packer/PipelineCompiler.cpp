@@ -8,7 +8,7 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
 
-#include "serializing/Serializer.h"
+#include "serializing/Basic/Serializer.h"
 
 #include "scripting/Impl/EnumBinder.h"
 #include "scripting/Impl/ScriptFn.h"
@@ -22,7 +22,7 @@
 
 namespace AE::PipelineCompiler
 {
-namespace 
+namespace
 {
     using namespace AE::Scripting;
 
@@ -31,7 +31,7 @@ namespace
     BuildPipelineList
 =================================================
 */
-    ND_ static bool  BuildPipelineList (const PipelinesInfo *info,
+    ND_ static bool  BuildPipelineList (const PipelinesInfo* info,
                                         OUT Array<Path> &outPipelines, OUT Array<Path> &outPipelineIncludeDirs,
                                         OUT Array<Path> &outShaderIncludeDirs, OUT Array<Path> &outShaderDirs)
     {
@@ -163,8 +163,7 @@ namespace
     {
         for (auto& path : pipelines)
         {
-            if ( not storage.CompilePipeline( scriptEngine, path, includeDirs ))
-                continue;
+            CHECK_ERR( storage.CompilePipeline( scriptEngine, path, includeDirs ));
         }
 
         CHECK_ERR( storage.BuildRenderTechniques() );
@@ -176,7 +175,7 @@ namespace
     CompilePipelinesImpl
 =================================================
 */
-    ND_ bool  CompilePipelinesImpl (const PipelinesInfo *info)
+    ND_ bool  CompilePipelinesImpl (const PipelinesInfo* info)
     {
         CHECK_ERR( info != null );
         CHECK_ERR( (info->shaderIncludeDirCount > 0) == (info->shaderIncludeDirs != null) );
@@ -216,7 +215,7 @@ namespace
         const Path  cpp_structs_fname   = info->outputCppStructsFile != null ? FileSystem::ToAbsolute( info->outputCppStructsFile ) : Default;
         const Path  cpp_names_fname     = info->outputCppNamesFile   != null ? FileSystem::ToAbsolute( info->outputCppNamesFile   ) : Default;
 
-        CATCH_ERR( ObjectStorage::Bind( script_engine ));
+        NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
         CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs ));
 
@@ -247,7 +246,7 @@ namespace
     CompilePipelines
 =================================================
 */
-    extern "C" bool AE_PC_API  CompilePipelines (const PipelinesInfo *info)
+    extern "C" bool AE_PC_API  CompilePipelines (const PipelinesInfo* info)
     {
         AE::Base::StaticLogger::LoggerScope log{};
 

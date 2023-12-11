@@ -126,7 +126,7 @@ namespace AE::Graphics
     struct VertexDesc < TVec<T,I,Q> >
     {
         using                           type    = TVec<T,I,Q>;
-        static constexpr EVertexType    value   = EVertexType( 
+        static constexpr EVertexType    value   = EVertexType(
                                                     (VertexDesc< T >::value & EVertexType::_TypeMask) |
                                                     EVertexType((I-1) << uint(EVertexType::_VecOffset)) );
     };

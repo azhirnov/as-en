@@ -76,9 +76,16 @@ namespace AE::Graphics
     enum class ESamplerUsage : ubyte
     {
         Default         = 0,
-        Subsampled,
-        SubsampledCoarseReconstruction,
+
+        // extension: 'fragDensityMap'
+        //Subsampled,
+        //SubsampledCoarseReconstruction,
+
         //ArgumentBuffer,   // for Metal    // TODO
+
+        // extension: 'nonSeamlessCubeMap'
+        NonSeamlessCubeMap,
+
         _Count,
         Unknown         = Default,
     };

@@ -139,7 +139,7 @@ namespace AE::Graphics
 
         //  bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size)     C_NE___;
             bool  GetPipelineStatistic (const Query &q, OUT PipelineStatistic* result, Bytes size)                  C_NE___;
-            bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size)                                C_NE___;
+            bool  GetRTASProperty (const Query &q, OUT Byte64u* result, Bytes size)                                 C_NE___;
 
     private:
         static void  _ResetPoolOnHost (const VDevice &, uint idx, QueryPool &pool, uint count)                      __NE___;

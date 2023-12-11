@@ -35,7 +35,7 @@ namespace AE::Profiler
     TaskProfiler::LfTaskCommands::Result<CmdType>
         TaskProfiler::LfTaskCommands::Insert (usize count)
     {
-        STATIC_ASSERT( TaskCmdList_t::HasType<CmdType> );
+        StaticAssert( TaskCmdList_t::HasType<CmdType> );
 
         Bytes   size = SizeOf<CmdType>;
 
@@ -78,7 +78,7 @@ namespace AE::Profiler
         {
             uint    exp = start_pos;
 
-            if ( _availPos.CAS( INOUT exp, endPos ))
+            if_likely( _availPos.CAS( INOUT exp, endPos ))
                 break;
 
             ASSERT( exp <= start_pos );
@@ -109,6 +109,8 @@ namespace AE::Profiler
 
             if_likely( _readPos.CAS( INOUT pos, pos + cmd->_size ))
                 break;
+
+            ThreadUtils::Pause();
         }
         return cmd;
     }
@@ -136,10 +138,10 @@ namespace AE::Profiler
     constructor
 =================================================
 */
-    TaskProfiler::TaskProfiler (TimePoint_t startTime) :
+    TaskProfiler::TaskProfiler (TimePoint_t startTime) __NE___ :
         ProfilerUtils{ startTime }
     {
-        _tmpTaskMap.reserve( 1024 );
+        NOTHROW( _tmpTaskMap.reserve( 1024 );)
     }
 
 /*
@@ -167,7 +169,7 @@ namespace AE::Profiler
     BeginNonTaskWork
 =================================================
 */
-    void  TaskProfiler::BeginNonTaskWork (const void *id, StringView name) __NE___
+    void  TaskProfiler::BeginNonTaskWork (const void* id, StringView name) __NE___
     {
         const uint  idx = _frameIdx.load();
         if_likely( idx < _FirstFrameIdx or idx >= _LastFrameIdx )
@@ -193,7 +195,7 @@ namespace AE::Profiler
     EndNonTaskWork
 =================================================
 */
-    void  TaskProfiler::EndNonTaskWork (const void *id, StringView name) __NE___
+    void  TaskProfiler::EndNonTaskWork (const void* id, StringView name) __NE___
     {
         const uint  idx = _frameIdx.load();
         if_likely( idx < _FirstFrameIdx or idx >= _LastFrameIdx+2 )
@@ -403,7 +405,7 @@ namespace AE::Profiler
             const auto  info = t.thread->GetProfilingInfo();
 
             str.clear();
-            str << info.threadName << " (" << ToString( info.coreId ) << ')';
+            str << info.threadName << " (" << ToString( uint(info.coreId) ) << ')';
 
             t.caption = StringView{str};
         }

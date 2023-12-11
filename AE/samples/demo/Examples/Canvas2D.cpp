@@ -16,7 +16,7 @@ namespace AE::Samples::Demo
     public:
         RC<Canvas2DSample>  t;
 
-        UploadTextureTask (Canvas2DSample* p, CommandBatchPtr batch, DebugLabel) :
+        UploadTextureTask (Canvas2DSample* p, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Canvas2D::UploadTexture"} },
             t{ p }
         {}
@@ -69,7 +69,7 @@ namespace AE::Samples::Demo
     public:
         RC<Canvas2DSample>  t;
 
-        UploadAtlasTask (Canvas2DSample* p, CommandBatchPtr batch, DebugLabel) :
+        UploadAtlasTask (Canvas2DSample* p, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Canvas2D::UploadAtlas"} },
             t{ p }
         {}
@@ -101,7 +101,7 @@ namespace AE::Samples::Demo
         }
 
         // create DS
-        {       
+        {
             DescriptorUpdater   updater;
             CHECK_TE( updater.Set( t->ppln3_ds2, EDescUpdateMode::Partialy ));
             updater.BindImage( UniformName{"un_Texture"}, t->atlas->GetViewID() );
@@ -122,7 +122,7 @@ namespace AE::Samples::Demo
         DescriptorSetID     ds;
         VFS::FileName       fname;
 
-        UploadRasterFontTask (RC<RasterFont> *f, DescriptorSetID ds, const VFS::FileName &name, CommandBatchPtr batch, DebugLabel) :
+        UploadRasterFontTask (RC<RasterFont> *f, DescriptorSetID ds, const VFS::FileName &name, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Canvas2D::UploadRasterFont"} },
             font{ *f }, ds{ds}, fname{name}
         {}
@@ -176,7 +176,7 @@ namespace AE::Samples::Demo
         RC<Canvas2DSample>  t;
         ActionQueueReader   reader;
 
-        ProcessInputTask (Canvas2DSample* p, ActionQueueReader reader) :
+        ProcessInputTask (Canvas2DSample* p, ActionQueueReader reader) __NE___ :
             IAsyncTask{ ETaskQueue::PerFrame },
             t{ p },
             reader{ RVRef(reader) }
@@ -199,7 +199,7 @@ namespace AE::Samples::Demo
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( IA.actionCount == 2 );
+            StaticAssert( IA.actionCount == 2 );
             switch ( uint{hdr.name} )
             {
                 case IA.Cursor :
@@ -223,7 +223,7 @@ namespace AE::Samples::Demo
         RC<Canvas2DSample>  t;
         IOutputSurface &    surface;
 
-        DrawTask (Canvas2DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+        DrawTask (Canvas2DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Canvas2D::Draw"} },
             t{ p }, surface{ surf }
         {}
@@ -282,7 +282,7 @@ namespace AE::Samples::Demo
         // draw
         {
             constexpr auto& rtech_pass = RTech.Main;
-            STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+            StaticAssert( rtech_pass.attachmentsCount == 1 );
 
             const auto  rp_desc = RenderPassDesc{ t->rtech, rtech_pass, rt.RegionSize() }
                                     .AddViewport( rt.RegionSize() )
@@ -406,9 +406,9 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  Canvas2DSample::Init (PipelinePackID pack)
+    bool  Canvas2DSample::Init (PipelinePackID pack) __NE___
     {
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
                 gfxAlloc    = res_mngr.CreateLinearGfxMemAllocator();
 
         rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
@@ -468,7 +468,7 @@ namespace AE::Samples::Demo
     Update
 =================================================
 */
-    AsyncTask  Canvas2DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
+    AsyncTask  Canvas2DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
     {
         return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{ deps });
     }
@@ -478,7 +478,7 @@ namespace AE::Samples::Demo
     Draw
 =================================================
 */
-    AsyncTask  Canvas2DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps)
+    AsyncTask  Canvas2DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps) __NE___
     {
         auto    batch = rg.Render( "Canvas2D pass" );
         CHECK_ERR( batch );
@@ -509,7 +509,7 @@ namespace AE::Samples::Demo
     GetInputMode
 =================================================
 */
-    InputModeName  Canvas2DSample::GetInputMode () const
+    InputModeName  Canvas2DSample::GetInputMode () C_NE___
     {
         return IA;
     }
@@ -519,9 +519,9 @@ namespace AE::Samples::Demo
     destructor
 =================================================
 */
-    Canvas2DSample::~Canvas2DSample ()
+    Canvas2DSample::~Canvas2DSample () __NE___
     {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
         res_mngr.DelayedReleaseResources( tex.image, tex.view, ppln3_ds1, ppln3_ds2, ppln4_ds, ppln5_ds, ublock );
         profiler.Deinitialize();

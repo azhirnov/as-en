@@ -35,6 +35,7 @@ name: 'Canvas batch |0| Draw task'
 
   BindPipeline
     pipeline:  'rect_tristrip'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -51,6 +52,7 @@ name: 'Canvas batch |0| Draw task'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -67,6 +69,7 @@ name: 'Canvas batch |0| Draw task'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist_lines'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -111,7 +114,7 @@ name: 'Canvas batch |1| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2
@@ -164,6 +167,7 @@ name: 'Canvas batch |0| Draw task'
 
   BindPipeline
     pipeline:  'rect_tristrip'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -180,6 +184,7 @@ name: 'Canvas batch |0| Draw task'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -196,6 +201,7 @@ name: 'Canvas batch |0| Draw task'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist_lines'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -240,7 +246,7 @@ name: 'IndirectCmdBuffers'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2
@@ -293,6 +299,7 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'rect_tristrip'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -309,6 +316,7 @@ name: 'IndirectCmdBuffers'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -325,6 +333,7 @@ name: 'IndirectCmdBuffers'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist_lines'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -369,7 +378,7 @@ name: 'Canvas batch |1| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2
@@ -422,6 +431,7 @@ name: 'IndirectCmdBuffers'
 
   BindPipeline
     pipeline:  'rect_tristrip'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -438,6 +448,7 @@ name: 'IndirectCmdBuffers'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -454,6 +465,7 @@ name: 'IndirectCmdBuffers'
   DrawIndexed
   BindPipeline
     pipeline:  'rect_trilist_lines'
+    layout:    '0'
     bindPoint: GRAPHICS
   ----------
 
@@ -494,7 +506,7 @@ name: 'IndirectCmdBuffers'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2

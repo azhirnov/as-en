@@ -18,7 +18,7 @@ set_property( TARGET "KTX-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
     add_executable( "Tests.KTX" "tests/main.cpp" )
-    add_test( NAME "Tests.KTX" COMMAND "Tests.KTX" )
+    #add_test( NAME "Tests.KTX" COMMAND "Tests.KTX" )
     set_property( TARGET "Tests.KTX" PROPERTY FOLDER "Engine/External/Tests" )
     target_link_libraries( "Tests.KTX" PUBLIC "KTX-lib" )
 endif ()

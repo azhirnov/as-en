@@ -23,7 +23,7 @@ namespace AE::ResEditor
         std::memcpy( OUT intRange, other.intRange, sizeof(intRange) );
     }
 
-    ScriptBasePass::Slider::Slider (Slider && other) :
+    ScriptBasePass::Slider::Slider (Slider &&other) :
         name{ RVRef(other.name) },
         index{ other.index },
         type{ other.type },
@@ -54,11 +54,11 @@ namespace AE::ResEditor
     void  ScriptBasePass::_Slider (const String &name, const T &min, const T &max, T val, ESlider type) __Th___
     {
         CHECK_THROW_MSG( _uniqueSliderNames.insert( name ).second,
-            "Slider '"s << name << "' is already exists" );
+            "Slider/Constant '"s << name << "' is already exists" );
 
         uint    idx = _sliderCounter[ uint(type) ]++;
         CHECK_THROW_MSG( idx < UIInteraction::MaxSlidersPerType,
-            "Slider count "s << ToString(idx) << " must be less than " << ToString(UIInteraction::MaxSlidersPerType) );
+            "Slider count "s << ToString(idx+1) << " must be less than " << ToString(UIInteraction::MaxSlidersPerType) );
 
         auto&   dst = _sliders.emplace_back();
 
@@ -204,19 +204,54 @@ namespace AE::ResEditor
     ConstantF*
 =================================================
 */
-    void  ScriptBasePass::ConstantF4 (const String &, const ScriptDynamicFloat4Ptr &) __Th___
-    {
-        // TODO
-    }
+    void  ScriptBasePass::ConstantF1 (const String &name, const ScriptDynamicFloatPtr  &dynVal) __Th___ { return _Constant( name, dynVal, ESlider::Float, 1 ); }
+    void  ScriptBasePass::ConstantF2 (const String &name, const ScriptDynamicFloat2Ptr &dynVal) __Th___ { return _Constant( name, dynVal, ESlider::Float, 2 ); }
+    void  ScriptBasePass::ConstantF3 (const String &name, const ScriptDynamicFloat3Ptr &dynVal) __Th___ { return _Constant( name, dynVal, ESlider::Float, 3 ); }
+    void  ScriptBasePass::ConstantF4 (const String &name, const ScriptDynamicFloat4Ptr &dynVal) __Th___ { return _Constant( name, dynVal, ESlider::Float, 4 ); }
 
 /*
 =================================================
     ConstantI*
 =================================================
 */
-    void  ScriptBasePass::ConstantI4 (const String &, const ScriptDynamicInt4Ptr &) __Th___
+    void  ScriptBasePass::ConstantI1 (const String &name, const ScriptDynamicIntPtr  &dynVal) __Th___   { return _Constant( name, dynVal, ESlider::Int, 1 ); }
+    void  ScriptBasePass::ConstantI2 (const String &name, const ScriptDynamicInt2Ptr &dynVal) __Th___   { return _Constant( name, dynVal, ESlider::Int, 2 ); }
+    void  ScriptBasePass::ConstantI3 (const String &name, const ScriptDynamicInt3Ptr &dynVal) __Th___   { return _Constant( name, dynVal, ESlider::Int, 3 ); }
+    void  ScriptBasePass::ConstantI4 (const String &name, const ScriptDynamicInt4Ptr &dynVal) __Th___   { return _Constant( name, dynVal, ESlider::Int, 4 ); }
+
+/*
+=================================================
+    ConstantU*
+=================================================
+*/
+    void  ScriptBasePass::ConstantU1 (const String &name, const ScriptDynamicUIntPtr  &dynVal) __Th___  { return _Constant( name, dynVal, ESlider::Int, 1 ); }
+    void  ScriptBasePass::ConstantU2 (const String &name, const ScriptDynamicUInt2Ptr &dynVal) __Th___  { return _Constant( name, dynVal, ESlider::Int, 2 ); }
+    void  ScriptBasePass::ConstantU3 (const String &name, const ScriptDynamicUInt3Ptr &dynVal) __Th___  { return _Constant( name, dynVal, ESlider::Int, 3 ); }
+    void  ScriptBasePass::ConstantU4 (const String &name, const ScriptDynamicUInt4Ptr &dynVal) __Th___  { return _Constant( name, dynVal, ESlider::Int, 4 ); }
+
+/*
+=================================================
+    _Constant
+=================================================
+*/
+    template <typename T>
+    void  ScriptBasePass::_Constant (const String &name, const T &dynVal, ESlider type, ubyte count) __Th___
     {
-        // TODO
+        CHECK_THROW_MSG( dynVal and dynVal->Get() );
+
+        CHECK_THROW_MSG( _uniqueSliderNames.insert( name ).second,
+            "Constant/Slider '"s << name << "' is already exists" );
+
+        uint    idx = _constantCounter[ uint(type) ]++;
+        CHECK_THROW_MSG( idx < UIInteraction::MaxSlidersPerType,
+            "Constants count "s << ToString(idx) << " must be less than " << ToString(UIInteraction::MaxSlidersPerType) );
+
+        auto&   dst = _constants.emplace_back();
+        dst.name    = name;
+        dst.index   = idx;
+        dst.type    = type;
+        dst.count   = count;
+        dst.rc      = dynVal->Get();
     }
 
 /*
@@ -291,20 +326,19 @@ namespace AE::ResEditor
 */
     void  ScriptBasePass::_CopyConstants (OUT IPass::Constants &dst) const
     {
-        // TODO
-        /*for (auto& c : _constants)
+        for (auto& c : _constants)
         {
             switch ( c.type )
             {
                 case ESlider::Float :
-                    dst.f[ c.index ] = c.f4->Get();
+                    dst.f[ c.index ] = c.rc;
                     break;
 
                 case ESlider::Int :
-                    dst.i[ c.index ] = c.i4->Get();
+                    dst.i[ c.index ] = c.rc;
                     break;
             }
-        }*/
+        }
     }
 
 /*
@@ -422,6 +456,11 @@ namespace AE::ResEditor
 
         // add constants
         {
+            const uint  max_constants = UIInteraction::MaxSlidersPerType;
+            for (usize i = 0; i < _constantCounter.size(); ++i) {
+                CHECK_THROW_MSG( _constantCounter[i] <= max_constants );
+            }
+
             for (auto& c : _constants)
             {
                 header << "#define " << c.name << " un_PerPass.";
@@ -436,8 +475,52 @@ namespace AE::ResEditor
                 }
                 END_ENUM_CHECKS();
 
-                header << ToString( c.index ) << "]\n";
+                header << ToString( c.index ) << "]";
+                switch ( c.count )
+                {
+                    case 1 :    header << ".x";     break;
+                    case 2 :    header << ".xy";    break;
+                    case 3 :    header << ".xyz";   break;
+                    case 4 :    header << ".xyzw";  break;
+                    default :   CHECK_THROW_MSG( false, "unknown constant value size" );
+                }
+                header << "\n";
             }
+        }
+    }
+
+/*
+=================================================
+    _AddSlidersAsMacros
+=================================================
+*/
+    void  ScriptBasePass::_AddSlidersAsMacros (OUT String &macros) C_Th___
+    {
+        String  temp;
+        _AddSliders( OUT temp );
+
+        const StringView    str {temp};
+        const StringView    def {"#define "};
+
+        // change format from '#define name  value' to 'name = value;'
+        for (usize pos = 0;;)
+        {
+            pos = str.find( def, pos );
+            if ( pos == StringView::npos )
+                break;
+
+            const usize begin   = pos + def.length();
+
+            pos = str.find( '\n', begin );
+            if ( pos == StringView::npos )
+                break;
+
+            usize   p0 = str.find( " ", begin );
+
+            macros << str.substr( begin, p0 - begin ); // name
+            macros << " = ";
+            macros << str.substr( p0+1, pos - p0-1 );  // value
+            macros << '\n';
         }
     }
 
@@ -481,7 +564,7 @@ namespace AE::ResEditor
     _Init
 =================================================
 */
-    void  ScriptBasePass::_Init (IPass &dst) C_Th___
+    void  ScriptBasePass::_Init (IPass &dst, const ScriptBaseControllerPtr &defaultController) C_Th___
     {
         _CopyConstants( OUT dst._shConst );
         _AddSlidersToUIInteraction( &dst );
@@ -489,10 +572,12 @@ namespace AE::ResEditor
         dst._dbgName    = this->_dbgName;
         dst._dbgColor   = this->_dbgColor;
 
-        if ( this->_controller )
+        ScriptBaseControllerPtr controller = this->_controller ? this->_controller : defaultController;
+
+        if ( controller )
         {
-            this->_controller->SetDimensionIfNotSet( _dynamicDim );
-            dst._controller = this->_controller->ToController();  // throw
+            controller->SetDimensionIfNotSet( _dynamicDim );
+            dst._controller = controller->ToController();  // throw
             CHECK_THROW( dst._controller );
         }
 

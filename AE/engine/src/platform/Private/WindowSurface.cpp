@@ -69,7 +69,7 @@ namespace {
 */
     bool  WindowSurface::_CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &data) __NE___
     {
-        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto&   dev         = res_mngr.GetDevice();
 
         CHECK_ERR( dev.IsInitialized() );
@@ -100,7 +100,7 @@ namespace {
         if_unlikely( not _initialized.exchange( false ))
             return;
 
-        CHECK( RenderTaskScheduler().WaitAll() );
+        CHECK( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
         _swapchain.Destroy();
         _swapchain.DestroySurface();
@@ -130,7 +130,7 @@ namespace {
         {
             _initialized.store( false );
 
-            CHECK( RenderTaskScheduler().WaitAll() );
+            CHECK( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
             data->window = &wnd;
 
@@ -243,13 +243,13 @@ namespace {
 
 /*
 =================================================
-    GetTargetSizes
+    GetTargetInfo
 =================================================
 */
-    IOutputSurface::TargetSizes_t  WindowSurface::GetTargetSizes () C_NE___
+    IOutputSurface::TargetInfos_t  WindowSurface::GetTargetInfo () C_NE___
     {
-        TargetSizes_t   result;
-        result.push_back( _swapchain.GetSurfaceSize() );
+        TargetInfos_t   result;
+        result.emplace_back( _swapchain.GetSurfaceSize(), _pixToMm.load() );
         return result;
     }
 
@@ -260,9 +260,6 @@ namespace {
 */
     IOutputSurface::SurfaceInfo  WindowSurface::GetSurfaceInfo () C_NE___
     {
-        // result may be changed immediately if method used outside of 'Begin() / End()' scope.
-        //ASSERT( _swapchain.IsImageAcquired() );
-
         SwapchainDesc   desc    = _swapchain.GetDescription();
         SurfaceInfo     result;
 
@@ -304,7 +301,7 @@ namespace {
         WindowSurface &     _surface;
 
     public:
-        RecreateSwapchainTask (WindowSurface* surf) :
+        RecreateSwapchainTask (WindowSurface* surf) __NE___ :
             IAsyncTask{ RecreateSwapchainQueue },
             _surface{ *surf }
         {}
@@ -347,7 +344,7 @@ namespace {
         CommandBatchPtr     _endCmdBatch;
 
     public:
-        AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) :
+        AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) __NE___ :
             IAsyncTask{ AcquireAndPresentQueue },
             _surface{ *surf },
             _beginCmdBatch{ RVRef(beginCmdBatch) },
@@ -410,7 +407,7 @@ namespace {
         const EQueueType    _presentQueue;
 
     public:
-        PresentImageTask (WindowSurface* surf, EQueueType presentQueue) :
+        PresentImageTask (WindowSurface* surf, EQueueType presentQueue) __NE___ :
             IAsyncTask{ AcquireAndPresentQueue },
             _surface{ *surf },
             _presentQueue{ presentQueue }
@@ -418,7 +415,7 @@ namespace {
 
         void  Run () __Th_OV
         {
-            auto&       rts = RenderTaskScheduler();
+            auto&       rts = GraphicsScheduler();
             auto        q   = rts.GetDevice().GetQueue( _presentQueue );
             VkResult    err = _surface._swapchain.Present( q );
 
@@ -510,7 +507,7 @@ namespace {
 
         void  Run () __Th_OV
         {
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
             auto    q   = rts.GetDevice().GetQueue( _presentQueue );
 
             CHECK_TE( _surface._swapchain.Present( q ));
@@ -535,7 +532,7 @@ namespace {
         CommandBatchPtr     _endCmdBatch;
 
     public:
-        AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) :
+        AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) __NE___ :
             IAsyncTask{ AcquireAndPresentQueue },
             _surface{ *surf },
             _beginCmdBatch{ RVRef(beginCmdBatch) },
@@ -572,7 +569,7 @@ namespace {
         const EQueueType    _presentQueue;
 
     public:
-        PresentImageTask (WindowSurface* surf, EQueueType presentQueue) :
+        PresentImageTask (WindowSurface* surf, EQueueType presentQueue) __NE___ :
             IAsyncTask{ AcquireAndPresentQueue },
             _surface{ *surf },
             _presentQueue{ presentQueue }
@@ -580,7 +577,7 @@ namespace {
 
         void  Run () __Th_OV
         {
-            auto&   rts = RenderTaskScheduler();
+            auto&   rts = GraphicsScheduler();
             auto    q   = rts.GetDevice().GetQueue( _presentQueue );
 
             //CHECK_TE( _surface._swapchain.Present( q ));
@@ -618,7 +615,7 @@ namespace {
         CHECK_ERR( _initialized.load() );
 
         AsyncTask   present = RVRef(data->prevTask);    // can be null
-        ASSERT( present == null or DynCast<PresentImageTask>(present) != null );
+        ASSERT( present == null or CastAllowed<PresentImageTask>( present.get() ));
 
         AsyncTask   task = Scheduler().Run<AcquireNextImageTask>( Tuple{ this, beginCmdBatch, endCmdBatch }, Tuple{ present, deps });
 
@@ -642,7 +639,7 @@ namespace {
         CHECK_ERR( data->endCmdBatch );
 
         AsyncTask   acquire = RVRef(data->prevTask);    // can be null
-        ASSERT( acquire == null or DynCast<AcquireNextImageTask>(acquire) != null );
+        ASSERT( acquire == null or CastAllowed<AcquireNextImageTask>( acquire.get() ));
 
         AsyncTask   task = Scheduler().Run<PresentImageTask>( Tuple{ this, data->endCmdBatch->GetQueueType() },
                                                               Tuple{ acquire, CmdBatchOnSubmit{data->endCmdBatch}, deps });

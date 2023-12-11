@@ -14,7 +14,7 @@ namespace AE::Base
     //
     // Visual Studio Log output
     //
-    class VisualStudioLogOutput final : public ILogger
+    class VisualStudioLogOutput final : public ILogger, public NothrowAllocatable
     {
     public:
         EResult  Process (const MessageInfo &info) __Th_OV;
@@ -28,15 +28,15 @@ namespace AE::Base
     //
     // Android Log output
     //
-    class AndroidLogOutput final : public ILogger
+    class AndroidLogOutput final : public ILogger, public NothrowAllocatable
     {
     private:
         const String    _tag;
 
     public:
-        explicit AndroidLogOutput (StringView tag) : _tag{ tag } {}
+        explicit AndroidLogOutput (StringView tag)  __NE___ : _tag{ tag } {}
 
-        EResult  Process (const MessageInfo &info) __Th_OV;
+        EResult  Process (const MessageInfo &info)  __Th_OV;
     };
 
 #else
@@ -44,7 +44,7 @@ namespace AE::Base
     //
     // Console Log output
     //
-    class ConsoleLogOutput final : public ILogger
+    class ConsoleLogOutput final : public ILogger, public NothrowAllocatable
     {
     private:
         Mutex       _guard;
@@ -61,7 +61,7 @@ namespace AE::Base
     //
     // Dialog Log output
     //
-    class DialogLogOutput final : public ILogger
+    class DialogLogOutput final : public ILogger, public NothrowAllocatable
     {
     private:
         Mutex               _guard;
@@ -70,15 +70,15 @@ namespace AE::Base
         const ThreadID      _mainThread;    // for Apple
 
     public:
-        DialogLogOutput (LevelBits levelBits, ScopeBits scopeBits) :
+        DialogLogOutput (LevelBits levelBits, ScopeBits scopeBits)          __NE___ :
             _levelBits{ levelBits }, _scopeBits{ scopeBits },
             _mainThread{ std::this_thread::get_id() }
         {}
 
-        EResult  Process (const MessageInfo &info) __Th_OV;
+        EResult  Process (const MessageInfo &info)                          __Th_OV;
 
     private:
-        EResult  _ProcessImpl (const String &caption, const String &msg) __Th___;
+        EResult  _ProcessImpl (const String &caption, const String &msg, ELevel level)  __Th___;
     };
 
 #endif
@@ -89,18 +89,18 @@ namespace AE::Base
     //
     // Dialog Log output
     //
-    class DialogLogOutputEms final : public ILogger
+    class DialogLogOutputEms final : public ILogger, public NothrowAllocatable
     {
     private:
         const LevelBits     _levelBits;
         const ScopeBits     _scopeBits;
 
     public:
-        DialogLogOutputEms (LevelBits levelBits, ScopeBits scopeBits) :
+        DialogLogOutputEms (LevelBits levelBits, ScopeBits scopeBits)   __NE___ :
             _levelBits{ levelBits }, _scopeBits{ scopeBits }
         {}
 
-        EResult  Process (const MessageInfo &info) __Th_OV;
+        EResult  Process (const MessageInfo &info)                      __Th_OV;
     };
 
 #endif
@@ -109,7 +109,7 @@ namespace AE::Base
     //
     // File Log output
     //
-    class FileLogOutput final : public ILogger
+    class FileLogOutput final : public ILogger, public NothrowAllocatable
     {
     private:
         Mutex                           _guard;
@@ -117,7 +117,7 @@ namespace AE::Base
         FlatHashMap< usize, String >    _threadNames;
 
     public:
-        explicit FileLogOutput (RC<WStream> file);
+        explicit FileLogOutput (RC<WStream> file)       __NE___;
 
         EResult Process (const MessageInfo &info)       __Th_OV;
         void    SetCurrentThreadName (StringView name)  __NE_OV;
@@ -128,7 +128,7 @@ namespace AE::Base
     //
     // HTML Log output
     //
-    class HtmlLogOutput final : public ILogger
+    class HtmlLogOutput final : public ILogger, public NothrowAllocatable
     {
     // types
     private:
@@ -176,15 +176,15 @@ namespace AE::Base
 
     // methods
     public:
-        explicit HtmlLogOutput (RC<WStream> file);
-        ~HtmlLogOutput ();
+        explicit HtmlLogOutput (RC<WStream> file)                       __NE___;
+        ~HtmlLogOutput ()                                               __NE___;
 
-        EResult Process (const MessageInfo &info)       __Th_OV;
-        void    SetCurrentThreadName (StringView name)  __NE_OV;
+        EResult Process (const MessageInfo &info)                       __Th_OV;
+        void    SetCurrentThreadName (StringView name)                  __NE_OV;
 
     private:
         void    _SetColor (EColor col, EColor bg, INOUT String &str);
-        void    _Flush (StringView str)                 C_NE___;
+        void    _Flush (StringView str)                                 C_NE___;
     };
 
 

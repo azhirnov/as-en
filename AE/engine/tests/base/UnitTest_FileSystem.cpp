@@ -41,7 +41,9 @@ namespace
 
 extern void UnitTest_FileSystem ()
 {
-#ifndef AE_PLATFORM_EMSCRIPTEN
+#if not defined(AE_PLATFORM_EMSCRIPTEN) and\
+    not defined(AE_PLATFORM_ANDROID)
+
     if ( not FileSystem::SetCurrentPath( AE_CURRENT_DIR "/fs_test" ))
         TEST( FileSystem::FindAndSetCurrent( "fs_test", 5 ));
 

@@ -473,7 +473,7 @@ namespace
 
         if ( _dummy )
         {
-            _resource = MakeRC<RTGeometry>( renderer, _dbgName );
+            _resource = MakeRCTh<RTGeometry>( renderer, _dbgName );
             return _resource;
         }
 
@@ -501,7 +501,7 @@ namespace
             dst.indexDataOffset = src.indexDataOffset;
         }
 
-        _resource = MakeRC<RTGeometry>( RVRef(tri_meshes), RVRef(ind_buf), renderer, _dbgName, Bool{_allowUpdate} );
+        _resource = MakeRCTh<RTGeometry>( RVRef(tri_meshes), RVRef(ind_buf), renderer, _dbgName, Bool{_allowUpdate} );
         return _resource;
     }
 
@@ -643,7 +643,7 @@ namespace
                             break;
                         }
                     }
-                }   
+                }
             }
             CHECK_THROW_MSG( tri_mesh.maxVertex > 0 );
             CHECK_THROW_MSG( tri_mesh.vertexFormat != Default );
@@ -1117,7 +1117,7 @@ namespace
         }
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-        auto        result      = MakeRC<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName, Bool{_allowUpdate} );
+        auto        result      = MakeRCTh<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName, Bool{_allowUpdate} );
 
         _resource = result;
         return _resource;

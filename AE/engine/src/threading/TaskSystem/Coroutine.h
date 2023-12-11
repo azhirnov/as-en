@@ -68,6 +68,8 @@ namespace _hidden_
                 StringView          DbgName ()                      C_NE_OV { return "Coroutine<>"; }
             #endif
 
+            ND_ static void*        operator new   (usize size)     __NE___ { return NothrowAllocatable::operator new( size ); }
+
 
         public:
                 void  Cancel ()                                     __NE___ { Unused( IAsyncTask::_SetCancellationState() ); }
@@ -173,7 +175,7 @@ namespace _hidden_
         template <typename P>
         ND_ bool  await_suspend (std::coroutine_handle<P> curCoro)  __NE___
         {
-            STATIC_ASSERT( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
+            StaticAssert( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
 
             return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, AsyncTask{_dep} );
         }
@@ -196,7 +198,7 @@ namespace _hidden_
         // return promise results
         ND_ Tuple< Types... >  await_resume ()                                  __NE___
         {
-            return  _deps.Apply( [] (auto&& ...args) {
+            return  _deps.Apply( [] (auto&& ...args) __NE___ {
                         return Tuple<Types...>{ args._Result() ... };
                     });
         }
@@ -205,7 +207,7 @@ namespace _hidden_
         template <typename P>
         ND_ bool  await_suspend (std::coroutine_handle<P> curCoro)              __NE___
         {
-            STATIC_ASSERT( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
+            StaticAssert( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
 
             return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
         }

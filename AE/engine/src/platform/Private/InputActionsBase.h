@@ -40,6 +40,9 @@ namespace AE::App
             Duration_t      timestamp       {0};
             ControllerID    controllerId    = ControllerID::Default;
             ushort          data            = 0;
+
+            PressedKey ()                                           __NE___ {}
+            explicit PressedKey (Duration_t ts, ControllerID id)    __NE___ : timestamp{ts}, controllerId{id} {}
         };
         using PressedKeys_t = FixedMap< InputKey, PressedKey, 32 >;
 

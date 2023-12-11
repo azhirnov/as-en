@@ -50,7 +50,7 @@ namespace AE::ECS
         ND_ bool        All (const ArchetypeDesc &)             C_NE___;
         ND_ bool        Any (const ArchetypeDesc &)             C_NE___;
         ND_ bool        AnyOrEmpty (const ArchetypeDesc &)      C_NE___;
-        ND_ bool        Equals (const ArchetypeDesc &)          C_NE___;
+        ND_ bool        Equal (const ArchetypeDesc &)           C_NE___;
         ND_ bool        Empty ()                                C_NE___;
         ND_ usize       Count ()                                C_NE___;
 
@@ -78,9 +78,9 @@ namespace AE::ECS
         ND_ HashVal                 Hash ()             C_NE___ { return _hash; }
         ND_ ArchetypeDesc const&    Desc ()             C_NE___ { return _desc; }
 
-        ND_ bool operator == (const Archetype &rhs)     C_NE___ { return Equals( rhs ); }
+        ND_ bool operator == (const Archetype &rhs)     C_NE___ { return Equal( rhs ); }
 
-        ND_ bool    Equals (const Archetype &rhs)       C_NE___ { return _desc.Equals( rhs._desc ); }
+        ND_ bool    Equal (const Archetype &rhs)        C_NE___ { return _desc.Equal( rhs._desc ); }
         ND_ bool    Contains (const Archetype &rhs)     C_NE___ { return _desc.All( rhs._desc ); }
         ND_ bool    Exists (ComponentID id)             C_NE___ { return _desc.Exists( id ); }
 
@@ -221,10 +221,10 @@ namespace AE::ECS
 
 /*
 =================================================
-    Equals
+    Equal
 =================================================
 */
-    inline bool  ArchetypeDesc::Equals (const ArchetypeDesc &rhs) C_NE___
+    inline bool  ArchetypeDesc::Equal (const ArchetypeDesc &rhs) C_NE___
     {
         bool    result = true;
         for (usize i = 0; i < _bits.size(); ++i) {
@@ -274,10 +274,10 @@ namespace AE::ECS
         }
 
         #if AE_PLATFORM_BITS == 64
-            STATIC_ASSERT( sizeof(usize) == sizeof(h) );
+            StaticAssert( sizeof(usize) == sizeof(h) );
             return HashVal{ h };
         #else
-            STATIC_ASSERT( sizeof(usize) != sizeof(h) );
+            StaticAssert( sizeof(usize) != sizeof(h) );
             return HashVal{usize( h ^ (h >> 32) )};
         #endif
     }
@@ -331,9 +331,9 @@ namespace AE::ECS
 */
     inline bool  ArchetypeQueryDesc::operator == (const ArchetypeQueryDesc &rhs) C_NE___
     {
-        return  required.Equals( rhs.required )         &
-                subtractive.Equals( rhs.subtractive )   &
-                requireAny.Equals( rhs.requireAny );
+        return  required.Equal( rhs.required )          &
+                subtractive.Equal( rhs.subtractive )    &
+                requireAny.Equal( rhs.requireAny );
     }
 
 /*

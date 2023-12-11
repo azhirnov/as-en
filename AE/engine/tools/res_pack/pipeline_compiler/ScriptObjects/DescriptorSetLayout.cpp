@@ -464,7 +464,7 @@ namespace
                     str << "  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform accelerationStructureEXT "
                         << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
                     break;
-                }   
+                }
                 case EDescriptorType::Unknown :
                 case EDescriptorType::_Count :
                 default :
@@ -616,7 +616,7 @@ namespace
                     {
                         aux_info->type->AddUsage( ShaderStructType::EUsage::BufferLayout );
                         CHECK_THROW_MSG( aux_info->type->ToMSL( INOUT outTypes, INOUT uniqueTypes ));
-                    }               
+                    }
                     s_decl  << "  /* state: " << ToString( un.buffer.state ) << " */\n"
                             << "  /* static size: " << ToString( un.buffer.staticSize )
                             << ", array stride: " << ToString( un.buffer.arrayStride );
@@ -1459,8 +1459,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = EResourceState::ShaderStorage_RW | EResourceState_FromShaders( stages );
         un.buffer.dynamicOffsetIndex    = UMax;
-        un.buffer.staticSize            = Bytes32u{staticSize};
-        un.buffer.arrayStride           = Bytes32u{arraySize};
+        un.buffer.staticSize            = Byte32u{staticSize};
+        un.buffer.arrayStride           = Byte32u{arraySize};
         un.buffer.typeName              = ShaderStructName{"dbg_ShaderTraceStorage"};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2042,8 +2042,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = state;
         un.buffer.dynamicOffsetIndex    = DescriptorSetLayoutDesc::DynamicOffsetIdx_t(dynamic ? 0u : UMax);
-        un.buffer.staticSize            = Bytes32u{ aux_info.type->StaticSize() };
-        un.buffer.arrayStride           = Bytes32u{0u};
+        un.buffer.staticSize            = Byte32u{ aux_info.type->StaticSize() };
+        un.buffer.arrayStride           = Byte32u{0u};
         un.buffer.typeName              = ShaderStructName{st_it->second->Typename()};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2086,8 +2086,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = state;
         un.buffer.dynamicOffsetIndex    = DescriptorSetLayoutDesc::DynamicOffsetIdx_t(dynamic ? 0u : UMax);
-        un.buffer.staticSize            = Bytes32u{ aux_info.type->StaticSize()  };
-        un.buffer.arrayStride           = Bytes32u{ aux_info.type->ArrayStride() };
+        un.buffer.staticSize            = Byte32u{ aux_info.type->StaticSize()  };
+        un.buffer.arrayStride           = Byte32u{ aux_info.type->ArrayStride() };
         un.buffer.typeName              = ShaderStructName{st_it->second->Typename()};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2307,6 +2307,8 @@ namespace
             _CheckSamplerName( samp );
             _dsLayout.samplerStorage.push_back( SamplerName{samp} );
         }
+
+        // TODO: cubemap supports only CLAMP sampler
     }
 
 /*
@@ -2429,7 +2431,7 @@ namespace
             }
             END_ENUM_CHECKS();
 
-            EResourceState  state = 
+            EResourceState  state =
                 (usage.type == EAttachment::ReadWrite ? EResourceState::InputColorAttachment_RW : EResourceState::InputColorAttachment);
 
             if ( (img_type & EImageType::_ValMask) >= EImageType::Depth )

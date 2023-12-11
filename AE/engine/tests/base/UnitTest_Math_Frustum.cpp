@@ -37,10 +37,10 @@ namespace
         float3  rays[4];
         TEST( frustum.GetRays( OUT rays[0], OUT rays[1], OUT rays[2], OUT rays[3] ));
 
-        TEST( All(Equals( rays[0], float3{ 0.6f, -0.4f, -0.69f}, 5_pct )));
-        TEST( All(Equals( rays[1], float3{ 0.6f,  0.4f, -0.69f}, 5_pct )));
-        TEST( All(Equals( rays[2], float3{-0.6f, -0.4f, -0.69f}, 5_pct )));
-        TEST( All(Equals( rays[3], float3{-0.6f,  0.4f, -0.69f}, 5_pct )));
+        TEST( All(Equal( rays[0], float3{ 0.6f, -0.4f, -0.69f}, 5_pct )));
+        TEST( All(Equal( rays[1], float3{ 0.6f,  0.4f, -0.69f}, 5_pct )));
+        TEST( All(Equal( rays[2], float3{-0.6f, -0.4f, -0.69f}, 5_pct )));
+        TEST( All(Equal( rays[3], float3{-0.6f,  0.4f, -0.69f}, 5_pct )));
     }
 
 

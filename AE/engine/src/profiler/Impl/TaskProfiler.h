@@ -79,7 +79,7 @@ namespace AE::Profiler
         // variables
         private:
             void*           _data       = null;
-            Bytes32u        _dataSize;
+            Byte32u         _dataSize;
 
             Atomic<uint>    _writePos   {0};
             Atomic<uint>    _availPos   {0};
@@ -150,8 +150,7 @@ namespace AE::Profiler
 
     // methods
     public:
-        explicit TaskProfiler (TimePoint_t startTime);
-        ~TaskProfiler () {}
+        explicit TaskProfiler (TimePoint_t startTime)           __NE___;
 
         void  DrawImGUI ();
         void  Draw (Canvas &) {}
@@ -164,8 +163,8 @@ namespace AE::Profiler
         void  Enqueue (const Threading::IAsyncTask &)           __NE_OV;
         void  AddThread (ThreadPtr)                             __NE_OV;
 
-        void  BeginNonTaskWork (const void *id, StringView name)__NE_OV;
-        void  EndNonTaskWork (const void *id, StringView name)  __NE_OV;
+        void  BeginNonTaskWork (const void* id, StringView name)__NE_OV;
+        void  EndNonTaskWork (const void* id, StringView name)  __NE_OV;
 
     private:
         void  _UpdateThreadFreq ();

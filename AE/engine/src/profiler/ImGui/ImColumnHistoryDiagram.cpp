@@ -5,6 +5,11 @@
 # include "base/Algorithms/StringUtils.h"
 # include "profiler/ImGui/ImColumnHistoryDiagram.h"
 
+namespace AE::Base
+{
+    template <typename ...Args> struct TNothrowCtor< ImVec2, Args... > { static constexpr bool  value = true; };
+}
+
 namespace AE::Profiler
 {
 

@@ -23,17 +23,17 @@ namespace
         using Mat_t = PackedMatrix<T,2,Rows>;
         using Col_t = typename Mat_t::Col_t;
 
-        static void  _Ctor1 (void *mem)
+        static void  _Ctor1 (void* mem)
         {
             PlacementNew< Mat_t >( OUT mem, Mat_t::Identity() );
         }
 
-        static void  _Ctor2 (void *mem, const Mat_t &value)
+        static void  _Ctor2 (void* mem, const Mat_t &value)
         {
             PlacementNew< Mat_t >( OUT mem, value );
         }
 
-        static void  _Ctor3 (void *mem, const Col_t &col0, const Col_t &col1)
+        static void  _Ctor3 (void* mem, const Col_t &col0, const Col_t &col1)
         {
             PlacementNew< Mat_t >( OUT mem, col0, col1 );
         }
@@ -68,17 +68,17 @@ namespace
         using Mat_t = PackedMatrix<T,3,Rows>;
         using Col_t = typename Mat_t::Col_t;
 
-        static void  _Ctor1 (void *mem)
+        static void  _Ctor1 (void* mem)
         {
             PlacementNew< Mat_t >( OUT mem, Mat_t::Identity() );
         }
 
-        static void  _Ctor2 (void *mem, const Mat_t &value)
+        static void  _Ctor2 (void* mem, const Mat_t &value)
         {
             PlacementNew< Mat_t >( OUT mem, value );
         }
 
-        static void  _Ctor3 (void *mem, const Col_t &col0, const Col_t &col1, const Col_t &col2)
+        static void  _Ctor3 (void* mem, const Col_t &col0, const Col_t &col1, const Col_t &col2)
         {
             PlacementNew< Mat_t >( OUT mem, col0, col1, col2 );
         }
@@ -114,17 +114,17 @@ namespace
         using Mat_t = PackedMatrix<T,4,Rows>;
         using Col_t = typename Mat_t::Col_t;
 
-        static void  _Ctor1 (void *mem)
+        static void  _Ctor1 (void* mem)
         {
             PlacementNew< Mat_t >( OUT mem, Mat_t::Identity() );
         }
 
-        static void  _Ctor2 (void *mem, const Mat_t &value)
+        static void  _Ctor2 (void* mem, const Mat_t &value)
         {
             PlacementNew< Mat_t >( OUT mem, value );
         }
 
-        static void  _Ctor3 (void *mem, const Col_t &col0, const Col_t &col1, const Col_t &col2, const Col_t &col3)
+        static void  _Ctor3 (void* mem, const Col_t &col0, const Col_t &col1, const Col_t &col2, const Col_t &col3)
         {
             PlacementNew< Mat_t >( OUT mem, col0, col1, col2, col3 );
         }
@@ -325,14 +325,14 @@ namespace
         {
             DefineMat_Func  func{ se };
 
-            MatTypes::Visit( func );
+            MatTypes::VisitTh( func );
         }
 
         // bind
         {
             BindMat_Func    func{ se };
 
-            MatTypes::Visit( func );
+            MatTypes::VisitTh( func );
         }
     }
 

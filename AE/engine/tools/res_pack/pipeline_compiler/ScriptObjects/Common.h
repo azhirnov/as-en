@@ -62,29 +62,32 @@ namespace AE::PipelineCompiler
         SPIRV_1_6       = 0x16 | _SPIRV,        // Vulkan 1.3
         _SPIRV_Last     = SPIRV_1_6,
 
-        Metal_2_0       = 0x20 | _Metal,        // Metal 2.0 for iOS/iPad/Mac
+        Metal_2_0       = 0x20 | _Metal,        // Metal 2.x for iOS/iPad/Mac
         Metal_2_1       = 0x21 | _Metal,
         Metal_2_2       = 0x22 | _Metal,
         Metal_2_3       = 0x23 | _Metal,        // ray tracing
         Metal_2_4       = 0x24 | _Metal,        // ray tracing motion blur
         Metal_3_0       = 0x30 | _Metal,        // mesh shader
-        _Metal_Last     = Metal_3_0,
+        Metal_3_1       = 0x31 | _Metal,        //
+        _Metal_Last     = Metal_3_1,
 
-        Metal_iOS_2_0   = 0x20 | _Metal_iOS,    // Metal 2.0 for iOS/iPad   // iOS 11.0
+        Metal_iOS_2_0   = 0x20 | _Metal_iOS,    // Metal 2.x for iOS/iPad   // iOS 11.0
         Metal_iOS_2_1   = 0x21 | _Metal_iOS,                                // iOS 12.0
         Metal_iOS_2_2   = 0x22 | _Metal_iOS,                                // iOS 13.0
         Metal_iOS_2_3   = 0x23 | _Metal_iOS,                                // iOS 14.0
         Metal_iOS_2_4   = 0x24 | _Metal_iOS,                                // iOS 15.0
-        Metal_iOS_3_0   = 0x30 | _Metal_iOS,                                // iOS 16.0
-        _Metal_iOS_Last = Metal_iOS_3_0,
+        Metal_iOS_3_0   = 0x30 | _Metal_iOS,    // Metal 3.x for iOS/iPad   // iOS 16.0
+        Metal_iOS_3_1   = 0x31 | _Metal_iOS,                                // iOS 17.0
+        _Metal_iOS_Last = Metal_iOS_3_1,
 
-        Metal_Mac_2_0   = 0x20 | _Metal_Mac,    // Metal 2.0 for MacOS      // MacOS 10.13
+        Metal_Mac_2_0   = 0x20 | _Metal_Mac,    // Metal 2.x for MacOS      // MacOS 10.13
         Metal_Mac_2_1   = 0x21 | _Metal_Mac,                                // MacOS 10.14
         Metal_Mac_2_2   = 0x22 | _Metal_Mac,                                // MacOS 10.15
         Metal_Mac_2_3   = 0x23 | _Metal_Mac,                                // MacOS 11.0
         Metal_Mac_2_4   = 0x24 | _Metal_Mac,                                // MacOS 12.0
-        Metal_Mac_3_0   = 0x30 | _Metal_Mac,                                // MacOS 13.0
-        _Metal_Mac_Last = Metal_Mac_3_0,
+        Metal_Mac_3_0   = 0x30 | _Metal_Mac,    // Metal 3.x for MacOS      // MacOS 13.0
+        Metal_Mac_3_1   = 0x31 | _Metal_Mac,                                // MacOS 14.0
+        _Metal_Mac_Last = Metal_Mac_3_1,
 
         Unknown         = 0,
     };
@@ -156,8 +159,7 @@ namespace AE::PipelineCompiler
         Metal,              // as in MSL
         Std140,             // as in GLSL, uniform/storage buffer
         Std430,             // as in GLSL, storage buffer, uniform buffer requires 'scalarLayout' feature
-        InternalIO,         // for vertex input and internal shader input/output, GLSL can use precision instead of 8/16 bit types,
-                            // C++ reflection is not allowed, 
+        InternalIO,         // for vertex input and internal shader input/output, GLSL can use precision instead of 8/16 bit types
         //Scalar,           // TODO: GL_EXT_scalar_block_layout
         _Count,
         Unknown = 0xFF,

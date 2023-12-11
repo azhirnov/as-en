@@ -9,7 +9,9 @@
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
-{   
+{
+    using DebugModeBits = EnumBitSet<IPass::EDebugMode>;
+
 /*
 =================================================
     InputController
@@ -165,16 +167,11 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    ScriptSceneGraphicsPass::ScriptSceneGraphicsPass () :
-        ScriptBaseRenderPass{ EFlags::Unknown }
-    {}
-
     ScriptSceneGraphicsPass::ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName) __Th___ :
         ScriptBaseRenderPass{ EFlags::Unknown },
         _scene{scene}, _passName{passName}
     {
-        _dbgName    = passName;
-        _controller = _scene->GetController();
+        _dbgName = passName;
 
         StringToColor( OUT _dbgColor, StringView{_dbgName} );
 
@@ -211,18 +208,6 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    InputController
-=================================================
-*/
-    void  ScriptSceneGraphicsPass::InputController (const ScriptBaseControllerPtr &value) __Th___
-    {
-        CHECK_THROW_MSG( value );
-
-        _controller = value;
-    }
-
-/*
-=================================================
     SetLayer
 =================================================
 */
@@ -251,11 +236,12 @@ namespace AE::ResEditor
         CHECK_THROW_MSG( not _pipelines.empty(), "pipelines must be defined" );
 
         RC<SceneGraphicsPass>   result      = MakeRC<SceneGraphicsPass>();
-        auto&                   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&                   res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&               renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
         auto&                   materials   = result->_materials;
-        const auto              max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto              max_frames  = GraphicsScheduler().GetMaxFrames();
         PipelinesPerInstance_t  pplns_per_inst;
+        DebugModeBits           dbg_modes;
 
         result->_rtech  = _CompilePipelines( OUT pplns_per_inst, OUT result->_scene );  // throw
 
@@ -269,14 +255,11 @@ namespace AE::ResEditor
             auto            mtr     = geom->ToMaterial( _renderLayer, result->_rtech.rtech, pplns );  // throw
             CHECK_THROW( mtr );
             materials.push_back( mtr );
+            dbg_modes |= mtr->GetDebugModeBits();
         }
 
-        result->_rpDesc.renderPassName  = RenderPassName{"rp"};
-        result->_rpDesc.subpassName     = SubpassName{"main"};
-        result->_rpDesc.packId          = result->_rtech.packId;
-        result->_rpDesc.layerCount      = 1_layer;
-        result->_depthRange             = this->_depthRange;
-        result->_renderLayer            = this->_renderLayer;
+        result->_depthRange     = this->_depthRange;
+        result->_renderLayer    = this->_renderLayer;
 
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneGraphicsPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "SceneGraphicsPassUB", renderer.GetAllocator() );
@@ -286,6 +269,24 @@ namespace AE::ResEditor
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"} ));
         _args.InitResources( OUT result->_resources );  // throw
 
+        uint    min_layer_count = UMax;
+        for (auto& src : _output)
+        {
+            const uint  layers  = src.rt->Description().arrayLayers.Get();
+            const uint  count   = (src.layerCount == UMax ? (layers - src.layer.Get()) : src.layerCount);
+
+            CHECK_ERR( src.layer.Get() < layers );
+            CHECK_ERR( src.layer.Get() + count <= layers );
+
+            AssignMin( INOUT min_layer_count, count );
+        }
+        CHECK_ERR( min_layer_count > 0 );
+
+        result->_rpDesc.renderPassName  = RenderPassName{"rp"};
+        result->_rpDesc.subpassName     = SubpassName{"main"};
+        result->_rpDesc.packId          = result->_rtech.packId;
+        result->_rpDesc.layerCount      = ImageLayer{min_layer_count};
+
         for (usize i = 0; i < _output.size(); ++i)
         {
             auto&   src = _output[i];
@@ -293,9 +294,9 @@ namespace AE::ResEditor
             CHECK_ERR( rt );
 
             ImageViewDesc   view;
-            view.viewType       = EImage_2D;
+            view.viewType       = (min_layer_count > 1 ? EImage_2DArray : EImage_2D);
             view.baseLayer      = src.layer;
-            view.layerCount     = 1;
+            view.layerCount     = ushort(min_layer_count);
             view.baseMipmap     = src.mipmap;
             view.mipmapCount    = 1;
 
@@ -309,10 +310,8 @@ namespace AE::ResEditor
         }
         CHECK_ERR( not result->_renderTargets.empty() );
 
-        _Init( *result );
-
-        EnumBitSet<IPass::EDebugMode>   dbg_modes;  // TODO
-        UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
+        _Init( *result, _scene->GetController() );
+        UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllGraphics );
 
         return result;
     }
@@ -335,13 +334,10 @@ namespace AE::ResEditor
         }
         {
             ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
-            binder.CreateRef();
+            binder.CreateRef( 0, False{"no ctor"} );
 
             _BindBase( binder, True{"with args"} );
             _BindBaseRenderPass( binder, False{"without blending"} );
-
-            binder.Comment( "Set input controller (camera), supported single controller per pass." );
-            binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Set",          {} );
 
             binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
                             "Scene geometry will be linked with compatible pipeline or error will be generated." );
@@ -389,8 +385,8 @@ namespace AE::ResEditor
                 int4        intConst [4];
             )#");
 
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
+        StaticAssert( IPass::Constants::MaxCount == 4 );
         return st;
     }
 
@@ -472,64 +468,9 @@ namespace AE::ResEditor
             ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
             _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
-            // add sliders
-            {
-                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
-                for (usize i = 0; i < _sliderCounter.size(); ++i) {
-                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
-                }
-
-                for (auto& slider : _sliders)
-                {
-                    String  str;
-                    str << slider.name << " = un_PerPass.";
-
-                    BEGIN_ENUM_CHECKS();
-                    switch ( slider.type )
-                    {
-                        case ESlider::Int :     str << "intSliders[";   break;
-                        case ESlider::Float :   str << "floatSliders["; break;
-                        case ESlider::Color :   str << "colors[";       break;
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    str << ToString( slider.index ) << "]";
-                    switch ( slider.count )
-                    {
-                        case 1 :    str << ".x";    break;
-                        case 2 :    str << ".xy";   break;
-                        case 3 :    str << ".xyz";  break;
-                        case 4 :    str << ".xyzw"; break;
-                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
-                    }
-                    ds_layout->Define( str );
-                }
-            }
-
-            // add constants
-            {
-                for (auto& c : _constants)
-                {
-                    String  str;
-                    str << c.name << " = un_PerPass.";
-
-                    BEGIN_ENUM_CHECKS();
-                    switch ( c.type )
-                    {
-                        case ESlider::Int :     str << "intConst[";     break;
-                        case ESlider::Float :   str << "floatConst[";   break;
-                        case ESlider::Color :
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    str << ToString( c.index ) << "]";
-                    ds_layout->Define( str );
-                }
-            }
+            String  str;
+            _AddSlidersAsMacros( OUT str );
+            ds_layout->Define( str );
         }
 
         for (auto& inst : _scene->_geomInstances) {
@@ -537,6 +478,7 @@ namespace AE::ResEditor
         }
 
         auto    include_dirs = ScriptExe::ScriptPassApi::GetPipelineIncludeDirs();
+        CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "VertexInput.as" ), include_dirs ));
         CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
         for (auto& ppln : _pipelines) {
             if ( not storage.CompilePipeline( se, ppln, include_dirs ))
@@ -579,16 +521,11 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass () :
-        ScriptBasePass{ EFlags::Unknown }
-    {}
-
     ScriptSceneRayTracingPass::ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName) __Th___ :
         ScriptBasePass{ EFlags::Unknown },
         _scene{scene}, _passName{passName}
     {
-        _dbgName    = passName;
-        _controller = _scene->GetController();
+        _dbgName = passName;
 
         StringToColor( OUT _dbgColor, StringView{_dbgName} );
 
@@ -603,18 +540,6 @@ namespace AE::ResEditor
     void  ScriptSceneRayTracingPass::SetPipeline (const String &pplnFile) __Th___
     {
         _pipeline = ScriptExe::ScriptPassApi::ToPipelinePath( Path{pplnFile} );  // throw
-    }
-
-/*
-=================================================
-    InputController
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::InputController (const ScriptBaseControllerPtr &value) __Th___
-    {
-        CHECK_THROW_MSG( value );
-
-        _controller = value;
     }
 
 /*
@@ -697,17 +622,25 @@ namespace AE::ResEditor
         CHECK_THROW_MSG( not _pipeline.empty(), "pipeline is not defined" );
 
         RC<SceneRayTracingPass> result      = MakeRC<SceneRayTracingPass>();
-        auto&                   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&                   res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&               renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
-        const auto              max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto              max_frames  = GraphicsScheduler().GetMaxFrames();
         PipelineName            ppln_name;
         RTShaderBindingName     sbt_name;
         ScriptRTScenePtr        rt_scene;
+        DebugModeBits           dbg_modes;
 
         result->_rtech      = _CompilePipelines( OUT ppln_name, OUT sbt_name, OUT result->_scene, OUT rt_scene );   // throw
 
         result->_pipeline   = result->_rtech.rtech->GetRayTracingPipeline( ppln_name );
         CHECK_THROW( result->_pipeline );
+
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( result->_pipeline );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+        }
+        #endif
 
         result->_sbt        = result->_rtech.rtech->GetRTShaderBinding( sbt_name );
         CHECK_THROW( result->_sbt );
@@ -729,9 +662,7 @@ namespace AE::ResEditor
 
         result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
-        _Init( *result );
-
-        EnumBitSet<IPass::EDebugMode>   dbg_modes;  // TODO
+        _Init( *result, _scene->GetController() );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
 
         return result;
@@ -747,12 +678,9 @@ namespace AE::ResEditor
         using namespace Scripting;
 
         ClassBinder<ScriptSceneRayTracingPass>  binder{ se };
-        binder.CreateRef();
+        binder.CreateRef( 0, False{"no ctor"} );
 
         _BindBase( binder, True{"with args"} );
-
-        binder.Comment( "Set input controller (camera), supported single controller per pass." );
-        binder.AddMethod( &ScriptSceneRayTracingPass::InputController,          "Set",              {} );
 
         binder.Comment( "Set path to single pipeline.\n"
                         "Scene geometry will be linked with compatible pipeline or error will be generated." );
@@ -809,8 +737,8 @@ namespace AE::ResEditor
                 int4        intConst [4];
             )#");
 
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
+        StaticAssert( IPass::Constants::MaxCount == 4 );
         return st;
     }
 
@@ -855,64 +783,9 @@ namespace AE::ResEditor
             ds_layout->AddRayTracingScene( stage, "un_RtScene", ArraySize{1} );
             _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
-            // add sliders
-            {
-                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
-                for (usize i = 0; i < _sliderCounter.size(); ++i) {
-                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
-                }
-
-                for (auto& slider : _sliders)
-                {
-                    String  str;
-                    str << slider.name << " = un_PerPass.";
-
-                    BEGIN_ENUM_CHECKS();
-                    switch ( slider.type )
-                    {
-                        case ESlider::Int :     str << "intSliders[";   break;
-                        case ESlider::Float :   str << "floatSliders["; break;
-                        case ESlider::Color :   str << "colors[";       break;
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    str << ToString( slider.index ) << "]";
-                    switch ( slider.count )
-                    {
-                        case 1 :    str << ".x";    break;
-                        case 2 :    str << ".xy";   break;
-                        case 3 :    str << ".xyz";  break;
-                        case 4 :    str << ".xyzw"; break;
-                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
-                    }
-                    ds_layout->Define( str );
-                }
-            }
-
-            // add constants
-            {
-                for (auto& c : _constants)
-                {
-                    String  str;
-                    str << c.name << " = un_PerPass.";
-
-                    BEGIN_ENUM_CHECKS();
-                    switch ( c.type )
-                    {
-                        case ESlider::Int :     str << "intConst[";     break;
-                        case ESlider::Float :   str << "floatConst[";   break;
-                        case ESlider::Color :
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    str << ToString( c.index ) << "]";
-                    ds_layout->Define( str );
-                }
-            }
+            String  str;
+            _AddSlidersAsMacros( OUT str );
+            ds_layout->Define( str );
         }
 
         for (auto& inst : _scene->_geomInstances) {

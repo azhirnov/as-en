@@ -57,6 +57,16 @@ namespace AE::App
         static constexpr uint   MaxOutputTargets    = 8;
 
 
+        struct RenderTargetInfo
+        {
+            uint2                   dimension;
+            float                   pixToMm;        // pixels to millimeters, used for touch screen, should not be used for VR
+
+            RenderTargetInfo ()                         __NE___ {}
+            RenderTargetInfo (uint2 dim, float pixToMm) __NE___ : dimension{dim}, pixToMm{pixToMm} {}
+        };
+
+
         //
         // Render Target
         //
@@ -111,7 +121,7 @@ namespace AE::App
 
         using SurfaceFormats_t  = FixedArray< SurfaceFormat, 16 >;
         using PresentModes_t    = FixedArray< EPresentMode, 8 >;
-        using TargetSizes_t     = FixedArray< uint2, MaxOutputTargets >;
+        using TargetInfos_t     = FixedArray< RenderTargetInfo, MaxOutputTargets >;
 
 
         //
@@ -168,9 +178,9 @@ namespace AE::App
 
         // Returns current surface sizes.
         // Size can be changed at any moment, so result may be outdated.
-        // If not changed then result is equal to 'RenderTarget::RegionSize()' which returns by 'GetTargets()'.
+        // If not changed then result is equal to 'RenderTarget::RegionSize()' and 'RenderTarget::pixToMm' which returns by 'GetTargets()'.
         //
-        ND_ virtual TargetSizes_t  GetTargetSizes ()                                                                            C_NE___ = 0;
+        ND_ virtual TargetInfos_t  GetTargetInfo ()                                                                             C_NE___ = 0;
 
 
         // Returns all supported color formats and color spaces.

@@ -12,6 +12,5 @@
 #include "platform/Public/VRDevice.h"
 #include "platform/Public/IApplication.h"
 
-#include "platform/DefaultV1/DefaultAppV1.h"
-
-#include "platform/DefaultV2/DefaultAppV2.h"
+#include "platform/BaseAppV1/DefaultAppV1.h"
+#include "platform/BaseAppV2/DefaultAppV2.h"

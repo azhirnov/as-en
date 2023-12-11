@@ -36,7 +36,7 @@ namespace AE::Base
         ESourceType GetSourceType ()                                            C_NE_OF;
         Bytes       Size ()                                                     C_NE_OF { return _size; }
 
-        Bytes       ReadBlock (Bytes offset, OUT void *buffer, Bytes size)      __NE_OF;
+        Bytes       ReadBlock (Bytes pos, OUT void* buffer, Bytes size)         __NE_OF;
 
 
         ND_ ArrayView<ubyte>    GetData ()                                      C_NE___ { return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
@@ -103,7 +103,7 @@ namespace AE::Base
         Bytes       Capacity ()                                                 C_NE_OV { return Bytes{_data.size()}; }
 
         Bytes       Reserve (Bytes capacity)                                    __NE_OV;
-        Bytes       WriteBlock (Bytes offset, const void *buffer, Bytes size)   __NE_OV;
+        Bytes       WriteBlock (Bytes pos, const void* buffer, Bytes size)      __NE_OV;
 
         void        Flush ()                                                    __NE_OV {}
 

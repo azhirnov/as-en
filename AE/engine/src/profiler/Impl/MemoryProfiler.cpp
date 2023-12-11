@@ -13,7 +13,7 @@ namespace AE::Profiler
     constructor
 =================================================
 */
-    MemoryProfiler::MemoryProfiler (TimePoint_t startTime) :
+    MemoryProfiler::MemoryProfiler (TimePoint_t startTime) __NE___ :
         ProfilerUtils{ startTime }
     {}
 

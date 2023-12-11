@@ -20,7 +20,7 @@
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
             ds.UniformBuffer( EShaderStages::Vertex,    "un_PerObject", "UnifiedGeometryMaterialUB" );
             ds.StorageBuffer( EShaderStages::Vertex,    "un_Geometry",  "GeometrySBlock",   EResourceState::ShaderStorage_Read );   // external
-            ds.StorageBuffer( EShaderStages::AllGraphics,"un_Lights",   "LightsSBlock",     EResourceState::ShaderStorage_Read );   // external
+            ds.StorageBuffer( EShaderStages::Fragment,  "un_Lights",    "LightsSBlock",     EResourceState::ShaderStorage_Read );   // external
             ds.CombinedImage( EShaderStages::Fragment,  "un_ShadowMap", EImageType::FImage2D, Sampler_LinearClamp );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "pl" );

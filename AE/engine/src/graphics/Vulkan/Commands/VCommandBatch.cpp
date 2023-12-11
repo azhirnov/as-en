@@ -164,7 +164,7 @@ namespace AE::Graphics
     {
         if ( _fence != Default )
         {
-            auto&   dev = RenderTaskScheduler().GetDevice();
+            auto&   dev = GraphicsScheduler().GetDevice();
 
             dev.vkDestroyFence( dev.GetVkDevice(), _fence, null );
         }
@@ -175,10 +175,9 @@ namespace AE::Graphics
     Create
 =================================================
 */
-    bool  VCommandBatch::VirtualFence::Create (const VDevice &dev, uint indexInPool) __NE___
+    bool  VCommandBatch::VirtualFence::Create (const VDevice &dev) __NE___
     {
         _complete.store( false );
-        _indexInPool    = ubyte(indexInPool);
 
         if_likely( _fence != Default )
         {
@@ -205,10 +204,7 @@ namespace AE::Graphics
 
         ASSERT( _fence == Default or _complete.load() );
 
-        const uint  idx = Exchange( INOUT _indexInPool, ubyte{UMax} );
-        MemoryBarrier( EMemoryOrder::Release );
-
-        VRenderTaskScheduler::VirtualFenceApi::Recycle( idx );
+        RenderTaskScheduler::VirtualFenceApi::Recycle( this );
     }
 
 /*
@@ -265,12 +261,11 @@ namespace AE::Graphics
     constructor
 =================================================
 */
-    VCommandBatch::VCommandBatch (uint indexInPool) __NE___ :
-        _indexInPool{ CheckCast<ubyte>( indexInPool )}
+    VCommandBatch::VCommandBatch () __NE___
     {
         #if AE_VK_TIMELINE_SEMAPHORE
         {
-            auto&   dev = RenderTaskScheduler().GetDevice();
+            auto&   dev = GraphicsScheduler().GetDevice();
 
             VkSemaphoreCreateInfo       sem_ci      = {};
             VkSemaphoreTypeCreateInfo   sem_type_ci = {};
@@ -297,7 +292,7 @@ namespace AE::Graphics
     VCommandBatch::~VCommandBatch () __NE___
     {
         #if AE_VK_TIMELINE_SEMAPHORE
-            auto&   dev = RenderTaskScheduler().GetDevice();
+            auto&   dev = GraphicsScheduler().GetDevice();
             dev.vkDestroySemaphore( dev.GetVkDevice(), _tlSemaphore, null );
         #endif
     }
@@ -324,7 +319,7 @@ namespace AE::Graphics
         _perTaskBarriers.fill( null );
 
         DBG_GRAPHICS_ONLY(
-            _profiler = RenderTaskScheduler().GetProfiler();
+            _profiler = GraphicsScheduler().GetProfiler();
             if ( _profiler )
                 _profiler->BeginBatch( frameId, this, dbg.label );
 
@@ -334,7 +329,7 @@ namespace AE::Graphics
         Unused( dbg );
 
         #if defined(AE_DEBUG) and AE_VK_TIMELINE_SEMAPHORE
-            RenderTaskScheduler().GetDevice().SetObjectName( _tlSemaphore, _dbgName, VK_OBJECT_TYPE_SEMAPHORE );
+            GraphicsScheduler().GetDevice().SetObjectName( _tlSemaphore, _dbgName, VK_OBJECT_TYPE_SEMAPHORE );
         #endif
 
         CHECK_ERR( _status.exchange( EStatus::Initial ) == EStatus::Destroyed );
@@ -351,7 +346,7 @@ namespace AE::Graphics
         if_likely( IsCompleted() )
             return true;
 
-        auto&   dev = RenderTaskScheduler().GetDevice();
+        auto&   dev = GraphicsScheduler().GetDevice();
 
         #if AE_VK_TIMELINE_SEMAPHORE
         {

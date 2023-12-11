@@ -129,9 +129,9 @@ namespace AE::PipelineCompiler
     };
     AE_BIT_OPERATORS( EImageType );
 
-    STATIC_ASSERT( EImageType::_TexCount < EImageType::_TexMask );
-    STATIC_ASSERT( EImageType::_LastVal  < EImageType::_ValMask );
-    STATIC_ASSERT( EImageType::_LastQual < EImageType::_QualMask );
+    StaticAssert( EImageType::_TexCount < EImageType::_TexMask );
+    StaticAssert( EImageType::_LastVal  < EImageType::_ValMask );
+    StaticAssert( EImageType::_LastQual < EImageType::_QualMask );
 
     ND_ bool        EImageType_IsCompatible (EImageType lhs, EImageType rhs)    __NE___;
     ND_ EImageType  EImageType_FromPixelFormat (EPixelFormat fmt)               __NE___;
@@ -168,7 +168,7 @@ namespace AE::PipelineCompiler
             ND_ bool  operator == (const Binding &rhs) const    { return (vkIndex == rhs.vkIndex) & All( mtlIndex == rhs.mtlIndex ); }
             ND_ bool  operator != (const Binding &rhs) const    { return not (*this == rhs); }
         };
-        STATIC_ASSERT( sizeof(Binding) == 8 );
+        StaticAssert( sizeof(Binding) == 8 );
 
         using BindingIndex_t        = decltype(Binding::vkIndex);
         using ArraySize_t           = uint;
@@ -182,8 +182,8 @@ namespace AE::PipelineCompiler
         {
             EResourceState      state                   = Default;
             DynamicOffsetIdx_t  dynamicOffsetIndex      = UMax;
-            Bytes32u            staticSize;
-            Bytes32u            arrayStride;
+            Byte32u             staticSize;
+            Byte32u             arrayStride;
             ShaderStructName    typeName;
 
             ND_ bool  HasDynamicOffset ()   const   { return dynamicOffsetIndex != UMax; }
@@ -235,7 +235,7 @@ namespace AE::PipelineCompiler
                 RayTracingScene     rtScene;
             };
 
-            Uniform () {}
+            Uniform () __NE___ {}
         };
 
         using Uniforms_t    = Array<Pair< UniformName, Uniform >>;
@@ -295,11 +295,11 @@ namespace AE::PipelineCompiler
             ShaderStructName    typeName;
             EShader             stage           = Default;
             ubyte               metalBufferId   = UMax;
-            Bytes16u            vulkanOffset;
-            Bytes16u            size;
+            Byte16u             vulkanOffset;
+            Byte16u             size;
 
             PushConst () {}
-            PushConst (EShader stage, uint bufferId, Bytes32u offset, Bytes32u size, const ShaderStructName &typeName) :
+            PushConst (EShader stage, uint bufferId, Byte32u offset, Byte32u size, const ShaderStructName &typeName) :
                 typeName{typeName}, stage{stage}, metalBufferId{ubyte(bufferId)}, vulkanOffset{offset}, size{size} {}
 
             ND_ bool    operator == (const PushConst &rhs) const;
@@ -465,10 +465,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableGraphicsPipeline () {}
+        SerializableGraphicsPipeline ()                 __NE___ {}
 
-        ND_ bool    operator == (const SerializableGraphicsPipeline &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableGraphicsPipeline &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -496,10 +496,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableGraphicsPipelineSpec () {}
+        SerializableGraphicsPipelineSpec ()             __NE___ {}
 
-        ND_ bool    operator == (const SerializableGraphicsPipelineSpec &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableGraphicsPipelineSpec &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -528,10 +528,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableComputePipeline () {}
+        SerializableComputePipeline ()                  __NE___ {}
 
-        ND_ bool    operator == (const SerializableComputePipeline &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableComputePipeline &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -557,10 +557,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableComputePipelineSpec () {}
+        SerializableComputePipelineSpec ()              __NE___ {}
 
-        ND_ bool    operator == (const SerializableComputePipelineSpec &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableComputePipelineSpec &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -600,10 +600,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableMeshPipeline () {}
+        SerializableMeshPipeline ()                     __NE___ {}
 
-        ND_ bool    operator == (const SerializableMeshPipeline &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableMeshPipeline &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -631,10 +631,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableMeshPipelineSpec () {}
+        SerializableMeshPipelineSpec ()                 __NE___ {}
 
-        ND_ bool    operator == (const SerializableMeshPipelineSpec &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableMeshPipelineSpec &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -707,10 +707,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableRayTracingPipeline () {}
+        SerializableRayTracingPipeline ()               __NE___ {}
 
-        ND_ bool    operator == (const SerializableRayTracingPipeline &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableRayTracingPipeline &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -736,10 +736,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableRayTracingPipelineSpec () {}
+        SerializableRayTracingPipelineSpec ()           __NE___ {}
 
-        ND_ bool    operator == (const SerializableRayTracingPipelineSpec &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableRayTracingPipelineSpec &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -768,10 +768,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableTilePipeline () {}
+        SerializableTilePipeline ()                     __NE___ {}
 
-        ND_ bool    operator == (const SerializableTilePipeline &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableTilePipeline &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -797,10 +797,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableTilePipelineSpec () {}
+        SerializableTilePipelineSpec ()                 __NE___ {}
 
-        ND_ bool    operator == (const SerializableTilePipelineSpec &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableTilePipelineSpec &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;
@@ -845,10 +845,10 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
-        SerializableRTShaderBindingTable () {}
+        SerializableRTShaderBindingTable ()             __NE___ {}
 
-        ND_ bool    operator == (const SerializableRTShaderBindingTable &rhs) const;
-        ND_ HashVal CalcHash () const;
+        ND_ bool    operator == (const SerializableRTShaderBindingTable &rhs) C_NE___;
+        ND_ HashVal CalcHash ()                         C_NE___;
 
         #ifdef AE_TEST_PIPELINE_COMPILER
         ND_ String  ToString (const HashToName &) const;

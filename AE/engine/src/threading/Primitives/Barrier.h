@@ -42,7 +42,7 @@ namespace AE::Threading
     {
     // variables
     private:
-        alignas(ulong) ubyte    _data [32];
+        UntypedStorage< 32, 8 >     _data;
 
 
     // methods
@@ -56,7 +56,7 @@ namespace AE::Threading
         Barrier&  operator = (const Barrier &)  = delete;
         Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ();
+        void  wait ()                           __NE___;
 
         ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }
     };
@@ -137,26 +137,24 @@ namespace AE::Threading
                 expected.counter_1  = _numThreads;
             }
 
-            for (uint i = 0;
-                 not _counter.CAS( INOUT expected, new_value );
-                 ++i)
+            for (uint p = 0;; ++p)
             {
-                if ( expected.index != old_value.index )
-                    break;
-
-                old_value.index ? (expected.counter_2 = _numThreads) : (expected.counter_1 = _numThreads);
-
-                ThreadUtils::Pause();
-
-                if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+                for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
                 {
-                    i = 0;
-                    ThreadUtils::YieldOrSleep();
-                }
-            }
+                    if_likely(  _counter.CAS( INOUT expected, new_value ) or
+                                expected.index != old_value.index )
+                    {
+                        // invalidate cache
+                        MemoryBarrier( EMemoryOrder::Acquire );
+                        return;
+                    }
 
-            // invalidate cache
-            MemoryBarrier( EMemoryOrder::Acquire );
+                    old_value.index ? (expected.counter_2 = _numThreads) : (expected.counter_1 = _numThreads);
+
+                    ThreadUtils::Pause();
+                }
+                ThreadUtils::ProgressiveSleep( p );
+            }
         }
 
         ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }

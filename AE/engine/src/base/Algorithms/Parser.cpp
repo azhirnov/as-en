@@ -147,7 +147,7 @@ namespace AE::Base
             // windows style "\r\n"
             if_unlikely( (c == '\r') & (n == '\n') )
             {
-                if ( lines == 0 and pos > 0 ) ++lines; 
+                if ( lines == 0 and pos > 0 ) ++lines;
                 ++lines;
                 ++pos;
                 continue;
@@ -565,7 +565,7 @@ namespace {
 
             //if ( not parser.OnUnknown( c ))
             //  RETURN_ERR( "invalid char '"s << c << "'" );
-        }   
+        }
 
         if ( is_word )
             tokens.push_back( StringView{ str.data() + begin, str.length() - begin });
@@ -675,7 +675,7 @@ namespace {
             if ( not parser.OnUnknown( c )) {
                 RETURN_ERR( "invalid char '"s << c << "'" );
             }
-        }   
+        }
 
         if ( is_word )
             tokens.push_back( StringView{ str.data() + begin, str.length() - begin });
@@ -852,7 +852,7 @@ namespace
 */
     void  Parser::ValidateVarName_CPP (StringView name, OUT String &result) __NE___
     {
-        CATCH_ERRV( result.resize( name.size() ));
+        NOTHROW_ERRV( result.resize( name.size() ));
 
         for (usize i = 0; i < name.size(); ++i)
         {

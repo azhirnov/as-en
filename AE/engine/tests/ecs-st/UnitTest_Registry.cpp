@@ -23,9 +23,9 @@ namespace
     struct Event2 {};
     struct Event3 {};
 
-    STATIC_ASSERT( not IsEmpty<Comp1> );
-    STATIC_ASSERT( not IsEmpty<Comp2> );
-    STATIC_ASSERT( IsEmpty<Tag1> );
+    StaticAssert( not IsEmpty<Comp1> );
+    StaticAssert( not IsEmpty<Comp2> );
+    StaticAssert( IsEmpty<Tag1> );
 
 
     template <typename ...Args>
@@ -38,7 +38,7 @@ namespace
     static QueryID  CreateQuery2 (Registry &reg, ArrayView<Tuple<Args...>> const*)
     {
         using A = TypeList< Args... >;
-        STATIC_ASSERT(( IsSameTypes< typename A::template Get<0>, usize > ));
+        StaticAssert(( IsSameTypes< typename A::template Get<0>, usize > ));
         using B = typename A::PopFront::type;
 
         return CreateQuery1( reg, (B const*)null );
@@ -64,46 +64,46 @@ namespace
     #ifdef AE_ECS_VALIDATE_SYSTEM_FN
         {
             using Types = TypeList< WriteAccess<Comp1>, ReadAccess<Comp2> >;
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
         }{
             using Types = TypeList< WriteAccess<Comp1>, WriteAccess<Comp2>, ReadAccess<Comp2> >;
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( not _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
-            STATIC_ASSERT( not _reg_detail_::CheckForDuplicateComponents< Types::Get<2> >::Test< 2, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( not _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( not _reg_detail_::CheckForDuplicateComponents< Types::Get<2> >::Test< 2, Types >() );
         }{
             using Types = TypeList< WriteAccess<Comp1>, OptionalReadAccess<Comp2>, ReadAccess<Comp2> >;
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( not _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
-            STATIC_ASSERT( not _reg_detail_::CheckForDuplicateComponents< Types::Get<2> >::Test< 2, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( not _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( not _reg_detail_::CheckForDuplicateComponents< Types::Get<2> >::Test< 2, Types >() );
         }{
             using Types = TypeList< WriteAccess<Comp1>, Require<Comp2, Tag1> >;
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
         }{
             using Types = TypeList< WriteAccess<Comp1>, Require<Comp1, Comp2, Tag1> >;
-            STATIC_ASSERT( not _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( not _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
         }{
             using Types = TypeList< Comp1*, Comp2* >;
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
         }{
             using Types = TypeList< Comp1*, Comp2& >;
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
         }{
             using Types = TypeList< Comp1 const*, Comp2* >;
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
-            STATIC_ASSERT( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
+            StaticAssert( _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
         }{
             using Types = TypeList< Comp1*, Comp1& >;
-            STATIC_ASSERT( not _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
-            STATIC_ASSERT( not _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
+            StaticAssert( not _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<0> >::Test< Types, 0 >() );
+            StaticAssert( not _reg_detail_::SC_CheckForDuplicateComponents< Types::Get<1> >::Test< Types, 1 >() );
         }{
             using Types = TypeList< Require<Comp1>, Subtractive<Comp2> >;
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
-            STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
+            StaticAssert( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
         }
     #endif // AE_ECS_VALIDATE_SYSTEM_FN
     }

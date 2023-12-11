@@ -26,7 +26,7 @@ namespace AE::Base::_hidden_
         ND_ constexpr bool  operator <= (StaticTypeID<UID> rhs)     C_NE___ { return _value <= rhs._value; }
 
         ND_ constexpr usize         Get ()                          C_NE___ { return _value; }
-        ND_ constexpr const char *  Name ()                         C_NE___ { return ""; }
+        ND_ constexpr StringView    Name ()                         C_NE___ { return ""; }
     };
 
     template <uint UID>
@@ -64,6 +64,8 @@ struct std::hash< AE::Base::_hidden_::StaticTypeID<UID> >
 //-----------------------------------------------------------------------------
 
 
+#ifdef AE_ENABLE_RTTI
+
 namespace AE::Base::_hidden_
 {
     //
@@ -88,7 +90,7 @@ namespace AE::Base::_hidden_
         ND_ bool  operator <= (StdTypeID rhs)       C_NE___ { return _value <= rhs._value; }
 
         ND_ std::type_index     Get ()              C_NE___ { return _value; }
-        ND_ const char *        Name ()             C_NE___ { return _value.name(); }
+        ND_ StringView          Name ()             C_NE___ { return _value.name(); }
     };
 
 
@@ -114,7 +116,30 @@ struct std::hash< AE::Base::_hidden_::StdTypeID >
 };
 
 
-#if 0
+namespace AE::Base
+{
+    using TypeId = Base::_hidden_::StdTypeID;
+/*
+=================================================
+    TypeIdOf
+=================================================
+*/
+    template <typename T>
+    ND_ TypeId  TypeIdOf () __NE___
+    {
+        return Base::_hidden_::StdTypeIdOf<T>::Get();
+    }
+
+    template <typename T>
+    ND_ TypeId  TypeIdOf (const T&) __NE___
+    {
+        return TypeIdOf<T>();
+    }
+
+} // AE::Base
+
+#else
+
 namespace AE::Base
 {
     using TypeId = Base::_hidden_::StaticTypeID<0>;
@@ -128,29 +153,6 @@ namespace AE::Base
     ND_ TypeId  TypeIdOf () __NE___
     {
         return Base::_hidden_::StaticTypeIdOf<T,0>::Get();
-    }
-
-    template <typename T>
-    ND_ TypeId  TypeIdOf (const T&) __NE___
-    {
-        return TypeIdOf<T>();
-    }
-
-} // AE::Base
-
-#else
-namespace AE::Base
-{
-    using TypeId = Base::_hidden_::StdTypeID;
-/*
-=================================================
-    TypeIdOf
-=================================================
-*/
-    template <typename T>
-    ND_ TypeId  TypeIdOf () __NE___
-    {
-        return Base::_hidden_::StdTypeIdOf<T>::Get();
     }
 
     template <typename T>

@@ -18,7 +18,7 @@ namespace AE::Graphics::_hidden_
     VDrawBarrierManager::VDrawBarrierManager (Ptr<VDrawCommandBatch> batch) __Th___ :
         _primaryState{ batch->GetPrimaryCtxState() },
         _batch{ batch },
-        _resMngr{ RenderTaskScheduler().GetResourceManager() }
+        _resMngr{ GraphicsScheduler().GetResourceManager() }
     {
         GCTX_CHECK( _batch->GetQueueType() == GetQueueType() );
         GCTX_CHECK( _primaryState.IsValid() );
@@ -28,7 +28,7 @@ namespace AE::Graphics::_hidden_
 
     VDrawBarrierManager::VDrawBarrierManager (const VPrimaryCmdBufState &primaryState) __Th___ :
         _primaryState{ primaryState },
-        _resMngr{ RenderTaskScheduler().GetResourceManager() }
+        _resMngr{ GraphicsScheduler().GetResourceManager() }
     {
         GCTX_CHECK( _primaryState.IsValid() );
         GCTX_CHECK( not _primaryState.useSecondaryCmdbuf );
@@ -44,7 +44,7 @@ namespace AE::Graphics::_hidden_
     {
         _barrier.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
 
-        _barrier.dependencyFlags = 
+        _barrier.dependencyFlags =
             // for better performance on TBDR architectures
             VK_DEPENDENCY_BY_REGION_BIT |
 
@@ -71,7 +71,7 @@ namespace AE::Graphics::_hidden_
         auto*   view    = _resMngr.GetResource( fb_attach[ att_iter->second.Index() ]);
         CHECK_ERRV( view != null );
 
-        auto*   image   = _resMngr.GetResource( view->Image() );
+        auto*   image   = _resMngr.GetResource( view->ImageId() );
         CHECK_ERRV( image != null );
 
         VkImageMemoryBarrier2KHR&   barrier = _imageBarriers.emplace_back();

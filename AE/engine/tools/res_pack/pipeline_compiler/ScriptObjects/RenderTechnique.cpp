@@ -21,7 +21,7 @@ namespace
     constructor
 =================================================
 */
-    RTBasePass::RTBasePass (RenderTechnique *rtech, const String &name, usize passIdx) __Th___ :
+    RTBasePass::RTBasePass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ :
         _name{name},
         _passIndex{passIdx},
         _rtech{rtech}
@@ -566,7 +566,7 @@ namespace
                     if ( last_rp.IsDefined() )
                     {
                         CompatibleRenderPassDescPtr compat_rp;
-                        CATCH_ERR( compat_rp = storage.RenderPassExists( last_rp, last_sp ));
+                        NOTHROW_ERR( compat_rp = storage.RenderPassExists( last_rp, last_sp ));
 
                         auto    sp_it = compat_rp->_subpassMap.find( last_sp );
                         CHECK_ERR( sp_it != compat_rp->_subpassMap.end() );
@@ -589,7 +589,7 @@ namespace
                     if ( last_rp.IsDefined() )
                     {
                         CompatibleRenderPassDescPtr compat_rp;
-                        CATCH_ERR( compat_rp = storage.RenderPassExists( last_rp, last_sp ));
+                        NOTHROW_ERR( compat_rp = storage.RenderPassExists( last_rp, last_sp ));
 
                         auto    sp_it = compat_rp->_subpassMap.find( last_sp );
                         CHECK_ERR( sp_it != compat_rp->_subpassMap.end() );

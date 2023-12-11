@@ -11,6 +11,8 @@ namespace AE::Threading
     LfStaticPool<V,C,A>::LfStaticPool (const Allocator_t &alloc) __NE___ :
         _allocator{ alloc }
     {
+        DRC_EXLOCK( _drCheck );
+
         _arr = Cast<ChunkArray_t>( _allocator.Allocate( SizeAndAlignOf<ChunkArray_t> ));
         CHECK( _arr != null );
 
@@ -30,8 +32,10 @@ namespace AE::Threading
 */
     template <typename V, usize C, typename A>
     template <typename FN>
-    void  LfStaticPool<V,C,A>::Release (FN &&fn) noexcept(IsNothrowInvocable<FN>)
+    void  LfStaticPool<V,C,A>::Release (FN &&fn) __NE___
     {
+        DRC_EXLOCK( _drCheck );
+
         if ( _arr == null )
             return;
 
@@ -53,6 +57,7 @@ namespace AE::Threading
             {
                 Bitfield_t  mask = Bitfield_t{1} << idx;
 
+                CheckNothrow( IsNoExcept( fn( chunk.values[idx] )));
                 fn( INOUT chunk.values[idx] );
 
                 available   &= ~mask;                       // 1 -> 0
@@ -73,8 +78,10 @@ namespace AE::Threading
 */
     template <typename V, usize C, typename A>
     template <typename T>
-    bool  LfStaticPool<V,C,A>::Put (T && value) __NE___
+    bool  LfStaticPool<V,C,A>::Put (T &&value) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         CHECK_ERR( _arr != null );
 
         const usize     initial_idx = ThreadUtils::GetIntID() & ThreadToChunkMask;
@@ -127,6 +134,8 @@ namespace AE::Threading
     template <typename V, usize C, typename A>
     bool  LfStaticPool<V,C,A>::Extract (OUT Value_t &outValue) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         CHECK_ERR( _arr != null );
 
         const usize     initial_idx = ThreadUtils::GetIntID() & ThreadToChunkMask;

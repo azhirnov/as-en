@@ -83,7 +83,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 =================================================
 */
 extern bool ShaderTrace_Test2 (TestDevice& vulkan)
-{   
+{
     // create image
     VkImage         image;
     VkImageView     image_view;
@@ -171,7 +171,7 @@ extern bool ShaderTrace_Test2 (TestDevice& vulkan)
 
     // setup storage buffer
     {
-        const uint  data[] = { 
+        const uint  data[] = {
             width/2, height/2, 0,       // selected invocation
         };
 

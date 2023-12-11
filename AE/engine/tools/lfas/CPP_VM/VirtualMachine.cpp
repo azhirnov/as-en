@@ -2,12 +2,6 @@
 
 #include "CPP_VM/VirtualMachine.h"
 
-namespace AE::Base
-{
-    using Mutex = std::mutex;
-}
-#include "base/Platforms/Platform.h"
-
 namespace LFAS::CPP
 {
     using namespace AE::Base;
@@ -23,7 +17,7 @@ namespace LFAS::CPP
     private:
         ScriptFn                _fn;
         const String            _name;
-        std::atomic<ulong>  _invocations {0};
+        std::atomic<ulong>      _invocations {0};
 
 
     // methods
@@ -59,7 +53,7 @@ namespace LFAS::CPP
     constructor
 =================================================
 */
-    VirtualMachine::AtomicGlobalLock::AtomicGlobalLock (std::mutex *lock) :
+    VirtualMachine::AtomicGlobalLock::AtomicGlobalLock (std::mutex* lock) :
         _lock{ lock }
     {
         if ( _lock ) {
@@ -202,7 +196,7 @@ namespace LFAS::CPP
         if ( delay > 4 )
             return;
 
-        ThreadUtils::Sleep( milliseconds{delay} );
+        std::this_thread::sleep_for( milliseconds{delay} );
     }
 
 /*
@@ -229,7 +223,7 @@ namespace LFAS::CPP
     AtomicCreate
 =================================================
 */
-    void  VirtualMachine::AtomicCreate (const void *ptr)
+    void  VirtualMachine::AtomicCreate (const void* ptr)
     {
         EXLOCK( _atomicMapGuard );
 
@@ -248,7 +242,7 @@ namespace LFAS::CPP
     AtomicDestroy
 =================================================
 */
-    void  VirtualMachine::AtomicDestroy (const void *ptr)
+    void  VirtualMachine::AtomicDestroy (const void* ptr)
     {
         EXLOCK( _atomicMapGuard );
 
@@ -284,7 +278,7 @@ namespace LFAS::CPP
     StorageCreate
 =================================================
 */
-    void  VirtualMachine::StorageCreate (const void *ptr, Bytes size)
+    void  VirtualMachine::StorageCreate (const void* ptr, Bytes size)
     {
         EXLOCK( _storageMapGuard );
 
@@ -305,7 +299,7 @@ namespace LFAS::CPP
     StorageDestroy
 =================================================
 */
-    void  VirtualMachine::StorageDestroy (const void *ptr)
+    void  VirtualMachine::StorageDestroy (const void* ptr)
     {
         EXLOCK( _storageMapGuard );
 
@@ -339,7 +333,7 @@ namespace LFAS::CPP
     StorageReadAccess
 =================================================
 */
-    void  VirtualMachine::StorageReadAccess (const void *ptr, Bytes offset, Bytes size)
+    void  VirtualMachine::StorageReadAccess (const void* ptr, Bytes offset, Bytes size)
     {
         EXLOCK( _storageMapGuard );
 
@@ -356,7 +350,7 @@ namespace LFAS::CPP
     StorageWriteAccess
 =================================================
 */
-    void  VirtualMachine::StorageWriteAccess (const void *ptr, Bytes offset, Bytes size)
+    void  VirtualMachine::StorageWriteAccess (const void* ptr, Bytes offset, Bytes size)
     {
         EXLOCK( _storageMapGuard );
 
@@ -419,7 +413,7 @@ namespace LFAS::CPP
             }
         }
 
-        ThreadUtils::Sleep( timeout );
+        std::this_thread::sleep_for( timeout );     // TODO: random sleep time Nano/Micor/Milli
 
         break_all.store( true );
         AE_LOGI( "RunParallel - wait" );

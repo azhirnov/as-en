@@ -1,6 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Normal calculation functions
+    Normal calculation functions.
+
+    TBN matrix:
+        tan_view_dir = Normalize( MatTranspose(TBN) * viewDir );
+        world_normal = Normalize( TBN * normalMap );
 */
 
 #ifdef __cplusplus
@@ -58,9 +62,9 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothNormal2x1( _outNormalInWS_, _getPos_, _coord_ )     \
                                                                         \
-        const float3    v0  = _getPos_( _coord_, offset.xx );           \
-        const float3    v1  = _getPos_( _coord_, offset.yx );           \
-        const float3    v2  = _getPos_( _coord_, offset.xy );           \
+        const float3    v0  = _getPos_( _coord_, offset.xx ).xyz;       \
+        const float3    v1  = _getPos_( _coord_, offset.yx ).xyz;       \
+        const float3    v2  = _getPos_( _coord_, offset.xy ).xyz;       \
                                                                         \
         _outNormalInWS_  = Cross( v1 - v0, v2 - v0 );   /* 1-0, 2-0 */  \
         _outNormalInWS_  = Normalize( _outNormalInWS_ );                \
@@ -88,10 +92,10 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothNormal2x2( _outNormalInWS_, _getPos_, _coord_ )     \
                                                                         \
-        const float3    v0  = _getPos_( _coord_, offset.xx );           \
-        const float3    v1  = _getPos_( _coord_, offset.yx );           \
-        const float3    v2  = _getPos_( _coord_, offset.xy );           \
-        const float3    v3  = _getPos_( _coord_, offset.yy );           \
+        const float3    v0  = _getPos_( _coord_, offset.xx ).xyz;       \
+        const float3    v1  = _getPos_( _coord_, offset.yx ).xyz;       \
+        const float3    v2  = _getPos_( _coord_, offset.xy ).xyz;       \
+        const float3    v3  = _getPos_( _coord_, offset.yy ).xyz;       \
                                                                         \
         _outNormalInWS_  = Cross( v1 - v0, v3 - v0 );   /* 1-0, 3-0 */  \
         _outNormalInWS_ += Cross( v3 - v0, v2 - v0 );   /* 3-0, 2-0 */  \
@@ -121,15 +125,15 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothNormal3x3( _outNormalInWS_, _getPos_, _coord_ )     \
                                                                         \
-        const float3    v0  = _getPos_( _coord_, offset.xx );           \
-        const float3    v1  = _getPos_( _coord_, offset.yx );           \
-        const float3    v2  = _getPos_( _coord_, offset.zx );           \
-        const float3    v3  = _getPos_( _coord_, offset.xy );           \
-        const float3    v4  = _getPos_( _coord_, offset.yy );           \
-        const float3    v5  = _getPos_( _coord_, offset.zy );           \
-        const float3    v6  = _getPos_( _coord_, offset.xz );           \
-        const float3    v7  = _getPos_( _coord_, offset.yz );           \
-        const float3    v8  = _getPos_( _coord_, offset.zz );           \
+        const float3    v0  = _getPos_( _coord_, offset.xx ).xyz;       \
+        const float3    v1  = _getPos_( _coord_, offset.yx ).xyz;       \
+        const float3    v2  = _getPos_( _coord_, offset.zx ).xyz;       \
+        const float3    v3  = _getPos_( _coord_, offset.xy ).xyz;       \
+        const float3    v4  = _getPos_( _coord_, offset.yy ).xyz;       \
+        const float3    v5  = _getPos_( _coord_, offset.zy ).xyz;       \
+        const float3    v6  = _getPos_( _coord_, offset.xz ).xyz;       \
+        const float3    v7  = _getPos_( _coord_, offset.yz ).xyz;       \
+        const float3    v8  = _getPos_( _coord_, offset.zz ).xyz;       \
                                                                         \
         _outNormalInWS_  = Cross( v1 - v4, v2 - v4 );   /* 1-4, 2-4 */  \
         _outNormalInWS_ += Cross( v2 - v4, v5 - v4 );   /* 2-4, 5-4 */  \
@@ -174,7 +178,7 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 
     // Calc normal using quad subgroup
     float3  ComputeNormalInWS_quadSg (const float3 worldPos)
-    {   
+    {
         float3  p0   = gl.subgroup.QuadBroadcast( worldPos, 0 );
         float3  p1   = gl.subgroup.QuadBroadcast( worldPos, 1 );
         float3  p2   = gl.subgroup.QuadBroadcast( worldPos, 2 );
@@ -285,10 +289,10 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
                                                                                 \
-        const float3    pos0    = _getPos_( _coord_, offset.xx );               \
-        const float3    pos1    = _getPos_( _coord_, offset.yx );               \
-        const float3    pos2    = _getPos_( _coord_, offset.zx );               \
-        const float3    pos3    = _getPos_( _coord_, offset.xy );               \
+        const float3    pos0    = _getPos_( _coord_, offset.xx ).xyz;           \
+        const float3    pos1    = _getPos_( _coord_, offset.yx ).xyz;           \
+        const float3    pos2    = _getPos_( _coord_, offset.zx ).xyz;           \
+        const float3    pos3    = _getPos_( _coord_, offset.xy ).xyz;           \
                                                                                 \
         const float2    uv0     = _getUV_( _coord_, offset.xx );                \
         const float2    uv1     = _getUV_( _coord_, offset.yx );                \
@@ -328,15 +332,15 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )          \
                                                                                 \
-        const float3    pos0    = _getPos_( _coord_, offset.xx );               \
-        const float3    pos1    = _getPos_( _coord_, offset.yx );               \
-        const float3    pos2    = _getPos_( _coord_, offset.zx );               \
-        const float3    pos3    = _getPos_( _coord_, offset.xy );               \
-        const float3    pos4    = _getPos_( _coord_, offset.yy );               \
-        const float3    pos5    = _getPos_( _coord_, offset.zy );               \
-        const float3    pos6    = _getPos_( _coord_, offset.xz );               \
-        const float3    pos7    = _getPos_( _coord_, offset.yz );               \
-        const float3    pos8    = _getPos_( _coord_, offset.zz );               \
+        const float3    pos0    = _getPos_( _coord_, offset.xx ).xyz;           \
+        const float3    pos1    = _getPos_( _coord_, offset.yx ).xyz;           \
+        const float3    pos2    = _getPos_( _coord_, offset.zx ).xyz;           \
+        const float3    pos3    = _getPos_( _coord_, offset.xy ).xyz;           \
+        const float3    pos4    = _getPos_( _coord_, offset.yy ).xyz;           \
+        const float3    pos5    = _getPos_( _coord_, offset.zy ).xyz;           \
+        const float3    pos6    = _getPos_( _coord_, offset.xz ).xyz;           \
+        const float3    pos7    = _getPos_( _coord_, offset.yz ).xyz;           \
+        const float3    pos8    = _getPos_( _coord_, offset.zz ).xyz;           \
                                                                                 \
         const float2    uv0     = _getUV_( _coord_, offset.xx );                \
         const float2    uv1     = _getUV_( _coord_, offset.yx );                \

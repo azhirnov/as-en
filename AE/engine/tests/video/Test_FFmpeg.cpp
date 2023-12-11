@@ -13,6 +13,9 @@ using namespace AE::Video;
 
 namespace
 {
+    using Allocator_t = LinearAllocator<>;
+
+
     // H264/H265 supported only in GPL version
     static const auto   c_Codec = EVideoCodec::VP9;
 
@@ -32,8 +35,8 @@ namespace
             cfg.srcFormat       = EPixelFormat::RGBA8_UNorm;
             cfg.dstFormat       = EVideoFormat::YUV420P;
             cfg.colorPreset     = EColorPreset::JPEG_BT709;
-            cfg.srcSize         = uint2{320, 320};
-            cfg.dstSize         = cfg.srcSize;
+            cfg.srcDim          = uint2{320, 320};
+            cfg.dstDim          = cfg.srcDim;
             cfg.codec           = c_Codec;
             cfg.filter          = Video::EFilter::Bilinear;
             cfg.quality         = 0.5f;
@@ -48,8 +51,7 @@ namespace
 
             for (uint i = 0; i < frame_count; ++i)
             {
-                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
-                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                const RGBA8u    col {RainbowWrap( i * 0.2f )};
                 for (auto& c : pixels) { c = col; }
 
                 TEST( enc->AddFrame( view, True{} ));
@@ -77,7 +79,7 @@ namespace
             TEST( info.avgFrameRate == IVideoDecoder::FrameRate_t{fps} );
             TEST( info.minFrameRate == IVideoDecoder::FrameRate_t{fps} );
             //TEST( info.bitrate > 0 );
-            TEST( All( info.size == uint2{320, 320} ));
+            TEST( All( info.dimension == uint2{320, 320} ));
 
             AE_LOGI( dec->PrintFileProperties( path ));
         }
@@ -95,16 +97,18 @@ namespace
             RGBA8u          pixels [320 * 320] = {};
             ImageMemView    ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
             ImageMemView    view;
+            Allocator_t     alloc;
+
+            TEST( IVideoDecoder::AllocMemView( dec->GetConfig(), OUT view, alloc ));
 
             IVideoDecoder::FrameInfo    fi;
 
             for (uint i = 0; i < frame_count; ++i)
             {
-                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
-                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                const RGBA8u    col {RainbowWrap( i * 0.2f )};
                 for (auto& c : pixels) { c = col; }
 
-                TEST( dec->GetFrame( OUT view, OUT fi ));
+                TEST( dec->GetNextFrame( INOUT view, OUT fi ));
 
                 //TEST( view == ref_view );
                 TEST( view.Format() == cfg.dstFormat );
@@ -131,8 +135,8 @@ namespace
             cfg.srcFormat       = EPixelFormat::RGBA8_UNorm;
             cfg.dstFormat       = EVideoFormat::YUV420P;
             cfg.colorPreset     = EColorPreset::MPEG_BT709;
-            cfg.srcSize         = uint2{320, 320};
-            cfg.dstSize         = cfg.srcSize;
+            cfg.srcDim          = uint2{320, 320};
+            cfg.dstDim          = cfg.srcDim;
             cfg.codec           = c_Codec;
             cfg.filter          = Video::EFilter::Bilinear;
             cfg.quality         = 0.5f;
@@ -147,8 +151,7 @@ namespace
 
             for (uint i = 0; i < frame_count; ++i)
             {
-                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
-                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                const RGBA8u    col {RainbowWrap( i * 0.2f )};
                 for (auto& c : pixels) { c = col; }
 
                 TEST( enc->AddFrame( view, True{} ));
@@ -173,16 +176,18 @@ namespace
             RGBA8u          pixels [320 * 320] = {};
             ImageMemView    ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
             ImageMemView    view;
+            Allocator_t     alloc;
+
+            TEST( IVideoDecoder::AllocMemView( dec->GetConfig(), OUT view, alloc ));
 
             IVideoDecoder::FrameInfo    fi;
 
             for (uint i = 0; i < frame_count; ++i)
             {
-                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
-                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                const RGBA8u    col {RainbowWrap( i * 0.2f )};
                 for (auto& c : pixels) { c = col; }
 
-                TEST( dec->GetFrame( OUT view, OUT fi ));
+                TEST( dec->GetNextFrame( INOUT view, OUT fi ));
 
                 //TEST( view == ref_view );
                 TEST( view.Format() == cfg.dstFormat );

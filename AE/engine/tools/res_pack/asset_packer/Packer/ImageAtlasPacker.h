@@ -32,7 +32,7 @@ namespace AE::AssetPacker
             Header2 ()                                      __NE___ = default;
             explicit Header2 (const ImagePacker::Header &h) __NE___ : hdr{h} {}
         };
-        STATIC_ASSERT( sizeof(Header2) == 24 );
+        StaticAssert( sizeof(Header2) == 24 );
 
 
     // variables

@@ -21,7 +21,7 @@ namespace AE::ResEditor
 
     // types
     public:
-        using TransferCtx_t = RG::DirectCtx::Transfer;
+        using TransferCtx_t = DirectCtx::Transfer;
         using CustomKeys_t  = StaticArray< float, 1 >;
 
         enum class EPassType : uint
@@ -53,7 +53,7 @@ namespace AE::ResEditor
             Ptr<ShaderDebugger>         debugger;
 
             ND_ bool  IsEnabled ()                  const   { return debugger and mode != Default; }
-            ND_ bool  IsEnabled (const IPass *pass) const   { return IsEnabled() and (pass == target or usize(target) == 0x1); }
+            ND_ bool  IsEnabled (const IPass* pass) const   { return IsEnabled() and (pass == target or usize(target) == 0x1); }
         };
 
         struct SyncPassData
@@ -92,6 +92,7 @@ namespace AE::ResEditor
             uint            seed            = 0;
 
             float2          unormCursorPos;
+            float           pixToMm         = 1.f;      // for current screen
             bool            pressed         = false;    // mouse down or touch pressed
             CustomKeys_t    customKeys      = {};
         };
@@ -115,12 +116,16 @@ namespace AE::ResEditor
 
 
     public:
+        using DynamicFloatTypes_t   = TypeList< DynamicFloat, DynamicFloat2, DynamicFloat3, DynamicFloat4 >;
+        using DynamicIntTypes_t     = TypeList< DynamicInt, DynamicInt2, DynamicInt3, DynamicInt4,
+                                                DynamicUInt, DynamicUInt2, DynamicUInt3, DynamicUInt4 >;
+
         struct Constants
         {
             static constexpr uint   MaxCount = 4;
 
-            StaticArray< RC<DynamicFloat4>, MaxCount >  f;
-            StaticArray< RC<DynamicInt4>,   MaxCount >  i;
+            StaticArray< RC<>, MaxCount >   f;
+            StaticArray< RC<>, MaxCount >   i;
         };
 
 

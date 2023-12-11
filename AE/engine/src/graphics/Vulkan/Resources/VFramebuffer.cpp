@@ -111,11 +111,11 @@ namespace AE::Graphics
 
             image_views[ idx ]  = view->Handle();
             _attachments[ idx ] = att.imageView;
-            _images[ idx ]      = view->Image();
+            _images[ idx ]      = view->ImageId();
 
             #ifdef AE_DEBUG
             {
-                const auto  att_fmt = resMngr.GetDescription( view->Image() ).format;
+                const auto  att_fmt = resMngr.GetDescription( view->ImageId() ).format;
                 const auto  rp_fmt  = ren_pass->GetPixelFormat( idx );
 
                 if ( att_fmt != rp_fmt )

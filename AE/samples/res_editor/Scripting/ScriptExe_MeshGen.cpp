@@ -643,5 +643,85 @@ namespace AE::ResEditor
         }
     }
 
+/*
+=================================================
+    _GetSphericalCube1
+=================================================
+*/
+    void  ScriptExe::_GetSphericalCube1 (uint                           lod,
+                                         OUT ScriptArray<packed_float3> &positions,
+                                         OUT ScriptArray<uint>          &indices) __Th___
+    {
+        positions.clear();
+        indices.clear();
+
+        lod = lod*2 - 1;
+
+        // for cube sides
+        const uint  vcount  = lod + 2;
+        const uint  icount  = lod + 1;
+        uint        vert_i  = 0;
+
+        indices.reserve( icount * icount * 6 );
+        positions.reserve( vcount * vcount );
+
+        // for top/bottom faces
+        for (uint face = 0; face < 6; ++face)
+        {
+            // generate indices
+            for (uint y = 0; y < icount; ++y)
+            for (uint x = 0; x < icount; ++x)
+            {
+                const uint  idx[4] = {  vert_i + (x+0) + (y+0)*vcount, vert_i + (x+1) + (y+0)*vcount,
+                                        vert_i + (x+0) + (y+1)*vcount, vert_i + (x+1) + (y+1)*vcount };
+
+                if ( (x < icount/2 and y < icount/2) or (x >= icount/2 and y >= icount/2) )
+                {
+                    indices.push_back( idx[0] );    indices.push_back( idx[3] );    indices.push_back( idx[1] );
+                    indices.push_back( idx[0] );    indices.push_back( idx[2] );    indices.push_back( idx[3] );
+                }else{
+                    indices.push_back( idx[0] );    indices.push_back( idx[2] );    indices.push_back( idx[1] );
+                    indices.push_back( idx[2] );    indices.push_back( idx[3] );    indices.push_back( idx[1] );
+                }
+            }
+
+            // generate vertices
+            for (uint y = 0; y < vcount; ++y)
+            for (uint x = 0; x < vcount; ++x)
+            {
+                float2      ncoord = ToSNorm( float2{x,y} / float(vcount-1) );
+
+                positions.push_back(float3{ ncoord, float(face) });
+                ++vert_i;
+            }
+        }
+    }
+
+
+/*
+=================================================
+    _CM_CubeSC_Forward
+    _CM_IdentitySC_Forward
+    _CM_TangentialSC_Forward
+=================================================
+*/
+    packed_float3  ScriptExe::_CM_CubeSC_Forward (const packed_float3 &c)
+    {
+        using namespace AE::GeometryTools;
+        return packed_float3{ SCProj2_Cube< SCProj1_Identity >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+    }
+
+    packed_float3  ScriptExe::_CM_IdentitySC_Forward (const packed_float3 &c)
+    {
+        using namespace AE::GeometryTools;
+        return packed_float3{ SCProj2_Spherical< SCProj1_Identity >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+    }
+
+    packed_float3  ScriptExe::_CM_TangentialSC_Forward (const packed_float3 &c)
+    {
+        using namespace AE::GeometryTools;
+        return packed_float3{ SCProj2_Spherical< SCProj1_Tangential >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+    }
+
 
 } // AE::ResEditor

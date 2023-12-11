@@ -41,16 +41,16 @@ namespace AE::ECS
     template <typename Comp>
     struct ComponentTypeInfo
     {
-        //STATIC_ASSERT( std::is_trivially_destructible_v<Comp> );
-        //STATIC_ASSERT( std::is_trivially_copyable_v<Comp> );
-        STATIC_ASSERT( std::is_nothrow_destructible_v<Comp> );
+        //StaticAssert( std::is_trivially_destructible_v<Comp> );
+        //StaticAssert( std::is_trivially_copyable_v<Comp> );
+        StaticAssert( std::is_nothrow_destructible_v<Comp> );
 
         using type  = Comp;
         static inline const ComponentID     id      { CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1000 >::Get().Get() ) };
-        static constexpr Bytes16u           align   { IsEmpty<Comp> ? 0 : alignof(Comp) };
-        static constexpr Bytes16u           size    { IsEmpty<Comp> ? 0 : sizeof(Comp) };
+        static constexpr Byte16u            align   { IsEmpty<Comp> ? 0 : alignof(Comp) };
+        static constexpr Byte16u            size    { IsEmpty<Comp> ? 0 : sizeof(Comp) };
 
-        static void  Ctor (OUT void *comp) __NE___
+        static void  Ctor (OUT void* comp) __NE___
         {
             PlacementNew<Comp>( OUT comp );
         }
@@ -68,7 +68,7 @@ namespace AE::ECS
     template <typename Comp>
     struct MsgTagTypeInfo
     {
-        STATIC_ASSERT( IsEmpty<Comp> );
+        StaticAssert( IsEmpty<Comp> );
 
         using type  = Comp;
         static inline const MsgTagID    id {CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1002 >::Get().Get() )};

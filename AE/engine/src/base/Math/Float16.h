@@ -41,8 +41,8 @@ namespace AE::Math
             constexpr FloatBits () : f{0.f} {}
         };
 
-        STATIC_ASSERT( sizeof(glm::detail::hdata) == sizeof(HalfBits) );
-        STATIC_ASSERT( sizeof(glm::detail::hdata) == sizeof(ushort) );
+        StaticAssert( sizeof(glm::detail::hdata) == sizeof(HalfBits) );
+        StaticAssert( sizeof(glm::detail::hdata) == sizeof(ushort) );
 
 
     // variables
@@ -172,8 +172,8 @@ namespace AE::Math
             constexpr FloatBits () : f{0.f} {}
         };
 
-        STATIC_ASSERT( sizeof(ushort) == sizeof(HalfBits) );
-        STATIC_ASSERT( sizeof(float) == sizeof(FloatBits) );
+        StaticAssert( sizeof(ushort) == sizeof(HalfBits) );
+        StaticAssert( sizeof(float) == sizeof(FloatBits) );
 
 
     // variables

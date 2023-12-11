@@ -65,15 +65,15 @@ namespace AE::Graphics
         CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, false, *ci.tempAllocator ));
         CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, *ci.tempAllocator ));
 
-        try {
+        TRY{
             const auto  ToGroupIndex = [] (auto* lhs, auto* rhs)
             {{
                 ssize   d = Distance( lhs, rhs );
                 return CheckCast<uint>( d );
             }};
 
-            _nameToHandle.Create( NameToHandleAlloc_t{ ci.allocator });
-            _nameToHandle->reserve( group_count );  // throw
+            _nameToHandle.CreateTh( NameToHandleAlloc_t{ ci.allocator });   // throw
+            _nameToHandle->reserve( group_count );                          // throw
 
             for (auto& gen : ci.templCI.generalShaders)
             {
@@ -130,9 +130,9 @@ namespace AE::Graphics
             }
             GRES_CHECK( groups == pipeline_info.pGroups + pipeline_info.groupCount );
         }
-        catch (...) {
+        CATCH_ALL(
             RETURN_ERR( "failed to allocate '_nameToHandle' hash map" );
-        }
+        )
 
         auto&   dev = resMngr.GetDevice();
         VK_CHECK_ERR( dev.vkCreateRayTracingPipelinesKHR( dev.GetVkDevice(), Default, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
@@ -192,7 +192,7 @@ namespace AE::Graphics
     ParseShaderTrace
 =================================================
 */
-    bool  VRayTracingPipeline::ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
+    bool  VRayTracingPipeline::ParseShaderTrace (const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) C_NE___
     {
         result.clear();
         DRC_SHAREDLOCK( _drCheck );

@@ -16,13 +16,22 @@
 ND_ float2  ParallaxMapping (gl::CombinedTex2D<float> heightMap,
                              const float2 uv, const float3 viewDir,
                              const float heightScale, const float parallaxBias);
+ND_ float3  ParallaxMapping (gl::CombinedTexCube<float> heightMap,
+                             const float3 uv, const float3 viewDir,
+                             const float heightScale, const float parallaxBias);
 
 ND_ float2  SteepParallaxMapping (gl::CombinedTex2D<float> heightMap,
                                   const float2 uv, const float3 viewDir,
                                   const int numLayers, const float heightScale);
+ND_ float3  SteepParallaxMapping (gl::CombinedTexCube<float> heightMap,
+                                  const float3 uv, const float3 viewDir,
+                                  const int numLayers, const float heightScale);
 
 ND_ float2  ParallaxOcclusionMapping (gl::CombinedTex2D<float> heightMap,
                                       const float2 uv, const float3 viewDir,
+                                      const int numLayers, const float heightScale);
+ND_ float3  ParallaxOcclusionMapping (gl::CombinedTexCube<float> heightMap,
+                                      const float3 uv, const float3 viewDir,
                                       const int numLayers, const float heightScale);
 
 
@@ -54,6 +63,13 @@ float2  ParallaxMapping (gl::CombinedTex2D<float> heightMap, const float2 uv, co
     return uv - p;
 }
 
+float3  ParallaxMapping (gl::CombinedTexCube<float> heightMap, const float3 uv, const float3 viewDir, const float heightScale, const float parallaxBias)
+{
+    float   h = ExtractDepth( heightMap, uv );
+    float3  p = viewDir * (h * (heightScale * 0.5f) + parallaxBias);
+    return uv - p;
+}
+
 /*
 =================================================
     SteepParallaxMapping
@@ -65,6 +81,26 @@ float2  SteepParallaxMapping (gl::CombinedTex2D<float> heightMap, const float2 u
     const float2    delta_uv        = viewDir.xy * heightScale / (viewDir.z * numLayers);
     float           cur_layer_depth = 0.0f;
     float2          cur_uv          = uv;
+    float           height          = ExtractDepth( heightMap, cur_uv );
+
+    for (int i = 0; i < numLayers; ++i)
+    {
+        cur_layer_depth += layer_depth;
+        cur_uv          -= delta_uv;
+        height          = ExtractDepth( heightMap, cur_uv );
+
+        if ( height < cur_layer_depth )
+            break;
+    }
+    return cur_uv;
+}
+
+float3  SteepParallaxMapping (gl::CombinedTexCube<float> heightMap, const float3 uv, const float3 viewDir, const int numLayers, const float heightScale)
+{
+    const float     layer_depth     = 1.0f / numLayers;
+    const float3    delta_uv        = viewDir * heightScale / numLayers;
+    float           cur_layer_depth = 0.0f;
+    float3          cur_uv          = uv;
     float           height          = ExtractDepth( heightMap, cur_uv );
 
     for (int i = 0; i < numLayers; ++i)
@@ -103,6 +139,31 @@ float2  ParallaxOcclusionMapping (gl::CombinedTex2D<float> heightMap, const floa
     }
 
     const float2    prev_uv     = cur_uv + delta_uv;
+    const float     next_depth  = height - cur_layer_depth;
+    const float     prev_depth  = ExtractDepth( heightMap, prev_uv ) - cur_layer_depth + layer_depth;
+
+    return Lerp( cur_uv, prev_uv, next_depth / (next_depth - prev_depth) );
+}
+
+float3  ParallaxOcclusionMapping (gl::CombinedTexCube<float> heightMap, const float3 uv, const float3 viewDir, const int numLayers, const float heightScale)
+{
+    const float     layer_depth     = 1.0f / numLayers;
+    const float3    delta_uv        = viewDir * heightScale / numLayers;
+    float           cur_layer_depth = 0.0f;
+    float3          cur_uv          = uv;
+    float           height          = ExtractDepth( heightMap, cur_uv );
+
+    for (int i = 0; i < numLayers; ++i)
+    {
+        cur_layer_depth += layer_depth;
+        cur_uv          -= delta_uv;
+        height          = ExtractDepth( heightMap, cur_uv );
+
+        if ( height < cur_layer_depth )
+            break;
+    }
+
+    const float3    prev_uv     = cur_uv + delta_uv;
     const float     next_depth  = height - cur_layer_depth;
     const float     prev_depth  = ExtractDepth( heightMap, prev_uv ) - cur_layer_depth + layer_depth;
 

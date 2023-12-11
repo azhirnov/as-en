@@ -61,7 +61,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ComputePass () {}
+        ComputePass ()                                                  __NE___ {}
         ~ComputePass ();
 
     // IPass //

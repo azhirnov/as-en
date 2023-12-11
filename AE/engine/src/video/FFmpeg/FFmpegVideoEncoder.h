@@ -70,7 +70,7 @@ namespace AE::Video
         bool  Begin (const Config &cfg, RC<WStream> temp, RC<WStream> dst)  __NE_OV;
 
         bool  AddFrame (const ImageMemView &view, Bool endOnError)          __NE_OV;
-        bool  AddFrame (VideoImageID id, Bool endOnError)                   __NE_OV;
+    //  bool  AddFrame (VideoImageID id, Bool endOnError)                   __NE_OV;
 
         bool  End ()                                                        __NE_OV;
 
@@ -86,7 +86,7 @@ namespace AE::Video
 
             void  _ValidateResolution ();
 
-        ND_ bool  _CreateStream (const AVCodec* codec, const char *videoFormat);
+        ND_ bool  _CreateStream (const AVCodec* codec, const char* videoFormat);
             void  _DestroyStream ();
             void  _ValidatePixelFormat (OUT int &) const;
             void  _SetOptions (INOUT AVDictionary **dict) const;
@@ -101,7 +101,7 @@ namespace AE::Video
         ND_ static Bitrate_t  _CalcBitrate (const Config &cfg);
         ND_ static CodecInfo  _GetEncoderInfo (const Config &cfg);
 
-        static int  _IOWritePacket (void *opaque, ubyte *buf, int buf_size);
+        static int  _IOWritePacket (void* opaque, ubyte* buf, int buf_size);
     };
 
 

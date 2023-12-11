@@ -33,7 +33,7 @@ namespace _hidden_
     template <typename T>
     struct PromiseResult
     {
-        STATIC_ASSERT( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
+        StaticAssert( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
 
     // types
     private:
@@ -53,18 +53,18 @@ namespace _hidden_
         PromiseResult ()                                                = delete;
 
         PromiseResult (T &&value)                                       __NE___ : _value{RVRef(value)}, _hasValue{true} {}
-        PromiseResult (const T &value)                                  __Th___ : _value{value}, _hasValue{true} {}
+        PromiseResult (const T &value)                                  __NE___ : _value{value}, _hasValue{true} {}
         PromiseResult (const NullResult_t &)                            __NE___ {}
 
-        PromiseResult (const PromiseResult<T> &other)                   __Th___;
+        PromiseResult (const PromiseResult<T> &other)                   __NE___;
         PromiseResult (PromiseResult<T> &&other)                        __NE___;
 
-        PromiseResult<T>&  operator = (const PromiseResult<T> &rhs)     __Th___;
+        PromiseResult<T>&  operator = (const PromiseResult<T> &rhs)     __NE___;
         PromiseResult<T>&  operator = (PromiseResult<T> &&rhs)          __NE___;
-        PromiseResult<T>&  operator = (const T &rhs)                    __Th___;
+        PromiseResult<T>&  operator = (const T &rhs)                    __NE___;
         PromiseResult<T>&  operator = (T &&rhs)                         __NE___;
 
-        ~PromiseResult ()                                               __NE___ { STATIC_ASSERT( std::is_nothrow_destructible_v<T> );  if ( _hasValue ) _value.~T(); }
+        ~PromiseResult ()                                               __NE___ { StaticAssert( std::is_nothrow_destructible_v<T> );  if ( _hasValue ) _value.~T(); }
 
         ND_ bool        HasValue ()                                     C_NE___ { return _hasValue; }
         ND_ T const&    Value ()                                        C_NE___ { ASSERT( _hasValue );  return _value; }
@@ -107,7 +107,7 @@ namespace _hidden_
     template <typename T>
     class Promise final
     {
-        STATIC_ASSERT( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
+        StaticAssert( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
 
     // types
     public:
@@ -141,20 +141,20 @@ namespace _hidden_
         template <typename Fn>
         auto  Then (Fn &&fn,
                     StringView dbgName      = Default,
-                    ETaskQueue queueType    = ETaskQueue::PerFrame)                 __Th___;
+                    ETaskQueue queueType    = ETaskQueue::PerFrame)                 __NE___;
 
         // used to process errors
         template <typename Fn>
         auto  Except (Fn &&fn,
                       StringView dbgName    = Default,
-                      ETaskQueue queueType  = ETaskQueue::PerFrame)                 __Th___;
+                      ETaskQueue queueType  = ETaskQueue::PerFrame)                 __NE___;
 
         bool  Cancel ()                                                             __NE___;
 
         // Execute 'fn' only if result is ready.
         // Returns 'true' if completed and 'fn' is executed.
         template <typename Fn>
-        bool  WithResult (Fn && fn)                                                 __Th___;
+        bool  WithResult (Fn &&fn)                                                  NoExcept(IsNothrowInvocable< Fn, T >);
 
         explicit operator AsyncTask ()                                              C_NE___ { return _impl; }
         explicit operator bool ()                                                   C_NE___ { return bool{_impl}; }
@@ -163,19 +163,19 @@ namespace _hidden_
 
     private:
         template <typename Fn>
-        auto  _Then (Fn &&fn, StringView, ETaskQueue queueType)                     __Th___;
+        auto  _Then (Fn &&fn, StringView, ETaskQueue queueType)                     __NE___;
 
         template <typename Fn>
-        auto  _Except (Fn &&fn, StringView, ETaskQueue queueType)                   __Th___;
+        auto  _Except (Fn &&fn, StringView, ETaskQueue queueType)                   __NE___;
 
         template <typename A>
-        Promise (A &&val, bool except, StringView, ETaskQueue, ValueArg)            __Th___;
+        Promise (A &&val, bool except, StringView, ETaskQueue, ValueArg)            __NE___;
 
         template <typename A>
-        Promise (A &&val, bool except, StringView, ETaskQueue, CompleteValueArg)    __Th___;
+        Promise (A &&val, bool except, StringView, ETaskQueue, CompleteValueArg)    __NE___;
 
         template <typename Fn>
-        Promise (Fn &&fn, bool except, StringView, ETaskQueue, FunctionArg)         __Th___;
+        Promise (Fn &&fn, bool except, StringView, ETaskQueue, FunctionArg)         __NE___;
 
         ND_ T  _Result ()                                                           C_NE___;
 
@@ -183,25 +183,25 @@ namespace _hidden_
     // friend functions
     private:
         template <typename Fn, typename ...Deps>
-        friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, StringView, ETaskQueue)        __Th___;
+        friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, StringView, ETaskQueue)        __NE___;
 
         template <typename ...Args>
-        friend auto  MakePromiseFrom (Args&& ...)                                               __Th___;
+        friend auto  MakePromiseFrom (Args&& ...)                                               __NE___;
 
         template <typename A>
-        friend auto  MakePromiseFromArray (Array<Promise<A>>, StringView, ETaskQueue)           __Th___;
+        friend auto  MakePromiseFromArray (Array<Promise<A>>, StringView, ETaskQueue)           __NE___;
 
         template <typename A>
-        friend auto  MakePromiseFromArray (Array< Promise< Array<A> >>, StringView, ETaskQueue) __Th___;
+        friend auto  MakePromiseFromArray (Array< Promise< Array<A> >>, StringView, ETaskQueue) __NE___;
 
         template <typename Fn>
-        friend auto  MakeDelayedPromise (Fn &&fn, StringView, ETaskQueue)                       __Th___;
+        friend auto  MakeDelayedPromise (Fn &&fn, StringView, ETaskQueue)                       __NE___;
 
         template <typename B, typename ...Deps>
-        friend auto  MakePromiseFromValue (B &&, const Tuple<Deps...> &, StringView, ETaskQueue) __Th___;
+        friend auto  MakePromiseFromValue (B &&, const Tuple<Deps...> &, StringView, ETaskQueue)__NE___;
 
         template <typename B>
-        friend auto  MakeDelayedPromiseFromValue (B &&, StringView, ETaskQueue)                 __Th___;
+        friend auto  MakeDelayedPromiseFromValue (B &&, StringView, ETaskQueue)                 __NE___;
 
         template <typename B>
         friend class Promise;
@@ -244,10 +244,10 @@ namespace _hidden_
         _InternalImpl (Fn &&fn, bool except, StringView, ETaskQueue, Promise<T>::FunctionArg)           __NE___;
 
         template <typename A>
-        _InternalImpl (A && value, bool except, StringView, ETaskQueue, Promise<T>::ValueArg)           __NE___;
+        _InternalImpl (A &&value, bool except, StringView, ETaskQueue, Promise<T>::ValueArg)            __NE___;
 
         template <typename A>
-        _InternalImpl (A && value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)   __NE___;
+        _InternalImpl (A &&value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)    __NE___;
 
         ND_ decltype(auto)  Result ()                                                                   C_NE___
         {
@@ -324,7 +324,7 @@ namespace _hidden_
         // return promise results
         ND_ Tuple< Types... >  await_resume ()                          __NE___
         {
-            return  _deps.Apply( [] (auto&& ...args) {
+            return  _deps.Apply( [] (auto&& ...args) __NE___ {
                         return Tuple<Types...>{ args._Result() ... };
                     });
         }
@@ -366,18 +366,18 @@ namespace _hidden_
 =================================================
 */
     template <typename T>
-    PromiseResult<T>::PromiseResult (const PromiseResult<T> &other) __Th___ :
+    PromiseResult<T>::PromiseResult (const PromiseResult<T> &other) __NE___ :
         _hasValue{ other._hasValue }
     {
         if ( _hasValue )
-            PlacementNew<T>( OUT &_value, other._value );   // throw
+            PlacementNew<T>( OUT &_value, other._value );
     }
 
     template <typename T>
     PromiseResult<T>::PromiseResult (PromiseResult<T> &&other) __NE___ :
         _hasValue{ other._hasValue }
     {
-        STATIC_ASSERT( IsNothrowMoveCtor<T> );
+        CheckNothrow( IsNothrowMoveCtor<T> );
         if ( _hasValue )
             PlacementNew<T>( OUT &_value, RVRef(other._value) );
     }
@@ -388,7 +388,7 @@ namespace _hidden_
 =================================================
 */
     template <typename T>
-    PromiseResult<T>&  PromiseResult<T>::operator = (const PromiseResult<T> &rhs) __Th___
+    PromiseResult<T>&  PromiseResult<T>::operator = (const PromiseResult<T> &rhs) __NE___
     {
         if ( _hasValue )
             _value.~T();
@@ -396,7 +396,7 @@ namespace _hidden_
         _hasValue = rhs._hasValue;
 
         if ( _hasValue )
-            PlacementNew<T>( OUT &_value, rhs._value );     // throw
+            PlacementNew<T>( OUT &_value, rhs._value );
 
         return *this;
     }
@@ -404,7 +404,7 @@ namespace _hidden_
     template <typename T>
     PromiseResult<T>&  PromiseResult<T>::operator = (PromiseResult<T> &&rhs) __NE___
     {
-        STATIC_ASSERT( std::is_nothrow_move_assignable_v<T> );
+        CheckNothrow( IsNothrowMoveAssignable<T> );
 
         if ( _hasValue )
             _value.~T();
@@ -421,13 +421,13 @@ namespace _hidden_
     }
 
     template <typename T>
-    PromiseResult<T>&  PromiseResult<T>::operator = (const T &rhs) __Th___
+    PromiseResult<T>&  PromiseResult<T>::operator = (const T &rhs) __NE___
     {
         if ( _hasValue )
             _value.~T();
 
         _hasValue = true;
-        PlacementNew<T>( OUT &_value, rhs );    // throw
+        PlacementNew<T>( OUT &_value, rhs );
 
         return *this;
     }
@@ -435,7 +435,7 @@ namespace _hidden_
     template <typename T>
     PromiseResult<T>&  PromiseResult<T>::operator = (T &&rhs) __NE___
     {
-        STATIC_ASSERT( std::is_nothrow_move_assignable_v<T> );
+        CheckNothrow( IsNothrowMoveAssignable<T> );
 
         if ( _hasValue )
             _value.~T();
@@ -481,19 +481,19 @@ namespace _hidden_
 */
     template <typename T>
     template <typename Fn>
-    Promise<T>::Promise (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, FunctionArg flag) __Th___ :
+    Promise<T>::Promise (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, FunctionArg flag) __NE___ :
         _impl{ MakeRC<_InternalImpl>( FwdArg<Fn>(fn), except, dbgName, queueType, flag )}
     {}
 
     template <typename T>
     template <typename A>
-    Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, ValueArg flag) __Th___ :
+    Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, ValueArg flag) __NE___ :
         _impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
     {}
 
     template <typename T>
     template <typename A>
-    Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, CompleteValueArg flag) __Th___ :
+    Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, CompleteValueArg flag) __NE___ :
         _impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
     {}
 
@@ -504,14 +504,14 @@ namespace _hidden_
 */
     template <typename T>
     template <typename Fn>
-    auto  Promise<T>::_Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
+    auto  Promise<T>::_Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __NE___
     {
         using FI        = FunctionInfo< Fn >;
         using Result    = typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
 
         if constexpr( IsVoid<T> and IsVoid< typename FI::result > )
         {
-            STATIC_ASSERT( FI::args::Count == 0 );
+            StaticAssert( FI::args::Count == 0 );
 
             return Result{  [fn = FwdArg<Fn>(fn)] () {
                                 fn();
@@ -525,7 +525,7 @@ namespace _hidden_
         else
         if constexpr( IsVoid<T> )
         {
-            STATIC_ASSERT( FI::args::Count == 0 );
+            StaticAssert( FI::args::Count == 0 );
 
             return Result{  FwdArg<Fn>(fn),
                             false,
@@ -536,8 +536,8 @@ namespace _hidden_
         else
         if constexpr( IsVoid< typename FI::result > )
         {
-            STATIC_ASSERT( FI::args::Count == 1 );
-            STATIC_ASSERT( IsSameTypes< typename FI::args::template Get<0>, const T& >,
+            StaticAssert( FI::args::Count == 1 );
+            StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >,
                            "argument type must be 'const T&'" );
 
             return Result{  [fn = FwdArg<Fn>(fn), in = _impl] () {
@@ -551,8 +551,8 @@ namespace _hidden_
         }
         else
         {
-            STATIC_ASSERT( FI::args::Count == 1 );
-            STATIC_ASSERT( IsSameTypes< typename FI::args::template Get<0>, const T& >);
+            StaticAssert( FI::args::Count == 1 );
+            StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >);
 
             return Result{  [fn = FwdArg<Fn>(fn), in = _impl] () {
                                 return fn( in->Result() );
@@ -571,7 +571,7 @@ namespace _hidden_
 */
     template <typename T>
     template <typename Fn>
-    auto  Promise<T>::Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
+    auto  Promise<T>::Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __NE___
     {
         using FI        = FunctionInfo< Fn >;
         using Result    = typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -609,12 +609,12 @@ namespace _hidden_
 */
     template <typename T>
     template <typename Fn>
-    auto  Promise<T>::_Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
+    auto  Promise<T>::_Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __NE___
     {
         using FI        = FunctionInfo< Fn >;
         using Result    = typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
 
-        STATIC_ASSERT( FI::args::Count == 0 );
+        StaticAssert( FI::args::Count == 0 );
 
         if constexpr( IsVoid< typename FI::result > )
         {
@@ -639,7 +639,7 @@ namespace _hidden_
 
     template <typename T>
     template <typename Fn>
-    auto  Promise<T>::Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
+    auto  Promise<T>::Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __NE___
     {
         if_likely( _impl )
         {
@@ -696,7 +696,7 @@ namespace _hidden_
     template <typename T>
     IAsyncTask::EStatus  Promise<T>::Status () C_NE___
     {
-        return _impl ? _impl->Status() : IAsyncTask::EStatus::Initial; 
+        return _impl ? _impl->Status() : IAsyncTask::EStatus::Initial;
     }
 
 /*
@@ -706,11 +706,12 @@ namespace _hidden_
 */
     template <typename T>
     template <typename Fn>
-    bool  Promise<T>::WithResult (Fn && fn) __Th___
+    bool  Promise<T>::WithResult (Fn &&fn) NoExcept(IsNothrowInvocable< Fn, T >)
     {
+        StaticAssert( IsVoid< ResultOf< Fn, T >>);
         if ( _impl and _impl->IsCompleted() )
         {
-            fn( _impl->Result() );  // may throw
+            fn( _impl->Result() );
             return true;
         }
         return false;
@@ -796,7 +797,7 @@ namespace _hidden_
     {
         if_likely( _isExept & bool(_func) )
         {
-            CATCH(
+            NOTHROW(
                 _result = _func();  // may throw
             )
             _func   = null;
@@ -816,14 +817,14 @@ namespace _hidden_
     template <typename T>
     ND_ auto  MakeDelayedPromiseFromValue (T &&         value,
                                            StringView   dbgName     = Default,
-                                           ETaskQueue   queueType   = ETaskQueue::PerFrame) __Th___
+                                           ETaskQueue   queueType   = ETaskQueue::PerFrame) __NE___
     {
-        STATIC_ASSERT( not std::is_invocable_v<T> );
+        StaticAssert( not std::is_invocable_v<T> );
 
         using Value_t   = RemoveReference< T >;
         using Result    = typename Threading::_hidden_::ResultToPromise< Value_t >::type;
 
-        STATIC_ASSERT( not IsVoid< Value_t >);
+        StaticAssert( not IsVoid< Value_t >);
 
         return Result{  FwdArg<T>(value),
                         false,
@@ -843,14 +844,14 @@ namespace _hidden_
     ND_ auto  MakePromiseFromValue (T &&                    value,
                                     const Tuple<Deps...> &  dependsOn   = Default,
                                     StringView              dbgName     = Default,
-                                    ETaskQueue              queueType   = ETaskQueue::PerFrame) __Th___
+                                    ETaskQueue              queueType   = ETaskQueue::PerFrame) __NE___
     {
-        STATIC_ASSERT( not std::is_invocable_v<T> );
+        StaticAssert( not std::is_invocable_v<T> );
 
         using Value_t   = RemoveReference< T >;
         using Result    = typename Threading::_hidden_::ResultToPromise< Value_t >::type;
 
-        STATIC_ASSERT( not IsVoid< Value_t >);
+        StaticAssert( not IsVoid< Value_t >);
 
         if constexpr( CountOf<Deps...>() == 0 )
         {
@@ -884,9 +885,9 @@ namespace _hidden_
     template <typename Fn>
     ND_ auto  MakeDelayedPromise (Fn &&         fn,
                                   StringView    dbgName     = Default,
-                                  ETaskQueue    queueType   = ETaskQueue::PerFrame) __Th___
+                                  ETaskQueue    queueType   = ETaskQueue::PerFrame) __NE___
     {
-        STATIC_ASSERT( std::is_invocable_v<Fn> );
+        StaticAssert( std::is_invocable_v<Fn> );
 
         using Value_t   = typename FunctionInfo< Fn >::result;
         using Result    = typename Threading::_hidden_::ResultToPromise< Value_t >::type;
@@ -917,7 +918,7 @@ namespace _hidden_
     ND_ auto  MakePromise (Fn &&                    fn,
                            const Tuple<Deps...> &   dependsOn   = Default,
                            StringView               dbgName     = Default,
-                           ETaskQueue               queueType   = ETaskQueue::PerFrame) __Th___
+                           ETaskQueue               queueType   = ETaskQueue::PerFrame) __NE___
     {
         auto    result = MakeDelayedPromise( FwdArg<Fn>(fn), dbgName, queueType );
 
@@ -933,7 +934,7 @@ namespace _hidden_
 =================================================
 */
     template <typename ...Args>
-    ND_ auto  MakePromiseFrom (Args&& ...args) __Th___
+    ND_ auto  MakePromiseFrom (Args&& ...args) __NE___
     {
         return  MakePromise(
                     [args...] () {
@@ -952,7 +953,7 @@ namespace _hidden_
     template <typename T>
     ND_ auto  MakePromiseFromArray (Array<Promise<T>>   args,
                                     StringView          dbgName     = Default,
-                                    ETaskQueue          queueType   = ETaskQueue::PerFrame) __Th___
+                                    ETaskQueue          queueType   = ETaskQueue::PerFrame) __NE___
     {
         Array<AsyncTask>    deps;       // TODO: optimize
         deps.reserve( args.size() );
@@ -980,7 +981,7 @@ namespace _hidden_
     template <typename T>
     ND_ auto  MakePromiseFromArray (Array< Promise< Array<T> >> args,
                                     StringView                  dbgName     = Default,
-                                    ETaskQueue                  queueType   = ETaskQueue::PerFrame) __Th___
+                                    ETaskQueue                  queueType   = ETaskQueue::PerFrame) __NE___
     {
         Array<AsyncTask>    deps;       // TODO: optimize
         deps.reserve( args.size() );

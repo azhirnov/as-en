@@ -1,5 +1,4 @@
 //> gl_FragCoord: float4 {8.500000, 8.500000, 0.021250, 1.000000}
-//> gl_PrimitiveID: int {0}
 no source
 
 //> i: ulong {18446744069414584320}

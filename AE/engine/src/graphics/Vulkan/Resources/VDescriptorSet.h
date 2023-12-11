@@ -41,7 +41,7 @@ namespace AE::Graphics
             void  Destroy (VResourceManager &)                                                                                      __NE___;
 
         ND_ VkDescriptorSet         Handle ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
-        ND_ DescriptorSetLayoutID   LayoutID ()     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+        ND_ DescriptorSetLayoutID   LayoutId ()     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 
         DEBUG_ONLY( ND_ StringView  GetDebugName () C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
     };

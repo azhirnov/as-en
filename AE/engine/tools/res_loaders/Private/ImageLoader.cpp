@@ -110,7 +110,7 @@ namespace {
     LoadImage
 =================================================
 */
-    bool  IImageLoader::LoadImage (INOUT IntermImage &image, ArrayView<Path> directories, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE___
+    bool  IImageLoader::LoadImage (INOUT IntermImage &image, ArrayView<Path> directories, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
     {
         Path    filename;
         CHECK_ERR( _FindImage( image.GetPath(), directories, OUT filename ));
@@ -121,7 +121,7 @@ namespace {
         if ( fileFormat == Default )
             fileFormat = PathToImageFileFormat( filename );
 
-        CHECK_ERR( LoadImage( INOUT image, file, flipY, allocator, fileFormat ));
+        CHECK_ERR( LoadImage( INOUT image, file, flipY, RVRef(allocator), fileFormat ));
         return true;
     }
 

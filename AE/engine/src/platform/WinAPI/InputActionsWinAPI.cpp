@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_WINAPI_WINDOW
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 
 # include "platform/WinAPI/InputActionsWinAPI.h"
 # include "platform/WinAPI/WindowWinAPI.h"
@@ -59,7 +59,7 @@ namespace
     constructor
 =================================================
 */
-    InputActionsWinAPI::InputActionsWinAPI (DubleBufferedQueue *q) __NE___ :
+    InputActionsWinAPI::InputActionsWinAPI (DubleBufferedQueue* q) __NE___ :
         InputActionsBase{ q != null ? *q : _dbQueue },
         _touchActive{ false },  _touchBegin{ false }, _touchEnd{ false },
         _gestureRecognizer{ ushort(EInputType::TouchPos),   ushort(EInputType::TouchPos_mm),

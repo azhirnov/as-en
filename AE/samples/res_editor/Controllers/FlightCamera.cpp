@@ -42,7 +42,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 5 );
+            StaticAssert( (IA.actionCount - BaseIA.actionCount) == 5 );
             switch ( uint{hdr.name} )
             {
                 case IA.FlightCamera_Rotate :
@@ -76,7 +76,7 @@ namespace AE::ResEditor
                         Rad{yaw_pitch_roll.z * _rotationScale.z} );
         _camera.Move( move );
 
-        if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
+        if_unlikely( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
             _zoom = Clamp( _zoom - zoom * _zoomStep, _3d_minZoom, _3d_maxZoom );
             _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );

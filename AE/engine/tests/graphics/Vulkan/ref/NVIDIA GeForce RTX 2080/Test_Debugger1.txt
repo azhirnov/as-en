@@ -33,12 +33,15 @@ name: 'Debugger1 |0| Compute task'
 
   BindPipeline
     pipeline:  'compute-ppln-36'
+    layout:    '2'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '2'
       image: 'Image', layout: GENERAL
+    [1] pl: '2'
       buffer: 'debug storage buffer'
   ----------
 
@@ -59,7 +62,7 @@ name: 'Debugger1 |1| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1024) }
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
   ----------
 
   PipelineBarrier2

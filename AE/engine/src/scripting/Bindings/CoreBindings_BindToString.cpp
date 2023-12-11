@@ -55,15 +55,15 @@ namespace
         }
         if ( vec )
         {
-            VecTypes::Visit( ToStringVisitor{ se });
+            VecTypes::VisitTh( ToStringVisitor{ se });
         }
         if ( rect )
         {
-            RectTypes::Visit( ToStringVisitor{ se });
+            RectTypes::VisitTh( ToStringVisitor{ se });
         }
         if ( color )
         {
-            ColorTypes::Visit( ToStringVisitor{ se });
+            ColorTypes::VisitTh( ToStringVisitor{ se });
         }
     }
 

@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/Android/ApplicationAndroid.h"
+#include "platform/GLFW/ApplicationGLFW.h"
+#include "platform/WinAPI/ApplicationWinAPI.h"
+
 using namespace AE::App;
 
 extern int Test_Base ();
@@ -12,18 +15,28 @@ extern int Test_Platform (IApplication &app, IWindow &wnd);
 extern int Test_Graphics (IApplication &app, IWindow &wnd);
 extern int Test_GraphicsHL (IApplication &app, IWindow &wnd);
 extern int Test_ECSst ();
+extern int Test_VFS ();
+extern int Test_AtlasTools ();
+extern int Test_GeometryTools ();
 
+extern int PerformanceTests_Base ();
+extern int PerformanceTests_Threading ();
+
+
+class AppListener;
 
 class WndListener final : public IWindow::IWndListener
 {
 private:
     IApplication&   _app;
+    AppListener&    _al;
+    IWindow*        _wnd    = null;
 
 public:
-    WndListener (IApplication &app) __NE___ : _app{app} {}
-    ~WndListener ()                 __NE_OV {}
+    WndListener (IApplication &app, AppListener &al)    __NE___ : _app{app}, _al{al} {}
+    ~WndListener ()                                     __NE_OV {}
 
-    void OnStateChanged (IWindow &, EState state) __NE_OV
+    void  OnStateChanged (IWindow &, EState state)      __NE_OV
     {
         switch ( state )
         {
@@ -37,9 +50,49 @@ public:
         }
     }
 
-    void OnSurfaceCreated (IWindow &wnd) __NE_OV
+    void  OnSurfaceCreated (IWindow &wnd) __NE_OV;
+
+    void  OnSurfaceDestroyed (IWindow &) __NE_OV
     {
-        AE_LOGI( "OnSurfaceCreated" );
+        AE_LOGI( "OnSurfaceDestroyed" );
+    }
+};
+
+
+class AppListener final : public IApplication::IAppListener
+{
+private:
+    WindowPtr       _window;
+    StdThread       _thread;
+    Atomic<bool>    _complete   {false};
+
+public:
+    AppListener ()                              __NE___ {}
+    ~AppListener ()                             __NE_OV {}
+
+    void  OnStart (IApplication &app)           __NE_OV
+    {
+        _window = app.CreateWindow( MakeUnique<WndListener>( app, *this ), Default );
+        CHECK_FATAL( _window );
+    }
+    void  OnStop (IApplication &)               __NE_OV {}
+
+    void  BeforeWndUpdate (IApplication &a)     __NE_OV {}
+    void  AfterWndUpdate (IApplication &a)      __NE_OV
+    {
+        if ( _complete.load() )
+        {
+            a.Terminate();
+        }
+    }
+
+    void  RunTests (IApplication &app, IWindow &wnd)
+    {
+        _thread = StdThread{ [this, a = &app, w = &wnd]() { _RunTests( *a, *w ); }};
+    }
+
+    void  _RunTests (IApplication &app, IWindow &wnd)
+    {
         #ifdef AE_TEST_BASE
             Test_Base();
         #endif
@@ -56,50 +109,45 @@ public:
             Test_Networking();
         #endif
         #ifdef AE_TEST_PLATFORM
-            Test_Platform( _app, wnd );
+            Test_Platform( app, wnd );
         #endif
         #ifdef AE_TEST_GRAPHICS
-            Test_Graphics( _app, wnd );
+            Test_Graphics( app, wnd );
         #endif
         #ifdef AE_TEST_GRAPHICS_HL
-            Test_GraphicsHL( _app, wnd );
+        //  Test_GraphicsHL( app, wnd );
         #endif
         #ifdef AE_TEST_ECS_ST
             Test_ECSst();
         #endif
-    }
+        #ifdef AE_TEST_VFS
+        //  Test_VFS();
+        #endif
+        #ifdef AE_TEST_ATLAS_TOOLS
+            Test_AtlasTools();
+        #endif
+        #ifdef AE_TEST_GEOMETRY_TOOLS
+            Test_GeometryTools();
+        #endif
 
-    void OnSurfaceDestroyed (IWindow &) __NE_OV
-    {
-        AE_LOGI( "OnSurfaceDestroyed" );
+        #ifdef AE_PERFTEST_BASE
+            PerformanceTests_Base();
+        #endif
+        #ifdef AE_PERFTEST_THREADING
+            PerformanceTests_Threading();
+        #endif
+
+        _complete.store( true );
     }
 };
 
 
-class AppListener final : public IApplication::IAppListener
+void  WndListener::OnSurfaceCreated (IWindow &wnd) __NE___
 {
-private:
-    WindowPtr  _window;
-    uint        _counter    = 0;
+    AE_LOGI( "OnSurfaceCreated" );
 
-public:
-    AppListener ()                          __NE___ {}
-    ~AppListener ()                         __NE_OV {}
-
-    void OnStart (IApplication &app)        __NE_OV
-    {
-        _window = app.CreateWindow( MakeUnique<WndListener>( app ), Default );
-        CHECK_FATAL( _window );
-    }
-    void OnStop (IApplication &)            __NE_OV {}
-
-    void BeforeWndUpdate (IApplication &a)  __NE_OV {}
-    void AfterWndUpdate (IApplication &a)   __NE_OV
-    {
-        if ( ++_counter > 100 )
-            a.Terminate();
-    }
-};
+    _al.RunTests( _app, wnd );
+}
 
 
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
@@ -114,12 +162,16 @@ void  AE_OnAppDestroyed ()
     AE::Base::StaticLogger::Deinitialize(true);
 }
 
-extern "C" JNIEXPORT jint  JNI_OnLoad (JavaVM* vm, void*)
-{
-    return ApplicationAndroid::OnJniLoad( vm );
-}
+#ifdef AE_PLATFORM_ANDROID
 
-extern "C" void JNI_OnUnload (JavaVM *vm, void *)
-{
-    return ApplicationAndroid::OnJniUnload( vm );
-}
+    extern "C" JNIEXPORT jint  JNI_OnLoad (JavaVM* vm, void*)
+    {
+        return ApplicationAndroid::OnJniLoad( vm );
+    }
+
+    extern "C" void JNI_OnUnload (JavaVM* vm, void *)
+    {
+        return ApplicationAndroid::OnJniUnload( vm );
+    }
+
+#endif // AE_PLATFORM_ANDROID

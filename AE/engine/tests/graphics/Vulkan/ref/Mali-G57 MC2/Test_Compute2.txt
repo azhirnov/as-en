@@ -1,0 +1,290 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+Fence: 'fence-0'
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-27'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-28'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-29'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  Dispatch
+  Dispatch
+  Dispatch
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-27'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-28'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-29'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-27'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-33'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-28'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-33'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-29'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-33'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+    ImageBarrier:
+      name:    'image-28'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-29'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-27'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+Fence: 'fence-0'
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-30'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-31'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-32'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  Dispatch
+  Dispatch
+  Dispatch
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-30'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-31'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-32'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-30'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-34'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-31'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-34'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-32'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-34'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+    ImageBarrier:
+      name:    'image-31'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-32'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-30'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+Fence: 'fence-0'
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-33'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-34'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+    ImageBarrier:
+      name:    'image-35'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  Dispatch
+  Dispatch
+  Dispatch
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image-33'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-34'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'image-35'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-33'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-35'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-34'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-35'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [1024, 2048) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'image-35'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'buffer-35'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), COLOR } ---> { [2048, 3072) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+    ImageBarrier:
+      name:    'image-34'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-35'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'image-33'
+      stage:   COPY ---> COMPUTE_SHADER
+      access:  TRANSFER_READ ---> SHADER_STORAGE_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+==================================================

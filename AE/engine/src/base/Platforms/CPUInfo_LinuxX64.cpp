@@ -44,19 +44,19 @@ namespace AE::Base
         {
             cache.L1_Inst.lineSize      = ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
             cache.L1_Inst.associativity = ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
-            cache.L1_Inst.size          = Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
+            cache.L1_Inst.size          = Byte32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
 
             cache.L1_Data.lineSize      = ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
             cache.L1_Data.associativity = ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
-            cache.L1_Data.size          = Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
+            cache.L1_Data.size          = Byte32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
 
             cache.L2.lineSize           = ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
             cache.L2.associativity      = ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
-            cache.L2.size               = Bytes32u{uint(::getauxval( AT_L2_CACHESIZE ))};
+            cache.L2.size               = Byte32u{uint(::getauxval( AT_L2_CACHESIZE ))};
 
             cache.L3.lineSize           = ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
             cache.L3.associativity      = ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
-            cache.L3.size               = Bytes32u{uint(::getauxval( AT_L3_CACHESIZE ))};
+            cache.L3.size               = Byte32u{uint(::getauxval( AT_L3_CACHESIZE ))};
         }
 
         _Validate();

@@ -201,7 +201,7 @@ namespace
     TextureTypeToMaterialKey
 =================================================
 */
-    static bool  ReadColorForTexture (const aiMaterial *src, aiTextureType texType, OUT float4 &value)
+    static bool  ReadColorForTexture (const aiMaterial* src, aiTextureType texType, OUT float4 &value)
     {
         #define GET_COLOR( _key_ )                                  \
         {                                                           \
@@ -272,7 +272,7 @@ namespace
     LoadMaterial
 =================================================
 */
-    ND_ static bool  LoadMaterial (const aiMaterial *src, OUT RC<IntermMaterial> &dst)
+    ND_ static bool  LoadMaterial (const aiMaterial* src, OUT RC<IntermMaterial> &dst)
     {
         using EKey = IntermMaterial::EKey;
 
@@ -331,7 +331,7 @@ namespace
             if ( src->GetTexture( aiTextureType(i), 0, OUT &tex_name, OUT &mapping, OUT &uv_index, null, null, OUT map_mode ) == AI_SUCCESS )
             {
                 IntermMaterial::MtrTexture  mtr_tex;
-                mtr_tex.image           = MakeRC<IntermImage>( Str( tex_name ));
+                mtr_tex.image           = MakeRC<IntermImage>( Path{Str( tex_name )});
                 mtr_tex.name            = Str( tex_name );
             //  mtr_tex.uvTransform     =
                 mtr_tex.mapping         = ConvertMapping( mapping );
@@ -394,7 +394,7 @@ namespace
     CreateVertexAttribs
 =================================================
 */
-    ND_ static bool  CreateVertexAttribs (const aiMesh *mesh, OUT Bytes &stride, OUT RC<IntermVertexAttribs> &outAttribs)
+    ND_ static bool  CreateVertexAttribs (const aiMesh* mesh, OUT Bytes &stride, OUT RC<IntermVertexAttribs> &outAttribs)
     {
         const StaticArray<EVertexType, 5>   float_vert_types = {
             EVertexType::Unknown, EVertexType::Float, EVertexType::Float2, EVertexType::Float3, EVertexType::Float4
@@ -443,7 +443,7 @@ namespace
     LoadMesh
 =================================================
 */
-    ND_ static bool  LoadMesh (const aiMesh *src, OUT RC<IntermMesh> &dst, INOUT VertexAttribsSet_t &attribsCache)
+    ND_ static bool  LoadMesh (const aiMesh* src, OUT RC<IntermMesh> &dst, INOUT VertexAttribsSet_t &attribsCache)
     {
         CHECK_ERR( src->mPrimitiveTypes == aiPrimitiveType_TRIANGLE );
         CHECK_ERR( not src->HasBones() );
@@ -548,7 +548,7 @@ namespace
     LoadLight
 =================================================
 */
-    ND_ static bool  LoadLight (const aiLight *src, OUT RC<IntermLight> &dst)
+    ND_ static bool  LoadLight (const aiLight* src, OUT RC<IntermLight> &dst)
     {
         using ELightType = IntermLight::ELightType;
 
@@ -589,7 +589,7 @@ namespace
     LoadMaterials
 =================================================
 */
-    ND_ static bool  LoadMaterials (const aiScene *scene, OUT Array<RC<IntermMaterial>> &outMaterials)
+    ND_ static bool  LoadMaterials (const aiScene* scene, OUT Array<RC<IntermMaterial>> &outMaterials)
     {
         outMaterials.resize( scene->mNumMaterials );  // throw
 
@@ -605,7 +605,7 @@ namespace
     LoadMeshes
 =================================================
 */
-    ND_ static bool  LoadMeshes (const aiScene *scene, OUT Array<RC<IntermMesh>> &outMeshes, INOUT VertexAttribsSet_t &attribsCache)
+    ND_ static bool  LoadMeshes (const aiScene* scene, OUT Array<RC<IntermMesh>> &outMeshes, INOUT VertexAttribsSet_t &attribsCache)
     {
         outMeshes.resize( scene->mNumMeshes );  // throw
 
@@ -621,7 +621,7 @@ namespace
     LoadLights
 =================================================
 */
-    ND_ static bool  LoadLights (const aiScene *scene, OUT Array<RC<IntermLight>> &outLights)
+    ND_ static bool  LoadLights (const aiScene* scene, OUT Array<RC<IntermLight>> &outLights)
     {
         outLights.resize( scene->mNumLights );  // throw
 
@@ -637,7 +637,7 @@ namespace
     RecursiveLoadHierarchy
 =================================================
 */
-    ND_ static bool  RecursiveLoadHierarchy (const aiScene *aiScene, const aiNode *node, const SceneData &scene, INOUT IntermScene::SceneNode &parent)
+    ND_ static bool  RecursiveLoadHierarchy (const aiScene* aiScene, const aiNode* node, const SceneData &scene, INOUT IntermScene::SceneNode &parent)
     {
         IntermScene::SceneNode  snode;
         snode.localTransform    = ConvertMatrix( node->mTransformation );
@@ -673,7 +673,7 @@ namespace
     LoadHierarchy
 =================================================
 */
-    ND_ static bool  LoadHierarchy (const aiScene *aiScene, INOUT SceneData &scene)
+    ND_ static bool  LoadHierarchy (const aiScene* aiScene, INOUT SceneData &scene)
     {
         scene.root.localTransform   = ConvertMatrix( aiScene->mRootNode->mTransformation );
         scene.root.name             = aiScene->mRootNode->mName.C_Str();
@@ -697,7 +697,7 @@ namespace
                 | aiProcess_Triangulate
                 | (config.smoothNormals     ? aiProcess_GenSmoothNormals : aiProcess_GenNormals)
                 | aiProcess_RemoveRedundantMaterials
-                | aiProcess_GenUVCoords 
+                | aiProcess_GenUVCoords
                 | aiProcess_TransformUVCoords
                 | (config.splitLargeMeshes  ? aiProcess_SplitLargeMeshes : 0)
                 | (not config.optimize      ? 0 :
@@ -744,11 +744,11 @@ namespace
         CHECK_ERR( stream.IsOpen() );
 
         Array<ubyte>    data;
-        CATCH_ERR( data.resize( usize(stream.RemainingSize()) ));  // throw
+        NOTHROW_ERR( data.resize( usize(stream.RemainingSize()) ));
 
         CHECK_ERR( stream.ReadSeq( OUT data.data(), ArraySizeOf(data) ) == ArraySizeOf(data) );
 
-        try {
+        TRY{
             AssimpInit();
             Assimp::Importer    importer;
 
@@ -763,9 +763,9 @@ namespace
 
             return LoadScene( OUT outScene, scene );
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
 /*
@@ -777,7 +777,7 @@ namespace
                                    const Path       &scenePath,
                                    const Config     &config) __NE___
     {
-        try {
+        TRY{
             AssimpInit();
             Assimp::Importer    importer;
 
@@ -792,9 +792,9 @@ namespace
 
             return LoadScene( OUT outScene, scene );
         }
-        catch (...) {
+        CATCH_ALL(
             return false;
-        }
+        )
     }
 
 

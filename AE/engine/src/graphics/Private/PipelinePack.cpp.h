@@ -6,6 +6,9 @@
 #elif defined(AE_ENABLE_METAL)
 #   define PPLNPACK         MPipelinePack
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#   define PPLNPACK         RPipelinePack
+
 #else
 #   error not implemented
 #endif
@@ -25,10 +28,10 @@ namespace AE::Graphics
 =================================================
     constructor
 =================================================
-*/      
-    PPLNPACK::RenderPassRefs::RenderPassRefs (Allocator_t *alloc) __Th___ :
-        specMap  { StdAllocatorRef< Pair< const RenderPassName::Optimized_t,        RenderPassID >, Allocator_t* >{ alloc }},
-        compatMap{ StdAllocatorRef< Pair< const CompatRenderPassName::Optimized_t,  RenderPassID >, Allocator_t* >{ alloc }}
+*/
+    PPLNPACK::RenderPassRefs::RenderPassRefs (IAllocatorTS* alloc) __Th___ :
+        specMap  { StdAlloc_t< Pair< const RenderPassName::Optimized_t,       RenderPassID >>{ alloc }},
+        compatMap{ StdAlloc_t< Pair< const CompatRenderPassName::Optimized_t, RenderPassID >>{ alloc }}
     {}
 //-----------------------------------------------------------------------------
 
@@ -40,7 +43,7 @@ namespace AE::Graphics
 */
     void  PPLNPACK::_Destroy (ResMngr_t &resMngr) __NE___
     {
-        if ( _allocator.CurrentSize() == 0 )
+        if ( _allocator == null )
             return;
 
         resMngr.ImmediatelyRelease( INOUT _parentPackId );
@@ -64,8 +67,8 @@ namespace AE::Graphics
 
         // release pipelines
         for (uint i = 0, cnt = _renTechs.Get<0>(); i < cnt; ++i) {
-            _renTechs.Get<1>()[i].Destroy( resMngr );
-            StaticRC::Delete( INOUT _renTechs.Get<1>()[i] );
+            _renTechs.Get<1>()[i]->Destroy( resMngr );
+            PlacementDelete( INOUT _renTechs.Get<1>()[i] );
         }
         _renTechs = Default;
 
@@ -105,7 +108,8 @@ namespace AE::Graphics
         _serCPplnSpec   = Default;
         _serRTPplnSpec  = Default;
 
-        _allocator.Release();
+        ASSERT( _allocator.use_count() == 1 );
+        _allocator = null;
 
         DEBUG_ONLY( _debugName.clear(); )
     }
@@ -120,14 +124,16 @@ namespace AE::Graphics
         CHECK_ERR( desc.stream );
         CHECK_ERR( desc.stream->IsOpen() );
 
-        _allocator.Discard();
-        _unsupportedFS  .Create( StdAllocatorRef< FeatureSetName::Optimized_t,                                             Allocator_t* >{ &_allocator });
-        _renTechMap     .Create( StdAllocatorRef< Pair< const RenderTechName::Optimized_t,      ushort                  >, Allocator_t* >{ &_allocator });
-        _pplnTemplMap   .Create( StdAllocatorRef< Pair< const PipelineTmplName::Optimized_t,    PipelineTemplUID        >, Allocator_t* >{ &_allocator });
-        _dsLayoutMap    .Create( StdAllocatorRef< Pair< const DescriptorSetName::Optimized_t,   DescriptorSetLayoutID   >, Allocator_t* >{ &_allocator });
-        _samplerRefs    .Create( StdAllocatorRef< Pair< const SamplerName::Optimized_t,         SamplerID               >, Allocator_t* >{ &_allocator });
-        _renderPassRefs .Create( &_allocator );
-        DEBUG_ONLY( _allFeatureSets.Create( StdAllocatorRef< FeatureSetName::Optimized_t, Allocator_t* >{ &_allocator }); )
+        ASSERT( not _allocator );
+        _allocator = MakeRC< LinearAllocator_t >();
+
+        _unsupportedFS  .CreateTh( StdAlloc_t< FeatureSetName::Optimized_t                                           >{ _allocator.get() });
+        _renTechMap     .CreateTh( StdAlloc_t< Pair< const RenderTechName::Optimized_t,     ushort                  >>{ _allocator.get() });
+        _pplnTemplMap   .CreateTh( StdAlloc_t< Pair< const PipelineTmplName::Optimized_t,   PipelineTemplUID        >>{ _allocator.get() });
+        _dsLayoutMap    .CreateTh( StdAlloc_t< Pair< const DescriptorSetName::Optimized_t,  DescriptorSetLayoutID   >>{ _allocator.get() });
+        _samplerRefs    .CreateTh( StdAlloc_t< Pair< const SamplerName::Optimized_t,        SamplerID               >>{ _allocator.get() });
+        _renderPassRefs .CreateTh( _allocator.get() );
+        DEBUG_ONLY( _allFeatureSets.CreateTh( StdAlloc_t< FeatureSetName::Optimized_t >{ _allocator.get() }); )
 
         EXLOCK( _fileGuard );
 
@@ -271,7 +277,7 @@ namespace AE::Graphics
         {
             ASSERT( idx < _renTechs.Get<0>() );
 
-            auto&   rt = _renTechs.Get<1>()[ idx ];
+            auto&   rt = *_renTechs.Get<1>()[ idx ];
             if ( rt.IsSupported() )
                 supported.push_back( RenderTechName{ name });   // throw
         }
@@ -372,7 +378,7 @@ namespace AE::Graphics
                                             *gppln, desc,
                                             _GetPipelineLayout( gppln->layout ),
                                             shaders, cacheId,
-                                            &_allocator
+                                            _allocator.get()
                                         });
     }
 
@@ -399,7 +405,7 @@ namespace AE::Graphics
                                             *mppln, desc,
                                             _GetPipelineLayout( mppln->layout ),
                                             shaders, cacheId,
-                                            &_allocator
+                                            _allocator.get()
                                         });
     }
 
@@ -431,7 +437,7 @@ namespace AE::Graphics
                                             *rtppln, desc,
                                             _GetPipelineLayout( rtppln->layout ),
                                             ArrayView< ShaderModuleRef >{ shaders, rtppln->shaderArr.size() }, cacheId,
-                                            &_allocator,
+                                            _allocator.get(),
                                             &allocator
                                         });
     }
@@ -489,7 +495,7 @@ namespace AE::Graphics
 
         CHECK_ERR( uint(iter->second) < _renTechs.Get<0>() );
 
-        auto&   rt = _renTechs.Get<1>()[ uint(iter->second) ];
+        auto&   rt = *_renTechs.Get<1>()[ uint(iter->second) ];
         return rt.LoadAsync( resMngr, cacheId );
     }
 
@@ -508,7 +514,7 @@ namespace AE::Graphics
 
         CHECK_ERR( uint(iter->second) < _renTechs.Get<0>() );
 
-        auto&   rt = _renTechs.Get<1>()[ uint(iter->second) ];
+        auto&   rt = *_renTechs.Get<1>()[ uint(iter->second) ];
         CHECK_ERR( rt.Load( resMngr, cacheId ));
 
         return rt.GetRC();
@@ -586,7 +592,7 @@ namespace AE::Graphics
             DEBUG_ONLY(
                 *_allFeatureSets = parent_pack->GetAllFS();                     // throw
                 _allFeatureSets->reserve( _allFeatureSets->size() + count );    // throw
-            )   
+            )
         }
         else
         {
@@ -657,7 +663,7 @@ namespace AE::Graphics
         CHECK_ERR( not des.stream.Empty() );
 
         // for feature set array
-        des.allocator = MakeRC< AllocatorImpl2< Allocator_t &>>( _allocator );  // TODO: optimize? temp allocator?
+        des.allocator = _allocator.get();
 
         uint    hdr_name    = 0;
         uint    version     = 0;
@@ -749,7 +755,7 @@ namespace AE::Graphics
         CHECK_ERR( not des.stream.Empty() );
 
         // for feature set array
-        des.allocator = MakeRC< AllocatorImpl2< Allocator_t &>>( _allocator );  // TODO: optimize? temp allocator?
+        des.allocator = _allocator.get();
 
         uint    hdr_name    = 0;
         uint    version     = 0;
@@ -839,7 +845,7 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        auto    rs_ptr = _allocator.Allocate< PipelineCompiler::SerializableRenderState >( count );
+        auto    rs_ptr = _allocator->Allocate< PipelineCompiler::SerializableRenderState >( count );
         CHECK_ERR( rs_ptr != null );
         _renderStates = Tuple{ count, rs_ptr };
 
@@ -878,7 +884,7 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        auto    ds_ptr = _allocator.Allocate< PipelineCompiler::SerializableDepthStencilState >( count );
+        auto    ds_ptr = _allocator->Allocate< PipelineCompiler::SerializableDepthStencilState >( count );
         CHECK_ERR( ds_ptr != null );
         _depthStencilStates = Tuple{ count, ds_ptr };
 
@@ -905,7 +911,7 @@ namespace AE::Graphics
 
         layoutMap.reserve( count );  // throw
 
-        _dsLayouts = Tuple{ count, _allocator.Allocate< Strong<DescriptorSetLayoutID> >( count )};
+        _dsLayouts = Tuple{ count, _allocator->Allocate< Strong<DescriptorSetLayoutID> >( count )};
         CHECK_ERR( _dsLayouts.Get<1>() != null );
 
         auto*   parent_pack = resMngr.GetResource( _parentPackId, False{"don't inc ref"}, True{"quiet"} );  // TODO: shared lock
@@ -971,9 +977,9 @@ namespace AE::Graphics
             }
 
             const bool  is_upd_tmpl = AllBits( usage, EDescSetUsage::UpdateTemplate );  // Vulkan only
-            auto*       un_names    = _allocator.Allocate< UniformName::Optimized_t >( uniform_count );
-            auto*       un_data     = _allocator.Allocate< Uniform_t >( uniform_count );
-            auto*       un_offsets  = is_upd_tmpl ? _allocator.Allocate< Bytes16u >( uniform_count ) : null;
+            auto*       un_names    = _allocator->Allocate< UniformName::Optimized_t >( uniform_count );
+            auto*       un_data     = _allocator->Allocate< Uniform_t >( uniform_count );
+            auto*       un_offsets  = is_upd_tmpl ? _allocator->Allocate< Byte16u >( uniform_count ) : null;
             bool        result      = true;
             CHECK_ERR( un_names != null and un_data != null );
 
@@ -1026,7 +1032,7 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        _pplnLayouts = Tuple{ count, _allocator.Allocate< Strong<PipelineLayoutID> >( count )};
+        _pplnLayouts = Tuple{ count, _allocator->Allocate< Strong<PipelineLayoutID> >( count )};
         CHECK_ERR( _pplnLayouts.Get<1>() != null );
 
         for (uint i = 0; i < count; ++i)
@@ -1051,6 +1057,8 @@ namespace AE::Graphics
                     binding.vkIndex = src.second.vkIndex;
                 #elif defined(AE_ENABLE_METAL)
                     binding.mtlIndex = src.second.mtlIndex;
+                #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+                    binding.vkIndex = src.second.vkIndex;
                 #else
                 #   error not implemented
                 #endif
@@ -1123,7 +1131,7 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        auto    ptr = _allocator.Allocate<T>( count );
+        auto    ptr = _allocator->Allocate<T>( count );
         CHECK_ERR( ptr != null );
         arr = Tuple{ count, ptr };
 
@@ -1153,19 +1161,19 @@ namespace AE::Graphics
 
         _renTechMap->reserve( count );  // throw
 
-        _renTechs = Tuple{ count, _allocator.Allocate<RenderTech>( count )};
+        _renTechs = Tuple{ count, _allocator->Allocate< StaticRC<RenderTech> >( count )};
         CHECK_ERR( _renTechs.Get<1>() != null );
 
         bool    result = true;
         for (uint i = 0; result & (i < count); ++i)
         {
             auto&   rt = _renTechs.Get<1>()[i];
-            StaticRC::New( OUT rt, *this );
+            PlacementNew< StaticRC<RenderTech> >( &rt, *this );
 
-            result = rt.Deserialize( resMngr, des );    // throw
+            result = rt->Deserialize( resMngr, des );   // throw
 
-            if ( rt.IsSupported() )
-                _renTechMap->emplace( rt.Name(), ushort(i) );   // throw
+            if ( rt->IsSupported() )
+                _renTechMap->emplace( rt->Name(), ushort(i) );  // throw
         }
         return result;
     }
@@ -1184,7 +1192,7 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        auto    ptr = _allocator.Allocate< PipelineCompiler::SerializableRTShaderBindingTable >( count );
+        auto    ptr = _allocator->Allocate< PipelineCompiler::SerializableRTShaderBindingTable >( count );
         CHECK_ERR( ptr != null );
         _serRTSBTs = SerRTSBTs_t{ count, ptr };
 
@@ -1214,10 +1222,10 @@ namespace AE::Graphics
         if ( count == 0 )
             return true;
 
-        _shaders = Tuple{ count, _allocator.Allocate< ShaderModule >( count )};
+        _shaders = Tuple{ count, _allocator->Allocate< ShaderModule >( count )};
         CHECK_ERR( _shaders.Get<1>() != null );
 
-        const Bytes32u  total_size {_shaderDataSize};
+        const Byte32u   total_size {_shaderDataSize};
 
         bool    result = true;
         for (uint i = 0; result & (i < count); ++i)
@@ -1236,6 +1244,7 @@ namespace AE::Graphics
                             sh.shaderTypeIdx == Types_t::Index<SpirvWithTrace> );
             #elif defined(AE_ENABLE_METAL)
                 CHECK_ERR(  sh.shaderTypeIdx == Types_t::Index<MetalBytecode_t> );
+            #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
             #else
             #   error not implemented
             #endif
@@ -1252,11 +1261,11 @@ namespace AE::Graphics
     constructor
 =================================================
 */
-    PPLNPACK::RenderTech::RenderTech (PPLNPACK& pack) __Th___ :
+    PPLNPACK::RenderTech::RenderTech (PPLNPACK& pack) __NE___ :
         _pack{ pack },
         _isSupported{ false },  _isLoaded{ false },     _wasAttampToLoad{ false },
-        _pipelines{ StdAllocatorRef< Pair< const PipelineName::Optimized_t, PipelineInfo >, Allocator_t* >{ &pack._allocator }},
-        _rtSbtMap{ StdAllocatorRef< Pair< const RTShaderBindingName::Optimized_t, SBTInfo >, Allocator_t* >{ &pack._allocator }}
+        _pipelines{ StdAlloc_t< Pair< const PipelineName::Optimized_t, PipelineInfo >>{ pack._allocator.get() }},
+        _rtSbtMap{ StdAlloc_t< Pair< const RTShaderBindingName::Optimized_t, SBTInfo >>{ pack._allocator.get() }}
     {}
 
     PPLNPACK::RenderTech::~RenderTech () __NE___
@@ -1288,6 +1297,9 @@ namespace AE::Graphics
 
                 supported &= (not _pack._unsupportedFS->contains( fs_name ));
                 DEBUG_ONLY(
+                    if ( _pack._unsupportedFS->contains( fs_name ))
+                        AE_LOG_DBG( "Render technique '"s << resMngr.HashToName( _name ) << "' requires '" << resMngr.HashToName( fs_name ) << "' FeatureSet" );
+
                     if ( not _pack._allFeatureSets->contains( fs_name ))
                         AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
                 )
@@ -1307,7 +1319,7 @@ namespace AE::Graphics
             CHECK_ERR( des( OUT pass_count ) and pass_count > 0 );
             CHECK_ERR( pass_count <= SerializableRenderTechnique::MaxPassCount );
 
-            _passes = Tuple{ pass_count, _pack._allocator.Allocate< SerializableRenderTechnique::Pass >( pass_count )};
+            _passes = Tuple{ pass_count, _pack._allocator->Allocate< SerializableRenderTechnique::Pass >( pass_count )};
 
             bool    result = true;
             for (uint i = 0; result & (i < pass_count); ++i)
@@ -1377,7 +1389,7 @@ namespace AE::Graphics
             RC<RenderTech>  rtech;
             ResMngr_t &     resMngr;
 
-            PreloadShadersTask (RC<RenderTech> rt, ResMngr_t& rm) :
+            PreloadShadersTask (RC<RenderTech> rt, ResMngr_t& rm) __NE___ :
                 IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm} {}
 
             void        Run ()      __Th_OV { CHECK_TE( rtech->_PreloadShaders( resMngr )); }
@@ -1393,7 +1405,7 @@ namespace AE::Graphics
             PplnSpecIter_t      beginIt;
             PplnSpecIter_t      endIt;
 
-            CompilePipelinesTask (RC<RenderTech> rt, ResMngr_t& rm, PipelineCacheID cache, PplnSpecIter_t begin, PplnSpecIter_t end) :
+            CompilePipelinesTask (RC<RenderTech> rt, ResMngr_t& rm, PipelineCacheID cache, PplnSpecIter_t begin, PplnSpecIter_t end) __NE___ :
                 IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm}, cacheId{cache}, beginIt{begin}, endIt{end} {}
 
             void        Run ()      __Th_OV { CHECK_TE( rtech->_CompilePipelines( resMngr, cacheId, beginIt, endIt )); }
@@ -1406,7 +1418,7 @@ namespace AE::Graphics
             RC<RenderTech>  rtech;
             ResMngr_t &     resMngr;
 
-            CreateSBTsTask (RC<RenderTech> rt, ResMngr_t& rm) :
+            CreateSBTsTask (RC<RenderTech> rt, ResMngr_t& rm) __NE___ :
                 IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm} {}
 
             void        Run ()      __Th_OV { CHECK_TE( rtech->_PreloadShaders( resMngr )); }
@@ -1782,7 +1794,7 @@ namespace AE::Graphics
                                                 tmpl, spec.desc,
                                                 _pack._GetPipelineLayout( tmpl.layout ),
                                                 shaders, cacheId,
-                                                &_pack._allocator
+                                                _pack._allocator.get()
                                             }).Release();
         return PipelineID{ id.Index(), id.Generation() };
     }
@@ -1813,7 +1825,7 @@ namespace AE::Graphics
                                                 tmpl, spec.desc,
                                                 _pack._GetPipelineLayout( tmpl.layout ),
                                                 shaders, cacheId,
-                                                &_pack._allocator
+                                                _pack._allocator.get()
                                             }).Release();
         return PipelineID{ id.Index(), id.Generation() };
     }
@@ -1895,7 +1907,7 @@ namespace AE::Graphics
                                                 tmpl, spec.desc,
                                                 _pack._GetPipelineLayout( tmpl.layout ),
                                                 ArrayView< ShaderModuleRef >{ shaders, tmpl.shaderArr.size() }, cacheId,
-                                                &_pack._allocator,
+                                                _pack._allocator.get(),
                                                 &allocator
                                             }).Release();
         return PipelineID{ id.Index(), id.Generation() };
@@ -1909,7 +1921,7 @@ namespace AE::Graphics
     void  PPLNPACK::RenderTech::_PrintPipelines (const PipelineName &reqName, PipelineSpecUID mask) C_NE___
     {
     #ifdef AE_DEBUG
-        const auto& res_mngr = RenderTaskScheduler().GetResourceManager();
+        const auto& res_mngr = GraphicsScheduler().GetResourceManager();
         String      str;
 
         for (auto& [name, ppln] : _pipelines)
@@ -2058,7 +2070,7 @@ namespace AE::Graphics
     void  PPLNPACK::RenderTech::_PrintSBTs (const RTShaderBindingName &reqName) C_NE___
     {
     #ifdef AE_DEBUG
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
         String  str;
 
         for (auto& [name, info] : _rtSbtMap) {
@@ -2120,7 +2132,7 @@ namespace AE::Graphics
         const auto  pass = GetPass( passName );
         if ( pass.IsDefined() )
         {
-            auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&           res_mngr = GraphicsScheduler().GetResourceManager();
             RenderPassID    rp_id    = res_mngr.GetRenderPass( pass.packId, RenderPassName{pass.renderPass} );
 
             if ( rp_id != Default )
@@ -2159,7 +2171,7 @@ namespace AE::Graphics
         const auto  req_name = _passes.Get<1>()[ idx ].name;
         if_unlikely( req_name != pass )
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            auto&   res_mngr = GraphicsScheduler().GetResourceManager();
             AE_LOG_DBG( "Render technique pass '"s << res_mngr.HashToName( pass ) << "' is not the (" << ToString(idx) << ") pass, '" <<
                         res_mngr.HashToName( req_name ) << "' is required" );
             return false;

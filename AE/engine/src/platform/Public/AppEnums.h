@@ -18,7 +18,7 @@ namespace AE::App
 
         // continious
         //   state: Begin -> Update -> End/Cancel
-        Hold,               // params:                          |   
+        Hold,               // params:                          |
         LongPress,          // params: f1(0..1)                 |
         Move,               // params: f1/2/3/4                 |
         LongPress_Move,     // params: f3(pos, 0..1)            |   long press to start gesture, then move - only for mouse or touch

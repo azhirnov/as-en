@@ -10,18 +10,20 @@ namespace
         static constexpr uint   MaxThreads  = 8;
         static constexpr uint   ElemSize    = 8;
 
-        FixedArray< StdThread, MaxThreads >     worker_thread;
+        StaticArray< StdThread, MaxThreads >    worker_thread;
         StaticArray< Array<void*>, MaxThreads > thread_data;
-        LfLinearAllocator< 4<<10 >              alloc;
+        LfLinearAllocator< usize{2_Mb} >        alloc;
 
         for (uint i = 0; i < MaxThreads; ++i)
         {
-            worker_thread.emplace_back( StdThread{
+            thread_data[i].reserve( 1024 );
+
+            worker_thread[i] = StdThread{
                 [&alloc, data = &thread_data[i]] ()
                 {
                     for (;;)
                     {
-                        ThreadUtils::Yield();
+                        ThreadUtils::Sleep_1us();
 
                         void*   ptr = alloc.Allocate( SizeAndAlign{ Bytes{ElemSize}, 8_b });
                         if ( ptr == null )
@@ -31,7 +33,7 @@ namespace
                         data->push_back( ptr );
                     }
                 }
-            });
+            };
         }
 
         for (uint i = 0; i < MaxThreads; ++i) {
@@ -43,7 +45,6 @@ namespace
             for (usize i = 0; i < items.size(); ++i)
             {
                 StaticArray< ubyte, ElemSize >  ref;
-
                 ref.fill( ubyte(i) );
 
                 TEST( MemEqual( ref.data(), items[i], Bytes{ElemSize} ));

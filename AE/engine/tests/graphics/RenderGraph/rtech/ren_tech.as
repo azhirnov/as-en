@@ -132,6 +132,28 @@ void DeclRenderTech ()
 }
 
 
+void DeclDebugRenderTech ()
+{
+    RC<RenderTechnique> rtech = RenderTechnique( "DebugDrawTestRT" );
+
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Draw_1" );
+
+        pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+    }
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Test4-1" );
+
+        pass.SetRenderPass( "DrawTest4.Pass1", /*subpass*/"Main" );
+    }
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Test4-2" );
+
+        pass.SetRenderPass( "DrawTest4.Pass2", /*subpass*/"Main" );
+    }
+}
+
+
 void DeclAsyncCompRenderTech ()
 {
     RC<RenderTechnique> rtech = RenderTechnique( "AsyncCompTestRT" );
@@ -203,6 +225,7 @@ void ASmain ()
     DeclVRSRenderPass();
 
     DeclRenderTech();
+    DeclDebugRenderTech();
     DeclAsyncCompRenderTech();
     DeclMeshShaderRenderTech();
     DeclRayTracingRenderTech();

@@ -20,13 +20,13 @@ name: 'Debugger5 |0| Upload RTAS task'
   CopyBuffer
     src: 'SSWB {f:1} {q:Graphics}'
     dst: 'RTAS index buffer'
-      copy [48, 60) ---> [0, 12)
+      copy [64, 76) ---> [0, 12)
   ----------
 
   CopyBuffer
     src: 'SSWB {f:1} {q:Graphics}'
     dst: 'RTAS instance buffer'
-      copy [60, 124) ---> [0, 64)
+      copy [128, 192) ---> [0, 64)
   ----------
 
   PipelineBarrier2
@@ -102,13 +102,16 @@ name: 'Debugger5 |1| Ray tracing task'
 
   BindPipeline
     pipeline:  'dbg5_rquery.def'
+    layout:    '6'
     bindPoint: COMPUTE
   ----------
 
   Dispatch
     descriptors:
+    [0] pl: '6'
       image: 'Image', layout: GENERAL
       accel struct: 'RT scene'
+    [1] pl: '6'
       buffer: 'debug storage buffer'
   ----------
 
@@ -129,7 +132,7 @@ name: 'Debugger5 |2| Readback task'
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
     dst:       'dynamic staging buffer'
-      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
   ----------
 
   PipelineBarrier2

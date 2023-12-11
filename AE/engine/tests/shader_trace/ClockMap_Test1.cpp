@@ -30,7 +30,7 @@ void main()
         static const char   frag_shader_source[] = R"#(
 layout(location = 0) out vec4  out_Color;
 
-// DHash from https://www.shadertoy.com/view/4djSRW 
+// DHash from https://www.shadertoy.com/view/4djSRW
 // MIT License...
 // Copyright (c)2014 David Hoskins.
 float DHash13 (const vec3 p)
@@ -61,11 +61,11 @@ float ValueNoise (const vec3 pos)
     return  mix(
                 mix(
                     mix(hash(pi + vec3(0, 0, 0)), hash(pi + vec3(1, 0, 0)), w.x),
-                    mix(hash(pi + vec3(0, 0, 1)), hash(pi + vec3(1, 0, 1)), w.x), 
+                    mix(hash(pi + vec3(0, 0, 1)), hash(pi + vec3(1, 0, 1)), w.x),
                     w.z),
                 mix(
                     mix(hash(pi + vec3(0, 1, 0)), hash(pi + vec3(1, 1, 0)), w.x),
-                    mix(hash(pi + vec3(0, 1, 1)), hash(pi + vec3(1, 1, 1)), w.x), 
+                    mix(hash(pi + vec3(0, 1, 1)), hash(pi + vec3(1, 1, 1)), w.x),
                     w.z),
                 w.y);
 #   undef hash

@@ -53,7 +53,7 @@ namespace
     public:
         Db5_TestData&   t;
 
-        Db5_UploadTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db5_UploadTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -109,7 +109,7 @@ namespace
     public:
         Db5_TestData&   t;
 
-        Db5_RayTracingTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db5_RayTracingTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -152,7 +152,7 @@ namespace
     public:
         Db5_TestData&   t;
 
-        Db5_CopyTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+        Db5_CopyTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
             RenderTask{ RVRef(batch), dbg },
             t{ t }
         {}
@@ -251,9 +251,9 @@ no source
 
 
     template <typename CtxTypes, typename CopyCtx>
-    static bool  Debugger5Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    static bool  Debugger5Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
+        auto&           rts         = GraphicsScheduler();
         auto&           res_mngr    = rts.GetResourceManager();
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db5_TestData    t;
@@ -323,23 +323,26 @@ no source
         }
         CHECK_ERR( t.ds );
 
-        AsyncTask   begin   = rts.BeginFrame();
+
+        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+        CHECK_ERR( rts.BeginFrame() );
 
         t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger5"} );
         CHECK_ERR( t.batch );
 
-        AsyncTask   task1   = t.batch->Run< Db5_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},                 {"Upload RTAS task"} );
+        AsyncTask   task1   = t.batch->Run< Db5_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{},                      {"Upload RTAS task"} );
         AsyncTask   task2   = t.batch->Run< Db5_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},                 {"Ray tracing task"} );
         AsyncTask   task3   = t.batch->Run< Db5_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},   {"Readback task"} );
 
         AsyncTask   end     = rts.EndFrame( Tuple{task3} );
 
-        CHECK_ERR( Scheduler().Wait({ end }));
+
+        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
         CHECK_ERR( t.result->Status() == EStatus::Completed );
 
         CHECK_ERR( t.isOK );

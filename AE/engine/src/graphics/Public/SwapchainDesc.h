@@ -40,3 +40,10 @@ namespace AE::Graphics
 
 
 } // AE::Graphics
+
+
+namespace AE::Base
+{
+    template <> struct TTriviallySerializable< Graphics::SurfaceFormat >    { static constexpr bool  value = true; };
+    template <> struct TTriviallySerializable< Graphics::SwapchainDesc >    { static constexpr bool  value = true; };
+}

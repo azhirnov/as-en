@@ -36,16 +36,9 @@ namespace AE::Graphics
             return res;
         }
 
-        ND_ VkDeviceMemory*  operator & ()                  __NE___
-        {
-            CHECK( _mem == Default );
-            return &_mem;
-        }
-
-        ND_ VkDeviceMemory  Get ()                          C_NE___
-        {
-            return _mem;
-        }
+        ND_ VkDeviceMemory*     operator & ()               __NE___ { CHECK( _mem == Default );  return &_mem; }
+        ND_ VkDeviceMemory      Get ()                      C_NE___ { return _mem; }
+        ND_ VkDeviceMemory&     Ref ()                      __NE___ { return _mem; }
     };
 
 

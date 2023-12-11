@@ -36,14 +36,14 @@
 
         // render loop
         {
-            RC<ComputePass>     collision   = ComputePass( "", "CALC_COLLISION", EPassFlags::Enable_ShaderTrace );
-            collision.ArgIn(    camera );
+            RC<ComputePass>     collision   = ComputePass( "", "CALC_COLLISION" );
+            collision.Set(      camera );
             collision.ArgInOut( "un_CollisionData", cam_pos );
             collision.LocalSize( 1 );
             collision.DispatchGroups( 1 );
         }{
-            RC<ComputePass>     draw        = ComputePass( "", "TRACE_RAYS", EPassFlags::Enable_ShaderTrace );
-            draw.ArgIn(  camera );
+            RC<ComputePass>     draw        = ComputePass( "", "TRACE_RAYS" );
+            draw.Set(    camera );
             draw.ArgOut( "un_OutImage",         rt );
             draw.ArgIn(  "un_CollisionData",    cam_pos );
             draw.LocalSize( 8, 8 );

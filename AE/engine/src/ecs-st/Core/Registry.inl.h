@@ -88,7 +88,9 @@ DEBUG_ONLY(
     namespace _reg_detail_
     {
         template <typename T>
-        class ComponentDbgView final : public Registry::IComponentDbgView
+        class ComponentDbgView final :
+            public Registry::IComponentDbgView,
+            public NothrowAllocatable
         {
         private:
             ArrayView< T >          _comps;
@@ -127,7 +129,7 @@ DEBUG_ONLY(
             comp.created    = true;
 
             DEBUG_ONLY(
-              comp.dbgView  = [] (void *ptr, usize count) -> Unique<IComponentDbgView> {
+              comp.dbgView  = [] (void* ptr, usize count) __NE___ -> Unique<IComponentDbgView> {
                                     return MakeUnique< _reg_detail_::ComponentDbgView<T> >( Cast<T>(ptr), count );
                                 };
             )
@@ -262,7 +264,7 @@ DEBUG_ONLY(
     _DecreaseStorageSize
 =================================================
 */
-    inline void  Registry::_DecreaseStorageSize (ArchetypeStorage *storage) __NE___
+    inline void  Registry::_DecreaseStorageSize (ArchetypeStorage* storage) __NE___
     {
         if ( storage->Count()*4 < storage->Capacity() )
         {
@@ -275,7 +277,7 @@ DEBUG_ONLY(
     _IncreaseStorageSize
 =================================================
 */
-    inline void  Registry::_IncreaseStorageSize (ArchetypeStorage *storage, usize addCount) __NE___
+    inline void  Registry::_IncreaseStorageSize (ArchetypeStorage* storage, usize addCount) __NE___
     {
         const usize new_size = storage->Count() + addCount;
 
@@ -357,7 +359,7 @@ DEBUG_ONLY(
     template <typename ...Types>
     void  Registry::RemoveComponents (QueryID query) __NE___
     {
-        STATIC_ASSERT( CountOf<Types...>() > 0 );
+        StaticAssert( CountOf<Types...>() > 0 );
 
         ArchetypeDesc   desc;
         (desc.Add<Types>(), ...);
@@ -394,11 +396,11 @@ DEBUG_ONLY(
     {
         DRC_EXLOCK( _drCheck );
 
-        STATIC_ASSERT( not IsEmpty<T> );
-        STATIC_ASSERT( std::is_standard_layout_v<T> );
-        STATIC_ASSERT( std::is_trivially_copyable_v<T> );
-        STATIC_ASSERT( std::is_trivially_destructible_v<T> );
-        STATIC_ASSERT( std::is_nothrow_destructible_v<T> );
+        StaticAssert( not IsEmpty<T> );
+        StaticAssert( std::is_standard_layout_v<T> );
+        StaticAssert( std::is_trivially_copyable_v<T> );
+        StaticAssert( IsTriviallyDestructible<T> );
+        StaticAssert( std::is_nothrow_destructible_v<T> );
 
         auto&   comp = _singleComponents[ TypeIdOf<T>() ];
         if ( not comp.data )
@@ -601,7 +603,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct CheckForDuplicateComponents< Subtractive<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             template <usize I, typename ArgsList>
             static constexpr bool  Test () __NE___ {
@@ -612,7 +614,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct CheckForDuplicateComponents< Require<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             template <usize I, typename ArgsList>
             static constexpr bool  Test () __NE___ {
@@ -623,7 +625,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct CheckForDuplicateComponents< RequireAny<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             template <usize I, typename ArgsList>
             static constexpr bool  Test () __NE___ {
@@ -638,7 +640,7 @@ DEBUG_ONLY(
             if constexpr( I < ArgsList::Count )
             {
                 constexpr bool is_valid = CheckForDuplicateComponents< typename ArgsList::template Get<I> >::template Test< I, ArgsList >();
-                STATIC_ASSERT( is_valid );
+                StaticAssert( is_valid );
 
                 CheckForDuplicates< ArgsList, I+1 >();
             }
@@ -703,7 +705,7 @@ DEBUG_ONLY(
             if constexpr( I < ArgsList::Count )
             {
                 constexpr bool is_valid = SC_CheckForDuplicateComponents< typename ArgsList::template Get<I> >::template Test< ArgsList, I >();
-                STATIC_ASSERT( is_valid );
+                StaticAssert( is_valid );
 
                 SC_CheckForDuplicates< ArgsList, I+1 >();
             }
@@ -727,14 +729,14 @@ DEBUG_ONLY(
         {
             // check components
             using ChunkArray = typename Args::template Get<0>;
-            STATIC_ASSERT( IsSpecializationOf< ChunkArray, ArrayView >);
+            StaticAssert( IsSpecializationOf< ChunkArray, ArrayView >);
 
             using Chunk = typename ChunkArray::value_type;
-            STATIC_ASSERT( IsSpecializationOf< Chunk, Tuple >);
+            StaticAssert( IsSpecializationOf< Chunk, Tuple >);
 
             using ChunkTL = TypeList< Chunk >;
-            STATIC_ASSERT( ChunkTL::Count > 1 );
-            STATIC_ASSERT( IsSameTypes< typename ChunkTL::template Get<0>, usize >);
+            StaticAssert( ChunkTL::Count > 1 );
+            StaticAssert( IsSameTypes< typename ChunkTL::template Get<0>, usize >);
 
             using CompOnly = typename ChunkTL::PopFront::type;
             using SCTuple  = Tuple<>;
@@ -743,10 +745,10 @@ DEBUG_ONLY(
         template <typename Args>
         struct _SystemFnInfoImpl< Args, 2 > : _SystemFnInfoImpl< Args, 1 >
         {
-            STATIC_ASSERT( Args::Count == 2 );
+            StaticAssert( Args::Count == 2 );
 
             using SCTuple = typename Args::template Get<1>;
-            STATIC_ASSERT( IsSpecializationOf< SCTuple, Tuple >);
+            StaticAssert( IsSpecializationOf< SCTuple, Tuple >);
         };
 
         template <typename Fn>
@@ -801,7 +803,7 @@ DEBUG_ONLY(
     void  Registry::Execute (QueryID query, Fn &&fn) __NE___
     {
         using Args = typename FunctionInfo<Fn>::args;
-        STATIC_ASSERT( Args::Count > 0 );
+        StaticAssert( Args::Count > 0 );
 
         DRC_EXLOCK( _drCheck );
 
@@ -1037,7 +1039,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct ArchetypeCompatibility< Subtractive<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             static bool  Test (const Archetype &arch) __NE___ {
                 return _Test<Types...>( arch );
@@ -1056,7 +1058,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct ArchetypeCompatibility< Require<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             static bool  Test (const Archetype &arch) __NE___ {
                 return _Test<Types...>( arch );
@@ -1075,7 +1077,7 @@ DEBUG_ONLY(
         template <typename ...Types>
         struct ArchetypeCompatibility< RequireAny<Types...> >
         {
-            STATIC_ASSERT( CountOf<Types...>() > 0 );
+            StaticAssert( CountOf<Types...>() > 0 );
 
             static bool  Test (const Archetype &arch) __NE___ {
                 return _Test<Types...>( arch );
@@ -1256,7 +1258,7 @@ DEBUG_ONLY(
     void  Registry::AddEventListener (Fn &&fn) __NE___
     {
         DRC_EXLOCK( _drCheck );
-        STATIC_ASSERT( IsEmpty<Ev> );
+        StaticAssert( IsEmpty<Ev> );
 
         _eventListeners.insert({ TypeIdOf<Ev>(), EventListener_t{ FwdArg<Fn>(fn) }});
     }
@@ -1270,7 +1272,7 @@ DEBUG_ONLY(
     void  Registry::EnqueEvent () __NE___
     {
         DRC_EXLOCK( _drCheck );
-        STATIC_ASSERT( IsEmpty<Ev> );
+        StaticAssert( IsEmpty<Ev> );
 
         _pendingEvents.push_back( [this]()
         {

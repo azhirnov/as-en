@@ -10,24 +10,24 @@ namespace AE::PipelineCompiler
     {
         uint        value   = 0;
 
-        InstanceIndex () {}
-        explicit InstanceIndex (uint v) : value{v} {}
+        InstanceIndex ()                __NE___ {}
+        explicit InstanceIndex (uint v) __NE___ : value{v} {}
     };
 
     struct RayIndex
     {
         uint        value   = 0;
 
-        RayIndex () {}
-        explicit RayIndex (uint v) : value{v} {}
+        RayIndex ()                     __NE___ {}
+        explicit RayIndex (uint v)      __NE___ : value{v} {}
     };
 
     struct CallableIndex
     {
         uint        value   = 0;
 
-        CallableIndex () {}
-        explicit CallableIndex (uint v) : value{v} {}
+        CallableIndex ()                __NE___ {}
+        explicit CallableIndex (uint v) __NE___ : value{v} {}
     };
 
 

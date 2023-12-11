@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_PLATFORM_WINDOWS
-
-# include "base/Platforms/WindowsHeader.h"
+# include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
 # include "base/Algorithms/ArrayUtils.h"
@@ -129,19 +128,20 @@ namespace AE::Base
     _CheckError
 =================================================
 */
-    bool  WindowsUtils::_CheckError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___
+    bool  WindowsUtils::_CheckError (const uint err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___
     {
         if_likely( err == SO_ERROR )
             return true;
 
-        try {
+      #ifdef AE_ENABLE_LOGS
+        TRY{
             char    buf[128] = {};
             DWORD   dw_count = ::FormatMessageA(                        // winxp
                                         FORMAT_MESSAGE_FROM_SYSTEM |
                                         FORMAT_MESSAGE_IGNORE_INSERTS,
                                         null,
                                         err,
-                                        MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT ),
+                                        MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
                                         LPSTR{buf},
                                         uint(CountOf( buf )),
                                         null );
@@ -156,8 +156,11 @@ namespace AE::Base
 
             AE_PRIVATE_LOGX( level, scope, str, loc.file, loc.line );
         }
-        catch (...)
-        {}
+        CATCH_ALL()
+      #else
+        Unused( msg, loc, level, scope );
+      #endif
+
         return false;
     }
 //-----------------------------------------------------------------------------
@@ -219,7 +222,7 @@ namespace
     #pragma pack(push,8)
     typedef struct tagTHREADNAME_INFO
     {
-        DWORD   dwType;         // Must be 0x1000.  
+        DWORD   dwType;         // Must be 0x1000.
         LPCSTR  szName;         // Pointer to name (in user addr space).
         DWORD   dwThreadID;     // Thread ID (-1=caller thread).
         DWORD   dwFlags;        // Reserved for future use, must be zero.
@@ -290,7 +293,7 @@ namespace
 
         name.reserve( 128 );    // throw
 
-        for (; *w_name; ++w_name) { 
+        for (; *w_name; ++w_name) {
             if ( (*w_name >= 0) & (*w_name < 128) )
                 name.push_back( char(*w_name) );
         }
@@ -431,10 +434,10 @@ namespace
 
 /*
 =================================================
-    WaitIO
+    ThreadWaitIO
 =================================================
 */
-    bool  WindowsUtils::WaitIO (milliseconds relativeTime) __NE___
+    bool  WindowsUtils::ThreadWaitIO (milliseconds relativeTime) __NE___
     {
         return ::SleepEx( CheckCast<uint>( relativeTime.count() ), TRUE ) == WAIT_IO_COMPLETION;    // winxp
     }
@@ -467,44 +470,128 @@ namespace
 
 /*
 =================================================
-    SetTimerResolution
+    ThreadSleep_1us
 ----
-    Set minimum resolution for periodic timers.
-
-    Prior to Windows 10, version 2004, this function affects a global Windows setting.
-    For all processes Windows uses the lowest value (that is, highest resolution) requested by any process.
-    Starting with Windows 10, version 2004, this function no longer affects global timer resolution.
-    For processes which call this function, Windows uses the lowest value (that is, highest resolution) requested by any process.
-=================================================
-*
-    bool  WindowsUtils::SetTimerResolution (milliseconds period) __NE___
-    {
-        auto    err = ::timeBeginPeriod( UINT(period.count()) );
-        return (err == TIMERR_NOERROR);
-    }
-
-/*
-=================================================
-    NanoSleep
+    actual: 500ns
 =================================================
 */
-    bool  WindowsUtils::NanoSleep (nanoseconds) __NE___
+    void  WindowsUtils::ThreadSleep_1us () __NE___
     {
-        // TODO: https://gist.github.com/Youka/4153f12cf2e17a77314c
-        //  or NtDelayExecution 
-        return false;
+        for (uint i = 0; i < 5; ++i)
+        {
+            YieldProcessor();   // winvista
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();   // ~100ns
+        }
     }
 
 /*
 =================================================
-    ThreadYield
+    ThreadNanoSleep
+=================================================
+*/
+    void  WindowsUtils::ThreadNanoSleep (nanoseconds relativeTime) __NE___
+    {
+        ASSERT( relativeTime >= nanoseconds{16} );
+        ASSERT( relativeTime <= nanoseconds{512*128} );
+
+        const usize     cnt2 = Min( 512u, usize(relativeTime.count()) / 128 );
+        const usize     cnt1 = (usize(relativeTime.count()) % 128 + 16) / 32;
+
+        for (usize i = 0; i < cnt1; ++i)
+        {
+            YieldProcessor();   // winvista     // ~30ns
+        }
+
+        for (usize i = 0; i < cnt2; ++i)
+        {
+            YieldProcessor();   // winvista
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();
+            YieldProcessor();   // ~130 ns
+        }
+    }
+
+/*
+=================================================
+    _MicroSleepImpl
+----
+    step from docs: 100ns
+    from tests: 100-1000ns = ~10us, 10-100us = ~0.5ms, >0.5ms = exact +-0.5ms
+=================================================
+*/
+    void  WindowsUtils::ThreadSleep_500us () __NE___
+    {
+        if_unlikely( not _MicroSleepImpl( nanoseconds{400'000}, true ))
+        {
+            ThreadNanoSleep( nanoseconds{500'000} );
+        }
+    }
+
+    bool  WindowsUtils::_MicroSleepImpl (nanoseconds relativeTime, bool isWin10v1803) __NE___
+    {
+        ASSERT( relativeTime >= nanoseconds{100} );
+
+        // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION requires Windows 10, version 1803
+        auto    timer = ::CreateWaitableTimerExA( null, null, (isWin10v1803 ? CREATE_WAITABLE_TIMER_HIGH_RESOLUTION : 0), TIMER_ALL_ACCESS );   // winvista
+        if_unlikely( timer == null )
+            return false;
+
+        LARGE_INTEGER   li;
+        li.QuadPart = - Max( 1u, (relativeTime.count() + 50) / 100 );   // negative for relative time
+
+        if_unlikely( ::SetWaitableTimerEx( timer, &li, 0, null, null, FALSE, 0 ) == FALSE )  // win7
+        {
+            ::CloseHandle( timer );
+            return false;
+        }
+
+        ::WaitForSingleObject( timer, INFINITE );
+        ::CloseHandle( timer );
+
+        return true;
+    }
+
+/*
+=================================================
+    ThreadSleep_15ms
+----
+    depends on 'timeBeginPeriod' so set 15ms, by default it will be ~15.6ms
+=================================================
+*/
+    void  WindowsUtils::ThreadSleep_15ms () __NE___
+    {
+        ::Sleep( 14 );
+    }
+
+/*
+=================================================
+    ThreadMilliSleep
+=================================================
+*/
+    void  WindowsUtils::ThreadMilliSleep (milliseconds relativeTime) __NE___
+    {
+        ASSERT( relativeTime.count() > 0 );
+        ::Sleep( DWORD(relativeTime.count()) );
+    }
+
+/*
+=================================================
+    SwitchToPendingThread
 ----
     Causes the calling thread to yield execution to another thread
     that is ready to run on the current processor.
     The operating system selects the next thread to be executed.
+    If not switched it takes ~150ns.
 =================================================
 */
-    bool  WindowsUtils::ThreadYield () __NE___
+    bool  WindowsUtils::SwitchToPendingThread () __NE___
     {
         return ::SwitchToThread();  // winxp
     }
@@ -520,7 +607,7 @@ namespace
 */
     void  WindowsUtils::ThreadPause () __NE___
     {
-        // same as '_mm_pause()' on x64
+        // same as '_mm_pause()' on x64, '__builtin_ia32_pause()' for x86
         YieldProcessor();   // winvista
     }
 
@@ -571,7 +658,7 @@ namespace
             DWORD   size = sizeof(buf);
             if ( ::RegQueryValueExA( key, "ProductName", null, null, buf, INOUT &size ) == ERROR_SUCCESS )  // win2000
             {
-                CATCH_ERR(
+                NOTHROW_ERR(
                     return String{ Cast<char>(buf) };
                 )
             }
@@ -599,7 +686,7 @@ namespace
             auto*   text = Cast< typename DataType::value_type >( ::GlobalLock( data ));
             if_likely( text != null )
             {
-                CATCH(
+                NOTHROW(
                     outResult   = text;  // throw
                     result      = true;
                 )
@@ -675,10 +762,10 @@ namespace
 }
     bool  WindowsUtils::GetLocales (OUT Array<String> &outLocales) __NE___
     {
-        try{
+        TRY{
             return ::EnumUILanguagesA( &EnumUILanguagesProc, MUI_LANGUAGE_NAME, BitCast<LONG_PTR>( &outLocales )) == TRUE;  // win2000
-        }catch (...)
-        {}
+        }
+        CATCH_ALL( return false; )
     }
 
 /*

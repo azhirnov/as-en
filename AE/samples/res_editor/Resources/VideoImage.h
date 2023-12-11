@@ -11,59 +11,87 @@ namespace AE::ResEditor
     // Video Image
     //
 
-    class VideoImage final : public IResource
+    class alignas(AE_CACHE_LINE) VideoImage final : public IResource
     {
     // types
-    public:
-        static constexpr uint   _MaxImages = 4;
+    private:
+        static constexpr uint   _MaxCpuImages   = 8;
+        static constexpr uint   _PosBits        = CT_IntLog2< _MaxCpuImages >;
+        static constexpr uint   _MaxGpuImages   = 4;
 
-        using ImageArr_t    = StaticArray< Strong<ImageID>,     _MaxImages >;
-        using ViewArr_t     = StaticArray< Strong<ImageViewID>, _MaxImages >;
+        struct States
+        {
+            uint    emptyBits       : _MaxCpuImages;    // available for decoding
+            uint    decodedBits     : _MaxCpuImages;    // available for uploading
+            uint    pos             : _PosBits;         // current or next uploading
+
+            States () : emptyBits{UMax}, decodedBits{0}, pos{0} {}
+        };
+
+        StaticAssert( sizeof(States) == sizeof(uint) );
+        StaticAssert( ToBit<uint>( _PosBits ) == _MaxCpuImages );
+
+        using ImageArr_t    = StaticArray< Strong<ImageID>,     _MaxGpuImages >;
+        using ViewArr_t     = StaticArray< Strong<ImageViewID>, _MaxGpuImages >;
         using Second_t      = Video::IVideoDecoder::Second_t;
-        using FrameTimes_t  = StaticArray< Second_t,            _MaxImages >;
+        using FrameTimes_t  = StaticArray< Second_t,            _MaxCpuImages >;
+        using MemArr_t      = StaticArray< ImageMemView,        _MaxCpuImages >;
+        using Allocator_t   = LinearAllocator< UntypedAllocator, _MaxCpuImages, false >;    // use as block allocator
 
 
     // variables
     private:
+        Atomic<uint>                _imageIdx   {0};    // used for '_ids', '_views'
+        BitAtomic<States>           _states;            // used for '_frameTimes', '_imageMemView'
+        FAtomic<double>             _curTime;           // Second_t
+
         ImageArr_t                  _ids;
         ViewArr_t                   _views;
-        FrameTimes_t                _frameTimes;
-        Atomic<uint>                _imageIdx   {0};
 
-        RC<DynamicDim>              _outDynSize;    // triggered when current image has been resized
+        FrameTimes_t                _frameTimes;
+        MemArr_t                    _imageMemView;
+        Allocator_t                 _allocator;
+
+        RC<DynamicDim>              _outDynSize;        // triggered when current image has been resized
         RC<Video::IVideoDecoder>    _decoder;
         uint2                       _dimension;
         ImageStream                 _stream;
+
+        AsyncTask                   _lastDecoding;
 
         const String                _dbgName;
 
 
     // methods
-    private:
-
     public:
         VideoImage (Renderer &          renderer,
                     const ImageDesc &   desc,
                     const VFS::FileName &filename,
                     RC<DynamicDim>      outDynSize,
-                    StringView          dbgName)            __Th___;
+                    StringView          dbgName)                __Th___;
 
         ~VideoImage () override;
 
-            bool  Resize (TransferCtx_t &)                  __Th_OV { return true; }
-            bool  RequireResize ()                          C_Th_OV { return false; }
+            bool  Resize (TransferCtx_t &)                      __Th_OV { return true; }
+            bool  RequireResize ()                              C_Th_OV { return false; }
 
-        ND_ ImageID         GetImageId ()                   C_NE___ { return _ids[ _CurrentIdx() ]; }
-        ND_ ImageViewID     GetViewId ()                    C_NE___ { return _views[ _CurrentIdx() ]; }
-        ND_ StringView      GetName ()                      C_NE___ { return _dbgName; }
+        ND_ ImageID         GetImageId ()                       C_NE___ { return _ids[ _CurrentIdx() ]; }
+        ND_ ImageViewID     GetViewId ()                        C_NE___ { return _views[ _CurrentIdx() ]; }
+        ND_ StringView      GetName ()                          C_NE___ { return _dbgName; }
 
 
     // IResource //
-        EUploadStatus       Upload (TransferCtx_t &)        __Th_OV;
-        EUploadStatus       Readback (TransferCtx_t &)      __Th_OV { return EUploadStatus::Canceled; }
+        EUploadStatus       Upload (TransferCtx_t &)            __Th_OV;
+        EUploadStatus       Readback (TransferCtx_t &)          __Th_OV { return EUploadStatus::Canceled; }
+        void                Cancel ()                           __NE_OV;
 
     private:
-        ND_ uint            _CurrentIdx ()                  C_NE___ { return _imageIdx.load() % _MaxImages; }
+        ND_ uint            _CurrentIdx ()                      C_NE___ { return _imageIdx.load() % _MaxGpuImages; }
+
+            static CoroTask _DecodeFrameTask (RC<VideoImage>)   __NE___;
+        ND_ uint            _DecodeFrame ()                     __NE___;
+
+        ND_ static void     _Validate (States)                  __NE___;
     };
 
 

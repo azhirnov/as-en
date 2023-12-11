@@ -7,7 +7,8 @@ namespace
     static void  Iterators_Test1 ()
     {
         {
-            ArrayView<float>    arr { 1.f, 2.f, 3.f, 4.f, 5.f };
+            const float         temp[] = { 1.f, 2.f, 3.f, 4.f, 5.f };
+            ArrayView<float>    arr {temp};
             usize               j = 0;
 
             for (usize i : IndicesOnly(arr))
@@ -48,13 +49,14 @@ namespace
     static void  Iterators_Test2 ()
     {
         {
-            ArrayView<float>    arr { 1.f, 2.f, 3.f, 4.f, 5.f };
+            const float         temp[] = { 1.f, 2.f, 3.f, 4.f, 5.f };
+            ArrayView<float>    arr {temp};
             usize               j = 0;
 
             for (auto [e, i] : WithIndex(arr))
             {
-                STATIC_ASSERT( IsSameTypes< decltype(e), const float >);
-                STATIC_ASSERT( IsSameTypes< decltype(i), usize >);
+                StaticAssert( IsSameTypes< decltype(e), const float >);
+                StaticAssert( IsSameTypes< decltype(i), usize >);
 
                 TEST( i == j );
                 TEST( e == arr[j] );
@@ -67,8 +69,8 @@ namespace
                 j = 0;
                 for (const auto& [e, i] : WithIndex(arr))       // error in clang
                 {
-                    STATIC_ASSERT( IsSameTypes< decltype(e), const float >);
-                    STATIC_ASSERT( IsSameTypes< decltype(i), const usize >);
+                    StaticAssert( IsSameTypes< decltype(e), const float >);
+                    StaticAssert( IsSameTypes< decltype(i), const usize >);
 
                     TEST( i == j );
                     TEST( e == arr[j] );
@@ -84,8 +86,8 @@ namespace
 
             for (auto&& [e, i] : WithIndex(arr))
             {
-                STATIC_ASSERT( IsSameTypes< decltype(e), float >);
-                STATIC_ASSERT( IsSameTypes< decltype(i), usize >);
+                StaticAssert( IsSameTypes< decltype(e), float >);
+                StaticAssert( IsSameTypes< decltype(i), usize >);
 
                 TEST( i == j );
                 TEST( e == arr[j] );

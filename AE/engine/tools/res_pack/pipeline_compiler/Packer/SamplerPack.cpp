@@ -23,11 +23,11 @@ namespace AE::Graphics
                 this->minFilter             ==  rhs.minFilter           and
                 this->mipmapMode            ==  rhs.mipmapMode          and
                 All( this->addressMode      ==  rhs.addressMode )       and
-                Equals( this->mipLodBias,       rhs.mipLodBias )        and
-                Equals( this->minLod,           rhs.minLod )            and
-                Equals( this->maxLod,           rhs.maxLod )            and
-                Equals( this->maxAnisotropy,    rhs.maxAnisotropy )     and
-                Equals( this->compareOp,        rhs.compareOp )         and
+                Equal( this->mipLodBias,        rhs.mipLodBias )        and
+                Equal( this->minLod,            rhs.minLod )            and
+                Equal( this->maxLod,            rhs.maxLod )            and
+                Equal( this->maxAnisotropy, rhs.maxAnisotropy )     and
+                Equal( this->compareOp,     rhs.compareOp )         and
                 this->borderColor           ==  rhs.borderColor         and
                 this->reductionMode         ==  rhs.reductionMode       and
                 this->unnormalizedCoordinates == rhs.unnormalizedCoordinates;

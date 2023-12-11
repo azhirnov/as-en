@@ -89,7 +89,7 @@ namespace AE::Math
     template <typename T, uint Columns, uint Rows, usize Align>
     struct MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >
     {
-        STATIC_ASSERT( IsAnyFloatPoint<T> );
+        StaticAssert( IsAnyFloatPoint<T> );
 
     // types
     public:
@@ -107,8 +107,8 @@ namespace AE::Math
     private:
         using _Columns_t    = StaticArray< _AlignedVec, Columns >;
 
-        STATIC_ASSERT( Align >= alignof(T) );
-        STATIC_ASSERT( sizeof(_Columns_t) == (AlignUp( sizeof(T) * Rows, Align ) * Columns) );
+        StaticAssert( Align >= alignof(T) );
+        StaticAssert( sizeof(_Columns_t) == (AlignUp( sizeof(T) * Rows, Align ) * Columns) );
 
 
     // variables
@@ -135,7 +135,7 @@ namespace AE::Math
             if constexpr( CountOf<Arg0, Args...>() == Columns )
                 _CopyColumns<0>( arg0, args... );
             else
-                STATIC_ASSERT(  (CountOf<Arg0, Args...>() == Columns * Rows) or
+                StaticAssert(  (CountOf<Arg0, Args...>() == Columns * Rows) or
                                 (CountOf<Arg0, Args...>() == Columns) );
         }
 
@@ -162,21 +162,21 @@ namespace AE::Math
         template <uint Columns2, uint Rows2, usize Align2>
         constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, usize Align2>
         constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyRowMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
         explicit MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
@@ -209,15 +209,15 @@ namespace AE::Math
                 return Column_t{ d[0], d[1], d[2], d[3] };
         }
 
-        template <uint C>   ND_ const Column_t  get ()              C_NE___ { STATIC_ASSERT( C < Columns );  return (*this)[C]; }
+        template <uint C>   ND_ const Column_t  get ()              C_NE___ { StaticAssert( C < Columns );  return (*this)[C]; }
 
 
         // return scalar
         ND_ constexpr const T   operator () (usize c, usize r)      C_NE___ { ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
         ND_ constexpr T &       operator () (usize c, usize r)      __NE___ { ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
 
-        template <uint C, uint R>   ND_ constexpr const T   get ()  C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _columns[C].data[R]; }
-        template <uint C, uint R>   ND_ constexpr T &       get ()  __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _columns[C].data[R]; }
+        template <uint C, uint R>   ND_ constexpr const T   get ()  C_NE___ { StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
+        template <uint C, uint R>   ND_ constexpr T &       get ()  __NE___ { StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
 
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
@@ -242,7 +242,7 @@ namespace AE::Math
         template <uint I, typename Arg0, typename ...Args>
         constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
         {
-            STATIC_ASSERT( IsScalar<Arg0> );
+            StaticAssert( IsScalar<Arg0> );
             _columns[I / Rows].data[I % Rows] = arg0;
 
             if constexpr( I+1 < Columns * Rows )
@@ -252,7 +252,7 @@ namespace AE::Math
         template <uint I, typename Arg0, typename ...Args>
         constexpr void  _CopyColumns (const Arg0 &arg0, const Args& ...args) __NE___
         {
-            STATIC_ASSERT( IsSameTypes< Arg0, Column_t > );
+            StaticAssert( IsSameTypes< Arg0, Column_t > );
             std::memcpy( OUT _columns[I].data, &arg0.x, sizeof(T)*Rows );
 
             if constexpr( I+1 < Columns )
@@ -287,7 +287,7 @@ namespace AE::Math
     template <typename T, uint Rows, uint Columns, usize Align>
     struct MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >
     {
-        STATIC_ASSERT( IsAnyFloatPoint<T> );
+        StaticAssert( IsAnyFloatPoint<T> );
 
     // types
     public:
@@ -306,8 +306,8 @@ namespace AE::Math
     private:
         using _Rows_t       = StaticArray< _AlignedVec, Rows >;
 
-        STATIC_ASSERT( Align >= alignof(T) );
-        STATIC_ASSERT( sizeof(_Rows_t) == (AlignUp( sizeof(T) * Columns, Align ) * Rows) );
+        StaticAssert( Align >= alignof(T) );
+        StaticAssert( sizeof(_Rows_t) == (AlignUp( sizeof(T) * Columns, Align ) * Rows) );
 
 
     // variables
@@ -337,7 +337,7 @@ namespace AE::Math
             if constexpr( CountOf<Arg0, Args...>() == Rows )
                 _CopyRows<0>( arg0, args... );
             else
-                STATIC_ASSERT(  (CountOf<Arg0, Args...>() == Columns * Rows) or
+                StaticAssert(  (CountOf<Arg0, Args...>() == Columns * Rows) or
                                 (CountOf<Arg0, Args...>() == Rows) );
         }
 
@@ -364,21 +364,21 @@ namespace AE::Math
         template <uint Columns2, uint Rows2, usize Align2>
         constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyRowMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, usize Align2>
         constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
         explicit MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
         {
-            STATIC_ASSERT( Columns != Columns2 or Rows != Rows2 );
+            StaticAssert( Columns != Columns2 or Rows != Rows2 );
             _CopyColumnMajor< Columns2, Rows2 >( other );
         }
 
@@ -410,15 +410,15 @@ namespace AE::Math
                 return Row_t{ d[0], d[1], d[2], d[3] };
         }
 
-        template <uint R>   ND_ const Row_t     get ()                  C_NE___ { STATIC_ASSERT( R < Rows );  return (*this)[R]; }
+        template <uint R>   ND_ const Row_t     get ()                  C_NE___ { StaticAssert( R < Rows );  return (*this)[R]; }
 
 
         // return scalar
         ND_ constexpr const T       operator () (usize r, usize c)      C_NE___ { ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
         ND_ constexpr T &           operator () (usize r, usize c)      __NE___ { ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
 
-        template <uint R, uint C>   ND_ constexpr const T   get ()      C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _rows[R].data[C]; }
-        template <uint R, uint C>   ND_ constexpr T &       get ()      __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _rows[R].data[C]; }
+        template <uint R, uint C>   ND_ constexpr const T   get ()      C_NE___ { StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
+        template <uint R, uint C>   ND_ constexpr T &       get ()      __NE___ { StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
 
 
         template <uint Columns2, uint Rows2, glm::qualifier Q>
@@ -443,7 +443,7 @@ namespace AE::Math
         template <uint I, typename Arg0, typename ...Args>
         constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
         {
-            STATIC_ASSERT( IsScalar<Arg0> );
+            StaticAssert( IsScalar<Arg0> );
             _rows[I / Columns].data[I % Columns] = arg0;
 
             if constexpr( I+1 < Columns * Rows )
@@ -453,7 +453,7 @@ namespace AE::Math
         template <uint I, typename Arg0, typename ...Args>
         constexpr void  _CopyRows (const Arg0 &arg0, const Args& ...args) __NE___
         {
-            STATIC_ASSERT( IsSameTypes< Arg0, Row_t > );
+            StaticAssert( IsSameTypes< Arg0, Row_t > );
             std::memcpy( OUT _rows[I].data, &arg0.x, sizeof(T)*Columns );
 
             if constexpr( I+1 < Rows )
@@ -486,11 +486,12 @@ namespace AE::Math
 namespace AE::Base
 {
     template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-    struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>      { static constexpr bool  value = IsMemCopyAvailable<T>; };
 
     template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-    struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>      { static constexpr bool  value = IsZeroMemAvailable<T>; };
 
+    // alignment is same on all platforms
     template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
     struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsTriviallySerializable<T>; };
 

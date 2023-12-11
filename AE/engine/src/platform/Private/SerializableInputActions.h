@@ -33,8 +33,8 @@ namespace AE::App
             VecSwizzle          swizzle     = VecSwizzle::VecDefault(4);
             PackedScale4_t      scale       {float4{1.0f}};
 
-            ScriptActionInfo () {}
-            ScriptActionInfo (StringView a, EValueType t, EGestureType g, VecSwizzle sw, const PackedScale4_t &sc) :
+            ScriptActionInfo () __NE___ {}
+            ScriptActionInfo (StringView a, EValueType t, EGestureType g, VecSwizzle sw, const PackedScale4_t &sc) __NE___ :
                 action{a}, type{t}, gesture{g}, swizzle{sw}, scale{sc} {}
         };
 
@@ -86,6 +86,10 @@ namespace AE::App
         {
             ActionMap_t     actions;
             bool            lockAndHideCursor   = false;    // lock into window (for shooter game)
+
+            InputMode ()                    __NE___ = default;
+            InputMode (const InputMode &)   __NE___ = default;
+            InputMode (InputMode &&)        __NE___ = default;
         };
 
         using ModeMap_t = FixedMap< InputModeName, InputMode, _MaxModes >;

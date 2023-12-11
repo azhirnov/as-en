@@ -61,7 +61,7 @@ namespace AE::Base
         CHECK_ERR( dstStream.IsOpen() and srcDS.IsOpen() );
         CHECK_ERR( buffer.size > 0 and buffer.ptr != null );
 
-        const Bytes align   = srcDS.OffsetAlign();
+        const Bytes align   = 1_b; //srcDS.OffsetAlign();
         Bytes       copied;
         Bytes       offset;
 

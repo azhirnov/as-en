@@ -27,10 +27,10 @@ namespace AE::NS
     public:
         Object ()                                   __NE___ = default;
         Object (const Object& other)                __NE___;
-        Object (Object && other)                    __NE___;
+        Object (Object &&other)                     __NE___;
 
-        Object& operator = (const Object& rhs)      __NE___;
-        Object& operator = (Object && rhs)          __NE___;
+        Object& operator = (const Object &rhs)      __NE___;
+        Object& operator = (Object &&rhs)           __NE___;
 
         virtual ~Object ()                          __NE___;
 
@@ -99,7 +99,7 @@ namespace AE::NS
     {
     // types
     public:
-        STATIC_ASSERT( Base::IsBaseOf< ObjectRef, T >);
+        StaticAssert( Base::IsBaseOf< ObjectRef, T >);
 
         using Self = ObjStrongPtr<T>;
 

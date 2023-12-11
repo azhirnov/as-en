@@ -30,7 +30,7 @@ namespace AE::AssetPacker
     // Image Packer
     //
 
-    class ImagePacker final 
+    class ImagePacker final
     {
     // types
     public:
@@ -54,8 +54,8 @@ namespace AE::AssetPacker
             ND_ ImageDesc       ToDesc ()       C_NE___;
             ND_ ImageViewDesc   ToViewDesc ()   C_NE___;
         };
-        STATIC_ASSERT( sizeof(Header) == 16 );
-        STATIC_ASSERT( alignof(Header) == 2 );
+        StaticAssert( sizeof(Header) == 16 );
+        StaticAssert( alignof(Header) == 2 );
 
 
         struct Header2
@@ -67,7 +67,7 @@ namespace AE::AssetPacker
             Header2 ()                          __NE___ = default;
             explicit Header2 (const Header &h)  __NE___ : hdr{h} {};
         };
-        STATIC_ASSERT( sizeof(Header2) == 24 );
+        StaticAssert( sizeof(Header2) == 24 );
 
 
     // variables

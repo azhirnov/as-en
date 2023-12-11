@@ -106,7 +106,7 @@ namespace AE::App
 */
     bool  SerializableInputActions::Merge (const SerializableInputActions &other)
     {
-        for (auto [name, mode] : other._modeMap) 
+        for (auto [name, mode] : other._modeMap)
         {
             CHECK_ERR( not _modeMap.contains( name ));
             CHECK_ERR( _modeMap.emplace( name, mode ).first != Default );
@@ -238,7 +238,7 @@ namespace AE::App
             binder.AddValue( "Click",           EGestureType::Click             );
             binder.AddValue( "LongPress",       EGestureType::LongPress         );
             binder.AddValue( "DoubleClick",     EGestureType::DoubleClick       );
-            STATIC_ASSERT( uint(EGestureType::_Count) == 8 );
+            StaticAssert( uint(EGestureType::_Count) == 8 );
         }
 
         // EValueType
@@ -255,7 +255,7 @@ namespace AE::App
             binder.AddValue( "Quat",        EValueType::Quat        );
             binder.AddValue( "Float4x4",    EValueType::Float4x4    );
             binder.AddValue( "String",      EValueType::String      );
-            STATIC_ASSERT( uint(EValueType::_Count) == 9 );
+            StaticAssert( uint(EValueType::_Count) == 9 );
         }
 
         // ScriptActionInfo
@@ -297,38 +297,38 @@ namespace AE::App
                     PackedScale4_t  packed{ scale };
                     packed_float4   temp{ packed };
 
-                    CHECK_THROW_MSG( Equals( temp.x, scale.x, PackedScaleEpsilon ));
-                    CHECK_THROW_MSG( Equals( temp.y, scale.y, PackedScaleEpsilon ));
-                    CHECK_THROW_MSG( Equals( temp.z, scale.z, PackedScaleEpsilon ));
-                    CHECK_THROW_MSG( Equals( temp.w, scale.w, PackedScaleEpsilon ));
+                    CHECK_THROW_MSG( Equal( temp.x, scale.x, PackedScaleEpsilon ));
+                    CHECK_THROW_MSG( Equal( temp.y, scale.y, PackedScaleEpsilon ));
+                    CHECK_THROW_MSG( Equal( temp.z, scale.z, PackedScaleEpsilon ));
+                    CHECK_THROW_MSG( Equal( temp.w, scale.w, PackedScaleEpsilon ));
 
                     return packed;
                 }
 
 
                 static void  Ctor1 (OUT void* mem, const String &action) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, EValueType::Unknown, EGestureType::Unknown, VecSwizzle{}, DefaultScale() ); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, EValueType::Unknown, EGestureType::Unknown, VecSwizzle{}, DefaultScale() );
                 }
                 static void  Ctor2 (OUT void* mem, const String &action, EValueType type) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, EGestureType::Unknown, VelueTypeToSwizzle(type), DefaultScale() ); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, EGestureType::Unknown, VelueTypeToSwizzle(type), DefaultScale() );
                 }
                 static void  Ctor2_1 (OUT void* mem, const String &action, EValueType type, const packed_float4 &scale) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, EGestureType::Unknown, VelueTypeToSwizzle(type), ConvertScale( scale )); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, EGestureType::Unknown, VelueTypeToSwizzle(type), ConvertScale( scale ));
                 }
                 static void  Ctor3 (OUT void* mem, const String &action, EGestureType gesture) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, EValueType::Unknown, gesture, VecSwizzle{}, DefaultScale() ); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, EValueType::Unknown, gesture, VecSwizzle{}, DefaultScale() );
                 }
                 static void  Ctor4 (OUT void* mem, const String &action, EValueType type, EGestureType gesture) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, VelueTypeToSwizzle(type), DefaultScale() ); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, VelueTypeToSwizzle(type), DefaultScale() );
                 }
                 static void  Ctor4_1 (OUT void* mem, const String &action, EValueType type, EGestureType gesture, const packed_float4 &scale) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, VelueTypeToSwizzle(type), ConvertScale( scale )); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, VelueTypeToSwizzle(type), ConvertScale( scale ));
                 }
                 static void  Ctor5 (OUT void* mem, const String &action, EValueType type, EGestureType gesture, const VecSwizzle &swizzle) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, swizzle, DefaultScale() ); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, swizzle, DefaultScale() );
                 }
                 static void  Ctor5_1 (OUT void* mem, const String &action, EValueType type, EGestureType gesture, const VecSwizzle &swizzle, const packed_float4 &scale) {
-                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, swizzle, ConvertScale( scale )); // throw
+                    PlacementNew<ScriptActionInfo>( OUT mem, action, type, gesture, swizzle, ConvertScale( scale ));
                 }
             };
 
@@ -368,10 +368,10 @@ namespace AE::App
         info.swizzle    = value.swizzle;
         info.scale      = value.scale;
 
-        CHECK_THROW_MSG( Equals( info.scale.x.GetFast(), info.scale.x.Get(), PackedScaleEpsilon ));
-        CHECK_THROW_MSG( Equals( info.scale.y.GetFast(), info.scale.y.Get(), PackedScaleEpsilon ));
-        CHECK_THROW_MSG( Equals( info.scale.z.GetFast(), info.scale.z.Get(), PackedScaleEpsilon ));
-        CHECK_THROW_MSG( Equals( info.scale.w.GetFast(), info.scale.w.Get(), PackedScaleEpsilon ));
+        CHECK_THROW_MSG( Equal( info.scale.x.GetFast(), info.scale.x.Get(), PackedScaleEpsilon ));
+        CHECK_THROW_MSG( Equal( info.scale.y.GetFast(), info.scale.y.Get(), PackedScaleEpsilon ));
+        CHECK_THROW_MSG( Equal( info.scale.z.GetFast(), info.scale.z.Get(), PackedScaleEpsilon ));
+        CHECK_THROW_MSG( Equal( info.scale.w.GetFast(), info.scale.w.Get(), PackedScaleEpsilon ));
 
         _refl->Add( info.name, value.action );
         _self->_hashCollisionCheck.Add( info.name, value.action );

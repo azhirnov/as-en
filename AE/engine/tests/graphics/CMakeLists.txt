@@ -25,7 +25,6 @@ if (TARGET "Graphics")
     target_compile_definitions( "Tests.Graphics" PRIVATE
         AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
         AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
-        AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
     )
 
     if (TARGET "OfflinePacker")
@@ -39,15 +38,22 @@ if (TARGET "Graphics")
         add_dependencies( "PACK_RES" "Tests.Graphics.PackRes" )
     endif()
 
-    if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
+    if (DEFINED ANDROID AND ${AE_ENABLE_VULKAN})
         target_compile_definitions( "Tests.Graphics" PRIVATE
+            AE_REFDUMP_PATH="tests_graphics_vulkan_refdump"
+            AE_REF_IMG_PATH="tests_graphics_vulkan_refimg"
+            AE_RES_PACK="pipelines.bin" )
+
+    elseif (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
+        target_compile_definitions( "Tests.Graphics" PRIVATE
+            AE_REFDUMP_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Vulkan/ref"
             AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
             AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/vk/pipelines.bin" )
 
     elseif (${AE_ENABLE_METAL})
         target_compile_definitions( "Tests.Graphics" PRIVATE
             AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/metal"
-            AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/mac/pipelines.bin"  )
+            AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/mac/pipelines.bin" )
     endif()
 
     if (NOT ${AE_CI_BUILD_NO_GRAPHICS})

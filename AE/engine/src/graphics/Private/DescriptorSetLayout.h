@@ -30,7 +30,7 @@
         template <EDescriptorType DescType>
         ND_ Uniforms_t                  GetUniformRange ()      C_NE___
         {
-            STATIC_ASSERT(  DescType != EDescriptorType::ImmutableSampler and
+            StaticAssert(   DescType != EDescriptorType::ImmutableSampler and
                             DescType <  EDescriptorType::_Count );
 
             const bool      has_upd_tmpl = _uniforms.Get<3>() != null;

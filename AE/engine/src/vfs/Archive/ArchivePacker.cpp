@@ -261,14 +261,14 @@ namespace AE::VFS
     bool  ArchivePacker::AddArchive (const Path &filename)
     {
         ArchiveStaticStorage    tmp_archive;
-        CHECK_ERR( tmp_archive.Create( filename ));
+        CHECK_ERR( tmp_archive._Create( filename ));
         return _AddArchive( tmp_archive );
     }
 
     bool  ArchivePacker::AddArchive (RC<RDataSource> archiveDS)
     {
         ArchiveStaticStorage    tmp_archive;
-        CHECK_ERR( tmp_archive.Create( archiveDS ));
+        CHECK_ERR( tmp_archive._Create( archiveDS ));
         return _AddArchive( tmp_archive );
     }
 

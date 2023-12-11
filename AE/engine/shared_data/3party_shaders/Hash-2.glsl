@@ -72,8 +72,8 @@ float  HEHash12 (int2 uv) { return HEHash12( uint2(uv) ); }
 uint3 _IWeylConst ()
 {
     return uint3(
-        0x3504f333u,    // W0 = 3*2309*128413 
-        0xf1bbcdcbu,    // W1 = 7*349*1660097 
+        0x3504f333u,    // W0 = 3*2309*128413
+        0xf1bbcdcbu,    // W1 = 7*349*1660097
         741103597u      // M = 13*83*686843
     );
 }
@@ -138,7 +138,7 @@ ND_ float  Hash_Gaussianish (const float2 n, const float seed)
 {
     const float t = Fract( seed );
     const float nrnd0 = nrand( n + 0.07*t );
-    const float nrnd1 = nrand( n + 0.11*t );    
+    const float nrnd1 = nrand( n + 0.11*t );
     const float nrnd2 = nrand( n + 0.13*t );
     const float nrnd3 = nrand( n + 0.17*t );
     return (nrnd0+nrnd1+nrnd2+nrnd3) / 4.0;
@@ -148,7 +148,7 @@ ND_ float  Hash_MoarGaussianish (const float2 n, const float seed)
 {
     const float t = Fract( seed );
     const float nrnd0 = nrand( n + 0.07*t );
-    const float nrnd1 = nrand( n + 0.11*t );    
+    const float nrnd1 = nrand( n + 0.11*t );
     const float nrnd2 = nrand( n + 0.13*t );
     const float nrnd3 = nrand( n + 0.17*t );
 

@@ -35,20 +35,20 @@ namespace AE::Base
         static constexpr uint   _MaxFrameBits   = _FrameBits + 1;
         static constexpr uint   _CounterBits    = CT_SizeOfInBits<Value_t> - _FrameBits - _MaxFrameBits;
 
-        STATIC_ASSERT( ToBit<uint>( _FrameBits ) == _MaxFrames );
-        STATIC_ASSERT( ToBitMask<uint>( _MaxFrameBits ) >= _MaxFrames );
+        StaticAssert( ToBit<uint>( _FrameBits ) == _MaxFrames );
+        StaticAssert( ToBitMask<uint>( _MaxFrameBits ) >= _MaxFrames );
 
         enum class _EFrameUID : Value_t {};
 
         struct _Bits
         {
-            Value_t     counter     : _CounterBits;     // unique frame index,                                          
+            Value_t     counter     : _CounterBits;     // unique frame index,
             Value_t     index       : _FrameBits;       // non-unique frame index in range [0 .. GraphicsCreateInfo::MaxFrames)
             Value_t     maxFrames   : _MaxFrameBits;    // value in range [0 .. GraphicsCreateInfo::MaxFrames]
         };
 
-        STATIC_ASSERT( sizeof(_Bits) == sizeof(Value_t) );
-        STATIC_ASSERT( _CounterBits >= 28 );
+        StaticAssert( sizeof(_Bits) == sizeof(Value_t) );
+        StaticAssert( _CounterBits >= 28 );
 
 
     // variables
@@ -82,7 +82,7 @@ namespace AE::Base
         ND_ bool  operator >=  (const FrameUID &rhs)            C_NE___ { return not (*this < rhs); }
 
 
-        ND_ _EFrameUID  Unique ()                               C_NE___ { return _EFrameUID(_bits.counter); }   // use 'ulong(f.Unique())' or other cast
+        ND_ Value_t     Unique ()                               C_NE___ { return _bits.counter; }
         ND_ uint        Index ()                                C_NE___ { return uint(_bits.index); }
         ND_ uint        PrevIndex ()                            C_NE___ { return uint((_bits.index - 1) % _bits.maxFrames); }
         ND_ uint        NextIndex ()                            C_NE___ { return uint((_bits.index + 1) % _bits.maxFrames); }
@@ -90,7 +90,7 @@ namespace AE::Base
         ND_ bool        IsValid ()                              C_NE___ { return _bits.maxFrames > 0; }
 
         ND_ FrameUID    Next ()                                 C_NE___ { return FrameUID{*this}.Inc(); }
-        ND_ FrameUID    NextCycle ()                            C_NE___ { return FrameUID{ _bits.counter + _bits.maxFrames, 0, MaxFrames() }; }
+        ND_ FrameUID    NextCycle ()                            C_NE___ { return FrameUID{ _bits.counter + _bits.maxFrames, _bits.index, MaxFrames() }; }
         ND_ SValue_t    Diff (FrameUID rhs)                     C_NE___ { return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter); }
 
         template <typename T> ND_ T  Remap (T maxValue)         C_NE___ { return T(_bits.counter % maxValue); }
@@ -113,6 +113,7 @@ namespace AE::Base
             if_likely( _bits.counter >= delta )
             {
                 FrameUID    id{ _bits.counter - delta, 0, MaxFrames() };
+                id._bits.index = id._bits.counter % MaxFrames();
                 ASSERT( id.Unique() < Unique() );
                 return {id};
             }
@@ -130,6 +131,12 @@ namespace AE::Base
             ASSERT( maxFrames <= _MaxFrames );
             ASSERT( idx < maxFrames );
             return FrameUID{ 0, idx, maxFrames };
+        }
+
+        ND_ static FrameUID  FromUnique (Value_t uid, uint maxFrames) __NE___
+        {
+            ASSERT( maxFrames <= _MaxFrames );
+            return FrameUID{ uid, uid % maxFrames, maxFrames };
         }
 
         ND_ static FrameUID  Init (uint maxFrames)              __NE___
@@ -171,12 +178,12 @@ namespace AE::Base
 
         void  store (FrameUID value)                            __NE___
         {
-        #ifdef AE_DEBUG
+          #ifdef AE_DEBUG
             FrameUID    old = BitCast<FrameUID>( _value.exchange( BitCast<Value_t>( value )));
             ASSERT( value == Default or old.Unique() <= value.Unique() );
-        #else
+          #else
             _value.store( BitCast<Value_t>( value ));
-        #endif
+          #endif
         }
 
         // increase counter and return new value

@@ -13,7 +13,7 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    Renderer::Renderer (uint seed) :
+    Renderer::Renderer (uint seed) __Th___ :
         _lastUpdateTime{ TimePoint_t::clock::now() },
         _seed{ seed }
     {
@@ -60,7 +60,7 @@ namespace AE::ResEditor
         if ( _controller )
         {
             // validate time
-            const secondsf  dt = Min( RenderTaskScheduler().GetFrameTimeDelta(), secondsf{1.f/30.f} );
+            const secondsf  dt = Min( GraphicsScheduler().GetFrameTimeDelta(), secondsf{1.f/30.f} );
 
             _controller->ProcessInput( reader, dt );
         }
@@ -75,7 +75,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( IA.actionCount == 9 );
+            StaticAssert( IA.actionCount == 9 );
             switch ( uint{hdr.name} )
             {
                 // compatible with UI
@@ -158,9 +158,14 @@ namespace AE::ResEditor
             _lastUpdateTime  = time;
             _frameCounter    ++;
 
-            float2  surf_size {1.f};
-            if ( auto  surf = rg.GetSurface() )
-                surf_size = surf->GetTargetSizes()[0];
+            float2  surf_size   {1.f};
+            float   pix_to_mm   = 1.f;
+            if ( auto  surf = rg.GetSurface() ) {
+                if ( auto  infos = surf->GetTargetInfo();  not infos.empty() ) {
+                    surf_size   = infos[0].dimension;
+                    pix_to_mm   = infos[0].pixToMm;
+                }
+            }
 
             auto    input = _input.ReadNoLock();
             SHAREDLOCK( input );
@@ -168,6 +173,7 @@ namespace AE::ResEditor
             update_pd.unormCursorPos= input->cursorPos / surf_size;
             update_pd.pressed       = input->pressed;
             update_pd.customKeys    = input->customKeys;
+            update_pd.pixToMm       = pix_to_mm;
         }
 
         // setup shader debugger
@@ -385,7 +391,7 @@ namespace AE::ResEditor
         update_pd.frameId   = _frameCounter;
         update_pd.seed      = _seed;
 
-        return ui_batch.Task( _ExportPasses( RVRef(export_passes), GetRC(), update_pd ))
+        return ui_batch.Task( _ExportPasses( RVRef(export_passes), GetRC<Renderer>(), update_pd ))
                         .Run( Tuple{ inDeps, surf_acquire });
     }
 

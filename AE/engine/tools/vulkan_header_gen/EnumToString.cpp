@@ -71,7 +71,7 @@ namespace
             HashSet<StringView>     values;
 
             for (auto it = fields.begin(); it != fields.end();)
-            {   
+            {
                 if ( not values.insert( it->value ).second )
                 {
                     AE_LOGI( "Removed duplicated enum: "s << it->name << " = " << it->value );
@@ -144,7 +144,7 @@ namespace
         };
 
         const char*     req_const_set[] = { "VkPipelineStageFlagBits2", "VkAccessFlagBits2" };
-        const char*     ext_names[]     = { "_EXT", "_KHR", "_AMD", "_NV", "_NVX", "_HUAWEI", "_QCOM", 
+        const char*     ext_names[]     = { "_EXT", "_KHR", "_AMD", "_NV", "_NVX", "_HUAWEI", "_QCOM",
                                             "_BIT" };
         const char*     except_str[]    = { "_MAX_ENUM" };
         usize           prefix_size     = 0;

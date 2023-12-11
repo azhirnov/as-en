@@ -121,11 +121,11 @@ namespace AE::ECS
         auto&   msg = iter->second;
 
         if ( msg.entities.empty() )
-            CATCH_ERR( _pending.push_back( &msg ));
+            NOTHROW_ERR( _pending.push_back( &msg ));
 
         ASSERT( msg.components.empty() );
 
-        CATCH_ERR( msg.entities.push_back( id ));
+        NOTHROW_ERR( msg.entities.push_back( id ));
         return true;
     }
 
@@ -147,15 +147,15 @@ namespace AE::ECS
         auto&   msg = iter->second;
 
         if ( msg.entities.empty() )
-            CATCH_ERR( _pending.push_back( &msg ));
+            NOTHROW_ERR( _pending.push_back( &msg ));
 
         ASSERT( msg.entities.empty() or not msg.components.empty() );
         ASSERT( comp.size() );
 
-        CATCH_ERR( msg.components.resize( (msg.entities.size() + 1) * comp.size() ));
+        NOTHROW_ERR( msg.components.resize( (msg.entities.size() + 1) * comp.size() ));
         MemCopy( OUT msg.components.data() + Bytes{msg.entities.size() * comp.size()}, comp.data(), ArraySizeOf( comp ));
 
-        CATCH_ERR( msg.entities.push_back( id ));
+        NOTHROW_ERR( msg.entities.push_back( id ));
         return true;
     }
 
@@ -187,9 +187,9 @@ namespace AE::ECS
 
         if constexpr( FI::args::Count == 1 )
         {
-            STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
-            //STATIC_ASSERT( not IsSameTypes< Tag, MsgTag_RemovedComponent >);
-            CATCH_ERR(
+            StaticAssert( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
+            //StaticAssert( not IsSameTypes< Tag, MsgTag_RemovedComponent >);
+            NOTHROW_ERR(
                 msg.listeners.push_back(
                     [fn = FwdArg<Fn>(fn)] (const MessageData &data)
                     {
@@ -200,9 +200,9 @@ namespace AE::ECS
 
         if constexpr( FI::args::Count == 2 )
         {
-            STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
-            STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<1>, ArrayView<Comp>> );
-            CATCH_ERR(
+            StaticAssert( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
+            StaticAssert( IsSameTypes<typename FI::args::template Get<1>, ArrayView<Comp>> );
+            NOTHROW_ERR(
                 msg.listeners.push_back(
                     [fn = FwdArg<Fn>(fn)] (const MessageData &data)
                     {
@@ -232,17 +232,17 @@ namespace AE::ECS
         auto&   msg = iter->second;
 
         if ( msg.entities.empty() )
-            CATCH_ERR( _pending.push_back( &msg ));
+            NOTHROW_ERR( _pending.push_back( &msg ));
 
         ASSERT( msg.entities.empty() or not msg.components.empty() );
         ASSERT( compData.size() );
         ASSERT( ids.size() );
 
         const usize comp_size = compData.size() / ids.size();
-        CATCH_ERR( msg.components.resize( (msg.entities.size() + 1) * comp_size ));
+        NOTHROW_ERR( msg.components.resize( (msg.entities.size() + 1) * comp_size ));
         MemCopy( OUT msg.components.data() + Bytes{msg.entities.size() * comp_size}, compData.data(), ArraySizeOf( compData ));
 
-        CATCH_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
+        NOTHROW_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
         return true;
     }
 
@@ -264,11 +264,11 @@ namespace AE::ECS
         auto&   msg = iter->second;
 
         if ( msg.entities.empty() )
-            CATCH_ERR( _pending.push_back( &msg ));
+            NOTHROW_ERR( _pending.push_back( &msg ));
 
         ASSERT( msg.components.empty() );
 
-        CATCH_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
+        NOTHROW_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
         return true;
     }
 

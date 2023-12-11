@@ -1378,7 +1378,7 @@ namespace
 
             header  << storage.GetShaderExtensionsGLSL( INOUT spv_ver, EShaderStages::Fragment, _features )
                     << dsl_hdr
-                    << "layout(set=0, binding=0, " 
+                    << "layout(set=0, binding=0, "
                     << (IsStd430( _layout ) ? "std430" : "std140")
                     << ") buffer BufType {\n"
                     << dsl_src
@@ -1482,7 +1482,7 @@ namespace
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << ")"; 
+                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << ")";
             }
         }else
         if ( field.IsMat() )
@@ -1499,7 +1499,7 @@ namespace
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << " = (_src_)." << vec_field_names[r] << ")"; 
+                str << (r ? ", " : "") << "(_fieldName_ ## _" << vec_field_names[r] << " = (_src_)." << vec_field_names[r] << ")";
             }
         }else
         if ( field.IsMat() )
@@ -1546,7 +1546,7 @@ namespace
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "src." << vec_field_names[r]; 
+                str << (r ? ", " : "") << "src." << vec_field_names[r];
             }
         }else
         if ( field.IsMat() )
@@ -1562,7 +1562,7 @@ namespace
         if ( field.IsVec() )
         {
             for (ubyte r = 0; r < field.rows; ++r) {
-                str << (r ? ", " : "") << "src." << vec_field_names[r]; 
+                str << (r ? ", " : "") << "src." << vec_field_names[r];
             }
         }else
         if ( field.IsMat() )
@@ -2304,14 +2304,14 @@ namespace {
             src << ";\n";
 
             if ( not field.IsDynamicArray() )
-                test << "\tSTATIC_ASSERT( offsetof(" << Typename() << ", " << field.name << ") == " << ToString(usize( field.offset )) << " );\n";
+                test << "\tStaticAssert( offsetof(" << Typename() << ", " << field.name << ") == " << ToString(usize( field.offset )) << " );\n";
         }
         src << "\t};\n"
             << "#endif\n"
             << test;
 
         if ( _size > 0 ) {
-            src << "\tSTATIC_ASSERT( sizeof(" << Typename() << ") == " << ToString(usize( AlignUp( _size, _align ))) << " );\n";
+            src << "\tStaticAssert( sizeof(" << Typename() << ") == " << ToString(usize( AlignUp( _size, _align ))) << " );\n";
         }
         src << "\n";
 
@@ -2490,7 +2490,7 @@ namespace {
                 auto&   dst = arr.emplace_back();
                 dst.type    = type;
                 dst.index   = CheckCast<ubyte>(loc++);
-                dst.offset  = Bytes16u{field.offset};
+                dst.offset  = Byte16u{field.offset};
 
                 TestFeature_VertexType( _features, &FeatureSet::vertexFormats, type, "vertexFormats" );  // throw
             }
@@ -2724,7 +2724,7 @@ namespace {
             binder.Comment( "Used as buffer reference in shader. Layout must be same between shaders in single platform.\n"
                             "Reflection to C++ is not enabled, use 'BufferLayout' to enable it." );
             binder.AddValue( "BufferReference", EUsage::BufferReference );
-            STATIC_ASSERT( uint(EUsage::All) == 31 );
+            StaticAssert( uint(EUsage::All) == 31 );
         }
         {
             ClassBinder<ShaderStructType>   binder{ se };

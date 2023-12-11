@@ -37,7 +37,7 @@ namespace AE::Graphics
 
     // methods
     protected:
-        RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___;
+        RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __NE___;
 
         enum class _DelayedInit {};
         explicit RenderTask (_DelayedInit)              __NE___ :
@@ -138,7 +138,7 @@ namespace AE::Graphics
     // methods
     public:
         template <typename Fn>
-        RenderTaskFn (Fn && fn, RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
+        RenderTaskFn (Fn &&fn, RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
             RenderTask{ RVRef(batch), dbg },
             _fn{ FwdArg<Fn>(fn) }
         {}
@@ -164,7 +164,7 @@ namespace AE::Graphics
     constructor
 =================================================
 */
-    inline RenderTask::RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
+    inline RenderTask::RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __NE___ :
         IAsyncTask{ ETaskQueue::Renderer },
         _batch{ RVRef(batch) },
         _exeIndex{ _GetPool().Acquire() }
@@ -172,7 +172,7 @@ namespace AE::Graphics
             _dbgName{ dbg.label },
             _dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
     {
-        CHECK_THROW( IsValid() );   // command buffer pool overflow
+        ASSERT( IsValid() );    // command buffer pool overflow
         Unused( dbg );
     }
 
@@ -206,10 +206,13 @@ namespace AE::Graphics
         ASSERT( not IsValid() );
         ASSERT( not GetBatchPtr()->IsSubmitted() );
 
-        if ( _submit )
+        if_unlikely( _submit )
         {
             _submit = false;
-            CHECK_THROW( GetBatchPtr()->_Submit() );    // throw
+            if_unlikely( not GetBatchPtr()->_Submit() )
+            {
+                OnFailure();
+            }
         }
 
         DBG_GRAPHICS_ONLY( _DbgCheckFrameId();)
@@ -280,7 +283,7 @@ namespace AE::Graphics
                 case EQueueType::Graphics :         return DebugLabel::ColorTable::GraphicsQueue;
                 case EQueueType::AsyncCompute :     return DebugLabel::ColorTable::AsyncComputeQueue;
                 case EQueueType::AsyncTransfer :    return DebugLabel::ColorTable::AsyncTransfersQueue;
-                case EQueueType::VideoEncode :      
+                case EQueueType::VideoEncode :
                 case EQueueType::VideoDecode :
                 case EQueueType::Unknown :
                 case EQueueType::_Count :           break;
@@ -323,12 +326,12 @@ namespace AE::Threading::_hidden_
 
             ND_ RenderTaskCoro      get_return_object ()        __NE___ { return RenderTaskCoro{ *this }; }
 
-            ND_ std::suspend_always initial_suspend ()          C_NE___ { return {}; }          // delayed start
-            ND_ std::suspend_always final_suspend ()            C_NE___ { return {}; }          // must not be 'suspend_never'  // TODO: don't suspend
+            ND_ std::suspend_always initial_suspend ()          C_NE___ { return {}; }  // delayed start
+            ND_ std::suspend_always final_suspend ()            C_NE___ { return {}; }  // must not be 'suspend_never'
 
                 void                return_void ()              C_NE___ {}
 
-                void                unhandled_exception ()      C_Th___ { throw; }              // rethrow exceptions
+                void                unhandled_exception ()      C_Th___ { throw; }      // rethrow exceptions
 
         public:
                 void  Cancel ()                                 __NE___ { Unused( RenderTask::_SetCancellationState() ); }

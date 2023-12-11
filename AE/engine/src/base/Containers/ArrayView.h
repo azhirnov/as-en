@@ -37,8 +37,8 @@ namespace AE::Base
         constexpr ArrayView (T const* ptr, usize count)         __NE___ : _array{ptr}, _count{count}  { ASSERT( (_count == 0) or (_array != null) ); }
         constexpr ArrayView (T const* begin, T const* end)      __NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}  { ASSERT( begin <= end ); }
 
-        template <typename = DisableIf< IsStaticArray<T> or IsArray<T> >
-                 >
+        // warning: initializer_list allocated on stack!
+        template <DISABLEIF( IsStaticArray<T> or IsArray<T> )>
         constexpr ArrayView (std::initializer_list<T> list)     __NE___ : _array{list.begin()}, _count{list.size()} {}
 
         template <typename AllocT>
@@ -189,8 +189,8 @@ namespace AE::Base
     template <typename R>
     constexpr EnableIf<IsTrivial<T> and IsTrivial<R>, ArrayView<R>>  ArrayView<T>::Cast () C_NE___
     {
-        STATIC_ASSERT( alignof(R) >= alignof(T) );
-        STATIC_ASSERT( sizeof(R) > sizeof(T) ? IsMultipleOf( sizeof(R), sizeof(T) ) : IsMultipleOf( sizeof(T), sizeof(R) ));
+        StaticAssert( alignof(R) >= alignof(T) );
+        StaticAssert( sizeof(R) > sizeof(T) ? IsMultipleOf( sizeof(R), sizeof(T) ) : IsMultipleOf( sizeof(T), sizeof(R) ));
 
         return ArrayView<R>{ static_cast<const R*>(static_cast<const void *>( _array )), (_count * sizeof(T)) / sizeof(R) };
     }
@@ -206,7 +206,11 @@ namespace AE::Base
         ASSERT( it >= begin() and it < end() );
         return it - begin();
     }
+//-----------------------------------------------------------------------------
 
+
+    template <typename T>   struct TMemCopyAvailable< ArrayView<T> >    { static constexpr bool  value = true; };
+    template <typename T>   struct TZeroMemAvailable< ArrayView<T> >    { static constexpr bool  value = true; };
 
 } // AE::Base
 

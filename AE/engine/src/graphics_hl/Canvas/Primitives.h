@@ -35,8 +35,8 @@ namespace AE::Graphics
         ND_ constexpr uint              IndexCount ()                       C_NE___ { return Strip ? 4 : 6; }
         ND_ constexpr uint              VertexCount ()                      C_NE___ { return 4; }
 
-        constexpr void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-                             OUT void *positionPtr, OUT void *attributePtr) C_NE___
+        constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+                             OUT void* positionPtr, OUT void* attributePtr) C_NE___
         {
             // front face CCW
             if constexpr( Strip ){
@@ -105,8 +105,8 @@ namespace AE::Graphics
         ND_ constexpr uint              IndexCount ()                       C_NE___ { return 54; }
         ND_ constexpr uint              VertexCount ()                      C_NE___ { return 16; }
 
-        constexpr void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-                             OUT void *positionPtr, OUT void *attributePtr) C_NE___
+        constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+                             OUT void* positionPtr, OUT void* attributePtr) C_NE___
         {
             // indices (front face CCW)
             {
@@ -239,8 +239,8 @@ namespace AE::Graphics
         ND_ constexpr uint              IndexCount ()               C_NE___ { return segments * 2; }
         ND_ constexpr uint              VertexCount ()              C_NE___ { return segments; }
 
-        void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-                   OUT void *positionPtr, OUT void *attributePtr)   C_NE___
+        void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+                   OUT void* positionPtr, OUT void* attributePtr)   C_NE___
         {
             // indices (front face CCW)
             {
@@ -306,8 +306,8 @@ namespace AE::Graphics
         ND_ constexpr uint              IndexCount ()               C_NE___ { return segments * 3; }
         ND_ constexpr uint              VertexCount ()              C_NE___ { return segments + 1; }
 
-        void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-                   OUT void *positionPtr, OUT void *attributePtr)   C_NE___
+        void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+                   OUT void* positionPtr, OUT void* attributePtr)   C_NE___
         {
             // indices (front face CCW)
             {

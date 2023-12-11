@@ -98,11 +98,12 @@ namespace AE::Profiler
             }
         }
 
+        ImGui::SetCursorScreenPos( ImVec2{ diag_region.left, diag_region.bottom + padding * 2.f });
+        ImGui::Text( "time range: %s", ToString(nanosecondsd{ f.max - f.min }).c_str() );
+
         // draw tree
         if ( _enableTreeView )
         {
-            ImGui::SetCursorScreenPos( ImVec2{ diag_region.left, diag_region.bottom + padding * 2.f });
-
             String  str;
 
             for (usize i = 0, cnt = f.threads.size(); i < cnt; ++i)
@@ -112,8 +113,10 @@ namespace AE::Profiler
 
                 if ( ImGui::TreeNodeEx( info.name.data(), ImGuiTreeNodeFlags_DefaultOpen ))
                 {
-                    for (auto& task : f.tasks)
+                    for (usize j = 0, k = 0; (j < f.tasks.size() and k < 20); ++j)
                     {
+                        auto&   task = f.tasks[j];
+
                         if ( task.threadIdx != t_idx )
                             continue;
 
@@ -125,6 +128,7 @@ namespace AE::Profiler
 
                         RGBA32f c {task.color};
                         ImGui::TextColored( ImVec4{c.r, c.g, c.b, c.a}, str.c_str(), "" );
+                        ++k;
                     }
                     ImGui::TreePop();
                 }
@@ -210,7 +214,7 @@ namespace AE::Profiler
 
         for (usize i = 0; i < f.sortedThreads.size(); ++i)
         {
-            f.sortedThreads2[ f.sortedThreads[i] ] = InfoIndex(i); 
+            f.sortedThreads2[ f.sortedThreads[i] ] = InfoIndex(i);
         }
 
         _guard.unlock();

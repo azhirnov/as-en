@@ -6,6 +6,7 @@
 #include "base/Containers/NtStringView.h"
 #include "base/Utils/Helpers.h"
 #include "base/Utils/Threading.h"
+#include "base/Platforms/Platform.h"
 
 namespace AE::Base
 {
@@ -16,29 +17,43 @@ namespace AE::Base
 
     struct ThreadUtils : Noninstanceable
     {
-            static void     SetName (NtStringView name)                                     __NE___;
-        ND_ static String   GetName ()                                                      __Th___;
+        // Name //
+            static void     SetName (NtStringView name)                                     __NE___ { return PlatformUtils::SetCurrentThreadName( name ); }
+        ND_ static String   GetName ()                                                      __Th___ { return PlatformUtils::GetCurrentThreadName(); }
 
-        // interval ~10ms
-            template <typename R, typename P>
-            static void     Sleep (const std::chrono::duration<R,P>& relativeTime)          __NE___ { std::this_thread::sleep_for( relativeTime ); }
 
-            template <typename R, typename P>
-            static void     NanoSleep (const std::chrono::duration<R,P>& relativeTime)      __NE___ { _NanoSleep( relativeTime ); }
+        // Sleep //
+            static void     MilliSleep (milliseconds relativeTime)                          __NE___ { return PlatformUtils::ThreadMilliSleep( relativeTime ); }
+            static bool     MicroSleep (nanoseconds relativeTime)                           __NE___ { return PlatformUtils::ThreadMicroSleep( relativeTime ); }
+            static void     NanoSleep (nanoseconds relativeTime)                            __NE___ { return PlatformUtils::ThreadNanoSleep( relativeTime ); }
 
-            template <typename R, typename P>
-            static bool     WaitIO (const std::chrono::duration<R,P>& relativeTime)         __NE___ { return _WaitIOms( milliseconds{relativeTime} ); }
+            static void     ProgressiveSleep (uint)                                         __NE___;
 
-        ND_ static ThreadHandle  GetCurrentThreadHandle ()                                  __NE___;
-        ND_ static bool     IsCurrentThread (const ThreadHandle &)                          __NE___;
+            static void     Pause ()                                                        __NE___ { return PlatformUtils::ThreadPause(); }
+            static void     Sleep_1us ()                                                    __NE___ { return PlatformUtils::ThreadSleep_1us(); }
+            static void     Sleep_500us ()                                                  __NE___ { return PlatformUtils::ThreadSleep_500us(); }
+            static void     Sleep_15ms ()                                                   __NE___ { return PlatformUtils::ThreadSleep_15ms(); }
 
-            static bool     SetAffinity (const ThreadHandle &, uint coreIdx)                __NE___;
-            static bool     SetPriority (const ThreadHandle &, float priority)              __NE___;
+        ND_ static constexpr auto  NanoSleepTimeStep ()                                     __NE___ { return PlatformUtils::NanoSleepTimeStep(); }
+        ND_ static constexpr auto  MicroSleepTimeStep ()                                    __NE___ { return PlatformUtils::MicroSleepTimeStep(); }
+        ND_ static constexpr auto  MilliSleepTimeStep ()                                    __NE___ { return PlatformUtils::MilliSleepTimeStep(); }
 
-            static bool     SetAffinity (uint coreIdx)                                      __NE___;    // for current thread
-            static bool     SetPriority (float priority)                                    __NE___;    // for current thread
+        ND_ static constexpr uint  SpinBeforeLock ()                                        __NE___ { return 1'000; }
 
-        ND_ static uint     GetCoreIndex ()                                                 __NE___;    // current logical CPU core
+
+        // Handle / Affinity / Priority //
+        ND_ static auto     GetHandle ()                                                    __NE___ { return PlatformUtils::GetCurrentThreadHandle(); }
+        ND_ static bool     IsCurrent (const ThreadHandle &handle)                          __NE___ { return handle == PlatformUtils::GetCurrentThreadHandle(); }
+
+            static bool     SetAffinity (const ThreadHandle &handle, uint coreIdx)          __NE___ { return PlatformUtils::SetThreadAffinity( handle, coreIdx ); }
+            static bool     SetPriority (const ThreadHandle &handle, float priority)        __NE___ { return PlatformUtils::SetThreadPriority( handle, priority ); }
+
+            static bool     SetAffinity (uint coreIdx)                                      __NE___ { return PlatformUtils::SetCurrentThreadAffinity( coreIdx ); }
+            static bool     SetPriority (float priority)                                    __NE___ { return PlatformUtils::SetCurrentThreadPriority( priority ); }
+
+
+        // ID //
+        ND_ static uint     GetCoreIndex ()                                                 __NE___ { return PlatformUtils::GetProcessorCoreIndex(); }
 
         ND_ static auto     GetID ()                                                        __NE___ { return std::this_thread::get_id(); }
         ND_ static usize    GetIntID ()                                                     __NE___ { return usize(HashOf( std::this_thread::get_id() )); }
@@ -49,41 +64,32 @@ namespace AE::Base
         #endif
 
         ND_ static uint     MaxThreadCount ()                                               __NE___ { return std::thread::hardware_concurrency(); }
-
-        // returns 'true' if has been switched to another thread
-            static bool     Yield ()                                                        __NE___;
-
-            template <typename R, typename P>
-            static void     YieldOrSleep (const std::chrono::duration<R,P>& relativeTime)   __NE___;
-            static void     YieldOrSleep ()                                                 __NE___ { YieldOrSleep( milliseconds{1} ); }
-
-            static void     Pause ()                                                        __NE___;
-
-        ND_ static constexpr uint  SpinBeforeLock ()                                        __NE___ { return 1'000; }
-        ND_ static constexpr uint  LargeSpinBeforeLock ()                                   __NE___ { return 10'000; }
-
-    private:
-            static bool     _WaitIOms (milliseconds relativeTime)                           __NE___;
-            static bool     _NanoSleep (nanoseconds relativeTime)                           __NE___;
     };
-
 
 
 /*
 =================================================
-    YieldOrSleep
-----
-    should be used in spin-lock to avoid long time in spin-loop
+    ProgressiveSleep
 =================================================
 */
-    template <typename R, typename P>
-    void  ThreadUtils::YieldOrSleep (const std::chrono::duration<R,P>& relativeTime) __NE___
+    inline void  ThreadUtils::ProgressiveSleep (const uint iteration) __NE___
     {
-        if_unlikely( not Yield() )
+        if_likely( iteration < 8 )
         {
-            AE_LOG_DBG( "Sleep in SpinLock, it is bad for performance" );
-            Sleep( relativeTime );
+            Sleep_1us();
+            return;
         }
+
+        // power safe mode
+        if_likely( iteration < 16 )
+        {
+            Sleep_500us();
+            return;
+        }
+
+        // multiple threads at the same core is rare case
+        if ( not PlatformUtils::SwitchToPendingThread() )
+            Sleep_15ms();
     }
 
 

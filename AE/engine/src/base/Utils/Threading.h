@@ -44,7 +44,7 @@ namespace AE::Base
 */
     forceinline void  MemoryBarrier (std::memory_order order) __NE___
     {
-        ASSERT( order != std::memory_order_relaxed );
+        ASSERT( order != EMemoryOrder::Relaxed );
         return std::atomic_thread_fence( order );
     }
 
@@ -59,7 +59,7 @@ namespace AE::Base
 */
     forceinline void  CompilerBarrier (std::memory_order order) __NE___
     {
-        ASSERT( order != std::memory_order_relaxed );
+        ASSERT( order != EMemoryOrder::Relaxed );
         return std::atomic_signal_fence( order );
     }
 
@@ -84,7 +84,7 @@ namespace AE::Base
     template <typename T>
     struct DeferExLock final : std::unique_lock<T>
     {
-        explicit DeferExLock (T &mtx) __NE___ : 
+        explicit DeferExLock (T &mtx) __NE___ :
             std::unique_lock<T>{ mtx, std::defer_lock } {}
     };
 

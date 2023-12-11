@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "base/Platforms/WindowsHeader.cpp.h"
 #include "base/Utils/FileSystem.h"
 #include "base/Algorithms/ArrayUtils.h"
-#include "base/Platforms/WindowsHeader.h"
 
 namespace AE::Base
 {

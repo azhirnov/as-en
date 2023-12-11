@@ -1,13 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Warning:
-        This container does not flush/invalidate cache, all atomic operations has relaxed memory order.
+    Same as 'LfIndexedPool' but with single memory allocation.
+
+    Optimized for small number of elements with frequent access from multiple threads.
 */
 
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
 # include "threading/Common.h"
+# include "threading/Primitives/DataRaceCheck.h"
 #endif
 
 namespace AE::Threading
@@ -24,9 +26,9 @@ namespace AE::Threading
              >
     class LfStaticIndexedPool final : public Noncopyable
     {
-        STATIC_ASSERT( Count > 0 and IsMultipleOf( Count, 32 ));
-        STATIC_ASSERT( MaxValue<IndexType>() >= Count );
-        STATIC_ASSERT( AllocatorType::IsThreadSafe );
+        StaticAssert( Count > 0 and IsMultipleOf( Count, 32 ));
+        StaticAssert( MaxValue<IndexType>() >= Count );
+        StaticAssert( AllocatorType::IsThreadSafe );
 
     // types
     public:
@@ -39,14 +41,16 @@ namespace AE::Threading
         static constexpr usize  ChunkSize   = Count < 32*12 ? 32 : 64;
         static constexpr usize  ChunksCount = Count / ChunkSize;
 
-        STATIC_ASSERT( IsMultipleOf( Count, ChunkSize ));
+        StaticAssert( IsMultipleOf( Count, ChunkSize ));
 
         using Bitfield_t    = Conditional< (ChunkSize <= 32), uint, ulong >;
 
         struct alignas(AE_CACHE_LINE) Chunk
         {
             Atomic< Bitfield_t >                assigned    {0};    // 1 - assigned, 0 - unassigned
-            StaticArray< Value_t, ChunkSize >   arr         {};
+            StaticArray< Value_t, ChunkSize >   values      {};
+
+            Chunk ()    __NE___ {}
         };
         using ChunkArray_t  = StaticArray< Chunk, ChunksCount >;
 
@@ -58,7 +62,7 @@ namespace AE::Threading
         static constexpr usize  ChunkIdxStep        =   ChunksCount < 4 ?   1 :
                                                         ChunksCount < 10 ?  3 :
                                                                             5;
-        STATIC_ASSERT( ThreadToChunkMask < ChunksCount );
+        StaticAssert( ThreadToChunkMask < ChunksCount );
 
 
     // variables
@@ -68,39 +72,45 @@ namespace AE::Threading
         NO_UNIQUE_ADDRESS
          Allocator_t        _allocator;
 
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
+
 
     // methods
     public:
         explicit LfStaticIndexedPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
-        ~LfStaticIndexedPool ()                         __NE___ { Release( True{"check for assigned"} ); }
+        ~LfStaticIndexedPool ()                             __NE___ { Release( True{"check for assigned"} ); }
 
-            void  Release (Bool checkForAssigned)       __NE___;
-
-            template <typename FN>
-            void  UnassignAll (FN && fn)                noexcept(IsNothrowInvocable<FN>);
+            void  Release (Bool checkForAssigned)           __NE___;
 
             template <typename FN>
-            void  ForEach (FN && fn)                    noexcept(IsNothrowInvocable<FN>);
+            void  UnassignAll (FN &&fn)                     __NE___;
 
             template <typename FN>
-            void  ForEachAssigned (FN && fn)            const noexcept(IsNothrowInvocable<FN>);
+            void  ForEach (FN &&fn)                         __NE___;
 
-        ND_ auto  Assign ()                             __NE___ { Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
-        ND_ bool  Assign (OUT Index_t &outIndex)        __NE___;
-            void  Unassign (Index_t index)              __NE___;
-        ND_ bool  IsAssigned (Index_t index)            C_NE___;
+            template <typename FN>
+            void  ForEachAssigned (FN &&fn)                 C_NE___;
 
-        ND_ Value_t&        operator [] (Index_t index) __NE___;
-        ND_ Value_t const&  operator [] (Index_t index) C_NE___ { return const_cast<Self*>(this)->operator[]( index ); }
 
-        ND_ Value_t*        At (Index_t index)          __NE___;
-        ND_ Value_t const*  At (Index_t index)          C_NE___ { return const_cast<Self*>(this)->At( index ); }
+        ND_ auto            Assign ()                       __NE___ { Index_t idx;  Unused( Assign( OUT idx ));  return idx; }
+        ND_ bool            Assign (OUT Index_t &outIndex)  __NE___;
+            bool            Unassign (Index_t index)        __NE___;
+        ND_ bool            IsAssigned (Index_t index)      C_NE___;
 
-        ND_ usize           size ()                     C_NE___;
-        ND_ bool            empty ()                    C_NE___ { return size() == 0; }
+        ND_ Index_t         IndexOf (const void* ptr)       C_NE___;
+            bool            Unassign (const void* ptr)      __NE___;
 
-        ND_ static constexpr usize  capacity ()         __NE___ { return Count; }
-        ND_ static constexpr Bytes  DynamicSize ()      __NE___ { return SizeOf<ChunkArray_t>; }
+        ND_ Value_t&        operator [] (Index_t index)     __NE___;
+        ND_ Value_t const&  operator [] (Index_t index)     C_NE___ { return const_cast<Self*>(this)->operator[]( index ); }
+
+        ND_ Value_t*        At (Index_t index)              __NE___;
+        ND_ Value_t const*  At (Index_t index)              C_NE___ { return const_cast<Self*>(this)->At( index ); }
+
+        ND_ usize           size ()                         C_NE___;
+        ND_ bool            empty ()                        C_NE___ { return size() == 0; }
+
+        ND_ static constexpr usize  capacity ()             __NE___ { return Count; }
+        ND_ static constexpr Bytes  DynamicSize ()          __NE___ { return SizeOf<ChunkArray_t>; }
     };
 
 } // AE::Threading

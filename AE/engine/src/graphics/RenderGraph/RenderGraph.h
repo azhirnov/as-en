@@ -108,17 +108,14 @@ namespace AE::RG::_hidden_
             ND_ RGCommandBatchPtr   Begin ()                                                                    rvNE___ { return RVRef(_batch); }
         };
 
-        static constexpr auto   DefaultWaitTime = GRenderTaskScheduler::DefaultWaitTime;
-
 
     // variables
     private:
-        GRenderTaskScheduler&       _rts;
+        RenderTaskScheduler&        _rts;
         FrameUID                    _prevFrameId;
         Frames_t                    _frames;
 
         // data for current frame
-        AsyncTask                   _beginFrame;
         SemToBatch_t                _semToBatch;
         RGBatchDataPool_t           _rgDataPool;
         OutputSurfaces_t            _outSurfaces;
@@ -133,18 +130,22 @@ namespace AE::RG::_hidden_
 
 
     // frame scope //
+        ND_ bool        WaitNextFrame (const EThreadArray & threads,
+                                       nanoseconds          timeout)            __NE___ { return _rts.WaitNextFrame( threads, timeout ); }
+
+        ND_ bool        BeginFrame (const BeginFrameConfig &cfg = Default)      __NE___;
 
         template <typename ...Deps>
-        ND_ AsyncTask   BeginFrame (const BeginFrameConfig  &cfg    = Default,
-                                    const Tuple<Deps...>    &deps   = Default)  __Th___;
+        ND_ AsyncTask   EndFrame (const Tuple<Deps...>  &deps)                  __NE___;
 
-        template <typename ...Deps>
-        ND_ AsyncTask   EndFrame (const Tuple<Deps...>  &deps)                  __Th___;
+        // alternative version
+            void        OnBeginFrame (FrameUID prevFrameId)                     __NE___;
+            void        OnEndFrame ()                                           __NE___;
 
         ND_ FrameUID    GetPrevFrameId ()                                       C_NE___ { return _prevFrameId; }
         ND_ FrameUID    GetNextFrameId ()                                       C_NE___ { return _prevFrameId.Next(); }
 
-        ND_ bool        WaitAll (milliseconds timeout = DefaultWaitTime)        __NE___;
+        ND_ bool        WaitAll (milliseconds timeout)                          __NE___;
 
 
     // surface //
@@ -172,20 +173,26 @@ namespace AE::RG::_hidden_
     BeginFrame
 =================================================
 */
-    template <typename ...Deps>
-    AsyncTask  RenderGraph::BeginFrame (const BeginFrameConfig &cfg, const Tuple<Deps...> &deps) __Th___
+    inline bool  RenderGraph::BeginFrame (const BeginFrameConfig &cfg) __NE___
+    {
+        auto    fid = _rts.GetFrameId();
+        bool    res = _rts.BeginFrame( cfg );
+
+        OnBeginFrame( fid );
+        return res;
+    }
+
+    inline void  RenderGraph::OnBeginFrame (const FrameUID prevFrameId) __NE___
     {
         DRC_EXLOCK( _drCheck );
 
-        _prevFrameId = _rts.GetFrameId();
+        _prevFrameId = prevFrameId;
+        ASSERT( prevFrameId.Next() == _rts.GetFrameId() );
 
         for (auto& q : _CurrentFrame().queues) {
             q.submitIdx = 0;
         }
         _ClearCurrentFrame();
-
-        _beginFrame = _rts.BeginFrame( cfg, deps ); // throw
-        return _beginFrame;
     }
 
 /*
@@ -194,7 +201,7 @@ namespace AE::RG::_hidden_
 =================================================
 */
     template <typename ...Deps>
-    AsyncTask  RenderGraph::EndFrame (const Tuple<Deps...> &deps) __Th___
+    AsyncTask  RenderGraph::EndFrame (const Tuple<Deps...> &deps) __NE___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -209,7 +216,7 @@ namespace AE::RG::_hidden_
                 present_tasks.push_back( task );
         }
 
-        AsyncTask   end_frame   = _rts.EndFrame( deps );    // throw
+        AsyncTask   end_frame   = _rts.EndFrame( deps );
         auto&       f           = _CurrentFrame();
 
         for (usize i = 0; i < f.queues.size(); ++i)
@@ -221,9 +228,33 @@ namespace AE::RG::_hidden_
         // start next frame only after present
         _rts.AddNextFrameDeps( present_tasks );
 
-        _beginFrame = null;
-
         return end_frame;
+    }
+
+    inline void  RenderGraph::OnEndFrame () __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+
+        // present output surfaces
+        FixedArray< AsyncTask, MaxOutSurfaces >     present_tasks;
+
+        for (auto [surface, info] : _outSurfaces)
+        {
+            ASSERT( info.acquireImageTask );
+
+            if_likely( auto task = surface->End( Default )) // will present after batch submission
+                present_tasks.push_back( task );
+        }
+
+        auto&   f = _CurrentFrame();
+        for (usize i = 0; i < f.queues.size(); ++i)
+        {
+            if ( f.queues[i].submitIdx > 0 )
+                _rts.SkipCmdBatches( EQueueType(i), UMax );
+        }
+
+        // start next frame only after present
+        _rts.AddNextFrameDeps( present_tasks );
     }
 //-----------------------------------------------------------------------------
 
@@ -267,7 +298,7 @@ namespace AE::RG::_hidden_
 =================================================
 */
     template <typename ID0, typename ...IDs>
-    RenderGraph::CmdBatchBuilder &&  RenderGraph::CmdBatchBuilder::UseResources (const ID0 &id0,const IDs& ...ids) rvNE___
+    RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (const ID0 &id0,const IDs& ...ids) rvNE___
     {
         _UseResource( ResourceKey{id0}, Default, Default );
 

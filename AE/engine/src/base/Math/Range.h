@@ -15,7 +15,7 @@ namespace AE::Math
     template <typename T>
     struct Range
     {
-        //STATIC_ASSERT( IsScalar<T> or IsBytes<T> );
+        //StaticAssert( IsScalar<T> or IsBytes<T> );
 
     // types
     public:
@@ -34,7 +34,7 @@ namespace AE::Math
         {
           #ifdef AE_COMPILETIME_OFFSETOF
             // check if supported cast Rectangle to array
-            STATIC_ASSERT( offsetof(Self, begin) + sizeof(T) == offsetof(Self, end) );
+            StaticAssert( offsetof(Self, begin) + sizeof(T) == offsetof(Self, end) );
           #endif
         }
 
@@ -65,3 +65,12 @@ namespace AE::Math
     using RangeD    = Range<double>;
 
 } // AE::Math
+
+
+namespace AE::Base
+{
+    template <typename T>   struct TMemCopyAvailable< Range<T> >        { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< Range<T> >        { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< Range<T> >   { static constexpr bool  value = IsTriviallySerializable<T>; };
+
+} // AE::Base

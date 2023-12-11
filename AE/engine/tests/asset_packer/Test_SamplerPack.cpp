@@ -58,7 +58,8 @@ namespace
             TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.samplerDataSize} ));
         }
 
-        AE::Serializing::Deserializer   des{ mem_stream, MakeRC<LinearAlloc_t>() };
+        RC<IAllocator>                  alloc = MakeRC<LinearAlloc_t>();
+        AE::Serializing::Deserializer   des{ mem_stream, alloc.get() };
         {
             uint    version = 0;
             uint    name    = 0;

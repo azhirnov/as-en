@@ -32,7 +32,7 @@ namespace
 
         // threading
         {
-            cfg.threading.maxThreads    = 1;
+            cfg.threading.maxThreads    = 2;
             cfg.threading.maxIOThreads  = 1;
             cfg.threading.mask          = { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
         }
@@ -46,7 +46,7 @@ namespace
             cfg.graphics.staging.maxReadDynamicSize     = 64_Mb;
             cfg.graphics.staging.maxWriteDynamicSize    = 64_Mb;
             cfg.graphics.staging.dynamicBlockSize       = 32_Mb;
-            cfg.graphics.staging.vstreamSize            = 16_Mb;
+            cfg.graphics.staging.vstreamSize            = 4_Mb;
 
             cfg.graphics.device.appName         = "ResourceEditor";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
@@ -96,11 +96,8 @@ namespace
 */
     static void  ResEditorAppConfig_VFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
     {
-        if ( not FileSystem::IsDirectory( path ))
-        {
-            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
-                "Failed to create folder '"s << ToString(path) << "'" );
-        }
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "VFSPath '"s << ToString(path) << "' must be existed folder" );
 
         self.vfsPaths.push_back( FileSystem::ToAbsolute( Path{path} ));
         self.vfsPathPrefixes.push_back( prefix );
@@ -496,7 +493,7 @@ void main (Config &out cfg)
 =================================================
 */
     ResEditorApplication::ResEditorApplication () __NE___ :
-        DefaultAppListener{ GetAppConfig(), MakeRC<ResEditorCore>() }
+        AppCoreV1{ GetAppConfig(), MakeRCTh<ResEditorCore>() }
     {
         // for imgui
         {
@@ -541,6 +538,8 @@ void main (Config &out cfg)
             CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"export"},
                                             VFS::VirtualFileStorageFactory::CreateDynamicFolder( s_REConfig.exportFolder, "export/" )));
         }
+
+        GetVFS().MakeImmutable();
         return true;
     }
 
@@ -552,7 +551,7 @@ void main (Config &out cfg)
     void  ResEditorApplication::OnStart (IApplication &app) __NE___
     {
         _app = &app;
-        DefaultAppListener::OnStart( app );
+        AppCoreV1::OnStart( app );
 
         CHECK_FATAL( Cast<ResEditorCore>(&GetBaseApp())->OnStart() );
 
@@ -566,7 +565,7 @@ void main (Config &out cfg)
 */
     void  ResEditorApplication::OnStop (IApplication &app) __NE___
     {
-        DefaultAppListener::OnStop( app );
+        AppCoreV1::OnStop( app );
         _app = null;
     }
 //-----------------------------------------------------------------------------
@@ -590,7 +589,7 @@ void main (Config &out cfg)
     ResEditorCore::~ResEditorCore ()
     {
       #ifdef AE_ENABLE_VULKAN
-        RenderTaskScheduler().GetDevice().GetRenderDocApi().PrintCaptures();
+        GraphicsScheduler().GetDevice().GetRenderDocApi().PrintCaptures();
       #endif
 
         _mainLoop.Write( Default );
@@ -603,7 +602,7 @@ void main (Config &out cfg)
 */
     bool  ResEditorCore::OnStart ()
     {
-        CATCH_ERR(
+        NOTHROW_ERR(
             _rg.reset( new RenderGraphImpl{} );
 
             ScriptExe::Config   cfg;
@@ -642,6 +641,7 @@ void main (Config &out cfg)
 */
     bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
     {
+        _window = &wnd;
         return _ui.Init( wnd.GetSurface(), c_WindowMode );
     }
 
@@ -717,13 +717,14 @@ void main (Config &out cfg)
         cfg.includeDirs     = s_REConfig.shaderIncludeDirs;
         cfg.pipelineDirs    = s_REConfig.pipelineSearchDirs;
         cfg.scriptDir       = s_REConfig.scriptCallableFolder;
+        cfg.monitor         = _monitor.Read();
 
         auto    output  = _mainLoop.ConstPtr()->output;
         if ( output )
         {
-            auto    sizes = output->GetTargetSizes();
-            CHECK_ERR( sizes.size() == 1 );
-            cfg.dynSize->Resize( sizes[0] );
+            auto    infos = output->GetTargetInfo();
+            CHECK_ERR( infos.size() == 1 );
+            cfg.dynSize->Resize( infos[0].dimension );
         }
 
         auto    renderer = _script->Run( scriptPath, cfg );
@@ -791,11 +792,22 @@ void main (Config &out cfg)
 
 /*
 =================================================
-    _DrawFrame
+    RenderFrame
 =================================================
 */
-    AsyncTask  ResEditorCore::_DrawFrame ()
+    void  ResEditorCore::RenderFrame () __NE___
     {
+        #ifdef AE_ENABLE_VULKAN
+        if ( _ui.IsCaptureRequested() )
+        {
+            auto&   dev = GraphicsScheduler().GetDevice();
+            if ( dev.HasRenderDocApi() )
+            {
+                CHECK( dev.GetRenderDocApi().TriggerFrameCapture() );
+            }
+        }
+        #endif
+
         Ptr<IInputActions>      input;
         Ptr<IOutputSurface>     output;
         RC<Renderer>            renderer;
@@ -827,41 +839,21 @@ void main (Config &out cfg)
         // rendering depends on input processing
         if ( renderer or ui )
         {
-            AsyncTask   begin_frame = rg.BeginFrame( output );
+            if ( not rg.BeginFrame( output ))
+                return;
 
-            AsyncTask   draw_task   = renderer  ? renderer->Execute({ proc_input, begin_frame })    : null;
-            AsyncTask   ui_task     = ui        ? ui->Draw({ proc_input, begin_frame })             : null;
+            AsyncTask   draw_task   = renderer  ? renderer->Execute({ proc_input }) : null;
+            AsyncTask   ui_task     = ui        ? ui->Draw({ proc_input })          : null;
 
             AsyncTask   end_frame   = rg.EndFrame( Tuple{ draw_task, ui_task });
 
             if ( input )
                 input->NextFrame( rg.GetNextFrameId() );
-
-            return end_frame;
         }
         else
-            return proc_input;
-    }
-
-/*
-=================================================
-    RenderFrame
-=================================================
-*/
-    void  ResEditorCore::RenderFrame () __NE___
-    {
-        #ifdef AE_ENABLE_VULKAN
-        if ( _ui.IsCaptureRequested() )
         {
-            auto&   dev = RenderTaskScheduler().GetDevice();
-            if ( dev.HasRenderDocApi() )
-            {
-                CHECK( dev.GetRenderDocApi().TriggerFrameCapture() );
-            }
+            ThreadUtils::Sleep_15ms();
         }
-        #endif
-
-        _mainLoop->endFrame = _DrawFrame();
     }
 
 /*
@@ -873,21 +865,16 @@ void main (Config &out cfg)
                                     Ptr<IWindow>                    window,
                                     Ptr<IVRDevice>                  ) __NE___
     {
-        AsyncTask   task;
-        std::swap( task, _mainLoop->endFrame );
-
-        for (;;)
-        {
-            if ( task == null or task->IsFinished() )
-                break;
-
-            Scheduler().ProcessTasks( threadMask, 0 );
-
-            Scheduler().DbgDetectDeadlock();
-        }
+        CHECK( GraphicsScheduler().WaitNextFrame( threadMask, AE::DefaultTimeout ));
 
         if ( window )
         {
+            if ( _window != window )
+            {
+                _window = window;
+                _monitor.Write( window->GetMonitor() );
+            }
+
             if ( auto new_mode = _ui.GetNewWindowMode();  new_mode.has_value() )
                 Unused( window->SetMode( *new_mode ));
         }

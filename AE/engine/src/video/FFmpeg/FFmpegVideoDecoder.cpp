@@ -150,6 +150,17 @@ namespace {
             _codecCtx = ffmpeg.avcodec_alloc_context3( _codec );
             CHECK_ERR( _codecCtx != null );
 
+            if ( AllBits( _codec->capabilities, AV_CODEC_CAP_SLICE_THREADS ))
+            {
+                _codecCtx->thread_type  = FF_THREAD_SLICE;
+                _codecCtx->thread_count = Max( _codecCtx->thread_count, int(_config.threadCount) );
+            }else
+            if ( AllBits( _codec->capabilities, AV_CODEC_CAP_FRAME_THREADS ))
+            {
+                _codecCtx->thread_type  = FF_THREAD_FRAME;
+                _codecCtx->thread_count = Max( _codecCtx->thread_count, int(_config.threadCount) );
+            }
+
             FF_CHECK_ERR( ffmpeg.avcodec_parameters_to_context( _codecCtx, video_stream->codecpar ));
             FF_CHECK_ERR( ffmpeg.avcodec_open2( _codecCtx, _codec, null ));
         }
@@ -161,19 +172,12 @@ namespace {
 
             _videoPacket = ffmpeg.av_packet_alloc();
             CHECK_ERR( _videoPacket != null );
-
-            const auto&     fmt_info = EPixelFormat_GetInfo( _config.dstFormat );
-            _frameRowPitch  = ImageUtils::RowSize( _codecCtx->width, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
-            _frameDataSize  = _frameRowPitch * _codecCtx->height;
-            _frameData      = Cast<ubyte>( Allocator_t::Allocate( SizeAndAlign{ _frameDataSize, 16_b }));
-
-            CHECK_ERR( _frameData != null );
         }
 
-        const uint2     src_size { _codecCtx->width, _codecCtx->height };
+        const uint2     src_dim { _codecCtx->width, _codecCtx->height };
 
-        if ( All( IsZero( _config.dstSize )) )
-            _config.dstSize = src_size;
+        if ( All( IsZero( _config.dstDim )) )
+            _config.dstDim = src_dim;
 
         // create scaler
         {
@@ -184,8 +188,8 @@ namespace {
             CHECK_ERR( src_fmt != AV_PIX_FMT_NONE and
                        dst_fmt != AV_PIX_FMT_NONE );
 
-            _swsCtx = ffmpeg.sws_getContext( int(src_size.x), int(src_size.y), src_fmt,
-                                             int(_config.dstSize.x), int(_config.dstSize.y), dst_fmt,
+            _swsCtx = ffmpeg.sws_getContext( int(src_dim.x), int(src_dim.y), src_fmt,
+                                             int(_config.dstDim.x), int(_config.dstDim.y), dst_fmt,
                                              filter, null, null, null );
             CHECK_ERR( _swsCtx != null );
         }
@@ -296,11 +300,11 @@ namespace {
 
 /*
 =================================================
-    GetFrame
+    GetNextFrame
 =================================================
 */
-    bool  FFmpegVideoDecoder::GetFrame (OUT ImageMemView &  outView,
-                                        OUT FrameInfo &     outInfo) __NE___
+    bool  FFmpegVideoDecoder::GetNextFrame (INOUT ImageMemView &    memView,
+                                            OUT FrameInfo &         outInfo) __NE___
     {
         EXLOCK( _guard );
 
@@ -313,6 +317,9 @@ namespace {
                 _swsCtx         != null     and
                 _config.videoStreamIdx >= 0 and
                 _config.videoStreamIdx < int(_formatCtx->nb_streams) );
+        ASSERT( memView.Parts().size() == 1 );
+        ASSERT( memView.Format() == _config.dstFormat );
+        ASSERT( All( memView.Dimension() == uint3{_config.dstDim, 1} ));
 
         AVStream*   vstream = _formatCtx->streams[ _config.videoStreamIdx ];
 
@@ -335,7 +342,7 @@ namespace {
                 outInfo.duration    = Second_t{ _videoPacket->duration * av_q2d( vstream->time_base )};
                 outInfo.frameIdx    = _PTStoFrameIdx( _videoPacket->pts );
 
-                ASSERT_Eq( _videoPacket->pts, _FrameIdxToPTS( outInfo.frameIdx ));
+                //ASSERT_Eq( _videoPacket->pts, _FrameIdxToPTS( outInfo.frameIdx ));
 
                 ffmpeg.av_packet_unref( _videoPacket );
                 FF_CHECK_ERR( err );
@@ -361,19 +368,18 @@ namespace {
                 //ASSERT( packed_pts == _videoFrame->pts );
 
                 const int   src_slice_y                         = 0;
-                const int   dst_stride [AV_NUM_DATA_POINTERS]   = { int(_frameRowPitch) };
-                ubyte*      dst_data   [AV_NUM_DATA_POINTERS]   = { _frameData };
+                const int   dst_stride [AV_NUM_DATA_POINTERS]   = { int(memView.RowPitch()) };
+                ubyte*      dst_data   [AV_NUM_DATA_POINTERS]   = { Cast<ubyte>(memView.Parts().front().ptr) };
 
                 const int   scaled_h = ffmpeg.sws_scale( _swsCtx, _videoFrame->data, _videoFrame->linesize, src_slice_y, _videoFrame->height,
                                                          OUT dst_data, dst_stride );
 
-                if_unlikely( scaled_h < 0 or scaled_h != int(_config.dstSize.y) )
+                if_unlikely( scaled_h < 0 or scaled_h != int(_config.dstDim.y) )
                 {
                     FF_CHECK( scaled_h );
                     return false;
                 }
 
-                outView = ImageMemView{ _frameData, _frameDataSize, uint3{}, uint3{_config.dstSize, 1u}, 0_b, 0_b, _config.dstFormat, EImageAspect::Color };
                 return true;
             }
         }
@@ -385,7 +391,7 @@ namespace {
 =================================================
     GetFrame
 =================================================
-*/
+*
     bool  FFmpegVideoDecoder::GetFrame (OUT VideoImageID &, OUT FrameInfo &) __NE___
     {
         // not supported
@@ -422,9 +428,6 @@ namespace {
         if ( _swsCtx != null )
             ffmpeg.sws_freeContext( _swsCtx );
 
-        if ( _frameData != null )
-            Allocator_t::Deallocate( _frameData, SizeAndAlign{ _frameDataSize, 16_b });
-
         if ( _videoPacket != null )
             ffmpeg.av_packet_free( &_videoPacket );
 
@@ -448,9 +451,6 @@ namespace {
         _formatCtx          = null;
         _codecCtx           = null;
         _codec              = null;
-        _frameData          = null;
-        _frameDataSize      = 0_b;
-        _frameRowPitch      = 0_b;
         _swsCtx             = null;
         _ioCtx              = null;
 
@@ -476,7 +476,7 @@ namespace {
     _IOReadPacket
 =================================================
 */
-    int  FFmpegVideoDecoder::_IOReadPacket (void *opaque, ubyte *buf, int buf_size)
+    int  FFmpegVideoDecoder::_IOReadPacket (void* opaque, ubyte* buf, int buf_size)
     {
         auto*   stream = Cast<RStream>( opaque );
 
@@ -499,7 +499,7 @@ namespace {
     _IOSeek
 =================================================
 */
-    slong  FFmpegVideoDecoder::_IOSeek (void *opaque, slong offset, int whence)
+    slong  FFmpegVideoDecoder::_IOSeek (void* opaque, slong offset, int whence)
     {
         auto*   stream = Cast<RStream>( opaque );
 
@@ -553,8 +553,8 @@ namespace {
             dst.avgFrameRate    = ToFractional( stream->avg_frame_rate );
             dst.minFrameRate    = ToFractional( stream->r_frame_rate );
             dst.bitrate         = Bitrate_t{ulong( params->bit_rate > 0 ? params->bit_rate : formatCtx->bit_rate )};
-            dst.size.x          = params->width;
-            dst.size.y          = params->height;
+            dst.dimension.x     = params->width;
+            dst.dimension.y     = params->height;
         }
 
         return result;
@@ -616,7 +616,7 @@ namespace {
     PrintFileProperties
 =================================================
 */
-    String  FFmpegVideoDecoder::PrintFileProperties (RC<RStream> rstream) C_NE___
+    String  FFmpegVideoDecoder::PrintFileProperties (RC<RStream> rstream) C_Th___
     {
         struct Context
         {
@@ -721,7 +721,7 @@ namespace {
         return str;
     }
 
-    String  FFmpegVideoDecoder::PrintFileProperties (const Path &filename) C_NE___
+    String  FFmpegVideoDecoder::PrintFileProperties (const Path &filename) C_Th___
     {
         return  "\nfile: "s << ToString( filename ) <<
                 PrintFileProperties( MakeRC<FileRStream>( filename ));

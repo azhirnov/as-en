@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    [supported platforms and features](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Platforms.md)
+    [supported platforms and features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Platforms.md)
 */
 
 #pragma once
@@ -20,7 +20,7 @@ namespace AE::App
     using namespace AE::Base;
 
     using Threading::Atomic;
-    using Threading::BytesAtomic;
+    using Threading::AtomicByte;
     using Threading::AsyncTask;
 
 #  if AE_ENABLE_DATA_RACE_CHECK
@@ -72,7 +72,7 @@ namespace AE::App
     struct PlatformConfig
     {
         static constexpr uint   MaxMonitors     = 4;
-        static constexpr uint   MaxWindows      = 8;
+        static constexpr uint   MaxWindows      = 4;
     };
 
 } // AE::App

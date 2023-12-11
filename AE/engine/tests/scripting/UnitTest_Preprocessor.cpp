@@ -6,7 +6,7 @@ namespace
 {
     static void  Preprocessor_Test1 ()
     {
-        const char  source[] = 
+        const char  source[] =
 R"(aaaj sdi kas jnd
 trurt qwa   fdgh
 #ifdef PART0
@@ -243,6 +243,63 @@ dfrkdtywb
         TEST( expected == src );
     }
     //-----------------------------------------------------
+
+
+    static void  Preprocessor_Test6 ()
+    {
+        const char  source[] = R"(
+"str1"
+#ifdef SCRIPT
+    script src1
+    ""
+    script src2
+    "1"
+    script src3
+    "12"
+    script src3
+    "123"
+    script src4
+    """"
+    script src5
+    "\n\r\n\n"
+    script src6
+#endif
+
+#ifdef SHADER
+    shader src
+#endif
+
+end)";
+        String  src;
+        TEST( ScriptEngine::_Preprocessor2( source, OUT src, ArrayView<StringView>{"SCRIPT"}, Default ));
+
+        const char  expected[] = R"(
+"str1"
+
+    script src1
+    ""
+    script src2
+    "1"
+    script src3
+    "12"
+    script src3
+    "123"
+    script src4
+    """"
+    script src5
+    "\n\r\n\n"
+    script src6
+
+
+
+
+
+
+end)";
+
+        TEST( expected == src );
+    }
+    //-----------------------------------------------------
 }
 
 
@@ -253,6 +310,7 @@ extern void UnitTest_Preprocessor ()
     Preprocessor_Test3();
     Preprocessor_Test4();
     Preprocessor_Test5();
+    Preprocessor_Test6();
 
     TEST_PASSED();
 }

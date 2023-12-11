@@ -18,7 +18,7 @@ namespace AE::Base
             template <typename T>
             ND_ constexpr operator const T ()                                           C_NE___
             {
-                STATIC_ASSERT( T(~T{0}) > T{0} );
+                StaticAssert( T(~T{0}) > T{0} );
                 return T(~T{0});
             }
 
@@ -49,7 +49,7 @@ namespace AE::Base
             template <typename T>
             ND_ constexpr operator const T ()                                           C_NE___
             {
-                //STATIC_ASSERT( std::is_integral_v<T> or std::is_enum_v<T> );
+                //StaticAssert( std::is_integral_v<T> or std::is_enum_v<T> );
                 return T(0);
             }
 
@@ -106,10 +106,10 @@ namespace AE::Base
 
 
     public:
-        constexpr AnyFloatConst (double val)    __NE___ : _d{val}, _f{float(val)} {}
+        explicit constexpr AnyFloatConst (double val)   __NE___ : _d{val}, _f{float(val)} {}
 
         template <typename T>
-        ND_ constexpr operator const T ()       C_NE___
+        ND_ constexpr operator const T ()               C_NE___
         {
             if constexpr( std::is_same_v< T, double >)
                 return _d;

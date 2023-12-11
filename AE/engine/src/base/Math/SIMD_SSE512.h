@@ -136,7 +136,7 @@ namespace AE::Math
     template <typename IntType>
     struct SimdTInt512
     {
-        STATIC_ASSERT(( IsSameTypes<IntType, Int128b> or IsSameTypes<IntType, Int256b> or IsInteger<IntType> ));
+        StaticAssert(( IsSameTypes<IntType, Int128b> or IsSameTypes<IntType, Int256b> or IsInteger<IntType> ));
 
     // types
     public:

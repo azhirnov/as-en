@@ -51,9 +51,9 @@ namespace
         scheduler->Run( task2, Tuple{ task1 });
         scheduler->Run( task1, Tuple{} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1, task2 }));
+        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( task2->Status() == EStatus::Completed );
 
@@ -92,9 +92,9 @@ namespace
         scheduler->Run( task2 );
         scheduler->Run( task1 );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1, task2 }));
+        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( task2->Status() == EStatus::Completed );
 
@@ -126,9 +126,9 @@ namespace
                             ( value, p0, p1, p2 );
         scheduler->Run( task1 );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
+        TEST( scheduler->Wait( {task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
         TEST( task1->Status() == EStatus::Completed );
         TEST( AsyncTask{p0}->Status() == EStatus::Completed );
         TEST( AsyncTask{p1}->Status() == EStatus::Completed );
@@ -171,9 +171,9 @@ namespace
                             }
                             ( value, p0, p1, p2 ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
+        TEST( scheduler->Wait( {AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
         TEST( AsyncTask{p3}->Status() == EStatus::Completed );
         TEST( AsyncTask{p0}->Status() == EStatus::Completed );
         TEST( AsyncTask{p1}->Status() == EStatus::Completed );
@@ -212,9 +212,9 @@ namespace
                                 co_return "";
                             }( value, p0, p1 ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait({ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
+        TEST( scheduler->Wait( {AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
         TEST( AsyncTask{p0}->Status() == EStatus::Completed );
         TEST( AsyncTask{p1} == null );
         TEST( AsyncTask{p2}->Status() == EStatus::Canceled );

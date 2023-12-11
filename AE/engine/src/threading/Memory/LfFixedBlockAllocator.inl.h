@@ -9,36 +9,46 @@ namespace AE::Threading
 =================================================
 */
     template <usize CS, usize MC, typename BA, typename GA>
-    LfFixedBlockAllocator<CS,MC,BA,GA>::LfFixedBlockAllocator  (Bytes blockSize,
-                                                                Bytes blockAlign,
-                                                                const BlockAllocator_t& blockAlloc,
-                                                                const GenAllocator_t&   genAlloc) __NE___ :
+    LfFixedBlockAllocator<CS,MC,BA,GA>::LfFixedBlockAllocator (Bytes blockSize,
+                                                                 Bytes blockAlign,
+                                                                 const BlockAllocator_t&    blockAlloc,
+                                                                 const GenAllocator_t&      genAlloc) __NE___ :
         _blockSize{ blockSize },
         _blockAlign{ blockAlign },
         _blockAlloc{ blockAlloc },
         _genAlloc{ genAlloc }
     {
+        DRC_EXLOCK( _drCheck );
+
         ASSERT( BlockSize() == blockSize );
         ASSERT( BlockAlign() == blockAlign );
 
-        for (usize i = 0; i < MaxChunks; ++i)
+        StaticArray< TopLevelBits_t, TopLevel_Count >   top_bits = {};
+
+        for (usize i = 0; i < _bottomChunks.size(); ++i)
         {
-            auto&   chunk = _chunkInfo[i];
+            auto&   chunk   = _bottomChunks[i];
+            auto&   top     = top_bits[ i / CT_SizeOfInBits<TopLevelBits_t> ];
 
             for (usize j = 0; j < HiLevel_Count; ++j)
             {
                 chunk.lowLevel[j].store( 0 );
             }
 
-            chunk.hiLevel.store( InitialHighLevel );    // set 0 bits for working range, 1 bit for unused bits
+            chunk.hiLevel.store( InitialHighLevel );    // set 0 bit for working range, 1 bit for unused bits
             chunk.memBlock.store( null );
+
+            top |= TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
 
             #if AE_LFFIXEDBLOCKALLOC_DEBUG
             chunk.dbgInfo.store( null );
             #endif
         }
 
-        MemoryBarrier( EMemoryOrder::Release );
+        for (usize i = 0; i < _topChunks.size(); ++i)
+        {
+            _topChunks[i].assigned.store( ~top_bits[i] );   // set 0 bit for working range, 1 bit for unused bits
+        }
     }
 
 /*
@@ -49,14 +59,15 @@ namespace AE::Threading
 =================================================
 */
     template <usize CS, usize MC, typename BA, typename GA>
-    void  LfFixedBlockAllocator<CS,MC,BA,GA>::Release (bool checkMemLeak) __NE___
+    void  LfFixedBlockAllocator<CS,MC,BA,GA>::Release (Bool checkMemLeak) __NE___
     {
-        MemoryBarrier( EMemoryOrder::Acquire );
+        DRC_EXLOCK( _drCheck );
 
         for (usize i = 0; i < MaxChunks; ++i)
         {
-            auto&   chunk   = _chunkInfo[i];
-            void*   ptr     = chunk.memBlock.exchange( null );
+            auto&   chunk       = _bottomChunks[i];
+            void*   ptr         = chunk.memBlock.exchange( null );
+            auto&   top_chunk   = _topChunks[ i / CT_SizeOfInBits<TopLevelBits_t> ];
 
             if ( ptr != null )
                 _blockAlloc.Deallocate( ptr, SizeAndAlign{ LargeBlockSize(), BlockAlign() });
@@ -66,7 +77,13 @@ namespace AE::Threading
             HiLevelBits_t   old_hi_level = chunk.hiLevel.exchange( InitialHighLevel );
 
             if ( checkMemLeak )
+            {
                 CHECK( old_hi_level == InitialHighLevel );  // some blocks is still allocated
+
+                TopLevelBits_t  top_bits    = top_chunk.assigned.load();
+                TopLevelBits_t  top_lvl_bit = TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
+                CHECK( not (top_bits & top_lvl_bit) );
+            }
 
             #if AE_LFFIXEDBLOCKALLOC_DEBUG
             SourceLoc*  dbg_info = chunk.dbgInfo.exchange( null );
@@ -92,9 +109,8 @@ namespace AE::Threading
 
                             AE_LOGI( "Leaked memory block: "s << ToString( BlockSize() ), dbg.file, dbg.line );
 
-                            old_low_level &= (LowLevelBits_t{1} << low_idx);    // 1 -> 0
-
-                            low_idx = BitScanForward( old_low_level );  // first 1 bit
+                            old_low_level   &= (LowLevelBits_t{1} << low_idx);  // 1 -> 0
+                            low_idx         = BitScanForward( old_low_level );  // first 1 bit
                         }
                     }
                     #endif
@@ -118,13 +134,15 @@ namespace AE::Threading
 
 /*
 =================================================
-    Alloc
+    AllocBlock
 =================================================
 */
     template <usize CS, usize MC, typename BA, typename GA>
     typename LfFixedBlockAllocator<CS,MC,BA,GA>::Ptr_t
-        LfFixedBlockAllocator<CS,MC,BA,GA>::Alloc (const SourceLoc &loc) __NE___
+        LfFixedBlockAllocator<CS,MC,BA,GA>::AllocBlock (const SourceLoc &loc) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         struct Dbg
         {
             ulong   counter = 0;
@@ -141,32 +159,22 @@ namespace AE::Threading
             }
         } dbg{ *this };
 
-        for (uint i = ThreadUtils::GetIntID() & ThreadToChunkMask;
-            i < MaxChunks; i += (ThreadToChunkMask >> 1))
+        for (usize i = 0; i < _topChunks.size(); ++i, ++dbg.counter)
         {
-            auto&   chunk = _chunkInfo[i];
+            auto&           top_chunk   = _topChunks[i];
+            TopLevelBits_t  available   = ~top_chunk.assigned.load();   // 1 - unassigned
+            int             idx         = BitScanForward( available );  // first 1 bit
 
-            if ( chunk.hiLevel.load() == UMax )
-                continue;
+            for (; idx >= 0; ++dbg.counter)
+            {
+                Ptr_t   ptr = _Alloc( uint(idx + i * CT_SizeOfInBits<TopLevelBits_t>), loc, INOUT dbg.counter, INOUT dbg.locks );
 
-            Ptr_t   ptr = _Alloc( i, loc, INOUT dbg.counter, INOUT dbg.locks );
+                if_likely( ptr != null )
+                    return ptr;
 
-            if_likely( ptr != null )
-                return ptr;
-        }
-
-        // TODO
-        for (uint i = 0; i < MaxChunks; ++i)
-        {
-            auto&   chunk = _chunkInfo[i];
-
-            if ( chunk.hiLevel.load() == UMax )
-                continue;
-
-            Ptr_t   ptr = _Alloc( i, loc, INOUT dbg.counter, INOUT dbg.locks );
-
-            if_likely( ptr != null )
-                return ptr;
+                available   &= ~(TopLevelBits_t{1} << idx);     // 1 -> 0
+                idx         = BitScanForward( available );      // first 1 bit
+            }
         }
 
         return null;
@@ -181,15 +189,11 @@ namespace AE::Threading
     typename LfFixedBlockAllocator<CS,MC,BA,GA>::Ptr_t
         LfFixedBlockAllocator<CS,MC,BA,GA>::_Alloc (const uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___
     {
-        Unused( loc );
-
-        ChunkInfo&  chunk   = _chunkInfo[ chunkIndex ];
-        void*       ptr     = chunk.memBlock.load( EMemoryOrder::Acquire );
-        ++dbgCounter;
+        BottomChunk&    chunk   = _bottomChunks[ chunkIndex ];
+        auto*           ptr     = chunk.memBlock.load( EMemoryOrder::Acquire );
 
         #if AE_LFFIXEDBLOCKALLOC_DEBUG
         SourceLoc*  dbg_info = chunk.dbgInfo.load( EMemoryOrder::Acquire );
-        ++dbgCounter;
         #endif
 
         // allocate new block
@@ -237,6 +241,7 @@ namespace AE::Threading
             }
             else
             {
+                // TODO: memleak in linear allocator
                 ASSERT( ptr != null );
                 _blockAlloc.Deallocate( new_block, SizeAndAlign{ LargeBlockSize(), BlockAlign() });
 
@@ -255,7 +260,7 @@ namespace AE::Threading
         // find available index in high level
         for (uint j = 0; j < HighWaitCount; ++j, ++dbgCounter)
         {
-            HiLevelBits_t   hi_available    = ~chunk.hiLevel.load();            // 1 - unassigned bit
+            HiLevelBits_t   hi_available    = ~chunk.hiLevel.load();            // 1 - unassigned
             int             hi_lvl_idx      = BitScanForward( hi_available );   // first 1 bit
 
             for (; hi_lvl_idx >= 0; ++dbgCounter)
@@ -264,28 +269,47 @@ namespace AE::Threading
 
                 // find available index in low level
                 auto&           level           = chunk.lowLevel[ hi_lvl_idx ];
-                LowLevelBits_t  low_available   = level.load();                     // 0 - unassigned bit
+                LowLevelBits_t  low_available   = level.load();                     // 0 - unassigned
                 int             low_lvl_idx     = BitScanForward( ~low_available ); // first 0 bit
 
                 for (; low_lvl_idx >= 0; ++dbgCounter)
                 {
                     const LowLevelBits_t    low_lvl_bit = (LowLevelBits_t{1} << low_lvl_idx);
 
-                    if ( level.CAS( INOUT low_available, low_available | low_lvl_bit ))     // 0 -> 1
+                    if_likely( level.CAS( INOUT low_available, low_available | low_lvl_bit ))   // 0 -> 1
                     {
                         // update high level
                         if_unlikely( low_available == ~low_lvl_bit )
                         {
-                            EXLOCK( chunk.hiLevelGuard );
-                            ++lockCounter;
-
-                            // low level value may be changed at any time so check it inside spinlock
-                            if ( level.load() == UMax )
+                            bool    update_top  = false;
                             {
-                                const auto  hi_lvl_bit = (HiLevelBits_t{1} << hi_lvl_idx);
+                                EXLOCK( chunk.hiLevelGuard );
+                                ++lockCounter;
 
-                                chunk.hiLevel.fetch_or( hi_lvl_bit );   // 0 -> 1
-                                ++dbgCounter;
+                                // low level value may be changed at any time so check it inside spinlock
+                                if ( level.load() == UMax )
+                                {
+                                    const auto  hi_lvl_bit  = (HiLevelBits_t{1} << hi_lvl_idx);
+
+                                    update_top = (chunk.hiLevel.Or( hi_lvl_bit ) == MaxHighLevel);  // 0 -> 1
+                                    ++dbgCounter;
+                                }
+                            }
+
+                            if_unlikely( update_top )
+                            {
+                                auto&   top_chunk = _topChunks[ chunkIndex / CT_SizeOfInBits<TopLevelBits_t> ];
+
+                                EXLOCK( top_chunk.assignedGuard );
+                                ++lockCounter;
+
+                                if ( chunk.hiLevel.load() == MaxHighLevel )
+                                {
+                                    const auto  top_lvl_bit = TopLevelBits_t{1} << (chunkIndex % CT_SizeOfInBits<TopLevelBits_t>);
+
+                                    top_chunk.assigned.fetch_or( top_lvl_bit ); // 0 -> 1
+                                    ++dbgCounter;
+                                }
                             }
                         }
 
@@ -299,6 +323,7 @@ namespace AE::Threading
                             MemoryBarrier( EMemoryOrder::Release );
                         }
                         #endif
+                        Unused( loc );
 
                         void*   result = ptr + BlockSize() * idx_in_chunk;
 
@@ -323,17 +348,19 @@ namespace AE::Threading
 
 /*
 =================================================
-    Dealloc
+    DeallocBlock
 =================================================
 */
     template <usize CS, usize MC, typename BA, typename GA>
-    bool  LfFixedBlockAllocator<CS,MC,BA,GA>::Dealloc (void* ptr) __NE___
+    bool  LfFixedBlockAllocator<CS,MC,BA,GA>::DeallocBlock (void* ptr) __NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         const Bytes block_size  = LargeBlockSize();
 
         for (uint i = 0; i < MaxChunks; ++i)
         {
-            auto&   chunk   = _chunkInfo[i];
+            auto&   chunk   = _bottomChunks[i];
             void*   mem     = chunk.memBlock.load();
 
             if ( ptr < mem or ptr >= mem + block_size )
@@ -362,14 +389,31 @@ namespace AE::Threading
             // update high level bits
             if_unlikely( old_bits == UMax )
             {
-                EXLOCK( chunk.hiLevelGuard );
-
-                // low level value may be changed at any time so check it inside spinlock
-                if ( level.load() != UMax )
+                bool    update_top  = false;
                 {
-                    const auto  hi_bit  = (HiLevelBits_t{1} << hi_lvl_idx);
+                    EXLOCK( chunk.hiLevelGuard );
 
-                    chunk.hiLevel.fetch_and( ~hi_bit ); // 1 -> 0
+                    // low level value may be changed at any time so check it inside spinlock
+                    if ( level.load() != UMax )
+                    {
+                        const auto  hi_lvl_bit  = (HiLevelBits_t{1} << hi_lvl_idx);
+
+                        update_top = (chunk.hiLevel.fetch_and( ~hi_lvl_bit ) == MaxHighLevel);  // 1 -> 0
+                    }
+                }
+
+                if_unlikely( update_top )
+                {
+                    auto&   top_chunk = _topChunks[ i / CT_SizeOfInBits<TopLevelBits_t> ];
+
+                    EXLOCK( top_chunk.assignedGuard );
+
+                    if ( chunk.hiLevel.load() != MaxHighLevel )
+                    {
+                        const auto  top_lvl_bit = TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
+
+                        top_chunk.assigned.fetch_and( ~top_lvl_bit );   // 1 -> 0
+                    }
                 }
             }
             return true;
@@ -387,17 +431,47 @@ namespace AE::Threading
     template <usize CS, usize MC, typename BA, typename GA>
     Bytes  LfFixedBlockAllocator<CS,MC,BA,GA>::AllocatedSize () C_NE___
     {
+        DRC_SHAREDLOCK( _drCheck );
+
         const Bytes block_size  = LargeBlockSize();
         Bytes       result;
 
         for (uint i = 0; i < MaxChunks; ++i)
         {
-            auto&   chunk   = _chunkInfo[i];
+            auto&   chunk   = _bottomChunks[i];
 
             if ( chunk.memBlock.load() != null )
                 result += block_size;
         }
         return result;
     }
+
+/*
+=================================================
+    Allocate
+=================================================
+*/
+    template <usize CS, usize MC, typename BA, typename GA>
+    void*  LfFixedBlockAllocator<CS,MC,BA,GA>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
+    {
+        CHECK_ERR(  sizeAndAlign.size  <= BlockSize() and
+                    sizeAndAlign.align <= BlockAlign() );
+        return AllocBlock();
+    }
+
+/*
+=================================================
+    Deallocate
+=================================================
+*/
+    template <usize CS, usize MC, typename BA, typename GA>
+    void  LfFixedBlockAllocator<CS,MC,BA,GA>::Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE___
+    {
+        ASSERT( sizeAndAlign.size  <= BlockSize() and
+                sizeAndAlign.align <= BlockAlign() );
+        Unused( sizeAndAlign );
+        CHECK( DeallocBlock( ptr ));
+    }
+
 
 } // AE::Threading

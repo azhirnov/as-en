@@ -362,7 +362,7 @@ namespace AE::ResEditor
         _isMutable{ allowUpdate or  [this]() {
                                         bool  is_mutable = false;
                                         for (auto& inst : _instances)  is_mutable |= inst.geometry->IsMutable();
-                                        return is_mutable; 
+                                        return is_mutable;
                                     }() },
         _dbgName{ dbgName }
     {

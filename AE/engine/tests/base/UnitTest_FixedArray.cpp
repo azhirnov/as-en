@@ -103,19 +103,19 @@ namespace
         constexpr usize a1 = sizeof(FixedArray<char, 8>);
         constexpr usize a2 = alignof(FixedArray<char, 8>);
 
-        STATIC_ASSERT( a1 == (1 + 8) );
-        STATIC_ASSERT( a2 == 1 );
+        StaticAssert( a1 == (1 + 8) );
+        StaticAssert( a2 == 1 );
 
         constexpr usize b1 = sizeof(FixedArray<double, 8>);
         constexpr usize b2 = alignof(FixedArray<double, 8>);
 
     #if defined(AE_PLATFORM_ANDROID) and defined(__i386__)
-        STATIC_ASSERT( alignof(double) == 4 );
-        STATIC_ASSERT( b1 == (4 + 8*8) );
-        STATIC_ASSERT( b2 == 4 );
+        StaticAssert( alignof(double) == 4 );
+        StaticAssert( b1 == (4 + 8*8) );
+        StaticAssert( b2 == 4 );
     #else
-        STATIC_ASSERT( b1 == (8 + 8*8) );
-        STATIC_ASSERT( b2 == 8 );
+        StaticAssert( b1 == (8 + 8*8) );
+        StaticAssert( b2 == 8 );
     #endif
     }
 
@@ -145,6 +145,16 @@ namespace
         }
         TEST( T::CheckStatistic() );
     }
+
+
+    static void  FixedArray_Test6 ()
+    {
+        struct alignas(64) Elem {};
+
+        using Arr_t = FixedArray< Elem, 8 >;
+
+        StaticAssert( alignof(Arr_t) == alignof(Elem) );
+    }
 }
 
 
@@ -155,6 +165,7 @@ extern void UnitTest_FixedArray ()
     FixedArray_Test3();
     FixedArray_Test4();
     FixedArray_Test5();
+    FixedArray_Test6();
 
     TEST_PASSED();
 }

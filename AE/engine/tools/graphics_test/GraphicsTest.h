@@ -17,6 +17,7 @@ namespace AE::GraphicsTest
     // variables
     private:
         Mutex                   _guard;
+        RC<WStream>             _dstFile;
         Path                    _fname;
         bool                    _loaded     = false;
         bool                    _newRef     = false;
@@ -28,7 +29,9 @@ namespace AE::GraphicsTest
         ImageComparator () {}
         ~ImageComparator ();
 
-            bool  LoadReference (Path imgName);
+            bool  LoadReference (RC<RStream> imgFile, Path imgName);
+            void  Reset (RC<WStream> imgFile, Path imgName);
+
         ND_ bool  Compare (const ImageMemView &view);
     };
 

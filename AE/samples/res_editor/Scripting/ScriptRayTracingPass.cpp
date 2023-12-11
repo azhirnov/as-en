@@ -280,7 +280,7 @@ namespace
 
         groups.resize( Max( groups.size(), rayIndex.value+1 ), Default );
 
-        auto&   dst = groups[ rayIndex.value ];     
+        auto&   dst = groups[ rayIndex.value ];
         CHECK_THROW_MSG( not dst.IsDefined(),
             "TriangleHit shader with Ray("s << ToString(rayIndex.value) << "), Instance(" << ToString(instanceIndex.value) << ") is already set" );
 
@@ -312,7 +312,7 @@ namespace
 
         groups.resize( Max( groups.size(), rayIndex.value+1 ), Default );
 
-        auto&   dst = groups[ rayIndex.value ];     
+        auto&   dst = groups[ rayIndex.value ];
         CHECK_THROW_MSG( not dst.IsDefined(),
             "ProceduralHit shader with Ray("s << ToString(rayIndex.value) << "), Instance(" << ToString(instanceIndex.value) << ") is already set" );
 
@@ -449,9 +449,9 @@ namespace
         CHECK_THROW_MSG( _rayGen.IsDefined(), "RayGen shader must be defined" );
 
         auto        result      = MakeRC<RayTracingPass>();
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptPassApi::GetRenderer();  // throw
-        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
         Bytes       ub_size;
 
         // validate
@@ -501,6 +501,13 @@ namespace
         AddPpln( IPass::EDebugMode::TimeHeatMap,    EFlags::Enable_ShaderTmProf,    PipelineName{"raytrace.TmProf"},    RTShaderBindingName{"raytrace.TmProf.sbt"} );
 
         auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second.Get<0>();
+
+        #if PIPELINE_STATISTICS
+        {
+            auto&   res = res_mngr.GetResourcesOrThrow( ppln );
+            Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
+        }
+        #endif
 
         result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
@@ -564,7 +571,7 @@ namespace
         }
       #endif
 
-        _Init( *result );
+        _Init( *result, null );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
 
         return result;
@@ -621,9 +628,9 @@ namespace AE::ResEditor
                 int4        intConst [4];
             )#");
 
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
-        STATIC_ASSERT( IPass::CustomKeys_t{}.max_size() == 1 );
+        StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
+        StaticAssert( IPass::Constants::MaxCount == 4 );
+        StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
         return st;
     }
 
@@ -672,7 +679,13 @@ namespace AE::ResEditor
         const EShaderOpt    sh_opt = EShaderOpt::Optimize;
     //  const EShaderOpt    sh_opt = EShaderOpt::DebugInfo; // for shader debugging in RenderDoc
 
-        _CompilePipeline3( header, "raytrace", uint(sh_opt), EPipelineOpt::Optimize );
+      #if PIPELINE_STATISTICS
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
+      #else
+        const EPipelineOpt  ppln_opt = EPipelineOpt::Optimize;
+      #endif
+
+        _CompilePipeline3( header, "raytrace", uint(sh_opt), ppln_opt );
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
@@ -764,7 +777,7 @@ namespace AE::ResEditor
 
         // specialization
         {
-            const uint  max_recursion = RenderTaskScheduler().GetDevice().GetDeviceProperties().rayTracing.maxRecursion;
+            const uint  max_recursion = GraphicsScheduler().GetDevice().GetDeviceProperties().rayTracing.maxRecursion;
 
             RayTracingPipelineSpecPtr   ppln_spec = ppln_templ->AddSpecialization2( pplnName );
             ppln_spec->AddToRenderTech( "rtech", "Compute" );
@@ -780,18 +793,18 @@ namespace AE::ResEditor
 
             sbt->BindRayGen( "Main" );
 
-            for (auto [miss, i] : WithIndex(_missShaders)) {
+            for (const auto [miss, i] : WithIndex( _missShaders )) {
                 if ( miss.IsDefined() )
                     sbt->BindMiss( miss.name, RayIndex(uint(i)) );
             }
 
-            for (auto [call, i] : WithIndex(_callableShaders)) {
+            for (const auto [call, i] : WithIndex( _callableShaders )) {
                 if ( call.IsDefined() )
                     sbt->BindCallable( call.name, CallableIndex(uint(i)) );
             }
 
-            for (auto [per_inst, inst] : WithIndex(_hitGroups)) {
-                for (auto [group, ray] : WithIndex(per_inst)) {
+            for (const auto [per_inst, inst] : WithIndex( _hitGroups )) {
+                for (const auto [group, ray] : WithIndex( per_inst )) {
                     if ( group.IsDefined() )
                         sbt->BindHitGroup( group.name, InstanceIndex(uint(inst)), RayIndex(uint(ray)) );
                 }

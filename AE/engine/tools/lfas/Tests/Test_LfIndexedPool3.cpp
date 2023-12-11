@@ -3,12 +3,12 @@
 #include "UnitTest_Common.h"
 
 #include "threading/Primitives/SpinLock.h"
-#include "threading/Containers/LfIndexedPool3.h"
+#include "threading/Containers/LfIndexedPool.h"
 
 
 namespace
 {
-    using AE::Threading::LfIndexedPool3;
+    using AE::Threading::LfIndexedPool;
 
     enum class EAction
     {
@@ -20,7 +20,7 @@ namespace
     };
 
 
-    void LfIndexedPool3_Test1 ()
+    void LfIndexedPool_Test1 ()
     {
         using T = DebugInstanceCounter< int, 1 >;
 
@@ -37,7 +37,7 @@ namespace
 
             struct
             {
-                LfIndexedPool3< Storage<T>, uint, 256, 16 >     pool;
+                LfIndexedPool< Storage<T>, uint, 256, 16 >      pool;
 
                 std::mutex                                      guard;
                 HashMap< std::thread::id, PerThread >           perThread;
@@ -150,7 +150,7 @@ namespace
 
 extern void Test_LfIndexedPool3 ()
 {
-    LfIndexedPool3_Test1();
+    LfIndexedPool_Test1();
 
     TEST_PASSED();
 }

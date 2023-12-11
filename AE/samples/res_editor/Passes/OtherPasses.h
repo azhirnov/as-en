@@ -26,7 +26,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize, RC<DynamicUInt> filterMode) :
+        explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize, RC<DynamicUInt> filterMode) __NE___ :
             IPass{dbgName}, _src{RVRef(src)}, _dynSize{dynSize}, _filterMode{filterMode} {}
 
     // IPass //
@@ -146,7 +146,7 @@ namespace AE::ResEditor
     private:
         RC<Image>               _src;
         RC<Image>               _copy;      // make a copy if '_src' will be changed
-        RC<Image>               _view;      // view of '_src' or '_copy' which will be displayed 
+        RC<Image>               _view;      // view of '_src' or '_copy' which will be displayed
 
         const uint              _index;
         const EFlags            _flags;
@@ -158,7 +158,7 @@ namespace AE::ResEditor
     public:
         explicit DebugView (RC<Image> src, uint idx, EFlags flags,
                             ImageLayer layer, MipmapLevel mipmap,
-                            Renderer* renderer, StringView dbgName) __Th___;
+                            Renderer* renderer, StringView dbgName)         __Th___;
         ~DebugView ();
 
         ND_ RC<Image>   GetImage ()                                         const   { return _copy; }
@@ -190,7 +190,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        explicit GenerateMipmapsPass (RC<Image> image, StringView dbgName) :
+        explicit GenerateMipmapsPass (RC<Image> image, StringView dbgName) __NE___ :
             IPass{dbgName}, _image{RVRef(image)} {}
 
     // IPass //
@@ -246,7 +246,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        explicit ClearImagePass (RC<Image> image, ClearValue_t value, StringView dbgName) :
+        explicit ClearImagePass (RC<Image> image, ClearValue_t value, StringView dbgName) __NE___ :
             IPass{dbgName}, _image{RVRef(image)}, _value{value} {}
 
     // IPass //
@@ -273,7 +273,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        explicit ClearBufferPass (RC<Buffer> buffer, Bytes offset, Bytes size, uint value, StringView dbgName) :
+        explicit ClearBufferPass (RC<Buffer> buffer, Bytes offset, Bytes size, uint value, StringView dbgName) __NE___ :
             IPass{dbgName}, _buffer{RVRef(buffer)}, _offset{offset}, _size{size}, _value{value} {}
 
     // IPass //

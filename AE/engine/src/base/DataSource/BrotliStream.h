@@ -39,7 +39,7 @@ namespace AE::Base
         ESourceType GetSourceType ()                                        C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess; }
 
         bool        SeekFwd (Bytes offset)                                  __NE_OV;
-        Bytes       ReadSeq (OUT void *buffer, Bytes size)                  __NE_OV;
+        Bytes       ReadSeq (OUT void* buffer, Bytes size)                  __NE_OV;
     };
 
 
@@ -92,7 +92,7 @@ namespace AE::Base
         bool        SeekFwd (Bytes)                                         __NE_OV { return false; }
         void        Flush ()                                                __NE_OV { _Flush(); }
 
-        Bytes       WriteSeq (const void *buffer, Bytes size)               __NE_OV;
+        Bytes       WriteSeq (const void* buffer, Bytes size)               __NE_OV;
 
     private:
         bool        _Flush ()                                               __NE___;

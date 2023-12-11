@@ -31,13 +31,12 @@ namespace AE::Graphics
     class DRAWCMDBATCH final : public EnableRC< DRAWCMDBATCH >
     {
         friend class DrawTask;
-        friend class AE_PRIVATE_UNITE_RAW( SUFFIX, RenderTaskScheduler );
+        friend class RenderTaskScheduler;
 
     // types
     private:
         using CmdBufPool_t          = AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch )::CmdBufPool;
         using PrimaryCmdBufState_t  = AE_PRIVATE_UNITE_RAW( SUFFIX, PrimaryCmdBufState );
-        using RenderTaskScheduler_t = AE_PRIVATE_UNITE_RAW( SUFFIX, RenderTaskScheduler );
 
       #if defined(AE_ENABLE_VULKAN)
         using Viewport_t            = VkViewport;
@@ -86,8 +85,6 @@ namespace AE::Graphics
         Encoder_t               _encoder;
       #endif
 
-        const ubyte             _indexInPool;
-
         PrimaryCmdBufState_t    _primaryState;
 
         Viewports_t             _viewports;
@@ -102,6 +99,7 @@ namespace AE::Graphics
 
     // methods
     public:
+        DRAWCMDBATCH ()                                         __NE___ {}
 
         template <typename TaskType, typename ...Ctor, typename ...Deps>
         AsyncTask   Run (Tuple<Ctor...> &&      ctor    = Default,
@@ -136,10 +134,6 @@ namespace AE::Graphics
 
     // render task scheduler api
     private:
-        explicit DRAWCMDBATCH (uint indexInPool)                __NE___ :
-            _indexInPool{ CheckCast<ubyte>( indexInPool )}
-        {}
-
         bool  _Create (const PrimaryCmdBufState_t &primaryState,
                        ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors,
                        DebugLabel dbg)                          __NE___;
@@ -206,7 +200,7 @@ namespace AE::Graphics
                                   const Tuple<Deps...>& deps,
                                   DebugLabel            dbg) __NE___
     {
-        STATIC_ASSERT( IsBaseOf< DrawTask, TaskType >);
+        StaticAssert( IsBaseOf< DrawTask, TaskType >);
         CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 
         DBG_GRAPHICS_ONLY(
@@ -214,17 +208,14 @@ namespace AE::Graphics
                 dbg.color = _dbgColor;
         )
 
-        // DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-        // DrawTask internally creates command buffer and throw exception if can't.
-        try {
-            auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args)
-                                          { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });   // throw
+        auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
+                                      { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
 
+        if_likely( task and task->IsValid() )
+        {
             if_likely( Scheduler().Run( task, deps ))
                 return task;
         }
-        catch(...) {}
-
         return Scheduler().GetCanceledTask();
     }
 
@@ -247,11 +238,8 @@ namespace AE::Graphics
                 dbg.color = _dbgColor;
         )
 
-        // DrawTask internally calls '_cmdPool.Acquire()' and return error on pool overflow.
-        // DrawTask internally creates command buffer and throw exception if can't.
-
-        auto&   dtask = coro.AsDrawTask();
-        CHECK_ERR( dtask._Init( GetRC<DRAWCMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
+        auto&   task = coro.AsDrawTask();
+        CHECK_ERR( task._Init( GetRC<DRAWCMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
 
         if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
             return coro;

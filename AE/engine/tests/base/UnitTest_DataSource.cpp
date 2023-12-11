@@ -346,7 +346,7 @@ namespace
     {
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( IsMultipleOf( file_size, buf_size ));
+        StaticAssert( IsMultipleOf( file_size, buf_size ));
 
         const Path      fname {"stream1_data.bin"};
         {
@@ -399,7 +399,7 @@ namespace
     {
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( IsMultipleOf( file_size, buf_size ));
+        StaticAssert( IsMultipleOf( file_size, buf_size ));
 
         const Path      fname {"file1_data.bin"};
         {
@@ -456,13 +456,6 @@ namespace
 
 extern void UnitTest_DataSource ()
 {
-    const Path  curr    = FileSystem::CurrentPath();
-    const Path  folder  {AE_CURRENT_DIR "/ds_test"};
-
-    FileSystem::RemoveAll( folder );
-    FileSystem::CreateDirectories( folder );
-    TEST( FileSystem::SetCurrentPath( folder ));
-
     #ifdef AE_ENABLE_BROTLI
     BrotliStream_Test1();
     BrotliStream_Test2();
@@ -477,8 +470,17 @@ extern void UnitTest_DataSource ()
     FastStream_Test3();
     FastStream_Test4();
 
+
     // minimize disk usage for debug build
-  #ifdef AE_RELEASE
+  #if defined(AE_RELEASE) and not defined(AE_PLATFORM_ANDROID)
+
+    const Path  curr    = FileSystem::CurrentPath();
+    const Path  folder  {AE_CURRENT_DIR "/ds_test"};
+
+    FileSystem::RemoveAll( folder );
+    FileSystem::CreateDirectories( folder );
+    TEST( FileSystem::SetCurrentPath( folder ));
+
     Stream_Test1< FileRStream,      FileWStream >();
     File_Test1<   FileRDataSource,  FileWDataSource >( false );
 
@@ -491,9 +493,9 @@ extern void UnitTest_DataSource ()
         File_Test1<   FileRDataSource,      WinWFileDataSource  >( false );
         File_Test1<   WinRFileDataSource,   WinWFileDataSource  >( true );
     #endif
-  #endif
 
     FileSystem::SetCurrentPath( curr );
+  #endif
 
     TEST_PASSED();
 }

@@ -16,18 +16,35 @@ namespace
     HasShaderClock
 =================================================
 */
-    ND_ static Tuple<bool,bool>  HasShaderClock (ArrayView<ScriptFeatureSetPtr> features)
+    struct ShaderDebuggerFeatures
     {
-        FeatureSetCounter   device;
-        FeatureSetCounter   subgroup;
+        bool    shaderDeviceClock               = false;
+        bool    shaderSubgroupClock             = false;
+        bool    fragmentStoresAndAtomics        = false;
+        bool    vertexPipelineStoresAndAtomics  = false;
+    };
+    ND_ static ShaderDebuggerFeatures  GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features)
+    {
+        FeatureSetCounter       device;
+        FeatureSetCounter       subgroup;
+        FeatureSetCounter       vertex_atomic;
+        FeatureSetCounter       frag_atomic;
+        ShaderDebuggerFeatures  result;
 
         for (auto& ptr : features)
         {
-            device  .Add( ptr->fs.shaderDeviceClock );
-            subgroup.Add( ptr->fs.shaderSubgroupClock );
+            device          .Add( ptr->fs.shaderDeviceClock );
+            subgroup        .Add( ptr->fs.shaderSubgroupClock );
+            vertex_atomic   .Add( ptr->fs.vertexPipelineStoresAndAtomics );
+            frag_atomic     .Add( ptr->fs.fragmentStoresAndAtomics );
         }
 
-        return Tuple{ device.IsEnable(), subgroup.IsEnable() };
+        result.shaderDeviceClock                = device.IsTrue();
+        result.shaderSubgroupClock              = subgroup.IsTrue();
+        result.fragmentStoresAndAtomics         = frag_atomic.IsTrue();
+        result.vertexPipelineStoresAndAtomics   = vertex_atomic.IsTrue();
+
+        return result;
     }
 }
 
@@ -36,7 +53,7 @@ namespace
     _CompileShaderGLSL
 =================================================
 */
-    void  ObjectStorage::_CompileShaderGLSL (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features, uint debugDSIndex, const PathAndLine &shaderPath,
+    void  ObjectStorage::_CompileShaderGLSL (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features, const uint debugDSIndex, const PathAndLine &shaderPath,
                                              const String &entry, OUT CompiledShader &compiled) __Th___
     {
         CHECK_THROW_MSG( spirvCompiler );
@@ -71,18 +88,38 @@ namespace
             TestFeature_Min( features, &FeatureSet::maxDescriptorSets, ushort(debugDSIndex), "maxDescriptorSets", "Debug descriptor set index" );
         }
 
+        const auto  dbg_feats = GetShaderDebuggerFeatures( features );
+        if ( AnyBits( info.options, EShaderOpt::_ShaderTrace_Mask ))
+        {
+            switch ( info.type )
+            {
+                case EShader::Vertex :
+                case EShader::TessControl :
+                case EShader::TessEvaluation :
+                case EShader::Geometry :
+                    CHECK_THROW_MSG( dbg_feats.vertexPipelineStoresAndAtomics,
+                        "Shader debugger requires 'vertexPipelineStoresAndAtomics' feature for "s << ToString(info.type) << " shader." );
+                    break;
+
+                case EShader::Fragment :
+                    CHECK_THROW_MSG( dbg_feats.fragmentStoresAndAtomics,
+                        "Shader debugger requires 'fragmentStoresAndAtomics' features for "s << ToString(info.type) << " shader." );
+                    break;
+            }
+        }
+
         SpirvCompiler::Output   out;
         SpirvCompiler::Input    in;
-        in.shaderType   = info.type;
-        in.spirvVersion = EShaderVersion_Ver2( info.version );
-        in.entry        = entry.c_str();
-        in.header       = header;
-        in.source       = info.source;
-        in.options      = info.options;
-        in.dbgDescSetIdx= debugDSIndex;
-        in.fileLoc      = shaderPath;
-
-        StructSet( in.shaderDeviceClock, in.shaderSubgroupClock ) = HasShaderClock( features );
+        in.shaderType           = info.type;
+        in.spirvVersion         = EShaderVersion_Ver2( info.version );
+        in.entry                = entry.c_str();
+        in.header               = header;
+        in.source               = info.source;
+        in.options              = info.options;
+        in.dbgDescSetIdx        = debugDSIndex;
+        in.fileLoc              = shaderPath;
+        in.shaderDeviceClock    = dbg_feats.shaderDeviceClock;
+        in.shaderSubgroupClock  = dbg_feats.shaderSubgroupClock;
 
         if_unlikely( not spirvCompiler->Compile( in, OUT out ))
         {
@@ -210,17 +247,18 @@ namespace
                     case ESubgroupTypes::Unknown :
                     case ESubgroupTypes::_Last :
                     case ESubgroupTypes::All :
-                    default :                           CHECK( !"unknown type" );
+                    default :                           CHECK_MSG( false, "unknown type" );
                 }
                 END_ENUM_CHECKS();
             }
 
-            if ( dynamic_id.IsEnable() )
-                ext << "#extension GL_ARB_shader_ballot                            : " << (dynamic_id.IsTrue() ? "require" : "enable") << "\n";
+            if ( dynamic_id.IsTrue() )
+                ext << "#extension GL_ARB_shader_ballot                            : require\n";
 
-            // TODO: not supported by glslang?
-            //if ( un_control_flow.IsEnable() and spirvVer >= Version2{1,5} )
-            //  ext << "#extension GL_EXT_subgroupuniform_qualifier                : " << (un_control_flow.IsTrue() ? "require" : "enable") << "\n";
+            if ( un_control_flow.IsTrue() and spirvVer >= Version2{1,3} )
+                ext << "#ifdef GL_EXT_subgroupuniform_qualifier\n"
+                    << "# extension GL_EXT_subgroupuniform_qualifier               : require\n"
+                    << "#endif\n";
 
             //def << "#define AE_MIN_SUBGROUP_SIZE " << ToString( min_size ) << "\n"
             //  << "#define AE_MAX_SUBGROUP_SIZE " << ToString( max_size ) << "\n";
@@ -248,35 +286,40 @@ namespace
                 // TODO: storageBuffer16BitAccess, ...
             }
 
-            if ( shader_int8.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_8bit_storage                      : " << (shader_int8.IsTrue() ? "require" : "enable") << "\n"
-                    << "#extension GL_EXT_shader_explicit_arithmetic_types_int8    : " << (shader_int8.IsTrue() ? "require" : "enable") << "\n";
+            if ( shader_int8.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_8bit_storage                      : require\n"
+                    << "#extension GL_EXT_shader_explicit_arithmetic_types_int8    : require\n"
+                    << "#define AE_ENABLE_BYTE_TYPE 1\n";
             }
-            if ( shader_int16.IsEnable() or shader_float16.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_16bit_storage                     : " << ((shader_int16.IsTrue() or shader_float16.IsTrue()) ? "require" : "enable") << "\n";
+            if ( shader_int16.IsTrue() or shader_float16.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_16bit_storage                     : require\n";
             }
-            if ( shader_int16.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_explicit_arithmetic_types_int16   : " << (shader_int16.IsTrue() ? "require" : "enable") << "\n";
+            if ( shader_int16.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_explicit_arithmetic_types_int16   : require\n"
+                    << "#define AE_ENABLE_SHORT_TYPE 1\n";
             }
-            if ( shader_float16.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_explicit_arithmetic_types_float16 : " << (shader_float16.IsTrue() ? "require" : "enable") << "\n";
+            if ( shader_float16.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require\n"
+                    << "#define AE_ENABLE_HALF_TYPE 1\n";
             }
-            if ( shader_int64.IsEnable() ) {
-                ext << "#extension GL_ARB_gpu_shader_int64                         : " << (shader_int64.IsTrue() ? "require" : "enable") << "\n"
-                    << "#extension GL_EXT_shader_explicit_arithmetic_types_int64   : " << (shader_int64.IsTrue() ? "require" : "enable") << "\n";
+            if ( shader_int64.IsTrue() ) {
+                ext << "#extension GL_ARB_gpu_shader_int64                         : require\n"
+                    << "#extension GL_EXT_shader_explicit_arithmetic_types_int64   : require\n"
+                    << "#define AE_ENABLE_LONG_TYPE 1\n";
             }
-            if ( shader_float64.IsEnable() ) {
-                ext << "#extension GL_ARB_gpu_shader_fp64                          : " << (shader_float64.IsTrue() ? "require" : "enable") << "\n"
-                    << "#extension GL_EXT_shader_explicit_arithmetic_types_float64 : " << (shader_float64.IsTrue() ? "require" : "enable") << "\n";
+            if ( shader_float64.IsTrue() ) {
+                ext << "#extension GL_ARB_gpu_shader_fp64                          : require\n"
+                    << "#extension GL_EXT_shader_explicit_arithmetic_types_float64 : require\n"
+                    << "#define AE_ENABLE_DOUBLE_TYPE 1\n";
             }
-            if ( scalar_layout.IsEnable() ) {
-                ext << "#extension GL_EXT_scalar_block_layout                      : " << (scalar_layout.IsTrue() ? "require" : "enable") << "\n";
+            if ( scalar_layout.IsTrue() ) {
+                ext << "#extension GL_EXT_scalar_block_layout                      : require\n";
             }
-            if ( dev_addr_supported.IsEnable() )
+            if ( dev_addr_supported.IsTrue() )
             {
-                ext << "#extension GL_EXT_buffer_reference                         : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
-                ext << "#extension GL_EXT_buffer_reference2                        : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
-                ext << "#extension GL_EXT_buffer_reference_uvec2                   : " << (dev_addr_supported.IsTrue() ? "require" : "enable") << "\n";
+                ext << "#extension GL_EXT_buffer_reference                         : require\n";
+                ext << "#extension GL_EXT_buffer_reference2                        : require\n";
+                ext << "#extension GL_EXT_buffer_reference_uvec2                   : require\n";
             }
             ext << "#extension GL_EXT_shader_explicit_arithmetic_types_int32   : enable\n"
                 << "#extension GL_EXT_shader_explicit_arithmetic_types_float32 : enable\n";
@@ -328,20 +371,20 @@ namespace
                 atomic_float2.Add( ptr->fs.sparseImageFloat32AtomicMinMax );
             }
 
-            if ( has_atomics.IsEnable() ) {
+            if ( has_atomics.IsTrue() ) {
                 def << "#define AE_HAS_ATOMICS 1\n";
             }
-            if ( storage_i64.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_atomic_int64                      : " << (storage_i64.IsTrue() ? "require" : "enable") << "\n";
+            if ( storage_i64.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_atomic_int64                      : require\n";
             }
-            if ( image_i64.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_image_int64                       : " << (image_i64.IsTrue() ? "require" : "enable") << "\n";
+            if ( image_i64.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_image_int64                       : require\n";
             }
-            if ( atomic_float.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_atomic_float                      : " << (atomic_float.IsTrue() ? "require" : "enable") << "\n";
+            if ( atomic_float.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_atomic_float                      : require\n";
             }
-            if ( atomic_float2.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_atomic_float2                     : " << (atomic_float2.IsTrue() ? "require" : "enable") << "\n";
+            if ( atomic_float2.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_atomic_float2                     : require\n";
             }
         }
 
@@ -356,11 +399,11 @@ namespace
                 subgroup.Add( ptr->fs.shaderSubgroupClock );
             }
 
-            if ( device.IsEnable() ) {
-                ext << "#extension GL_EXT_shader_realtime_clock                    : " << (device.IsTrue() ? "require" : "enable") << "\n";
+            if ( device.IsTrue() ) {
+                ext << "#extension GL_EXT_shader_realtime_clock                    : require\n";
             }
-            if ( subgroup.IsEnable() ) {
-                ext << "#extension GL_ARB_shader_clock                             : " << (subgroup.IsTrue() ? "require" : "enable") << "\n";
+            if ( subgroup.IsTrue() ) {
+                ext << "#extension GL_ARB_shader_clock                             : require\n";
             }
         }
 
@@ -372,8 +415,8 @@ namespace
                 ts_supported.Add( ptr->fs.taskShader );
                 ms_supported.Add( ptr->fs.meshShader );
             }
-            if ( (stage == EShaderStages::MeshTask  and ts_supported.IsEnable()) or
-                 (stage == EShaderStages::Mesh      and ms_supported.IsEnable()) )
+            if ( (stage == EShaderStages::MeshTask  and ts_supported.IsTrue()) or
+                 (stage == EShaderStages::Mesh      and ms_supported.IsTrue()) )
             {
                 CHECK_THROW_MSG(( spirvVer >= Version2{1,4} ));
                 ext << "#extension GL_EXT_mesh_shader                              : require\n";
@@ -388,12 +431,12 @@ namespace
                 rt_supported        .Add( ptr->fs.rayTracingPipeline );
                 prim_cull_supported .Add( ptr->fs.rayTraversalPrimitiveCulling );
             }
-            if ( AnyBits( stage, EShaderStages::AllRayTracing ) and rt_supported.IsEnable() )
+            if ( AnyBits( stage, EShaderStages::AllRayTracing ) and rt_supported.IsTrue() )
             {
                 CHECK_THROW_MSG(( spirvVer >= Version2{1,4} ));
                 ext << "#extension GL_EXT_ray_tracing                              : require\n";
-                if ( prim_cull_supported.IsEnable() )
-                    ext << "#extension GL_EXT_ray_flags_primitive_culling              : " << (prim_cull_supported.IsTrue() ? "require" : "enable") << "\n";
+                if ( prim_cull_supported.IsTrue() )
+                    ext << "#extension GL_EXT_ray_flags_primitive_culling              : require\n";
             }
         }
 
@@ -409,8 +452,8 @@ namespace
                 rq_stages |= ptr->fs.rayQueryStages;
             }
 
-            if ( rq_supported.IsEnable() and AnyBits( rq_stages, stage )) {
-                ext << "#extension GL_EXT_ray_query                                : " << (rq_supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( rq_supported.IsTrue() and AnyBits( rq_stages, stage )) {
+                ext << "#extension GL_EXT_ray_query                                : require\n";
                 def << "#define AE_RAY_QUERY 1\n";
             }
         }
@@ -421,7 +464,7 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.tileShader );
             }
-            if ( stage == EShaderStages::Tile and supported.IsEnable() ) {
+            if ( stage == EShaderStages::Tile and supported.IsTrue() ) {
                 ext << "#extension GL_HUAWEI_subpass_shading                       : require\n";
             }
         }
@@ -433,8 +476,8 @@ namespace
                 supported.Add( ptr->fs.shaderOutputViewportIndex );
                 supported.Add( ptr->fs.shaderOutputLayer );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_ARB_shader_viewport_layer_array              : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_ARB_shader_viewport_layer_array              : require\n";
             }
         }
 
@@ -444,8 +487,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.shaderResourceMinLod );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_ARB_sparse_texture_clamp                     : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_ARB_sparse_texture_clamp                     : require\n";
             }
         }
 
@@ -455,8 +498,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.shaderSMBuiltinsNV );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_NV_shader_sm_builtins                        : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_NV_shader_sm_builtins                        : require\n";
             }
         }
 
@@ -466,8 +509,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.shaderCoreBuiltinsARM );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_ARM_shader_core_builtins                     : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_ARM_shader_core_builtins                     : require\n";
             }
         }
 
@@ -483,8 +526,8 @@ namespace
                 supported.Add( ptr->fs.shaderUniformTexelBufferArrayNonUniformIndexing );
                 supported.Add( ptr->fs.shaderStorageTexelBufferArrayNonUniformIndexing );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_EXT_nonuniform_qualifier                     : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_EXT_nonuniform_qualifier                     : require\n";
             }
         }
 
@@ -496,8 +539,8 @@ namespace
                 supported.Add( ptr->fs.vulkanMemoryModelDeviceScope );
                 supported.Add( ptr->fs.vulkanMemoryModelAvailabilityVisibilityChains );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_KHR_memory_scope_semantics                   : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_KHR_memory_scope_semantics                   : require\n";
                 def << "#define AE_MEM_SCOPE 1\n";
             }
         }
@@ -508,8 +551,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.shaderDemoteToHelperInvocation );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_EXT_demote_to_helper_invocation              : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_EXT_demote_to_helper_invocation              : require\n";
             }
         }
 
@@ -521,8 +564,8 @@ namespace
                 supported.Add( ptr->fs.fragmentShaderPixelInterlock );
                 supported.Add( ptr->fs.fragmentShaderShadingRateInterlock );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_ARB_fragment_shader_interlock                : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_ARB_fragment_shader_interlock                : require\n";
             }
         }
 
@@ -534,8 +577,8 @@ namespace
                 supported.Add( ptr->fs.primitiveFragmentShadingRate );
                 supported.Add( ptr->fs.attachmentFragmentShadingRate );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_EXT_fragment_shading_rate                    : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_EXT_fragment_shading_rate                    : require\n";
             }
         }
 
@@ -545,8 +588,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.fragmentShaderBarycentric );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_EXT_fragment_shader_barycentric              : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_EXT_fragment_shader_barycentric              : require\n";
             }
         }
 
@@ -556,8 +599,8 @@ namespace
             for (auto& ptr : features) {
                 supported.Add( ptr->fs.multiview );
             }
-            if ( supported.IsEnable() ) {
-                ext << "#extension GL_EXT_multiview                                : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                ext << "#extension GL_EXT_multiview                                : require\n";
             }
         }
 
@@ -566,12 +609,13 @@ namespace
             FeatureSetCounter   supported;
             FeatureSetCounter   supported2;
             for (auto& ptr : features) {
-                supported .Add( ptr->fs.cooperativeMatrix );
+                if ( AllBits( ptr->fs.cooperativeMatrixStages, stage ))
+                    supported .Add( ptr->fs.cooperativeMatrix );
                 supported2.Add( ptr->fs.vulkanMemoryModel );
             }
-            if ( supported.IsEnable() ) {
-                CHECK_THROW_MSG( supported2.IsEnable() );   // required
-                ext << "#extension GL_KHR_cooperative_matrix                       : " << (supported.IsTrue() ? "require" : "enable") << "\n";
+            if ( supported.IsTrue() ) {
+                CHECK_THROW_MSG( supported2.IsTrue() ); // required
+                ext << "#extension GL_KHR_cooperative_matrix                       : require\n";
                 def << "#define AE_COOP_MATRIX 1\n";
             }
         }

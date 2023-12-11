@@ -14,7 +14,7 @@ namespace
     {
     // variables
     private:
-        ThreadWakeup::LoopingFlag_t     _looping        {0};
+        TaskScheduler::LoopingFlag_t    _looping        {0};
         const ThreadMngr::ThreadConfig  _cfg;
         StdThread                       _thread;
 
@@ -24,14 +24,14 @@ namespace
 
     // methods
     public:
-        explicit WorkerThread (const ThreadMngr::ThreadConfig &cfg);
+        explicit WorkerThread (const ThreadMngr::ThreadConfig &cfg) __NE___;
 
         // IThread //
-        bool            Attach (uint uid, uint coreId)  __NE_OV;
-        void            Detach ()                       __NE_OV;
+        bool            Attach (uint uid, ECpuCoreId coreId)        __NE_OV;
+        void            Detach ()                                   __NE_OV;
 
-        usize           DbgID ()                        C_NE_OV { return ThreadUtils::GetIntID( _thread ); }
-        ProfilingInfo   GetProfilingInfo ()             C_NE_OV { SHAREDLOCK( _profInfoGuard );  return _profInfo; }
+        usize           DbgID ()                                    C_NE_OV { return ThreadUtils::GetIntID( _thread ); }
+        ProfilingInfo   GetProfilingInfo ()                         C_NE_OV { SHAREDLOCK( _profInfoGuard );  return _profInfo; }
 
     private:
         void  _UpdateProfilingInfo ();
@@ -42,7 +42,7 @@ namespace
     constructor
 =================================================
 */
-    WorkerThread::WorkerThread (const ThreadMngr::ThreadConfig &cfg) : _cfg{cfg}
+    WorkerThread::WorkerThread (const ThreadMngr::ThreadConfig &cfg) __NE___ : _cfg{cfg}
     {
         ASSERT( not _cfg.threads.empty() );
     }
@@ -52,44 +52,38 @@ namespace
     Attach
 =================================================
 */
-    bool  WorkerThread::Attach (const uint uid, const uint coreId) __NE___
+    bool  WorkerThread::Attach (const uint uid, const ECpuCoreId coreId) __NE___
     {
     #ifndef AE_DISABLE_THREADS
         _looping.store( 1 );
 
         _thread = StdThread{ [this, uid, coreId] ()
         {
-            uint        seed                    = uid;
-            auto&       scheduler               = Scheduler();
-            const uint  cycles_before_suspend   = 3;
+            const auto  seed        = EThreadSeed(uid);
+            auto&       scheduler   = Scheduler();
 
             ThreadUtils::SetName( _cfg.name );
-            CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
+            if ( coreId != Default )
+                CHECK( ThreadUtils::SetAffinity( uint(coreId) % ThreadUtils::MaxThreadCount() ));
 
             {
                 EXLOCK( _profInfoGuard );
-                _profInfo.threadId      = ThreadUtils::GetIntID( _thread );
+                _profInfo.threadId      = ThreadUtils::GetIntID();
+                _profInfo.coreId        = ECpuCoreId(ThreadUtils::GetCoreIndex());
                 _profInfo.threadName    = _cfg.name;
             }
 
-            for (; _looping.load();)
+            for (uint p = 0; _looping.load();)
             {
-                bool    processed = true;
-
-                for (uint i = 0; i < cycles_before_suspend; ++i)
-                {
-                    processed = scheduler.ProcessTasks( _cfg.threads, seed );
-
-                    // try to change seed
-                    if ( not processed )
-                        ++seed;
-                }
-
-                _UpdateProfilingInfo();
+                bool    processed = scheduler.ProcessTasks( _cfg.threads, seed );
 
                 // suspend thread
-                if_unlikely( _cfg.wakeup and not processed )
-                    _cfg.wakeup->Suspend( _cfg.threads, _looping );
+                if_likely( processed )
+                    p = 0;
+                else
+                    scheduler.SuspendThread( _cfg.threads, _looping, p++ );
+
+                _UpdateProfilingInfo();
             }
 
             // TODO: objc: print objects in autorelease pool
@@ -115,9 +109,9 @@ namespace
         ProfilingInfo   info;
 
         info.curFreq    = freq_mhz;
-        info.coreId     = core_id;
+        info.coreId     = ECpuCoreId(core_id);
         info.threadName = _cfg.name;
-        info.threadId   = ThreadUtils::GetIntID( _thread );
+        info.threadId   = ThreadUtils::GetIntID();
 
         if_likely( core != null )
         {
@@ -144,8 +138,7 @@ namespace
 
         if ( _looping.exchange( 0 ))
         {
-            if ( _cfg.wakeup )
-                _cfg.wakeup->WakeupAndDetach( _looping );
+            Scheduler().WakeupAndDetach( _looping );
 
             _thread.join();
         }
@@ -164,20 +157,20 @@ namespace
     // variables
     private:
         ThreadHandle    _handle;
-        uint            _coreId;
+        ECpuCoreId      _coreId;
         usize           _threadId;
 
 
     // methods
     public:
-        MainThread () {}
+        MainThread ()                                           __NE___ {}
 
         // IThread //
-        bool            Attach (uint uid, uint coreId)  __NE_OV;
-        void            Detach ()                       __NE_OV {}
+        bool            Attach (uint uid, ECpuCoreId coreId)    __NE_OV;
+        void            Detach ()                               __NE_OV {}
 
-        usize           DbgID ()                        C_NE_OV { return _threadId; }
-        ProfilingInfo   GetProfilingInfo ()             C_NE_OV;
+        usize           DbgID ()                                C_NE_OV { return _threadId; }
+        ProfilingInfo   GetProfilingInfo ()                     C_NE_OV;
     };
 
 
@@ -186,12 +179,14 @@ namespace
     Attach
 =================================================
 */
-    bool  MainThread::Attach (const uint, const uint coreId) __NE___
+    bool  MainThread::Attach (const uint, const ECpuCoreId coreId) __NE___
     {
-        CHECK( ThreadUtils::SetAffinity( coreId % ThreadUtils::MaxThreadCount() ));
+        ThreadUtils::SetName( "main" );
+        if ( coreId != Default )
+            CHECK( ThreadUtils::SetAffinity( uint(coreId) % ThreadUtils::MaxThreadCount() ));
 
-        _handle     = ThreadUtils::GetCurrentThreadHandle();
-        _coreId     = ThreadUtils::GetCoreIndex();
+        _handle     = ThreadUtils::GetHandle();
+        _coreId     = ECpuCoreId(ThreadUtils::GetCoreIndex());
         _threadId   = ThreadUtils::GetIntID();
 
         return true;
@@ -208,9 +203,9 @@ namespace
         info.threadName = "main";
         info.coreId     = _coreId;
 
-    #ifdef AE_DBG_OR_DEV_OR_PROF
-        const auto      freq_mhz    = CpuPerformance::GetFrequency( _coreId );
-        const auto*     core        = CpuArchInfo::Get().GetCore( _coreId );
+      #ifdef AE_DBG_OR_DEV_OR_PROF
+        const auto      freq_mhz    = CpuPerformance::GetFrequency( uint(_coreId) );
+        const auto*     core        = CpuArchInfo::Get().GetCore( uint(_coreId) );
 
         info.curFreq    = freq_mhz;
         info.threadId   = _threadId;
@@ -223,92 +218,11 @@ namespace
             info.minFreq    = core->baseClock;
             info.maxFreq    = core->maxClock;
         }
-    #endif
+      #endif
         return info;
     }
 
 } // namespace
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-    Wakeup
-----
-    Windows: 10..20us to wakeup thread
-=================================================
-*/
-    void  ThreadWakeup::Wakeup (EThreadBits bits) __NE___
-    {
-        {
-            std::unique_lock    lock {_mutex};
-            _activeThreads = bits;
-        }
-        _cv.notify_all();
-    }
-
-    void  ThreadWakeup::Wakeup (ETaskQueueBits bits) __NE___
-    {
-        EThreadBits     threads;
-        for (ETaskQueue q : bits) {
-            threads.insert( EThread(q) );
-        }
-        return Wakeup( threads );
-    }
-
-/*
-=================================================
-    WakeupAndDetach
-=================================================
-*/
-    void  ThreadWakeup::WakeupAndDetach (LoopingFlag_t &looping) __NE___
-    {
-        {
-            std::unique_lock    lock {_mutex};  // TODO: not needed?
-            looping.store( 0 );
-        }
-        _cv.notify_all();
-    }
-
-/*
-=================================================
-    Suspend
-=================================================
-*/
-    void  ThreadWakeup::Suspend (EThreadBits waitThreads, LoopingFlag_t &looping) __NE___
-    {
-        std::unique_lock    lock {_mutex};
-
-        for (;;)
-        {
-            if ( (waitThreads & _activeThreads).Any() )
-            {
-                _activeThreads &= waitThreads;
-                return;
-            }
-
-            // wakeup if thread will be terminated (joined)
-            if ( looping.load() == 0 )
-                return;
-
-            _cv.wait( lock );
-        }
-    }
-
-    void  ThreadWakeup::Suspend (ETaskQueueBits waitQueues, LoopingFlag_t &looping) __NE___
-    {
-        EThreadBits     wait_threads;
-        for (ETaskQueue q : waitQueues) {
-            wait_threads.insert( EThread(q) );
-        }
-        return Suspend( wait_threads, looping );
-    }
-
-    void  ThreadWakeup::Suspend (const EThreadArray &waitThreads, LoopingFlag_t &looping) __NE___
-    {
-        return Suspend( waitThreads.ToThreadMask(), looping );
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -340,8 +254,8 @@ namespace
 */
     bool  ThreadMngr::SetupThreads (const TaskScheduler::Config &cfg,
                                     const EnumBitSet<EThread>    mask,
-                                    Ptr<ThreadWakeup>            wakeup,
                                     const uint                   maxThreads,
+                                    Bool                         bindThreadToPhysicalCore,
                                     OUT EThreadArray            &allowProcessInMain) __NE___
     {
         CHECK_ERR( mask.contains( EThread::PerFrame ));
@@ -350,17 +264,13 @@ namespace
         CHECK_ERR( (cfg.maxBackgroundQueues > 0) == mask.contains( EThread::Background ));
         CHECK_ERR( (cfg.maxIOThreads > 0) == mask.contains( EThread::FileIO ));
 
-        auto&   cpu_info    = CpuArchInfo::Get();
-        auto&   scheduler   = Scheduler();
-
+        auto&   cpu_info = CpuArchInfo::Get();
         AE_LOG_DBG( cpu_info.Print() );
 
-        CHECK_ERR( scheduler.Setup( cfg ));
-
         if ( maxThreads <= 1 )
-            return _SetupThreads_v1( scheduler, mask, maxThreads, OUT allowProcessInMain );
+            return _SetupThreads_v1( cfg, cpu_info, mask, maxThreads, OUT allowProcessInMain );
 
-        return _SetupThreads_v2( scheduler, cpu_info, mask, wakeup, maxThreads, OUT allowProcessInMain );
+        return _SetupThreads_v2( cfg, cpu_info, mask, maxThreads, bindThreadToPhysicalCore, OUT allowProcessInMain );
     }
 
 /*
@@ -370,20 +280,18 @@ namespace
     main thread + one additional thread
 =================================================
 */
-    bool  ThreadMngr::_SetupThreads_v1 (TaskScheduler               &scheduler,
+    bool  ThreadMngr::_SetupThreads_v1 (TaskScheduler::Config        cfg,
+                                        const CpuArchInfo           &cpuInfo,
                                         const EnumBitSet<EThread>    mask,
                                         const uint                   maxThreads,
                                         OUT EThreadArray            &allowProcessInMain) __NE___
     {
-        EThreadArray    threads;
-        allowProcessInMain.insert( EThread::Main );
-
         // Main thread can execute all tasks except 'Background' and 'FileIO'.
         // Second thread can execute all tasks except 'Main'.
+        EThreadArray    threads;
         for (auto tmp = mask;;)
         {
             EThread t = tmp.ExtractFirst();
-
             if ( t >= EThread::_Count )
                 break;
 
@@ -392,13 +300,32 @@ namespace
 
             threads.insert( t );
         }
+        allowProcessInMain.insert( EThread::Main );
+
+        // select CPU core
+        ECpuCoreId  second_thread_id = Default;
+        {
+            CpuArchInfo::Core const*    hp_core = cpuInfo.GetCore( ECoreType::HighPerformance );
+            CpuArchInfo::Core const*    p_core  = cpuInfo.GetCore( ECoreType::Performance );
+            CHECK_ERR( p_core != null );
+
+            // bind main thread to the high performance core
+            int id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
+            cfg.mainThreadCoreId = ECpuCoreId(id);
+
+            id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
+            second_thread_id = ECpuCoreId(id);
+        }
+
+        auto&   scheduler = Scheduler();
+        CHECK_ERR( scheduler.Setup( cfg ));
 
         if ( maxThreads > 0 )
         {
             scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
-                    threads,
-                    "worker"
-                }));
+                                    threads,
+                                    "worker"
+                                }), second_thread_id );
         }
         return true;
     }
@@ -408,69 +335,68 @@ namespace
     _SetupThreads_v2
 =================================================
 */
-    bool  ThreadMngr::_SetupThreads_v2 (TaskScheduler               &scheduler,
+    bool  ThreadMngr::_SetupThreads_v2 (TaskScheduler::Config        cfg,
                                         const CpuArchInfo           &cpuInfo,
                                         const EnumBitSet<EThread>    mask,
-                                        Ptr<ThreadWakeup>            wakeup,
                                         const uint                   maxThreads,
+                                        bool                         bindThreadToPhysicalCore,
                                         OUT EThreadArray            &allowProcessInMain) __NE___
     {
-        CpuArchInfo::Core const*    p_core          = cpuInfo.GetCore( ECoreType::Performance );
-        CpuArchInfo::Core const*    ee_core         = cpuInfo.GetCore( ECoreType::EnergyEfficient );
-        CpuArchInfo::CoreBits_t     logical_bits    {0};
+        CpuArchInfo::CoreBits_t     core_bits   {0};
+        CpuArchInfo::CoreBits_t     p_core_bits;    // \__ may intersects if no EE cores
+        CpuArchInfo::CoreBits_t     ee_core_bits;   // /
+        const int                   shuffle     = 64 - ((usize(&allowProcessInMain) >> 9) & 0xF);
+        {
+            //CpuArchInfo::Core const*  hp_core     = cpuInfo.GetCore( ECoreType::HighPerformance );    // TODO
+            CpuArchInfo::Core const*    p_core      = cpuInfo.GetCore( ECoreType::Performance );
+            CpuArchInfo::Core const*    ee_core     = cpuInfo.GetCore( ECoreType::EnergyEfficient );
 
-        logical_bits.set( scheduler.GetMainThread()->GetProfilingInfo().coreId );
+            if ( p_core == null and ee_core != null )   p_core  = ee_core;
+            if ( p_core != null and ee_core == null )   ee_core = p_core;
+            if ( p_core == null and ee_core == null )   p_core  = ee_core = cpuInfo.GetCore( 0 );
+            CHECK_ERR( p_core != null and ee_core != null );
 
-        if ( p_core == null and ee_core != null )   p_core  = ee_core;
-        if ( p_core != null and ee_core == null )   ee_core = p_core;
-        if ( p_core == null and ee_core == null )   p_core  = ee_core = cpuInfo.GetCore( 0 );
-        CHECK_ERR( p_core != null and ee_core != null );
+            bindThreadToPhysicalCore = bindThreadToPhysicalCore and p_core->HasVirtualCores();
 
-        const uint  max_cores                   = uint((p_core->logicalBits | ee_core->logicalBits).count());
-        uint        worker_only_threads         = 0;
-        uint        render_only_threads         = 0;
-        uint        background_only_threads     = 0;
-        uint        worker_render_threads       = (maxThreads+1)/2;
-        uint        worker_background_threads   = maxThreads/2;
+            p_core_bits     = bindThreadToPhysicalCore ? p_core->physicalBits : p_core->logicalBits;
+            ee_core_bits    = ee_core->logicalBits;
+        }
+
+        uint    worker_only_threads         = 0;
+        uint    render_only_threads         = 0;
+        uint    background_only_threads     = 0;
+        uint    worker_render_threads       = Max( 1u, (maxThreads+1)/2 );
+        uint    worker_background_threads   = Max( 1u, maxThreads - worker_render_threads );
 
         if ( maxThreads > 4 ) {
-            worker_only_threads         = worker_render_threads/2;
-            render_only_threads         = worker_render_threads/2;
-            background_only_threads     = worker_background_threads;
+            worker_only_threads         = Max( 1u, worker_render_threads/2 );
+            render_only_threads         = Max( 1u, worker_render_threads - worker_only_threads );
             worker_render_threads       = 0;
+            background_only_threads     = worker_background_threads;
             worker_background_threads   = 0;
         }
 
-        ASSERT( maxThreads <= max_cores );  Unused( max_cores );
-        ASSERT( (worker_only_threads + render_only_threads + background_only_threads + worker_render_threads + worker_background_threads) == maxThreads );
-
-        const auto  GetPCoreId  = [p_core, &logical_bits] () -> uint
-        {{
-            auto    available   = p_core->logicalBits & ~logical_bits;
-            int     id          = BitScanForward( available.to_ullong() );
-            if ( id >= 0 ) {
-                logical_bits.set( id );
-                return id;
-            }
-            return UMax;
-        }};
-
-        const auto  GetEECoreId = [ee_core, &logical_bits] () -> uint
-        {{
-            auto    available   = ee_core->logicalBits & ~logical_bits;
-            int     id          = BitScanForward( available.to_ullong() );
-            if ( id >= 0 ) {
-                logical_bits.set( id );
-                return id;
-            }
-            return UMax;
-        }};
+        ASSERT_LE( (worker_only_threads + render_only_threads + 1), p_core_bits.count() );
+        ASSERT_Eq( (worker_only_threads + render_only_threads + background_only_threads + worker_render_threads + worker_background_threads), maxThreads );
 
         allowProcessInMain.insert( EThread::Main );
-        if ( maxThreads <= 2 ) {
-            if ( mask.contains( EThread::PerFrame ))    allowProcessInMain.insert( EThread::PerFrame );
-            if ( mask.contains( EThread::Renderer ))    allowProcessInMain.insert( EThread::Renderer );
-        }
+        if ( mask.contains( EThread::PerFrame ))    allowProcessInMain.insert( EThread::PerFrame );
+        if ( mask.contains( EThread::Renderer ))    allowProcessInMain.insert( EThread::Renderer );
+
+        const auto  GetPCoreId  = [&] () -> ECpuCoreId
+        {{
+            auto    available   = p_core_bits & ~core_bits;
+            int     id          = ShuffleBitScan( available.to_ullong(), shuffle );
+            if ( id >= 0 ) {
+                core_bits.set( id );
+                return ECpuCoreId(id);
+            }
+            return Default;
+        }};
+        cfg.mainThreadCoreId = GetPCoreId();
+
+        auto&   scheduler = Scheduler();
+        CHECK_ERR( scheduler.Setup( cfg ));
 
         // performance core
         {
@@ -478,8 +404,7 @@ namespace
             {
                 scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
                         EThreadArray{ EThread::PerFrame },
-                        (i > 0 ? wakeup : null),
-                        "worker|"s + ToString(i)
+                        "pf|"s + ToString(i)
                     }), GetPCoreId() );
             }
 
@@ -487,8 +412,7 @@ namespace
             {
                 scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
                         EThreadArray{ EThread::Renderer },
-                        (i > 0 ? wakeup : null),
-                        "render|"s + ToString(i)
+                        "rt|"s + ToString(i)
                     }), GetPCoreId() );
             }
 
@@ -496,20 +420,32 @@ namespace
             {
                 scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
                         EThreadArray{ EThread::Renderer, EThread::PerFrame },
-                        (i > 0 ? wakeup : null),
-                        "render|worker|"s + ToString(i)
+                        "rt|pf|"s + ToString(i)
                     }), GetPCoreId() );
             }
         }
 
+        if ( bindThreadToPhysicalCore )
+            core_bits |= (core_bits << 1);
+
         // EE core
         {
+            const auto  GetEECoreId = [&] () -> ECpuCoreId
+            {{
+                auto    available   = ee_core_bits & ~core_bits;
+                int     id          = ShuffleBitScan( available.to_ullong(), shuffle );
+                if ( id >= 0 ) {
+                    core_bits.set( id );
+                    return ECpuCoreId(id);
+                }
+                return Default;
+            }};
+
             for (uint i = 0; i < worker_background_threads; ++i)
             {
                 scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
                         EThreadArray{ EThread::PerFrame, EThread::Background, EThread::FileIO },
-                        (i > 0 ? wakeup : null),
-                        "worker|background|io|"s + ToString(i)
+                        "pf|bg|io|"s + ToString(i)
                     }), GetEECoreId() );
             }
 
@@ -517,8 +453,7 @@ namespace
             {
                 scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
                         EThreadArray{ EThread::Background, EThread::FileIO },
-                        (i > 0 ? wakeup : null),
-                        "background|io|"s + ToString(i)
+                        "bg|io|"s + ToString(i)
                     }), GetEECoreId() );
             }
         }

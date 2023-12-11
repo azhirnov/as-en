@@ -2,7 +2,7 @@
 
 if (TARGET "Graphics")
 
-    file( GLOB_RECURSE HPP_SOURCES "*.h" )
+    file( GLOB_RECURSE HPP_SOURCES "*.h" "*.as" )
     if (NOT (DEFINED ENGINE_LIBS_PATH))
         file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
     endif()

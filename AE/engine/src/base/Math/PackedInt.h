@@ -16,7 +16,7 @@ namespace AE::Math
     template <typename T>
     struct PackedInt
     {
-        STATIC_ASSERT( IsUnsignedInteger<T> );
+        StaticAssert( IsUnsignedInteger<T> );
 
     // types
     public:
@@ -24,7 +24,7 @@ namespace AE::Math
         using Value_t   = T;
         using HalfInt_t = ByteSizeToUInt< sizeof(T)/2 >;
 
-        STATIC_ASSERT( sizeof(Value_t) == sizeof(HalfInt_t)*2 );
+        StaticAssert( sizeof(Value_t) == sizeof(HalfInt_t)*2 );
 
         static constexpr uint   _Offset = CT_SizeOfInBits< HalfInt_t >;
         static constexpr uint   _Mask   = ToBitMask< HalfInt_t >( _Offset );
@@ -41,7 +41,7 @@ namespace AE::Math
         constexpr PackedInt ()              __NE___ {}
         constexpr PackedInt (const Self &)  __NE___ = default;
 
-        constexpr PackedInt (Value_t val)   __NE___ : 
+        constexpr PackedInt (Value_t val)   __NE___ :
             hi{HalfInt_t( val >> _Offset )},
             lo{HalfInt_t{ val & _Mask }}
         {}
@@ -62,3 +62,12 @@ namespace AE::Math
 
 
 } // AE::Math
+
+
+namespace AE::Base
+{
+    template <typename T>   struct TMemCopyAvailable< PackedInt<T> >        { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< PackedInt<T> >        { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< PackedInt<T> >   { static constexpr bool  value = IsTriviallySerializable<T>; };
+
+} // AE::Base

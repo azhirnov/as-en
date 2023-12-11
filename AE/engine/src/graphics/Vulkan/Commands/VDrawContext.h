@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    DrawCtx --> DirectDrawCtx   --> BarrierMngr --> Vulkan device 
+    DrawCtx --> DirectDrawCtx   --> BarrierMngr --> Vulkan device
             \-> IndirectDrawCtx --> BarrierMngr --> Backed commands
 */
 
@@ -102,7 +102,7 @@ namespace AE::Graphics::_hidden_
         _VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)                                   __Th___;
 
         void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
-        void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushGraphicsConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
 
         void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
         void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds);
@@ -223,7 +223,7 @@ namespace AE::Graphics::_hidden_
         _VIndirectDrawCtx (const VPrimaryCmdBufState &state, VSoftwareCmdBufPtr cmdbuf)                             __Th___;
 
         void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
-        void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
+        void  _PushGraphicsConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
 
         void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)       __Th___;
         void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds)                                          __Th___;
@@ -272,9 +272,6 @@ namespace AE::Graphics::_hidden_
     {
     // types
     public:
-        static constexpr bool   IsDrawContext       = true;
-        static constexpr bool   IsVulkanDrawContext = true;
-
         using CmdBuf_t      = typename CtxImpl::CmdBuf_t;
     private:
         using RawCtx        = CtxImpl;
@@ -286,7 +283,7 @@ namespace AE::Graphics::_hidden_
     public:
         _VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf)                                               __Th___;
         explicit _VDrawContextImpl (const DrawTask &task)                                                                   __Th___;
-        explicit _VDrawContextImpl (_VDrawContextImpl && other)                                                             __Th___;
+        explicit _VDrawContextImpl (_VDrawContextImpl &&other)                                                              __Th___;
 
         _VDrawContextImpl ()                                                                                                = delete;
         _VDrawContextImpl (const _VDrawContextImpl &)                                                                       = delete;
@@ -299,7 +296,7 @@ namespace AE::Graphics::_hidden_
         using RawCtx::BindDescriptorSet;
 
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV;
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th_OV;
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV;
         using IDrawContext::PushConstant;
 
         // dynamic states
@@ -460,7 +457,7 @@ namespace AE::Graphics::_hidden_
     {}
 
     template <typename C>
-    _VDrawContextImpl<C>::_VDrawContextImpl (_VDrawContextImpl && other) __Th___ :
+    _VDrawContextImpl<C>::_VDrawContextImpl (_VDrawContextImpl &&other) __Th___ :
         RawCtx{ other.GetPrimaryCtxState(), RVRef(other._cmdbuf) }  // throw
     {}
 
@@ -529,7 +526,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
+    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         Unused( typeName );
@@ -745,7 +742,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets) __Th___
     {
-        STATIC_ASSERT( sizeof(Bytes) == sizeof(VkDeviceSize) );
+        StaticAssert( sizeof(Bytes) == sizeof(VkDeviceSize) );
         VALIDATE_GCTX( BindVertexBuffers( firstBinding, buffers, offsets ));
 
         StaticArray< VkBuffer, GraphicsConfig::MaxVertexBuffers >   dst_buffers;
@@ -1025,7 +1022,7 @@ namespace AE::Graphics::_hidden_
     _PushGraphicsConstant
 =================================================
 */
-    inline void  _VDirectDrawCtx::_PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
+    inline void  _VDirectDrawCtx::_PushGraphicsConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages) __Th___
     {
         VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 

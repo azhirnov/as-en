@@ -76,7 +76,8 @@ void  CreatePipeline (const array<string> &passNames)
     }
     {
         RC<ShaderStructType>    st = ShaderStructType( "imgui_vertex" );
-        st.Set( "packed_float2      Position;"  +
+        st.Set( EStructLayout::InternalIO,
+                "packed_float2      Position;"  +
                 "packed_float2      UV;"        +
                 "packed_ubyte_norm4 Color;"     );
 

@@ -24,11 +24,6 @@ namespace AE::ResLoader
 
     class IImageLoader
     {
-    // types
-    public:
-        using Allocator_t   = SharedMem::Allocator_t;
-
-
     // methods
     public:
         virtual ~IImageLoader ()                                            __NE___ {}
@@ -36,13 +31,13 @@ namespace AE::ResLoader
         virtual bool  LoadImage (INOUT IntermImage& image,
                                  RStream &          stream,
                                  Bool               flipY       = False{},
-                                 Allocator_t        allocator   = null,
+                                 RC<IAllocator>     allocator   = null,
                                  EImageFormat       fileFormat  = Default)  __NE___ = 0;
 
         bool  LoadImage (INOUT IntermImage& image,
                          ArrayView<Path>    directories,
                          Bool               flipY       = False{},
-                         Allocator_t        allocator   = null,
+                         RC<IAllocator>     allocator   = null,
                          EImageFormat       fileFormat  = Default)          __NE___;
 
 

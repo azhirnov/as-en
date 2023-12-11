@@ -99,7 +99,7 @@
         // render loop
         {
             RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::None );
-            pass.ArgIn(  camera );
+            pass.Set(    camera );
             pass.ArgOut( "un_OutImage",     rt );
             pass.ArgIn(  "un_RtScene",      scene );
             pass.ArgIn(  "un_Geometry",     geom_data );

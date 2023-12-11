@@ -15,15 +15,18 @@ namespace AE::Math
     struct Fractional
     {
     // types
+    public:
         using Self  = Fractional<T>;
 
 
     // variables
+    public:
         T   num {0};        // numerator
         T   den {1};        // denominator
 
 
     // methods
+    public:
         constexpr Fractional ()                                 __NE___ {}
 
         constexpr explicit Fractional (T inNum, T inDenom = T{1})   __NE___

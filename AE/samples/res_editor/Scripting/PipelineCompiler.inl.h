@@ -52,15 +52,24 @@ namespace AE::ResEditor
                 PipelineCompiler::EImageType_FromImage( type, multisampling );
     }
 
-    ND_ inline PipelineCompiler::EImageType  GetDescriptorImageTypeRelaxed (const Graphics::ImageDesc &desc)
+    ND_ inline Tuple< PipelineCompiler::EImageType, PipelineCompiler::EImageType >  GetDescriptorImageTypeRelaxed (const Graphics::ImageDesc &desc)
     {
         CHECK_ERR( desc.imageDim != Default );
         CHECK_ERR( desc.format != Default );
 
-        Graphics::ImageViewDesc view{desc};
+        Graphics::ImageViewDesc view {desc};
         view.Validate( desc );
 
-        return GetDescriptorImageTypeRelaxed( desc.format, view.viewType, desc.samples.IsEnabled() );
+        auto    t0 = GetDescriptorImageTypeRelaxed( desc.format, view.viewType, desc.samples.IsEnabled() );
+        auto    t1 = t0;
+
+        if ( AllBits( desc.options, Graphics::EImageOpt::CubeCompatible ))
+        {
+            view.viewType = desc.arrayLayers.Get() > 6 ? Graphics::EImage::CubeArray : Graphics::EImage::Cube;
+
+            t1 = GetDescriptorImageTypeRelaxed( desc.format, view.viewType, desc.samples.IsEnabled() );
+        }
+        return Tuple{ t0, t1 };
     }
 
 

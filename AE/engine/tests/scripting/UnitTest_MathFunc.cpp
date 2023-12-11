@@ -57,7 +57,7 @@ namespace
                 return ms.GetScaled();
             })#", "ASmain", OUT script_res );
         TEST( res );
-        TEST( Equals( script_res, (2.f / 1.1f) ));
+        TEST( Equal( script_res, (2.f / 1.1f) ));
     }
 }
 

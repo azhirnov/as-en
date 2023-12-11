@@ -57,8 +57,8 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
             Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Bytes32u                                                    offset;
-            Bytes32u                                                    dataSize;
+            Byte32u                                                     offset;
+            Byte32u                                                     dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
 
             // initialized in '_GetShader()':
@@ -66,7 +66,7 @@ namespace AE::Graphics
             mutable Unique< PipelineCompiler::ShaderTrace >             dbgTrace;
             mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t    constants;
         };
-        STATIC_ASSERT( sizeof(ShaderModule) == 128 );
+        StaticAssert( sizeof(ShaderModule) == 128 );
 
     #elif defined(AE_ENABLE_METAL)
 
@@ -89,13 +89,13 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
             Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Bytes32u                                                    offset;
-            Bytes32u                                                    dataSize;
+            Byte32u                                                     offset;
+            Byte32u                                                     dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
             mutable MetalLibraryRC                                      lib;
             mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t    constants;
         };
-        STATIC_ASSERT( sizeof(ShaderModule) == 128 );
+        StaticAssert( sizeof(ShaderModule) == 128 );
 
     #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
@@ -105,7 +105,7 @@ namespace AE::Graphics
             PipelineCompiler::ShaderBytecode::OptSpecConst_t const* shaderConstants = null;
             ShaderTracePtr                                          dbgTrace;
 
-            ND_ bool        IsValid ()  C_NE___;
+            ND_ bool        IsValid ()  C_NE___ { return true; }
             ND_ const char* Entry ()    C_NE___ { return "Main"; }
         };
 
@@ -117,24 +117,25 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
             Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Bytes32u                                                    offset;
-            Bytes32u                                                    dataSize;
+            Byte32u                                                     offset;
+            Byte32u                                                     dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
         //  mutable VkShaderModule                                      module          = Default;
             mutable Unique< PipelineCompiler::ShaderTrace >             dbgTrace;
             mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t    constants;
         };
-        //STATIC_ASSERT( sizeof(ShaderModule) == 128 );
+        //StaticAssert( sizeof(ShaderModule) == 128 );
 
     #else
     #   error not implemented
     #endif
 
 
-    public:
-        using Allocator_t = Threading::LfLinearAllocator< usize(SmallAllocationSize * 16), 16 >;
-
     private:
+        template <typename T>
+        using StdAlloc_t            = StdAllocatorRef< T, IAllocatorTS* >;
+        using LinearAllocator_t     = Threading::LfLinearAllocator< usize(SmallAllocationSize * 16), usize{16_b} >;
+
         using Device_t              = AE_PRIVATE_UNITE_RAW( SUFFIX, Device              );
         using ResMngr_t             = AE_PRIVATE_UNITE_RAW( SUFFIX, ResourceManager     );
         using TempLinearAllocator_t = AE_PRIVATE_UNITE_RAW( SUFFIX, TempLinearAllocator );
@@ -154,19 +155,19 @@ namespace AE::Graphics
         struct RenderPassRefs
         {
             template <typename K, typename V>
-            using THashMap = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, Allocator_t* >>;
+            using THashMap = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAlloc_t< Pair<const K, V> >>;
 
             THashMap< RenderPassName::Optimized_t,       Strong<RenderPassID> > specMap;
             THashMap< CompatRenderPassName::Optimized_t, Strong<RenderPassID> > compatMap;
 
-            explicit RenderPassRefs (Allocator_t *alloc);
+            explicit RenderPassRefs (IAllocatorTS* alloc) __Th___;
         };
 
         template <typename K, typename V>
-        using THashMap              = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, Allocator_t* >>;
+        using THashMap              = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAlloc_t< Pair<const K, V> >>;
 
         template <typename T>
-        using THashSet              = FlatHashSet< T, std::hash<T>, std::equal_to<T>, StdAllocatorRef< T, Allocator_t* >>;
+        using THashSet              = FlatHashSet< T, std::hash<T>, std::equal_to<T>, StdAlloc_t<T> >;
 
         using PipelineLayoutDesc    = PipelineCompiler::PipelineLayoutDesc;
         using PipelineStorage       = PipelineCompiler::PipelineStorage;
@@ -174,7 +175,7 @@ namespace AE::Graphics
         using SpecConstants_t       = PipelineCompiler::ShaderBytecode::SpecConstants_t;
         using Uniform_t             = PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
         using UniformOffsets_t      = PipelineCompiler::DescriptorSetLayoutDesc::UniformOffsets_t;
-        using Uniforms_t            = Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
+        using Uniforms_t            = Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Byte16u* >;
 
         using DSLayouts_t           = Tuple< uint, Strong< DescriptorSetLayoutID > *>;
         using PplnLayouts_t         = Tuple< uint, Strong< PipelineLayoutID > *     >;
@@ -251,7 +252,7 @@ namespace AE::Graphics
 
         // methods
         public:
-            explicit RenderTech (PPLNPACK& pack)                                                                    __Th___;
+            explicit RenderTech (PPLNPACK& pack)                                                                    __NE___;
             ~RenderTech ()                                                                                          __NE_OV;
 
             ND_ bool  Deserialize (ResMngr_t &, Serializing::Deserializer &)                                        __Th___;
@@ -300,7 +301,7 @@ namespace AE::Graphics
         };
 
     private:
-        using RenTechs_t    = Tuple< uint, RenderTech * >;
+        using RenTechs_t    = Tuple< uint, StaticRC<RenderTech> * >;
         using RenTechMap_t  = THashMap< RenderTechName::Optimized_t, ushort >;
 
 
@@ -309,7 +310,7 @@ namespace AE::Graphics
         mutable Mutex               _fileGuard;
         RC<RStream>                 _file;
 
-        mutable Allocator_t         _allocator;
+        RC<IAllocatorTS>            _allocator;
 
         InPlace< FeatureNames_t >   _unsupportedFS;
 

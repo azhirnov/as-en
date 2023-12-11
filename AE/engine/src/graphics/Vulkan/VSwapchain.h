@@ -115,6 +115,8 @@ namespace AE::Graphics
 
         ND_ ImageAndViewID      GetCurrentImageAndViewID ()                     C_NE___ { return GetImageAndViewID( GetCurrentImageIndex() ); }
         ND_ ImageAndViewID      GetImageAndViewID (uint i)                      C_NE___;
+
+        ND_ static ArrayView<const char*>  GetInstanceExtensions ()             __NE___;
     };
 
 
@@ -145,8 +147,6 @@ namespace AE::Graphics
                           StringView            dbgName = Default)                                                          __NE___;
 
             void  Destroy ()                                                                                                __NE___;
-
-        ND_ static ArrayView<const char*>  GetInstanceExtensions ()                                                         __NE___;
 
     private:
         ND_ bool  _Create (const VSwapchainDesc& desc, StringView dbgName)                                                  __NE___;
