@@ -87,7 +87,7 @@ namespace AE::PipelineCompiler
             result &= ser( name, dst_fs );
         }
 
-        AE_LOGI( "Serialized feature sets: "s << ToString(feat_sets.size()) );
+        AE_LOG_DBG( "Serialized feature sets: "s << ToString(feat_sets.size()) );
         return result;
     }
 #endif

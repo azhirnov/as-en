@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base/Algorithms/Cast.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Base
 {
@@ -75,6 +75,8 @@ namespace AE::Base
         constexpr TVersion2 (const Self &v)                     __NE___ = default;
         constexpr explicit TVersion2 (const TVersion3<UID> &v)  __NE___ : major{v.major}, minor{v.minor} {}
 
+        constexpr Self&  operator = (const Self &)              __NE___ = default;
+
         ND_ constexpr bool  operator == (const Self &rhs)       C_NE___;
         ND_ constexpr bool  operator >  (const Self &rhs)       C_NE___;
         ND_ constexpr bool  operator >= (const Self &rhs)       C_NE___;
@@ -112,7 +114,7 @@ namespace AE::Base
 
 
     template <uint UID>
-    constexpr TVersion3<UID>::TVersion3 (const TVersion2<UID> &v, uint path) __NE___ :
+    constexpr TVersion3<UID>::TVersion3 (const TVersion2<UID> &v, uint patch) __NE___ :
         major{v.major}, minor{v.minor}, patch{patch}
     {}
 

@@ -8,7 +8,7 @@ namespace AE::Threading
 {
 
     //
-    // Read-only Data Source (Sync on top of Async)
+    // Read-only Data Source (Sync on top of Async Stream)
     //
     class SyncRDataSource final : public RDataSource
     {
@@ -30,7 +30,7 @@ namespace AE::Threading
 
 
     //
-    // Write-only Data Source (Sync on top of Async)
+    // Write-only Data Source (Sync on top of Async Stream)
     //
     class SyncWDataSource final : public WDataSource
     {
@@ -53,7 +53,7 @@ namespace AE::Threading
 
 
     //
-    // Read-only Stream (Sync on top of Async)
+    // Read-only Stream (Sync on top of Async Stream)
     //
     class SyncRStream final : public RStream
     {
@@ -78,7 +78,7 @@ namespace AE::Threading
 
 
     //
-    // Write-only Stream (Sync on top of Async)
+    // Write-only Stream (Sync on top of Async Stream)
     //
     class SyncWStream final : public WStream
     {
@@ -104,9 +104,9 @@ namespace AE::Threading
 
 
     //
-    // Read-only Stream (Sync on top of Async)
+    // Read-only Stream (Sync on top of Async Data Source)
     //
-    class SyncRStream2 final : public RStream
+    class SyncRStreamOnAsyncDS final : public RStream
     {
     // variables
     private:
@@ -115,24 +115,24 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit SyncRStream2 (RC<AsyncRDataSource> ds, Bytes offset = 0_b)     __NE___ : _pos{offset}, _ds{RVRef(ds)} {}
+        explicit SyncRStreamOnAsyncDS (RC<AsyncRDataSource> ds, Bytes offset = 0_b) __NE___ : _pos{offset}, _ds{RVRef(ds)} {}
 
         // RStream //
-        bool        IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
-        ESourceType GetSourceType ()                                            C_NE_OV { return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
-        PosAndSize  PositionAndSize ()                                          C_NE_OV { return PosAndSize{ _pos.load(), _ds->Size() }; }
+        bool        IsOpen ()                                                       C_NE_OV { return _ds and _ds->IsOpen(); }
+        ESourceType GetSourceType ()                                                C_NE_OV { return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
+        PosAndSize  PositionAndSize ()                                              C_NE_OV { return PosAndSize{ _pos.load(), _ds->Size() }; }
 
-        bool        SeekFwd (Bytes offset)                                      __NE_OV;
-        Bytes       ReadSeq (OUT void* buffer, Bytes size)                      __NE_OV;
-        bool        SeekSet (Bytes newPos)                                      __NE_OV;
+        bool        SeekFwd (Bytes offset)                                          __NE_OV;
+        Bytes       ReadSeq (OUT void* buffer, Bytes size)                          __NE_OV;
+        bool        SeekSet (Bytes newPos)                                          __NE_OV;
     };
 
 
 
     //
-    // Write-only Stream (Sync on top of Async)
+    // Write-only Stream (Sync on top of Async Data Source)
     //
-    class SyncWStream2 final : public WStream
+    class SyncWStreamOnAsyncDS final : public WStream
     {
     // variables
     private:
@@ -141,16 +141,16 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit SyncWStream2 (RC<AsyncWDataSource> ds, Bytes offset = 0_b)     __NE___ : _pos{offset}, _ds{RVRef(ds)} {}
+        explicit SyncWStreamOnAsyncDS (RC<AsyncWDataSource> ds, Bytes offset = 0_b) __NE___ : _pos{offset}, _ds{RVRef(ds)} {}
 
         // WStream //
-        bool        IsOpen ()                                                   C_NE_OV { return _ds and _ds->IsOpen(); }
-        ESourceType GetSourceType ()                                            C_NE_OV { return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
+        bool        IsOpen ()                                                       C_NE_OV { return _ds and _ds->IsOpen(); }
+        ESourceType GetSourceType ()                                                C_NE_OV { return _ds->GetSourceType() & ~(ESourceType::Async | ESourceType::Buffered); }
 
-        Bytes       Position ()                                                 C_NE_OV { return _pos.load(); }
-        bool        SeekFwd (Bytes offset)                                      __NE_OV;
-        Bytes       WriteSeq (const void* buffer, Bytes size)                   __NE_OV;
-        void        Flush ()                                                    __NE_OV {}
+        Bytes       Position ()                                                     C_NE_OV { return _pos.load(); }
+        bool        SeekFwd (Bytes offset)                                          __NE_OV;
+        Bytes       WriteSeq (const void* buffer, Bytes size)                       __NE_OV;
+        void        Flush ()                                                        __NE_OV {}
     };
 //-----------------------------------------------------------------------------
 
@@ -161,7 +161,7 @@ namespace AE::Threading
     SeekFwd
 =================================================
 */
-    inline bool  SyncRStream2::SeekFwd (Bytes offset) __NE___
+    inline bool  SyncRStreamOnAsyncDS::SeekFwd (Bytes offset) __NE___
     {
         Bytes   pos = _pos.fetch_add( offset );
         return pos <= _ds->Size();
@@ -172,7 +172,7 @@ namespace AE::Threading
     SeekSet
 =================================================
 */
-    inline bool  SyncRStream2::SeekSet (Bytes newPos) __NE___
+    inline bool  SyncRStreamOnAsyncDS::SeekSet (Bytes newPos) __NE___
     {
         if ( newPos <= _ds->Size() )
         {
@@ -187,7 +187,7 @@ namespace AE::Threading
     SeekFwd
 =================================================
 */
-    inline bool  SyncWStream2::SeekFwd (Bytes offset) __NE___
+    inline bool  SyncWStreamOnAsyncDS::SeekFwd (Bytes offset) __NE___
     {
         _pos.fetch_add( offset );
         return true;

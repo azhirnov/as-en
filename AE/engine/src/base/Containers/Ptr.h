@@ -24,7 +24,7 @@ namespace AE::Base
         Ptr (T* ptr)                                __NE___ : _value{ptr} {}
 
         template <typename B>
-        Ptr (const Ptr<B> &other)                   __NE___ : _value{static_cast<T*>( (B*)other )} {}
+        Ptr (Ptr<B> other)                          __NE___ : _value{static_cast<T*>( other.get() )} {}
 
         ND_ T *     operator -> ()                  C_NE___ { ASSERT( _value != null );  return _value; }
         ND_ T &     operator *  ()                  C_NE___ { ASSERT( _value != null );  return *_value; }

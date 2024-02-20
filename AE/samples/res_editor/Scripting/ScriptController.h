@@ -206,6 +206,20 @@ namespace AE::ResEditor
 
 
     //
+    // Controller Remote Camera
+    //
+    class ScriptControllerRemoteCamera final : public ScriptControllerCamera3D
+    {
+    // methods
+    public:
+        static void  Bind (const ScriptEnginePtr &se)                   __Th___;
+
+        RC<IController>  ToController ()                                __Th_OV;
+    };
+
+
+
+    //
     // Controller Free Camera
     //
     class ScriptControllerFreeCamera final : public ScriptControllerCamera3D

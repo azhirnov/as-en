@@ -14,12 +14,12 @@ void ASmain ()
                 "float2     scale;" +
                 "float2     translate;" );
 
-        RC<DescriptorSetLayout> ds = DescriptorSetLayout( "imgui.ds0" );
+        RC<DescriptorSetLayout> ds = DescriptorSetLayout( "imgui.ds" );
         ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "imgui.pl" );
         pl.PushConst( "ub", "imgui.ub", EShader::Vertex );
-        pl.DSLayout( 0, "imgui.ds0" );
+        pl.DSLayout( 0, "imgui.ds" );
     }
     {
         RC<ShaderStructType>    st = ShaderStructType( "imgui.vertex" );
@@ -40,14 +40,11 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file     = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
-        vs.options  = EShaderOpt::Optimize;
+        vs.file = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
         ppln.SetVertexShader( vs );
-    }
-    {
+    }{
         RC<Shader>  fs = Shader();
-        fs.file     = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
-        fs.options  = EShaderOpt::Optimize;
+        fs.file = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
         ppln.SetFragmentShader( fs );
     }
 

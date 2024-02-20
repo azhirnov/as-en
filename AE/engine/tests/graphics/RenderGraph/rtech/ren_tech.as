@@ -215,6 +215,18 @@ void DeclVRSRenderTech ()
         pass.SetRenderPass( "VRSTest.Draw", /*subpass*/"Main" );
     }
 }
+
+
+void DeclYcbcrSRenderTech ()
+{
+    RC<RenderTechnique> rtech = RenderTechnique( "Ycbcr.RTech" );
+
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );
+
+        pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+    }
+}
 //-----------------------------------------------------------------------------
 
 
@@ -231,4 +243,5 @@ void ASmain ()
     DeclRayTracingRenderTech();
     DeclRayQueryRenderTech();
     DeclVRSRenderTech();
+    DeclYcbcrSRenderTech();
 }

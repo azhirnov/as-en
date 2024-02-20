@@ -24,10 +24,6 @@ namespace AE::ResEditor
             ShadertoyVR_360,
             Shadertoy_360,
 
-            Curved_1000R,           // entry: mainVR,   human eye field of view
-            Curved_1500R,
-            Curved_1800R,
-
             _Count,
         };
 

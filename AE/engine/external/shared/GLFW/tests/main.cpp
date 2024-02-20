@@ -3,7 +3,7 @@
 # error AE_ENABLE_GLFW required
 #endif
 
-# include "GLFW/glfw3.h"
+#include "GLFW/glfw3.h"
 
 int main ()
 {

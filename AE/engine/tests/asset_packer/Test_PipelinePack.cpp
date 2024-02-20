@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
-
+using namespace AE::PipelineCompiler;
 
 namespace
 {
@@ -16,9 +16,11 @@ namespace
 
         const PathParams    pipelines[]         = { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 1},
                                                     {TXT("../sampler_test/samplers.as"), 2},
-                                                    {TXT("../rp_test/rpass.as"), 3} };
-        const PathParams    pipeline_folder[]   = { {TXT("pipelines"), 10}, {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::Recursive},
-                                                    {TXT("rtech"), 5}, {TXT("layouts"), 4} };
+                                                    {TXT("../rp_test/rpass.as"), 3},
+                                                    {TXT("pipelines"), 10, EPathParamsFlags::Folder},
+                                                    {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::RecursiveFolder},
+                                                    {TXT("rtech"), 5, EPathParamsFlags::Folder},
+                                                    {TXT("layouts"), 4, EPathParamsFlags::Folder} };
         const CharType *    shader_folder[]     = { TXT("shaders_glsl"), TXT("shaders_msl") };
         const CharType *    include_dir[]       = { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
         const Path          output_folder       = TXT("_output");
@@ -35,8 +37,6 @@ namespace
         PipelinesInfo   info        = {};
         info.inPipelines            = pipelines;
         info.inPipelineCount        = CountOf( pipelines );
-        info.pipelineFolders        = pipeline_folder;
-        info.pipelineFolderCount    = CountOf( pipeline_folder );
         info.shaderIncludeDirs      = include_dir;
         info.shaderIncludeDirCount  = CountOf( include_dir );
         info.shaderFolders          = shader_folder;
@@ -91,8 +91,8 @@ namespace
             TEST_Eq( version, PipelinePack_Version );
         }
 
-        String                  ser_str;
-        EnumBitSet< EMarker >   unique;
+        String              ser_str;
+        EnumSet< EMarker >  unique;
         unique.insert( EMarker::Unknown );
 
         for (EMarker marker;;)
@@ -104,8 +104,7 @@ namespace
             TEST( not unique.contains( marker ));
             unique.insert( marker );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( marker )
+            switch_enum( marker )
             {
                 case EMarker::RenderStates :
                 {
@@ -360,7 +359,7 @@ namespace
                 case EMarker::_Count :
                 default :               DBG_WARNING( "unknown marker" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         TEST( des.IsEnd() );
@@ -386,16 +385,8 @@ extern void Test_PipelinePack ()
 {
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
     {
-        Path    dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-        #else
-            dll_path.append( "PipelineCompiler-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
         TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
         PipelinePack_Test1();

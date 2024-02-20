@@ -27,7 +27,7 @@ namespace AE::PipelineCompiler
         GraphicsPipelineSpecScriptBinding (const GraphicsPipelineScriptBinding* base, const String &name) __Th___;
 
         // called from RTGraphicsPass
-        void  SetRenderPass (const RenderPassName &rp, const SubpassName &subpass) __Th___;
+        void  SetRenderPass (RenderPassName::Ref, SubpassName::Ref subpass) __Th___;
 
         void  SetSpecValueU (const String &name, uint  value)               __Th___ { return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
         void  SetSpecValueI (const String &name, int   value)               __Th___ { return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }

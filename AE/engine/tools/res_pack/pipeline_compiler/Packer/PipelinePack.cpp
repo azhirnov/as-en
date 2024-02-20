@@ -9,6 +9,8 @@
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
+#else
+# include "ShaderTraceDummy.h"
 #endif
 
 using namespace AE::Base;
@@ -67,19 +69,19 @@ namespace AE::Graphics
 */
     bool  operator == (const GraphicsPipelineDesc::VertexInput &lhs, const GraphicsPipelineDesc::VertexInput &rhs)
     {
-        return  (lhs.type           == rhs.type)    &
-                (lhs.offset         == rhs.offset)  &
-                (lhs.index          == rhs.index)   &
+        return  (lhs.type           == rhs.type)    and
+                (lhs.offset         == rhs.offset)  and
+                (lhs.index          == rhs.index)   and
                 (lhs.bufferBinding  == rhs.bufferBinding);
     }
 
     bool  operator == (const GraphicsPipelineDesc::VertexBuffer &lhs, const GraphicsPipelineDesc::VertexBuffer &rhs)
     {
-        return  (lhs.name       == rhs.name)        &
-                (lhs.typeName   == rhs.typeName)    &
-                (lhs.rate       == rhs.rate)        &
-                (lhs.index      == rhs.index)       &
-                (lhs.stride     == rhs.stride)      &
+        return  (lhs.name       == rhs.name)        and
+                (lhs.typeName   == rhs.typeName)    and
+                (lhs.rate       == rhs.rate)        and
+                (lhs.index      == rhs.index)       and
+                (lhs.stride     == rhs.stride)      and
                 (lhs.divisor    == rhs.divisor);
     }
 
@@ -152,8 +154,7 @@ namespace AE::PipelineCompiler
 
             result &= ser( un.type, un.stages, un.binding.vkIndex, un.binding.mtlIndex, un.arraySize );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
@@ -204,7 +205,7 @@ namespace AE::PipelineCompiler
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return result;
     }
@@ -249,8 +250,7 @@ namespace AE::PipelineCompiler
 
                 dst_un.stages |= src_un.stages;
 
-                BEGIN_ENUM_CHECKS();
-                switch ( dst_un.type )
+                switch_enum( dst_un.type )
                 {
                     case EDescriptorType::UniformBuffer :
                     case EDescriptorType::StorageBuffer :
@@ -336,7 +336,7 @@ namespace AE::PipelineCompiler
                     default :
                         RETURN_ERR( "unknown descriptor type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 ++src;
                 ++dst;
@@ -435,15 +435,14 @@ namespace AE::PipelineCompiler
             CHECK_ERR( AllBits( r_un.stages, l_un.stages ));
             CHECK_ERR( l_un.binding.vkIndex == r_un.binding.vkIndex );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( l_un.type )
+            switch_enum( l_un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
                 {
                     CHECK_ERR( l_un.type == r_un.type );
                     //CHECK_ERR( l_un.buffer.state              == r_un.buffer.state                );
-                    //CHECK_ERR( l_un.buffer.dynamicOffsetIndex == r_un.buffer.dynamicOffsetIndex   );  // TODO ?
+                    //CHECK_ERR( l_un.buffer.dynamicOffsetIndex == r_un.buffer.dynamicOffsetIndex   );  // shader reflection doesn't has dynamic offset
                     CHECK_ERR( l_un.buffer.staticSize           == r_un.buffer.staticSize           );
                     CHECK_ERR( l_un.buffer.arrayStride          == r_un.buffer.arrayStride          );
                     CHECK_ERR( l_un.buffer.typeName             == r_un.buffer.typeName             );
@@ -494,7 +493,7 @@ namespace AE::PipelineCompiler
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             ++l_it;
             ++r_it;
@@ -520,19 +519,19 @@ namespace AE::PipelineCompiler
 
         const auto  BufferEqual = [] (const Buffer &lhs2, const Buffer &rhs2)
         {{
-            return  (lhs2.state             == rhs2.state)              &
-                    (lhs2.dynamicOffsetIndex== rhs2.dynamicOffsetIndex) &
-                    (lhs2.staticSize        == rhs2.staticSize)         &
-                    (lhs2.arrayStride       == rhs2.arrayStride)        &
+            return  (lhs2.state             == rhs2.state)              and
+                    (lhs2.dynamicOffsetIndex== rhs2.dynamicOffsetIndex) and
+                    (lhs2.staticSize        == rhs2.staticSize)         and
+                    (lhs2.arrayStride       == rhs2.arrayStride)        and
                     (lhs2.typeName          == rhs2.typeName);
         }};
 
         const auto  ImageEqual  = [] (const Image &lhs2, const Image &rhs2)
         {{
             // ignore samplerOffsetInStorage
-            return  (lhs2.state             == rhs2.state)          &
-                    (lhs2.type              == rhs2.type)           &
-                    (lhs2.format            == rhs2.format)         &
+            return  (lhs2.state             == rhs2.state)          and
+                    (lhs2.type              == rhs2.type)           and
+                    (lhs2.format            == rhs2.format)         and
                     (lhs2.subpassInputIdx   == rhs2.subpassInputIdx);
         }};
 
@@ -543,17 +542,16 @@ namespace AE::PipelineCompiler
             auto&   l_un    = l_pair.second;
             auto&   r_un    = r_pair.second;
 
-            if ( (l_pair.first   != r_pair.first)   |
-                 (l_un.type      != r_un.type)      |
-                 (l_un.stages    != r_un.stages)    |
-                 (l_un.binding   != r_un.binding)   |
+            if ( (l_pair.first   != r_pair.first)   or
+                 (l_un.type      != r_un.type)      or
+                 (l_un.stages    != r_un.stages)    or
+                 (l_un.binding   != r_un.binding)   or
                  (l_un.arraySize != r_un.arraySize) )
             {
                 return false;
             }
 
-            BEGIN_ENUM_CHECKS();
-            switch ( l_un.type )
+            switch_enum( l_un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
@@ -620,7 +618,7 @@ namespace AE::PipelineCompiler
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return true;
     }
@@ -644,8 +642,7 @@ namespace AE::PipelineCompiler
             res << HashOf( un_name ) << HashOf( un.type ) << HashOf( un.stages )
                 << HashOf( un.binding.vkIndex ) << HashOf( un.binding.mtlIndex ) << HashOf( un.arraySize );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
@@ -696,7 +693,7 @@ namespace AE::PipelineCompiler
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         return res;
@@ -1538,7 +1535,7 @@ namespace {
 */
     bool  ShaderBytecode::operator == (const ShaderBytecode &rhs) C_NE___
     {
-        return (code == rhs.code) & (spec == rhs.spec);
+        return (code == rhs.code) and (spec == rhs.spec);
     }
 
 /*
@@ -1757,7 +1754,7 @@ namespace {
 =================================================
 */
     template <typename PplnType, typename PplnArr, typename PplnMap>
-    Pair<PipelineTemplUID, bool>  PipelineStorage::_AddPipelineTmpl (const PipelineTmplName &name, PplnType desc, PplnArr& templArr, PplnMap& templMap, PipelineTemplUID uidType)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::_AddPipelineTmpl (PipelineTmplName::Ref name, PplnType desc, PplnArr& templArr, PplnMap& templMap, PipelineTemplUID uidType)
     {
         CHECK_ERR( name.IsDefined() );
 
@@ -1789,27 +1786,27 @@ namespace {
     AddPipeline
 =================================================
 */
-    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (const PipelineTmplName &name, SerializableGraphicsPipeline desc)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (PipelineTmplName::Ref name, SerializableGraphicsPipeline desc)
     {
         return _AddPipelineTmpl( name, RVRef(desc), _gpipelineTempl, _gpipelineTemplMap, PipelineTemplUID::Graphics );
     }
 
-    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (const PipelineTmplName &name, SerializableMeshPipeline desc)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (PipelineTmplName::Ref name, SerializableMeshPipeline desc)
     {
         return _AddPipelineTmpl( name, RVRef(desc), _mpipelineTempl, _mpipelineTemplMap, PipelineTemplUID::Mesh );
     }
 
-    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (const PipelineTmplName &name, SerializableComputePipeline desc)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (PipelineTmplName::Ref name, SerializableComputePipeline desc)
     {
         return _AddPipelineTmpl( name, RVRef(desc), _cpipelineTempl, _cpipelineTemplMap, PipelineTemplUID::Compute );
     }
 
-    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (const PipelineTmplName &name, SerializableTilePipeline desc)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (PipelineTmplName::Ref name, SerializableTilePipeline desc)
     {
         return _AddPipelineTmpl( name, RVRef(desc), _tpipelineTempl, _tpipelineTemplMap, PipelineTemplUID::Tile );
     }
 
-    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (const PipelineTmplName &name, SerializableRayTracingPipeline desc)
+    Pair<PipelineTemplUID, bool>  PipelineStorage::AddPipeline (PipelineTmplName::Ref name, SerializableRayTracingPipeline desc)
     {
         return _AddPipelineTmpl( name, RVRef(desc), _rtpipelineTempl, _rtpipelineTemplMap, PipelineTemplUID::RayTracing );
     }
@@ -1820,7 +1817,7 @@ namespace {
 =================================================
 */
     template <typename PplnType, typename PplnArr, typename PplnMap>
-    PipelineSpecUID  PipelineStorage::_AddPipelineSpec (const PipelineName &name, PplnType desc, PplnArr& specArr, PplnMap& pplnMap, PipelineSpecUID uidType)
+    PipelineSpecUID  PipelineStorage::_AddPipelineSpec (PipelineName::Ref name, PplnType desc, PplnArr& specArr, PplnMap& pplnMap, PipelineSpecUID uidType)
     {
         CHECK_ERR( name.IsDefined() );
         CHECK_ERR( AllBits( PipelineSpecUID(desc.templUID), uidType ));
@@ -1849,27 +1846,27 @@ namespace {
     AddPipeline
 =================================================
 */
-    PipelineSpecUID  PipelineStorage::AddPipeline (const PipelineName &name, SerializableGraphicsPipelineSpec desc)
+    PipelineSpecUID  PipelineStorage::AddPipeline (PipelineName::Ref name, SerializableGraphicsPipelineSpec desc)
     {
         return _AddPipelineSpec( name, RVRef(desc), _gpipelineSpec, _gpipelineSpecMap, PipelineSpecUID::Graphics );
     }
 
-    PipelineSpecUID  PipelineStorage::AddPipeline (const PipelineName &name, SerializableMeshPipelineSpec desc)
+    PipelineSpecUID  PipelineStorage::AddPipeline (PipelineName::Ref name, SerializableMeshPipelineSpec desc)
     {
         return _AddPipelineSpec( name, RVRef(desc), _mpipelineSpec, _mpipelineSpecMap, PipelineSpecUID::Mesh );
     }
 
-    PipelineSpecUID  PipelineStorage::AddPipeline (const PipelineName &name, SerializableComputePipelineSpec desc)
+    PipelineSpecUID  PipelineStorage::AddPipeline (PipelineName::Ref name, SerializableComputePipelineSpec desc)
     {
         return _AddPipelineSpec( name, RVRef(desc), _cpipelineSpec, _cpipelineSpecMap, PipelineSpecUID::Compute );
     }
 
-    PipelineSpecUID  PipelineStorage::AddPipeline (const PipelineName &name, SerializableTilePipelineSpec desc)
+    PipelineSpecUID  PipelineStorage::AddPipeline (PipelineName::Ref name, SerializableTilePipelineSpec desc)
     {
         return _AddPipelineSpec( name, RVRef(desc), _tpipelineSpec, _tpipelineSpecMap, PipelineSpecUID::Tile );
     }
 
-    PipelineSpecUID  PipelineStorage::AddPipeline (const PipelineName &name, SerializableRayTracingPipelineSpec desc)
+    PipelineSpecUID  PipelineStorage::AddPipeline (PipelineName::Ref name, SerializableRayTracingPipelineSpec desc)
     {
         return _AddPipelineSpec( name, RVRef(desc), _rtpipelineSpec, _rtpipelineSpecMap, PipelineSpecUID::RayTracing );
     }
@@ -1988,7 +1985,7 @@ namespace {
 */
     bool  PipelineStorage::SerializePipelines (Serializing::Serializer& ser) const
     {
-        #define LOG( ... )  //AE_LOGI( __VA_ARGS__ )
+        #define LOG( ... )  AE_LOG_DBG( __VA_ARGS__ )
 
         CHECK_ERR( ser( PipelinePack_Name ));
         CHECK_ERR( ser( PipelinePack_Version ));

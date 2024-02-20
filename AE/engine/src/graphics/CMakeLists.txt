@@ -34,7 +34,7 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         endif()
     endif()
 
-    set( PIPELINE_COMPILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
+    set( PIPELINE_COMPILER_DIR "${MAIN_SOURCE_DIR}/engine/tools/res_pack/pipeline_compiler" )
     set( PIPELINE_COMPILER_HPP_SRC
         "${PIPELINE_COMPILER_DIR}/Packer/PipelinePack.h"
         "${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.h"
@@ -44,22 +44,13 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         set( PIPELINE_COMPILER_CPP_SRC
             "${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
             "${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
-            "${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp"
-            "${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp" )
+            "${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp" )
     endif()
 
     if (${AE_ENABLE_VULKAN})
         file( GLOB_RECURSE VULKAN_HPP_SOURCES "Vulkan/*.h" )
         if (NOT (DEFINED ENGINE_LIBS_PATH))
             file( GLOB_RECURSE VULKAN_CPP_SOURCES "Vulkan/*.cpp" )
-        endif()
-        set( SHADER_TRACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shader_trace" )
-        set( SHADER_TRACE_HPP_SRC
-            "${SHADER_TRACE_DIR}/Public/ShaderTrace.h" )
-        if (NOT (DEFINED ENGINE_LIBS_PATH))
-            set( SHADER_TRACE_CPP_SRC
-                "${SHADER_TRACE_DIR}/Impl/ShaderTrace.cpp"
-                "${SHADER_TRACE_DIR}/Impl/ParseShaderTrace.cpp" )
         endif()
     endif()
 
@@ -76,7 +67,6 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
     add_library( "Graphics" STATIC
         ${SOURCES}
         ${PIPELINE_COMPILER_HPP_SRC} ${PIPELINE_COMPILER_CPP_SRC}
-        ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC}
         ${PREBUILD_CPP_FILE} )
 
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
@@ -95,10 +85,11 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
     endif()
 
     if (${AE_ENABLE_VULKAN})
-        source_group( "external/shader_trace" FILES ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC} )
         target_link_libraries( "Graphics" PUBLIC "Vulkan-lib" "VulkanExtEmulation" )
-        target_include_directories( "Graphics" PUBLIC "${SHADER_TRACE_DIR}/Public" )
-        target_compile_definitions( "Graphics" PUBLIC AE_ENABLE_GLSL_TRACE )
+
+        if (TARGET "ShaderTraceParser")
+            target_link_libraries( "Graphics" PUBLIC "ShaderTraceParser" )
+        endif()
 
         if (${AE_ENABLE_VMA})
             target_link_libraries( "Graphics" PUBLIC "VMA-lib" )
@@ -129,11 +120,16 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
             if (NOT EXISTS "/usr/local/lib/libvulkan.dylib")
                 message( FATAL_ERROR "'/usr/local/lib/libvulkan.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
             endif()
+            target_compile_definitions( "Graphics" PUBLIC VK_USE_PLATFORM_METAL_EXT=1 )
+        endif()
+
+        if (DEFINED ANDROID)
+            target_compile_definitions( "Graphics" PUBLIC VK_USE_PLATFORM_ANDROID_KHR=1 )
         endif()
     endif()
 
     if (${AE_ENABLE_METAL} OR MSVC)
-        if ( (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin") OR (${CMAKE_SYSTEM_NAME} STREQUAL "iOS") )
+        if (APPLE)
             find_library( METAL_FRAMEWORK Metal REQUIRED )
             target_link_libraries( "Graphics" PUBLIC ${METAL_FRAMEWORK} )
             set_target_properties( "Graphics" PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC NO )

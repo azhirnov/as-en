@@ -166,7 +166,7 @@ namespace AE::Graphics
     GetVertexBufferIndex
 =================================================
 */
-    uint  VGraphicsPipeline::GetVertexBufferIndex (const VertexBufferName &name) C_NE___
+    uint  VGraphicsPipeline::GetVertexBufferIndex (VertexBufferName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

@@ -159,7 +159,7 @@ namespace
         Chunk*      chunk       = &_firstChunk;
         const uint  chunk_idx   = ds.data.Ref<uint>() / PoolsPerChunk;
 
-        for (uint c = 0; (c < c_MaxChunks) & (chunk != null); ++c)
+        for (uint c = 0; (c < c_MaxChunks) and (chunk != null); ++c)
         {
             if_likely( c != chunk_idx )
             {
@@ -200,8 +200,7 @@ namespace
             VkDescriptorPoolSize    size;
             size.descriptorCount    = descCount;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( EDescriptorType(t) )
+            switch_enum( EDescriptorType(t) )
             {
                 case EDescriptorType::UniformBuffer :
                     size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
@@ -272,7 +271,7 @@ namespace
                 case EDescriptorType::_Count :
                 case EDescriptorType::Unknown :     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         VkDescriptorPoolCreateInfo  info = {};

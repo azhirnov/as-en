@@ -17,6 +17,8 @@ void ASmain ()
     fset.maxTexelBufferElements (64 << 10);
     fset.maxUniformBufferSize (16 << 10);
     fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (4);
     fset.perDescrSet_maxInputAttachments (4);
     fset.perDescrSet_maxSampledImages (96);
     fset.perDescrSet_maxSamplers (80);

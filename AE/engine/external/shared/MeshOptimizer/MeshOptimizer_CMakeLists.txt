@@ -1,0 +1,14 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "MeshOptimizer-main" LANGUAGES CXX )
+
+set( MESHOPT_BUILD_DEMO         OFF  CACHE INTERNAL "" FORCE )
+set( MESHOPT_BUILD_GLTFPACK     OFF  CACHE INTERNAL "" FORCE )
+set( MESHOPT_BUILD_SHARED_LIBS  OFF  CACHE INTERNAL "" FORCE )
+
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
+include( "origin_CMakeLists.txt" )
+
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md" DESTINATION "." )

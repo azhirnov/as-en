@@ -66,10 +66,11 @@ namespace AE::ResEditor
                                 EResourceState::Invalidate,                                 // current state is not used
                                 EResourceState::ShaderSample | EResourceState::AllShaders,  // default
                                 EQueueType::Graphics );
+
+            _DtTrQueue().EnqueueImageTransition( _ids[i] );
         }
 
-        auto&   fmt_info = EPixelFormat_GetInfo( desc.format );
-        _allocator.SetBlockSize( ImageUtils::ImageSize( desc.dimension, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
+        _allocator.SetBlockSize( EPixelFormat_ImageSize( desc.format, desc.dimension ));
 
         for (usize i = 0; i < _imageMemView.size(); ++i) {
             CHECK_THROW( Video::IVideoDecoder::AllocMemView( config, OUT _imageMemView[i], _allocator ));
@@ -77,7 +78,6 @@ namespace AE::ResEditor
 
         _uploadStatus.store( EUploadStatus::InProgress );
 
-        _DtTrQueue().EnqueueImageTransition( _ids[0] );
         _DtTrQueue().EnqueueForUpload( GetRC() );
 
         _lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{}, "Video decoding" );
@@ -88,7 +88,7 @@ namespace AE::ResEditor
     destructor
 =================================================
 */
-    VideoImage::~VideoImage ()
+    VideoImage::~VideoImage () __NE___
     {
         auto&   rstate = RenderGraph().GetStateTracker();
         rstate.ReleaseResourceArray( _ids );
@@ -122,7 +122,7 @@ namespace AE::ResEditor
         if ( not HasBit( states.decodedBits, mem_idx ))
             return _uploadStatus.load();  // decoding in progress
 
-        const auto  cur_time = Second_t{_curTime.Add( GraphicsScheduler().GetFrameTimeDelta().count() )};
+        const auto  cur_time = Seconds_t{_curTime.Add( GraphicsScheduler().GetFrameTimeDelta().count() )};
 
         if ( cur_time < _frameTimes[mem_idx] )
             return _uploadStatus.load();  // skip
@@ -133,7 +133,7 @@ namespace AE::ResEditor
         if ( not _stream.IsInitialized() )
         {
             UploadImageDesc     upload;
-            upload.imageSize    = uint3{ _dimension, 1u };
+            upload.imageDim     = uint3{ _dimension, 1u };
             upload.heapType     = EStagingHeapType::Dynamic;
             upload.aspectMask   = EImageAspect::Color;
             _stream             = ImageStream{ _ids[idx], upload };
@@ -263,7 +263,7 @@ namespace AE::ResEditor
         else
         // restart
         {
-            _frameTimes.fill( Second_t{0.0} );
+            _frameTimes.fill( Seconds_t{0.0} );
             _states.store( States{}, EMemoryOrder::Release );
             _curTime.store( 0.0 );
 

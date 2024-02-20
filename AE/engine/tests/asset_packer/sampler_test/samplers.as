@@ -41,8 +41,7 @@ void ASmain ()
     }
     {
         RC<Sampler>     samp = Sampler( "NearestClamp|ycbcr|G8_B8R8_420_UNorm" );
-        samp.AddFeatureSet( "MinDesktopAMD" );
-        samp.AddFeatureSet( "MinDesktopNV" );
+        samp.AddFeatureSet( "part.samplerYcbcrConversion" );
 
         samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
         samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
@@ -53,6 +52,36 @@ void ASmain ()
         //samp.Ycbcr_Components();
         samp.Ycbcr_XChromaOffset( ESamplerChromaLocation::CositedEven );
         samp.Ycbcr_YChromaOffset( ESamplerChromaLocation::CositedEven );
+        samp.Ycbcr_ChromaFilter( EFilter::Nearest );
+    }
+    {
+        RC<Sampler>     samp = Sampler( "NearestClamp|ycbcr|AndroidNV16" );
+        samp.AddFeatureSet( "part.externalFormatAndroid" );
+
+        samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+        samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
+
+        samp.Ycbcr_Format( EPixelFormatExternal::Android_NV16 );
+        //samp.Ycbcr_Model - suggested
+        //samp.Ycbcr_Range - suggested
+        //samp.Ycbcr_XChromaOffset - suggested
+        //samp.Ycbcr_YChromaOffset - suggested
+        //samp.Ycbcr_Components() - suggested
+        samp.Ycbcr_ChromaFilter( EFilter::Nearest );
+    }
+    {
+        RC<Sampler>     samp = Sampler( "NearestClamp|ycbcr|AndroidYUY2" );
+        samp.AddFeatureSet( "part.externalFormatAndroid" );
+
+        samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+        samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
+
+        samp.Ycbcr_Format( EPixelFormatExternal::Android_YUY2 );
+        //samp.Ycbcr_Model - suggested
+        //samp.Ycbcr_Range - suggested
+        //samp.Ycbcr_XChromaOffset - suggested
+        //samp.Ycbcr_YChromaOffset - suggested
+        //samp.Ycbcr_Components() - suggested
         samp.Ycbcr_ChromaFilter( EFilter::Nearest );
     }
 }

@@ -4,6 +4,7 @@
 void ASmain ()
 {
     // include:
+    //  PowerVR B-Series BXE-4-32 driver 1.492.1330 on Debian unknown
     //  PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
     //  PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
 
@@ -71,6 +72,8 @@ void ASmain ()
     fset.maxTexelBufferElements (64 << 10);
     fset.maxUniformBufferSize (128 << 20);
     fset.maxStorageBufferSize (128 << 20);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (8);
     fset.perDescrSet_maxInputAttachments (256);
     fset.perDescrSet_maxSampledImages (256);
     fset.perDescrSet_maxSamplers (256);
@@ -79,11 +82,11 @@ void ASmain ()
     fset.perDescrSet_maxUniformBuffers (256);
     fset.perDescrSet_maxTotalResources (512);
     fset.perStage_maxInputAttachments (8);
-    fset.perStage_maxSampledImages (128);
-    fset.perStage_maxSamplers (128);
-    fset.perStage_maxStorageBuffers (96);
-    fset.perStage_maxStorageImages (128);
-    fset.perStage_maxUniformBuffers (96);
+    fset.perStage_maxSampledImages (48);
+    fset.perStage_maxSamplers (32);
+    fset.perStage_maxStorageBuffers (36);
+    fset.perStage_maxStorageImages (8);
+    fset.perStage_maxUniformBuffers (64);
     fset.perStage_maxTotalResources (128);
     fset.maxDescriptorSets (4);
     fset.maxTexelOffset (7);

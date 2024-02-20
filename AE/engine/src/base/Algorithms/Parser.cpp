@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Algorithms/Parser.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Base
 {
@@ -13,7 +13,7 @@ namespace AE::Base
 */
     void  Parser::ToEndOfLine (StringView str, INOUT usize &pos) __NE___
     {
-        if ( pos < str.length() and ((str[pos] == '\n') | (str[pos] == '\r')) )
+        if ( pos < str.length() and ((str[pos] == '\n') or (str[pos] == '\r')) )
             return;
 
         while ( pos < str.length() )
@@ -22,7 +22,7 @@ namespace AE::Base
 
             ++pos;
 
-            if_unlikely( (n == '\n') | (n == '\r') )
+            if_unlikely( (n == '\n') or (n == '\r') )
                 return;
         }
     }
@@ -40,7 +40,7 @@ namespace AE::Base
         {
             const char  p = (pos-1) >= str.length() ? '\0' : str[pos-1];
 
-            if_unlikely( (p == '\n') | (p == '\r') | (p == '\0') )
+            if_unlikely( (p == '\n') or (p == '\r') or (p == '\0') )
                 return;
 
             --pos;
@@ -87,14 +87,14 @@ namespace AE::Base
             ++pos;
 
             // windows style "\r\n"
-            if_unlikely( (c == '\r') & (n == '\n') )
+            if_unlikely( (c == '\r') and (n == '\n') )
             {
                 ++pos;
                 return;
             }
 
             // linux style "\n" (or mac style "\r")
-            if_unlikely( (c == '\n') | (c == '\r') )
+            if_unlikely( (c == '\n') or (c == '\r') )
                 return;
         }
     }
@@ -116,14 +116,14 @@ namespace AE::Base
             --pos;
 
             // windows style "\r\n"
-            if_unlikely( (p == '\r') & (c == '\n') )
+            if_unlikely( (p == '\r') and (c == '\n') )
             {
                 --pos;
                 return;
             }
 
             // linux style "\n" (or mac style "\r")
-            if_unlikely( (p == '\n') | (p == '\r') )
+            if_unlikely( (p == '\n') or (p == '\r') )
                 return;
         }
     }
@@ -145,7 +145,7 @@ namespace AE::Base
             ++pos;
 
             // windows style "\r\n"
-            if_unlikely( (c == '\r') & (n == '\n') )
+            if_unlikely( (c == '\r') and (n == '\n') )
             {
                 if ( lines == 0 and pos > 0 ) ++lines;
                 ++lines;
@@ -154,7 +154,7 @@ namespace AE::Base
             }
 
             // linux style "\n" (or mac style "\r")
-            if_unlikely( (c == '\n') | (c == '\r') )
+            if_unlikely( (c == '\n') or (c == '\r') )
             {
                 if ( lines == 0 and pos > 0 ) ++lines;
                 ++lines;
@@ -175,7 +175,7 @@ namespace AE::Base
     {
         usize   lines = 0;
 
-        for (; (pos < str.length()) & (lines < lineNumber); ++lines)
+        for (; (pos < str.length()) and (lines < lineNumber); ++lines)
         {
             ToNextLine( str, INOUT pos );
         }
@@ -419,9 +419,9 @@ namespace {
 */
     inline bool  CStyleParser::IsUnused (char c) __NE___
     {
-        return  (c == ' ') | (c == '\t') | (c == '@') | (c == '$') |
-                (c == '\n') | (c == '\r')
-                /*| (c == '\\')*/;
+        return  (c == ' ')  or (c == '\t') or (c == '@') or (c == '$') or
+                (c == '\n') or (c == '\r')
+                /*or (c == '\\')*/;
     }
 
 /*
@@ -431,8 +431,8 @@ namespace {
 */
     inline bool  CStyleParser::_IsWordBegin (char c) __NE___
     {
-        return  ((c >= 'A') & (c <= 'Z')) |
-                ((c >= 'a') & (c <= 'z')) |
+        return  ((c >= 'A') and (c <= 'Z')) or
+                ((c >= 'a') and (c <= 'z')) or
                 (c == '_');
     }
 
@@ -443,7 +443,7 @@ namespace {
 */
     inline bool  CStyleParser::_IsWord (char c) __NE___
     {
-        return  _IsWordBegin( c ) | _IsNumberBegin( c );
+        return  _IsWordBegin( c ) or _IsNumberBegin( c );
     }
 
 /*
@@ -453,7 +453,7 @@ namespace {
 */
     inline bool  CStyleParser::_IsNumberBegin (char c) __NE___
     {
-        return  (c >= '0') & (c <= '9');
+        return  (c >= '0') and (c <= '9');
     }
 
 /*
@@ -463,10 +463,10 @@ namespace {
 */
     inline bool  CStyleParser::_IsNumber (char c) __NE___
     {
-        return  ((c >= '0') & (c <= '9')) |
-                ((c >= 'A') & (c <= 'F')) |
-                ((c >= 'a') & (c <= 'f')) |
-                (c == '.')  | (c == 'x')  |
+        return  ((c >= '0') and (c <= '9')) or
+                ((c >= 'A') and (c <= 'F')) or
+                ((c >= 'a') and (c <= 'f')) or
+                (c == '.')  or  (c == 'x')  or
                 (c == 'X');
     }
 
@@ -477,13 +477,13 @@ namespace {
 */
     inline bool  CStyleParser::_IsOperator (char c) __NE___
     {
-        return  (c == '-') | (c == '+') | (c == '*') | (c == '/') |
-                (c == '|') | (c == '&') | (c == '^') | (c == '<') |
-                (c == '>') | (c == '?') | (c == ':') | (c == ';') |
-                (c == ',') | (c == '.') | (c == '!') | (c == '~') |
-                (c == '[') | (c == ']') | (c == '(') | (c == ')') |
-                (c == '=') | (c == '%') | (c == '"') | (c == '#') |
-                (c == '{') | (c == '}') | (c == '\'') | (c == '\\');
+        return  (c == '-') or (c == '+') or (c == '*') or (c == '/') or
+                (c == '|') or (c == '&') or (c == '^') or (c == '<') or
+                (c == '>') or (c == '?') or (c == ':') or (c == ';') or
+                (c == ',') or (c == '.') or (c == '!') or (c == '~') or
+                (c == '[') or (c == ']') or (c == '(') or (c == ')') or
+                (c == '=') or (c == '%') or (c == '"') or (c == '#') or
+                (c == '{') or (c == '}') or (c == '\'') or (c == '\\');
     }
 
 /*
@@ -493,15 +493,15 @@ namespace {
 */
     inline bool  CStyleParser::_IsBinaryOperator (char p, char c) __NE___
     {
-    #   define PAIR_CMP( _pair_ )   (( (p == _pair_[0]) & (c == _pair_[1]) ))
+    #   define PAIR_CMP( _pair_ )   (( (p == _pair_[0]) and (c == _pair_[1]) ))
 
-        return  PAIR_CMP( "//" ) | PAIR_CMP( "/*" ) | PAIR_CMP( "*/" ) |
-                PAIR_CMP( "&&" ) | PAIR_CMP( "||" ) | PAIR_CMP( "^^" ) |
-                PAIR_CMP( "::" ) | PAIR_CMP( "==" ) | PAIR_CMP( "!=" ) |
-                PAIR_CMP( ">=" ) | PAIR_CMP( "<=" ) | PAIR_CMP( "##" ) |
-                PAIR_CMP( ">>" ) | PAIR_CMP( "<<" ) | PAIR_CMP( "|=" ) |
-                PAIR_CMP( "&=" ) | PAIR_CMP( "^=" ) | PAIR_CMP( "+=" ) |
-                PAIR_CMP( "-=" ) | PAIR_CMP( "*=" ) | PAIR_CMP( "/=" ) |
+        return  PAIR_CMP( "//" ) or PAIR_CMP( "/*" ) or PAIR_CMP( "*/" ) or
+                PAIR_CMP( "&&" ) or PAIR_CMP( "||" ) or PAIR_CMP( "^^" ) or
+                PAIR_CMP( "::" ) or PAIR_CMP( "==" ) or PAIR_CMP( "!=" ) or
+                PAIR_CMP( ">=" ) or PAIR_CMP( "<=" ) or PAIR_CMP( "##" ) or
+                PAIR_CMP( ">>" ) or PAIR_CMP( "<<" ) or PAIR_CMP( "|=" ) or
+                PAIR_CMP( "&=" ) or PAIR_CMP( "^=" ) or PAIR_CMP( "+=" ) or
+                PAIR_CMP( "-=" ) or PAIR_CMP( "*=" ) or PAIR_CMP( "/=" ) or
                 PAIR_CMP( "%=" );
 
     #   undef PAIR_CMP
@@ -514,9 +514,9 @@ namespace {
 */
     inline bool  CStyleParser::_IsTernaryOperator (char pp, char p, char c) __NE___
     {
-    #   define TRIPLE_CMP( _triple_ )   (( (pp == _triple_[0]) & (p == _triple_[1]) & (c == _triple_[2]) ))
+    #   define TRIPLE_CMP( _triple_ )   (( (pp == _triple_[0]) and (p == _triple_[1]) and (c == _triple_[2]) ))
 
-        return  TRIPLE_CMP( ">>=" ) | TRIPLE_CMP( "<<=" );
+        return  TRIPLE_CMP( ">>=" ) or TRIPLE_CMP( "<<=" );
 
     #   undef TRIPLE_CMP
     }
@@ -695,7 +695,7 @@ namespace
         for (; pos < str.size(); ++pos)
         {
             const char  c = str[pos];
-            if ( not ((c == ' ') | (c == '\t')) )
+            if ( not ((c == ' ') or (c == '\t')) )
                 break;
         }
     }
@@ -752,14 +752,14 @@ namespace
             const char  n = str[pos];
 
             // single line comment
-            if_unlikely( (c == '/') & (n == '/') )
+            if_unlikely( (c == '/') and (n == '/') )
             {
                 ToNextLine( str, INOUT pos );
                 continue;
             }
 
             // multi line comment
-            if_unlikely( (c == '/') & (n == '*') )
+            if_unlikely( (c == '/') and (n == '*') )
             {
                 pos += 2;
                 for (; pos < str.size(); ++pos)
@@ -767,7 +767,7 @@ namespace
                     const char  a = str[pos-1];
                     const char  b = str[pos];
 
-                    if_unlikely( (a == '*') & (b == '/') )
+                    if_unlikely( (a == '*') and (b == '/') )
                     {
                         pos += 2;
                         break;
@@ -785,7 +785,7 @@ namespace
                     const char  a = str[pos-1];
                     const char  b = str[pos];
 
-                    if_unlikely( (a != '\\') & (b == '"') )
+                    if_unlikely( (a != '\\') and (b == '"') )
                     {
                         pos += 2;
                         break;
@@ -795,7 +795,7 @@ namespace
             }
 
             // macros
-            if_unlikely( (c != '#') & (n == '#') )
+            if_unlikely( (c != '#') and (n == '#') )
             {
                 SkipSpaces( str, INOUT ++pos );
 
@@ -918,7 +918,7 @@ namespace
     {
         for (char c : str)
         {
-            if_unlikely( (c != ' ') & (c != '\t') )
+            if_unlikely( (c != ' ') and (c != '\t') )
                 return false;
         }
         return true;

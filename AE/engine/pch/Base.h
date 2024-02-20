@@ -19,6 +19,7 @@
 // Containers
 #include "base/Containers/AnyTypeRef.h"
 #include "base/Containers/ArrayView.h"
+#include "base/Containers/MutableArrayView.h"
 #include "base/Containers/ChunkList.h"
 #include "base/Containers/FixedArray.h"
 #include "base/Containers/FixedMap.h"
@@ -35,14 +36,16 @@
 #include "base/Containers/UntypedStorage.h"
 
 // DataSource
-#include "base/DataSource/Stream.h"
 #include "base/DataSource/DataSource.h"
+#include "base/DataSource/DataStream.h"
 #include "base/DataSource/StdStream.h"
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/MemDataSource.h"
 #include "base/DataSource/FileStream.h"
 #include "base/DataSource/WindowsFile.h"
+#include "base/DataSource/UnixFile.h"
 #include "base/DataSource/BrotliStream.h"
+#include "base/DataSource/ZStdStream.h"
 #include "base/DataSource/BufferedStream.h"
 #include "base/DataSource/DataSourceAsStream.h"
 #include "base/DataSource/DataSourceRange.h"
@@ -51,9 +54,8 @@
 // Math
 #include "base/Math/GLM.h"
 #include "base/Math/BitMath.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Math/Percent.h"
-#include "base/Math/Math.h"
 #include "base/Math/Radian.h"
 #include "base/Math/VecSwizzle.h"
 #include "base/Math/Fractional.h"
@@ -85,6 +87,7 @@
 #include "base/Math/FlightCamera.h"
 #include "base/Math/OrbitalCamera.h"
 #include "base/Math/PackedInt.h"
+#include "base/Math/Spline.h"
 
 // Memory
 #include "base/Memory/AllocatorFwdDecl.h"
@@ -96,15 +99,22 @@
 #include "base/Memory/MemUtils.h"
 #include "base/Memory/MemWriter.h"
 #include "base/Memory/MemChunkList.h"
+#include "base/Memory/InPlaceLinearAllocator.h"
 
 // Platforms
 #include "base/Platforms/CPUInfo.h"
 #include "base/Platforms/Platform.h"
 
+// Time
+#include "base/Time/Date.h"
+#include "base/Time/Clock.h"
+#include "base/Time/TimeProfiler.h"
+#include "base/Time/Timer.h"
+
 // Utils
 #include "base/Utils/Atomic.h"
-#include "base/Utils/Date.h"
-#include "base/Utils/EnumBitSet.h"
+#include "base/Utils/EnumSet.h"
+#include "base/Utils/Bitfield.h"
 #include "base/Utils/FileSystem.h"
 #include "base/Utils/HandleTmpl.h"
 #include "base/Utils/Helpers.h"
@@ -115,7 +125,6 @@
 #include "base/Utils/RestrictPtr.h"
 #include "base/Utils/SourceLoc.h"
 #include "base/Utils/Threading.h"
-#include "base/Utils/TimeProfiler.h"
 #include "base/Utils/TypeId.h"
 #include "base/Utils/Version.h"
 #include "base/Utils/FrameUID.h"

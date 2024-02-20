@@ -5,7 +5,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/IDevice.h"
 # include "graphics/Vulkan/VQueue.h"
-//# include "graphics/Vulkan/Utils/VNvPerf.h"
+# include "graphics/Vulkan/Utils/VNvPerf.h"
 # include "graphics/Vulkan/Utils/RenderDocApi.h"
 # include "VulkanExtEmulation.h"
 
@@ -67,7 +67,7 @@ namespace AE::Graphics
         VExtensions             _extensions;
 
         // tools
-        //VNvPerf               _nvPerf;
+        VNvPerf                 _nvPerf;
         RenderDocApi            _rdc;
 
         NO_UNIQUE_ADDRESS
@@ -107,8 +107,8 @@ namespace AE::Graphics
 
         ND_ bool                    IsInitialized ()                                C_NE_OF { return GetVkDevice() != Default; }
 
-        //ND_ VNvPerf const&        GetNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
-        //ND_ bool                  HasNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
+        ND_ VNvPerf const&          GetNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
+        ND_ bool                    HasNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
 
         ND_ RenderDocApi const&     GetRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc; }
         ND_ bool                    HasRenderDocApi ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }

@@ -38,7 +38,7 @@ namespace _hidden_
 {
     template <ulong X>
     struct _IsPowerOfTwo {
-        static constexpr bool   value = (X != 0) & ((X & (X - 1)) == 0);
+        static constexpr bool   value = (X != 0) and ((X & (X - 1)) == 0);
     };
 } // _hidden_
 

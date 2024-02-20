@@ -65,7 +65,7 @@ namespace
             }
             TEST( j == arr.size() );
 
-            #ifdef AE_COMPILER_MSVC
+            #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
                 j = 0;
                 for (const auto& [e, i] : WithIndex(arr))       // error in clang
                 {

@@ -21,6 +21,7 @@ namespace AE::Networking
         using Channels_t        = StaticArray< RC<IChannel>, uint(EChannel::_Count) >;
         using MsgList_t         = IChannel::MsgList_t;
         using CMsgList_t        = IChannel::CMsgList_t;
+        using MsgQueueStatistic = IChannel::MsgQueueStatistic;
 
         using MsgProducerMap_t  = StaticArray< Array< RC<ICSMessageProducer> >, uint(EChannel::_Count) >;
         using MsgConsumerMap_t  = FixedMap< CSMessageGroupID, Array<RC<ICSMessageConsumer>>, NetConfig::MaxMsgGroupsPerFrame >;
@@ -58,8 +59,10 @@ namespace AE::Networking
 
         // Receive and send messages.
         // 'frameId' must be same or +1 to the previous call.
+        // Returns statistics of incomplete message queues, if user increase 'frameId' for the next call,
+        // it will cause client disconnection for reliable channels.
         //
-        void  Update (FrameUID frameId)                             __NE___;
+        ND_ MsgQueueStatistic  Update (FrameUID frameId)            __NE___;
 
 
         // Send messages to the specified channel.

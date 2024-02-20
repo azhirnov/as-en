@@ -27,6 +27,11 @@ namespace AE::Networking
         if_likely( _handle == Default )
             return false;   // no clients   // TODO: check errors
 
+        // On Linux, the new socket returned by accept() does not inherit file status flags such as O_NONBLOCK and O_ASYNC from the listening socket.
+        // This behavior differs from the canonical BSD sockets implementation.
+        CHECK_ERR( _SetNonBlocking() );
+        CHECK_ERR( _SetNoDelay() );
+
         clientAddr = AddressType::FromNative( AnyTypeCRef{ src_addr });
         ASSERT( clientAddr.IsValid() );
 
@@ -70,7 +75,7 @@ namespace AE::Networking
             NativeAddress   sock_addr;
             addr.ToNative( OUT AnyTypeRef{ sock_addr });
 
-            if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_REUSEADDR, Cast<NativeSocketOpPtr_t>(&opt), sizeof(opt) ))
+            if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_REUSEADDR, Cast<NativeSocketOptPtr_t>(&opt), sizeof(opt) ))
             {
                 NET_CHECK2( "TCP("s << GetDebugName() << ") failed to set 'reuse_address' flag" );
             }
@@ -257,12 +262,31 @@ namespace AE::Networking
 
         int     option = 1;
 
-        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), IPPROTO_TCP, TCP_NODELAY, Cast<NativeSocketOpPtr_t>(&option), sizeof(option) ) != 0 )
+        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), IPPROTO_TCP, TCP_NODELAY, Cast<NativeSocketOptPtr_t>(&option), sizeof(option) ) != 0 )
         {
             NET_CHECK2( "TCP("s << GetDebugName() << ") failed to set socket no-delay mode: " );
             return false;
         }
         return true;
+    }
+
+/*
+=================================================
+    IsNoDelay
+=================================================
+*/
+    bool  TcpSocket::IsNoDelay () C_NE___
+    {
+        ASSERT( IsOpen() );
+
+        int         option  = 0;
+        socklen_t   len     = sizeof(option);
+
+        if_likely( ::getsockopt( BitCast<NativeSocket_t>(_handle), IPPROTO_TCP, TCP_NODELAY, OUT Cast<NativeSocketOptPtr_t>(&option), INOUT &len ) == 0 )
+        {
+            return option == 1;
+        }
+        return false;
     }
 
 /*
@@ -324,13 +348,32 @@ namespace AE::Networking
 
         const int   i_enable = int(enable);
 
-        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_KEEPALIVE, Cast<NativeSocketOpPtr_t>(&i_enable), sizeof(i_enable) ) != 0 )
+        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_KEEPALIVE, Cast<NativeSocketOptPtr_t>(&i_enable), sizeof(i_enable) ) != 0 )
         {
             NET_CHECK2( "TCP("s << GetDebugName() << ") failed to set socket keep alive: " );
             return false;
         }
 
         return true;
+    }
+
+/*
+=================================================
+    IsKeepAlive
+=================================================
+*/
+    bool  TcpSocket::IsKeepAlive () C_NE___
+    {
+        ASSERT( IsOpen() );
+
+        int         i_enable    = 0;
+        socklen_t   len         = sizeof(i_enable);
+
+        if_likely( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_KEEPALIVE, OUT Cast<NativeSocketOptPtr_t>(&i_enable), INOUT &len ) == 0 )
+        {
+            return i_enable == 1;
+        }
+        return false;
     }
 
 /*
@@ -394,7 +437,7 @@ namespace AE::Networking
             int         err = 0;
             socklen_t   len = sizeof(err);
 
-            if ( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_ERROR, OUT Cast<NativeSocketOpPtr_t>(&err), &len ) == 0 )
+            if ( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_ERROR, OUT Cast<NativeSocketOptPtr_t>(&err), &len ) == 0 )
             {
                 return  err == 0 ? onSuccess :
                         IsInProgress( err ) ? EStatus::Connecting :

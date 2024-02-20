@@ -37,15 +37,32 @@ namespace AE::Networking
 
 /*
 =================================================
-    _AddChannelTCP
+    _AddChannelReliableTCP
 =================================================
 */
-    bool  BaseClient::_AddChannelTCP () __NE___
+    bool  BaseClient::_AddChannelReliableTCP (StringView dbgName) __NE___
     {
         auto&   dst = _channels[ uint(EChannel::Reliable) ];
         CHECK_ERR( not dst );
 
-        auto    channel = TcpClientChannel::ClientAPI::Create( _msgFactory, _allocator, _serverProvider );
+        auto    channel = TcpClientChannel::ClientAPI::Create( _msgFactory, _allocator, _serverProvider, True{"reliable"}, dbgName );
+        CHECK_ERR( channel );
+
+        dst = RVRef(channel);
+        return true;
+    }
+
+/*
+=================================================
+    _AddChannelUnreliableTCP
+=================================================
+*/
+    bool  BaseClient::_AddChannelUnreliableTCP (StringView dbgName) __NE___
+    {
+        auto&   dst = _channels[ uint(EChannel::Unreliable) ];
+        CHECK_ERR( not dst );
+
+        auto    channel = TcpClientChannel::ClientAPI::Create( _msgFactory, _allocator, _serverProvider, False{"unreliable"}, dbgName );
         CHECK_ERR( channel );
 
         dst = RVRef(channel);
@@ -56,13 +73,13 @@ namespace AE::Networking
 =================================================
     _AddChannelUnreliableUDP
 =================================================
-*/
-    bool  BaseClient::_AddChannelUnreliableUDP (ushort port) __NE___
+*
+    bool  BaseClient::_AddChannelUnreliableUDP (ushort port, StringView dbgName) __NE___
     {
         auto&   dst = _channels[ uint(EChannel::Unreliable) ];
         CHECK_ERR( not dst );
 
-        auto    channel = UdpUnreliableClientChannel::ClientAPI::Create( _msgFactory, _allocator, _serverProvider, port );
+        auto    channel = UdpUnreliableClientChannel::ClientAPI::Create( _msgFactory, _allocator, _serverProvider, port, dbgName );
         CHECK_ERR( channel );
 
         dst = RVRef(channel);

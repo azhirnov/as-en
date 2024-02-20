@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 
 namespace AE::Base
 {
@@ -38,6 +38,7 @@ namespace AE::Base
         template <typename T>
         ND_ forceinline bool  Read (OUT T& value)                       __NE___ { return Read( OUT &value, SizeOf<T> ); }
         ND_ forceinline bool  Read (OUT void* buffer, Bytes size)       __NE___;
+        ND_ forceinline Bytes ReadRemaining (OUT void* buffer)          __NE___;
     };
 
 
@@ -99,7 +100,7 @@ namespace AE::Base
 */
     inline FastRStream::~FastRStream () __NE___
     {
-        if ( (_stream != null) & (not Empty()) )
+        if ( (_stream != null) and (not Empty()) )
             _stream->EndFastStream( _ptr );
     }
 
@@ -125,7 +126,7 @@ namespace AE::Base
 */
     forceinline bool  FastRStream::Read (OUT void* buffer, Bytes size) __NE___
     {
-        ASSERT( size > 0 );
+        //ASSERT( size > 0 );
         ASSERT( _ptr != null );
 
         for_likely(; size > 0; )
@@ -150,8 +151,25 @@ namespace AE::Base
                 return false; // stream is completely read
         }
 
-        DBG_WARNING( "should never happen" );
+        //DBG_WARNING( "should never happen" );
         return true;
+    }
+
+/*
+=================================================
+    ReadRemaining
+=================================================
+*/
+    forceinline Bytes  FastRStream::ReadRemaining (OUT void* buffer) __NE___
+    {
+        ASSERT( _ptr != null );
+
+        const Bytes     size = RemainingSize();
+
+        MemCopy( OUT buffer, _ptr, size );
+        _ptr += size;
+
+        return size;
     }
 //-----------------------------------------------------------------------------
 
@@ -181,7 +199,7 @@ namespace AE::Base
 */
     inline FastWStream::~FastWStream () __NE___
     {
-        if ( (_stream != null) & (not Empty()) )
+        if ( (_stream != null) and (not Empty()) )
             _stream->EndFastStream( _ptr );
     }
 
@@ -207,7 +225,7 @@ namespace AE::Base
 */
     forceinline bool  FastWStream::Write (const void* buffer, Bytes size) __NE___
     {
-        ASSERT( size > 0 );
+        //ASSERT( size > 0 );
         ASSERT( _ptr != null );
 
         for_likely(; size > 0; )
@@ -232,7 +250,7 @@ namespace AE::Base
                 return false; // stream is completely read
         }
 
-        DBG_WARNING( "should never happen" );
+        //DBG_WARNING( "should never happen" );
         return true;
     }
 

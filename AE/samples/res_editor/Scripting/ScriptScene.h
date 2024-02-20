@@ -180,7 +180,7 @@ namespace AE::ResEditor
                                            OUT RC<SceneData> &, OUT ScriptRTScenePtr &)     C_Th___;
             void        _CompilePipelines2 (ScriptEnginePtr se,
                                             OUT PipelineName &, OUT RTShaderBindingName &)  C_Th___;
-            void        _CreateRTScene (const RTShaderBindingName &, OUT ScriptRTScenePtr &)C_Th___;
+            void        _CreateRTScene (RTShaderBindingName::Ref , OUT ScriptRTScenePtr &)  C_Th___;
 
         ND_ static auto  _CreateUBType ()                                                   __Th___;
 

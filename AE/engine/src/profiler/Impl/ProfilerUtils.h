@@ -23,6 +23,9 @@ namespace AE::Profiler
     using AE::Threading::Atomic;
     using AE::Threading::FAtomic;
 
+    using AE::Networking::EChannel;
+    using AE::Networking::CSMessageGroupID;
+    using AE::Networking::CSMessagePtr;
 
 
     //
@@ -33,25 +36,42 @@ namespace AE::Profiler
     {
     // types
     public:
-        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
+        using TimePoint_t   = Clock::TimePoint_t;
+
+
+        class MsgProducer final : public Networking::IAsyncCSMessageProducer
+        {
+        public:
+            MsgProducer () __NE___ : Networking::IAsyncCSMessageProducer{ Tag<Threading::LfLinearAllocator< usize{1_Mb}, usize{8_b}, 4 >>{} } {}
+
+            EnumSet<EChannel>  GetChannels ()                   C_NE_OV { return {EChannel::Reliable}; }
+        };
+
+
+        class MsgConsumer final : public Networking::ICSMessageConsumer
+        {
+        public:
+            CSMessageGroupID  GetGroupID ()                         C_NE_OV { return CSMessageGroup::Debug; }
+            void  Consume (ChunkList<const CSMessagePtr> msgList)   __NE_OV;
+        };
 
 
     // variables
     private:
-        const TimePoint_t   _startTime;
+        const Clock     _timer;
 
 
     // methods
     public:
         explicit ProfilerUtils (TimePoint_t startTime) :
-            _startTime{ startTime }
+            _timer{ startTime }
         {}
 
         ND_ usize           CurrentThreadID ()  const   { return ThreadUtils::GetIntID(); }
         ND_ uint            CoreIndex ()        const   { return ThreadUtils::GetCoreIndex(); }
 
-        ND_ secondsf        CurrentTime ()      const   { return TimeCast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
-        ND_ nanosecondsd    CurrentTimeNano ()  const   { return TimeCast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
+        ND_ secondsf        CurrentTime ()      const   { return _timer.TimeSince<secondsf>(); }
+        ND_ nanosecondsd    CurrentTimeNano ()  const   { return _timer.TimeSince<nanosecondsd>(); }
     };
 
 

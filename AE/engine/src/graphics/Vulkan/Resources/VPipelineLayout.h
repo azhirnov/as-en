@@ -47,7 +47,7 @@ namespace AE::Graphics
                           VkDescriptorSetLayout emptyLayout, StringView dbgName)    __NE___;
             void  Destroy (VResourceManager &)                                      __NE___;
 
-        ND_ bool  GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___;
+        ND_ bool  GetDescriptorSetLayout (DescriptorSetName::Ref, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___;
 
 
         ND_ VkPipelineLayout        Handle ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _layout; }

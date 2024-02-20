@@ -57,7 +57,7 @@ namespace AE::Graphics::_hidden_
     AttachmentBarrier
 =================================================
 */
-    void  VDrawBarrierManager::AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___
+    void  VDrawBarrierManager::AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState) __NE___
     {
         CHECK_ERRV( _imageBarriers.size() == _imageBarriers.capacity() );   // overflow
 
@@ -99,7 +99,7 @@ namespace AE::Graphics::_hidden_
     GetAttachmentIndex
 =================================================
 */
-    uint  VDrawBarrierManager::GetAttachmentIndex (AttachmentName name) C_NE___
+    uint  VDrawBarrierManager::GetAttachmentIndex (AttachmentName::Ref name) C_NE___
     {
         const auto&     rp_attach = GetPrimaryCtxState().renderPass->AttachmentMap();
 

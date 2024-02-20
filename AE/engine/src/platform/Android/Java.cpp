@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/Java.h"
+#include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
 

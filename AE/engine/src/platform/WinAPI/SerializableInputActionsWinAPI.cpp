@@ -3,7 +3,6 @@
 #include "base/Platforms/WindowsHeader.cpp.h"
 #include "pch/Scripting.h"
 
-#include "platform/Private/EnumToString.h"
 #include "platform/WinAPI/SerializableInputActionsWinAPI.h"
 
 namespace AE::App
@@ -20,16 +19,12 @@ namespace AE::App
 
 /*
 =================================================
-    EInputTypeToString
+    InputTypeToString
 =================================================
 */
-namespace {
-    ND_ String  EInputTypeToString (SerializableInputActionsWinAPI::EInputType value)
+    String  SerializableInputActionsWinAPI::InputTypeToString (InputType_t value) C_Th___
     {
-        using EInputType = SerializableInputActionsWinAPI::EInputType;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( EInputType(value) )
         {
             #define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )    case EInputType::_key_ :    return _name_;
             AE_WINAPI_KEY_CODES( AE_WINAPI_KEY_CODES_VISITOR )
@@ -58,47 +53,43 @@ namespace {
             case EInputType::_Count :
             case EInputType::Unknown :          break;
         }
-        END_ENUM_CHECKS();
-
-        return "code_"s << Base::ToString( uint(value) );
+        switch_end
+        return "code_"s << Base::ToString( value );
     }
-}
 
 /*
 =================================================
-    ToString
+    SensorBitsToString
 =================================================
 */
-    String  SerializableInputActionsWinAPI::ToString (const Reflection &refl) C_Th___
+    String  SerializableInputActionsWinAPI::SensorBitsToString (ESensorBits bits) C_Th___
     {
-        String      str      = "InputActionsWinAPI {\n";
-        const auto  mode_arr = _ToArray(_modeMap);
+        CHECK( bits == Default );   // not supported
+        return Default;
+    }
 
-        for (auto& [name, mode] : mode_arr)
+/*
+=================================================
+    RequiredValueType
+=================================================
+*/
+    SerializableInputActionsWinAPI::EValueType  SerializableInputActionsWinAPI::RequiredValueType (const InputType_t type) C_NE___
+    {
+        const auto  input_type = EInputType(type);
+        switch ( input_type )
         {
-            str << "  '" << refl.Get( name ) << "' {\n";
-            str << "    lockAndHideCursor: " << Base::ToString( mode->lockAndHideCursor ) << "\n";
-
-            const auto  act_arr = _ToArray(mode->actions);
-            for (auto& [key, info] : act_arr)
-            {
-                auto [code, gesture, state] = _Unpack( key );
-
-                str <<   "    InputKey: " << EInputTypeToString( EInputType(code) ) << ", state: " << Base::ToString( state )
-                    << "\n    {"
-                    << "\n      name:    '" << refl.Get( info->name ) << "'"
-                    << "\n      value:   " << Base::ToString( info->valueType )
-                    << "\n      gesture: " << Base::ToString( info->gesture )
-                    << "\n      swizzle: " << Base::ToString( info->swizzle )
-                    << "\n      scale:   " << Base::ToString( info->GetScale() )
-                    << "\n    }\n";
-            }
-
-            str << "  }\n";
+            case EInputType::MultiTouch :       return EValueType::Float2;  // float2 (scale, rotate)
+            case EInputType::MouseWheel :       return EValueType::Float2;  // float2 (delta)
+            case EInputType::CursorPos :        return EValueType::Float2;  // float2 (absolute in pixels)
+            case EInputType::CursorPos_mm :     return EValueType::Float2;  // float2 (absolute in mm)
+            case EInputType::CursorDelta :      return EValueType::Float2;  // float2 (delta in pixels)
+            case EInputType::CursorDelta_norm : return EValueType::Float2;  // snorm2
+            case EInputType::TouchPos :         return EValueType::Float2;  // float2 (absolute in pixels)
+            case EInputType::TouchPos_mm :      return EValueType::Float2;  // float2 (absolute in mm)
+            case EInputType::TouchDelta :       return EValueType::Float2;  // float2 (delta in pixels)
+            case EInputType::TouchDelta_norm :  return EValueType::Float2;  // snorm2
         }
-        str << "}\n\n";
-
-        return str;
+        return Default;
     }
 //-----------------------------------------------------------------------------
 
@@ -157,33 +148,42 @@ namespace {
         {
             EnumBinder<EInputType>  binder{ se };
             binder.Create();
+            switch_enum( EInputType::Unknown )
+            {
+                case EInputType::Unknown :
+                case EInputType::_Count :
+                case EInputType::KeyEnd :
 
-            #define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, _winapi_code_ )     binder.AddValue( _name_, EInputType::_key_ );
-            AE_WINAPI_KEY_CODES( AE_WINAPI_KEY_CODES_VISITOR )
-            #undef AE_WINAPI_KEY_CODES_VISITOR
+                #define BIND( _name_ )                                              case EInputType::_name_ : binder.AddValue( #_name_, EInputType::_name_ );
+                #define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )   case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+                AE_WINAPI_KEY_CODES( AE_WINAPI_KEY_CODES_VISITOR )
 
-            binder.AddValue( "MouseBtn0",           EInputType::MouseBtn0 );
-            binder.AddValue( "MouseBtn1",           EInputType::MouseBtn1 );
-            binder.AddValue( "MouseBtn2",           EInputType::MouseBtn2 );
-            binder.AddValue( "MouseBtn3",           EInputType::MouseBtn3 );
-            binder.AddValue( "MouseBtn4",           EInputType::MouseBtn4 );
-            binder.AddValue( "MouseLeft",           EInputType::MouseBtn0 );
-            binder.AddValue( "MouseRight",          EInputType::MouseBtn1 );
-            binder.AddValue( "MouseMiddle",         EInputType::MouseBtn2 );
+                BIND( MouseBtn0 )
+                BIND( MouseBtn1 )
+                BIND( MouseBtn2 )
+                BIND( MouseBtn3 )
+                BIND( MouseBtn4 )
 
-            binder.AddValue( "MultiTouch",          EInputType::MultiTouch );
+                BIND( MultiTouch )
 
-            binder.AddValue( "MouseWheel",          EInputType::MouseWheel );
-            binder.AddValue( "CursorPos",           EInputType::CursorPos );
-            binder.AddValue( "CursorPos_mm",        EInputType::CursorPos_mm );
-            binder.AddValue( "CursorDelta",         EInputType::CursorDelta );
-            binder.AddValue( "CursorDelta_norm",    EInputType::CursorDelta_norm );
-            binder.AddValue( "TouchPos",            EInputType::TouchPos );
-            binder.AddValue( "TouchPos_mm",         EInputType::TouchPos_mm );
-            binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
-            binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
-            StaticAssert( uint(EInputType::Cursor2DBegin) == 57099 );
-            StaticAssert( uint(EInputType::Cursor2DEnd)   == 57107 );
+                BIND( MouseWheel )
+                BIND( CursorPos )
+                BIND( CursorPos_mm )
+                BIND( CursorDelta )
+                BIND( CursorDelta_norm )
+                BIND( TouchPos )
+                BIND( TouchPos_mm )
+                BIND( TouchDelta )
+                BIND( TouchDelta_norm )
+
+                #undef AE_WINAPI_KEY_CODES_VISITOR
+                #undef BIND
+                default : break;
+            }
+            switch_end
+            binder.AddValue( "MouseLeft",   EInputType::MouseBtn0 );
+            binder.AddValue( "MouseRight",  EInputType::MouseBtn1 );
+            binder.AddValue( "MouseMiddle", EInputType::MouseBtn2 );
         }
 
         // BindingsMode
@@ -210,14 +210,17 @@ namespace {
     LoadFromScript
 =================================================
 */
-    bool  SerializableInputActionsWinAPI::LoadFromScript (const ScriptEnginePtr &se, String script, const SourceLoc &loc, Reflection &refl)
+    bool  SerializableInputActionsWinAPI::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, ArrayView<Path> includeDirs,
+                                                          const SourceLoc &loc, INOUT Reflection &refl) __NE___
     {
         CHECK_ERR( se );
         CHECK_ERR( not script.empty() );
 
         ScriptActionBindings    bindings{ *this, refl };
 
-        auto    mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }});
+        auto    mod = se->CreateModule( {ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }},
+                                        Default,
+                                        includeDirs );
         CHECK_ERR( mod );
 
         auto    scr = se->CreateScript< void (ScriptActionBindings *) >( "ASmain", mod );

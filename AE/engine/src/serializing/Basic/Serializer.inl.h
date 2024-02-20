@@ -11,7 +11,10 @@ namespace AE::Serializing
     bool  Serializer::_SerializeObj (const T &obj)
     {
         if ( factory )
+        {
+            // write 'SerializedID' and then serialize
             return factory->Serialize( *this, obj );
+        }
 
         if constexpr( IsBaseOf< ISerializable, T >)
             return obj.Serialize( *this );
@@ -89,7 +92,7 @@ namespace AE::Serializing
         }
         else
         {
-            for (usize i = 0; res & (i < arr.size()); ++i) {
+            for (usize i = 0; (i < arr.size()) and res; ++i) {
                 res = _Serialize( arr[i] );
             }
             return res;
@@ -136,7 +139,7 @@ namespace AE::Serializing
     template <usize Size, uint UID, uint Seed>
     bool  Serializer::_Serialize (const NamedID<Size, UID, true, Seed> &id)
     {
-        return stream.Write( CheckCast<uint>(usize(id.GetHash())) );
+        return stream.Write( uint{id.GetHash32()} );
     }
 
 
@@ -144,7 +147,7 @@ namespace AE::Serializing
     bool  Serializer::_Serialize (const NamedID<Size, UID, false, Seed> &id)
     {
     #if AE_SERIALIZE_HASH_ONLY
-        return stream.Write( CheckCast<uint>(usize(id.GetHash())) );
+        return stream.Write( uint{id.GetHash32()} );
     #else
         return _Serialize( id.GetName() );
     #endif
@@ -158,7 +161,7 @@ namespace AE::Serializing
 
         bool    res = stream.Write( CheckCast<uint>(map.size()) );
 
-        for (auto iter = map.begin(); res & (iter != map.end()); ++iter)
+        for (auto iter = map.begin(); (iter != map.end()) and res; ++iter)
         {
             res = (_Serialize( iter->first ) and _Serialize( iter->second ));
         }
@@ -173,7 +176,7 @@ namespace AE::Serializing
 
         bool    res = stream.Write( CheckCast<uint>(set.size()) );
 
-        for (auto iter = set.begin(); res & (iter != set.end()); ++iter)
+        for (auto iter = set.begin(); (iter != set.end()) and res; ++iter)
         {
             res = _Serialize( *iter );
         }
@@ -206,7 +209,7 @@ namespace AE::Serializing
         auto    view    = arr.template get<I>();
         bool    res     = true;
 
-        for (usize i = 0; res & (i < view.size()); ++i) {
+        for (usize i = 0; (i < view.size()) and res; ++i) {
             res = _Serialize( view[i] );
         }
 

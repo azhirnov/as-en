@@ -16,9 +16,9 @@ namespace AE::App
     {
     // types
     protected:
-        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
-
         using WeakVRDevice  = WeakPtr< VRDeviceBase >;
+    public:
+        using Monitors_t    = FixedArray< Monitor, PlatformConfig::MaxMonitors >;
 
 
     // variables
@@ -27,7 +27,7 @@ namespace AE::App
         Atomic< bool >          _isRunning      {true};
 
         Unique< IAppListener >  _listener;
-        const TimePoint_t       _timerStart;
+        const Clock             _timer;
 
         RecursiveMutex          _vrDeviceGuard;
         WeakVRDevice            _vrDevice;

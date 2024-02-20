@@ -4,8 +4,8 @@
 #endif
 
 #include "assimp/Importer.hpp"
-#include "assimp/PostProcess.h"
-#include "assimp/Scene.h"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/LogStream.hpp"
 

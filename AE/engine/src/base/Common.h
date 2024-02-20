@@ -19,18 +19,18 @@ namespace AE
     using usize     = size_t;
 
 #if defined(__cpp_char8_t)
-    using CharUtf8  = char8_t;  // C++20
+    using CharUtf8  = char8_t;      // u8''  (C++20)
 #else
     enum class CharUtf8 : char {};
 #endif
 
     using CharAnsi  = char;
-    using CharUtf16 = char16_t;
-    using CharUtf32 = char32_t;
+    using CharUtf16 = char16_t;     // u''
+    using CharUtf32 = char32_t;     // U''
 
 #ifdef AE_PLATFORM_WINDOWS
 # if UNICODE
-    using CharType          = wchar_t;
+    using CharType          = wchar_t;  // L
 #   define TXT( _text_ )    (L"" _text_)
 # else
     using CharType          = CharAnsi;

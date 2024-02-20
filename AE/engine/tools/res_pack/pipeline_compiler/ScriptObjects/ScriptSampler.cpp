@@ -44,6 +44,52 @@ namespace
 
 /*
 =================================================
+    SetDesc
+=================================================
+*/
+    void  ScriptSampler::SetDesc (const SamplerDesc &desc) __Th___
+    {
+        SetFilter( desc.magFilter, desc.minFilter, desc.mipmapMode );
+        SetAddressMode( desc.addressMode.x, desc.addressMode.y, desc.addressMode.z );
+        SetMipLodBias( desc.mipLodBias );
+        SetLodRange( desc.minLod, desc.maxLod );
+
+        if ( desc.maxAnisotropy.has_value() )
+            SetAnisotropy( *desc.maxAnisotropy );
+
+        if ( desc.compareOp.has_value() )
+            SetCompareOp( *desc.compareOp );
+
+        SetBorderColor( desc.borderColor );
+        SetNormCoordinates( not desc.unnormalizedCoordinates );
+        SetReductionMode( desc.reductionMode );
+        SetUsage( desc.usage );
+    }
+
+/*
+=================================================
+    SetYcbcrDesc
+=================================================
+*/
+    void  ScriptSampler::SetYcbcrDesc (const SamplerYcbcrConversionDesc &desc) __Th___
+    {
+        if ( desc.format != Default )
+            Ycbcr_SetFormat( desc.format );
+        else
+            Ycbcr_SetFormat2( desc.extFormat );
+
+        Ycbcr_SetModel( desc.ycbcrModel );
+        Ycbcr_SetRange( desc.ycbcrRange );
+        Ycbcr_SetXChromaOffset( desc.xChromaOffset );
+        Ycbcr_SetYChromaOffset( desc.yChromaOffset );
+        Ycbcr_SetChromaFilter( desc.chromaFilter );
+        Ycbcr_ForceExplicitReconstruction( desc.forceExplicitReconstruction );
+
+        _ycbcrDesc.components = desc.components;
+    }
+
+/*
+=================================================
     AddFeatureSet
 =================================================
 */
@@ -66,8 +112,7 @@ namespace
     {
         CHECK_THROW_MSG( mode < EAddressMode::_Count );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EAddressMode::MirrorClampToEdge :
                 TEST_FEATURE( _features, samplerMirrorClampToEdge );
@@ -80,7 +125,7 @@ namespace
             case EAddressMode::_Count :
             case EAddressMode::Unknown :                break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -149,10 +194,15 @@ namespace
 */
     void  ScriptSampler::SetAnisotropy (float value) __Th___
     {
-        TEST_FEATURE( _features, samplerAnisotropy );
-        TestFeature_Min( _features, &FeatureSet::maxSamplerAnisotropy, value, "maxSamplerAnisotropy", "maxAnisotropy" );
+        if ( value > 1.f )
+        {
+            TEST_FEATURE( _features, samplerAnisotropy );
+            TestFeature_Min( _features, &FeatureSet::maxSamplerAnisotropy, value, "maxSamplerAnisotropy", "maxAnisotropy" );
 
-        _desc.maxAnisotropy = value;
+            _desc.maxAnisotropy = value;
+        }
+        else
+            _desc.maxAnisotropy = NullOptional;
     }
 
 /*
@@ -224,9 +274,33 @@ namespace
 */
     void  ScriptSampler::Ycbcr_SetFormat (EPixelFormat value) __Th___
     {
+        CHECK_THROW_MSG( EPixelFormat_IsYcbcr( value ), "must be multiplanar format" );
+        CHECK_THROW_MSG( _ycbcrDesc.extFormat == Default, "Can not combine EPixelFormat and EPixelFormatExternal" );
+
         _CheckYcbcrSampler();
 
-        _ycbcrDesc.format = value;
+        if ( EPixelFormat_IsYcbcr2Plane444( value ))
+            TEST_FEATURE( _features, ycbcr2Plane444 );
+
+        _ycbcrDesc.format       = value;
+        _ycbcrDesc.extFormat    = Default;
+    }
+
+    void  ScriptSampler::Ycbcr_SetFormat2 (EPixelFormatExternal value) __Th___
+    {
+        CHECK_THROW_MSG( value < EPixelFormatExternal::_Count, "invalid external pixel format" );
+        CHECK_THROW_MSG( _ycbcrDesc.format == Default, "Can not combine EPixelFormat and EPixelFormatExternal" );
+
+        _CheckYcbcrSampler();
+
+        if ( value >= EPixelFormatExternal::_Android_Begin and
+             value <  EPixelFormatExternal::_Android_End )
+        {
+            TEST_FEATURE( _features, externalFormatAndroid );
+        }
+
+        _ycbcrDesc.format       = Default;
+        _ycbcrDesc.extFormat    = value;
     }
 
 /*
@@ -384,6 +458,7 @@ namespace
 
             binder.Comment( "Set Ycbcr format. Requires multiplanar format." );
             binder.AddMethod( &ScriptSampler::Ycbcr_SetFormat,                      "Ycbcr_Format",                     {} );
+            binder.AddMethod( &ScriptSampler::Ycbcr_SetFormat2,                     "Ycbcr_Format",                     {} );
 
             binder.Comment( "Set Ycbcr model conversion." );
             binder.AddMethod( &ScriptSampler::Ycbcr_SetModel,                       "Ycbcr_Model",                      {} );

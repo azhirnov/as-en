@@ -14,9 +14,13 @@ namespace AE::Base
     // Stack Allocator
     //
 
-    template <typename AllocatorType, uint MaxBlocks>
+    template <typename AllocatorType,
+              uint MaxBlocks
+             >
     class StackAllocator< AllocatorType, MaxBlocks, false > final : public IAllocator
     {
+        StaticAssert( MaxBlocks > 0 );
+
     // types
     public:
         using Self          = StackAllocator< AllocatorType, MaxBlocks, false >;
@@ -72,10 +76,10 @@ namespace AE::Base
 
         ~StackAllocator ()                                          __NE_OV { Release(); }
 
-            Self&  operator = (const Self &)                        = delete;
-            Self&  operator = (Self &&rhs)                          __NE___;
+            Self&   operator = (const Self &)                       = delete;
+            Self&   operator = (Self &&rhs)                         __NE___;
 
-            void  SetBlockSize (Bytes size)                         __NE___ { _blockSize = size; }
+            void    SetBlockSize (Bytes size)                       __NE___ { _blockSize = size; }
 
             bool    Commit (Bookmark bm, Bytes size)                __NE___;
 
@@ -84,7 +88,6 @@ namespace AE::Base
         ND_ Bookmark Push ()                                        __NE___;
             void     Pop (Bookmark bm)                              __NE___;
 
-            void    Discard ()                                      __NE___;
             void    Release ()                                      __NE___;
 
         ND_ Bytes   TotalSize ()                                    C_NE___;
@@ -92,12 +95,14 @@ namespace AE::Base
 
         // IAllocator //
         ND_ void*   Allocate (const SizeAndAlign)                   __NE_OV;
+            using   IAllocator::Allocate;
 
             void    Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
             void    Deallocate (void* ptr, Bytes size)              __NE_OV;
             void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
 
-            using IAllocator::Allocate;
+            void    Discard ()                                      __NE_OV;
+
 
     private:
         ND_ static Pair<usize, usize>  _UnpackBookmark (Bookmark bm) __NE___;

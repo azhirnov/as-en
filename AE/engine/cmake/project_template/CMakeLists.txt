@@ -1,7 +1,7 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( CMAKE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" )
-set( EXTERNAL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../external" )
+set( CMAKE_FOLDER "${MAIN_SOURCE_DIR}/engine/cmake" )
+set( EXTERNAL_FOLDER "${MAIN_SOURCE_DIR}/engine/external" )
 
 include( "${CMAKE_FOLDER}/compilers.cmake" )
 include( "${CMAKE_FOLDER}/compiler_tests.cmake" )

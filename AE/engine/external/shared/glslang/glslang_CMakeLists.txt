@@ -80,6 +80,10 @@ foreach(LIB ${SPIRV_TARGETS})
     endif()
 endforeach()
 
-install( FILES "LICENSE.txt"                                         DESTINATION "."                    RENAME "glslang-LICENSE.txt" )
-install( FILES "External/spirv-tools/LICENSE"                        DESTINATION "."                    RENAME "SPIRV-Tools-LICENSE.txt" )
-install( FILES "External/spirv-tools/external/spirv-headers/LICENSE" DESTINATION "."                    RENAME "SPIRV-Headers-LICENSE.txt" )
+install( FILES "LICENSE.txt"                                            DESTINATION "." RENAME "glslang-LICENSE.txt" )
+install( FILES "External/spirv-tools/LICENSE"                           DESTINATION "." RENAME "SPIRV-Tools-LICENSE.txt" )
+install( FILES "External/spirv-tools/external/spirv-headers/LICENSE"    DESTINATION "." RENAME "SPIRV-Headers-LICENSE.txt" )
+
+install( DIRECTORY "glslang/Include"            DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY "glslang/MachineIndependent" DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY "SPIRV"                      DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )

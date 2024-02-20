@@ -19,8 +19,7 @@ bool RGTest::Test_FeatureSets ()
             if ( fmt >= ESurfaceFormat::_Count )
                 break;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( fmt )
+            switch_enum( fmt )
             {
                 case ESurfaceFormat::BGRA8_sRGB_nonlinear :         TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_BGRA8_sRGB_nonlinear"} ));          break;
                 case ESurfaceFormat::RGBA8_sRGB_nonlinear :         TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA8_sRGB_nonlinear"} ));          break;
@@ -35,7 +34,7 @@ bool RGTest::Test_FeatureSets ()
                 case ESurfaceFormat::_Count :
                 case ESurfaceFormat::Unknown :                      break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 

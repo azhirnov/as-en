@@ -1,4 +1,7 @@
-## 12.2023
+## 01.2024
+- Remote input (sensors from Android device)
+- Network storage
+- VideoImage2 for YCbCr texture
 
 
 ## 11.2023

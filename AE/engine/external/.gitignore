@@ -35,6 +35,9 @@
 /shared/KTX-Software/build
 /shared/KTX-Software/temp
 
+/shared/MeshOptimizer/build
+/shared/MeshOptimizer/temp
+
 /shared/SPIRV-Cross/build
 /shared/SPIRV-Cross/temp
 
@@ -49,8 +52,16 @@
 /shared/imgui/build
 /shared/imgui/temp
 
+/shared/lz4/.gradle
+/shared/lz4/build
+/shared/lz4/temp
+
 /shared/msdfgen/build
 /shared/msdfgen/temp
+
+/shared/zstd/.gradle
+/shared/zstd/build
+/shared/zstd/temp
 
 /windows/DevIL/build
 /windows/DevIL/temp

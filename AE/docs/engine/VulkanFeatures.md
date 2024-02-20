@@ -35,11 +35,20 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_texel_buffer_alignment
 - [x] VK_KHR_portability_subset
 - [x] VK_AMD_shader_core_properties, VK_AMD_shader_core_properties2
-- [x] VK_KHR_video_queue
-- [x] VK_KHR_video_encode_queue
-- [x] VK_KHR_video_decode_queue
 - [x] VK_KHR_pipeline_executable_properties
 
+**In progress:**
+- [ ] VK_KHR_video_queue
+- [ ] VK_KHR_video_encode_queue
+- [ ] VK_KHR_video_decode_queue
+- [ ] VK_KHR_video_decode_h264
+- [ ] VK_KHR_video_decode_h265
+- [ ] VK_EXT_video_encode_h264
+- [ ] VK_EXT_video_encode_h265
+- [ ] VK_KHR_external_memory, VK_KHR_external_memory_capabilities
+- [ ] VK_KHR_external_semaphore, VK_KHR_external_semaphore_fd, VK_KHR_external_semaphore_capabilities
+- [ ] VK_EXT_queue_family_foreign
+- [ ] VK_ANDROID_external_memory_android_hardware_buffer (for NdkCamera)
 
 
 **Supported shader extensions:**
@@ -85,4 +94,5 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] Custom allocator for GPU memory
 - [x] Shader subgroup
 - [x] Secondary command buffers (async draw)
+- [x] Immutable samplers
 

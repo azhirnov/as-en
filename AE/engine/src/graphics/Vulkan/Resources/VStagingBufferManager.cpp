@@ -110,6 +110,7 @@ namespace AE::Graphics
 
             String  dbg_name;
             DEBUG_ONLY( dbg_name = String{name} << " {f:" << ToString(idx / _QueueCount) << "} {q:" << ToString(EQueueType(q_idx)) << "}";)
+            Unused( name );
 
             sb.buffer = _resMngr.CreateBuffer( desc, dbg_name, RVRef(alloc) );
             CHECK_ERR( sb.buffer );

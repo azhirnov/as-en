@@ -10,7 +10,7 @@
 
 namespace AE::ResEditor
 {
-    using DebugModeBits = EnumBitSet<IPass::EDebugMode>;
+    using DebugModeBits = EnumSet<IPass::EDebugMode>;
 
 /*
 =================================================
@@ -267,7 +267,7 @@ namespace AE::ResEditor
 
         // create descriptor set
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"} ));
-        _args.InitResources( OUT result->_resources );  // throw
+        _args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 
         uint    min_layer_count = UMax;
         for (auto& src : _output)
@@ -331,6 +331,7 @@ namespace AE::ResEditor
             binder.AddValue( "Opaque",      ERenderLayer::Opaque );
             binder.AddValue( "Translucent", ERenderLayer::Translucent );
             binder.AddValue( "PostProcess", ERenderLayer::PostProcess );
+            StaticAssert( uint(ERenderLayer::_Count) == 3 );
         }
         {
             ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
@@ -652,7 +653,7 @@ namespace AE::ResEditor
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_passDSIndex, OUT result->_passDescSets.data(), max_frames, result->_pipeline, DescriptorSetName{"pass"} ));
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_objDSIndex,  OUT result->_objDescSets.data(),  max_frames, result->_pipeline, DescriptorSetName{"material"} ));
 
-        _args.InitResources( OUT result->_resources );  // throw
+        _args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 
         {
             auto    rt_scene_res = rt_scene->ToResource();
@@ -826,7 +827,7 @@ namespace AE::ResEditor
     _CreateRTScene
 =================================================
 */
-    void  ScriptSceneRayTracingPass::_CreateRTScene (const RTShaderBindingName &sbtName, OUT ScriptRTScenePtr &rt_scene) C_Th___
+    void  ScriptSceneRayTracingPass::_CreateRTScene (RTShaderBindingName::Ref sbtName, OUT ScriptRTScenePtr &rt_scene) C_Th___
     {
         using namespace AE::PipelineCompiler;
 

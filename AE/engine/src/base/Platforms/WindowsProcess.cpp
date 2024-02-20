@@ -36,7 +36,7 @@ namespace AE::Base
         HANDLE  stdout_read  = null;
         HANDLE  stdout_write = null;
 
-        OnDestroy( [&]() {
+        ON_DESTROY( [&]() {
                 if ( stdout_read )  { ::CloseHandle( stdout_read );  stdout_read = null; }
                 if ( stdout_write ) { ::CloseHandle( stdout_write ); stdout_write = null; }
             });
@@ -135,40 +135,44 @@ namespace AE::Base
     bool  WindowsProcess::Execute (String &commandLine, EFlags flags, milliseconds timeout)
     {
         WindowsProcess  proc;
-        bool            result = true;
+        bool            result;
 
-        result &= proc._ExecuteAsync( commandLine, null, flags );
-        result &= proc.WaitAndClose( timeout );
+        result = proc._ExecuteAsync( commandLine, null, flags );
+        result = result and proc.WaitAndClose( timeout );
+
         return result;
     }
 
     bool  WindowsProcess::Execute (WString &commandLine, EFlags flags, milliseconds timeout)
     {
         WindowsProcess  proc;
-        bool            result = true;
+        bool            result;
 
-        result &= proc._ExecuteAsync( commandLine, null, flags );
-        result &= proc.WaitAndClose( timeout );
+        result = proc._ExecuteAsync( commandLine, null, flags );
+        result = result and proc.WaitAndClose( timeout );
+
         return result;
     }
 
     bool  WindowsProcess::Execute (String &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         WindowsProcess  proc;
-        bool            result = true;
+        bool            result;
 
-        result &= proc._ExecuteAsync( commandLine, null, EFlags::ReadOutput );
-        result &= proc.WaitAndClose( INOUT output, outputGuard, timeout );
+        result = proc._ExecuteAsync( commandLine, null, EFlags::ReadOutput );
+        result = result and proc.WaitAndClose( INOUT output, outputGuard, timeout );
+
         return result;
     }
 
     bool  WindowsProcess::Execute (WString &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
     {
         WindowsProcess  proc;
-        bool            result = true;
+        bool            result;
 
-        result &= proc._ExecuteAsync( commandLine, null, EFlags::ReadOutput );
-        result &= proc.WaitAndClose( INOUT output, outputGuard, timeout );
+        result = proc._ExecuteAsync( commandLine, null, EFlags::ReadOutput );
+        result = result and proc.WaitAndClose( INOUT output, outputGuard, timeout );
+
         return result;
     }
 
@@ -207,10 +211,10 @@ namespace AE::Base
         if ( _thread == null or _process == null )
             return true;
 
-        bool    result = true;
+        bool    result;
 
-        result &= (::TerminateProcess( _process, 1 ) == TRUE);  // winxp
-        result &= WaitAndClose( timeout );
+        result = (::TerminateProcess( _process, 1 ) == TRUE);   // winxp
+        result = result and WaitAndClose( timeout );
 
         return result;
     }

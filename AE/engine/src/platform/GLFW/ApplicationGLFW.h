@@ -42,15 +42,11 @@ namespace AE::App
 
     // IApplication //
         WindowPtr   CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)   __NE_OV;
-
-        Monitors_t  GetMonitors (bool update = false)                                   __NE_OV;
-
         StringView  GetApiName ()                                                       C_NE_OV { return "glfw"; }
-
         Locales_t   GetLocales ()                                                       C_NE_OV { return _locales; }
 
+        ArrayView<Monitor>      GetMonitors (bool update = false)                       __NE_OV;
         RC<IVirtualFileStorage> OpenStorage (EAppStorage)                               __NE_OV { return null; }
-
         ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
 
 

@@ -46,19 +46,24 @@ namespace AE::Networking
         IpAddress ()                                    __NE___ {}
         IpAddress (uint addr, ushort port)              __NE___ : _address{addr}, _port{port} {}
 
-        ND_ bool    IsValid ()                          C_NE___ { return (_address != 0) | (_port != 0); }
+        ND_ bool    IsValid ()                          C_NE___ { return (_address != 0) or (_port != 0); }
         ND_ uint    Address ()                          C_NE___ { return _address; }
         ND_ ushort  Port ()                             C_NE___ { return _port; }
 
             void    SetPort (ushort value)              __NE___ { _port = value; }
 
-        ND_ bool    operator == (const IpAddress &rhs)  C_NE___ { return (_address == rhs._address) & (_port == rhs._port); }
+        ND_ bool    operator == (const IpAddress &rhs)  C_NE___ { return (_address == rhs._address) and (_port == rhs._port); }
         ND_ bool    operator <  (const IpAddress &rhs)  C_NE___ { return _address == rhs._address ? _port < rhs._port : _address < rhs._address; }
+
+        ND_ bool    EqualAddress (const IpAddress &rhs) C_NE___ { return _address == rhs._address; }
 
         ND_ String  ToString ()                         C_Th___;
         ND_ String  ToHostName (Bool optIsTCP = True{}) C_Th___;
 
             void    ToNative (OUT AnyTypeRef addr)      C_NE___;
+
+        ND_ HashVal CalcHash ()                         C_NE___;
+        ND_ HashVal CalcHashOfAddress ()                C_NE___;
 
 
         ND_ static IpAddress  FromServiceUDP (NtStringView hostName, NtStringView serviceName)  __NE___;

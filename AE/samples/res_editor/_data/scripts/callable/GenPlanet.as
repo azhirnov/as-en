@@ -109,19 +109,62 @@
 
         for (int i = 0; i < 7; ++i)
         {
-            total += GradientNoise( coord*freq ) * amplitude;
-            freq *= 2.5;
-            amplitude *= 0.5;
+            total       += GradientNoise( coord * freq ) * amplitude;
+            freq        *= 2.5;
+            amplitude   *= 0.5;
         }
-        return total;
+        return total * 0.1;
+    }
+
+    float  Crater (float dist)
+    {
+        const float     p1  = 2.0;
+        const float     p2  = -0.24;
+        const float     p3  = 1.2;
+        const float     p4  = 0.54;
+        const float     p5  = 0.25;
+        const float     p6  = 0.004;
+
+                dist    *= 3.5;
+        float3  t       = float3( dist, dist-1.0, dist-2.0 ) - 0.6;
+
+        float   h = CatmullRom( p1, p2, p3, p4, t.x ) * float(t.x >= 0.0 and t.x < 1.0) +
+                    CatmullRom( p2, p3, p4, p5, t.y ) * float(t.y >= 0.0 and t.y < 1.0) +
+                    CatmullRom( p3, p4, p5, p6, t.z ) * float(t.z >= 0.0 and t.z < 1.0);
+        return Max( h - 0.26, 0.0 );
+    }
+
+    float  CratersLayer (const float3 posOnSphere, const float2 ncoord)
+    {
+        const float     radius  = 0.06;
+        const float2    scale   = float2(4.0);
+        float           dist    = 1.0e+10;
+        float2          center  = Floor( scale * ncoord );
+
+        for (int y = -1; y <= 1; ++y)
+        for (int x = -1; x <= 1; ++x)
+        {
+            const float2    pos_on_face = center + float2(x,y) + 0.5;
+            const float3    obj_pos     = PROJECTION( pos_on_face / scale, FaceIdx() );
+            const float     d           = Length( posOnSphere - obj_pos ) / radius;
+
+            dist = Min( dist, d );
+        }
+        return Crater( dist ) * 0.005;
+    }
+
+    float  Craters (const float3 posOnSphere, const float2 ncoord)
+    {
+        return  CratersLayer( posOnSphere, ncoord );
     }
 
 
     float4  GetPosition (const int2 coord)
     {
-        float2  ncoord  = ToSNorm( float2(coord) / float2(faceDim - 1) );
+        float2  ncoord  = UIndexToSNormRound( float2(coord), faceDim );
         float3  pos     = PROJECTION( ncoord, FaceIdx() );
-        float   height  = FBM( pos ) * 0.1;
+        //float height  = FBM( pos );
+        float   height  = Craters( pos, ncoord );
 
         return float4( pos, height );
     }

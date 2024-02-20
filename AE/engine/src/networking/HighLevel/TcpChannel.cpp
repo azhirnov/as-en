@@ -17,33 +17,36 @@ namespace {
 */
     struct TcpChannel::_MsgHeader
     {
-        // TODO
-    //  uint            _magic  : 8;
-    //  uint            _size   : 11;
-    //  uint            _msgId  : 12;
-
-        ushort          magic;
-        Byte16u         size;
-        CSMessageUID    msgId;
+        uint    _magic  : 6;
+        uint    _size   : 11;
+        uint    _msgId  : NetConfig::CSMessageUID_Bits;
 
         _MsgHeader () __NE___ = default;
 
-        _MsgHeader (Byte16u size, CSMessageUID msgId) __NE___ :
-            magic{ _magicByte },
-            size{ size },
-            msgId{ msgId }
-        {}
+        _MsgHeader (Bytes size, CSMessageUID msgId) __NE___ :
+            _magic{ uint(_magicByte) },
+            _size{ uint(size) },
+            _msgId{ uint(msgId) }
+        {
+            ASSERT( Size() == size );
+            ASSERT( Id() == msgId );
+        }
+
+        ND_ Bytes           Size ()     C_NE___ { return Bytes{_size}; }
+        ND_ CSMessageUID    Id ()       C_NE___ { return CSMessageUID(_msgId); }
+        ND_ char            Magic ()    C_NE___ { return char(_magic); }
     };
 
 /*
 =================================================
-    SendQueue::ResetQueue
+    SendQueue::FlushPendingQueue
 =================================================
 */
-    inline void  TcpChannel::SendQueue::ResetQueue () __NE___
+    inline void  TcpChannel::SendQueue::FlushPendingQueue () __NE___
     {
-        queue       = Default;
-        queueLast   = Default;
+        queue           = pendingFirst;
+        pendingFirst    = Default;
+        pendingLast     = Default;
     }
 
 /*
@@ -65,21 +68,7 @@ namespace {
         _msgFactory{ RVRef(mf) },
         _allocator{ RVRef(alloc) }
     {
-        StaticAssert( sizeof(_MsgHeader) == 6 );
-
-        _toSend  .storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
-        _received.storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
-    }
-
-/*
-=================================================
-    destructor
-=================================================
-*/
-    TcpChannel::~TcpChannel () __NE___
-    {
-        _toSend  .storage.Dealloc( _allocator.get() );
-        _received.storage.Dealloc( _allocator.get() );
+        StaticAssert( sizeof(_MsgHeader) == 4 );
     }
 
 /*
@@ -89,10 +78,8 @@ namespace {
 */
     bool  TcpChannel::_IsValid () C_NE___
     {
-        return  _msgFactory         and
-                _allocator          and
-                _toSend.storage     and
-                _received.storage;
+        return  _msgFactory     and
+                _allocator;
     }
 
 /*
@@ -100,7 +87,7 @@ namespace {
     _SendMessages
 =================================================
 */
-    void  TcpChannel::_SendMessages (TcpSocket &socket, INOUT bool &isDisconnected) __NE___
+    void  TcpChannel::_SendMessages (TcpSocket &socket, MsgListIter_t &lastSendMsg, const EClientLocalID clientId, INOUT bool &isDisconnected) __NE___
     {
         if_unlikely( _toSend.queue.empty() )
             return;
@@ -108,20 +95,26 @@ namespace {
         auto&       storage         = _toSend.storage;
         Bytes       encoded         = _toSend.encoded;      // offset in 'storage' to the end of encoded messages
         Bytes       pending;                                // offset in 'storage' to begin of data which can be sent
-        auto        last_failed_it  = _toSend.queue.end();
+        const auto  end_it          = _toSend.queue.end();
+        auto        last_failed_it  = end_it;
+
+        //         |<---->|- available for Send()
+        //   __________________________
+        //  |______|______|____________| - storage
+        //         ^      ^
+        //  pending       encoded
 
         const auto  SendData        = [&socket, &storage, &encoded, &pending, &isDisconnected] (bool sendAll = false)
         {{
             //DEBUG_ONLY( _ValidateMsgStream( storage.Ptr(pending), encoded ));
 
             bool    retry = true;
-            for (uint i = 0; retry & (encoded > pending) & (i < _maxAttemptsToSend); ++i)
+            for (uint i = 0; retry and (encoded > pending) and (i < _maxAttemptsToSend); ++i)
             {
                         retry       = sendAll;
                 auto    [err, sent] = socket.Send( storage.Ptr( pending ), encoded - pending );
 
-                BEGIN_ENUM_CHECKS();
-                switch ( err )
+                switch_enum( err )
                 {
                     case_likely SocketSendError::Sent :
                     {
@@ -132,7 +125,6 @@ namespace {
 
                     case SocketSendError::NotSent :
                     case SocketSendError::ResourceTemporarilyUnavailable :
-                        ThreadUtils::Sleep_500us();     // TODO: optimize
                         break; // skip
 
                     case SocketSendError::_Error :
@@ -148,7 +140,7 @@ namespace {
                         isDisconnected = true;
                         return;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
 
             if ( pending != encoded )
@@ -162,28 +154,42 @@ namespace {
         }};
 
 
-        for (auto it = _toSend.queue.begin(); (it != _toSend.queue.end()) & (not isDisconnected);)
+        for (auto it = lastSendMsg; (it != end_it) and (not isDisconnected);)
         {
-            if_unlikely( encoded + sizeof(_MsgHeader) >= storage.Size() )
-                SendData();
+            if ( auto msg_client_id = (*it)->ClientId();  not ((msg_client_id == clientId) or (msg_client_id == Default) or (clientId == Default)) )
+                continue;
+
+            if_unlikely( encoded + _maxMsgSize*4 >= storage.Size() )
+            {
+                SendData( true );
+
+                if_unlikely( encoded + _maxMsgSize*2 >= storage.Size() )
+                {
+                    AE_LOG_DBG( "not enough memory to encode" );
+
+                    _toSend.encoded = encoded;
+                    lastSendMsg     = it;
+                    return;
+                }
+            }
 
             auto*           hdr_ptr     = storage.Ptr( encoded );
             const Bytes     msg_off     = encoded + sizeof(_MsgHeader);
-            DataEncoder     enc         { storage.Ptr( msg_off ), storage.End() };
+            DataEncoder     enc         { storage.Ptr( msg_off ), _maxMsgSize };
             auto            err         = (*it)->Serialize( enc );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( err )
+            switch_enum( err )
             {
                 case_likely CSMessage::EncodeError::OK :
                 {
-                    encoded = storage.Size() - enc.RemainingSize();
+                    ASSERT_LE( enc.RemainingSize(), _maxMsgSize );
 
-                    _MsgHeader  header { encoded - msg_off, (*it)->UniqueId() };
+                    _MsgHeader  header { _maxMsgSize - enc.RemainingSize(), (*it)->UniqueId() };
 
-                    ASSERT( Bytes{header.size} <= _maxMsgSize );
+                    ASSERT( header.Size() <= _maxMsgSize ); // should never happens
                     MemCopy( OUT hdr_ptr, &header, Sizeof(header) );
 
+                    encoded += SizeOf<_MsgHeader> + header.Size();
                     ++it;
                     break;
                 }
@@ -210,15 +216,19 @@ namespace {
                     break;
                 }
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
-        SendData( true );
-        ASSERT( isDisconnected or pending == 0 );
 
-        isDisconnected |= (pending > 0);
+        SendData( true );
+        CHECK( isDisconnected or pending == 0 );
 
         _toSend.encoded = encoded;
+        lastSendMsg     = Default;
+
+        //usize count = _toSend.queue.Count();
+        //if ( count )
+        //  AE_LOG_DBG( String{socket.GetDebugName()} << ": sent " << ToString( count ));
     }
 
 /*
@@ -234,13 +244,18 @@ namespace {
         auto&   allocator   = _msgFactory->GetAllocator( frameId );
         bool    retry       = true;
 
-        for (uint i = 0; retry & (i < _maxAttemptsToReceive); ++i)
+        //                |<---------->|- available for Receive()
+        //   __________________________|
+        //  |______|______|____________| - storage
+        //         ^      ^
+        //  decoded       received
+
+        for (uint i = 0; retry and (i < _maxAttemptsToReceive); ++i)
         {
                     retry       = false;
             auto    [err, recv] = socket.Receive( OUT storage.Ptr( received ), storage.Size() - received );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( err )
+            switch_enum( err )
             {
                 case_likely SocketReceiveError::Received :
                 {
@@ -249,35 +264,37 @@ namespace {
 
                     DEBUG_ONLY( _ValidateMsgStream( storage.Ptr(decoded), received ));
 
-                    for (; sizeof(_MsgHeader) <= (received - decoded);)
+                    for (; (received - decoded) >= sizeof(_MsgHeader);)
                     {
                         ASSERT( received >= decoded );
 
+                        // check message header
                         _MsgHeader  header; MemCopy( OUT &header, storage.Ptr( decoded ), Sizeof(header) );
 
-                        if_unlikely( (Bytes{header.size} + sizeof(header)) > (received - decoded) )
+                        if_unlikely( (header.Size() + sizeof(header)) > (received - decoded) )
                         {
                             ASSERT( (received - decoded) < Sizeof(header)   or
-                                    Bytes{header.size} <= _maxMsgSize       or
-                                    header.magic == _magicByte );
+                                    header.Size() <= _maxMsgSize            or
+                                    header.Magic() == _magicByte );
 
                             retry = true;
                             break;  // not enough data
                         }
 
-                        DataDecoder     des{ storage.Ptr( decoded + sizeof(header) ), header.size, allocator };
+                        DataDecoder     des{ storage.Ptr( decoded + sizeof(header) ), header.Size(), allocator };
 
-                        ASSERT( Bytes{header.size} <= _maxMsgSize );
-                        ASSERT( header.magic == _magicByte );
+                        ASSERT( header.Size() <= _maxMsgSize );
+                        ASSERT( header.Magic() == _magicByte );
 
-                        decoded += sizeof(header) + header.size;
+                        decoded += sizeof(header) + header.Size();
 
-                        if_unlikely( header.magic != _magicByte )
+                        if_unlikely( header.Magic() != _magicByte )
                             continue;  // invalid header - skip
+
 
                         // cache optimization:
                         // allocate chunk before allocating the message.
-                        auto&   dst = _received.queue( CSMessage::UnpackGroupID( header.msgId ));
+                        auto&   dst = _received.queue( CSMessage::UnpackGroupID( header.Id() ));
 
                         if_unlikely( dst.last.empty() )
                         {
@@ -293,9 +310,10 @@ namespace {
                                 break;  // out of memory
                         }
 
+
                         // create & decode message
                         CSMessagePtr    msg;
-                        if_likely( _msgFactory->DeserializeMsg( frameId, header.msgId, clientId, OUT msg, des ))
+                        if_likely( _msgFactory->DeserializeMsg( frameId, header.Id(), clientId, OUT msg, des ))
                         {
                             ASSERT( des.IsComplete() );
                             dst.last->emplace_back( msg );
@@ -343,11 +361,18 @@ namespace {
                     isDisconnected = true;
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         CHECK_MSG( decoded == 0, "Received data is not complete" );
         _received.received = received;
+
+        //usize count = 0;
+        //for (auto [key, val] : _received.queue) {
+        //  count += val.first.Count();
+        //}
+        //if ( count > 0 )
+        //  AE_LOG_DBG( String{socket.GetDebugName()} << ": received " << ToString( count ));
     }
 
 /*
@@ -358,6 +383,9 @@ namespace {
     inline void  TcpChannel::_OnEncodingError (CSMessagePtr) C_NE___
     {
         AE_LOG_DBG( "OnEncodingError" );
+        // possible errors:
+        //  - encoding limited to '_maxMsgSize'
+        //  -
     }
 
     inline void  TcpChannel::_OnDecodingError (CSMessageUID) C_NE___
@@ -372,11 +400,11 @@ namespace {
 */
     void  TcpChannel::Send (MsgList_t msgList) __NE___
     {
-        if_unlikely( _toSend.queue.empty() )
-            _toSend.queue = msgList;
+        if_unlikely( _toSend.pendingFirst.empty() )
+            _toSend.pendingFirst = msgList;
 
-        _toSend.queueLast.Append( msgList );
-        _toSend.queueLast.MoveToLast();
+        _toSend.pendingLast.Append( msgList );
+        _toSend.pendingLast.MoveToLast();
     }
 
 /*
@@ -397,13 +425,13 @@ namespace {
 
             MemCopy( OUT &header, ptr + offset, Sizeof(header) );
 
-            ASSERT( header.magic == _magicByte );
-            ASSERT( header.size <= _maxMsgSize );
+            ASSERT( header.Magic() == _magicByte );
+            ASSERT( header.Size() <= _maxMsgSize );
 
-            if ( offset + Sizeof(header) + header.size > size )
+            if ( offset + Sizeof(header) + header.Size() > size )
                 break;
 
-            offset += Sizeof(header) + header.size;
+            offset += Sizeof(header) + header.Size();
         }
     }
 //-----------------------------------------------------------------------------
@@ -415,22 +443,42 @@ namespace {
     ProcessMessages
 =================================================
 */
-    void  TcpClientChannel::ProcessMessages (FrameUID frameId) __NE___
+    void  TcpClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( _status )
+        if ( _lastFrameId != frameId )
         {
-            case_likely EStatus::Connected :
-                _ProcessMessages( frameId );
-                break;
+            _toSend.FlushPendingQueue();
+            _lastFrameId = frameId;
 
+            if_unlikely( _lastSentMsg != Default and _reliable )
+            {
+                AE_LOG_DBG( "Reliability is broken: some messages are no sent and will be discarded, client will be disconnected" );
+                _Reconnect();
+            }
+            _lastSentMsg = _toSend.queue.begin();
+        }
+
+        _received.ResetQueue();
+
+        _ProcessMessages( frameId, INOUT stat );
+    }
+
+/*
+=================================================
+    _ProcessMessages
+=================================================
+*/
+    void  TcpClientChannel::_ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
+    {
+        switch_enum( _status )
+        {
             // TODO: custom timeout
             case EStatus::Connecting :
             {
                 switch ( _socket.ConnectionStatus() )
                 {
                     case TcpSocket::EStatus::Connected :
-                        AE_LOGI( "Connected client to TCP server: "s << _serverAddress.ToString() );
+                        AE_LOG_DBG( "Connected client to TCP server: "s << _serverAddress.ToString() );
                         _status = EStatus::Connected;
                         break;
 
@@ -443,6 +491,24 @@ namespace {
                         _status = EStatus::Failed;
                         break;
                 }
+                if ( _status != EStatus::Connected )
+                    break;
+            }
+
+            case_likely EStatus::Connected :
+            {
+                bool    disconnected = false;
+
+                _ReceiveMessages( _socket, frameId, Default, INOUT disconnected );
+                _SendMessages( _socket, INOUT _lastSentMsg, Default, INOUT disconnected );
+
+                stat.incompleteOutput += uint(_lastSentMsg != Default);
+
+                if_unlikely( disconnected )
+                {
+                    AE_LOG_DBG( "Client disconnected, try to reconnect or try another server..." );
+                    _Reconnect();
+                }
                 break;
             }
 
@@ -451,29 +517,11 @@ namespace {
 
             case EStatus::Disconnected :
             default :
-                AE_LOGI( "Client disconnected, try to reconnect or try another server..." );
+                AE_LOG_DBG( "Client disconnected, try to reconnect or try another server..." );
                 _Reconnect();
                 break;
         }
-        END_ENUM_CHECKS();
-    }
-
-    void  TcpClientChannel::_ProcessMessages (FrameUID frameId) __NE___
-    {
-        _received.ResetQueue();
-
-        bool    disconnected = false;
-
-        _ReceiveMessages( _socket, frameId, Default, INOUT disconnected );
-        _SendMessages( _socket, INOUT disconnected );
-
-        _toSend.ResetQueue();
-
-        if ( disconnected )
-        {
-            AE_LOGI( "Client disconnected, try to reconnect or try another server..." );
-            _Reconnect();
-        }
+        switch_end
     }
 
 /*
@@ -493,12 +541,12 @@ namespace {
 
         if ( _socket.AsyncConnect( _serverAddress ))
         {
-            AE_LOGI( "Try connecting client to TCP server: "s << _serverAddress.ToString() );
+            AE_LOG_DBG( "Try connecting client to TCP server: "s << _serverAddress.ToString() );
             _status = EStatus::Connecting;
         }
         else
         {
-            AE_LOGI( "Invalid server address: "s << _serverAddress.ToString() );
+            AE_LOG_DBG( "Invalid server address: "s << _serverAddress.ToString() );
             ++_serverIndex;
         }
     }
@@ -508,17 +556,22 @@ namespace {
     ClientAPI::Create
 =================================================
 */
-    RC<IChannel>  TcpClientChannel::ClientAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc, RC<IServerProvider> serverProvider) __NE___
+    RC<IChannel>  TcpClientChannel::ClientAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc, RC<IServerProvider> serverProvider,
+                                                       Bool reliable, StringView dbgName) __NE___
     {
         CHECK_ERR( mf );
         CHECK_ERR( alloc );
         CHECK_ERR( serverProvider );
 
-        RC<TcpClientChannel>    result{new TcpClientChannel{ RVRef(mf), RVRef(serverProvider), RVRef(alloc) }};
+        RC<TcpClientChannel>    result{new TcpClientChannel{ RVRef(mf), RVRef(serverProvider), RVRef(alloc), reliable }};
 
         CHECK_ERR( result->_IsValid() );
 
-        DEBUG_ONLY( result->_socket.SetDebugName( "TCP client" );)
+        DEBUG_ONLY(
+            if ( dbgName.empty() ) dbgName = "TCP client";
+        result->_socket.SetDebugName( String{dbgName} );
+        )
+        Unused( dbgName );
 
         result->_Reconnect();
 
@@ -532,10 +585,17 @@ namespace {
 */
     TcpClientChannel::TcpClientChannel (RC<MessageFactory>  mf,
                                         RC<IServerProvider> serverProvider,
-                                        RC<IAllocator>      alloc) __NE___ :
+                                        RC<IAllocator>      alloc,
+                                        Bool                reliable) __NE___ :
         TcpChannel{ RVRef(mf), RVRef(alloc) },
+        _reliable{ reliable },
         _serverProvider{ RVRef(serverProvider) }
-    {}
+    {
+        _allocator->Reserve( NetConfig::ChannelStorageSize*2 );
+
+        _toSend  .storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
+        _received.storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
+    }
 
 /*
 =================================================
@@ -543,7 +603,10 @@ namespace {
 =================================================
 */
     TcpClientChannel::~TcpClientChannel () __NE___
-    {}
+    {
+        _toSend  .storage.Dealloc( _allocator.get() );
+        _received.storage.Dealloc( _allocator.get() );
+    }
 
 /*
 =================================================
@@ -553,17 +616,9 @@ namespace {
     bool  TcpClientChannel::_IsValid () C_NE___
     {
         return  TcpChannel::_IsValid()  and
+                _toSend.storage         and
+                _received.storage       and
                 _serverProvider;
-    }
-
-/*
-=================================================
-    IsConnected
-=================================================
-*/
-    bool  TcpClientChannel::IsConnected () C_NE___
-    {
-        return _socket.IsOpen();
     }
 //-----------------------------------------------------------------------------
 
@@ -574,13 +629,46 @@ namespace {
     ProcessMessages
 =================================================
 */
-    void  TcpServerChannel::ProcessMessages (const FrameUID frameId) __NE___
+    void  TcpServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
     {
-        if_unlikely( not _socket.IsOpen() )
-            return;
+        if ( _lastFrameId != frameId )
+        {
+            _toSend.FlushPendingQueue();
+            _lastFrameId = frameId;
+
+            for (uint idx : BitIndexIterate( _poolBits ))
+            {
+                auto&   client = _clientPool[idx];
+
+                if_likely( client.lastSentMsg == Default )
+                    client.lastSentMsg = _toSend.queue.begin();
+                else
+                if ( _reliable )
+                {
+                    AE_LOG_DBG( "Reliability is broken: some messages are no sent and will be discarded, client ("s <<
+                                ToString<16>(uint(client.id)) << ") will be disconnected" );
+
+                    _Disconnect( idx );
+                }
+            }
+        }
 
         _received.ResetQueue();
 
+        if_likely( _socket.IsOpen() )
+        {
+            _CheckNewConnections();
+            _UpdateClients( frameId, INOUT stat );
+        }
+    }
+
+/*
+=================================================
+    _CheckNewConnections
+=================================================
+*/
+    void  TcpServerChannel::_CheckNewConnections () __NE___
+    {
         for (uint i = 0; i < _maxClients; ++i)
         {
             IpAddress   addr;
@@ -589,32 +677,42 @@ namespace {
             if_likely( not client.Accept( _socket, OUT addr ))
                 break;
 
+            const int   idx = BitScanForward( ~_poolBits.to_ullong() );
+
+            if_unlikely( idx < 0 or idx >= int(_maxClients) )
+                break;  // client pool overflow
+
             if ( auto client_id = _listener->OnClientConnected( c_ChannelType, addr );  client_id != Default )
             {
-                const int   idx = BitScanForward( ~_poolBits.to_ullong() );
-
-                if_unlikely( idx < 0 or idx >= int(_maxClients) )
-                {
-                    _listener->OnClientDisconnected( c_ChannelType, client_id );
-                    break;
-                }
-
                 // save client
                 _poolBits.set( idx );
 
-                auto&   dst = _clientPool[idx];
-                dst.id      = client_id;
-                Reconstruct( OUT dst.socket, RVRef(client) );
+                auto&   dst     = _clientPool[idx];
+                dst.id          = client_id;
+                dst.lastSentMsg = _toSend.queue.begin();
 
+                DEBUG_ONLY( client.SetDebugName( String{_socket.GetDebugName()} << " client " << ToString<16>(uint(client_id)) );)
+
+                Reconstruct( OUT dst.socket, RVRef(client) );
                 dst.socket.KeepAlive();
 
                 CHECK( _clientAddrMap.insert_or_assign( addr, ClientIdx_t(idx) ).first );
 
                 ASSERT( _uniqueClientId.insert( client_id ).second );
                 ASSERT( _uniqueClientId.size() == _clientAddrMap.size() );
+
+                AE_LOG_DBG( "client ("s << ToString<16>(uint(client_id)) << ") connected, addr: " << addr.ToString() );
             }
         }
+    }
 
+/*
+=================================================
+    _UpdateClients
+=================================================
+*/
+    void  TcpServerChannel::_UpdateClients (const FrameUID frameId, INOUT MsgQueueStatistic &stat) __NE___
+    {
         for (uint idx : BitIndexIterate( _poolBits ))
         {
             auto&   client          = _clientPool[idx];
@@ -624,7 +722,7 @@ namespace {
             // receive message from client
             {
                 // restore data which is not yet decoded
-                if ( client.received > 0 )
+                if_unlikely( client.received > 0 )
                 {
                     MemCopy( OUT _received.storage.Ptr(), storage, client.received );
                     _received.received  = client.received;
@@ -653,22 +751,20 @@ namespace {
             // send messages to client
             if_likely( not disconnected )
             {
-                _toSend.encoded = 0_b;
+                _toSend.encoded = client.encoded;
+                _toSend.storage = RVRef(client.encodedStorage);
 
-                _SendMessages( client.socket, INOUT disconnected );
+                _SendMessages( client.socket, INOUT client.lastSentMsg, client.id, INOUT disconnected );
 
-                if_unlikely( _toSend.encoded > 0 )
-                {
-                    AE_LOG_DBG( "output message stream overflow, client will be disconnected" );
-                    disconnected = true;
-                }
+                stat.incompleteOutput += uint(client.lastSentMsg != Default);
+
+                client.encoded          = _toSend.encoded;
+                client.encodedStorage   = RVRef(_toSend.storage);
             }
 
             if_unlikely( disconnected )
                 _Disconnect( idx );
         }
-
-        _toSend.ResetQueue();
     }
 
 /*
@@ -678,21 +774,26 @@ namespace {
 */
     RC<IChannel>  TcpServerChannel::ServerAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc,
                                                        RC<IClientListener> listener,
-                                                       ushort port, uint maxConnections) __NE___
+                                                       ushort port, uint maxConnections, Bool reliable, StringView dbgName) __NE___
     {
         CHECK_ERR( mf );
         CHECK_ERR( alloc );
         CHECK_ERR( listener );
 
-        RC<TcpServerChannel>    result  {new TcpServerChannel{ RVRef(mf), RVRef(listener), RVRef(alloc) }};
+        RC<TcpServerChannel>    result  {new TcpServerChannel{ RVRef(mf), RVRef(listener), RVRef(alloc), reliable }};
         TcpSocket::Config       cfg;    cfg.maxConnections = maxConnections;
 
         CHECK_ERR( result->_IsValid() );
 
-        DEBUG_ONLY( result->_socket.SetDebugName( "TCP server" );)
+        DEBUG_ONLY(
+            if ( dbgName.empty() ) dbgName = "TCP server";
+            result->_socket.SetDebugName( String{dbgName} );
+        )
+        Unused( dbgName );
+
         CHECK_ERR( result->_socket.Listen( IpAddress::FromLocalPortTCP(port), cfg ));
 
-        AE_LOGI( "Started TCP server on port: "s << ToString(port) );
+        AE_LOG_DBG( "Started TCP server on port: "s << ToString(port) );
         return result;
     }
 
@@ -703,11 +804,22 @@ namespace {
 */
     TcpServerChannel::TcpServerChannel (RC<MessageFactory>  mf,
                                         RC<IClientListener> listener,
-                                        RC<IAllocator>      alloc) __NE___ :
+                                        RC<IAllocator>      alloc,
+                                        Bool                reliable) __NE___ :
         TcpChannel{ RVRef(mf), RVRef(alloc) },
+        _reliable{ reliable },
         _listener{ RVRef(listener) }
     {
+        _allocator->Reserve( NetConfig::ChannelStorageSize * (1 + _maxClients) + _maxMsgSize * _maxClients );
+
+        for (usize i = 0; i < _clientPool.size(); ++i)
+        {
+            _clientPool[i].encodedStorage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
+        }
+
         _tempStorage.Alloc( _maxMsgSize * _maxClients, DefaultAllocatorAlign, _allocator.get() );
+
+        _received.storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
     }
 
 /*
@@ -717,6 +829,17 @@ namespace {
 */
     TcpServerChannel::~TcpServerChannel () __NE___
     {
+        for (uint idx : BitIndexIterate( _poolBits ))
+        {
+            _listener->OnClientDisconnected( c_ChannelType, _clientPool[idx].id );
+        }
+
+        for (usize i = 0; i < _clientPool.size(); ++i)
+        {
+            _clientPool[i].encodedStorage.Dealloc( _allocator.get() );
+        }
+        _received.storage.Dealloc( _allocator.get() );
+
         _tempStorage.Dealloc( _allocator.get() );
     }
 
@@ -729,6 +852,7 @@ namespace {
     {
         return  TcpChannel::_IsValid()  and
                 _tempStorage            and
+                _received.storage       and
                 _listener;
     }
 
@@ -750,6 +874,27 @@ namespace {
         return false;
     }
 
+/*
+=================================================
+    DisconnectClientsWithIncompleteMsgQueue
+=================================================
+*/
+    void  TcpServerChannel::DisconnectClientsWithIncompleteMsgQueue () __NE___
+    {
+        for (uint idx : BitIndexIterate( _poolBits ))
+        {
+            if_unlikely( _clientPool[idx].lastSentMsg != Default )
+            {
+                _Disconnect( idx );
+            }
+        }
+    }
+
+/*
+=================================================
+    DisconnectClient
+=================================================
+*/
     void  TcpServerChannel::_Disconnect (const uint idx) __NE___
     {
         auto&       client  = _clientPool[idx];
@@ -761,13 +906,10 @@ namespace {
 
         _poolBits.reset( idx );
 
-        for (ubyte i : _clientAddrMap.GetValueArray())
+        for (auto it = _clientAddrMap.begin(); it != _clientAddrMap.end(); ++it)
         {
-            if ( i == idx )
+            if ( it->second == idx )
             {
-                auto    it = _clientAddrMap.begin() + i;
-                ASSERT( it->second == idx );
-
                 _clientAddrMap.EraseByIter( it );
                 break;
             }

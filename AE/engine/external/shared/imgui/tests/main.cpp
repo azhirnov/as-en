@@ -9,7 +9,7 @@
 #ifdef ANDROID
 # include "TestHelper.h"
 
-extern void AE_imgui_Test ()
+extern int AE_imgui_Test ()
 #else
 int main ()
 #endif
@@ -18,4 +18,5 @@ int main ()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGui::DestroyContext(GImGui);
+    return 0;
 }

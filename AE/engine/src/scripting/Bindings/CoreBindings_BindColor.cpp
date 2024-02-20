@@ -153,7 +153,7 @@ namespace
                 .Binary( EBinaryOperator::Mul, &RGBA32f_mul_RGBA32f );
 
             ClassBinder<packed_float4>  binder2{ se };
-            if ( binder2.IsRegistred() )
+            if ( binder2.IsRegistered() )
             {
                 binder2.AddConstructor( &float4_Ctor_RGBA32f, {"x"} );
             }

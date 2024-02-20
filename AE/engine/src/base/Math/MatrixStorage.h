@@ -226,7 +226,7 @@ namespace AE::Math
             TMatrix< T, Columns2, Rows2, Q >    result;
             for (uint c = 0; c < Columns2; ++c)
             for (uint r = 0; r < Rows2; ++r) {
-                result(c,r) = ((c < Columns) & (r < Rows)) ? (*this)(c,r) : (c == r ? T{1} : T{0});
+                result(c,r) = ((c < Columns) and (r < Rows)) ? (*this)(c,r) : (c == r ? T{1} : T{0});
             }
             return result;
         }
@@ -264,7 +264,7 @@ namespace AE::Math
         {
             for (uint c = 0; c < Columns; ++c)
             for (uint r = 0; r < Rows; ++r) {
-                _columns[c].data[r] = ((c < Columns2) & (r < Rows2)) ? other(c,r) : (c == r ? T{1} : T{0});
+                _columns[c].data[r] = ((c < Columns2) and (r < Rows2)) ? other(c,r) : (c == r ? T{1} : T{0});
             }
         }
 
@@ -273,7 +273,7 @@ namespace AE::Math
         {
             for (uint c = 0; c < Columns; ++c)
             for (uint r = 0; r < Rows; ++r) {
-                _columns[c].data[r] = ((r < Rows2) & (c < Columns2)) ? other(r,c) : (c == r ? T{1} : T{0});
+                _columns[c].data[r] = ((r < Rows2) and (c < Columns2)) ? other(r,c) : (c == r ? T{1} : T{0});
             }
         }
     };
@@ -427,7 +427,7 @@ namespace AE::Math
             TMatrix< T, Columns2, Rows2, Q >    result;
             for (uint c = 0; c < Columns2; ++c)
             for (uint r = 0; r < Rows2; ++r) {
-                result(c,r) = ((c < Columns) & (r < Rows)) ? (*this)(r,c) : (c == r ? T{1} : T{0});
+                result(c,r) = ((c < Columns) and (r < Rows)) ? (*this)(r,c) : (c == r ? T{1} : T{0});
             }
             return result;
         }
@@ -465,7 +465,7 @@ namespace AE::Math
         {
             for (uint r = 0; r < Rows; ++r)
             for (uint c = 0; c < Columns; ++c) {
-                _rows[r].data[c] = ((c < Columns2) & (r < Rows2)) ? other(r,c) : (c == r ? T{1} : T{0});
+                _rows[r].data[c] = ((c < Columns2) and (r < Rows2)) ? other(r,c) : (c == r ? T{1} : T{0});
             }
         }
 
@@ -474,7 +474,7 @@ namespace AE::Math
         {
             for (uint r = 0; r < Rows; ++r)
             for (uint c = 0; c < Columns; ++c) {
-                _rows[r].data[c] = ((r < Rows2) & (c < Columns2)) ? other(c,r) : (c == r ? T{1} : T{0});
+                _rows[r].data[c] = ((r < Rows2) and (c < Columns2)) ? other(c,r) : (c == r ? T{1} : T{0});
             }
         }
     };

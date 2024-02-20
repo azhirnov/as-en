@@ -6,7 +6,6 @@
 # include "GLFW/glfw3.h"
 #endif
 
-#include "platform/Private/EnumToString.h"
 #include "platform/GLFW/SerializableInputActionsGLFW.h"
 
 namespace AE::App
@@ -23,84 +22,116 @@ namespace AE::App
 
 /*
 =================================================
-    EInputTypeToString
+    InputTypeToString
 =================================================
 */
-namespace {
-    ND_ String  EInputTypeToString (SerializableInputActionsGLFW::EInputType value)
+    String  SerializableInputActionsGLFW::InputTypeToString (InputType_t value) C_Th___
     {
-        using EInputType = SerializableInputActionsGLFW::EInputType;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( EInputType(value) )
         {
-            #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ ) case EInputType::_key_ :    return _name_;
+            #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... ) case EInputType::_key_ : return _name_;
             AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
             #undef AE_GLFW_KEY_CODES_VISITOR
 
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )              case EInputType::_type_ : return AE_TOSTRING( _type_ );
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
             //case EInputType::MouseBegin :
-            //case EInputType::MouseEnd :       break;
+            //case EInputType::MouseEnd :           break;
 
             //case EInputType::KeyBegin :
-            //case EInputType::KeyEnd :         break;
+            //case EInputType::KeyEnd :             break;
 
-            case EInputType::MultiTouch :       return "MultiTouch";
+            case EInputType::MultiTouch :           return "MultiTouch";
 
-            case EInputType::MouseWheel :       return "MouseWheel";
-            case EInputType::CursorPos :        return "CursorPos";
-            case EInputType::CursorPos_mm :     return "CursorPos_mm";
-            case EInputType::CursorDelta :      return "CursorDelta";
-            case EInputType::CursorDelta_norm : return "CursorDelta_norm";
+            case EInputType::MouseWheel :           return "MouseWheel";
+            case EInputType::CursorPos :            return "CursorPos";
+            case EInputType::CursorPos_mm :         return "CursorPos_mm";
+            case EInputType::CursorDelta :          return "CursorDelta";
+            case EInputType::CursorDelta_norm :     return "CursorDelta_norm";
 
-            case EInputType::TouchPos :         return "TouchPos";
-            case EInputType::TouchPos_mm :      return "TouchPos_mm";
-            case EInputType::TouchDelta :       return "TouchDelta";
-            case EInputType::TouchDelta_norm :  return "TouchDelta_norm";
+            case EInputType::TouchPos :             return "TouchPos";
+            case EInputType::TouchPos_mm :          return "TouchPos_mm";
+            case EInputType::TouchDelta :           return "TouchDelta";
+            case EInputType::TouchDelta_norm :      return "TouchDelta_norm";
 
             case EInputType::_Count :
-            case EInputType::Unknown :          break;
+            case EInputType::Unknown :              break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
-        return "code_"s << Base::ToString( uint(value) );
+        return "code_"s << Base::ToString( value );
     }
-}
 
 /*
 =================================================
-    ToString
+    SensorBitsToString
 =================================================
 */
-    String  SerializableInputActionsGLFW::ToString (const Reflection &refl) C_Th___
+    String  SerializableInputActionsGLFW::SensorBitsToString (ESensorBits bits) C_Th___
     {
-        String      str      = "InputActionsGLFW {\n";
-        const auto  mode_arr = _ToArray(_modeMap);
-
-        for (auto& [name, mode] : mode_arr)
+        String  str;
+        for (auto idx : BitIndexIterate<ESensorType>(bits))
         {
-            str << "  '" << refl.Get( name ) << "' {\n";
-            str << "    lockAndHideCursor: " << Base::ToString( mode->lockAndHideCursor ) << "\n";
+            if ( not str.empty() )
+                str << ", ";
 
-            const auto  act_arr = _ToArray( mode->actions );
-            for (auto& [key, info] : act_arr)
+            switch_enum( idx )
             {
-                auto [code, gesture, state] = _Unpack( key );
+                #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )  case ESensorType::Android_ ## _type_ : str << "Android_" #_type_; break;
+                AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+                #undef AE_ANDROID_SERNSORS_VISITOR
 
-                str <<   "    InputKey: " << EInputTypeToString( EInputType(code) ) << ", state: " << Base::ToString( state )
-                    << "\n    {"
-                    << "\n      name:    '" << refl.Get( info->name ) << "'"
-                    << "\n      value:   " << Base::ToString( info->valueType )
-                    << "\n      gesture: " << Base::ToString( info->gesture )
-                    << "\n      swizzle: " << Base::ToString( info->swizzle )
-                    << "\n      scale:   " << Base::ToString( info->GetScale() )
-                    << "\n    }\n";
+                case ESensorType::Unknown : break;
             }
-
-            str << "  }\n";
+            switch_end
         }
-        str << "}\n\n";
-
         return str;
+    }
+
+/*
+=================================================
+    _InputTypeToSensorType
+=================================================
+*/
+    SerializableInputActionsGLFW::ESensorType  SerializableInputActionsGLFW::_InputTypeToSensorType (const EInputType inputType) __NE___
+    {
+        switch ( inputType )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )  case EInputType::_type_ : return ESensorType::Android_ ## _type_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+        }
+        return Default;
+    }
+
+/*
+=================================================
+    RequiredValueType
+=================================================
+*/
+    SerializableInputActionsGLFW::EValueType  SerializableInputActionsGLFW::RequiredValueType (const InputType_t type) C_NE___
+    {
+        const auto  input_type = EInputType(type);
+        switch ( input_type )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, _api_, _valType_, ... )    case EInputType::_type_ : return EValueType::_valType_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            case EInputType::MultiTouch :       return EValueType::Float2;  // float2 (scale, rotate)
+            case EInputType::MouseWheel :       return EValueType::Float2;  // float2 (delta)
+            case EInputType::CursorPos :        return EValueType::Float2;  // float2 (absolute in pixels)
+            case EInputType::CursorPos_mm :     return EValueType::Float2;  // float2 (absolute in mm)
+            case EInputType::CursorDelta :      return EValueType::Float2;  // float2 (delta in pixels)
+            case EInputType::CursorDelta_norm : return EValueType::Float2;  // snorm2
+            case EInputType::TouchPos :         return EValueType::Float2;  // float2 (absolute in pixels)
+            case EInputType::TouchPos_mm :      return EValueType::Float2;  // float2 (absolute in mm)
+            case EInputType::TouchDelta :       return EValueType::Float2;  // float2 (delta in pixels)
+            case EInputType::TouchDelta_norm :  return EValueType::Float2;  // snorm2
+        }
+        return Default;
     }
 //-----------------------------------------------------------------------------
 
@@ -159,29 +190,39 @@ namespace {
         {
             EnumBinder<EInputType>  binder{ se };
             binder.Create();
+            switch_enum( EInputType::Unknown )
+            {
+                case EInputType::Unknown :
+                case EInputType::_Count :
 
-            #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ )     binder.AddValue( _name_, EInputType::_key_ );
-            AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
-            #undef AE_GLFW_KEY_CODES_VISITOR
+                #define BIND( _name_ )                                              case EInputType::_name_ : binder.AddValue( #_name_, EInputType::_name_ );
+                #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )     case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+                AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
+                #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )                  case EInputType::_type_ : binder.AddValue( #_type_, EInputType::_type_ );
+                AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
 
-            binder.AddValue( "MouseLeft",           EInputType::MouseLeft );
-            binder.AddValue( "MouseRight",          EInputType::MouseRight );
-            binder.AddValue( "MouseMiddle",         EInputType::MouseMiddle );
+                BIND( MultiTouch )
 
-            binder.AddValue( "MultiTouch",          EInputType::MultiTouch );
+                BIND( MouseWheel )
+                BIND( CursorPos )
+                BIND( CursorPos_mm )
+                BIND( CursorDelta )
+                BIND( CursorDelta_norm )
 
-            binder.AddValue( "MouseWheel",          EInputType::MouseWheel );
-            binder.AddValue( "CursorPos",           EInputType::CursorPos );
-            binder.AddValue( "CursorPos_mm",        EInputType::CursorPos_mm );
-            binder.AddValue( "CursorDelta",         EInputType::CursorDelta );
-            binder.AddValue( "CursorDelta_norm",    EInputType::CursorDelta_norm );
-            binder.AddValue( "TouchPos",            EInputType::TouchPos );
-            binder.AddValue( "TouchPos_mm",         EInputType::TouchPos_mm );
-            binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
-            binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
+                BIND( TouchPos )
+                BIND( TouchPos_mm )
+                BIND( TouchDelta )
+                BIND( TouchDelta_norm )
 
-            StaticAssert( uint(EInputType::Cursor2DBegin) == 359 );
-            StaticAssert( uint(EInputType::Cursor2DEnd) == 367 );
+                #undef AE_GLFW_KEY_CODES_VISITOR
+                #undef AE_ANDROID_SERNSORS_VISITOR
+                #undef BIND
+                default : break;
+            }
+            switch_end
+            binder.AddValue( "MouseLeft",   EInputType::MouseLeft );
+            binder.AddValue( "MouseRight",  EInputType::MouseRight );
+            binder.AddValue( "MouseMiddle", EInputType::MouseMiddle );
         }
 
         // BindingsMode
@@ -208,18 +249,36 @@ namespace {
     LoadFromScript
 =================================================
 */
-    bool  SerializableInputActionsGLFW::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc, Reflection &refl)
+    bool  SerializableInputActionsGLFW::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, ArrayView<Path> includeDirs,
+                                                        const SourceLoc &loc, INOUT Reflection &refl) __NE___
     {
         CHECK_ERR( se );
         CHECK_ERR( not script.empty() );
 
         ScriptActionBindings    bindings{ *this, refl };
 
-        auto    mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }});
+        auto    mod = se->CreateModule( {ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }},
+                                        Default,
+                                        includeDirs );
         CHECK_ERR( mod );
 
         auto    scr = se->CreateScript< void (ScriptActionBindings *) >( "ASmain", mod );
         CHECK_ERR( scr and scr->Run( &bindings ));
+
+        // enable sensors
+        for (auto [name, mode] : _modeMap)
+        {
+            ASSERT( mode.enableSensors == Default );
+
+            for (const auto& [key, info] : mode.actions)
+            {
+                auto code = EInputType(_Unpack( key ).Get<0>());
+
+                ESensorType sensor = _InputTypeToSensorType( EInputType(code) );
+
+                mode.enableSensors |= ESensorBits(1ull << uint(sensor));
+            }
+        }
 
         return true;
     }

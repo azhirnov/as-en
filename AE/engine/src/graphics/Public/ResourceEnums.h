@@ -185,9 +185,16 @@ namespace AE::Graphics
         _Last,
 
         DepthStencil    = Depth | Stencil,
+        _PlaneMask      = Plane_0 | Plane_1 | Plane_2,
         Unknown         = 0,
     };
     AE_BIT_OPERATORS( EImageAspect );
+
+    ND_ inline constexpr EImageAspect  EImageAspect_Plane (usize i) __NE___
+    {
+        ASSERT( i < 3 );
+        return EImageAspect( uint(EImageAspect::Plane_0) << i );
+    }
 
 
     enum class EAttachmentLoadOp : ubyte
@@ -419,6 +426,7 @@ namespace AE::Graphics
         \
         _visitor_( G8_B8R8_420_UNorm )                  /* 4:2:0    2 planes    3*8bit      8bpc */\
         _visitor_( G8_B8R8_422_UNorm )                  /* 4:2:2    2 planes    3*8bit      8bpc */\
+        _visitor_( G8_B8R8_444_UNorm )                  /* 4:4:4    2 planes    3*8bit      8bpc    requires ycbcr2Plane444 */\
         \
         _visitor_( G8_B8_R8_420_UNorm )                 /* 4:2:0    3 planes    3*8bit      8bpc */\
         _visitor_( G8_B8_R8_422_UNorm )                 /* 4:2:2    3 planes    3*8bit      8bpc */\
@@ -430,6 +438,7 @@ namespace AE::Graphics
         \
         _visitor_( G10x6_B10x6R10x6_420_UNorm )         /* 4:2:0    2 planes    3*16bit     10bpc */\
         _visitor_( G10x6_B10x6R10x6_422_UNorm )         /* 4:2:2    2 planes    3*16bit     10bpc */\
+        _visitor_( G10x6_B10x6R10x6_444_UNorm )         /* 4:4:4    2 planes    3*16bit     10bpc   requires ycbcr2Plane444 */\
         \
         _visitor_( G10x6_B10x6_R10x6_420_UNorm )        /* 4:2:0    3 planes    3*16bit     10bpc */\
         _visitor_( G10x6_B10x6_R10x6_422_UNorm )        /* 4:2:2    3 planes    3*16bit     10bpc */\
@@ -445,6 +454,7 @@ namespace AE::Graphics
         \
         _visitor_( G12x4_B12x4R12x4_420_UNorm )         /* 4:2:0    2 planes    3*16bit     12bpc */\
         _visitor_( G12x4_B12x4R12x4_422_UNorm )         /* 4:2:2    2 planes    3*16bit     12bpc */\
+        _visitor_( G12x4_B12x4R12x4_444_UNorm )         /* 4:4:4    2 planes    3*16bit     12bpc   requires ycbcr2Plane444 */\
         \
         _visitor_( G12x4_B12x4_R12x4_420_UNorm )        /* 4:2:0    3 planes    3*16bit     12bpc */\
         _visitor_( G12x4_B12x4_R12x4_422_UNorm )        /* 4:2:2    3 planes    3*16bit     12bpc */\
@@ -460,6 +470,7 @@ namespace AE::Graphics
         \
         _visitor_( G16_B16R16_420_UNorm )               /* 4:2:0    2 planes    3*16bit     16bpc */\
         _visitor_( G16_B16R16_422_UNorm )               /* 4:2:2    2 planes    3*16bit     16bpc */\
+        _visitor_( G16_B16R16_444_UNorm )               /* 4:4:4    2 planes    3*16bit     16bpc   requires ycbcr2Plane444 */\
         \
         _visitor_( G16_B16_R16_420_UNorm )              /* 4:2:0    3 planes    3*16bit     16bpc */\
         _visitor_( G16_B16_R16_422_UNorm )              /* 4:2:2    3 planes    3*16bit     16bpc */\
@@ -477,6 +488,36 @@ namespace AE::Graphics
         Unknown         = 0xFF,
     };
     StaticAssert( uint(EPixelFormat::_Count) < uint(EPixelFormat::SwapchainColor) );
+
+
+    enum class EPixelFormatExternal : ubyte
+    {
+        // Android (from AIMAGE_FORMAT_*) //
+        _Android_Begin,
+        Android_Depth16         = _Android_Begin,
+        Android_DepthJPEG,
+        Android_DepthPointCloud,
+        Android_JPEG,
+        Android_Private,        // TODO: remove
+        Android_Raw16,          // -.
+        Android_Raw12,          // -|__ usually representing a single-channel Bayer-mosaic image
+        Android_Raw10,          // -|
+        Android_RawPrivate,     // -'   // TODO: remove
+        Android_NV16,           // EVideoFormat::NV16
+        Android_NV21,           // EVideoFormat::NV21
+        Android_YCBCR_P010,     // EVideoFormat::P010LE
+        Android_YUV_420,        // EVideoFormat::YUV420P
+        Android_YUV_422,        // EVideoFormat::YUV422P
+        Android_YUV_444,        // EVideoFormat::YUV444P
+        Android_YUY2,
+        Android_YV12,
+        Android_Y8,             // monochrome
+        Android_HEIC,
+        _Android_End,
+
+        _Count,
+        Unknown     = 0xFF
+    };
 
 
     enum class EShaderIO : ubyte

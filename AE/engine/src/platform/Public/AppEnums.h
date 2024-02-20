@@ -16,7 +16,7 @@ namespace AE::App
         Click,              // params:                          |   on key up - may be slower
         DoubleClick,        // params:                          |   on first click - update, on second click - end
 
-        // continious
+        // continuous
         //   state: Begin -> Update -> End/Cancel
         Hold,               // params:                          |
         LongPress,          // params: f1(0..1)                 |

@@ -25,8 +25,8 @@ namespace AE::Networking
         using Socket_t  = UdpSocket;
         #endif
 
-        static constexpr ushort     _magic          = 0;    // TODO
-        static constexpr Bytes      _maxPacketSize  {508};
+        static constexpr char       _magicByte      = '\x2A';
+        static constexpr Bytes      _maxPacketSize  = NetConfig::UDP_MaxMsgSize;
 
         struct _PacketHeader;
         struct _MsgHeader;
@@ -58,6 +58,7 @@ namespace AE::Networking
         MsgQueueMap_t&  Receive ()                                      __NE_OV { return *Cast<MsgQueueMap_t>(null); }
 
         bool  DisconnectClient (EClientLocalID)                         __NE_OV { return false; }
+        void  DisconnectClientsWithIncompleteMsgQueue ()                __NE_OV {}
         bool  IsConnected ()                                            C_NE_OV { return false; }
 
 
@@ -104,7 +105,7 @@ namespace AE::Networking
         ~UdpUnreliableClientChannel ()                                  __NE_OV;
 
       // IChannel //
-        void  ProcessMessages (FrameUID)                                __NE_OV;
+        void  ProcessMessages (FrameUID, MsgQueueStatistic &)           __NE_OV;
 
     private:
         UdpUnreliableClientChannel (RC<MessageFactory>  mf,
@@ -151,7 +152,7 @@ namespace AE::Networking
         ~UdpUnreliableServerChannel ()                                  __NE_OV;
 
       // IChannel //
-        void  ProcessMessages (FrameUID)                                __NE_OV;
+        void  ProcessMessages (FrameUID, MsgQueueStatistic &)           __NE_OV;
 
     private:
         UdpUnreliableServerChannel (RC<MessageFactory>  mf,

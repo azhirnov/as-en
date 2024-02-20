@@ -12,11 +12,11 @@ namespace AE::Graphics
 */
     bool  RenderState::ColorBuffer::operator == (const ColorBuffer &rhs) C_NE___
     {
-        return  (blend == rhs.blend)    &
+        return  (blend == rhs.blend)    and
                 (blend ?
-                    ((srcBlendFactor    == rhs.srcBlendFactor)  &
-                     (dstBlendFactor    == rhs.dstBlendFactor)  &
-                     (blendOp           == rhs.blendOp)         &
+                    ((srcBlendFactor    == rhs.srcBlendFactor)  and
+                     (dstBlendFactor    == rhs.dstBlendFactor)  and
+                     (blendOp           == rhs.blendOp)         and
                      ((BitCast<ubyte>(colorMask) & 0xF) == (BitCast<ubyte>(rhs.colorMask) & 0xF)) )
                  : true);
     }
@@ -49,8 +49,8 @@ namespace AE::Graphics
 */
     bool  RenderState::ColorBuffersState::operator == (const ColorBuffersState &rhs) C_NE___
     {
-        return  (buffers    == rhs.buffers)     &
-                (logicOp    == rhs.logicOp)     &
+        return  (buffers    == rhs.buffers)     and
+                (logicOp    == rhs.logicOp)     and
                 (blendColor == rhs.blendColor);
     }
 
@@ -81,12 +81,12 @@ namespace AE::Graphics
 */
     bool  RenderState::StencilFaceState::operator == (const StencilFaceState &rhs) C_NE___
     {
-        return  (failOp         == rhs.failOp)      &
-                (depthFailOp    == rhs.depthFailOp) &
-                (passOp         == rhs.passOp)      &
-                (compareOp      == rhs.compareOp)   &
-                (reference      == rhs.reference)   &
-                (writeMask      == rhs.writeMask)   &
+        return  (failOp         == rhs.failOp)      and
+                (depthFailOp    == rhs.depthFailOp) and
+                (passOp         == rhs.passOp)      and
+                (compareOp      == rhs.compareOp)   and
+                (reference      == rhs.reference)   and
+                (writeMask      == rhs.writeMask)   and
                 (compareMask    == rhs.compareMask);
     }
 
@@ -117,9 +117,9 @@ namespace AE::Graphics
 */
     bool  RenderState::StencilBufferState::operator == (const StencilBufferState &rhs) C_NE___
     {
-        return  (enabled    == rhs.enabled) &
+        return  (enabled    == rhs.enabled) and
                 (enabled ?
-                    ((front == rhs.front)   &
+                    ((front == rhs.front)   and
                      (back  == rhs.back))   : true);
     }
 
@@ -148,12 +148,12 @@ namespace AE::Graphics
 */
     bool  RenderState::DepthBufferState::operator == (const DepthBufferState &rhs) C_NE___
     {
-        return  (compareOp      == rhs.compareOp)           &
-                (bounds         == rhs.bounds)              &
+        return  (compareOp      == rhs.compareOp)           and
+                (bounds         == rhs.bounds)              and
                 (bounds ?
-                    ((minBounds == rhs.minBounds) &
-                     (maxBounds == rhs.maxBounds)) : true)  &
-                (write          == rhs.write)               &
+                    ((minBounds == rhs.minBounds) and
+                     (maxBounds == rhs.maxBounds)) : true)  and
+                (write          == rhs.write)               and
                 (test           == rhs.test);
     }
 
@@ -183,7 +183,7 @@ namespace AE::Graphics
 */
     bool  RenderState::InputAssemblyState::operator == (const InputAssemblyState &rhs) C_NE___
     {
-        return  (topology           == rhs.topology)        &
+        return  (topology           == rhs.topology)        and
                 (primitiveRestart   == rhs.primitiveRestart);
     }
 
@@ -209,14 +209,14 @@ namespace AE::Graphics
 */
     bool  RenderState::RasterizationState::operator == (const RasterizationState &rhs) C_NE___
     {
-        return  (polygonMode                ==  rhs.polygonMode)            &
-                Equal(  depthBiasConstFactor,   rhs.depthBiasConstFactor )  &
-                Equal(  depthBiasClamp,         rhs.depthBiasClamp )        &
-                Equal(  depthBiasSlopeFactor,   rhs.depthBiasSlopeFactor )  &
-                (depthBias                  ==  rhs.depthBias)              &
-                (depthClamp                 ==  rhs.depthClamp)             &
-                (rasterizerDiscard          ==  rhs.rasterizerDiscard)      &
-                (cullMode                   ==  rhs.cullMode)               &
+        return  (polygonMode                ==  rhs.polygonMode)            and
+                Equal(  depthBiasConstFactor,   rhs.depthBiasConstFactor )  and
+                Equal(  depthBiasClamp,         rhs.depthBiasClamp )        and
+                Equal(  depthBiasSlopeFactor,   rhs.depthBiasSlopeFactor )  and
+                (depthBias                  ==  rhs.depthBias)              and
+                (depthClamp                 ==  rhs.depthClamp)             and
+                (rasterizerDiscard          ==  rhs.rasterizerDiscard)      and
+                (cullMode                   ==  rhs.cullMode)               and
                 (frontFaceCCW               ==  rhs.frontFaceCCW);
     }
 
@@ -249,11 +249,11 @@ namespace AE::Graphics
 */
     bool  RenderState::MultisampleState::operator == (const MultisampleState &rhs) C_NE___
     {
-        return  (sampleMask             ==  rhs.sampleMask)         &
-                (samples                ==  rhs.samples)            &
-                Equal(  minSampleShading,   rhs.minSampleShading )  &
-                (sampleShading          ==  rhs.sampleShading)      &
-                (alphaToCoverage        ==  rhs.alphaToCoverage)    &
+        return  (sampleMask             ==  rhs.sampleMask)         and
+                (samples                ==  rhs.samples)            and
+                Equal(  minSampleShading,   rhs.minSampleShading )  and
+                (sampleShading          ==  rhs.sampleShading)      and
+                (alphaToCoverage        ==  rhs.alphaToCoverage)    and
                 (alphaToOne             ==  rhs.alphaToOne);
     }
 
@@ -283,11 +283,11 @@ namespace AE::Graphics
 */
     bool  RenderState::operator == (const RenderState &rhs) C_NE___
     {
-        return  (color          == rhs.color)           &
-                (depth          == rhs.depth)           &
-                (stencil        == rhs.stencil)         &
-                (inputAssembly  == rhs.inputAssembly)   &
-                (rasterization  == rhs.rasterization)   &
+        return  (color          == rhs.color)           and
+                (depth          == rhs.depth)           and
+                (stencil        == rhs.stencil)         and
+                (inputAssembly  == rhs.inputAssembly)   and
+                (rasterization  == rhs.rasterization)   and
                 (multisample    == rhs.multisample);
     }
 
@@ -337,8 +337,7 @@ namespace AE::Graphics
     {
         for (auto t : BitfieldIterate( dstate ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EPipelineDynamicState::StencilCompareMask :
                     stencil.front.compareMask   = 0xFF;
@@ -382,7 +381,7 @@ namespace AE::Graphics
                     DBG_WARNING( "unknown dynamic state" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 //-----------------------------------------------------------------------------
@@ -396,7 +395,7 @@ namespace AE::Graphics
 */
     bool  MDepthStencilState::operator == (const MDepthStencilState &rhs) C_NE___
     {
-        return  (depth      == rhs.depth)   &
+        return  (depth      == rhs.depth)   and
                 (stencil    == rhs.stencil);
     }
 
@@ -442,13 +441,13 @@ namespace AE::Graphics
 */
     bool  MDynamicRenderState::operator == (const MDynamicRenderState &rhs) C_NE___
     {
-        return  (topology               == rhs.topology)                &
-                (polygonMode            == rhs.polygonMode)             &
-                (frontFaceCCW           == rhs.frontFaceCCW)            &
-                (cullMode               == rhs.cullMode)                &
-                (depthClamp             == rhs.depthClamp)              &
-                (depthBiasConstFactor   == rhs.depthBiasConstFactor)    &
-                (depthBiasClamp         == rhs.depthBiasClamp)          &
+        return  (topology               == rhs.topology)                and
+                (polygonMode            == rhs.polygonMode)             and
+                (frontFaceCCW           == rhs.frontFaceCCW)            and
+                (cullMode               == rhs.cullMode)                and
+                (depthClamp             == rhs.depthClamp)              and
+                (depthBiasConstFactor   == rhs.depthBiasConstFactor)    and
+                (depthBiasClamp         == rhs.depthBiasClamp)          and
                 (depthBiasSlopeFactor   == rhs.depthBiasSlopeFactor);
     }
 

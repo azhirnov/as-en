@@ -9,15 +9,20 @@ namespace
 {
     static void  LfFixedBlockAllocator3_Test1 ()
     {
-        LfFixedBlockAllocator< usize{64*64_b}, 16 >     lf_alloc{ 1_Kb, 8_b };
+        LfFixedBlockAllocator< 64*64, 16 >      lf_alloc{ 1_Kb, 8_b };
 
-        TEST( lf_alloc.MaxMemorySize() == 64_Mb );
+        TEST_Eq( lf_alloc.MaxMemorySize(), 64_Mb );
 
         Array< RstPtr<void> >       ptrs;
+        ptrs.reserve( 64*64*16 );
 
-        for (uint i = 0; i < 10'000; ++i) {
-            ptrs.push_back( lf_alloc.AllocBlock() );
+        for (uint i = 0; i < 64*64*16; ++i)
+        {
+            auto    ptr = lf_alloc.AllocBlock();
+            TEST( ptr );
+            ptrs.push_back( ptr );
         }
+        TEST( lf_alloc.AllocBlock() == null );
 
         for (uint i = 0; i < 1'000; ++i)
         {

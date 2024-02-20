@@ -10,7 +10,103 @@ namespace AE::AssetPacker
 {
 namespace
 {
+    AE_BIT_OPERATORS( EPathParamsFlags );
+
     using namespace AE::Scripting;
+
+/*
+=================================================
+    BuildFileList
+=================================================
+*/
+    ND_ static bool  BuildFileList (const AssetInfo* info, OUT Array<Path> &outFiles)
+    {
+        struct PathInfo
+        {
+            Path                path;
+            uint                priority    = 0;
+            EPathParamsFlags    flags       = Default;
+        };
+
+        HashSet< Path, PathHasher >     unique_files;
+        Deque<PathInfo>                 folders;
+        Array<PathInfo>                 sorted_files;
+
+        for (usize i = 0; i < info->inFileCount; ++i)
+        {
+            auto&   item = info->inFiles[i];
+
+            if ( not AnyBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+                continue;
+
+            Path    path {item.path};
+
+            if ( not FileSystem::IsDirectory( path ))
+            {
+                AE_LOG_SE( "Can't find folder: '"s << ToString(path) << "'" );
+                continue;
+            }
+
+            folders.push_back( PathInfo{ RVRef(path), uint(item.priority), EPathParamsFlags(item.flags) });
+        }
+
+        std::sort( folders.begin(), folders.end(), [](auto& lhs, auto& rhs) { return lhs.priority < rhs.priority; });
+
+        for (; not folders.empty();)
+        {
+            const Path  path    = RVRef(folders.front().path);
+            const uint  prio    = folders.front().priority;
+            const auto  flags   = folders.front().flags;
+            folders.pop_front();
+
+            for (auto& file : FileSystem::Enum( path ))
+            {
+                if ( file.IsDirectory() and AllBits( flags, EPathParamsFlags::RecursiveFolder ))
+                {
+                    folders.push_back( PathInfo{ file.Get(), prio, flags });
+                    continue;
+                }
+
+                Path    tmp = FileSystem::ToAbsolute( file.Get() );
+                if ( not unique_files.insert( tmp ).second )
+                    continue;
+
+                if ( tmp.extension() != ".as" )
+                    continue;
+
+                sorted_files.push_back( PathInfo{ RVRef(tmp), prio, EPathParamsFlags::Unknown });
+            }
+        }
+
+        for (usize i = 0; i < info->inFileCount; ++i)
+        {
+            if ( AnyBits( info->inFiles[i].flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+                continue;
+
+            Path    path{ info->inFiles[i].path };
+
+            if ( not FileSystem::IsFile( path ))
+            {
+                AE_LOG_SE( "Can't find file: '"s << ToString(path) << "'" );
+                continue;
+            }
+
+            path = FileSystem::ToAbsolute( path );
+            if ( not unique_files.insert( path ).second )
+                continue;
+
+            sorted_files.push_back( PathInfo{ RVRef(path), uint(info->inFiles[i].priority), EPathParamsFlags::Unknown });
+        }
+
+        std::sort( sorted_files.begin(), sorted_files.end(), [](auto& lhs, auto& rhs) { return lhs.priority < rhs.priority; });
+
+        outFiles.reserve( sorted_files.size() );
+        for (auto& item : sorted_files) {
+            outFiles.push_back( RVRef(item.path) );
+        }
+
+        return true;
+    }
 
 /*
 =================================================
@@ -42,9 +138,11 @@ namespace
                 AE_LOGI( "Skip invalid include directory: '"s << ToString(path) << "'" );
         }
 
-        for (usize i = 0; i < info->inFileCount; ++i)
+        Array<Path>     script_files;
+        CHECK_ERR( BuildFileList( info, OUT script_files ));
+
+        for (const Path& path : script_files)
         {
-            Path                        path        {info->inFiles[i]};
             const String                ansi_path   = ToString(path);
             ScriptEngine::ModuleSource  src;
 

@@ -24,8 +24,7 @@ namespace
     ND_ static StringView  AccessToStr (EAccessType type) __Th___
     {
         // requires GL_KHR_memory_scope_semantics
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EAccessType::DeviceCoherent :      return "devicecoherent";
             case EAccessType::QueueFamilyCoherent : return "queuefamilycoherent";
@@ -39,7 +38,7 @@ namespace
             case EAccessType::_MemoryModel :
             case EAccessType::_Count :              break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown access type" );
     }
 
@@ -50,8 +49,7 @@ namespace
 */
     ND_ static StringView  AddressMSL (EAddressMode value) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAddressMode::Repeat :             return "repeat";
             case EAddressMode::MirrorRepeat :       return "mirrored_repeat";
@@ -61,15 +59,14 @@ namespace
             case EAddressMode::_Count :
             case EAddressMode::Unknown :            break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown address mode" );
     }
 
     // Metal iOS 2.3+
     ND_ static StringView  BorderColorMSL (EBorderColor value) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EBorderColor::FloatTransparentBlack :
             case EBorderColor::IntTransparentBlack :    return "transparent_black";
@@ -80,28 +77,26 @@ namespace
             case EBorderColor::_Count :
             case EBorderColor::Unknown :                break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown border color" );
     }
 
     ND_ static StringView  FilterMSL (EFilter value) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EFilter::Nearest : return "nearest";
             case EFilter::Linear :  return "linear";
             case EFilter::_Count :
             case EFilter::Unknown : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown filter" );
     }
 
     ND_ static StringView  FilterMSL (EMipmapFilter value) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EMipmapFilter::None :      return "none";
             case EMipmapFilter::Nearest :   return "nearest";
@@ -109,14 +104,13 @@ namespace
             case EMipmapFilter::_Count :
             case EMipmapFilter::Unknown :   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown mipmap filter" );
     }
 
     ND_ static StringView  CompareOpMSL (ECompareOp value) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECompareOp::Never :    return "never";
             case ECompareOp::Less :     return "less";
@@ -129,7 +123,7 @@ namespace
             case ECompareOp::_Count :
             case ECompareOp::Unknown :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_THROW_MSG( false, "unknown compare op" );
     }
 
@@ -354,8 +348,7 @@ namespace
                 prev_stages = un.stages;
             }
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 {
@@ -470,7 +463,7 @@ namespace
                 default :
                     CHECK_THROW_MSG( false, "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         if ( not single_stage and prev_stages != Default )
@@ -575,8 +568,7 @@ namespace
             if ( aux_info_it != _infoMap.end() )
                 aux_info = &aux_info_it->second;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 {
@@ -746,7 +738,7 @@ namespace
                 default :
                     CHECK_THROW_MSG( false, "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         if ( is_argbuf )
@@ -793,8 +785,7 @@ namespace
             if ( not is_argbuf and not AnyBits( stages, un.stages ))
                 continue;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
@@ -842,7 +833,7 @@ namespace
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             CHECK_ERR( un.binding.IsMetalDefined() );
         }
@@ -934,8 +925,7 @@ namespace
 
                     un.binding.mtlIndex = BindingIndex_t(msl_binding);
 
-                    BEGIN_ENUM_CHECKS();
-                    switch ( un.type )
+                    switch_enum( un.type )
                     {
                         case EDescriptorType::UniformBuffer :
                         {
@@ -978,7 +968,7 @@ namespace
                         case EDescriptorType::Unknown :
                         default :                       RETURN_ERR( "unknown descriptor type" );
                     }
-                    END_ENUM_CHECKS();
+                    switch_end
                 }
                 else
                 for (auto shader : BitIndexIterate<EShader>( un.stages & s_MetalStages ))
@@ -989,8 +979,7 @@ namespace
                     MSLBindings*    dst_binding = &msl_per_stage[0];
                     ubyte *         dst_index   = &un.binding.mtlPerStageIndex.GetRef(idx);
 
-                    BEGIN_ENUM_CHECKS();
-                    switch ( un.type )
+                    switch_enum( un.type )
                     {
                         // buffer
                         case EDescriptorType::UniformBuffer :
@@ -1032,12 +1021,12 @@ namespace
                         case EDescriptorType::Unknown :
                         default :                                   RETURN_ERR( "unknown descriptor type" );
                     }
-                    END_ENUM_CHECKS();
+                    switch_end
                 }
             }
         }
 
-        DescriptorCount_t   total       = {};
+        DescriptorCount     total       = {};
         PerStageDescCount_t per_stage   = {};
         CountDescriptors( INOUT total, INOUT per_stage );
         CHECK_ERR( CheckDescriptorLimits( total, per_stage, _features, ("In DescriptorSetLayout '"s << _name << "'") ));
@@ -1051,15 +1040,57 @@ namespace
     CountDescriptors
 =================================================
 */
-    void  DescriptorSetLayout::CountDescriptors (INOUT DescriptorCount_t &total, INOUT PerStageDescCount_t &perStage) C_NE___
+    void  DescriptorCount::Add (const DescriptorSetLayoutDesc::Uniform &un)
+    {
+        const uint  count = Max( 1u, un.arraySize );    // can not count runtime sized array
+
+        switch_enum( un.type )
+        {
+            case EDescriptorType::UniformBuffer :
+                (un.buffer.HasDynamicOffset() ? dynamicUniformBuffers : uniformBuffers) += count;       break;
+
+            case EDescriptorType::StorageBuffer :
+                (un.buffer.HasDynamicOffset() ? dynamicStorageBuffers : storageBuffers) += count;       break;
+
+            case EDescriptorType::StorageTexelBuffer :
+            case EDescriptorType::StorageImage :
+                storageImages += count;             break;
+
+            case EDescriptorType::UniformTexelBuffer :
+            case EDescriptorType::SampledImage :
+            case EDescriptorType::CombinedImage :
+                sampledImages += count;             break;
+
+            case EDescriptorType::CombinedImage_ImmutableSampler :
+                sampledImages   += count;
+                samplers        += count;           break;
+
+            case EDescriptorType::SubpassInput :
+                subpassInputs += count;             break;
+
+            case EDescriptorType::Sampler :
+            case EDescriptorType::ImmutableSampler :
+                samplers += count;                  break;
+
+            case EDescriptorType::RayTracingScene :
+                rayTracingScenes += count;          break;
+
+            case EDescriptorType::_Count :
+            case EDescriptorType::Unknown :
+                break;
+        }
+        switch_end
+    }
+
+    void  DescriptorSetLayout::CountDescriptors (INOUT DescriptorCount &total, INOUT PerStageDescCount_t &perStage) C_NE___
     {
         for (auto& [name, un] : _dsLayout.uniforms)
         {
-            total[uint(un.type)] += Max( 1u, un.arraySize );    // can not count runtime sized array
+            total.Add( un );
 
             for (auto shader : BitIndexIterate<EShader>( un.stages ))
             {
-                perStage(shader)[uint(un.type)] += Max( 1u, un.arraySize );
+                perStage(shader).Add( un );
             }
         }
     }
@@ -1459,8 +1490,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = EResourceState::ShaderStorage_RW | EResourceState_FromShaders( stages );
         un.buffer.dynamicOffsetIndex    = UMax;
-        un.buffer.staticSize            = Byte32u{staticSize};
-        un.buffer.arrayStride           = Byte32u{arraySize};
+        un.buffer.staticSize            = Bytes32u{staticSize};
+        un.buffer.arrayStride           = Bytes32u{arraySize};
         un.buffer.typeName              = ShaderStructName{"dbg_ShaderTraceStorage"};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2042,8 +2073,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = state;
         un.buffer.dynamicOffsetIndex    = DescriptorSetLayoutDesc::DynamicOffsetIdx_t(dynamic ? 0u : UMax);
-        un.buffer.staticSize            = Byte32u{ aux_info.type->StaticSize() };
-        un.buffer.arrayStride           = Byte32u{0u};
+        un.buffer.staticSize            = Bytes32u{ aux_info.type->StaticSize() };
+        un.buffer.arrayStride           = Bytes32u{0u};
         un.buffer.typeName              = ShaderStructName{st_it->second->Typename()};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2086,8 +2117,8 @@ namespace
         un.buffer                       = Default;
         un.buffer.state                 = state;
         un.buffer.dynamicOffsetIndex    = DescriptorSetLayoutDesc::DynamicOffsetIdx_t(dynamic ? 0u : UMax);
-        un.buffer.staticSize            = Byte32u{ aux_info.type->StaticSize()  };
-        un.buffer.arrayStride           = Byte32u{ aux_info.type->ArrayStride() };
+        un.buffer.staticSize            = Bytes32u{ aux_info.type->StaticSize()  };
+        un.buffer.arrayStride           = Bytes32u{ aux_info.type->ArrayStride() };
         un.buffer.typeName              = ShaderStructName{st_it->second->Typename()};
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
@@ -2410,8 +2441,7 @@ namespace
 
             EImageType  img_type = att->samples.Get() > 1 ? EImageType::Img2DMS : EImageType::Img2D;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( usage.input.type )
+            switch_enum( usage.input.type )
             {
                 case EShaderIO::Int :           img_type |= EImageType::Int;            break;
                 case EShaderIO::UInt :          img_type |= EImageType::UInt;           break;
@@ -2429,7 +2459,7 @@ namespace
                 case EShaderIO::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown ShaderIO type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             EResourceState  state =
                 (usage.type == EAttachment::ReadWrite ? EResourceState::InputColorAttachment_RW : EResourceState::InputColorAttachment);
@@ -2522,7 +2552,7 @@ namespace
     CheckDescriptorLimits
 =================================================
 */
-    bool  DescriptorSetLayout::CheckDescriptorLimits (const DescriptorCount_t &total, const PerStageDescCount_t &perStage,
+    bool  DescriptorSetLayout::CheckDescriptorLimits (const DescriptorCount &total, const PerStageDescCount_t &perStage,
                                                       ArrayView<ScriptFeatureSetPtr> features, StringView name)
     {
         using DT = EDescriptorType;
@@ -2538,21 +2568,27 @@ namespace
                              AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );                                                   \
                 }                                                                                                                           \
             }
-            CHECK_LIMIT( total[uint(DT::UniformBuffer)],    maxUniformBuffers,      "uniform buffers per DS" );
-            CHECK_LIMIT( total[uint(DT::StorageBuffer)],    maxStorageBuffers,      "storage buffers per DS" );
-            CHECK_LIMIT( total[uint(DT::SubpassInput)],     maxInputAttachments,    "input attachments per DS" );
-            CHECK_LIMIT( total[uint(DT::RayTracingScene)],  maxAccelStructures,     "acceleration structures per DS" );
+            CHECK_LIMIT( total.uniformBuffers,      maxUniformBuffers,      "uniform buffers per DS" );
+            CHECK_LIMIT( total.storageBuffers,      maxStorageBuffers,      "storage buffers per DS" );
+            CHECK_LIMIT( total.subpassInputs,       maxInputAttachments,    "input attachments per DS" );
+            CHECK_LIMIT( total.rayTracingScenes,    maxAccelStructures,     "acceleration structures per DS" );
+            CHECK_LIMIT( total.storageImages,       maxStorageImages,       "storage images per DS" );
+            CHECK_LIMIT( total.sampledImages,       maxSampledImages,       "sampler images per DS" );
+            CHECK_LIMIT( total.samplers,            maxSamplers,            "samplers per DS" );
+            CHECK_LIMIT( total.TotalCount(),        maxTotalResources,      "total resources per DS" );
+            #undef CHECK_LIMIT
 
-            CHECK_LIMIT( total[uint(DT::StorageImage)] + total[uint(DT::StorageTexelBuffer)], maxStorageImages, "storage images per DS" );
-            CHECK_LIMIT( total[uint(DT::UniformTexelBuffer)] + total[uint(DT::SampledImage)] + total[uint(DT::CombinedImage)] + total[uint(DT::CombinedImage_ImmutableSampler)],
-                         maxSampledImages, "sampler images per DS" );
-            CHECK_LIMIT( total[uint(DT::Sampler)] + total[uint(DT::ImmutableSampler)], maxSamplers, "samplers per DS" );
-
-            uint    total_res = 0;
-            for (uint cnt : total) {
-                total_res += cnt;
+            #define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )                                                                                      \
+            {                                                                                                                               \
+                const auto  rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perDescrSet_##_rhs_ );                                \
+                if_unlikely( (_lhs_) > rhs_val ) {                                                                                          \
+                    result = false;                                                                                                         \
+                    AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<   \
+                             AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );                                                   \
+                }                                                                                                                           \
             }
-            CHECK_LIMIT( total_res, maxTotalResources, "total resources per DS" );
+            CHECK_LIMIT( total.dynamicUniformBuffers,   maxUniformBuffersDynamic,   "dynamic uniform buffers per DS" );
+            CHECK_LIMIT( total.dynamicStorageBuffers,   maxStorageBuffersDynamic,   "dynamic storage buffers per DS" );
             #undef CHECK_LIMIT
         }
 
@@ -2567,21 +2603,14 @@ namespace
                             AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );                                                \
                 }                                                                                                                       \
             }
-            CHECK_LIMIT( count[uint(DT::UniformBuffer)],    maxUniformBuffers,      "uniform buffers per stage" );
-            CHECK_LIMIT( count[uint(DT::StorageBuffer)],    maxStorageBuffers,      "storage buffers per stage" );
-            CHECK_LIMIT( count[uint(DT::SubpassInput)],     maxInputAttachments,    "input attachments per stage" );
-            CHECK_LIMIT( count[uint(DT::RayTracingScene)],  maxAccelStructures,     "acceleration structures per stage" );
-
-            CHECK_LIMIT( count[uint(DT::StorageImage)] + count[uint(DT::StorageTexelBuffer)], maxStorageImages, "storage images per stage" );
-            CHECK_LIMIT( count[uint(DT::UniformTexelBuffer)] + count[uint(DT::SampledImage)] + count[uint(DT::CombinedImage)] + count[uint(DT::CombinedImage_ImmutableSampler)],
-                         maxSampledImages, "sampler images per stage" );
-            CHECK_LIMIT( count[uint(DT::Sampler)] + count[uint(DT::ImmutableSampler)], maxSamplers, "samplers per stage" );
-
-            uint    total_res = 0;
-            for (uint cnt : count) {
-                total_res += cnt;
-            }
-            CHECK_LIMIT( total_res, maxTotalResources, "total resources per stage" );
+            CHECK_LIMIT( count.uniformBuffers,      maxUniformBuffers,      "uniform buffers per stage" );
+            CHECK_LIMIT( count.storageBuffers,      maxStorageBuffers,      "storage buffers per stage" );
+            CHECK_LIMIT( count.subpassInputs,       maxInputAttachments,    "input attachments per stage" );
+            CHECK_LIMIT( count.rayTracingScenes,    maxAccelStructures,     "acceleration structures per stage" );
+            CHECK_LIMIT( count.storageImages,       maxStorageImages,       "storage images per stage" );
+            CHECK_LIMIT( count.sampledImages,       maxSampledImages,       "sampler images per stage" );
+            CHECK_LIMIT( count.samplers,            maxSamplers,            "samplers per stage" );
+            CHECK_LIMIT( count.TotalCount(),        maxTotalResources,      "total resources per stage" );
             #undef CHECK_LIMIT
         }
 

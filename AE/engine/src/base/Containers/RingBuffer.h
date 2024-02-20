@@ -47,6 +47,8 @@ namespace AE::Base
         template <bool IsConst>
         struct TIterator
         {
+            friend struct RingBuffer;
+
         // types
         private:
             using Iter  = TIterator< IsConst >;
@@ -67,7 +69,7 @@ namespace AE::Base
             Iter& operator = (Iter &&)              __NE___ = default;
 
             ND_ bool operator != (const Iter &rhs)  C_NE___ { return not (*this == rhs); }
-            ND_ bool operator == (const Iter &rhs)  C_NE___ { return (_rbPtr == rhs._rbPtr) & (_index == rhs._index); }
+            ND_ bool operator == (const Iter &rhs)  C_NE___ { return (_rbPtr == rhs._rbPtr) and (_index == rhs._index); }
 
             Iter& operator ++ ()                    __NE___
             {
@@ -176,6 +178,9 @@ namespace AE::Base
 
             void        EraseFront (usize count)            __NE___;
             void        EraseBack (usize count)             __NE___;
+
+            iterator    FastErase (iterator it)             __NE___;
+            void        FastErase (usize idx)               __NE___;
 
         ND_ iterator        begin ()                        __NE___ { return iterator{ this, 0 }; }
         ND_ const_iterator  begin ()                        C_NE___ { return const_iterator{ this, 0 }; }
@@ -930,6 +935,54 @@ namespace AE::Base
             _packed |= _EmptyBit;
 
         _UpdateDbgView();
+    }
+
+/*
+=================================================
+    FastErase
+=================================================
+*/
+    template <typename T, typename A, typename CP, typename RP>
+    typename RingBuffer<T,A,CP,RP>::iterator
+        RingBuffer<T,A,CP,RP>::FastErase (iterator it) __NE___
+    {
+        ASSERT( it._rbPtr == this );
+        FastErase( it._index );
+        return it;
+    }
+
+    template <typename T, typename A, typename CP, typename RP>
+    void  RingBuffer<T,A,CP,RP>::FastErase (usize idx) __NE___
+    {
+        ASSERT( not empty() );
+
+        idx = _WrapIndex( idx + _first );
+        auto    dst = _WrapIndex( ssize(_end) - 1 );
+
+        if ( _first != _end     and
+             idx    != _first   and
+             idx    != dst )
+        {
+            _end = dst;
+            CopyPolicy_t::Destroy( _array + idx, 1 );
+            CopyPolicy_t::Replace( OUT _array + idx, INOUT _array + dst, 1 );
+            return;
+        }
+
+        if ( idx == _first )
+        {
+            pop_front();
+            return;
+        }
+
+        if ( idx == dst )
+        {
+            pop_back();
+            return;
+        }
+
+        ASSERT( _first == _end );
+        clear();
     }
 
 /*

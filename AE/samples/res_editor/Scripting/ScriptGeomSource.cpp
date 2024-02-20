@@ -56,7 +56,7 @@ namespace
 =================================================
 */
     template <typename ResMngr, typename PplnID>
-    ND_ static DescSetBinding  GetDescSetBinding (ResMngr &resMngr, PplnID pplnId, const DescriptorSetName &name) __Th___
+    ND_ static DescSetBinding  GetDescSetBinding (ResMngr &resMngr, PplnID pplnId, DescriptorSetName::Ref name) __Th___
     {
         auto*   ppln = resMngr.GetResource( pplnId );
         CHECK_THROW( ppln != null );
@@ -380,8 +380,6 @@ namespace
 
                 for (auto& [un_name, un] : dsl->GetUniforms())
                 {
-                    if ( un.arraySize )
-
                     // storage image
                     if ( un.type == EDescriptorType::StorageImage ) {
                         img_counter += usize(img_names.contains( un_name ));
@@ -759,7 +757,7 @@ namespace
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
         auto        result      = MakeRC<SphericalCube>( renderer, _minLod, _maxLod );
 
-        _args.InitResources( result->_resources );
+        _args.InitResources( result->_resources, Default );
 
         _geomSrc = result;
         return _geomSrc;
@@ -1783,7 +1781,7 @@ namespace
                 });
         }
 
-        _args.InitResources( result->_resources );
+        _args.InitResources( result->_resources, Default );
 
         _geomSrc = result;
         return _geomSrc;
@@ -1893,7 +1891,7 @@ namespace
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
-            CHECK_THROW( result->pipelineMap.emplace( Pair{info.objId, info.dbgMode}, ppln ).second );
+            CHECK_THROW( result->pipelineMap.emplace( MakePair( info.objId, info.dbgMode ), ppln ).second );
         }};
 
         const auto  FindGraphicsPpln = [&] (const PplnNameAndObjectId &info) __Th___
@@ -1916,7 +1914,7 @@ namespace
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), max_frames, ppln, DescriptorSetName{c_MtrDS} ));
                 result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
-            CHECK_THROW( result->pipelineMap.emplace( Pair{info.objId, info.dbgMode}, ppln ).second );
+            CHECK_THROW( result->pipelineMap.emplace( MakePair( info.objId, info.dbgMode ), ppln ).second );
         }};
 
         result->rtech = rtech;
@@ -2210,7 +2208,7 @@ namespace {
 
         if ( has_rtas )
         {
-            EnumBitSet<EGeometryType>   enabled;
+            EnumSet<EGeometryType>  enabled;
             _intermScene->ForEachModel(
                 [&enabled] (const ResLoader::IntermScene::ModelData &model)
                 {
@@ -2318,15 +2316,15 @@ namespace {
     {
         CHECK_THROW_MSG( _intermScene );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( layer )
+        switch_enum( layer )
         {
             case ERenderLayer::Opaque :         break;
             case ERenderLayer::Translucent :    break;
             case ERenderLayer::PostProcess :    return _FindPostProcessPipelines();
+            case ERenderLayer::_Count :
             default :                           CHECK_THROW_MSG( false, "unknown layer" );  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         using EKey = ResLoader::IntermMaterial::EKey;
 
@@ -2402,15 +2400,15 @@ namespace {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( layer )
+        switch_enum( layer )
         {
             case ERenderLayer::Opaque :         break;
             case ERenderLayer::Translucent :    break;
             case ERenderLayer::PostProcess :    return _ToPostProcessMaterial( rtech, names );
+            case ERenderLayer::_Count :
             default :                           CHECK_THROW_MSG( false, "unknown layer" );  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         auto        result      = MakeRC<ModelGeomSource::Material>();
         auto&       res_mngr    = GraphicsScheduler().GetResourceManager();

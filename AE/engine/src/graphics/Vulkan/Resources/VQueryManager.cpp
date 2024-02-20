@@ -334,8 +334,7 @@ The operation of this command happens after the first scope and happens before t
         DRC_SHAREDLOCK( _drCheck );
         CHECK_ERR( type < EQueryType::_Count );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case_likely EQueryType::Timestamp :
                 if_unlikely( not AllBits( _timestampAllowed, EQueueMask(0) | queueType ))
@@ -362,7 +361,7 @@ The operation of this command happens after the first scope and happens before t
             case EQueryType::_Count :
             case EQueryType::Unknown : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         auto&   pool = _poolArr[ uint(type) ];
         if_unlikely( not pool )
@@ -576,13 +575,13 @@ The second synchronization scope includes all commands which reference the queri
     GetRTASProperty
 =================================================
 */
-    bool  VQueryManager::GetRTASProperty (const Query &q, OUT Byte64u* result, Bytes size) C_NE___
+    bool  VQueryManager::GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
         StaticAssert( sizeof(*result) == sizeof(ulong) );
 
         CHECK_ERR( q and result != null );
-        CHECK_ERR( size >= (SizeOf<Byte64u> * q.count) );
+        CHECK_ERR( size >= (SizeOf<Bytes64u> * q.count) );
 
         ASSERT( q.type == EQueryType::AccelStructCompactedSize      or
                 q.type == EQueryType::AccelStructSerializationSize  or
@@ -599,7 +598,7 @@ The second synchronization scope includes all commands which reference the queri
         bool    available = true;
         for (uint i = 0, cnt = q.count; i < cnt; ++i)
         {
-            result[i]  = Byte64u{ tmp[i].result };
+            result[i]  = Bytes64u{ tmp[i].result };
             available &= tmp[i].IsAvailable();
         }
         return err == VK_SUCCESS and available;

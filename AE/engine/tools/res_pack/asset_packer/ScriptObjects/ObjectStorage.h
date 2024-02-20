@@ -2,17 +2,8 @@
 
 #pragma once
 
-#include "base/Utils/NamedID_HashCollisionCheck.h"
-#include "base/Utils/FileSystem.h"
-
-#include "vfs/Common.h"
 #include "vfs/Archive/ArchivePacker.h"
-
-#include "scripting/Bindings/CoreBindings.h"
-#include "graphics/Scripting/GraphicsBindings.h"
-
 #include "../pipeline_compiler/Packer/HashToName.h"
-
 #include "Common.h"
 
 namespace AE::AssetPacker
@@ -70,26 +61,25 @@ namespace AE::AssetPacker
         ObjectStorage ();
         ~ObjectStorage ();
 
-        void  SetScriptFolder (const Path &path)                                                            { _currentPath = path; }
+        ND_ Path const&         GetScriptFolder ()                                                      const   { return _currentPath; }
+            void                SetScriptFolder (const Path &path)                                              { _currentPath = path; }
 
-        Path const&  GetScriptFolder ()                                                             const   { return _currentPath; }
+            void                AddAtlas (const String &nameInArchive, RC<ImageAtlasInfo> info)         __Th___;
+        ND_ RC<ImageAtlasInfo>  GetAtlas (const String &nameInArchive)                                  __Th___;
 
-            void                AddAtlas (const String &nameInArchive, RC<ImageAtlasInfo> info)     __Th___;
-        ND_ RC<ImageAtlasInfo>  GetAtlas (const String &nameInArchive)                              __Th___;
+            void  AddFont (const String &nameInArchive)                                                 __Th___;
+            void  RequireFont (const String &nameInArchive)                                             __Th___;
 
-            void                AddFont (const String &nameInArchive)                               __Th___;
-            void                RequireFont (const String &nameInArchive)                           __Th___;
-
-        void  AddToArchive (const String &name, RStream &stream)                                    __Th___;
-        void  AddToArchive (const String &name, RStream &stream, EArchivePackerFileType fileType)   __Th___;
+            void  AddToArchive (const String &name, RStream &stream)                                    __Th___;
+            void  AddToArchive (const String &name, RStream &stream, EArchivePackerFileType fileType)   __Th___;
 
         ND_ bool  Initialize (const Path &tempFile);
         ND_ bool  SaveArchive (const Path &filename);
 
         template <typename NameType>
-        void  AddName (const String &name)                                                          __Th___;
+            void  AddName (const String &name)                                                          __Th___;
 
-        static void  Bind (const ScriptEnginePtr &se)                                               __Th___;
+        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
 
         ND_ static Ptr<ObjectStorage>  Instance ();
             static void  SetInstance (ObjectStorage* inst);

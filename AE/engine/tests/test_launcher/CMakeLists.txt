@@ -54,12 +54,13 @@ else()
     if (NOT EXISTS "${ANDROID_SRC_PATH}")
         message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH}" )
     endif()
-    file( GLOB_RECURSE JAVA_SOURCES "${ANDROID_SRC_PATH}/*.*" )
+    file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.*" )
+    list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 
-    add_executable( "TestLauncher" ${CPP_SOURCES} ${JAVA_SOURCES} )
+    add_executable( "TestLauncher" ${CPP_SOURCES} ${ANDROID_SOURCES} )
 
-    source_group( "Apk" FILES ${JAVA_SOURCES} )
-    set_source_files_properties( ${JAVA_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
+    source_group( "Apk" FILES ${ANDROID_SOURCES} )
+    set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CPP_SOURCES} )

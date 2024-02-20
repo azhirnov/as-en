@@ -39,30 +39,21 @@ void ASmain (GLFW_ActionBindings& bindings)
                   ActionInfo( "MouseLBDown", EGestureType::Hold ));
         bind.Add( GLFW_Input::MouseWheel,
                   ActionInfo( "MouseWheel", EValueType::Float2, EGestureType::Move ));
+
         bind.Add( GLFW_Input::TouchPos,
                   ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
+        bind.Add( GLFW_Input::TouchPos,
+                  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
+    }
+
+    // HwCamera bindings
+    {
+        RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "HwCamera" );
 
         bind.Add( GLFW_Input::TouchPos,
-                  ActionInfo( "Test.Move", EValueType::Float2, EGestureType::Move ));
+                  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
         bind.Add( GLFW_Input::TouchPos,
-                  ActionInfo( "Test.Down", EValueType::Float2, EGestureType::Down ));
-        bind.Add( GLFW_Input::TouchPos,
-                  ActionInfo( "Test.DoubleClick", EValueType::Float2, EGestureType::DoubleClick ));
-        bind.Add( GLFW_Input::TouchPos,
-                  ActionInfo( "Test.LongPress", EValueType::Float2, EGestureType::LongPress_Move ));
-        bind.Add( GLFW_Input::MultiTouch,
-                  ActionInfo( "Test.ScaleRotate2D", EValueType::Float2, EGestureType::ScaleRotate2D ));
-
-        bind.Add( GLFW_Input::Q,
-                  ActionInfo( "Test.Hold", EGestureType::Hold ));
-        bind.Add( GLFW_Input::W,
-                  ActionInfo( "Test.Down", EGestureType::Down ));
-        bind.Add( GLFW_Input::E,
-                  ActionInfo( "Test.Click", EGestureType::Click ));
-        bind.Add( GLFW_Input::R,
-                  ActionInfo( "Test.DoubleClick", EGestureType::DoubleClick ));
-        bind.Add( GLFW_Input::T,
-                  ActionInfo( "Test.LongPress", EGestureType::LongPress ));
+                  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
     }
 
     // Camera3D bindings

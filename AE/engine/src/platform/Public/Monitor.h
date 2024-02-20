@@ -39,6 +39,9 @@ namespace AE::App
         using Name_t            = FixedString< 32 >;
         using NativeMonitor_t   = void *;
 
+        using CutoutRects_t     = FixedArray< PixelsRectI, 4 >;
+        using Luminance_t       = DefaultPhysicalQuantity<float>::Luminance;
+
 
     // variables
     public:
@@ -46,15 +49,23 @@ namespace AE::App
         PixelsRectI         workArea;                       // area available for window
         PixelsRectI         region;                         // area available for fullscreen window only
 
-        Meters2f            physicalSize;                   // in meters
-        float2              ppi;                            // pixels per inch
+        Meters2f            physicalSize;                   // in meters, for curved screen this is length of arc
         Meters2f            curvatureRadius;                // radius of curvature on X and Y axis, only for curved monitors
+        float               ppi                 = 0.f;      // pixels per inch
         uint                freq                = 0;        // update frequency in Hz
         EOrientation        orient              = Default;
         bool                isExternal          = false;
 
         Name_t              name;
         NativeMonitor_t     native              = null;
+
+        CutoutRects_t       cutout;
+
+        struct {
+            Luminance_t         avr;                        // Max frame-average luminance data. Some displays can not present all pixels in 'max' luminance.
+            Luminance_t         max;
+            Luminance_t         min;
+        }                   luminance;
 
 
     // methods
@@ -68,17 +79,11 @@ namespace AE::App
         ND_ bool        IsHorizontal ()                         C_NE___ { return region.pixels.Width() > region.pixels.Height(); }
         ND_ bool        IsVertical ()                           C_NE___ { return not IsHorizontal(); }
 
-        ND_ float2      DipsPerPixel ()                         C_NE___ { return ppi / _DipToPixel(); }
+        ND_ float       MillimetersPerPixel ()                  C_NE___ { return 1.f / (ppi * _InchsInMillimeter()); }
+        ND_ float2      RegionSize ()                           C_NE___ { return float2{region.pixels.Size()}; }
 
-    #if 0
-        ND_ float2      MillimetersPerPixel ()                  C_NE___ { return (physicalSize.meters * 1.0e+3f) / RegionSize(); }
-        ND_ float2      PixelPerMillimeters ()                  C_NE___ { return RegionSize() / (physicalSize.meters * 1.0e+3f); }
-    #else
-        ND_ float2      MillimetersPerPixel ()                  C_NE___ { return 1.f / (ppi * _InchsInMillimeter()); }
-    //  ND_ float2      PixelPerMillimeters ()                  C_NE___ { return ppi * _InchsInMillimeter(); }
-    #endif
-
-        ND_ float2      RegionSize ()                           C_NE___ { return float2(region.pixels.Size()); }
+        ND_ float2x2    RotationMatrix ()                       C_NE___;
+        ND_ Quat        RotationQuat ()                         C_NE___;
 
 
         // converter
@@ -120,16 +125,75 @@ namespace AE::App
 
         ND_ static constexpr float  _MetersInInch ()            __NE___ { return 0.0254f; }
         ND_ static constexpr float  _InchsInMillimeter ()       __NE___ { return 0.0393700787f; }
-        ND_ static constexpr float  _DipToPixel ()              __NE___ { return 160.0f; }
+        ND_ static constexpr float  _DipToPixel ()              __NE___ { return 160.0f; }  // Android
 
-
-            void  Print ()                                      C_NE___;
+            void        Print ()                                C_NE___;
 
 
         // utils
         ND_ float2      _CalculatePPI ()                        C_NE___ { return RegionSize() / physicalSize.meters * _MetersInInch(); }
         ND_ Meters2f    _CalculatePhysicalSize ()               C_NE___ { return Meters2f{ RegionSize() / ppi * _MetersInInch() }; }
+
+        ND_ static float2   CalculatePPI (const Meters2f &size, const Pixels2f &dim)    __NE___ { return dim.pixels / size.meters * _MetersInInch(); }
+
+        template <typename T>
+        ND_ static Vec<T,2>   _Rotate (EOrientation, const Vec<T,2> &size)                              __NE___;
+        template <typename T>
+        ND_ static Vec<T,2>   _Rotate (EOrientation, const Vec<T,2> &pos, const Vec<T,2> &size)         __NE___;
+        template <typename T>
+        ND_ static Rectangle<T>  _Rotate (EOrientation, const Rectangle<T> &rect, const Vec<T,2> &size) __NE___;
     };
+
+
+/*
+=================================================
+    _Rotate
+----
+    rotate from 0 to 'orient'.
+    'pos' and 'size' must be in same orientation (0).
+=================================================
+*/
+    template <typename T>
+    Vec<T,2>  Monitor::_Rotate (EOrientation orient, const Vec<T,2> &size) __NE___
+    {
+        return  AnyEqual( orient, EOrientation::Orient_90_deg, EOrientation::Orient_270_deg ) ?
+                    Vec<T,2>{ size.y, size.x } :
+                    size;
+    }
+
+    template <typename T>
+    Vec<T,2>  Monitor::_Rotate (EOrientation orient, const Vec<T,2> &pos, const Vec<T,2> &size) __NE___
+    {
+        switch_enum( orient )
+        {
+            case EOrientation::Orient_0_deg :   return pos;
+            case EOrientation::Orient_90_deg :  return Vec<T,2>{ pos.y,             size.x - pos.x };
+            case EOrientation::Orient_180_deg : return Vec<T,2>{ size.x - pos.x,    size.y - pos.y };
+            case EOrientation::Orient_270_deg : return Vec<T,2>{ size.y - pos.y,    pos.x };
+
+            case EOrientation::Default :
+            case EOrientation::Sensor :
+            default :                           return pos;
+        }
+        switch_end
+    }
+
+    template <typename T>
+    Rectangle<T>  Monitor::_Rotate (EOrientation orient, const Rectangle<T> &pos, const Vec<T,2> &size) __NE___
+    {
+        switch_enum( orient )
+        {
+            case EOrientation::Orient_0_deg :   return pos;
+            case EOrientation::Orient_90_deg :  return Rectangle<T>{ pos.top,             size.x - pos.right,  pos.bottom,        size.x - pos.left };
+            case EOrientation::Orient_180_deg : return Rectangle<T>{ size.x - pos.right,  size.y - pos.bottom, size.x - pos.left, size.y - pos.top  };
+            case EOrientation::Orient_270_deg : return Rectangle<T>{ size.y - pos.bottom, pos.left,            size.y - pos.top,  pos.right         };
+
+            case EOrientation::Default :
+            case EOrientation::Sensor :
+            default :                           return pos;
+        }
+        switch_end
+    }
 
 
 } // AE::App

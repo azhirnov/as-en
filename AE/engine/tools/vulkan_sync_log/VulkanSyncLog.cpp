@@ -157,6 +157,17 @@ namespace
         };
         using DescriptorSetMap_t = FlatHashMap< VkDescriptorSet, DescriptorSetData >;
 
+
+        struct PipelineLayoutData
+        {
+            using Layouts_t = FixedArray< VkDescriptorSetLayout, GraphicsConfig::MaxDescriptorSets+1 >;
+
+            String                  name;
+            Layouts_t               dsLayouts;
+        };
+        using PipelineLayoutMap_t   = FlatHashMap< VkPipelineLayout, PipelineLayoutData >;
+
+
         struct PipelineData
         {
             enum class EType
@@ -182,6 +193,7 @@ namespace
             VkPipelineLayout    layout;
         };
         using DescrSetArray_t = Array< DescSetAndPplnLayout >;
+
 
         struct CommandBufferData
         {
@@ -218,10 +230,9 @@ namespace
         using CommandPoolMap_t = FlatHashMap< VkCommandPool, CommandPoolData >;
 
 
-        using SemaphoreNameMap_t        = FlatHashMap< VkSemaphore, String >;
-        using FenceNameMap_t            = FlatHashMap< VkFence,     String >;
-        using QueueNameMap_t            = FlatHashMap< VkQueue,     String >;
-        using PipelineLayoutNameMap_t   = FlatHashMap< VkPipelineLayout, String >;
+        using SemaphoreNameMap_t    = FlatHashMap< VkSemaphore, String >;
+        using FenceNameMap_t        = FlatHashMap< VkFence,     String >;
+        using QueueNameMap_t        = FlatHashMap< VkQueue,     String >;
 
 
         struct ResourceStatistic
@@ -252,7 +263,7 @@ namespace
         QueueNameMap_t          queueMap;
         SemaphoreNameMap_t      semaphoreMap;
         FenceNameMap_t          fenceMap;
-        PipelineLayoutNameMap_t pplnLayoutMap;
+        PipelineLayoutMap_t     pplnLayoutMap;
         CommandPoolMap_t        commandPool;
         CommandBufferMap_t      commandBuffers;
         ImageMap_t              imageMap;
@@ -710,6 +721,30 @@ namespace
 
 /*
 =================================================
+    Wrap_vkCreatePipelineLayout
+=================================================
+*/
+    VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreatePipelineLayout (VkDevice device, const VkPipelineLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineLayout* pPipelineLayout)
+    {
+        auto&   logger = VulkanLogger::Get();
+        EXLOCK( logger.guard );
+
+        VkResult    res = logger.vkCreatePipelineLayout( device, pCreateInfo, pAllocator, OUT pPipelineLayout );
+        if_unlikely( res != VK_SUCCESS )
+            return res;
+
+        auto&   pl = logger.pplnLayoutMap.insert_or_assign( *pPipelineLayout, VulkanLogger::PipelineLayoutData{} ).first->second;
+
+        pl.dsLayouts.resize( pCreateInfo->setLayoutCount );
+
+        for (usize i = 0; i < pl.dsLayouts.size(); ++i) {
+            pl.dsLayouts[i] = pCreateInfo->pSetLayouts[i];
+        }
+        return res;
+    }
+
+/*
+=================================================
     Wrap_vkCreateGraphicsPipelines
 =================================================
 */
@@ -993,8 +1028,7 @@ namespace
             for (uint i = 0; i < write.descriptorCount; ++i)
                 dst.processed[i] = Default;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( dst.descriptorType )
+            switch_enum( dst.descriptorType )
             {
                 case VK_DESCRIPTOR_TYPE_SAMPLER :
                 case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
@@ -1053,7 +1087,7 @@ namespace
                     DBG_WARNING( "unsupported descriptor type" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 
@@ -1537,8 +1571,7 @@ namespace
         auto&   logger = VulkanLogger::Get();
         EXLOCK( logger.guard );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( pNameInfo->objectType )
+        switch_enum( pNameInfo->objectType )
         {
             case VK_OBJECT_TYPE_COMMAND_BUFFER :
             {
@@ -1633,7 +1666,7 @@ namespace
                 break;
             }
             case VK_OBJECT_TYPE_PIPELINE_LAYOUT : {
-                logger.pplnLayoutMap[ VBitCast<VkPipelineLayout>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
+                logger.pplnLayoutMap[ VBitCast<VkPipelineLayout>(pNameInfo->objectHandle) ].name = pNameInfo->pObjectName;
                 break;
             }
 
@@ -1672,10 +1705,12 @@ namespace
             case VK_OBJECT_TYPE_MICROMAP_EXT :
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :
             case VK_OBJECT_TYPE_SHADER_EXT :
+            case VK_OBJECT_TYPE_CUDA_MODULE_NV :
+            case VK_OBJECT_TYPE_CUDA_FUNCTION_NV :
             case VK_OBJECT_TYPE_MAX_ENUM :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return logger.vkSetDebugUtilsObjectNameEXT( device, pNameInfo );
     }
@@ -1935,15 +1970,17 @@ namespace
     GetPreviousLayout
 =================================================
 */
-    static VkImageLayout  GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
-                                             uint subpassIndex, uint attachmentIndex, VkImageLayout currentLayout)
+    ND_ static Pair<VkImageLayout, VkImageAspectFlags>
+        GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
+                           uint subpassIndex, uint attachmentIndex, VkImageLayout currentLayout, VkImageAspectFlags currentAspect)
     {
         Unused( framebuffer );
 
         struct StackValue
         {
-            uint            subpass;
-            VkImageLayout   layout;
+            uint                subpass;
+            VkImageLayout       layout;
+            VkImageAspectFlags  aspect;
         };
         StackValue  stack [32];
         uint        stack_size  = 0;
@@ -1957,6 +1994,7 @@ namespace
                 if ( dep.srcSubpass == VK_SUBPASS_EXTERNAL )
                 {
                     stack[stack_size].layout = renderPass.attachments[ attachmentIndex ].initialLayout;
+                    stack[stack_size].aspect = Default;
                     ++stack_size;
                 }
                 else
@@ -1969,6 +2007,7 @@ namespace
                         if ( sp.pColorAttachments[i].attachment == attachmentIndex )
                         {
                             stack[stack_size].layout = sp.pColorAttachments[i].layout;
+                            stack[stack_size].aspect = sp.pColorAttachments[i].aspectMask;
                             found = true;
                         }
                     }
@@ -1977,12 +2016,14 @@ namespace
                         if ( sp.pResolveAttachments[i].attachment == attachmentIndex )
                         {
                             stack[stack_size].layout = sp.pResolveAttachments[i].layout;
+                            stack[stack_size].aspect = sp.pResolveAttachments[i].aspectMask;
                             found = true;
                         }
                     }
                     if ( sp.pDepthStencilAttachment and (not found) and (sp.pDepthStencilAttachment->attachment == attachmentIndex) )
                     {
                         stack[stack_size].layout = sp.pDepthStencilAttachment->layout;
+                        stack[stack_size].aspect = sp.pDepthStencilAttachment->aspectMask;
                         found = true;
                     }
                     for (uint i = 0; (not found) and sp.inputAttachmentCount; ++i)
@@ -1990,6 +2031,7 @@ namespace
                         if ( sp.pInputAttachments[i].attachment == attachmentIndex )
                         {
                             stack[stack_size].layout = sp.pInputAttachments[i].layout;
+                            stack[stack_size].aspect = sp.pInputAttachments[i].aspectMask;
                             found = true;
                         }
                     }
@@ -2001,13 +2043,13 @@ namespace
         }
 
         if ( stack_size == 0 )
-            return currentLayout;
+            return MakePair( currentLayout, currentAspect );
 
         if ( stack_size == 1 )
-            return stack[0].layout;
+            return MakePair( stack[0].layout, stack[0].aspect );
 
         DBG_WARNING( "TODO" );
-        return currentLayout;
+        return MakePair( currentLayout, currentAspect );
     }
 
 /*
@@ -2086,16 +2128,18 @@ namespace
                     log << " ---> " << VkImageLayoutToString( ref.layout );
 
                 log << "\n      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp );
+                log << "\n      aspect:  ---\n";
             }
             else
             {
-                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
-                log << "\n      layout:  " << VkImageLayoutToString( prev );
+                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
+                log << "\n      layout:  " << VkImageLayoutToString( prev.first );
 
-                if ( prev != ref.layout )
+                if ( prev.first != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
+
+                log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
             }
-            log << '\n';
         }
 
         if ( pass.pDepthStencilAttachment != null )
@@ -2116,17 +2160,18 @@ namespace
                     log << " ---> " << VkImageLayoutToString( ref.layout );
 
                 log << "\n      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp );
-                log << "\n      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp );
+                log << "\n      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
             }
             else
             {
-                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
-                log << "\n      layout:        " << VkImageLayoutToString( prev );
+                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
+                log << "\n      layout:        " << VkImageLayoutToString( prev.first );
 
-                if ( prev != ref.layout )
+                if ( prev.first != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
+
+                log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
             }
-            log << '\n';
         }
 
         if ( subpassIndex != 0 and subpassIndex != VK_SUBPASS_EXTERNAL )
@@ -2136,38 +2181,38 @@ namespace
                 for (uint i = 0; i < pass.colorAttachmentCount; ++i)
                 {
                     auto&   ref  = pass.pResolveAttachments[i];
-                    auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+                    auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
 
                     log << "    resolve attachment:";
 
                     if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                         return;
 
-                    log << "\n      layout:  " << VkImageLayoutToString( prev );
+                    log << "\n      layout:  " << VkImageLayoutToString( prev.first );
 
-                    if ( prev != ref.layout )
+                    if ( prev.first != ref.layout )
                         log << " ---> " << VkImageLayoutToString( ref.layout );
 
-                    log << '\n';
+                    log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
                 }
             }
 
             for (uint i = 0; i < pass.inputAttachmentCount; ++i)
             {
                 auto&   ref  = pass.pInputAttachments[i];
-                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+                auto    prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
 
                 log << "    input attachment:";
 
                 if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
                     return;
 
-                log << "\n      layout:  " << VkImageLayoutToString( prev );
+                log << "\n      layout:  " << VkImageLayoutToString( prev.first );
 
-                if ( prev != ref.layout )
+                if ( prev.first != ref.layout )
                     log << " ---> " << VkImageLayoutToString( ref.layout );
 
-                log << '\n';
+                log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
             }
         }
 
@@ -2424,19 +2469,19 @@ namespace
         for (usize i = 0; i < rp.info.attachmentCount; ++i)
         {
             auto&   at   = rp.info.pAttachments[i];
-            auto    prev = GetPreviousLayout( fb, rp, VK_SUBPASS_EXTERNAL, uint(i), at.finalLayout );
+            auto    prev = GetPreviousLayout( fb, rp, VK_SUBPASS_EXTERNAL, uint(i), at.finalLayout, 0 );
 
             log << "    attachment:";
 
             if ( not PrintRPImageViewName( log, fb.attachments[i] ))
                 return;
 
-            log << "\n      layout:  " << VkImageLayoutToString( prev );
+            log << "\n      layout:  " << VkImageLayoutToString( prev.first );
 
-            if ( prev != at.finalLayout )
+            if ( prev.first != at.finalLayout )
                 log << " ---> " << VkImageLayoutToString( at.finalLayout );
 
-            log << "\n";
+            log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
 
             if ( IsDepthStencilFormat( at.format ))
             {
@@ -2774,6 +2819,318 @@ namespace
 
 /*
 =================================================
+    GetImagePlaneInfo
+=================================================
+*/
+    ND_ static bool  GetImagePlaneInfo (VkFormat fmt, VkImageAspectFlagBits aspect, OUT VkFormat &planeFormat, OUT uint2 &dimScale)
+    {
+        switch ( fmt )
+        {
+            case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM :
+            {
+                planeFormat = VK_FORMAT_R8_UNORM;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R8_UNORM;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R8G8_UNORM;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM :
+            {
+                planeFormat = VK_FORMAT_R8_UNORM;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G8_B8R8_2PLANE_422_UNORM :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R8_UNORM;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R8G8_UNORM;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM :
+            {
+                planeFormat = VK_FORMAT_R8_UNORM;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT : return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {1,1};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16 :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 :
+            {
+                planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM :
+            {
+                planeFormat = VK_FORMAT_R16_UNORM;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16R16_2PLANE_420_UNORM :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R16_UNORM;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R16G16_UNORM;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM :
+            {
+                planeFormat = VK_FORMAT_R16_UNORM;
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :  dimScale = {1,1};   return true;
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM :
+            {
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R16_UNORM;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R16G16_UNORM;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM :
+            {
+                planeFormat = VK_FORMAT_R16_UNORM;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                    case VK_IMAGE_ASPECT_PLANE_2_BIT :  return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R8_UNORM;
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R8G8_UNORM;
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R10X6_UNORM_PACK16;
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R12X4_UNORM_PACK16;
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;
+                        return true;
+                }
+                break;
+            }
+            case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case VK_IMAGE_ASPECT_PLANE_0_BIT :
+                        planeFormat = VK_FORMAT_R16_UNORM;
+                        return true;
+
+                    case VK_IMAGE_ASPECT_PLANE_1_BIT :
+                        planeFormat = VK_FORMAT_R16G16_UNORM;
+                        return true;
+                }
+                break;
+            }
+        }
+        return false;
+    }
+
+/*
+=================================================
     CalcMemorySize
 =================================================
 */
@@ -2782,12 +3139,34 @@ namespace
         ASSERT( region.bufferRowLength == 0 or region.bufferRowLength >= region.imageExtent.width );
         ASSERT( region.bufferImageHeight == 0 or region.bufferImageHeight >= region.imageExtent.height );
 
-        const auto&     fmt_info    = GetFormatInfo( imageCI.format );
-        const Bytes     row_pitch   = ImageUtils::RowSize( Max( region.bufferRowLength, region.imageExtent.width ), fmt_info.bitsPerBlock, fmt_info.BlockDim() );
-        const Bytes     slice_pitch = ImageUtils::SliceSize( Max( region.bufferImageHeight, region.imageExtent.height ), row_pitch, fmt_info.BlockDim() );
-        const uint      dim_z       = Max( region.imageSubresource.layerCount, region.imageExtent.depth );
+        constexpr uint  plane_mask = VK_IMAGE_ASPECT_PLANE_0_BIT | VK_IMAGE_ASPECT_PLANE_1_BIT | VK_IMAGE_ASPECT_PLANE_2_BIT;
 
-        return VkDeviceSize( dim_z * slice_pitch );
+        if ( region.imageSubresource.aspectMask <= VK_IMAGE_ASPECT_STENCIL_BIT )
+        {
+            const auto&     fmt_info    = GetFormatInfo( imageCI.format );
+            const Bytes     row_pitch   = ImageUtils::RowSize( Max( region.bufferRowLength, region.imageExtent.width ), fmt_info.bitsPerBlock, fmt_info.BlockDim() );
+            const Bytes     slice_pitch = ImageUtils::SliceSize( Max( region.bufferImageHeight, region.imageExtent.height ), row_pitch, fmt_info.BlockDim() );
+            const uint      dim_z       = Max( region.imageSubresource.layerCount, region.imageExtent.depth );
+
+            return VkDeviceSize( dim_z * slice_pitch );
+        }
+        else
+        if ( AnyBits( region.imageSubresource.aspectMask, plane_mask ))
+        {
+            VkFormat    plane_fmt;
+            uint2       plane_scale;
+            if ( not GetImagePlaneInfo( imageCI.format, VkImageAspectFlagBits(region.imageSubresource.aspectMask), OUT plane_fmt, OUT plane_scale ))
+                return 0;
+
+            const auto&     fmt_info    = GetFormatInfo( plane_fmt );
+            const Bytes     row_pitch   = ImageUtils::RowSize( Max( region.bufferRowLength, region.imageExtent.width ), fmt_info.bitsPerBlock, fmt_info.BlockDim() );
+            const Bytes     slice_pitch = ImageUtils::SliceSize( Max( region.bufferImageHeight, region.imageExtent.height ), row_pitch, fmt_info.BlockDim() );
+            const uint      dim_z       = Max( region.imageSubresource.layerCount, region.imageExtent.depth );
+
+            return VkDeviceSize( dim_z * slice_pitch );
+        }
+        else
+            return 0;
     }
 
 /*
@@ -3080,7 +3459,8 @@ namespace
     Wrap_vkCmdClearDepthStencilImage
 =================================================
 */
-    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdClearDepthStencilImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil,
+    VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdClearDepthStencilImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout,
+                                                                 const VkClearDepthStencilValue* pDepthStencil,
                                                                  uint rangeCount, const VkImageSubresourceRange* pRanges)
     {
         auto&   logger = VulkanLogger::Get();
@@ -3588,8 +3968,7 @@ namespace
 
         VulkanLogger::DescrSetArray_t * ds_array = null;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( pipelineBindPoint )
+        switch_enum( pipelineBindPoint )
         {
             case VK_PIPELINE_BIND_POINT_GRAPHICS :          ds_array = &cmdbuf->bindPoints[0];  break;
             case VK_PIPELINE_BIND_POINT_COMPUTE :           ds_array = &cmdbuf->bindPoints[1];  break;
@@ -3602,7 +3981,7 @@ namespace
                 DBG_WARNING( "unknown pipeline bind point" );
                 return;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         ds_array->resize( Max( ds_array->size(), firstSet + descriptorSetCount ));
 
@@ -3882,8 +4261,7 @@ namespace
 
         const auto  LogGeometry = [&logger, &log] (const VkAccelerationStructureGeometryKHR &geom)
         {{
-            BEGIN_ENUM_CHECKS();
-            switch ( geom.geometryType )
+            switch_enum( geom.geometryType )
             {
                 case VK_GEOMETRY_TYPE_TRIANGLES_KHR :
                     log << "Triangles\n";
@@ -3904,7 +4282,7 @@ namespace
                     DBG_WARNING("unknown geometry type");
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }};
 
         for (uint i = 0; i < infoCount; ++i)
@@ -3922,8 +4300,7 @@ namespace
             log << "    scratch: " << logger.GetBufferAsString( info.scratchData ) << '\n';
 
             log << "    type: ";
-            BEGIN_ENUM_CHECKS();
-            switch ( info.type )
+            switch_enum( info.type )
             {
                 case VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR :     log << "TopLevel\n";    break;
                 case VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR :  log << "BottomLevel\n"; break;
@@ -3931,18 +4308,17 @@ namespace
                 case VK_ACCELERATION_STRUCTURE_TYPE_MAX_ENUM_KHR :
                 default :                                               log << "<unknown>\n";   break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             log << "    mode: ";
-            BEGIN_ENUM_CHECKS();
-            switch ( info.mode )
+            switch_enum( info.mode )
             {
                 case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :   log << "Build\n";       break;
                 case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :  log << "Update\n";      break;
                 case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
                 default :                                               log << "<unknown>\n";   break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             if ( info.pGeometries != null )
             {
@@ -4253,7 +4629,7 @@ namespace
         auto&   log = cmdbuf->log;
         log << "  BindPipeline\n";
         log << "    pipeline:  '" << ppln_it->second.name << "'\n";
-        log << "    layout:    '" << layout_it->second << "'\n";
+        log << "    layout:    '" << layout_it->second.name << "', DSCount: " << ToString(layout_it->second.dsLayouts.size()) << '\n';
         log << "    bindPoint: " << VkPipelineBindPointToString( pipelineBindPoint ) << '\n';
         #if ENABLE_SEQNO
         log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -4333,8 +4709,7 @@ namespace
       #endif
         DescrSetArray_t *   ds_array    = null;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( pipelineBindPoint )
+        switch_enum( pipelineBindPoint )
         {
             case VK_PIPELINE_BIND_POINT_GRAPHICS :          ds_array = &cmdbuf.bindPoints[0];   break;
             case VK_PIPELINE_BIND_POINT_COMPUTE :           ds_array = &cmdbuf.bindPoints[1];   break;
@@ -4347,9 +4722,12 @@ namespace
                 DBG_WARNING( "unknown pipeline bind point" );
                 return;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         String  tmp_log;
+        usize   ds_count        = 0;
+        usize   min_ds_count    = UMax;
+        usize   max_ds_count    = 0;
 
         for (usize i = 0; i < ds_array->size(); ++i)
         {
@@ -4360,15 +4738,18 @@ namespace
             if ( ds_it == descSetMap.end() or pl_it == pplnLayoutMap.end() )
                 continue;
 
-            tmp_log << "    [" << ToString(i) << "] pl: '" << pl_it->second << "'\n";
+            ds_count        = Max( ds_count, i+1 );
+            max_ds_count    = Max( max_ds_count, pl_it->second.dsLayouts.size() );
+            min_ds_count    = Min( min_ds_count, pl_it->second.dsLayouts.size() );
+
+            tmp_log << "    [" << ToString(i) << "] pl: '" << pl_it->second.name << "'\n";
 
             auto&   bindings = ds_it->second.bindings;
             for (usize j = 0; j < bindings.size(); ++j)
             {
                 auto&   bind = bindings[j];
 
-                BEGIN_ENUM_CHECKS();
-                switch ( bind.descriptorType )
+                switch_enum( bind.descriptorType )
                 {
                     case VK_DESCRIPTOR_TYPE_SAMPLER :
                         break;
@@ -4479,9 +4860,12 @@ namespace
                         DBG_WARNING( "unsupported descriptor type" );
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
+
+        CHECK_MSG( ds_count == max_ds_count,
+            "Number of descriptor sets ("s << ToString(ds_count) << " are not equal to number of DS layouts (" << ToString(max_ds_count) << " in pipeline layout" );
 
         if ( tmp_log.size() )
             cmdbuf.log << "    descriptors:\n" << tmp_log << "  ----------\n\n";
@@ -4543,6 +4927,7 @@ namespace
         table._var_vkCreateAccelerationStructureKHR = &Wrap_vkCreateAccelerationStructureKHR;
         table._var_vkDestroyAccelerationStructureKHR= &Wrap_vkDestroyAccelerationStructureKHR;
         table._var_vkGetBufferDeviceAddressKHR      = &Wrap_vkGetBufferDeviceAddressKHR;
+        table._var_vkCreatePipelineLayout           = &Wrap_vkCreatePipelineLayout;
 
         table._var_vkQueueSubmit                    = &Wrap_vkQueueSubmit;
         table._var_vkQueueSubmit2KHR                = &Wrap_vkQueueSubmit2KHR;

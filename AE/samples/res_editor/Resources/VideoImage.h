@@ -25,7 +25,7 @@ namespace AE::ResEditor
             uint    decodedBits     : _MaxCpuImages;    // available for uploading
             uint    pos             : _PosBits;         // current or next uploading
 
-            States () : emptyBits{UMax}, decodedBits{0}, pos{0} {}
+            States () : emptyBits{0xFF}, decodedBits{0}, pos{0} {}
         };
 
         StaticAssert( sizeof(States) == sizeof(uint) );
@@ -33,8 +33,8 @@ namespace AE::ResEditor
 
         using ImageArr_t    = StaticArray< Strong<ImageID>,     _MaxGpuImages >;
         using ViewArr_t     = StaticArray< Strong<ImageViewID>, _MaxGpuImages >;
-        using Second_t      = Video::IVideoDecoder::Second_t;
-        using FrameTimes_t  = StaticArray< Second_t,            _MaxCpuImages >;
+        using Seconds_t     = Video::IVideoDecoder::Second_t;
+        using FrameTimes_t  = StaticArray< Seconds_t,           _MaxCpuImages >;
         using MemArr_t      = StaticArray< ImageMemView,        _MaxCpuImages >;
         using Allocator_t   = LinearAllocator< UntypedAllocator, _MaxCpuImages, false >;    // use as block allocator
 
@@ -42,8 +42,8 @@ namespace AE::ResEditor
     // variables
     private:
         Atomic<uint>                _imageIdx   {0};    // used for '_ids', '_views'
-        BitAtomic<States>           _states;            // used for '_frameTimes', '_imageMemView'
-        FAtomic<double>             _curTime;           // Second_t
+        StructAtomic<States>        _states;            // used for '_frameTimes', '_imageMemView'
+        FAtomic<double>             _curTime;           // Seconds_t
 
         ImageArr_t                  _ids;
         ViewArr_t                   _views;
@@ -70,7 +70,7 @@ namespace AE::ResEditor
                     RC<DynamicDim>      outDynSize,
                     StringView          dbgName)                __Th___;
 
-        ~VideoImage () override;
+        ~VideoImage ()                                          __NE_OV;
 
             bool  Resize (TransferCtx_t &)                      __Th_OV { return true; }
             bool  RequireResize ()                              C_Th_OV { return false; }
@@ -91,7 +91,7 @@ namespace AE::ResEditor
             static CoroTask _DecodeFrameTask (RC<VideoImage>)   __NE___;
         ND_ uint            _DecodeFrame ()                     __NE___;
 
-        ND_ static void     _Validate (States)                  __NE___;
+            static void     _Validate (States)                  __NE___;
     };
 
 

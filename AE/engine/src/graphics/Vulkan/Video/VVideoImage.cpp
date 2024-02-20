@@ -60,7 +60,7 @@ namespace AE::Graphics
         ASSERT( _desc.options    == desc.options );
         ASSERT( _desc.usage      == desc.usage );
         ASSERT( _desc.videoUsage == desc.videoUsage );
-        ASSERT( AllBits( image_ci.flags, VK_IMAGE_CREATE_DISJOINT_BIT ) == RangeU{1,3}.Contains( EPixelFormat_PlaneCount( _desc.format )) );
+        ASSERT( AllBits( image_ci.flags, VK_IMAGE_CREATE_DISJOINT_BIT ) == RangeU{ 1u, 3u }.Contains( EPixelFormat_PlaneCount( _desc.format )) );
 
         GRES_CHECK( IsSupported( resMngr, _desc ));
 
@@ -140,7 +140,7 @@ namespace AE::Graphics
 
         VkSamplerYcbcrConversion    ycbcr_conv = Default;
         {
-            auto    samp_id = resMngr.GetSampler( _desc.ycbcrConversion );
+            auto    samp_id = resMngr.GetSampler( Default, _desc.ycbcrConversion );     // TODO
             auto*   samp    = resMngr.GetResource( samp_id, True{"incRef"}, True{"quiet"} );
             if ( samp != null )
             {
@@ -284,16 +284,17 @@ namespace AE::Graphics
         }
 
         VkSamplerYcbcrConversion    ycbcr_conv = Default;
+        if ( _desc.ycbcrConversion.IsDefined() )
         {
-            auto    samp_id = resMngr.GetSampler( _desc.ycbcrConversion );
+            auto    samp_id = resMngr.GetSampler( _desc.ycbcrConvPack, _desc.ycbcrConversion );
+            CHECK_ERR( samp_id );
+
             auto*   samp    = resMngr.GetResource( samp_id, True{"incRef"}, True{"quiet"} );
-            if ( samp != null )
-            {
-                _ycbcrSampler   = Strong<SamplerID>{ samp_id };
-                ycbcr_conv      = samp->YcbcrConversion();
-                CHECK_ERR( ycbcr_conv );
-                CHECK_ERR( image_ci.format == samp->YcbcrFormat() );
-            }
+
+            _ycbcrSampler   = Strong<SamplerID>{ samp_id };
+            ycbcr_conv      = samp->YcbcrConversion();
+            CHECK_ERR( ycbcr_conv );
+            CHECK_ERR( image_ci.format == samp->YcbcrFormat() );
         }
 
         // create view
@@ -363,12 +364,12 @@ namespace AE::Graphics
             }
         }
 
-        _image              = Default;
-        _view               = Default;
-        _desc               = Default;
-        _imageId            = Default;
-        _viewId             = Default;
-        _memAllocator       = null;
+        _image          = Default;
+        _view           = Default;
+        _desc           = Default;
+        _imageId        = Default;
+        _viewId         = Default;
+        _memAllocator   = null;
         _memStorages.clear();
 
         DEBUG_ONLY( _debugName.clear(); )
@@ -526,10 +527,17 @@ namespace
     IsSupported
 =================================================
 */
-    bool  VVideoImage::IsSupported (const VResourceManager &, const VideoImageDesc &) __NE___
+    bool  VVideoImage::IsSupported (const VResourceManager &resMngr, const VideoImageDesc &desc) __NE___
     {
-        // TODO
-        return true;
+        const auto&     dev             = resMngr.GetDevice();
+        const uint2     dim_granularity = EPixelFormat_DimGranularity( desc.format );
+        bool            result          = true;
+
+        result &= dev.GetVExtensions().samplerYcbcrConversion;
+
+        result &= All( IsMultipleOf( desc.dimension, dim_granularity ));
+
+        return result;
     }
 
 

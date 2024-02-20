@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Utils/RefCounter.h"
 #include "base/Containers/ArrayView.h"
 #include "base/Memory/MemChunkList.h"
@@ -50,6 +50,7 @@ namespace AE::Base
             WriteAccess         = 1 << 6,
             Async               = 1 << 7,       // must be 'ThreadSafe' too
             DeferredOpen        = 1 << 8,       // async file can be opened even if it not exists, but read/write request will fail
+            Prefetch            = 1 << 9,       // allow to use 'Prefetch()' for read stream
         };
 
 
@@ -311,13 +312,13 @@ namespace AE::Base
         const Bytes     chunk_size  = mem.ChunkDataSize();
         auto*           chunk       = mem.First();
 
-        if_unlikely( (chunk == null) | (dataSize == 0) )
+        if_unlikely( (chunk == null) or (dataSize == 0) )
             return true;
 
         ASSERT( dataSize <= mem.Capacity() );
 
         bool    ok = true;
-        for (; (chunk != null) & ok;)
+        for (; (chunk != null) and ok;)
         {
             Bytes   size = Min( dataSize, chunk_size );
             ok = (ReadBlock( pos, OUT chunk->Data(), size ) == size);
@@ -382,11 +383,11 @@ namespace AE::Base
         Bytes           data_size   = mem.Size();
         auto*           chunk       = mem.First();
 
-        if_unlikely( (chunk == null) | (data_size == 0) )
+        if_unlikely( (chunk == null) or (data_size == 0) )
             return true;
 
         bool    ok = true;
-        for (; (chunk != null) & ok;)
+        for (; (chunk != null) and ok;)
         {
             Bytes   size = Min( data_size, chunk_size );
             ok = (WriteBlock( pos, chunk->Data(), size ) == size);

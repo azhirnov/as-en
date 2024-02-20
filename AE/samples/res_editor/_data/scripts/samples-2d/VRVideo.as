@@ -90,17 +90,17 @@
 
             // VR360
             case 3 :
-            //  ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, uv );
+            //  ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, ToSNorm(uv) );
                 uv2  = Inverted_PlaneToVR360( ray.dir, iEye );                                  break;
 
             // Cubemap VR360 (YouTube)
             case 4 :
-            //  ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, uv );
+            //  ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, ToSNorm(uv) );
                 uv2  = Inverted_PlaneToCubemapVR360( ray.dir, iEye );                           break;
 
             // VR180
             case 5 :
-                ray = Ray_PlaneToSphere( ToRad(float2(80.0, 80.0)), float3(0.0), 0.1, uv );
+                ray = Ray_PlaneToSphere( ToRad(float2(80.0, 80.0)), float3(0.0), 0.1, ToSNorm(uv) );
                 uv2  = Inverted_PlaneToVR180( ray.dir, iEye );                                  break;
         }
 

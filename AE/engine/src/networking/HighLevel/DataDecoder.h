@@ -31,10 +31,20 @@ namespace AE::Networking
         ND_ bool    IsComplete ()                                       C_NE___ { return _des.stream.Empty(); }
         ND_ Bytes   RemainingSize ()                                    C_NE___ { return _des.stream.RemainingSize(); }
 
-        template <typename ...Args>
-        ND_ bool    operator () (INOUT Args& ...args)                   __NE___ { return _des( args... ); }
+        template <typename Arg0, typename ...Args>
+        ND_ bool    operator () (OUT Arg0& arg0, OUT Args& ...args)     __NE___ { return _des( OUT arg0, OUT args... ); }
+        ND_ bool    operator () ()                                      __NE___ { return true; }
 
         ND_ bool    Read (OUT void* buffer, Bytes size)                 __NE___ { return _des.stream.Read( OUT buffer, size ); }
+        ND_ Bytes   ReadRemaining (OUT void* buffer)                    __NE___ { return _des.stream.ReadRemaining( OUT buffer ); }
+
+        template <typename T>
+        ND_ bool    Decode (OUT T* arr, const usize count)              __NE___
+        {
+            bool    ok = true;
+            for (usize i = 0; (i < count) & ok; ++i) { ok = _des( OUT arr[i] ); }
+            return ok;
+        }
     };
 
 

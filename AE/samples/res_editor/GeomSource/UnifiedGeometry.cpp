@@ -59,13 +59,16 @@ namespace AE::ResEditor
                                                 const Debugger &dbg, OUT ShaderDebugger::Result &dbgStorage) __Th___
     {
         // TODO: array of dbgStorage
-        /*ASSERT( dbg.IsEnabled() );
+        ASSERT( dbg.IsEnabled() );
+
+        if ( _drawCommands.size() > 1 )
+            return; // not supported yet
 
         auto&   mtr = RefCast<Material>(inMtr);
 
         for (usize i = 0; i < _drawCommands.size(); ++i)
         {
-            auto    it = mtr.pipelineMap.find( Pair{ i, dbg.mode });
+            auto    it = mtr.pipelineMap.find( MakePair( i, dbg.mode ));
             if ( it != mtr.pipelineMap.end() )
             {
                 Visit( it->second,
@@ -74,7 +77,7 @@ namespace AE::ResEditor
                     [] (NullUnion)                  { CHECK_MSG( false, "pipeline is not defined" ); }
                 );
             }
-        }*/
+        }
     }
 
 /*
@@ -134,6 +137,7 @@ namespace AE::ResEditor
         auto&               mtr         = RefCast<Material>(in.mtr);
         DescriptorSetID     mtr_ds      = mtr.descSets[ ctx.GetFrameId().Index() ];
         Material::PplnID_t  prev_ppln;
+        const EDebugMode    dbg_mode    = in.IsDebuggerEnabled() ? in.dbgMode : Default;
 
         CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
 
@@ -162,7 +166,7 @@ namespace AE::ResEditor
 
         for (usize i = 0; i < _drawCommands.size(); ++i)
         {
-            auto    ppln_it = mtr.pipelineMap.find( Pair{ i, in.dbgMode });
+            auto    ppln_it = mtr.pipelineMap.find( MakePair( i, dbg_mode ));
             if ( ppln_it == mtr.pipelineMap.end() )
                 continue;
 

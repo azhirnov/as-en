@@ -30,8 +30,7 @@
                 RC<Shader>  vs = Shader();
                 vs.LoadSelf();
                 ppln.SetVertexShader( vs );
-            }
-            {
+            }{
                 RC<Shader>  fs = Shader();
                 fs.LoadSelf();
                 ppln.SetFragmentShader( fs );
@@ -78,7 +77,7 @@
     #if 0
         // without derivatives
         const float     closest_edge    = Min( gl.BaryCoord.x, Min( gl.BaryCoord.y, gl.BaryCoord.z ));
-        const float     wireframe       = SmoothStep( 0, 0.01, closest_edge );
+        const float     wireframe       = SmoothStep( closest_edge, 0.0, 0.01 );
 
     #else
         const float     thickness       = 1.5;  // pixels
@@ -90,7 +89,7 @@
         const float3    d_thickness     = d_barycoord * thickness;
         const float3    d_falloff       = d_barycoord * falloff;
 
-        const float3    remap           = SmoothStep( d_thickness, d_thickness + d_falloff, gl.BaryCoord);
+        const float3    remap           = SmoothStep( gl.BaryCoord, d_thickness, d_thickness + d_falloff );
         const float     wireframe       = Min( remap.x, Min( remap.y, remap.z ));
 
     #endif

@@ -41,7 +41,7 @@ namespace AE::Math
             ND_ Bool8  operator ^ (const Bool8 &rhs)        C_NE___ { return Bool8{ _mm256_xor_si256( _value, rhs._value )}; }
             ND_ Bool8  operator ~ ()                        C_NE___ { return Bool8{ _mm256_andnot_si256( _value, _mm256_set1_epi32(-1) )}; }
 
-            ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == 0xFFFF'FFFF; }
+            ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == -1; }
             ND_ bool  Any ()                                C_NE___ { return _mm256_movemask_epi8( _value ) != 0; }
             ND_ bool  None ()                               C_NE___ { return _mm256_movemask_epi8( _value ) == 0; }
         };
@@ -54,96 +54,104 @@ namespace AE::Math
 
     // methods
     public:
-        SimdFloat8 ()                                       __NE___ : _value{ _mm256_setzero_ps() } {}
-        explicit SimdFloat8 (float v)                       __NE___ : _value{ _mm256_set1_ps( v )} {}
-        explicit SimdFloat8 (const float* ptr)              __NE___ : _value{ _mm256_loadu_ps( ptr )} { ASSERT( ptr != null ); }
-        explicit SimdFloat8 (const __m256 &v)               __NE___ : _value{v} {}
+        SimdFloat8 ()                                           __NE___ : _value{ _mm256_setzero_ps() } {}
+        explicit SimdFloat8 (float v)                           __NE___ : _value{ _mm256_set1_ps( v )} {}
+        explicit SimdFloat8 (const float* ptr)                  __NE___ : _value{ _mm256_loadu_ps( ptr )} { ASSERT( ptr != null ); }
+        explicit SimdFloat8 (const __m256 &v)                   __NE___ : _value{v} {}
 
         SimdFloat8 (float v0, float v1, float v2, float v3,
-                    float v4, float v5, float v6, float v7) __NE___ :
+                    float v4, float v5, float v6, float v7)     __NE___ :
             _value{ _mm256_set_ps( v0, v1, v2, v3, v4, v5, v6, v7 )} {}
 
-        ND_ Self  operator +  (const Self &rhs)             C_NE___ { return Add( rhs ); }
-        ND_ Self  operator -  (const Self &rhs)             C_NE___ { return Sub( rhs ); }
-        ND_ Self  operator *  (const Self &rhs)             C_NE___ { return Mul( rhs ); }
-        ND_ Self  operator /  (const Self &rhs)             C_NE___ { return Div( rhs ); }
+        ND_ Self  operator +  (const Self &rhs)                 C_NE___ { return Add( rhs ); }
+        ND_ Self  operator -  (const Self &rhs)                 C_NE___ { return Sub( rhs ); }
+        ND_ Self  operator *  (const Self &rhs)                 C_NE___ { return Mul( rhs ); }
+        ND_ Self  operator /  (const Self &rhs)                 C_NE___ { return Div( rhs ); }
 
-        ND_ Self  operator &  (const Self &rhs)             C_NE___ { return And( rhs ); }
-        ND_ Self  operator |  (const Self &rhs)             C_NE___ { return Or( rhs ); }
-        ND_ Self  operator ^  (const Self &rhs)             C_NE___ { return Xor( rhs ); }
+        ND_ Self  operator &  (const Self &rhs)                 C_NE___ { return And( rhs ); }
+        ND_ Self  operator |  (const Self &rhs)                 C_NE___ { return Or( rhs ); }
+        ND_ Self  operator ^  (const Self &rhs)                 C_NE___ { return Xor( rhs ); }
 
-        ND_ Bool8  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
-        ND_ Bool8  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
-        ND_ Bool8  operator >  (const Self &rhs)            C_NE___ { return Greater( rhs ); }
-        ND_ Bool8  operator <  (const Self &rhs)            C_NE___ { return Less( rhs ); }
-        ND_ Bool8  operator >= (const Self &rhs)            C_NE___ { return GEqual( rhs ); }
-        ND_ Bool8  operator <= (const Self &rhs)            C_NE___ { return LEqual( rhs ); }
+        ND_ Bool8  operator == (const Self &rhs)                C_NE___ { return Equal( rhs ); }
+        ND_ Bool8  operator != (const Self &rhs)                C_NE___ { return NotEqual( rhs ); }
+        ND_ Bool8  operator >  (const Self &rhs)                C_NE___ { return Greater( rhs ); }
+        ND_ Bool8  operator <  (const Self &rhs)                C_NE___ { return Less( rhs ); }
+        ND_ Bool8  operator >= (const Self &rhs)                C_NE___ { return GEqual( rhs ); }
+        ND_ Bool8  operator <= (const Self &rhs)                C_NE___ { return LEqual( rhs ); }
 
-        ND_ Value_t  GetX ()                                C_NE___ { return _mm256_cvtss_f32( _value ); }
+        ND_ Value_t  GetX ()                                    C_NE___ { return _mm256_cvtss_f32( _value ); }
 
-        ND_ __m256 const&  Get ()                           C_NE___ { return _value; }
+        ND_ __m256 const&  Get ()                               C_NE___ { return _value; }
 
-        ND_ Self  Add (const Self &rhs)                     C_NE___ { return Self{ _mm256_add_ps( _value, rhs._value )}; }
-        ND_ Self  Sub (const Self &rhs)                     C_NE___ { return Self{ _mm256_sub_ps( _value, rhs._value )}; }
-        ND_ Self  Mul (const Self &rhs)                     C_NE___ { return Self{ _mm256_mul_ps( _value, rhs._value )}; }
-        ND_ Self  Div (const Self &rhs)                     C_NE___ { return Self{ _mm256_div_ps( _value, rhs._value )}; }
-        ND_ Self  Min (const Self &rhs)                     C_NE___ { return Self{ _mm256_min_ps( _value, rhs._value )}; }
-        ND_ Self  Max (const Self &rhs)                     C_NE___ { return Self{ _mm256_max_ps( _value, rhs._value )}; }
+        ND_ Self  Add (const Self &rhs)                         C_NE___ { return Self{ _mm256_add_ps( _value, rhs._value )}; }
+        ND_ Self  Sub (const Self &rhs)                         C_NE___ { return Self{ _mm256_sub_ps( _value, rhs._value )}; }
+        ND_ Self  Mul (const Self &rhs)                         C_NE___ { return Self{ _mm256_mul_ps( _value, rhs._value )}; }
+        ND_ Self  Div (const Self &rhs)                         C_NE___ { return Self{ _mm256_div_ps( _value, rhs._value )}; }
+        ND_ Self  Min (const Self &rhs)                         C_NE___ { return Self{ _mm256_min_ps( _value, rhs._value )}; }
+        ND_ Self  Max (const Self &rhs)                         C_NE___ { return Self{ _mm256_max_ps( _value, rhs._value )}; }
 
-        ND_ Self  And (const Self &rhs)                     C_NE___ { return Self{ _mm256_and_ps( _value, rhs._value )}; }
-        ND_ Self  Or  (const Self &rhs)                     C_NE___ { return Self{ _mm256_or_ps( _value, rhs._value )}; }
-        ND_ Self  Xor (const Self &rhs)                     C_NE___ { return Self{ _mm256_xor_ps( _value, rhs._value )}; }
-        ND_ Self  AndNot (const Self &rhs)                  C_NE___ { return Self{ _mm256_andnot_ps( _value, rhs._value )}; } // !a & b
+        ND_ Self  And (const Self &rhs)                         C_NE___ { return Self{ _mm256_and_ps( _value, rhs._value )}; }
+        ND_ Self  Or  (const Self &rhs)                         C_NE___ { return Self{ _mm256_or_ps( _value, rhs._value )}; }
+        ND_ Self  Xor (const Self &rhs)                         C_NE___ { return Self{ _mm256_xor_ps( _value, rhs._value )}; }
+        ND_ Self  AndNot (const Self &rhs)                      C_NE___ { return Self{ _mm256_andnot_ps( _value, rhs._value )}; } // !a & b
 
-        ND_ Self  HAdd (const Self &rhs)                    C_NE___ { return Self{ _mm256_hadd_ps( _value, rhs._value )}; }     // { a0 + a1, a2 + a3, b0 + b1, b2 + b3 }
-        ND_ Self  HSub (const Self &rhs)                    C_NE___ { return Self{ _mm256_hsub_ps( _value, rhs._value )}; }     // { a0 - a1, a2 - a3, b0 - b1, b2 - b3 }
+        ND_ Self  HAdd (const Self &rhs)                        C_NE___ { return Self{ _mm256_hadd_ps( _value, rhs._value )}; }     // { a0 + a1, a2 + a3, b0 + b1, b2 + b3 }
+        ND_ Self  HSub (const Self &rhs)                        C_NE___ { return Self{ _mm256_hsub_ps( _value, rhs._value )}; }     // { a0 - a1, a2 - a3, b0 - b1, b2 - b3 }
 
-        ND_ Self  AddSub (const Self &rhs)                  C_NE___ { return Self{ _mm256_addsub_ps( _value, rhs._value )}; }   // { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
+        ND_ Self  AddSub (const Self &rhs)                      C_NE___ { return Self{ _mm256_addsub_ps( _value, rhs._value )}; }   // { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
 
-        ND_ Self  Abs ()                                    C_NE___
+        ND_ Self  Abs ()                                        C_NE___
         {
             __m256  signmask = _mm256_set1_ps( -0.0f );
             return Self{ _mm256_andnot_ps( signmask, _value )};
         }
 
-        ND_ Self  Reciprocal ()                             C_NE___ { return Self{ _mm256_rcp_ps( _value )}; }                              // 1 / x
-        ND_ Self  Sqrt ()                                   C_NE___ { return Self{ _mm256_sqrt_ps( _value )}; }
-        ND_ Self  RSqrt ()                                  C_NE___ { return Self{ _mm256_rsqrt_ps( _value )}; }                            // 1 / sqrt(x)
-        ND_ Self  FastSqrt ()                               C_NE___ { return Self{ _mm256_mul_ps( _value, _mm256_rsqrt_ps( _value ))}; }    // x / sqrt(x)
+        ND_ Self  Reciprocal ()                                 C_NE___ { return Self{ _mm256_rcp_ps( _value )}; }                              // 1 / x
+        ND_ Self  Sqrt ()                                       C_NE___ { return Self{ _mm256_sqrt_ps( _value )}; }
+        ND_ Self  RSqrt ()                                      C_NE___ { return Self{ _mm256_rsqrt_ps( _value )}; }                            // 1 / sqrt(x)
+        ND_ Self  FastSqrt ()                                   C_NE___ { return Self{ _mm256_mul_ps( _value, _mm256_rsqrt_ps( _value ))}; }    // x / sqrt(x)
 
         // ordered - comparison with NaN returns false
-        ND_ Bool8  Equal    (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_EQ_OQ  )}; }
-        ND_ Bool8  NotEqual (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NEQ_OQ )}; }
-        ND_ Bool8  Greater  (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_GT_OQ  )}; }
-        ND_ Bool8  Less     (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_LT_OQ  )}; }
-        ND_ Bool8  GEqual   (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_GE_OQ  )}; }
-        ND_ Bool8  LEqual   (const Self &rhs)               C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_LE_OQ  )}; }
+        ND_ Bool8  Equal    (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_EQ_OQ  )}; }
+        ND_ Bool8  NotEqual (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NEQ_OQ )}; }
+        ND_ Bool8  Greater  (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_GT_OQ  )}; }
+        ND_ Bool8  Less     (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_LT_OQ  )}; }
+        ND_ Bool8  GEqual   (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_GE_OQ  )}; }
+        ND_ Bool8  LEqual   (const Self &rhs)                   C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_LE_OQ  )}; }
 
         // unordered - comparison with NaN returns true
-        ND_ Bool8  EqualU    (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_EQ_UQ  )}; }
-        ND_ Bool8  NotEqualU (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NEQ_UQ )}; }
-        ND_ Bool8  GreaterU  (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NLE_UQ )}; }
-        ND_ Bool8  LessU     (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NGE_UQ )}; }
-        ND_ Bool8  GEqualU   (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NLT_UQ )}; }
-        ND_ Bool8  LEqualU   (const Self &rhs)              C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NGT_UQ )}; }
+        ND_ Bool8  EqualU    (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_EQ_UQ  )}; }
+        ND_ Bool8  NotEqualU (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NEQ_UQ )}; }
+        ND_ Bool8  GreaterU  (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NLE_UQ )}; }
+        ND_ Bool8  LessU     (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NGE_UQ )}; }
+        ND_ Bool8  GEqualU   (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NLT_UQ )}; }
+        ND_ Bool8  LEqualU   (const Self &rhs)                  C_NE___ { return Bool8{ _mm256_cmp_ps( _value, rhs._value, _CMP_NGT_UQ )}; }
 
-        ND_ Self  Dot (const Self &rhs)                     C_NE___ { return Self{ _mm256_dp_ps( _value, rhs._value, 0xFF )}; }
+        ND_ Self  Dot (const Self &rhs)                         C_NE___ { return Self{ _mm256_dp_ps( _value, rhs._value, 0xFF )}; }
 
-        ND_ Self  Floor ()                                  C_NE___ { return Self{ _mm256_floor_ps( _value )}; }
-        ND_ Self  Ceil ()                                   C_NE___ { return Self{ _mm256_ceil_ps( _value )}; }
+        ND_ Self  Floor ()                                      C_NE___ { return Self{ _mm256_floor_ps( _value )}; }
+        ND_ Self  Ceil ()                                       C_NE___ { return Self{ _mm256_ceil_ps( _value )}; }
 
         template <int Mode>
-        ND_ Self  Round ()                                  C_NE___ { return Self{ _mm256_round_ps( _value, Mode )}; }
+        ND_ Self  Round ()                                      C_NE___ { return Self{ _mm256_round_ps( _value, Mode )}; }
+
+        // fused multiply (FM) / fused negative multiply (FNM)
+        ND_ Self  FusedMulAdd (const Self &b, const Self &c)    C_NE___ { return Self{ _mm256_fmadd_ps(    _value, b._value, c._value )}; } // a * b + c
+        ND_ Self  FusedMulSub (const Self &b, const Self &c)    C_NE___ { return Self{ _mm256_fmsub_ps(    _value, b._value, c._value )}; } // a * b - c
+        ND_ Self  FusedMulAddSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fmaddsub_ps( _value, b._value, c._value )}; } // { a0 * b0 - c0, a1 * b1 + c1, a2 * b2 - c2, a3 * b3 + c3 }
+        ND_ Self  FusedMulSubAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fmaddsub_ps( _value, b._value, c._value )}; } // { a0 * b0 + c0, a1 * b1 - c1, a2 * b2 + c2, a3 * b3 - c3 }
+        ND_ Self  FusedNegMulAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fnmadd_ps(   _value, b._value, c._value )}; } // -a * b + c
+        ND_ Self  FusedNegMulSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fnmsub_ps(   _value, b._value, c._value )}; } // -a * b - c
 
         template <uint Idx>
-        ND_ SimdFloat4  ToFloat4 ()                         C_NE___ { StaticAssert( Idx < 2 );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
+        ND_ SimdFloat4  ToFloat4 ()                             C_NE___ { StaticAssert( Idx < 2 );  return SimdFloat4{ _mm256_extractf128_ps( _value, Idx )}; }
 
-        ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm256_storeu_ps( OUT arr.data(), _value );  return arr; }
-            void        ToArray (OUT Value_t* dst)          C_NE___ { _mm256_storeu_ps( OUT dst, _value ); }
-            void        ToAlignedArray (OUT Value_t* dst)   C_NE___ { CheckPointerCast<__m256>( dst );  _mm256_store_ps( OUT dst, _value ); }
+        ND_ Array_t     ToArray ()                              C_NE___ { Array_t arr;  _mm256_storeu_ps( OUT arr.data(), _value );  return arr; }
+            void        ToArray (OUT Value_t* dst)              C_NE___ { _mm256_storeu_ps( OUT dst, _value ); }
+            void        ToAlignedArray (OUT Value_t* dst)       C_NE___ { CheckPointerCast<__m256>( dst );  _mm256_store_ps( OUT dst, _value ); }
 
         template <typename DstType>
-        ND_ auto        Cast ()                             C_NE___;
+        ND_ auto        Cast ()                                 C_NE___;
     };
 
 
@@ -175,9 +183,9 @@ namespace AE::Math
             ND_ Bool4  operator & (const Bool4 &rhs)        C_NE___ { return Bool4{ _mm256_and_si256( _value, rhs._value )}; }
             ND_ Bool4  operator ^ (const Bool4 &rhs)        C_NE___ { return Bool4{ _mm256_xor_si256( _value, rhs._value )}; }
             ND_ Bool4  operator ~ ()                        C_NE___ { return Bool4{ _mm256_andnot_si256( _value, _mm256_set1_epi64x(-1) )}; }
-            ND_ bool  operator [] (usize i)                 C_NE___ { ASSERT( i < 4 );  return _value.m256i_u64[i] == UMax; }
+        //  ND_ bool  operator [] (usize i)                 C_NE___ { ASSERT( i < 4 );  return _value.m256i_u64[i] == UMax; }
 
-            ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == 0xFFFF'FFFF; }
+            ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == -1; }
             ND_ bool  Any ()                                C_NE___ { return _mm256_movemask_epi8( _value ) != 0; }
             ND_ bool  None ()                               C_NE___ { return _mm256_movemask_epi8( _value ) == 0; }
         };
@@ -190,82 +198,90 @@ namespace AE::Math
 
     // methods
     public:
-        SimdDouble4 ()                                      __NE___ : _value{ _mm256_setzero_pd() } {}
-        explicit SimdDouble4 (double v)                     __NE___ : _value{ _mm256_set1_pd( v )} {}
-        explicit SimdDouble4 (const double* v)              __NE___ : _value{ _mm256_loadu_pd( v )} {}
-        explicit SimdDouble4 (const __m256d &v)             __NE___ : _value{ v } {}
-        SimdDouble4 (double x, double y, double z, double w)__NE___ : _value{ _mm256_set_pd( x, y, z, w )} {}
+        SimdDouble4 ()                                          __NE___ : _value{ _mm256_setzero_pd() } {}
+        explicit SimdDouble4 (double v)                         __NE___ : _value{ _mm256_set1_pd( v )} {}
+        explicit SimdDouble4 (const double* v)                  __NE___ : _value{ _mm256_loadu_pd( v )} {}
+        explicit SimdDouble4 (const __m256d &v)                 __NE___ : _value{ v } {}
+        SimdDouble4 (double x, double y, double z, double w)    __NE___ : _value{ _mm256_set_pd( x, y, z, w )} {}
 
-        ND_ Self  operator + (const Self &rhs)              C_NE___ { return Add( rhs ); }
-        ND_ Self  operator - (const Self &rhs)              C_NE___ { return Sub( rhs ); }
-        ND_ Self  operator * (const Self &rhs)              C_NE___ { return Mul( rhs ); }
-        ND_ Self  operator / (const Self &rhs)              C_NE___ { return Div( rhs ); }
+        ND_ Self  operator + (const Self &rhs)                  C_NE___ { return Add( rhs ); }
+        ND_ Self  operator - (const Self &rhs)                  C_NE___ { return Sub( rhs ); }
+        ND_ Self  operator * (const Self &rhs)                  C_NE___ { return Mul( rhs ); }
+        ND_ Self  operator / (const Self &rhs)                  C_NE___ { return Div( rhs ); }
 
-        ND_ Self  operator &  (const Self &rhs)             C_NE___ { return And( rhs ); }
-        ND_ Self  operator |  (const Self &rhs)             C_NE___ { return Or( rhs ); }
-        ND_ Self  operator ^  (const Self &rhs)             C_NE___ { return Xor( rhs ); }
+        ND_ Self  operator &  (const Self &rhs)                 C_NE___ { return And( rhs ); }
+        ND_ Self  operator |  (const Self &rhs)                 C_NE___ { return Or( rhs ); }
+        ND_ Self  operator ^  (const Self &rhs)                 C_NE___ { return Xor( rhs ); }
 
-        ND_ Bool4  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
-        ND_ Bool4  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
-        ND_ Bool4  operator >  (const Self &rhs)            C_NE___ { return Greater( rhs ); }
-        ND_ Bool4  operator <  (const Self &rhs)            C_NE___ { return Less( rhs ); }
-        ND_ Bool4  operator >= (const Self &rhs)            C_NE___ { return GEqual( rhs ); }
-        ND_ Bool4  operator <= (const Self &rhs)            C_NE___ { return LEqual( rhs ); }
+        ND_ Bool4  operator == (const Self &rhs)                C_NE___ { return Equal( rhs ); }
+        ND_ Bool4  operator != (const Self &rhs)                C_NE___ { return NotEqual( rhs ); }
+        ND_ Bool4  operator >  (const Self &rhs)                C_NE___ { return Greater( rhs ); }
+        ND_ Bool4  operator <  (const Self &rhs)                C_NE___ { return Less( rhs ); }
+        ND_ Bool4  operator >= (const Self &rhs)                C_NE___ { return GEqual( rhs ); }
+        ND_ Bool4  operator <= (const Self &rhs)                C_NE___ { return LEqual( rhs ); }
 
-        ND_ Value_t         GetX ()                         C_NE___ { return _mm256_cvtsd_f64( _value ); }
+        ND_ Value_t         GetX ()                             C_NE___ { return _mm256_cvtsd_f64( _value ); }
 
-        ND_ __m256d const&  Get ()                          C_NE___ { return _value; }
+        ND_ __m256d const&  Get ()                              C_NE___ { return _value; }
 
-        ND_ Self  Add (const Self &rhs)                     C_NE___ { return Self{ _mm256_add_pd( _value, rhs._value )}; }
-        ND_ Self  Sub (const Self &rhs)                     C_NE___ { return Self{ _mm256_sub_pd( _value, rhs._value )}; }
-        ND_ Self  Mul (const Self &rhs)                     C_NE___ { return Self{ _mm256_mul_pd( _value, rhs._value )}; }
-        ND_ Self  Div (const Self &rhs)                     C_NE___ { return Self{ _mm256_div_pd( _value, rhs._value )}; }
-        ND_ Self  Min (const Self &rhs)                     C_NE___ { return Self{ _mm256_min_pd( _value, rhs._value )}; }
-        ND_ Self  Max (const Self &rhs)                     C_NE___ { return Self{ _mm256_max_pd( _value, rhs._value )}; }
+        ND_ Self  Add (const Self &rhs)                         C_NE___ { return Self{ _mm256_add_pd( _value, rhs._value )}; }
+        ND_ Self  Sub (const Self &rhs)                         C_NE___ { return Self{ _mm256_sub_pd( _value, rhs._value )}; }
+        ND_ Self  Mul (const Self &rhs)                         C_NE___ { return Self{ _mm256_mul_pd( _value, rhs._value )}; }
+        ND_ Self  Div (const Self &rhs)                         C_NE___ { return Self{ _mm256_div_pd( _value, rhs._value )}; }
+        ND_ Self  Min (const Self &rhs)                         C_NE___ { return Self{ _mm256_min_pd( _value, rhs._value )}; }
+        ND_ Self  Max (const Self &rhs)                         C_NE___ { return Self{ _mm256_max_pd( _value, rhs._value )}; }
 
-        ND_ Self  And (const Self &rhs)                     C_NE___ { return Self{ _mm256_and_pd( _value, rhs._value )}; }
-        ND_ Self  Or  (const Self &rhs)                     C_NE___ { return Self{ _mm256_or_pd( _value, rhs._value )}; }
-        ND_ Self  Xor (const Self &rhs)                     C_NE___ { return Self{ _mm256_xor_pd( _value, rhs._value )}; }
-        ND_ Self  AndNot (const Self &rhs)                  C_NE___ { return Self{ _mm256_andnot_pd( _value, rhs._value )}; } // !a & b
+        ND_ Self  And (const Self &rhs)                         C_NE___ { return Self{ _mm256_and_pd( _value, rhs._value )}; }
+        ND_ Self  Or  (const Self &rhs)                         C_NE___ { return Self{ _mm256_or_pd( _value, rhs._value )}; }
+        ND_ Self  Xor (const Self &rhs)                         C_NE___ { return Self{ _mm256_xor_pd( _value, rhs._value )}; }
+        ND_ Self  AndNot (const Self &rhs)                      C_NE___ { return Self{ _mm256_andnot_pd( _value, rhs._value )}; } // !a & b
 
         // returns { a[0] + a[1],  a[2] + a[3],  b[0] + b[1],  b[2] + b[3] }
-        ND_ Self  HAdd (const Self &rhs)                    C_NE___ { return Self{ _mm256_hadd_pd( _value, rhs._value )}; }
+        ND_ Self  HAdd (const Self &rhs)                        C_NE___ { return Self{ _mm256_hadd_pd( _value, rhs._value )}; }
 
         // returns { a[0] - b[0], a[1] + b[1], a[2] - b[2], a[3] + b[3] }
-        ND_ Self  AddSub (const Self &rhs)                  C_NE___ { return Self{ _mm256_addsub_pd( _value, rhs._value )}; }
+        ND_ Self  AddSub (const Self &rhs)                      C_NE___ { return Self{ _mm256_addsub_pd( _value, rhs._value )}; }
 
-        ND_ Self  Sqrt ()                                   C_NE___ { return Self{ _mm256_sqrt_pd( _value )}; }
+        ND_ Self  Sqrt ()                                       C_NE___ { return Self{ _mm256_sqrt_pd( _value )}; }
 
-        ND_ Self  Abs ()                                    C_NE___
+        ND_ Self  Abs ()                                        C_NE___
         {
             __m256d signmask = _mm256_set1_pd( -0.0 );
             return Self{ _mm256_andnot_pd( signmask, _value )};
         }
 
         // ordered - comparison with NaN returns false
-        ND_ Bool4  Equal    (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_EQ_OQ  )}; }
-        ND_ Bool4  NotEqual (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NEQ_OQ )}; }
-        ND_ Bool4  Greater  (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_GT_OQ  )}; }
-        ND_ Bool4  Less     (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_LT_OQ  )}; }
-        ND_ Bool4  GEqual   (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_GE_OQ  )}; }
-        ND_ Bool4  LEqual   (const Self &rhs)               C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_LE_OQ  )}; }
+        ND_ Bool4  Equal    (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_EQ_OQ  )}; }
+        ND_ Bool4  NotEqual (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NEQ_OQ )}; }
+        ND_ Bool4  Greater  (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_GT_OQ  )}; }
+        ND_ Bool4  Less     (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_LT_OQ  )}; }
+        ND_ Bool4  GEqual   (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_GE_OQ  )}; }
+        ND_ Bool4  LEqual   (const Self &rhs)                   C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_LE_OQ  )}; }
 
         // unordered - comparison with NaN returns true
-        ND_ Bool4  EqualU    (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_EQ_UQ  )}; }
-        ND_ Bool4  NotEqualU (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NEQ_UQ )}; }
-        ND_ Bool4  GreaterU  (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NLE_UQ )}; }
-        ND_ Bool4  LessU     (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NGE_UQ )}; }
-        ND_ Bool4  GEqualU   (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NLT_UQ )}; }
-        ND_ Bool4  LEqualU   (const Self &rhs)              C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NGT_UQ )}; }
+        ND_ Bool4  EqualU    (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_EQ_UQ  )}; }
+        ND_ Bool4  NotEqualU (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NEQ_UQ )}; }
+        ND_ Bool4  GreaterU  (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NLE_UQ )}; }
+        ND_ Bool4  LessU     (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NGE_UQ )}; }
+        ND_ Bool4  GEqualU   (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NLT_UQ )}; }
+        ND_ Bool4  LEqualU   (const Self &rhs)                  C_NE___ { return Bool4{ _mm256_cmp_pd( _value, rhs._value, _CMP_NGT_UQ )}; }
+
+        // fused multiply (FM) / fused negative multiply (FNM)
+        ND_ Self  FusedMulAdd (const Self &b, const Self &c)    C_NE___ { return Self{ _mm256_fmadd_pd(    _value, b._value, c._value )}; } // a * b + c
+        ND_ Self  FusedMulSub (const Self &b, const Self &c)    C_NE___ { return Self{ _mm256_fmsub_pd(    _value, b._value, c._value )}; } // a * b - c
+        ND_ Self  FusedMulAddSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fmaddsub_pd( _value, b._value, c._value )}; } // { a0 * b0 - c0, a1 * b1 + c1, a2 * b2 - c2, a3 * b3 + c3 }
+        ND_ Self  FusedMulSubAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fmaddsub_pd( _value, b._value, c._value )}; } // { a0 * b0 + c0, a1 * b1 - c1, a2 * b2 + c2, a3 * b3 - c3 }
+        ND_ Self  FusedNegMulAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fnmadd_pd(   _value, b._value, c._value )}; } // -a * b + c
+        ND_ Self  FusedNegMulSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm256_fnmsub_pd(   _value, b._value, c._value )}; } // -a * b - c
 
 
-        ND_ Self  Floor ()                                  C_NE___ { return Self{ _mm256_floor_pd( _value )}; }
-        ND_ Self  Ceil ()                                   C_NE___ { return Self{ _mm256_ceil_pd( _value )}; }
+        ND_ Self  Floor ()                                      C_NE___ { return Self{ _mm256_floor_pd( _value )}; }
+        ND_ Self  Ceil ()                                       C_NE___ { return Self{ _mm256_ceil_pd( _value )}; }
 
         template <int Mode>
-        ND_ Self  Round ()                                  C_NE___ { return Self{ _mm256_round_pd( _value, Mode )}; }
+        ND_ Self  Round ()                                      C_NE___ { return Self{ _mm256_round_pd( _value, Mode )}; }
 
-        ND_ SimdDouble2  Dot (const Self &rhs)              C_NE___
+        ND_ SimdDouble2  Dot (const Self &rhs)                  C_NE___
         {
             __m256d xy      = _mm256_mul_pd( _value, rhs._value );
             __m256d temp    = _mm256_hadd_pd( xy, xy );
@@ -296,14 +312,14 @@ namespace AE::Math
         }
 
         template <uint Idx>
-        ND_ SimdDouble2 ToDouble2 ()                        C_NE___ { StaticAssert( Idx < 2 );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
+        ND_ SimdDouble2 ToDouble2 ()                            C_NE___ { StaticAssert( Idx < 2 );  return SimdDouble2{ _mm256_extractf128_pd( _value, Idx )}; }
 
-        ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm256_storeu_pd( OUT arr.data(), _value );  return arr; }
-            void        ToArray (OUT Value_t* dst)          C_NE___ { _mm256_storeu_pd( OUT dst, _value ); }
-            void        ToAlignedArray (OUT Value_t* dst)   C_NE___ { CheckPointerCast<__m256d>( dst );  _mm256_store_pd( OUT dst, _value ); }
+        ND_ Array_t     ToArray ()                              C_NE___ { Array_t arr;  _mm256_storeu_pd( OUT arr.data(), _value );  return arr; }
+            void        ToArray (OUT Value_t* dst)              C_NE___ { _mm256_storeu_pd( OUT dst, _value ); }
+            void        ToAlignedArray (OUT Value_t* dst)       C_NE___ { CheckPointerCast<__m256d>( dst );  _mm256_store_pd( OUT dst, _value ); }
 
         template <typename DstType>
-        ND_ auto        Cast ()                             C_NE___;
+        ND_ auto        Cast ()                                 C_NE___;
     };
 
 #endif // AE_SIMD_AVX >= 1
@@ -592,13 +608,13 @@ namespace AE::Math
             if constexpr( is64 )    return Self{ _mm256_cmpgt_epi64( _value, rhs._value )};
         }
 
-        ND_ Bool256b  Less (const Self &rhs)            C_NE___
+        /*ND_ Bool256b  Less (const Self &rhs)          C_NE___
         {
             if constexpr( is8 )     return Self{ _mm256_cmplt_epi8(  _value, rhs._value )};
             if constexpr( is16 )    return Self{ _mm256_cmplt_epi16( _value, rhs._value )};
             if constexpr( is32 )    return Self{ _mm256_cmplt_epi32( _value, rhs._value )};
             if constexpr( is64 )    return Self{ _mm256_cmplt_epi64( _value, rhs._value )};
-        }
+        }*/
 
 
         // zero on overflow
@@ -609,12 +625,12 @@ namespace AE::Math
             if constexpr( is64 )    return Self{ _mm256_slli_epi64( _value, shift )};
         }
 
-        ND_ Self  LShift (const Self &rhs)              C_NE___
+        /*ND_ Self  LShift (const Self &rhs)                C_NE___
         {
             if constexpr( is16 )    return Self{ _mm256_sll_epi16( _value, rhs._value )};
             if constexpr( is32 )    return Self{ _mm256_sll_epi32( _value, rhs._value )};
             if constexpr( is64 )    return Self{ _mm256_sll_epi64( _value, rhs._value )};
-        }
+        }*/
 
 
         // zero on overflow
@@ -625,12 +641,12 @@ namespace AE::Math
             if constexpr( is64 )    return Self{ _mm256_srli_epi64( _value, shift )};
         }
 
-        ND_ Self  RShift (const Self &rhs)              C_NE___
+        /*ND_ Self  RShift (const Self &rhs)                C_NE___
         {
             if constexpr( is16 )    return Self{ _mm256_srl_epi16( _value, rhs._value )};
             if constexpr( is32 )    return Self{ _mm256_srl_epi32( _value, rhs._value )};
             if constexpr( is64 )    return Self{ _mm256_srl_epi64( _value, rhs._value )};
-        }
+        }*/
 
 
         // max on overflow
@@ -641,12 +657,12 @@ namespace AE::Math
             if constexpr( is64 )    return Self{ _mm256_srai_epi64( _value, shift )};
         }
 
-        ND_ Self  RShiftA (const Self &rhs)             C_NE___
+        /*ND_ Self  RShiftA (const Self &rhs)               C_NE___
         {
             if constexpr( is16 )    return Self{ _mm256_sra_epi16( _value, rhs._value )};
             if constexpr( is32 )    return Self{ _mm256_sra_epi32( _value, rhs._value )};
             if constexpr( is64 )    return Self{ _mm256_sra_epi64( _value, rhs._value )};
-        }
+        }*/
 
 
         ND_ Array_t ToArray ()                          C_NE___

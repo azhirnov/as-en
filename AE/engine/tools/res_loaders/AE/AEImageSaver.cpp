@@ -8,7 +8,7 @@ namespace AE::ResLoader
 {
 namespace {
 #   define AE_BUILD_ASSET_PACKER
-#   include "res_pack/asset_packer/Packer/ImagePackerUtils.cpp.h"
+#   include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 #   undef AE_BUILD_ASSET_PACKER
 }
 

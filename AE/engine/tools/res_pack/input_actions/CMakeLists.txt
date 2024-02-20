@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( PLATFORM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/platform" )
+set( PLATFORM_DIR "${MAIN_SOURCE_DIR}/engine/src/platform" )
 set( PLATFORM_HPP_SRC
     "${PLATFORM_DIR}/Private/SerializableInputActions.h"
     "${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.h"
@@ -34,7 +34,7 @@ EnablePrebuild( "InputActionsBinding" )
 
 add_library( "InputActionsBinding-shared" SHARED
     "InputActionsBinding.h"
-    ${DUMMY_CPP_FILE}
+    "Lib/Export.cpp"
     "Lib/InputActionsBinding.def"
 )
 target_link_libraries( "InputActionsBinding-shared" PUBLIC "InputActionsBinding" )
@@ -45,3 +45,4 @@ set_property( TARGET "InputActionsBinding-shared" PROPERTY FOLDER "Engine/ResPac
 # generated cpp file used as dependency to trigger project rebuild
 set( InputActionsBinding.trigger "${CMAKE_CURRENT_SOURCE_DIR}/InputActionsBinding.trigger.cpp" CACHE INTERNAL "" FORCE )
 add_custom_command( TARGET "InputActionsBinding-shared" POST_BUILD COMMAND ${CMAKE_COMMAND} -E touch "${InputActionsBinding.trigger}" )
+set_source_files_properties( "${InputActionsBinding.trigger}" PROPERTIES GENERATED TRUE )

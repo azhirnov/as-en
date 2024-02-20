@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+    Thread-safe:  no
+
     [docs](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Profiling.md)
 */
 
@@ -21,21 +23,24 @@ namespace AE::Profiler
     {
     // types
     private:
-        using TimePoint_t   = std::chrono::steady_clock::time_point;
+        using MsgProducer   = ProfilerUtils::MsgProducer;
+        using MsgConsumer   = ProfilerUtils::MsgConsumer;
 
 
     // variables
     private:
-    #ifndef AE_CFG_RELEASE
+      #ifndef AE_CFG_RELEASE
         Atomic<bool>            _enabled    {true};
-        secondsf                _updateRate {1.f};
-        TimePoint_t             _lastUpdate;
+        Timer                   _timer;
 
         RC<TaskProfiler>        _task;
         RC<GraphicsProfiler>    _graphics;
         RC<MemoryProfiler>      _memory;
         Unique<HwpcProfiler>    _hwpcProf;
-    #endif
+
+        RC<MsgProducer>         _msgProducer;
+        RC<MsgConsumer>         _msgConsumer;
+      #endif
 
 
     // methods
@@ -43,8 +48,10 @@ namespace AE::Profiler
         ProfilerUI () {}
         ~ProfilerUI ();
 
-        ND_ bool  Initialize ();
+        ND_ bool  Initialize (Ptr<Networking::ClientServerBase>);
             void  Deinitialize ();
+
+        ND_ bool  IsInitialized () const;
 
             void  Enable (bool enabled);
 
@@ -53,6 +60,7 @@ namespace AE::Profiler
         #endif
 
             void  Draw (Graphics::Canvas &canvas);
+
 
     private:
         void  _Update ();

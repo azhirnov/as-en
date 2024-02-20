@@ -21,6 +21,11 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::AssetPacker::ScriptImageAtlas,  "ImageAtlas" );
 
 namespace AE::AssetPacker
 {
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+#   include "Packer/ImageAtlasPacker.cpp.h"
+}
+
     using namespace AE::Graphics;
     using namespace AE::ResLoader;
 
@@ -251,9 +256,9 @@ namespace AE::AssetPacker
 
             {
                 Serializing::Serializer ser {stream};
-                CHECK_ERR( atlas_packer.Serialize( ser ));
+                CHECK_ERR( ImageAtlasPacker_Serialize( atlas_packer, ser ));
             }
-            CHECK_ERR( atlas_packer.SaveImage( *stream, dst_image ));
+            CHECK_ERR( ImageAtlasPacker_SaveImage( atlas_packer, *stream, dst_image ));
         }
 
         return true;

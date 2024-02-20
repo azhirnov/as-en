@@ -273,8 +273,7 @@ namespace AE::Graphics
 
         for (auto t : BitfieldIterate( desc.usage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EBufferUsage::UniformTexel :
                     align = Max( align, props.res.minUniformTexelBufferOffsetAlign );
@@ -320,7 +319,7 @@ namespace AE::Graphics
                 case EBufferUsage::Unknown :
                 default_unlikely :                      DBG_WARNING( "unknown buffer usage" );  break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         ASSERT( IsPowerOfTwo( align ));
         return align;

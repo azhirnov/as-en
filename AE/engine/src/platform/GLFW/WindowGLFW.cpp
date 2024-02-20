@@ -10,6 +10,7 @@
 # include "GLFW/glfw3.h"
 # include "GLFW/glfw3native.h"
 
+# include "base/Defines/Undef.h"
 # include "platform/GLFW/WindowGLFW.h"
 # include "platform/GLFW/ApplicationGLFW.h"
 
@@ -160,6 +161,7 @@ namespace AE::App
         DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
         ASSERT( All( IsNotZero( size )) );
+        ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
 
         if_likely( _window != null )
         {
@@ -177,6 +179,8 @@ namespace AE::App
         DRC_EXLOCK( _drCheck );
         DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
+        ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+
         if_likely( _window != null )
         {
             glfwSetWindowPos( _window, pos.x, pos.y );
@@ -193,7 +197,9 @@ namespace AE::App
             int             count;
             GLFWmonitor**   monitors = glfwGetMonitors( OUT &count );
 
-            if_likely( monitors and int(monitorId) < count )
+            ASSERT( int(monitorId) < count );
+
+            if_likely( monitors != null and int(monitorId) < count )
             {
                 int2    monitor_pos;
                 glfwGetMonitorPos( monitors[int(monitorId)], OUT &monitor_pos.x, OUT &monitor_pos.y );
@@ -257,8 +263,7 @@ namespace AE::App
         bool            always_on_top   = false;
         const bool      was_fullscreen  = monitor != null or EWindowMode_IsFullscreen( _wndMode );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EWindowMode::Resizable :           resizable = true;                                               break;
             case EWindowMode::NonResizable :                                                                        break;
@@ -268,7 +273,7 @@ namespace AE::App
             case EWindowMode::_Count :
             default :                               RETURN_ERR( "unknown window mode" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         // save last window location
         if ( not was_fullscreen )
@@ -362,8 +367,7 @@ namespace AE::App
         bool            fullscreen      = false;
         bool            always_on_top   = false;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( desc.mode )
+        switch_enum( desc.mode )
         {
             case EWindowMode::Resizable :           resizable = true;                           break;
             case EWindowMode::NonResizable :                                                    break;
@@ -373,7 +377,7 @@ namespace AE::App
             case EWindowMode::_Count :
             default :                                                                           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( monitors != null                   and
              int(desc.monitorId) >= 0           and
@@ -383,7 +387,7 @@ namespace AE::App
         }else
             monitor = glfwGetPrimaryMonitor();
 
-
+        // calculate window position
         if ( monitor != null )
         {
             int2    work_area_size;
@@ -536,7 +540,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
 
         const uint2     size {w,h};
@@ -554,9 +558,9 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int action, int)
     {
-        if_likely( (action == GLFW_PRESS) | (action == GLFW_RELEASE) )
+        if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
         {
-            auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+            auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
             DRC_EXLOCK( self->_drCheck );
             //ASSERT( self->_HasFocus() );
 
@@ -573,9 +577,9 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int)
     {
-        if_likely( (action == GLFW_PRESS) | (action == GLFW_RELEASE) )
+        if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
         {
-            auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+            auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
             DRC_EXLOCK( self->_drCheck );
             //ASSERT( self->_HasFocus() );
 
@@ -592,7 +596,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
 
         //if_likely( self->_HasFocus() )
@@ -606,7 +610,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
         //ASSERT( self->_HasFocus() );
 
@@ -620,7 +624,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_IconifyCallback (GLFWwindow* wnd, int iconified)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
 
         self->_SetStateV2( iconified == GLFW_TRUE ? EState::InBackground : EState::InForeground );
@@ -633,7 +637,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
 
         self->_contentScale = float2{ xscale, yscale };
@@ -646,7 +650,7 @@ namespace AE::App
 */
     void  WindowGLFW::_GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused)
     {
-        auto*   self = static_cast<WindowGLFW *>(glfwGetWindowUserPointer( wnd ));
+        auto*   self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
         DRC_EXLOCK( self->_drCheck );
 
         self->_SetStateV2( focused == GLFW_TRUE ? EState::Focused : EState::InForeground );

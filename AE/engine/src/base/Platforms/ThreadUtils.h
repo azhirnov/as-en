@@ -29,10 +29,10 @@ namespace AE::Base
 
             static void     ProgressiveSleep (uint)                                         __NE___;
 
-            static void     Pause ()                                                        __NE___ { return PlatformUtils::ThreadPause(); }
-            static void     Sleep_1us ()                                                    __NE___ { return PlatformUtils::ThreadSleep_1us(); }
-            static void     Sleep_500us ()                                                  __NE___ { return PlatformUtils::ThreadSleep_500us(); }
-            static void     Sleep_15ms ()                                                   __NE___ { return PlatformUtils::ThreadSleep_15ms(); }
+            static void     Pause ()                                                        __NE___ { return PlatformUtils::ThreadPause(); }        // keep high CPU frequency
+            static void     Sleep_1us ()                                                    __NE___ { return PlatformUtils::ThreadSleep_1us(); }    // ARM64: low power mode
+            static void     Sleep_500us ()                                                  __NE___ { return PlatformUtils::ThreadSleep_500us(); }  // All: low power mode
+            static void     Sleep_15ms ()                                                   __NE___ { return PlatformUtils::ThreadSleep_15ms(); }   // All: low power mode
 
         ND_ static constexpr auto  NanoSleepTimeStep ()                                     __NE___ { return PlatformUtils::NanoSleepTimeStep(); }
         ND_ static constexpr auto  MicroSleepTimeStep ()                                    __NE___ { return PlatformUtils::MicroSleepTimeStep(); }

@@ -76,8 +76,8 @@ namespace _hidden_
                 void  Fail ()                                       __NE___ { IAsyncTask::OnFailure(); }
             ND_ bool  IsCanceled ()                                 __NE___ { return IAsyncTask::IsCanceled(); }
 
-            template <typename ...Deps>
-            void  Continue (const Tuple<Deps...> &deps)             __NE___ { return IAsyncTask::Continue( deps ); }
+                template <typename ...Deps>
+                void  Continue (const Tuple<Deps...> &deps)         __NE___ { return IAsyncTask::Continue( deps ); }
 
 
         private:
@@ -121,8 +121,8 @@ namespace _hidden_
         CoroutineImpl&  operator = (CoroutineImpl &&)       __NE___ = default;
         CoroutineImpl&  operator = (const CoroutineImpl &)  __NE___ = default;
 
-        explicit operator AsyncTask ()                      C_NE___ { return _coro; }
-        explicit operator bool ()                           C_NE___ { return bool{_coro}; }
+        ND_ explicit operator AsyncTask ()                  C_NE___ { return _coro; }
+        ND_ explicit operator bool ()                       C_NE___ { return bool{_coro}; }
 
         auto  operator co_await ()                          C_NE___;
 

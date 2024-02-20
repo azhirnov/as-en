@@ -1,12 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-/*
-    TODO:
-        setbuf, setvbuf
-*/
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 #include "base/Containers/NtStringView.h"
 #include "base/Utils/FileSystem.h"
 
@@ -46,20 +42,23 @@ namespace AE::Base
         explicit FileRStream (const WString &filename)  __NE___;
     #endif
 
-        ~FileRStream ()                         __NE_OV;
+        ~FileRStream ()                                 __NE_OV;
+
+        // control file buffering
+        bool  SetBufferSize (Bytes size)                __NE___;
+        bool  SetBuffer (char* buf, Bytes size)         __NE___;
+        bool  DisableBuffering ()                       __NE___;
 
 
         // RStream //
-        bool        IsOpen ()                   C_NE_OV { return _file != null; }
-        PosAndSize  PositionAndSize ()          C_NE_OV { return { _position, _fileSize }; }
-        ESourceType GetSourceType ()            C_NE_OV;
+        bool        IsOpen ()                           C_NE_OV { return _file != null; }
+        PosAndSize  PositionAndSize ()                  C_NE_OV { return { _position, _fileSize }; }
+        ESourceType GetSourceType ()                    C_NE_OV;
 
-        bool        SeekSet (Bytes pos)         __NE_OV;    // require ESourceType::RandomAccess
-        bool        SeekFwd (Bytes offset)      __NE_OV;
+        bool        SeekSet (Bytes pos)                 __NE_OV;    // require ESourceType::RandomAccess
+        bool        SeekFwd (Bytes offset)              __NE_OV;
 
-        Bytes       ReadSeq (OUT void*, Bytes)  __NE_OV;
-
-        RC<RDataSource>  AsRDataSource ();
+        Bytes       ReadSeq (OUT void*, Bytes)          __NE_OV;
     };
 
 
@@ -105,6 +104,8 @@ namespace AE::Base
         explicit FileWStream (const wchar_t* filename, EMode mode = EMode::Rewrite) __NE___;
         explicit FileWStream (const WString &filename, EMode mode = EMode::Rewrite) __NE___;
     #endif
+
+        FileWStream ()                                                              __NE___;    // temp file
 
         ~FileWStream ()                                                             __NE_OV;
 
@@ -207,6 +208,8 @@ namespace AE::Base
         explicit FileWDataSource (const wchar_t* filename, EMode mode = EMode::Rewrite) __NE___;
         explicit FileWDataSource (const WString &filename, EMode mode = EMode::Rewrite) __NE___;
     #endif
+
+        FileWDataSource ()                                                              __NE___;    // temp file
 
         ~FileWDataSource ()                                                             __NE_OV;
 

@@ -100,7 +100,7 @@ namespace AE::Base
             for (usize i = CountOf(cpu_name)-1; i > 0; --i)
             {
                 const char  c = cpu_name[i];
-                if ( (c == '\0') | (c == ' ') )
+                if ( (c == '\0') or (c == ' ') )
                     cpu_name[i] = '\0';
                 else
                     break;
@@ -241,22 +241,22 @@ namespace AE::Base
                     if ( info.Level == 1 and info.Type == CacheInstruction ) {
                         cache.L1_Inst.lineSize      = info.LineSize;
                         cache.L1_Inst.associativity = info.Associativity;
-                        cache.L1_Inst.size          = Byte32u{info.CacheSize};
+                        cache.L1_Inst.size          = Bytes32u{info.CacheSize};
                     }else
                     if ( info.Level == 1 and info.Type == CacheData ) {
                         cache.L1_Data.lineSize      = info.LineSize;
                         cache.L1_Data.associativity = info.Associativity;
-                        cache.L1_Data.size          = Byte32u{info.CacheSize};
+                        cache.L1_Data.size          = Bytes32u{info.CacheSize};
                     }else
                     if ( info.Level == 2 and info.Type == CacheData ) {
                         cache.L2.lineSize           = info.LineSize;
                         cache.L2.associativity      = info.Associativity;
-                        cache.L2.size               = Byte32u{info.CacheSize};
+                        cache.L2.size               = Bytes32u{info.CacheSize};
                     }else
                     if ( info.Level == 3 and info.Type == CacheData ) {
                         cache.L3.lineSize           = info.LineSize;
                         cache.L3.associativity      = info.Associativity;
-                        cache.L3.size               = Byte32u{info.CacheSize};
+                        cache.L3.size               = Bytes32u{info.CacheSize};
                     }
                 }
             }

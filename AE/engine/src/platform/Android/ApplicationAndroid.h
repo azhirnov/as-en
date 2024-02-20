@@ -9,6 +9,7 @@
 # include "platform/Public/IApplication.h"
 # include "platform/Android/WindowAndroid.h"
 # include "platform/Private/ApplicationBase.h"
+# include "platform/Android/HwCameraAndroid.h"
 
 namespace AE::App
 {
@@ -57,6 +58,8 @@ namespace AE::App
             //JavaMethod< void () >                 createWindow;
         }                       _methods;
 
+        AtomicRC<HwCameraAndroid>   _hwCamera;
+
         DRC_ONLY(
             RWDataRaceCheck     _drCheck;   // protects: _java, _methods, _displayInfo
         )
@@ -86,26 +89,29 @@ namespace AE::App
     // IApplication //
         WindowPtr       CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)__NE_OV;
 
-        Monitors_t      GetMonitors (bool update = false)                               __NE_OV;
-
-        RC<IVirtualFileStorage> OpenStorage (EAppStorage type)                          __NE_OV;
-
-        ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
-
         void            Terminate ()                                                    __NE_OV;
-
         StringView      GetApiName ()                                                   C_NE_OV { return "android"; }
-
         Locales_t       GetLocales ()                                                   C_NE_OV { return _locales; }
+        RC<IHwCamera>   GetHwCamera ()                                                  __NE_OV { return _hwCamera.load(); }
+
+        ArrayView<Monitor>      GetMonitors (bool update = false)                       __NE_OV;
+        RC<IVirtualFileStorage> OpenStorage (EAppStorage type)                          __NE_OV;
+        ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
 
 
     // called from java
     private:
         static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)              __NE___;
         static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring)    __NE___;
-        static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height,
-                                                    float xdpi, float ydpi, jint orientation)               __NE___;
+        static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass,
+                                                    jint minWidth, jint minHeight,
+                                                    jint maxWidth, jint maxHeight,
+                                                    float dpi, jint orientation,
+                                                    float avrLum, float maxLum, float minLum,
+                                                    jintArray cutoutRects, jint cutoutRectCount)            __NE___;
         static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)                       __NE___;
+        static void JNICALL  native_EnableCamera (JNIEnv*, jclass)                                          __NE___;
+
     public:
         static jint  OnJniLoad (JavaVM* vm)                                                                 __NE___;
         static void  OnJniUnload (JavaVM* vm)                                                               __NE___;

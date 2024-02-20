@@ -26,13 +26,14 @@ namespace AE::Networking
         ND_ bool  _Initialize (RC<MessageFactory>   mf,
                                RC<IServerProvider>  serverProvider,
                                RC<IAllocator>       alloc,
-                               FrameUID             firstFrameId)   __NE___;
-            void  _Deinitialize ()                                  __NE___;
+                               FrameUID             firstFrameId)                       __NE___;
+            void  _Deinitialize ()                                                      __NE___;
 
-        ND_ bool  _AddChannelTCP ()                                 __NE___;
-        ND_ bool  _AddChannelUnreliableUDP (ushort port)            __NE___;
+        ND_ bool  _AddChannelReliableTCP (StringView dbgName = Default)                 __NE___;
+        ND_ bool  _AddChannelUnreliableTCP (StringView dbgName = Default)               __NE___;
+    //  ND_ bool  _AddChannelUnreliableUDP (ushort port, StringView dbgName = Default)  __NE___;
 
-        ND_ bool  _IsConnected ()                                   C_NE___;
+        ND_ bool  _IsConnected ()                                                       C_NE___;
     };
 
 

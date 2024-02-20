@@ -44,7 +44,7 @@ namespace AE::Math
         template <typename B, glm::qualifier Q>
         explicit RGBAColor (const TVec<B,4,Q> &v)                               __NE___ : r{v.x}, g{v.y}, b{v.z}, a{v.w} {}
 
-        ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)               C_NE___ { return    (r == rhs.r) & (g == rhs.g) & (b == rhs.b) & (a == rhs.a); }
+        ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)               C_NE___ { return    (r == rhs.r) and (g == rhs.g) and (b == rhs.b) and (a == rhs.a); }
         ND_ constexpr bool  operator != (const RGBAColor<T> &rhs)               C_NE___ { return not (*this == rhs); }
 
         template <glm::qualifier Q>
@@ -88,7 +88,7 @@ namespace AE::Math
         ND_ constexpr bool  operator == (const DepthStencil &rhs)           C_NE___
         {
             constexpr float eps = 0.001f;
-            return Equal( depth, rhs.depth, eps ) & (stencil == rhs.stencil);
+            return Equal( depth, rhs.depth, eps ) and (stencil == rhs.stencil);
         }
 
         ND_ constexpr bool  operator != (const DepthStencil &rhs)           C_NE___ { return not (*this == rhs); }
@@ -125,7 +125,7 @@ namespace AE::Math
             v = q.x;
         }
 
-        ND_ constexpr bool  operator == (const HSVColor &rhs)                   C_NE___ { return (h == rhs.h) & (s == rhs.s) & (v == rhs.v); }
+        ND_ constexpr bool  operator == (const HSVColor &rhs)                   C_NE___ { return (h == rhs.h) and (s == rhs.s) and (v == rhs.v); }
         ND_ constexpr bool  operator != (const HSVColor &rhs)                   C_NE___ { return not (*this == rhs); }
 
         template <glm::qualifier Q>

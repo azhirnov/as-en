@@ -42,7 +42,7 @@ namespace AE::Profiler
 =================================================
 */
     GraphicsProfiler::GraphicsProfiler (TimePoint_t startTime) __NE___ :
-        ProfilerUtils{startTime}
+        ProfilerUtils{ startTime }
     {}
 
 /*
@@ -122,20 +122,6 @@ namespace AE::Profiler
     void  GraphicsProfiler::Draw (Graphics::Canvas &canvas)
     {
         Unused( canvas );
-        /*
-        const float font_height_px  = 30.f;
-        const float font_height_vp  = canvas.Dimensions().GetPixelsToViewport().x * font_height_px;
-
-        canvas.DrawText( ("FPS: "s << ToString( _fps.result, 1 )), *renderer.font, font_height_px,
-                         RectF{-1.0f, -1.0f, 1.0f, -1.0f + font_height_vp}, HtmlColor::White );
-
-        canvas.DrawText( ("dt: "s << ToString( nanosecondsd{_gpuTime.max - _gpuTime.min })), *renderer.font, font_height_px,
-                         RectF{-1.0f, -1.0f + font_height_vp * 1.1f, 1.0f, -1.0f + font_height_vp*2.2f}, HtmlColor::White );
-
-        ctx.BindPipeline( renderer.fontPpln );
-        ctx.BindDescriptorSet( 0, renderer.fontPpln_ds );
-        canvas.Flush( ctx, EPrimitive::TriangleList );
-        */
     }
 
 /*
@@ -234,7 +220,7 @@ namespace AE::Profiler
             _writeIndex = idx[1];
             _readIndex  = idx[0];
         }{
-            auto    task = MakeRCTh< Threading::AsyncTaskFn >( [this]() { _ReadResults(); }, "GraphicsProfiler::ReadResults", ETaskQueue::PerFrame );
+            auto    task = MakeRCNe< Threading::AsyncTaskFn >( [this]() { _ReadResults(); }, "GraphicsProfiler::ReadResults", ETaskQueue::PerFrame );
             if ( Scheduler().Run( task ))
                 rts.AddNextFrameDeps( task );
         }{
@@ -338,8 +324,7 @@ namespace AE::Profiler
         Unused( type );
         return VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
     #else
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EContextType::Transfer :       return VK_PIPELINE_STAGE_2_TRANSFER_BIT;
             case EContextType::Compute :        return VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
@@ -351,7 +336,7 @@ namespace AE::Profiler
             case EContextType::Graphics :       break;
             case EContextType::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown context type" );
     #endif
     }
@@ -367,8 +352,7 @@ namespace AE::Profiler
         Unused( type );
         return VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
     #else
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EContextType::Transfer :       return VK_PIPELINE_STAGE_2_TRANSFER_BIT;
             case EContextType::Compute :        return VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
@@ -380,7 +364,7 @@ namespace AE::Profiler
             case EContextType::Graphics :       break;
             case EContextType::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown context type" );
     #endif
     }

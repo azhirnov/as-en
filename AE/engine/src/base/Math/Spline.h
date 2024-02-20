@@ -13,10 +13,12 @@ namespace AE::Math
     template <typename VecType>
     struct BSpline
     {
+        StaticAssert( IsFloatPointVec< VecType >);
+
     // types
     public:
         using Vec_t     = VecType;
-        using Value_t   = typename VecType::Value_t;
+        using Value_t   = VecToScalarType< VecType >;
     private:
         using T         = Value_t;
 
@@ -53,10 +55,12 @@ namespace AE::Math
     template <typename VecType>
     struct ChordalCatmullRom
     {
+        StaticAssert( IsFloatPointVec< VecType >);
+
     // types
     public:
         using Vec_t     = VecType;
-        using Value_t   = typename VecType::Value_t;
+        using Value_t   = VecToScalarType< VecType >;
     private:
         using T         = Value_t;
 

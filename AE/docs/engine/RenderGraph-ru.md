@@ -80,7 +80,7 @@ AsyncTask end = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 Для этого в движке есть логирование команд (проект `VulkanSyncLog`), который выдает читаемый лог вызовов Vulkan команд и его результат не меняется в зависимости от запусков, что позволяет следить за изменениями.
 Но все синхронизации придется один раз вручную проверить на корректность.<br/>
-[Пример лога](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/Vulkan/ref/NVIDIA%20GeForce%20RTX%202080/Test_AsyncCompute2.txt)
+[Пример лога](https://github.com/azhirnov/as-en/blob/dev/AE-Data/tests/graphics/vulkan/NVIDIA%20GeForce%20RTX%202080/Test_AsyncCompute2.txt)
 
 Другой вариант - запустить vkconfig и включить полную валидацию синхронизаций - Synchronization preset.<br/>
 [Guide to Vulkan Synchronization Validation](https://www.lunarg.com/wp-content/uploads/2020/09/Final_LunarG_Guide_to_Vulkan-Synchronization_Validation_08_20.pdf)

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifndef AE_ENABLE_METAL
+#ifdef AE_TEST_SHADER_DEBUGGER
 # include "Test_RenderGraph.h"
 
 namespace
@@ -64,7 +64,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Draw_1;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
@@ -122,11 +122,11 @@ no source
 
 //> (out): float4 {0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {1}
-22. gl_Position = vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+23. gl_Position = vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 1.000000, 0.000000}
 //  gl_VertexIndex: int {1}
-23. v_Color     = g_Colors[gl_VertexIndex];
+24. v_Color     = g_Colors[gl_VertexIndex];
 
 )";
                         const StringView    vs2_ref_str =
@@ -136,11 +136,11 @@ no source
 
 //> (out): float4 {-0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-22. gl_Position = vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+23. gl_Position = vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-23. v_Color     = g_Colors[gl_VertexIndex];
+24. v_Color     = g_Colors[gl_VertexIndex];
 
 )";
                         const StringView    fs_ref_str =
@@ -150,11 +150,11 @@ no source
 
 //> out_Color: float3 {0.000000, 0.498333, 0.252083}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-11. out_Color.rgb = v_Color.rgb;
+12. out_Color.rgb = v_Color.rgb;
 
 //> out_Color: float4 {0.000000, 0.498333, 0.252083, 0.500000}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-12. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
+13. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
 
 )";
 
@@ -244,4 +244,4 @@ bool RGTest::Test_Debugger2 ()
     return result;
 }
 
-#endif // not AE_ENABLE_METAL
+#endif // AE_TEST_SHADER_DEBUGGER

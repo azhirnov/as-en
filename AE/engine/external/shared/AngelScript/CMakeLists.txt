@@ -7,7 +7,7 @@ set( ANGELSCRIPT_PATH "${AE_DST_PATH}/AngelScript" )
 add_library( "AngelScript-lib" INTERFACE )
 target_include_directories( "AngelScript-lib" INTERFACE "${ANGELSCRIPT_PATH}/include" )
 target_compile_definitions( "AngelScript-lib" INTERFACE "AE_ENABLE_ANGELSCRIPT" "AS_USE_NAMESPACE=1" "AS_USE_STLNAMES=1" "AE_LICENSE_ZLIB" )
-install( FILES "${ANGELSCRIPT_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME "AngelScript-LICENSE" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/patch/LICENSE" DESTINATION "3party_license" RENAME "AngelScript-LICENSE" )
 
 if (DEFINED ANDROID)
     set_property( TARGET "AngelScript-lib" PROPERTY INTERFACE_LINK_LIBRARIES

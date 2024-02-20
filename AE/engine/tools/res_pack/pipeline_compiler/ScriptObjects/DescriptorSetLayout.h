@@ -88,7 +88,7 @@ namespace AE::PipelineCompiler
 
         ND_ bool  CountMSLBindings (EShaderStages stages, INOUT MSLBindings &bindings)                                                                      C_NE___;
 
-        void  CountDescriptors (INOUT DescriptorCount_t &total, INOUT PerStageDescCount_t &perStage)                                                        C_NE___;
+        void  CountDescriptors (INOUT DescriptorCount &total, INOUT PerStageDescCount_t &perStage)                                                          C_NE___;
 
         static void  Bind (const ScriptEnginePtr &se)                                                                                                       __Th___;
 
@@ -104,7 +104,7 @@ namespace AE::PipelineCompiler
         ND_ bool  IsCompatibleWithVulkan ()                     const;
         ND_ bool  IsCompatibleWithMetal ()                      const;
 
-        ND_ static bool  CheckDescriptorLimits (const DescriptorCount_t &total, const PerStageDescCount_t &perStage,
+        ND_ static bool  CheckDescriptorLimits (const DescriptorCount &total, const PerStageDescCount_t &perStage,
                                                 ArrayView<ScriptFeatureSetPtr> features, StringView name);
 
         ND_ bool  Build ();

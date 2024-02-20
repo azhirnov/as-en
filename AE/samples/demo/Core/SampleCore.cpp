@@ -1,13 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "demo/Core/SampleCore.h"
-#include "graphics/Private/EnumToString.h"
-#include "vfs/Archive/ArchiveStaticStorage.h"
 
 // samples
 #include "demo/Examples/Canvas2D.h"
 #include "demo/Examples/Camera3D.h"
 #include "demo/Examples/ImGuiSample.h"
+#include "demo/Examples/Audio.h"
 
 namespace AE::Samples::Demo
 {
@@ -21,9 +20,10 @@ namespace AE::Samples::Demo
 */
     SampleCore::SampleCore () __NE___
     {
-        //_sample = MakeRC< ImGuiSample >();
+        _sample = MakeRC< ImGuiSample >();
         //_sample = MakeRC< Canvas2DSample >();
-        _sample = MakeRC< Camera3DSample >();
+        //_sample = MakeRC< Camera3DSample >();
+        //_sample = MakeRC< AudioSample >();
     }
 //-----------------------------------------------------------------------------
 
@@ -50,14 +50,10 @@ namespace
         {
             cfg.graphics.maxFrames = 2;
 
-            cfg.graphics.staging.readStaticSize .fill( 2_Mb );
-            cfg.graphics.staging.writeStaticSize.fill( 2_Mb );
-            cfg.graphics.staging.maxReadDynamicSize     = 16_Mb;
-            cfg.graphics.staging.maxWriteDynamicSize    = 256_Mb;
-            cfg.graphics.staging.dynamicBlockSize       = 16_Mb;
-            cfg.graphics.staging.vstreamSize            = 4_Mb;
+            cfg.graphics.staging.readStaticSize .fill( 4_Kb );
+            cfg.graphics.staging.writeStaticSize.fill( 1_Mb );
 
-            cfg.graphics.device.appName         = "Demo 2";
+            cfg.graphics.device.appName         = "Demo";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
             cfg.graphics.device.optionalQueues  = Default; //EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer;
             cfg.graphics.device.validation      = EDeviceValidation::Enabled;
@@ -77,7 +73,7 @@ namespace
 
         // window
         {
-            cfg.window.title    = "Demo 2";
+            cfg.window.title    = "Demo";
             cfg.window.size     = {1024, 768};
             cfg.window.mode     = EWindowMode::Resizable;
         }
@@ -93,6 +89,8 @@ namespace
         //  cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenVR );
             cfg.vrDevices.push_back( IVRDevice::EDeviceType::Emulator );
         }
+
+        cfg.enableAudio = true;
 
         return cfg;
     }
@@ -149,7 +147,10 @@ namespace
     void  SampleApplication::OnStart (IApplication &app) __NE___
     {
         CHECK_FATAL( _InitVFS( app ));
-        CHECK_FATAL( Cast<SampleCore>(&GetBaseApp())->LoadInputActions() );
+
+        auto&   core = *Cast<SampleCore>(&GetBaseApp());
+        core.SetApplication( app );
+        CHECK_FATAL( core.LoadInputActions() );
 
         AppCoreV1::OnStart( app );
 
@@ -208,6 +209,8 @@ namespace
 /*
 =================================================
     OnSurfaceCreated
+----
+    in main thread
 =================================================
 */
     bool  SampleCore::OnSurfaceCreated (IWindow &wnd) __NE___
@@ -297,7 +300,7 @@ namespace
         _pplnPack = res_mngr.LoadPipelinePack( desc );
         CHECK_ERR( _pplnPack );
 
-        CHECK_ERR( _sample->Init( _pplnPack ));
+        CHECK_ERR( _sample->Init( _pplnPack, _app ));
 
         return true;
     }
@@ -404,15 +407,14 @@ using namespace AE::App;
 using namespace AE::Samples::Demo;
 
 #define REQUIRE_APACHE_2
-#include "base/Defines/DetectLicense.inl.h"
-#include "base/Algorithms/StringUtils.h"
+//#include "base/Defines/DetectLicense.inl.h"
 
 
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
     StaticLogger::InitDefault();
 
-    AE_LOG_DBG( "License: "s << AE_LICENSE );
+    //AE_LOG_DBG( "License: "s << AE_LICENSE );
 
     return MakeUnique<SampleApplication>();
 }

@@ -7,12 +7,20 @@
 
 namespace AE::ResEditor
 {
+    using AE::Networking::IpAddress;
+    using AE::Networking::CSMessageGroupID;
+    using AE::Networking::CSMessagePtr;
+    using AE::Networking::EChannel;
+
 
     struct ResEditorAppConfig
     {
+        using VFSPaths_t    = Array< Pair< Path, String >>;
+        using NetVFS_t      = Array< Tuple< String, String, String >>;
+
         // VFS
-        Array<Path>     vfsPaths;
-        Array<String>   vfsPathPrefixes;
+        VFSPaths_t      vfsPaths;
+        NetVFS_t        netVFS;
 
         // UI
         Path            uiDataFolder;
@@ -105,6 +113,58 @@ namespace AE::ResEditor
         using MonitorSync       = Synchronized< SharedMutex, App::Monitor >;
 
 
+        //
+        // VFS Client
+        //
+        class VFSClient final : public Networking::BaseClient, public EnableRC<VFSClient>
+        {
+        // variables
+        private:
+            RC<IVirtualFileStorage>     _storage;
+            FrameUID                    _frameId;
+
+        public:
+            VFSClient ()    __NE___ : _frameId{FrameUID::Init(2)} {}
+            ~VFSClient ()   __NE_OV { _Deinitialize(); }
+
+            ND_ bool        Init (const IpAddress &addr, StringView prefix);
+            ND_ AsyncTask   Tick ();
+            ND_ auto        Storage ()      { return _storage; }
+        };
+        using VFSClients_t = Array< RC< VFSClient >>;
+
+
+        //
+        // Remote Input Server
+        //
+        class RemoteInputServer final : public Networking::BaseServer, public EnableRC<RemoteInputServer>
+        {
+        // types
+        private:
+            class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_Kb} >>
+            {
+            public:
+                EnumSet<EChannel>  GetChannels ()               C_NE_OV { return {EChannel::Reliable}; }
+            };
+
+        // variables
+        private:
+            RemoteInputActions          _remoteIA;
+            FrameUID                    _frameId;
+            StaticRC<_MsgProducer>      _msgProducer;
+
+        // methods
+        public:
+            RemoteInputServer ()                                    __NE___ : _frameId{FrameUID::Init(2)} {}
+            ~RemoteInputServer ()                                   __NE_OV { _Deinitialize(); }
+
+            ND_ bool        Init (ushort port, IInputActions &ia)   __NE___;
+            ND_ AsyncTask   Tick ()                                 __NE___;
+
+            ND_ auto&       MsgProducer ()                          __NE___ { return *_msgProducer; }
+        };
+
+
     // variables
     private:
         MainLoopDataSync            _mainLoop;
@@ -116,8 +176,11 @@ namespace AE::ResEditor
         MonitorSync                 _monitor;
 
         RC<MemRStream>              _inputActionsData;
+        RC<RemoteInputServer>       _remoteIA;
 
         Unique<RenderGraphImpl>     _rg;
+
+        VFSClients_t                _vfsClients;
 
 
     // methods

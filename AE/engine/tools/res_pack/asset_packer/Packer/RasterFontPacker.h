@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "graphics/Public/IDs.h"
 #include "ImagePacker.h"
 
 namespace AE::AssetPacker
@@ -12,7 +11,7 @@ namespace AE::AssetPacker
     // Raster Font Packer
     //
 
-    class RasterFontPacker final : public Serializing::ISerializable
+    class RasterFontPacker
     {
     // types
     public:
@@ -95,9 +94,9 @@ namespace AE::AssetPacker
 
 
     // variables
-    private:
-        Header2             _header;
     public:
+        Header2             _header;
+
         SDFConfig           sdfConfig;
 
         GlyphMap_t          glyphMap;
@@ -106,19 +105,10 @@ namespace AE::AssetPacker
 
     // methods
     public:
-        RasterFontPacker ()                                                         __NE___ {}
-        explicit RasterFontPacker (const ImagePacker::Header &h)                    __NE___ : _header{h} {}
+        RasterFontPacker ()                                         __NE___ {}
+        explicit RasterFontPacker (const ImagePacker::Header &h)    __NE___ : _header{h} {}
 
-        ND_ bool  IsValid ()                                                        C_NE___;
-
-            bool  SaveImage (WStream &stream, const ResLoader::IntermImage &src)    C_NE___;
-
-        ND_ ImagePacker::Header const&  Header ()                                   C_NE___ { return _header.hdr; }
-
-
-        // ISerializable
-            bool  Serialize (Serializing::Serializer &)                             C_NE_OV;
-            bool  Deserialize (Serializing::Deserializer &)                         __NE_OV;
+        ND_ ImagePacker::Header const&  Header ()                   C_NE___ { return _header.hdr; }
     };
 
 

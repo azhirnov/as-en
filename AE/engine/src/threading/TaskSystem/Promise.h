@@ -141,13 +141,13 @@ namespace _hidden_
         template <typename Fn>
         auto  Then (Fn &&fn,
                     StringView dbgName      = Default,
-                    ETaskQueue queueType    = ETaskQueue::PerFrame)                 __NE___;
+                    ETaskQueue queueType    = Default)                              __NE___;
 
         // used to process errors
         template <typename Fn>
         auto  Except (Fn &&fn,
                       StringView dbgName    = Default,
-                      ETaskQueue queueType  = ETaskQueue::PerFrame)                 __NE___;
+                      ETaskQueue queueType  = Default)                              __NE___;
 
         bool  Cancel ()                                                             __NE___;
 
@@ -156,8 +156,8 @@ namespace _hidden_
         template <typename Fn>
         bool  WithResult (Fn &&fn)                                                  NoExcept(IsNothrowInvocable< Fn, T >);
 
-        explicit operator AsyncTask ()                                              C_NE___ { return _impl; }
-        explicit operator bool ()                                                   C_NE___ { return bool{_impl}; }
+        ND_ explicit operator AsyncTask ()                                          C_NE___ { return _impl; }
+        ND_ explicit operator bool ()                                               C_NE___ { return bool{_impl}; }
 
         ND_ IAsyncTask::EStatus  Status ()                                          C_NE___;
 
@@ -586,6 +586,10 @@ namespace _hidden_
             }
           #endif
 
+            // run on the same queue
+            if ( queueType >= ETaskQueue::_Count )
+                queueType = _impl->QueueType();
+
             auto    result = _Then( FwdArg<Fn>(fn), dbgName, queueType );   // throw
 
             if ( _impl->IsExcept() )
@@ -650,6 +654,10 @@ namespace _hidden_
                 dbgName = temp;
             }
           #endif
+
+            // run on the same queue
+            if ( queueType >= ETaskQueue::_Count )
+                queueType = _impl->QueueType();
 
             auto    result = _Except( FwdArg<Fn>(fn), dbgName, queueType );  // throw
 

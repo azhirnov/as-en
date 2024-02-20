@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 layout(location=0) out vec3  v_Color;
 

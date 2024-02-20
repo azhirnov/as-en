@@ -113,7 +113,7 @@ namespace LFAS
     template <typename TID>
     inline bool  MemRangesTempl<TID>::IsIntersects (const Range &lhs, const Range &rhs)
     {
-        return not ((lhs.end < rhs.begin) | (lhs.begin > rhs.end));
+        return not ((lhs.end < rhs.begin) or (lhs.begin > rhs.end));
     }
 
 /*

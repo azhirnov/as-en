@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 
 namespace AE::Math
 {
@@ -30,7 +29,7 @@ namespace AE::Math
 
     // methods
     public:
-        constexpr Range ()                      __NE___ : begin{}, end{}
+        constexpr Range ()                                          __NE___ : begin{}, end{}
         {
           #ifdef AE_COMPILETIME_OFFSETOF
             // check if supported cast Rectangle to array
@@ -38,21 +37,22 @@ namespace AE::Math
           #endif
         }
 
-        constexpr Range (T begin, T end)        __NE___ :
+        template <typename BT, typename ET>
+        constexpr Range (BT begin, ET end)                          __NE___ :
             begin{begin}, end{end}
         {}
 
-        ND_ constexpr T     Offset ()           C_NE___ { return begin; }
-        ND_ constexpr T     Size ()             C_NE___ { return end - begin; }
-        ND_ constexpr T     Middle ()           C_NE___ { return Average( begin, end ); }
+        ND_ constexpr T     Offset ()                               C_NE___ { return begin; }
+        ND_ constexpr T     Size ()                                 C_NE___ { return end - begin; }
+        ND_ constexpr T     Middle ()                               C_NE___ { return Average( begin, end ); }
 
-        ND_ constexpr bool  IsEmpty ()          C_NE___ { return begin == end; }
-        ND_ constexpr bool  IsInvalid ()        C_NE___ { return end < begin; }
-        ND_ constexpr bool  IsValid ()          C_NE___ { return not IsInvalid(); }
+        ND_ constexpr bool  IsEmpty ()                              C_NE___ { return begin == end; }
+        ND_ constexpr bool  IsInvalid ()                            C_NE___ { return end < begin; }
+        ND_ constexpr bool  IsValid ()                              C_NE___ { return not IsInvalid(); }
 
-        ND_ constexpr bool  Contains (T value)  C_NE___ { return (value >= begin) & (value < end); }
+        ND_ constexpr bool  Contains (T value)                      C_NE___ { return (value >= begin) and (value < end); }
 
-        ND_ constexpr static Self  Max ()       __NE___                         { return Self{ MinValue<T>(), MaxValue<T>() }; }
+        ND_ constexpr static Self  Max ()                           __NE___ { return Self{ MinValue<T>(), MaxValue<T>() }; }
 
         ND_ constexpr static Self  From (const Vec<T,2> &v)         __NE___ { return Self{ v.x, v.y }; }
         ND_ constexpr static Self  FromOffsetSize (T offset, T size)__NE___ { return Self{ offset, offset + size }; }

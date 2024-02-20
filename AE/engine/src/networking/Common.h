@@ -30,6 +30,9 @@ namespace AE::Networking
 
         static constexpr uint       MsgPerChunk             {62};   // 2 pointers are used by chunk header, 512 bytes per chunk
         static constexpr uint       MaxMsgGroupsPerFrame    {8};
+        static constexpr uint       CSMessageUID_Bits       {14};
+
+        static constexpr uint       TCP_Reliable_MaxClients {16};
     };
 
 

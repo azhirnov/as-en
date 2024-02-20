@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
-
+using namespace AE::PipelineCompiler;
 
 namespace
 {
@@ -11,8 +11,9 @@ namespace
 
     static void  SamplerPack_Test1 ()
     {
-        const PathParams    fs_folder[]     = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
-        const PathParams    sampler_files[] = { {TXT("config_vk.as"), 0}, {TXT("samplers.as"), 2} };
+        const PathParams    sampler_files[] = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder},
+                                                {TXT("config_vk.as"), 0},
+                                                {TXT("samplers.as"), 2} };
         const Path          output_folder   = TXT("_output");
 
         FileSystem::RemoveAll( output_folder );
@@ -21,8 +22,6 @@ namespace
         const Path  output = output_folder / "samplers.bin";
 
         PipelinesInfo   info;
-        info.pipelineFolders    = fs_folder;
-        info.pipelineFolderCount= CountOf( fs_folder );
         info.inPipelines        = sampler_files;
         info.inPipelineCount    = CountOf( sampler_files );
         info.outputPackName     = Cast<CharType>(output.c_str());
@@ -74,8 +73,8 @@ namespace
         Array<SamplerSerializer>    samplers;
         TEST( des( OUT samplers ));
 
-        TEST_Eq( samp_names.size(), 8 );
-        TEST_Eq( samplers.size(), 8 );
+        TEST_Eq( samp_names.size(), 10 );
+        TEST_Eq( samplers.size(), 10 );
 
         String  ser_str;
 
@@ -100,16 +99,8 @@ extern void Test_SamplerPack ()
 {
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
     {
-        Path    dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-        #else
-            dll_path.append( "PipelineCompiler-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
         TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
         TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/sampler_test" ));

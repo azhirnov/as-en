@@ -8,7 +8,7 @@
 #ifdef ANDROID
 # include "TestHelper.h"
 
-extern void AE_CDT_Test ()
+extern int AE_CDT_Test ()
 #else
 int main ()
 #endif

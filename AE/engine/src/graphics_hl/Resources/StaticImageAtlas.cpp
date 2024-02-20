@@ -9,6 +9,11 @@ namespace AE::Graphics
     using namespace AE::Serializing;
     using namespace AE::AssetPacker;
 
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+#   include "Packer/ImageAtlasPacker.cpp.h"
+}
+
 /*
 =================================================
     destructor
@@ -25,7 +30,7 @@ namespace AE::Graphics
     Get
 =================================================
 */
-    bool  StaticImageAtlas::Get (const ImageInAtlasName &name, OUT RectI &region) C_NE___
+    bool  StaticImageAtlas::Get (ImageInAtlasName::Ref name, OUT RectI &region) C_NE___
     {
         auto    it = _nameToIdx.find( name );
         if_likely( it != _nameToIdx.end() )
@@ -36,7 +41,7 @@ namespace AE::Graphics
         return false;
     }
 
-    bool  StaticImageAtlas::Get (const ImageInAtlasName &name, OUT RectF &region) C_NE___
+    bool  StaticImageAtlas::Get (ImageInAtlasName::Ref name, OUT RectF &region) C_NE___
     {
         auto    it = _nameToIdx.find( name );
         if_likely( it != _nameToIdx.end() )
@@ -59,7 +64,7 @@ namespace AE::Graphics
         ImageAtlasPacker    unpacker;
         {
             Serializing::Deserializer   des{ MakeRC<BufferedRStream>( stream )};
-            CHECK_ERR( unpacker.Deserialize( des ));
+            CHECK_ERR( ImageAtlasPacker_Deserialize( unpacker, des ));
         }
 
         auto    atlas       = MakeRC<StaticImageAtlas>();

@@ -286,6 +286,13 @@ namespace AE::Threading
         StringView  DbgName ()  C_NE_OV { return "AsyncTaskFn"; }
     #endif
     };
+
+
+    template <typename Fn, typename ...Deps>
+    AsyncTask  MakeTask (Fn &&                  fn,
+                         const Tuple<Deps...> & dependsOn   = Default,
+                         StringView             dbgName     = Default,
+                         ETaskQueue             queueType   = ETaskQueue::PerFrame) __NE___;
 //-----------------------------------------------------------------------------
 
 
@@ -390,8 +397,8 @@ namespace AE::Threading
         AsyncTaskCoro&  operator = (AsyncTaskCoro &&)       __NE___ = default;
         AsyncTaskCoro&  operator = (const AsyncTaskCoro &)  __NE___ = default;
 
-        operator AsyncTask ()                               C_NE___ { return _coro; }
-        explicit operator bool ()                           C_NE___ { return bool{_coro}; }
+        ND_ operator AsyncTask ()                           C_NE___ { return _coro; }
+        ND_ explicit operator bool ()                       C_NE___ { return bool{_coro}; }
 
     private:
         friend class Threading::TaskScheduler;

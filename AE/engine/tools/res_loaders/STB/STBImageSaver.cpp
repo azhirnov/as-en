@@ -6,7 +6,7 @@
 # ifdef AE_COMPILER_MSVC
 #  pragma warning (push, 0)
 # endif
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wcast-qual"
 #   pragma clang diagnostic ignored "-Wcast-align"
@@ -26,7 +26,7 @@
 # ifdef AE_COMPILER_MSVC
 #  pragma warning (pop)
 # endif
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
 # endif
 # ifdef AE_COMPILER_GCC
@@ -74,8 +74,7 @@ namespace
         //if ( flipY )
         //  stbi__vertical_flip( data_ptr, x, y, comp * 8 );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( fileFormat )
+        switch_enum( fileFormat )
         {
             case EImageFormat::PNG :
                 CHECK_ERR( stbi_write_png_to_func( &StbiWriteFn, &stream, x, y, comp, data_ptr, stride ) != 0 );
@@ -108,7 +107,7 @@ namespace
             case EImageFormat::_Count :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 

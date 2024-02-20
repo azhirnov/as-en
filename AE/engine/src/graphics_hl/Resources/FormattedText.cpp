@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "graphics_hl/GraphicsHL.pch.h"
 #include "graphics_hl/Resources/FormattedText.h"
 
 #ifndef AE_ENABLE_UTF8PROC
@@ -142,7 +143,7 @@ namespace {
                 for (; pos < end;)
                 {
                     const char  c = str[pos];
-                    if ( (c == ' ') | (c == '\t') )
+                    if ( (c == ' ') or (c == '\t') )
                     {
                         ++pos;
                         continue;
@@ -155,7 +156,7 @@ namespace {
                         for (pos += sizeof(tag_size)-1; pos < end;)
                         {
                             const char  k = str[pos];
-                            if ( (k >= '0') & (k <= '9') )
+                            if ( (k >= '0') and (k <= '9') )
                                 state.height = state.height*10 + (k-'0');
                             else
                                 break;
@@ -171,14 +172,10 @@ namespace {
                         for (pos += sizeof(tag_color)-1; pos < end;)
                         {
                             const char  k = str[pos];
-                            if ( (k >= '0') & (k <= '9') )
-                                color = (color << 4) + (k-'0');
-                            else if ( (k >= 'A') & (k <= 'F') )
-                                color = (color << 4) + (k-'A'+10);
-                            else if ( (k >= 'a') & (k <= 'f') )
-                                color = (color << 4) + (k-'a'+10);
-                            else
-                                break;
+                            if ( (k >= '0') and (k <= '9') )    color = (color << 4) + (k-'0');     else
+                            if ( (k >= 'A') and (k <= 'F') )    color = (color << 4) + (k-'A'+10);  else
+                            if ( (k >= 'a') and (k <= 'f') )    color = (color << 4) + (k-'a'+10);  else
+                                                                break;
                             ++pos;
                         }
                         state.color = RGBA8u{ ubyte((color >> 24) & 0xFF), ubyte((color >> 16) & 0xFF),
@@ -365,11 +362,10 @@ namespace {
         {
             for (; stack.size();)
             {
-                BEGIN_ENUM_CHECKS()
-                switch ( stack.back().type )
+                switch_enum( stack.back().type )
                 {
                     case EChunkType::Bold :
-                        if ( state.bold & (state.bold != chunk->bold) ) {
+                        if ( state.bold and (state.bold != chunk->bold) ) {
                             result << u8"[/b]";
                             stack.pop_back();
                             break;
@@ -377,7 +373,7 @@ namespace {
                         return;
 
                     case EChunkType::Italic :
-                        if ( state.italic & (state.italic != chunk->italic) ) {
+                        if ( state.italic and (state.italic != chunk->italic) ) {
                             result << u8"[/i]";
                             stack.pop_back();
                             break;
@@ -385,7 +381,7 @@ namespace {
                         return;
 
                     case EChunkType::Underline :
-                        if ( state.underline & (state.underline != chunk->underline) ) {
+                        if ( state.underline and (state.underline != chunk->underline) ) {
                             result << u8"[/u]";
                             stack.pop_back();
                             break;
@@ -393,7 +389,7 @@ namespace {
                         return;
 
                     case EChunkType::Strikeout :
-                        if ( state.strikeout & (state.strikeout != chunk->strikeout) ) {
+                        if ( state.strikeout and (state.strikeout != chunk->strikeout) ) {
                             result << u8"[/s]";
                             stack.pop_back();
                             break;
@@ -401,7 +397,7 @@ namespace {
                         return;
 
                     case EChunkType::Style :
-                        if ( (state.color != chunk->color) | (state.height != chunk->height) ) {
+                        if ( (state.color != chunk->color) or (state.height != chunk->height) ) {
                             result << u8"[/style]";
                             stack.pop_back();
                             break;
@@ -413,7 +409,7 @@ namespace {
                     default :
                         return;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         };
 
@@ -436,27 +432,27 @@ namespace {
             CloseTag( chunk );
 
             // open tag
-            if ( chunk->bold & (state.bold != chunk->bold) ) {
+            if ( chunk->bold and (state.bold != chunk->bold) ) {
                 stack.emplace_back( EChunkType::Bold, chunk->color, chunk->height );
                 result << u8"[b]";
             }
 
-            if ( chunk->italic & (state.italic != chunk->italic) ) {
+            if ( chunk->italic and (state.italic != chunk->italic) ) {
                 stack.emplace_back( EChunkType::Italic, chunk->color, chunk->height );
                 result << u8"[i]";
             }
 
-            if ( chunk->underline & (state.underline != chunk->underline) ) {
+            if ( chunk->underline and (state.underline != chunk->underline) ) {
                 stack.emplace_back( EChunkType::Underline, chunk->color, chunk->height );
                 result << u8"[u]";
             }
 
-            if ( chunk->strikeout & (state.strikeout != chunk->strikeout) ) {
+            if ( chunk->strikeout and (state.strikeout != chunk->strikeout) ) {
                 stack.emplace_back( EChunkType::Strikeout, chunk->color, chunk->height );
                 result << u8"[s]";
             }
 
-            if ( (stack.back().color != chunk->color) | (stack.back().height != chunk->height) )
+            if ( (stack.back().color != chunk->color) or (stack.back().height != chunk->height) )
             {
                 result << u8"[style";
                 if ( stack.back().color != chunk->color ) {
@@ -503,19 +499,20 @@ namespace {
 */
     bool  FormattedText::Serialize (Serializing::Serializer &ser) C_NE___
     {
-        bool    result = true;
+        bool    result;
         uint    count  = 0;
         for (Chunk const* chunk = _first; chunk; chunk = chunk->next, ++count)
         {}
 
-        result &= ser.stream.Write( _maxChars );
-        result &= ser.stream.Write( count );
-        for (Chunk const* chunk = _first; result & (chunk != null); chunk = chunk->next)
+        result = ser.stream.Write( _maxChars ) and
+                 ser.stream.Write( count );
+
+        for (Chunk const* chunk = _first; result and (chunk != null); chunk = chunk->next)
         {
             const uint  str_length = chunk->length;
 
-            result &= ser.stream.Write( str_length );
-            result &= ser.stream.Write( &chunk->color, Bytes{sizeof(Chunk) - offsetof(Chunk, color) + str_length} );
+            result = ser.stream.Write( str_length ) and
+                     ser.stream.Write( &chunk->color, Bytes{sizeof(Chunk) - offsetof(Chunk, color) + str_length} );
         }
         return result;
     }
@@ -527,27 +524,27 @@ namespace {
 */
     bool  FormattedText::Deserialize (Serializing::Deserializer &des) __NE___
     {
-        bool    result = true;
+        bool    result;
         uint    count  = 0;
 
         _first      = null;
         _maxChars   = 0;
         _alloc.Discard();
 
-        result &= des.stream.Read( OUT _maxChars );
-        result &= des.stream.Read( OUT count );
+        result = des.stream.Read( OUT _maxChars ) and
+                 des.stream.Read( OUT count );
 
-        for (uint i = 0; result & (i < count); ++i)
+        for (uint i = 0; result and (i < count); ++i)
         {
             uint    str_length = 0;
-            result &= des.stream.Read( OUT str_length );
+            result = des.stream.Read( OUT str_length );
 
             void*   ptr     = _alloc.Allocate( SizeAndAlign{ Bytes{sizeof(Chunk) + str_length}, Bytes{alignof(Chunk)} });
             CHECK_ERR( ptr != null );
 
             Chunk*  chunk   = PlacementNew<Chunk>( OUT ptr );
 
-            result &= des.stream.Read( &chunk->color, Bytes{sizeof(Chunk) - offsetof(Chunk, color) + str_length} );
+            result = result and des.stream.Read( &chunk->color, Bytes{sizeof(Chunk) - offsetof(Chunk, color) + str_length} );
         }
         return result;
     }

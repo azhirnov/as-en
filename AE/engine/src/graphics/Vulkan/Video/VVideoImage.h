@@ -43,21 +43,22 @@ namespace AE::Graphics
 
     // methods
     public:
-        VVideoImage ()                                      __NE___ {}
-        ~VVideoImage ()                                     __NE___;
+        VVideoImage ()                                              __NE___ {}
+        ~VVideoImage ()                                             __NE___;
 
-        ND_ bool  Create (VResourceManager &, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
-            void  Destroy (VResourceManager &)                                                                              __NE___;
+        ND_ bool  Create (VResourceManager &, const VideoImageDesc &,
+                          GfxMemAllocatorPtr, StringView dbgName)   __NE___;
+            void  Destroy (VResourceManager &)                      __NE___;
 
-        ND_ VkImage                 GetImage ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _image; }
-        ND_ VkImageView             GetView ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _view; }
+        ND_ VkImage                 GetImageHandle ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _image; }
+        ND_ VkImageView             GetViewHandle ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _view; }
 
-        ND_ ImageID                 GetImageID ()           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _imageId; }
-        ND_ ImageViewID             GetViewID ()            C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _viewId; }
+        ND_ ImageID                 GetImageID ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _imageId; }
+        ND_ ImageViewID             GetViewID ()                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _viewId; }
 
-        ND_ VideoImageDesc const&   Description ()          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
+        ND_ VideoImageDesc const&   Description ()                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
-        DEBUG_ONLY(  ND_ StringView  GetDebugName ()        C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        DEBUG_ONLY(  ND_ StringView  GetDebugName ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
         ND_ static bool  IsSupported (const VResourceManager &, const VideoImageDesc &desc) __NE___;

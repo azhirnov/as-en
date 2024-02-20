@@ -4,8 +4,8 @@
 
 namespace
 {
-    using RFileFlags    = WinRFileStream::EFlags;
-    using WFileFlags    = WinWFileStream::EFlags;
+    using RFileFlags    = WinFileRStream::EFlags;
+    using WFileFlags    = WinFileWStream::EFlags;
 
 /*
 =================================================
@@ -16,12 +16,11 @@ namespace
 */
     ND_ static DWORD  FileFlagCast (RFileFlags values) __NE___
     {
-        DWORD   flags = FILE_ATTRIBUTE_NORMAL;
+        DWORD   flags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_POSIX_SEMANTICS;
 
         for (auto t : BitfieldIterate( values ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case RFileFlags::RandomAccess :     flags |= FILE_FLAG_RANDOM_ACCESS;   break;
                 case RFileFlags::SequentialScan :   flags |= FILE_FLAG_SEQUENTIAL_SCAN; break;
@@ -29,7 +28,7 @@ namespace
                 case RFileFlags::Unknown :
                 default :                           RETURN_ERR( "unknown rfile open flag!", FILE_ATTRIBUTE_NORMAL );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         // validation
@@ -47,22 +46,21 @@ namespace
 */
     ND_ static DWORD  FileFlagCast (WFileFlags values) __NE___
     {
-        DWORD   flags = FILE_ATTRIBUTE_NORMAL;
+        DWORD   flags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_POSIX_SEMANTICS;
 
         for (auto t : BitfieldIterate( values ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case WFileFlags::NoBuffering :      flags |= FILE_FLAG_NO_BUFFERING;    break;
                 case WFileFlags::NoCaching :        flags |= FILE_FLAG_WRITE_THROUGH;   break;
 
             //  case WFileFlags::OpenRewrite :
-                case WFileFlags::OpenUpdate :
+                case WFileFlags::OpenUpdate :       break;
                 case WFileFlags::Unknown :
                 default :                           RETURN_ERR( "unknown wfile open flag!", FILE_ATTRIBUTE_NORMAL );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return flags;
     }

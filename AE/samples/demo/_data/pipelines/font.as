@@ -4,7 +4,7 @@
 void ASmain ()
 {
     {
-        RC<ShaderStructType>        st = ShaderStructType( "font.io" );
+        RC<ShaderStructType>    st = ShaderStructType( "font.io" );
         st.Set( EStructLayout::InternalIO,
                 "float4     color;" +
                 "float2     uv;" );
@@ -12,7 +12,7 @@ void ASmain ()
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "font.ds0" );
         ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
     }{
-        RC<PipelineLayout>          pl = PipelineLayout( "font.pl" );
+        RC<PipelineLayout>      pl = PipelineLayout( "font.pl" );
         pl.DSLayout( 0, "font.ds0" );
     }
 
@@ -23,14 +23,11 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file     = "font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/font.glsl)
-        vs.options  = EShaderOpt::Optimize;
+        vs.file = "font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/font.glsl)
         ppln.SetVertexShader( vs );
-    }
-    {
+    }{
         RC<Shader>  fs = Shader();
-        fs.file     = "font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/font.glsl)
-        fs.options  = EShaderOpt::Optimize;
+        fs.file = "font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/font.glsl)
         ppln.SetFragmentShader( fs );
     }
 

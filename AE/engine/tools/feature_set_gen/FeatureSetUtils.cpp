@@ -574,13 +574,13 @@ namespace
         return prev;
     }
 
-    ND_ static EnumBitSet<EPixelFormat>  FS_ParseJSON (const EnumBitSet<EPixelFormat> &prev, StringView json, StringView name)
+    ND_ static EnumSet<EPixelFormat>  FS_ParseJSON (const EnumSet<EPixelFormat> &prev, StringView json, StringView name)
     {
         Unused( json, name );
         return prev;
     }
 
-    ND_ static EnumBitSet<EVertexType>  FS_ParseJSON (const EnumBitSet<EVertexType> &prev, StringView json, StringView name)
+    ND_ static EnumSet<EVertexType>  FS_ParseJSON (const EnumSet<EVertexType> &prev, StringView json, StringView name)
     {
         Unused( json, name );
         return prev;
@@ -1077,7 +1077,10 @@ namespace
             { "maxVertexAttributes",                    "maxVertexInputAttributes"              },
             { "maxVertexBuffers",                       "maxVertexInputBindings"                },
             { "maxMeshOutputPerVertexGranularity",      "meshOutputPerVertexGranularity"        },
-            { "maxMeshOutputPerPrimitiveGranularity",   "meshOutputPerPrimitiveGranularity"     }
+            { "maxMeshOutputPerPrimitiveGranularity",   "meshOutputPerPrimitiveGranularity"     },
+            { "perDescrSet_maxUniformBuffersDynamic",   "maxDescriptorSetUniformBuffersDynamic" },
+            { "perDescrSet_maxStorageBuffersDynamic",   "maxDescriptorSetStorageBuffersDynamic" },
+            { "ycbcr2Plane444",                         "ycbcr2plane444Formats" }
         };
 
         const auto  ReplaceName = [&replace_names] (StringView key)
@@ -1089,7 +1092,7 @@ namespace
                 return "\""s << key << "\"";
         }};
 
-        outFeatureSet = Default;
+        outFeatureSet = FeatureSetExt{};
         outFeatureSet.SetAll( EFeature::Ignore );
 
         outFeatureSet.computeShader = EFeature::RequireTrue;
@@ -1231,6 +1234,8 @@ namespace
         FS_ParseJSON_Queues( json, INOUT outFeatureSet.queues );
         FS_ParseJSON_Formats( json, INOUT outFeatureSet );
 
+        CHECK( outFeatureSet.perDescrSet_maxUniformBuffersDynamic > 0 );
+
         return true;
     }
 //-----------------------------------------------------------------------------
@@ -1251,15 +1256,14 @@ namespace
 
         str << "\tfset." << name << " (";
 
-        BEGIN_ENUM_CHECKS();
-        switch ( feat )
+        switch_enum( feat )
         {
             case EFeature::RequireFalse :   str << "False"; break;
             case EFeature::RequireTrue :    str << "True";  break;
             case EFeature::Ignore :
             case EFeature::_Count :         CHECK(false);   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         str << ");\n";
     }
@@ -1364,42 +1368,42 @@ namespace
         const auto  clustered   = FeatureSet::SubgroupOperationBits{}.InsertRange( ESubgroupOperation::_Clustered_Begin,        ESubgroupOperation::_Clustered_End );
         const auto  quad        = FeatureSet::SubgroupOperationBits{}.InsertRange( ESubgroupOperation::_Quad_Begin,             ESubgroupOperation::_Quad_End );
 
-        if ( val.All( basic ))
+        if ( val.AllBits( basic ))
         {
             val &= ~basic;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );\n";
         }
-        if ( val.All( vote ))
+        if ( val.AllBits( vote ))
         {
             val &= ~vote;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );\n";
         }
-        if ( val.All( arithmetic ))
+        if ( val.AllBits( arithmetic ))
         {
             val &= ~arithmetic;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Arithmetic_Begin, ESubgroupOperation::_Arithmetic_End );\n";
         }
-        if ( val.All( ballot ))
+        if ( val.AllBits( ballot ))
         {
             val &= ~ballot;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Ballot_Begin, ESubgroupOperation::_Ballot_End );\n";
         }
-        if ( val.All( shuffle ))
+        if ( val.AllBits( shuffle ))
         {
             val &= ~shuffle;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );\n";
         }
-        if ( val.All( shuffle_rel ))
+        if ( val.AllBits( shuffle_rel ))
         {
             val &= ~shuffle_rel;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );\n";
         }
-        if ( val.All( clustered ))
+        if ( val.AllBits( clustered ))
         {
             val &= ~clustered;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Clustered_Begin, ESubgroupOperation::_Clustered_End );\n";
         }
-        if ( val.All( quad ))
+        if ( val.AllBits( quad ))
         {
             val &= ~quad;
             str << "\tfset.AddSubgroupOperationRange( ESubgroupOperation::_Quad_Begin, ESubgroupOperation::_Quad_End );\n";
@@ -1470,8 +1474,7 @@ namespace
         {
             str << "\n\t\tESubgroupTypes::";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case ESubgroupTypes::Float32 :  str << "Float32";   break;
                 case ESubgroupTypes::Int32 :    str << "Int32";     break;
@@ -1484,7 +1487,7 @@ namespace
                 case ESubgroupTypes::All :
                 default :                       CHECK( !"unknown subgroup type" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             str << " | ";
         }
@@ -1706,7 +1709,7 @@ namespace
 
             for (EQueueMask mask = queues.supported; mask != Default;)
             {
-                auto    q = ExtractBitLog2<EQueueType>( INOUT mask );
+                auto    q = ExtractBitIndex<EQueueType>( INOUT mask );
 
                 str << "EQueueMask::" << ToString(q);
 
@@ -1721,7 +1724,7 @@ namespace
 
             for (EQueueMask mask = queues.required; mask != Default;)
             {
-                auto    q = ExtractBitLog2<EQueueType>( INOUT mask );
+                auto    q = ExtractBitIndex<EQueueType>( INOUT mask );
 
                 str << "EQueueMask::" << ToString(q);
 

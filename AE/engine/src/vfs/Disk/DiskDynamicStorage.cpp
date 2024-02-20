@@ -1,5 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "threading/DataSource/UnixAsyncDataSource.h"
+#include "threading/DataSource/WinAsyncDataSource.h"
+
 #include "vfs/Disk/DiskDynamicStorage.h"
 #include "vfs/Disk/Utils.cpp.h"
 
@@ -102,7 +105,7 @@ namespace AE::VFS
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  DiskDynamicStorage::_Open2 (OUT ResultType &result, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::_Open2 (OUT ResultType &result, FileName::Ref name) C_NE___
     {
         Path    path;
         {
@@ -126,7 +129,7 @@ namespace AE::VFS
     }
 
     template <typename ImplType, typename ResultType>
-    bool  DiskDynamicStorage::_Open (OUT ResultType &result, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::_Open (OUT ResultType &result, FileName::Ref name) C_NE___
     {
         // first try
         {
@@ -144,20 +147,23 @@ namespace AE::VFS
         return false;
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<RStream> &stream, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<RStream> &stream, FileName::Ref name) C_NE___
     {
         return _Open<FileRStream>( OUT stream, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<RDataSource> &ds, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<RDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _Open<FileRDataSource>( OUT ds, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
     {
     #if defined(AE_PLATFORM_WINDOWS)
         return _Open< Threading::WinAsyncRDataSource >( OUT ds, name );
+
+    #elif defined(AE_PLATFORM_UNIX_BASED)
+        return _Open< Threading::UnixAsyncRDataSource >( OUT ds, name );
 
     #else
         Unused( ds, name );
@@ -170,20 +176,23 @@ namespace AE::VFS
     Open
 =================================================
 */
-    bool  DiskDynamicStorage::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<WStream> &stream, FileName::Ref name) C_NE___
     {
         return _Open<FileWStream>( OUT stream, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<WDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _Open<FileWDataSource>( OUT ds, name );
     }
 
-    bool  DiskDynamicStorage::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name) C_NE___
     {
     #if defined(AE_PLATFORM_WINDOWS)
         return _Open< Threading::WinAsyncWDataSource >( OUT ds, name );
+
+    #elif defined(AE_PLATFORM_UNIX_BASED)
+        return _Open< Threading::UnixAsyncWDataSource >( OUT ds, name );
 
     #else
         Unused( ds, name );
@@ -198,13 +207,14 @@ namespace AE::VFS
 */
     bool  DiskDynamicStorage::CreateFile (OUT FileName &name, const Path &inPath) C_NE___
     {
-        Path    path = (_folder / inPath).lexically_normal();   // path without '..'
-        FileSystem::CreateDirectories( path.parent_path() );
+        const Path  abs_path = (_folder / inPath).lexically_normal();   // path without '..'
+        const Path  rel_path = FileSystem::ToRelative( abs_path, _folder );
 
-        path = FileSystem::ToRelative( path, _folder );
+        CHECK_ERR( *rel_path.begin() != ".." );
+        FileSystem::CreateDirectories( abs_path.parent_path() );
 
         String  str;
-        CHECK_ERR( Convert<Path::value_type>( OUT str, path.native() ));
+        CHECK_ERR( Convert<Path::value_type>( OUT str, rel_path.native() ));
 
         name = FileName{_prefix + str};
         DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
@@ -221,11 +231,17 @@ namespace AE::VFS
 #if 1
     bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
     {
-        Path            path    = (_folder / inoutPath).lexically_normal(); // path without '..'
-        String          fname   = ToString( path.filename().replace_extension("") );
-        const String    ext     = ToString( path.extension() );
-        const usize     len     = fname.length();
-                        path    = path.parent_path();
+        const Path      abs_path    = (_folder / inoutPath).lexically_normal(); // path without '..'
+        String          fname       = ToString( abs_path.filename().replace_extension("") );
+        const String    ext         = ToString( abs_path.extension() );
+        const usize     len         = fname.length();
+        Path            path        = abs_path.parent_path();
+
+        {
+            const Path  rel_path = FileSystem::ToRelative( abs_path, _folder );
+            CHECK_ERR( *rel_path.begin() != ".." );
+            FileSystem::CreateDirectories( abs_path.parent_path() );
+        }
 
         const auto  BuildName = [&] (OUT Path &p, usize idx)
         {{
@@ -267,7 +283,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  DiskDynamicStorage::Exists (FileNameRef name) C_NE___
+    bool  DiskDynamicStorage::Exists (FileName::Ref name) C_NE___
     {
         // first try
         {
@@ -285,7 +301,7 @@ namespace AE::VFS
         return false;
     }
 
-    bool  DiskDynamicStorage::Exists (FileGroupNameRef) C_NE___
+    bool  DiskDynamicStorage::Exists (FileGroupName::Ref) C_NE___
     {
         // not supported
         return false;

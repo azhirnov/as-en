@@ -12,9 +12,13 @@ namespace AE::Base
     // Linear Allocator
     //
 
-    template <typename AllocatorType, uint MaxBlocks>
+    template <typename AllocatorType,
+              uint MaxBlocks
+             >
     class LinearAllocator< AllocatorType, MaxBlocks, false > final : public IAllocator
     {
+        StaticAssert( MaxBlocks > 0 );
+
     // types
     public:
         using Allocator_t   = AllocatorType;
@@ -55,7 +59,6 @@ namespace AE::Base
 
             void    SetBlockSize (Bytes size)                       __NE___ { _blockSize = size; }
 
-            void    Discard ()                                      __NE___;
             void    Release ()                                      __NE___;
 
         ND_ Bytes               TotalSize ()                        C_NE___;
@@ -64,12 +67,13 @@ namespace AE::Base
 
         // IAllocator //
         ND_ void*   Allocate (const SizeAndAlign)                   __NE_OV;
+            using   IAllocator::Allocate;
 
             void    Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
             void    Deallocate (void* ptr, Bytes size)              __NE_OV;
             void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
 
-            using IAllocator::Allocate;
+            void    Discard ()                                      __NE_OV;
     };
 
 

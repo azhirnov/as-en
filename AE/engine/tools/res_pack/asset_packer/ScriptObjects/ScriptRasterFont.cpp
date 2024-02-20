@@ -21,6 +21,11 @@ AE_DECL_SCRIPT_TYPE(    AE::AssetPacker::ScriptRasterFont::ERasterFontMode, "ERa
 
 namespace AE::AssetPacker
 {
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+#   include "Packer/RasterFontPacker.cpp.h"
+}
+
     using namespace AE::Graphics;
     using namespace AE::ResLoader;
 
@@ -233,8 +238,7 @@ namespace AE::AssetPacker
         uint                fnt_height      = 0;
         int                 padding_in_atlas = _paddingPix;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _fontMode )
+        switch_enum( _fontMode )
         {
             case ERasterFontMode::Raster :
                 #ifdef AE_ENABLE_FREETYPE
@@ -258,7 +262,7 @@ namespace AE::AssetPacker
             default :
                 RETURN_ERR( "unsupported raster font mode" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         // place rects in atlas
         AtlasTools::RectPackerSTB   rect_packer;
@@ -340,9 +344,9 @@ namespace AE::AssetPacker
 
             {
                 Serializing::Serializer     ser {stream};
-                CHECK_ERR( fnt_packer.Serialize( ser ));
+                CHECK_ERR( RasterFontPacker_Serialize( fnt_packer, ser ));
             }
-            CHECK_ERR( fnt_packer.SaveImage( *stream, dst_image ));
+            CHECK_ERR( RasterFontPacker_SaveImage( fnt_packer, *stream, dst_image ));
         }
 
         return true;
@@ -493,12 +497,12 @@ namespace AE::AssetPacker
         FT_Library  ft_library;
         CHECK_ERR( FT_Init_FreeType( &ft_library ) == 0 );
 
-        OnDestroy   free_ft_library{ [&ft_library](){ FT_Done_FreeType( ft_library ); }};
+        ON_DESTROY( [&ft_library](){ FT_Done_FreeType( ft_library ); });
 
         FT_Face     ft_face = null;
         CHECK_ERR( FT_New_Memory_Face( ft_library, mem_stream.GetData().data(), FT_Long(mem_stream.GetData().size()), 0, OUT &ft_face ) == 0 );
 
-        OnDestroy   free_ft_face{ [&ft_face](){ FT_Done_Face( ft_face ); }};
+        ON_DESTROY( [&ft_face](){ FT_Done_Face( ft_face ); });
 
         CHECK_ERR( FT_Select_Charmap( ft_face, FT_ENCODING_UNICODE ) == 0 );
 
@@ -598,8 +602,7 @@ namespace AE::AssetPacker
         CHECK_ERR( result.dimension.x <= bm_size );
         CHECK_ERR( result.dimension.y <= bm_size );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _fontMode )
+        switch_enum( _fontMode )
         {
             case ERasterFontMode::SDF :
             {
@@ -664,7 +667,7 @@ namespace AE::AssetPacker
             default :
                 RETURN_ERR( "unsupported raster font mode for SDF generator" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return true;
     }
@@ -687,15 +690,14 @@ namespace AE::AssetPacker
                    AllBits( fmt_info.valueType, PixelFormatInfo::EType::SNorm )     or
                    AllBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm ));
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _fontMode ) {
+        switch_enum( _fontMode ) {
             case ERasterFontMode::SDF :     CHECK_ERR( fmt_info.channels == 1 );                            break;
             case ERasterFontMode::MC_SDF :  CHECK_ERR( fmt_info.channels == 3 or fmt_info.channels == 4 );  break;
             case ERasterFontMode::Raster :
             case ERasterFontMode::_Count :
             default :                       return false;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         Allocator_t     tmp_alloc;      tmp_alloc.SetBlockSize( 16_Mb );
         MemRStream      mem_stream;
@@ -708,12 +710,12 @@ namespace AE::AssetPacker
         FreetypeHandle* ft = initializeFreetype();
         CHECK_ERR( ft != null );
 
-        OnDestroy   free_ft{ [&ft](){ deinitializeFreetype( ft ); }};
+        ON_DESTROY( [&ft](){ deinitializeFreetype( ft ); });
 
         FontHandle* ft_font = loadFontData( ft, mem_stream.GetData().data(), int(mem_stream.GetData().size()) );
         CHECK_ERR( ft_font != null );
 
-        OnDestroy   free_font{ [&ft_font](){ destroyFont( ft_font ); }};
+        ON_DESTROY( [&ft_font](){ destroyFont( ft_font ); });
 
         // calculate glyph scale
         double  proj_scale      = 1.0e+10;
@@ -741,7 +743,7 @@ namespace AE::AssetPacker
                 }
             }
         }
-        proj_scale = Floor(proj_scale * 8.0) / 8.0;
+        //proj_scale = Floor( proj_scale * 8.0 ) / 8.0;
         CHECK_ERR( proj_scale > 0.0 );
 
         outFontHeight = uint(max_height * proj_scale + 0.5);

@@ -204,26 +204,26 @@ namespace
         for (; pos < str.size(); ++pos)
         {
             const char  c = str[pos];
-            if ( not ((c == ' ') | (c == '\t')) )
+            if ( not ((c == ' ') or (c == '\t')) )
                 break;
         }
     }
 
     ND_ inline bool  IsNumber (char c) __NE___
     {
-        return  (c >= '0') & (c <= '9');
+        return  (c >= '0') and (c <= '9');
     }
 
     ND_ inline bool  IsWordBegin (char c) __NE___
     {
-        return  ((c >= 'A') & (c <= 'Z')) |
-                ((c >= 'a') & (c <= 'z')) |
+        return  ((c >= 'A') and (c <= 'Z')) or
+                ((c >= 'a') and (c <= 'z')) or
                 (c == '_');
     }
 
     ND_ inline bool  IsWord (char c) __NE___
     {
-        return IsWordBegin( c ) | IsNumber( c );
+        return IsWordBegin( c ) or IsNumber( c );
     }
 
     ND_ inline bool  IsSpaceOrSymb (char c) __NE___
@@ -296,26 +296,26 @@ namespace
             const char  n = str[pos];
 
             // new line
-            if_unlikely( (c == '\r') & (n == '\n') )
+            if_unlikely( (c == '\r') and (n == '\n') )
             {
                 ++pos;
                 continue;
             }
-            if_unlikely( (c == '\n') | (c == '\r') )
+            if_unlikely( (c == '\n') or (c == '\r') )
             {
                 if ( not include_scope.back() )
                     dst << '\n';
             }
 
             // single line comment
-            if_unlikely( (c == '/') & (n == '/') )
+            if_unlikely( (c == '/') and (n == '/') )
             {
                 Parser::ToNextLine( str, INOUT pos );
                 continue;
             }
 
             // multi line comment
-            if_unlikely( (c == '/') & (n == '*') )
+            if_unlikely( (c == '/') and (n == '*') )
             {
                 pos += 2;
                 for (; pos < str.size();)
@@ -324,18 +324,18 @@ namespace
                     const char  b = str[pos];
 
                     // new line
-                    if_unlikely( (a == '\r') & (b == '\n') )
+                    if_unlikely( (a == '\r') and (b == '\n') )
                     {
                         ++pos;
                         continue;
                     }
-                    if_unlikely( (a == '\n') | (a == '\r') )
+                    if_unlikely( (a == '\n') or (a == '\r') )
                     {
                         if ( not include_scope.back() )
                             dst << '\n';
                     }
 
-                    if_unlikely( (a == '*') & (b == '/') )
+                    if_unlikely( (a == '*') and (b == '/') )
                     {
                         pos += 2;
                         break;
@@ -367,7 +367,7 @@ namespace
                     if_unlikely( a == '"' )
                         break;
 
-                    if_unlikely( (a != '\\') & (b == '"') )
+                    if_unlikely( (a != '\\') and (b == '"') )
                     {
                         ++pos;
                         break;
@@ -377,8 +377,8 @@ namespace
             }
 
             // macros
-            if_unlikely( ((c != '#') & (n == '#')) |
-                         ((pos == 1) & (c == '#')) )
+            if_unlikely( ((c != '#') and (n == '#')) or
+                         ((pos == 1) and (c == '#')) )
             {
                 if ( n == '#' ) ++pos;
                 SkipSpaces( str, INOUT pos );
@@ -475,18 +475,18 @@ namespace
                 continue;
             }
 
-            if_unlikely( ((c == ':') & (n == ':')) |
-                         ((c == 'R') & (n == 'C')) )
+            if_unlikely( ((c == ':') and (n == ':')) or
+                         ((c == 'R') and (n == 'C')) )
             {
                 if ( include_scope.back() )
                 {
                     ASSERT( begin_block != UMax );
 
-                    bool    is_ns   = (c == ':') & (n == ':');
+                    bool    is_ns   = (c == ':') and (n == ':');
                     is_ns   &= (pos >= 2 ? IsWord( str[pos-2] ) : true);
                     is_ns   &= (pos+1 < str.size() ? IsWord( str[pos+1] ) : false);
 
-                    bool    is_rc   = (c == 'R') & (n == 'C');
+                    bool    is_rc   = (c == 'R') and (n == 'C');
                     is_rc   &= (pos >= 2 ? IsSpaceOrSymb( str[pos-2] ) : true);
                     is_rc   &= (pos+1 < str.size() ? str[pos+1] == '<' : false);
 
@@ -605,10 +605,10 @@ namespace
 
 /*
 =================================================
-    IsRegistred
+    IsRegistered
 =================================================
 */
-    bool  ScriptEngine::IsRegistred (NtStringView name) __NE___
+    bool  ScriptEngine::IsRegistered (NtStringView name) __NE___
     {
         auto*   info = _engine->GetTypeInfoByName( name.c_str() );
         return info != null;
@@ -792,7 +792,7 @@ namespace
         {
             FileWStream file {fname};
             CHECK_ERR( file.IsOpen() );
-            CHECK_ERR( file.Write( "//"s << ToString<16>(uint{hash}) << "\n" ));
+            CHECK_ERR( file.Write( "//"s << FormatAlignedI<16>( uint{hash}, 8, '0' ) << "\n" ));
             CHECK_ERR( file.Write( src ));
         }
         return true;

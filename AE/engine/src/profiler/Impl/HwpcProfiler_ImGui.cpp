@@ -8,10 +8,6 @@
 # include "profiler/Impl/HwpcProfiler.h"
 # include "graphics/Public/GraphicsImpl.h"
 
-# if defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM_BASED)
-#   define ARM_PROFILER
-# endif
-
 namespace AE::Profiler
 {
 namespace
@@ -42,10 +38,8 @@ namespace
         {
             _DrawCpuUsageImGui();
 
-          #ifdef ARM_PROFILER
             _DrawCpuProfilerArmImGui();
             _DrawGpuProfilerArmImGui();
-          #endif
 
             ImGui::End();
         }
@@ -65,7 +59,7 @@ namespace
         if ( ImGui::CollapsingHeader( "CPU usage", 0 ))
         {
             const auto&     cpu_info        = CpuArchInfo::Get();
-            const uint      core_per_line   = _imgui.corePerLine;
+            const uint      core_per_line   = _cpuUsage.corePerLine;
             const float     graph_width     = wnd_size.x / core_per_line;
             const float     graph_height    = 100.f;
             float2          left_top        = float2{ x_offset, 0.f };
@@ -79,8 +73,8 @@ namespace
 
                 for (ulong bits = core.logicalBits.to_ullong(), i = 1; bits != 0; ++i)
                 {
-                    uint    core_id = ExtractBitLog2( INOUT bits );
-                    auto&   graph   = _imgui.coreUsage[core_id];
+                    uint    core_id = ExtractBitIndex( INOUT bits );
+                    auto&   graph   = _cpuUsage.coreUsage[core_id];
 
                     RectF   region;
                     region.left     = left_top.x;
@@ -112,7 +106,6 @@ namespace
     _DrawCpuProfilerArmImGui
 =================================================
 */
-# ifdef ARM_PROFILER
     void  HwpcProfiler::_DrawCpuProfilerArmImGui ()
     {
         const float     graph_height    = 150.f;
@@ -158,14 +151,12 @@ namespace
         }
         ImGui::SetCursorScreenPos( ImVec2{ wnd_pos_x, ImGui::GetCursorScreenPos().y });
     }
-# endif // ARM_PROFILER
 
 /*
 =================================================
     _DrawGpuProfilerArmImGui
 =================================================
 */
-# ifdef ARM_PROFILER
     void  HwpcProfiler::_DrawGpuProfilerArmImGui ()
     {
         String          str;
@@ -250,14 +241,12 @@ namespace
         }
         ImGui::SetCursorScreenPos( ImVec2{ wnd_pos_x, ImGui::GetCursorScreenPos().y });
     }
-# endif // ARM_PROFILER
 
 /*
 =================================================
     _UpdateArmCountersImGui
 =================================================
 */
-#ifdef ARM_PROFILER
     void  HwpcProfiler::_UpdateArmCountersImGui (double invdt)
     {
         using ECounter = ArmProfiler::ECounter;
@@ -342,18 +331,15 @@ namespace
 
         AddPoint_zTest( INOUT _armProf.zTest, invdt );
     }
-#endif
 
 /*
 =================================================
     _UpdateAndroidGpuCountersImGui
 =================================================
 */
-#ifdef ARM_PROFILER
     void  HwpcProfiler::_UpdateAndroidGpuCountersImGui (secondsf)
     {
     }
-#endif
 
 /*
 =================================================
@@ -390,14 +376,14 @@ namespace
         {
             const auto&     cpu_info = CpuArchInfo::Get();
 
-            _imgui.coreUsage.resize( cpu_info.cpu.logicalCoreCount );
-            _imgui.corePerLine = 1;
+            _cpuUsage.coreUsage.resize( cpu_info.cpu.logicalCoreCount );
+            _cpuUsage.corePerLine = 1;
 
             for (auto& core : cpu_info.cpu.coreTypes)
             {
                 for (uint core_id : BitIndexIterate( core.logicalBits.to_ullong() ))
                 {
-                    auto&   graph = _imgui.coreUsage[core_id];
+                    auto&   graph = _cpuUsage.coreUsage[core_id];
                     graph.SetCapacity( capacity1, 2 );
                     graph.SetColor( style2 );
                     graph.SetRange( 0.f, 1.f );
@@ -406,15 +392,14 @@ namespace
                     graph.SetLabel( "kernel", 1 );
                 }
 
-                _imgui.corePerLine = Max( _imgui.corePerLine, core.LogicalCount() );
+                _cpuUsage.corePerLine = Max( _cpuUsage.corePerLine, core.LogicalCount() );
             }
 
             if ( cpu_info.cpu.coreTypes.size() == 1 )
-                _imgui.corePerLine = Max( 1u, uint( Sqrt( float(cpu_info.cpu.logicalCoreCount) ) + 0.5f ));
+                _cpuUsage.corePerLine = Max( 1u, uint( Sqrt( float(cpu_info.cpu.logicalCoreCount) ) + 0.5f ));
         }
 
         Unused( capacity2 );
-        #ifdef ARM_PROFILER
         {
             auto&   graph = _armProf.globalMemStalls;
             graph.SetCapacity( capacity2, 2 );
@@ -535,7 +520,6 @@ namespace
             graph.SetColor( style3 );
             graph.SetRange( 0.f, 1.f );
         }
-        #endif
     }
 
 } // AE::Profiler

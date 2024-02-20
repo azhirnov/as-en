@@ -123,11 +123,9 @@ ND_ float  MCSDF_Median (const float3 msd);
 */
 float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx)
 {
-    // triangle wave
-    uv = Fract( uv * invGridSize );
-    uv = Min( uv, 1.0 - uv ) * 2.0;
+    uv = TriangleWave( uv * invGridSize );
     // grid lines
-    uv = SmoothStep( float2(0.0), invGridSize * thicknessPx, uv );
+    uv = SmoothStep( uv, float2(0.0), invGridSize * thicknessPx );
     return Min( uv.x, uv.y );
 }
 
@@ -138,11 +136,8 @@ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx
 */
 float  AA_Lines (float x, const float invStep, const float thicknessPx)
 {
-    // triangle wave
-    x = Fract( x * invStep );
-    x = Min( x, 1.0 - x ) * 2.0;
-    // lines
-    return SmoothStep( 0.0, invStep * thicknessPx, x );
+    x = TriangleWave( x * invStep );
+    return SmoothStep( x, 0.0, invStep * thicknessPx );
 }
 
 /*

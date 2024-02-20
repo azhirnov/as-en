@@ -12,7 +12,7 @@ namespace AE::App
     SetMonitorNames
 =================================================
 */
-    void  UtilsWinAPI::SetMonitorNames (INOUT IApplication::Monitors_t &monitors) __NE___
+    void  UtilsWinAPI::SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors) __NE___
     {
         Array<DISPLAYCONFIG_PATH_INFO>  paths;
         Array<DISPLAYCONFIG_MODE_INFO>  modes;

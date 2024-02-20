@@ -17,10 +17,35 @@ namespace AE::AssetPacker
     using AE::usize;
     using AE::CharType;
 
+    enum class EPathParamsFlags : uint
+    {
+        Unknown                     = 0,        // auto-detect
+        File                        = 1 << 0,
+        Folder                      = 1 << 1,
+        RecursiveFolder             = 1 << 2,
+        _Last,
+        All                         = ((_Last - 1) << 1) - 1,
+    };
+
+    struct PathParams
+    {
+        const CharType *    path        = null;
+        usize               priority    : 16;
+        usize               flags       : 8;    // EPathParamsFlags
+
+        PathParams () : priority{0}, flags{0} {}
+
+        PathParams (const CharType* inPath, usize inPriority = 0, EPathParamsFlags inFlags = EPathParamsFlags::Unknown) :
+            path{ inPath },
+            priority{ inPriority },
+            flags{ usize(inFlags) }
+        {}
+    };
+
 
     struct AssetInfo
     {
-        const CharType * const* inFiles                 = null;     // [inFileCount]
+        const PathParams *      inFiles                 = null;     // [inFileCount]    // files or folders
         usize                   inFileCount             = 0;
 
         // to use #include in scripts from 'inFiles'

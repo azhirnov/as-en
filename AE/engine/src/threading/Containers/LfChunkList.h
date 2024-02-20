@@ -15,6 +15,8 @@ namespace AE::Threading
              >
     class LfChunkList final : public Noncopyable
     {
+        StaticAssert( ChunkCapacity_v > 0 );
+
     // types
     public:
         using Self          = LfChunkList< T, ChunkCapacity_v >;
@@ -157,7 +159,8 @@ namespace AE::Threading
     template <typename Allocator, typename ...Args>
     bool  LfChunkList<T,S>::Emplace (Allocator &alloc, Args&& ...args) __NE___
     {
-        StaticAssert( IsThreadSafeAllocator< Allocator >);
+        // allocator can be externally synchronized
+        //StaticAssert( IsThreadSafeAllocator< Allocator >);
 
         DRC_SHAREDLOCK( _drCheck );
 
@@ -249,7 +252,7 @@ namespace AE::Threading
 
         // move to last with available space
         for (Chunk* next = chunk->next.load();
-             (next != null) & (chunk->count.load() >= _ChunkCapacity);)
+             (next != null) and (chunk->count.load() >= _ChunkCapacity);)
         {
             chunk   = next;
             next    = chunk->next.load();

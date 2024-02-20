@@ -31,7 +31,7 @@ namespace AE::Graphics {
         const Bytes dst_buf_size    = dst_buf.Size();
         Bytes       offset          = Min( uploadDesc.offset,   dst_buf_size );
         const Bytes size            = Min( uploadDesc.size,     dst_buf_size - offset );
-        auto        handle          = dst_buf.Handle();
+        const auto  handle          = dst_buf.Handle();
 
         VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), offset, size, memView ));
 
@@ -64,8 +64,8 @@ namespace AE::Graphics {
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   dst_buf = _GetResourcesOrThrow( stream.BufferId() );
-        auto    handle  = dst_buf.Handle();
+        const auto& dst_buf = _GetResourcesOrThrow( stream.BufferId() );
+        const auto  handle  = dst_buf.Handle();
 
         VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), stream.pos, stream.RemainSize(), memView ));
 
@@ -91,17 +91,22 @@ namespace AE::Graphics {
 
 /*
 =================================================
-    UploadImage
+    _UploadImage
 =================================================
 */
-    TRANSFER_CTX( void, UploadImage )(ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
+    TRANSFER_CTX( template <typename ID> void, _UploadImage )(ID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
     {
+        StaticAssert( IsSameTypes< ID, ImageID > or IsSameTypes< ID, VideoImageID >);
+
         auto&   dst_img = _GetResourcesOrThrow( imageId );
         VALIDATE_GCTX( UploadImage( dst_img.Description() ));
 
-        const ImageDesc&    img_desc    = dst_img.Description();
-        auto                handle      = dst_img.Handle();
+        const auto&         img_desc    = dst_img.Description();
         STAGINGBUF_MNGR&    sbm         = this->_mngr.GetStagingManager();
+        const auto          handle      = [&dst_img]() {
+                                                if constexpr( IsSameTypes< ID, ImageID >)       return dst_img.Handle();
+                                                if constexpr( IsSameTypes< ID, VideoImageID >)  return dst_img.GetImageHandle();
+                                            }();
 
         STAGINGBUF_MNGR::StagingImageResultRanges   res;
         sbm.GetImageRanges( OUT res, uploadDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
@@ -139,44 +144,55 @@ namespace AE::Graphics {
             copy.bufferOffset       = VkDeviceSize(src_buf.bufferOffset);
             copy.bufferImageHeight  = src_buf.bufferImageHeight;
             copy.imageOffset        = {int(src_buf.imageOffset.x), int(src_buf.imageOffset.y), int(src_buf.imageOffset.z)};
-            copy.imageExtent        = {    src_buf.imageSize.x,        src_buf.imageSize.y,        src_buf.imageSize.z   };
+            copy.imageExtent        = {    src_buf.imageDim.x,         src_buf.imageDim.y,         src_buf.imageDim.z   };
           #else
             copy.bufferOffset       = src_buf.bufferOffset;
             copy.slicePitch         = src_buf.bufferSlicePitch;
             copy.imageOffset        = src_buf.imageOffset;
-            copy.imageExtent        = src_buf.imageSize;
+            copy.imageExtent        = src_buf.imageDim;
           #endif
 
             min = Min( min, src_buf.imageOffset );
-            max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+            max = Max( max, src_buf.imageOffset + src_buf.imageDim );
 
             CopyBufferToImage( src_buf.buffer, handle, {copy} );
         }
         ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
-        memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, uploadDesc.aspectMask };
+        memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, uploadDesc.aspectMask };
     }
 
 /*
 =================================================
-    UploadImage
+    _UploadImage
 =================================================
 */
-    TRANSFER_CTX( void, UploadImage )(ImageStream &stream, OUT ImageMemView &memView) __Th___
+    TRANSFER_CTX( template <typename StreamType> void, _UploadImage )(StreamType &stream, OUT ImageMemView &memView) __Th___
     {
+        StaticAssert( IsSameTypes< StreamType, ImageStream > or
+                      IsSameTypes< StreamType, VideoImageStream >);
+
         ASSERT( not stream.IsCompleted() );
 
         auto&   dst_img = _GetResourcesOrThrow( stream.ImageId() );
         VALIDATE_GCTX( UploadImage( dst_img.Description() ));
 
-        const ImageDesc&    img_desc    = dst_img.Description();
+        const auto&         img_desc    = dst_img.Description();
         STAGINGBUF_MNGR&    sbm         = this->_mngr.GetStagingManager();
+        const auto          handle      = [&dst_img]() {
+                                                if constexpr( IsSameTypes< StreamType, ImageStream >)       return dst_img.Handle();
+                                                if constexpr( IsSameTypes< StreamType, VideoImageStream >)  return dst_img.GetImageHandle();
+                                            }();
 
-        GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
+        if constexpr( IsSameTypes< StreamType, ImageStream >)
+            GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
+
+        if constexpr( IsSameTypes< StreamType, VideoImageStream >)
+            GCTX_CHECK( All( stream.End() <= uint3{img_desc.dimension,1u} ));
 
         UploadImageDesc upload_desc = stream.ToUploadDesc();
         upload_desc.imageOffset += uint3{ 0, stream.posYZ };
-        upload_desc.imageSize   -= uint3{ 0, stream.posYZ };
+        upload_desc.imageDim    -= uint3{ 0, stream.posYZ };
 
         STAGINGBUF_MNGR::StagingImageResultRanges   res;
         sbm.GetImageRanges( OUT res, upload_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
@@ -214,28 +230,28 @@ namespace AE::Graphics {
             copy.bufferOffset       = VkDeviceSize(src_buf.bufferOffset);
             copy.bufferImageHeight  = src_buf.bufferImageHeight;
             copy.imageOffset        = {int(src_buf.imageOffset.x), int(src_buf.imageOffset.y), int(src_buf.imageOffset.z)};
-            copy.imageExtent        = {    src_buf.imageSize.x,        src_buf.imageSize.y,        src_buf.imageSize.z   };
+            copy.imageExtent        = {    src_buf.imageDim.x,         src_buf.imageDim.y,         src_buf.imageDim.z   };
           #else
             copy.bufferOffset       = src_buf.bufferOffset;
             copy.slicePitch         = src_buf.bufferSlicePitch;
             copy.imageOffset        = src_buf.imageOffset;
-            copy.imageExtent        = src_buf.imageSize;
+            copy.imageExtent        = src_buf.imageDim;
           #endif
 
             min = Min( min, src_buf.imageOffset );
-            max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+            max = Max( max, src_buf.imageOffset + src_buf.imageDim );
 
             GCTX_CHECK( All( min >= stream.Begin() ));
             GCTX_CHECK( All( max <= stream.End() ));
 
-            CopyBufferToImage( src_buf.buffer, dst_img.Handle(), {copy} );
+            CopyBufferToImage( src_buf.buffer, handle, {copy} );
         }
         ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
         stream.posYZ[0] = max.y - stream.Begin().y;
         stream.posYZ[1] = max.z - stream.Begin().z - 1;
 
-        if_unlikely( stream.posYZ[0] >= stream.RegionSize().y )
+        if_unlikely( stream.posYZ[0] * res.planeScaleY >= stream.RegionSize().y )
         {
             stream.posYZ[0] = 0;
             stream.posYZ[1] ++;
@@ -243,7 +259,7 @@ namespace AE::Graphics {
 
         memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch,
                                 ((max.z - min.z > 1) ? res.dataSlicePitch : 0_b),
-                                img_desc.format, upload_desc.aspectMask };
+                                res.format, upload_desc.aspectMask };
     }
 
 /*
@@ -254,7 +270,7 @@ namespace AE::Graphics {
     TRANSFER_CTX( Promise<BufferMemView>, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
     {
         auto&       src_buf         = _GetResourcesOrThrow( bufferId );
-        auto        handle          = src_buf.Handle();
+        const auto  handle          = src_buf.Handle();
         const Bytes dst_buf_size    = src_buf.Size();
         Bytes       offset          = Min( readDesc.offset, dst_buf_size );
         const Bytes data_size       = Min( readDesc.size,   dst_buf_size - offset );
@@ -296,8 +312,8 @@ namespace AE::Graphics {
     {
         ASSERT( not stream.IsCompleted() );
 
-        auto&   src_buf = _GetResourcesOrThrow( stream.BufferId() );
-        auto    handle  = src_buf.Handle();
+        const auto& src_buf = _GetResourcesOrThrow( stream.BufferId() );
+        const auto  handle  = src_buf.Handle();
 
         VALIDATE_GCTX( ReadbackBuffer( src_buf.Description(), stream.pos, stream.RemainSize() ));
 
@@ -329,17 +345,22 @@ namespace AE::Graphics {
 
 /*
 =================================================
-    ReadbackImage
+    _ReadbackImage
 =================================================
 */
-    TRANSFER_CTX( Promise<ImageMemView>, ReadbackImage )(ImageID imageId, const ReadbackImageDesc &readDesc) __Th___
+    TRANSFER_CTX( template <typename ID> Promise<ImageMemView>, _ReadbackImage )(ID imageId, const ReadbackImageDesc &readDesc) __Th___
     {
+        StaticAssert( IsSameTypes< ID, ImageID > or IsSameTypes< ID, VideoImageID >);
+
         auto&   src_img = _GetResourcesOrThrow( imageId );
         VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
 
-        const ImageDesc&    img_desc    = src_img.Description();
+        const auto&         img_desc    = src_img.Description();
         STAGINGBUF_MNGR&    sbm         = this->_mngr.GetStagingManager();
-        auto                handle      = src_img.Handle();
+        const auto          handle      = [&src_img]() {
+                                                if constexpr( IsSameTypes< ID, ImageID >)       return src_img.Handle();
+                                                if constexpr( IsSameTypes< ID, VideoImageID >)  return src_img.GetImageHandle();
+                                            }();
 
         STAGINGBUF_MNGR::StagingImageResultRanges   res;
         sbm.GetImageRanges( OUT res, readDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
@@ -377,23 +398,23 @@ namespace AE::Graphics {
             copy.bufferOffset       = VkDeviceSize(dst_buf.bufferOffset);
             copy.bufferImageHeight  = dst_buf.bufferImageHeight;
             copy.imageOffset        = {int(dst_buf.imageOffset.x), int(dst_buf.imageOffset.y), int(dst_buf.imageOffset.z)};
-            copy.imageExtent        = {    dst_buf.imageSize.x,        dst_buf.imageSize.y,        dst_buf.imageSize.z   };
+            copy.imageExtent        = {    dst_buf.imageDim.x,         dst_buf.imageDim.y,         dst_buf.imageDim.z   };
           #else
             copy.bufferOffset       = dst_buf.bufferOffset;
             copy.slicePitch         = dst_buf.bufferSlicePitch;
             copy.imageOffset        = dst_buf.imageOffset;
-            copy.imageExtent        = dst_buf.imageSize;
+            copy.imageExtent        = dst_buf.imageDim;
           #endif
 
             min = Min( min, dst_buf.imageOffset );
-            max = Max( max, dst_buf.imageOffset + dst_buf.imageSize );
+            max = Max( max, dst_buf.imageOffset + dst_buf.imageDim );
 
             CopyImageToBuffer( handle, dst_buf.buffer, {copy} );
         }
         ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
         return Threading::MakePromiseFromValue(
-                    ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
+                    ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask },
                     Tuple{ this->_mngr.GetBatchRC() },
                     "TransferContext::ReadbackImage",
                     ETaskQueue::PerFrame
@@ -403,24 +424,34 @@ namespace AE::Graphics {
 
 /*
 =================================================
-    ReadbackImage
+    _ReadbackImage
 =================================================
 */
-    TRANSFER_CTX( Promise<ImageMemView>, ReadbackImage )(INOUT ImageStream &stream) __Th___
+    TRANSFER_CTX( template <typename StreamType> Promise<ImageMemView>, _ReadbackImage )(INOUT StreamType &stream) __Th___
     {
+        StaticAssert( IsSameTypes< StreamType, ImageStream > or
+                      IsSameTypes< StreamType, VideoImageStream >);
         ASSERT( not stream.IsCompleted() );
 
         auto&   src_img = _GetResourcesOrThrow( stream.ImageId() );
         VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
 
-        const ImageDesc&    img_desc    = src_img.Description();
+        const auto&         img_desc    = src_img.Description();
         STAGINGBUF_MNGR&    sbm         = this->_mngr.GetStagingManager();
+        const auto          handle      = [&src_img]() {
+                                                if constexpr( IsSameTypes< StreamType, ImageStream >)       return src_img.Handle();
+                                                if constexpr( IsSameTypes< StreamType, VideoImageStream >)  return src_img.GetImageHandle();
+                                            }();
 
-        GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
+        if constexpr( IsSameTypes< StreamType, ImageStream >)
+            GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
+
+        if constexpr( IsSameTypes< StreamType, VideoImageStream >)
+            GCTX_CHECK( All( stream.End() <= uint3{img_desc.dimension,1u} ));
 
         ReadbackImageDesc   read_desc = stream.ToReadbackDesc();
         read_desc.imageOffset   += uint3{ 0, stream.posYZ };
-        read_desc.imageSize     -= uint3{ 0, stream.posYZ };
+        read_desc.imageDim      -= uint3{ 0, stream.posYZ };
 
         STAGINGBUF_MNGR::StagingImageResultRanges   res;
         sbm.GetImageRanges( OUT res, read_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
@@ -458,32 +489,32 @@ namespace AE::Graphics {
             copy.bufferOffset       = VkDeviceSize(dst_buf.bufferOffset);
             copy.bufferImageHeight  = dst_buf.bufferImageHeight;
             copy.imageOffset        = {int(dst_buf.imageOffset.x), int(dst_buf.imageOffset.y), int(dst_buf.imageOffset.z)};
-            copy.imageExtent        = {    dst_buf.imageSize.x,        dst_buf.imageSize.y,        dst_buf.imageSize.z   };
+            copy.imageExtent        = {    dst_buf.imageDim.x,         dst_buf.imageDim.y,         dst_buf.imageDim.z   };
           #else
             copy.bufferOffset       = dst_buf.bufferOffset;
             copy.slicePitch         = dst_buf.bufferSlicePitch;
             copy.imageOffset        = dst_buf.imageOffset;
-            copy.imageExtent        = dst_buf.imageSize;
+            copy.imageExtent        = dst_buf.imageDim;
           #endif
 
             min = Min( min, dst_buf.imageOffset );
-            max = Max( max, dst_buf.imageOffset + dst_buf.imageSize );
+            max = Max( max, dst_buf.imageOffset + dst_buf.imageDim );
 
-            CopyImageToBuffer( src_img.Handle(), dst_buf.buffer, {copy} );
+            CopyImageToBuffer( handle, dst_buf.buffer, {copy} );
         }
         ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
         stream.posYZ[0] = max.y - stream.Begin().y;
         stream.posYZ[1] = max.z - stream.Begin().z - 1;
 
-        if_unlikely( stream.posYZ[0] >= stream.RegionSize().y )
+        if_unlikely( stream.posYZ[0] * res.planeScaleY >= stream.RegionSize().y )
         {
             stream.posYZ[0] = 0;
             stream.posYZ[1] ++;
         }
 
         return Threading::MakePromiseFromValue(
-                    ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, read_desc.aspectMask },
+                    ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, read_desc.aspectMask },
                     Tuple{ this->_mngr.GetBatchRC() },
                     "TransferContext::ReadbackImage",
                     ETaskQueue::PerFrame

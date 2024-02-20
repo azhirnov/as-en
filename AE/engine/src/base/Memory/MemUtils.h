@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Base
 {

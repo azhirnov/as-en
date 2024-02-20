@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifndef AE_ENABLE_METAL
+#ifdef AE_TEST_SHADER_DEBUGGER
 # include "Test_RenderGraph.h"
 
 namespace
@@ -64,7 +64,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.DrawMeshes_1;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
@@ -121,19 +121,19 @@ R"(//> gl_GlobalInvocationID: uint3 {0, 0, 0}
 no source
 
 //> (out): float4 {0.000000, -0.500000, 0.000000, 1.000000}
-29. gl_MeshVerticesEXT[I].gl_Position   = vec4( g_Positions[I], 0.0, 1.0 );
+28. gl_MeshVerticesEXT[I].gl_Position   = vec4( g_Positions[I], 0.0, 1.0 );
 
 //> (out): float4 {1.000000, 0.000000, 0.000000, 1.000000}
-30. Out[I].color                        = vec4( g_Colors[I], 1.0 );
+29. Out[I].color                        = vec4( g_Colors[I], 1.0 );
 
 //> (out): bool {true}
-32. if ( I == 0 )
+31. if ( I == 0 )
 
 //> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2}
-34. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+33. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
 
 //> SetMeshOutputs(): void
-35.             SetMeshOutputsEXT( 3, 1 );
+34.             SetMeshOutputsEXT( 3, 1 );
 
 )";
                         ok &= (trace_str[0] == ms_ref_str);
@@ -220,4 +220,4 @@ bool RGTest::Test_Debugger3 ()
     return result;
 }
 
-#endif // not AE_ENABLE_METAL
+#endif // AE_TEST_SHADER_DEBUGGER

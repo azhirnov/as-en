@@ -123,6 +123,7 @@ namespace AE::Graphics
         EMemoryType             memType         = EMemoryType::DeviceLocal;
         EQueueMask              queues          = Default;
         SamplerName             ycbcrConversion;
+        PipelinePackID          ycbcrConvPack;              // pipeline pack where 'ycbcrConversion' sampler is stored
         VideoProfile            profile;
 
 
@@ -144,7 +145,7 @@ namespace AE::Graphics
         VideoImageDesc&  SetArrayLayers (uint value)                    __NE___ { arrayLayers   = ImageLayer{value};    return *this; }
         VideoImageDesc&  SetQueues (EQueueMask value)                   __NE___ { queues        = value;                return *this; }
         VideoImageDesc&  SetMemory (EMemoryType value)                  __NE___ { memType       = value;                return *this; }
-        VideoImageDesc&  SetYcbcrConversion (const SamplerName &value)  __NE___ { ycbcrConversion = value;              return *this; }
+        VideoImageDesc&  SetYcbcrConversion (SamplerName::Ref value)    __NE___ { ycbcrConversion = value;              return *this; }
     };
 
 

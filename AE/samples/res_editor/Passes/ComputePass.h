@@ -50,6 +50,7 @@ namespace AE::ResEditor
         PipelineMap_t           _pipelines;
         PerFrameDescSet_t       _descSets;
         DescSetBinding          _dsIndex;
+        PushConstantIndex       _pcIndex;
 
         Strong<BufferID>        _ubuffer;
         mutable DynamicData     _dynData;       // used only in 'Upload()'

@@ -220,8 +220,7 @@ namespace
 
         for (auto t : BitfieldIterate( EShaderStages( inStages )))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EShaderStages::Vertex :            name << "Vs";   break;
                 case EShaderStages::TessControl :       name << "Tc";   break;
@@ -251,7 +250,7 @@ namespace
                 default :
                     CHECK_THROW_MSG( false, "unknown shader stage" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         // TODO
@@ -425,7 +424,7 @@ namespace
             return true;
 
         uint                    idx             = 0;
-        DescriptorCount_t       total           = {};
+        DescriptorCount         total           = {};
         PerStageDescCount_t     per_stage;
         MSLBindingsPerState_t   msl_per_stage;
         const bool              is_metal        = AnyEqual( ObjectStorage::Instance()->target, ECompilationTarget::Metal_Mac, ECompilationTarget::Metal_iOS );

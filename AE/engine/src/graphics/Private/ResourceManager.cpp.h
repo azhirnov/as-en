@@ -158,8 +158,8 @@ namespace {
 =================================================
     IsAlive
 =================================================
-*/
-    bool  RESMNGR::IsAlive (const SamplerName &name) const __NE___
+*
+    bool  RESMNGR::IsAlive (SamplerName::Ref name) const __NE___
     {
         auto    id = GetSampler( name );
 
@@ -383,7 +383,7 @@ namespace {
     LoadRenderTech
 =================================================
 */
-    RenderTechPipelinesPtr  RESMNGR::LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache) __NE___
+    RenderTechPipelinesPtr  RESMNGR::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -396,7 +396,7 @@ namespace {
     LoadRenderTechAsync
 =================================================
 */
-    Promise<RenderTechPipelinesPtr>  RESMNGR::LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache) __NE___
+    Promise<RenderTechPipelinesPtr>  RESMNGR::LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -409,7 +409,7 @@ namespace {
     CreateGraphicsPipeline
 =================================================
 */
-    Strong<GraphicsPipelineID>  RESMNGR::CreateGraphicsPipeline (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc &desc, PipelineCacheID cache) __NE___
+    Strong<GraphicsPipelineID>  RESMNGR::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -422,7 +422,7 @@ namespace {
     CreateMeshPipeline
 =================================================
 */
-    Strong<MeshPipelineID>  RESMNGR::CreateMeshPipeline (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc &desc, PipelineCacheID cache) __NE___
+    Strong<MeshPipelineID>  RESMNGR::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -435,7 +435,7 @@ namespace {
     CreateComputePipeline
 =================================================
 */
-    Strong<ComputePipelineID>  RESMNGR::CreateComputePipeline (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc &desc, PipelineCacheID cache) __NE___
+    Strong<ComputePipelineID>  RESMNGR::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -448,7 +448,7 @@ namespace {
     CreateRayTracingPipeline
 =================================================
 */
-    Strong<RayTracingPipelineID>  RESMNGR::CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache) __NE___
+    Strong<RayTracingPipelineID>  RESMNGR::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -461,7 +461,7 @@ namespace {
     CreateTilePipeline
 =================================================
 */
-    Strong<TilePipelineID>  RESMNGR::CreateTilePipeline (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc &desc, PipelineCacheID cache) __NE___
+    Strong<TilePipelineID>  RESMNGR::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cache) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -733,7 +733,7 @@ namespace {
     GetCompatibleRenderPass
 =================================================
 */
-    RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, const CompatRenderPassName &name) C_NE___
+    RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, CompatRenderPassName::Ref name) C_NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -741,7 +741,7 @@ namespace {
         return pack->GetRenderPass( *this, name );
     }
 
-    RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, const RenderPassName &name) C_NE___
+    RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
     {
         RenderPassID    rp_id = GetRenderPass( packId, name );
         CHECK_ERR( rp_id );
@@ -765,7 +765,7 @@ namespace {
     GetRenderPass
 =================================================
 */
-    RenderPassID  RESMNGR::GetRenderPass (PipelinePackID packId, const RenderPassName &name) C_NE___
+    RenderPassID  RESMNGR::GetRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
         CHECK_ERR( pack != null );
@@ -782,7 +782,7 @@ namespace {
 */
     template <typename PplnID>
     bool  RESMNGR::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
-                                          const PplnID &pplnId, const DescriptorSetName &dsName,
+                                          const PplnID &pplnId, DescriptorSetName::Ref dsName,
                                           DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         CHECK_ERR( dst != null and count > 0 );
@@ -848,31 +848,31 @@ namespace {
 =================================================
 */
     bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         GraphicsPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+                                         GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
     }
 
     bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         MeshPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+                                         MeshPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
     }
 
     bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         ComputePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+                                         ComputePipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
     }
 
     bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+                                         RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
     }
 
     bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         TilePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+                                         TilePipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
     }
@@ -883,7 +883,7 @@ namespace {
 =================================================
 */
     template <typename PplnID>
-    PushConstantIndex  RESMNGR::_GetPushConstantIndex (PplnID pplnId, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::_GetPushConstantIndex (PplnID pplnId, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         auto*   ppln = GetResource( pplnId );
         CHECK_ERR( ppln != null );
@@ -916,27 +916,27 @@ namespace {
     GetPushConstantIndex
 =================================================
 */
-    PushConstantIndex  RESMNGR::GetPushConstantIndex (GraphicsPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::GetPushConstantIndex (GraphicsPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
     }
 
-    PushConstantIndex  RESMNGR::GetPushConstantIndex (MeshPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::GetPushConstantIndex (MeshPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
     }
 
-    PushConstantIndex  RESMNGR::GetPushConstantIndex (ComputePipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::GetPushConstantIndex (ComputePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
     }
 
-    PushConstantIndex  RESMNGR::GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
     }
 
-    PushConstantIndex  RESMNGR::GetPushConstantIndex (TilePipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize) __NE___
+    PushConstantIndex  RESMNGR::GetPushConstantIndex (TilePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
     {
         return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
     }
@@ -1084,14 +1084,31 @@ namespace {
     GetSampler
 =================================================
 */
-    SamplerID  RESMNGR::GetSampler (const SamplerName &name) C_NE___
+    SamplerID  RESMNGR::GetSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
     {
-        auto*   pack = GetResource( _defaultPack.Get() );
+        auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
 
         if_likely( pack != null )
             return pack->GetSampler( name );
 
         return _defaultSampler;
+    }
+
+/*
+=================================================
+    _CreateDefaultSampler
+=================================================
+*/
+    bool  RESMNGR::_CreateDefaultSampler () __NE___
+    {
+        CHECK_ERR( _defaultSampler == Default );
+
+        SamplerDesc     info;
+
+        _defaultSampler = CreateSampler( info, "Default" );
+        CHECK_ERR( _defaultSampler );
+
+        return true;
     }
 //-----------------------------------------------------------------------------
 

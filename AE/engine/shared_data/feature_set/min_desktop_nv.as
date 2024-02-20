@@ -6,11 +6,13 @@ void ASmain ()
     // include:
     //  NVIDIA GeForce RTX 2080.json
     //  NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
+    //  NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
     //  NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
     //  NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
     //  NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+    //  NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
 
     const EFeature  True = EFeature::RequireTrue;
 
@@ -129,6 +131,8 @@ void ASmain ()
     fset.maxTexelBufferElements (128 << 20);
     fset.maxUniformBufferSize (64 << 10);
     fset.maxStorageBufferSize (4294967295);
+    fset.perDescrSet_maxUniformBuffersDynamic (15);
+    fset.perDescrSet_maxStorageBuffersDynamic (16);
     fset.perDescrSet_maxInputAttachments (1048576);
     fset.perDescrSet_maxSampledImages (1048576);
     fset.perDescrSet_maxSamplers (1048576);

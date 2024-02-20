@@ -11,7 +11,7 @@ namespace AE::ResEditor
     InitResources
 =================================================
 */
-    void  ScriptPassArgs::InitResources (OUT ResourceArray &resources) C_Th___
+    void  ScriptPassArgs::InitResources (OUT ResourceArray &resources, PipelinePackID packId) C_Th___
     {
         for (auto& arg : _args)
         {
@@ -27,9 +27,13 @@ namespace AE::ResEditor
                     resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
                 },
                 [&] (ScriptVideoImagePtr video) {
-                    auto    res = video->ToResource();
-                    CHECK_THROW( res );
-                    resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+                    auto    res = video->ToResource( packId );
+                    CHECK_THROW( not IsNullUnion( res ));
+                    Visit( res,
+                        [&] (RC<VideoImage>  vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
+                        [&] (RC<VideoImage2> vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
+                        [] (NullUnion) {}
+                    );
                 },
                 [&] (ScriptRTScenePtr scene) {
                     auto    res = scene->ToResource();
@@ -65,12 +69,12 @@ namespace AE::ResEditor
         for (auto& arg : _args)
         {
             Visit( arg.res,
-                [] (ScriptBufferPtr buf)                { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
-                [] (ScriptImagePtr tex)                 { CHECK_THROW_MSG( tex->ToResource() ); },
-                [] (ScriptVideoImagePtr video)          { CHECK_THROW_MSG( video->ToResource() ); },
-                [] (ScriptRTScenePtr scene)             { CHECK_THROW_MSG( scene->ToResource() ); },
-                [] (const Array<ScriptImagePtr> &arr)   { for (auto& tex : arr) CHECK_THROW_MSG( tex->ToResource() ); },
-                [] (NullUnion)                          { CHECK_THROW_MSG( false, "unsupported argument type" ); }
+                []  (ScriptBufferPtr buf)               { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
+                []  (ScriptImagePtr tex)                { CHECK_THROW_MSG( tex->ToResource() ); },
+                [&] (ScriptVideoImagePtr video)         { video->Validate( arg.samplerName ); },
+                []  (ScriptRTScenePtr scene)            { CHECK_THROW_MSG( scene->ToResource() ); },
+                []  (const Array<ScriptImagePtr> &arr)  { for (auto& tex : arr) CHECK_THROW_MSG( tex->ToResource() ); },
+                []  (NullUnion)                         { CHECK_THROW_MSG( false, "unsupported argument type" ); }
             );
         }
     }
@@ -210,7 +214,7 @@ namespace AE::ResEditor
     void  ScriptPassArgs::ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName) __Th___
     {
         CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( not samplerName.empty() );
+        CHECK_THROW_MSG( tex->HasYcbcrSampler() or not samplerName.empty() );
         CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
         tex->AddUsage( EResourceUsage::Sampled );

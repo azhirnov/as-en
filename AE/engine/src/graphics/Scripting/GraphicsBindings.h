@@ -36,6 +36,7 @@ namespace AE::Scripting
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EImage,                      "EImage"                );
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EIndex,                      "EIndex"                );
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EPixelFormat,                "EPixelFormat"          );
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EPixelFormatExternal,        "EPixelFormatExternal"  );
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EAttachmentLoadOp,           "EAttachmentLoadOp"     );
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EAttachmentStoreOp,          "EAttachmentStoreOp"    );
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECompareOp,                  "ECompareOp"            );

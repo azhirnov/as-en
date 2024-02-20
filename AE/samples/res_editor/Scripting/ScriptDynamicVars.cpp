@@ -11,7 +11,7 @@ namespace
 {
     template <typename T1, typename T2, typename T3>
     static T1*  ScriptDynamicT_Ctor (T3 value) {
-        return ScriptRC<T1>{ new T1{ MakeRC<T2>( value )}}.Detach();
+        return ScriptRC<T1>{ new T1{ MakeRCTh<T2>( value )}}.Detach();
     }
 
 

@@ -27,7 +27,7 @@ namespace AE::Serializing
 
     private:
         #if AE_DEBUG_SERIALIZER
-            uint _dbgCounter = 0; //(uint('A') << 16) | (uint('E') << 24);
+            uint _dbgCounter = 0;
         #endif
 
 
@@ -38,7 +38,6 @@ namespace AE::Serializing
 
             template <typename ...Args>
         ND_ bool  operator () (INOUT Args& ...args) __NE___;
-        ND_ bool  operator () (INOUT void *)        __NE___;
 
         ND_ bool  IsEnd ()                          C_NE___ { return stream.Empty(); }
 

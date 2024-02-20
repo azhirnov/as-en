@@ -49,15 +49,14 @@ namespace
                         desc.options    = *options_it;
                         desc.memType    = EMemoryType::DeviceLocal;
 
-                        BEGIN_ENUM_CHECKS();
-                        switch ( desc.imageDim )
+                        switch_enum( desc.imageDim )
                         {
                             case EImageDim_1D :         desc.dimension = uint3{128,   0,   0};  break;
                             case EImageDim_2D :         desc.dimension = uint3{128, 128,   0};  break;
                             case EImageDim_3D :         desc.dimension = uint3{128, 128, 128};  break;
                             case EImageDim::Unknown :   DBG_WARNING( "not supported" );         break;
                         }
-                        END_ENUM_CHECKS();
+                        switch_end
 
                         if ( AllBits( desc.options, EImageOpt::CubeCompatible ))
                             desc.arrayLayers = 6_layer;
@@ -115,6 +114,7 @@ namespace
         }
 
         TEST( supported > 0 );
+        Unused( unsupported );
     }
 }
 

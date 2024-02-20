@@ -7,10 +7,10 @@ namespace AE::PipelineCompiler
 namespace {
     ND_ bool  IsPartOfWord (const char c)
     {
-        return  (c == '_') |
-                ((c >= 'a') & (c <= 'z')) |
-                ((c >= 'A') & (c <= 'Z')) |
-                ((c >= '0') & (c <= '9'));
+        return  (c == '_') or
+                ((c >= 'a') and (c <= 'z')) or
+                ((c >= 'A') and (c <= 'Z')) or
+                ((c >= '0') and (c <= '9'));
     }
 }
 

@@ -11,7 +11,10 @@ namespace AE::Serializing
     bool  Deserializer::_DeserializeObj (INOUT T &obj)
     {
         if ( factory )
-            return factory->Deserialize( *this, INOUT obj );
+        {
+            // read 'SerializedID' and then deserialize
+            return factory->Deserialize( *this, allocator, INOUT obj );
+        }
 
         if constexpr( IsBaseOf< ISerializable, T >)
             return obj.Deserialize( *this );
@@ -20,23 +23,6 @@ namespace AE::Serializing
             DBG_WARNING( "unknown type" );
             return false;
         }
-    }
-
-    inline bool  Deserializer::operator () (INOUT void* obj) __NE___
-    {
-        #if AE_DEBUG_SERIALIZER
-            uint    dbg_idx = 0;
-            ASSERT( stream.Read( OUT dbg_idx ));
-            if ( _dbgCounter == 0 ) _dbgCounter = dbg_idx;
-            ASSERT( dbg_idx == _dbgCounter );
-            ++_dbgCounter;
-        #endif
-
-        if ( factory )
-            return factory->Deserialize( *this, INOUT obj );
-
-        DBG_WARNING( "unknown type" );
-        return false;
     }
 
 
@@ -115,7 +101,7 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= MaxArrayLength );
 
-        if_unlikely( (not res) | (count > MaxArrayLength) )
+        if_unlikely( (not res) or (count > MaxArrayLength) )
             return false;
 
         NOTHROW_ERR( arr.resize( count ));
@@ -124,7 +110,7 @@ namespace AE::Serializing
             return (count == 0) or stream.Read( OUT arr.data(), ArraySizeOf(arr) );
         else
         {
-            for (usize i = 0; res & (i < arr.size()); ++i) {
+            for (usize i = 0; res and (i < arr.size()); ++i) {
                 res = _Deserialize( INOUT arr[i] );
             }
             return res;
@@ -139,14 +125,14 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= S );
 
-        if_unlikely( (not res) | (count > S) )
+        if_unlikely( (not res) or (count > S) )
             return false;
 
         if constexpr( IsTriviallySerializable<T> )
             return (count == 0) or stream.Read( OUT arr.data(), SizeOf<T> * count );
         else
         {
-            for (uint i = 0; res & (i < count); ++i) {
+            for (uint i = 0; res and (i < count); ++i) {
                 res = _Deserialize( INOUT arr[i] );
             }
             return res;
@@ -161,7 +147,7 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= S );
 
-        if_unlikely( (not res) | (count > S) )
+        if_unlikely( (not res) or (count > S) )
             return false;
 
         arr.resize( count );
@@ -170,7 +156,7 @@ namespace AE::Serializing
             return (count == 0) or stream.Read( OUT arr.data(), ArraySizeOf(arr) );
         else
         {
-            for (usize i = 0; res & (i < arr.size()); ++i) {
+            for (usize i = 0; res and (i < arr.size()); ++i) {
                 res = _Deserialize( INOUT arr[i] );
             }
             return res;
@@ -184,7 +170,7 @@ namespace AE::Serializing
         bool    res = stream.Read( OUT len );
         ASSERT( len <= MaxStringLength );
 
-        if_unlikely( (not res) | (len > MaxStringLength) )
+        if_unlikely( (not res) or (len > MaxStringLength) )
             return false;
 
         NOTHROW_ERR( str.resize( len ));
@@ -200,7 +186,7 @@ namespace AE::Serializing
         bool    res = stream.Read( OUT len );
         ASSERT( len <= S );
 
-        if_unlikely( (not res) | (len > S) )
+        if_unlikely( (not res) or (len > S) )
             return false;
 
         str.resize( len );
@@ -275,13 +261,13 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= maxCount );
 
-        if_unlikely( (not res) | (count > maxCount) )
+        if_unlikely( (not res) or (count > maxCount) )
             return false;
 
         TRY{
             map.reserve( count );   // throw
 
-            for (uint i = 0; res & (i < count); ++i)
+            for (uint i = 0; res and (i < count); ++i)
             {
                 K   key     = {};
                 V   value   = {};
@@ -305,13 +291,13 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= maxCount );
 
-        if_unlikely( (not res) | (count > maxCount) )
+        if_unlikely( (not res) or (count > maxCount) )
             return false;
 
         TRY{
             set.reserve( count );   // throw
 
-            for (uint i = 0; res & (i < count); ++i)
+            for (uint i = 0; res and (i < count); ++i)
             {
                 T   value = {};
                 res = _Deserialize( OUT value );
@@ -333,7 +319,7 @@ namespace AE::Serializing
         bool    has_value;
         bool    res     = stream.Read( OUT has_value );
 
-        if ( res & has_value )
+        if ( res and has_value )
             return _Deserialize( INOUT value.emplace() );
 
         return res;
@@ -358,7 +344,7 @@ namespace AE::Serializing
         auto*   ptr     = arr.template data<I>();
         bool    res     = true;
 
-        for (usize i = 0; res & (i < arr.size()); ++i) {
+        for (usize i = 0; res and (i < arr.size()); ++i) {
             res = _Deserialize( INOUT ptr[i] );
         }
 
@@ -383,7 +369,7 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT count );
         ASSERT( count <= S );
 
-        if_unlikely( (not res) | (count > S) )
+        if_unlikely( (not res) or (count > S) )
             return false;
 
         arr.resize( count );
@@ -413,7 +399,7 @@ namespace AE::Serializing
         uint    count   = 0;
         bool    res     = stream.Read( OUT count );
 
-        if_unlikely( (not res) | (count > MaxArrayLength) )
+        if_unlikely( (not res) or (count > MaxArrayLength) )
             return false;
 
         if_unlikely( count == 0 )
@@ -434,7 +420,7 @@ namespace AE::Serializing
         }
         else
         {
-            for (uint i = 0; res & (i < count); ++i)
+            for (uint i = 0; res and (i < count); ++i)
             {
                 PlacementNew<T>( OUT dst + i );
                 res = _Deserialize( INOUT dst[i] );
@@ -453,7 +439,7 @@ namespace AE::Serializing
         bool    res     = stream.Read( OUT len );
         ASSERT( len <= MaxStringLength );
 
-        if_unlikely( (not res) | (len > MaxStringLength) )
+        if_unlikely( (not res) or (len > MaxStringLength) )
             return false;
 
         if_unlikely( len == 0 )

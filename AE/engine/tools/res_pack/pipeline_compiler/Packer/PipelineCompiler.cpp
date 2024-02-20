@@ -24,6 +24,8 @@ namespace AE::PipelineCompiler
 {
 namespace
 {
+    AE_BIT_OPERATORS( EPathParamsFlags );
+
     using namespace AE::Scripting;
 
 /*
@@ -46,14 +48,18 @@ namespace
         Deque<PathInfo>                 ppln_folders;
         Array<PathInfo>                 pipelines;
 
-        for (usize i = 0; i < info->pipelineFolderCount; ++i)
+        for (usize i = 0; i < info->inPipelineCount; ++i)
         {
-            auto&   item    = info->pipelineFolders[i];
-            Path    path    { item.path };
+            auto&   item = info->inPipelines[i];
+
+            if ( not AnyBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+                continue;
+
+            Path    path {item.path};
 
             if ( not FileSystem::IsDirectory( path ))
             {
-                AE_LOGI( "Can't find folder: '"s << ToString(path) << "'" );
+                AE_LOG_SE( "Can't find folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
@@ -71,7 +77,7 @@ namespace
 
             for (auto& file : FileSystem::Enum( path ))
             {
-                if ( file.IsDirectory() and AllBits( flags, EPathParamsFlags::Recursive ))
+                if ( file.IsDirectory() and AllBits( flags, EPathParamsFlags::RecursiveFolder ))
                 {
                     ppln_folders.push_back( PathInfo{ file.Get(), prio, flags });
                     continue;
@@ -90,11 +96,14 @@ namespace
 
         for (usize i = 0; i < info->inPipelineCount; ++i)
         {
+            if ( AnyBits( info->inPipelines[i].flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+                continue;
+
             Path    path{ info->inPipelines[i].path };
 
             if ( not FileSystem::IsFile( path ))
             {
-                AE_LOGI( "Can't find pipeline: '"s << ToString(path) << "'" );
+                AE_LOG_SE( "Can't find pipeline: '"s << ToString(path) << "'" );
                 continue;
             }
 
@@ -118,7 +127,7 @@ namespace
 
             if ( not FileSystem::IsDirectory( path ))
             {
-                AE_LOGI( "Can't find shader include folder: '"s << ToString(path) << "'" );
+                AE_LOG_SE( "Can't find shader include folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
@@ -131,7 +140,7 @@ namespace
 
             if ( not FileSystem::IsDirectory( path ))
             {
-                AE_LOGI( "Can't find shader folder: '"s << ToString(path) << "'" );
+                AE_LOG_SE( "Can't find shader folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
@@ -144,7 +153,7 @@ namespace
 
             if ( not FileSystem::IsDirectory( path ))
             {
-                AE_LOGI( "Can't find pipeline include folder: '"s << ToString(path) << "'" );
+                AE_LOG_SE( "Can't find pipeline include folder: '"s << ToString(path) << "'" );
                 continue;
             }
 
@@ -181,7 +190,6 @@ namespace
         CHECK_ERR( (info->shaderIncludeDirCount > 0) == (info->shaderIncludeDirs != null) );
         CHECK_ERR( (info->pipelineIncludeDirCount > 0) == (info->pipelineIncludeDirs != null) );
         CHECK_ERR( (info->inPipelineCount > 0) == (info->inPipelines != null) );
-        CHECK_ERR( (info->pipelineFolderCount > 0) == (info->pipelineFolders != null) );
         CHECK_ERR( (info->shaderFolderCount > 0) == (info->shaderFolders != null) );
         CHECK_ERR( info->outputPackName != null );
 

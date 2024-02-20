@@ -54,12 +54,14 @@ namespace AE::RG::_hidden_
         ND_ auto&                                   GetResourceManager ()                                                        C_NE___ { return _ResMngr(); } \
         ND_ RenderTask const&                       GetRenderTask ()                                                             C_NE___ { return _ctx.GetRenderTask(); } \
         \
-        void  ResourceState (BufferID     id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-        void  ResourceState (ImageID      id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-        void  ResourceState (ImageViewID  id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.ImageId(),  state ); } \
-        void  ResourceState (BufferViewID id, EResourceState state)                                                              __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
-        void  ResourceState (RTSceneID    id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-        void  ResourceState (RTGeometryID id, EResourceState state)                                                              __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+        void  ResourceState (BufferID      id, EResourceState state)                                                             __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+        void  ResourceState (ImageID       id, EResourceState state)                                                             __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+        void  ResourceState (ImageViewID   id, EResourceState state)                                                             __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.ImageId(),  state ); } \
+        void  ResourceState (BufferViewID  id, EResourceState state)                                                             __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
+        void  ResourceState (RTSceneID     id, EResourceState state)                                                             __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+        void  ResourceState (RTGeometryID  id, EResourceState state)                                                             __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+        void  ResourceState (VideoBufferID id, EResourceState state)                                                             __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetBufferID(), state ); } \
+        void  ResourceState (VideoImageID  id, EResourceState state)                                                             __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetImageID(), state ); } \
         \
         ND_ auto  ReleaseCommandBuffer ()                                                                                        __Th___ { return _ctx.ReleaseCommandBuffer(); } \
         ND_ auto  EndCommandBuffer ()                                                                                            __Th___ { _RGBatch().FinalBarriers( _ExeIdx(), _ctx );  return _ctx.EndCommandBuffer(); } \
@@ -116,15 +118,19 @@ namespace AE::RG::_hidden_
 
         void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)          __Th_OV;
         void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)               __Th_OV;
-
-        Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)                __Th_OV;
-        Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                    __Th_OV;
-
-        Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                     __Th_OV;
-        Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                       __Th_OV;
+        void  UploadImage (VideoImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)          __Th_OV;
 
         void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)                             __Th_OV;
         void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)                                __Th_OV;
+        void  UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView)                           __Th_OV;
+
+        Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)                __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                    __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)               __Th_OV;
+
+        Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                     __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                       __Th_OV;
+        Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)                                  __Th_OV;
 
         bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                    __Th_OV;
 
@@ -188,7 +194,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (ComputePipelineID ppln)                                                                         __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IComputeContext::PushConstant;
 
         using IComputeContext::Dispatch;
@@ -238,7 +244,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (TilePipelineID ppln)                                                                            __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IDrawContext::PushConstant;
 
     // dynamic states //
@@ -264,7 +270,7 @@ namespace AE::RG::_hidden_
         void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)                                             __Th_OV;
         void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)                                                  __Th_OV;
         void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)                  __Th_OV;
-        bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)     __Th_OV;
+        bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset)       __Th_OV;
 
         using IDrawContext::Draw;
         using IDrawContext::DrawIndexed;
@@ -337,18 +343,18 @@ namespace AE::RG::_hidden_
         void  PopDebugGroup ()                                                                                              __Th_OV { return _ctx.PopDebugGroup(); }
 
         // only for RW attachments //
-        void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)                     __Th_OV { return _ctx.AttachmentBarrier( name, srcState, dstState ); }
+        void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)                __Th_OV { return _ctx.AttachmentBarrier( name, srcState, dstState ); }
         void  CommitBarriers ()                                                                                             __Th_OV { return _ctx.CommitBarriers(); }
 
         // vertex stream //
         bool  AllocVStream (Bytes size, OUT VertexStream &result)                                                           __Th_OV;
 
         // clear //
-        bool  ClearAttachment (AttachmentName name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-        bool  ClearAttachment (AttachmentName name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-        bool  ClearAttachment (AttachmentName name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-        bool  ClearAttachment (AttachmentName name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-        bool  ClearAttachment (AttachmentName name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
+        bool  ClearAttachment (AttachmentName::Ref name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+        bool  ClearAttachment (AttachmentName::Ref name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+        bool  ClearAttachment (AttachmentName::Ref name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+        bool  ClearAttachment (AttachmentName::Ref name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+        bool  ClearAttachment (AttachmentName::Ref name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
 
         // check state //
         ND_ bool  CheckResourceState (ImageID      id, EResourceState state)                                                __NE___ { return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
@@ -455,7 +461,7 @@ namespace AE::RG::_hidden_
         void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th_OV { return _ctx.BindPipeline( ppln ); }
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV { return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th_OV { return _ctx.PushConstant( idx, size, values, typeName ); }
         using IRayTracingContext::PushConstant;
 
         void  SetStackSize (Bytes size)                                                                                     __Th_OV { return _ctx.SetStackSize( size ); }
@@ -706,6 +712,16 @@ namespace AE::RG::_hidden_
     }
 
     template <typename C>
+    void  TransferContext<C>::UploadImage (VideoImageID image, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
+    {
+        UploadMemoryBarrier( EResourceState::CopySrc );
+        ResourceState( image, EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        _ctx.UploadImage( image, uploadDesc, OUT memView );
+    }
+
+    template <typename C>
     Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
     {
         ResourceState( buffer, EResourceState::CopySrc );
@@ -736,7 +752,27 @@ namespace AE::RG::_hidden_
     }
 
     template <typename C>
+    Promise<ImageMemView>  TransferContext<C>::ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc) __Th___
+    {
+        ResourceState( image, EResourceState::CopySrc );
+        ReadbackMemoryBarrier( EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        return _ctx.ReadbackImage( image, desc );
+    }
+
+    template <typename C>
     Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
+    {
+        ResourceState( stream.ImageId(), EResourceState::CopySrc );
+        ReadbackMemoryBarrier( EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        return _ctx.ReadbackImage( stream );
+    }
+
+    template <typename C>
+    Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT VideoImageStream &stream) __Th___
     {
         ResourceState( stream.ImageId(), EResourceState::CopySrc );
         ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -757,6 +793,16 @@ namespace AE::RG::_hidden_
 
     template <typename C>
     void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView) __Th___
+    {
+        UploadMemoryBarrier( EResourceState::CopySrc );
+        ResourceState( stream.ImageId(), EResourceState::CopyDst );
+
+        _ctx.CommitBarriers();
+        _ctx.UploadImage( INOUT stream, OUT memView );
+    }
+
+    template <typename C>
+    void  TransferContext<C>::UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView) __Th___
     {
         UploadMemoryBarrier( EResourceState::CopySrc );
         ResourceState( stream.ImageId(), EResourceState::CopyDst );
@@ -892,7 +938,7 @@ namespace AE::RG::_hidden_
     }
 
     template <typename C>
-    bool  DrawContext<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset) __Th___
+    bool  DrawContext<C>::BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset) __Th___
     {
         CHECK( CheckResourceState( buffer, EResourceState::VertexBuffer ));
         return _ctx.BindVertexBuffer( pplnId, name, buffer, offset );

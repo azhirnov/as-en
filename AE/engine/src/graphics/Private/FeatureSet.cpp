@@ -105,6 +105,12 @@ namespace AE::Base
         return "";
     }
 
+    template <typename E>
+    ND_ String  ToString (const EnumSet<E> &bits)
+    {
+        return ToString( bits, &ToString );
+    }
+
 } // AE::Base
 
 
@@ -145,7 +151,7 @@ namespace
     }
 
     ND_ static bool  FS_Equal (EFeature lhs, EFeature rhs, const char*) __NE___ {
-        return  (lhs == rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);
+        return  (lhs == rhs) or (lhs == EFeature::Ignore) or (rhs == EFeature::Ignore);
     }
 
     template <typename E>
@@ -173,7 +179,7 @@ namespace
 =================================================
 */
     ND_ static bool  FS_GreaterEqual (EFeature lhs, EFeature rhs, const char*) __NE___ {
-        return  (lhs >= rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);
+        return  (lhs >= rhs) or (lhs == EFeature::Ignore) or (rhs == EFeature::Ignore);
     }
 
     ND_ static bool  FS_GreaterEqual (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
@@ -211,7 +217,7 @@ namespace
     }
 
     template <typename E>
-    ND_ static bool  FS_GreaterEqual (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const EnumSet<E> &lhs, const EnumSet<E> &rhs, const char*) __NE___ {
         return (lhs & rhs) == rhs;
     }
 
@@ -276,7 +282,7 @@ namespace
 =================================================
 */
     ND_ static bool  FS_IsCompatible (EFeature lhs, EFeature rhs, const char*) __NE___ {
-        return  (lhs == rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);   // 'True' is not compatible with 'False'
+        return  (lhs == rhs) or (lhs == EFeature::Ignore) or (rhs == EFeature::Ignore); // 'True' is not compatible with 'False'
     }
 
     template <typename T>
@@ -334,7 +340,7 @@ namespace
     }
 
     template <typename E>
-    ND_ static EnumBitSet<E>  FS_MergeMin (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static EnumSet<E>  FS_MergeMin (const EnumSet<E> &lhs, const EnumSet<E> &rhs, const char*) __NE___ {
         return lhs & rhs;
     }
 
@@ -472,7 +478,7 @@ namespace
     }
 
     template <typename E>
-    ND_ static EnumBitSet<E>  FS_MergeMax (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static EnumSet<E>  FS_MergeMax (const EnumSet<E> &lhs, const EnumSet<E> &rhs, const char*) __NE___ {
         return lhs | rhs;
     }
 
@@ -1020,6 +1026,10 @@ namespace
             chEqual( cooperativeMatrixStages, EShaderStages::Unknown );
         }
 
+        if ( fEqual( externalFormatAndroid, EFeature::RequireTrue )) {
+             chEqual( samplerYcbcrConversion, EFeature::RequireTrue );
+        }
+
         chNotEqual2( queues.supported, EQueueMask::Unknown, EQueueMask::Graphics );
         chEqual2(    AnyBits( queues.required, ~queues.supported ),  false,  queues.required &= queues.supported );
 
@@ -1031,7 +1041,7 @@ namespace
     #undef chGreaterEq
     }
 
-    bool  FeatureSet::IsValid ()    C_NE___ { return const_cast<FeatureSet*>(this)->_Validate<false>(); }
+    bool  FeatureSet::IsValid ()    C_NE___ { return ConstCast<FeatureSet>(this)->_Validate<false>(); }
     void  FeatureSet::Validate ()   __NE___ { _Validate<true>(); }
 
 /*
@@ -1071,8 +1081,7 @@ namespace
         const auto  CheckBlend = [dual_src      = dualSrcBlend != EFeature::RequireFalse,
                                   const_alpha   = constantAlphaColorBlendFactors != EFeature::RequireFalse] (EBlendFactor factor) -> bool
         {{
-            BEGIN_ENUM_CHECKS();
-            switch ( factor )
+            switch_enum( factor )
             {
                 case EBlendFactor::Zero :
                 case EBlendFactor::One :
@@ -1104,7 +1113,7 @@ namespace
                 default_unlikely :
                     return false;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }};
 
         for (auto& cb : rs.color.buffers)
@@ -1148,8 +1157,7 @@ namespace
 
         for (auto opt : BitfieldIterate( desc.options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( opt )
+            switch_enum( opt )
             {
                 case EBufferOpt::SparseResidency :          break;
                 case EBufferOpt::SparseAliased :            break;
@@ -1163,7 +1171,7 @@ namespace
                 case EBufferOpt::Unknown :
                 default_unlikely :                          DBG_WARNING( "unknown buffer option" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         return result;
@@ -1231,8 +1239,7 @@ namespace
 
         for (auto usage : BitfieldIterate( desc.usage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( usage )
+            switch_enum( usage )
             {
                 case EImageUsage::TransferSrc :             break;
                 case EImageUsage::TransferDst :             break;
@@ -1250,13 +1257,12 @@ namespace
                 case EImageUsage::Unknown :
                 default_unlikely :                          DBG_WARNING( "unknown image usage" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         for (auto opt : BitfieldIterate( desc.options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( opt )
+            switch_enum( opt )
             {
                 case EImageOpt::CubeCompatible :            break;
                 case EImageOpt::MutableFormat :             break;  // TODO
@@ -1282,7 +1288,7 @@ namespace
                 case EImageOpt::Unknown :
                 default_unlikely :                          DBG_WARNING( "unknown image option" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         return result;
@@ -1304,8 +1310,7 @@ namespace
         {
             for (auto usage : BitfieldIterate( view.extUsage ))
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( usage )
+                switch_enum( usage )
                 {
                     case EImageUsage::TransferSrc :             break;
                     case EImageUsage::TransferDst :             break;
@@ -1323,10 +1328,9 @@ namespace
                     case EImageUsage::Unknown :
                     default_unlikely :                          DBG_WARNING( "unknown image usage" ); break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
-
         return result;
     }
 
@@ -1338,7 +1342,7 @@ namespace
     bool  FeatureSet::IsCompatible (const FeatureSet &rhs) C_NE___
     {
         return
-            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) ) &
+            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
             AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
             #undef AE_FEATURE_SET_VISIT
             true;
@@ -1365,7 +1369,7 @@ namespace
     bool  FeatureSet::operator == (const FeatureSet &rhs) C_NE___
     {
         return
-            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_Equal( _name_, rhs. _name_, AE_TOSTRING(_name_) ) &
+            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_Equal( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
             AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
             #undef AE_FEATURE_SET_VISIT
             true;
@@ -1379,7 +1383,7 @@ namespace
     bool  FeatureSet::operator >= (const FeatureSet &rhs) C_NE___
     {
         return
-            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_GreaterEqual( _name_, rhs. _name_, AE_TOSTRING(_name_) ) &
+            #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )  FS_GreaterEqual( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
             AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
             #undef AE_FEATURE_SET_VISIT
             true;
@@ -1547,7 +1551,7 @@ namespace {
 */
     HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
     {
-        return HashVal64{0x150500622c548de0ull};
+        return HashVal64{0xeadf8cdc671d3360ull};
     }
 
 /*

@@ -16,7 +16,7 @@ namespace AE::Graphics
     _Alloc
 =================================================
 */
-    bool  Canvas::_Alloc ()
+    bool  Canvas::_Alloc () __NE___
     {
         CHECK_ERR( _buffers.size() < _buffers.capacity() );
 
@@ -43,10 +43,10 @@ namespace AE::Graphics
     _AllocDrawCall
 =================================================
 */
-    bool  Canvas::_AllocDrawCall (uint instanceCount, uint vertCount, Byte32u posSize, Byte32u attrSize, Byte32u idxDataSize)
+    bool  Canvas::_AllocDrawCall (const uint instanceCount, const uint vertCount, const Bytes32u posSize, const Bytes32u attrSize, const Bytes32u idxDataSize) __NE___
     {
-        const Byte32u   pos_data_size   = posSize * vertCount;
-        const Byte32u   attr_data_size  = attrSize * vertCount;
+        const Bytes32u  pos_data_size   = posSize * vertCount;
+        const Bytes32u  attr_data_size  = attrSize * vertCount;
 
         // allocate buffer
         if_unlikely( _buffers.empty() or not _buffers.back().HasSpace( pos_data_size, attr_data_size, idxDataSize ))
@@ -308,7 +308,7 @@ namespace AE::Graphics
 
                 const float  width_px = glyph->advance * font_scale_px; // pixels
 
-                if_unlikely( text.IsWordWrap() & (line_px.x + width_px > region_w_px) )
+                if_unlikely( text.IsWordWrap() and (line_px.x + width_px > region_w_px) )
                 {
                     line_px.x  = region_px.left;
                     line_px.y += text.LineHeights()[ line_idx++ ];

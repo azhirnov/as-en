@@ -1,4 +1,4 @@
-//e9eee8b5
+//deb54419
 #include <vector>
 #include <string>
 
@@ -20,163 +20,165 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EAddressMode;
-struct Collection;
-struct RayIndex;
-struct RTScene;
-struct EPassFlags;
-struct EBlendFactor;
-struct ERTInstanceOpt;
-struct EStencilOp;
-struct EBlendOp;
-struct ECullMode;
-struct RGBA32f;
-struct EQueueMask;
-struct DbgViewFlags;
-struct HSVColor;
-struct ELogicOp;
-struct DynamicULong;
-struct EImage;
-struct bool2;
-struct bool3;
-struct RGBA32i;
-struct EVertexType;
-struct SceneGraphicsPass;
-struct bool4;
-struct VideoImage;
-struct ESubgroupOperation;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct FPVCamera;
-struct ubyte2;
+struct RTInstanceSBTOffset;
+struct RemoteCamera;
+struct ubyte4;
+struct ESamplerUsage;
+struct RTInstanceCustomIndex;
+struct ESamplerYcbcrRange;
 struct Random_Normal4;
-struct Random_Normal3;
+struct ubyte2;
+struct EGraphicsDeviceID;
+struct ubyte3;
+struct ESubgroupOperation;
+struct FPVCamera;
+struct VideoImage;
+struct EPrimitive;
+struct Random_Normal2;
 struct Random_Normal1;
 struct UnifiedGeometry_Draw;
-struct Random_Normal2;
-struct EPrimitive;
-struct RTInstanceSBTOffset;
-struct ESamplerYcbcrRange;
-struct ubyte4;
-struct RTInstanceCustomIndex;
-struct ESamplerUsage;
-struct EDescSetUsage;
-struct EVertexInputRate;
-struct EShaderIO;
-struct EImageAspect;
-struct RTInstanceTransform;
-struct ERenderLayer;
-struct InstanceIndex;
-struct float2;
-struct EPipelineOpt;
-struct float3;
-struct EPipelineDynamicState;
-struct DynamicInt;
-struct EFilter;
-struct Random_Binomial4;
-struct Random_Binomial2;
-struct MultiSamples;
-struct IPass;
-struct Random_Binomial1;
-struct Random_Binomial3;
-struct ESamplerChromaLocation;
-struct float2x2;
-struct float2x3;
-struct float2x4;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct ESubgroupTypes;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct Image;
-struct ScriptFlags;
-struct ESamplerYcbcrModelConversion;
-struct sbyte4;
-struct sbyte3;
-struct short2;
-struct ushort4;
-struct short3;
-struct Random;
-struct DynamicFloat2;
-struct UnifiedGeometry_DrawIndexed;
-struct RTGeometry;
-struct DynamicUInt4;
+struct Random_Normal3;
+struct HSVColor;
+struct EQueueMask;
+struct RGBA32f;
+struct ECullMode;
+struct EBlendOp;
+struct ELogicOp;
+struct SceneGraphicsPass;
+struct bool4;
+struct EVertexType;
+struct RGBA32i;
+struct bool3;
+struct bool2;
+struct EImage;
+struct DynamicULong;
+struct RTScene;
+struct EPassFlags;
+struct RayIndex;
+struct Collection;
+struct EAddressMode;
+struct EStencilOp;
+struct DbgViewFlags;
+struct ERTInstanceOpt;
+struct EBlendFactor;
+struct DynamicUInt2;
+struct RTShader;
+struct DynamicUInt3;
+struct DynamicFloat4;
+struct EPostprocess;
+struct ImageLoadOpFlags;
 struct DynamicFloat3;
 struct float4;
-struct ImageLoadOpFlags;
-struct EPostprocess;
-struct DynamicFloat4;
-struct DynamicUInt3;
-struct RTShader;
-struct DynamicUInt2;
+struct RTGeometry;
+struct DynamicUInt4;
+struct DynamicFloat2;
+struct GeomSource;
+struct UnifiedGeometry_DrawIndirect;
+struct DynamicInt3;
+struct DynamicInt2;
 struct EIndex;
 struct DynamicInt4;
-struct DynamicInt2;
-struct DynamicInt3;
-struct UnifiedGeometry_DrawIndirect;
-struct GeomSource;
-struct float4x2;
-struct float4x4;
-struct DynamicUInt;
-struct EAttachmentLoadOp;
-struct EPolygonMode;
-struct float4x3;
-struct float3x2;
-struct float3x3;
-struct Model;
-struct float3x4;
-struct short4;
-struct EPixelFormat;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct Scene;
-struct ImageLayer;
-struct int4;
-struct int3;
-struct int2;
-struct DepthStencil;
-struct ESurfaceFormat;
+struct ScriptFlags;
+struct Image;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct ESubgroupTypes;
+struct short3;
+struct Random;
+struct UnifiedGeometry_DrawIndexed;
+struct ushort4;
+struct short2;
+struct sbyte3;
+struct sbyte4;
+struct ESamplerYcbcrModelConversion;
+struct Random_Binomial3;
+struct Random_Binomial1;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
+struct Random_Binomial4;
+struct EFilter;
+struct EPipelineDynamicState;
+struct float2x4;
+struct float2x2;
+struct float2x3;
+struct UnifiedGeometry_DrawIndexedIndirect;
+struct ESamplerChromaLocation;
+struct EVertexInputRate;
+struct EDescSetUsage;
+struct float3;
+struct DynamicInt;
+struct float2;
+struct EPipelineOpt;
+struct InstanceIndex;
+struct ERenderLayer;
+struct RTInstanceTransform;
+struct EImageAspect;
+struct EShaderIO;
+struct BaseController;
 struct MipmapLevel;
 struct FlightCamera;
-struct BaseController;
-struct EReductionMode;
-struct ScaleBiasCamera;
+struct ESurfaceFormat;
 struct TopDownCamera;
-struct EBorderColor;
-struct EAttachmentStoreOp;
-struct UnifiedGeometry;
-struct EImageType;
-struct SceneRayTracingPass;
-struct EVendorID;
-struct Postprocess;
-struct EResourceState;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct ComputePass;
-struct Buffer;
-struct CallableIndex;
-struct EFeature;
-struct UnifiedGeometry_DrawIndirectCount;
-struct RectF;
-struct SphericalCube;
-struct RGBA32u;
-struct UnifiedGeometry_DrawMeshTasks;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct OrbitalCamera;
-struct EMipmapFilter;
-struct RGBA8u;
-struct DynamicDim;
+struct ScaleBiasCamera;
+struct EReductionMode;
+struct EPixelFormatExternal;
+struct DepthStencil;
+struct Scene;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct EPixelFormat;
+struct short4;
+struct int2;
+struct int3;
+struct int4;
+struct ImageLayer;
+struct float4x3;
+struct EPolygonMode;
+struct EAttachmentLoadOp;
+struct DynamicUInt;
+struct float4x2;
+struct float4x4;
+struct float3x4;
+struct Model;
+struct float3x3;
+struct float3x2;
+struct RectU;
+struct uint4;
+struct EColorSpace;
+struct RayTracingPass;
 struct ECompareOp;
 struct FPSCamera;
-struct RayTracingPass;
-struct EColorSpace;
-struct uint4;
-struct RectU;
-struct RectI;
-struct uint3;
-struct uint2;
+struct DynamicDim;
+struct DynamicFloat;
+struct EShader;
 struct EShaderStages;
 struct RTInstanceMask;
-struct EShader;
-struct DynamicFloat;
+struct uint2;
+struct uint3;
+struct RectI;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct RectF;
+struct SphericalCube;
+struct RGBA8u;
+struct EMipmapFilter;
+struct OrbitalCamera;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct EFeature;
+struct CallableIndex;
+struct Buffer;
+struct UnifiedGeometry_DrawIndirectCount;
+struct EImageType;
+struct EAttachmentStoreOp;
+struct UnifiedGeometry;
+struct EBorderColor;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct EResourceState;
+struct ComputePass;
+struct EVendorID;
+struct Postprocess;
+struct SceneRayTracingPass;
 
 struct EImageType
 {
@@ -293,7 +295,7 @@ bool  IsSingleBitSet (int x);
 bool  AllBits (int x, int y);
 bool  AnyBits (int x, int y);
 int  ExtractBit (int & x);
-int  ExtractBitLog2 (int & x);
+int  ExtractBitIndex (int & x);
 int  BitRotateLeft (int x, uint shift);
 int  BitRotateRight (int x, uint shift);
 int  FloorPOT (int x);
@@ -317,7 +319,7 @@ bool  IsSingleBitSet (uint x);
 bool  AllBits (uint x, uint y);
 bool  AnyBits (uint x, uint y);
 uint  ExtractBit (uint & x);
-uint  ExtractBitLog2 (uint & x);
+uint  ExtractBitIndex (uint & x);
 uint  BitRotateLeft (uint x, uint shift);
 uint  BitRotateRight (uint x, uint shift);
 uint  FloorPOT (uint x);
@@ -364,7 +366,7 @@ float  Lerp (float x, float y, float factor);
 float  ToSNorm (float x);
 float  ToUNorm (float x);
 float  Remap (float srcMin, float srcMax, float dstMin, float dstMax, float x);
-float  RemapClamped (float srcMin, float srcMax, float dstMin, float dstMax, float x);
+float  RemapClamp (float srcMin, float srcMax, float dstMin, float dstMax, float x);
 int  RoundToInt (float x);
 uint  RoundToUint (float x);
 float  IsInfinity (float x);
@@ -1794,37 +1796,65 @@ struct EPixelFormat
     static constexpr uint8 B8G8R8G8_422_UNorm = 138;
     static constexpr uint8 G8_B8R8_420_UNorm = 139;
     static constexpr uint8 G8_B8R8_422_UNorm = 140;
-    static constexpr uint8 G8_B8_R8_420_UNorm = 141;
-    static constexpr uint8 G8_B8_R8_422_UNorm = 142;
-    static constexpr uint8 G8_B8_R8_444_UNorm = 143;
-    static constexpr uint8 B10x6G10x6R10x6G10x6_422_UNorm = 144;
-    static constexpr uint8 G10x6B10x6G10x6R10x6_422_UNorm = 145;
-    static constexpr uint8 G10x6_B10x6R10x6_420_UNorm = 146;
-    static constexpr uint8 G10x6_B10x6R10x6_422_UNorm = 147;
-    static constexpr uint8 G10x6_B10x6_R10x6_420_UNorm = 148;
-    static constexpr uint8 G10x6_B10x6_R10x6_422_UNorm = 149;
-    static constexpr uint8 G10x6_B10x6_R10x6_444_UNorm = 150;
-    static constexpr uint8 R10x6G10x6B10x6A10x6_UNorm = 151;
-    static constexpr uint8 R10x6G10x6_UNorm = 152;
-    static constexpr uint8 R10x6_UNorm = 153;
-    static constexpr uint8 B12x4G12x4R12x4G12x4_422_UNorm = 154;
-    static constexpr uint8 G12x4B12x4G12x4R12x4_422_UNorm = 155;
-    static constexpr uint8 G12x4_B12x4R12x4_420_UNorm = 156;
-    static constexpr uint8 G12x4_B12x4R12x4_422_UNorm = 157;
-    static constexpr uint8 G12x4_B12x4_R12x4_420_UNorm = 158;
-    static constexpr uint8 G12x4_B12x4_R12x4_422_UNorm = 159;
-    static constexpr uint8 G12x4_B12x4_R12x4_444_UNorm = 160;
-    static constexpr uint8 R12x4G12x4B12x4A12x4_UNorm = 161;
-    static constexpr uint8 R12x4G12x4_UNorm = 162;
-    static constexpr uint8 R12x4_UNorm = 163;
-    static constexpr uint8 B16G16R16G16_422_UNorm = 164;
-    static constexpr uint8 G16B16G16R16_422_UNorm = 165;
-    static constexpr uint8 G16_B16R16_420_UNorm = 166;
-    static constexpr uint8 G16_B16R16_422_UNorm = 167;
-    static constexpr uint8 G16_B16_R16_420_UNorm = 168;
-    static constexpr uint8 G16_B16_R16_422_UNorm = 169;
-    static constexpr uint8 G16_B16_R16_444_UNorm = 170;
+    static constexpr uint8 G8_B8R8_444_UNorm = 141;
+    static constexpr uint8 G8_B8_R8_420_UNorm = 142;
+    static constexpr uint8 G8_B8_R8_422_UNorm = 143;
+    static constexpr uint8 G8_B8_R8_444_UNorm = 144;
+    static constexpr uint8 B10x6G10x6R10x6G10x6_422_UNorm = 145;
+    static constexpr uint8 G10x6B10x6G10x6R10x6_422_UNorm = 146;
+    static constexpr uint8 G10x6_B10x6R10x6_420_UNorm = 147;
+    static constexpr uint8 G10x6_B10x6R10x6_422_UNorm = 148;
+    static constexpr uint8 G10x6_B10x6R10x6_444_UNorm = 149;
+    static constexpr uint8 G10x6_B10x6_R10x6_420_UNorm = 150;
+    static constexpr uint8 G10x6_B10x6_R10x6_422_UNorm = 151;
+    static constexpr uint8 G10x6_B10x6_R10x6_444_UNorm = 152;
+    static constexpr uint8 R10x6G10x6B10x6A10x6_UNorm = 153;
+    static constexpr uint8 R10x6G10x6_UNorm = 154;
+    static constexpr uint8 R10x6_UNorm = 155;
+    static constexpr uint8 B12x4G12x4R12x4G12x4_422_UNorm = 156;
+    static constexpr uint8 G12x4B12x4G12x4R12x4_422_UNorm = 157;
+    static constexpr uint8 G12x4_B12x4R12x4_420_UNorm = 158;
+    static constexpr uint8 G12x4_B12x4R12x4_422_UNorm = 159;
+    static constexpr uint8 G12x4_B12x4R12x4_444_UNorm = 160;
+    static constexpr uint8 G12x4_B12x4_R12x4_420_UNorm = 161;
+    static constexpr uint8 G12x4_B12x4_R12x4_422_UNorm = 162;
+    static constexpr uint8 G12x4_B12x4_R12x4_444_UNorm = 163;
+    static constexpr uint8 R12x4G12x4B12x4A12x4_UNorm = 164;
+    static constexpr uint8 R12x4G12x4_UNorm = 165;
+    static constexpr uint8 R12x4_UNorm = 166;
+    static constexpr uint8 B16G16R16G16_422_UNorm = 167;
+    static constexpr uint8 G16B16G16R16_422_UNorm = 168;
+    static constexpr uint8 G16_B16R16_420_UNorm = 169;
+    static constexpr uint8 G16_B16R16_422_UNorm = 170;
+    static constexpr uint8 G16_B16R16_444_UNorm = 171;
+    static constexpr uint8 G16_B16_R16_420_UNorm = 172;
+    static constexpr uint8 G16_B16_R16_422_UNorm = 173;
+    static constexpr uint8 G16_B16_R16_444_UNorm = 174;
     static constexpr uint8 SwapchainColor = 254;
+};
+
+struct EPixelFormatExternal
+{
+    EPixelFormatExternal () {}
+    EPixelFormatExternal (uint8) {}
+    operator uint8 () const;
+    static constexpr uint8 Android_Depth16 = 0;
+    static constexpr uint8 Android_DepthJPEG = 1;
+    static constexpr uint8 Android_DepthPointCloud = 2;
+    static constexpr uint8 Android_JPEG = 3;
+    static constexpr uint8 Android_Raw16 = 5;
+    static constexpr uint8 Android_Raw12 = 6;
+    static constexpr uint8 Android_Raw10 = 7;
+    static constexpr uint8 Android_NV16 = 9;
+    static constexpr uint8 Android_NV21 = 10;
+    static constexpr uint8 Android_YCBCR_P010 = 11;
+    static constexpr uint8 Android_YUV_420 = 12;
+    static constexpr uint8 Android_YUV_422 = 13;
+    static constexpr uint8 Android_YUV_444 = 14;
+    static constexpr uint8 Android_YUY2 = 15;
+    static constexpr uint8 Android_YV12 = 16;
+    static constexpr uint8 Android_Y8 = 17;
+    static constexpr uint8 Android_HEIC = 18;
 };
 
 struct EAttachmentLoadOp
@@ -1846,6 +1876,7 @@ struct EAttachmentStoreOp
     static constexpr uint8 Invalidate = 0;
     static constexpr uint8 Store = 1;
     static constexpr uint8 None = 2;
+    static constexpr uint8 StoreCustomSamplePositions = 3;
 };
 
 struct ECompareOp
@@ -2068,6 +2099,7 @@ struct EImageAspect
     static constexpr uint8 Color = 1;
     static constexpr uint8 Depth = 2;
     static constexpr uint8 Stencil = 4;
+    static constexpr uint8 DepthStencil = 6;
     static constexpr uint8 Plane_0 = 16;
     static constexpr uint8 Plane_1 = 32;
     static constexpr uint8 Plane_2 = 64;
@@ -2234,12 +2266,12 @@ struct EShaderStages
     static constexpr uint16 RayCallable = 16384;
     static constexpr uint16 All = 32767;
     static constexpr uint16 AllGraphics = 415;
-    static constexpr uint16 AllRayTracing = 32256;
     static constexpr uint16 GraphicsStages = 31;
     static constexpr uint16 MeshStages = 400;
     static constexpr uint16 VertexProcessingStages = 271;
     static constexpr uint16 PreRasterizationStages = 399;
     static constexpr uint16 PostRasterizationStages = 80;
+    static constexpr uint16 AllRayTracing = 32256;
 };
 
 struct EVendorID
@@ -2528,6 +2560,7 @@ struct EQueueMask
     static constexpr uint8 AsyncTransfer = 4;
     static constexpr uint8 VideoEncode = 8;
     static constexpr uint8 VideoDecode = 16;
+    static constexpr uint8 All = 31;
 };
 
 struct ESamplerChromaLocation
@@ -2840,6 +2873,32 @@ struct VideoImage
 
     // Returns dynamic dimension of the image
     RC<DynamicDim>  Dimension ();
+    void  Sampler (const string &);
+
+    // Set Ycbcr format. Requires multiplanar format.
+    void  Ycbcr_Format (EPixelFormat);
+
+    // Set Ycbcr model conversion.
+    void  Ycbcr_Model (ESamplerYcbcrModelConversion);
+
+    // Set Ycbcr range.
+    void  Ycbcr_Range (ESamplerYcbcrRange);
+
+    // Set Ycbcr component swizzle.
+    // Format: 'ARGB', 'R001'.
+    void  Ycbcr_Components (const string &);
+
+    // Set Ycbcr X chroma location.
+    void  Ycbcr_XChromaOffset (ESamplerChromaLocation);
+
+    // Set Ycbcr Y chroma location.
+    void  Ycbcr_YChromaOffset (ESamplerChromaLocation);
+
+    // Set Ycbcr Y chroma filter.
+    void  Ycbcr_ChromaFilter (EFilter);
+
+    // Set Ycbcr force explicit reconstruction.
+    void  Ycbcr_ForceExplicitReconstruction (bool);
 };
 
 struct Buffer
@@ -2874,11 +2933,11 @@ struct Buffer
 
     // Allow to declare single structure as a buffer layout.
     // 'typeName' must be previously declared or one of built-in type (see 'ArrayLayout').
-    void  Layout (const string & typeName);
+    void  UseLayout (const string & typeName);
 
     // Created a new structure with type 'typeName' and fields in 'source'.
     // See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).
-    void  Layout (const string & typeName, const string & source);
+    void  UseLayout (const string & typeName, const string & source);
 
     // Returns buffer device address.
     // Requires 'GL_EXT_buffer_reference extension' in GLSL.
@@ -3213,6 +3272,45 @@ struct FPSCamera
     // Set rotation scale for mouse/touches/arrows.
     void  RotationScale (float xy);
     void  RotationScale (float x, float y);
+
+    // Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio.
+    void  FovY (float);
+
+    // Set near and far clip planes.
+    void  ClipPlanes (float near, float far);
+
+    // Set near clip plane for infinity projection.
+    void  ClipPlanes (float near);
+    void  ReverseZ (bool);
+
+    // Set initial position.
+    void  Position (const float3 &);
+
+    // Returns dynamic dimension which is attached to the camera.
+    // If not specified then render target size will be used from first pass where camera attached.
+    RC<DynamicDim>  Dimension ();
+
+    // Set dynamic dimension for camera.
+    // If camera is used in single pass use default value.
+    // If camera is used in multiple passes with different resolution then set explicit dimension.
+    // When dimension changed camera with perspective projection will be resized for new aspect ratio.
+    void  Dimension (const RC<DynamicDim> &);
+};
+
+struct RemoteCamera
+{
+    RemoteCamera ();
+
+    // Set scale for forward and backward movement.
+    void  ForwardBackwardScale (float);
+    void  ForwardBackwardScale (float forward, float backward);
+
+    // Set scale for up and down movement.
+    void  UpDownScale (float);
+    void  UpDownScale (float up, float down);
+
+    // Set scale for side (left/right) movement.
+    void  SideMovementScale (float);
 
     // Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio.
     void  FovY (float);
@@ -3587,9 +3685,6 @@ struct EPostprocess
     static constexpr uint32 ShadertoyVR_180 = 3;
     static constexpr uint32 ShadertoyVR_360 = 4;
     static constexpr uint32 Shadertoy_360 = 5;
-    static constexpr uint32 Curved_1000R = 6;
-    static constexpr uint32 Curved_1500R = 7;
-    static constexpr uint32 Curved_1800R = 8;
 };
 
 struct EPassFlags
@@ -3607,7 +3702,7 @@ struct EPassFlags
     // ShaderFunctionProfiling - record time of user function calls, sort it and save to file.
     static constexpr uint8 Enable_ShaderFnProf = 2;
 
-    // Enable alll debug features.
+    // Enable all debug features.
     static constexpr uint8 Enable_AllShaderDbg = 7;
 };
 
@@ -4438,33 +4533,9 @@ float3  CM_TangentialSC_Forward (const float3 &);
 #define SCRIPT
 
 template <>
-struct RC<Collection> : Collection
+struct RC<RemoteCamera> : RemoteCamera
 {
-    RC (const Collection &);
-};
-
-template <>
-struct RC<RTScene> : RTScene
-{
-    RC (const RTScene &);
-};
-
-template <>
-struct RC<DynamicULong> : DynamicULong
-{
-    RC (const DynamicULong &);
-};
-
-template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
-{
-    RC (const SceneGraphicsPass &);
-};
-
-template <>
-struct RC<VideoImage> : VideoImage
-{
-    RC (const VideoImage &);
+    RC (const RemoteCamera &);
 };
 
 template <>
@@ -4474,27 +4545,57 @@ struct RC<FPVCamera> : FPVCamera
 };
 
 template <>
-struct RC<DynamicInt> : DynamicInt
+struct RC<VideoImage> : VideoImage
 {
-    RC (const DynamicInt &);
+    RC (const VideoImage &);
 };
 
 template <>
-struct RC<IPass> : IPass
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
 {
-    RC (const IPass &);
+    RC (const SceneGraphicsPass &);
 };
 
 template <>
-struct RC<Image> : Image
+struct RC<DynamicULong> : DynamicULong
 {
-    RC (const Image &);
+    RC (const DynamicULong &);
 };
 
 template <>
-struct RC<DynamicFloat2> : DynamicFloat2
+struct RC<RTScene> : RTScene
 {
-    RC (const DynamicFloat2 &);
+    RC (const RTScene &);
+};
+
+template <>
+struct RC<Collection> : Collection
+{
+    RC (const Collection &);
+};
+
+template <>
+struct RC<DynamicUInt2> : DynamicUInt2
+{
+    RC (const DynamicUInt2 &);
+};
+
+template <>
+struct RC<DynamicUInt3> : DynamicUInt3
+{
+    RC (const DynamicUInt3 &);
+};
+
+template <>
+struct RC<DynamicFloat4> : DynamicFloat4
+{
+    RC (const DynamicFloat4 &);
+};
+
+template <>
+struct RC<DynamicFloat3> : DynamicFloat3
+{
+    RC (const DynamicFloat3 &);
 };
 
 template <>
@@ -4510,39 +4611,15 @@ struct RC<DynamicUInt4> : DynamicUInt4
 };
 
 template <>
-struct RC<DynamicFloat3> : DynamicFloat3
+struct RC<DynamicFloat2> : DynamicFloat2
 {
-    RC (const DynamicFloat3 &);
+    RC (const DynamicFloat2 &);
 };
 
 template <>
-struct RC<DynamicFloat4> : DynamicFloat4
+struct RC<GeomSource> : GeomSource
 {
-    RC (const DynamicFloat4 &);
-};
-
-template <>
-struct RC<DynamicUInt3> : DynamicUInt3
-{
-    RC (const DynamicUInt3 &);
-};
-
-template <>
-struct RC<DynamicUInt2> : DynamicUInt2
-{
-    RC (const DynamicUInt2 &);
-};
-
-template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-    RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<DynamicInt2> : DynamicInt2
-{
-    RC (const DynamicInt2 &);
+    RC (const GeomSource &);
 };
 
 template <>
@@ -4552,9 +4629,63 @@ struct RC<DynamicInt3> : DynamicInt3
 };
 
 template <>
-struct RC<GeomSource> : GeomSource
+struct RC<DynamicInt2> : DynamicInt2
 {
-    RC (const GeomSource &);
+    RC (const DynamicInt2 &);
+};
+
+template <>
+struct RC<DynamicInt4> : DynamicInt4
+{
+    RC (const DynamicInt4 &);
+};
+
+template <>
+struct RC<Image> : Image
+{
+    RC (const Image &);
+};
+
+template <>
+struct RC<IPass> : IPass
+{
+    RC (const IPass &);
+};
+
+template <>
+struct RC<DynamicInt> : DynamicInt
+{
+    RC (const DynamicInt &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+    RC (const BaseController &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+    RC (const FlightCamera &);
+};
+
+template <>
+struct RC<TopDownCamera> : TopDownCamera
+{
+    RC (const TopDownCamera &);
+};
+
+template <>
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
+{
+    RC (const ScaleBiasCamera &);
+};
+
+template <>
+struct RC<Scene> : Scene
+{
+    RC (const Scene &);
 };
 
 template <>
@@ -4570,63 +4701,27 @@ struct RC<Model> : Model
 };
 
 template <>
-struct RC<Scene> : Scene
+struct RC<RayTracingPass> : RayTracingPass
 {
-    RC (const Scene &);
+    RC (const RayTracingPass &);
 };
 
 template <>
-struct RC<FlightCamera> : FlightCamera
+struct RC<FPSCamera> : FPSCamera
 {
-    RC (const FlightCamera &);
+    RC (const FPSCamera &);
 };
 
 template <>
-struct RC<BaseController> : BaseController
+struct RC<DynamicDim> : DynamicDim
 {
-    RC (const BaseController &);
+    RC (const DynamicDim &);
 };
 
 template <>
-struct RC<ScaleBiasCamera> : ScaleBiasCamera
+struct RC<DynamicFloat> : DynamicFloat
 {
-    RC (const ScaleBiasCamera &);
-};
-
-template <>
-struct RC<TopDownCamera> : TopDownCamera
-{
-    RC (const TopDownCamera &);
-};
-
-template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
-{
-    RC (const UnifiedGeometry &);
-};
-
-template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
-{
-    RC (const SceneRayTracingPass &);
-};
-
-template <>
-struct RC<Postprocess> : Postprocess
-{
-    RC (const Postprocess &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-    RC (const ComputePass &);
-};
-
-template <>
-struct RC<Buffer> : Buffer
-{
-    RC (const Buffer &);
+    RC (const DynamicFloat &);
 };
 
 template <>
@@ -4642,26 +4737,32 @@ struct RC<OrbitalCamera> : OrbitalCamera
 };
 
 template <>
-struct RC<DynamicDim> : DynamicDim
+struct RC<Buffer> : Buffer
 {
-    RC (const DynamicDim &);
+    RC (const Buffer &);
 };
 
 template <>
-struct RC<FPSCamera> : FPSCamera
+struct RC<UnifiedGeometry> : UnifiedGeometry
 {
-    RC (const FPSCamera &);
+    RC (const UnifiedGeometry &);
 };
 
 template <>
-struct RC<RayTracingPass> : RayTracingPass
+struct RC<ComputePass> : ComputePass
 {
-    RC (const RayTracingPass &);
+    RC (const ComputePass &);
 };
 
 template <>
-struct RC<DynamicFloat> : DynamicFloat
+struct RC<Postprocess> : Postprocess
 {
-    RC (const DynamicFloat &);
+    RC (const Postprocess &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+    RC (const SceneRayTracingPass &);
 };
 

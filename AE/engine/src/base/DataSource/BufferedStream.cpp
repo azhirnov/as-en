@@ -231,11 +231,11 @@ namespace AE::Base
             _data.resize( Min( _data.capacity(), usize(offset) ));  // should not throw
             ZeroMem( OUT _data.data(), ArraySizeOf(_data) );
 
-            for (; offset > 0_b; )
+            for (; result and (offset > 0_b); )
             {
                 Bytes   part_size = Min( offset, ArraySizeOf(_data) );
 
-                result &= _stream->Write( _data.data(), part_size );
+                result = _stream->Write( _data.data(), part_size );
                 offset -= part_size;
             }
         }
@@ -298,7 +298,7 @@ namespace AE::Base
         ASSERT( IsOpen() );
         ASSERT( begin == null or ( (begin >= _data.data()) and (end <= _data.data() + _data.size()) ));
 
-        _pos = ( (begin >= _data.data()) & (begin <= _data.data() + _data.size()) ) ?
+        _pos = ( (begin >= _data.data()) and (begin <= _data.data() + _data.size()) ) ?
                 Bytes{begin} - Bytes{_data.data()} :
                 _pos;
         ASSERT( _pos <= _data.size() );

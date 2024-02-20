@@ -208,39 +208,24 @@ namespace AE::Math
 
 /*
 =================================================
-    TQuat()
+    TQuat::ctor
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    TQuat<T,Q>::TQuat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
+    TQuat<T,Q>::TQuat (const TMatrix<T,3,3,Q> &m) __NE___ : _GLM_Quat_t{ glm::quat_cast( m._value )} {}
 
     template <typename T, glm::qualifier Q>
-    TQuat<T,Q>::TQuat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
+    TQuat<T,Q>::TQuat (const TMatrix<T,4,4,Q> &m) __NE___ : _GLM_Quat_t{ glm::quat_cast( m._value )} {}
 
 /*
 =================================================
-    Axis*
+    TQuat::LookAt
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisX () C_NE___
+    TQuat<T,Q>  TQuat<T,Q>::LookAt (const Vec3_t &dir, const Vec3_t &up) __NE___
     {
-        Mat3_t  mat {*this};    // TODO: optimize
-        return Vec3_t( mat[0][0], mat[1][0], mat[2][0] );
-    }
-
-    template <typename T, glm::qualifier Q>
-    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisY () C_NE___
-    {
-        Mat3_t  mat {*this};    // TODO: optimize
-        return Vec3_t( mat[0][1], mat[1][1], mat[2][1] );
-    }
-
-    template <typename T, glm::qualifier Q>
-    typename TQuat<T,Q>::Vec3_t  TQuat<T,Q>::AxisZ () C_NE___
-    {
-        Mat3_t  mat {*this};    // TODO: optimize
-        return Vec3_t( mat[0][2], mat[1][2], mat[2][2] );
+        return TQuat<T,Q>{ TMatrix<T,3,3,Q>::LookAt( dir, up )};
     }
 
 

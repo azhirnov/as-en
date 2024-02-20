@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
-
+using namespace AE::AssetPacker;
 
 namespace
 {
@@ -11,7 +11,7 @@ namespace
 
     static void  ImageAtlasPack_Test1 ()
     {
-        const CharType*     files[]         = { TXT("atlas.as") };
+        const PathParams    files[]         = { {TXT("atlas.as")} };
         const Path          output          = TXT("atlas.bin");
         const Path          temp_file       = TXT("temp.bin");
         const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
@@ -39,16 +39,8 @@ extern void Test_ImageAtlasPack ()
 {
 #ifdef AE_ASSET_PACKER_LIBRARY
     {
-        Path    dll_path{ AE_ASSET_PACKER_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/AssetPacker-shared.dll" );
-        #else
-            dll_path.append( "AssetPacker-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_ASSET_PACKER_LIBRARY ));
         TEST( lib.GetProcAddr( "PackAssets", OUT pack_assets ));
 
         TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/atlas_test" ));

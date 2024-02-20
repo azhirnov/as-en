@@ -27,7 +27,7 @@ namespace AE::Graphics
     using AE::Threading::AsyncTask;
     using AE::Threading::GlobalLinearAllocatorRef;
     using AE::Threading::GraphicsFrameAllocatorRef;
-    using AE::Threading::BitAtomic;
+    using AE::Threading::StructAtomic;
     using AE::Threading::FAtomic;
     using AE::Threading::ETaskQueue;
     using AE::Threading::Synchronized;

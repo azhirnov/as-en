@@ -77,32 +77,32 @@ namespace AE::Graphics
     public:
         RenderPassDesc () __NE___ {}
 
-        template <typename T> RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)                                          __NE___;
-        template <typename T> RenderPassDesc (const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)                                          __NE___;
+        template <typename T> RenderPassDesc (RenderPassName::Ref rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)                                        __NE___;
+        template <typename T> RenderPassDesc (RenderPassName::Ref rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)                                        __NE___;
 
-        template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)               __NE___;
-        template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)               __NE___;
+        template <typename T> RenderPassDesc (RenderPassName::Ref rpName, SubpassName::Ref spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)               __NE___;
+        template <typename T> RenderPassDesc (RenderPassName::Ref rpName, SubpassName::Ref spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)               __NE___;
 
-        template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)                   __NE___;
-        template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)                   __NE___;
+        template <typename T> RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)                 __NE___;
+        template <typename T> RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)                 __NE___;
 
-        template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)__NE___;
-        template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)__NE___;
+        template <typename T> RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, SubpassName::Ref spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)__NE___;
+        template <typename T> RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, SubpassName::Ref spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)__NE___;
 
-        template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers = 1_layer)   __NE___;
-        template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2>     &size, ImageLayer layers = 1_layer)   __NE___;
+        template <typename T> RenderPassDesc (const IRenderTechPipelines &rtech, RenderTechPassName::Ref pass, const Rectangle<T> &rect, ImageLayer layers = 1_layer)   __NE___;
+        template <typename T> RenderPassDesc (const IRenderTechPipelines &rtech, RenderTechPassName::Ref pass, const Vec<T,2>     &size, ImageLayer layers = 1_layer)   __NE___;
 
 
         // render target
-        Self&  AddTarget (AttachmentName id, ImageViewID imageView)                                                 __NE___;
-        Self&  AddTarget (AttachmentName id, ImageViewID imageView,
+        Self&  AddTarget (AttachmentName::Ref id, ImageViewID imageView)                                            __NE___;
+        Self&  AddTarget (AttachmentName::Ref id, ImageViewID imageView,
                           EResourceState initial, EResourceState final, Bool relaxedStateTransition = True{})       __NE___;
 
         template <typename ClearVal>
-        Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue)                     __NE___;
+        Self&  AddTarget (AttachmentName::Ref id, ImageViewID imageView, const ClearVal &clearValue)                __NE___;
 
         template <typename ClearVal>
-        Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue,
+        Self&  AddTarget (AttachmentName::Ref id, ImageViewID imageView, const ClearVal &clearValue,
                           EResourceState initial, EResourceState final, Bool relaxedStateTransition = True{})       __NE___;
 
 
@@ -126,22 +126,22 @@ namespace AE::Graphics
 =================================================
 */
     template <typename T>
-    RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
         RenderPassDesc{ packId, rpName, SubpassName{}, rect, layers }
     {}
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
         RenderPassDesc{ packId, rpName, RectI{int2{0}, int2(size)}, layers }
     {}
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (RenderPassName::Ref rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
         RenderPassDesc{ Default, rpName, SubpassName{}, rect, layers }
     {}
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (RenderPassName::Ref rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
         RenderPassDesc{ Default, rpName, RectI{int2{0}, int2(size)}, layers }
     {}
 
@@ -151,7 +151,7 @@ namespace AE::Graphics
 =================================================
 */
     template <typename T>
-    RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, SubpassName::Ref spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
         area{RectI(rect)}, layerCount{layers}, renderPassName{rpName}, subpassName{spName}, packId{packId}
     {
         ASSERT( area.IsValid() );
@@ -160,17 +160,17 @@ namespace AE::Graphics
     }
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (PipelinePackID packId, RenderPassName::Ref rpName, SubpassName::Ref spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
         RenderPassDesc{ packId, rpName, spName, RectI{int2{0}, int2(size)}, layers }
     {}
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (RenderPassName::Ref rpName, SubpassName::Ref spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
         RenderPassDesc{ Default, rpName, spName, rect, layers }
     {}
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (RenderPassName::Ref rpName, SubpassName::Ref spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
         RenderPassDesc{ Default, rpName, spName, RectI{int2{0}, int2(size)}, layers }
     {}
 
@@ -180,30 +180,26 @@ namespace AE::Graphics
 =================================================
 */
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (const IRenderTechPipelines &rtech, RenderTechPassName::Ref pass, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
         area{RectI(rect)}, layerCount{layers}
     {
-        ASSERT( rtech );
         ASSERT( area.IsValid() );
         ASSERT( layerCount.Get() >= 1 );
 
-        if_likely( rtech )
-        {
-            auto    info = rtech->GetPass( pass );
-            ASSERT( info.type == IRenderTechPipelines::EPassType::Graphics );
-            ASSERT( info.renderPass.IsDefined() );
+        auto    info = rtech.GetPass( pass );
+        ASSERT( info.type == IRenderTechPipelines::EPassType::Graphics );
+        ASSERT( info.renderPass.IsDefined() );
 
-            if_likely( info.type == IRenderTechPipelines::EPassType::Graphics )
-            {
-                renderPassName  = RenderPassName{ info.renderPass };
-                subpassName     = SubpassName{ info.subpass };
-                packId          = info.packId;
-            }
+        if_likely( info.type == IRenderTechPipelines::EPassType::Graphics )
+        {
+            renderPassName  = RenderPassName{ info.renderPass };
+            subpassName     = SubpassName{ info.subpass };
+            packId          = info.packId;
         }
     }
 
     template <typename T>
-    RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+    RenderPassDesc::RenderPassDesc (const IRenderTechPipelines &rtech, RenderTechPassName::Ref pass, const Vec<T,2> &size, ImageLayer layers) __NE___ :
         RenderPassDesc{ rtech, pass, RectI{int2{0}, int2(size)}, layers }
     {}
 
@@ -212,12 +208,12 @@ namespace AE::Graphics
     AddTarget
 =================================================
 */
-    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView) __NE___
+    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName::Ref id, ImageViewID imageView) __NE___
     {
         return AddTarget( id, imageView, EResourceState::Unknown, EResourceState::Unknown );
     }
 
-    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView,
+    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName::Ref id, ImageViewID imageView,
                                                        EResourceState initial, EResourceState final, Bool relaxedStateTransition) __NE___
     {
         ASSERT( imageView );
@@ -229,13 +225,13 @@ namespace AE::Graphics
     }
 
     template <typename ClearVal>
-    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue) __NE___
+    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName::Ref id, ImageViewID imageView, const ClearVal &clearValue) __NE___
     {
         return AddTarget( id, imageView, clearValue, EResourceState::Unknown, EResourceState::Unknown );
     }
 
     template <typename ClearVal>
-    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue,
+    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName::Ref id, ImageViewID imageView, const ClearVal &clearValue,
                                                 EResourceState initial, EResourceState final, Bool relaxedStateTransition) __NE___
     {
         ASSERT( imageView );

@@ -430,7 +430,7 @@ namespace
             CHECK_ERR( color_attachments.size() < GraphicsConfig::MaxAttachments );
             CHECK_ERR( input_attachments.size() < GraphicsConfig::MaxAttachments );
 
-            const auto  InitAttachmentRef = [&sp_name, &spec] (const AttachmentName &name, uint idx, OUT VkAttachmentReference2 &ref, EPixelFormat fmt = Default)
+            const auto  InitAttachmentRef = [&sp_name, &spec] (AttachmentName::Ref name, uint idx, OUT VkAttachmentReference2 &ref, EPixelFormat fmt = Default)
             {{
                 ref             = {};
                 ref.sType       = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
@@ -470,8 +470,7 @@ namespace
                 {
                     has_resolve_attachments |= (usage_it->second.type == EAttachment::ColorResolve);
 
-                    BEGIN_ENUM_CHECKS();
-                    switch ( usage_it->second.type )
+                    switch_enum( usage_it->second.type )
                     {
                         case EAttachment::Color :
                         case EAttachment::ColorResolve :
@@ -536,7 +535,7 @@ namespace
                         case EAttachment::Unknown :
                         case EAttachment::_Count :  break;
                     }
-                    END_ENUM_CHECKS();
+                    switch_end
                 }
             }
 
@@ -615,6 +614,8 @@ namespace
 
                 bar.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
             }
+
+            DepInfo&    operator = (const DepInfo &) = default;
 
             ND_ uint    SrcSubpass ()   const   { return uint(hash >> 32); }
             ND_ uint    DstSubpass ()   const   { return uint(hash & 0xFFFF); }
@@ -1749,7 +1750,7 @@ namespace
         CHECK_ERR( not compatible_rp.empty() );
         CHECK_ERR( compatible_rp.size() <= SerializableRenderPassInfo::MaxCompatCount );
 
-        //usize rp_spec_count = 0;
+        usize   rp_spec_count = 0;
 
         // serialize
         CHECK_ERR( ser( RenderPassPack_Name ));
@@ -1761,14 +1762,13 @@ namespace
             ASSERT( compat.UseCount() == 1 );
 
             CHECK_ERR( not compat->_specializations.empty() );
-            //rp_spec_count += compat->_specializations.size();
+            rp_spec_count += compat->_specializations.size();
 
             SerializableRenderPassInfo  info;
             CHECK_ERR( info.Create( *compat ));
             CHECK_ERR( info.Serialize( ser ));
 
-            BEGIN_ENUM_CHECKS();
-            switch ( storage.target )
+            switch_enum( storage.target )
             {
                 #ifdef AE_ENABLE_VULKAN
                 case ECompilationTarget::Vulkan :
@@ -1828,11 +1828,11 @@ namespace
                 default :
                     RETURN_ERR( "unknown compilation target" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
-        //AE_LOGI( "Serialized compatible render passes: "s << ToString(compatible_rp.size())
-        //      << ", unique render passes: " << ToString(rp_spec_count) );
+        AE_LOG_DBG( "Serialized compatible render passes: "s << ToString(compatible_rp.size()) <<
+                    ", unique render passes: " << ToString(rp_spec_count) );
         return true;
     }
 

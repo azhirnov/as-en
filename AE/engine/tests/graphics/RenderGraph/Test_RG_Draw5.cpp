@@ -66,7 +66,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_1;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
 
@@ -88,7 +88,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_2;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view ));
 
@@ -110,7 +110,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_2;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view ));
 
@@ -189,7 +189,7 @@ namespace
         CHECK_ERR( rg.BeginFrame() );
 
         // pass1
-        auto        batch1  = rg.CmdBatch( EQueueType::Graphics, {"Draw4-pass1"} )
+        auto        batch1  = rg.CmdBatch( EQueueType::Graphics, {"Draw5-pass1"} )
                                     .UseResource( t.img, EResourceState::ColorAttachment )
                                     .UploadMemory()
                                     .Begin();
@@ -203,7 +203,7 @@ namespace
 
 
         // pass2
-        auto        batch2  = rg.CmdBatch( EQueueType::Graphics, {"Draw4-pass2"} )
+        auto        batch2  = rg.CmdBatch( EQueueType::Graphics, {"Draw5-pass2"} )
                                     .UseResource( t.img )
                                     .ReadbackMemory()
                                     .Begin();

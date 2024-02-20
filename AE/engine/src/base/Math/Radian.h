@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
 #include "base/Math/Vec.h"
 
 namespace AE::Math

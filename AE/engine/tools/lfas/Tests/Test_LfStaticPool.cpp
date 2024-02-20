@@ -50,8 +50,7 @@ namespace
                     pt = &g->perThread[ std::this_thread::get_id() ];
                 }
 
-                BEGIN_ENUM_CHECKS();
-                switch ( pt->act )
+                switch_enum( pt->act )
                 {
                     case EAction::Put :
                     {
@@ -82,7 +81,7 @@ namespace
                         break;
                     }
                 }
-                END_ENUM_CHECKS();
+                switch_end
                 std::atomic_thread_fence( std::memory_order_release );
             });
 

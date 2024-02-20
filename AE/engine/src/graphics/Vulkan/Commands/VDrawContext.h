@@ -85,7 +85,7 @@ namespace AE::Graphics::_hidden_
                                           uint      maxDrawCount,
                                           Bytes     stride)                                                         __Th___;
 
-        void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)             __Th___ { _mngr.AttachmentBarrier( name, srcState, dstState ); }
+        void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)            __Th___ { _mngr.AttachmentBarrier( name, srcState, dstState ); }
 
         void  SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)                                  __Th___;
         void  SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)                                  __Th___;
@@ -206,7 +206,7 @@ namespace AE::Graphics::_hidden_
                                           uint      maxDrawCount,
                                           Bytes     stride)                                                         __Th___;
 
-        void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)             __Th___ { _mngr.AttachmentBarrier( name, srcState, dstState ); }
+        void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)        __Th___ { _mngr.AttachmentBarrier( name, srcState, dstState ); }
 
         void  SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)                                  __Th___;
         void  SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)                                  __Th___;
@@ -296,7 +296,7 @@ namespace AE::Graphics::_hidden_
         using RawCtx::BindDescriptorSet;
 
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV;
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV;
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th_OV;
         using IDrawContext::PushConstant;
 
         // dynamic states
@@ -329,7 +329,7 @@ namespace AE::Graphics::_hidden_
         void  BindVertexBuffer (uint index, VkBuffer buffer, Bytes offset)                                                  __Th___;
         void  BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)                  __Th___;
         void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)                  __Th_OV;
-        bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)     __Th_OV;
+        bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset)       __Th_OV;
 
         using RawCtx::DrawIndirect;
         using RawCtx::DrawIndexedIndirect;
@@ -407,16 +407,16 @@ namespace AE::Graphics::_hidden_
         void  PushDebugGroup (DebugLabel dbg)                                                                               __Th_OV { RawCtx::_PushDebugGroup( dbg ); }
         void  PopDebugGroup ()                                                                                              __Th_OV { RawCtx::_PopDebugGroup(); }
 
-        void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)                     __Th_OV { RawCtx::AttachmentBarrier( name, srcState, dstState ); }
+        void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)                __Th_OV { RawCtx::AttachmentBarrier( name, srcState, dstState ); }
 
         void  CommitBarriers ()                                                                                             __Th_OV { return RawCtx::_CommitBarriers(); }
 
         // clear //
-        bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
-        bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
-        bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
-        bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
-        bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+        bool  ClearAttachment (AttachmentName::Ref, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+        bool  ClearAttachment (AttachmentName::Ref, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+        bool  ClearAttachment (AttachmentName::Ref, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+        bool  ClearAttachment (AttachmentName::Ref, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+        bool  ClearAttachment (AttachmentName::Ref, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 
         // vertex stream
         ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)                                                       __Th_OV;
@@ -428,7 +428,7 @@ namespace AE::Graphics::_hidden_
         template <typename ...IDs>
         ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)                                                               __Th___ { return this->_mngr.Get( ids... ); }
 
-        bool  _ClearAttachment (AttachmentName name, VkClearAttachment &, const RectI &, ImageLayer baseLayer, uint layerCount) __Th___;
+        bool  _ClearAttachment (AttachmentName::Ref, VkClearAttachment &, const RectI &, ImageLayer baseLayer, uint layerCount) __Th___;
     };
 
 } // AE::Graphics::_hidden_
@@ -526,7 +526,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___
+    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         Unused( typeName );
@@ -723,7 +723,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset) __Th___
+    bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset) __Th___
     {
         auto  [ppln, buf] = _GetResourcesOrThrow( pplnId, buffer );
 
@@ -923,7 +923,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32f &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const RGBA32f &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         VkClearAttachment   clear_att   = {};
         clear_att.aspectMask            = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -933,7 +933,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const RGBA32u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         VkClearAttachment   clear_att   = {};
         clear_att.aspectMask            = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -943,7 +943,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32i &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const RGBA32i &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         VkClearAttachment   clear_att   = {};
         clear_att.aspectMask            = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -953,13 +953,13 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA8u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const RGBA8u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         return ClearAttachment( name, RGBA32f{color}, rect, baseLayer, layerCount );
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const DepthStencil &dsClear, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const DepthStencil &dsClear, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         VkClearAttachment   clear_att       = {};
         clear_att.aspectMask                = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -969,7 +969,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::_ClearAttachment (AttachmentName name, VkClearAttachment &clearAtt, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+    bool  _VDrawContextImpl<C>::_ClearAttachment (AttachmentName::Ref name, VkClearAttachment &clearAtt, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
         VALIDATE_GCTX( ClearAttachment( rect ));
 

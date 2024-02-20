@@ -55,7 +55,7 @@ namespace AE::Graphics
         uint                    maxFrames   = 2;
 
         // staging buffers //
-        using SizePerQueue_t = StaticArray< Byte32u, uint(EQueueType::_Count) >;
+        using SizePerQueue_t = StaticArray< Bytes32u, uint(EQueueType::_Count) >;
         struct {
             // static staging buffers allocated at engine start
             SizePerQueue_t          writeStaticSize         = {};
@@ -76,7 +76,7 @@ namespace AE::Graphics
             uint                    maxFramesToRelease      = 1 << 10;
 
             // vertex & index buffer size for single frame
-            Byte32u                 vstreamSize             = 4_Mb;
+            Bytes32u                vstreamSize             = 4_Mb;
 
             // total size of staging memory is:
             //   (writeStaticSize + readStaticSize) * maxFrames + (maxWriteDynamicSize + maxReadDynamicSize)

@@ -13,7 +13,7 @@ namespace
 =================================================
 */
     template <typename ReqType>
-    inline bool  WaitForRequest (ReqType &req)
+    inline bool  WaitForRequest (ReqType &req) __NE___
     {
         #ifdef AE_DEBUG
         constexpr uint  max_attempt = UMax;
@@ -137,7 +137,7 @@ namespace
     ReadSeq
 =================================================
 */
-    Bytes  SyncRStream2::ReadSeq (OUT void* buffer, Bytes size) __NE___
+    Bytes  SyncRStreamOnAsyncDS::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         auto    req = _ds->ReadBlock( _pos.fetch_add( size ), buffer, size, null );
 
@@ -160,7 +160,7 @@ namespace
     WriteSeq
 =================================================
 */
-    Bytes  SyncWStream2::WriteSeq (const void* buffer, const Bytes size) __NE___
+    Bytes  SyncWStreamOnAsyncDS::WriteSeq (const void* buffer, const Bytes size) __NE___
     {
         auto    req = _ds->WriteBlock( _pos.fetch_add( size ), buffer, size, null );
 

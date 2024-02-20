@@ -26,6 +26,16 @@ namespace AE::Networking
     public:
         using MsgList_t     = ChunkList< CSMessagePtr >;
         using CMsgList_t    = ChunkList< const CSMessagePtr >;
+        using MsgListIter_t = MsgList_t::iterator;
+
+        struct MsgQueueStatistic
+        {
+            uint    incompleteOutput    = 0;
+
+            MsgQueueStatistic ()            __NE___ {}
+
+            ND_ explicit operator bool ()   C_NE___ { return incompleteOutput == 0; }
+        };
 
     protected:
         struct MsgQueueByGroup
@@ -39,16 +49,20 @@ namespace AE::Networking
     // interface
     public:
       // user api //
-            virtual void            Send (MsgList_t)            __NE___ = 0;
-        ND_ virtual MsgQueueMap_t&  Receive ()                  __NE___ = 0;
+            virtual void            Send (MsgList_t)                        __NE___ = 0;
+        ND_ virtual MsgQueueMap_t&  Receive ()                              __NE___ = 0;
 
 
       // client / server api //
-            virtual void  ProcessMessages (FrameUID frameId)    __NE___ = 0;
+            virtual void  ProcessMessages (FrameUID                 frameId,
+                                           INOUT MsgQueueStatistic  &stat)  __NE___ = 0;
 
-        ND_ virtual bool  DisconnectClient (EClientLocalID)     __NE___ = 0;
+        ND_ virtual bool  DisconnectClient (EClientLocalID)                 __NE___ = 0;
+            virtual void  DisconnectClientsWithIncompleteMsgQueue ()        __NE___ = 0;
 
-        ND_ virtual bool  IsConnected ()                        C_NE___ = 0;    // TODO: status
+        ND_ virtual bool  IsConnected ()                                    C_NE___ = 0;    // TODO: status
+
+        // TODO: statistic
     };
 
 

@@ -93,7 +93,7 @@ namespace AE::ResEditor
     void  FlightCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( Quat::Identity() );
+        _camera.SetOrientation( Quat::Identity() );
         _zoom           = 1.0f;
         _engineThrust   = 0.f;
         _dimAspect      = _dynDim->Aspect();

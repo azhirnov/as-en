@@ -29,8 +29,7 @@ namespace AE::ResEditor
         if_unlikely( not _IsEnabled() )
             return true;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _flags )
+        switch_enum( _flags )
         {
             case EFlags::RunOnce :
             {
@@ -58,7 +57,7 @@ namespace AE::ResEditor
                 DBG_WARNING( "unsupported flags" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
 
         for (auto& pass : _passes)
@@ -76,8 +75,7 @@ namespace AE::ResEditor
 */
     bool  PassGroup::_CanUpdate () const
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( _flags )
+        switch_enum( _flags )
         {
             case EFlags::RunOnce :
             {
@@ -103,7 +101,7 @@ namespace AE::ResEditor
                 DBG_WARNING( "unsupported flags" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 

@@ -81,7 +81,7 @@
 
         if ( uv.x > 0.05 and uv.x < 0.95 )
         {
-            const float f = RemapClamped( float2(0.05, 0.95), float2(0.0, 1.0), uv.x );
+            const float f = RemapClamp( float2(0.05, 0.95), float2(0.0, 1.0), uv.x );
 
             // choose interpolator
             switch ( int(uv.y * 5*7) % 7 )

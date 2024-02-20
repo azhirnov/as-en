@@ -23,10 +23,11 @@ namespace
     constructor
 =================================================
 */
-    GestureRecognizer::GestureRecognizer (ushort keyTouchPosPx, ushort keyTouchPosMm, ushort keyTouchDeltaPx, ushort keyTouchDeltaNorm, ushort keyMultiTouch) __NE___ :
-        _keyTouchPosPx{keyTouchPosPx},      _keyTouchPosMm{keyTouchPosMm},
-        _keyTouchDeltaPx{keyTouchDeltaPx},  _keyTouchDeltaNorm{keyTouchDeltaNorm},
-        _keyMultiTouch{keyMultiTouch}
+    GestureRecognizer::GestureRecognizer (ushort touchPosPxCode, ushort touchPosMmCode, ushort touchDeltaPxCode,
+                                          ushort touchDeltaNormCode, ushort multiTouchCode) __NE___ :
+        _touchPosPxCode{touchPosPxCode},        _touchPosMmCode{touchPosMmCode},
+        _touchDeltaPxCode{touchDeltaPxCode},    _touchDeltaNormCode{touchDeltaNormCode},
+        _multiTouchCode{multiTouchCode}
     {}
 
 /*
@@ -45,15 +46,15 @@ namespace
             const auto      state       = _touchStates[touch_idx];
             const Touch&    touch       = _touchData[touch_idx];
 
-            ia._Update2F( _keyTouchDeltaPx,   EGestureType::Move, _id, touch.delta,               state );
-            ia._Update2F( _keyTouchDeltaNorm, EGestureType::Move, _id, touch.delta * ia._toSNorm, state );
+            ia._Update2F( _touchDeltaPxCode,   EGestureType::Move, _id, touch.delta,               state );
+            ia._Update2F( _touchDeltaNormCode, EGestureType::Move, _id, touch.delta * ia._toSNorm, state );
         }
 
         // single touch
         _RecognizeDragging( active_count, timestamp, ia );
         _RecognizeTaps( active_count, timestamp, ia );
 
-        // muti touch
+        // multi touch
         _Recognize2Touch( active_count, timestamp, ia );
 
         for (const uint i : BitIndexIterate( _activeTouches ))
@@ -122,7 +123,7 @@ namespace
         const ubyte     touch_idx       = GetFirstTouch( _activeTouches );
         const Touch&    touch           = _touchData[touch_idx];
         const auto      state           = _touchStates[touch_idx];
-        const float2    px_to_mm        = ia._pixToMm;
+        const float     px_to_mm        = ia._pixToMm;
         const float2    pos_px          = touch.startPos;
         const float2    pos_mm          = touch.startPos * px_to_mm;
 
@@ -137,8 +138,8 @@ namespace
                 _tapRecognizer.lastTapTime  = _tapRecognizer.doubleTap ? _tapRecognizer.lastTapTime : timestamp;
 
                 // touch down event
-                ia._Update2F( _keyTouchPosPx, EGestureType::Down, _id, pos_px, EGestureState::End );
-                ia._Update2F( _keyTouchPosMm, EGestureType::Down, _id, pos_mm, EGestureState::End );
+                ia._Update2F( _touchPosPxCode, EGestureType::Down, _id, pos_px, EGestureState::End );
+                ia._Update2F( _touchPosMmCode, EGestureType::Down, _id, pos_mm, EGestureState::End );
             }
             return;
         }
@@ -148,40 +149,48 @@ namespace
 
         const float         dist    = DistanceSq( touch.pos * px_to_mm, pos_mm );
         const Duration_t    dt      = (timestamp - touch.startTime);
+        const float         factor  = Min( 1.f, float(dt.count()) / _LongPressDuration.count() );
 
         // cancel on multitouch
-        if ( activeCount > 1 )
+        if_unlikely( activeCount > 1 )
         {
             _tapRecognizer.isActive = false;
+            return;
         }
-        else
+
         // cancel if difference is too big
-        if ( dist > MaxDistanceSqr )
+        if_unlikely( dist > MaxDistanceSqr )
         {
             _tapRecognizer.isActive = false;
 
             // start dragging
+            _dragRecognizer.type        = EGestureType::Move;
             _dragRecognizer.state       = EGestureState::Update;
             _dragRecognizer.touchIdx    = touch_idx;
 
-            ia._Update2F( _keyTouchPosPx, EGestureType::Move, _id, pos_px, EGestureState::Begin );
-            ia._Update2F( _keyTouchPosMm, EGestureType::Move, _id, pos_mm, EGestureState::Begin );
+            ia._Update2F( _touchPosPxCode, _dragRecognizer.type, _id, pos_px, EGestureState::Begin );
+            ia._Update2F( _touchPosMmCode, _dragRecognizer.type, _id, pos_mm, EGestureState::Begin );
+            return;
         }
-        else
-        // cancel if pressed for a long time
-        if ( dt >= _LongPressDuration )
-        {
-            const float factor = Min( 1.f, float(dt.count()) / _LongPressDuration.count() );
 
+        // cancel if pressed for a long time
+        if_unlikely( dt >= _LongPressDuration )
+        {
             _tapRecognizer.isActive = false;
 
+            // start dragging
+            _dragRecognizer.type        = EGestureType::LongPress_Move;
+            _dragRecognizer.state       = EGestureState::Update;
+            _dragRecognizer.touchIdx    = touch_idx;
+
             // trigger long press event
-            ia._Update3F( _keyTouchPosPx, EGestureType::LongPress_Move, _id, float3{ pos_px, factor }, EGestureState::End );
-            ia._Update3F( _keyTouchPosMm, EGestureType::LongPress_Move, _id, float3{ pos_mm, factor }, EGestureState::End );
+            ia._Update3F( _touchPosPxCode, _dragRecognizer.type, _id, float3{ pos_px, factor }, EGestureState::Begin );
+            ia._Update3F( _touchPosMmCode, _dragRecognizer.type, _id, float3{ pos_mm, factor }, EGestureState::Begin );
+            return;
         }
-        else
+
         // stop
-        if ( state == EGestureState::End )
+        if_unlikely( state == EGestureState::End )
         {
             const Duration_t    dt2 = (timestamp - _tapRecognizer.lastTapTime);
 
@@ -191,8 +200,8 @@ namespace
             // double tap
             if ( _tapRecognizer.doubleTap and dt2 < _DoubleTapMaxDuration )
             {
-                ia._Update2F( _keyTouchPosPx, EGestureType::DoubleClick, _id, pos_px, EGestureState::End );
-                ia._Update2F( _keyTouchPosMm, EGestureType::DoubleClick, _id, pos_mm, EGestureState::End );
+                ia._Update2F( _touchPosPxCode, EGestureType::DoubleClick, _id, pos_px, EGestureState::End );
+                ia._Update2F( _touchPosMmCode, EGestureType::DoubleClick, _id, pos_mm, EGestureState::End );
 
                 _tapRecognizer.lastTapTime = Duration_t{0}; // to forbid triple tap
             }
@@ -200,10 +209,14 @@ namespace
             // single tap
             if ( dt < _SingleTapMaxDuration )
             {
-                ia._Update2F( _keyTouchPosPx, EGestureType::Click, _id, pos_px, EGestureState::End );
-                ia._Update2F( _keyTouchPosMm, EGestureType::Click, _id, pos_mm, EGestureState::End );
+                ia._Update2F( _touchPosPxCode, EGestureType::Click, _id, pos_px, EGestureState::End );
+                ia._Update2F( _touchPosMmCode, EGestureType::Click, _id, pos_mm, EGestureState::End );
             }
+            return;
         }
+
+        ia._Update3F( _touchPosPxCode, EGestureType::LongPress, _id, float3{ pos_px, factor }, EGestureState::Update );
+        ia._Update3F( _touchPosMmCode, EGestureType::LongPress, _id, float3{ pos_mm, factor }, EGestureState::Update );
     }
 
 /*
@@ -228,24 +241,24 @@ namespace
 
         const Touch&    touch       = _touchData[touch_idx];
         const auto      state       = _touchStates[touch_idx];
-        const float2    px_to_mm    = ia._pixToMm;
+        const float     px_to_mm    = ia._pixToMm;
         const float2    pos_px      = touch.pos;
         const float2    pos_mm      = touch.pos * px_to_mm;
 
-        // cancel on multitouch
-        if ( activeCount > 1 )
-        {
-            _dragRecognizer.state = EGestureState::End; //Cancel;
-        }
-        else
         // stop
-        if ( state == EGestureState::End )
+        if_unlikely( state == EGestureState::End )
         {
             _dragRecognizer.state = EGestureState::End;
         }
 
-        ia._Update2F( _keyTouchPosPx, EGestureType::Move, _id, pos_px, _dragRecognizer.state );
-        ia._Update2F( _keyTouchPosMm, EGestureType::Move, _id, pos_mm, _dragRecognizer.state );
+        // cancel on multitouch
+        if_unlikely( activeCount > 1 )
+        {
+            _dragRecognizer.state = EGestureState::End; //Cancel;
+        }
+
+        ia._Update2F( _touchPosPxCode, _dragRecognizer.type, _id, pos_px, _dragRecognizer.state );
+        ia._Update2F( _touchPosMmCode, _dragRecognizer.type, _id, pos_mm, _dragRecognizer.state );
     }
 
 /*
@@ -257,7 +270,7 @@ namespace
     {
         const int       idx0        = BitScanForward( _activeTouches );
         const int       idx1        = BitScanForward( _activeTouches & ~SafeLeftBitShift( 1u, idx0 ));
-        const float2    px_to_mm    = ia._pixToMm;
+        const float     px_to_mm    = ia._pixToMm;
         EGestureState   g_state     = EGestureState::Update;
 
         if_likely( not _twoTouchRecognizer.isActive )
@@ -276,7 +289,7 @@ namespace
                 _twoTouchRecognizer.rotate      = float(ATan( pos0_mm.y - pos1_mm.y, pos0_mm.x - pos1_mm.x ));
 
                 const float4    value {0.f, 0.f, _twoTouchRecognizer.scale, _twoTouchRecognizer.rotate};
-                ia._Update4F( _keyMultiTouch, EGestureType::ScaleRotate2D, _id, value, EGestureState::Begin );
+                ia._Update4F( _multiTouchCode, EGestureType::ScaleRotate2D, _id, value, EGestureState::Begin );
             }
             return;
         }
@@ -284,7 +297,7 @@ namespace
         const bool  is_valid    = activeCount                   == 2                and
                                   _twoTouchRecognizer.touchID0  == _touchIDs[idx0]  and
                                   _twoTouchRecognizer.touchID1  == _touchIDs[idx1];
-        if ( is_valid )
+        if_likely( is_valid )
         {
             const float2    pos0_mm     = _touchData[idx0].pos * px_to_mm;
             const float2    pos1_mm     = _touchData[idx1].pos * px_to_mm;
@@ -304,14 +317,14 @@ namespace
             _twoTouchRecognizer.scale   = scale_angle.x;
             _twoTouchRecognizer.rotate  = scale_angle.y;
 
-            ia._Update4F( _keyMultiTouch, EGestureType::ScaleRotate2D, _id, value, g_state );
+            ia._Update4F( _multiTouchCode, EGestureType::ScaleRotate2D, _id, value, g_state );
         }
         else
         {
             _twoTouchRecognizer.isActive = false;
             g_state = EGestureState::End;
 
-            ia._Update4F( _keyMultiTouch, EGestureType::ScaleRotate2D, _id, float4{0.f}, g_state );
+            ia._Update4F( _multiTouchCode, EGestureType::ScaleRotate2D, _id, float4{0.f}, g_state );
         }
     }
 

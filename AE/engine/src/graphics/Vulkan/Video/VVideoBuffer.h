@@ -39,7 +39,7 @@ namespace AE::Graphics
             void  Destroy (VResourceManager &)                                                                              __NE___;
 
         ND_ VkBuffer                Handle ()                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-        ND_ BufferID                BufferId ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
+        ND_ BufferID                GetBufferID ()                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
 
         ND_ VideoBufferDesc const&  Description ()                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
         ND_ POTBytes                MinBitstreamBufferOffsetAlign ()    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _minOffsetAlign; }

@@ -1,4 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Note:
+    - For maximum performance use 'NoBuffering' flag, but it requires to align size to FS block size (512b .. 4Kb).
+    - OS file cache may not work for asyncIO, but unaligned access is allowed.
+    - Cancellation may not work, actually it has effect only for network filesystem.
+*/
 
 #pragma once
 
@@ -45,15 +51,15 @@ namespace AE::Threading
 
         // methods
         protected:
-            _RequestBase ()                                             __NE___;
+            _RequestBase ()                             __NE___;
 
-                void  _Init (Bytes pos, RC<> mem)                       __NE___;
-                void  _Cleanup ()                                       __NE___;
-            ND_ bool  _Cancel (const File_t &file)                      __NE___;
+                void  _Init (Bytes pos, RC<> mem)       __NE___;
+                void  _Cleanup ()                       __NE___;
+            ND_ bool  _Cancel (const File_t &file)      __NE___;
 
         private:
             friend class WindowsIOService;
-                void  _Complete (Bytes size, long err, const void* ov)  __NE___;
+                void  _Complete (Bytes size, long err)  __NE___;
         };
 
 
@@ -73,17 +79,17 @@ namespace AE::Threading
         // methods
         public:
             // IAsyncDataSourceRequest //
-            Result      GetResult ()            C_NE_OV;
-            bool        Cancel ()               __NE_OV;
-            Promise_t   AsPromise (ETaskQueue)  __NE_OV;
+            Result      GetResult ()                    C_NE_OV;
+            bool        Cancel ()                       __NE_OV;
+            Promise_t   AsPromise (ETaskQueue)          __NE_OV;
 
         private:
             friend class AsyncRDataSourceApi;
             ND_ bool  _Create (RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___;
 
-            ND_ ResultWithRC  _GetResult ()     __NE___;
+            ND_ ResultWithRC  _GetResult ()             __NE___;
 
-                void  _ReleaseObject ()         __NE_OV;
+                void  _ReleaseObject ()                 __NE_OV;
         };
 
 
@@ -102,30 +108,29 @@ namespace AE::Threading
         // methods
         public:
             // IAsyncDataSourceRequest //
-            Result      GetResult ()            C_NE_OV;
-            bool        Cancel ()               __NE_OV;
-            Promise_t   AsPromise (ETaskQueue)  __NE_OV;
+            Result      GetResult ()                    C_NE_OV;
+            bool        Cancel ()                       __NE_OV;
+            Promise_t   AsPromise (ETaskQueue)          __NE_OV;
 
         private:
             friend class AsyncWDataSourceApi;
             ND_ bool  _Create (RC<WinAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___;
 
-            ND_ ResultWithRC  _GetResult ()     __NE___;
+            ND_ ResultWithRC  _GetResult ()             __NE___;
 
-                void  _ReleaseObject ()         __NE_OV;
+                void  _ReleaseObject ()                 __NE_OV;
         };
 
 
     private:
-        static constexpr uint       _OverlappedOffset = offsetof( _RequestBase, _overlapped );
+        static constexpr uint       c_OverlappedOffset = offsetof( _RequestBase, _overlapped );
 
         template <typename T, usize ChunkSize, usize MaxChunks>
         using PoolTmpl              = LfIndexedPool< T, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 
-        static constexpr uint       _ReqChunkSize = 1u << 10;
-
-        using ReadRequestPool_t     = PoolTmpl< ReadRequest,  _ReqChunkSize, 8 >;
-        using WriteRequestPool_t    = PoolTmpl< WriteRequest, _ReqChunkSize, 8 >;
+        static constexpr uint       _ReqChunkSize = 4u << 10;
+        using ReadRequestPool_t     = PoolTmpl< ReadRequest,  _ReqChunkSize, 32 >;
+        using WriteRequestPool_t    = PoolTmpl< WriteRequest, _ReqChunkSize, 32 >;
 
 
     // variables
@@ -138,21 +143,21 @@ namespace AE::Threading
 
     // methods
     public:
-        ~WindowsIOService ()                            __NE___;
+        ~WindowsIOService ()                                __NE___;
 
-        ND_ bool            IsInitialized ()            C_NE___;
+        ND_ bool            IsInitialized ()                C_NE___;
 
-        ND_ IOPort_t const& GetIOCompletionPort ()      C_NE___ { return _ioCompletionPort; }
+        ND_ IOPort_t const& GetIOCompletionPort ()          C_NE___ { return _ioCompletionPort; }
 
 
         // IOService //
-        usize               ProcessEvents ()            __NE_OV;
-        EIOServiceType      GetIOServiceType ()         C_NE_OV { return EIOServiceType::File; }
+        usize               ProcessEvents ()                __NE_OV;
+        EIOServiceType      GetIOServiceType ()             C_NE_OV { return EIOServiceType::File; }
 
 
     private:
         friend class TaskScheduler;
-        explicit WindowsIOService (uint maxThreads)     __NE___;
+        explicit WindowsIOService (uint maxAccessThreads)   __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -165,7 +170,7 @@ namespace AE::Threading
     {
     // types
     public:
-        using EFlags    = WinRFileStream::EFlags;
+        using EFlags    = WinFileRStream::EFlags;
     private:
         using File_t    = WindowsIOService::File_t;
 
@@ -225,7 +230,7 @@ namespace AE::Threading
     {
     // types
     public:
-        using EFlags    = WinWFileStream::EFlags;
+        using EFlags    = WinFileWStream::EFlags;
     private:
         using File_t    = WindowsIOService::File_t;
 
@@ -235,7 +240,6 @@ namespace AE::Threading
     // variables
     private:
         File_t          _file;
-        const EFlags    _flags;
 
         DEBUG_ONLY( const Path  _filename;)
 

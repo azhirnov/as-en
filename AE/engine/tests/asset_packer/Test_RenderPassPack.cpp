@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
-
+using namespace AE::PipelineCompiler;
 
 namespace
 {
@@ -11,8 +11,9 @@ namespace
 
     static void  RenderPassPack_Test (bool isVk, StringView refName)
     {
-        const PathParams    fs_folder[]     = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
-        const PathParams    rpass_dir[]     = { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 0}, {TXT("rpass.as"), 2} };
+        const PathParams    rpass_dir[]     = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder},
+                                                {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 0},
+                                                {TXT("rpass.as"), 2} };
         const Path          output_folder   = TXT("_output");
         const Path          ref_dump_fname  = FileSystem::ToAbsolute( refName );
 
@@ -22,8 +23,6 @@ namespace
         const Path  output = output_folder / "passes.bin";
 
         PipelinesInfo   info;
-        info.pipelineFolders    = fs_folder;
-        info.pipelineFolderCount= CountOf( fs_folder );
         info.inPipelines        = rpass_dir;
         info.inPipelineCount    = CountOf( rpass_dir );
         info.outputPackName     = Cast<CharType>(output.c_str());
@@ -145,16 +144,8 @@ extern void Test_RenderPassPack ()
 {
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
     {
-        Path    dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-        #else
-            dll_path.append( "PipelineCompiler-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
         TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
         TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/rp_test" ));

@@ -5,13 +5,36 @@ Sampler{
   minFilter:     Nearest
   mipmapMode:    Nearest
   addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
+--------------
+name:  'NearestClamp|ycbcr|AndroidNV16'
+Sampler{
+  usage:         Default
+  magFilter:     Nearest
+  minFilter:     Nearest
+  mipmapMode:    Nearest
+  addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  ycbcr.extFormat:     Android_NV16
+  ycbcr.model:         suggested
+  ycbcr.range:         suggested
+  ycbcr.components:    suggested
+  ycbcr.xChromaOffset: suggested
+  ycbcr.yChromaOffset: suggested
+  ycbcr.chromaFilter:  Nearest
+  ycbcr.forceExplicitReconstruction: false
+  features:      { 'MinimalFS', 'part.externalFormatAndroid' }
 --------------
 name:  'LinearMipmapRepeat'
 Sampler{
@@ -20,9 +43,9 @@ Sampler{
   minFilter:     Linear
   mipmapMode:    Linear
   addressMode:   ( Repeat, Repeat, Repeat )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
@@ -35,14 +58,37 @@ Sampler{
   minFilter:     Linear
   mipmapMode:    Linear
   addressMode:   ( Repeat, Repeat, Repeat )
-  mipLodBias:    0.000000
-  maxAnisotropy: 12.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  maxAnisotropy: 12.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS', 'MinDesktop' }
+--------------
+name:  'NearestClamp|ycbcr|AndroidYUY2'
+Sampler{
+  usage:         Default
+  magFilter:     Nearest
+  minFilter:     Nearest
+  mipmapMode:    Nearest
+  addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  ycbcr.extFormat:     Android_YUY2
+  ycbcr.model:         suggested
+  ycbcr.range:         suggested
+  ycbcr.components:    suggested
+  ycbcr.xChromaOffset: suggested
+  ycbcr.yChromaOffset: suggested
+  ycbcr.chromaFilter:  Nearest
+  ycbcr.forceExplicitReconstruction: false
+  features:      { 'MinimalFS', 'part.externalFormatAndroid' }
 --------------
 name:  'LinearMipmapClamp'
 Sampler{
@@ -51,9 +97,9 @@ Sampler{
   minFilter:     Linear
   mipmapMode:    Linear
   addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
@@ -66,9 +112,9 @@ Sampler{
   minFilter:     Linear
   mipmapMode:    Nearest
   addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
@@ -81,9 +127,9 @@ Sampler{
   minFilter:     Nearest
   mipmapMode:    Nearest
   addressMode:   ( Repeat, Repeat, Repeat )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
@@ -96,9 +142,9 @@ Sampler{
   minFilter:     Linear
   mipmapMode:    Nearest
   addressMode:   ( Repeat, Repeat, Repeat )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
@@ -111,19 +157,19 @@ Sampler{
   minFilter:     Nearest
   mipmapMode:    Nearest
   addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
-  mipLodBias:    0.000000
-  minLod:        -1000.000000
-  maxLod:        1000.000000
+  mipLodBias:    0.00
+  minLod:        -1000.00
+  maxLod:        1000.00
   borderColor:   FloatTransparentBlack
   unnormCoord:   false
   reductionMode: Average
   ycbcr.format:        G8_B8R8_420_UNorm
   ycbcr.model:         Ycbcr_709
   ycbcr.range:         ITU_Full
-  ycbcr.components:    RGBA
+  ycbcr.components:    identity
   ycbcr.xChromaOffset: CositedEven
   ycbcr.yChromaOffset: CositedEven
   ycbcr.chromaFilter:  Nearest
   ycbcr.forceExplicitReconstruction: false
-  features:      { 'MinimalFS', 'MinDesktopAMD', 'MinDesktopNV' }
+  features:      { 'MinimalFS', 'part.samplerYcbcrConversion' }
 --------------

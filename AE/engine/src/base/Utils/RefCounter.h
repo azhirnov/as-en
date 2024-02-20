@@ -198,7 +198,7 @@ namespace AE::Base
     //
 
     template <typename T>
-    class StaticRC final
+    class StaticRC
     {
     // variables
     private:
@@ -208,7 +208,7 @@ namespace AE::Base
     // methods
     public:
         template <typename ...Args>
-        explicit StaticRC (Args&& ...args) __NE___ :
+        explicit StaticRC (Args&& ...args)  __NE___ :
             _value{ FwdArg<Args>( args )... }
         {
             StaticAssert( IsBaseOf< EnableRCBase, T > );
@@ -219,18 +219,52 @@ namespace AE::Base
             ASSERT( cnt == 0 );
         }
 
-        ~StaticRC () __NE___
+        ~StaticRC ()                        __NE___
         {
             const int   cnt = RefCounterUtils::DecRef( _value );
             Unused( cnt );
             ASSERT( cnt == 1 );
         }
 
-        ND_ T *         operator -> ()  __NE___ { return &_value; }
-        ND_ T const*    operator -> ()  C_NE___ { return &_value; }
+        ND_ T *         operator -> ()      __NE___ { return &_value; }
+        ND_ T const*    operator -> ()      C_NE___ { return &_value; }
 
-        ND_ T &         operator * ()   __NE___ { return _value; }
-        ND_ T const&    operator * ()   C_NE___ { return _value; }
+        ND_ T &         operator * ()       __NE___ { return _value; }
+        ND_ T const&    operator * ()       C_NE___ { return _value; }
+
+        ND_ RC<T>       GetRC ()            __NE___ { return _value.template GetRC<T>(); }
+    };
+
+
+
+    //
+    // Static Reference Counter with dependent RC
+    //
+
+    template <typename T>
+    class StaticRC2 : public StaticRC<T>
+    {
+    // variables
+    private:
+        EnableRCBase &      _base;
+
+
+    // methods
+    public:
+        template <typename ...Args>
+        explicit StaticRC2 (EnableRCBase &base, Args&& ...args) __NE___ :
+            StaticRC<T>{ FwdArg<Args>( args )... },
+            _base{ base }
+        {
+            RefCounterUtils::IncRef( _base );
+        }
+
+        ~StaticRC2 () __NE___
+        {
+            const int   cnt = RefCounterUtils::DecRef( _base );
+            Unused( cnt );
+            ASSERT( cnt >= 1 );
+        }
     };
 
 
@@ -349,6 +383,23 @@ namespace AE::Base
         StaticAssert( IsBaseOf< EnableRCBase, T >);
 
         return RC<T>{ new T{ FwdArg<Args>(args)... }};
+    }
+
+    template <typename T, typename ...Args>
+    ND_ RC<T>  MakeRCNe (Args&& ...args) __NE___
+    {
+        StaticAssert( not IsBaseOf< NonAllocatable, T >);
+        StaticAssert( IsBaseOf< EnableRCBase, T >);
+
+        if constexpr( IsNoExcept( new T{ FwdArg<Args>(args)... }))
+        {
+            return RC<T>{ new T{ FwdArg<Args>(args)... }};
+        }else{
+            TRY{
+                return RC<T>{ new T{ FwdArg<Args>(args)... }};
+            }
+            CATCH_ALL( return null; )
+        }
     }
 
 /*

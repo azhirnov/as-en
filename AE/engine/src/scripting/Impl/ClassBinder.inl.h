@@ -169,9 +169,9 @@ namespace _hidden_ {
     template <typename T>
     void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __Th___
     {
-        using constructor_t = T * (*) ();
+        using Constructor_t = T* (*) ();
 
-        constructor_t create = null;
+        Constructor_t   create = null;
 
         if constexpr( IsAbstract<T> or not IsDefaultConstructible<T> ) {
             CHECK_THROW( not hasFactory );
@@ -293,13 +293,13 @@ namespace _hidden_ {
 
 /*
 =================================================
-    IsRegistred
+    IsRegistered
 =================================================
 */
     template <typename T>
-    bool  ClassBinder<T>::IsRegistred () C_NE___
+    bool  ClassBinder<T>::IsRegistered () C_NE___
     {
-        return _engine->IsRegistred( _name );
+        return _engine->IsRegistered( _name );
     }
 
 /*
@@ -329,6 +329,12 @@ namespace _hidden_ {
         }
     }
 
+    template <typename T> template <typename ...Args>
+    void  ClassBinder<T>::AddConstructor (ArgNames_t argNames) __Th___
+    {
+        AddConstructor( &AngelScriptHelper::FactoryCreate2< T, Args... >, argNames );
+    }
+
 /*
 =================================================
     AddFactoryCtor
@@ -354,6 +360,12 @@ namespace _hidden_ {
             GlobalFunction<Fn>::GetCppArgs( INOUT _header, argNames );
             _header << ";\n";
         }
+    }
+
+    template <typename T> template <typename ...Args>
+    void  ClassBinder<T>::AddFactoryCtor (ArgNames_t argNames) __Th___
+    {
+        AddFactoryCtor( &AngelScriptHelper::FactoryCreateRC2< T, Args... >, argNames );
     }
 
 /*
@@ -572,7 +584,7 @@ namespace _hidden_ {
         using FuncInfo  = FunctionInfo<Fn>;
         using FrontArg  = typename FuncInfo::args::Front::type;
 
-        StaticAssert( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
+        StaticAssert( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
         StaticAssert( _IsSame< FrontArg >::value );
 
         String  signature;
@@ -605,7 +617,7 @@ namespace _hidden_ {
         using FuncInfo  = FunctionInfo<Fn>;
         using BackArg   = typename FuncInfo::args::template Get< FuncInfo::args::Count-1 >;
 
-        StaticAssert( IsVoid< FuncInfo::clazz >, "'Fn' must be a function" );
+        StaticAssert( IsVoid< typename FuncInfo::clazz >, "'Fn' must be a function" );
         StaticAssert( _IsSame< BackArg >::value );
 
         String  signature;

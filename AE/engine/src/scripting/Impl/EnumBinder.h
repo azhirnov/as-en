@@ -34,7 +34,7 @@ namespace AE::Scripting
         ~EnumBinder ()                                          __NE___;
 
             void  Create ()                                     __Th___;
-        ND_ bool  IsRegistred ()                                C_NE___;
+        ND_ bool  IsRegistered ()                               C_NE___;
 
             void  AddValue (StringView name, T value)           __Th___;
 
@@ -99,13 +99,13 @@ namespace AE::Scripting
 
 /*
 =================================================
-    IsRegistred
+    IsRegistered
 =================================================
 */
     template <typename T>
-    bool  EnumBinder<T>::IsRegistred () C_NE___
+    bool  EnumBinder<T>::IsRegistered () C_NE___
     {
-        return _engine->IsRegistred( _name );
+        return _engine->IsRegistered( _name );
     }
 
 /*

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifndef AE_ENABLE_METAL
+#ifdef AE_TEST_SHADER_DEBUGGER
 # include "Test_RenderGraph.h"
 
 namespace
@@ -134,14 +134,14 @@ no source
 
 //> color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_LocalInvocationID: uint3 {0, 0, 0}
-6. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
-7.                       float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
-8.                       1.0, 0.0);
+7. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
+8.                       float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
+9.                       1.0, 0.0);
 
 //> imageStore(): void
 //  color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_GlobalInvocationID: uint3 {8, 8, 0}
-10.     imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
+11.     imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
                         ok &= (trace_str[0] == ref_str);
@@ -238,4 +238,4 @@ bool RGTest::Test_Debugger1 ()
     return result;
 }
 
-#endif // not AE_ENABLE_METAL
+#endif // AE_TEST_SHADER_DEBUGGER

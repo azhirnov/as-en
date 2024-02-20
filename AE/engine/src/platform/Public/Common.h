@@ -22,6 +22,7 @@ namespace AE::App
     using Threading::Atomic;
     using Threading::AtomicByte;
     using Threading::AsyncTask;
+    using Threading::Promise;
 
 #  if AE_ENABLE_DATA_RACE_CHECK
     using Threading::DataRaceCheck;
@@ -67,6 +68,9 @@ namespace AE::App
     using InputActionName   = NamedID< 32, App::_hidden_::AppIDs_Start + 2, AE_OPTIMIZE_IDS >;
     using LocaleName        = NamedID< 8,  App::_hidden_::AppIDs_Start + 3, AE_OPTIMIZE_IDS >;  // format: en-US, ru-RU
     using ViewModeName      = NamedID< 32, App::_hidden_::AppIDs_Start + 4, AE_OPTIMIZE_IDS >;
+
+    static constexpr ViewModeName   ViewModeName_Initial {"initial"};
+    static constexpr ViewModeName   ViewModeName_Paused {"paused"};
 
 
     struct PlatformConfig

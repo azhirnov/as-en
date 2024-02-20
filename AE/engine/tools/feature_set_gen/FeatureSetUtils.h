@@ -36,10 +36,11 @@ namespace AE::Graphics
 
         ExtFields   ext;
 
-        void  operator = (const FeatureSet &rhs)
-        {
-            FeatureSet::operator = (rhs);
-        }
+        FeatureSetExt () = default;
+        FeatureSetExt (const FeatureSetExt &) = default;
+
+        FeatureSetExt&  operator = (const FeatureSetExt &)      = default;
+        FeatureSetExt&  operator = (const FeatureSet &rhs)      { FeatureSet::operator = (rhs);  return *this; }
     };
 
 

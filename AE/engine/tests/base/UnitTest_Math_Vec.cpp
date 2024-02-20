@@ -115,12 +115,113 @@ namespace
 
     static void  Quat_Test1 ()
     {
-        const float3    up {0.f, -1.f, 0.f};
+        Quat    b0  = Quat::RotateY( 0_deg );       // +Z
+        Quat    b1  = Quat::LookAt( b0.AxisZ(), b0.AxisY() );
+        Quat    b2  = Quat::RotateY( 360_deg );     // +Z
+        float3  b4  = b0.AxisX();
+        float3  b5  = b0.AxisY();
+        float3  b6  = b0.AxisZ();
+        float3  b7  = b0.Axis();
+        TEST( All( Equal( b4, float3{1.f, 0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( b5, float3{0.f, 1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( b6, float3{0.f, 0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( b4, b2.AxisX(), 1_pct )));
+        TEST( All( Equal( b5, b2.AxisY(), 1_pct )));
+        TEST( All( Equal( b6, b2.AxisZ(), 1_pct )));
+        TEST( All( Equal( b7, float3{0.f, 0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( b4, b1.AxisX(), 1_pct )));
+        TEST( All( Equal( b5, b1.AxisY(), 1_pct )));
+        TEST( All( Equal( b6, b1.AxisZ(), 1_pct )));
 
-        float3  a0 { 0.780720f, 0.390360f, 0.487950f };
-        auto    b0 = Quat::FromDirection( a0, up );
-        auto    c0  = b0.ToDirection();
-        TEST( All( Equal( a0, c0, 1_pct )));
+        Quat    c0  = Quat::RotateY( 90_deg );      // -X
+        Quat    c1  = Quat::LookAt( c0.AxisZ(), c0.AxisY() );
+        Quat    c2  = Quat::RotateY( -270_deg );    // -X
+        float3  c4  = c0.AxisX();
+        float3  c5  = c0.AxisY();
+        float3  c6  = c0.AxisZ();
+        float3  c7  = c0.Axis();
+        TEST( All( Equal( c4, float3{ 0.f, 0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( c5, float3{ 0.f, 1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( c6, float3{-1.f, 0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( c4, c2.AxisX(), 1_pct )));
+        TEST( All( Equal( c5, c2.AxisY(), 1_pct )));
+        TEST( All( Equal( c6, c2.AxisZ(), 1_pct )));
+        TEST( All( Equal( c7, float3{ 0.f, 1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( c4, c1.AxisX(), 1_pct )));
+        TEST( All( Equal( c5, c1.AxisY(), 1_pct )));
+        TEST( All( Equal( c6, c1.AxisZ(), 1_pct )));
+
+        Quat    d0  = Quat::RotateY( -90_deg );     // +X
+        Quat    d1  = Quat::LookAt( d0.AxisZ(), d0.AxisY() );
+        Quat    d2  = Quat::RotateY( 270_deg );     // +X
+        float3  d4  = d0.AxisX();
+        float3  d5  = d0.AxisY();
+        float3  d6  = d0.AxisZ();
+        float3  d7  = d0.Axis();
+        TEST( All( Equal( d4, float3{0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( d5, float3{0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( d6, float3{1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( d4, d2.AxisX(), 1_pct )));
+        TEST( All( Equal( d5, d2.AxisY(), 1_pct )));
+        TEST( All( Equal( d6, d2.AxisZ(), 1_pct )));
+        TEST( All( Equal( d7, float3{0.f, -1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( d4, d1.AxisX(), 1_pct )));
+        TEST( All( Equal( d5, d1.AxisY(), 1_pct )));
+        TEST( All( Equal( d6, d1.AxisZ(), 1_pct )));
+
+        Quat    e0  = Quat::RotateY( 180_deg );     // -Z
+        Quat    e1  = Quat::LookAt( e0.AxisZ(), e0.AxisY() );
+        Quat    e2  = Quat::RotateY( -180_deg );    // -Z
+        float3  e4  = e0.AxisX();
+        float3  e5  = e0.AxisY();
+        float3  e6  = e0.AxisZ();
+        float3  e7  = e0.Axis();
+        TEST( All( Equal( e4, float3{-1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( e5, float3{ 0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( e6, float3{ 0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( e4, e2.AxisX(), 1_pct )));
+        TEST( All( Equal( e5, e2.AxisY(), 1_pct )));
+        TEST( All( Equal( e6, e2.AxisZ(), 1_pct )));
+        TEST( All( Equal( e7, float3{ 0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( e4, e1.AxisX(), 1_pct )));
+        TEST( All( Equal( e5, e1.AxisY(), 1_pct )));
+        TEST( All( Equal( e6, e1.AxisZ(), 1_pct )));
+
+        Quat    f0  = Quat::RotateX( 90_deg );      // -Y
+        Quat    f1  = Quat::LookAt( f0.AxisZ(), f0.AxisY() );
+        Quat    f2  = Quat::RotateX( -270_deg );    // -Y
+        float3  f4  = f0.AxisX();
+        float3  f5  = f0.AxisY();
+        float3  f6  = f0.AxisZ();
+        float3  f7  = f0.Axis();
+        TEST( All( Equal( f4, float3{1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( f5, float3{0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( f6, float3{0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( f4, f2.AxisX(), 1_pct )));
+        TEST( All( Equal( f5, f2.AxisY(), 1_pct )));
+        TEST( All( Equal( f6, f2.AxisZ(), 1_pct )));
+        TEST( All( Equal( f7, float3{1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( f4, f1.AxisX(), 1_pct )));
+        TEST( All( Equal( f5, f1.AxisY(), 1_pct )));
+        TEST( All( Equal( f6, f1.AxisZ(), 1_pct )));
+
+        Quat    g0  = Quat::RotateX( -90_deg );     // +Y
+        Quat    g1  = Quat::LookAt( g0.AxisZ(), g0.AxisY() );
+        Quat    g2  = Quat::RotateX( 270_deg );     // +Y
+        float3  g4  = g0.AxisX();
+        float3  g5  = g0.AxisY();
+        float3  g6  = g0.AxisZ();
+        float3  g7  = g0.Axis();
+        TEST( All( Equal( g4, float3{ 1.f,  0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( g5, float3{ 0.f,  0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( g6, float3{ 0.f, -1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( g4, g2.AxisX(), 1_pct )));
+        TEST( All( Equal( g5, g2.AxisY(), 1_pct )));
+        TEST( All( Equal( g6, g2.AxisZ(), 1_pct )));
+        TEST( All( Equal( g7, float3{-1.f,  0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( g4, g1.AxisX(), 1_pct )));
+        TEST( All( Equal( g5, g1.AxisY(), 1_pct )));
+        TEST( All( Equal( g6, g1.AxisZ(), 1_pct )));
     }
 
 
@@ -140,6 +241,22 @@ namespace
         auto    a3 = Quat::Rotate2(Rad3{ 90_deg, 0_deg, 0_deg });
         auto    b3 = Quat::RotateX( 90_deg );
         TEST( All( Equal( a3, b3 )));
+    }
+
+
+    static void  Quat_Test3 ()
+    {
+        const float3    up {0.f, 1.f, 0.f};
+
+        float3  a0  { 0.780720f, 0.390360f, 0.487950f };
+        Quat    a1  = Quat::LookAt( a0, up );
+        float3  a2  = a1.ToDirection();
+        TEST( All( Equal( a0, a2, 1_pct )));
+
+        float3  b0  { -0.984594f, 0.172200f, -0.030361f };
+        Quat    b1  = Quat::LookAt( b0, up );
+        float3  b2  = b1.ToDirection();
+        TEST( All( Equal( b0, b2, 1_pct )));
     }
 
 
@@ -176,6 +293,7 @@ extern void UnitTest_Math_Vec ()
 
     Quat_Test1();
     Quat_Test2();
+    Quat_Test3();
 
     Spherical_Test1();
 

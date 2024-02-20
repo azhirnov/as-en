@@ -90,9 +90,11 @@ namespace AE::Graphics::_hidden_
         static void  UpdateBuffer (const BufferDesc &buf, Bytes offset, Bytes size, const void* data)                           __Th___;
         static void  UploadBuffer (const BufferDesc &buf, Bytes offset, Bytes size, BufferMemView &memView)                     __Th___;
         static void  UploadImage (const ImageDesc &img)                                                                         __Th___;
+        static void  UploadImage (const VideoImageDesc &img)                                                                    __Th___;
 
         static void  ReadbackBuffer (const BufferDesc &buf, Bytes offset, Bytes size)                                           __Th___;
         static void  ReadbackImage (const ImageDesc &img)                                                                       __Th___;
+        static void  ReadbackImage (const VideoImageDesc &img)                                                                  __Th___;
 
         static void  MapHostBuffer (const BufferDesc &buf, Bytes offset, Bytes size)                                            __Th___;
 
@@ -139,7 +141,7 @@ namespace AE::Graphics::_hidden_
     public:
         static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName)                    __Th___;
 
         static void  DispatchIndirect (const BufferDesc &indirectBufferDesc, Bytes offset)                                      __Th___;
 
@@ -169,7 +171,7 @@ namespace AE::Graphics::_hidden_
     public:
         //static void  CtxInit (EQueueMask rtaskQueue) __Th___;
 
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName)                    __Th___;
 
         static void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)               __Th___;
 
@@ -346,7 +348,7 @@ namespace AE::Graphics::_hidden_
     public:
         static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName)                    __Th___;
 
         static void  TraceRays (const uint3 &dim)                                                                               __Th___;
         static void  TraceRaysIndirect (const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)                       __Th___;

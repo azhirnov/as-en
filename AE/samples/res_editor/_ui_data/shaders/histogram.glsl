@@ -46,7 +46,7 @@
 
     void Main ()
     {
-        out_Color = float4( v_Color.rgb, SmoothStep( 0.95f, 0.999f, v_Color.a ) * 0.75f + 0.25f );
+        out_Color = float4( v_Color.rgb, SmoothStep( v_Color.a, 0.95f, 0.999f ) * 0.75f + 0.25f );
     }
 
 #endif

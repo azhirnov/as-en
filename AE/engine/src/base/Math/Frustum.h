@@ -195,8 +195,8 @@ namespace AE::Math
     {
         ASSERT( _initialized );
 
-        auto    center      = aabb.Center();
-        auto    half_extent = aabb.HalfExtent();
+    //  auto    center      = aabb.Center();
+    //  auto    half_extent = aabb.HalfExtent();
         bool    inside      = true;
 
         for (auto& plane : _planes)
@@ -352,9 +352,9 @@ namespace AE::Math
     {
         ASSERT( _initialized );
 
-        return  _GetIntersection( EPlane::Bottom, EPlane::Left,   OUT leftBottom  ) &
-                _GetIntersection( EPlane::Left,   EPlane::Top,    OUT leftTop     ) &
-                _GetIntersection( EPlane::Right,  EPlane::Bottom, OUT rightBottom ) &
+        return  _GetIntersection( EPlane::Bottom, EPlane::Left,   OUT leftBottom  ) and
+                _GetIntersection( EPlane::Left,   EPlane::Top,    OUT leftTop     ) and
+                _GetIntersection( EPlane::Right,  EPlane::Bottom, OUT rightBottom ) and
                 _GetIntersection( EPlane::Top,    EPlane::Right,  OUT rightTop    );
     }
 
@@ -372,8 +372,8 @@ namespace AE::Math
         _GetIntersection( EPlane::Right,  EPlane::Bottom, OUT right_bottom );
         _GetIntersection( EPlane::Top,    EPlane::Right,  OUT right_top    );
 
-        const Vec3_t    vec = mix(  mix( left_bottom, right_bottom, unormCoord.x ),
-                                    mix( left_top, right_top, unormCoord.x ),
+        const Vec3_t    vec = Lerp( Lerp( left_bottom, right_bottom, unormCoord.x ),
+                                    Lerp( left_top, right_top, unormCoord.x ),
                                     unormCoord.y );
         return normalize( vec );
     }

@@ -233,7 +233,7 @@ namespace
         TEST( All( m6.get<2>() == float4(3.0f, 6.0f, 9.0f, 12.f) ));
     }
 
-    /*
+
     static void  Matrix_Test1 ()
     {
         const float3    v{ 0.0f, 0.0f, 0.5f };
@@ -253,7 +253,9 @@ namespace
         float3      v5 = m5 * v;
 
         TEST(All( v0 == float3{0.0f} ));    // TODO
-    }*/
+
+        Unused( v0, v1, v2, v3, v4, v5 );
+    }
 
 
     static void  Matrix_Test2 ()
@@ -352,6 +354,106 @@ namespace
         Unused( float4x4::Translated( float3{} ));
         Unused( float4x3::Translated( float3{} ));
     }
+
+
+    static void  Matrix_Test5 ()
+    {
+        float3x3    b0  = float3x3::RotateY( 0_deg );       // +Z
+        float3x3    b1  = float3x3::LookAt( b0.AxisZ(), b0.AxisY() );
+        float3x3    b2  = float3x3::RotateY( 360_deg );     // +Z
+        float3      b4  = b0.AxisX();
+        float3      b5  = b0.AxisY();
+        float3      b6  = b0.AxisZ();
+        TEST( All( Equal( b4, float3{1.f, 0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( b5, float3{0.f, 1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( b6, float3{0.f, 0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( b4, b2.AxisX(), 1_pct )));
+        TEST( All( Equal( b5, b2.AxisY(), 1_pct )));
+        TEST( All( Equal( b6, b2.AxisZ(), 1_pct )));
+        TEST( All( Equal( b4, b1.AxisX(), 1_pct )));
+        TEST( All( Equal( b5, b1.AxisY(), 1_pct )));
+        TEST( All( Equal( b6, b1.AxisZ(), 1_pct )));
+
+        float3x3    c0  = float3x3::RotateY( 90_deg );      // -X
+        float3x3    c1  = float3x3::LookAt( c0.AxisZ(), c0.AxisY() );
+        float3x3    c2  = float3x3::RotateY( -270_deg );    // -X
+        float3      c4  = c0.AxisX();
+        float3      c5  = c0.AxisY();
+        float3      c6  = c0.AxisZ();
+        TEST( All( Equal( c4, float3{ 0.f, 0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( c5, float3{ 0.f, 1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( c6, float3{-1.f, 0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( c4, c2.AxisX(), 1_pct )));
+        TEST( All( Equal( c5, c2.AxisY(), 1_pct )));
+        TEST( All( Equal( c6, c2.AxisZ(), 1_pct )));
+        TEST( All( Equal( c4, c1.AxisX(), 1_pct )));
+        TEST( All( Equal( c5, c1.AxisY(), 1_pct )));
+        TEST( All( Equal( c6, c1.AxisZ(), 1_pct )));
+
+        float3x3    d0  = float3x3::RotateY( -90_deg );     // +X
+        float3x3    d1  = float3x3::LookAt( d0.AxisZ(), d0.AxisY() );
+        float3x3    d2  = float3x3::RotateY( 270_deg );     // +X
+        float3      d4  = d0.AxisX();
+        float3      d5  = d0.AxisY();
+        float3      d6  = d0.AxisZ();
+        TEST( All( Equal( d4, float3{0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( d5, float3{0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( d6, float3{1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( d4, d2.AxisX(), 1_pct )));
+        TEST( All( Equal( d5, d2.AxisY(), 1_pct )));
+        TEST( All( Equal( d6, d2.AxisZ(), 1_pct )));
+        TEST( All( Equal( d4, d1.AxisX(), 1_pct )));
+        TEST( All( Equal( d5, d1.AxisY(), 1_pct )));
+        TEST( All( Equal( d6, d1.AxisZ(), 1_pct )));
+
+        float3x3    e0  = float3x3::RotateY( 180_deg );     // -Z
+        float3x3    e1  = float3x3::LookAt( e0.AxisZ(), e0.AxisY() );
+        float3x3    e2  = float3x3::RotateY( -180_deg );    // -Z
+        float3      e4  = e0.AxisX();
+        float3      e5  = e0.AxisY();
+        float3      e6  = e0.AxisZ();
+        TEST( All( Equal( e4, float3{-1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( e5, float3{ 0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( e6, float3{ 0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( e4, e2.AxisX(), 1_pct )));
+        TEST( All( Equal( e5, e2.AxisY(), 1_pct )));
+        TEST( All( Equal( e6, e2.AxisZ(), 1_pct )));
+        TEST( All( Equal( e4, e1.AxisX(), 1_pct )));
+        TEST( All( Equal( e5, e1.AxisY(), 1_pct )));
+        TEST( All( Equal( e6, e1.AxisZ(), 1_pct )));
+
+        float3x3    f0  = float3x3::RotateX( 90_deg );      // -Y
+        float3x3    f1  = float3x3::LookAt( f0.AxisZ(), f0.AxisY() );
+        float3x3    f2  = float3x3::RotateX( -270_deg );    // -Y
+        float3      f4  = f0.AxisX();
+        float3      f5  = f0.AxisY();
+        float3      f6  = f0.AxisZ();
+        TEST( All( Equal( f4, float3{1.f, 0.f,  0.f}, 1_pct )));
+        TEST( All( Equal( f5, float3{0.f, 0.f, -1.f}, 1_pct )));
+        TEST( All( Equal( f6, float3{0.f, 1.f,  0.f}, 1_pct )));
+        TEST( All( Equal( f4, f2.AxisX(), 1_pct )));
+        TEST( All( Equal( f5, f2.AxisY(), 1_pct )));
+        TEST( All( Equal( f6, f2.AxisZ(), 1_pct )));
+        TEST( All( Equal( f4, f1.AxisX(), 1_pct )));
+        TEST( All( Equal( f5, f1.AxisY(), 1_pct )));
+        TEST( All( Equal( f6, f1.AxisZ(), 1_pct )));
+
+        float3x3    g0  = float3x3::RotateX( -90_deg );     // +Y
+        float3x3    g1  = float3x3::LookAt( g0.AxisZ(), g0.AxisY() );
+        float3x3    g2  = float3x3::RotateX( 270_deg );     // +Y
+        float3      g4  = g0.AxisX();
+        float3      g5  = g0.AxisY();
+        float3      g6  = g0.AxisZ();
+        TEST( All( Equal( g4, float3{ 1.f,  0.f, 0.f}, 1_pct )));
+        TEST( All( Equal( g5, float3{ 0.f,  0.f, 1.f}, 1_pct )));
+        TEST( All( Equal( g6, float3{ 0.f, -1.f, 0.f}, 1_pct )));
+        TEST( All( Equal( g4, g2.AxisX(), 1_pct )));
+        TEST( All( Equal( g5, g2.AxisY(), 1_pct )));
+        TEST( All( Equal( g6, g2.AxisZ(), 1_pct )));
+        TEST( All( Equal( g4, g1.AxisX(), 1_pct )));
+        TEST( All( Equal( g5, g1.AxisY(), 1_pct )));
+        TEST( All( Equal( g6, g1.AxisZ(), 1_pct )));
+    }
 }
 
 
@@ -370,6 +472,7 @@ extern void UnitTest_Math_Matrix ()
     Matrix_Test2();
     Matrix_Test3();
     Matrix_Test4();
+    Matrix_Test5();
 
     TEST_PASSED();
 }

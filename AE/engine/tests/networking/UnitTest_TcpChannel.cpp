@@ -7,17 +7,6 @@ namespace
     static const FrameUID   c_InitialFrameId = FrameUID::Init( 2 );
 
 
-    class ClientListener final : public IClientListener
-    {
-        ushort  _id = 0;
-
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress &)     __NE_OV { return EClientLocalID(_id++); }
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)    __NE_OV { return EClientLocalID(_id++); }
-
-        void  OnClientDisconnected (EChannel, EClientLocalID)               __NE_OV {}
-    };
-
-
     class ServerProvider final : public IServerProvider
     {
         IpAddress   _addr4;
@@ -33,9 +22,9 @@ namespace
     class Server final : public BaseServer
     {
     public:
-        explicit Server (RC<MessageFactory> mf) { TEST( _Initialize( RVRef(mf), MakeRC<ClientListener>(), null, c_InitialFrameId )); }
+        explicit Server (RC<MessageFactory> mf) { TEST( _Initialize( RVRef(mf), MakeRC<DefaultClientListener>(), null, c_InitialFrameId )); }
 
-        ND_ bool  AddChannel (ushort port)      { return _AddChannelTCP( port ); }
+        ND_ bool  AddChannel (ushort port)      { return _AddChannelReliableTCP( port ); }
     };
 
 
@@ -44,7 +33,8 @@ namespace
     public:
         explicit Client (RC<MessageFactory> mf, const IpAddress &addr)  { TEST( _Initialize( RVRef(mf), MakeRC<ServerProvider>( addr ), null, c_InitialFrameId )); }
 
-        ND_ bool  AddChannel ()                                         { return _AddChannelTCP(); }
+        ND_ bool  AddChannel ()                                         { return _AddChannelReliableTCP(); }
+        ND_ bool  IsConnected ()                                        { return _IsConnected(); }
     };
 
 
@@ -61,19 +51,20 @@ namespace
         LogMsgProducer (uint msgCount, RC<MessageFactory> mf, StringView text, SourceLoc loc, ulong& sent) __NE___ :
             msgCount{msgCount}, mf{mf}, text{text}, loc{loc}, sent{sent} {}
 
-        EnumBitSet<EChannel>  GetChannels () C_NE_OV
+        EnumSet<EChannel>  GetChannels () C_NE_OV
         {
             return {EChannel::Reliable};
         }
 
         ChunkList<CSMessagePtr>  Produce (FrameUID fid) __NE_OV
         {
+            auto&                       alloc       = mf->GetAllocator( fid );
             ChunkList<CSMessagePtr>     first_chunk;
-            ChunkList<CSMessagePtr>     last_chunk  = first_chunk.AddChunk( mf->GetAllocator( fid ), msgCount );
+            ChunkList<CSMessagePtr>     last_chunk  = first_chunk.AddChunk( alloc, msgCount );
 
             for (uint j = 0; j < msgCount; ++j)
             {
-                if ( auto msg = mf->CreateMsg< CSMsg_Log >( fid ))
+                if ( auto* msg = CSMessageCtor< CSMsg_Log >::CreateForEncode( alloc ))
                 {
                     msg->loc    = loc;
                     msg->msg    = text;
@@ -118,6 +109,7 @@ namespace
         LocalSocketMngr         mngr;
         static constexpr uint   frame_count = 40;
         static constexpr uint   msg_count   = 100;
+        Threading::Barrier      sync {2};
 
         ulong   client_sent_msgs    = 0;
         ulong   server_sent_msgs    = 0;
@@ -125,7 +117,7 @@ namespace
         ulong   client_recv_msgs    = 0;
         ulong   sever_recv_msgs     = 0;
 
-        StdThread   server_thread{ [&server_sent_msgs, &sever_recv_msgs] ()
+        StdThread   server_thread{ [&server_sent_msgs, &sever_recv_msgs, &sync] ()
             {{
                 auto        mf      = MakeRC<MessageFactory>();
                 Server      server  {mf};
@@ -139,18 +131,23 @@ namespace
                 server.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from server"sv, SourceLoc_Current(), server_sent_msgs ));
                 server.Add( MakeRC<LogMsgConsumer>( "from client"sv, sever_recv_msgs ));
 
-                for (uint i = 0; i < frame_count; ++i, fid.Inc())
+                sync.Wait();
+
+                for (uint i = 0; i < frame_count; ++i)
                 {
-                    server.Update( fid );
+                    auto    stat = server.Update( fid );
 
                     if ( (i & 0xF) == 0 )
-                        server.Update( fid );
+                        stat = server.Update( fid );
+
+                    if ( stat )
+                        fid.Inc();
 
                     ThreadUtils::MilliSleep( milliseconds{100} );
                 }
             }}};
 
-        StdThread   client_thread{ [&client_sent_msgs, &client_recv_msgs] ()
+        StdThread   client_thread{ [&client_sent_msgs, &client_recv_msgs, &sync] ()
             {{
                 auto        mf      = MakeRC<MessageFactory>();
                 Client      client  { mf, IpAddress::FromHostPortTCP( "localhost", 4000 )};
@@ -164,12 +161,20 @@ namespace
                 client.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from client"sv, SourceLoc_Current(), client_sent_msgs ));
                 client.Add( MakeRC<LogMsgConsumer>( "from server"sv, client_recv_msgs ));
 
-                for (uint i = 0; i < frame_count; ++i, fid.Inc())
+                sync.Wait();
+
+                for (uint i = 0; i < frame_count;)
                 {
-                    client.Update( fid );
+                    auto    stat = client.Update( fid );
 
                     if ( (i & 0xF) == 0 )
-                        client.Update( fid );
+                        stat = client.Update( fid );
+
+                    if ( stat )
+                        fid.Inc();
+
+                    if ( client.IsConnected() )
+                        ++i;
 
                     ThreadUtils::MilliSleep( milliseconds{100} );
                 }

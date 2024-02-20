@@ -26,8 +26,8 @@ namespace AE::Graphics
                 Equal( this->mipLodBias,        rhs.mipLodBias )        and
                 Equal( this->minLod,            rhs.minLod )            and
                 Equal( this->maxLod,            rhs.maxLod )            and
-                Equal( this->maxAnisotropy, rhs.maxAnisotropy )     and
-                Equal( this->compareOp,     rhs.compareOp )         and
+                Equal( this->maxAnisotropy,     rhs.maxAnisotropy )     and
+                Equal( this->compareOp,         rhs.compareOp )         and
                 this->borderColor           ==  rhs.borderColor         and
                 this->reductionMode         ==  rhs.reductionMode       and
                 this->unnormalizedCoordinates == rhs.unnormalizedCoordinates;
@@ -41,6 +41,7 @@ namespace AE::Graphics
     bool  SamplerYcbcrConversionDesc::operator == (const SamplerYcbcrConversionDesc &rhs) C_NE___
     {
         return  this->format            == rhs.format           and
+                this->extFormat         == rhs.extFormat        and
                 this->ycbcrModel        == rhs.ycbcrModel       and
                 this->ycbcrRange        == rhs.ycbcrRange       and
                 this->components        == rhs.components       and
@@ -120,13 +121,18 @@ namespace AE::PipelineCompiler
 
         if ( HasYcbcr() )
         {
-            auto&   ycbcr = YcbcrDesc();
-            str << "\n  ycbcr.format:        " << Base::ToString( ycbcr.format )
-                << "\n  ycbcr.model:         " << Base::ToString( ycbcr.ycbcrModel )
-                << "\n  ycbcr.range:         " << Base::ToString( ycbcr.ycbcrRange )
-                << "\n  ycbcr.components:    " << Base::ToString( ycbcr.components )
-                << "\n  ycbcr.xChromaOffset: " << Base::ToString( ycbcr.xChromaOffset )
-                << "\n  ycbcr.yChromaOffset: " << Base::ToString( ycbcr.yChromaOffset )
+            auto&   ycbcr   = YcbcrDesc();
+            bool    is_ext  = (ycbcr.extFormat != Default);
+
+            str << (is_ext ?
+                   "\n  ycbcr.extFormat:     "s << Base::ToString( ycbcr.extFormat ) :
+                   "\n  ycbcr.format:        "s << Base::ToString( ycbcr.format ))
+                << "\n  ycbcr.model:         " << ((is_ext and ycbcr.ycbcrModel == Default) ? "suggested" : Base::ToString( ycbcr.ycbcrModel ))
+                << "\n  ycbcr.range:         " << ((is_ext and ycbcr.ycbcrRange == Default) ? "suggested" : Base::ToString( ycbcr.ycbcrRange ))
+                << "\n  ycbcr.components:    " << ((is_ext and ycbcr.components.IsUndefined()) ? "suggested" :
+                                                   (ycbcr.components.IsUndefined() ? "identity" : Base::ToString( ycbcr.components )))
+                << "\n  ycbcr.xChromaOffset: " << ((is_ext and ycbcr.xChromaOffset == Default) ? "suggested" : Base::ToString( ycbcr.xChromaOffset ))
+                << "\n  ycbcr.yChromaOffset: " << ((is_ext and ycbcr.yChromaOffset == Default) ? "suggested" : Base::ToString( ycbcr.yChromaOffset ))
                 << "\n  ycbcr.chromaFilter:  " << Base::ToString( ycbcr.chromaFilter )
                 << "\n  ycbcr.forceExplicitReconstruction: " << Base::ToString( ycbcr.forceExplicitReconstruction );
         }
@@ -168,7 +174,7 @@ namespace AE::PipelineCompiler
         if ( HasYcbcr() )
         {
             SamplerYcbcrConversionDesc const&   ycbcr_desc = YcbcrDesc();
-            result &= ser( ycbcr_desc.format );
+            result &= ser( ycbcr_desc.format, ycbcr_desc.extFormat );
             result &= ser( ycbcr_desc.ycbcrModel, ycbcr_desc.ycbcrRange );
             result &= ser( ycbcr_desc.components );
             result &= ser( ycbcr_desc.xChromaOffset, ycbcr_desc.yChromaOffset );
@@ -195,7 +201,7 @@ namespace AE::PipelineCompiler
         if ( has_ycbcr )
         {
             SamplerYcbcrConversionDesc  ycbcr_desc;
-            result &= des( OUT ycbcr_desc.format );
+            result &= des( OUT ycbcr_desc.format, OUT ycbcr_desc.extFormat );
             result &= des( OUT ycbcr_desc.ycbcrModel, OUT ycbcr_desc.ycbcrRange );
             result &= des( OUT ycbcr_desc.components );
             result &= des( OUT ycbcr_desc.xChromaOffset, OUT ycbcr_desc.yChromaOffset );
@@ -280,7 +286,7 @@ namespace AE::PipelineCompiler
         result &= ser( sampler_arr );
         CHECK_ERR( result );
 
-        //AE_LOGI( "Serialized samplers: "s << ToString(sampler_names2.size()) );
+        AE_LOG_DBG( "Serialized samplers: "s << ToString(sampler_names2.size()) );
         return true;
     }
 #endif

@@ -10,6 +10,10 @@
 #   pragma warning (push)
 #   pragma warning (disable: 4244)  // conversion from '...' to '...', possible loss of data
 # endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wdeprecated-declarations"
+# endif
 
 extern "C"
 {
@@ -31,10 +35,6 @@ extern "C"
 # include "libswscale/swscale.h"
 
 } // extern "C"
-
-# ifdef AE_COMPILER_MSVC
-#   pragma warning (pop)
-# endif
 
 #include "video/Video.pch.h"
 
@@ -138,6 +138,14 @@ namespace AE::Video
     ND_ bool  _ffmpeg_CheckError (int err, const char* ffcall, const char* func, const SourceLoc &loc);
 
 } // AE::Video
+
+
+# ifdef AE_COMPILER_MSVC
+#   pragma warning (pop)
+# endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#   pragma clang diagnostic pop
+# endif
 
 
 # ifdef AE_CFG_RELEASE

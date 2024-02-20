@@ -88,7 +88,7 @@ namespace AE::Base
         ASSERT( begin == null or ( (begin >= _dataPtr) and (end <= _dataPtr + _size) ));
 
         // commit readn size
-        _pos = ( (begin >= _dataPtr) & (begin <= _dataPtr + _size) ) ?
+        _pos = ( (begin >= _dataPtr) and (begin <= _dataPtr + _size) ) ?
                 Bytes{begin} - Bytes{_dataPtr} :
                 _pos;
         ASSERT( _pos <= _size );
@@ -204,6 +204,23 @@ namespace AE::Base
 
         return size > 0_b;
     }
+
+/*
+=================================================
+    ReleaseData
+=================================================
+*/
+    Array<ubyte>  MemRStream::ReleaseData () __NE___
+    {
+        Array<ubyte>    tmp;
+        std::swap( tmp, _data );
+
+        _dataPtr    = null;
+        _size       = 0_b;
+        _pos        = 0_b;
+
+        return tmp;
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -296,7 +313,7 @@ namespace AE::Base
         ASSERT( begin == null or ( (begin >= _data.data()) and (end <= _data.data() + _data.size()) ));
 
         // commit written size
-        _pos = ( (begin >= _data.data()) & (begin <= _data.data() + _data.size()) ) ?
+        _pos = ( (begin >= _data.data()) and (begin <= _data.data() + _data.size()) ) ?
                 Bytes{begin} - Bytes{_data.data()} :
                 _pos;
 

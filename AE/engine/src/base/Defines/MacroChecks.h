@@ -124,9 +124,15 @@
 # endif
 #endif
 
-#ifdef AE_COMPILER_CLANG
-# if not (defined(__clang__) or defined(__llvm__ ))
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+# if not (defined(__clang__) or defined(__llvm__))
 #   error not a Clang compiler!
+# endif
+#endif
+
+#ifdef AE_COMPILER_CLANG_CL
+# ifndef AE_COMPILER_MSVC
+#   error Clang compatible layer requires AE_COMPILER_MSVC definition!
 # endif
 #endif
 

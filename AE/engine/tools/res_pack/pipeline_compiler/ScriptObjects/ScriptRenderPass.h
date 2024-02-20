@@ -82,7 +82,7 @@ namespace AE::PipelineCompiler
 
     // methods
         RPAttachment () {}
-        RPAttachment (const AttachmentName &name, const CompatibleRenderPassDesc* compat, uint idx) :
+        RPAttachment (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat, uint idx) :
             index{idx}, _name{name}, _compat{compat} {}
 
         void  AddUsage (const String &subpassName, EAttachment type)                                                __Th___;
@@ -130,7 +130,7 @@ namespace AE::PipelineCompiler
 
     // methods
         RPAttachmentSpec () {}
-        RPAttachmentSpec (const AttachmentName &name, const CompatibleRenderPassDesc* compat) : _compat{compat}, _name{name}  {}
+        RPAttachmentSpec (AttachmentName::Ref name, const CompatibleRenderPassDesc* compat) : _compat{compat}, _name{name}  {}
 
         void  AddLayout (const String &subpassName, EResourceState state)                   __Th___;
         void  AddLayout2 (const String &subpassName, uint state)                            __Th___;
@@ -139,14 +139,14 @@ namespace AE::PipelineCompiler
         void  GenOptimalLayouts2 (EResourceState initialState, EResourceState finalState)   __Th___;
         void  GenOptimalLayouts3 (uint initialState, uint finalState)                       __Th___;
 
-        ND_ bool    Validate (const RenderPassName &rpName);
+        ND_ bool    Validate (RenderPassName::Ref rpName);
 
             void    Print ()                                                                const;
         ND_ String  ToString (StringView padding)                                           const;
 
     private:
-        ND_ bool    _ValidatePass1 (const RenderPassName &rpName)                           const;
-        ND_ bool    _ValidatePass2 (const RenderPassName &rpName);
+        ND_ bool    _ValidatePass1 (RenderPassName::Ref rpName)                             const;
+        ND_ bool    _ValidatePass2 (RenderPassName::Ref rpName);
     };
     using RPAttachmentSpecPtr = ScriptRC< RPAttachmentSpec >;
 
@@ -170,7 +170,7 @@ namespace AE::PipelineCompiler
 
     // methods
         RenderPassSpec () {}
-        RenderPassSpec (const RenderPassName &name, const CompatibleRenderPassDesc* compat) : _name{name}, _compat{compat} {}
+        RenderPassSpec (RenderPassName::Ref name, const CompatibleRenderPassDesc* compat) : _name{name}, _compat{compat} {}
 
         ND_ RPAttachmentSpec*   AddAttachment (const String &attachmentName)    __Th___;
         ND_ RPAttachmentSpecPtr AddAttachment2 (const String &attachmentName)   __Th___;
@@ -254,8 +254,8 @@ namespace AE::PipelineCompiler
 
             void                AddSubpass (const String &subpassName)          __Th___;
 
-        ND_ RenderPassSpecPtr   GetRenderPass (const RenderPassName &name)      const;
-        ND_ bool                IsFirstSubpass (const SubpassName &name)        const;
+        ND_ RenderPassSpecPtr   GetRenderPass (RenderPassName::Ref name)        const;
+        ND_ bool                IsFirstSubpass (SubpassName::Ref name)          const;
 
         ND_ bool    Validate ();
 

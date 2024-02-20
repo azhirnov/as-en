@@ -47,8 +47,8 @@ namespace AE::ECS
 
         using type  = Comp;
         static inline const ComponentID     id      { CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1000 >::Get().Get() ) };
-        static constexpr Byte16u            align   { IsEmpty<Comp> ? 0 : alignof(Comp) };
-        static constexpr Byte16u            size    { IsEmpty<Comp> ? 0 : sizeof(Comp) };
+        static constexpr Bytes16u           align   {ushort( IsEmpty<Comp> ? 0 : alignof(Comp) )};
+        static constexpr Bytes16u           size    {ushort( IsEmpty<Comp> ? 0 : sizeof(Comp) )};
 
         static void  Ctor (OUT void* comp) __NE___
         {

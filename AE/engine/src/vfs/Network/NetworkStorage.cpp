@@ -11,17 +11,17 @@ namespace AE::VFS
     Open
 =================================================
 */
-    bool  NetworkStorage::Open (OUT RC<RStream> &stream, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<RStream> &stream, FileName::Ref name) C_NE___
     {
         auto    async = _client.OpenForRead( name );
         if_likely( async ) {
-            stream = MakeRC<SyncRStream2>( RVRef(async) );
+            stream = MakeRC<SyncRStreamOnAsyncDS>( RVRef(async) );
             return true;
         }
         return false;
     }
 
-    bool  NetworkStorage::Open (OUT RC<RDataSource> &ds, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<RDataSource> &ds, FileName::Ref name) C_NE___
     {
         auto    async = _client.OpenForRead( name );
         if_likely( async ) {
@@ -31,23 +31,23 @@ namespace AE::VFS
         return false;
     }
 
-    bool  NetworkStorage::Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
     {
         ds = _client.OpenForRead( name );
         return ds != null;
     }
 
-    bool  NetworkStorage::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<WStream> &stream, FileName::Ref name) C_NE___
     {
         auto    async = _client.OpenForWrite( name );
         if_likely( async ) {
-            stream = MakeRC<SyncWStream2>( RVRef(async) );
+            stream = MakeRC<SyncWStreamOnAsyncDS>( RVRef(async) );
             return true;
         }
         return false;
     }
 
-    bool  NetworkStorage::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<WDataSource> &ds, FileName::Ref name) C_NE___
     {
         auto    async = _client.OpenForWrite( name );
         if_likely( async ) {
@@ -57,7 +57,7 @@ namespace AE::VFS
         return false;
     }
 
-    bool  NetworkStorage::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
+    bool  NetworkStorage::Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name) C_NE___
     {
         ds = _client.OpenForWrite( name );
         return ds != null;
@@ -90,13 +90,13 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  NetworkStorage::Exists (FileNameRef) C_NE___
+    bool  NetworkStorage::Exists (FileName::Ref) C_NE___
     {
         // TODO ?
         return false;
     }
 
-    bool  NetworkStorage::Exists (FileGroupNameRef) C_NE___
+    bool  NetworkStorage::Exists (FileGroupName::Ref) C_NE___
     {
         // TODO ?
         return false;
@@ -109,9 +109,9 @@ namespace AE::VFS
     CreateNetworkStorage
 =================================================
 */
-    RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateNetworkStorage (Networking::ClientServerBase &cs) __NE___
+    RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateNetworkStorage (Networking::ClientServerBase &cs, StringView prefix) __NE___
     {
-        auto    result = RC<NetworkStorage>{ new NetworkStorage{}};
+        RC<NetworkStorage>  result {new NetworkStorage{} };
 
         if_unlikely( not (cs.Add( result->_client.GetMessageConsumer().GetRC() ) and
                           cs.Add( result->_client.GetMessageProducer().GetRC() )) )
@@ -121,6 +121,7 @@ namespace AE::VFS
             return null;
         }
 
+        CHECK_ERR( result->_Init( prefix ));
         return result;
     }
 

@@ -52,7 +52,7 @@ namespace AE::Samples::Demo
         ~Camera3DSample ()                                                                  __NE_OV;
 
         // ISample //
-        bool            Init (PipelinePackID pack)                                          __NE_OV;
+        bool            Init (PipelinePackID, IApplicationTS)                               __NE_OV;
         AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE_OV;
         AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   __NE_OV;
         InputModeName   GetInputMode ()                                                     C_NE_OV;

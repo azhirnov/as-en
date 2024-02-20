@@ -9,19 +9,12 @@
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
+#else
+# include "Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler
 {
-#ifndef AE_ENABLE_GLSL_TRACE
-    struct ShaderTrace
-    {
-        bool  operator == (const ShaderTrace &) const   { return false; }
-
-        Unique<ShaderTrace>  Clone ()           const   { return Default; }
-    };
-#endif
-
 /*
 =================================================
     SpirvWithTrace
@@ -176,8 +169,7 @@ namespace AE::PipelineCompiler
 */
     EImageType  EImageType_FromImage (EImage type, bool ms) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EImage_1D :            ASSERT( not ms );   return EImageType::Img1D;
             case EImage_2D :                                return ms ? EImageType::Img2DMS : EImageType::Img2D;
@@ -190,7 +182,7 @@ namespace AE::PipelineCompiler
             case EImage::_Count :
             default :                   ASSERT( not ms );   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown image type" );
     }
 
@@ -282,8 +274,7 @@ namespace AE::PipelineCompiler
         bool    result = true;
         result &= des( OUT un.type, OUT un.stages, OUT un.binding.vkIndex, OUT un.binding.mtlIndex, OUT un.arraySize );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( un.type )
+        switch_enum( un.type )
         {
             case EDescriptorType::UniformBuffer :
             case EDescriptorType::StorageBuffer :
@@ -332,7 +323,7 @@ namespace AE::PipelineCompiler
             default :
                 RETURN_ERR( "unknown descriptor type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return result;
     }
@@ -777,7 +768,6 @@ namespace {
 */
     bool  ShaderBytecode::_ReadDbgSpirvData (RStream &stream, OUT SpirvWithTrace &outCode) __NE___
     {
-    #ifdef AE_ENABLE_GLSL_TRACE
         try{
             const Bytes start       = stream.Position();
             auto        buf_stream  = MakeRC<BufferedRStream>( stream.GetRC<RStream>() );
@@ -798,10 +788,6 @@ namespace {
         catch(...) {
             RETURN_ERR( "Failed to load shader trace" );
         }
-    #else
-        Unused( stream, outCode );
-        RETURN_ERR( "Shader trace is not enabled" );
-    #endif
     }
 
 /*
@@ -887,8 +873,7 @@ namespace {
 */
     ND_ inline StringView  EDescriptorTypeToString (EDescriptorType type)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EDescriptorType::UniformBuffer :                   return "UniformBuffer";
             case EDescriptorType::StorageBuffer :                   return "StorageBuffer";
@@ -906,7 +891,7 @@ namespace {
             case EDescriptorType::_Count :
             default :                                               break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown descriptor type" );
     }
 
@@ -958,8 +943,7 @@ namespace {
                 }
             }
 
-            BEGIN_ENUM_CHECKS();
-            switch ( un.type )
+            switch_enum( un.type )
             {
                 case EDescriptorType::UniformBuffer :
                 case EDescriptorType::StorageBuffer :
@@ -1027,7 +1011,7 @@ namespace {
                 default :
                     RETURN_ERR( "unknown descriptor type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
             str << "\n    }";
         }
         str << "\n  ----------------------";
@@ -1355,7 +1339,7 @@ namespace {
 
         if ( not features.empty() )
         {
-            str << "\n    featureSets = { ";
+            str << "\n    features = { ";
             for (auto feat : features) {
                 str << "'" << nameMap( feat ) << "', ";
             }
@@ -1419,7 +1403,7 @@ namespace {
 
         if ( not features.empty() )
         {
-            str << "\n    featureSets          = { ";
+            str << "\n    features          = { ";
             for (auto feat : features) {
                 str << "'" << nameMap( feat ) << "', ";
             }
@@ -1460,7 +1444,7 @@ namespace {
 
         if ( not features.empty() )
         {
-            str << "\n    featureSets = { ";
+            str << "\n    features = { ";
             for (auto feat : features) {
                 str << "'" << nameMap( feat ) << "', ";
             }
@@ -1499,7 +1483,7 @@ namespace {
 
         if ( not features.empty() )
         {
-            str << "\n    featureSets = { ";
+            str << "\n    features = { ";
             for (auto feat : features) {
                 str << "'" << nameMap( feat ) << "', ";
             }
@@ -1524,7 +1508,7 @@ namespace {
 
         if ( not features.empty() )
         {
-            str << "\n    featureSets = { ";
+            str << "\n    features = { ";
             for (auto feat : features) {
                 str << "'" << nameMap( feat ) << "', ";
             }

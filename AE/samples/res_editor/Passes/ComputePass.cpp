@@ -115,8 +115,14 @@ namespace AE::ResEditor
         ctx.BindDescriptorSet( _dsIndex, ds );
         if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
+        ShaderTypes::ComputePassPC  pc;
+        pc.dispatchIndex = 0;
+
         for (const auto& it : _iterations)
         {
+            ctx.PushConstant( _pcIndex, pc );
+            pc.dispatchIndex++;
+
             if ( it.indirect ){
                 ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
             }else{

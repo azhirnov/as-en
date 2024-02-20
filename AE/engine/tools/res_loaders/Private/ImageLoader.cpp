@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_loaders/Public/ImageLoader.h"
+#include "res_loaders/Public/ImageSaver.h"
 #include "res_loaders/Intermediate/IntermImage.h"
 
 namespace AE::ResLoader
@@ -54,8 +55,7 @@ namespace {
 
         const StringView    ext {ext_data};
 
-        BEGIN_ENUM_CHECKS();
-        switch ( EImageFormat::Unknown )
+        switch_enum( EImageFormat::Unknown )
         {
             case EImageFormat::Unknown :
             case EImageFormat::DDS :            if ( ext == "DDS" ) return EImageFormat::DDS;
@@ -72,7 +72,7 @@ namespace {
             case EImageFormat::AEImg :          if ( ext == "AEIMG" ) return EImageFormat::AEImg;
             case EImageFormat::_Count :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return Default;
     }
 
@@ -83,8 +83,7 @@ namespace {
 */
     StringView  ImageFileFormatToExt (EImageFormat fmt) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( fmt )
+        switch_enum( fmt )
         {
             case EImageFormat::DDS :            return "dds";
             case EImageFormat::BMP :            return "bmp";
@@ -101,9 +100,12 @@ namespace {
             case EImageFormat::Unknown :
             case EImageFormat::_Count :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return Default;
     }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -139,6 +141,26 @@ namespace {
             return true;
 
         RETURN_ERR( "image file '"s << ToString(path) << "' is not found!" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    SaveImage
+=================================================
+*/
+    bool  IImageSaver::SaveImage (const Path &filename, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
+    {
+        FileWStream     file{ filename };
+        CHECK_ERR( file.IsOpen() );
+
+        if ( fileFormat == Default )
+            fileFormat = PathToImageFileFormat( filename );
+
+        CHECK_ERR( SaveImage( file, image, fileFormat, flipY ));
+        return true;
     }
 
 

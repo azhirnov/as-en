@@ -97,7 +97,7 @@ namespace AE::Vulkan
                                   const uint fileIndex,
                                   ArrayView< StringView > enableIfdef,
                                   ArrayView< StringView > disableIfdef,
-                                  bool defaultSkip)
+                                  const bool defaultSkip)
     {
         enum class EMode
         {
@@ -615,15 +615,22 @@ namespace AE::Vulkan
 
         const VkHeaderFile  file_names[] = {
             { "vulkan_core.h",          { "VK_NO_PROTOTYPES" },     { "VULKAN_CORE_H_",         "__cplusplus" },    false },
-            { "vulkan_beta.h",          { "VK_NO_PROTOTYPES" },     { "VULKAN_BETA_H_",         "__cplusplus" },    false }
+            { "vulkan_beta.h",          { "VK_NO_PROTOTYPES" },     { "VULKAN_BETA_H_",         "__cplusplus" },    false },
+            { "vulkan_android.h",       { "VK_NO_PROTOTYPES" },     { "VULKAN_ANDROID_H_",      "__cplusplus" },    false }
             /*,
-            { "vulkan_win32.h",         { "VK_NO_PROTOTYPES" },     { "VULKAN_WIN32_H_",        "__cplusplus" },    true },
-            { "vulkan_android.h",       { "VK_NO_PROTOTYPES" },     { "VULKAN_ANDROID_H_",      "__cplusplus" },    true },
-            { "vulkan_xlib.h",          { "VK_NO_PROTOTYPES" },     { "VULKAN_XLIB_H_",         "__cplusplus" },    true },
-            { "vulkan_xlib_xrandr.h",   { "VK_NO_PROTOTYPES" },     { "VULKAN_XLIB_XRANDR_H_",  "__cplusplus" },    true },
-            { "vulkan_xcb.h",           { "VK_NO_PROTOTYPES" },     { "VULKAN_XCB_H_",          "__cplusplus" },    true },
-            //{ "vulkan_mir.h",         { "VK_NO_PROTOTYPES" },     { "VULKAN_MIR_H_",          "__cplusplus" },    true },
-            { "vulkan_wayland.h",       { "VK_NO_PROTOTYPES" },     { "VULKAN_WAYLAND_H_",      "__cplusplus" },    true }*/
+            { "vulkan_fuchsia.h",       { "VK_NO_PROTOTYPES" },     { "VULKAN_FUCHSIA_H_",      "__cplusplus" },    false },
+            { "vulkan_ios.h",           { "VK_NO_PROTOTYPES" },     { "VULKAN_IOS_H_",          "__cplusplus" },    false },
+            { "vulkan_macos.h",         { "VK_NO_PROTOTYPES" },     { "VULKAN_MACOS_H_",        "__cplusplus" },    false },
+            { "vulkan_metal.h",         { "VK_NO_PROTOTYPES" },     { "VULKAN_METAL_H_",        "__cplusplus" },    false },
+            { "vulkan_vi.h",            { "VK_NO_PROTOTYPES" },     { "VULKAN_VI_H_",           "__cplusplus" },    false },
+            { "vulkan_wayland.h",       { "VK_NO_PROTOTYPES" },     { "VULKAN_WAYLAND_H_",      "__cplusplus" },    false },
+            { "vulkan_win32.h",         { "VK_NO_PROTOTYPES" },     { "VULKAN_WIN32_H_",        "__cplusplus" },    false },
+            { "vulkan_xcb.h",           { "VK_NO_PROTOTYPES" },     { "VULKAN_XCB_H_",          "__cplusplus" },    false },
+            { "vulkan_xlib.h",          { "VK_NO_PROTOTYPES" },     { "VULKAN_XLIB_H_",         "__cplusplus" },    false },
+            { "vulkan_directfb.h",      { "VK_NO_PROTOTYPES" },     { "VULKAN_DIRECTFB_H_",     "__cplusplus" },    false },
+            { "vulkan_xlib_xrandr.h",   { "VK_NO_PROTOTYPES" },     { "VULKAN_XLIB_XRANDR_H_",  "__cplusplus" },    false },
+            { "vulkan_ggp.h",           { "VK_NO_PROTOTYPES" },     { "VULKAN_GGP_H_",          "__cplusplus" },    false },
+            { "vulkan_screen.h",        { "VK_NO_PROTOTYPES" },     { "VULKAN_SCREEN_H_",       "__cplusplus" },    false } */
         };
 
         _funcs.clear();

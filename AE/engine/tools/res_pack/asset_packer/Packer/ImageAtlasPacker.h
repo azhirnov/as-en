@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "graphics/Public/IDs.h"
 #include "ImagePacker.h"
 
 namespace AE::AssetPacker
@@ -12,7 +11,7 @@ namespace AE::AssetPacker
     // Image Atlas Packer
     //
 
-    class ImageAtlasPacker final : public Serializing::ISerializable
+    class ImageAtlasPacker
     {
     // types
     public:
@@ -36,28 +35,19 @@ namespace AE::AssetPacker
 
 
     // variables
-    private:
-        Header2             _header;
     public:
+        Header2             _header;
+
         ImageMap_t          map;
         ImageRects_t        rects;
 
 
     // methods
     public:
-        ImageAtlasPacker ()                                                         __NE___ {}
-        explicit ImageAtlasPacker (const ImagePacker::Header &h)                    __NE___ : _header{h} {}
+        ImageAtlasPacker ()                                         __NE___ {}
+        explicit ImageAtlasPacker (const ImagePacker::Header &h)    __NE___ : _header{h} {}
 
-        ND_ bool  IsValid ()                                                        C_NE___;
-
-            bool  SaveImage (WStream &stream, const ResLoader::IntermImage &src)    C_NE___;
-
-        ND_ ImagePacker::Header const&  Header ()                                   C_NE___ { return _header.hdr; }
-
-
-        // ISerializable
-            bool  Serialize (Serializing::Serializer &)                             C_NE_OV;
-            bool  Deserialize (Serializing::Deserializer &)                         __NE_OV;
+        ND_ ImagePacker::Header const&  Header ()                   C_NE___ { return _header.hdr; }
     };
 
 

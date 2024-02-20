@@ -145,7 +145,7 @@ namespace AE::Graphics
     GetPixelFormat
 =================================================
 */
-    EPixelFormat  VRenderPass::GetPixelFormat (const AttachmentName &name) C_NE___
+    EPixelFormat  VRenderPass::GetPixelFormat (AttachmentName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

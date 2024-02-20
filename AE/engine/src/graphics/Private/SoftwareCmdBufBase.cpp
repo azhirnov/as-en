@@ -12,7 +12,7 @@ namespace AE::Graphics::_hidden_
 */
     void*  SoftwareCmdBufBase::_Allocate (Bytes size) __Th___
     {
-        if_unlikely( (_dataPtr == null) | (size > _remainSize) )
+        if_unlikely( (_dataPtr == null) or (size > _remainSize) )
         {
             Allocator_t::Allocator_t    alloc;
             Allocator_t                 alloc_ref{ alloc };

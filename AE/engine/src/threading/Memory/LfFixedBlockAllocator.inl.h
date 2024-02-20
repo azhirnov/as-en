@@ -9,10 +9,10 @@ namespace AE::Threading
 =================================================
 */
     template <usize CS, usize MC, typename BA, typename GA>
-    LfFixedBlockAllocator<CS,MC,BA,GA>::LfFixedBlockAllocator (Bytes blockSize,
-                                                                 Bytes blockAlign,
-                                                                 const BlockAllocator_t&    blockAlloc,
-                                                                 const GenAllocator_t&      genAlloc) __NE___ :
+    LfFixedBlockAllocator<CS,MC,BA,GA>::LfFixedBlockAllocator (Bytes                    blockSize,
+                                                               Bytes                    blockAlign,
+                                                               const BlockAllocator_t&  blockAlloc,
+                                                               const GenAllocator_t&    genAlloc) __NE___ :
         _blockSize{ blockSize },
         _blockAlign{ blockAlign },
         _blockAlloc{ blockAlloc },
@@ -20,10 +20,11 @@ namespace AE::Threading
     {
         DRC_EXLOCK( _drCheck );
 
-        ASSERT( BlockSize() == blockSize );
-        ASSERT( BlockAlign() == blockAlign );
+        ASSERT( blockSize > 0 );
+        ASSERT_Eq( BlockSize(), blockSize );
+        ASSERT_Eq( BlockAlign(), blockAlign );
 
-        StaticArray< TopLevelBits_t, TopLevel_Count >   top_bits = {};
+        StaticArray< Bitfield<TopLevelBits_t>, TopLevel_Count >     top_bits = {};
 
         for (usize i = 0; i < _bottomChunks.size(); ++i)
         {
@@ -32,13 +33,13 @@ namespace AE::Threading
 
             for (usize j = 0; j < HiLevel_Count; ++j)
             {
-                chunk.lowLevel[j].store( 0 );
+                chunk.lowLevel[j].Store( Default );
             }
 
-            chunk.hiLevel.store( InitialHighLevel );    // set 0 bit for working range, 1 bit for unused bits
+            chunk.hiLevel.Store( InitialHighLevel );    // set 0 bit for working range, 1 bit for unused bits
             chunk.memBlock.store( null );
 
-            top |= TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
+            top.Set( i % CT_SizeOfInBits<TopLevelBits_t> );
 
             #if AE_LFFIXEDBLOCKALLOC_DEBUG
             chunk.dbgInfo.store( null );
@@ -47,7 +48,7 @@ namespace AE::Threading
 
         for (usize i = 0; i < _topChunks.size(); ++i)
         {
-            _topChunks[i].assigned.store( ~top_bits[i] );   // set 0 bit for working range, 1 bit for unused bits
+            _topChunks[i].assigned.Store( ~top_bits[i] );   // set 0 bit for working range, 1 bit for unused bits
         }
     }
 
@@ -74,15 +75,14 @@ namespace AE::Threading
 
             EXLOCK( chunk.hiLevelGuard );
 
-            HiLevelBits_t   old_hi_level = chunk.hiLevel.exchange( InitialHighLevel );
+            Bitfield<HiLevelBits_t>     old_hi_level = chunk.hiLevel.Exchange( InitialHighLevel );
 
             if ( checkMemLeak )
             {
                 CHECK( old_hi_level == InitialHighLevel );  // some blocks is still allocated
 
-                TopLevelBits_t  top_bits    = top_chunk.assigned.load();
-                TopLevelBits_t  top_lvl_bit = TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
-                CHECK( not (top_bits & top_lvl_bit) );
+                auto&   top_bits = top_chunk.assigned;
+                CHECK( not top_bits.Has( i % CT_SizeOfInBits<TopLevelBits_t> ));
             }
 
             #if AE_LFFIXEDBLOCKALLOC_DEBUG
@@ -91,17 +91,17 @@ namespace AE::Threading
 
             for (usize j = 0; j < HiLevel_Count; ++j)
             {
-                LowLevelBits_t  old_low_level = chunk.lowLevel[j].exchange( 0 );
+                Bitfield<LowLevelBits_t>    old_low_level = chunk.lowLevel[j].Exchange( Default );
 
                 if ( checkMemLeak )
                 {
-                    CHECK( old_low_level == 0 );    // some blocks is still allocated
+                    CHECK( old_low_level.None() );  // some blocks is still allocated
 
                     // dump allocated memory blocks
                     #if AE_LFFIXEDBLOCKALLOC_DEBUG
                     if ( dbg_info != null )
                     {
-                        int     low_idx = BitScanForward( old_low_level );  // first 1 bit
+                        int     low_idx = old_low_level.ExtractBitIndex();
 
                         for (; low_idx >= 0;)
                         {
@@ -109,8 +109,7 @@ namespace AE::Threading
 
                             AE_LOGI( "Leaked memory block: "s << ToString( BlockSize() ), dbg.file, dbg.line );
 
-                            old_low_level   &= (LowLevelBits_t{1} << low_idx);  // 1 -> 0
-                            low_idx         = BitScanForward( old_low_level );  // first 1 bit
+                            low_idx = old_low_level.ExtractBitIndex();
                         }
                     }
                     #endif
@@ -161,9 +160,9 @@ namespace AE::Threading
 
         for (usize i = 0; i < _topChunks.size(); ++i, ++dbg.counter)
         {
-            auto&           top_chunk   = _topChunks[i];
-            TopLevelBits_t  available   = ~top_chunk.assigned.load();   // 1 - unassigned
-            int             idx         = BitScanForward( available );  // first 1 bit
+            auto&   top_chunk   = _topChunks[i];
+            auto    available   = ~top_chunk.assigned.Load();   // 1 - unassigned
+            int     idx         = available.ExtractBitIndex();
 
             for (; idx >= 0; ++dbg.counter)
             {
@@ -172,8 +171,7 @@ namespace AE::Threading
                 if_likely( ptr != null )
                     return ptr;
 
-                available   &= ~(TopLevelBits_t{1} << idx);     // 1 -> 0
-                idx         = BitScanForward( available );      // first 1 bit
+                idx = available.ExtractBitIndex();
             }
         }
 
@@ -260,21 +258,21 @@ namespace AE::Threading
         // find available index in high level
         for (uint j = 0; j < HighWaitCount; ++j, ++dbgCounter)
         {
-            HiLevelBits_t   hi_available    = ~chunk.hiLevel.load();            // 1 - unassigned
-            int             hi_lvl_idx      = BitScanForward( hi_available );   // first 1 bit
+            auto    hi_available    = ~chunk.hiLevel.Load();            // 1 - unassigned
+            int     hi_lvl_idx      = hi_available.ExtractBitIndex();
 
             for (; hi_lvl_idx >= 0; ++dbgCounter)
             {
                 ASSERT( usize(hi_lvl_idx) < chunk.lowLevel.size() );
 
                 // find available index in low level
-                auto&           level           = chunk.lowLevel[ hi_lvl_idx ];
-                LowLevelBits_t  low_available   = level.load();                     // 0 - unassigned
-                int             low_lvl_idx     = BitScanForward( ~low_available ); // first 0 bit
+                auto&   level           = chunk.lowLevel[ hi_lvl_idx ];
+                auto    low_available   = level.Load();                         // 0 - unassigned
+                int     low_lvl_idx     = low_available.GetFirstZeroBitIndex(); // first 0 bit
 
                 for (; low_lvl_idx >= 0; ++dbgCounter)
                 {
-                    const LowLevelBits_t    low_lvl_bit = (LowLevelBits_t{1} << low_lvl_idx);
+                    const auto  low_lvl_bit = Bitfield<LowLevelBits_t>{}.Set( low_lvl_idx );
 
                     if_likely( level.CAS( INOUT low_available, low_available | low_lvl_bit ))   // 0 -> 1
                     {
@@ -287,11 +285,9 @@ namespace AE::Threading
                                 ++lockCounter;
 
                                 // low level value may be changed at any time so check it inside spinlock
-                                if ( level.load() == UMax )
+                                if ( level.All() )
                                 {
-                                    const auto  hi_lvl_bit  = (HiLevelBits_t{1} << hi_lvl_idx);
-
-                                    update_top = (chunk.hiLevel.Or( hi_lvl_bit ) == MaxHighLevel);  // 0 -> 1
+                                    update_top = (chunk.hiLevel.Set( hi_lvl_idx ) == MaxHighLevel);
                                     ++dbgCounter;
                                 }
                             }
@@ -303,11 +299,9 @@ namespace AE::Threading
                                 EXLOCK( top_chunk.assignedGuard );
                                 ++lockCounter;
 
-                                if ( chunk.hiLevel.load() == MaxHighLevel )
+                                if ( chunk.hiLevel.Load() == MaxHighLevel )
                                 {
-                                    const auto  top_lvl_bit = TopLevelBits_t{1} << (chunkIndex % CT_SizeOfInBits<TopLevelBits_t>);
-
-                                    top_chunk.assigned.fetch_or( top_lvl_bit ); // 0 -> 1
+                                    top_chunk.assigned.Set( chunkIndex % CT_SizeOfInBits<TopLevelBits_t> ); // 0 -> 1
                                     ++dbgCounter;
                                 }
                             }
@@ -332,12 +326,11 @@ namespace AE::Threading
                         return Ptr_t{result};
                     }
 
-                    low_lvl_idx = BitScanForward( ~low_available ); // first 0 bit
+                    low_lvl_idx = low_available.GetFirstZeroBitIndex(); // first 0 bit
                     ThreadUtils::Pause();
                 }
 
-                hi_available &= ~(HiLevelBits_t{1} << hi_lvl_idx);  // 1 -> 0
-                hi_lvl_idx = BitScanForward( hi_available );        // first 1 bit
+                hi_lvl_idx = hi_available.ExtractBitIndex();
             }
 
             ThreadUtils::Pause();
@@ -371,34 +364,31 @@ namespace AE::Threading
 
             const uint      hi_lvl_idx  = idx / LowLevel_Count;
             const uint      low_lvl_idx = idx % LowLevel_Count;
-            LowLevelBits_t  low_bit     = LowLevelBits_t{1} << low_lvl_idx;
             auto&           level       = chunk.lowLevel[ hi_lvl_idx ];
             const uint      idx_in_chunk= hi_lvl_idx * LowLevel_Count + low_lvl_idx;
 
             ASSERT( ptr == mem + BlockSize() * idx_in_chunk );  Unused( idx_in_chunk );
             DEBUG_ONLY( DbgFreeMem( ptr, BlockSize() ));
 
-            LowLevelBits_t  old_bits = level.fetch_and( ~low_bit ); // 1 -> 0
+            const auto      old_bits    = level.Erase( low_lvl_idx );   // 1 -> 0
 
-            if_unlikely( not (old_bits & low_bit) )
+            if_unlikely( not old_bits.Has( low_lvl_idx ))
             {
                 AE_LOGE( "failed to deallocate memory: block is already deallocated" );
                 return false;
             }
 
             // update high level bits
-            if_unlikely( old_bits == UMax )
+            if_unlikely( old_bits.All() )
             {
                 bool    update_top  = false;
                 {
                     EXLOCK( chunk.hiLevelGuard );
 
                     // low level value may be changed at any time so check it inside spinlock
-                    if ( level.load() != UMax )
+                    if ( not level.All() )
                     {
-                        const auto  hi_lvl_bit  = (HiLevelBits_t{1} << hi_lvl_idx);
-
-                        update_top = (chunk.hiLevel.fetch_and( ~hi_lvl_bit ) == MaxHighLevel);  // 1 -> 0
+                        update_top = (chunk.hiLevel.Erase( hi_lvl_idx ) == MaxHighLevel);
                     }
                 }
 
@@ -408,11 +398,9 @@ namespace AE::Threading
 
                     EXLOCK( top_chunk.assignedGuard );
 
-                    if ( chunk.hiLevel.load() != MaxHighLevel )
+                    if ( chunk.hiLevel.Load() != MaxHighLevel )
                     {
-                        const auto  top_lvl_bit = TopLevelBits_t{1} << (i % CT_SizeOfInBits<TopLevelBits_t>);
-
-                        top_chunk.assigned.fetch_and( ~top_lvl_bit );   // 1 -> 0
+                        top_chunk.assigned.Erase( i % CT_SizeOfInBits<TopLevelBits_t> );    // 1 -> 0
                     }
                 }
             }

@@ -182,7 +182,7 @@ namespace AE::PipelineCompiler
 
         ND_ bool  _ProcessShaderInfo (INOUT ShaderReflection &result) const;
 
-        ND_ bool  _CalculateStructSize (const glslang::TType &bufferType, OUT Byte32u &staticSize, OUT Byte32u &arrayStride, OUT Byte32u &offset) const;
+        ND_ bool  _CalculateStructSize (const glslang::TType &bufferType, OUT Bytes32u &staticSize, OUT Bytes32u &arrayStride, OUT Bytes32u &offset) const;
 
             void  _MergeWithGeometryInputPrimitive (INOUT TopologyBits_t &topologyBits, /*TLayoutGeometry*/uint type) const;
 

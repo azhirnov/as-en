@@ -62,7 +62,7 @@ constexpr sampler imtblSampler (
   mag_filter::linear,
   min_filter::linear,
   mip_filter::nearest,
-  lod_clamp(-1000.000000, 1000.000000),
+  lod_clamp(-1000.00, 1000.00),
   max_anisotropy(8)
 );
   /* state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader */

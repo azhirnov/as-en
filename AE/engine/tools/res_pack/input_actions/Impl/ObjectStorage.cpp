@@ -26,7 +26,8 @@ namespace
 */
     template <typename T>
     ND_ bool  TryLoadFromScript (INOUT Unique<SerializableInputActions> &actions,
-                                 const ScriptEnginePtr &se, const String &script, const SourceLoc &loc,
+                                 const ScriptEnginePtr &se, const String &script,
+                                 ArrayView<Path> includeDirs, const SourceLoc &loc,
                                  INOUT App::SerializableInputActions::Reflection &refl)
     {
         String  substr;
@@ -37,7 +38,7 @@ namespace
             if ( not actions )  actions.reset( new T{} );
 
             T   temp;
-            CHECK_ERR( temp.LoadFromScript( se, script, loc, INOUT refl ));
+            CHECK_ERR( temp.LoadFromScript( se, script, includeDirs, loc, INOUT refl ));
 
             CHECK_ERR( actions->Merge( temp ));
             return true;
@@ -69,7 +70,7 @@ namespace
     AddBindings
 =================================================
 */
-    bool  ObjectStorage::AddBindings (const ScriptEnginePtr &se, const Path &path)
+    bool  ObjectStorage::AddBindings (const ScriptEnginePtr &se, const Path &path, ArrayView<Path> includeDirs)
     {
         const auto  ansi_path = ToString( path );
         String      script;
@@ -79,19 +80,19 @@ namespace
             CHECK_ERR( file.Read( file.RemainingSize(), OUT script ));
         }
 
-        if ( TryLoadFromScript< SerializableInputActionsGLFW >( INOUT _glfw, se, script, SourceLoc{ansi_path}, INOUT _refl ))
+        if ( TryLoadFromScript< SerializableInputActionsGLFW >( INOUT _glfw, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
             return true;
 
-        if ( TryLoadFromScript< SerializableInputActionsWinAPI >( INOUT _winapi, se, script, SourceLoc{ansi_path}, INOUT _refl ))
+        if ( TryLoadFromScript< SerializableInputActionsWinAPI >( INOUT _winapi, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
             return true;
 
-        if ( TryLoadFromScript< SerializableInputActionsAndroid >( INOUT _android, se, script, SourceLoc{ansi_path}, INOUT _refl ))
+        if ( TryLoadFromScript< SerializableInputActionsAndroid >( INOUT _android, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
             return true;
 
-        if ( TryLoadFromScript< SerializableInputActionsOpenVR >( INOUT _openvr, se, script, SourceLoc{ansi_path}, INOUT _refl ))
+        if ( TryLoadFromScript< SerializableInputActionsOpenVR >( INOUT _openvr, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
             return true;
 
-        //if ( TryLoadFromScript< SerializableInputActionsOpenXR >( INOUT _openxr, se, script, SourceLoc{ansi_path}, INOUT _refl ))
+        //if ( TryLoadFromScript< SerializableInputActionsOpenXR >( INOUT _openxr, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
         //  return true;
 
         RETURN_ERR( "can't find suitable input actions type" );
@@ -161,6 +162,8 @@ namespace
         CHECK_ERR( hash_arr.size() == offset_arr.size() );
         CHECK_ERR( ia_arr.size() == offset_arr.size() );
 
+        // TODO: save reflection
+
         file = null;
 
         // update offsets
@@ -222,7 +225,7 @@ namespace
         FlatHashMap< String, ShModeInfo >   shared_modes;
         const uint                          shared_count = uint(ia_arr.size());
 
-        for (usize i = 0; i < ia_arr.size(); ++i)
+        for (usize i : IndicesOnly( ia_arr ))
         {
             for (auto [mode_name, mode] : ia_arr[i]->GetModes())
             {
@@ -237,7 +240,7 @@ namespace
             }
         }
 
-        const auto  AddActions = [&all_bits, &ValidateName] (const ShModeInfo &mode, const IABits reqBits, StringView suffix)
+        const auto  AddActions = [&all_bits, &ValidateName] (const ShModeInfo &mode, const IABits reqBits, StringView indent)
         {{
             String          str;
             Array<String>   act_arr;
@@ -253,16 +256,56 @@ namespace
                         act_arr.push_back( act_name );
                 }
             }
-            std::sort( act_arr.begin(), act_arr.end() );
-
             if ( act_arr.empty() )
                 return str;
 
-            str << suffix << "static constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n";
+            std::sort( act_arr.begin(), act_arr.end() );
+            str << indent << "static constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n";
+            str << indent << "enum Bindings : uint {\n";
 
             for (const auto& act_name : act_arr) {
-                str << suffix << "static constexpr uint  " << ValidateName(act_name) << "  = 0x"
-                    << ToString<16>( uint{InputActionName{act_name}} ) << "u;  // InputActionName{\"" << act_name << "\"}\n";
+                str << indent << '\t' << ValidateName(act_name) << "  = 0x"
+                    << ToString<16>( uint{InputActionName{act_name}} ) << "u,  // InputActionName{\"" << act_name << "\"}\n";
+            }
+            str << indent << "};\n";
+            return str;
+        }};
+
+        const auto  AddPlatformSpecificActions = [&] (const ShModeInfo &mode)
+        {{
+            String          str;
+            Array<String>   act_arr_arr [MaxIA];
+
+            for (auto& [act_name, cnt] : mode.actions)
+            {
+                if ( IsSingleBitSet( cnt.to_ulong() )   and
+                     cnt != desktop_bits                and
+                     cnt != mobile_bits                 and
+                     cnt != vr_bits )
+                {
+                    act_arr_arr[ IntLog2( cnt.to_ulong() )].push_back( act_name );
+                }
+            }
+            for (usize i : IndicesOnly( ia_arr ))
+            {
+                auto&   act_arr = act_arr_arr[i];
+                auto*   ia      = ia_arr[i];
+
+                if ( act_arr.empty() )
+                    continue;
+
+                std::sort( act_arr.begin(), act_arr.end() );
+
+                str << "\t\tstatic constexpr struct _" << ia->GetApiName() << " {\n"
+                    << "\t\t\tstatic constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n"
+                    << "\t\t\tenum Bindings : uint {\n";
+
+                for (const auto& act_name : act_arr) {
+                    str << "\t\t\t\t" << ValidateName(act_name) << "  = 0x"
+                        << ToString<16>( uint{InputActionName{act_name}} ) << "u,  // InputActionName{\"" << act_name << "\"}\n";
+                }
+                str << "\t\t\t};\n"
+                    << "\t\t} " << ia->GetApiName() << ";\n";
             }
             return str;
         }};
@@ -289,7 +332,7 @@ namespace
                 str << AddActions( mode, all_bits, "\t\t" );
 
                 // desktop
-                if ( desktop_bits != all_bits )
+                if ( desktop_bits.any() and desktop_bits != all_bits )
                 {
                     String  tmp = AddActions( mode, desktop_bits, "\t\t\t" );
                     if ( not tmp.empty() ) {
@@ -300,7 +343,7 @@ namespace
                 }
 
                 // mobile
-                if ( mobile_bits != all_bits )
+                if ( mobile_bits.any() and mobile_bits != all_bits )
                 {
                     String  tmp = AddActions( mode, mobile_bits, "\t\t\t" );
                     if ( not tmp.empty() ) {
@@ -311,7 +354,7 @@ namespace
                 }
 
                 // VR
-                if ( vr_bits != all_bits )
+                if ( vr_bits.any() and vr_bits != all_bits )
                 {
                     String  tmp = AddActions( mode, vr_bits, "\t\t\t" );
                     if ( not tmp.empty() ) {
@@ -321,67 +364,11 @@ namespace
                     }
                 }
 
+                str << AddPlatformSpecificActions( mode );
 
                 str << "\t} " << ValidateName(mode_name) << ";\n\n";
             }
         }
-
-
-        // platform specific
-    /*  for (auto& ia : ia_arr)
-        {
-            str << "\n\tstruct " << ia->GetApiName() << "\n\t{\n";
-
-            Array<String>   mode_arr;
-            for (auto [mode_name, mode] : ia->GetModes())
-            {
-                const auto  name = _refl.Get( mode_name );
-                if ( shared_modes[name].bits.count() < shared_count )
-                    mode_arr.push_back( name );
-            }
-            std::sort( mode_arr.begin(), mode_arr.end() );
-
-            for (auto& mode_name : mode_arr)
-            {
-                String  tmp;
-                tmp << "\t\tstatic constexpr struct _" << ValidateName(mode_name) << "\n\t\t{\n";
-                tmp << "\t\t\tconstexpr operator InputModeName_t () const { return InputModeName_t{\"" << mode_name << "\"}; }\n\n";
-
-                const auto  it = ia->GetModes().find( InputModeName{mode_name} );
-                CHECK_ERR( it != ia->GetModes().end() );
-
-                const auto&     mode    = it->second;
-                const auto&     sh_mode = shared_modes[ mode_name ];
-
-                Array<String>   act_arr;
-                for (auto& [key, act_info] : mode.actions)
-                {
-                    const auto  act_name    = _refl.Get( act_info.name );
-                    const auto  act_it      = sh_mode.actions.find( act_name );
-                    const auto  act_bits    = act_it != sh_mode.actions.end() ? act_it->second : Default;
-
-                    if ( act_bits.count() < shared_count )
-                        act_arr.push_back( act_name );
-                }
-                std::sort( act_arr.begin(), act_arr.end() );
-                RemoveDuplicates( act_arr );
-
-                if ( act_arr.empty() )
-                    continue;
-
-                tmp << "\t\t\tstatic constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n\n";
-
-                for (const auto& act_name : act_arr) {
-                    tmp << "\t\t\tstatic constexpr InputActionName_t  " << ValidateName(act_name) << " {\"" << act_name << "\"};\n";
-                }
-
-                tmp << "\t\t} " << ValidateName(mode_name) << ";\n\n";
-                str << tmp;
-            }
-            str.pop_back();
-            str << "\t};\n\n";
-        }*/
-
         str << "}\n";
 
       #if not AE_PRIVATE_USE_TABS

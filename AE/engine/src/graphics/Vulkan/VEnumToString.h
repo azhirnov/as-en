@@ -16,8 +16,7 @@ namespace AE::Graphics
 */
     ND_ inline StringView  VkColorSpaceKHR_ToString (VkColorSpaceKHR value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR :            return "sRGB Nonlinear";
             case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT :      return "Display P3 Nonlinear";
@@ -37,7 +36,7 @@ namespace AE::Graphics
             case VK_COLOR_SPACE_DISPLAY_NATIVE_AMD :            return "Display Native AMD";
             case VK_COLOR_SPACE_MAX_ENUM_KHR :                  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown color space type!" );
     }
 
@@ -48,8 +47,7 @@ namespace AE::Graphics
 */
     ND_ inline String  VkPresentModeKHR_ToString (VkPresentModeKHR value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case VK_PRESENT_MODE_IMMEDIATE_KHR :                    return "Immediate";
             case VK_PRESENT_MODE_MAILBOX_KHR :                      return "Mailbox";
@@ -59,7 +57,7 @@ namespace AE::Graphics
             case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR :    return "Shared Continuous Refresh";
             case VK_PRESENT_MODE_MAX_ENUM_KHR :                     break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown present mode!" );
     }
 
@@ -70,8 +68,7 @@ namespace AE::Graphics
 */
     ND_ inline String  VkSurfaceTransformFlagBitsKHR_ToString (VkSurfaceTransformFlagBitsKHR value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR :                    return "Identity";
             case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR :                   return "90";
@@ -84,7 +81,7 @@ namespace AE::Graphics
             case VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR :                     return "Inherit";
             case VK_SURFACE_TRANSFORM_FLAG_BITS_MAX_ENUM_KHR :              break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown surface transform!" );
     }
 
@@ -95,8 +92,7 @@ namespace AE::Graphics
 */
     ND_ inline String  VkCompositeAlphaFlagBitsKHR_ToString (VkCompositeAlphaFlagBitsKHR value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR :            return "Opaque";
             case VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR :    return "Pre-multiplied";
@@ -104,7 +100,7 @@ namespace AE::Graphics
             case VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR :           return "Inherit";
             case VK_COMPOSITE_ALPHA_FLAG_BITS_MAX_ENUM_KHR :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown composite alpha!" );
     }
 
@@ -124,8 +120,7 @@ namespace AE::Graphics
             if ( result.size() )
                 result << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( VkImageUsageFlagBits(i) )
+            switch_enum( VkImageUsageFlagBits(i) )
             {
                 case VK_IMAGE_USAGE_TRANSFER_SRC_BIT :              result << "TransferSrc";                break;
                 case VK_IMAGE_USAGE_TRANSFER_DST_BIT :              result << "TransferDst";                break;
@@ -152,7 +147,7 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
                 default :                                           DBG_WARNING( "unsupported image usage" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return result;
     }

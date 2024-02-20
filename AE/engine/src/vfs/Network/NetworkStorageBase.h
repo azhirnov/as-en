@@ -22,19 +22,11 @@ namespace AE::VFS
 
         using ReqGen_t      = NDSRequestID::Generation_t;
         using DSGen_t       = NetDataSourceID::Generation_t;
-        using FileNameRef   = IVirtualFileStorage::FileNameRef;
 
         using _SpinLock_t   = TRWSpinLock< false, true >;
 
         static constexpr uint   _FileCount  = 1u << 8;
         static constexpr uint   _ReqCount   = 1u << 10;
-
-
-        class MsgProducer final : public AsyncCSMessageProducer< LfLinearAllocator< usize{4_Mb}, usize{16_b}, 16 >>
-        {
-        public:
-            EnumBitSet<EChannel>  GetChannels ()    C_NE_OV { return {EChannel::Reliable}; }
-        };
 
 
         static constexpr Bytes  _partSize = AlignDown(  Min( Min( NetConfig::TCP_MaxMsgSize - SizeOf<CSMsg_VFS_ReadResult>,
@@ -43,23 +35,6 @@ namespace AE::VFS
                                                                   MaxValue< decltype(CSMsg_VFS_WritePart::size) >() )),
                                                         64 );
         static constexpr uint   _maxParts = 32;
-
-
-    // variables
-    protected:
-        StaticRC<MsgProducer>   _msgProducer;
-
-
-    // methods
-    protected:
-        template <typename T>
-        ND_ auto  _CreateMsg (Bytes extraSize = 0_b)    __NE___ { return _msgProducer->CreateMsg<T>( extraSize ); }
-
-        template <typename T>
-        ND_ auto  _CreateMsgOpt (Bytes extraSize = 0_b) __NE___ { return _msgProducer->CreateMsgOpt<T>( extraSize ); }
-
-        template <typename T>
-        ND_ bool  _AddMessage (T &msg)                  __NE___ { return _msgProducer->AddMessage( msg ); }
     };
 
 

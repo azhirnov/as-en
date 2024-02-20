@@ -17,8 +17,7 @@ namespace AE::Base
     ND_ inline String  ToString (PipelineCompiler::EAttachment value)
     {
         using PipelineCompiler::EAttachment;
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAttachment::Invalidate :      return "Invalidate";
             case EAttachment::Color :           return "Color";
@@ -31,7 +30,7 @@ namespace AE::Base
             case EAttachment::Unknown :         return "Unknown";
             case EAttachment::_Count :          break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown attachment usage" );
     }
 
@@ -161,8 +160,7 @@ namespace
         CHECK_THROW_MSG( inserted,
             "subpass '"s << subpassName << "' is already has usage" );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( usage )
+        switch_enum( usage )
         {
             case EAttachment::Color :
             case EAttachment::ColorResolve :
@@ -233,7 +231,7 @@ namespace
                     "attachment usage '"s << Base::ToString(usage) << "' is not compatible with ShaderIO" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         CHECK_THROW_MSG( format != Default, "pixel format must be defined" );
         if ( format < EPixelFormat::_Count ) {
@@ -425,8 +423,7 @@ namespace
 
                 const String    msg = "in subpass '"s << subpassName << "', attachment '" << storage.GetName( _name ) << "' with usage '" << Base::ToString( usage_it->second.type ) << "' ";
 
-                BEGIN_ENUM_CHECKS();
-                switch ( usage_it->second.type )
+                switch_enum( usage_it->second.type )
                 {
                     case EAttachment::Invalidate :
                     {
@@ -516,7 +513,7 @@ namespace
                         CHECK_THROW_MSG( false, "unknown attachment usage type" );
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 
@@ -584,8 +581,7 @@ namespace
 
             if ( usage != rt->usageMap.end() )
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( usage->second.type )
+                switch_enum( usage->second.type )
                 {
                     case EAttachment::Invalidate :
                         new_state |= EResourceState::Invalidate;
@@ -654,7 +650,7 @@ namespace
                         CHECK_THROW_MSG( false, "unknown attachment usage type" );
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 auto [layout_it, layout_inserted] = this->layouts.emplace( sp.name, RPAttachmentSpec::Layout{} );
                 CHECK_THROW_MSG( layout_inserted,
@@ -751,7 +747,7 @@ namespace
     Validate
 =================================================
 */
-    bool  RPAttachmentSpec::Validate (const RenderPassName &rpName)
+    bool  RPAttachmentSpec::Validate (RenderPassName::Ref rpName)
     {
         return  _ValidatePass1( rpName ) and
                 _ValidatePass2( rpName );
@@ -762,7 +758,7 @@ namespace
     _ValidatePass1
 =================================================
 */
-    bool  RPAttachmentSpec::_ValidatePass1 (const RenderPassName &rpName) const
+    bool  RPAttachmentSpec::_ValidatePass1 (RenderPassName::Ref rpName) const
     {
         auto&               storage         = *ObjectStorage::Instance();
         bool                is_valid        = true;
@@ -770,7 +766,7 @@ namespace
         EAttachmentLoadOp   subpass_load_op = loadOp;
         const String        msg             = "in render pass '"s << storage.GetName( rpName ) << "' attachment '" << storage.GetName( _name ) << "' ";
 
-        const auto  AddUsage = [&] (uint subpassIdx, const SubpassName &spName, const EAttachment usage, const EResourceState state)
+        const auto  AddUsage = [&] (uint subpassIdx, SubpassName::Ref spName, const EAttachment usage, const EResourceState state)
         {{
             Unused( usage );
 
@@ -934,7 +930,7 @@ namespace
     _ValidatePass2
 =================================================
 */
-    bool  RPAttachmentSpec::_ValidatePass2 (const RenderPassName &)
+    bool  RPAttachmentSpec::_ValidatePass2 (RenderPassName::Ref )
     {
         const EResourceState    mask0       = EResourceState(_EResState::AccessMask);
         const EResourceState    mask1       = EResourceState(_EResState::AccessMask | _EResState::DSTestAfterFS | _EResState::DSTestBeforeFS);
@@ -1163,8 +1159,7 @@ namespace
                 if ( usage_it == att->usageMap.end() )
                     continue;
 
-                BEGIN_ENUM_CHECKS();
-                switch ( usage_it->second.type )
+                switch_enum( usage_it->second.type )
                 {
                     case EAttachment::Color :
                     case EAttachment::ColorResolve :
@@ -1212,7 +1207,7 @@ namespace
                     case EAttachment::Invalidate :
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 
@@ -1315,7 +1310,7 @@ namespace
     GetRenderPass
 =================================================
 */
-    RenderPassSpecPtr  CompatibleRenderPassDesc::GetRenderPass (const RenderPassName &name) const
+    RenderPassSpecPtr  CompatibleRenderPassDesc::GetRenderPass (RenderPassName::Ref name) const
     {
         auto    it = _specializations.find( name );
         if ( it != _specializations.end() )
@@ -1329,7 +1324,7 @@ namespace
     IsFirstSubpass
 =================================================
 */
-    bool  CompatibleRenderPassDesc::IsFirstSubpass (const SubpassName &name) const
+    bool  CompatibleRenderPassDesc::IsFirstSubpass (SubpassName::Ref name) const
     {
         auto    it = _subpassMap.find( name );
         if ( it != _subpassMap.end() )

@@ -53,6 +53,8 @@ namespace AE::Base
             ASSERT( _packed.gen == gen );
         }
 
+        constexpr Self&  operator = (const Self &rhs)                       __NE___ { _value = rhs._value;  return *this; }
+
         ND_ constexpr bool                  IsValid ()                      C_NE___ { return _value != UMax; }
         ND_ constexpr Index_t               Index ()                        C_NE___ { return _value & _IndexMask; }
         ND_ constexpr Generation_t          Generation ()                   C_NE___ { return _value >> _GenOffset; }

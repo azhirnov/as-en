@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_IMGUI
-# include "base/Algorithms/StringUtils.h"
 # include "demo/Examples/ImGuiSample.h"
 # include "imgui.h"
 
@@ -14,7 +13,7 @@ namespace AE::Samples::Demo
     //
     // Process Input Task
     //
-    class ImGuiSample::ProcessInputTask final : public Threading::IAsyncTask
+    class ImGuiSample::ProcessInputTask final : public IAsyncTask
     {
     public:
         RC<ImGuiSample>     t;
@@ -25,41 +24,49 @@ namespace AE::Samples::Demo
             t{ p }, reader{ RVRef(reader) }
         {}
 
-        void  Run () __Th_OV
-        {
-            t->imgui.mouseLBDown    = false;
-            t->imgui.mouseWheel     = {};
-
-            ActionQueueReader::Header   hdr;
-            for (; reader.ReadHeader( OUT hdr );)
-            {
-                StaticAssert( IA.actionCount == 6 );
-                StaticAssert( IA.Desktop.actionCount == 5 );
-
-                switch ( uint{hdr.name} )
-                {
-                    case IA.Desktop.MousePos :
-                        t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );   break;
-
-                    case IA.Desktop.MouseWheel :
-                        t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset ); break;
-
-                    case IA.Desktop.MouseLBDown :
-                        t->imgui.mouseLBDown = true;                                    break;
-
-                    case IA.Test_Move :
-                        t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-                        t->imgui.touchActive = hdr.state != EGestureState::End;         break;
-
-                    case IA.Touch_Click :
-                        t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-                        t->imgui.mouseLBDown = true;                                    break;
-                }
-            }
-        }
+        void  Run () __Th_OV;
 
         StringView  DbgName ()  C_NE_OV { return "ImGui::ProcessInput"; }
     };
+
+/*
+=================================================
+    ProcessInputTask::Run
+=================================================
+*/
+    void  ImGuiSample::ProcessInputTask::Run () __Th___
+    {
+        t->imgui.mouseLBDown    = false;
+        t->imgui.mouseWheel     = {};
+
+        ActionQueueReader::Header   hdr;
+        for (; reader.ReadHeader( OUT hdr );)
+        {
+            switch_IA2( IA.Desktop, hdr.name )
+            {
+                case IA.Desktop.MousePos :
+                    t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );   break;
+
+                case IA.Desktop.MouseWheel :
+                    t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset ); break;
+
+                case IA.Desktop.MouseLBDown :
+                    t->imgui.mouseLBDown = true;                                    break;
+            }
+            switch_end
+            switch_IA( hdr.name )
+            {
+                case IA.Touch_Move :
+                    t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+                    t->imgui.touchActive = hdr.state != EGestureState::End;         break;
+
+                case IA.Touch_Click :
+                    t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+                    t->imgui.mouseLBDown = true;                                    break;
+            }
+            switch_end
+        }
+    }
 //-----------------------------------------------------------------------------
 
 
@@ -150,15 +157,18 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  ImGuiSample::Init (PipelinePackID pack) __NE___
+    bool  ImGuiSample::Init (PipelinePackID pack, IApplicationTS) __NE___
     {
-        CHECK( profiler.Initialize() );
+        CHECK( profiler.Initialize( null ));
 
         auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
         auto    gfx_alloc   = res_mngr.CreateLinearGfxMemAllocator();
         auto    rtech       = res_mngr.LoadRenderTech( pack, RTech, Default );
 
-        CHECK_ERR( imgui.Init( gfx_alloc, rtech ));
+        CHECK_ERR( imgui.Initialize( gfx_alloc, rtech,
+                                     ImGuiRenderer::PipelineInfo_t{
+                                        Tuple{ EPixelFormat::SwapchainColor, RTech.Main, RTech.Main.imgui }}
+                                    ));
 
         #ifdef AE_PLATFORM_ANDROID
             imgui.SetScale( 0.8f );

@@ -323,7 +323,7 @@ namespace
         {
             float   mu  = -b / (2.0f * a);
 
-            if ( (mu < 0.0001f) & (mu > 1.0f) )
+            if ( (mu < 0.0001f) and (mu > 1.0f) )
                 return false;
 
             outIntersection = begin + mu * (end - begin);
@@ -332,12 +332,12 @@ namespace
 
         // two intersections
         float   mu1         = (-b + Sqrt( Square(b) - 4.0f * a * c )) / (2.0f * a);
-        bool    mu1_valid   = (mu1 > -0.0001f) & (mu1 < 1.0001f);
+        bool    mu1_valid   = (mu1 > -0.0001f) and (mu1 < 1.0001f);
         float   mu2         = (-b - Sqrt( Square(b) - 4.0f * a * c )) / (2.0f * a);
-        bool    mu2_valid   = (mu2 > -0.0001f) & (mu2 < 1.0001f);
+        bool    mu2_valid   = (mu2 > -0.0001f) and (mu2 < 1.0001f);
         float   mu;
 
-        if ( mu1_valid & mu2_valid )    mu = Min( mu1, mu2 );   else
+        if ( mu1_valid and mu2_valid )  mu = Min( mu1, mu2 );   else
         if ( mu1_valid )                mu = mu1;               else
         if ( mu2_valid )                mu = mu2;               else
                                         return false;

@@ -14,9 +14,13 @@ namespace AE::Base
     // Stack Allocator
     //
 
-    template <typename AllocatorType, uint MaxBlocks>
+    template <typename AllocatorType,
+              uint MaxBlocks
+             >
     class StackAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
     {
+        StaticAssert( MaxBlocks > 0 );
+
     // types
     private:
         using BaseAllocator_t   = StackAllocator< AllocatorType, MaxBlocks, false >;
@@ -46,18 +50,18 @@ namespace AE::Base
         ND_ Bookmark    Push ()                                         __NE___;
             void        Pop (Bookmark bm)                               __NE___;
 
-            void        Discard ()                                      __NE___;
             void        Release ()                                      __NE___;
 
 
         // IAllocator //
         ND_ void*       Allocate (const SizeAndAlign sizeAndAlign)      __NE_OV;
+            using       IAllocator::Allocate;
 
             void        Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
             void        Deallocate (void* ptr, Bytes size)              __NE_OV;
             void        Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
 
-            using IAllocator::Allocate;
+            void        Discard ()                                      __NE_OV;
     };
 
 

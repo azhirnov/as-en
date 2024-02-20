@@ -26,13 +26,14 @@ namespace AE::Networking
         ND_ bool  _Initialize (RC<MessageFactory>   mf,
                                RC<IClientListener>  clientListener,
                                RC<IAllocator>       alloc,
-                               FrameUID             firstFrameId)   __NE___;
-            void  _Deinitialize ()                                  __NE___;
+                               FrameUID             firstFrameId)                       __NE___;
+            void  _Deinitialize ()                                                      __NE___;
 
-        ND_ bool  _AddChannelTCP (ushort port)                      __NE___;
-        ND_ bool  _AddChannelUnreliableUDP (ushort port)            __NE___;
+        ND_ bool  _AddChannelReliableTCP (ushort port, StringView dbgName = Default)    __NE___;
+        ND_ bool  _AddChannelUnreliableTCP (ushort port, StringView dbgName = Default)  __NE___;
+    //  ND_ bool  _AddChannelUnreliableUDP (ushort port, StringView dbgName = Default)  __NE___;
 
-        ND_ bool  _DisconnectClient (EClientLocalID)                __NE___;
+        ND_ bool  _DisconnectClient (EClientLocalID)                                    __NE___;
     };
 
 
@@ -55,6 +56,7 @@ namespace AE::Networking
         ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress &)     __NE___ = 0;
         ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)    __NE___ = 0;
 
+        // TODO: reason
             virtual void  OnClientDisconnected (EChannel, EClientLocalID)               __NE___ = 0;
     };
 

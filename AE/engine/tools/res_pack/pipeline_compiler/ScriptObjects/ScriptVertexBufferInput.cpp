@@ -307,6 +307,8 @@ namespace
             dst.type    = EVertexType_ToAttribType( src.type );
             dst.index   = src.index;
         }
+
+        std::sort( attribs.begin(), attribs.end(), [](auto& lhs, auto &rhs) { return lhs.index < rhs.index; });
     }
 
     void  ScriptVertexBufferInput::Get (OUT ArrayView<VertexAttrib> &attribs) C_Th___

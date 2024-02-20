@@ -26,6 +26,8 @@ namespace AE::VFS
         static constexpr uint   Name    = ArchiveStaticStorage::Name;
         static constexpr uint   Version = ArchiveStaticStorage::Version;
 
+        static constexpr Bytes  _MaxInMemoryFileSize {1_Mb};
+
 
     // variables
     private:
@@ -60,6 +62,11 @@ namespace AE::VFS
     private:
         ND_ bool  _AddFile (FileName::Optimized_t name, const FileInfo &info);
         ND_ bool  _Store (WStream &dstStream, Bytes archiveSize);
+
+        template <typename StreamType, typename CfgType>
+        ND_ uint  _Compression (RStream &stream, const FileName::WithString_t &name, FileInfo &info,
+                                Bytes startPos, Bytes size, const CfgType &cfg);
+        ND_ uint  _ZStdCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size);
         ND_ uint  _BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size);
 
         ND_ bool  _AddArchive (ArchiveStaticStorage &);

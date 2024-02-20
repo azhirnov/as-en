@@ -2,71 +2,167 @@ Supported platforms
 
 ## Windows
 
-- [x] Win7 .. Win10
-- [x] VisualStudio 2022
-- [x] Async file read/write
-- [x] Vulkan (by default requires timeline semaphore)
-- [x] Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
-- [ ] Internal resources
+- [x] OS: Win7 (without some features)
+- [x] OS: Win8 - Win10
+- [ ] OS: Win11 (not tested)
+- [ ] Architecture: x86 (not tested)
 - [x] Architecture: x64
-- [ ] Architecture: ARMv8
-- [ ] Input: gamepad
-- [x] HDR display (Win10+)
+- [ ] Architecture: ARM64
+- [x] Compiler: VisualStudio 2022
+- [x] Compiler: VisualStudio 2022 with Clang
+- [x] CPU info
+- [x] Memory info
+- [x] Thread affinity
+- [x] Thread priority
+- [x] Thread pause instruction
+- [x] Thread: nano/micro sleep
 - [x] Window mode: Fullscreen, Borderless
+- [x] Async file read/write
+- [x] Networking
+- [ ] Internal resources
+- [ ] Writable folder
+- [x] Input: mouse, keyboard, touchscreen
+- [ ] Input: gamepad
+- Audio:
+	- [x] BASS
+	- [ ] native
+- [x] Graphics:
+	- Vulkan (by default requires timeline semaphore)
+	- Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
+- [x] HDR display (Win10+)
+- Debugging / profiling:
+	- [x] VisualStudio
+	- [x] RenderDoc
+	- [x] NSight
+	- [ ] NvProf SDK (partially)
+	- [ ] RGP (not tested)
+- [ ] Crash reporting
 
 
 ## Linux
 
-- [x] Ubuntu 22
-- [ ] Async file read/write
-- [ ] Flatpack
-- [x] GCC12
-- [x] Clang15
+- [x] OS: Ubuntu 22, 23
+- [ ] OS: Debian
+- [ ] OS: Fedora
+- [ ] OS: Arch
+- [ ] OS: openSUSE
+- [ ] OS: Orange PI
+- [ ] OS: SteamOS
+- [ ] OS: Alpine
 - [x] Architecture: x64
-- [ ] Architecture: ARMv8
-- [ ] HDR display
+- [ ] Architecture: ARM64
+- [ ] Architecture: RISC-V 64
+- [x] Compiler: GCC12
+- [x] Compiler: Clang15
+- [ ] CPU info (not tested)
+- [ ] Memory info (not tested)
+- [x] Thread affinity
+- [x] Thread priority
+- [x] Thread pause instruction
+- [x] Thread: nano/micro sleep
+- [ ] Window mode: Fullscreen, Borderless (not tested)
+- [x] Async file read/write
+- [x] Networking
+- [ ] Internal resources
+- [ ] Writable folder
+- [x] Input: mouse, keyboard
+- Audio:
+	- [x] BASS
+	- [ ] native
+- [x] Graphics:
+	- Vulkan (by default requires timeline semaphore)
+	- Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
+- [ ] HDR display (not tested)
+- [ ] Profiling
+- [ ] Distribution: Flatpack
+- [ ] Crash reporting
 
 
 ## Android
 
-- [x] Android 7+ (SDK 24)
-- [x] Architectures: ARMv8, ARMv7
-- [ ] Architectures: x86, x64 - supported but not tested
-- [x] Vulkan (without timeline semaphore)
-- [x] Builtin file system (assets)
-- [ ] Async file read/write
-- [ ] Input actions: gyroscope, accelerometer, ...
-- [ ] Input: hw keyboard, gamepad
-- [x] Fullscreen mode
+- [x] OS: Android 7+ (SDK 24)
+- [ ] OS: LineageOS
+- [ ] OS: GrapheneOS
+- [x] Architecture: ARMv8, ARMv7
+- [ ] Architecture: x86, x64 - supported but not tested
+- [ ] Architecture: RISC-V 64
+- [x] Compiler: Clang
+- [x] CPU info
+- [ ] Memory info
+- [x] Thread affinity
+- [x] Thread priority
+- [x] Thread pause instruction
+- [x] Thread: nano/micro sleep
+- [x] Window mode: Fullscreen, With status bar
+- [x] Window mode: Window
+- [x] Async file read/write
+- [x] Networking
+- [x] Internal resources
+- [ ] Writable folder
+- [x] Input: keyboard, touchscreen
+- [ ] Input: external keyboard, gamepad (not tested)
+- [x] Input: sensors
+- Audio:
+	- [x] BASS
+	- [ ] native
+- [x] Graphics: Vulkan (without timeline semaphore)
+- [x] Display Cutout
 - [x] HDR display
+- [x] Profiling: Internal performance counters CPU/GPU
+- [ ] Crash reporting
 
 
 ## MacOS
 
-- [x] Metal API 2.x
-- [x] Metal API 3.x
-- [ ] Async file read/write
+- [x] OS: MacOS 10.15 - 14.0
+- [x] Architecture: ARM64, x64
+- [x] Compiler: Clang15 (XCode)
+- [x] CPU info
+- [ ] Memory info
+- [ ] Thread affinity
+- [ ] Thread priority
+- [x] Thread pause instruction
+- [x] Thread: nano/micro sleep
+- [x] Window mode: Fullscreen, Borderless
+- [x] Async file read/write (slow)
+- [x] Networking
+- [ ] Internal resources
+- [ ] Writable folder
+- [x] Input: mouse, keyboard
+- Audio:
+	- [x] BASS
+	- [ ] native
+- Graphics:
+	- [x] Metal API 2.x
+	- [x] Metal API 3.x
+	- [x] MoltenVk
+- [ ] Display Cutout
+- [x] HDR display (Vulkan)
+- [ ] HDR display (Metal, not tested)
 - [x] Offline resource packing (x64 only)
 - [ ] Scripting (ARM64)
-- [x] HDR display (Vulkan)
-- [ ] HDR display (Metal)
-- [x] MoltenVk
+- Profiling:
+	- [x] XCode profiler
+- [ ] Crash reporting
 
 
 ## iOS
 
-not tested
+same as MacOS, but not tested
 
 
 ## Emscripten
 
 - [x] TaskScheduler
 - [ ] Graphics (WebGL or WebGPU ?)
-- [ ] Network
+- [ ] Networking
 
 
 ## OpenVR
 
+not tested
+
 
 ## OpenXR
 
+not implemented

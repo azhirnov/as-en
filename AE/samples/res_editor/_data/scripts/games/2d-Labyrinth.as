@@ -324,7 +324,7 @@
         // teleport wave
         {
             // use current color to detect if teleport is visible or shaded
-            const float is_invisible = 1.0 - SmoothStep( 0.0, Dot( c_AmbientLight, c_AmbientLight ), Dot( fragColor.rgb, fragColor.rgb ));
+            const float is_invisible = 1.0 - SmoothStep( Dot( fragColor.rgb, fragColor.rgb ), 0.0, Dot( c_AmbientLight, c_AmbientLight ));
 
             const float wave_width      = 0.2;
             const float wave_r          = un_CBuf.teleportRadius * Fract( iTime );

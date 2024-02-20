@@ -105,7 +105,7 @@ namespace _hidden_
                 ElemIter    operator ++ (int)                           __NE___ { ElemIter<C>  res {*this};  this->operator++();  return res; }
 
             ND_ bool        operator != (const ElemIter &rhs)           C_NE___ { return not (*this == rhs); }
-            ND_ bool        operator == (const ElemIter &rhs)           C_NE___ { return (_chunk == rhs._chunk) & (_index == rhs._index); }
+            ND_ bool        operator == (const ElemIter &rhs)           C_NE___ { return (_chunk == rhs._chunk) and (_index == rhs._index); }
 
             ND_ auto        GetChunk ()                                 __NE___ { return _chunk; }
             ND_ auto        GetChunk ()                                 C_NE___ { return _chunk; }
@@ -118,7 +118,7 @@ namespace _hidden_
         private:
             void  _Validate ()                                          __NE___
             {
-                for_unlikely(; (_chunk != null) & (_index >= _count); )
+                for_unlikely(; (_chunk != null) and (_index >= _count); )
                 {
                     _chunk  = _next;
                     _index  = 0;

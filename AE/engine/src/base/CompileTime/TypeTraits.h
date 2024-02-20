@@ -426,6 +426,21 @@ namespace _hidden_
     using ResultOf  = std::invoke_result_t< Fn, Args... >;
 
 
+    namespace _hidden_
+    {
+        template <typename T>
+        static constexpr bool   _IsChar = (IsSameTypes< T, CharAnsi >   or
+                                           IsSameTypes< T, CharUtf8 >   or
+                                           IsSameTypes< T, CharUtf16 >  or
+                                           IsSameTypes< T, CharUtf32 >  or
+                                           IsSameTypes< T, wchar_t >);
+    }
+    template <typename T>
+    static constexpr bool   IsChar = Base::_hidden_::_IsChar< RemoveCV<T> >;
+//-----------------------------------------------------------------------------
+
+
+
 /*
 =================================================
     IndexSequence

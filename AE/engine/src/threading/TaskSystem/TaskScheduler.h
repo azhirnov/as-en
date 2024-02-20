@@ -172,7 +172,7 @@ namespace AE::Threading
             ubyte       maxPerFrameQueues   = 2;
             ubyte       maxBackgroundQueues = 2;
             ubyte       maxRenderQueues     = 2;
-            ubyte       maxIOThreads        = 0;
+            ubyte       maxIOAccessThreads  = 0;
             ECpuCoreId  mainThreadCoreId    = Default;
         };
 
@@ -257,7 +257,7 @@ namespace AE::Threading
             AtomicRC<ITaskProfiler> _profiler;
         )
         DEBUG_ONLY( struct{
-            BitAtomic<TimePoint_t>      lastUpdate;
+            StructAtomic<TimePoint_t>   lastUpdate;
             Atomic<ulong>               numChecks   {0};
             Atomic<ulong>               numLocks    {0};
             const secondsf              interval    {10.f};
@@ -442,46 +442,21 @@ namespace AE::Threading
     {
         StaticAssert( IsBaseOf< IAsyncTask, TaskType > );
 
-        if constexpr( IsNothrowCtor< TaskType, Ctor&&... >)
+        uint        bit_index   = 0;
+        AsyncTask   task        = ctorArgs.Apply([] (auto&& ...args) __NE___
+                                                { return MakeRCNe<TaskType>( FwdArg<decltype(args)>(args)... ); });
+        if_unlikely( not task )
+            return GetCanceledTask();
+
+        if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
         {
-            uint        bit_index   = 0;
-            AsyncTask   task        = ctorArgs.Apply([] (auto&& ...args) __NE___
-                                                    { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)... ); });
-            if_unlikely( not task )
-                return GetCanceledTask();
-
-            if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
-            {
-                // add task to queue only to call 'OnCancel()'
-                task->_SetCancellationState();
-                bit_index = 0;  // no dependencies
-            }
-
-            CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
-            return task;
+            // add task to queue only to call 'OnCancel()'
+            task->_SetCancellationState();
+            bit_index = 0;  // no dependencies
         }
-        else
-        {
-            uint        bit_index   = 0;
-            AsyncTask   task;
-            TRY{
-                task = ctorArgs.Apply([] (auto&& ...args) __Th___
-                                    { return MakeRCTh<TaskType>( FwdArg<decltype(args)>(args)... ); });
 
-                if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
-                {
-                    // add task to queue only to call 'OnCancel()'
-                    task->_SetCancellationState();
-                    bit_index = 0;  // no dependencies
-                }
-
-                CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
-                return task;
-            }
-            CATCH_ALL(
-                return GetCanceledTask();
-            )
-        }
+        CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
+        return task;
     }
 
 /*
@@ -688,13 +663,29 @@ namespace AE::Threading
              not _status.CAS( INOUT expected, EStatus::Continue );)
         {
             // status has been changed in another thread
-            if_unlikely( (expected == EStatus::Cancellation) | (expected > EStatus::_Finished) )
+            if_unlikely( (expected == EStatus::Cancellation) or (expected > EStatus::_Finished) )
                 return;
 
             // 'CAS' can return 'false' even if expected value is the same as current value in atomic
             ASSERT( expected == EStatus::InProgress );
             ThreadUtils::Pause();
         }
+    }
+
+/*
+=================================================
+    MakeTask
+=================================================
+*/
+    template <typename Fn, typename ...Deps>
+    AsyncTask  MakeTask (Fn &&                  fn,
+                         const Tuple<Deps...> & dependsOn,
+                         StringView             dbgName,
+                         ETaskQueue             queueType) __NE___
+    {
+        auto    task = MakeRC<AsyncTaskFn>( FwdArg<Fn>(fn), dbgName, queueType );
+        Scheduler().Run( AsyncTask{task}, dependsOn );
+        return RVRef(task);
     }
 
 } // AE::Threading

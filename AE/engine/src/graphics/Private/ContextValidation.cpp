@@ -304,6 +304,19 @@ namespace
 
 /*
 =================================================
+    UploadImage
+=================================================
+*/
+    void  TransferContextValidation::UploadImage (const VideoImageDesc &imgDesc) __Th___
+    {
+        GCTX_CHECK( IsDeviceMemory( imgDesc ));
+        GCTX_CHECK( AllBits( imgDesc.usage, EImageUsage::TransferDst ));
+
+        // TODO: more checks
+    }
+
+/*
+=================================================
     ReadbackBuffer
 =================================================
 */
@@ -322,6 +335,19 @@ namespace
 =================================================
 */
     void  TransferContextValidation::ReadbackImage (const ImageDesc &imgDesc) __Th___
+    {
+        GCTX_CHECK( IsDeviceMemory( imgDesc ));
+        GCTX_CHECK( AllBits( imgDesc.usage, EImageUsage::TransferSrc ));
+
+        // TODO: more checks
+    }
+
+/*
+=================================================
+    ReadbackImage
+=================================================
+*/
+    void  TransferContextValidation::ReadbackImage (const VideoImageDesc &imgDesc) __Th___
     {
         GCTX_CHECK( IsDeviceMemory( imgDesc ));
         GCTX_CHECK( AllBits( imgDesc.usage, EImageUsage::TransferSrc ));
@@ -603,7 +629,6 @@ namespace
         ASSERT( not ranges.empty() );
         GCTX_CHECK( IsDeviceMemory( imgDesc ));
         GCTX_CHECK( AllBits( imgDesc.usage, EImageUsage::Transfer ));
-        GCTX_CHECK( imgDesc.maxLevel.Get() > 1 );
 
         for (auto& range : ranges)
         {
@@ -637,7 +662,7 @@ namespace
     PushConstant
 =================================================
 */
-    void  ComputeContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
+    void  ComputeContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName) __Th___
     {
     #ifdef AE_DEBUG
         GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );
@@ -735,7 +760,7 @@ namespace
     PushConstant
 =================================================
 */
-    void  DrawContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
+    void  DrawContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName) __Th___
     {
     #ifdef AE_DEBUG
         GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );
@@ -1276,29 +1301,27 @@ namespace
     void  ASBuildContextValidation::Copy (const RTGeometryDesc &srcGeometryDesc, const RTGeometryDesc &dstGeometryDesc, ERTASCopyMode mode) __Th___
     {
         GCTX_CHECK_MSG( &srcGeometryDesc != &dstGeometryDesc, "'src' and 'dst' memory must not overlap" );
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case ERTASCopyMode::Clone :         break;
             case ERTASCopyMode::Compaction :    GCTX_CHECK( AllBits( srcGeometryDesc.options, ERTASOptions::AllowCompaction ));     break;
             case ERTASCopyMode::_Count :
             default :                           GCTX_CHECK_MSG( false, "unknown ERTASCopyMode" );   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
     void  ASBuildContextValidation::Copy (const RTSceneDesc &srcSceneDesc, const RTSceneDesc &dstSceneDesc, ERTASCopyMode mode) __Th___
     {
         GCTX_CHECK_MSG( &srcSceneDesc != &dstSceneDesc, "'src' and 'dst' memory must not overlap" );
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case ERTASCopyMode::Clone :         break;
             case ERTASCopyMode::Compaction :    GCTX_CHECK( AllBits( srcSceneDesc.options, ERTASOptions::AllowCompaction ));        break;
             case ERTASCopyMode::_Count :
             default :                           GCTX_CHECK_MSG( false, "unknown ERTASCopyMode" );   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -1461,8 +1484,7 @@ namespace
     {
         auto&   dev = GraphicsScheduler().GetDevice();
 
-        BEGIN_ENUM_CHECKS();
-        switch ( property )
+        switch_enum( property )
         {
             case ERTASProperty::CompactedSize :     break;
             case ERTASProperty::SerializationSize : break;
@@ -1471,15 +1493,14 @@ namespace
             case ERTASProperty::_Count :
             default :                               break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
     void  ASBuildContextValidation::WriteProperty (ERTASProperty property, const BufferDesc &dstBufferDesc, Bytes dstOffset, Bytes size) __Th___
     {
         auto&   dev = GraphicsScheduler().GetDevice();
 
-        BEGIN_ENUM_CHECKS();
-        switch ( property )
+        switch_enum( property )
         {
             case ERTASProperty::CompactedSize :     break;
             case ERTASProperty::SerializationSize : break;
@@ -1488,7 +1509,7 @@ namespace
             case ERTASProperty::_Count :
             default :                               break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         GCTX_CHECK( size == 8_b or size == UMax );
         GCTX_CHECK( IsMultipleOf( dstOffset, 8 ));
@@ -1531,7 +1552,7 @@ namespace
     PushConstant
 =================================================
 */
-    void  RayTracingContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
+    void  RayTracingContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, ShaderStructName::Ref typeName) __Th___
     {
     #ifdef AE_DEBUG
         GCTX_CHECK( typeName == Default or idx.dbgTypeName == Default or idx.dbgTypeName == typeName );

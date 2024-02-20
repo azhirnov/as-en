@@ -24,6 +24,6 @@ using namespace LFAS;
 using namespace LFAS::CPP;
 
 #include "base/Math/BitMath.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Memory/IAllocator.h"

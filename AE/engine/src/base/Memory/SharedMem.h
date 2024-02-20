@@ -8,7 +8,7 @@
 #include "base/Utils/RefCounter.h"
 #include "base/Memory/IAllocator.h"
 #include "base/Containers/ArrayView.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 #include "base/Math/POTValue.h"
 #include "base/Utils/Threading.h"
 
@@ -47,7 +47,7 @@ namespace _hidden_
 
     // variables
     private:
-        Byte32u         _size;
+        Bytes32u        _size;
         POTBytes        _align;
         Extra_t         _extra;
         RC<IAllocator>  _allocator;

@@ -58,7 +58,7 @@
         switch ( iMode )
         {
             case 0 :
-                return float4(1.0, 0.0, 0.0, 1.0) * SmoothStep( 0.0, 1.0, sd );
+                return float4(1.0, 0.0, 0.0, 1.0) * SmoothStep( sd, 0.0, 1.0 );
 
             case 1 : {
                 float   px_dist = ScreenPxRange( sdfTex, uv, pxRange );
@@ -67,13 +67,13 @@
             }
             case 2 : {
                 float2  d_uv    = gl.fwidth( uv );
-                float   w_uv    = Length( d_uv * float2(gl.texture.GetSize( sdfTex, 0 )) );
-                float   px_dist = sd * 2.0 / w_uv;
+                float   w_uv    = InvLength( d_uv * float2(gl.texture.GetSize( sdfTex, 0 )) );
+                float   px_dist = sd * 2.0 * w_uv;
                 return float4(1.0, 0.0, 0.0, 1.0) * Saturate( px_dist );
             }
             case 3 : {
                 float2  d_sd    = float2( gl.dFdx(sd), gl.dFdy(sd) );
-                float   px_dist = sd / Length(d_sd);
+                float   px_dist = sd * InvLength(d_sd);
                 return float4(1.0, 0.0, 0.0, 1.0) * Saturate( 0.5 + px_dist );
             }
         }
@@ -90,7 +90,7 @@
         switch ( iMode )
         {
             case 0 :
-                return float4(0.0, 1.0, 0.0, 1.0) * SmoothStep( 0.0, 1.0, sd );
+                return float4(0.0, 1.0, 0.0, 1.0) * SmoothStep( sd, 0.0, 1.0 );
 
             case 1 : {
                 float   px_dist = ScreenPxRange( msdfTex, uv, pxRange );
@@ -99,13 +99,13 @@
             }
             case 2 : {
                 float2  d_uv    = gl.fwidth( uv );
-                float   w_uv    = Length( d_uv * float2(gl.texture.GetSize( msdfTex, 0 )) );
-                float   px_dist = sd * 2.0 / w_uv;
+                float   w_uv    = InvLength( d_uv * float2(gl.texture.GetSize( msdfTex, 0 )) );
+                float   px_dist = sd * 2.0 * w_uv;
                 return float4(0.0, 1.0, 0.0, 1.0) * Saturate( 0.5 + px_dist );
             }
             case 3 : {
                 float2  d_sd    = float2( gl.dFdx(sd), gl.dFdy(sd) );
-                float   px_dist = sd / Length(d_sd);
+                float   px_dist = sd * InvLength(d_sd);
                 return float4(0.0, 1.0, 0.0, 1.0) * Saturate( 0.5 + px_dist );
             }
         }

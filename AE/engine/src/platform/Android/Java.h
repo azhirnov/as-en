@@ -5,10 +5,7 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-
 #ifdef AE_PLATFORM_ANDROID
-# include <jni.h>
 # include "platform/Public/Common.h"
 
 namespace AE::Java

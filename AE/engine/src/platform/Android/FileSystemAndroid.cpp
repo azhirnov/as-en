@@ -20,7 +20,7 @@ namespace
                 AAssetDir_close( dir );
         }
 
-        ND_ bool  Open (AAssetManager* mngr, const String &path) __NE___
+        ND_ bool  Open (AAssetManager* mngr, NtStringView path) __NE___
         {
             CHECK_ERR( dir == null );
             dir = AAssetManager_openDir( mngr, path.c_str() );
@@ -204,7 +204,7 @@ namespace
     Create
 =================================================
 */
-    bool  FileSystemAndroid::Create (AAssetManager* mngr, StringView folder)
+    bool  FileSystemAndroid::Create (AAssetManager* mngr, StringView folder) __NE___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -220,16 +220,9 @@ namespace
         DEBUG_ONLY( _folder = folder );
 
         // build file map
-        Array< String >     stack;
-        stack.push_back( String{folder} );
-
-        for (; not stack.empty();)
         {
-            String  path = RVRef(stack.back());
-            stack.pop_back();
-
             AssetDir    dir;
-            if ( dir.Open( _assetMngr, path ))
+            if ( dir.Open( _assetMngr, folder ))
             {
                 for (;;)
                 {
@@ -258,17 +251,17 @@ namespace
     Open
 =================================================
 */
-    bool  FileSystemAndroid::Open (OUT RC<RStream> &outStream, FileNameRef name) C_NE___
+    bool  FileSystemAndroid::Open (OUT RC<RStream> &outStream, FileName::Ref name) C_NE___
     {
         return _Open<AndroidRStream>( OUT outStream, name );
     }
 
-    bool  FileSystemAndroid::Open (OUT RC<RDataSource> &outDS, FileNameRef name) C_NE___
+    bool  FileSystemAndroid::Open (OUT RC<RDataSource> &outDS, FileName::Ref name) C_NE___
     {
         return _Open<AndroidRDataSource>( OUT outDS, name );
     }
 
-    bool  FileSystemAndroid::Open (OUT RC<AsyncRDataSource> &outDS, FileNameRef name) C_NE___
+    bool  FileSystemAndroid::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
     {
         Unused( outDS, name );
         return false;
@@ -280,7 +273,7 @@ namespace
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  FileSystemAndroid::_Open (OUT ResultType &result, FileNameRef name) C_NE___
+    bool  FileSystemAndroid::_Open (OUT ResultType &result, FileName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -301,7 +294,7 @@ namespace
     Exists
 =================================================
 */
-    bool  FileSystemAndroid::Exists (FileNameRef name) C_NE___
+    bool  FileSystemAndroid::Exists (FileName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -309,7 +302,7 @@ namespace
         return iter != _map.end();
     }
 
-    bool  FileSystemAndroid::Exists (FileGroupNameRef) C_NE___
+    bool  FileSystemAndroid::Exists (FileGroupName::Ref) C_NE___
     {
         // not supported
         return false;
@@ -335,17 +328,17 @@ namespace
     _OpenByIter
 =================================================
 */
-    bool  FileSystemAndroid::_OpenByIter (OUT RC<RStream> &stream, FileNameRef name, const void* ref) C_NE___
+    bool  FileSystemAndroid::_OpenByIter (OUT RC<RStream> &stream, FileName::Ref name, const void* ref) C_NE___
     {
         return _OpenByIter2<AndroidRStream>( OUT stream, name, ref, AASSET_MODE_STREAMING );
     }
 
-    bool  FileSystemAndroid::_OpenByIter (OUT RC<RDataSource> &ds, FileNameRef name, const void* ref) C_NE___
+    bool  FileSystemAndroid::_OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
     {
         return _OpenByIter2<AndroidRDataSource>( OUT ds, name, ref, AASSET_MODE_RANDOM );
     }
 
-    bool  FileSystemAndroid::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref) C_NE___
+    bool  FileSystemAndroid::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
     {
         Unused( ds, name, ref );
         return false;
@@ -357,7 +350,7 @@ namespace
 =================================================
 */
     template <typename ImplType, typename ResultType>
-    bool  FileSystemAndroid::_OpenByIter2 (OUT ResultType &result, FileNameRef name, const void* ref, int mode) C_NE___
+    bool  FileSystemAndroid::_OpenByIter2 (OUT ResultType &result, FileName::Ref name, const void* ref, int mode) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

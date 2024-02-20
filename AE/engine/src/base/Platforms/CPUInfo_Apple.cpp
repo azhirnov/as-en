@@ -185,6 +185,16 @@ namespace AE::Base
         return 0;
     }
 
+/*
+=================================================
+    GetPerfCounters
+=================================================
+*/
+    bool  CpuPerformance::GetPerfCounters (OUT PerProcessCounters &, OUT PerThreadCounters &) __NE___
+    {
+        return true;
+    }
+
 
 } // AE::Base
 

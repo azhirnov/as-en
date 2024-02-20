@@ -209,7 +209,7 @@ namespace
             return;
         }
 
-        if ( topology.contains( EPrimitive::TriangleListAdjacency ) |
+        if ( topology.contains( EPrimitive::TriangleListAdjacency ) or
              topology.contains( EPrimitive::TriangleStripAdjacency ))
         {
             topology.clear()
@@ -218,7 +218,7 @@ namespace
             return;
         }
 
-        if ( topology.contains( EPrimitive::LineListAdjacency ) |
+        if ( topology.contains( EPrimitive::LineListAdjacency ) or
              topology.contains( EPrimitive::LineStripAdjacency ))
         {
             topology.clear()
@@ -499,7 +499,7 @@ namespace
     SetRenderPass
 =================================================
 */
-    void  GraphicsPipelineSpecScriptBinding::SetRenderPass (const RenderPassName &rpName, const SubpassName &subpass) __Th___
+    void  GraphicsPipelineSpecScriptBinding::SetRenderPass (RenderPassName::Ref rpName, SubpassName::Ref subpass) __Th___
     {
         CHECK_THROW_MSG( rpName.IsDefined() and subpass.IsDefined() );
 
@@ -596,7 +596,7 @@ namespace
 
             for (uint bits = supported_topology.AsBits(); bits != 0; )
             {
-                EPrimitive  value = ExtractBitLog2<EPrimitive>( INOUT bits );
+                EPrimitive  value = ExtractBitIndex<EPrimitive>( INOUT bits );
                 str << ToString( value ) << (bits ? ", " : "");
             }
             RETURN_ERR( str );

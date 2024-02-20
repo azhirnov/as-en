@@ -146,7 +146,7 @@ namespace AE::Graphics::_hidden_
         void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th_OV;
         void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th_OV;
 
-        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th_OV;
+        void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th_OV;
         using IRayTracingContext::PushConstant;
 
         void  SetStackSize (Bytes size)                                                                                     __Th_OV { RawCtx::_SetStackSize( size ); }
@@ -225,7 +225,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___
+    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName) __Th___
     {
         VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         Unused( typeName );

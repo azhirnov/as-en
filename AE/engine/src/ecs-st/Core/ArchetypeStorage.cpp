@@ -37,12 +37,10 @@ namespace AE::ECS
         for (usize i = 0; i < desc.size(); ++i)
         {
             auto    u = desc[i];
-            int     j = BitScanForward( u );
+            int     j = u.ExtractBitIndex();
 
-            for (; j >= 0; j = BitScanForward( u ))
+            for (; j >= 0; j = u.ExtractBitIndex())
             {
-                u &= ~(1ull << j);
-
                 ComponentID id{ CheckCast<ushort>( j + i * CT_SizeofInBits(u) )};
 
                 auto    info = _owner.GetComponentInfo( id );

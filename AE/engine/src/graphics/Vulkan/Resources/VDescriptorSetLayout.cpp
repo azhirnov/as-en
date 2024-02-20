@@ -133,7 +133,7 @@ namespace AE::Graphics
     _AddUniform
 =================================================
 */
-    bool  VDescriptorSetLayout::_AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Byte16u* offset, INOUT DescriptorBinding &binding) C_NE___
+    bool  VDescriptorSetLayout::_AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Bytes16u* offset, INOUT DescriptorBinding &binding) C_NE___
     {
         static constexpr Bytes  align = Max( Max( AlignOf<VkDescriptorBufferInfo>, AlignOf<VkBufferView> ),
                                              Max( AlignOf<VkDescriptorImageInfo>, AlignOf<VkWriteDescriptorSetAccelerationStructureKHR> ));
@@ -148,8 +148,7 @@ namespace AE::Graphics
         bind.binding            = un.binding.vkIndex;
         bind.descriptorCount    = un.arraySize;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( un.type )
+        switch_enum( un.type )
         {
             case EDescriptorType::UniformBuffer :
                 entry_stride        = SizeOf<VkDescriptorBufferInfo>;
@@ -221,7 +220,7 @@ namespace AE::Graphics
             default_unlikely :
                 RETURN_ERR( "unsupported descriptor type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         binding.desc.push_back( bind );
 

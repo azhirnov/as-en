@@ -48,13 +48,13 @@ namespace AE::Graphics
         ND_ VkImageAspectFlags  AspectMask ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _aspectMask; }
 
         ND_ uint3 const         Dimension ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension; }
-        ND_ uint const          Width ()                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }
-        ND_ uint const          Height ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
-        ND_ uint const          Depth ()                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
-        ND_ uint const          ArrayLayers ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
-        ND_ uint const          MipmapLevels ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.maxLevel.Get(); }
+        ND_ uint                Width ()                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }
+        ND_ uint                Height ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
+        ND_ uint                Depth ()                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
+        ND_ uint                ArrayLayers ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
+        ND_ uint                MipmapLevels ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.maxLevel.Get(); }
         ND_ EPixelFormat        PixelFormat ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.format; }
-        ND_ uint const          Samples ()                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
+        ND_ uint                Samples ()                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
 
         ND_ bool                IsExclusiveSharing ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
 

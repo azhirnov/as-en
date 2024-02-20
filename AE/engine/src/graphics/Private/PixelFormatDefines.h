@@ -153,24 +153,28 @@
         _visitor_( G10x6B10x6G10x6R10x6_422_UNorm,  VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 )\
         _visitor_( G10x6_B10x6R10x6_420_UNorm,      VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 )\
         _visitor_( G10x6_B10x6R10x6_422_UNorm,      VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 )\
+        _visitor_( G10x6_B10x6R10x6_444_UNorm,      VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 )\
         _visitor_( G10x6_B10x6_R10x6_420_UNorm,     VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 )\
         _visitor_( G10x6_B10x6_R10x6_422_UNorm,     VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 )\
         _visitor_( G10x6_B10x6_R10x6_444_UNorm,     VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 )\
         _visitor_( G12x4B12x4G12x4R12x4_422_UNorm,  VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 )\
         _visitor_( G12x4_B12x4R12x4_420_UNorm,      VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 )\
         _visitor_( G12x4_B12x4R12x4_422_UNorm,      VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16 )\
+        _visitor_( G12x4_B12x4R12x4_444_UNorm,      VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 )\
         _visitor_( G12x4_B12x4_R12x4_420_UNorm,     VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16 )\
         _visitor_( G12x4_B12x4_R12x4_422_UNorm,     VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16 )\
         _visitor_( G12x4_B12x4_R12x4_444_UNorm,     VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 )\
         _visitor_( G16B16G16R16_422_UNorm,          VK_FORMAT_G16B16G16R16_422_UNORM )\
         _visitor_( G16_B16R16_420_UNorm,            VK_FORMAT_G16_B16R16_2PLANE_420_UNORM )\
         _visitor_( G16_B16R16_422_UNorm,            VK_FORMAT_G16_B16R16_2PLANE_422_UNORM )\
+        _visitor_( G16_B16R16_444_UNorm,            VK_FORMAT_G16_B16R16_2PLANE_444_UNORM )\
         _visitor_( G16_B16_R16_420_UNorm,           VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM )\
         _visitor_( G16_B16_R16_422_UNorm,           VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM )\
         _visitor_( G16_B16_R16_444_UNorm,           VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM )\
         _visitor_( G8B8G8R8_422_UNorm,              VK_FORMAT_G8B8G8R8_422_UNORM )\
         _visitor_( G8_B8R8_420_UNorm,               VK_FORMAT_G8_B8R8_2PLANE_420_UNORM )\
         _visitor_( G8_B8R8_422_UNorm,               VK_FORMAT_G8_B8R8_2PLANE_422_UNORM )\
+        _visitor_( G8_B8R8_444_UNorm,               VK_FORMAT_G8_B8R8_2PLANE_444_UNORM )\
         _visitor_( G8_B8_R8_420_UNorm,              VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM )\
         _visitor_( G8_B8_R8_422_UNorm,              VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM )\
         _visitor_( G8_B8_R8_444_UNorm,              VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM )\
@@ -587,25 +591,3 @@
         _visitor_( UInt_2_10_10_10_Norm, UInt1010102Normalized, macos 10.12, ios 10 )\
         /*_visitor_( UInt_2_10_10_10_Scaled, )*/\
 
-/*
-=================================================
-    AE_PRIVATE_MTLVIDEOIMAGEFORMATS
-=================================================
-*
-#   define AE_PRIVATE_MTLVIDEOIMAGEFORMATS( _visitor_ )\
-        _visitor_( ,                                kCMPixelFormat_16BE555,         macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_16BE565,         macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_16LE555,         macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_16LE5551,        macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_16LE565,         macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_24RGB,           macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_32ARGB,          macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_32BGRA,          macos 10.7, ios 4 )\
-        _visitor_( G10x6_B10x6_R10x6_422_UNorm,     kCMPixelFormat_422YpCbCr10,     macos 10.7, ios 4 )\
-        _visitor_( G16_B16R16_422_UNorm,            kCMPixelFormat_422YpCbCr16,     macos 10.7, ios 4 )\
-        _visitor_( G8_B8_R8_422_UNorm,              kCMPixelFormat_422YpCbCr8,      macos 10.7, ios 4 )\
-        _visitor_( G8_B8_R8_422_UNorm,              kCMPixelFormat_422YpCbCr8_yuvs, macos 10.7, ios 4 )\
-        _visitor_( ,                                kCMPixelFormat_4444YpCbCrA8,    macos 10.7, ios 4 )\
-        _visitor_( G10x6_B10x6_R10x6_444_UNorm,     kCMPixelFormat_444YpCbCr10,     macos 10.7, ios 4 )\
-        _visitor_( G8_B8_R8_444_UNorm,              kCMPixelFormat_444YpCbCr8,      macos 10.7, ios 4 )\
-*/

@@ -67,7 +67,7 @@
     {
         Deinitialize();
 
-        _memSizeAlign = Byte16u{_resMngr.GetDevice().GetDeviceProperties().res.minNonCoherentAtomSize};
+        _memSizeAlign = Bytes16u{_resMngr.GetDevice().GetDeviceProperties().res.minNonCoherentAtomSize};
 
         // staging buffer for host to device requires coherent memory
         CHECK_ERR( _resMngr.IsSupported( EMemoryType::Unified ) or _resMngr.IsSupported( EMemoryType::HostCoherent ));
@@ -271,27 +271,27 @@
     {
         ASSERT( uint(queue) < _QueueCount );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( heap )
+        switch_enum( heap )
         {
             case EStagingHeapType::Static :
             {
                 const uint      q           = uint(queue);
-                const Bytes     max_size    = (upload ? _static.writeSize[q] : _static.readSize[q]) / GraphicsConfig::MaxStagingBufferParts;
-                const Bytes     min_size    = (reqSize + BufferMemView::Count - 1) / BufferMemView::Count;
+                const Bytes     max_size    = DivCeil( upload ? _static.writeSize[q] : _static.readSize[q], GraphicsConfig::MaxStagingBufferParts );
+                const Bytes     min_size    = DivCeil( reqSize, GraphicsConfig::MaxStagingBufferParts );
                 return AlignUp( Min( min_size, max_size ), _BlockAlign );
             }
             case EStagingHeapType::Dynamic :
             case EStagingHeapType::Any :
             {
-                const Bytes     max_size    = _dynamic.blockSize / GraphicsConfig::MaxStagingBufferParts;
-                const Bytes     min_size    = (reqSize + ImageMemView::Count - 1) / ImageMemView::Count;
+                const Bytes     avail_size  = Min( (upload ? _dynamic.write.maxPerFrame : _dynamic.read.maxPerFrame).load(), _dynamic.blockSize );
+                const Bytes     max_size    = DivCeil( avail_size, GraphicsConfig::MaxStagingBufferParts );
+                const Bytes     min_size    = DivCeil( reqSize, GraphicsConfig::MaxStagingBufferParts );
                 return AlignUp( Min( min_size, max_size ), _BlockAlign );
             }
             default_unlikely:
                 RETURN_ERR( "unsupported heap type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -302,12 +302,12 @@
 =================================================
 */
     template <typename RangeType, typename BufferType>
-    bool  STBUFMNGR::_AllocStatic (const Byte32u reqSize, const Byte32u blockSize, const Byte32u memOffsetAlign,
+    bool  STBUFMNGR::_AllocStatic (const Bytes32u reqSize, const Bytes32u blockSize, const Bytes32u memOffsetAlign,
                                    INOUT RangeType &result, BufferType& sb)
     {
-        Byte32u     expected    = 0_b;
-        Byte32u     new_size    = 0_b;
-        Byte32u     offset      = 0_b;
+        Bytes32u    expected    = 0_b;
+        Bytes32u    new_size    = 0_b;
+        Bytes32u    offset      = 0_b;
 
         for (;;)
         {
@@ -346,7 +346,7 @@
 =================================================
 */
     bool  STBUFMNGR::_AllocStaticImage (const Bytes reqSize, const Bytes rowPitch, const Bytes slicePitch, const Bytes memOffsetAlign,
-                                        const uint2 &texelBlockSize, const uint3 &imageOffset, const uint3 &imageSize,
+                                        const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDim,
                                         INOUT StagingImageResultRanges &result, StaticBuffer& sb)
     {
         ASSERT( rowPitch > 0 );
@@ -357,10 +357,10 @@
         {
             auto&       res     = result.buffers.back();
             const uint  z_size  = Max( 1u, CheckCast<uint>( res.size / slicePitch ));
-            ASSERT( imageSize.z >= z_size );
+            ASSERT( imageDim.z >= z_size );
 
           #if defined(AE_ENABLE_VULKAN)
-            res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockSize.y) / rowPitch ));
+            res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
 
           #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
             res.bufferSlicePitch    = slicePitch;
@@ -371,9 +371,9 @@
 
             res.imageOffset = imageOffset;
 
-            res.imageSize.x = imageSize.x;
-            res.imageSize.y = imageSize.y;
-            res.imageSize.z = z_size;
+            res.imageDim.x  = imageDim.x;
+            res.imageDim.y  = imageDim.y;
+            res.imageDim.z  = z_size;
             return true;
         }
 
@@ -381,10 +381,10 @@
         if_likely( _AllocStatic( reqSize, rowPitch, memOffsetAlign, INOUT result.buffers, sb ))
         {
             auto&       res     = result.buffers.back();
-            const uint  y_size  = Max( 1u, CheckCast<uint>( (res.size * texelBlockSize.y) / rowPitch ));
+            const uint  y_size  = Max( 1u, CheckCast<uint>( (res.size * texelBlockDim.y) / rowPitch ));
 
-            ASSERT( imageSize.y >= y_size );
-            ASSERT( IsMultipleOf( y_size, texelBlockSize.y ));
+            ASSERT( imageDim.y >= y_size );
+            ASSERT( IsMultipleOf( y_size, texelBlockDim.y ));
 
           #if defined(AE_ENABLE_VULKAN)
             res.bufferImageHeight   = y_size;
@@ -398,9 +398,9 @@
 
             res.imageOffset = imageOffset;
 
-            res.imageSize.x = imageSize.x;
-            res.imageSize.y = y_size;
-            res.imageSize.z = 1;
+            res.imageDim.x  = imageDim.x;
+            res.imageDim.y  = y_size;
+            res.imageDim.z  = 1;
             return true;
         }
 
@@ -465,10 +465,10 @@
         if_unlikely( blockSize > _dynamic.blockSize )
             return false;
 
-        auto&       allocated_size  = upload ? _dynamic.write.allocated             : _dynamic.read.allocated;
-        const auto  max_size        = upload ? _dynamic.write.maxSize               : _dynamic.read.maxSize;
-        const auto  max_per_frame   = upload ? _dynamic.write.maxPerFrame.load()    : _dynamic.read.maxPerFrame.load();
-        auto&       used_per_frame  = upload ? _dynamic.write.usedPerFrame          : _dynamic.read.usedPerFrame;
+        auto&       allocated_size  = upload ? _dynamic.write.allocated     : _dynamic.read.allocated;
+        const auto  max_size        = upload ? _dynamic.write.maxSize       : _dynamic.read.maxSize;
+        const auto  max_per_frame   = (upload ? _dynamic.write.maxPerFrame  : _dynamic.read.maxPerFrame).load();
+        auto&       used_per_frame  = upload ? _dynamic.write.usedPerFrame  : _dynamic.read.usedPerFrame;
         const auto  used_mem        = used_per_frame.load();
         uint        num_allocs      = 0;
 
@@ -488,7 +488,7 @@
                     ASSERT( res.size <= reqSize );
 
                     reqSize -= res.size;
-                    num_allocs ++;
+                    ++num_allocs;
 
                     if_unlikely( used_per_frame.Add( res.size ) >= max_per_frame )
                         return true;
@@ -526,11 +526,11 @@
             }
 
             CHECK_ERR( _AddToCurrent( INOUT reqSize, blockSize, memOffsetAlign, RVRef(buf_id), INOUT buffers, db ));
+            ++num_allocs;
 
             if_unlikely( used_per_frame.Add( buffers.back().size ) >= max_per_frame )
                 return true;
 
-            ++num_allocs;
             if constexpr( SingleAlloc )
                 return true;
         }
@@ -551,11 +551,11 @@
             allocated_size.fetch_add( _dynamic.blockSize );
 
             CHECK_ERR( _AddToCurrent( INOUT reqSize, blockSize, memOffsetAlign, RVRef(buf_id), INOUT buffers, db ));
+            ++num_allocs;
 
             if_unlikely( used_per_frame.Add( buffers.back().size ) >= max_per_frame )
                 return true;
 
-            ++num_allocs;
             if constexpr( SingleAlloc )
                 return true;
         }
@@ -571,7 +571,7 @@
 =================================================
 */
     void  STBUFMNGR::_AllocDynamicImage (FrameUID frameId, Bytes reqSize, const Bytes rowPitch, const Bytes slicePitch, const Bytes memOffsetAlign,
-                                         const uint2 &texelBlockSize, const uint3 &imageOffset, const uint3 &regionSize, bool upload,
+                                         const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &regionDim, bool upload,
                                          INOUT StagingImageResultRanges &result, DynamicBuffers& db) const
     {
         ASSERT( rowPitch > 0 );
@@ -581,7 +581,7 @@
         uint3   local_offset {0};
 
         // try to allocate some slices
-        for (; (reqSize > 0) & (result.buffers.size() < ImageMemView::Count);)
+        for (; (reqSize > 0) and (result.buffers.size() < ImageMemView::Count);)
         {
             if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, slicePitch, memOffsetAlign, upload, INOUT result.buffers, db ))
             {
@@ -589,11 +589,11 @@
                 const uint  z_size  = Max( 1u, CheckCast<uint>( res.size / slicePitch ));
 
                 ASSERT( res.size >= slicePitch );
-                ASSERT( regionSize.z >= z_size );
+                ASSERT( regionDim.z >= z_size );
                 ASSERT( IsMultipleOf( res.size, slicePitch ));
 
               #if defined(AE_ENABLE_VULKAN)
-                res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockSize.y) / rowPitch ));
+                res.bufferImageHeight   = Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
 
               #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
                 res.bufferSlicePitch    = slicePitch;
@@ -604,29 +604,29 @@
 
                 res.imageOffset = imageOffset + local_offset;
 
-                res.imageSize.x = regionSize.x;
-                res.imageSize.y = regionSize.y;
-                res.imageSize.z = z_size;
+                res.imageDim.x  = regionDim.x;
+                res.imageDim.y  = regionDim.y;
+                res.imageDim.z  = z_size;
 
                 local_offset.z += z_size;
 
-                ASSERT( All( local_offset <= regionSize ));
+                ASSERT( All( local_offset <= regionDim ));
                 continue;
             }
             break;
         }
 
         // try to allocate some rows
-        for (; (reqSize > 0) & (result.buffers.size() < ImageMemView::Count);)
+        for (; (reqSize > 0) and (result.buffers.size() < ImageMemView::Count);)
         {
             if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, rowPitch, memOffsetAlign, upload, INOUT result.buffers, db ))
             {
                 auto&       res     = result.buffers.back();
-                const uint  y_size  = Max( 1u, CheckCast<uint>( (res.size * texelBlockSize.y) / rowPitch ));
+                const uint  y_size  = Max( 1u, CheckCast<uint>( (res.size * texelBlockDim.y) / rowPitch ));
 
                 ASSERT( res.size >= rowPitch );
-                ASSERT( regionSize.y >= y_size );
-                ASSERT( IsMultipleOf( y_size, texelBlockSize.y ));
+                ASSERT( regionDim.y >= y_size );
+                ASSERT( IsMultipleOf( y_size, texelBlockDim.y ));
 
               #if defined(AE_ENABLE_VULKAN)
                 res.bufferImageHeight   = y_size;
@@ -640,14 +640,14 @@
 
                 res.imageOffset = imageOffset + local_offset;
 
-                res.imageSize.x = regionSize.x;
-                res.imageSize.y = y_size;
-                res.imageSize.z = 1;
+                res.imageDim.x  = regionDim.x;
+                res.imageDim.y  = y_size;
+                res.imageDim.z  = 1;
 
                 local_offset.y += y_size;
-                ASSERT( All( local_offset <= regionSize ));
+                ASSERT( All( local_offset <= regionDim ));
 
-                if_unlikely( local_offset.y >= regionSize.y )
+                if_unlikely( local_offset.y >= regionDim.y )
                     return; // can not merge slices into ImageMemView
 
                 continue;
@@ -669,8 +669,7 @@
 
         const Bytes block_size = (blockSize == 0_b ? _CalcBlockSize( reqSize, heap, queue, upload ) : Min( reqSize, blockSize ));
 
-        BEGIN_ENUM_CHECKS();
-        switch ( heap )
+        switch_enum( heap )
         {
             // static heap has only one staging buffer so loop is not needed
             case EStagingHeapType::Static :
@@ -696,7 +695,7 @@
             default_unlikely:
                 AE_LOGE( "unknown staging heap type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -709,10 +708,10 @@
         ASSERT( _frameId.load() == frameId );
 
         auto&           vb              = _vstream.buffers[ frameId.Index() ];
-        const Byte32u   offset_align    = 64_b;     // TODO
-        Byte32u         expected        = 0_b;
-        const Byte32u   new_size        = reqSize;
-        Byte32u         offset          = 0_b;
+        const Bytes32u  offset_align    = 64_b;     // TODO
+        Bytes32u        expected        = 0_b;
+        const Bytes32u  new_size        = reqSize;
+        Bytes32u        offset          = 0_b;
 
         for (;;)
         {
@@ -744,41 +743,44 @@
                                      const uint3 &imageGranularity, const FrameUID frameId, const EQueueType queue, const Bool upload) __NE___
     {
         ASSERT( _frameId.load() == frameId );
-        ASSERT( All( uploadDesc.imageSize > Zero ));
+        ASSERT( All( uploadDesc.imageDim > Zero ));
         ASSERT( result.buffers.empty() );
         ASSERT( All( imageGranularity > Zero ));
-        ASSERT( AnyEqual( uploadDesc.aspectMask, EImageAspect::Color, EImageAspect::Depth, EImageAspect::Stencil ));    // TODO: image planes
 
+        CHECK_ERRV( IsSingleBitSet( uploadDesc.aspectMask ));
+        CHECK_ERRV( AnyBits( uploadDesc.aspectMask, EImageAspect::Color | EImageAspect::Depth | EImageAspect::Stencil ));
         CHECK_ERRV( uint(queue) < _QueueCount );
         CHECK_ERRV( uploadDesc.mipLevel < imgDesc.maxLevel );
         CHECK_ERRV( uploadDesc.arrayLayer < imgDesc.arrayLayers );
-        CHECK_ERRV( IsSingleBitSet( uploadDesc.aspectMask ));
 
         const auto&     fmt_info            = EPixelFormat_GetInfo( imgDesc.format );
         const uint2     texblock_dim        = fmt_info.TexBlockDim();   // TODO: use imageGranularity
-        const uint3     mip_size            = ImageUtils::MipmapDimension( imgDesc.dimension, uploadDesc.mipLevel.Get(), texblock_dim );
-        const uint3     region_size         = Min( mip_size, Max( uploadDesc.imageSize, 1u ));
+        const uint3     mip_dim             = ImageUtils::MipmapDimension( imgDesc.dimension, uploadDesc.mipLevel.Get(), texblock_dim );
+        const uint3     region_dim          = Min( mip_dim, Max( uploadDesc.imageDim, 1u ));
         const uint      texblock_bits       = uploadDesc.aspectMask != EImageAspect::Stencil ? fmt_info.bitsPerBlock : fmt_info.bitsPerBlock2;
-        const Bytes     row_pitch           = Max( uploadDesc.dataRowPitch, Bytes{region_size.x * texblock_bits + texblock_dim.x-1} / (texblock_dim.x * 8) );
-        const Bytes     min_slice_pitch     = (region_size.y * row_pitch + texblock_dim.y-1) / texblock_dim.y;
+        const Bytes     row_pitch           = Max( uploadDesc.dataRowPitch, Bytes{region_dim.x * texblock_bits + texblock_dim.x-1} / (texblock_dim.x * 8) );
+        const Bytes     min_slice_pitch     = (region_dim.y * row_pitch + texblock_dim.y-1) / texblock_dim.y;
         const Bytes     slice_pitch         = Max( uploadDesc.dataSlicePitch, min_slice_pitch );
-        const Bytes     total_size          = region_size.z > 1 ? slice_pitch * region_size.z : min_slice_pitch;
+        const Bytes     total_size          = region_dim.z > 1 ? slice_pitch * region_dim.z : min_slice_pitch;
         const uint      row_length          = CheckCast<uint>((row_pitch * texblock_dim.x * 8) / texblock_bits);
         const Bytes     mem_offset_align    = Bytes{ (texblock_bits + 7) / 8 };
 
-        CHECK_ERRV( All( uploadDesc.imageOffset < mip_size ));
-        CHECK_ERRV( All( uploadDesc.imageOffset + region_size <= mip_size ));
+        ASSERT( IsPowerOfTwo( mem_offset_align ));
+
+        CHECK_ERRV( All( uploadDesc.imageOffset < mip_dim ));
+        CHECK_ERRV( All( uploadDesc.imageOffset + region_dim <= mip_dim ));
         CHECK_ERRV( All( IsMultipleOf( uint2{uploadDesc.imageOffset}, texblock_dim )));
-        CHECK_ERRV( All( IsMultipleOf( uint2{region_size}, texblock_dim )));
-        CHECK_ERRV( All( IsMultipleOf( region_size, imageGranularity )));
+        CHECK_ERRV( All( IsMultipleOf( uint2{region_dim}, texblock_dim )));
+        CHECK_ERRV( All( IsMultipleOf( region_dim, imageGranularity )));
         CHECK_ERRV( total_size >= slice_pitch );
 
         result.dataRowPitch     = row_pitch;
         result.dataSlicePitch   = slice_pitch;
         result.bufferRowLength  = row_length;
+        result.format           = imgDesc.format;
+        result.planeScaleY      = 1;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( uploadDesc.heapType )
+        switch_enum( uploadDesc.heapType )
         {
             // static heap has only one staging buffer so loop is not needed
             case EStagingHeapType::Static :
@@ -787,7 +789,7 @@
                 auto&       sb  = upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
 
                 Unused( _AllocStaticImage( total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
-                                           uploadDesc.imageOffset, region_size, INOUT result, sb ));
+                                           uploadDesc.imageOffset, region_dim, INOUT result, sb ));
                 ASSERT( result.buffers.size() <= 1 );
                 return;
             }
@@ -798,14 +800,93 @@
                 auto&   db  = upload ? _dynamic.write.buffers : _dynamic.read.buffers;
 
                 _AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
-                                    uploadDesc.imageOffset, region_size, upload, INOUT result, db );
+                                    uploadDesc.imageOffset, region_dim, upload, INOUT result, db );
                 return;
             }
 
             default_unlikely:
                 AE_LOGE( "unknown staging heap type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
+    }
+
+/*
+=================================================
+    GetImageRanges (multiplanar)
+=================================================
+*/
+    void  STBUFMNGR::GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &uploadDesc, const VideoImageDesc &imgDesc,
+                                     const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload) __NE___
+    {
+        ASSERT( _frameId.load() == frameId );
+        ASSERT( All( uploadDesc.imageDim > Zero ));
+        ASSERT( result.buffers.empty() );
+        ASSERT( All( imageGranularity > Zero ));
+
+        CHECK_ERRV( IsSingleBitSet( uploadDesc.aspectMask ));
+        CHECK_ERRV( AnyBits( uploadDesc.aspectMask, EImageAspect::_PlaneMask ));
+        CHECK_ERRV( uint(queue) < _QueueCount );
+        CHECK_ERRV( uploadDesc.mipLevel == 0_mipmap );
+        CHECK_ERRV( uploadDesc.arrayLayer < imgDesc.arrayLayers );
+
+        EPixelFormat    plane_fmt;
+        uint2           plane_scale;
+        CHECK_ERRV( EPixelFormat_GetPlaneInfo( imgDesc.format, uploadDesc.aspectMask, OUT plane_fmt, OUT plane_scale ));
+
+        const auto&     fmt_info            = EPixelFormat_GetInfo( plane_fmt );
+        const uint2     plane_dim           = imgDesc.dimension / plane_scale;
+        const uint2     region_dim          = Min( plane_dim, Max( uint2{uploadDesc.imageDim}, 1u ));
+        const Bytes     texblock_bytes      = fmt_info.BytesPerBlock();
+        const Bytes     row_pitch           = Max( uploadDesc.dataRowPitch, Bytes{region_dim.x * texblock_bytes} );
+        const Bytes     min_slice_pitch     = region_dim.y * row_pitch;
+        const Bytes     slice_pitch         = Max( uploadDesc.dataSlicePitch, min_slice_pitch );
+        const Bytes     total_size          = min_slice_pitch;
+        const uint      row_length          = CheckCast<uint>( row_pitch / texblock_bytes );
+        const Bytes     mem_offset_align    = texblock_bytes;
+
+        ASSERT( IsPowerOfTwo( mem_offset_align ));
+        ASSERT( All( fmt_info.TexBlockDim() == uint2{1} ));
+        ASSERT( fmt_info.bitsPerBlock == texblock_bytes*8 );
+
+        CHECK_ERRV( All( uploadDesc.imageOffset < uint3{plane_dim,1} ));
+        CHECK_ERRV( All( uploadDesc.imageOffset + uint3{region_dim,1} <= uint3{plane_dim,1} ));
+        CHECK_ERRV( All( IsMultipleOf( region_dim, uint2{imageGranularity} )));
+        CHECK_ERRV( total_size >= slice_pitch );
+
+        result.dataRowPitch     = row_pitch;
+        result.dataSlicePitch   = slice_pitch;
+        result.bufferRowLength  = row_length;
+        result.format           = plane_fmt;
+        result.planeScaleY      = plane_scale.y;
+
+        switch_enum( uploadDesc.heapType )
+        {
+            // static heap has only one staging buffer so loop is not needed
+            case EStagingHeapType::Static :
+            {
+                const uint  i   = frameId.Index() * _QueueCount + uint(queue);
+                auto&       sb  = upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
+
+                Unused( _AllocStaticImage( total_size, row_pitch, slice_pitch, mem_offset_align, uint2{1},
+                                           uploadDesc.imageOffset, uint3{region_dim,1}, INOUT result, sb ));
+                ASSERT( result.buffers.size() <= 1 );
+                return;
+            }
+
+            case EStagingHeapType::Dynamic :
+            case EStagingHeapType::Any :        // TODO: try static & dynamic
+            {
+                auto&   db  = upload ? _dynamic.write.buffers : _dynamic.read.buffers;
+
+                _AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, uint2{1},
+                                    uploadDesc.imageOffset, uint3{region_dim,1}, upload, INOUT result, db );
+                return;
+            }
+
+            default_unlikely:
+                AE_LOGE( "unknown staging heap type" );
+        }
+        switch_end
     }
 
 /*

@@ -16,7 +16,7 @@
 #endif
 #include "base/Defines/Undef.h"
 
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Utils/SourceLoc.h"
 
 namespace AE::Base
@@ -65,10 +65,10 @@ namespace AE::Base
         static bool  SetCurrentPath (const Path &p)                     __NE___;
 
         // Returns 'true' if path refers to a file.
-        ND_ static bool  IsFile (const Path &p)                         __NE___ { return _Exists( p ) and _IsFile( p ); }
+        ND_ static bool  IsFile (const Path &p)                         __NE___ { return _IsFile( p ); }
 
         // Returns 'true' if path refers to a directory.
-        ND_ static bool  IsDirectory (const Path &p)                    __NE___ { return _Exists( p ) and _IsDirectory( p ); }
+        ND_ static bool  IsDirectory (const Path &p)                    __NE___ { return _IsDirectory( p ); }
 
         // Returns 'true' if path refers to a file or directory.
         ND_ static bool  IsFileOrDirectory (const Path &p)              __NE___ { return _Exists( p ); }
@@ -136,6 +136,8 @@ namespace AE::Base
         //
         static void  FindUnusedFilename (const Function< void (OUT Path &, usize idx) > &   buildName,
                                          const Function< bool (const Path &) > &            consume)                        __Th___;
+
+        ND_ static StringView  ToShortPath (StringView file)            __NE___;
 
 
     // platform dependent
@@ -296,14 +298,14 @@ namespace AE::Base
     inline FileSystem::DirectoryEntry const*  FileSystem::DirectoryIter::operator -> ()         C_NE___ { return reinterpret_cast<DirectoryEntry const*>( _it.operator->() ); }
 
     inline FileSystem::DirectoryIter  begin (FileSystem::DirectoryIter it)                      __NE___ { return it; }
-    inline FileSystem::DirectoryIter  end   (FileSystem::DirectoryIter it)                      __NE___ { return {}; }
+    inline FileSystem::DirectoryIter  end   (FileSystem::DirectoryIter)                         __NE___ { return {}; }
 
 
     inline FileSystem::DirectoryEntry const&  FileSystem::RecursiveDirectoryIter::operator * () C_NE___ { return reinterpret_cast<DirectoryEntry const&>( _it.operator* () ); }
     inline FileSystem::DirectoryEntry const*  FileSystem::RecursiveDirectoryIter::operator ->() C_NE___ { return reinterpret_cast<DirectoryEntry const*>( _it.operator->() ); }
 
     inline FileSystem::RecursiveDirectoryIter  begin (FileSystem::RecursiveDirectoryIter it)    __NE___ { return it; }
-    inline FileSystem::RecursiveDirectoryIter  end   (FileSystem::RecursiveDirectoryIter it)    __NE___ { return {}; }
+    inline FileSystem::RecursiveDirectoryIter  end   (FileSystem::RecursiveDirectoryIter)       __NE___ { return {}; }
 
 
     inline bool  FileSystem::Remove (const Path &p) __NE___
@@ -446,8 +448,8 @@ namespace AE::Base
             T&  c = name[i];
 
         #if defined(AE_PLATFORM_WINDOWS)
-            if ( (c == T('/')) | (c == T('\\')) | (c == T('?')) | (c == T('%')) | (c == T('*')) |
-                 (c == T('|')) | (c == T(':'))  | (c == T('"')) | (c == T('<')) | (c == T('>')) )
+            if ( (c == T('/')) or (c == T('\\')) or (c == T('?')) or (c == T('%')) or (c == T('*')) or
+                 (c == T('|')) or (c == T(':'))  or (c == T('"')) or (c == T('<')) or (c == T('>')) )
             {
                 res = false;
                 c = T('_');

@@ -211,7 +211,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
     uint2   tile_size {0};
     {
         enum class E : uint { _Count    = 64 * 64 };
-        EnumBitSet<E>   bits;
+        EnumSet<E>  bits;
         CHECK_ERRV( bits.size() == pixel_count );
 
         for (uint i = 0; i < pixel_count; ++i)

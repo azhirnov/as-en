@@ -27,7 +27,7 @@ namespace
         // shared
         GAutorelease<ImageID>           image [2];
         GAutorelease<ImageViewID>       view  [2];
-        const uint2                     imageSize   {800, 600};
+        const uint2                     imageDim    {800, 600};
         Atomic<uint>                    frameIdx    {0};
 
         // graphics
@@ -75,8 +75,8 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Draw_1;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.imageSize }
-                                    .AddViewport( t.imageSize )
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.imageDim }
+                                    .AddViewport( t.imageDim )
                                     .AddTarget( rtech_pass.att_Color, t.view[fi], RGBA32f{1.0f} ));
 
                 dctx.BindPipeline( t.gppln );
@@ -114,7 +114,7 @@ namespace
 
             ctx.BindPipeline( t.cppln );
             ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
-            ctx.Dispatch( DivCeil( t.imageSize, 4u ));
+            ctx.Dispatch( DivCeil( t.imageDim, 4u ));
 
             Execute( ctx );
         }
@@ -283,11 +283,11 @@ namespace
 
         CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
-        t.image[0] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+        t.image[0] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageDim )
                                                 .SetFormat( format )
                                                 .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                            "Image-0", t.gfxAlloc );
-        t.image[1] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+        t.image[1] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageDim )
                                                 .SetFormat( format )
                                                 .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                            "Image-1", t.gfxAlloc );

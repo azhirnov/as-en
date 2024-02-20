@@ -19,6 +19,9 @@ ND_ float4  FullscreenTrianglePos ()    { return float4( float2( gl.VertexIndex>
 // range 0..1
 ND_ float2  FullscreenQuadUV ()         { return float2( gl.VertexIndex>>1, gl.VertexIndex&1 ) * 2.f; }
 
+// range 0..1
+ND_ float2  ProceduralQuadUV ()         { return float2( (gl.VertexIndex>>1)&1, gl.VertexIndex&1 ); }
+
 #endif
 //-----------------------------------------------------------------------------
 
@@ -37,7 +40,7 @@ ND_ float  FSBarycentricWireframe (float thicknessPx, float falloffPx)
     const float3    d_thickness     = d_barycoord * thicknessPx;
     const float3    d_falloff       = d_barycoord * falloffPx;
 
-    const float3    remap           = SmoothStep( d_thickness, d_thickness + d_falloff, gl.BaryCoord);
+    const float3    remap           = SmoothStep( gl.BaryCoord, d_thickness, d_thickness + d_falloff );
     const float     wireframe       = Min( remap.x, Min( remap.y, remap.z ));
     return wireframe;
 }

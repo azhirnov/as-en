@@ -140,7 +140,7 @@
             dist = Min( dist, d );
         }
 
-        color.g = Saturate( 1.0 - SmoothStep( -0.005, 0.005, dist ));
+        color.g = Saturate( 1.0 - SmoothStep( dist, -0.005, 0.005 ));
         color.b *= (1.0 - color.g);
 
         gl.image.Store( un_OutImage, GetGlobalCoord(), color );

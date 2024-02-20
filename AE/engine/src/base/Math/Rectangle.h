@@ -86,9 +86,9 @@ namespace AE::Math
         ND_ T const*            data ()                             C_NE___ { return std::addressof( left ); }
         ND_ T *                 data ()                             __NE___ { return std::addressof( left ); }
 
-        ND_ constexpr bool      IsEmpty ()                          C_NE___ { return Equal( left, right ) | Equal( top, bottom ); }
-        ND_ constexpr bool      IsInvalid ()                        C_NE___ { return (right < left) | (bottom < top); }
-        ND_ constexpr bool      IsValid ()                          C_NE___ { return (not IsEmpty()) & (not IsInvalid()); }
+        ND_ constexpr bool      IsEmpty ()                          C_NE___ { return Equal( left, right ) or Equal( top, bottom ); }
+        ND_ constexpr bool      IsInvalid ()                        C_NE___ { return (right < left) or (bottom < top); }
+        ND_ constexpr bool      IsValid ()                          C_NE___ { return (not IsEmpty()) and (not IsInvalid()); }
 
         ND_ constexpr bool      IsNormalized ()                     C_NE___;
             constexpr Self&     Normalize ()                        __NE___;
@@ -280,7 +280,7 @@ namespace AE::Math
     template <typename T>
     constexpr bool  Rectangle<T>::IsNormalized () C_NE___
     {
-        return (left <= right) & (top <= bottom);
+        return (left <= right) and (top <= bottom);
     }
 
 /*
@@ -304,14 +304,14 @@ namespace AE::Math
     template <typename T>
     bool  Rectangle<T>::Intersects (const Vec2_t &point) C_NE___
     {
-        return (point.x >= left) & (point.x < right) & (point.y >= top) & (point.y < bottom);
+        return (point.x >= left) and (point.x < right) and (point.y >= top) and (point.y < bottom);
     }
 
     template <typename T>
     constexpr bool  Rectangle<T>::Intersects (const Self &other) C_NE___
     {
-        return  ((left < other.right) & (right > other.left) & (bottom > other.top) & (top < other.bottom)) |
-                ((other.right < left) & (other.left > right) & (other.top > bottom) & (other.bottom < top));
+        return  ((left < other.right) and (right > other.left) and (bottom > other.top) and (top < other.bottom)) or
+                ((other.right < left) and (other.left > right) and (other.top > bottom) and (other.bottom < top));
     }
 
 /*

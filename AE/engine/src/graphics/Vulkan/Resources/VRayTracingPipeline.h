@@ -67,12 +67,12 @@ namespace AE::Graphics
                                     ShaderDebugger::ELogFormat  logFmt,
                                     OUT Array<String>           &result)    C_NE___;
 
-        ND_ Bytes  GetShaderGroupStackSize (const VDevice             &dev,
-                                            const RayTracingGroupName &name,
-                                            VkShaderGroupShaderKHR    type) C_NE___;
+        ND_ Bytes  GetShaderGroupStackSize (const VDevice            &dev,
+                                            RayTracingGroupName::Ref name,
+                                            VkShaderGroupShaderKHR   type)  C_NE___;
 
             bool  CopyHandle (const VDevice             &,
-                              const RayTracingGroupName &,
+                              RayTracingGroupName::Ref  ,
                               OUT void*                 dst,
                               Bytes                     dstSize)            C_NE___;
 

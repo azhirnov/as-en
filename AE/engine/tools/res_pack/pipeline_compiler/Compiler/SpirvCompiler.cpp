@@ -9,7 +9,7 @@
 #   pragma warning (disable: 4005)
 #   pragma warning (disable: 4668)
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
@@ -39,10 +39,11 @@
 #ifdef AE_ENABLE_GLSL_TRACE
 #   include "ShaderTrace.h"
 #else
+#   include "Packer/ShaderTraceDummy.h"
 #   pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 12 or GLSLANG_VERSION_MINOR != 3 or GLSLANG_VERSION_PATCH != 1
+#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 0 or GLSLANG_VERSION_PATCH != 0
 #   error invalid glslang version
 #endif
 
@@ -54,7 +55,7 @@
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
 #endif
 #ifdef AE_COMPILER_GCC
@@ -445,8 +446,7 @@ namespace AE::PipelineCompiler
 */
     ND_ static EShLanguage  ConvertShaderType (EShader shaderType)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( shaderType )
+        switch_enum( shaderType )
         {
             case EShader::Vertex :          return EShLangVertex;
             case EShader::TessControl :     return EShLangTessControl;
@@ -466,7 +466,7 @@ namespace AE::PipelineCompiler
             case EShader::Unknown :
             case EShader::_Count :          break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown shader type", EShLangCount );
     }
 
@@ -1118,8 +1118,7 @@ namespace AE::PipelineCompiler
         TSampler const& samp    = type.getSampler();
         EImageType      result  = Default;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( samp.getBasicType() )
+        switch_enum( samp.getBasicType() )
         {
             case TBasicType::EbtFloat :
             case TBasicType::EbtDouble :
@@ -1161,7 +1160,7 @@ namespace AE::PipelineCompiler
             default :
                 COMP_RETURN_ERR( "unknown basic type!" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( samp.isShadow() )
         {
@@ -1173,8 +1172,7 @@ namespace AE::PipelineCompiler
             result |= EImageType::Depth;    // TODO: depth stencil
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( samp.dim )
+        switch_enum( samp.dim )
         {
             case TSamplerDim::Esd1D :
             {
@@ -1222,7 +1220,7 @@ namespace AE::PipelineCompiler
             default :
                 COMP_RETURN_ERR( "unknown sampler dimension type!" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return result;
     }
@@ -1235,9 +1233,7 @@ namespace AE::PipelineCompiler
     EPixelFormat  SpirvCompiler::_ExtractImageFormat (uint format) const
     {
         using namespace glslang;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( BitCast<TLayoutFormat>(format) )
+        switch_enum( BitCast<TLayoutFormat>(format) )
         {
             case TLayoutFormat::ElfNone :           return EPixelFormat::Unknown;
             case TLayoutFormat::ElfRgba32f :        return EPixelFormat::RGBA32F;
@@ -1295,7 +1291,7 @@ namespace AE::PipelineCompiler
             case TLayoutFormat::ElfSize4x32 :
             case TLayoutFormat::ElfCount :          break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         COMP_RETURN_ERR( "Unsupported image format!" );
     }
 
@@ -1406,8 +1402,7 @@ namespace AE::PipelineCompiler
 
         COMP_CHECK_ERR( not type.isArray() );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( type.getBasicType() )
+        switch_enum( type.getBasicType() )
         {
             case TBasicType::EbtFloat :     result |= EVertexType::_Float;  break;
             case TBasicType::EbtDouble :    result |= EVertexType::_Double; break;
@@ -1438,7 +1433,7 @@ namespace AE::PipelineCompiler
             case TBasicType::EbtCoopmat :
             default :                       COMP_RETURN_ERR( "unsupported basic type!" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( type.isScalarOrVec1() )
             return result;
@@ -1508,12 +1503,12 @@ namespace AE::PipelineCompiler
     based on TParseContext::fixBlockUniformOffsets
 =================================================
 */
-    bool  SpirvCompiler::_CalculateStructSize (const glslang::TType &bufferType, OUT Byte32u &staticSize, OUT Byte32u &arrayStride, OUT Byte32u &minOffset) const
+    bool  SpirvCompiler::_CalculateStructSize (const glslang::TType &bufferType, OUT Bytes32u &staticSize, OUT Bytes32u &arrayStride, OUT Bytes32u &minOffset) const
     {
         using namespace glslang;
 
-        staticSize = arrayStride = Byte32u{0u};
-        minOffset = Byte32u::Max();
+        staticSize = arrayStride = Bytes32u{0u};
+        minOffset = Bytes32u::Max();
 
         COMP_CHECK_ERR( bufferType.isStruct() );
         COMP_CHECK_ERR( bufferType.getQualifier().isUniformOrBuffer() or bufferType.getQualifier().layoutPushConstant );
@@ -1563,14 +1558,14 @@ namespace AE::PipelineCompiler
             // for last member
             if ( member+1 == struct_fields.size() and member_type.isUnsizedArray() )
             {
-                arrayStride = Byte32u{uint( dummy_stride )};
+                arrayStride = Bytes32u{uint( dummy_stride )};
             }else{
                 offset += member_size;
             }
         }
 
         glslang::RoundToPow2( INOUT offset, max_align );
-        staticSize = Byte32u{uint( offset )};
+        staticSize = Bytes32u{uint( offset )};
 
         return true;
     }
@@ -1662,7 +1657,7 @@ namespace AE::PipelineCompiler
         // push constants
         if ( qual.layoutPushConstant )
         {
-            Byte32u size, stride, offset;
+            Bytes32u    size, stride, offset;
             COMP_CHECK_ERR( _CalculateStructSize( type, OUT size, OUT stride, OUT offset ), "failed to calculate struct size for '"s << node_name << "'");
             size -= offset;
 
@@ -1829,13 +1824,13 @@ namespace AE::PipelineCompiler
 
                 un.buffer                   = Default;
                 un.buffer.state             = EResourceState::ShaderUniform | EResourceState_FromShaders( _currentStage );
-                un.buffer.arrayStride       = Byte32u{0u};
+                un.buffer.arrayStride       = Bytes32u{0u};
                 un.buffer.dynamicOffsetIndex= UMax;
                 un.buffer.typeName          = GetShaderStructName( type.getTypeName() );
 
                 COMP_CHECK_ERR( name.IsDefined() );
 
-                Byte32u stride, offset;
+                Bytes32u    stride, offset;
                 COMP_CHECK_ERR( _CalculateStructSize( type, OUT un.buffer.staticSize, OUT stride, OUT offset ));
                 COMP_CHECK_ERR( offset == 0u );
                 return true;
@@ -1858,7 +1853,7 @@ namespace AE::PipelineCompiler
 
                 COMP_CHECK_ERR( name.IsDefined() );
 
-                Byte32u offset;
+                Bytes32u    offset;
                 COMP_CHECK_ERR( _CalculateStructSize( type, OUT un.buffer.staticSize, OUT un.buffer.arrayStride, OUT offset ));
                 COMP_CHECK_ERR( offset == 0u );
                 return true;
@@ -1901,8 +1896,7 @@ namespace AE::PipelineCompiler
     {
         using namespace glslang;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( BitCast<TLayoutGeometry>(type) )
+        switch_enum( BitCast<TLayoutGeometry>(type) )
         {
             case TLayoutGeometry::ElgPoints : {
                 topologyBits.insert( EPrimitive::Point );
@@ -1936,7 +1930,7 @@ namespace AE::PipelineCompiler
             case TLayoutGeometry::ElgIsolines :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         COMP_RETURN_ERR( "invalid geometry input primitive type!", void() );
     }
 
@@ -1955,8 +1949,7 @@ namespace AE::PipelineCompiler
             return spec != TQualifier::layoutNotSet ? uint(spec) : UMax;
         }};
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _intermediate->getStage() )
+        switch_enum( _intermediate->getStage() )
         {
             case EShLangVertex :
             {
@@ -2049,7 +2042,7 @@ namespace AE::PipelineCompiler
                 result.mesh.maxPrimitives   = uint(_intermediate->getPrimitives());
                 result.mesh.maxIndices      = result.mesh.maxPrimitives;
 
-                END_ENUM_CHECKS();
+                AE_END_ENUM_CHECKS();
                 switch ( _intermediate->getOutputPrimitive() )
                 {
                     case TLayoutGeometry::ElgPoints :
@@ -2071,7 +2064,7 @@ namespace AE::PipelineCompiler
                         CHECK(false);
                         break;
                 }
-                BEGIN_ENUM_CHECKS();
+                AE_BEGIN_ENUM_CHECKS();
 
                 if ( _intermediate->isLocalSizeSet() )
                 {
@@ -2088,7 +2081,7 @@ namespace AE::PipelineCompiler
 
             case EShLangCount : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 

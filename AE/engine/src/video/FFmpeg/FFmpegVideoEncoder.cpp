@@ -143,7 +143,7 @@ namespace {
         if ( _config.bitrate == Bitrate_t{0} )
             _config.bitrate = _CalcBitrate( _config );
 
-        for (uint i = 0;; ++i)
+        for (;;)
         {
             if ( _CreateCodecImpl() )
                 break;
@@ -205,8 +205,7 @@ namespace {
         result.remux        = true;
         result.hasBFrames   = false;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( cfg.codec )
+        switch_enum( cfg.codec )
         {
             case EVideoCodec::H264 :
             {
@@ -297,7 +296,7 @@ namespace {
             case EVideoCodec::_Count :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return result;
     }
@@ -419,7 +418,7 @@ namespace {
 
         // create scaler
         {
-            const AVPixelFormat src_fmt = EnumCast( _config.srcFormat );
+            const AVPixelFormat src_fmt = PixelFormatCast( _config.srcFormat );
             const int           filter  = EnumCast( _config.filter );
 
             CHECK_ERR( src_fmt != AV_PIX_FMT_NONE );
@@ -440,7 +439,7 @@ namespace {
     void  FFmpegVideoEncoder::_ValidatePixelFormat (OUT int &outFormat) const
     {
         // check supported pixel format
-        EnumBitSet<EVideoFormat>    supported_fmts;
+        EnumSet<EVideoFormat>   supported_fmts;
 
         for (auto* fmt = _codec->pix_fmts; (fmt != null) and (*fmt != AV_PIX_FMT_NONE); ++fmt)
         {
@@ -691,8 +690,7 @@ namespace {
 */
     StringView  FFmpegVideoEncoder::GetFileExtension (EVideoCodec codec) C_NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( codec )
+        switch_enum( codec )
         {
             case EVideoCodec::H264 :
             case EVideoCodec::H265 :
@@ -713,7 +711,7 @@ namespace {
             case EVideoCodec::Unknown :
             case EVideoCodec::_Count :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown codec" );
     }
 

@@ -175,7 +175,7 @@ namespace AE::App
             _visitor_( Key_KP_Insert,       0x2D,       "KP_Insert",        VK_INSERT           )\
             _visitor_( Key_KP_Delete,       0x2E,       "KP_Delete",        VK_DELETE           )
 
-        enum class EInputType : ushort
+        enum class EInputType : InputType_t
         {
             #define AE_WINAPI_KEY_CODES_VISITOR( _key_, _code_, _name_, _winapi_code_ )     _key_ = _code_,
             AE_WINAPI_KEY_CODES( AE_WINAPI_KEY_CODES_VISITOR )
@@ -220,30 +220,34 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsWinAPI ()               __NE___ : SerializableInputActions{_Version} {}
+        SerializableInputActionsWinAPI ()                               __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (InputType_t type)                                  C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (InputType_t type)                           C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsVec1D (InputType_t type)                                C_NE_OV { return _IsVec1D( EInputType(type) ); }
+        bool  IsVec2D (InputType_t type)                                C_NE_OV { return _IsVec2D( EInputType(type) ); }
+        bool  IsVec3D (InputType_t)                                     C_NE_OV { return false; }
 
-        String      ToString (const Reflection &refl)   C_Th_OV;
-        StringView  GetApiName ()                       C_NE_OV { return "WinAPI"; }
+        EValueType  RequiredValueType (InputType_t inputType)           C_NE_OV;
+        String      InputTypeToString (InputType_t)                     C_Th_OV;
+        String      SensorBitsToString (ESensorBits)                    C_Th_OV;
+        StringView  GetApiName ()                                       C_NE_OV { return "WinAPI"; }
 
       #ifdef AE_ENABLE_SCRIPTING
         bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-                              const SourceLoc &loc, Reflection &refl) override;
+                              ArrayView<Path> includeDirs, const SourceLoc &loc,
+                              INOUT Reflection &refl)                   __NE_OV;
 
-        static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
+        static void  Bind (const Scripting::ScriptEnginePtr &se)        __Th___;
       #endif
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsKey (EInputType type)             __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)      __NE___;
+        ND_ static constexpr bool  _IsVec1D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec2D (EInputType type)           __NE___;
     };
 
 
@@ -253,20 +257,20 @@ namespace AE::App
 =================================================
 */
     inline constexpr bool  SerializableInputActionsWinAPI::_IsKey (EInputType type) __NE___ {
-        return  ((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
-                ((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+        return  ((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
+                ((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
     }
 
     inline constexpr bool  SerializableInputActionsWinAPI::_IsKeyOrTouch (EInputType type) __NE___ {
-        return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
+        return _IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
     }
 
-    inline constexpr bool  SerializableInputActionsWinAPI::_IsCursor1D (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsWinAPI::_IsVec1D (EInputType) __NE___ {
         return false;
     }
 
-    inline constexpr bool  SerializableInputActionsWinAPI::_IsCursor2D (EInputType type) __NE___ {
-        return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
+    inline constexpr bool  SerializableInputActionsWinAPI::_IsVec2D (EInputType type) __NE___ {
+        return  ((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd)) or
                 (type == EInputType::MultiTouch);
     }
 

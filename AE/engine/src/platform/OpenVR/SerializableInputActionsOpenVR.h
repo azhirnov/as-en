@@ -19,10 +19,9 @@ namespace AE::App
 
     // types
     public:
-        #define AE_OPENVR_KEY_CODES( _visitor_ ) \
-            _visitor_( Key_Space,           32,     "Space",        GLFW_KEY_SPACE          )\
+        #define AE_OPENVR_KEY_CODES( _visitor_ )
 
-        enum class EInputType : ushort
+        enum class EInputType : InputType_t
         {
             #define AE_OPENVR_KEY_CODES_VISITOR( _key_, _code_, _name_, _ovr_code_ )        _key_ = _code_,
             AE_OPENVR_KEY_CODES( AE_OPENVR_KEY_CODES_VISITOR )
@@ -42,30 +41,34 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsOpenVR ()               __NE___ : SerializableInputActions{_Version} {}
+        SerializableInputActionsOpenVR ()                               __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (InputType_t type)                                  C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (InputType_t type)                           C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsVec1D (InputType_t type)                                C_NE_OV { return _IsVec1D( EInputType(type) ); }
+        bool  IsVec2D (InputType_t type)                                C_NE_OV { return _IsVec2D( EInputType(type) ); }
+        bool  IsVec3D (InputType_t)                                     C_NE_OV { return false; }
 
-        String      ToString (const Reflection &refl)   C_Th_OV;
-        StringView  GetApiName ()                       C_NE_OV { return "OpenVR"; }
+        EValueType  RequiredValueType (InputType_t inputType)           C_NE_OV;
+        String      InputTypeToString (InputType_t)                     C_Th_OV;
+        String      SensorBitsToString (ESensorBits)                    C_Th_OV;
+        StringView  GetApiName ()                                       C_NE_OV { return "OpenVR"; }
 
       #ifdef AE_ENABLE_SCRIPTING
         bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-                              const SourceLoc &loc, Reflection &refl) override;
+                              ArrayView<Path> includeDirs, const SourceLoc &loc,
+                              INOUT Reflection &refl)                   __NE_OV;
 
-        static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
+        static void  Bind (const Scripting::ScriptEnginePtr &se)        __Th___;
       #endif
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsKey (EInputType type)             __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)      __NE___;
+        ND_ static constexpr bool  _IsVec1D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec2D (EInputType type)           __NE___;
     };
 
 
@@ -75,20 +78,20 @@ namespace AE::App
 =================================================
 */
     inline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType) __NE___ {
-        return false;   //((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
-                //((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+        return false;   //((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
+                //((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
     }
 
     inline constexpr bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) __NE___ {
         return false;
     }
 
-    inline constexpr bool  SerializableInputActionsOpenVR::_IsCursor1D (EInputType) __NE___ {
-        return false; //(type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsVec1D (EInputType) __NE___ {
+        return false; //(type >= EInputType::Cursor1DBegin) and (type <= EInputType::Cursor1DEnd);
     }
 
-    inline constexpr bool  SerializableInputActionsOpenVR::_IsCursor2D (EInputType) __NE___ {
-        return false; //(type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsVec2D (EInputType) __NE___ {
+        return false; //(type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd);
     }
 
 

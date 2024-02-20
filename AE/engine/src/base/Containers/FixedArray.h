@@ -27,7 +27,8 @@ namespace AE::Base
 
     private:
         using CPolicy_t         = TCopyPolicy;
-        using Count_t           = Conditional< (ArraySize <= MaxValue<ubyte>()), ubyte, ushort >;
+        using Count_t           = Conditional< (ArraySize <= MaxValue<ubyte>() and alignof(T) == alignof(ubyte)), ubyte,
+                                    Conditional< (alignof(T) == alignof(ushort)), ushort, uint >>;
 
         StaticAssert( ArraySize <= MaxValue<Count_t>() );
 
@@ -213,7 +214,7 @@ namespace AE::Base
 
         clear();
 
-        for (auto iter = beginIter; _count < capacity() and iter != endIter; ++iter, ++_count)
+        for (auto iter = beginIter; (_count < capacity()) and (iter != endIter); ++iter, ++_count)
         {
             PlacementNew<T>( OUT data() + _count, *iter );
         }

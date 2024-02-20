@@ -75,7 +75,7 @@ void  InitPipelineLayout ()
         RC<PipelineLayout>      pl = PipelineLayout( "model.pl" );
         pl.DSLayout( "pass",     0, "pass.ds" );
         pl.DSLayout( "material", 1, "model.mtr.ds" );
-        pl.Define( "DISABLE_un_PerPass" );
+        pl.Define( "DISABLE_un_PerObject" );
     }
 }
 
@@ -100,7 +100,7 @@ void  InitMeshPipelineLayout ()
         RC<PipelineLayout>      pl = PipelineLayout( "ms-model.pl" );
         pl.DSLayout( "pass",     0, "pass.ds" );
         pl.DSLayout( "material", 1, "ms-model.mtr.ds" );
-        pl.Define( "DISABLE_un_PerPass" );
+        pl.Define( "DISABLE_un_PerObject" );
     }
 }
 
@@ -127,7 +127,7 @@ void  InitRayTracingPipelineLayout ()
         RC<PipelineLayout>      pl = PipelineLayout( "rt-model.pl" );
         pl.DSLayout( "pass",     0, "pass.ds" );
         pl.DSLayout( "material", 1, "rt-model.mtr.ds" );
-        pl.Define( "DISABLE_un_PerPass" );
+        pl.Define( "DISABLE_un_PerObject" );
     }
 }
 

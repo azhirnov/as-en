@@ -37,15 +37,32 @@ namespace AE::Networking
 
 /*
 =================================================
-    _AddChannelTCP
+    _AddChannelReliableTCP
 =================================================
 */
-    bool  BaseServer::_AddChannelTCP (ushort port) __NE___
+    bool  BaseServer::_AddChannelReliableTCP (ushort port, StringView dbgName) __NE___
     {
         auto&   dst = _channels[ uint(EChannel::Reliable) ];
         CHECK_ERR( not dst );
 
-        auto    channel = TcpServerChannel::ServerAPI::Create( _msgFactory, _allocator, _clientListener, port, UMax );
+        auto    channel = TcpServerChannel::ServerAPI::Create( _msgFactory, _allocator, _clientListener, port, UMax, True{"reliable"}, dbgName );
+        CHECK_ERR( channel );
+
+        dst = RVRef(channel);
+        return true;
+    }
+
+/*
+=================================================
+    _AddChannelUnreliableTCP
+=================================================
+*/
+    bool  BaseServer::_AddChannelUnreliableTCP (ushort port, StringView dbgName) __NE___
+    {
+        auto&   dst = _channels[ uint(EChannel::Unreliable) ];
+        CHECK_ERR( not dst );
+
+        auto    channel = TcpServerChannel::ServerAPI::Create( _msgFactory, _allocator, _clientListener, port, UMax, False{"unreliable"}, dbgName );
         CHECK_ERR( channel );
 
         dst = RVRef(channel);
@@ -56,13 +73,13 @@ namespace AE::Networking
 =================================================
     _AddChannelUnreliableUDP
 =================================================
-*/
-    bool  BaseServer::_AddChannelUnreliableUDP (ushort port) __NE___
+*
+    bool  BaseServer::_AddChannelUnreliableUDP (ushort port, StringView dbgName) __NE___
     {
         auto&   dst = _channels[ uint(EChannel::Unreliable) ];
         CHECK_ERR( not dst );
 
-        auto    channel = UdpUnreliableServerChannel::ServerAPI::Create( _msgFactory, _allocator, _clientListener, port );
+        auto    channel = UdpUnreliableServerChannel::ServerAPI::Create( _msgFactory, _allocator, _clientListener, port, dbgName );
         CHECK_ERR( channel );
 
         dst = RVRef(channel);

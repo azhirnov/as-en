@@ -1,0 +1,152 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'CopyImage2 |0| Copy image task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY
+      access: HOST_WRITE ---> TRANSFER_READ
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'SSWB {f:1} {q:Graphics}'
+    dst:       'SrcImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'SrcImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'DstImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'DstImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'SSRB {f:1} {q:Graphics}'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY
+      access: HOST_WRITE ---> TRANSFER_READ
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'SSWB {f:0} {q:Graphics}'
+    dst:       'SrcImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 16384) } ---> { off:(0, 0, 0), ext:(64, 64, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'SrcImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyImage
+    src:       'SrcImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'DstImage'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { off:(0, 0, 0), ext:(64, 64, 1), COLOR } ---> { off:(16, 27, 0), ext:(80, 91, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> COPY
+      access:  TRANSFER_WRITE ---> TRANSFER_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'DstImage'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'SSRB {f:0} {q:Graphics}'
+      copy { off:(16, 27, 0), ext:(80, 91, 1), COLOR } ---> { [0, 16384) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================

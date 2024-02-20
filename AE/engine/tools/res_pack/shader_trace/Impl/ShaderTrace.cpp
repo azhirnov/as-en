@@ -13,10 +13,10 @@ namespace AE::PipelineCompiler
 */
     bool  ShaderTrace::ExprInfo::operator == (const ExprInfo &rhs) C_NE___
     {
-        return  (varID      == rhs.varID)   &
-                (swizzle    == rhs.swizzle) &
-                (range      == rhs.range)   &
-                (point      == rhs.point)   &
+        return  (varID      == rhs.varID)   and
+                (swizzle    == rhs.swizzle) and
+                (range      == rhs.range)   and
+                (point      == rhs.point)   and
                 (vars       == rhs.vars);
     }
 //-----------------------------------------------------------------------------
@@ -29,9 +29,9 @@ namespace AE::PipelineCompiler
 */
     bool  ShaderTrace::SourceInfo::operator == (const SourceInfo &rhs) C_NE___
     {
-        return  (code       == rhs.code)        &
-                (filename   == rhs.filename)    &
-                (firstLine  == rhs.firstLine)   &
+        return  (code       == rhs.code)        and
+                (filename   == rhs.filename)    and
+                (firstLine  == rhs.firstLine)   and
                 (lines      == rhs.lines);
     }
 //-----------------------------------------------------------------------------
@@ -51,15 +51,15 @@ namespace AE::PipelineCompiler
 
     bool  ShaderTrace::SourceLocation::operator == (const SourceLocation &rhs) C_NE___
     {
-        return  (sourceId   == rhs.sourceId)    &
-                (begin      == rhs.begin)       &
+        return  (sourceId   == rhs.sourceId)    and
+                (begin      == rhs.begin)       and
                 (end        == rhs.end);
     }
 
     bool  ShaderTrace::SourceLocation::IsNotDefined () C_NE___
     {
-        return  (sourceId   == 0)   &
-                (begin._ul  == 0)   &
+        return  (sourceId   == 0)   and
+                (begin._ul  == 0)   and
                 (end._ul    == 0);
     }
 //-----------------------------------------------------------------------------

@@ -10,6 +10,8 @@ namespace AE::Math
     template <typename T, glm::qualifier Q>
     struct TMatrix< T, Columns, Rows, Q > final
     {
+        friend struct TQuat< T, Q >;
+
     // types
     public:
         using Value_t       = T;
@@ -23,6 +25,7 @@ namespace AE::Math
         using Vec3_t        = TVec< T, 3, Q >;
         using Vec4_t        = TVec< T, 4, Q >;
         using Rad_t         = TRadian<T>;
+        using Diag_t        = TVec< T, Min( Columns, Rows ), Q >;
 
 
     // variables
@@ -41,6 +44,8 @@ namespace AE::Math
         template <typename B, uint Columns2, uint Rows2, glm::qualifier Q2>
         explicit TMatrix (const TMatrix<B, Columns2, Rows2, Q2> &other)                 __NE___ : _value{other._value} {}
 
+        explicit TMatrix (const Diag_t &diagonal)                                       __NE___;
+
     #if Columns == 2
         TMatrix (const Col_t &col0,
                  const Col_t &col1)                                                     __NE___ :
@@ -55,7 +60,7 @@ namespace AE::Math
                  const Col_t &col2)                                                     __NE___ :
             _value{ col0, col1, col2 } {}
 
-        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat3_cast(q._value)} {}
+        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat3_cast(q._Base())} {}
 
         ND_ static Self  FromScalar (Value_t value)                                     __NE___ { return Self{ Col_t{value}, Col_t{value}, Col_t{value} }; }
     #endif
@@ -67,7 +72,7 @@ namespace AE::Math
                  const Col_t &col3)                                                     __NE___ :
             _value{ col0, col1, col2, col3 } {}
 
-        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat4_cast(q._value)} {}
+        explicit TMatrix (const TQuat<T,Q> &q)                                          __NE___ : _value{glm::mat4_cast(q._Base())} {}
 
         ND_ static Self  FromScalar (Value_t value)                                     __NE___ { return Self{ Col_t{value}, Col_t{value}, Col_t{value}, Col_t{value} }; }
     #endif
@@ -141,10 +146,10 @@ namespace AE::Math
     #endif
 
     #if Columns == 3 and Rows == 3
-        ND_ static Self  ToCubeFace (ubyte face)                                        __NE___;
         ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)            __NE___;
         ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___;
         ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
+        ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)                   __NE___;
     #endif
 
     #if Columns == 4 and (Rows == 3 or Rows == 4)
@@ -170,10 +175,6 @@ namespace AE::Math
         ND_ Vec3_t       Project (const Vec3_t &pos, const Rect_t &viewport)            C_NE___;
         ND_ Vec3_t       UnProject (const Vec3_t &pos, const Rect_t &viewport)          C_NE___;
 
-        ND_ Vec3_t       AxisX ()                                                       C_NE___ { return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }
-        ND_ Vec3_t       AxisY ()                                                       C_NE___ { return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }
-        ND_ Vec3_t       AxisZ ()                                                       C_NE___ { return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }
-
         ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)                      __NE___;
 
         ND_ static Self  ReverseZTransform ()                                           __NE___;
@@ -183,6 +184,12 @@ namespace AE::Math
         ND_ static Self  RotateX (Rad_t angle)                                          __NE___;    // pitch
         ND_ static Self  RotateY (Rad_t angle)                                          __NE___;    // yaw
         ND_ static Self  RotateZ (Rad_t angle)                                          __NE___;    // roll
+
+        ND_ Vec3_t       AxisX ()                                                       C_NE___ { return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }  // right
+        ND_ Vec3_t       AxisY ()                                                       C_NE___ { return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }  // up
+        ND_ Vec3_t       AxisZ ()                                                       C_NE___ { return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }  // forward
+
+        ND_ static Self  ToCubeFace (uint face)                                         __NE___;
     #endif
 
     private:
@@ -195,6 +202,20 @@ namespace AE::Math
       #endif
     };
 
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>::TMatrix (const Diag_t &diagonal) __NE___
+    {
+        for (glm::length_t c = 0; c < Columns; ++c)
+        for (glm::length_t r = 0; r < Rows; ++r)
+            _value[c][r] = (c == r ? diagonal[c] : T{0});
+    }
 
 
 #if Columns == 2 and Rows == 2
@@ -218,7 +239,7 @@ namespace AE::Math
 =================================================
     ToCubeFace
 =================================================
-*/
+*
     template <typename T, glm::qualifier Q>
     TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::ToCubeFace (ubyte face) __NE___
     {
@@ -259,6 +280,30 @@ namespace AE::Math
         return  Self{   Col_t{ scale.x, T(0),     T(0) },
                         Col_t{ T(0),    scale.y,  T(0) },
                         Col_t{ T(0),    T(0),     scale.z }};
+    }
+
+/*
+=================================================
+    LookAt
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::LookAt (const Vec3_t &dir, const Vec3_t &up) __NE___
+    {
+        const Vec3_t    s = Normalize( Cross( up, dir ));
+        const Vec3_t    u = Cross( dir, s );
+
+        Self    result;
+        result[0][0] = s.x;
+        result[1][0] = s.y;
+        result[2][0] = s.z;
+        result[0][1] = u.x;
+        result[1][1] = u.y;
+        result[2][1] = u.z;
+        result[0][2] = dir.x;
+        result[1][2] = dir.y;
+        result[2][2] = dir.z;
+        return result;
     }
 #endif
 
@@ -315,6 +360,26 @@ namespace AE::Math
               , _CreateCol1( T(0),  T(0),  T(0) )
             #endif
             };
+    }
+
+/*
+=================================================
+    ToCubeFace
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::ToCubeFace (const uint face) __NE___
+    {
+        switch ( face )
+        {
+            case 0 :    return RotateY( -90_deg );                          // +X
+            case 1 :    return RotateY( 90_deg );                           // -X
+            case 2 :    return RotateX( 90_deg );                           // +Y
+            case 3 :    return RotateX( -90_deg );                          // -Y
+            case 4 :    return Identity();                                  // -Z
+            case 5 :    return RotateX( -180_deg ) * RotateZ( -180_deg );   // +Z
+        }
+        RETURN_ERR( "invalid cubemap face" );
     }
 #endif
 

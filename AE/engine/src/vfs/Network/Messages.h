@@ -19,6 +19,13 @@ namespace AE::Networking
     using NDSRequestID      = HandleTmpl< 16, 16, (9 << 24) + 2 >;
 
 
+    // Init
+    DECL_CSMSG( VFS_Init,  NetVFS,
+        ubyte           size;
+        char            prefix [1];
+    );
+
+
     // Open for read
     DECL_CSMSG( VFS_OpenForReadRequest,  NetVFS,
         NetDataSourceID             fileId;
@@ -71,19 +78,19 @@ namespace AE::Networking
         NetDataSourceID     fileId;
         NDSRequestID        reqId;
         Bytes               pos;
-        Byte32u             size;
+        Bytes32u            size;
     );
 
     DECL_CSMSG( VFS_ReadResult,  NetVFS,
         NDSRequestID        reqId;
         ushort              index;
-        Byte16u             size;
-        char                data [1];
+        Bytes16u            size;
+        ubyte               data [1];
     );
 
     DECL_CSMSG( VFS_ReadComplete,  NetVFS,
         NDSRequestID        reqId;
-        Byte32u             size;
+        Bytes32u            size;
         HashVal64           hash;
     );
 
@@ -92,14 +99,14 @@ namespace AE::Networking
     DECL_CSMSG( VFS_WriteBegin,  NetVFS,
         NetDataSourceID     fileId;
         NDSRequestID        reqId;
-        Byte32u             size;
+        Bytes32u            size;
     );
 
     DECL_CSMSG( VFS_WritePart,  NetVFS,
         NDSRequestID        reqId;
         ushort              index;
-        Byte16u             size;
-        char                data [1];
+        Bytes16u            size;
+        ubyte               data [1];
     );
 
     DECL_CSMSG( VFS_WriteEnd,  NetVFS,
@@ -110,7 +117,7 @@ namespace AE::Networking
 
     DECL_CSMSG( VFS_WriteComplete,  NetVFS,
         NDSRequestID        reqId;
-        Byte32u             size;
+        Bytes32u            size;
     );
 
 //-----------------------------------------------------------------------------
@@ -135,8 +142,10 @@ namespace AE::Networking
     CSMSG_ENC_DEC( VFS_WriteEnd,                reqId, hash, pos );
     CSMSG_ENC_DEC( VFS_WriteComplete,           reqId, size );
 
-    CSMSG_ENC_DEC_INPLACEARR( VFS_ReadResult,   size, data,  AE_ARGS( reqId, index, size ));
-    CSMSG_ENC_DEC_INPLACEARR( VFS_WritePart,    size, data,  AE_ARGS( reqId, index, size ));
+    CSMSG_ENC_DEC_EXARRAY( VFS_Init,            size, prefix,  AE_ARGS( size ));
+
+    CSMSG_ENC_DEC_EXDATA( VFS_ReadResult,       size, data,  AE_ARGS( reqId, index ));
+    CSMSG_ENC_DEC_EXDATA( VFS_WritePart,        size, data,  AE_ARGS( reqId, index ));
 //-----------------------------------------------------------------------------
 
 
@@ -148,6 +157,7 @@ namespace AE::Networking
     ND_ inline bool  Register_NetVFS (MessageFactory &mf) __NE___
     {
         return  mf.Register<
+                    CSMsg_VFS_Init,
                     CSMsg_VFS_OpenForReadRequest,
                     CSMsg_VFS_OpenForReadResult,
                     CSMsg_VFS_OpenForWriteRequest,

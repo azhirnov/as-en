@@ -104,8 +104,7 @@ namespace
             set.insert( fmt );
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( features )
+        switch_enum( features )
         {
             case EFormatFeature::StorageImageAtomic :       ptr->fs.storageImageAtomicFormats       |= set; break;
             case EFormatFeature::StorageImage :             ptr->fs.storageImageFormats             |= set; break;
@@ -121,7 +120,7 @@ namespace
             case EFormatFeature::_Count :
             default :                                       CHECK_THROW_MSG( false, "unknown format feature type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         ptr->fs.storageImageFormats     |= ptr->fs.storageImageAtomicFormats;
         ptr->fs.storageTexBufferFormats |= ptr->fs.storageTexBufferAtomicFormats;
@@ -330,6 +329,25 @@ namespace
 
 /*
 =================================================
+    TestFeature_VertexType
+=================================================
+*/
+    String  ScriptFeatureSet::GetNames (ArrayView<ScriptFeatureSetPtr> features)
+    {
+        String  str = " (feature sets: ";
+        for (auto& feat : features)
+        {
+            if ( &feat != features.data() )
+                str << ", ";
+
+            str << feat->Name();
+        }
+        str << ")";
+        return str;
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -338,17 +356,25 @@ namespace
         {
             EnumBinder<EFormatFeature>  binder{ se };
             binder.Create();
-            binder.AddValue( "StorageImageAtomic",          EFormatFeature::StorageImageAtomic );
-            binder.AddValue( "StorageImage",                EFormatFeature::StorageImage );
-            binder.AddValue( "AttachmentBlend",             EFormatFeature::AttachmentBlend );
-            binder.AddValue( "Attachment",                  EFormatFeature::Attachment );
-            binder.AddValue( "LinearSampled",               EFormatFeature::LinearSampled );
-            binder.AddValue( "UniformTexelBuffer",          EFormatFeature::UniformTexelBuffer );
-            binder.AddValue( "StorageTexelBuffer",          EFormatFeature::StorageTexelBuffer );
-            binder.AddValue( "StorageTexelBufferAtomic",    EFormatFeature::StorageTexelBufferAtomic );
-            binder.AddValue( "HWCompressedAttachment",      EFormatFeature::HWCompressedAttachment );
-            binder.AddValue( "LossyCompressedAttachment",   EFormatFeature::LossyCompressedAttachment );
-            StaticAssert( uint(EFormatFeature::_Count) == 11 );
+            switch_enum( EFormatFeature::Unknown )
+            {
+                case EFormatFeature::Unknown :
+                case EFormatFeature::_Count :
+                #define BIND( _name_ )      case EFormatFeature::_name_ : binder.AddValue( #_name_, EFormatFeature::_name_ );
+                BIND( StorageImageAtomic )
+                BIND( StorageImage )
+                BIND( AttachmentBlend )
+                BIND( Attachment )
+                BIND( LinearSampled )
+                BIND( UniformTexelBuffer )
+                BIND( StorageTexelBuffer )
+                BIND( StorageTexelBufferAtomic )
+                BIND( HWCompressedAttachment )
+                BIND( LossyCompressedAttachment )
+                #undef BIND
+                default : break;
+            }
+            switch_end
         }
         {
             ClassBinder<ScriptFeatureSet>   binder{ se };
@@ -431,7 +457,7 @@ namespace
     TestFeature_PixelFormat
 =================================================
 */
-    void  TestFeature_PixelFormat (ArrayView<ScriptFeatureSetPtr> features, EnumBitSet<EPixelFormat> FeatureSet::*member,
+    void  TestFeature_PixelFormat (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EPixelFormat> FeatureSet::*member,
                                    EPixelFormat fmt, StringView memberName, StringView message) __Th___
     {
         CHECK( not features.empty() );
@@ -440,13 +466,14 @@ namespace
 
         for (auto& feat : features)
         {
-            EnumBitSet<EPixelFormat> const& set = feat->fs.*member;
+            EnumSet<EPixelFormat> const&    set = feat->fs.*member;
             if ( set.contains( fmt ))
                 supported = true;
         }
 
         CHECK_THROW_MSG( supported,
-            "PixelFormat "s << ToString( fmt ) << " is not supported in '" << memberName << "'" << message );
+            "PixelFormat "s << ToString( fmt ) << " is not supported in '" << memberName << "' " << message <<
+            ScriptFeatureSet::GetNames( features ));
     }
 
 /*
@@ -454,7 +481,7 @@ namespace
     TestFeature_VertexType
 =================================================
 */
-    void  TestFeature_VertexType (ArrayView<ScriptFeatureSetPtr> features, EnumBitSet<EVertexType> FeatureSet::*member,
+    void  TestFeature_VertexType (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EVertexType> FeatureSet::*member,
                                   EVertexType fmt, StringView memberName, StringView message) __Th___
     {
         CHECK( not features.empty() );
@@ -463,13 +490,14 @@ namespace
 
         for (auto& feat : features)
         {
-            EnumBitSet<EVertexType> const&  set = feat->fs.*member;
+            EnumSet<EVertexType> const& set = feat->fs.*member;
             if ( set.contains( fmt ))
                 supported = true;
         }
 
         CHECK_THROW_MSG( supported,
-            "VertexType "s << ToString( fmt ) << " is not supported in '" << memberName << "'" << message );
+            "VertexType "s << ToString( fmt ) << " is not supported in '" << memberName << "'" << message <<
+            ScriptFeatureSet::GetNames( features ));
     }
 
 

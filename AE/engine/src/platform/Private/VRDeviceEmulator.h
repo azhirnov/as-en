@@ -71,23 +71,22 @@ namespace AE::App
         {
         // variables
         private:
-            VRDeviceEmulator &      _vrDev;
-            DubleBufferedQueue      _dbQueue;
+            VRDeviceEmulator &          _vrDev;
 
         // methods
         public:
-            InputActions (VRDeviceEmulator &vr, DubleBufferedQueue* q)                                                              __NE___ :
-                InputActionsBase{q ? *q : _dbQueue}, _vrDev{vr}
+            InputActions (VRDeviceEmulator &vr, TsDoubleBufferedQueue* q)                                                           __NE___ :
+                InputActionsBase{ q }, _vrDev{vr}
             {}
 
             // IInputActions //
             ActionQueueReader  ReadInput (FrameUID frameId)                                                                         C_NE_OV;
             void  NextFrame (FrameUID frameId)                                                                                      __NE_OV;
-            bool  SetMode (const InputModeName &value)                                                                              __NE_OV;
+            bool  SetMode (InputModeName::Ref value)                                                                                __NE_OV;
             bool  LoadSerialized (MemRefRStream &)                                                                                  __NE_OV;
-            bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &)                        C_NE_OV;
+            bool  GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &)                            C_NE_OV;
 
-            bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) __NE_OV;
+            bool  BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action, EValueType type, EGestureType gesture)     __NE_OV;
             bool  EndBindAction ()                                                                                                  __NE_OV;
             bool  IsBindActionActive ()                                                                                             C_NE_OV;
 
@@ -140,7 +139,7 @@ namespace AE::App
 
     // methods
     public:
-        VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions* dst)  __NE___;
+        VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions*)      __NE___;
         ~VRDeviceEmulator ()                                                        __NE___;
 
         ND_ bool  Create ()                                                         __NE___;

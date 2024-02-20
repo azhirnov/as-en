@@ -7,6 +7,10 @@
 #include "platform/WinAPI/WinAPICommon.h"
 #include "platform/OpenVR/OpenVRCommon.h"
 
+#ifdef AE_ENABLE_AUDIO
+# include "audio/Public/IAudioSystem.h"
+#endif
+
 // Enable it if you have very rare bug with synchs.
 // When Vulkan validation reports error put breakpoint in 'log.clear();' and check 'log' content.
 #define ENABLE_SYNC_LOG     0
@@ -33,6 +37,9 @@ namespace AE::AppV1
 
         TaskScheduler::InstanceCtor::Create();
         VFS::VirtualFileSystem::InstanceCtor::Create();
+      #ifdef AE_ENABLE_AUDIO
+        Audio::IAudioSystem::InstanceCtor::Create();
+      #endif
 
         CHECK_FATAL( ThreadMngr::SetupThreads( _config.threading,
                                                _config.threading.mask,
@@ -42,6 +49,11 @@ namespace AE::AppV1
 
         if ( _config.enableNetwork )
             CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
+
+      #ifdef AE_ENABLE_AUDIO
+        if ( _config.enableAudio )
+            CHECK_FATAL( AudioSystem().Initialize() );
+      #endif
     }
 
 /*
@@ -57,6 +69,12 @@ namespace AE::AppV1
 
         if ( _config.enableNetwork )
             Networking::SocketService::Instance().Deinitialize();
+
+      #ifdef AE_ENABLE_AUDIO
+        if ( _config.enableAudio )
+            AudioSystem().Deinitialize();
+        Audio::IAudioSystem::InstanceCtor::Destroy();
+      #endif
 
         VFS::VirtualFileSystem::InstanceCtor::Destroy();
         TaskScheduler::InstanceCtor::Destroy();
@@ -273,8 +291,7 @@ namespace AE::AppV1
 */
     void  AppCoreV1::WindowEventListener::OnStateChanged (IWindow &wnd, EState state) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( state )
+        switch_enum( state )
         {
             case EState::InForeground :
             case EState::Focused :
@@ -297,7 +314,7 @@ namespace AE::AppV1
                 DBG_WARNING( "unsupported window state" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -341,8 +358,7 @@ namespace AE::AppV1
 */
     void  AppCoreV1::VRDeviceEventListener::OnStateChanged (IVRDevice &vr, EState state) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( state )
+        switch_enum( state )
         {
             case EState::InForeground :
             case EState::Focused :
@@ -365,7 +381,7 @@ namespace AE::AppV1
                 DBG_WARNING( "unsupported VR state" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 

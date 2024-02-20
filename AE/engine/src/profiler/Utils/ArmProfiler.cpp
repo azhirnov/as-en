@@ -2,6 +2,7 @@
 
 #include "base/Algorithms/StringUtils.h"
 #include "profiler/Utils/ArmProfiler.h"
+#include "networking/Utils/AsyncCSMessageProducer.h"
 
 #ifdef AE_ENABLE_ARM_HWCPIPE
 # include "hwcpipe.h"
@@ -48,15 +49,14 @@ namespace
 
     ND_ static ArmProfiler::ECounter  CpuCounterCast (hwcpipe::CpuCounter value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             #define CPU_COUNTERS_VISITOR( _dst_, _src_ )    case hwcpipe::CpuCounter::_src_ :  return ArmProfiler::ECounter::_dst_;
             CPU_COUNTERS( CPU_COUNTERS_VISITOR )
             #undef CPU_COUNTERS_VISITOR
             case hwcpipe::CpuCounter::MaxValue :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return Default;
     }
 
@@ -118,90 +118,15 @@ namespace
 
     ND_ static ArmProfiler::ECounter  GpuCounterCast (hwcpipe::GpuCounter value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             #define GPU_COUNTERS_VISITOR( _dst_, _src_ )    case hwcpipe::GpuCounter::_src_ :  return ArmProfiler::ECounter::_dst_;
             GPU_COUNTERS( GPU_COUNTERS_VISITOR )
             #undef GPU_COUNTERS_VISITOR
             case hwcpipe::GpuCounter::MaxValue :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return Default;
-    }
-
-/*
-=================================================
-    CounterToString
-=================================================
-*/
-    ND_ static StringView  CounterToString (ArmProfiler::ECounter value)
-    {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
-        {
-            #define COUNTER( _name_ )   case ArmProfiler::ECounter::_name_ : return AE_TOSTRING( _name_ );
-            COUNTER( CPU_Cycles );
-            COUNTER( CPU_Instructions );
-            COUNTER( CPU_CacheReferences );
-            COUNTER( CPU_CacheMisses );
-            COUNTER( CPU_BranchInstructions );
-            COUNTER( CPU_BranchMisses );
-            COUNTER( CPU_L1Accesses );
-            COUNTER( CPU_InstrRetired );
-            COUNTER( CPU_L2Accesses );
-            COUNTER( CPU_L3Accesses );
-            COUNTER( CPU_BusReads );
-            COUNTER( CPU_BusWrites );
-            COUNTER( CPU_MemReads );
-            COUNTER( CPU_MemWrites );
-            COUNTER( CPU_ASESpec );
-            COUNTER( CPU_VFPSpec );
-            COUNTER( CPU_CryptoSpec );
-            COUNTER( GPU_Cycles );
-            COUNTER( GPU_ComputeCycles );
-            COUNTER( GPU_VertexCycles );
-            COUNTER( GPU_VertexComputeCycles );
-            COUNTER( GPU_FragmentCycles );
-            COUNTER( GPU_TilerCycles );
-            COUNTER( GPU_ComputeJobs );
-            COUNTER( GPU_VertexJobs );
-            COUNTER( GPU_VertexComputeJobs );
-            COUNTER( GPU_FragmentJobs );
-            COUNTER( GPU_Pixels );
-            COUNTER( GPU_CulledPrimitives );
-            COUNTER( GPU_VisiblePrimitives );
-            COUNTER( GPU_InputPrimitives );
-            COUNTER( GPU_Tiles );
-            COUNTER( GPU_TransactionEliminations );
-            COUNTER( GPU_EarlyZTests );
-            COUNTER( GPU_EarlyZKilled );
-            COUNTER( GPU_LateZTests );
-            COUNTER( GPU_LateZKilled );
-            COUNTER( GPU_Instructions );
-            COUNTER( GPU_DivergedInstructions );
-            COUNTER( GPU_ShaderComputeCycles );
-            COUNTER( GPU_ShaderFragmentCycles );
-            COUNTER( GPU_ShaderCycles );
-            COUNTER( GPU_ShaderArithmeticCycles );
-            COUNTER( GPU_ShaderInterpolatorCycles );
-            COUNTER( GPU_ShaderLoadStoreCycles );
-            COUNTER( GPU_ShaderTextureCycles );
-            COUNTER( GPU_CacheReadLookups );
-            COUNTER( GPU_CacheWriteLookups );
-            COUNTER( GPU_ExternalMemoryReadAccesses );
-            COUNTER( GPU_ExternalMemoryWriteAccesses );
-            COUNTER( GPU_ExternalMemoryReadStalls );
-            COUNTER( GPU_ExternalMemoryWriteStalls );
-            COUNTER( GPU_ExternalMemoryReadBytes );
-            COUNTER( GPU_ExternalMemoryWriteBytes );
-            #undef COUNTER
-
-            case ArmProfiler::ECounter::_Count :
-            case ArmProfiler::ECounter::Unknown :   break;
-        }
-        END_ENUM_CHECKS();
-        return "";
     }
 
 /*
@@ -261,12 +186,12 @@ namespace
 */
     inline bool  ArmProfiler::_IsCPUcounter (ECounter value) __NE___
     {
-        return (value >= ECounter::_CPU_Begin) & (value <= ECounter::_CPU_End);
+        return (value >= ECounter::_CPU_Begin) and (value <= ECounter::_CPU_End);
     }
 
     inline bool  ArmProfiler::_IsGPUcounter (ECounter value) __NE___
     {
-        return (value >= ECounter::_GPU_Begin) & (value <= ECounter::_GPU_End);
+        return (value >= ECounter::_GPU_Begin) and (value <= ECounter::_GPU_End);
     }
 
 /*
@@ -382,6 +307,12 @@ namespace
         return _impl->supported;
     }
 
+    ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet () C_NE___
+    {
+        CHECK_ERR( IsInitialized() );
+        return _impl->enabled;
+    }
+
 /*
 =================================================
     Sample
@@ -397,7 +328,6 @@ namespace
         ECounterSet             counter_set = _impl->enabled;
         hwcpipe::Measurements   m           = _impl->pipe.sample();
         Counters_t              result;
-    //  String                  str;
 
         for (;;)
         {
@@ -410,41 +340,135 @@ namespace
             if ( _IsCPUcounter( counter ))
             {
                 value = GetCpuCounterValue( m.cpu, CpuCounterCast( counter ));
-                //str << CounterToString( counter ) << ": " << ToString( value ) << '\n';
             }
             else
             if ( _IsGPUcounter( counter ))
             {
                 value = GetGpuCounterValue( m.gpu, GpuCounterCast( counter ));
-                //str << CounterToString( counter ) << ": " << ToString( value ) << '\n';
             }
         }
-
-        //str << "-------------------\n\n";
-        //AE_LOGI( str );
     }
-
 
 } // AE::Profiler
 //-----------------------------------------------------------------------------
 
 # else
 
+# include "profiler/Remote/RemoteArmProfiler.h"
+
 namespace AE::Profiler
 {
-    struct ArmProfiler::Impl {};
+    struct ArmProfiler::Impl
+    {
+        RC<ArmProfilerClient>   client;
+
+        Impl (RC<ArmProfilerClient> c) __NE___ : client{RVRef(c)} {}
+    };
 
     ArmProfiler::ArmProfiler ()                                     __NE___ {}
     ArmProfiler::~ArmProfiler ()                                    __NE___ {}
 
-    bool  ArmProfiler::Initialize (const ECounterSet &)             __NE___ { return false; }
-    void  ArmProfiler::Deinitialize ()                              __NE___ {}
-    bool  ArmProfiler::IsInitialized ()                             C_NE___ { return false; }
+    bool  ArmProfiler::Initialize (const ECounterSet &cs)           __NE___ { return _impl and _impl->client->Initialize( cs ); }
+    bool  ArmProfiler::IsInitialized ()                             C_NE___ { return _impl and _impl->client->IsInitialized(); }
 
-    ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet ()   C_NE___ { return Default; }
+    ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet ()   C_NE___ { return _impl ? _impl->client->SupportedCounterSet() : Default; }
+    ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet ()     C_NE___ { return _impl ? _impl->client->EnabledCounterSet() : Default; }
 
-    void  ArmProfiler::Sample (OUT Counters_t &)                    C_NE___ {}
+    void  ArmProfiler::Sample (OUT Counters_t &result)              C_NE___ { if (_impl) return _impl->client->Sample( OUT result ); }
+
+
+    bool  ArmProfiler::InitClient (RC<ArmProfilerClient> client) __NE___
+    {
+        CHECK_ERR( client );
+
+        _impl = MakeUnique<Impl>( RVRef(client) );
+        return true;
+    }
+
+    void  ArmProfiler::Deinitialize () __NE___
+    {
+        _impl.reset( null );
+    }
 
 } // AE::Profiler
 
 #endif // AE_ENABLE_ARM_HWCPIPE
+//-----------------------------------------------------------------------------
+
+
+namespace AE::Profiler
+{
+/*
+=================================================
+    CounterToString
+=================================================
+*/
+    StringView  ArmProfiler::CounterToString (ArmProfiler::ECounter value) __NE___
+    {
+        switch_enum( value )
+        {
+            #define COUNTER( _name_ )   case ArmProfiler::ECounter::_name_ : return AE_TOSTRING( _name_ );
+            COUNTER( CPU_Cycles );
+            COUNTER( CPU_Instructions );
+            COUNTER( CPU_CacheReferences );
+            COUNTER( CPU_CacheMisses );
+            COUNTER( CPU_BranchInstructions );
+            COUNTER( CPU_BranchMisses );
+            COUNTER( CPU_L1Accesses );
+            COUNTER( CPU_InstrRetired );
+            COUNTER( CPU_L2Accesses );
+            COUNTER( CPU_L3Accesses );
+            COUNTER( CPU_BusReads );
+            COUNTER( CPU_BusWrites );
+            COUNTER( CPU_MemReads );
+            COUNTER( CPU_MemWrites );
+            COUNTER( CPU_ASESpec );
+            COUNTER( CPU_VFPSpec );
+            COUNTER( CPU_CryptoSpec );
+            COUNTER( GPU_Cycles );
+            COUNTER( GPU_ComputeCycles );
+            COUNTER( GPU_VertexCycles );
+            COUNTER( GPU_VertexComputeCycles );
+            COUNTER( GPU_FragmentCycles );
+            COUNTER( GPU_TilerCycles );
+            COUNTER( GPU_ComputeJobs );
+            COUNTER( GPU_VertexJobs );
+            COUNTER( GPU_VertexComputeJobs );
+            COUNTER( GPU_FragmentJobs );
+            COUNTER( GPU_Pixels );
+            COUNTER( GPU_CulledPrimitives );
+            COUNTER( GPU_VisiblePrimitives );
+            COUNTER( GPU_InputPrimitives );
+            COUNTER( GPU_Tiles );
+            COUNTER( GPU_TransactionEliminations );
+            COUNTER( GPU_EarlyZTests );
+            COUNTER( GPU_EarlyZKilled );
+            COUNTER( GPU_LateZTests );
+            COUNTER( GPU_LateZKilled );
+            COUNTER( GPU_Instructions );
+            COUNTER( GPU_DivergedInstructions );
+            COUNTER( GPU_ShaderComputeCycles );
+            COUNTER( GPU_ShaderFragmentCycles );
+            COUNTER( GPU_ShaderCycles );
+            COUNTER( GPU_ShaderArithmeticCycles );
+            COUNTER( GPU_ShaderInterpolatorCycles );
+            COUNTER( GPU_ShaderLoadStoreCycles );
+            COUNTER( GPU_ShaderTextureCycles );
+            COUNTER( GPU_CacheReadLookups );
+            COUNTER( GPU_CacheWriteLookups );
+            COUNTER( GPU_ExternalMemoryReadAccesses );
+            COUNTER( GPU_ExternalMemoryWriteAccesses );
+            COUNTER( GPU_ExternalMemoryReadStalls );
+            COUNTER( GPU_ExternalMemoryWriteStalls );
+            COUNTER( GPU_ExternalMemoryReadBytes );
+            COUNTER( GPU_ExternalMemoryWriteBytes );
+            #undef COUNTER
+
+            case ArmProfiler::ECounter::_Count :
+            case ArmProfiler::ECounter::Unknown :   break;
+        }
+        switch_end
+        return "";
+    }
+
+} // AE::Profiler

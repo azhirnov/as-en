@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
 #include "base/Containers/UntypedStorage.h"
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 #include "base/Containers/NtStringView.h"
 #include "base/Utils/FileSystem.h"
 
@@ -14,9 +13,9 @@ namespace AE::Base
 {
 
     //
-    // Windows Read-only File
+    // Windows Read-only File Stream
     //
-    class WinRFileStream final : public RStream
+    class WinFileRStream final : public RStream
     {
     // types
     public:
@@ -45,20 +44,20 @@ namespace AE::Base
 
     // methods
     private:
-        WinRFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+        WinFileRStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
     public:
-        explicit WinRFileStream (const char* filename, EFlags flags = DefaultFlags)     __NE___;
-        explicit WinRFileStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
-        explicit WinRFileStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileRStream (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinFileRStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinFileRStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
-        explicit WinRFileStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
-        explicit WinRFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
-        explicit WinRFileStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileRStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileRStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileRStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        explicit WinRFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+        explicit WinFileRStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinRFileStream ()                                                              __NE_OV;
+        ~WinFileRStream ()                                                              __NE_OV;
 
 
         // RStream //
@@ -75,14 +74,14 @@ namespace AE::Base
         ND_ Bytes  _Position ()                                                         C_NE___;
     };
 
-    AE_BIT_OPERATORS( WinRFileStream::EFlags );
+    AE_BIT_OPERATORS( WinFileRStream::EFlags );
 
 
 
     //
-    // Windows Write-only File
+    // Windows Write-only File Stream
     //
-    class WinWFileStream final : public WStream
+    class WinFileWStream final : public WStream
     {
     // types
     public:
@@ -104,28 +103,27 @@ namespace AE::Base
 
     // variables
     private:
-        Handle_t        _file;
-        const EFlags    _flags;
+        Handle_t    _file;
 
         DEBUG_ONLY( const Path  _filename;)
 
 
     // methods
     private:
-        WinWFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+        WinFileWStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
     public:
-        explicit WinWFileStream (const char*  filename, EFlags flags = DefaultFlags)    __NE___;
-        explicit WinWFileStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
-        explicit WinWFileStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileWStream (const char*  filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinFileWStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinFileWStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
-        explicit WinWFileStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
-        explicit WinWFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
-        explicit WinWFileStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileWStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileWStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileWStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        explicit WinWFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+        explicit WinFileWStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinWFileStream ()                                                              __NE_OV;
+        ~WinFileWStream ()                                                              __NE_OV;
 
 
         // WStream //
@@ -140,20 +138,20 @@ namespace AE::Base
         void        Flush ()                                                            __NE_OV;
     };
 
-    AE_BIT_OPERATORS( WinWFileStream::EFlags );
+    AE_BIT_OPERATORS( WinFileWStream::EFlags );
 //-----------------------------------------------------------------------------
 
 
 
     //
-    // Read-only File Data Source
+    // Windows Read-only File Data Source
     //
 
-    class WinRFileDataSource final : public RDataSource
+    class WinFileRDataSource final : public RDataSource
     {
     // types
     public:
-        using EFlags = WinRFileStream::EFlags;
+        using EFlags = WinFileRStream::EFlags;
 
     private:
         using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
@@ -172,20 +170,20 @@ namespace AE::Base
 
     // methods
     private:
-        WinRFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+        WinFileRDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
     public:
-        explicit WinRFileDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
-        explicit WinRFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
-        explicit WinRFileDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileRDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinFileRDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinFileRDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
-        explicit WinRFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
-        explicit WinRFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
-        explicit WinRFileDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileRDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileRDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileRDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        explicit WinRFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+        explicit WinFileRDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinRFileDataSource ()                                                              __NE_OV;
+        ~WinFileRDataSource ()                                                              __NE_OV;
 
 
         // RDataSource //
@@ -199,14 +197,14 @@ namespace AE::Base
 
 
     //
-    // Write-only File Data Source
+    // Windows Write-only File Data Source
     //
 
-    class WinWFileDataSource final : public WDataSource
+    class WinFileWDataSource final : public WDataSource
     {
     // types
     public:
-        using EFlags = WinWFileStream::EFlags;
+        using EFlags = WinFileWStream::EFlags;
 
     private:
         using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
@@ -216,28 +214,27 @@ namespace AE::Base
 
     // variables
     private:
-        Handle_t        _file;
-        const EFlags    _flags;
+        Handle_t    _file;
 
         DEBUG_ONLY( const Path  _filename;)
 
 
     // methods
     private:
-        WinWFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+        WinFileWDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
     public:
-        explicit WinWFileDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
-        explicit WinWFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
-        explicit WinWFileDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileWDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinFileWDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinFileWDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
-        explicit WinWFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
-        explicit WinWFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
-        explicit WinWFileDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileWDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinFileWDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinFileWDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        explicit WinWFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+        explicit WinFileWDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinWFileDataSource ()                                                              __NE_OV;
+        ~WinFileWDataSource ()                                                              __NE_OV;
 
 
         // WStream //

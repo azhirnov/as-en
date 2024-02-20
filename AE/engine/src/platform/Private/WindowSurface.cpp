@@ -7,6 +7,12 @@ namespace AE::App
     using namespace AE::Graphics;
 
 namespace {
+
+// From Vulkan docs:
+//   In a multithreaded environment, calling SendMessage from a thread that is not the thread associated with pCreateInfo::hwnd
+//   will block until the application has processed the window message.
+//   https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#platformCreateSurface_win32
+
 # if 1 //def AE_PLATFORM_ANDROID
     static constexpr auto   AcquireAndPresentQueue  = ETaskQueue::Main;
 # else
@@ -281,9 +287,9 @@ namespace {
                     data->desc  = _swapchain.GetDescription();
 
         const auto  m           = data->window->GetMonitor();   // must be in main thread
-        float2      px_to_mm    = m.MillimetersPerPixel();
+        float       px_to_mm    = m.MillimetersPerPixel();
 
-        _pixToMm.store( Average( px_to_mm.x, px_to_mm.y ));
+        _pixToMm.store( px_to_mm );
     }
 //-----------------------------------------------------------------------------
 

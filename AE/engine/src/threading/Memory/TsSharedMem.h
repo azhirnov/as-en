@@ -70,7 +70,7 @@ namespace AE::Threading
     // variables
     private:
         RWSpinLock      _guard;     // used to protect access to '_Data()'
-        Byte32u         _size;
+        Bytes32u        _size;
         POTBytes        _align;
         RC<IAllocator>  _allocator;
 

@@ -4,7 +4,6 @@
 
 #include "demo/Common.h"
 #include "demo/Core/ISample.h"
-#include "demo/Core/ImGuiRenderer.h"
 
 namespace AE::Samples::Demo
 {
@@ -53,6 +52,8 @@ namespace AE::Samples::Demo
 
         Atomic<bool>                _initialized {false};
 
+        IApplicationTS              _app;
+
 
     // methods
     public:
@@ -60,6 +61,7 @@ namespace AE::Samples::Demo
         ~SampleCore ();
 
         ND_ bool  LoadInputActions ();
+            void  SetApplication (IApplication &app)                                        { _app = IApplicationTS{app}; }
 
     private:
         ND_ bool  _CompileBaseResources (IOutputSurface &);

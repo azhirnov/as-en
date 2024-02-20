@@ -84,10 +84,10 @@
 
     void Main ()
     {
-        Particle    p   = un_Particles.elements[gl.VertexIndex];
-        gl.Position     = LocalPosToViewSpace( p.position_size.xyz );
-        Out.color       = unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
-        Out.size        = p.position_size.w * 4.0 / Max( un_PerPass.resolution.x, un_PerPass.resolution.y );
+        Particle  p = un_Particles.elements[gl.VertexIndex];
+        gl.Position = LocalPosToViewSpace( p.position_size.xyz );
+        Out.color   = unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
+        Out.size    = p.position_size.w * 4.0 / Min( un_PerPass.resolution.x, un_PerPass.resolution.y );
     }
 
 #endif
@@ -101,35 +101,31 @@
     void Main ()
     {
         const float4    pos     = gl_in[0].gl_Position;
-        const float     size    = In[0].size;
+        const float     size    = In[0].size * 0.5;
         const float4    color   = In[0].color;
 
-        // a: left-bottom
-        float2  va  = pos.xy + float2(-0.5, -0.5) * size;
-        gl.Position = un_PerPass.camera.proj * float4(va, pos.zw);
-        Out.uv      = float2(0.0, 0.0);
+        // left-bottom
+        Out.uv      = float2(-1., -1.);
         Out.color   = color;
+        gl.Position = un_PerPass.camera.proj * float4(pos.xy + Out.uv * size, pos.zw);
         gl.EmitVertex();
 
-        // b: left-top
-        float2  vb  = pos.xy + float2(-0.5, 0.5) * size;
-        gl.Position = un_PerPass.camera.proj * float4(vb, pos.zw);
-        Out.uv      = float2(0.0, 1.0);
+        // left-top
+        Out.uv      = float2(-1., 1.);
         Out.color   = color;
+        gl.Position = un_PerPass.camera.proj * float4(pos.xy + Out.uv * size, pos.zw);
         gl.EmitVertex();
 
-        // d: right-bottom
-        float2  vd  = pos.xy + float2(0.5, -0.5) * size;
-        gl.Position = un_PerPass.camera.proj * float4(vd, pos.zw);
-        Out.uv      = float2(1.0, 0.0);
+        // right-bottom
+        Out.uv      = float2(1., -1.);
         Out.color   = color;
+        gl.Position = un_PerPass.camera.proj * float4(pos.xy + Out.uv * size, pos.zw);
         gl.EmitVertex();
 
-        // c: right-top
-        float2  vc  = pos.xy + float2(0.5, 0.5) * size;
-        gl.Position = un_PerPass.camera.proj * float4(vc, pos.zw);
-        Out.uv      = float2(1.0, 1.0);
+        // right-top
+        Out.uv      = float2(1., 1.);
         Out.color   = color;
+        gl.Position = un_PerPass.camera.proj * float4(pos.xy + Out.uv * size, pos.zw);
         gl.EmitVertex();
 
         gl.EndPrimitive();
@@ -142,7 +138,7 @@
 
     void Main ()
     {
-        out_Color = In.color * (1.0 - Distance( ToSNorm(In.uv), float2(0.0) ));
+        out_Color = In.color * (1.0 - LengthSq( In.uv ));
     }
 
 #endif

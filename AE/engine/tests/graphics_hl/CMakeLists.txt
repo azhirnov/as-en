@@ -24,13 +24,15 @@ if (TARGET "GraphicsHL")
         AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
         AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
         AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-        AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics_hl/Canvas/VertexTypes.as"
+        AE_CANVAS_VERTS="${MAIN_SOURCE_DIR}/engine/src/graphics_hl/Canvas/VertexTypes.as"
     )
 
     if (TARGET "OfflinePacker")
         add_custom_target( "Tests.GraphicsHL.PackRes"
             DEPENDS  "OfflinePacker"
-            COMMAND  "${MAIN_BINARY_DIR}/$<CONFIG>/OfflinePacker${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/DrawTests/res_pack.as" "${AE_TEMP_FOLDER}/engine/graphics_hl"
+            COMMAND  $<TARGET_FILE:OfflinePacker>
+                        -i "${CMAKE_CURRENT_SOURCE_DIR}/DrawTests/res_pack.as"
+                        -o "${AE_TEMP_FOLDER}/engine/graphics_hl"
             COMMENT  "pack resources for 'Tests.GraphicsHL' ..."
             VERBATIM
         )
@@ -46,7 +48,7 @@ if (TARGET "GraphicsHL")
 
     elseif (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         target_compile_definitions( "Tests.GraphicsHL" PRIVATE
-            AE_REFDUMP_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Vulkan/ref"
+            AE_REFDUMP_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics_hl/vulkan"
             AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics_hl/vulkan"
             AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics_hl/vk/pipelines.bin" )
 

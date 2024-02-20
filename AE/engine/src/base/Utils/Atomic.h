@@ -134,14 +134,14 @@ namespace AE::Base
         T   fetch_max (T arg)                                   __NE___
         {
             T   exp = load();
-            for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp < arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
         T   fetch_min (T arg)                                   __NE___
         {
             T   exp = load();
-            for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp > arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
@@ -155,15 +155,16 @@ namespace AE::Base
                 return reinterpret_cast< InternalType &>( src );
         }
     };
+//-----------------------------------------------------------------------------
 
 
 
     //
-    // Bitfield Atomic
+    // Struct Atomic
     //
 
     template <typename T, std::memory_order Success, std::memory_order Failure>
-    struct TBitAtomic
+    struct TStructAtomic
     {
     // types
     public:
@@ -171,7 +172,7 @@ namespace AE::Base
         using uint_type     = ByteSizeToUInt< sizeof(T) >;
 
     private:
-        using Self  = TBitAtomic< T, Success, Failure >;
+        using Self  = TStructAtomic< T, Success, Failure >;
         using MO_t  = std::memory_order;
         using IT    = uint_type;
 
@@ -189,14 +190,14 @@ namespace AE::Base
 
     // methods
     public:
-        TBitAtomic ()                                                   __NE___ {}
-        explicit TBitAtomic (T value)                                   __NE___ : _value{ _Cast(value) } {}
+        TStructAtomic ()                                                __NE___ {}
+        explicit TStructAtomic (T value)                                __NE___ : _value{ _Cast(value) } {}
 
-        TBitAtomic (const Self &)                                       = delete;
-        TBitAtomic (Self &&)                                            = delete;
+        TStructAtomic (const Self &)                                    = delete;
+        TStructAtomic (Self &&)                                         = delete;
 
-        Self&  operator = (const Self &)                                = delete;
-        Self&  operator = (Self &&)                                     = delete;
+            Self&   operator = (const Self &)                           = delete;
+            Self&   operator = (Self &&)                                = delete;
 
             void    store (T desired)                                   __NE___ { _value.store( _Cast(desired), OnSuccess ); }
         ND_ T       load ()                                             C_NE___ { return _Cast( _value.load( OnSuccess )); }
@@ -214,62 +215,111 @@ namespace AE::Base
         ND_ bool    CAS_Loop (INOUT T& expected, T desired,
                               MO_t success, MO_t failure)               __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 
-        T   fetch_and (IT arg)                                          __NE___ { return _Cast( _value.fetch_and( arg, OnSuccess )); }
-        T   fetch_or  (IT arg)                                          __NE___ { return _Cast( _value.fetch_or(  arg, OnSuccess )); }
-        T   fetch_xor (IT arg)                                          __NE___ { return _Cast( _value.fetch_xor( arg, OnSuccess )); }
-
-        T   And (IT arg)                                                __NE___ { return And( arg, OnSuccess ); }
-        T   Or  (IT arg)                                                __NE___ { return Or(  arg, OnSuccess ); }
-        T   Xor (IT arg)                                                __NE___ { return Xor( arg, OnSuccess ); }
-
-        T   fetch_and (IT arg, MO_t memOrder)                           __NE___ { return _Cast( _value.fetch_and( arg, memOrder )); }
-        T   fetch_or  (IT arg, MO_t memOrder)                           __NE___ { return _Cast( _value.fetch_or(  arg, memOrder )); }
-        T   fetch_xor (IT arg, MO_t memOrder)                           __NE___ { return _Cast( _value.fetch_xor( arg, memOrder )); }
-
-        T   And (IT arg, MO_t memOrder)                                 __NE___ { return fetch_and( arg, memOrder ) & arg; }
-        T   Or  (IT arg, MO_t memOrder)                                 __NE___ { return fetch_or(  arg, memOrder ) | arg; }
-        T   Xor (IT arg, MO_t memOrder)                                 __NE___ { return fetch_xor( arg, memOrder ) ^ arg; }
-
-        T   SetBit (usize bitIndex)                                     __NE___ { return fetch_or( IT{1} << bitIndex ); }
-        T   SetBit (usize bitIndex, MO_t memOrder)                      __NE___ { return fetch_or( IT{1} << bitIndex, memOrder ); }
-
-        T   SetBit (bool value, usize bitIndex)                         __NE___ { return fetch_or( IT{value} << bitIndex ); }
-        T   SetBit (bool value, usize bitIndex, MO_t memOrder)          __NE___ { return fetch_or( IT{value} << bitIndex, memOrder ); }
-
-        T   ResetBit (usize bitIndex)                                   __NE___ { return fetch_and( ~(IT{1} << bitIndex) ); }
-        T   ResetBit (usize bitIndex, MO_t memOrder)                    __NE___ { return fetch_and( ~(IT{1} << bitIndex), memOrder ); }
-
-        ND_ bool  HasBit (usize bitIndex)                               C_NE___ { return Math::HasBit( load(), bitIndex ); }
-
-        T   SetRange (usize firstBit, usize bitCount)                   __NE___ { return fetch_or( _Range( firstBit, bitCount ) ); }
-        T   SetRange (usize firstBit, usize bitCount, MO_t memOrder)    __NE___ { return fetch_or( _Range( firstBit, bitCount ), memOrder ); }
-
-        T   ResetRange (usize firstBit, usize bitCount)                 __NE___ { return fetch_or( ~_Range( firstBit, bitCount ) ); }
-        T   ResetRange (usize firstBit, usize bitCount, MO_t memOrder)  __NE___ { return fetch_or( ~_Range( firstBit, bitCount ), memOrder ); }
-
         T   fetch_max (T arg)                                           __NE___
         {
             T   exp = load();
-            for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp < arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
         T   fetch_min (T arg)                                           __NE___
         {
             T   exp = load();
-            for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp > arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
     private:
-        ND_ static forceinline IT   _Cast (const T &value)                  __NE___ { return BitCast<IT>( value ); }
-        ND_ static forceinline T    _Cast (const IT &value)                 __NE___ { return BitCast<T>( value ); }
+        ND_ static forceinline IT   _Cast (const T &value)              __NE___ { return BitCast<IT>( value ); }
+        ND_ static forceinline T    _Cast (const IT &value)             __NE___ { return BitCast<T>( value ); }
 
-        ND_ static forceinline T&   _Ref (IT &value)                        __NE___ { return reinterpret_cast< T &>( value ); }
-        ND_ static forceinline IT&  _Ref (T &value)                         __NE___ { return reinterpret_cast< IT &>( value ); }
-
-        ND_ static forceinline IT   _Range (usize firstBit, usize bitCount) __NE___ { return ((IT{1} << bitCount)-1) << firstBit; }
+        ND_ static forceinline T&   _Ref (IT &value)                    __NE___ { return reinterpret_cast< T &>( value ); }
+        ND_ static forceinline IT&  _Ref (T &value)                     __NE___ { return reinterpret_cast< IT &>( value ); }
     };
+//-----------------------------------------------------------------------------
+
+
+
+    //
+    // Bitfield Atomic
+    //
+
+    template <typename T, std::memory_order Success, std::memory_order Failure>
+    struct TBitfieldAtomic
+    {
+    // types
+    public:
+        using value_type    = T;
+
+    private:
+        using Self  = TBitfieldAtomic< T, Success, Failure >;
+        using MO_t  = std::memory_order;
+        using BF    = Bitfield< T >;
+
+        static constexpr MO_t   OnSuccess   = Success;
+        static constexpr MO_t   OnFailure   = Failure;
+        static constexpr uint   _BitCount   = CT_SizeOfInBits<T>;
+
+        StaticAssert( StdAtomic<T>::is_always_lock_free );
+        StaticAssert( IsUnsignedInteger<T> );
+
+
+    // variables
+    private:
+        StdAtomic< T >      _value;
+
+
+    // methods
+    public:
+        TBitfieldAtomic ()                                                  __NE___ {}
+        explicit TBitfieldAtomic (BF value)                                 __NE___ : _value{ value.Get() } {}
+
+        TBitfieldAtomic (const Self &)                                      = delete;
+        TBitfieldAtomic (Self &&)                                           = delete;
+
+            Self&   operator = (const Self &)                               = delete;
+            Self&   operator = (Self &&)                                    = delete;
+
+            void    Store (BF desired)                                      __NE___ { _value.store( desired.Get(), OnSuccess ); }
+        ND_ BF      Load ()                                                 C_NE___ { return BF{ _value.load( OnSuccess )}; }
+        ND_ BF      Exchange (BF desired)                                   __NE___ { return BF{ _value.exchange( desired.Get(), OnSuccess )}; }
+
+            void    Store (BF desired, MO_t memOrder)                       __NE___ { _value.store( desired.Get(), memOrder ); }
+        ND_ BF      Load (MO_t memOrder)                                    C_NE___ { return BF{ _value.load( memOrder )}; }
+        ND_ BF      Exchange (BF desired, MO_t memOrder)                    __NE___ { return BF{ _value.exchange( desired.Get(), memOrder )}; }
+
+        ND_ bool    CAS (INOUT BF& expected, BF desired)                    __NE___ { return _value.compare_exchange_weak( INOUT expected.Ref(), desired.Get(), OnSuccess, OnFailure ); }
+        ND_ bool    CAS (INOUT BF& expected, BF desired,
+                         MO_t success, MO_t failure)                        __NE___ { return _value.compare_exchange_weak( INOUT expected.Ref(), desired.Get(), success, failure ); }
+
+        ND_ bool    CAS_Loop (INOUT BF& expected, BF desired)               __NE___ { return _value.compare_exchange_strong( INOUT expected.Ref(), desired.Get(), OnSuccess, OnFailure ); }
+        ND_ bool    CAS_Loop (INOUT BF& expected, BF desired,
+                              MO_t success, MO_t failure)                   __NE___ { return _value.compare_exchange_strong( INOUT expected.Ref(), desired.Get(), success, failure ); }
+
+        ND_ bool    None ()                                                 C_NE___ { return Load().None(); }
+        ND_ bool    Any ()                                                  C_NE___ { return Load().Any(); }
+        ND_ bool    All ()                                                  C_NE___ { return Load().All(); }
+
+            BF      Set (usize bit)                                         __NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit )}; }
+            BF      Set (usize bit, MO_t memOrder)                          __NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit, memOrder )}; }
+
+            BF      Erase (usize bit)                                       __NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_and( ~(T{1} << bit) )}; }
+            BF      Erase (usize bit, MO_t memOrder)                        __NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_and( ~(T{1} << bit), memOrder )}; }
+
+        ND_ bool    Has (usize bit)                                         C_NE___ { ASSERT( bit < _BitCount );  return Load().Has( bit ); }
+
+            BF      SetRange (usize first, usize count)                     __NE___ { return _value.fetch_or( _Range( first, count )); }
+            BF      SetRange (usize first, usize count, MO_t memOrder)      __NE___ { return _value.fetch_or( _Range( first, count ), memOrder ); }
+
+            BF      ResetRange (usize first, usize count)                   __NE___ { return _value.fetch_or( ~_Range( first, count )); }
+            BF      ResetRange (usize first, usize count, MO_t memOrder)    __NE___ { return _value.fetch_or( ~_Range( first, count ), memOrder ); }
+
+        ND_ bool    HasRange (usize first, usize count)                     C_NE___ { return Load().HasRange( first, count ); }
+
+    private:
+        ND_ static forceinline T  _Range (usize first, usize count)         __NE___ { ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ((T{1} << count)-1) << first; }
+    };
+//-----------------------------------------------------------------------------
 
 
 
@@ -310,8 +360,8 @@ namespace AE::Base
         TAtomicFloat (const Self &)                         = delete;
         TAtomicFloat (Self &&)                              = delete;
 
-        Self&  operator = (const Self &)                    = delete;
-        Self&  operator = (Self &&)                         = delete;
+            Self&   operator = (const Self &)               = delete;
+            Self&   operator = (Self &&)                    = delete;
 
             void    store (T desired)                       __NE___ { _value.store( _Cast(desired), OnSuccess ); }
         ND_ T       load ()                                 C_NE___ { return _Cast( _value.load( OnSuccess )); }
@@ -359,14 +409,14 @@ namespace AE::Base
         T   fetch_max (T arg)                               __NE___
         {
             T   exp = load();
-            for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp < arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
         T   fetch_min (T arg)                               __NE___
         {
             T   exp = load();
-            for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp > arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
@@ -375,6 +425,7 @@ namespace AE::Base
         ND_ static forceinline T    _Cast (const IT &value) __NE___ { return BitCast<T>( value ); }
         ND_ static forceinline IT&  _Ref (T &value)         __NE___ { return reinterpret_cast<IT &>( value ); }
     };
+//-----------------------------------------------------------------------------
 
 
 
@@ -412,8 +463,8 @@ namespace AE::Base
         TAtomic (const Self &)                                  = delete;
         TAtomic (Self &&)                                       = delete;
 
-        Self&  operator = (const Self &)                        = delete;
-        Self&  operator = (Self &&)                             = delete;
+            Self&   operator = (const Self &)                   = delete;
+            Self&   operator = (Self &&)                        = delete;
 
             void    store (T* desired)                          __NE___ { _value.store( desired, OnSuccess ); }
         ND_ T*      load ()                                     C_NE___ { return _value.load( OnSuccess ); }
@@ -438,23 +489,25 @@ namespace AE::Base
 
         T*  fetch_add (ssize arg, MO_t memOrder)                __NE___ { return _value.fetch_add( arg, memOrder ); }
         T*  fetch_sub (ssize arg, MO_t memOrder)                __NE___ { return _value.fetch_sub( arg, memOrder ); }
-        T*  Add (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_add( arg, memOrder ) + Math::ByteSSize{arg}; }
-        T*  Sub (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_sub( arg, memOrder ) - Math::ByteSSize{arg}; }
+        T*  Add (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_add( arg, memOrder ) + Math::BytesSSize{arg}; }
+        T*  Sub (ssize arg, MO_t memOrder)                      __NE___ { return _value.fetch_sub( arg, memOrder ) - Math::BytesSSize{arg}; }
 
         T*  fetch_max (T* arg)                                  __NE___
         {
             T*  exp = load();
-            for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp < arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
         T*  fetch_min (T* arg)                                  __NE___
         {
             T*  exp = load();
-            for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+            for (; (exp > arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
     };
+//-----------------------------------------------------------------------------
+
 
 
     template <typename T>
@@ -464,7 +517,10 @@ namespace AE::Base
     using FAtomic = TAtomicFloat< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;    // TODO: tests
 
     template <typename T>
-    using BitAtomic = TBitAtomic< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+    using StructAtomic = TStructAtomic< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+
+    template <typename T>
+    using BitfieldAtomic = TBitfieldAtomic< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
 
 
     namespace _hidden_
@@ -482,6 +538,8 @@ namespace AE::Base
 
     template <typename T>
     using AtomicByte = typename Base::_hidden_::TAtomicByte<T>::type;
+//-----------------------------------------------------------------------------
+
 
 
     namespace _hidden_
@@ -499,13 +557,19 @@ namespace AE::Base
         };
 
         template <typename T, std::memory_order Success, std::memory_order Failure>
-        struct _IsAtomic< TBitAtomic< T, Success, Failure >> {
+        struct _IsAtomic< TBitfieldAtomic< T, Success, Failure >> {
             static constexpr bool   value = true;
             using type = T;
         };
 
         template <typename T, std::memory_order Success, std::memory_order Failure>
         struct _IsAtomic< TAtomicFloat< T, Success, Failure >> {
+            static constexpr bool   value = true;
+            using type = T;
+        };
+
+        template <typename T, std::memory_order Success, std::memory_order Failure>
+        struct _IsAtomic< TStructAtomic< T, Success, Failure >> {
             static constexpr bool   value = true;
             using type = T;
         };
@@ -516,6 +580,7 @@ namespace AE::Base
 
     template <typename T>
     using AtomicInternalType = typename Base::_hidden_::_IsAtomic< T >::type;
+//-----------------------------------------------------------------------------
 
 
 } // AE::Base

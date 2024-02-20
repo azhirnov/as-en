@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "UnitTest_Common.h"
 
@@ -118,6 +118,21 @@ namespace
         TEST( Run< String() >( se, script, "ASmain", OUT res ));
         TEST( res == prop );
     }
+
+    static void  ScriptString_Test8 (const ScriptEnginePtr &se)
+    {
+        const CharUtf8  script[] = u8R"#(
+            string ASmain () {
+                string str = "юникод";
+                return str;
+            }
+        )#";
+        const CharUtf8  ref [] = u8"юникод";
+
+        U8String    res;
+        TEST( Run< U8String() >( se, Cast<char>(script), "ASmain", OUT res ));
+        TEST( res == ref );
+    }
 }
 
 
@@ -137,6 +152,7 @@ extern void UnitTest_String ()
         ScriptString_Test5( se );
         ScriptString_Test6( se );
         ScriptString_Test7( se );
+        ScriptString_Test8( se );
 
         TEST_PASSED();
     )

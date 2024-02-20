@@ -87,12 +87,12 @@ if (STD_CACHELINESIZE_SUPPORTED)
 elseif (APPLE)
     string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
     if (${PLATFORM_NAME} STREQUAL "X86_64")
-        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{64}" )
+        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t(64)" )
     else()
-        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{128}" )
+        set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t(128)" )
     endif()
 else ()
-    set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::size_t{64}" ) # TODO: check
+    set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64u" ) # TODO: check
 endif()
 
 #------------------------------------------------------------------------------

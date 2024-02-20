@@ -41,7 +41,7 @@ namespace AE::Threading
 
         struct alignas(AE_CACHE_LINE) Chunk
         {
-            BitAtomic< PackedBits >     packed  {PackedBits{}};
+            StructAtomic< PackedBits >  packed  {PackedBits{}};
             Atomic< Chunk *>            next    {null};
             TaskArr_t                   array   {};
 

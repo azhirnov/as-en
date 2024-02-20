@@ -44,7 +44,7 @@ namespace AE::VFS
     AddStorage
 =================================================
 */
-    bool  VirtualFileSystem::AddStorage (const StorageName &name, RC<IVirtualFileStorage> storage) __NE___
+    bool  VirtualFileSystem::AddStorage (StorageName::Ref name, RC<IVirtualFileStorage> storage) __NE___
     {
         return _AddStorage( StorageName::Optimized_t{name}, RVRef(storage) );
     }
@@ -61,14 +61,14 @@ namespace AE::VFS
     bool  VirtualFileSystem::_AddStorage (StorageName::Optimized_t name, RC<IVirtualFileStorage> storage) __NE___
     {
         DRC_EXLOCK( _drCheck );
-        CHECK_ERR( not _isImmutable.load() );
 
+        CHECK_ERR( not _isImmutable.load() );
         CHECK_ERR( storage );
 
         auto [it, inserted] = _storageMap.emplace( name, RVRef(storage) );
         CHECK_ERR( inserted );
 
-        NOTHROW_ERR( it->second->_Append( INOUT _globalMap );)
+        NOTHROW_ERR( it->second->_Append( INOUT _globalMap ));
         return true;
     }
 
@@ -88,22 +88,22 @@ namespace AE::VFS
     Open
 =================================================
 */
-    bool  VirtualFileSystem::Open (OUT RC<RStream> &stream, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<RStream> &stream, FileName::Ref name) C_NE___
     {
         return _OpenForRead( OUT stream, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<RDataSource> &ds, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<RDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _OpenForRead( OUT ds, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _OpenForRead( OUT ds, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<AsyncRStream> &stream, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
     {
         RC<AsyncRDataSource>    ds;
         if ( Open( OUT ds, name ))
@@ -115,22 +115,22 @@ namespace AE::VFS
         return false;
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<WStream> &stream, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<WStream> &stream, FileName::Ref name) C_NE___
     {
         return _OpenForWrite( OUT stream, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<WDataSource> &ds, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<WDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _OpenForWrite( OUT ds, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<AsyncWDataSource> &ds, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name) C_NE___
     {
         return _OpenForWrite( OUT ds, name );
     }
 
-    bool  VirtualFileSystem::Open (OUT RC<AsyncWStream> &stream, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Open (OUT RC<AsyncWStream> &stream, FileName::Ref name) C_NE___
     {
         RC<AsyncWDataSource>    ds;
         if ( Open( OUT ds, name ))
@@ -148,7 +148,7 @@ namespace AE::VFS
 =================================================
 */
     template <typename ResultType>
-    bool  VirtualFileSystem::_OpenForRead (OUT ResultType &result, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::_OpenForRead (OUT ResultType &result, FileName::Ref name) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 
@@ -191,7 +191,7 @@ namespace AE::VFS
 =================================================
 */
     template <typename ResultType>
-    bool  VirtualFileSystem::_OpenForWrite (OUT ResultType &result, FileNameRef name) C_NE___
+    bool  VirtualFileSystem::_OpenForWrite (OUT ResultType &result, FileName::Ref name) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 
@@ -233,7 +233,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  VirtualFileSystem::Exists (FileNameRef name) C_NE___
+    bool  VirtualFileSystem::Exists (FileName::Ref name) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 
@@ -259,7 +259,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  VirtualFileSystem::Exists (FileGroupNameRef name) C_NE___
+    bool  VirtualFileSystem::Exists (FileGroupName::Ref name) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 
@@ -277,7 +277,7 @@ namespace AE::VFS
     CreateFile
 =================================================
 */
-    bool  VirtualFileSystem::CreateFile (OUT FileName &name, const Path &path, const StorageName &stName) C_NE___
+    bool  VirtualFileSystem::CreateFile (OUT FileName &name, const Path &path, StorageName::Ref stName) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 
@@ -292,7 +292,7 @@ namespace AE::VFS
     CreateUniqueFile
 =================================================
 */
-    bool  VirtualFileSystem::CreateUniqueFile (OUT FileName &name, INOUT Path &path, const StorageName &stName) C_NE___
+    bool  VirtualFileSystem::CreateUniqueFile (OUT FileName &name, INOUT Path &path, StorageName::Ref stName) C_NE___
     {
         CHECK_ERR( _isImmutable.load() );
 

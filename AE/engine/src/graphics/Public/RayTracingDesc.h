@@ -50,7 +50,7 @@ namespace AE::Graphics
             BufferID        vertexData;         // requires EBufferUsage::ASBuild_ReadOnly, content: 'vertexFormat',    access: EResourceState::BuildRTAS_Read
             BufferID        indexData;          // requires EBufferUsage::ASBuild_ReadOnly, content: 'indexType',       access: EResourceState::BuildRTAS_Read
             BufferID        transformData;      // requires EBufferUsage::ASBuild_ReadOnly, content: RTMatrixStorage,   access: EResourceState::BuildRTAS_Read
-            Byte32u         vertexStride;
+            Bytes32u        vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
             Bytes           transformDataOffset;
@@ -120,7 +120,7 @@ namespace AE::Graphics
         RTGeometryDesc ()                                   __NE___ {}
         RTGeometryDesc (Bytes size, ERTASOptions opt)       __NE___ : size{size}, options{opt} {}
 
-        ND_ bool  operator == (const RTGeometryDesc &rhs)   __NE___ { return (size == rhs.size) & (options == rhs.options); }
+        ND_ bool  operator == (const RTGeometryDesc &rhs)   __NE___ { return (size == rhs.size) and (options == rhs.options); }
         ND_ bool  IsExclusiveSharing ()                     C_NE___ { return false; }
     };
 
@@ -230,7 +230,7 @@ namespace AE::Graphics
         RTSceneDesc ()                                  __NE___ {}
         RTSceneDesc (Bytes size, ERTASOptions opt)      __NE___ : size{size}, options{opt} {}
 
-        ND_ bool  operator == (const RTSceneDesc &rhs)  __NE___ { return (size == rhs.size) & (options == rhs.options); }
+        ND_ bool  operator == (const RTSceneDesc &rhs)  __NE___ { return (size == rhs.size) and (options == rhs.options); }
         ND_ bool  IsExclusiveSharing ()                 C_NE___ { return false; }
     };
 

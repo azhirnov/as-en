@@ -57,8 +57,10 @@ namespace AE::Networking
         using EncodeFn_t = EncodeError (*) (const void* self, DataEncoder &)    __NE___;
 
     protected:
-        static constexpr uint   _MaxGroupID         = (1u << 9) - 1;
-        static constexpr uint   _GroupMaskOffset    = CT_SizeOfInBits<CSMessageUID> - IntLog2( _MaxGroupID+1 );
+        StaticAssert( CT_SizeOfInBits<CSMessageUID> >= NetConfig::CSMessageUID_Bits );
+
+        static constexpr uint   _MaxGroupID         = (1u << 6) - 1;
+        static constexpr uint   _GroupMaskOffset    = NetConfig::CSMessageUID_Bits - IntLog2( _MaxGroupID+1 );
         static constexpr uint   _GroupMask          = _MaxGroupID << _GroupMaskOffset;
         static constexpr uint   _MaxMessageID       = (1u << _GroupMaskOffset) - 1;
 
@@ -119,8 +121,8 @@ namespace AE::Networking
     template <typename T>
     struct CSMessageCtor
     {
-        static bool  CreateForEncode (OUT CSMessagePtr &, IAllocator &, Bytes extraSize)                __NE___;
-        static bool  CreateAndDecode (OUT CSMessagePtr &, IAllocator &, EClientLocalID, DataDecoder &)  __NE___;
+        ND_ static T*    CreateForEncode (IAllocator &, EClientLocalID = Default, Bytes extraSize = 0_b)    __NE___;
+            static bool  CreateAndDecode (OUT CSMessagePtr &, IAllocator &, EClientLocalID, DataDecoder &)  __NE___;
     };
 
 
@@ -132,7 +134,7 @@ namespace AE::Networking
     {
     // interface
     public:
-        ND_ virtual EnumBitSet<EChannel>    GetChannels ()              C_NE___ = 0;
+        ND_ virtual EnumSet<EChannel>       GetChannels ()              C_NE___ = 0;
 
         ND_ virtual ChunkList<CSMessagePtr>  Produce (FrameUID frameId) __NE___ = 0;
     };
@@ -161,11 +163,10 @@ namespace AE::Networking
     // types
     public:
         using MsgPtr_t              = CSMessagePtr; // allocated by '_dbAlloc' and memory will be auto-released in 'NextFrame()'
-        using CreateForEncode_t     = bool (*) (OUT MsgPtr_t &, IAllocator &, Bytes);
         using CreateAndDecode_t     = bool (*) (OUT MsgPtr_t &, IAllocator &, EClientLocalID, DataDecoder &);
 
     private:
-        using MsgTypeMap_t          = FlatHashMap< uint, Tuple< CreateForEncode_t, CreateAndDecode_t >>;
+        using MsgTypeMap_t          = FlatHashMap< uint, CreateAndDecode_t >;
         using Allocator_t           = Threading::LfLinearAllocator< usize{4_Mb}, usize{16_b}, 16 >;
 
         using DoubleBufAlloc_t      = StaticArray< RC<Allocator_t>, 2 >;
@@ -179,7 +180,7 @@ namespace AE::Networking
         };
         using MsgTypes_t    = StaticArray< MsgGroup, CSMessage::_MaxGroupID+1 >;
 
-        using MsgAndCtor_t  = Tuple< CSMessageUID, CreateForEncode_t, CreateAndDecode_t >;
+        using MsgAndCtor_t  = Tuple< CSMessageUID, CreateAndDecode_t >;
 
 
     // variables
@@ -205,15 +206,11 @@ namespace AE::Networking
         template <typename T0, typename ...Types>
             bool    Register (Bool lockGroup)                                           __NE___;
 
-            bool    Register (CSMessageUID uid, CreateForEncode_t, CreateAndDecode_t)   __NE___;
+            bool    Register (CSMessageUID uid, CreateAndDecode_t)                      __NE___;
             bool    Register (CSMessageGroupID groupId, ArrayView<MsgAndCtor_t>,
                               Bool lockGroup = False{})                                 __NE___;
 
         // message constructors //
-        template <typename T>
-        ND_ Ptr<T>  CreateMsg (FrameUID, Bytes extraSize = 0_b)                         __NE___;
-        ND_ bool    CreateMsg (FrameUID, CSMessageUID, Bytes extraSize, OUT MsgPtr_t &) __NE___;
-
         ND_ bool    DeserializeMsg (FrameUID, CSMessageUID, EClientLocalID,
                                     OUT MsgPtr_t &, DataDecoder &)                      __NE___;
 
@@ -246,8 +243,8 @@ namespace AE::Networking
             __VA_ARGS__                                                                                                         \
                                                                                                                                 \
         private:                                                                                                                \
-            CSMsg_ ## _name_ ()                                     __NE___ : CSMessage{ UID, Default } {}                      \
             explicit CSMsg_ ## _name_ (EClientLocalID cid)          __NE___ : CSMessage{ UID, cid } {}                          \
+            CSMsg_ ## _name_ (CSMsg_ ## _name_ &&)                  __NE___ = default;                                          \
                                                                                                                                 \
             inline EncodeError  _Serialize (DataEncoder &)          C_NE___;                                                    \
             inline bool         _Deserialize (DataDecoder &)        __NE___;                                                    \
@@ -278,21 +275,21 @@ namespace AE::Networking
 
 /*
 =================================================
-    CSMSG_ENC_DEC_INPLACEARR
+    CSMSG_ENC_DEC_EXDATA
 ----
     Helper for client/server message encoding/decoding,
-    when message contains in place array.
+    when message contains extra data.
 =================================================
 */
-    #define CSMSG_ENC_DEC_INPLACEARR( _name_, _inPlaceArrSize_, _inPlaceArr_, _fields_ )                            \
+    #define CSMSG_ENC_DEC_EXDATA( _name_, _dataSize_, _data_, _fields_ )                                            \
         inline CSMessage::EncodeError  CSMsg_ ## _name_::_Serialize (DataEncoder &enc) C_NE___                      \
         {                                                                                                           \
-            StaticAssert( sizeof(_inPlaceArrSize_) <= sizeof(ushort) );                                             \
-            StaticAssert( IsUnsignedInteger< decltype(_inPlaceArrSize_) > or                                        \
-                          IsBytes< decltype(_inPlaceArrSize_) >);                                                   \
+            StaticAssert( sizeof(_dataSize_) <= sizeof(ushort) );                                                   \
+            StaticAssert( IsBytes< decltype(_dataSize_) >);                                                         \
+            StaticAssert( IsTriviallySerializable< decltype(_data_) >);                                             \
                                                                                                                     \
             bool    ok = enc( _fields_ );                                                                           \
-                    ok = ok and enc.Write( _inPlaceArr_, _inPlaceArrSize_ );                                        \
+                    ok = ok and enc.Write( static_cast< const void *>(_data_), _dataSize_ );                        \
             return  ok ? EncodeError::OK : EncodeError::NoMemory;                                                   \
         }                                                                                                           \
                                                                                                                     \
@@ -302,25 +299,26 @@ namespace AE::Networking
         }                                                                                                           \
                                                                                                                     \
         template <>                                                                                                 \
-        inline bool  CSMessageCtor< CSMsg_ ## _name_ >::CreateAndDecode (OUT CSMessagePtr &msg, IAllocator &alloc,  \
-                                                                         EClientLocalID, DataDecoder &dec) __NE___  \
+        inline bool  CSMessageCtor< CSMsg_ ## _name_ >::                                                            \
+            CreateAndDecode (OUT CSMessagePtr &msg, IAllocator &alloc, EClientLocalID cid, DataDecoder &dec) __NE___\
         {                                                                                                           \
-            using T = CSMsg_ ## _name_;                                                                             \
+            using TMsg = CSMsg_ ## _name_;                                                                          \
                                                                                                                     \
-            constexpr Bytes  msg_size {offsetof( CSMsg_ ## _name_, _inPlaceArr_ )};                                 \
+            constexpr Bytes  msg_size {OffsetOfNoWarn( CSMsg_ ## _name_, _data_ )};                                 \
                                                                                                                     \
-            T   temp;                                                                                               \
+            TMsg    temp {cid};                                                                                     \
             if_likely( temp._Deserialize( dec ))                                                                    \
             {                                                                                                       \
-                auto*   t_msg = Cast<T>( alloc.Allocate( SizeAndAlign{                                              \
-                                            msg_size + temp._inPlaceArrSize_, AlignOf<T> }));                       \
+                auto*   t_msg = Cast<TMsg>( alloc.Allocate( SizeAndAlign{                                           \
+                                                msg_size + dec.RemainingSize(), AlignOf<TMsg> }));                  \
                                                                                                                     \
                 if_likely( t_msg != null )                                                                          \
                 {                                                                                                   \
                     msg = t_msg;                                                                                    \
-                    new(t_msg) T{ RVRef(temp) };                                                                    \
+                    new(t_msg) TMsg{ RVRef(temp) };                                                                 \
                                                                                                                     \
-                    return dec.Read( t_msg->_inPlaceArr_, t_msg->_inPlaceArrSize_ );                                \
+                    t_msg->_dataSize_ = dec.ReadRemaining( OUT static_cast< void *>(t_msg->_data_) );               \
+                    return true;                                                                                    \
                 }                                                                                                   \
             }                                                                                                       \
             return false;                                                                                           \
@@ -328,20 +326,52 @@ namespace AE::Networking
 
 /*
 =================================================
-    CSMSG_EMPTY_ENC_DEC
+    CSMSG_ENC_DEC_EXARRAY
 ----
-    Helper for client/server message encoding/decoding for empty message.
+    Helper for client/server message encoding/decoding,
+    when message contains extra data.
 =================================================
 */
-    #define CSMSG_EMPTY_ENC_DEC( _name_ )                                                       \
-        inline CSMessage::EncodeError  CSMsg_ ## _name_::_Serialize (DataEncoder &) C_NE___     \
-        {                                                                                       \
-            return  EncodeError::OK;                                                            \
-        }                                                                                       \
-                                                                                                \
-        inline bool  CSMsg_ ## _name_::_Deserialize (DataDecoder &) __NE___                     \
-        {                                                                                       \
-            return  true;                                                                       \
+    #define CSMSG_ENC_DEC_EXARRAY( _name_, _arrCount_, _arr_, _fields_ )                                            \
+        inline CSMessage::EncodeError  CSMsg_ ## _name_::_Serialize (DataEncoder &enc) C_NE___                      \
+        {                                                                                                           \
+            StaticAssert( sizeof(_arrCount_) <= sizeof(ushort) );                                                   \
+            StaticAssert( IsUnsignedInteger< decltype(_arrCount_) >);                                               \
+                                                                                                                    \
+            bool    ok = enc( _fields_ );                                                                           \
+                    ok = ok and enc.Encode( &_arr_[0], _arrCount_ );                                                \
+            return  ok ? EncodeError::OK : EncodeError::NoMemory;                                                   \
+        }                                                                                                           \
+                                                                                                                    \
+        inline bool  CSMsg_ ## _name_::_Deserialize (DataDecoder &dec) __NE___                                      \
+        {                                                                                                           \
+            return  dec( OUT _fields_ );                                                                            \
+        }                                                                                                           \
+                                                                                                                    \
+        template <>                                                                                                 \
+        inline bool  CSMessageCtor< CSMsg_ ## _name_ >::                                                            \
+            CreateAndDecode (OUT CSMessagePtr &msg, IAllocator &alloc, EClientLocalID cid, DataDecoder &dec) __NE___\
+        {                                                                                                           \
+            using TMsg = CSMsg_ ## _name_;                                                                          \
+                                                                                                                    \
+            constexpr Bytes  msg_size {OffsetOfNoWarn( CSMsg_ ## _name_, _arr_ )};                                  \
+                                                                                                                    \
+            TMsg    temp {cid};                                                                                     \
+            if_likely( temp._Deserialize( dec ))                                                                    \
+            {                                                                                                       \
+                auto*   t_msg = Cast<TMsg>( alloc.Allocate( SizeAndAlign{                                           \
+                                                msg_size + sizeof(temp._arr_[0]) * temp._arrCount_,                 \
+                                                AlignOf<TMsg> }));                                                  \
+                                                                                                                    \
+                if_likely( t_msg != null )                                                                          \
+                {                                                                                                   \
+                    msg = t_msg;                                                                                    \
+                    new(t_msg) TMsg{ RVRef(temp) };                                                                 \
+                                                                                                                    \
+                    return dec.Decode( OUT &t_msg->_arr_[0], t_msg->_arrCount_ );                                   \
+                }                                                                                                   \
+            }                                                                                                       \
+            return false;                                                                                           \
         }
 //-----------------------------------------------------------------------------
 
@@ -359,7 +389,7 @@ namespace AE::Networking
             EncodeFn_t          fn;
             CSMessage           msg;
         };
-        auto*   msg_fn = BitCast<MsgAndFn *>( usize(this) - offsetof( MsgAndFn, msg ));
+        auto*   msg_fn = BitCast<MsgAndFn *>( usize(this) - OffsetOfNoWarn( MsgAndFn, msg ));
         ASSERT( msg_fn->magic == usize(this) );
         ASSERT( &msg_fn->msg == this );
         ASSERT( msg_fn->fn != null );
@@ -375,7 +405,7 @@ namespace AE::Networking
 =================================================
 */
     template <typename T>
-    bool  CSMessageCtor<T>::CreateForEncode (OUT CSMessagePtr &msg, IAllocator &alloc, Bytes extraSize) __NE___
+    T*  CSMessageCtor<T>::CreateForEncode (IAllocator &alloc, EClientLocalID clientId, Bytes extraSize) __NE___
     {
         struct MsgAndFn {
             DEBUG_ONLY( usize       magic;)
@@ -389,12 +419,11 @@ namespace AE::Networking
             DEBUG_ONLY( msg_fn->magic = usize(&msg_fn->msg) );
 
             msg_fn->fn = &T::_EncodeFn;
-            new(&msg_fn->msg) T{};
+            new(&msg_fn->msg) T{ clientId };
 
-            msg = &msg_fn->msg;
-            return true;
+            return &msg_fn->msg;
         }
-        return false;
+        return null;
     }
 
 /*
@@ -430,7 +459,7 @@ namespace AE::Networking
     {
         StaticAssert( IsTriviallyDestructible<T> );
 
-        return Register( T::UID, &CSMessageCtor<T>::CreateForEncode, &CSMessageCtor<T>::CreateAndDecode );
+        return Register( T::UID, &CSMessageCtor<T>::CreateAndDecode );
     }
 
     template <typename T0, typename ...Types>
@@ -442,23 +471,9 @@ namespace AE::Networking
 
         return Register( CSMessageGroupID(CSMessage::_UnpackUID( T0::UID ).template Get<0>()),
                          ArrayView< MsgAndCtor_t >{
-                            MsgAndCtor_t{ T0::UID,      &CSMessageCtor<T0>::CreateForEncode,    &CSMessageCtor<T0>::CreateAndDecode },
-                            MsgAndCtor_t{ Types::UID,   &CSMessageCtor<Types>::CreateForEncode, &CSMessageCtor<Types>::CreateAndDecode }... },
+                            MsgAndCtor_t{ T0::UID,      &CSMessageCtor<T0>::CreateAndDecode },
+                            MsgAndCtor_t{ Types::UID,   &CSMessageCtor<Types>::CreateAndDecode }... },
                          lockGroup );
-    }
-
-/*
-=================================================
-    CreateMsg
-=================================================
-*/
-    template <typename T>
-    Ptr<T>  MessageFactory::CreateMsg (FrameUID frameId, Bytes extraSize) __NE___
-    {
-        MsgPtr_t    tmp;
-        if_likely( CreateMsg( frameId, T::UID, extraSize, OUT tmp ))
-            return Cast<T>( tmp );
-        return Default;
     }
 
 /*

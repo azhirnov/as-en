@@ -361,7 +361,7 @@ namespace
             res.maxVerticesPerRenderPass            = POTValue{ UMax };     // not defined
             res.minVertexBufferOffsetAlign          = POTBytes{ 4_b };
             res.minVertexBufferElementsAlign        = 1;                    // TODO
-            res.maxUniformBufferRange               = LimitCast<Byte32u>(mtl_props.maxBufferSize);
+            res.maxUniformBufferRange               = LimitCast<Bytes32u>(mtl_props.maxBufferSize);
             res.maxBoundDescriptorSets              = 31;                   // minus VBcount
             res.minMemoryMapAlign                   = POTBytes{ Max( mtl_props.minUniformBufferOffsetAlign, mtl_props.minStorageBufferOffsetAlign )};
             res.minNonCoherentAtomSize              = POTBytes{ res.minMemoryMapAlign };

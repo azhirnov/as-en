@@ -31,7 +31,7 @@ class DrawTestCore
 // types
 protected:
     using TestFunc_t    = bool (DrawTestCore::*) ();
-    using TestQueue_t   = Deque< TestFunc_t >;
+    using TestQueue_t   = RingBuffer< TestFunc_t >;
     using FStorage_t    = RC<AE::VFS::IVirtualFileStorage>;
 
     static constexpr bool   UpdateAllReferenceDumps = true;

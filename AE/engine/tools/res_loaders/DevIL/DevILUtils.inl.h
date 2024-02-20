@@ -64,8 +64,7 @@ namespace AE::ResLoader
 */
     ND_ inline ILenum  ILEnumCast (EImageFormat fileFormat)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( fileFormat )
+        switch_enum( fileFormat )
         {
             case EImageFormat::BMP :        return IL_BMP;
             case EImageFormat::JPG :        return IL_JPG;
@@ -83,7 +82,7 @@ namespace AE::ResLoader
             case EImageFormat::Unknown :
             case EImageFormat::_Count :     return IL_TYPE_UNKNOWN;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unsupported image file format", IL_TYPE_UNKNOWN );
     }
 

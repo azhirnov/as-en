@@ -13,11 +13,14 @@
 
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
 
+#include "threading/DataSource/UnixAsyncDataSource.h"
+#include "threading/DataSource/WinAsyncDataSource.h"
+
 namespace AE::ResEditor
 {
 namespace {
 #   define AE_BUILD_ASSET_PACKER
-#   include "res_pack/asset_packer/Packer/ImagePackerUtils.cpp.h"
+#   include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 #   undef AE_BUILD_ASSET_PACKER
 }
 
@@ -91,7 +94,7 @@ namespace {
     destructor
 =================================================
 */
-    Image::~Image ()
+    Image::~Image () __NE___
     {
         Cancel();
 
@@ -345,7 +348,7 @@ namespace {
                         if_unlikely( not op.stream.IsInitialized() )
                         {
                             UploadImageDesc     upload;
-                            upload.imageSize    = ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() );
+                            upload.imageDim     = ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() );
                             upload.arrayLayer   = op.layer + op.curLayer;
                             upload.mipLevel     = op.mipmap + op.curMipmap;
                             upload.heapType     = EStagingHeapType::Dynamic;
@@ -535,7 +538,7 @@ namespace {
                 const auto&     fmt_info    = EPixelFormat_GetInfo( img_desc.format );
 
                 ReadbackImageDesc   read;
-                read.imageSize  = ImageUtils::MipmapDimension( img_desc.dimension, op.curMipmap.Get(), fmt_info.TexBlockDim() );
+                read.imageDim   = ImageUtils::MipmapDimension( img_desc.dimension, op.curMipmap.Get(), fmt_info.TexBlockDim() );
                 read.arrayLayer = op.curLayer;
                 read.mipLevel   = op.curMipmap;
                 read.heapType   = EStagingHeapType::Dynamic;

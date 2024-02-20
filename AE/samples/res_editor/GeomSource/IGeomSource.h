@@ -18,7 +18,7 @@ namespace AE::ResEditor
     protected:
         using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
         using EDebugMode        = IPass::EDebugMode;
-        using DebugModeBits     = EnumBitSet<EDebugMode>;
+        using DebugModeBits     = EnumSet<EDebugMode>;
 
 
     // methods

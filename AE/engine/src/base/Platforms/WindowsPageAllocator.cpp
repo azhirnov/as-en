@@ -263,15 +263,14 @@ namespace
         DWORD   new_protect = 0;
         DWORD   old_protect = 0;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( newFlag )
+        switch_enum( newFlag )
         {
             case EMemProtection::NoAccess :     new_protect = PAGE_NOACCESS;    break;
             case EMemProtection::Readonly :     new_protect = PAGE_READONLY;    break;
             case EMemProtection::ReadWrite :    new_protect = PAGE_READWRITE;   break;
             default :                           DBG_WARNING( "unknown protection flag" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         bool    res = ::VirtualProtect( ptr, usize(size), new_protect, OUT &old_protect ) != FALSE;
 

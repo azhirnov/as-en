@@ -511,6 +511,7 @@ namespace
     {
         ASSERT( RowPitch() == rowPitch );
         ASSERT( SlicePitch() == slicePitch );
+        ASSERT( IsSingleBitSet( _aspect ));
 
         const auto& fmt_info = EPixelFormat_GetInfo( format );
 
@@ -526,18 +527,12 @@ namespace
             _bitsPerBlock = CheckCast<ushort>( fmt_info.bitsPerBlock );
 
         if ( _rowPitch == 0 )
-        {
-            ASSERT( aspect <= EImageAspect::Stencil );  // calculation is valid for Color/Depth/Stencil
-            _rowPitch = CheckCast<Byte32u>( MinRowSize() );
-        }
+            _rowPitch = CheckCast<Bytes32u>( MinRowSize() );
 
         if ( _slicePitch == 0 )
-        {
-            ASSERT( aspect <= EImageAspect::Stencil );  // calculation is valid for Color/Depth/Stencil
-            _slicePitch = CheckCast<Byte32u>( MinSliceSize() );
-        }
+            _slicePitch = CheckCast<Bytes32u>( MinSliceSize() );
 
-        ASSERT( BytesPerBlock() > 0_b );
+        ASSERT( BitsPerBlock() > 0_b );
         ASSERT_GE( RowPitch(), MinRowSize() );
         ASSERT_GE( SlicePitch(), MinSliceSize() );
 
@@ -893,11 +888,22 @@ namespace
 
     RWImageMemView::RWImageMemView (const ImageMemView& other) __NE___ : ImageMemView{other}
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( _format )
+        #define REQ_COLOR_ASPECT()                                                          \
+            ASSERT( _aspect == EImageAspect::Color or                                       \
+                    (_aspect >= EImageAspect::Plane_0 and _aspect >= EImageAspect::Plane_2 ))
+
+        #define REQ_DEPTH_ASPECT() \
+            ASSERT( _aspect == EImageAspect::Depth )
+
+        #define REQ_DEPTH_STENCIL_ASPECT() \
+            ASSERT( _aspect == EImageAspect::Depth or _aspect == EImageAspect::Stencil )
+
+        ASSERT( IsSingleBitSet( _aspect ));
+
+        switch_enum( _format )
         {
             case EPixelFormat::RGBA4_UNorm :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*4 );
                 _loadF4 = &ReadUNorm<4,4,4,4>;
                 _loadI4 = &ReadInt<4,4,4,4>;
@@ -908,7 +914,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB5_A1_UNorm :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*5 + 1 );
                 _loadF4 = &ReadUNorm<5,5,5,1>;
                 _loadI4 = &ReadInt<5,5,5,1>;
@@ -919,7 +925,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB_5_6_5_UNorm :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 5+6+5 );
                 _loadF4 = &ReadUNorm<5,6,5,0>;
                 _loadI4 = &ReadInt<5,6,5,0>;
@@ -930,7 +936,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB10_A2_UNorm :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*10 + 2 );
                 _loadF4 = &ReadUNorm<10,10,10,2>;
                 _loadI4 = &ReadInt<10,10,10,2>;
@@ -944,7 +950,7 @@ namespace
             case EPixelFormat::R8_UNorm :
             case EPixelFormat::R8I :
             case EPixelFormat::R8U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 1*8 );
                 _loadF4 = (_format == EPixelFormat::R8_SNorm ? &ReadSNorm<8,0,0,0> : _format == EPixelFormat::R8_UNorm ? &ReadUNorm<8,0,0,0> : null);
                 _loadI4 = &ReadInt<8,0,0,0>;
@@ -958,7 +964,7 @@ namespace
             case EPixelFormat::RG8_UNorm :
             case EPixelFormat::RG8I :
             case EPixelFormat::RG8U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 2*8 );
                 _loadF4 = (_format == EPixelFormat::RG8_SNorm ? &ReadSNorm<8,8,0,0> : _format == EPixelFormat::RG8_UNorm ? &ReadUNorm<8,8,0,0> : null);
                 _loadI4 = &ReadInt<8,8,0,0>;
@@ -972,7 +978,7 @@ namespace
             case EPixelFormat::RGB8_UNorm :
             case EPixelFormat::RGB8I :
             case EPixelFormat::RGB8U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*8 );
                 _loadF4 = (_format == EPixelFormat::RGB8_SNorm ? &ReadSNorm<8,8,8,0> : _format == EPixelFormat::RGB8_UNorm ? &ReadUNorm<8,8,8,0> : null);
                 _loadI4 = &ReadInt<8,8,8,0>;
@@ -987,7 +993,7 @@ namespace
             case EPixelFormat::RGBA8_UNorm :
             case EPixelFormat::RGBA8I :
             case EPixelFormat::RGBA8U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*8 );
                 _loadF4 = (_format == EPixelFormat::RGBA8_SNorm ? &ReadSNorm<8,8,8,8> : _format == EPixelFormat::RGBA8_UNorm ? &ReadUNorm<8,8,8,8> : null);
                 _loadI4 = &ReadInt<8,8,8,8>;
@@ -1001,7 +1007,7 @@ namespace
             case EPixelFormat::R16_UNorm :
             case EPixelFormat::R16I :
             case EPixelFormat::R16U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 1*16 );
                 _loadF4 = (_format == EPixelFormat::R16_SNorm ? &ReadSNorm<16,0,0,0> : _format == EPixelFormat::R16_UNorm ? &ReadUNorm<16,0,0,0> : null);
                 _loadI4 = &ReadInt<16,0,0,0>;
@@ -1015,7 +1021,7 @@ namespace
             case EPixelFormat::RG16_UNorm :
             case EPixelFormat::RG16I :
             case EPixelFormat::RG16U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 2*16 );
                 _loadF4 = (_format == EPixelFormat::RG16_SNorm ? &ReadSNorm<16,16,0,0> : _format == EPixelFormat::RG16_UNorm ? &ReadUNorm<16,16,0,0> : null);
                 _loadI4 = &ReadInt<16,16,0,0>;
@@ -1029,7 +1035,7 @@ namespace
             case EPixelFormat::RGB16_UNorm :
             case EPixelFormat::RGB16I :
             case EPixelFormat::RGB16U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*16 );
                 _loadF4 = (_format == EPixelFormat::RGB16_SNorm ? &ReadSNorm<16,16,16,0> : _format == EPixelFormat::RGB16_UNorm ? &ReadUNorm<16,16,16,0> : null);
                 _loadI4 = &ReadInt<16,16,16,0>;
@@ -1043,7 +1049,7 @@ namespace
             case EPixelFormat::RGBA16_UNorm :
             case EPixelFormat::RGBA16I :
             case EPixelFormat::RGBA16U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*16 );
                 _loadF4 = (_format == EPixelFormat::RGBA16_SNorm ? &ReadSNorm<16,16,16,16> : _format == EPixelFormat::RGBA16_UNorm ? &ReadUNorm<16,16,16,16> : null);
                 _loadI4 = &ReadInt<16,16,16,16>;
@@ -1055,7 +1061,7 @@ namespace
 
             case EPixelFormat::R32I :
             case EPixelFormat::R32U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 1*32 );
                 _loadI4 = &ReadInt<32,0,0,0>;
                 _loadU4 = &ReadUInt<32,0,0,0>;
@@ -1065,7 +1071,7 @@ namespace
 
             case EPixelFormat::RG32I :
             case EPixelFormat::RG32U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 2*32 );
                 _loadI4 = &ReadInt<32,32,0,0>;
                 _loadU4 = &ReadUInt<32,32,0,0>;
@@ -1075,7 +1081,7 @@ namespace
 
             case EPixelFormat::RGB32I :
             case EPixelFormat::RGB32U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*32 );
                 _loadI4 = &ReadInt<32,32,32,0>;
                 _loadU4 = &ReadUInt<32,32,32,0>;
@@ -1085,7 +1091,7 @@ namespace
 
             case EPixelFormat::RGBA32I :
             case EPixelFormat::RGBA32U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*32 );
                 _loadI4 = &ReadInt<32,32,32,32>;
                 _loadU4 = &ReadUInt<32,32,32,32>;
@@ -1094,7 +1100,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB10_A2U :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*10 + 2 );
                 _loadI4 = &ReadInt<10,10,10,2>;
                 _loadU4 = &ReadUInt<10,10,10,2>;
@@ -1103,7 +1109,7 @@ namespace
                 break;
 
             case EPixelFormat::R16F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 1*16 );
                 _loadF4 = &ReadFloat<16,0,0,0>;
                 _loadI4 = &ReadInt<16,0,0,0>;
@@ -1114,7 +1120,7 @@ namespace
                 break;
 
             case EPixelFormat::RG16F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 2*16 );
                 _loadF4 = &ReadFloat<16,16,0,0>;
                 _loadI4 = &ReadInt<16,16,0,0>;
@@ -1125,7 +1131,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB16F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*16 );
                 _loadF4 = &ReadFloat<16,16,16,0>;
                 _loadI4 = &ReadInt<16,16,16,0>;
@@ -1136,7 +1142,7 @@ namespace
                 break;
 
             case EPixelFormat::RGBA16F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*16 );
                 _loadF4 = &ReadFloat<16,16,16,16>;
                 _loadI4 = &ReadInt<16,16,16,16>;
@@ -1147,7 +1153,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB_11_11_10F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 11 + 11 + 10 );
                 _loadF4 = &ReadFloat_11_11_10;
                 _loadI4 = &ReadInt<11,11,10,0>;
@@ -1158,7 +1164,7 @@ namespace
                 break;
 
             case EPixelFormat::R32F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 1*32 );
                 _loadF4 = &ReadFloat<32,0,0,0>;
                 _loadI4 = &ReadInt<32,0,0,0>;
@@ -1169,7 +1175,7 @@ namespace
                 break;
 
             case EPixelFormat::RG32F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 2*32 );
                 _loadF4 = &ReadFloat<32,32,0,0>;
                 _loadI4 = &ReadInt<32,32,0,0>;
@@ -1180,7 +1186,7 @@ namespace
                 break;
 
             case EPixelFormat::RGB32F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*32 );
                 _loadF4 = &ReadFloat<32,32,32,0>;
                 _loadI4 = &ReadInt<32,32,32,0>;
@@ -1191,7 +1197,7 @@ namespace
                 break;
 
             case EPixelFormat::RGBA32F :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*32 );
                 _loadF4 = &ReadFloat<32,32,32,32>;
                 _loadI4 = &ReadInt<32,32,32,32>;
@@ -1204,20 +1210,20 @@ namespace
             case EPixelFormat::Depth16 :
             case EPixelFormat::Depth24 :
             case EPixelFormat::Depth32F :
-                ASSERT( _aspect == EImageAspect::Depth );
-                ASSERT(false);
+                REQ_DEPTH_ASPECT();
+                DBG_WARNING( "TODO" );
                 break;
 
             case EPixelFormat::Depth16_Stencil8 :
             case EPixelFormat::Depth24_Stencil8 :
             case EPixelFormat::Depth32F_Stencil8 :
-                ASSERT( _aspect == EImageAspect::Depth or _aspect == EImageAspect::Stencil );
-                ASSERT(false);
+                REQ_DEPTH_STENCIL_ASPECT();
+                DBG_WARNING( "TODO" );
                 break;
 
             case EPixelFormat::sRGB8 :
             case EPixelFormat::sBGR8 :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 3*8 );
                 _loadF4 = &ReadUNorm<8,8,8,0>;
                 _loadI4 = &ReadInt<8,8,8,0>;
@@ -1229,7 +1235,7 @@ namespace
 
             case EPixelFormat::sRGB8_A8 :
             case EPixelFormat::sBGR8_A8 :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 ASSERT( _bitsPerBlock == 4*8 );
                 _loadF4 = &ReadUNorm<8,8,8,8>;
                 _loadI4 = &ReadInt<8,8,8,8>;
@@ -1312,7 +1318,7 @@ namespace
             case EPixelFormat::ASTC_RGBA16F_10x10 :
             case EPixelFormat::ASTC_RGBA16F_12x10 :
             case EPixelFormat::ASTC_RGBA16F_12x12 :
-                ASSERT( _aspect == EImageAspect::Color );
+                REQ_COLOR_ASPECT();
                 DBG_WARNING( "TODO" );
                 break;
 
@@ -1326,12 +1332,16 @@ namespace
             case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm :
             case EPixelFormat::G8_B8R8_420_UNorm :
             case EPixelFormat::G8_B8R8_422_UNorm :
+            case EPixelFormat::G8_B8R8_444_UNorm :
             case EPixelFormat::G16_B16R16_420_UNorm :
             case EPixelFormat::G16_B16R16_422_UNorm :
+            case EPixelFormat::G16_B16R16_444_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :
+            case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :
+            case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :
             case EPixelFormat::G8_B8_R8_420_UNorm :
             case EPixelFormat::G8_B8_R8_422_UNorm :
             case EPixelFormat::G8_B8_R8_444_UNorm :
@@ -1350,7 +1360,7 @@ namespace
             case EPixelFormat::R12x4G12x4B12x4A12x4_UNorm :
             case EPixelFormat::R12x4G12x4_UNorm :
             case EPixelFormat::R12x4_UNorm :
-                DBG_WARNING( "TODO" );
+                DBG_WARNING( "use separate ImageMemView per plane" );
                 break;
 
             case EPixelFormat::_Count :
@@ -1360,7 +1370,7 @@ namespace
                 DBG_WARNING( "unknown pixel format" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*

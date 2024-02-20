@@ -14,7 +14,7 @@
 // DataSource
 #include "threading/DataSource/AsyncDataSource.h"
 #include "threading/DataSource/TsDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
+//#include "threading/DataSource/WinAsyncDataSource.h"
 //#include "threading/DataSource/UnixAsyncDataSource.h"
 #include "threading/DataSource/AsyncDataSourceAsStream.h"
 #include "threading/DataSource/SyncDataSource.h"
@@ -24,6 +24,7 @@
 #include "threading/Memory/GlobalLinearAllocator.h"
 #include "threading/Memory/LfFixedBlockAllocator.h"
 #include "threading/Memory/LfLinearAllocator.h"
+#include "threading/Memory/LfStaticBlockAllocator.h"
 #include "threading/Memory/MemoryManager.h"
 #include "threading/Memory/MemoryProfiler.h"
 #include "threading/Memory/TsLinearAllocator.h"
@@ -37,6 +38,7 @@
 #include "threading/Primitives/SyncEvent.h"
 #include "threading/Primitives/Synchronized.h"
 #include "threading/Primitives/DataRaceCheck.h"
+#include "threading/Primitives/Semaphore.h"
 
 // TaskSystem
 #include "threading/TaskSystem/EThread.h"

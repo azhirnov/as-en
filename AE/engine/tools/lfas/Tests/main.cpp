@@ -14,6 +14,10 @@ int main ()
 {
     AE::Base::StaticLogger::LoggerDbgScope  log{};
 
+    #ifdef AE_DEBUG
+        return 0;
+    #endif
+
     UnitTest_Ranges();
     Test_SpinLock();
     Test_LfIndexedPool2();

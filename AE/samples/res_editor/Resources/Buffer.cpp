@@ -98,7 +98,7 @@ namespace
     destructor
 =================================================
 */
-    Buffer::~Buffer ()
+    Buffer::~Buffer () __NE___
     {
         if ( _loadOp.file )     _loadOp.file->CancelAllRequests();
         if ( _loadOp.request )  _loadOp.request->Cancel();

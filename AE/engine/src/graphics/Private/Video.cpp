@@ -14,11 +14,11 @@ namespace AE::Graphics
 */
     bool  VideoProfile::IsDefined () C_NE___
     {
-        return  (mode               != Default) &
-                (codec              != Default) &
-                (chromaSubsampling  != Default) &
-                (lumaBitDepth       != 0)       &
-                (chromaBitDepth     != 0)       &
+        return  (mode               != Default) and
+                (codec              != Default) and
+                (chromaSubsampling  != Default) and
+                (lumaBitDepth       != 0)       and
+                (chromaBitDepth     != 0)       and
                 not IsNullUnion( spec );
     }
 //-----------------------------------------------------------------------------

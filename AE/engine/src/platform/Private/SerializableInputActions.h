@@ -23,6 +23,9 @@ namespace AE::App
         using EValueType        = IInputActions::EValueType;
         using PackedScale_t     = half;
         using PackedScale4_t    = PackedVec< PackedScale_t, 4 >;
+        using InputType_t       = ushort;
+
+        enum class ESensorBits : uint { Unknown = 0 };
 
 
         struct ScriptActionInfo
@@ -50,15 +53,15 @@ namespace AE::App
         public:
             Reflection ()                                                   __NE___ {}
 
-                bool    Add (const InputModeName &name, StringView str)     __Th___ { return _Add( name, str, _modeMap ); }
-                bool    Add (const InputActionName &name, StringView str)   __Th___ { return _Add( name, str, _actionMap ); }
+                bool    Add (InputModeName::Ref name, StringView str)       __Th___ { return _Add( name, str, _modeMap ); }
+                bool    Add (InputActionName::Ref name, StringView str)     __Th___ { return _Add( name, str, _actionMap ); }
 
-            ND_ String  Get (const InputModeName &name)                     C_Th___ { return _Get( name, _modeMap ); }
-            ND_ String  Get (const InputActionName &name)                   C_Th___ { return _Get( name, _actionMap ); }
+            ND_ String  Get (InputModeName::Ref name)                       C_Th___ { return _Get( name, _modeMap ); }
+            ND_ String  Get (InputActionName::Ref name)                     C_Th___ { return _Get( name, _actionMap ); }
 
         private:
-            template <typename N, typename M>   static bool _Add (const N &name, StringView str, M &map)    __Th___;
-            template <typename N, typename M>   static String   _Get (const N &name, const M &map)          __Th___;
+            template <typename N, typename M>   static bool     _Add (const N &name, StringView str, M &map)    __Th___;
+            template <typename N, typename M>   static String   _Get (const N &name, const M &map)              __Th___;
         };
 
 
@@ -86,6 +89,7 @@ namespace AE::App
         {
             ActionMap_t     actions;
             bool            lockAndHideCursor   = false;    // lock into window (for shooter game)
+            ESensorBits     enableSensors       = Default;
 
             InputMode ()                    __NE___ = default;
             InputMode (const InputMode &)   __NE___ = default;
@@ -95,7 +99,7 @@ namespace AE::App
         using ModeMap_t = FixedMap< InputModeName, InputMode, _MaxModes >;
 
         // for serialization
-        static constexpr uint   _BaseVersion    = 2;
+        static constexpr uint   _BaseVersion    = 3;
 
 
       #ifdef AE_ENABLE_SCRIPTING
@@ -131,7 +135,7 @@ namespace AE::App
             ScriptBindingsModeBase (SerializableInputActions& self, InputMode& mode, Reflection &refl) :
                 _self{&self}, _mode{&mode}, _refl{&refl} {}
 
-            void  _Add (ushort type, const ScriptActionInfo &value)     __Th___;
+            void  _Add (InputType_t type, const ScriptActionInfo &value)        __Th___;
             void  _Inherit (const String &name)                         __Th___;
         };
       #endif
@@ -151,19 +155,27 @@ namespace AE::App
         SerializableInputActions (uint ver)                             __NE___ : _version{ver} {}
         virtual ~SerializableInputActions ()                            __NE___;
 
-        ND_ virtual bool  IsKey (ushort type)                           C_NE___ = 0;
-        ND_ virtual bool  IsKeyOrTouch (ushort type)                    C_NE___ = 0;
-        ND_ virtual bool  IsCursor1D (ushort type)                      C_NE___ = 0;
-        ND_ virtual bool  IsCursor2D (ushort type)                      C_NE___ = 0;
+        ND_ virtual bool  IsKey (InputType_t)                           C_NE___ = 0;
+        ND_ virtual bool  IsKeyOrTouch (InputType_t)                    C_NE___ = 0;
+        ND_ virtual bool  IsVec1D (InputType_t)                         C_NE___ = 0;
+        ND_ virtual bool  IsVec2D (InputType_t)                         C_NE___ = 0;
+        ND_ virtual bool  IsVec3D (InputType_t)                         C_NE___ = 0;
+
+        ND_ virtual EValueType  RequiredValueType (InputType_t)         C_NE___ = 0;
+        ND_ virtual String      InputTypeToString (InputType_t)         C_Th___ = 0;
+        ND_ virtual String      SensorBitsToString (ESensorBits)        C_Th___ = 0;
 
       #ifdef AE_ENABLE_SCRIPTING
         ND_ virtual bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-                                          const SourceLoc &loc, INOUT Reflection &refl) = 0;
+                                          ArrayView<Path> includeDirs, const SourceLoc &loc,
+                                          INOUT Reflection &refl)       __NE___ = 0;
+
+        static bool  BindBase (const Scripting::ScriptEnginePtr &se)    __Th___;
       #endif
 
         ND_ bool  Merge (const SerializableInputActions &other);
 
-        ND_ virtual String      ToString (const Reflection &refl)       C_Th___ = 0;
+        ND_ virtual String      ToString (const Reflection &refl)       C_Th___;
         ND_ virtual StringView  GetApiName ()                           C_NE___ = 0;
 
         ND_ ModeMap_t const&    GetModes ()                             C_NE___ { return _modeMap; }
@@ -179,16 +191,11 @@ namespace AE::App
         ND_ static bool  Deserialize (OUT ModeMap_t &modeMap, uint version, Serializing::Deserializer &)__NE___;
 
 
-      #ifdef AE_ENABLE_SCRIPTING
-        static bool  BindBase (const Scripting::ScriptEnginePtr &se)    __Th___;
-      #endif
-
-
     protected:
         template <typename T>
         ND_ static constexpr InputKey   _Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
 
-        ND_ static constexpr auto       _Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >;
+        ND_ static constexpr auto       _Unpack (InputKey key) __NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
 
         ND_ static Array<Pair<InputKey,      const ActionInfo *>>   _ToArray (const ActionMap_t &actions);
         ND_ static Array<Pair<InputModeName, const InputMode *>>    _ToArray (const ModeMap_t &modes);
@@ -203,7 +210,7 @@ namespace AE::App
     constexpr SerializableInputActions::InputKey
         SerializableInputActions::_Pack (T key, EGestureType gesture, EGestureState state) __NE___
     {
-        ASSERT( uint(key) <= 0xFF'FFFF );
+        StaticAssert( sizeof(key) == sizeof(InputType_t) );
         ASSERT( uint(gesture) <= 0xF );
         ASSERT( uint(state) <= 0xF );
 
@@ -215,9 +222,9 @@ namespace AE::App
     _Unpack
 =================================================
 */
-    inline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >
+    inline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< InputType_t, EGestureType, EGestureState >
     {
-        return Tuple{   (uint(key) & 0xFF'FFFF),
+        return Tuple{   InputType_t(uint(key) & 0xFFFF),
                         EGestureType( (uint(key) >> 24) & 0xF ),
                         EGestureState( (uint(key) >> 28) & 0xF )};
     }
@@ -229,6 +236,8 @@ namespace AE::App
 */
     inline packed_float4  SerializableInputActions::ActionInfo::Transform (const float4 &value) C_NE___
     {
+        ASSERT( (valueType == Default) == swizzle.IsUndefined() );
+
         return  value * swizzle * GetScale();
     }
 
@@ -290,6 +299,17 @@ namespace AE::App
         #endif
 
         return Base::ToString<16>( uint(name.GetHash32()) );
+    }
+
+/*
+=================================================
+    ESensorBits operators
+=================================================
+*/
+    inline constexpr SerializableInputActions::ESensorBits&  operator |= (SerializableInputActions::ESensorBits &lhs, const SerializableInputActions::ESensorBits rhs) __NE___
+    {
+        lhs = BitCast<SerializableInputActions::ESensorBits>( ToNearUInt( lhs ) | ToNearUInt( rhs ));
+        return lhs;
     }
 
 } // AE::App

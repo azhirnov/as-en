@@ -51,8 +51,7 @@ namespace {
 
         for (auto t : BitfieldIterate( usage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EImageUsage::TransferSrc :
                     required |= VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
@@ -112,7 +111,7 @@ namespace {
                 case EImageUsage::RWAttachment :
                 default_unlikely :                      DBG_WARNING( "unknown image usage" );   break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         return AllBits( available, required );
@@ -161,7 +160,7 @@ namespace {
 
 
         // create image
-        VkImageCreateInfo   info = {};
+        VkImageCreateInfo   info;
         info.sType          = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         info.pNext          = null;
         info.flags          = VEnumCast( _desc.options );
@@ -176,6 +175,7 @@ namespace {
         info.tiling         = (opt_tiling ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR);
         info.usage          = VEnumCast( _desc.usage, _desc.memType );
         info.initialLayout  = (opt_tiling ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PREINITIALIZED);
+        info.queueFamilyIndexCount = 0;
 
         VQueueFamilyIndices_t   queue_family_indices;
 
@@ -261,9 +261,10 @@ namespace {
         EMemoryType req_mem;
         AEEnumCast( desc.usage, OUT _desc.usage, OUT req_mem );
 
-        if ( desc.tiling == VK_IMAGE_TILING_LINEAR )
-            req_mem |= EMemoryType::DeviceLocal;
-
+        switch ( desc.tiling ) {
+            case VK_IMAGE_TILING_OPTIMAL :  req_mem |= EMemoryType::DeviceLocal;    break;
+            case VK_IMAGE_TILING_LINEAR :   req_mem |= EMemoryType::HostCoherent;   break;
+        }
         GRES_CHECK( AllBits( _desc.memType, req_mem )); // specified memory type is not valid
         GRES_CHECK( IsSupported( resMngr, _desc ));
 
@@ -359,8 +360,7 @@ namespace {
         // validate options
         for (auto option : BitfieldIterate( desc.options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( option )
+            switch_enum( option )
             {
                 case EImageOpt::LossyRTCompression :        return false;
 
@@ -418,7 +418,7 @@ namespace {
                 case EImageOpt::Unknown :
                 default_unlikely :          DBG_WARNING( "unknown image option" );  break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         // check image properties
@@ -488,8 +488,7 @@ namespace {
         /*
         for (auto t : BitfieldIterate( desc.usage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EImageUsage::TransferSrc :             break;
                 case EImageUsage::TransferDst :             break;
@@ -509,7 +508,7 @@ namespace {
                 case EImageUsage::Unknown :
                 default_unlikely :                          ASSERT(false);  break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }*/
         return align;
     }

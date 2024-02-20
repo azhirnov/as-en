@@ -286,8 +286,7 @@ namespace AE::ResEditor
         for (const auto& slider : _sliders)
         {
             const uint  idx = slider_idx[ uint(slider.type) ]++;
-            BEGIN_ENUM_CHECKS();
-            switch ( slider.type )
+            switch_enum( slider.type )
             {
                 case ESlider::Int :
                     info.intRange [idx][0]                          = slider.intRange[0];
@@ -312,7 +311,7 @@ namespace AE::ResEditor
 
                 case ESlider::_Count :  break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         info.passName = this->_dbgName;
@@ -430,8 +429,7 @@ namespace AE::ResEditor
             for (auto& slider : _sliders)
             {
                 header << "#define " << slider.name << " un_PerPass.";
-                BEGIN_ENUM_CHECKS();
-                switch ( slider.type )
+                switch_enum( slider.type )
                 {
                     case ESlider::Int :     header << "intSliders[";    break;
                     case ESlider::Float :   header << "floatSliders[";  break;
@@ -439,7 +437,7 @@ namespace AE::ResEditor
                     case ESlider::_Count :
                     default :               CHECK_THROW_MSG( false, "unknown slider type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 header << ToString( slider.index ) << "]";
                 switch ( slider.count )
@@ -464,8 +462,7 @@ namespace AE::ResEditor
             for (auto& c : _constants)
             {
                 header << "#define " << c.name << " un_PerPass.";
-                BEGIN_ENUM_CHECKS();
-                switch ( c.type )
+                switch_enum( c.type )
                 {
                     case ESlider::Int :     header << "intConst[";      break;
                     case ESlider::Float :   header << "floatConst[";    break;
@@ -473,7 +470,7 @@ namespace AE::ResEditor
                     case ESlider::_Count :
                     default :               CHECK_THROW_MSG( false, "unknown constant type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 header << ToString( c.index ) << "]";
                 switch ( c.count )

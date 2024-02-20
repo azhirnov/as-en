@@ -294,7 +294,7 @@ namespace
         name.reserve( 128 );    // throw
 
         for (; *w_name; ++w_name) {
-            if ( (*w_name >= 0) & (*w_name < 128) )
+            if ( (*w_name >= 0) and (*w_name < 128) )
                 name.push_back( char(*w_name) );
         }
 

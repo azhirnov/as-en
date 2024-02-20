@@ -191,9 +191,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
         bind.Add( WinAPI_Input::ArrowRight,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("+0"), arrow_scale ));
         bind.Add( WinAPI_Input::ArrowUp,
-                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
-        bind.Add( WinAPI_Input::ArrowDown,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-"), arrow_scale ));
+        bind.Add( WinAPI_Input::ArrowDown,
+                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
     }
 
     // FPS camera
@@ -254,5 +254,27 @@ void ASmain (WinAPI_ActionBindings& bindings)
                   ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("-"), thrust_scale ));
         bind.Add( WinAPI_Input::C,
                   ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("+"), thrust_scale ));
+    }
+
+    // Remote camera
+    {
+        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Controller.RemoteCamera" );
+        bind.Inherit( "SwitchInputMode" );
+
+        bind.Add( WinAPI_Input::W,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("+00") ));
+        bind.Add( WinAPI_Input::S,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("-00") ));
+        bind.Add( WinAPI_Input::A,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0-0") ));
+        bind.Add( WinAPI_Input::D,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0+0") ));
+        bind.Add( WinAPI_Input::LeftShift,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00+") ));
+        bind.Add( WinAPI_Input::Space,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00-") ));
+
+        bind.Add( WinAPI_Input::R,
+                  ActionInfo( "RmCamera.Reset", EGestureType::Down ));
     }
 }

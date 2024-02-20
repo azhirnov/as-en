@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../Impl/Common.h"
-#include "VDevice.h"
+#include "graphics/Vulkan/VDevice.h"
 
 namespace AE::PipelineCompiler
 {

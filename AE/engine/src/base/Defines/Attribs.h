@@ -163,8 +163,8 @@
 #   define case_likely          [[likely]]      case
 #   define case_unlikely        [[unlikely]]    case
 #   define default_unlikely     [[unlikely]]    default
-#   define for_likely( ... )    [[likely]]      for ( __VA_ARGS__ )
-#   define for_unlikely( ... )  [[unlikely]]    for ( __VA_ARGS__ )
+#   define for_likely( ... )    for ( __VA_ARGS__ ) [[likely]]
+#   define for_unlikely( ... )  for ( __VA_ARGS__ ) [[unlikely]]
 #else
     // not supported
 #   define else_unlikely        else
@@ -208,9 +208,68 @@
 #   define AE_HAS_SOURCE_LOCATION
 #endif
 
+
 // C++20 coroutines
 #ifdef __cpp_lib_coroutine
 #   define AE_HAS_COROUTINE
+#endif
+
+
+// code vectorization
+#ifdef AE_COMPILER_MSVC
+#   define DONT_VECTORIZE       __pragma( loop( no_vector ))    // disable vectorization
+#   define FORCE_VECTORIZE      __pragma( loop( ivdep ))        // ignore dependencies to enable vectorization
+#   define UNROLL
+
+#elif defined(AE_COMPILER_CLANG)
+#   define DONT_VECTORIZE       _Pragma( "clang loop vectorize(disable) interleave(disable)" )
+#   define FORCE_VECTORIZE      _Pragma( "clang loop vectorize(enable) interleave(enable)" )
+#   define UNROLL               _Pragma( "clang loop unroll(full)" )
+
+#else
+#   define DONT_VECTORIZE
+#   define FORCE_VECTORIZE
+#   define UNROLL
+#endif
+
+
+// vtable
+#ifdef AE_COMPILER_MSVC
+#   define NO_VTABLE            __declspec( novtable )
+#else
+#   define NO_VTABLE
+#endif
+
+
+// intrinsic attribute
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+# if _MSC_VER >= 1935       // since VS 2022 17.5
+#   define AE_INTRINSIC     [[msvc::intrinsic]]
+# endif
+#endif
+#ifndef AE_INTRINSIC
+#   define AE_INTRINSIC     forceinline
+#endif
+
+
+// force recursively inline all function call inside the block
+#ifdef AE_COMPILER_MSVC
+# if _MSC_VER > 1930        // since VS 2022
+#   define AE_INLINE_ALL    [[msvc::flatten]]
+# endif
+#endif
+#ifndef AE_INLINE_ALL
+#   define AE_INLINE_ALL
+#endif
+
+
+// sanitizer
+#ifdef AE_COMPILER_CLANG
+#   define AE_ADDRESS_SANITIZER_ENABLED     __has_feature( address_sanitizer )
+#   define AE_THREAD_SANITIZER_ENABLED      __has_feature( thread_sanitizer )
+#   define AE_MEMORY_SANITIZER_ENABLED      __has_feature( memory_sanitizer )
+#   define AE_DATA_FLOW_SANITIZER_ENABLED   __has_feature( dataflow_sanitizer )
+#   define AE_SAFE_STACK_ENABLED            __has_feature( safe_stack )
 #endif
 
 

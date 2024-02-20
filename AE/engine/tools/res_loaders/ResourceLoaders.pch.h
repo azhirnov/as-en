@@ -4,6 +4,8 @@
 
 #include "pch/Base.h"
 
+#include "audio/Public/Common.h"
+
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ImageUtils.h"
 #include "graphics/Public/ImageMemView.h"

@@ -165,13 +165,19 @@ namespace AE::Scripting
         // can be used to write docs in code
         void  Comment (StringView text)                                                                 __Th___;
 
-        ND_ bool  IsRegistred ()                                                                        C_NE___;
+        ND_ bool  IsRegistered ()                                                                       C_NE___;
 
         template <typename Fn>
         void  AddConstructor (Fn ctorPtr, ArgNames_t = {})                                              __Th___;
 
+        template <typename ...Args>
+        void  AddConstructor (ArgNames_t = {})                                                          __Th___;
+
         template <typename Fn>
         void  AddFactoryCtor (Fn ctorPtr, ArgNames_t = {})                                              __Th___;
+
+        template <typename ...Args>
+        void  AddFactoryCtor (ArgNames_t = {})                                                          __Th___;
 
         template <typename B>
         void  AddProperty (B T::* value, StringView name)                                               __Th___;

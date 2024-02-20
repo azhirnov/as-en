@@ -61,8 +61,7 @@ namespace AE::PipelineCompiler
 */
     ND_ inline String  ShaderToStr (EShader shader)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( shader )
+        switch_enum( shader )
         {
             case EShader::Vertex :              return "SH_VERT";
             case EShader::TessControl :         return "SH_TESS_CTRL";
@@ -82,7 +81,7 @@ namespace AE::PipelineCompiler
             case EShader::_Count :
             case EShader::Unknown :             break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown shader type" );
     }
 

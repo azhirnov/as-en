@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 #include "base/Math/Random.h"
 
 namespace AE::Base

@@ -67,7 +67,8 @@ namespace AE::Math
         ND_ Vec3_t  Transform3D (const Vec3_t &delta)                       C_NE___;    // free FPS camera
 
             Self&   SetPosition (const Vec3_t &pos)                         __NE___;
-            Self&   ResetRotation ()                                        __NE___;
+            Self&   ResetOrientation ()                                     __NE___;
+            Self&   SetOrientation (const Quat_t &value)                    __NE___;
 
     private:
             void    _LimitRotation (INOUT Rad_t &horizontal, INOUT Rad_t &vertical);
@@ -96,7 +97,7 @@ namespace AE::Math
     {
         _LimitRotation( INOUT horizontal, INOUT vertical );
 
-        if ( IsZero( vertical ) & IsZero( horizontal ))
+        if_likely( IsZero( vertical ) and IsZero( horizontal ))
             return *this;
 
         Quat_t&     q = _camera.transform.orientation;
@@ -121,6 +122,8 @@ namespace AE::Math
         vertical = Clamp( _vertAngle + vertical, -angle, angle ) - _vertAngle;
 
         _vertAngle += vertical;
+
+        // TODO: use quaternion
     }
 
 /*
@@ -201,11 +204,26 @@ namespace AE::Math
 
 /*
 =================================================
-    ResetRotation
+    SetOrientation
 =================================================
 */
     template <typename T>
-    TFPVCamera<T>&  TFPVCamera<T>::ResetRotation () __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::SetOrientation (const Quat_t &value) __NE___
+    {
+        _camera.transform.orientation = value;
+
+        // TODO: limit rotation
+        _vertAngle = Rad_t{};
+        return *this;
+    }
+
+/*
+=================================================
+    ResetOrientation
+=================================================
+*/
+    template <typename T>
+    TFPVCamera<T>&  TFPVCamera<T>::ResetOrientation () __NE___
     {
         _camera.transform.orientation   = Quat_t::Identity();
         _vertAngle                      = Rad_t{};

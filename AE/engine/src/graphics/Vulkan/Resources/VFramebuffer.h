@@ -93,8 +93,8 @@ namespace AE::Graphics
 
     inline bool  VFramebuffer::Key::operator == (const Key &rhs) C_NE___
     {
-        return  All( dimension  == rhs.dimension )      &
-                (renderPassId   == rhs.renderPassId)    &
+        return  All( dimension  == rhs.dimension )      and
+                (renderPassId   == rhs.renderPassId)    and
                 (attachments    == rhs.attachments);
     }
 

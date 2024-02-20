@@ -37,7 +37,7 @@ namespace AE::Threading
         ND_ static RC<IThread>  CreateThread (const ThreadConfig &cfg)                          __NE___;
 
         ND_ static bool  SetupThreads (const TaskScheduler::Config  &cfg,
-                                       EnumBitSet<EThread>           mask,
+                                       EnumSet<EThread>              mask,
                                        uint                          maxThreads,
                                        Bool                          bindThreadToPhysicalCore,
                                        OUT EThreadArray             &allowProcessInMain)        __NE___;
@@ -46,18 +46,18 @@ namespace AE::Threading
         friend class TaskScheduler;
         ND_ static RC<IThread>  _CreateMainThread ()                                            __NE___;
 
-        ND_ static bool  _SetupThreads_v1 (TaskScheduler::Config         cfg,
-                                           const CpuArchInfo            &cpuInfo,
-                                           const EnumBitSet<EThread>     mask,
-                                           const uint                    maxThreads,
-                                           OUT EThreadArray             &allowProcessInMain)    __NE___;
+        ND_ static bool  _SetupThreads_v1 (TaskScheduler::Config     cfg,
+                                           const CpuArchInfo        &cpuInfo,
+                                           const EnumSet<EThread>    mask,
+                                           const uint                maxThreads,
+                                           OUT EThreadArray         &allowProcessInMain)        __NE___;
 
-        ND_ static bool  _SetupThreads_v2 (TaskScheduler::Config         cfg,
-                                           const CpuArchInfo            &cpuInfo,
-                                           const EnumBitSet<EThread>     mask,
-                                           const uint                    maxThreads,
-                                           bool                          bindThreadToPhysicalCore,
-                                           OUT EThreadArray             &allowProcessInMain)    __NE___;
+        ND_ static bool  _SetupThreads_v2 (TaskScheduler::Config     cfg,
+                                           const CpuArchInfo        &cpuInfo,
+                                           const EnumSet<EThread>    mask,
+                                           const uint                maxThreads,
+                                           bool                      bindThreadToPhysicalCore,
+                                           OUT EThreadArray         &allowProcessInMain)        __NE___;
     };
 
 

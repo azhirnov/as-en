@@ -8,11 +8,13 @@
 
 #pragma once
 
-#include "base/Utils/EnumBitSet.h"
+#include "base/Utils/EnumSet.h"
+#include "base/Utils/RefCounter.h"
 
 namespace AE::Profiler
 {
     using namespace AE::Base;
+    class ArmProfilerClient;
 
 
     //
@@ -99,10 +101,9 @@ namespace AE::Profiler
             _Count,
             Unknown                 = 0xFF,
         };
-        using ECounterSet   = EnumBitSet< ECounter >;
+        using ECounterSet   = EnumSet< ECounter >;
 
         using Counters_t    = FlatHashMap< ECounter, double >;
-
 
     private:
         struct Impl;
@@ -118,13 +119,18 @@ namespace AE::Profiler
         ArmProfiler ()                                                  __NE___;
         ~ArmProfiler ()                                                 __NE___;
 
+        ND_ bool  InitClient (RC<ArmProfilerClient>)                    __NE___;
+
         ND_ bool  Initialize (const ECounterSet &counterSet)            __NE___;
             void  Deinitialize ()                                       __NE___;
         ND_ bool  IsInitialized ()                                      C_NE___;
 
         ND_ ECounterSet  SupportedCounterSet ()                         C_NE___;
+        ND_ ECounterSet  EnabledCounterSet ()                           C_NE___;
 
             void  Sample (OUT Counters_t &)                             C_NE___;
+
+        ND_ static StringView  CounterToString (ECounter value)         __NE___;
 
 
     private:

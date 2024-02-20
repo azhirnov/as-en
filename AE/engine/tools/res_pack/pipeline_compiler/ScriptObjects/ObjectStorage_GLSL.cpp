@@ -5,6 +5,8 @@
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
+#else
+# include "Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler
@@ -235,8 +237,7 @@ namespace
 
             for (auto t : BitfieldIterate( types ))
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( t )
+                switch_enum( t )
                 {
                     case ESubgroupTypes::Float32 :
                     case ESubgroupTypes::Int32 :        break;  // skip
@@ -249,7 +250,7 @@ namespace
                     case ESubgroupTypes::All :
                     default :                           CHECK_MSG( false, "unknown type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
 
             if ( dynamic_id.IsTrue() )
@@ -639,8 +640,7 @@ namespace
         // validate options
         for (auto opt : BitfieldIterate( inShader->options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( opt )
+            switch_enum( opt )
             {
                 case EShaderOpt::DebugInfo :
                 case EShaderOpt::Trace :
@@ -656,7 +656,7 @@ namespace
                 case EShaderOpt::All :
                 default :                               CHECK_THROW_MSG( false, "unknown shader option" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         ShaderSrcKey    key;

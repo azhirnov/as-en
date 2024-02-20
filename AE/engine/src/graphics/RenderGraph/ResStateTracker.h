@@ -37,7 +37,7 @@ namespace AE::RG::_hidden_
         explicit ResourceKey (RTGeometryID id)          __NE___ : id{id.Data()}, type{TypeList_t::Index<RTGeometryID>}  { ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
         explicit ResourceKey (RTSceneID id)             __NE___ : id{id.Data()}, type{TypeList_t::Index<RTSceneID>}     { ASSERT( Index() == id.Index() and Generation() == id.Generation() ); }
 
-        ND_ bool  operator == (const ResourceKey &rhs)  C_NE___ { return (id == rhs.id) & (type == rhs.type); }
+        ND_ bool  operator == (const ResourceKey &rhs)  C_NE___ { return (id == rhs.id) and (type == rhs.type); }
         ND_ bool  operator <  (const ResourceKey &rhs)  C_NE___ { return (type == rhs.type) ? (id < rhs.id) : (type < rhs.type); }
 
         ND_ Index_t         Index ()                    C_NE___ { return id & _IndexMask; }
@@ -254,6 +254,7 @@ namespace AE::RG::_hidden_
             bool                    ReleaseResource (INOUT Strong<BufferViewID> &id)                                                                    __NE___;
             bool                    ReleaseResource (INOUT Strong<RTGeometryID> &id)                                                                    __NE___;
             bool                    ReleaseResource (INOUT Strong<RTSceneID>    &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<VideoImageID> &id)                                                                    __NE___;
 
             template <typename Arg0, typename ...Args>
             bool                    ReleaseResources (Arg0 &arg0, Args& ...args)                                                                        __NE___;
@@ -281,6 +282,7 @@ namespace AE::RG::_hidden_
         ND_ bool  _AddResource (BufferID     id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
         ND_ bool  _AddResource (RTGeometryID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
         ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
+        ND_ bool  _AddResource (VideoImageID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
 
         template <typename ID>  ND_ bool  _ReleaseResource (INOUT ID &id)                                                                               __NE___;
 

@@ -153,14 +153,13 @@ namespace AE::ResEditor
         else
         {
             uint    bias = 0;
-            BEGIN_ENUM_CHECKS();
-            switch ( rounding )
+            switch_enum( rounding )
             {
                 case ERounding::Floor :     bias = 0;           break;
                 case ERounding::Round :     bias = -scale/2;    break;
                 case ERounding::Ceil :      bias = -scale-1;    break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             dim = ((dim + bias) / -scale);
         }

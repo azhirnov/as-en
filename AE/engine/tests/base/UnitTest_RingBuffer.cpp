@@ -170,6 +170,102 @@ namespace
         }
         TEST( Elem_t::CheckStatistic() );
     }
+
+
+    static void  RingBuffer_Test6 ()
+    {
+        Elem_t::ClearStatistic();
+        {
+            Queue_t     q;
+
+            for (int i = 0; i < 100; ++i) {
+                q.push_back( Elem_t{i} );
+            }
+            TEST( q.size() == 100 );
+
+            q.FastErase( 10 );
+            TEST( q.size() == 99 );
+
+            for (int i = 0; i < 10; ++i) {
+                TEST( q[i] == Elem_t{int(i)} );
+            }
+            TEST( q[10] == Elem_t{99} );
+
+            for (int i = 11; i < 99; ++i) {
+                TEST( q[i] == Elem_t{int(i)} );
+            }
+
+            q.FastErase( 0 );
+            TEST( q.size() == 98 );
+
+            for (int i = 0; i < 9; ++i) {
+                TEST( q[i] == Elem_t{int(i+1)} );
+            }
+
+            q.FastErase( 97 );
+            TEST( q.size() == 97 );
+
+            TEST( q[9] == Elem_t{99} );
+            for (int i = 10; i < 97; ++i) {
+                TEST( q[i] == Elem_t{int(i+1)} );
+            }
+        }
+        TEST( Elem_t::CheckStatistic() );
+        Elem_t::ClearStatistic();
+        {
+            Queue_t     q;
+
+            for (int i = 0; i < 100; ++i) {
+                q.emplace_back();
+            }
+            for (;;)
+            {
+                for (int i = 0; i < 50; ++i) {
+                    q.pop_front();
+                }
+                for (int i = 0; i < 50; ++i) {
+                    q.emplace_back();
+                }
+
+                ArrayView<Elem_t>   part0, part1;
+                q.GetParts( OUT part0, OUT part1 );
+                if ( part0.size() > 10 and part1.size() > 10 )
+                    break;
+            }
+            TEST( q.size() == 100 );
+            for (int i = 0; i < 100; ++i) {
+                q[i] = Elem_t{i};
+            }
+
+            q.FastErase( 10 );
+            TEST( q.size() == 99 );
+
+            for (int i = 0; i < 10; ++i) {
+                TEST( q[i] == Elem_t{int(i)} );
+            }
+            TEST( q[10] == Elem_t{99} );
+
+            for (int i = 11; i < 99; ++i) {
+                TEST( q[i] == Elem_t{int(i)} );
+            }
+
+            q.FastErase( 0 );
+            TEST( q.size() == 98 );
+
+            for (int i = 0; i < 9; ++i) {
+                TEST( q[i] == Elem_t{int(i+1)} );
+            }
+
+            q.FastErase( 97 );
+            TEST( q.size() == 97 );
+
+            TEST( q[9] == Elem_t{99} );
+            for (int i = 10; i < 97; ++i) {
+                TEST( q[i] == Elem_t{int(i+1)} );
+            }
+        }
+        TEST( Elem_t::CheckStatistic() );
+    }
 }
 
 
@@ -180,6 +276,7 @@ extern void UnitTest_RingBuffer ()
     RingBuffer_Test3();
     RingBuffer_Test4();
     RingBuffer_Test5();
+    RingBuffer_Test6();
 
     TEST_PASSED();
 }

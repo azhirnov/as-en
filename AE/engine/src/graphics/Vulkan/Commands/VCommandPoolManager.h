@@ -29,7 +29,7 @@ namespace _hidden_
             friend struct CmdPoolGuard;
 
             Atomic<ulong>       assignedBits    {0};    // access to command pool and command buffers must be synchronized
-            Atomic<uint>        poolCount   {0};
+            Atomic<uint>        poolCount       {0};
             CmdPools_t          _pools;
             VQueuePtr           queue;
         };
@@ -94,7 +94,7 @@ namespace _hidden_
             subpassIndex{0xFF}, hasViewLocalDeps{false}, useSecondaryCmdbuf{false}, userData{null}
         {}
 
-        ND_ bool  IsValid ()                                    C_NE___ { return (renderPass != null) & (framebuffer != null) & frameId.IsValid(); }
+        ND_ bool  IsValid ()                                    C_NE___ { return (renderPass != null) and (framebuffer != null) and frameId.IsValid(); }
         ND_ uint  LayerCount ()                                 C_NE___;
 
         ND_ bool  operator == (const VPrimaryCmdBufState &rhs)  C_NE___;

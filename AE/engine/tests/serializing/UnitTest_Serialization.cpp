@@ -23,11 +23,14 @@ namespace
         return ser( self->i, self->f, self->v );
     }
 
-    static bool  SerObj_Deserialize (Deserializer &deser, OUT void* ptr, bool create) __NE___
+    static bool  SerObj_Deserialize (Deserializer &deser, INOUT void* &ptr, Ptr<IAllocator>) __NE___
     {
-        auto*   self = create ? PlacementNew<SerObj>( OUT ptr ) : Cast<SerObj>( ptr );
+        if ( ptr == null )
+            ptr = new SerObj{};
 
-        return deser( self->i, self->f, self->v );
+        auto*   self = Cast<SerObj>( ptr );
+
+        return deser( OUT self->i, OUT self->f, OUT self->v );
     }
 
 
@@ -56,10 +59,12 @@ namespace
             TEST( ser( a, s1, f1, i1 ));
         }
 
-        SerObj          b, c;
+        SerObj          b;
         String          s2;
         FixedString<32> f2;
         TestID          i2;
+        Unique<SerObj>  c;
+
         {
             auto    rstream = MakeRC<MemRefRStream>( stream->GetData() );
 
@@ -72,16 +77,17 @@ namespace
 
             Deserializer    deser2{ rstream };
             deser2.factory  = &factory;
-            TEST( deser2( static_cast<void *>(&c) ));
+            TEST( deser2( c ));
         }
 
         TEST( a.i == b.i );
         TEST( a.f == b.f );
         TEST( All( a.v == b.v ));
 
-        TEST( a.i == c.i );
-        TEST( a.f == c.f );
-        TEST( All( a.v == c.v ));
+        TEST( c != null );
+        TEST( a.i == c->i );
+        TEST( a.f == c->f );
+        TEST( All( a.v == c->v ));
 
         TEST( s1 == s2 );
         TEST( f1 == f2 );
@@ -103,6 +109,7 @@ namespace
 extern void UnitTest_Serialization ()
 {
     SerializationTraits();
+
     Serialization_Test1();
 
     TEST_PASSED();

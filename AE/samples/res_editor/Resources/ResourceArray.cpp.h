@@ -4,6 +4,7 @@
 #include "res_editor/Resources/RTScene.h"
 #include "res_editor/Resources/Image.h"
 #include "res_editor/Resources/VideoImage.h"
+#include "res_editor/Resources/VideoImage2.h"
 #include "res_editor/Resources/ResourceArray.h"
 
 namespace AE::ResEditor
@@ -40,6 +41,9 @@ namespace AE::ResEditor
                 [&] (const RC<VideoImage> &video) {
                     ctx.ResourceState( video->GetImageId(), state );
                 },
+                [&] (const RC<VideoImage2> &video) {
+                    ctx.ResourceState( video->GetVideoImageId(), state );
+                },
                 [&] (const Array<RC<Image>> &arr) {
                     for (auto& img : arr) {
                         ctx.ResourceState( img->GetImageId(), state );
@@ -72,6 +76,9 @@ namespace AE::ResEditor
                 },
                 [&] (const RC<VideoImage> &video) {
                     return updater.BindImage( un, video->GetViewId() );
+                },
+                [&] (const RC<VideoImage2> &video) {
+                    return updater.BindVideoImage( un, video->GetVideoImageId() );
                 },
                 [&] (const Array<RC<Image>> &arr) {
                     bool    res = true;
@@ -111,6 +118,10 @@ namespace AE::ResEditor
                         result.push_back( img );
                 },
                 [&] (const RC<VideoImage> &video) {
+                    if_unlikely( video->RequireResize() )
+                        result.push_back( video );
+                },
+                [&] (const RC<VideoImage2> &video) {
                     if_unlikely( video->RequireResize() )
                         result.push_back( video );
                 },

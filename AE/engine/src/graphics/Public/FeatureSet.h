@@ -62,10 +62,10 @@ namespace AE::Graphics
         };
         using PerShaderStage        = PerDescriptorSet; // Metal: for argument buffer
 
-        using SubgroupOperationBits = EnumBitSet< ESubgroupOperation >;
-        using PixelFormatSet_t      = EnumBitSet< EPixelFormat >;
-        using VertexFormatSet_t     = EnumBitSet< EVertexType >;
-        using SurfaceFormatSet_t    = EnumBitSet< ESurfaceFormat >;
+        using SubgroupOperationBits = EnumSet< ESubgroupOperation >;
+        using PixelFormatSet_t      = EnumSet< EPixelFormat >;
+        using VertexFormatSet_t     = EnumSet< EVertexType >;
+        using SurfaceFormatSet_t    = EnumSet< ESurfaceFormat >;
         using ShadingRateSet_t      = FixedArray< EShadingRate, uint(EShadingRate::_SizeCount) >;   // 10 bytes
 
         enum class SampleCountBits : uint { Unknown = 0 };
@@ -73,12 +73,12 @@ namespace AE::Graphics
         template <typename E>
         struct IncludeExcludeBits
         {
-            EnumBitSet<E>   include;
-            EnumBitSet<E>   exclude;
+            EnumSet<E>  include;
+            EnumSet<E>  exclude;
 
             ND_ bool    operator == (const IncludeExcludeBits<E> &rhs)  C_NE___ { return include == rhs.include and exclude == rhs.exclude; }
             ND_ HashVal CalcHash ()                                     C_NE___ { return HashOf(include) + HashOf(exclude); }
-            ND_ bool    None ()                                         C_NE___ { return include.None() & exclude.None(); }
+            ND_ bool    None ()                                         C_NE___ { return include.None() and exclude.None(); }
         };
         using VendorIDs_t       = IncludeExcludeBits< EVendorID >;
         using GraphicsDevices_t = IncludeExcludeBits< EGraphicsDeviceID >;
@@ -305,6 +305,8 @@ namespace AE::Graphics
         _visitor_( uint,                maxTexelBufferElements,                     )\
         _visitor_( uint,                maxUniformBufferSize,                       )   /* maxUniformBufferRange                                                            */\
         _visitor_( uint,                maxStorageBufferSize,                       )   /* maxStorageBufferRange                                                            */\
+        _visitor_( uint,                perDescrSet_maxUniformBuffersDynamic,       )   /* maxDescriptorSetUniformBuffersDynamic                                            */\
+        _visitor_( uint,                perDescrSet_maxStorageBuffersDynamic,       )   /* maxDescriptorSetStorageBuffersDynamic                                            */\
         _visitor_( PerDescriptorSet,    perDescrSet,                                )   /* Metal: no limits                                                                 */\
         _visitor_( PerShaderStage,      perStage,                                   )\
         _visitor_( ushort,              maxDescriptorSets,                          )   /* maxBoundDescriptorSets                                                           */\
@@ -394,6 +396,7 @@ namespace AE::Graphics
         /*_visitor_( EFeature,          filterMinmaxSingleComponentFormats,     : 2 )*/\
         _visitor_( EFeature,            samplerMipLodBias,                      : 2 )\
         _visitor_( EFeature,            samplerYcbcrConversion,                 : 2 )   /* VK_KHR_sampler_ycbcr_conversion                                                  */\
+        _visitor_( EFeature,            ycbcr2Plane444,                         : 2 )   /* VK_EXT_ycbcr_2plane_444_formats                                                  */\
         _visitor_( EFeature,            nonSeamlessCubeMap,                     : 2 )   /* VK_EXT_non_seamless_cube_map                                                     */\
         _visitor_( float,               maxSamplerAnisotropy,                       )\
         _visitor_( float,               maxSamplerLodBias,                          )\
@@ -415,6 +418,10 @@ namespace AE::Graphics
         _visitor_( EFeature,            variableMultisampleRate,                : 2 )\
         \
         \
+    /*---- android ----*/\
+        _visitor_( EFeature,            externalFormatAndroid,                  : 2 )   /* VK_ANDROID_external_memory_android_hardware_buffer                               */\
+        \
+        \
     /*---- metal ----*/\
         _visitor_( ubyte,               metalArgBufferTier,                         )\
         \
@@ -429,21 +436,13 @@ namespace AE::Graphics
         //  min total memory size
         //  min/max resolution ?
         //  supported queries - for dynamic resolution rendering and other techniques
+        //  combinedImageSamplerDescriptorCount
 
 
     // variables
         #define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )      _type_  _name_  _bits_;
         AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
         #undef AE_FEATURE_SET_VISIT
-
-        // temp
-        //multiDrawIndirect;
-        //occlusionQueryPrecise;
-        //pipelineStatisticsQuery;
-        //variablePointersStorageBuffer;
-        //variablePointers;
-        //EFeature  multiDraw   : 2;
-        //quadDivergentImplicitLod
 
 
     // methods
@@ -490,7 +489,7 @@ namespace AE::Graphics
         template <bool Mutable>
         bool  _Validate ()                                                          __NE___;
     };
-    StaticAssert( sizeof(FeatureSet) == 688 );
+    StaticAssert( sizeof(FeatureSet) == 696 );
 
 } // AE::Graphics
 

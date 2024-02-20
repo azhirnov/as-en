@@ -89,7 +89,7 @@ namespace AE::Graphics
 
         ND_ bool        operator == (MetalBindingPerStage rhs)  C_NE___ { return std::memcmp( _data, rhs._data, sizeof(_data) ) == 0; }
 
-        ND_ constexpr bool      IsDefined ()                    C_NE___ { return (_data[0] != UMax) | (_data[1] != UMax) | (_data[2] != UMax); }
+        ND_ constexpr bool      IsDefined ()                    C_NE___ { return (_data[0] != UMax) or (_data[1] != UMax) or (_data[2] != UMax); }
         ND_ constexpr bool      Has (usize idx)                 C_NE___ { ASSERT( idx < _count );   return _data[idx] != UMax; }
         ND_ constexpr ubyte     Get (usize idx)                 C_NE___ { ASSERT( Has( idx ));      return _data[idx]; }
         ND_ ubyte&              GetRef (usize idx)              __NE___ { ASSERT( idx < _count );   return _data[idx]; }
@@ -180,13 +180,13 @@ namespace AE::Graphics
     // variables
     public:
         union {
-            Byte16u     offset;
+            Bytes16u    offset;
             ushort      bufferId;
         };
         EShader         stage   = Default;
 
         DEBUG_ONLY(
-            Byte16u             dbgDataSize;
+            Bytes16u            dbgDataSize;
             ShaderStructName    dbgTypeName;
         )
 
@@ -194,17 +194,17 @@ namespace AE::Graphics
     // methods
     public:
         explicit constexpr PushConstantIndex ()                                                 __NE___ {}
-        explicit constexpr PushConstantIndex (Byte16u vulkanOffset, EShader stage)              __NE___ : offset{vulkanOffset}, stage{stage} {}
+        explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage)             __NE___ : offset{vulkanOffset}, stage{stage} {}
         explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage)                __NE___ : bufferId{ushort(metalBufferId)}, stage{stage} {}
 
-        explicit constexpr PushConstantIndex (Byte16u vulkanOffset, EShader stage,
-                                              const ShaderStructName &typeName, Bytes dataSize) __NE___ :
+        explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage,
+                                              ShaderStructName::Ref typeName, Bytes dataSize)   __NE___ :
             offset{vulkanOffset}, stage{stage}
             DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
         { Unused( typeName, dataSize ); }
 
         explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage,
-                                              const ShaderStructName &typeName, Bytes dataSize) __NE___ :
+                                              ShaderStructName::Ref typeName, Bytes dataSize)   __NE___ :
             bufferId{ushort(metalBufferId)}, stage{stage}
             DEBUG_ONLY(, dbgDataSize{dataSize}, dbgTypeName{typeName} )
         { Unused( typeName, dataSize ); }
@@ -218,50 +218,50 @@ namespace AE::Graphics
     // Descriptor Updater
     //
 
-    class IDescriptorUpdater : public EnableRC<IDescriptorUpdater>
+    class NO_VTABLE IDescriptorUpdater : public EnableRC<IDescriptorUpdater>
     {
     // interface
     public:
-        ND_ virtual bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)                                                                                    __NE___ = 0;
-            virtual bool  Flush ()                                                                                                                                  __NE___ = 0;
+        ND_ virtual bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)                                                                            __NE___ = 0;
+            virtual bool  Flush ()                                                                                                                          __NE___ = 0;
 
-            virtual bool  BindImage (const UniformName &name, ImageViewID image, uint elementIndex = 0)                                                             __NE___ = 0;
-            virtual bool  BindImages (const UniformName &name, ArrayView<ImageViewID> images, uint firstIndex = 0)                                                  __NE___ = 0;
-        ND_ virtual uint  ImageCount (const UniformName &name)                                                                                                      C_NE___ = 0;
+            virtual bool  BindImage (UniformName::Ref, ImageViewID image, uint elementIndex = 0)                                                            __NE___ = 0;
+            virtual bool  BindImages (UniformName::Ref, ArrayView<ImageViewID> images, uint firstIndex = 0)                                                 __NE___ = 0;
+        ND_ virtual uint  ImageCount (UniformName::Ref)                                                                                                     C_NE___ = 0;
 
-            virtual bool  BindVideoImage (const UniformName &name, VideoImageID image, uint elementIndex = 0)                                                       __NE___ = 0;
+            virtual bool  BindVideoImage (UniformName::Ref, VideoImageID image, uint elementIndex = 0)                                                      __NE___ = 0;
 
-            virtual bool  BindTexture (const UniformName &name, ImageViewID image, const SamplerName &sampler, uint elementIndex = 0)                               __NE___ = 0;
-            virtual bool  BindTextures (const UniformName &name, ArrayView<ImageViewID> images, const SamplerName &sampler, uint firstIndex = 0)                    __NE___ = 0;
-        ND_ virtual uint  TextureCount (const UniformName &name)                                                                                                    C_NE___ = 0;
+            virtual bool  BindTexture (UniformName::Ref, ImageViewID image, SamplerName::Ref sampler, uint elementIndex = 0)                                __NE___ = 0;
+            virtual bool  BindTextures (UniformName::Ref, ArrayView<ImageViewID> images, SamplerName::Ref sampler, uint firstIndex = 0)                     __NE___ = 0;
+        ND_ virtual uint  TextureCount (UniformName::Ref)                                                                                                   C_NE___ = 0;
 
-            virtual bool  BindSampler (const UniformName &name, const SamplerName &sampler, uint elementIndex = 0)                                                  __NE___ = 0;
-            virtual bool  BindSamplers (const UniformName &name, ArrayView<SamplerName> samplers, uint firstIndex = 0)                                              __NE___ = 0;
-        ND_ virtual uint  SamplerCount (const UniformName &name)                                                                                                    C_NE___ = 0;
+            virtual bool  BindSampler (UniformName::Ref, SamplerName::Ref sampler, uint elementIndex = 0)                                                   __NE___ = 0;
+            virtual bool  BindSamplers (UniformName::Ref, ArrayView<SamplerName> samplers, uint firstIndex = 0)                                             __NE___ = 0;
+        ND_ virtual uint  SamplerCount (UniformName::Ref)                                                                                                   C_NE___ = 0;
 
-            virtual bool  BindBuffer (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, uint elementIndex = 0)                            __NE___ = 0;
-            virtual bool  BindBuffer (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)  __NE___ = 0;
-            virtual bool  BindBuffers (const UniformName &name, const ShaderStructName &typeName, ArrayView<BufferID> buffers, uint firstIndex = 0)                 __NE___ = 0;
-        ND_ virtual uint  BufferCount (const UniformName &name)                                                                                                     C_NE___ = 0;
+            virtual bool  BindBuffer (UniformName::Ref, ShaderStructName::Ref typeName, BufferID buffer, uint elementIndex = 0)                             __NE___ = 0;
+            virtual bool  BindBuffer (UniformName::Ref, ShaderStructName::Ref typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)   __NE___ = 0;
+            virtual bool  BindBuffers (UniformName::Ref, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, uint firstIndex = 0)                  __NE___ = 0;
+        ND_ virtual uint  BufferCount (UniformName::Ref)                                                                                                    C_NE___ = 0;
 
-            template <typename T> bool  BindBuffer (const UniformName &name, BufferID buffer, uint elementIndex = 0)                                                __NE___ { return BindBuffer( name, T::TypeName, buffer, elementIndex ); }
-            template <typename T> bool  BindBuffer (const UniformName &name, BufferID buffer, Bytes offset, uint elementIndex = 0)                                  __NE___ { return BindBuffer( name, T::TypeName, buffer, offset, SizeOf<T>, elementIndex ); }
+            template <typename T> bool  BindBuffer (UniformName::Ref name, BufferID buffer, uint elementIndex = 0)                                          __NE___ { return BindBuffer( name, T::TypeName, buffer, elementIndex ); }
+            template <typename T> bool  BindBuffer (UniformName::Ref name, BufferID buffer, Bytes offset, uint elementIndex = 0)                            __NE___ { return BindBuffer( name, T::TypeName, buffer, offset, SizeOf<T>, elementIndex ); }
 
-                    bool  BindBuffer (const UniformName &name, BufferID buffer, uint elementIndex = 0)                                                              __NE___ { return BindBuffer( name, Default, buffer, elementIndex ); }
-                    bool  BindBuffer (const UniformName &name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)                                    __NE___ { return BindBuffer( name, Default, buffer, offset, size, elementIndex ); }
-                    bool  BindBuffers (const UniformName &name, ArrayView<BufferID> buffers, uint firstIndex = 0)                                                   __NE___ { return BindBuffers( name, Default, buffers, firstIndex ); }
+                    bool  BindBuffer (UniformName::Ref name, BufferID buffer, uint elementIndex = 0)                                                        __NE___ { return BindBuffer( name, Default, buffer, elementIndex ); }
+                    bool  BindBuffer (UniformName::Ref name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)                              __NE___ { return BindBuffer( name, Default, buffer, offset, size, elementIndex ); }
+                    bool  BindBuffers (UniformName::Ref name, ArrayView<BufferID> buffers, uint firstIndex = 0)                                             __NE___ { return BindBuffers( name, Default, buffers, firstIndex ); }
 
-        ND_ virtual ShaderStructName  GetBufferStructName (const UniformName &name)                                                                                 C_NE___ = 0;
+        ND_ virtual ShaderStructName  GetBufferStructName (UniformName::Ref)                                                                                C_NE___ = 0;
 
-            //virtual bool  SetBufferBase (const UniformName &name, Bytes offset, uint elementIndex = 0) = 0;   // TODO
+            //virtual bool  SetBufferBase (UniformName::Ref, Bytes offset, uint elementIndex = 0) = 0;  // TODO
 
-            virtual bool  BindTexelBuffer (const UniformName &name, BufferViewID view, uint elementIndex = 0)                                                       __NE___ = 0;
-            virtual bool  BindTexelBuffers (const UniformName &name, ArrayView<BufferViewID> views, uint firstIndex = 0)                                            __NE___ = 0;
-        ND_ virtual uint  TexelBufferCount (const UniformName &name)                                                                                                C_NE___ = 0;
+            virtual bool  BindTexelBuffer (UniformName::Ref, BufferViewID view, uint elementIndex = 0)                                                      __NE___ = 0;
+            virtual bool  BindTexelBuffers (UniformName::Ref, ArrayView<BufferViewID> views, uint firstIndex = 0)                                           __NE___ = 0;
+        ND_ virtual uint  TexelBufferCount (UniformName::Ref)                                                                                               C_NE___ = 0;
 
-            virtual bool  BindRayTracingScene (const UniformName &name, RTSceneID scene, uint elementIndex = 0)                                                     __NE___ = 0;
-            virtual bool  BindRayTracingScenes (const UniformName &name, ArrayView<RTSceneID> scenes, uint firstIndex = 0)                                          __NE___ = 0;
-        ND_ virtual uint  RayTracingSceneCount (const UniformName &name)                                                                                            C_NE___ = 0;
+            virtual bool  BindRayTracingScene (UniformName::Ref, RTSceneID scene, uint elementIndex = 0)                                                    __NE___ = 0;
+            virtual bool  BindRayTracingScenes (UniformName::Ref, ArrayView<RTSceneID> scenes, uint firstIndex = 0)                                         __NE___ = 0;
+        ND_ virtual uint  RayTracingSceneCount (UniformName::Ref)                                                                                           C_NE___ = 0;
     };
     using DescriptorUpdaterPtr = RC< IDescriptorUpdater >;
 

@@ -51,9 +51,9 @@ namespace AE::Networking
     }
 
 
-    CSMSG_EMPTY_ENC_DEC( NextFrame );
+    CSMSG_ENC_DEC( NextFrame    );
 
-    CSMSG_ENC_DEC( Sync,  timeNs, frameId );
+    CSMSG_ENC_DEC( Sync,        timeNs, frameId );
 
 
 } // AE::Networking

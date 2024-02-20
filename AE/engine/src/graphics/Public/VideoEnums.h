@@ -94,10 +94,28 @@ namespace AE::Graphics
         YUV420P,        // 12bpp
         YUV422P,        // 16bpp
         YUV444P,        // 24bpp
-        YUVA444P16LE,   // 64bpp
+
         YUV420P10LE,    // 15bpp
+        YUV422P10LE,    // 20bpp
+        YUV444P10LE,    // 30bpp
+
+        YUV420P12LE,    // 18bpp
+        YUV422P12LE,    // 24bpp
+        YUV444P12LE,    // 36bpp
+
+        YUV420P16LE,    // 24bpp
+        YUV422P16LE,    // 32bpp
+        YUV444P16LE,    // 48bpp
+
+        YUVA444P16LE,   // 64bpp
+
         NV12,           // 12bpp
         NV21,           // 12bpp
+        NV16,           // 16bpp
+        NV24,           // 24bpp
+        NV42,           // 24bpp
+        NV20LE,         // 20bpp
+
         P010LE,         // 10bpp
         _Count,
         Unknown         = 0xFF,

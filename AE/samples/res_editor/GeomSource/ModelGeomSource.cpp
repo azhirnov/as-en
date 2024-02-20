@@ -350,8 +350,7 @@ namespace AE::ResEditor
         {
             const auto& src = light.first->Get();
 
-            BEGIN_ENUM_CHECKS();
-            switch ( src.type )
+            switch_enum( src.type )
             {
                 case ELightType::Point :
                     if ( lights_data.omniCount+1 < lights_data.omni.size() )
@@ -389,7 +388,7 @@ namespace AE::ResEditor
                 case ELightType::Ambient :
                 case ELightType::Area :     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         CHECK_THROW( mem_view.CopyFrom( 0_b, &lights_data, Sizeof(lights_data) ) == SizeOf<ShaderTypes::SceneLights> );
@@ -787,7 +786,7 @@ namespace AE::ResEditor
         Array<ImageViewID>  views;
         views.resize( _maxTextures );
 
-        const auto  BindImages = [this, &views, &updater] (const UniformName &un, ArrayView<RC<Image>> images) -> bool
+        const auto  BindImages = [this, &views, &updater] (UniformName::Ref un, ArrayView<RC<Image>> images) -> bool
         {{
             CHECK_ERR( views.size() == images.size() );
 

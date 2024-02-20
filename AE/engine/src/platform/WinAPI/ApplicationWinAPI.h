@@ -48,15 +48,11 @@ namespace AE::App
 
     // IApplication //
         WindowPtr   CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)   __NE_OV;
-
-        Monitors_t  GetMonitors (bool update = false)                                   __NE_OV;
-
         StringView  GetApiName ()                                                       C_NE_OV { return "winapi"; }
-
         Locales_t   GetLocales ()                                                       C_NE_OV { return _locales; }
 
-        RC<IVirtualFileStorage> OpenStorage (EAppStorage)                               __NE_OV { return null; }
-
+        ArrayView<Monitor>      GetMonitors (bool update = false)                       __NE_OV;
+        RC<IVirtualFileStorage> OpenStorage (EAppStorage)                               __NE_OV { return null; }    // TODO: use GetTempPathW(), GetTempPath2W()
         ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
 
 

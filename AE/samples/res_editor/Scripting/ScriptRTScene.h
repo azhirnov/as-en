@@ -91,7 +91,7 @@ namespace AE::ResEditor
             String              vbufferField;
             String              ibufferField;
 
-            Byte32u             vertexStride;
+            Bytes32u            vertexStride;
             Bytes               vertexDataOffset;
             Bytes               indexDataOffset;
         };

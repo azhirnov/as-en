@@ -12,7 +12,6 @@
 
 
 #if (AE_SYNC_EVENT_MODE == 0)
-
 namespace AE::Threading
 {
 
@@ -67,7 +66,6 @@ namespace AE::Threading
 
 
 #elif (AE_SYNC_EVENT_MODE == 1)
-
 namespace AE::Threading
 {
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 #include "base/DataSource/DataSourceAsStream.h"
 #include "base/Algorithms/ArrayUtils.h"
 

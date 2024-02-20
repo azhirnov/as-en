@@ -105,7 +105,7 @@ namespace
             constexpr auto&     rtech_pass = RTech.Draw_1;
             StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-            const auto  rp_desc = RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+            const auto  rp_desc = RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} );
 

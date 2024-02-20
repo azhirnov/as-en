@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Algorithms/StringUtils.h"
-#include "graphics/Public/Common.h"
+#include "pch/GraphicsHL.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Graphics;

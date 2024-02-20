@@ -9,9 +9,11 @@
 # include "graphics/Vulkan/Resources/VPipelinePack.h"
 # include "graphics/Private/PipelinePack.cpp.h"
 
-#ifdef AE_ENABLE_GLSL_TRACE
-# include "ShaderTrace.h"
-#endif
+# ifdef AE_ENABLE_GLSL_TRACE
+#   include "ShaderTrace.h"
+# else
+#   include "Packer/ShaderTraceDummy.h"
+# endif
 
 namespace AE::Graphics
 {
@@ -42,17 +44,16 @@ namespace AE::Graphics
 
         {
             auto&   dev = resMngr.GetDevice();
-            auto*   ptr = _shaders.Get<1>();
 
-            for (uint i = 0, cnt = _shaders.Get<0>(); i < cnt; ++i)
+            for (usize i = 0, cnt = _shaders.size(); i < cnt; ++i)
             {
-                DeferExLock lock{ ptr[i].guard };
+                DeferExLock lock{ _shaders[i].guard };
                 CHECK( lock.try_lock() );
 
-                if ( ptr[i].module != Default )
-                    dev.vkDestroyShaderModule( dev.GetVkDevice(), ptr[i].module, null );
+                if ( _shaders[i].module != Default )
+                    dev.vkDestroyShaderModule( dev.GetVkDevice(), _shaders[i].module, null );
 
-                ptr[i].dbgTrace.reset();
+                _shaders[i].dbgTrace.reset();
             }
         }
 
@@ -192,10 +193,10 @@ namespace AE::Graphics
     {
         CHECK_ERR( (uid & ShaderUID::_Mask) == ShaderUID::SPIRV );
 
-        const uint  idx = uint(uid) & ~uint(ShaderUID::_Mask);
-        CHECK_ERR( idx < _shaders.Get<0>() );
+        const usize idx = uint(uid) & ~uint(ShaderUID::_Mask);
+        CHECK_ERR( idx < _shaders.size() );
 
-        auto&   shader = _shaders.Get<1>()[ idx ];
+        auto&   shader = _shaders[ idx ];
         shader.guard.lock_shared();
 
         if_likely( shader.module != Default )
@@ -238,14 +239,19 @@ namespace AE::Graphics
     SamplerID  VPipelinePack::_CreateSampler (VResourceManager &resMngr, const SamplerDesc &desc,
                                               const Optional<SamplerYcbcrConversionDesc> &ycbcrDesc, StringView dbgName) __NE___
     {
-        VkSamplerCreateInfo     vk_desc;
-        VSampler::ConvertSampler( desc, OUT vk_desc );
+        VkSamplerYcbcrConversionCreateInfo  conv_ci;
+        InPlaceLinearAllocator<512>         alloc;
 
-        VkSamplerYcbcrConversionCreateInfo  vk_ycbcr_desc;
         if ( ycbcrDesc.has_value() )
-            VSampler::ConvertSampler( *ycbcrDesc, OUT vk_ycbcr_desc );
+        {
+            if ( not VSampler::ConvertSampler( OUT conv_ci, desc, *ycbcrDesc, resMngr.GetDevice(), alloc ))
+                return Default;
+        }
 
-        return resMngr.CreateSampler( vk_desc, ycbcrDesc.has_value() ? &vk_ycbcr_desc : null, dbgName ).Release();
+        SamplerID   id = resMngr.CreateSampler( desc, dbgName, ycbcrDesc.has_value() ? &conv_ci : null ).Release();
+
+        alloc.Discard();
+        return id;
     }
 
 /*

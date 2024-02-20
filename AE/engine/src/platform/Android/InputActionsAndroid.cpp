@@ -12,8 +12,9 @@ namespace AE::App
     constructor
 =================================================
 */
-    InputActionsAndroid::InputActionsAndroid () __NE___ :
-        InputActionsBase{_dbQueue},
+    InputActionsAndroid::InputActionsAndroid (TsDoubleBufferedQueue* q) __NE___ :
+        InputActionsBase{ q },
+        _screenOrient{ Quat::Identity() },
         _gestureRecognizer{ ushort(EInputType::TouchPos),   ushort(EInputType::TouchPos_mm),
                             ushort(EInputType::TouchDelta), ushort(EInputType::TouchDelta_norm), ushort(EInputType::MultiTouch) }
     {}
@@ -35,7 +36,7 @@ namespace AE::App
     SetKey
 =================================================
 */
-    void  InputActionsAndroid::SetKey (int key, EGestureState state, Duration_t timestamp, uint repeatCount) __NE___
+    void  InputActionsAndroid::SetKey (jint key, EGestureState state, Duration_t timestamp, uint repeatCount) __NE___
     {
         DRC_EXLOCK( _drCheck );
         ASSERT( repeatCount == 0 ); // TODO: for key up is always 0
@@ -60,38 +61,68 @@ namespace AE::App
     SetSensor
 =================================================
 */
-    void  InputActionsAndroid::SetSensor (int sensorId, ArrayView<float> values) __NE___
+    void  InputActionsAndroid::SetSensor (jint sensorType, ArrayView<float> values) __NE___
     {
-        enum {
-            TYPE_ACCELEROMETER          = 1,    // [3]
-            TYPE_MAGNETIC_FIELD         = 2,    // [3]
-            TYPE_GRAVITY                = 9,    // [3]
-            TYPE_GYROSCOPE              = 4,    // [3]
-            TYPE_LINEAR_ACCELERATION    = 10,   // [3]
-            TYPE_ROTATION_VECTOR        = 11,   // [5]
-        };
+        const EInputType    input_type  = _SensorTypeToInputType( ESensorType(sensorType) );
 
-        EInputType  type = Default;
-        switch ( sensorId )
+        switch_enum( ESensorType(sensorType) )
         {
-            case TYPE_ACCELEROMETER :           type = EInputType::Accelerometer;
-            case TYPE_MAGNETIC_FIELD :          type = EInputType::MagneticField;
-            case TYPE_GRAVITY :                 type = EInputType::Gravity;
-            case TYPE_GYROSCOPE :               type = EInputType::Gyroscope;
-            case TYPE_LINEAR_ACCELERATION :     type = EInputType::LinearAcceleration;
+            case ESensorType::Accelerometer :
+            case ESensorType::Gravity :
+            case ESensorType::LinearAcceleration :
+            case ESensorType::MagneticField :
+            case ESensorType::Gyroscope :
             {
-                ASSERT( values.size() == 3 );
-                _Update3F( type, EGestureType::Move, ControllerID::Sensor, float3{values[0], values[1], values[2]}, EGestureState::Update );
+                ASSERT( values.size() >= 3 );
+
+                // Android coordinate system for any orientation:
+                // +X -- left
+                // -X -- right
+                // +Y -- bottom
+                // -Y -- top
+                // +Z -- back face
+                // -Z -- screen (front face)
+
+                float3  v {values[0], values[1], values[2]};
+                v = _screenOrient * v;
+
+                SetSensor3f( input_type, v );
                 break;
             }
-            case TYPE_ROTATION_VECTOR :
+
+            case ESensorType::RotationVector :
+            case ESensorType::GameRotationVector :
             {
-                ASSERT( values.size() == 4 );
-                _Update4F( EInputType::RotationVector, EGestureType::Move, ControllerID::Sensor,
-                           float4{values[0], values[1], values[2], values[3]}, EGestureState::Update );
+                // values[3] is optional before API 18, and always presented after.
+                ASSERT( values.size() >= 4 );
+
+                // Android coordinate system: +Z toward to sun, +Y to north.
+                // Engine (Vulkan) coordinate system: +Y down, +Z forward.
+                Quat  q{ values[3], values[0], values[1], values[2] };
+                q = q * _screenOrient;
+                q = (q.Conjugate() * Quat{0.70710678f, 0.70710678f, 0.f, 0.f}).MirrorX();
+
+                SetSensorQf( input_type, q );
                 break;
             }
+
+            case ESensorType::AmbientLight :
+            case ESensorType::AirPressure :
+            case ESensorType::Proximity :
+            case ESensorType::RelativeHumidity :
+            case ESensorType::AirTemperature :
+            {
+                ASSERT( values.size() >= 1 );
+                SetSensor1f( input_type, values[0] );
+                break;
+            }
+
+            case ESensorType::Pose6DOF :    // TODO
+            case ESensorType::Unknown :
+
+            default :                   DBG_WARNING( "unknown sensor type" ); break;
         }
+        switch_end
     }
 
 /*
@@ -103,8 +134,42 @@ namespace AE::App
     {
         DRC_EXLOCK( _drCheck );
 
-        _toSNorm    = 1.0f / float2(surfaceSize);
-        _pixToMm    = monitor.MillimetersPerPixel();
+        _toSNorm        = 1.0f / float2(surfaceSize);
+        _pixToMm        = monitor.MillimetersPerPixel();
+        _screenOrient   = monitor.RotationQuat();
+    }
+
+/*
+=================================================
+    Initialize
+=================================================
+*/
+    void  InputActionsAndroid::Initialize (EnableSensorsFn_t fn) __NE___
+    {
+        _methods.enableSensors = RVRef(fn);
+
+        if ( _curMode and _methods.enableSensors )
+            _methods.enableSensors( BitCast<jint>( _curMode->enableSensors ));
+    }
+
+/*
+=================================================
+    SetMode
+=================================================
+*/
+    bool  InputActionsAndroid::SetMode (InputModeName::Ref value) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+
+        const auto  prev_mode   = _curMode;
+        bool        res         = InputActionsBase::SetMode( value );
+
+        if ( (prev_mode != _curMode) and _methods.enableSensors )
+        {
+            _methods.enableSensors( _curMode != null ? BitCast<jint>(_curMode->enableSensors) : 0 );
+        }
+
+        return res;
     }
 
 /*
@@ -140,23 +205,10 @@ namespace AE::App
     bool  InputActionsAndroid::Deserialize (Serializing::Deserializer &des) __NE___
     {
         DRC_EXLOCK( _drCheck );
-
         _Reset();
 
         CHECK_ERR( SerializableInputActions::Deserialize( OUT _modeMap, _Version, des ));
         return true;
-    }
-
-/*
-=================================================
-    SetQueue
-=================================================
-*/
-    void  InputActionsAndroid::SetQueue (DubleBufferedQueue* q) __NE___
-    {
-        CHECK_ERRV( q != null );
-
-        _dbQueueRef = DubleBufferedQueueRef{*q};
     }
 
 

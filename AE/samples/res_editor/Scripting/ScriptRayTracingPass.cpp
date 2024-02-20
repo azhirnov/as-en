@@ -476,10 +476,10 @@ namespace
 
         result->_rtech = _CompilePipeline( OUT ub_size );   // throw
 
-        EnumBitSet<IPass::EDebugMode>   dbg_modes;
+        EnumSet<IPass::EDebugMode>  dbg_modes;
 
         const auto  AddPpln = [this, cp = result.get(), &dbg_modes]
-                                (IPass::EDebugMode mode, EFlags flag, const PipelineName &pplnName, const RTShaderBindingName &sbtName)
+                                (IPass::EDebugMode mode, EFlags flag, PipelineName::Ref pplnName, RTShaderBindingName::Ref sbtName)
         {{
             if ( AllBits( _baseFlags, flag ))
             {
@@ -522,7 +522,7 @@ namespace
         {
             CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
                                                         ppln, DescriptorSetName{"ds0"} ));
-            _args.InitResources( OUT result->_resources );  // throw
+            _args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
         }
 
       #ifdef AE_ENABLE_VULKAN
@@ -534,7 +534,7 @@ namespace
             Bytes   any_hit_stack_max;
             Bytes   callable_stack_max;
 
-            for (const auto& [mode, ppln_sbt] : result->_pipelines)
+            for (auto [mode, ppln_sbt] : result->_pipelines)
             {
                 auto*   res = res_mngr.GetResource( ppln_sbt.Get<0>() );
 
@@ -687,6 +687,7 @@ namespace AE::ResEditor
 
         _CompilePipeline3( header, "raytrace", uint(sh_opt), ppln_opt );
 
+      #ifdef AE_ENABLE_GLSL_TRACE
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
 
@@ -695,6 +696,7 @@ namespace AE::ResEditor
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
             _CompilePipeline3( header, "raytrace.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+      #endif
     }
 
 /*

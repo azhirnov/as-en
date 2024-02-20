@@ -32,7 +32,8 @@ namespace AE::InputActions
         ObjectStorage ();
         ~ObjectStorage ();
 
-        ND_ bool  AddBindings (const Scripting::ScriptEnginePtr &se, const Path &path);
+        ND_ bool  AddBindings (const Scripting::ScriptEnginePtr &se,
+                                const Path &path, ArrayView<Path> includeDirs);
 
         ND_ bool  Save (const Path &filename)                                           const;
         ND_ bool  SaveCppTypes (const Path &filename)                                   const;

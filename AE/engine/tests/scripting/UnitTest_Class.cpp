@@ -33,7 +33,7 @@ namespace
         Test2_Value () : i(4) {}
         Test2_Value (int i) : i(i) {}
 
-        void operator = (const Test2_Value &) {}
+        //void operator = (const Test2_Value &) {}
 
         int  F () const {
             return i;

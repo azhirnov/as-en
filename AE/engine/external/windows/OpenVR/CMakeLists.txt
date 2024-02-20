@@ -9,6 +9,10 @@ add_custom_target( "OpenVR-copy-dll"
     COMMENT "Copying OpenVR DLLs..." )
 set_property( TARGET "OpenVR-copy-dll" PROPERTY FOLDER "Engine/External" )
 
+if (NOT EXISTS "${OPENVR_PATH}/bin")
+	message( FATAL_ERROR "'${OPENVR_PATH}/bin' path is not found" )
+endif()
+
 add_library( "OpenVR-lib" INTERFACE )
 target_include_directories( "OpenVR-lib" INTERFACE "${OPENVR_PATH}/include" )
 target_compile_definitions( "OpenVR-lib" INTERFACE "AE_ENABLE_OPENVR" "AE_LICENSE_BSD3" )

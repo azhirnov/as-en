@@ -176,18 +176,19 @@ namespace AE::Graphics
     // variables
     public:
         EPixelFormat                    format                      = Default;
-        ESamplerYcbcrModelConversion    ycbcrModel                  = Default;
-        ESamplerYcbcrRange              ycbcrRange                  = Default;
-        ImageSwizzle                    components;
-        ESamplerChromaLocation          xChromaOffset               = ESamplerChromaLocation::CositedEven;
-        ESamplerChromaLocation          yChromaOffset               = ESamplerChromaLocation::CositedEven;
+        EPixelFormatExternal            extFormat                   = Default;
+        ESamplerYcbcrModelConversion    ycbcrModel                  = Default;  // if defined 'extFormat', 'Default' means use suggested value for external format info
+        ESamplerYcbcrRange              ycbcrRange                  = Default;  // if defined 'extFormat', 'Default' means use suggested value for external format info
+        ImageSwizzle                    components                  = ImageSwizzle::Undefined();
+        ESamplerChromaLocation          xChromaOffset               = Default;  // if defined 'extFormat', 'Default' means use suggested value for external format info
+        ESamplerChromaLocation          yChromaOffset               = Default;  // if defined 'extFormat', 'Default' means use suggested value for external format info
         EFilter                         chromaFilter                = EFilter::Nearest;
         bool                            forceExplicitReconstruction = false;
 
 
     // methods
     public:
-        SamplerYcbcrConversionDesc ()                                               __NE___ = default;
+        SamplerYcbcrConversionDesc ()                                               __NE___ {}
         SamplerYcbcrConversionDesc (const SamplerYcbcrConversionDesc &)             __NE___ = default;
 
         SamplerYcbcrConversionDesc&  operator = (const SamplerYcbcrConversionDesc &)__NE___ = default;

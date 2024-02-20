@@ -119,11 +119,11 @@ namespace AE::Threading
 
         // IAllocator //
         ND_ void*       Allocate (const SizeAndAlign sa)        __NE_OV;
+            using       IAllocator::Allocate;
+
             void        Deallocate (void*, const SizeAndAlign)  __NE_OV;
             void        Deallocate (void* ptr)                  __NE_OV { CHECK( DeallocBlock( ptr )); }
-
-            using IAllocator::Allocate;
-            using IAllocator::Deallocate;
+            using       IAllocator::Deallocate;
 
     private:
         ND_ Ptr_t       _Alloc (uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___;

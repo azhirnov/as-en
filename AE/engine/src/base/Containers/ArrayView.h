@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base/Math/Vec.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 
 namespace AE::Base
 {
@@ -118,7 +118,7 @@ namespace AE::Base
     template <typename T>
     constexpr bool  ArrayView<T>::operator == (ArrayView<T> rhs) C_NE___
     {
-        if ( (_array == rhs._array) & (_count == rhs._count) )
+        if ( (_array == rhs._array) and (_count == rhs._count) )
             return true;
 
         if ( size() != rhs.size() )

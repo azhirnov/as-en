@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Memory/MemUtils.h"
 #include "base/Memory/AllocatorFwdDecl.h"
 
@@ -239,7 +239,7 @@ namespace AE::Base
         const Bytes     chunk_size  = ChunkDataSize();
         Bytes           dst_offset;
 
-        for (; (chunk != null) & (pos > chunk_size);)
+        for (; (chunk != null) and (pos > chunk_size);)
         {
             pos     -= chunk_size;
             chunk   = chunk->next;
@@ -254,7 +254,7 @@ namespace AE::Base
             dst_offset  = size;
         }
 
-        for (; (chunk != null) & (dst_offset < dstSize);)
+        for (; (chunk != null) and (dst_offset < dstSize);)
         {
             Bytes   size = Min( dstSize - dst_offset, chunk_size );
             MemCopy( OUT dst + dst_offset, chunk->Data(), size );
@@ -327,7 +327,7 @@ namespace AE::Base
         const Bytes     chunk_size  = ChunkDataSize();
         Bytes           src_offset;
 
-        for (; (chunk != null) & (pos > chunk_size);)
+        for (; (chunk != null) and (pos > chunk_size);)
         {
             pos     -= chunk_size;
             chunk   = chunk->next;
@@ -342,7 +342,7 @@ namespace AE::Base
             src_offset  = size;
         }
 
-        for (; (chunk != null) & (src_offset < srcSize);)
+        for (; (chunk != null) and (src_offset < srcSize);)
         {
             Bytes   size = Min( srcSize - src_offset, chunk_size );
             MemCopy( OUT chunk->Data(), src + src_offset, size );

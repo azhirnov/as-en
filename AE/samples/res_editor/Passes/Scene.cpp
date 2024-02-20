@@ -64,8 +64,7 @@ namespace AE::ResEditor
             auto                dctx    = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
 
             // draw
-            BEGIN_ENUM_CHECKS();
-            switch ( _renderLayer )
+            switch_enum( _renderLayer )
             {
                 case ERenderLayer::Opaque :
                 case ERenderLayer::Translucent :
@@ -87,9 +86,11 @@ namespace AE::ResEditor
                                     }));
                     }
                     break;
-            }
-            END_ENUM_CHECKS();
 
+                case ERenderLayer::_Count :
+                    break;
+            }
+            switch_end
 
             ctx.EndRenderPass( dctx );
         }

@@ -316,9 +316,9 @@ namespace AE::Threading::_hidden_
         DrawTaskCoro&  operator = (DrawTaskCoro &&)         __NE___ = default;
         DrawTaskCoro&  operator = (const DrawTaskCoro &)    __NE___ = default;
 
-        operator AsyncTask ()                               C_NE___ { return _coro; }
-        explicit operator RC<Graphics::DrawTask> ()         C_NE___ { return _coro; }
-        explicit operator bool ()                           C_NE___ { return bool{_coro}; }
+        ND_ operator AsyncTask ()                           C_NE___ { return _coro; }
+        ND_ explicit operator RC<Graphics::DrawTask> ()     C_NE___ { return _coro; }
+        ND_ explicit operator bool ()                       C_NE___ { return bool{_coro}; }
 
         ND_ Graphics::DrawTask& AsDrawTask ()               __NE___ { return *_coro; }
         ND_ promise_type&       Promise ()                  __NE___ { return *_coro; }
@@ -406,9 +406,9 @@ namespace AE::Graphics
     template <typename CmdBufType>
     struct DrawTask_Execute
     {
-        CmdBufType &    _cmdbuf;
+        CmdBufType &    _cmdbuf1;
 
-        explicit DrawTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf{cmdbuf} {}
+        explicit DrawTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf1{cmdbuf} {}
 
         ND_ auto  operator co_await () __NE___
         {
@@ -416,11 +416,7 @@ namespace AE::Graphics
 
             struct Awaiter
             {
-            private:
-                CmdBufType &    _cmdbuf;
-
-            public:
-                explicit Awaiter (CmdBufType &cmdbuf) __NE___ : _cmdbuf{cmdbuf} {}
+                CmdBufType &    _cmdbuf2;
 
                 ND_ bool    await_ready ()      C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
                     void    await_resume ()     C_NE___ {}
@@ -428,11 +424,11 @@ namespace AE::Graphics
                 ND_ bool    await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
                 {
                     auto&   dtask = curCoro.promise();
-                    dtask.Execute( _cmdbuf );   // throw
-                    return false;               // resume coroutine
+                    dtask.Execute( this->_cmdbuf2 );    // throw
+                    return false;                       // resume coroutine
                 }
             };
-            return Awaiter{ _cmdbuf };
+            return Awaiter{ _cmdbuf1 };
         }
     };
 

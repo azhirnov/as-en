@@ -61,22 +61,6 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    ND_ constexpr R const volatile*  Cast (T const volatile* value) __NE___
-    {
-        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
-        CheckPointerCast<R>( value );
-        return static_cast< R const volatile *>( static_cast< void const volatile *>(value) );
-    }
-
-    template <typename R, typename T>
-    ND_ constexpr R volatile*  Cast (T volatile* value) __NE___
-    {
-        StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
-        CheckPointerCast<R>( value );
-        return static_cast< R volatile *>( static_cast< void volatile *>(value) );
-    }
-
-    template <typename R, typename T>
     ND_ constexpr R const*  Cast (T const* value) __NE___
     {
         StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
@@ -111,9 +95,21 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
+    ND_ constexpr Unique<R>  Cast (Unique<T> &&value) __NE___
+    {
+        return Unique<R>{ Cast<R>( value.release() )};
+    }
+
+    template <typename R, typename T>
     ND_ SharedPtr<R>  Cast (const SharedPtr<T> &other) __NE___
     {
         return std::static_pointer_cast<R>( other );
+    }
+
+    template <typename R, typename T>
+    ND_ SharedPtr<R>  Cast (SharedPtr<T> &&other) __NE___
+    {
+        return std::static_pointer_cast<R>( RVRef(other) );
     }
 
     template <typename T>
@@ -128,19 +124,7 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    ND_ constexpr R const volatile&  RefCast (T const volatile &value) __NE___
-    {
-        return *Cast<R>( &value );
-    }
-
-    template <typename R, typename T>
     ND_ constexpr R const&  RefCast (T const &value) __NE___
-    {
-        return *Cast<R>( &value );
-    }
-
-    template <typename R, typename T>
-    ND_ constexpr R volatile&  RefCast (T volatile &value) __NE___
     {
         return *Cast<R>( &value );
     }

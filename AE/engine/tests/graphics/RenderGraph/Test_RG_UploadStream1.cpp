@@ -42,6 +42,7 @@ namespace
             Execute( ctx );
 
             const auto  stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            CHECK( stat.dynamicWrite > 0 );
             CHECK( stat.dynamicWrite <= upload_limit );
         }
     };

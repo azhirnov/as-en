@@ -8,8 +8,7 @@
 #pragma once
 
 #include "base/Utils/Helpers.h"
-#include "base/Math/Math.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Base
 {

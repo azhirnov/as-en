@@ -1,24 +1,33 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifdef AE_COMPILER_CLANG
+#ifdef AE_ENABLE_SPIRV_CROSS
+
+# ifdef AE_COMPILER_MSVC
+#   pragma warning (push, 0)
+#   pragma warning (disable: 4266)
+# endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
-#endif
-#ifdef AE_COMPILER_GCC
+# endif
+# ifdef AE_COMPILER_GCC
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wdouble-promotion"
-#endif
+# endif
 
-#include "spirv_cross/spirv_msl.hpp"
+# include "spirv_cross/spirv_msl.hpp"
 
-#ifdef AE_COMPILER_CLANG
+# ifdef AE_COMPILER_MSVC
+#   pragma warning (pop)
+# endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
-#endif
-#ifdef AE_COMPILER_GCC
+# endif
+# ifdef AE_COMPILER_GCC
 #   pragma GCC diagnostic pop
-#endif
+# endif
 
-#include "Compiler/MetalCompiler.h"
+# include "Compiler/MetalCompiler.h"
 
 namespace AE::PipelineCompiler
 {
@@ -33,6 +42,7 @@ namespace
 */
     ND_ static Version2  MetalToMacOSVersion (Version2 ver)
     {
+        StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 310 );
         switch ( ver.To10() )
         {
             case 20 :   return {10, 13};
@@ -40,6 +50,8 @@ namespace
             case 22 :   return {10, 15};
             case 23 :   return {11, 0};
             case 24 :   return {12, 0};
+            case 30 :   return {13, 0};
+            case 31 :   return {14, 0};
         }
         RETURN_ERR( "unsupported metal version" );
     }
@@ -51,6 +63,7 @@ namespace
 */
     ND_ static Version2  MetalToiOSVersion (Version2 ver)
     {
+        StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 310 );
         switch ( ver.To10() )
         {
             case 20 :   return {11, 0};
@@ -58,6 +71,8 @@ namespace
             case 22 :   return {13, 0};
             case 23 :   return {14, 0};
             case 24 :   return {15, 0};
+            case 30 :   return {16, 0};
+            case 31 :   return {17, 0};
         }
         RETURN_ERR( "unsupported metal version" );
     }
@@ -77,24 +92,6 @@ namespace
             CHECK( path.is_absolute() );
             _directories.push_back( path.string() );
         }
-    }
-
-/*
-=================================================
-    destructor
-=================================================
-*/
-    MetalCompiler::~MetalCompiler ()
-    {}
-
-/*
-=================================================
-    SetPreprocessor
-=================================================
-*/
-    void  MetalCompiler::SetPreprocessor (IShaderPreprocessor* ptr)
-    {
-        _preprocessor.reset( ptr );
     }
 
 /*
@@ -317,12 +314,12 @@ namespace
                 const char  c = str[i-1];
                 const char  n = str[i];
 
-                if ( (c == ':') & (n != '/') & (n != '\\') )
+                if ( (c == ':') and (n != '/') and (n != '\\') )
                 {
                     for (usize j = begin; j < str.length(); ++j)
                     {
                         const char  k = str[j];
-                        if ( not ((k == ' ') | (k == '\t')) )
+                        if ( not ((k == ' ') or (k == '\t')) )
                         {
                             begin = j;
                             break;
@@ -480,3 +477,32 @@ namespace
 
 
 } // AE::PipelineCompiler
+//-----------------------------------------------------------------------------
+
+#else
+
+# include "Compiler/MetalCompiler.h"
+
+namespace AE::PipelineCompiler
+{
+
+    MetalCompiler::MetalCompiler (ArrayView<Path>) __NE___
+    {}
+
+    bool  MetalCompiler::SpirvToMsl (const SpirvToMslConfig &, SpirvBytecode_t, INOUT SpirvCompiler::ShaderReflection &, OUT String &) const
+    {
+        return false;
+    }
+
+    bool  MetalCompiler::Compile (const Input &, OUT MetalBytecode_t &, OUT String &) const
+    {
+        return false;
+    }
+
+    bool  MetalCompiler::BuildReflection (const Input &, INOUT ShaderReflection &, OUT String &) const
+    {
+        return false;
+    }
+
+} // AE::PipelineCompiler
+#endif // AE_ENABLE_SPIRV_CROSS

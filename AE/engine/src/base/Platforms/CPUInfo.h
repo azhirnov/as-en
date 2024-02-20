@@ -109,7 +109,7 @@ namespace AE::Base
         {
             uint        lineSize        : 16;   // bytes
             uint        associativity   : 16;
-            Byte32u     size;
+            Bytes32u    size;
 
             CacheGeom () : lineSize{0}, associativity{0} {}
         };
@@ -196,12 +196,27 @@ namespace AE::Base
     // types
         using MHz_t = uint;
 
+        struct PerProcessCounters
+        {
+            milliseconds    userTime;
+            milliseconds    kernelTime;
+            uint            pageFaults                  = 0;    // number of page faults serviced that required I/O activity
+            uint            fsInput                     = 0;    // number of times the filesystem had to perform input
+            uint            fsOutput                    = 0;    // number of times the filesystem had to perform output
+            uint            voluntaryContextSwitches    = 0;    // context switch when awaiting availability of a resource (IO)
+            uint            involuntaryContextSwitches  = 0;    // higher priority process replace current process
+        };
+        using PerThreadCounters = PerProcessCounters;
+
 
     // methods
-        ND_ static MHz_t  GetFrequency (uint core)                                      __NE___;
-            static uint   GetFrequency (OUT MHz_t* result, uint maxCount)               __NE___;
+        ND_ static MHz_t    GetFrequency (uint core)                                        __NE___;
+            static uint     GetFrequency (OUT MHz_t* result, uint maxCount)                 __NE___;
 
-            static uint   GetUsage (OUT float* user, OUT float* kernel, uint maxCount)  __NE___;
+            static uint     GetUsage (OUT float* user, OUT float* kernel, uint maxCount)    __NE___;
+
+        ND_ static bool     GetPerfCounters (OUT PerProcessCounters &,
+                                             OUT PerThreadCounters &)                       __NE___;
     };
 
 

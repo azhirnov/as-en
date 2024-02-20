@@ -37,8 +37,8 @@ RenderTechniques {
       }
     }
     pipelines = {
-      [0]  'mesh_2 rp:Simple', 20000000
-      [1]  'mesh_1 rp:Simple', 20000001
+      [0]  'mesh_2 rp:Simple', 20000001
+      [1]  'mesh_1 rp:Simple', 20000000
     }
     shader binding tables = {}
   ----------------------
@@ -351,13 +351,13 @@ GraphicsPipelineTempl {
     }
     patchControlPoints = 0
     earlyFragmentTests = true
-    featureSets = { 'MinimalFS' }
+    features = { 'MinimalFS' }
   ----------------------
   [1]
     layout  = 6
     shaders = {
-      Vertex = 1000000b
-      Fragment = 1000000c
+      Vertex = 10000009
+      Fragment = 1000000a
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
     vertexAttribs = {
@@ -369,12 +369,12 @@ GraphicsPipelineTempl {
     }
     patchControlPoints = 0
     earlyFragmentTests = true
-    featureSets = { 'MinimalFS' }
+    features = { 'MinimalFS' }
   ----------------------
   [2]
     layout  = 4
     shaders = {
-      Vertex = 1000000e
+      Vertex = 1000000b
       Fragment = 10000003
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
@@ -387,7 +387,7 @@ GraphicsPipelineTempl {
     }
     patchControlPoints = 0
     earlyFragmentTests = true
-    featureSets = { 'MinimalFS' }
+    features = { 'MinimalFS' }
   ----------------------
 }
 
@@ -395,16 +395,15 @@ MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh = 10000004
-      Fragment = 10000005
+      Mesh = 1000000d
+      Fragment = 1000000e
     }
     outputTopology       = TriangleList
-    maxVertices          = 32
-    maxIndices           = 192
+    maxVertices          = 3
+    maxIndices           = 3
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 1, 1, 1 }
-    meshLocalSizeSpec    = { 0, Undefined, Undefined }
-    featureSets          = { 'MinimalFS', 'MinMeshShader' }
+    meshDefaultLocalSize = { 3, 1, 1 }
+    features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
   [1]
     layout  = 3
@@ -413,11 +412,12 @@ MeshPipelineTempl {
       Fragment = 10000010
     }
     outputTopology       = TriangleList
-    maxVertices          = 3
-    maxIndices           = 3
+    maxVertices          = 32
+    maxIndices           = 192
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 3, 1, 1 }
-    featureSets          = { 'MinimalFS', 'MinMeshShader' }
+    meshDefaultLocalSize = { 1, 1, 1 }
+    meshLocalSizeSpec    = { 0, Undefined, Undefined }
+    features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
 
@@ -427,54 +427,54 @@ ComputePipelineTempl {
     shader  = 10000000
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinimalFS', 'MinDesktop' }
+    features = { 'MinimalFS', 'MinDesktop' }
   ----------------------
   [1]
     layout  = 5
     shader  = 10000001
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
+    features = { 'MinimalFS', 'MinRecursiveRayTracing' }
   ----------------------
   [2]
     layout  = 7
-    shader  = 1000000d
+    shader  = 1000000c
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinimalFS' }
+    features = { 'MinimalFS' }
   ----------------------
 }
 
 RayTracingPipelineTempl {
   [0]
     layout  = 8
-    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
+    features = { 'MinimalFS', 'MinRecursiveRayTracing' }
     generalShaders = {
       [0] {
         name   = 'Main'
-        shader = 10000006
+        shader = 10000004
       }
       [1] {
         name   = 'Miss'
-        shader = 10000007
+        shader = 10000005
       }
     }
     triangleGroups = {
       [0] {
         name       = 'TriHit1'
-        closestHit = 10000008
+        closestHit = 10000006
         anyHit     = none
       }
       [1] {
         name       = 'TriHit2'
-        closestHit = 10000008
-        anyHit     = 10000009
+        closestHit = 10000006
+        anyHit     = 10000007
       }
     }
     proceduralGroups = {
       [0] {
         name         = 'ProcHit1'
-        intersection = 1000000a
+        intersection = 10000008
         closestHit   = none
         anyHit       = none
       }
@@ -588,7 +588,6 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
-    meshLocalSize = { 3, Default, Default }
   [1]
     templUID      = 20000001
     rStateUID     = 2
@@ -598,6 +597,7 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
+    meshLocalSize = { 3, Default, Default }
 }
 
 ComputePipelineSpec {
@@ -628,12 +628,12 @@ RayTracingPipelineSpec {
 PipelineTemplNames {
   [0]  'graphics_2', 10000000
   [1]  'compute_2', 30000000
-  [2]  'mesh_1', 20000001
+  [2]  'mesh_1', 20000000
   [3]  'compute_3', 30000001
   [4]  'graphics_3', 10000001
   [5]  'compute_1', 30000002
   [6]  'graphics_1', 10000000
-  [7]  'mesh_2', 20000000
+  [7]  'mesh_2', 20000001
   [8]  'raytracing_1', 40000000
   [9]  'graphics_4', 10000002
 }
@@ -654,31 +654,31 @@ RTShaderBindingTable {
 
 SpirvShaders {
   [0]  offset = 0 b
-  [1]  offset = 1680 b
-  [2]  offset = 3900 b
+  [1]  offset = 1648 b
+  [2]  offset = 3720 b
   [3]  offset = 5 Kb
   [4]  offset = 6 Kb
-  [5]  offset = 10 Kb
-  [6]  offset = 12 Kb
-  [7]  offset = 16 Kb
-  [8]  offset = 18 Kb
-  [9]  offset = 20 Kb
-  [10]  offset = 23 Kb
-  [11]  offset = 26 Kb
-  [12]  offset = 28 Kb
-  [13]  offset = 29 Kb
-  [14]  offset = 37 Kb
-  [15]  offset = 39 Kb
-  [16]  offset = 43 Kb
+  [5]  offset = 9 Kb
+  [6]  offset = 11 Kb
+  [7]  offset = 13 Kb
+  [8]  offset = 16 Kb
+  [9]  offset = 19 Kb
+  [10]  offset = 21 Kb
+  [11]  offset = 22 Kb
+  [12]  offset = 24 Kb
+  [13]  offset = 32 Kb
+  [14]  offset = 36 Kb
+  [15]  offset = 40 Kb
+  [16]  offset = 44 Kb
 }
 
 SpirvShaderData {
   [0]
-    codeSize = 1676 b
-    codeHash = f0a0c49806cd73b
+    codeSize = 1644 b
+    codeHash = f6b0b7e5264c87f0
   [1]
-    codeSize = 2216 b
-    codeHash = 633bee99e3cbee99
+    codeSize = 2068 b
+    codeHash = 6786b11e20fd8e28
   [2]
     codeSize = 1784 b
     codeHash = b9d8c86147ad6f9f
@@ -686,42 +686,42 @@ SpirvShaderData {
     codeSize = 1196 b
     codeHash = 15adaab0348ad250
   [4]
-    codeSize = 3920 b
-    codeHash = 984e449be0cb12f
+    codeSize = 3212 b
+    codeHash = 44ddd76f0cf2b4ac
   [5]
-    codeSize = 2316 b
-    codeHash = 1b5a727cad74671e
+    codeSize = 1856 b
+    codeHash = fe1c165d31daa8c4
   [6]
-    codeSize = 3360 b
-    codeHash = 7d77b21f4747cef9
+    codeSize = 2344 b
+    codeHash = 220c288989b75f3e
   [7]
-    codeSize = 2004 b
-    codeHash = fb53c37ac3be1517
+    codeSize = 2624 b
+    codeHash = 7e25bd4bb7b370f0
   [8]
-    codeSize = 2492 b
-    codeHash = 88621de7e940d42d
+    codeSize = 3048 b
+    codeHash = 3d9e73b29c81d28e
   [9]
-    codeSize = 2772 b
-    codeHash = c6ccec97cc6861eb
-  [10]
-    codeSize = 3196 b
-    codeHash = f3ddafee17e99ea6
-  [11]
     codeSize = 1784 b
     codeHash = 7b3067ff83bdfe68
-  [12]
+  [10]
     codeSize = 1332 b
     codeHash = 1496b1b57654325b
-  [13]
-    codeSize = 5 Kb
-    withTrace
-  [14]
+  [11]
     codeSize = 1688 b
     codeHash = 2135ee13a9d39fd6
-  [15]
+  [12]
+    codeSize = 5 Kb
+    withTrace
+  [13]
     codeSize = 3856 b
     codeHash = 24867565a0594119
-  [16]
+  [14]
     codeSize = 4 Kb
-    codeHash = bcb285134fb20fd8
+    codeHash = 4363074fdffc2b59
+  [15]
+    codeSize = 3920 b
+    codeHash = 984e449be0cb12f
+  [16]
+    codeSize = 2316 b
+    codeHash = 1b5a727cad74671e
 }

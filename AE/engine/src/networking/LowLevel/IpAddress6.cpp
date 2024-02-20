@@ -69,7 +69,7 @@ namespace
 */
     bool  IpAddress6::IsValid () C_NE___
     {
-        return  ((_address.p0 | _address.p1 | _address.p2 | _address.p3 | _address.p4 | _address.p5 | _address.p6 | _address.p7) != 0) &
+        return  ((_address.p0 | _address.p1 | _address.p2 | _address.p3 | _address.p4 | _address.p5 | _address.p6 | _address.p7) != 0) and
                 (_port != 0);
     }
 
@@ -99,6 +99,7 @@ namespace
     String  IpAddress6::ToString () C_Th___
     {
         String  str;
+        str << '[';
         if ( _address.p0 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p0 ));   str << ':';
         if ( _address.p1 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p1 ));   str << ':';
         if ( _address.p2 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p2 ));   str << ':';
@@ -107,8 +108,9 @@ namespace
         if ( _address.p5 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p5 ));   str << ':';
         if ( _address.p6 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p6 ));   str << ':';
         if ( _address.p7 != 0 ) str << Base::ToString<16>( NetworkToHost( _address.p7 ));
-        if ( _scopeId != 0 )    str << '%' << Base::ToString( _scopeId );
-        str << " port:" << Base::ToString<10>( _port );
+        if ( _scopeId != 0 )    str << '%' << Base::ToString<10>( _scopeId );
+        str << ']';
+        str << ':' << Base::ToString<10>( _port );
         return str;
     }
 
@@ -241,14 +243,14 @@ namespace
         const auto  ParseUShortHex = [] (INOUT usize &pos, StringView addr) -> ushort
         {{
             uint    x = 0;
-            for (uint j = 0; (j < 4) & (pos < addr.size()); ++j, ++pos)
+            for (uint j = 0; (j < 4) and (pos < addr.size()); ++j, ++pos)
             {
                 const char  c = addr[pos];
 
-                if ( (c >= '0') & (c <= '9') )  (x <<= 4) |= uint(c - '0');         else
-                if ( (c >= 'a') & (c <= 'f') )  (x <<= 4) |= uint(c - 'a' + 0xA);   else
-                if ( (c >= 'A') & (c <= 'F') )  (x <<= 4) |= uint(c - 'A' + 0xA);   else
-                                                break;
+                if ( (c >= '0') and (c <= '9') )    (x <<= 4) |= uint(c - '0');         else
+                if ( (c >= 'a') and (c <= 'f') )    (x <<= 4) |= uint(c - 'a' + 0xA);   else
+                if ( (c >= 'A') and (c <= 'F') )    (x <<= 4) |= uint(c - 'A' + 0xA);   else
+                                                    break;
             }
             return ushort(x);
         }};
@@ -256,11 +258,11 @@ namespace
         const auto  ParseUShort = [] (INOUT usize &pos, StringView addr) -> ushort
         {{
             uint    x = 0;
-            for (uint j = 0; (j < 4) & (pos < addr.size()); ++j, ++pos)
+            for (uint j = 0; (j < 4) and (pos < addr.size()); ++j, ++pos)
             {
                 const char  c = addr[pos];
-                if ( (c >= '0') & (c <= '9') )  (x *= 10) += uint(c - '0'); else
-                                                break;
+                if ( (c >= '0') and (c <= '9') )    (x *= 10) += uint(c - '0'); else
+                                                    break;
             }
             return ushort(x);
         }};
@@ -276,7 +278,7 @@ namespace
         {
             *part = NetworkToHost( ParseUShortHex( INOUT pos, addr ));
 
-            if ( (pos < addr.size()) & (i < 7) )
+            if ( (pos < addr.size()) and (i < 7) )
             {
                 const char  c = addr[pos];
                 ASSERT( c == ':' );
@@ -325,6 +327,21 @@ namespace
         _address.p7 = NetworkToHost( p7 );
         _port       = port;
         _scopeId    = scopeId;
+    }
+
+/*
+=================================================
+    CalcHash / CalcHashOfAddress
+=================================================
+*/
+    HashVal  IpAddress6::CalcHash () C_NE___
+    {
+        return HashOf( static_cast< void const *>(this), sizeof(*this) );
+    }
+
+    HashVal  IpAddress6::CalcHashOfAddress () C_NE___
+    {
+        return HashOf( static_cast< void const *>(&_address), sizeof(_address) );
     }
 
 

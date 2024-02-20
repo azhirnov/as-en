@@ -70,8 +70,12 @@ elseif ((${CMAKE_SYSTEM_NAME} STREQUAL "Windows") AND MSVC)
         set( PLATFORM_DEPENDENT "win-${EXT_ARCH}-msvc142" )
     elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v143")
         set( PLATFORM_DEPENDENT "win-${EXT_ARCH}-msvc143" )
+    elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "ClangCL")
+        string( REPLACE "." ";" VERSION_LIST ${CMAKE_CXX_COMPILER_VERSION} )
+        list( GET VERSION_LIST 0 CLANG_MAJ_VER )
+        set( PLATFORM_DEPENDENT "win-${EXT_ARCH}-clang${CLANG_MAJ_VER}" )
     else()
-        message( FATAL_ERROR "unsupported VC toolset ${CMAKE_VS_PLATFORM_TOOLSET}" )
+        message( FATAL_ERROR "unsupported VC toolset '${CMAKE_VS_PLATFORM_TOOLSET}'" )
     endif()
 
 # Linux

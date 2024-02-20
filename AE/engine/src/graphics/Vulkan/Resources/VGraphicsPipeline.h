@@ -60,7 +60,7 @@ namespace AE::Graphics
         ND_ bool  Create (VResourceManager &, const CreateInfo &ci)         __NE___;
             void  Destroy (VResourceManager &)                              __NE___;
 
-        ND_ uint  GetVertexBufferIndex (const VertexBufferName &name)       C_NE___;
+        ND_ uint  GetVertexBufferIndex (VertexBufferName::Ref name)     C_NE___;
 
         ND_ bool  ParseShaderTrace (const void*                 ptr,
                                     Bytes                       maxSize,

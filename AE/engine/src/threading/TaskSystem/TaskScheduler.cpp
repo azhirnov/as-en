@@ -6,7 +6,7 @@
 #include "threading/TaskSystem/LfTaskQueue.h"
 
 #include "threading/DataSource/WinAsyncDataSource.h"
-//#include "threading/DataSource/UnixAsyncDataSource.h"
+#include "threading/DataSource/UnixAsyncDataSource.h"
 
 namespace AE::Threading
 {
@@ -78,8 +78,9 @@ DEBUG_ONLY(
 =================================================
 */
     IAsyncTask::IAsyncTask (ETaskQueue type) __NE___ :
-        _queueType{type}
+        _queueType{ type }
     {
+        ASSERT( _queueType < ETaskQueue::_Count );
         DEBUG_ONLY( ++asyncTaskCounter );
     }
 
@@ -91,6 +92,8 @@ DEBUG_ONLY(
     void  IAsyncTask::_SetQueueType (ETaskQueue type) __NE___
     {
         ASSERT( Status() == EStatus::Initial );
+        ASSERT( _queueType < ETaskQueue::_Count );
+
         _queueType = type;
     }
 
@@ -122,7 +125,7 @@ DEBUG_ONLY(
              not _status.CAS( INOUT expected, EStatus::Cancellation );)
         {
             // status has been changed in another thread
-            if_unlikely( (expected == EStatus::Cancellation) | (expected > EStatus::_Finished) )
+            if_unlikely( (expected == EStatus::Cancellation) or (expected > EStatus::_Finished) )
                 return (expected == EStatus::Cancellation);
 
             // 'CAS' can return 'false' even if expected value is the same as current value in atomic.
@@ -588,13 +591,13 @@ DEBUG_ONLY(
         //CHECK_ERR( RegisterDependency< StrongAsyncDSRequest >( io_dep_mngr ));
 
         #ifdef AE_PLATFORM_WINDOWS
-        if ( cfg.maxIOThreads > 0 )
-            _fileIOService = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOThreads }};
+        if ( cfg.maxIOAccessThreads > 0 )
+            _fileIOService = RC<WindowsIOService>{ new WindowsIOService{ cfg.maxIOAccessThreads }};
         #endif
 
-        #if 0 //def AE_PLATFORM_UNIX_BASED
-        if ( cfg.maxIOThreads > 0 )
-            _fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOThreads }};
+        #ifdef AE_PLATFORM_UNIX_BASED
+        if ( cfg.maxIOAccessThreads > 0 )
+            _fileIOService = RC<UnixIOService>{ new UnixIOService{ cfg.maxIOAccessThreads }};
         #endif
 
         return true;
@@ -756,7 +759,7 @@ DEBUG_ONLY(
         ASSERT( not threads.empty() );
 
         uint    processed = 0;
-        for (auto tt = threads.begin(); (processed < maxTasks) & (tt != threads.end()); ++tt)
+        for (auto tt = threads.begin(); (processed < maxTasks) and (tt != threads.end()); ++tt)
         {
             if_likely( *tt < EThread::_Last )
             {
@@ -852,7 +855,7 @@ DEBUG_ONLY(
                 return true;
 
             uint    processed = 0;
-            for (auto tt = threads.begin(); (processed < maxTasksPerTick) & (tt != threads.end()); ++tt)
+            for (auto tt = threads.begin(); (processed < maxTasksPerTick) and (tt != threads.end()); ++tt)
             {
                 if_likely( *tt < EThread::_Last )
                     for (; (processed < maxTasksPerTick) and ProcessTask( ETaskQueue(*tt), seed ); ++processed) {}
@@ -1223,8 +1226,7 @@ DEBUG_ONLY(
                 //<< " wait for (" << ToString(BitCount(task->_waitBits.load())) << ")"
                 << (task->_canceledDepsCount.load() > 0 ? ", canceled" : "");
 
-            BEGIN_ENUM_CHECKS();
-            switch ( task->Status() )
+            switch_enum( task->Status() )
             {
                 case EStatus::Pending :         break;
 
@@ -1240,7 +1242,7 @@ DEBUG_ONLY(
                 case EStatus::_Finished :
                 default :                       log << ", status: Unknown";     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             if ( auto bits = task->_waitBits.load() )
             {

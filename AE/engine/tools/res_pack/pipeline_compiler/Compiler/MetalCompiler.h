@@ -48,15 +48,15 @@ namespace AE::PipelineCompiler
     // methods
     public:
         explicit MetalCompiler (ArrayView<Path> includeDirs)    __NE___;
-        ~MetalCompiler ();
+        ~MetalCompiler ()                                       __NE___ {}
 
-            void  SetPreprocessor (IShaderPreprocessor*);
+            void  SetPreprocessor (IShaderPreprocessor* ptr)    __NE___ { _preprocessor.reset( ptr ); }
 
         ND_ bool  SpirvToMsl (const SpirvToMslConfig &cfg, SpirvBytecode_t spirv, INOUT ShaderReflection &reflection, OUT String &src) const;
         ND_ bool  Compile (const Input &in, OUT MetalBytecode_t &bytecode, OUT String &log) const;
 
         // not a full reflection!
-        // only limitted number of features
+        // only limited number of features
         ND_ bool  BuildReflection (const Input &in, INOUT ShaderReflection &reflection, OUT String &log) const;
 
     private:

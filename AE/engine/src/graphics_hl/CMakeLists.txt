@@ -7,17 +7,17 @@ if (TARGET "Graphics")
         file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
     endif()
 
-    set( ASSET_PACKER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/asset_packer" )
+    set( ASSET_PACKER_DIR "${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer" )
     set( ASSET_PACKER_HPP_SRC
         "${ASSET_PACKER_DIR}/Packer/ImageAtlasPacker.h"
+        "${ASSET_PACKER_DIR}/Packer/ImageAtlasPacker.cpp.h"
         "${ASSET_PACKER_DIR}/Packer/ImagePacker.h"
+        "${ASSET_PACKER_DIR}/Packer/ImagePacker.cpp.h"
         "${ASSET_PACKER_DIR}/Packer/RasterFontPacker.h"
+        "${ASSET_PACKER_DIR}/Packer/RasterFontPacker.cpp.h"
         "${ASSET_PACKER_DIR}/Packer/UIPacker.h" )
     if (NOT (DEFINED ENGINE_LIBS_PATH))
         set( ASSET_PACKER_CPP_SRC
-            "${ASSET_PACKER_DIR}/Packer/ImageAtlasPacker.cpp"
-            "${ASSET_PACKER_DIR}/Packer/ImagePacker.cpp"
-            "${ASSET_PACKER_DIR}/Packer/RasterFontPacker.cpp"
             "${ASSET_PACKER_DIR}/Packer/UIPacker.cpp" )
     endif()
 
@@ -32,6 +32,10 @@ if (TARGET "Graphics")
     set_property( TARGET "GraphicsHL" PROPERTY FOLDER "Engine" )
     target_link_libraries( "GraphicsHL" PUBLIC "Graphics" "VFS" "Platform" )
     target_include_directories( "GraphicsHL" PUBLIC "${ASSET_PACKER_DIR}" )
+
+    if (TARGET "ImGUI-lib")
+        target_link_libraries( "GraphicsHL" PUBLIC "ImGUI-lib" )
+    endif()
 
     EnablePCH( "GraphicsHL" )
     EnablePrebuild( "GraphicsHL" )

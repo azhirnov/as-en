@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/Common.h"
+#include "graphics/Public/ImageLayer.h"
 
 namespace AE::Graphics
 {
@@ -14,21 +14,10 @@ struct ImageUtils final : Noninstanceable
 
 /*
 =================================================
-    BytesPerBlock
-=================================================
-*/
-    ND_ static Bytes  BytesPerBlock (uint bitsPerBlock, const uint2 &texelBlock) __NE___
-    {
-        ASSERT( All( texelBlock > 0u ));
-        return (Bytes{bitsPerBlock} * texelBlock.x * texelBlock.y) / 8;
-    }
-
-/*
-=================================================
     RowSize
 =================================================
 */
-    ND_ static Bytes  RowSize (Pixels width, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    ND_ static Bytes  RowSize (const Pixels width, const uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
         ASSERT( IsMultipleOf( width, texelBlock.x ));
@@ -43,7 +32,7 @@ struct ImageUtils final : Noninstanceable
     Vulkan: bufferRowLength
 =================================================
 */
-    ND_ static Pixels  RowLength (Bytes rowPitch, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    ND_ static Pixels  RowLength (const Bytes rowPitch, const uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
         return Pixels((rowPitch*8) / bitsPerBlock) * texelBlock.x;
@@ -56,7 +45,7 @@ struct ImageUtils final : Noninstanceable
     for 2D slice
 =================================================
 */
-    ND_ static Bytes  SliceSize (const Pixels2 &dim, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    ND_ static Bytes  SliceSize (const Pixels2 &dim, const uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
         Bytes   row_size = RowSize( dim.x, bitsPerBlock, texelBlock );
@@ -96,12 +85,17 @@ struct ImageUtils final : Noninstanceable
         return SliceSize( Pixels2{dim.x, dim.y}, bitsPerBlock, texelBlock ) * dim.z;
     }
 
+    ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layer, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    {
+        return ImageSize( dim, bitsPerBlock, texelBlock ) * layer.Get();
+    }
+
 /*
 =================================================
     ImageOffset
 =================================================
 */
-    ND_ static Bytes  ImageOffset (const uint3 &offset, Bytes rowSize, Bytes sliceSize, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+    ND_ static Bytes  ImageOffset (const uint3 &offset, const Bytes rowSize, const Bytes sliceSize, const uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
         ASSERT( All( IsMultipleOf( uint2{offset}, texelBlock )));
@@ -147,7 +141,7 @@ struct ImageUtils final : Noninstanceable
     MipmapDimension
 =================================================
 */
-    ND_ static uint3  MipmapDimension (const uint3 &dim, usize mipLevel, const uint2 &texelBlock) __NE___
+    ND_ static uint3  MipmapDimension (const uint3 &dim, const usize mipLevel, const uint2 &texelBlock) __NE___
     {
         return Max( dim >> mipLevel, uint3{texelBlock, 1} );
     }

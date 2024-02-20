@@ -8,7 +8,7 @@
 #ifdef ANDROID
 # include "TestHelper.h"
 
-extern void AE_xxHash_Test ()
+extern int AE_xxHash_Test ()
 #else
 int main ()
 #endif

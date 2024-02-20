@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Vec.h"
 #include "base/Containers/ArrayView.h"
 
 namespace AE::Base
@@ -60,8 +59,8 @@ namespace AE::Base
 
             ND_ bool        operator == (const large_iterator &rhs) C_NE___
             {
-                return  (_ref._array  == rhs._ref._array)  & (_ref._count == rhs._ref._count) &
-                        (_ref._stride == rhs._ref._stride) & (_index == rhs._index);
+                return  (_ref._array  == rhs._ref._array)  and (_ref._count == rhs._ref._count) and
+                        (_ref._stride == rhs._ref._stride) and (_index == rhs._index);
             }
             ND_ usize       Index ()                                C_NE___ { return _index; }
         };
@@ -144,7 +143,7 @@ namespace AE::Base
     private:
         void const *    _array      = null;
         uint            _count      = 0;
-        Byte32u         _stride;
+        Bytes32u        _stride;
 
         DEBUG_ONLY(
             Unique<_IViewer>    _dbgView;
@@ -183,7 +182,7 @@ namespace AE::Base
         }
 
         StructView (const void* ptr, usize count, Bytes stride) __NE___ :
-            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Byte32u(stride)}
+            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
         {}
 
             Self&   operator = (const Self &rhs)        __NE___;
@@ -298,7 +297,7 @@ namespace AE::Base
             large_iterator&     operator ++ ()                          __NE___ { ++_index;  return *this; }
             ND_ decltype(auto)  operator * ()                           C_NE___ { return _ref[_index]; }
             ND_ bool            operator != (const large_iterator &rhs) C_NE___ { return not (*this == rhs); }
-            ND_ bool            operator == (const large_iterator &rhs) C_NE___ { return (_ref._view  == rhs._ref._view) & (_index == rhs._index); }
+            ND_ bool            operator == (const large_iterator &rhs) C_NE___ { return (_ref._view  == rhs._ref._view) and (_index == rhs._index); }
         };
 
 
@@ -395,13 +394,13 @@ namespace AE::Base
     template <typename T>
     bool  StructView<T>::operator == (const StructView<T> &rhs) C_NE___
     {
-        if ( (_array == rhs._array) & (_count == rhs._count) & (_stride == rhs._stride) )
+        if ( (_array == rhs._array) and (_count == rhs._count) and (_stride == rhs._stride) )
             return true;
 
         if ( size() != rhs.size() )
             return false;
 
-        for (usize i = 0; i < size(); ++i)
+        for_likely (usize i = 0; i < size(); ++i)
         {
             if_unlikely( not ((*this)[i] == rhs[i]) )
                 return false;

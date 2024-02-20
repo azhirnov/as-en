@@ -13,6 +13,9 @@ namespace AE::ResEditor
     class Image;
     class RTGeometry;
     class RTScene;
+    class VideoImage;
+    class VideoImage2;
+
     class Renderer;
     class DataTransferQueue;
 

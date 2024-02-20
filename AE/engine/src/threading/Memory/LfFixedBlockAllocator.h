@@ -50,36 +50,36 @@ namespace AE::Threading
         static constexpr uint   HiLevel_Count   = Max( 1u, (ChunkSize + LowLevel_Count - 1) / LowLevel_Count );
 
         using LowLevelBits_t    = Conditional< (LowLevel_Count <= 32), uint, ulong >;
-        using LowLevels_t       = StaticArray< Atomic< LowLevelBits_t >, HiLevel_Count >;
+        using LowLevels_t       = StaticArray< BitfieldAtomic< LowLevelBits_t >, HiLevel_Count >;
         using HiLevelBits_t     = Conditional< (HiLevel_Count <= 32), uint, ulong >;
 
         StaticAssert( HiLevel_Count <= 64 );
 
         struct alignas(AE_CACHE_LINE) BottomChunk
         {
-            SpinLockRelaxed             hiLevelGuard;   // only for 'hiLevel' modification
-            Atomic< HiLevelBits_t >     hiLevel;        // 0 - is unassigned bit, 1 - assigned bit
-            LowLevels_t                 lowLevel;       // 0 - is unassigned bit, 1 - assigned bit
-            Atomic< void * >            memBlock;
+            SpinLockRelaxed                     hiLevelGuard;   // only for 'hiLevel' modification
+            BitfieldAtomic< HiLevelBits_t >     hiLevel;        // 0 - is unassigned bit, 1 - assigned bit
+            LowLevels_t                         lowLevel;       // 0 - is unassigned bit, 1 - assigned bit
+            Atomic< void * >                    memBlock;
 
             #if AE_LFFIXEDBLOCKALLOC_DEBUG
-            Atomic< SourceLoc *>        dbgInfo;
-            SyncEvent                   dbgInfoEvent {SyncEvent::EFlags::ManualReset};
+            Atomic< SourceLoc *>                dbgInfo;
+            SyncEvent                           dbgInfoEvent {SyncEvent::EFlags::ManualReset};
             #endif
         };
 
-        static constexpr HiLevelBits_t  MaxHighLevel        = ToBitMask<HiLevelBits_t>( HiLevel_Count );
-        static constexpr HiLevelBits_t  InitialHighLevel    = ~MaxHighLevel;
-        static constexpr uint           HighWaitCount       = 2;
-        static constexpr usize          ThreadToChunkMask   = MaxChunks < 5 ? 0 : 3;
+        static constexpr auto   MaxHighLevel        = Bitfield<HiLevelBits_t>{ ToBitMask<HiLevelBits_t>( HiLevel_Count )};
+        static constexpr auto   InitialHighLevel    = ~MaxHighLevel;
+        static constexpr uint   HighWaitCount       = 2;
+        static constexpr usize  ThreadToChunkMask   = MaxChunks < 5 ? 0 : 3;
 
         using TopLevelBits_t    = Conditional< (MaxChunks <= 32), uint, ulong >;
         static constexpr uint   TopLevel_Count  = (MaxChunks + CT_SizeOfInBits<TopLevelBits_t> - 1) / CT_SizeOfInBits<TopLevelBits_t>;
 
         struct TopChunk
         {
-            SpinLockRelaxed             assignedGuard;  // only for 'assigned' modification
-            Atomic< TopLevelBits_t >    assigned;       // 0 - is unassigned bit, 1 - assigned bit
+            SpinLockRelaxed                     assignedGuard;  // only for 'assigned' modification
+            BitfieldAtomic< TopLevelBits_t >    assigned;       // 0 - is unassigned bit, 1 - assigned bit
         };
 
         using BottomChunks_t    = StaticArray< BottomChunk, MaxChunks >;
@@ -104,8 +104,8 @@ namespace AE::Threading
 
     // methods
     public:
-        LfFixedBlockAllocator  (Bytes blockSize,
-                                Bytes blockAlign,
+        LfFixedBlockAllocator  (Bytes                   blockSize,
+                                Bytes                   blockAlign,
                                 const BlockAllocator_t& blockAlloc  = Default,
                                 const GenAllocator_t&   genAlloc    = Default) __NE___;
 
@@ -130,11 +130,12 @@ namespace AE::Threading
 
         // IAllocator //
         ND_ void*   Allocate (const SizeAndAlign sa)        __NE_OV;
+            using   IAllocator::Allocate;
+
             void    Deallocate (void*, const SizeAndAlign)  __NE_OV;
             void    Deallocate (void* ptr)                  __NE_OV { CHECK( DeallocBlock( ptr )); }
+            using   IAllocator::Deallocate;
 
-            using IAllocator::Allocate;
-            using IAllocator::Deallocate;
 
     private:
         ND_ Ptr_t  _Alloc (uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___;

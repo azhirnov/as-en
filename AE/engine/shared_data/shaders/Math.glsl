@@ -77,7 +77,6 @@
 #define Reflect         reflect
 #define Refract         refract
 #define Step            step
-#define SmoothStep      smoothstep
 #define Sqrt            sqrt
 #define Sin             sin
 #define SinH            sinh
@@ -95,6 +94,9 @@
 #define MatInverse      inverse
 #define MatTranspose    transpose
 #define MatDeterminant  determinant
+
+#define SmoothStep( _x_, _edge0_, _edge1_ ) smoothstep( (_edge0_), (_edge1_), (_x_) )
+
 
 ND_ float2  SinCos (const float x)      { return float2(sin(x), cos(x)); }
 
@@ -392,7 +394,6 @@ Gen_BRANCHLESS( uint,   uint_vec_t )
 #undef Gen_BRANCHLESS1
 #undef Gen_BRANCHLESS
 
-
 /*
 =================================================
     Min* / Max*
@@ -408,15 +409,20 @@ Gen_BRANCHLESS( uint,   uint_vec_t )
 
 /*
 =================================================
-    LengthSq / DistanceSq
+    LengthSq / InvLength
+    DistanceSq / InvDistance
 ----
     Scalar  LengthSq (Vec x)
+    Scalar  InvLength (Vec x)
     Scalar  DistanceSq (Vec x, Vec y)
+    Scalar  InvDistance (Vec x, Vec y)
 =================================================
 */
-#define Gen_LENGTHSQ_DISTANCESQ1( _stype_, _vtype_ )                                                        \
-    ND_ _stype_  LengthSq (const _vtype_ x)                     { return Dot( x, x ); }                     \
-    ND_ _stype_  DistanceSq (const _vtype_ x, const _vtype_ y)  { _vtype_ r = x - y;  return Dot( r, r ); }
+#define Gen_LENGTHSQ_DISTANCESQ1( _stype_, _vtype_ )                                                                \
+    ND_ _stype_  LengthSq (const _vtype_ x)                     { return Dot( x, x ); }                             \
+    ND_ _stype_  InvLength (const _vtype_ x)                    { return InvSqrt( Dot( x, x )); }                   \
+    ND_ _stype_  DistanceSq (const _vtype_ x, const _vtype_ y)  { _vtype_ r = x - y;  return Dot( r, r ); }         \
+    ND_ _stype_  InvDistance (const _vtype_ x, const _vtype_ y) { _vtype_ r = x - y;  return InvSqrt( Dot( r, r )); }
 
 #define Gen_LENGTHSQ_DISTANCESQ( _stype_, _vtype_ )\
     Gen_LENGTHSQ_DISTANCESQ1( _stype_, _vtype_##2 )\
@@ -478,6 +484,154 @@ Gen_SIGN( uint,     uint_vec_t )
 #undef Gen_SIGN1
 #undef Gen_SIGN
 
+/*
+=================================================
+    LinearStep
+----
+    T  LinearStep (T x, T edge0, T edge1)
+----
+    returns value in range [0, 1]
+=================================================
+*/
+#define Gen_LINEARSTEP1( _vtype_, _stype_ )                                                 \
+    ND_ _vtype_  LinearStep (const _vtype_ x, const _vtype_ edge0, const _vtype_ edge1) {   \
+        return Saturate( (x - edge0) / (edge1 - edge0) );                                   \
+    }                                                                                       \
+                                                                                            \
+    ND_ _vtype_  LinearStep (const _vtype_ x, const _stype_ edge0, const _stype_ edge1) {   \
+        return Saturate( (x - edge0) / (edge1 - edge0) );                                   \
+    }
+
+#define Gen_LINEARSTEP( _stype_, _vtype_ )                                                  \
+    ND_ _stype_  LinearStep (const _stype_ x, const _stype_ edge0, const _stype_ edge1) {   \
+        return Saturate( (x - edge0) / (edge1 - edge0) );                                   \
+    }                                                                                       \
+    Gen_LINEARSTEP1( _vtype_##2, _stype_ )                                                  \
+    Gen_LINEARSTEP1( _vtype_##3, _stype_ )                                                  \
+    Gen_LINEARSTEP1( _vtype_##4, _stype_ )
+
+Gen_LINEARSTEP( float, float_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+    Gen_LINEARSTEP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+    Gen_LINEARSTEP( double, double_vec_t )
+#endif
+
+#undef Gen_LINEARSTEP1
+#undef Gen_LINEARSTEP
+
+/*
+=================================================
+    BumpStep
+----
+    T  BumpStep (T x, T edge0, T edge1)
+----
+    returns value in range [0, 1]
+=================================================
+*/
+#define Gen_BUMPSTEP1( _vtype_, _stype_ )                                                                   \
+    ND_ _vtype_  BumpStep (const _vtype_ x, const _vtype_ edge0, const _vtype_ edge1) {                     \
+        return _stype_(1) - Abs( Saturate( (x - edge0) / (edge1 - edge0) ) - _stype_(0.5) ) * _stype_(2.0); \
+    }                                                                                                       \
+                                                                                                            \
+    ND_ _vtype_  BumpStep (const _vtype_ x, const _stype_ edge0, const _stype_ edge1) {                     \
+        return _stype_(1) - Abs( Saturate( (x - edge0) / (edge1 - edge0) ) - _stype_(0.5) ) * _stype_(2.0); \
+    }
+
+#define Gen_BUMPSTEP( _stype_, _vtype_ )                                                                    \
+    ND_ _stype_  BumpStep (const _stype_ x, const _stype_ edge0, const _stype_ edge1) {                     \
+        return _stype_(1) - Abs( Saturate( (x - edge0) / (edge1 - edge0) ) - _stype_(0.5) ) * _stype_(2.0); \
+    }                                                                                                       \
+    Gen_BUMPSTEP1( _vtype_##2, _stype_ )                                                                    \
+    Gen_BUMPSTEP1( _vtype_##3, _stype_ )                                                                    \
+    Gen_BUMPSTEP1( _vtype_##4, _stype_ )
+
+Gen_BUMPSTEP( float, float_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+    Gen_BUMPSTEP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+    Gen_BUMPSTEP( double, double_vec_t )
+#endif
+
+#undef Gen_BUMPSTEP1
+#undef Gen_BUMPSTEP
+
+/*
+=================================================
+    SmoothBumpStep
+----
+    T  SmoothBumpStep (T x, T edge0, T edge1)
+----
+    returns value in range [0, 1]
+=================================================
+*/
+#define Gen_SMOOTHBUMPSTEP1( _vtype_, _stype_ )                                         \
+    ND_ _vtype_  SmoothBumpStep (_vtype_ x, const _vtype_ edge0, const _vtype_ edge1) { \
+        x = BumpStep( x, edge0, edge1 );                                                \
+        return x * x * (_stype_(3.0) - _stype_(2.0) * x);                               \
+    }                                                                                   \
+                                                                                        \
+    ND_ _vtype_  SmoothBumpStep (_vtype_ x, const _stype_ edge0, const _stype_ edge1) { \
+        x = BumpStep( x, edge0, edge1 );                                                \
+        return x * x * (_stype_(3.0) - _stype_(2.0) * x);                               \
+    }
+
+#define Gen_SMOOTHBUMPSTEP( _stype_, _vtype_ )                                          \
+    ND_ _stype_  SmoothBumpStep (_stype_ x, const _stype_ edge0, const _stype_ edge1) { \
+        x = BumpStep( x, edge0, edge1 );                                                \
+        return x * x * (_stype_(3.0) - _stype_(2.0) * x);                               \
+    }                                                                                   \
+    Gen_SMOOTHBUMPSTEP1( _vtype_##2, _stype_ )                                          \
+    Gen_SMOOTHBUMPSTEP1( _vtype_##3, _stype_ )                                          \
+    Gen_SMOOTHBUMPSTEP1( _vtype_##4, _stype_ )
+
+Gen_SMOOTHBUMPSTEP( float, float_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+    Gen_SMOOTHBUMPSTEP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+    Gen_SMOOTHBUMPSTEP( double, double_vec_t )
+#endif
+
+#undef Gen_SMOOTHBUMPSTEP1
+#undef Gen_SMOOTHBUMPSTEP
+
+/*
+=================================================
+    TriangleWave
+----
+    T  TriangleWave (T x)
+----
+    returns value in range [0, 1], pattern __/\/\__
+=================================================
+*/
+#define Gen_TRIANGLEWAVE1( _vtype_, _stype_ )                           \
+    ND_ _vtype_  TriangleWave (_vtype_ x) {                             \
+        x = Fract( x );  return Min( x, _stype_(1) - x ) * _stype_(2);  \
+    }
+
+#define Gen_TRIANGLEWAVE( _stype_, _vtype_ )\
+    Gen_TRIANGLEWAVE1( _stype_,    _stype_ )\
+    Gen_TRIANGLEWAVE1( _vtype_##2, _stype_ )\
+    Gen_TRIANGLEWAVE1( _vtype_##3, _stype_ )\
+    Gen_TRIANGLEWAVE1( _vtype_##4, _stype_ )
+
+Gen_TRIANGLEWAVE( float, float_vec_t )
+
+#if AE_ENABLE_HALF_TYPE
+    Gen_TRIANGLEWAVE( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+    Gen_TRIANGLEWAVE( double, double_vec_t )
+#endif
+
+#undef Gen_TRIANGLEWAVE1
+#undef Gen_TRIANGLEWAVE
 
 //-----------------------------------------------------------------------------
 // clamp / wrap
@@ -485,13 +639,13 @@ Gen_SIGN( uint,     uint_vec_t )
 ND_ float  ClampOut (const float x, const float minVal, const float maxVal)
 {
     float mid = (minVal + maxVal) * 0.5f;
-    return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal);
+    return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal); // TODO: branchless
 }
 
 ND_ int  ClampOut (const int x, const int minVal, const int maxVal)
 {
     int mid = (minVal+1)/2 + (maxVal+1)/2;
-    return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal);
+    return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal); // TODO: branchless
 }
 
 ND_ float2  ClampOut (const float2 v, const float minVal, const float maxVal) {
@@ -533,7 +687,7 @@ ND_ int4  ClampOut (const int4 v, const int minVal, const int maxVal) {
 
 ND_ float  Wrap (const float x, const float minVal, const float maxVal)
 {
-    if ( maxVal < minVal ) return minVal;
+    if ( maxVal < minVal ) return minVal;   // TODO: branchless
     float size = maxVal - minVal;
     float res = minVal + Mod( x - minVal, size );
     if ( res < minVal ) return res + size;
@@ -542,7 +696,7 @@ ND_ float  Wrap (const float x, const float minVal, const float maxVal)
 
 ND_ int  Wrap (const int x, const int minVal, const int maxVal)
 {
-    if ( maxVal < minVal ) return minVal;
+    if ( maxVal < minVal ) return minVal;   // TODO: branchless
     int size = maxVal+1 - minVal;
     int res = minVal + ((x - minVal) % size);
     if ( res < minVal ) return res + size;
@@ -648,7 +802,7 @@ ND_ uint  ExtractBit (inout uint bits)
     return result;
 }
 
-ND_ uint  ExtractBitLog2 (inout uint bits)
+ND_ uint  ExtractBitIndex (inout uint bits)
 {
     return uint(IntLog2( ExtractBit( INOUT bits )));
 }
@@ -719,10 +873,11 @@ Gen_BILERP( float, float_vec_t )
 
 /*
 =================================================
-    Remap / RemapClamped
+    Remap / RemapClamp / RemapWrap
 ----
     T  Remap (Vec2 src, Vec2 dst, T v)
-    T  RemapClamped (Vec2 src, Vec2 dst, T v)
+    T  RemapClamp (Vec2 src, Vec2 dst, T v)
+    T  RemapWrap (Vec2 src, Vec2 dst, T v)
 ----
     Map 'v' in 'src' interval to 'dst' interval.
     Map 'v' in 'src' interval to 'dst' interval and clamp.
@@ -734,14 +889,19 @@ ND_ float2  Remap (const float2 src, const float2 dst, const float2 v)  { return
 ND_ float3  Remap (const float2 src, const float2 dst, const float3 v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
 ND_ float4  Remap (const float2 src, const float2 dst, const float4 v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
 
-ND_ float   RemapClamped (const float2 src, const float2 dst, const float  v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float2  RemapClamped (const float2 src, const float2 dst, const float2 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float3  RemapClamped (const float2 src, const float2 dst, const float3 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float4  RemapClamped (const float2 src, const float2 dst, const float4 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float   RemapClamp (const float2 src, const float2 dst, const float  v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float2  RemapClamp (const float2 src, const float2 dst, const float2 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float3  RemapClamp (const float2 src, const float2 dst, const float3 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float4  RemapClamp (const float2 src, const float2 dst, const float4 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+
+ND_ float   RemapWrap (const float2 src, const float2 dst, const float  v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float2  RemapWrap (const float2 src, const float2 dst, const float2 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float3  RemapWrap (const float2 src, const float2 dst, const float3 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
+ND_ float4  RemapWrap (const float2 src, const float2 dst, const float4 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
 
 /*
 =================================================
-    Remap / RemapClamped
+    Remap / RemapClamp
 ----
     Map 'v' in 'src' interval to 'dst' interval.
     Map 'v' in 'src' interval to 'dst' interval and clamp.
@@ -752,9 +912,9 @@ ND_ float2  Remap (const float2 src0, const float2 src1, const float2 dst0, cons
 ND_ float3  Remap (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
 ND_ float4  Remap (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
 
-ND_ float2  RemapClamped (const float2 src0, const float2 src1, const float2 dst0, const float2 dst1, const float2 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
-ND_ float3  RemapClamped (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
-ND_ float4  RemapClamped (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
+ND_ float2  RemapClamp (const float2 src0, const float2 src1, const float2 dst0, const float2 dst1, const float2 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
+ND_ float3  RemapClamp (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
+ND_ float4  RemapClamp (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
 
 /*
 =================================================
@@ -852,7 +1012,7 @@ Gen_SLERP( float, float_vec_t )
 #define NearestSampleArray( _result_, _array_, _factor_ )                           \
     {                                                                               \
         int     lll = (_array_).length() - 1;                                       \
-        float   aaa = RemapClamped( float2(0.0, 1.0), float2(0, lll), (_factor_) ); \
+        float   aaa = RemapClamp( float2(0.0, 1.0), float2(0, lll), (_factor_) );   \
         int     iii = int(aaa + 0.5f);                                              \
         _result_ = (_array_)[iii];                                                  \
     }
@@ -860,7 +1020,7 @@ Gen_SLERP( float, float_vec_t )
 #define LinearSampleArray2( _result_, _array_, _factor_, _lerp_ )                   \
     {                                                                               \
         int     lll = (_array_).length() - 1;                                       \
-        float   aaa = RemapClamped( float2(0.0, 1.0), float2(0, lll), (_factor_) ); \
+        float   aaa = RemapClamp( float2(0.0, 1.0), float2(0, lll), (_factor_) );   \
         int     iii = int(aaa);                                                     \
         int     jjj = Min( int(aaa) + 1, lll );                                     \
         _result_ = _lerp_( (_array_)[iii], (_array_)[jjj], Fract(aaa) );            \

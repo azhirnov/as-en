@@ -8,7 +8,7 @@ void ASmain ()
 
     array<string>   suffix;
     suffix.push_back( "vk" );
-    //suffix.push_back( "mac" );
+    suffix.push_back( "mac" );
 
     Archive     archive;
     archive.SetTempFile( output_temp + "archive-1.tmp" );
@@ -19,7 +19,7 @@ void ASmain ()
         // render passes
         {
             RC<PipelineCompiler>    ppln = PipelineCompiler();
-            ppln.AddPipelineFolder( GetSharedFeatureSetPath(), EPathParamsFlags::Recursive );
+            ppln.AddPipelineFolderRecursive( GetSharedFeatureSetPath() );
             ppln.AddPipeline( "config_" + suffix[i] + ".as" );
             ppln.AddPipeline( "rtech/render_passes.as" );
             ppln.AddPipelineFolder( "samplers" );
@@ -32,7 +32,7 @@ void ASmain ()
         // pipelines
         {
             RC<PipelineCompiler>    ppln = PipelineCompiler();
-            ppln.AddPipelineFolder( GetSharedFeatureSetPath(), EPathParamsFlags::Recursive );
+            ppln.AddPipelineFolderRecursive( GetSharedFeatureSetPath() );
             ppln.AddPipeline( "config_" + suffix[i] + ".as" );
             ppln.AddPipeline( "rtech/render_passes.as" );
             ppln.AddPipeline( "rtech/ren_tech.as" );
@@ -77,6 +77,11 @@ void ASmain ()
         const string  fname = output_temp + "archive-3.tmp";
         apack.ToArchive( fname );
         archive.AddArchive( fname );
+    }
+
+    // VFS
+    {
+        archive.Add( "Sound.ogg", "audio/Sound.ogg" );
     }
 
     archive.Store( output + "resources.bin" );

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "platform/Private/SerializableInputActions.h"
+#include "platform/Android/SerializableInputActionsAndroid.h"
 
 namespace AE::App
 {
@@ -151,34 +152,73 @@ namespace AE::App
             _visitor_( MouseBtn7,           6,      "MouseBtn7",    GLFW_MOUSE_BUTTON_7     )\
             _visitor_( MouseBtn8,           7,      "MouseBtn8",    GLFW_MOUSE_BUTTON_8     )\
 
-        enum class EInputType : ushort
+        enum class ESensorType : int
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, ... )  Android_ ## _type_ = _bitIndex_,
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            Unknown             = 0xFF,
+        };
+
+        enum class EInputType : InputType_t
         {
             #define AE_GLFW_KEY_CODES_VISITOR( _key_, _code_, _name_, _glfw_code_ )     _key_ = _code_,
             AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
             #undef AE_GLFW_KEY_CODES_VISITOR
 
-            MouseBegin          = MouseBtn1,    // GLFW_MOUSE_BUTTON_1
-            MouseEnd            = MouseBtn8,    // GLFW_MOUSE_BUTTON_LAST
+            MouseBegin          = MouseBtn1,        // GLFW_MOUSE_BUTTON_1
+            MouseEnd            = MouseBtn8,        // GLFW_MOUSE_BUTTON_LAST
 
             MouseLeft           = MouseBtn1,
             MouseRight          = MouseBtn2,
             MouseMiddle         = MouseBtn3,
 
-            KeyBegin            = 32,   // GLFW_KEY_SPACE
-            KeyEnd              = 348,  // GLFW_KEY_LAST
+            KeyBegin            = 32,               // GLFW_KEY_SPACE
+            KeyEnd              = 348,              // GLFW_KEY_LAST
 
             MultiTouch          = KeyEnd + 10,      // float2 (scale, rotate)
             Cursor2DBegin,
-            MouseWheel          = Cursor2DBegin,// float2 (delta)
-            CursorPos,                          // float2 (absolute in pixels)
-            CursorPos_mm,                       // float2 (absolute in mm)
-            CursorDelta,                        // float2 (delta in pixels)
-            CursorDelta_norm,                   // snorm2
-            TouchPos,                           // float2 (absolute in pixels)
-            TouchPos_mm,                        // float2 (absolute in mm)
-            TouchDelta,                         // float2 (delta in pixels)
-            TouchDelta_norm,                    // snorm2
+            MouseWheel          = Cursor2DBegin,    // float2 (delta)
+            CursorPos,                              // float2 (absolute in pixels)
+            CursorPos_mm,                           // float2 (absolute in mm)
+            CursorDelta,                            // float2 (delta in pixels)
+            CursorDelta_norm,                       // snorm2
+            TouchPos,                               // float2 (absolute in pixels)
+            TouchPos_mm,                            // float2 (absolute in mm)
+            TouchDelta,                             // float2 (delta in pixels)
+            TouchDelta_norm,                        // snorm2
             Cursor2DEnd         = TouchDelta_norm,
+
+          // --- Android sensors ---
+          // android device can be used as remote input device
+            Sensors1fBegin      = Cursor2DEnd + 1,
+            AirTemperature      = Sensors1fBegin,   // float  (Celsius)
+            AmbientLight,                           // float  (lux)
+            AirPressure,                            // float  (hPa or mbar)
+            Proximity,                              // float  (cm) - on most devices it is 0 (too close) or >0 (too far, 3-5cm)
+            RelativeHumidity,                       // float  (%)
+            Sensors1fEnd        = RelativeHumidity,
+
+            Sensors3fBegin      = Sensors1fEnd + 1,
+            Accelerometer       = Sensors3fBegin,   // float3 (m/s2)
+            Gravity,                                // float3 (m/s2)
+            Gyroscope,                              // float3 (rad/s)
+            LinearAcceleration,                     // float3 (m/s2)
+            MagneticField,                          // float3 (micro tesla, uT)
+            Sensors3fEnd        = MagneticField,
+
+            Sensors4fBegin      = Sensors3fEnd + 1,
+            RotationVector      = Sensors4fBegin,   // float4 (quaternion)
+            GameRotationVector,                     // float4 (quaternion)
+            Sensors4fEnd        = GameRotationVector,
+
+            Sensors4x4fBegin    = Sensors4fEnd + 1,
+            Pose6DOF            = Sensors4x4fBegin, // float4x4{ float4 quaternion;  float3 translation;  float4 delta_quaternion;  float3 delta_translation;  float seq; }
+            Sensors4x4fEnd      = Pose6DOF,
+
+            GeoLocation,                            // GNS
+          // ---
 
             _Count,
             Unknown             = 0xFFFF,
@@ -194,30 +234,40 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsGLFW ()                 __NE___ : SerializableInputActions{_Version} {}
+        SerializableInputActionsGLFW ()                                 __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (InputType_t type)                                  C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (InputType_t type)                           C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsVec1D (InputType_t type)                                C_NE_OV { return _IsVec1D( EInputType(type) ); }
+        bool  IsVec2D (InputType_t type)                                C_NE_OV { return _IsVec2D( EInputType(type) ); }
+        bool  IsVec3D (InputType_t type)                                C_NE_OV { return _IsVec3D( EInputType(type) ); }
 
-        String      ToString (const Reflection &refl)   C_Th_OV;
-        StringView  GetApiName ()                       C_NE_OV { return "GLFW"; }
+        EValueType  RequiredValueType (InputType_t inputType)           C_NE_OV;
+        String      InputTypeToString (InputType_t)                     C_Th_OV;
+        String      SensorBitsToString (ESensorBits)                    C_Th_OV;
+        StringView  GetApiName ()                                       C_NE_OV { return "GLFW"; }
 
       #ifdef AE_ENABLE_SCRIPTING
         bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-                              const SourceLoc &loc, Reflection &refl) override;
+                              ArrayView<Path> includeDirs, const SourceLoc &loc,
+                              INOUT Reflection &refl)                   __NE_OV;
 
-        static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
+        static void  Bind (const Scripting::ScriptEnginePtr &se)        __Th___;
       #endif
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
+        ND_ static ESensorType  _InputTypeToSensorType (EInputType)     __NE___;
+
+        ND_ static constexpr bool  _IsKey (EInputType type)             __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)      __NE___;
+        ND_ static constexpr bool  _IsVec1D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec2D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec3D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsSensor1f (EInputType type)        __NE___;
+        ND_ static constexpr bool  _IsSensor3f (EInputType type)        __NE___;
+        ND_ static constexpr bool  _IsSensor4f (EInputType type)        __NE___;
     };
 
 
@@ -227,23 +277,38 @@ namespace AE::App
 =================================================
 */
     inline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
-        return  ((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
-                ((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+        return  ((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
+                ((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
     }
 
     inline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
-        return  _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
+        return  _IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
     }
 
-    inline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) __NE___ {
-        return false;
+    inline constexpr bool  SerializableInputActionsGLFW::_IsVec1D (EInputType type) __NE___ {
+        return _IsSensor1f( type );
     }
 
-    inline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) __NE___ {
-        return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
+    inline constexpr bool  SerializableInputActionsGLFW::_IsVec2D (EInputType type) __NE___ {
+        return  ((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd)) or
                 (type == EInputType::MultiTouch);
     }
 
+    inline constexpr bool  SerializableInputActionsGLFW::_IsVec3D (EInputType type) __NE___ {
+        return  _IsSensor3f( type );
+    }
+
+    inline constexpr bool  SerializableInputActionsGLFW::_IsSensor1f (EInputType type) __NE___ {
+        return (type >= EInputType::Sensors1fBegin) and (type <= EInputType::Sensors1fEnd);
+    }
+
+    inline constexpr bool  SerializableInputActionsGLFW::_IsSensor3f (EInputType type) __NE___ {
+        return (type >= EInputType::Sensors3fBegin) and (type <= EInputType::Sensors3fEnd);
+    }
+
+    inline constexpr bool  SerializableInputActionsGLFW::_IsSensor4f (EInputType type) __NE___ {
+        return (type >= EInputType::Sensors4fBegin) and (type <= EInputType::Sensors4fEnd);
+    }
 
 } // AE::App
 

@@ -166,7 +166,7 @@ namespace AE::Graphics
         struct VertexInput
         {
             EVertexType     type            = Default;
-            Byte16u         offset;
+            Bytes16u        offset;
             ubyte           index           = UMax;     // attrib index in shader
             ubyte           bufferBinding   = UMax;     // index in 'vertexBuffers'
         };
@@ -177,7 +177,7 @@ namespace AE::Graphics
             ShaderStructName::Optimized_t   typeName;
             EVertexInputRate                rate        = Default;
             ubyte                           index       = UMax;         // for 'ctx.BindVertexBuffer()'
-            Byte16u                         stride;
+            Bytes16u                        stride;
             uint                            divisor     = 0;
         };
         StaticAssert( sizeof(VertexInput) == 6 );
@@ -225,8 +225,8 @@ namespace AE::Graphics
     struct RayTracingPipelineDesc : BasePipelineDesc
     {
         uint        maxRecursionDepth           = 1;
-        Byte32u     maxPipelineRayPayloadSize;
-        Byte32u     maxPipelineRayHitAttributeSize;
+        Bytes32u    maxPipelineRayPayloadSize;
+        Bytes32u    maxPipelineRayHitAttributeSize;
     };
 
 

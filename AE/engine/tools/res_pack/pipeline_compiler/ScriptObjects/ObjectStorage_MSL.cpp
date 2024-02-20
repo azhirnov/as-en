@@ -156,8 +156,7 @@ namespace AE::PipelineCompiler
         // validate options
         for (auto opt : BitfieldIterate( inShader->options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( opt )
+            switch_enum( opt )
             {
                 case EShaderOpt::DebugInfo :
                 case EShaderOpt::Optimize :
@@ -174,7 +173,7 @@ namespace AE::PipelineCompiler
                 case EShaderOpt::All :
                 default :                               CHECK_THROW_MSG( false, "unknown shader option" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         ShaderSrcKey    key;

@@ -126,7 +126,7 @@ namespace AE::Threading
         const uint  canceled    = curr->_canceledDepsCount.load();
 
         // check input dependencies
-        if_unlikely( (canceled == 0) & (curr->_waitBits.load() != 0) )
+        if_unlikely( (canceled == 0) and (curr->_waitBits.load() != 0) )
         {
             // input dependencies is not complete
             return true;
@@ -148,7 +148,7 @@ namespace AE::Threading
         }
 
         // task was canceled
-        if_unlikely( (status == EStatus::Cancellation) | (canceled > 0) )
+        if_unlikely( (status == EStatus::Cancellation) or (canceled > 0) )
         {
             // TODO: cancel used with locked chunk - bad for performance
             // TODO: check if task has overloaded 'OnCancel()' method, or add task to queue inside '_Cancel()' ?
@@ -222,7 +222,7 @@ namespace AE::Threading
                 if ( task == null )
                 {
                     const usize     start_pos = Min( packed.pack.pos, count );
-                    for (pos = 0; ((pos < start_pos) & (pos < count)) and _RemoveTask( chunk_ptr->array, pos, count, OUT task ); ++pos) {}
+                    for (pos = 0; ((pos < start_pos) and (pos < count)) and _RemoveTask( chunk_ptr->array, pos, count, OUT task ); ++pos) {}
                 }
 
                 packed.pack.pos     = pos;

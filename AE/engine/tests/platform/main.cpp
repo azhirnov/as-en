@@ -5,16 +5,16 @@
 using namespace AE::App;
 
 
+
 #ifdef AE_PLATFORM_ANDROID
 extern int Test_Platform (IApplication &app, IWindow &wnd)
 {
-    // TODO
-
     AE_LOGI( "Tests.Platform finished" );
     return 0;
 }
 #else
 
+    extern void UnitTest_Monitor ();
     extern void Test_Application ();
     extern void Test_Input ();
 
@@ -22,6 +22,7 @@ extern int Test_Platform (IApplication &app, IWindow &wnd)
     {
         AE::Base::StaticLogger::LoggerDbgScope log{};
 
+        UnitTest_Monitor();
         Test_Application();
         Test_Input();
 

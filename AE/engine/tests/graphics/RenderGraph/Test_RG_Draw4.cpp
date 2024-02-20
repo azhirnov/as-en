@@ -66,7 +66,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_1;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
 
@@ -88,7 +88,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_2;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view ));
 
@@ -110,7 +110,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.Test4_2;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view ));
 

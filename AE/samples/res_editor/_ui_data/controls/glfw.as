@@ -191,9 +191,9 @@ void ASmain (GLFW_ActionBindings& bindings)
         bind.Add( GLFW_Input::ArrowRight,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("+0"), arrow_scale ));
         bind.Add( GLFW_Input::ArrowUp,
-                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
-        bind.Add( GLFW_Input::ArrowDown,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-"), arrow_scale ));
+        bind.Add( GLFW_Input::ArrowDown,
+                  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
     }
 
     // FPS camera
@@ -254,5 +254,34 @@ void ASmain (GLFW_ActionBindings& bindings)
                   ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("-"), thrust_scale ));
         bind.Add( GLFW_Input::C,
                   ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("+"), thrust_scale ));
+    }
+
+    // Remote camera
+    {
+        RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "Controller.RemoteCamera" );
+        bind.Inherit( "SwitchInputMode" );
+
+        bind.Add( GLFW_Input::W,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("+00") ));
+        bind.Add( GLFW_Input::S,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("-00") ));
+        bind.Add( GLFW_Input::A,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0-0") ));
+        bind.Add( GLFW_Input::D,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("0+0") ));
+        bind.Add( GLFW_Input::LeftShift,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00+") ));
+        bind.Add( GLFW_Input::Space,
+                  ActionInfo( "RmCamera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00-") ));
+
+        bind.Add( GLFW_Input::R,
+                  ActionInfo( "RmCamera.Reset", EGestureType::Down ));
+
+        // remote input:
+        bind.Add( GLFW_Input::GameRotationVector,
+                  ActionInfo( "RmCamera.Rotate", EGestureType::Move ));
+
+        bind.Add( GLFW_Input::Gravity,
+                  ActionInfo( "RmCamera.Gravity", EValueType::Float, EGestureType::Move, VecSwizzle("y"), float4(0.02f) ));
     }
 }

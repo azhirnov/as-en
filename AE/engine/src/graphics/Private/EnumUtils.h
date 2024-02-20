@@ -22,14 +22,13 @@ namespace AE::Graphics
 */
     ND_ inline Bytes  EIndex_SizeOf (EIndex value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value ) {
+        switch_enum( value ) {
             case EIndex::UShort :   return SizeOf<ushort>;
             case EIndex::UInt :     return SizeOf<uint>;
             case EIndex::Unknown :
             case EIndex::_Count :   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown index type!" );
     }
 //-----------------------------------------------------------------------------
@@ -172,8 +171,8 @@ namespace AE::Graphics
         // skip 'CopyDst -> CopyDst', 'BlitDst -> BlitDst' barriers,
         // user must explicitly add this barrier, otherwise it is intended that regions are not intersects.
 
-        return  (srcState == dstState) &
-                ((srcState == EResourceState::CopyDst) | (srcState == EResourceState::BlitDst));
+        return  (srcState == dstState) and
+                ((srcState == EResourceState::CopyDst) or (srcState == EResourceState::BlitDst));
     }
 //-----------------------------------------------------------------------------
 
@@ -246,15 +245,17 @@ namespace AE::Graphics
         ND_ bool    HasStencil ()                   C_NE___ { return AllBits( valueType, EType::Stencil ); }
         ND_ bool    HasDepthOrStencil ()            C_NE___ { return AnyBits( valueType, EType::DepthStencil ); }
         ND_ bool    IsYcbcr ()                      C_NE___ { return AllBits( valueType, EType::Ycbcr ); }
+        ND_ bool    IsMultiPlanar ()                C_NE___ { return AnyBits( aspectMask, EImageAspect::_PlaneMask ); }
 
+        // only for color or depth
         ND_ uint    BitsPerPixel ()                 C_NE___ { return uint(bitsPerBlock) / Area( TexBlockDim() ); }
-        ND_ uint    BitsPerChannel ()               C_NE___ { return BitsPerPixel() / Max( 1u, channels ); }
+        ND_ uint    BitsPerChannel ()               C_NE___ { ASSERT( not IsMultiPlanar() );  return BitsPerPixel() / Max( 1u, channels ); }
+        ND_ Bytes   BytesPerPixel ()                C_NE___ { uint bpp = BitsPerPixel();  ASSERT( (bpp & 7) == 0 );  return Bytes{bpp >> 3}; }
+        ND_ Bytes   BytesPerBlock ()                C_NE___ { ASSERT( (bitsPerBlock & 7) == 0 );  return Bytes{uint{bitsPerBlock} >> 3}; }
+
         ND_ uint    UncompressedBitsPerChannel ()   C_NE___ { ASSERT( IsCompressed() );  return uint(srcBitsPerPix) / Max( 1u, channels ); }
 
-        ND_ Bytes   BytesPerBlock ()                C_NE___ { ASSERT( (bitsPerBlock & 7) == 0 );  return Bytes{bitsPerBlock}; }
-        ND_ Bytes   BytesPerPixel ()                C_NE___ { uint bpp = BitsPerPixel();  ASSERT( (bpp & 7) == 0 );  return Bytes{bpp >> 3}; }
-
-        ND_ uint    PlaneCount ()                   C_NE___ { return uint(BitCount( uint(aspectMask & (EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2)) )); }
+        ND_ uint    PlaneCount ()                   C_NE___ { return uint(BitCount( uint(aspectMask & EImageAspect::_PlaneMask) )); }
     };
     AE_BIT_OPERATORS( PixelFormatInfo::EType );
 
@@ -290,37 +291,43 @@ namespace AE::Graphics
 
     ND_ inline constexpr bool  EPixelFormat_IsBC (EPixelFormat format)  __NE___
     {
-        return (format >= EPixelFormat::BC1_RGB8_UNorm) & (format <= EPixelFormat::BC7_sRGB8_A8);
+        return (format >= EPixelFormat::BC1_RGB8_UNorm) and (format <= EPixelFormat::BC7_sRGB8_A8);
     }
 
     ND_ inline constexpr bool  EPixelFormat_IsETC (EPixelFormat format) __NE___
     {
-        return (format >= EPixelFormat::ETC2_RGB8_UNorm) & (format <= EPixelFormat::ETC2_sRGB8_A8);
+        return (format >= EPixelFormat::ETC2_RGB8_UNorm) and (format <= EPixelFormat::ETC2_sRGB8_A8);
     }
 
     ND_ inline constexpr bool  EPixelFormat_IsEAC (EPixelFormat format) __NE___
     {
-        return (format >= EPixelFormat::EAC_R11_SNorm) & (format <= EPixelFormat::EAC_RG11_UNorm);
-    }
-
-    ND_ inline constexpr bool  EPixelFormat_IsASTC (EPixelFormat format)__NE___
-    {
-        return (format >= EPixelFormat::ASTC_RGBA_4x4) & (format <= EPixelFormat::ASTC_RGBA16F_12x12);
+        return (format >= EPixelFormat::EAC_R11_SNorm) and (format <= EPixelFormat::EAC_RG11_UNorm);
     }
 
     ND_ inline constexpr bool  EPixelFormat_IsASTC_LDR (EPixelFormat format)__NE___
     {
-        return (format >= EPixelFormat::ASTC_RGBA_4x4) & (format <= EPixelFormat::ASTC_sRGB8_A8_12x12);
+        return (format >= EPixelFormat::ASTC_RGBA_4x4) and (format <= EPixelFormat::ASTC_sRGB8_A8_12x12);
     }
 
     ND_ inline constexpr bool  EPixelFormat_IsASTC_HDR (EPixelFormat format)__NE___
     {
-        return (format >= EPixelFormat::ASTC_RGBA16F_4x4) & (format <= EPixelFormat::ASTC_RGBA16F_12x12);
+        return (format >= EPixelFormat::ASTC_RGBA16F_4x4) and (format <= EPixelFormat::ASTC_RGBA16F_12x12);
+    }
+
+    ND_ inline constexpr bool  EPixelFormat_IsASTC (EPixelFormat format)__NE___
+    {
+        return EPixelFormat_IsASTC_LDR( format ) or EPixelFormat_IsASTC_HDR( format );
     }
 
     ND_ inline constexpr bool  EPixelFormat_IsYcbcr (EPixelFormat format)__NE___
     {
-        return (format >= EPixelFormat::G8B8G8R8_422_UNorm) & (format <= EPixelFormat::G16_B16_R16_444_UNorm);
+        return (format >= EPixelFormat::G8B8G8R8_422_UNorm) and (format <= EPixelFormat::G16_B16_R16_444_UNorm);
+    }
+
+    ND_ inline constexpr bool  EPixelFormat_IsYcbcr2Plane444 (EPixelFormat format)__NE___
+    {
+        return AnyEqual( format, EPixelFormat::G10x6_B10x6R10x6_444_UNorm, EPixelFormat::G12x4_B12x4R12x4_444_UNorm,
+                                 EPixelFormat::G16_B16R16_444_UNorm, EPixelFormat::G8_B8R8_444_UNorm );
     }
 
 /*
@@ -339,12 +346,7 @@ namespace AE::Graphics
 */
     ND_ inline EImageAspect  EPixelFormat_ToImageAspect (EPixelFormat format) __NE___
     {
-        auto&   fmt_info    = EPixelFormat_GetInfo( format );
-        auto    depth_bit   = fmt_info.HasDepth() ? EImageAspect::Depth : Default;
-        auto    stencil_bit = fmt_info.HasStencil() ? EImageAspect::Stencil : Default;
-        auto    color_bit   = (not (depth_bit | stencil_bit) ? EImageAspect::Color : Default);
-
-        return depth_bit | stencil_bit | color_bit;
+        return EPixelFormat_GetInfo( format ).aspectMask;
     }
 
 /*
@@ -392,10 +394,20 @@ namespace AE::Graphics
     multi planar format utils
 =================================================
 */
-    ND_ uint   EPixelFormat_PlaneCount (EPixelFormat fmt)           __NE___;
-    ND_ bool   EPixelFormat_isXChromaSubsampled (EPixelFormat fmt)  __NE___;
-    ND_ bool   EPixelFormat_isYChromaSubsampled (EPixelFormat fmt)  __NE___;
-    ND_ uint2  EPixelFormat_DimGranularity (EPixelFormat fmt)       __NE___;
+    ND_ uint   EPixelFormat_PlaneCount (EPixelFormat fmt)                               __NE___;
+    ND_ bool   EPixelFormat_isXChromaSubsampled (EPixelFormat fmt)                      __NE___;
+    ND_ bool   EPixelFormat_isYChromaSubsampled (EPixelFormat fmt)                      __NE___;
+    ND_ uint2  EPixelFormat_DimGranularity (EPixelFormat fmt)                           __NE___;
+    ND_ bool   EPixelFormat_GetPlaneInfo (EPixelFormat fmt, EImageAspect aspect,
+                                    OUT EPixelFormat &planeFormat, OUT uint2 &dimScale) __NE___;
+
+/*
+=================================================
+    utils
+=================================================
+*/
+    ND_ Bytes  EPixelFormat_ImageSize (EPixelFormat fmt, const uint2 &dim, Bytes planeAlign = 1_b)  __NE___;
+    ND_ Bytes  EPixelFormat_ImageSize (EPixelFormat fmt, const uint3 &dim, Bytes planeAlign = 1_b)  __NE___;
 //-----------------------------------------------------------------------------
 
 
@@ -409,8 +421,7 @@ namespace AE::Graphics
         if ( src == dst )
             return true;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( src )
+        switch_enum( src )
         {
             case EShaderIO::Int :           return false;
             case EShaderIO::UInt :          return false;
@@ -427,7 +438,7 @@ namespace AE::Graphics
             case EShaderIO::Unknown :
             case EShaderIO::_Count :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return false;
     }
 //-----------------------------------------------------------------------------
@@ -476,6 +487,11 @@ namespace AE::Graphics
     {
         return AllBits( memType, EMemoryType::DeviceLocal );
     }
+//-----------------------------------------------------------------------------
+
+
+
+    ND_ EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount = 0) __NE___;
 
 
 } // AE::Graphics

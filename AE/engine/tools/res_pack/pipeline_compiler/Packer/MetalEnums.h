@@ -278,8 +278,7 @@ namespace AE::PipelineCompiler
 #       define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
             case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             AE_PRIVATE_MTLPIXELFORMATS( FMT_BUILDER )
             case EPixelFormat::SwapchainColor :     return MtlPixelFormat::SwapchainColor;
@@ -314,15 +313,19 @@ namespace AE::PipelineCompiler
             case EPixelFormat::B12x4G12x4R12x4G12x4_422_UNorm :
             case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm :
             case EPixelFormat::G8_B8R8_422_UNorm :
+            case EPixelFormat::G8_B8R8_444_UNorm :
             case EPixelFormat::G16_B16R16_422_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :
+            case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :
+            case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :
             case EPixelFormat::G8_B8_R8_422_UNorm :
             case EPixelFormat::G16_B16_R16_422_UNorm :
             case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :
             case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :
             case EPixelFormat::G8_B8R8_420_UNorm :
             case EPixelFormat::G16_B16R16_420_UNorm :
+            case EPixelFormat::G16_B16R16_444_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :
             case EPixelFormat::G8_B8_R8_420_UNorm :
@@ -343,7 +346,7 @@ namespace AE::PipelineCompiler
             case EPixelFormat::_Count :
             case EPixelFormat::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
 #       undef FMT_BUILDER
 
@@ -357,8 +360,7 @@ namespace AE::PipelineCompiler
 */
     ND_ inline MtlLoadAction  MEnumCast (EAttachmentLoadOp value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAttachmentLoadOp::Invalidate :    return MtlLoadAction::DontCare;
             case EAttachmentLoadOp::Load :          return MtlLoadAction::Load;
@@ -367,7 +369,7 @@ namespace AE::PipelineCompiler
             case EAttachmentLoadOp::_Count :
             case EAttachmentLoadOp::Unknown :       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid load op", MtlLoadAction::DontCare );
     }
 
@@ -378,8 +380,7 @@ namespace AE::PipelineCompiler
 */
     ND_ inline MtlStoreAction  MEnumCast (EAttachmentStoreOp value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAttachmentStoreOp::Invalidate :                   return MtlStoreAction::DontCare;
             case EAttachmentStoreOp::Store :                        return MtlStoreAction::Store;
@@ -388,7 +389,7 @@ namespace AE::PipelineCompiler
             case EAttachmentStoreOp::_Count :
             case EAttachmentStoreOp::Unknown :                      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid store op", MtlStoreAction::DontCare );
     }
 
@@ -438,14 +439,13 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (MtlLoadAction value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case MtlLoadAction::DontCare :  return "MTLLoadActionDontCare";
             case MtlLoadAction::Load :      return "MTLLoadActionLoad";
             case MtlLoadAction::Clear :     return "MTLLoadActionClear";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid load actions" );
     }
 
@@ -456,8 +456,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (MtlStoreAction value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case MtlStoreAction::DontCare :                     return "MTLStoreActionDontCare";
             case MtlStoreAction::Store :                        return "MTLStoreActionStore";
@@ -466,7 +465,7 @@ namespace AE::Base
             case MtlStoreAction::Unknown :                      return "MTLStoreActionUnknown";
             case MtlStoreAction::CustomSampleDepthStore :       return "MTLStoreActionCustomSampleDepthStore";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid store actions" );
     }
 
@@ -477,13 +476,12 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (MtlStoreActionOptions value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case MtlStoreActionOptions::None :                  return "MTLStoreActionOptionsNone";
             case MtlStoreActionOptions::CustomSamplePositions : return "MTLStoreActionOptionsCustomSamplePositions";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid store actions options" );
     }
 
@@ -494,14 +492,13 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (MtlMultisampleDepthResolveFilter value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case MtlMultisampleDepthResolveFilter::Sample0 :    return "MTLMultisampleDepthResolveFilterSample0";
             case MtlMultisampleDepthResolveFilter::Min :        return "MTLMultisampleDepthResolveFilterMin";
             case MtlMultisampleDepthResolveFilter::Max :        return "MTLMultisampleDepthResolveFilterMax";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid multisample depth resolve filter" );
     }
 
@@ -512,13 +509,12 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (MtlMultisampleStencilResolveFilter value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case MtlMultisampleStencilResolveFilter::Sample0 :              return "MTLMultisampleStencilResolveFilterSample0";
             case MtlMultisampleStencilResolveFilter::DepthResolvedSample :  return "MTLMultisampleStencilResolveFilterDepthResolvedSample";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "invalid multisample stencil resolve filter" );
     }
 
@@ -535,8 +531,7 @@ namespace AE::Base
             if ( not str.empty() )
                 str << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case MtlAttachmentFlags::Color :    str << "Color";     break;
                 case MtlAttachmentFlags::Depth :    str << "Depth";     break;
@@ -544,7 +539,7 @@ namespace AE::Base
                 case MtlAttachmentFlags::Unknown :
                 default :                           RETURN_ERR( "invalid attachment flags" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return str;
     }

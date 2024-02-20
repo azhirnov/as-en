@@ -19,7 +19,11 @@ namespace AE::VFS
 =================================================
 */
     ArchivePacker::~ArchivePacker ()
-    {}
+    {
+        DRC_EXLOCK( _drCheck );
+        CHECK( not _map.empty() );
+        CHECK( _archive == null );
+    }
 
 /*
 =================================================
@@ -70,7 +74,9 @@ namespace AE::VFS
 
     bool  ArchivePacker::Store (const Path &filename)
     {
-        FileWStream file{ filename };
+        FileSystem::CreateDirectories( filename.parent_path() );
+
+        FileWStream     file{ filename };
         return Store( file );
     }
 
@@ -136,13 +142,30 @@ namespace AE::VFS
         info.offset = ulong{offset};
         info.type   = type;
 
-        BEGIN_ENUM_CHECKS();
+        const auto  PutFile = [&] () -> bool
+        {{
+            const Bytes copied = DataSourceUtils::BufferedCopy( *_archive, stream, size );
+            CHECK_ERR( copied == (stream.Position() - start_pos) );
+
+            info.size = uint(copied);
+
+            return _AddFile( FileName::Optimized_t{name}, info );
+        }};
+
         switch ( type )
+        {
+            case EFileType::InMemory :
+            case EFileType::BrotliInMemory :
+                CHECK( size <= _MaxInMemoryFileSize );
+                break;
+        }
+
+        switch_enum( type )
         {
             // copy without compression
             case EFileType::Raw :
             case EFileType::InMemory :
-                break;
+                return PutFile();
 
             // use brotli compression
             case EFileType::Brotli :
@@ -153,26 +176,34 @@ namespace AE::VFS
                     case 0 :    return false;   // error
                     case 1 :    return true;    // ok
                 }
-                break;  // fallback to non-compressed
+
+                // fallback to non-compressed
+                info.type = EFileType::Raw;
+                return PutFile();
             }
 
+            // use zstd compression
+            case EFileType::ZStd :
+            case EFileType::ZStdInMemory :
+            {
+                switch ( _ZStdCompression( stream, name, info, start_pos, size ))
+                {
+                    case 0 :    return false;   // error
+                    case 1 :    return true;    // ok
+                }
+
+                // fallback to non-compressed
+                info.type = EFileType::Raw;
+                return PutFile();
+            }
+
+            case EFileType::Unknown :
             case EFileType::_Last :
             case EFileType::All :
                 break;
         }
-        END_ENUM_CHECKS();
-
-        // copy without compression
-        {
-            const Bytes copied = DataSourceUtils::BufferedCopy( *_archive, stream, size );
-            CHECK_ERR( copied == (stream.Position() - start_pos) );
-
-            info.type   = EFileType::Raw;
-            info.size   = uint(copied);
-
-            CHECK_ERR( _AddFile( FileName::Optimized_t{name}, info ));
-        }
-        return true;
+        switch_end
+        return false;
     }
 
     bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, EFileType type)
@@ -191,7 +222,7 @@ namespace AE::VFS
     _BrotliCompression
 =================================================
 */
-    uint  ArchivePacker::_BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, const Bytes startPos, const Bytes size)
+    uint  ArchivePacker::_BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size)
     {
     #ifdef AE_ENABLE_BROTLI
         BrotliWStream::Config   cfg;
@@ -199,13 +230,51 @@ namespace AE::VFS
         cfg.quality     = 1.0f;
         cfg.windowBits  = 1.0f;
 
+        ASSERT( AllBits( info.type, EFileType::Brotli ));
+        return _Compression<BrotliWStream>( stream, name, info, startPos, size, cfg );
+    #else
+
+        Unused( stream, name, info, startPos, size );
+        return 2;   // not supported
+    #endif
+    }
+
+/*
+=================================================
+    _ZStdCompression
+=================================================
+*/
+    uint  ArchivePacker::_ZStdCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size)
+    {
+    #ifdef AE_ENABLE_ZSTD
+        ZStdWStream::Config cfg;
+        cfg.level   = 1.0f;
+
+        ASSERT( AllBits( info.type, EFileType::ZStd ));
+        return _Compression<ZStdWStream>( stream, name, info, startPos, size, cfg );
+    #else
+
+        Unused( stream, name, info, startPos, size );
+        return 2;   // not supported
+    #endif
+    }
+
+/*
+=================================================
+    _Compression
+=================================================
+*/
+    template <typename StreamType, typename CfgType>
+    uint  ArchivePacker::_Compression (RStream &stream, const FileName::WithString_t &name, FileInfo &info,
+                                        Bytes startPos, Bytes size, const CfgType &cfg)
+    {
         auto    mem = MakeRC<MemWStream>();
         Bytes   uncompressed_size;
         {
-            BrotliWStream   brotli  { mem, cfg };
-            CHECK_ERR( brotli.IsOpen() );
+            StreamType  compressed { mem, cfg };
+            CHECK_ERR( compressed.IsOpen() );
 
-            uncompressed_size = DataSourceUtils::BufferedCopy( brotli, stream, size );
+            uncompressed_size = DataSourceUtils::BufferedCopy( compressed, stream, size );
             CHECK_ERR( uncompressed_size == (stream.Position() - startPos) );
         }
 
@@ -217,8 +286,6 @@ namespace AE::VFS
         // some data con not be compressed
         if_likely( compression_ratio < 0.9 )
         {
-            ASSERT( AllBits( info.type, EFileType::Brotli ));
-
             info.size = uint(compressed_size);
 
             auto    rmem = mem->ToRStream();
@@ -232,11 +299,6 @@ namespace AE::VFS
             AE_LOGI( "File with name '"s << name.GetName() << "' has low compression ratio" );
             return 2;   // low compression
         }
-    #else
-
-        Unused( stream, name, info, startPos, size );
-        return 2;   // not supported
-    #endif
     }
 
 /*

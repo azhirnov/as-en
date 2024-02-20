@@ -84,7 +84,7 @@ namespace AE::ResEditor
     void  OrbitalCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.SetRotation( Quat::Identity() );
+        _camera.ResetOrientation();
         _camera.SetOffset( _initialOffset );
 
         _dimAspect  = _dynDim->Aspect();

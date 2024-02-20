@@ -44,8 +44,7 @@ namespace AE::Base
     ND_ StringView  ToString (AE::ResEditor::IPass::EDebugMode mode)
     {
         using EDebugMode = AE::ResEditor::IPass::EDebugMode;
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EDebugMode::Trace :        return "Trace";
             case EDebugMode::FnProfiling :  return "FnProfiling";
@@ -54,7 +53,7 @@ namespace AE::Base
             case EDebugMode::_Count :
             default :                       return "";
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -65,8 +64,7 @@ namespace AE::Base
     ND_ StringView  ToString (AE::ResEditor::EImageFormat fmt)
     {
         using EImageFormat = AE::ResEditor::EImageFormat;
-        BEGIN_ENUM_CHECKS();
-        switch ( fmt )
+        switch_enum( fmt )
         {
             case EImageFormat::DDS :        return "DDS";
             case EImageFormat::BMP :        return "BMP";
@@ -84,7 +82,7 @@ namespace AE::Base
             case EImageFormat::_Count :
             default :                       return "";
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 } // AE::Base
@@ -401,10 +399,10 @@ namespace
         // same as ImGui::GetDrawData()
         auto*   viewport = imgui->ctx->Viewports[0];
 
-        DirectCtx::Graphics     gctx{ *this };
+        DirectCtx::Graphics     gfx_ctx{ *this };
 
-        gctx.AddSurfaceTargets( targets );
-        CHECK_TE( _UpdateDS( gctx ));
+        gfx_ctx.AddSurfaceTargets( targets );
+        CHECK_TE( _UpdateDS( gfx_ctx ));
 
         if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
                      fmt != Default or cs != Default )
@@ -430,8 +428,8 @@ namespace
             ps = it->second;
         }
 
-        auto    dctx = gctx.BeginRenderPass(
-                                RenderPassDesc{ t._res.rtech, ps.pass, rt.RegionSize() }
+        auto    dctx = gfx_ctx.BeginRenderPass(
+                                RenderPassDesc{ *t._res.rtech, ps.pass, rt.RegionSize() }
                                     .AddViewport( rt.RegionSize() )
                                     .AddTarget( AttachmentName{"Color"}, rt.viewId, (isFirst ? EResourceState::Invalidate : Default), Default ),
                                 {DbgName(), DbgColor()} );
@@ -446,9 +444,9 @@ namespace
             _DrawUI( dctx, viewport->DrawDataP, ps );
         }
 
-        gctx.EndRenderPass( dctx );
+        gfx_ctx.EndRenderPass( dctx );
 
-        Execute( gctx );
+        Execute( gfx_ctx );
     }
 
 /*
@@ -559,7 +557,8 @@ namespace
 */
     void  EditorUI::DrawTask::_UpdateMain (OUT float2 &wnd_pos)
     {
-        ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 400.f}, ImGui::GetIO().DisplaySize );
+        ImGui::SetNextWindowPos( ImVec2{10.f, 10.f}, ImGuiCond_Once );
+        ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 450.f}, ImGui::GetIO().DisplaySize );
 
         const auto  wnd_flags   = ImGuiWindowFlags_NoSavedSettings;
 
@@ -1156,7 +1155,7 @@ namespace
 
         imgui->activeTab    = 1;
         imgui->dbgPassIdx   = UMax;
-        imgui->dbgPassIdx   = UMax;
+        imgui->dbgModeIdx   = UMax;
         imgui->dbgStageIdx  = UMax;
 
         Path    path = t._scriptDir.root;
@@ -1372,10 +1371,10 @@ namespace
 
         DirectCtx::Transfer copy_ctx{ *this };
 
-        UploadImageDesc upload;
+        UploadImageDesc     upload;
         upload.aspectMask   = EImageAspect::Color;
         upload.heapType     = EStagingHeapType::Dynamic;
-        upload.imageSize    = uint3{width, height, 1};
+        upload.imageDim     = uint3{width, height, 1};
         upload.dataRowPitch = Bytes{width * 4u};
 
         Unused( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, width * height * 4 * sizeof(ubyte) }));
@@ -1512,7 +1511,7 @@ namespace
         auto    imgui = _imgui.WriteNoLock();
         EXLOCK( imgui );
 
-        CHECK( _profiler.Initialize() );
+        CHECK( _profiler.Initialize( null ));
 
         // init ImGUI context
         if ( imgui->ctx == null )
@@ -1576,7 +1575,7 @@ namespace
         CHECK_ERR( not _res.pplns.empty() );
 
         CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _res.dsIndex, OUT _res.descSets.data(), max_frames,
-                                                  ppln, DescriptorSetName{"imgui.ds0"} ));
+                                                  ppln, DescriptorSetName{"imgui.ds"} ));
 
         _res.pc1Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_ub >( ppln, PushConstantName{"ub"} );
         _res.pc2Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_pc >( ppln, PushConstantName{"pc"} );
@@ -1650,8 +1649,7 @@ namespace
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            StaticAssert( IA.actionCount == 15 );
-            switch ( uint{hdr.name} )
+            switch_IA( hdr.name )
             {
                 case IA.UI_MousePos :
                     imgui->mousePos = reader.Data<packed_float2>( hdr.offset );     break;
@@ -1692,8 +1690,10 @@ namespace
                 case IA.FullscreenOnOff :
                     _windowMode.current.store( (~_windowMode.current.load() & 1) ); break;
 
-                // IA.UI_ResExport - ignore
+                case IA.UI_MouseRBDown :
+                case IA.UI_ResExport :      break;  // ignore
             }
+            switch_end
         }
     }
 
@@ -1742,12 +1742,9 @@ R"(UI controls:
 */
     void  EditorUI::_CheckScriptDir (INOUT ScriptDirData &scriptDir)
     {
-        TimePoint_t     cur_time = TimePoint_t::clock::now();
-
-        if ( cur_time - scriptDir.lastCheck < scriptDir.interval )
+        if ( not scriptDir.timer.Tick() )
             return;
 
-        scriptDir.lastCheck = cur_time;
         scriptDir.rootInfo  = Default;
 
         usize   node_id = 0;

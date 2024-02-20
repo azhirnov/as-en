@@ -85,8 +85,7 @@ namespace AE::Graphics
 
         params_ci.sType                         = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( profile_info.videoCodecOperation )
+        switch_enum( profile_info.videoCodecOperation )
         {
             // decode h264
             case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
@@ -148,11 +147,11 @@ namespace AE::Graphics
             }
 
             // encode h264
-            case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_EXT :
+            case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
             {
-                VkVideoEncodeH264ProfileInfoEXT*                    encode_h264_profile;        AllocateOnStack_ZeroMem( OUT encode_h264_profile, 1 );
-                VkVideoEncodeH264SessionParametersCreateInfoEXT*    encode_h264_params;         AllocateOnStack_ZeroMem( OUT encode_h264_params, 1 );
-                VkVideoEncodeH264SessionParametersAddInfoEXT*       encode_h264_params_add;     AllocateOnStack_ZeroMem( OUT encode_h264_params_add, 1 );
+                VkVideoEncodeH264ProfileInfoKHR*                    encode_h264_profile;        AllocateOnStack_ZeroMem( OUT encode_h264_profile, 1 );
+                VkVideoEncodeH264SessionParametersCreateInfoKHR*    encode_h264_params;         AllocateOnStack_ZeroMem( OUT encode_h264_params, 1 );
+                VkVideoEncodeH264SessionParametersAddInfoKHR*       encode_h264_params_add;     AllocateOnStack_ZeroMem( OUT encode_h264_params_add, 1 );
                 VkExtensionProperties*                              encode_h264_stdhdr;         AllocateOnStack_ZeroMem( OUT encode_h264_stdhdr, 1 );
                 CHECK_ERR(  encode_h264_profile     != null and
                             encode_h264_params      != null and
@@ -166,22 +165,22 @@ namespace AE::Graphics
                 session_ci.pStdHeaderVersion            = encode_h264_stdhdr;
                 params_ci.pNext                         = encode_h264_params;
 
-                encode_h264_profile->sType              = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_EXT;
+                encode_h264_profile->sType              = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_KHR;
                 encode_h264_profile->stdProfileIdc      = STD_VIDEO_H264_PROFILE_IDC_MAIN;
 
-                encode_h264_params->sType               = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_EXT;
+                encode_h264_params->sType               = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR;
                 encode_h264_params->pParametersAddInfo  = encode_h264_params_add;
 
-                encode_h264_params_add->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_EXT;
+                encode_h264_params_add->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR;
                 break;
             }
 
             // encode h265
-            case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_EXT :
+            case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
             {
-                VkVideoEncodeH265ProfileInfoEXT*                    encode_h265_profile;        AllocateOnStack_ZeroMem( OUT encode_h265_profile, 1 );
-                VkVideoEncodeH265SessionParametersCreateInfoEXT*    encode_h265_params;         AllocateOnStack_ZeroMem( OUT encode_h265_params, 1 );
-                VkVideoEncodeH265SessionParametersAddInfoEXT*       encode_h265_params_add;     AllocateOnStack_ZeroMem( OUT encode_h265_params_add, 1 );
+                VkVideoEncodeH265ProfileInfoKHR*                    encode_h265_profile;        AllocateOnStack_ZeroMem( OUT encode_h265_profile, 1 );
+                VkVideoEncodeH265SessionParametersCreateInfoKHR*    encode_h265_params;         AllocateOnStack_ZeroMem( OUT encode_h265_params, 1 );
+                VkVideoEncodeH265SessionParametersAddInfoKHR*       encode_h265_params_add;     AllocateOnStack_ZeroMem( OUT encode_h265_params_add, 1 );
                 VkExtensionProperties*                              encode_h265_stdhdr;         AllocateOnStack_ZeroMem( OUT encode_h265_stdhdr, 1 );
                 CHECK_ERR(  encode_h265_profile     != null and
                             encode_h265_params      != null and
@@ -195,13 +194,13 @@ namespace AE::Graphics
                 session_ci.pStdHeaderVersion            = encode_h265_stdhdr;
                 params_ci.pNext                         = encode_h265_params;
 
-                encode_h265_profile->sType              = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_EXT;
+                encode_h265_profile->sType              = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_KHR;
                 encode_h265_profile->stdProfileIdc      = STD_VIDEO_H265_PROFILE_IDC_MAIN;
 
-                encode_h265_params->sType               = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_EXT;
+                encode_h265_params->sType               = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR;
                 encode_h265_params->pParametersAddInfo  = encode_h265_params_add;
 
-                encode_h265_params_add->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_EXT;
+                encode_h265_params_add->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR;
                 break;
             }
 
@@ -210,7 +209,7 @@ namespace AE::Graphics
             default_unlikely :
                 RETURN_ERR( "unsupported video codec op" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         VK_CHECK_ERR( dev.vkCreateVideoSessionKHR( dev.GetVkDevice(), &session_ci, null, OUT &_session ));
         dev.SetObjectName( _session, dbgName, VK_OBJECT_TYPE_VIDEO_SESSION_KHR );
@@ -410,8 +409,7 @@ namespace
                     else
                         RETURN_ERR( "unknown video codec mode" );
 
-                    BEGIN_ENUM_CHECKS();
-                    switch ( profileInfo.videoCodecOperation )
+                    switch_enum( profileInfo.videoCodecOperation )
                     {
                         // decode h264
                         case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
@@ -442,13 +440,13 @@ namespace
                         }
 
                         // encode h264
-                        case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_EXT :
+                        case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
                         {
                             auto*   encode_cap      = Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
-                            auto*   encode_cap_h264 = Cast<VkVideoEncodeH264CapabilitiesEXT>( encode_cap->pNext );
+                            auto*   encode_cap_h264 = Cast<VkVideoEncodeH264CapabilitiesKHR>( encode_cap->pNext );
 
                             CHECK_ERR(  encode_cap->sType       == VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR      and
-                                        encode_cap_h264->sType  == VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_EXT );
+                                        encode_cap_h264->sType  == VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR );
                             CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION );
 
                             // TODO
@@ -456,13 +454,13 @@ namespace
                         }
 
                         // encode h265
-                        case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_EXT :
+                        case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
                         {
                             auto*   encode_cap      = Cast<VkVideoEncodeCapabilitiesKHR>( capabilities.pNext );
-                            auto*   encode_cap_h265 = Cast<VkVideoEncodeH265CapabilitiesEXT>( encode_cap->pNext );
+                            auto*   encode_cap_h265 = Cast<VkVideoEncodeH265CapabilitiesKHR>( encode_cap->pNext );
 
                             CHECK_ERR(  encode_cap->sType       == VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR      and
-                                        encode_cap_h265->sType  == VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_EXT );
+                                        encode_cap_h265->sType  == VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR );
                             CHECK_ERR( capabilities.stdHeaderVersion.specVersion >= VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION );
 
                             // TODO
@@ -473,7 +471,7 @@ namespace
                         case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
                             break;
                     }
-                    END_ENUM_CHECKS();
+                    switch_end
                     return true;
                 });
     }

@@ -27,17 +27,21 @@ namespace AE::VFS
 
         enum class EFileType : uint
         {
-            Raw         = 1 << 0,       // SequentialAccess | RandomAccess
+            Raw         = 1 << 0,       // SequentialAccess or RandomAccess
             Brotli      = 1 << 1,       // SequentialAccess
             InMemory    = 1 << 2,       // RandomAccess | Buffered
         //  Encrypted   = 1 << 3,       // SequentialAccess
+            ZStd        = 1 << 4,       // SequentialAccess
             _Last,
             All         = ((_Last - 1) << 1) - 1,
-            Unknown     = Raw,
+            Unknown     = 0,
 
             BrotliInMemory          = Brotli | InMemory,
         //  BrotliEncrypted         = Brotli | Encrypted,
         //  BrotliEncryptedInMemory = Brotli | Encrypted | InMemory,
+            ZStdInMemory            = ZStd | InMemory,
+        //  ZStdEncrypted           = ZStd | Encrypted,
+        //  ZStdEncryptedInMemory   = ZStd | Encrypted | InMemory,
         };
 
         struct FileInfo
@@ -46,8 +50,8 @@ namespace AE::VFS
             packed_ulong    offset;
             EFileType       type        = Default;
 
-            ND_ Bytes  Size ()      const   { return Bytes{size}; }
-            ND_ Bytes  Offset ()    const   { return Bytes{ulong{offset}}; }
+            ND_ Bytes  Size ()      C_NE___ { return Bytes{size}; }
+            ND_ Bytes  Offset ()    C_NE___ { return Bytes{ulong{offset}}; }
         };
 
         struct FileHeader
@@ -77,38 +81,38 @@ namespace AE::VFS
     public:
 
       // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, FileNameRef name)                                  C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, FileNameRef name)                                  C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name)                             C_NE_OV;
+        bool  Open (OUT RC<RStream> &stream, FileName::Ref name)                            C_NE_OV;
+        bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)                            C_NE_OV;
+        bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)                       C_NE_OV;
 
         using IVirtualFileStorage::Open;
 
-        bool  Exists (FileNameRef name)                                                         C_NE_OV;
-        bool  Exists (FileGroupNameRef name)                                                    C_NE_OV;
+        bool  Exists (FileName::Ref name)                                                   C_NE_OV;
+        bool  Exists (FileGroupName::Ref name)                                              C_NE_OV;
 
 
     private:
-        void  _Append (INOUT GlobalFileMap_t &)                                                 C_Th_OV;
+        void  _Append (INOUT GlobalFileMap_t &)                                             C_Th_OV;
 
-        bool  _OpenByIter (OUT RC<RStream> &stream, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref)     C_NE_OV;
+        bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)    C_NE_OV;
 
         using IVirtualFileStorage::_OpenByIter;
 
-        bool  _Open2 (OUT RC<RStream> &stream, const FileInfo &info)                            C_NE___;
-        bool  _Open2 (OUT RC<RDataSource> &ds, const FileInfo &info)                            C_NE___;
-    //  bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)                       C_NE___;
+        bool  _Open2 (OUT RC<RStream> &stream, const FileInfo &info)                        C_NE___;
+        bool  _Open2 (OUT RC<RDataSource> &ds, const FileInfo &info)                        C_NE___;
+    //  bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)                   C_NE___;
 
-        ND_ bool  _ReadHeader (RDataSource &ds)                                                 __NE___;
+        ND_ bool  _ReadHeader (RDataSource &ds)                                             __NE___;
 
 
     private:
-        ArchiveStaticStorage ()                                                                 __NE___ {}
-        ~ArchiveStaticStorage ()                                                                __NE_OV {}
+        ArchiveStaticStorage ()                                                             __NE___ {}
+        ~ArchiveStaticStorage ()                                                            __NE_OV {}
 
-        ND_ bool  _Create (RC<RDataSource> archive)                                             __NE___;
-        ND_ bool  _Create (const Path &filename)                                                __NE___;
+        ND_ bool  _Create (RC<RDataSource> archive)                                         __NE___;
+        ND_ bool  _Create (const Path &filename)                                            __NE___;
     };
 
 

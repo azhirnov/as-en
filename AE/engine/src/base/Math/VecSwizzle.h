@@ -59,12 +59,12 @@ namespace AE::Math
 */
     constexpr uint  VecSwizzle::_CharToValue (char c) __NE___
     {
-        return  ((c == 'x') | (c == 'X'))   ? 1 :
-                ((c == 'y') | (c == 'Y'))   ? 2 :
-                ((c == 'z') | (c == 'Z'))   ? 3 :
-                ((c == 'w') | (c == 'W'))   ? 4 :
+        return  ((c == 'x') or (c == 'X'))  ? 1 :
+                ((c == 'y') or (c == 'Y'))  ? 2 :
+                ((c == 'z') or (c == 'Z'))  ? 3 :
+                ((c == 'w') or (c == 'W'))  ? 4 :
                 (c == '0')                  ? 5 :
-                ((c == '1') | (c == '+'))   ? 6 :
+                ((c == '1') or (c == '+'))  ? 6 :
                 (c == '-')                  ? 7 :
                                               0;
     }

@@ -15,7 +15,7 @@ namespace AE::ECS
     {
     // types
     private:
-        using                   Chunk_t         = ulong;
+        using                   Chunk_t         = Bitfield< ulong >;
         static constexpr uint   BitsPerChunk    = CT_SizeOfInBits<Chunk_t>;
         static constexpr uint   ChunkCount      = ECS_Config::MaxComponents / BitsPerChunk;
         using                   CompBits_t      = StaticArray< Chunk_t, ChunkCount >;
@@ -25,36 +25,36 @@ namespace AE::ECS
 
     // variables
     private:
-        CompBits_t      _bits;      // TODO: use SSE
+        CompBits_t      _bits   {};     // TODO: use SSE
 
 
     // methods
     public:
-        ArchetypeDesc ()                                        __NE___ { ZeroMem( OUT _bits.data(), ArraySizeOf(_bits) ); }
+        constexpr ArchetypeDesc ()                                              __NE___ {}
 
-        template <typename Comp>    ArchetypeDesc&  Add ()      __NE___ { return Add( ComponentTypeInfo<Comp>::id ); }
-        template <typename Comp>    ArchetypeDesc&  Remove ()   __NE___ { return Remove( ComponentTypeInfo<Comp>::id ); }
-        template <typename Comp>    ND_ bool        Exists ()   C_NE___ { return Exists( ComponentTypeInfo<Comp>::id ); }
+        template <typename Comp>    constexpr ArchetypeDesc&    Add ()          __NE___ { return Add( ComponentTypeInfo<Comp>::id ); }
+        template <typename Comp>    constexpr ArchetypeDesc&    Remove ()       __NE___ { return Remove( ComponentTypeInfo<Comp>::id ); }
+        template <typename Comp>    ND_ constexpr bool          Exists ()       C_NE___ { return Exists( ComponentTypeInfo<Comp>::id ); }
 
-        ArchetypeDesc&  Add (ComponentID id)                    __NE___;
-        ArchetypeDesc&  Remove (ComponentID id)                 __NE___;
+            constexpr ArchetypeDesc&  Add (ComponentID id)                      __NE___;
+            constexpr ArchetypeDesc&  Remove (ComponentID id)                   __NE___;
 
-        ArchetypeDesc&  Add (const ArchetypeDesc &other)        __NE___;
-        ArchetypeDesc&  Remove (const ArchetypeDesc &other)     __NE___;
+            constexpr ArchetypeDesc&  Add (const ArchetypeDesc &other)          __NE___;
+            constexpr ArchetypeDesc&  Remove (const ArchetypeDesc &other)       __NE___;
 
-        ND_ CompBits_t const&   Raw ()                          C_NE___ { return _bits; }
+        ND_ constexpr CompBits_t const&     Raw ()                              C_NE___ { return _bits; }
 
-        ND_ ComponentIDs_t      GetIDs ()                       C_NE___;
+        ND_ ComponentIDs_t      GetIDs ()                                       C_NE___;
 
-        ND_ bool        Exists (ComponentID id)                 C_NE___;
-        ND_ bool        All (const ArchetypeDesc &)             C_NE___;
-        ND_ bool        Any (const ArchetypeDesc &)             C_NE___;
-        ND_ bool        AnyOrEmpty (const ArchetypeDesc &)      C_NE___;
-        ND_ bool        Equal (const ArchetypeDesc &)           C_NE___;
-        ND_ bool        Empty ()                                C_NE___;
-        ND_ usize       Count ()                                C_NE___;
+        ND_ constexpr bool      Exists (ComponentID id)                         C_NE___;
+        ND_ constexpr bool      All (const ArchetypeDesc &)                     C_NE___;
+        ND_ constexpr bool      Any (const ArchetypeDesc &)                     C_NE___;
+        ND_ constexpr bool      AnyOrEmpty (const ArchetypeDesc &)              C_NE___;
+        ND_ constexpr bool      Equal (const ArchetypeDesc &)                   C_NE___;
+        ND_ constexpr bool      Empty ()                                        C_NE___;
+        ND_ constexpr usize     Count ()                                        C_NE___;
 
-        ND_ HashVal     GetHash ()                              C_NE___;
+        ND_ constexpr HashVal   GetHash ()                                      C_NE___;
     };
 
 
@@ -73,19 +73,19 @@ namespace AE::ECS
 
     // methods
     public:
-        explicit Archetype (const ArchetypeDesc &desc)  __NE___ : _hash{desc.GetHash()}, _desc{desc} {}
+        constexpr explicit Archetype (const ArchetypeDesc &desc)    __NE___ : _hash{desc.GetHash()}, _desc{desc} {}
 
-        ND_ HashVal                 Hash ()             C_NE___ { return _hash; }
-        ND_ ArchetypeDesc const&    Desc ()             C_NE___ { return _desc; }
+        ND_ constexpr HashVal               Hash ()                 C_NE___ { return _hash; }
+        ND_ constexpr ArchetypeDesc const&  Desc ()                 C_NE___ { return _desc; }
 
-        ND_ bool operator == (const Archetype &rhs)     C_NE___ { return Equal( rhs ); }
+        ND_ constexpr bool  operator == (const Archetype &rhs)      C_NE___ { return Equal( rhs ); }
 
-        ND_ bool    Equal (const Archetype &rhs)        C_NE___ { return _desc.Equal( rhs._desc ); }
-        ND_ bool    Contains (const Archetype &rhs)     C_NE___ { return _desc.All( rhs._desc ); }
-        ND_ bool    Exists (ComponentID id)             C_NE___ { return _desc.Exists( id ); }
+        ND_ constexpr bool  Equal (const Archetype &rhs)            C_NE___ { return _desc.Equal( rhs._desc ); }
+        ND_ constexpr bool  Contains (const Archetype &rhs)         C_NE___ { return _desc.All( rhs._desc ); }
+        ND_ constexpr bool  Exists (ComponentID id)                 C_NE___ { return _desc.Exists( id ); }
 
         template <typename T>
-        ND_ bool    Exists ()                           C_NE___ { return Exists( ComponentTypeInfo<T>::id ); }
+        ND_ constexpr bool  Exists ()                               C_NE___ { return Exists( ComponentTypeInfo<T>::id ); }
     };
 
 
@@ -100,13 +100,13 @@ namespace AE::ECS
         ArchetypeDesc       subtractive;
         ArchetypeDesc       requireAny;
 
-        ArchetypeQueryDesc ()                                   __NE___ {}
+        constexpr ArchetypeQueryDesc ()                                 __NE___ {}
 
-        ND_ bool  Compatible (const ArchetypeDesc &)            C_NE___;
+        ND_ constexpr bool  Compatible (const ArchetypeDesc &)          C_NE___;
 
-        ND_ bool  operator == (const ArchetypeQueryDesc &rhs)   C_NE___;
+        ND_ constexpr bool  operator == (const ArchetypeQueryDesc &rhs) C_NE___;
 
-        ND_ bool  IsValid ()                                    C_NE___;
+        ND_ constexpr bool  IsValid ()                                  C_NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -117,10 +117,10 @@ namespace AE::ECS
     Add
 =================================================
 */
-    inline ArchetypeDesc&  ArchetypeDesc::Add (ComponentID id) __NE___
+    inline constexpr ArchetypeDesc&  ArchetypeDesc::Add (ComponentID id) __NE___
     {
         ASSERT( id.value < ECS_Config::MaxComponents );
-        _bits[id.value / BitsPerChunk] |= (Chunk_t{1} << (id.value % BitsPerChunk));
+        _bits[ id.value / BitsPerChunk ].Set( id.value % BitsPerChunk );
         return *this;
     }
 
@@ -129,10 +129,10 @@ namespace AE::ECS
     Remove
 =================================================
 */
-    inline ArchetypeDesc&  ArchetypeDesc::Remove (ComponentID id) __NE___
+    inline constexpr ArchetypeDesc&  ArchetypeDesc::Remove (ComponentID id) __NE___
     {
         ASSERT( id.value < ECS_Config::MaxComponents );
-        _bits[id.value / BitsPerChunk] &= ~(Chunk_t{1} << (id.value % BitsPerChunk));
+        _bits[ id.value / BitsPerChunk ].Erase( id.value % BitsPerChunk );
         return *this;
     }
 
@@ -141,7 +141,7 @@ namespace AE::ECS
     Add
 =================================================
 */
-    inline ArchetypeDesc&  ArchetypeDesc::Add (const ArchetypeDesc &other) __NE___
+    inline constexpr ArchetypeDesc&  ArchetypeDesc::Add (const ArchetypeDesc &other) __NE___
     {
         for (usize i = 0; i < _bits.size(); ++i) {
             _bits[i] |= other._bits[i];
@@ -154,7 +154,7 @@ namespace AE::ECS
     Remove
 =================================================
 */
-    inline ArchetypeDesc&  ArchetypeDesc::Remove (const ArchetypeDesc &other) __NE___
+    inline constexpr ArchetypeDesc&  ArchetypeDesc::Remove (const ArchetypeDesc &other) __NE___
     {
         for (usize i = 0; i < _bits.size(); ++i) {
             _bits[i] &= ~other._bits[i];
@@ -167,10 +167,10 @@ namespace AE::ECS
     Exists
 =================================================
 */
-    inline bool  ArchetypeDesc::Exists (ComponentID id) C_NE___
+    inline constexpr bool  ArchetypeDesc::Exists (ComponentID id) C_NE___
     {
         ASSERT( id.value < ECS_Config::MaxComponents );
-        return _bits[id.value / BitsPerChunk] & (Chunk_t{1} << (id.value % BitsPerChunk));
+        return _bits[ id.value / BitsPerChunk ].Has( id.value % BitsPerChunk );
     }
 
 /*
@@ -178,7 +178,7 @@ namespace AE::ECS
     All
 =================================================
 */
-    inline bool  ArchetypeDesc::All (const ArchetypeDesc &rhs) C_NE___
+    inline constexpr bool  ArchetypeDesc::All (const ArchetypeDesc &rhs) C_NE___
     {
         bool    result = true;
         for (usize i = 0; i < _bits.size(); ++i) {
@@ -192,11 +192,11 @@ namespace AE::ECS
     Any
 =================================================
 */
-    inline bool  ArchetypeDesc::Any (const ArchetypeDesc &rhs) C_NE___
+    inline constexpr bool  ArchetypeDesc::Any (const ArchetypeDesc &rhs) C_NE___
     {
         bool    result  = false;
         for (usize i = 0; i < _bits.size(); ++i) {
-            result |= !!(_bits[i] & rhs._bits[i]);
+            result |= (_bits[i] & rhs._bits[i]).Any();
         }
         return result;
     }
@@ -206,15 +206,15 @@ namespace AE::ECS
     AnyOrEmpty
 =================================================
 */
-    inline bool  ArchetypeDesc::AnyOrEmpty (const ArchetypeDesc &rhs) C_NE___
+    inline constexpr bool  ArchetypeDesc::AnyOrEmpty (const ArchetypeDesc &rhs) C_NE___
     {
         bool    result  = false;
         bool    empty   = true;
 
         for (usize i = 0; i < _bits.size(); ++i)
         {
-            result |= !!(_bits[i] & rhs._bits[i]);
-            empty  &= !_bits[i];
+            result |= (_bits[i] & rhs._bits[i]).Any();
+            empty  &= _bits[i].None();
         }
         return result | empty;
     }
@@ -224,7 +224,7 @@ namespace AE::ECS
     Equal
 =================================================
 */
-    inline bool  ArchetypeDesc::Equal (const ArchetypeDesc &rhs) C_NE___
+    inline constexpr bool  ArchetypeDesc::Equal (const ArchetypeDesc &rhs) C_NE___
     {
         bool    result = true;
         for (usize i = 0; i < _bits.size(); ++i) {
@@ -238,11 +238,11 @@ namespace AE::ECS
     Empty
 =================================================
 */
-    inline bool  ArchetypeDesc::Empty () C_NE___
+    inline constexpr bool  ArchetypeDesc::Empty () C_NE___
     {
         bool    result = true;
         for (usize i = 0; i < _bits.size(); ++i) {
-            result &= !_bits[i];
+            result &= _bits[i].None();
         }
         return result;
     }
@@ -252,11 +252,11 @@ namespace AE::ECS
     Count
 =================================================
 */
-    inline usize  ArchetypeDesc::Count () C_NE___
+    inline constexpr usize  ArchetypeDesc::Count () C_NE___
     {
         usize   result = 0;
         for (usize i = 0; i < _bits.size(); ++i) {
-            result += BitCount( _bits[i] );
+            result += _bits[i].BitCount();
         }
         return result;
     }
@@ -266,11 +266,11 @@ namespace AE::ECS
     GetHash
 =================================================
 */
-    inline HashVal  ArchetypeDesc::GetHash () C_NE___
+    inline constexpr HashVal  ArchetypeDesc::GetHash () C_NE___
     {
-        Chunk_t h = _bits[0];
+        auto    h = _bits[0].Get();
         for (usize i = 1; i < _bits.size(); ++i) {
-            h = BitRotateLeft( h, 4 + i*4 ) ^ _bits[i];
+            h = BitRotateLeft( h, 4 + i*4 ) ^ _bits[i].Get();
         }
 
         #if AE_PLATFORM_BITS == 64
@@ -294,13 +294,10 @@ namespace AE::ECS
         for (usize i = 0; i < _bits.size(); ++i)
         {
             Chunk_t u = _bits[i];
-            int     j = BitScanForward( u );
+            int     j = u.ExtractBitIndex();
 
-            for (; (j >= 0) & (result.size() <= result.capacity());
-                 j = BitScanForward( u ))
+            for (; (j >= 0) and (result.size() <= result.capacity()); j = u.ExtractBitIndex())
             {
-                u &= ~(1ull << j);
-
                 ComponentID id{ CheckCast<ushort>( j + i*BitsPerChunk )};
 
                 result.push_back( id );
@@ -317,10 +314,10 @@ namespace AE::ECS
     Compatible
 =================================================
 */
-    inline bool  ArchetypeQueryDesc::Compatible (const ArchetypeDesc &desc) C_NE___
+    inline constexpr bool  ArchetypeQueryDesc::Compatible (const ArchetypeDesc &desc) C_NE___
     {
-        return  desc.All( required )            &
-                (not subtractive.Any( desc ))   &
+        return  desc.All( required )            and
+                (not subtractive.Any( desc ))   and
                 requireAny.AnyOrEmpty( desc );
     }
 
@@ -329,10 +326,10 @@ namespace AE::ECS
     operator ==
 =================================================
 */
-    inline bool  ArchetypeQueryDesc::operator == (const ArchetypeQueryDesc &rhs) C_NE___
+    inline constexpr bool  ArchetypeQueryDesc::operator == (const ArchetypeQueryDesc &rhs) C_NE___
     {
-        return  required.Equal( rhs.required )          &
-                subtractive.Equal( rhs.subtractive )    &
+        return  required.Equal( rhs.required )          and
+                subtractive.Equal( rhs.subtractive )    and
                 requireAny.Equal( rhs.requireAny );
     }
 
@@ -341,7 +338,7 @@ namespace AE::ECS
     IsValid
 =================================================
 */
-    inline bool  ArchetypeQueryDesc::IsValid () C_NE___
+    inline constexpr bool  ArchetypeQueryDesc::IsValid () C_NE___
     {
         return not subtractive.Any( required );
     }

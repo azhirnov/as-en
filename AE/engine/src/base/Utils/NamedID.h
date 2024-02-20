@@ -20,6 +20,7 @@ namespace AE::Base
         using Self          = NamedID< Size, UID, Optimize, Seed >;
         using WithString_t  = NamedID< Size, UID, false, Seed >;
         using Optimized_t   = NamedID< Size, UID, true, Seed >;
+        using Ref           = const Self;
 
         using Hasher_t      = std::hash< Self >;
 
@@ -82,6 +83,7 @@ namespace AE::Base
         using Self          = NamedID< Size, UID, false, Seed >;
         using Optimized_t   = NamedID< Size, UID, true, Seed >;
         using WithString_t  = NamedID< Size, UID, false, Seed >;
+        using Ref           = Self const &;
 
         using Hasher_t      = std::hash< Self >;
 

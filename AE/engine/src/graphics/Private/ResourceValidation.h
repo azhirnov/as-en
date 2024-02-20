@@ -91,8 +91,7 @@ namespace AE::Graphics
 
             for (auto option : BitfieldIterate( desc.options ))
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( option )
+                switch_enum( option )
                 {
                     case EImageOpt::BlitSrc :                   if_unlikely( not AllBits( desc.usage, EImageUsage::TransferSrc )) return false;         break;
                     case EImageOpt::BlitDst :                   if_unlikely( not AllBits( desc.usage, EImageUsage::TransferDst )) return false;         break;
@@ -122,7 +121,7 @@ namespace AE::Graphics
                     case EImageOpt::Unknown :
                     default_unlikely :          DBG_WARNING( "unknown image option" );  break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 

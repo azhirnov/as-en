@@ -31,6 +31,10 @@ namespace AE::InputActions
         const CharType* const*  inFiles             = null;     // [inFileCount]
         usize                   inFileCount         = 0;
 
+        // to use #include in scripts from 'inFiles'
+        const CharType * const* inIncludeFolders        = null;     // [inIncludeFolderCount]
+        usize                   inIncludeFolderCount    = 0;
+
         // output
         const CharType *        outputPackName      = null;
         const CharType *        outputScriptFile    = null;

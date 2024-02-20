@@ -26,12 +26,11 @@ namespace AE::App
 
     // variables
     private:
-        DubleBufferedQueue  _dbQueue;
 
 
     // methods
     public:
-        explicit InputActionsOpenVR (DubleBufferedQueue* q) __NE___ : InputActionsBase{q ? *q : _dbQueue} {}
+        explicit InputActionsOpenVR (TsDoubleBufferedQueue* q)      __NE___ : InputActionsBase{ q } {}
 
         void  SetPose (ControllerID id, const float3x3 &rot, const float3 &pos, const float3 &vel, const float3 &avel)  __NE___;
         void  OnAxisStateChanged (ControllerID id, uint key, const float2 &value, const float2 &delta, float dt)        __NE___;
@@ -39,18 +38,15 @@ namespace AE::App
 
 
     // IInputActions //
-        bool  LoadSerialized (MemRefRStream &stream)    __NE_OV;
+        bool  LoadSerialized (MemRefRStream &stream)                __NE_OV;
 
 
     // ISerializable //
-        bool  Serialize (Serializing::Serializer &)     C_NE_OV;
-        bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+        bool  Serialize (Serializing::Serializer &)                 C_NE_OV;
+        bool  Deserialize (Serializing::Deserializer &)             __NE_OV;
 
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type)         { return SerializableInputActionsOpenVR::_IsKey( type ); }
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    { return SerializableInputActionsOpenVR::_IsCursor1D( type ); }
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    { return SerializableInputActionsOpenVR::_IsCursor2D( type ); }
     };
 
 

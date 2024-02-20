@@ -113,15 +113,10 @@ namespace AE::Base
         tim.tv_sec  = 0;
         tim.tv_nsec = relativeTime.count();
 
-        struct timespec tim2 = {};
+        while( nanosleep( &tim, OUT &tim ) != 0 and errno == EINTR )
+        {}
 
-        if_likely( nanosleep( &tim, OUT &tim2 ) == 0 )
-            return true;
-
-        if_likely( nanosleep( &tim2, null ) == 0 )
-            return true;
-
-        return false;
+        return true;
     }
 
 /*

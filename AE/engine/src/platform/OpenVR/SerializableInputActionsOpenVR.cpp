@@ -6,7 +6,6 @@
 # include "openvr_capi.h"
 #endif
 
-#include "platform/Private/EnumToString.h"
 #include "platform/OpenVR/SerializableInputActionsOpenVR.h"
 
 namespace AE::App
@@ -23,16 +22,12 @@ namespace AE::App
 
 /*
 =================================================
-    EInputTypeToString
+    InputTypeToString
 =================================================
 */
-namespace {
-    ND_ String  EInputTypeToString (SerializableInputActionsOpenVR::EInputType value)
+    String  SerializableInputActionsOpenVR::InputTypeToString (InputType_t value) C_Th___
     {
-        using EInputType = SerializableInputActionsOpenVR::EInputType;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( EInputType(value) )
         {
             #define AE_OPENVR_KEY_CODES_VISITOR( _key_, _code_, _name_, _ovr_code_ )    case EInputType::_key_ :    return _name_;
             AE_OPENVR_KEY_CODES( AE_OPENVR_KEY_CODES_VISITOR )
@@ -41,46 +36,31 @@ namespace {
             case EInputType::_Count :
             case EInputType::Unknown :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
-        return "code_"s << Base::ToString( uint(value) );
+        return "code_"s << Base::ToString( value );
     }
-}
 
 /*
 =================================================
-    ToString
+    SensorBitsToString
 =================================================
 */
-    String  SerializableInputActionsOpenVR::ToString (const Reflection &refl) C_Th___
+    String  SerializableInputActionsOpenVR::SensorBitsToString (ESensorBits bits) C_Th___
     {
-        String      str      = "InputActionsOpenVR {\n";
-        const auto  mode_arr = _ToArray(_modeMap);
+        CHECK( bits == Default );   // not supported
+        return Default;
+    }
 
-        for (auto& [name, mode] : mode_arr)
-        {
-            str << "  '" << refl.Get( name ) << "' {\n";
-
-            const auto  act_arr = _ToArray( mode->actions );
-            for (auto& [key, info] : act_arr)
-            {
-                auto [code, gesture, state] = _Unpack( key );
-
-                str <<   "    InputKey: " << EInputTypeToString( EInputType(code) ) << ", state: " << Base::ToString( state )
-                    << "\n    {"
-                    << "\n      name:    '" << refl.Get( info->name ) << "'"
-                    << "\n      value:   " << Base::ToString( info->valueType )
-                    << "\n      gesture: " << Base::ToString( info->gesture )
-                    << "\n      swizzle: " << Base::ToString( info->swizzle )
-                    << "\n      scale:   " << Base::ToString( info->GetScale() )
-                    << "\n    }\n";
-            }
-
-            str << "  }\n";
-        }
-        str << "}\n\n";
-
-        return str;
+/*
+=================================================
+    RequiredValueType
+=================================================
+*/
+    SerializableInputActionsOpenVR::EValueType  SerializableInputActionsOpenVR::RequiredValueType (InputType_t) C_NE___
+    {
+        // TODO
+        return Default;
     }
 //-----------------------------------------------------------------------------
 
@@ -135,10 +115,16 @@ namespace {
         {
             EnumBinder<EInputType>  binder{ se };
             binder.Create();
-
-            #define AE_OPENVR_KEY_CODES_VISITOR( _key_, _code_, _name_, _ovr_code_ )    binder.AddValue( _name_, EInputType::_key_ );
-            AE_OPENVR_KEY_CODES( AE_OPENVR_KEY_CODES_VISITOR )
-            #undef AE_OPENVR_KEY_CODES_VISITOR
+            switch_enum( EInputType::Unknown )
+            {
+                case EInputType::Unknown :
+                case EInputType::_Count :
+                #define AE_OPENVR_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )   case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+                AE_OPENVR_KEY_CODES( AE_OPENVR_KEY_CODES_VISITOR )
+                #undef AE_OPENVR_KEY_CODES_VISITOR
+                default : break;
+            }
+            switch_end
         }
 
         // BindingsMode
@@ -164,14 +150,17 @@ namespace {
     LoadFromScript
 =================================================
 */
-    bool  SerializableInputActionsOpenVR::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc, Reflection &refl)
+    bool  SerializableInputActionsOpenVR::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, ArrayView<Path> includeDirs,
+                                                          const SourceLoc &loc, INOUT Reflection &refl) __NE___
     {
         CHECK_ERR( se );
         CHECK_ERR( not script.empty() );
 
         ScriptActionBindings    bindings{ *this, refl };
 
-        auto    mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }});
+        auto    mod = se->CreateModule( {ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }},
+                                        Default,
+                                        includeDirs );
         CHECK_ERR( mod );
 
         auto    scr = se->CreateScript< void (ScriptActionBindings *) >( "ASmain", mod );

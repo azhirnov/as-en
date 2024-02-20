@@ -2,7 +2,7 @@
 
 void ASmain ()
 {
-    if ( !IsVulkan() )
+    if ( ! IsVulkan() || ! IsShaderTraceSupported() )
         return;
 
     RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "dbg4_rtrace1.ds1" );

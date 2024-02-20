@@ -130,9 +130,6 @@ namespace
         struct DebugClear;
         Unique< DebugClear >                dbgClear;
 
-        //struct TimelineSemEmulation;
-        //Unique<TimelineSemEmulation>      tls;
-
         DRC_ONLY(
             RWDataRaceCheck                 drCheck;
         )
@@ -140,7 +137,8 @@ namespace
 
     // methods
     public:
-        explicit VulkanEmulation (VulkanDeviceFnTable* fnTable)                             __NE___ : VulkanDeviceFn{fnTable} {}
+        explicit VulkanEmulation (VulkanDeviceFnTable* fnTable)                             __NE___;
+        ~VulkanEmulation ()                                                                 __NE___;
 
         void  InitDeviceInfo (VkPhysicalDevice physicalDevice, INOUT PhysDevInfo& info)     __NE___;
 
@@ -160,6 +158,11 @@ namespace
 #   include "RenderPass2.h"
 #   include "LoadStoreOpNone.h"
 #   include "DebugClear.h"
+
+
+    VulkanEmulation::VulkanEmulation (VulkanDeviceFnTable* fnTable) __NE___ : VulkanDeviceFn{fnTable} {}
+
+    VulkanEmulation::~VulkanEmulation () __NE___ {}
 
 /*
 =================================================
@@ -259,8 +262,7 @@ namespace
             {
                 const uint  idx = (*pPropertyCount)++;
 
-                BEGIN_ENUM_CHECKS();
-                switch ( ext_bit )
+                switch_enum( ext_bit )
                 {
                     case Extension::Multiview :
                     {
@@ -342,7 +344,7 @@ namespace
                     default :
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
         return result;

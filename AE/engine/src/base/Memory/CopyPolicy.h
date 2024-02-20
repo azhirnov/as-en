@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include "base/Math/Vec.h"
 #include "base/Memory/MemUtils.h"
-#include "base/Math/Math.h"
 #include "base/Utils/Helpers.h"
 
 namespace AE::Base

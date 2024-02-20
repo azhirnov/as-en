@@ -65,6 +65,7 @@ namespace AE::ResEditor
         Translucent,
         PostProcess,
         //Compute,
+        _Count
     };
 
 

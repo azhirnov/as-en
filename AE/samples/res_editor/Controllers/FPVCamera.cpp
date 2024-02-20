@@ -33,13 +33,15 @@ namespace AE::ResEditor
 
         float3  move;
         float2  rotation;
-        float   zoom    = 0.f;
-        bool    reset   = false;
+        float   zoom        = 0.f;
+        bool    reset       = false;
+        Quat    rot_quat    {Zero};
 
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
             StaticAssert( (IA.actionCount - BaseIA.actionCount) == 4 );
+
             switch ( uint{hdr.name} )
             {
                 case IA.Camera_Rotate :
@@ -56,14 +58,12 @@ namespace AE::ResEditor
             }
         }
 
-
         EXLOCK( _guard );
 
         if_unlikely( reset )
             return _Reset();
 
         move = _movingScale.Apply( move ) * timeDelta.count();
-
         rotation *= _rotationScale * _zoom;
 
         _camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
@@ -88,7 +88,7 @@ namespace AE::ResEditor
     void  FPVCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.ResetRotation();
+        _camera.ResetOrientation();
         _zoom       = 1.0f;
         _dimAspect  = _dynDim->Aspect();
 

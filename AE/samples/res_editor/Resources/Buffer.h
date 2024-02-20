@@ -82,7 +82,7 @@ namespace AE::ResEditor
                 EBufferFlags        flags,
                 Array<RC<Buffer>>   refBuffers)                     __Th___;
 
-        ~Buffer () override;
+        ~Buffer ()                                                  __NE_OV;
 
         ND_ BufferID                GetBufferId (uint fid)          const   { return _ids[ fid ].Get(); }
         ND_ BufferID                GetBufferId (FrameUID fid)      const   { return _ids[ fid.Index() ].Get(); }

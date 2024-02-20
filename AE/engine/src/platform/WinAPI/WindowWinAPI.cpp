@@ -34,7 +34,7 @@ namespace AE::App
     _GetApp
 =================================================
 */
-    inline ApplicationWinAPI&  WindowWinAPI::_GetApp () C_NE___
+    AE_INTRINSIC inline ApplicationWinAPI&  WindowWinAPI::_GetApp () C_NE___
     {
         return static_cast< ApplicationWinAPI &>( _app );
     }
@@ -68,8 +68,7 @@ namespace AE::App
                     wndStyle        = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
                     wndExtStyle     = WS_EX_APPWINDOW;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EWindowMode::Resizable :           resizable = true;                           break;
             case EWindowMode::NonResizable :                                                    break;
@@ -79,7 +78,7 @@ namespace AE::App
             case EWindowMode::_Count :
             default :                                                                           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( resizable )
             wndStyle |= WS_OVERLAPPEDWINDOW;
@@ -238,8 +237,7 @@ namespace AE::App
 
         HWND    hwnd = BitCast<HWND>(_wnd)
 
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EVisibility::VisibleFocused :
                 ::SetForegroundWindow( hwnd );              // win2000
@@ -257,7 +255,7 @@ namespace AE::App
             default :
                 DBG_WARNING( "unknown visibility flags" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -548,6 +546,7 @@ namespace AE::App
         DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
         ASSERT( All( IsNotZero( size )) );
+        ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
 
         if_unlikely( _wnd == null )
             return;
@@ -577,6 +576,8 @@ namespace AE::App
         DRC_EXLOCK( _drCheck );
         DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
+        ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+
         if_unlikely( _wnd == null )
             return;
 
@@ -603,7 +604,7 @@ namespace AE::App
         CHECK_ERRV( usize(monitorId) < monitors.size() );
 
         const auto& monitor = monitors[ usize(monitorId) ];
-        CHECK( monitor.id == monitorId );
+        ASSERT( monitor.id == monitorId );
 
         SetPosition( monitor.workArea.pixels.LeftTop() + pos );
     }

@@ -1,0 +1,115 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'Ycbcr1 |0| Draw'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'ycbcr'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'ycbcr'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 4096) } ---> { off:(0, 0, 0), ext:(64, 64, 1), PLANE_0 }
+  ----------
+
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'ycbcr'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [4096, 6144) } ---> { off:(0, 0, 0), ext:(32, 32, 1), PLANE_1 }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+    ImageBarrier:
+      name:    'ycbcr'
+      stage:   CLEAR ---> FRAGMENT_SHADER
+      access:  TRANSFER_WRITE ---> SHADER_SAMPLED_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'ycbcr.draw1'
+    layout:    '11', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+    descriptors:
+    [0] pl: '11'
+      image: 'ycbcr', layout: SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+}
+--------------------------------------------------
+name: 'Ycbcr1 |1| Readback task'
+{
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

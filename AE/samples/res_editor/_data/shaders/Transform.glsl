@@ -9,7 +9,18 @@
 #include "Math.glsl"
 
 
-#ifndef DISABLE_un_PerPass
+#ifdef DISABLE_un_PerObject
+/*
+=================================================
+    LocalPosToWorldSpace
+=================================================
+*/
+ND_ float4  LocalPosToWorldSpace (const float4 pos)
+{
+    return pos - float4(un_PerPass.camera.pos, 0.0f);
+}
+//-----------------------------------------------------------------------------
+#else
 /*
 =================================================
     LocalPosToWorldSpace
@@ -38,19 +49,6 @@ ND_ float3  LocalVecToWorldSpace (const float3 dir)
 {
     return Normalize( un_PerObject.normalMat * dir );
 }
-
-#else
-
-/*
-=================================================
-    LocalPosToWorldSpace
-=================================================
-*/
-ND_ float4  LocalPosToWorldSpace (const float4 pos)
-{
-    return pos - float4(un_PerPass.camera.pos, 0.0f);
-}
-
 #endif
 //-----------------------------------------------------------------------------
 

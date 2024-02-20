@@ -48,8 +48,13 @@ if (DEFINED ENGINE_LIBS_PATH)
     set( PREBUILD_CPP_FILE "${DUMMY_CPP_FILE}" )
 endif()
 
+include( "tools/EngineTools.cmake" )
 add_subdirectory( "src" )
 add_subdirectory( "tools" )
+
+if (${AE_ENABLE_ENGINE_PERF_TESTS})
+    add_subdirectory( "performance" )
+endif()
 
 if (${AE_ENABLE_ENGINE_TESTS})
     add_subdirectory( "tests" )

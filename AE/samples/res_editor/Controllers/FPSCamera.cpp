@@ -88,7 +88,7 @@ namespace AE::ResEditor
     void  FPSCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
-        _camera.ResetRotation();
+        _camera.ResetOrientation();
         _zoom       = 1.0f;
         _dimAspect  = _dynDim->Aspect();
 

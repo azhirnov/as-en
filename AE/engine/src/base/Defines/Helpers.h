@@ -48,35 +48,36 @@
 
 // enable/disable checks for enums
 #if defined(AE_COMPILER_MSVC)
-#   define BEGIN_ENUM_CHECKS()                                                                                                                  \
+#   define AE_BEGIN_ENUM_CHECKS()                                                                                                               \
         __pragma (warning (push))                                                                                                               \
         __pragma (warning (error: 4061)) /*enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label*/  \
         __pragma (warning (error: 4062)) /*enumerator 'identifier' in switch of enum 'enumeration' is not handled*/                             \
         __pragma (warning (error: 4063)) /*case 'number' is not a valid value for switch of enum 'type'*/                                       \
 
-#   define END_ENUM_CHECKS() \
+#   define AE_END_ENUM_CHECKS() \
         __pragma (warning (pop)) \
 
 #elif defined(AE_COMPILER_CLANG)
-#   define BEGIN_ENUM_CHECKS()                          \
-        _Pragma("clang diagnostic push")                \
+#   define AE_BEGIN_ENUM_CHECKS()                       \
+        _Pragma( "clang diagnostic push" )              \
         _Pragma( "clang diagnostic error \"-Wswitch\"" )\
 
-#   define END_ENUM_CHECKS() \
-        _Pragma("clang diagnostic pop")
+#   define AE_END_ENUM_CHECKS() \
+        _Pragma( "clang diagnostic pop" )
 
 #else
-#   define BEGIN_ENUM_CHECKS()
-#   define END_ENUM_CHECKS()
-
+#   define AE_BEGIN_ENUM_CHECKS()
+#   define AE_END_ENUM_CHECKS()
 #endif
+
+#define switch_enum( ... )  AE_BEGIN_ENUM_CHECKS();  switch ( __VA_ARGS__ )
+#define switch_end          AE_END_ENUM_CHECKS();
 
 
 // compile time messages
 #ifndef AE_COMPILATION_MESSAGE
 #   if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#       define AE_PRIVATE_MESSAGE_TOSTR(x)  #x
-#       define AE_COMPILATION_MESSAGE( _message_ )  _Pragma(AE_PRIVATE_MESSAGE_TOSTR( GCC warning ("" _message_) ))
+#       define AE_COMPILATION_MESSAGE( _message_ )  _Pragma(AE_TOSTRING( GCC warning ("" _message_) ))
 
 #   elif defined(AE_COMPILER_MSVC)
 #       define AE_COMPILATION_MESSAGE( _message_ )  __pragma(message( _message_ ))
@@ -110,7 +111,7 @@
 // enable/disable exceptions
 #ifdef AE_ENABLE_EXCEPTIONS
 #   define TRY                  try
-#   define CATCH_ALL( ... )     catch(...) { __VA_ARGS__ }
+#   define CATCH_ALL( ... )     catch(...) { __VA_ARGS__; }
 #   define IsNoExcept( ... )    noexcept( __VA_ARGS__ )
 #   define NoExcept( ... )      noexcept( __VA_ARGS__ )
 #   define CNoExcept( ... )     const noexcept( __VA_ARGS__ )
@@ -129,4 +130,17 @@
 
 #define DISABLEIF( ... )    DisableIf< (__VA_ARGS__), bool > = true
 #define DISABLEIF2( ... )   DisableIf< (__VA_ARGS__), bool >
+
+
+// offsetof without warnings
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#   define OffsetOfNoWarn( _class_, _member_ )                      \
+        _Pragma( "clang diagnostic push" )                          \
+        _Pragma( "clang diagnostic ignored \"-Winvalid-offsetof\"" )\
+        offsetof( _class_, _member_ )                               \
+        _Pragma( "clang diagnostic pop" )
+#else
+#   define OffsetOfNoWarn( _class_, _member_ )\
+        offsetof( _class_, _member_ )
+#endif
 

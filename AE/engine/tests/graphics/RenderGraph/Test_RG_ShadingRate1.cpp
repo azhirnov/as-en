@@ -105,20 +105,20 @@ namespace
             CHECK_TE( tctx.UploadImage( t.vrsImg, upload, vrs_data.data(), ArraySizeOf(vrs_data) ) == ArraySizeOf(vrs_data) );
 
 
-            typename CtxType::Graphics  gctx{ *this, tctx.ReleaseCommandBuffer() };
+            typename CtxType::Graphics  gfx_ctx{ *this, tctx.ReleaseCommandBuffer() };
 
-            gctx.AccumBarriers()
-                .ImageBarrier( t.img[0], EResourceState::Invalidate, img_state )
-                .ImageBarrier( t.img[1], EResourceState::Invalidate, img_state )
-                .ImageBarrier( t.img[2], EResourceState::Invalidate, img_state )
-                .ImageBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
+            gfx_ctx.AccumBarriers()
+                    .ImageBarrier( t.img[0], EResourceState::Invalidate, img_state )
+                    .ImageBarrier( t.img[1], EResourceState::Invalidate, img_state )
+                    .ImageBarrier( t.img[2], EResourceState::Invalidate, img_state )
+                    .ImageBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
 
             // per draw
             {
                 constexpr auto&     rtech_pass = RTech.nonVRS;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
 
@@ -127,7 +127,7 @@ namespace
 
                 dctx.Draw( 3 );
 
-                gctx.EndRenderPass( dctx );
+                gfx_ctx.EndRenderPass( dctx );
             }
             ++i;
 
@@ -136,7 +136,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.nonVRS;
                 StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
 
@@ -151,7 +151,7 @@ namespace
 
                 dctx.Draw( uint(CountOf(vertices)) );
 
-                gctx.EndRenderPass( dctx );
+                gfx_ctx.EndRenderPass( dctx );
             }
             ++i;
 
@@ -160,7 +160,7 @@ namespace
                 constexpr auto&     rtech_pass = RTech.VRS;
                 StaticAssert( rtech_pass.attachmentsCount == 2 );
 
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
+                auto    dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
                                     .AddTarget( rtech_pass.att_Color,       t.view[i], RGBA32f{HtmlColor::Black} )
                                     .AddTarget( rtech_pass.att_ShadingRate, t.vrsView ));
@@ -170,18 +170,18 @@ namespace
 
                 dctx.Draw( 3 );
 
-                gctx.EndRenderPass( dctx );
+                gfx_ctx.EndRenderPass( dctx );
             }
             ++i;
 
             // TODO: per pipeline
 
-            gctx.AccumBarriers()
-                .ImageBarrier( t.img[0], img_state, EResourceState::CopySrc )
-                .ImageBarrier( t.img[1], img_state, EResourceState::CopySrc )
-                .ImageBarrier( t.img[2], img_state, EResourceState::CopySrc );
+            gfx_ctx.AccumBarriers()
+                    .ImageBarrier( t.img[0], img_state, EResourceState::CopySrc )
+                    .ImageBarrier( t.img[1], img_state, EResourceState::CopySrc )
+                    .ImageBarrier( t.img[2], img_state, EResourceState::CopySrc );
 
-            Execute( gctx );
+            Execute( gfx_ctx );
         }
     };
 

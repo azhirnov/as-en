@@ -10,7 +10,7 @@ using namespace AE::Threading;
 namespace AE::Networking
 {
     DECL_CSMSG( Text,  Debug,
-        Byte16u     size;
+        Bytes16u    size;
         CharAnsi    data [1];
 
         ND_ StringView  AsString () C_NE___ { return StringView{ data, usize(size) }; }
@@ -21,10 +21,10 @@ namespace AE::Networking
     //-------------------------------------------
 
 
-    CSMSG_ENC_DEC_INPLACEARR( Text,  size, data,  AE_ARGS( size ));
+    CSMSG_ENC_DEC_EXDATA( Text,  size, data,  AE_ARGS() );
 
-    CSMSG_EMPTY_ENC_DEC( RequestNextFrame );
-    CSMSG_EMPTY_ENC_DEC( NextFrameResponse );
+    CSMSG_ENC_DEC( RequestNextFrame );
+    CSMSG_ENC_DEC( NextFrameResponse );
 }
 
 
@@ -33,37 +33,12 @@ namespace
     static const FrameUID   c_InitialFrameId = FrameUID::Init( 2 );
 
 
-    class ClientListener final : public IClientListener
-    {
-        ushort  _id = 0;
-
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress &)     __NE_OV { return EClientLocalID(_id++); }
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)    __NE_OV { return EClientLocalID(_id++); }
-
-        void  OnClientDisconnected (EChannel, EClientLocalID)               __NE_OV {}
-    };
-    //-------------------------------------------
-
-
-    class ServerProvider final : public IServerProvider
-    {
-        Array<IpAddress>    _addr4;
-
-    public:
-        ServerProvider (ArrayView<IpAddress> addr4)                         __NE___ : _addr4{addr4} {}
-
-        void  GetAddress (EChannel, uint idx, Bool, OUT IpAddress &addr)    __NE_OV { addr = _addr4[ idx % _addr4.size() ]; }
-        void  GetAddress (EChannel, uint,     Bool, OUT IpAddress6 &)       __NE_OV {}
-    };
-    //-------------------------------------------
-
-
     class Server final : public BaseServer
     {
     public:
-        explicit Server (RC<MessageFactory> mf) { CHECK_FATAL( _Initialize( RVRef(mf), MakeRC<ClientListener>(), null, c_InitialFrameId )); }
+        explicit Server (RC<MessageFactory> mf) { CHECK_FATAL( _Initialize( RVRef(mf), MakeRC<DefaultClientListener>(), null, c_InitialFrameId )); }
 
-        ND_ bool  AddChannel (ushort port)      { return _AddChannelTCP( port ); }
+        ND_ bool  AddChannel (ushort port)      { return _AddChannelReliableTCP( port ); }
     };
     //-------------------------------------------
 
@@ -73,27 +48,27 @@ namespace
     public:
         explicit Client (RC<MessageFactory> mf, ArrayView<IpAddress> addr)
         {
-            CHECK_FATAL( _Initialize( RVRef(mf), MakeRC<ServerProvider>( addr ), null, c_InitialFrameId ));
+            CHECK_FATAL( _Initialize( RVRef(mf), MakeRC<DefaultServerProviderV2>( addr ), null, c_InitialFrameId ));
         }
 
-        ND_ bool  AddChannel ()     { return _AddChannelTCP(); }
+        ND_ bool  AddChannel ()     { return _AddChannelReliableTCP(); }
     };
     //-------------------------------------------
 
 
     class MsgProducer final :
-        public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, AE_CACHE_LINE, 16 >>
+        public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, usize{8_b}, 4 >>
     {
     public:
-        EnumBitSet<EChannel>  GetChannels ()    C_NE_OV { return {EChannel::Reliable}; }
+        EnumSet<EChannel>  GetChannels ()   C_NE_OV { return {EChannel::Reliable}; }
 
-        bool  SendText (StringView txt)
+        bool  SendText (StringView txt, EClientLocalID id)
         {
-            auto    msg = CreateMsg< CSMsg_Text >( StringSizeOf(txt) - sizeof(CSMsg_Text::data) );
+            auto    msg = CreateMsg< CSMsg_Text >( id, StringSizeOf(txt) - sizeof(CSMsg_Text::data) );
             if ( msg )
             {
                 msg->size = StringSizeOf(txt);
-                msg.PutInPlace( &CSMsg_Text::data, txt.data(), StringSizeOf(txt) );
+                msg.Put( &CSMsg_Text::data, txt );
 
                 ASSERT( msg->AsString() == txt );
 
@@ -102,16 +77,16 @@ namespace
             return false;
         }
 
-        bool  RequestNextFrame ()
+        bool  RequestNextFrame (EClientLocalID id)
         {
-            if ( auto msg = CreateMsg< CSMsg_RequestNextFrame >())
+            if ( auto msg = CreateMsg< CSMsg_RequestNextFrame >( id ))
                 return AddMessage( msg );
             return false;
         }
 
-        bool  NextFrameResponse ()
+        bool  NextFrameResponse (EClientLocalID id)
         {
-            if ( auto msg = CreateMsg< CSMsg_NextFrameResponse >())
+            if ( auto msg = CreateMsg< CSMsg_NextFrameResponse >( id ))
                 return AddMessage( msg );
             return false;
         }
@@ -152,19 +127,19 @@ namespace
                     case CSMsg_Text::UID :
                     {
                         auto&   text = *msg->As<CSMsg_Text>();
-                        AE_LOGI( text.AsString() );
+                        //AE_LOGI( text.AsString() );
 
                         String  tmp {text.AsString()};
                         if ( tmp.size() < 1300 )
                             "|-" >> tmp;
 
-                        _producer.SendText( tmp );
+                        _producer.SendText( tmp, text.ClientId() );
                         break;
                     }
 
                     case CSMsg_RequestNextFrame::UID :
                     {
-                        _producer.NextFrameResponse();
+                        _producer.NextFrameResponse( msg->ClientId() );
                         _nextFrame = true;
                         break;
                     }
@@ -200,19 +175,32 @@ extern void  TcpMsgServerV4 (const ushort port)
 
     for (;;)
     {
-        next_frame = false;
-        producer->SendText( "s:"s << GenMessage() );
+        Timer   timer {milliseconds{5}};
 
-        // may change 'next_frame'
-        server.Update( fid );
+        if ( not producer->RequestNextFrame( Default ))
+            next_frame = true;
 
-        if ( next_frame )
+        producer->SendText( "s:"s << GenMessage(), Default );
+
+        // may change: 'next_frame'
+        auto    stat = server.Update( fid );
+
+    #if 1
+        if ( next_frame and stat )
+        {
             fid.Inc();
+            next_frame = false;
+        }
+    #else
+        // Bad practice: increasing frame index on every tick may cause data corruption
+        // if client is not connected and messages are not sent.
+        fid.Inc();
+    #endif
 
-        ThreadUtils::MilliSleep( milliseconds{100} );
-
-        if ( not producer->RequestNextFrame() )
-            fid.Inc();
+        if ( timer.Tick() )
+            ThreadUtils::Sleep_500us();
+        else
+            ThreadUtils::Sleep_15ms();
     }
 }
 
@@ -234,16 +222,28 @@ extern void  TcpMsgClientV4 (ArrayView<IpAddress> serverAddr)
 
     for (;;)
     {
-        next_frame = false;
+        Timer   timer {milliseconds{5}};
 
         // may change 'next_frame'
-        client.Update( fid );
+        auto    stat = client.Update( fid );
 
-        next_frame |= not producer->SendText( "c:"s << GenMessage() );
+        next_frame |= not producer->SendText( "c:"s << GenMessage(), Default );
 
-        if ( next_frame )
+    #if 1
+        if ( next_frame and stat )
+        {
             fid.Inc();
+            next_frame = false;
+        }
+    #else
+        // Bad practice: increasing frame index on every tick may cause data corruption
+        // if client is not connected and messages are not sent.
+        fid.Inc();
+    #endif
 
-        ThreadUtils::MilliSleep( milliseconds{100} );
+        if ( timer.Tick() )
+            ThreadUtils::Sleep_500us();
+        else
+            ThreadUtils::Sleep_15ms();
     }
 }

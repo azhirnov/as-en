@@ -4,10 +4,15 @@
 void ASmain ()
 {
     // include:
+    //  AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
+    //  AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
     //  AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
     //  AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
+    //  AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
     //  AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
     //  AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
+    //  AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
+    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
     //  AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
 
     const EFeature  True = EFeature::RequireTrue;
@@ -39,8 +44,7 @@ void ASmain ()
         ESubgroupTypes::Int32 | 
         ESubgroupTypes::Int8 | 
         ESubgroupTypes::Int16 | 
-        ESubgroupTypes::Int64 | 
-        ESubgroupTypes::Float16
+        ESubgroupTypes::Int64
     ));
     fset.subgroupStages(EShaderStages(
         EShaderStages::Vertex | 
@@ -67,15 +71,12 @@ void ASmain ()
     fset.shaderInt8 (True);
     fset.shaderInt16 (True);
     fset.shaderInt64 (True);
-    fset.shaderFloat16 (True);
     fset.shaderFloat64 (True);
     fset.storageBuffer16BitAccess (True);
     fset.uniformAndStorageBuffer16BitAccess (True);
-    fset.storageInputOutput16 (True);
     fset.storageBuffer8BitAccess (True);
     fset.uniformAndStorageBuffer8BitAccess (True);
     fset.uniformBufferStandardLayout (True);
-    fset.scalarBlockLayout (True);
     fset.bufferDeviceAddress (True);
     fset.fragmentStoresAndAtomics (True);
     fset.vertexPipelineStoresAndAtomics (True);
@@ -90,7 +91,6 @@ void ASmain ()
     fset.shaderOutputViewportIndex (True);
     fset.shaderOutputLayer (True);
     fset.shaderSubgroupClock (True);
-    fset.shaderDeviceClock (True);
     fset.shaderClipDistance (True);
     fset.shaderCullDistance (True);
     fset.shaderResourceMinLod (True);
@@ -127,6 +127,8 @@ void ASmain ()
     fset.maxTexelBufferElements (4294967295);
     fset.maxUniformBufferSize (4294967295);
     fset.maxStorageBufferSize (4294967295);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (8);
     fset.perDescrSet_maxInputAttachments (8388606);
     fset.perDescrSet_maxSampledImages (8388606);
     fset.perDescrSet_maxSamplers (8388606);
@@ -148,7 +150,7 @@ void ASmain ()
     fset.maxFragmentDualSrcAttachments (1);
     fset.maxFragmentCombinedOutputResources (8388606);
     fset.maxPushConstantsSize (128);
-    fset.maxComputeSharedMemorySize (64 << 10);
+    fset.maxComputeSharedMemorySize (32 << 10);
     fset.maxComputeWorkGroupInvocations (1 << 10);
     fset.maxComputeWorkGroupSizeX (1 << 10);
     fset.maxComputeWorkGroupSizeY (1 << 10);
@@ -270,7 +272,6 @@ void ASmain ()
     fset.samplerAnisotropy (True);
     fset.samplerMirrorClampToEdge (True);
     fset.samplerFilterMinmax (True);
-    fset.filterMinmaxImageComponentMapping (True);
     fset.samplerMipLodBias (True);
     fset.samplerYcbcrConversion (True);
     fset.maxSamplerAnisotropy (16.00);

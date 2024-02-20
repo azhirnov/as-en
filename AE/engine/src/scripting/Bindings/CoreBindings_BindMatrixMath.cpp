@@ -47,8 +47,8 @@ namespace
             binder.AddConstructor( &_Ctor3, {"col0", "col1"} );
 
             Mat_t   temp;
-            binder.AddProperty( temp, temp.get<0>(), "col0" );
-            binder.AddProperty( temp, temp.get<1>(), "col1" );
+            binder.AddProperty( temp, temp.template get<0>(), "col0" );
+            binder.AddProperty( temp, temp.template get<1>(), "col1" );
         }
     };
 
@@ -92,9 +92,9 @@ namespace
             binder.AddConstructor( &_Ctor3, {"col0", "col1", "col2"} );
 
             Mat_t   temp;
-            binder.AddProperty( temp, temp.get<0>(), "col0" );
-            binder.AddProperty( temp, temp.get<1>(), "col1" );
-            binder.AddProperty( temp, temp.get<2>(), "col2" );
+            binder.AddProperty( temp, temp.template get<0>(), "col0" );
+            binder.AddProperty( temp, temp.template get<1>(), "col1" );
+            binder.AddProperty( temp, temp.template get<2>(), "col2" );
         }
     };
 
@@ -138,10 +138,10 @@ namespace
             binder.AddConstructor( &_Ctor3, {"col0", "col1", "col2", "col3"} );
 
             Mat_t   temp;
-            binder.AddProperty( temp, temp.get<0>(), "col0" );
-            binder.AddProperty( temp, temp.get<1>(), "col1" );
-            binder.AddProperty( temp, temp.get<2>(), "col2" );
-            binder.AddProperty( temp, temp.get<3>(), "col3" );
+            binder.AddProperty( temp, temp.template get<0>(), "col0" );
+            binder.AddProperty( temp, temp.template get<1>(), "col1" );
+            binder.AddProperty( temp, temp.template get<2>(), "col2" );
+            binder.AddProperty( temp, temp.template get<3>(), "col3" );
         }
     };
 

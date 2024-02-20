@@ -65,7 +65,7 @@ namespace _hidden_
     // variables
     protected:
         Atomic<EStatus>         _status         {EStatus::Destroyed};
-        AtomicByte<Byte32u>     _actualSize;    // readn / written
+        AtomicByte<Bytes32u>    _actualSize;    // readn / written
 
         SpinLock                _depsGuard;
         Dependencies_t          _deps;
@@ -144,8 +144,8 @@ namespace _hidden_
         //
         ND_ ReadRequestPtr  ReadBlock (Bytes pos, Bytes size, RC<SharedMem> mem)            __NE___
         {
-            ASSERT( size <= mem->Size() );
-            void*   data = mem->Data();
+            ASSERT( mem and size <= mem->Size() );
+            void*   data = mem ? mem->Data() : null;
             return ReadBlock( pos, data, size, RVRef(mem) );
         }
 
@@ -217,8 +217,8 @@ namespace _hidden_
         //
         ND_ WriteRequestPtr  WriteBlock (Bytes pos, Bytes size, RC<SharedMem> mem)          __NE___
         {
-            ASSERT( size <= mem->Size() );
-            const void* data = mem->Data();
+            ASSERT( mem and size <= mem->Size() );
+            const void* data = mem ? mem->Data() : null;
             return WriteBlock( pos, data, size, RVRef(mem) );
         }
 
@@ -322,8 +322,8 @@ namespace _hidden_
         //
         ND_ WriteRequestPtr  WriteSeq (Bytes size, RC<SharedMem> mem)                       __NE___
         {
-            ASSERT( size <= mem->Size() );
-            const void* data = mem->Data();
+            ASSERT( mem and size <= mem->Size() );
+            const void* data = mem ? mem->Data() : null;
             return WriteSeq( data, size, RVRef(mem) );
         }
 

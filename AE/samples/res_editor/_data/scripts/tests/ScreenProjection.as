@@ -27,12 +27,15 @@
 
         // render loop
         {
-            RC<Postprocess>     pass = Postprocess();
+            RC<Postprocess>     pass = Postprocess( EPostprocess::None, EPassFlags::Enable_ShaderTrace );
             pass.Set(    camera );
             pass.Output( "out_Color", rt );
-            pass.Slider( "iProj",           0,  5 );
-            pass.Slider( "iDbgView",        0,  1 );
-            pass.Slider( "iInversionError", 0,  1 );
+            pass.Slider( "iProj",           0,      7 );
+            pass.Slider( "iDbgView",        0,      1 );
+            pass.Slider( "iInversionError", 0,      1 );
+            pass.Slider( "iDistToEye",      0.01,   1.0,    0.5 );
+            pass.Slider( "iLerp",           0.0,    1.0,    0.5 );
+            pass.Slider( "iFOV",            1.0,    90.0,   45.0 );
         }
         Present( rt );
     }
@@ -51,9 +54,11 @@
         float2          uv2             = uv;
         const float     ipd             = 64.0e-3f; // meters
         const float     z_near          = 0.1f;
-        const float     dist_to_eye     = 0.5f;     // meters
-        const float2    screen_size     = un_PerPass.resolution.xy * un_PerPass.pixToMm * 0.001f;   // meters
-        const float     curve_radius    = 1.8f; // meters
+        const float2    screen_dim      = un_PerPass.resolution.xy;
+        const float     pix_to_m        = un_PerPass.pixToMm * 0.001f;
+        const float2    screen_size     = screen_dim * pix_to_m;    // meters
+        const float     curve_radius    = 1.8f;     // meters
+        const float2    fov             = ToRad(iFOV) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
 
         switch ( iProj )
         {
@@ -72,10 +77,21 @@
                         uv2 = Inverted_PlaneTo360( ray.dir );                                                       break;
 
             // flat screen
-            case 4 :    ray = Ray_FromFlatScreen( un_PerPass.camera.pos, dist_to_eye, screen_size, z_near, ToSNorm(uv) ); break;
+            case 4 :    ray = Ray_FromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) ); break;
 
             // curved screen
-            case 5 :    ray = Ray_FromCurvedScreen( un_PerPass.camera.pos, dist_to_eye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
+            case 5 :    ray = Ray_FromCurvedScreen( un_PerPass.camera.pos, iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
+
+            // sphere
+            case 6 :    ray = Ray_PlaneToSphere( fov, un_PerPass.camera.pos, z_near, ToSNorm(uv) );                 break;
+
+            // flat screen + sphere
+            case 7 : {
+                        ray = Ray_FromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) );
+                Ray     r = Ray_PlaneToSphere( fov, un_PerPass.camera.pos, z_near, ToSNorm(uv) );
+                ray.dir = Normalize( Lerp( ray.dir, r.dir, iLerp ));
+                break;
+            }
         }
 
         out_Color = float4( ray.dir, 1.0 );

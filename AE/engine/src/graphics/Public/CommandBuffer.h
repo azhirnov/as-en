@@ -40,7 +40,7 @@ namespace AE::Graphics
     // Draw Context interface
     //
 
-    class IDrawContext
+    class NO_VTABLE IDrawContext
     {
     // types
     public:
@@ -57,7 +57,7 @@ namespace AE::Graphics
 
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
     // dynamic states //
@@ -94,7 +94,7 @@ namespace AE::Graphics
         //      buffer:  EResourceState::VertexBuffer
         virtual void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)                                                  __Th___ = 0;
         virtual void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)                  __Th___ = 0;
-        virtual bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)     __Th___ = 0;
+        virtual bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset)       __Th___ = 0;
 
         // for Draw(), DrawIndirect(), DrawIndirectCount() :
         //   'VertexIndex'   range:  [firstVertex,   firstVertex   + vertexCount]
@@ -179,15 +179,15 @@ namespace AE::Graphics
         virtual void  PopDebugGroup ()                                                                                              __Th___ = 0;
 
         // only for RW attachments //
-        virtual void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)                     __Th___ = 0;
+        virtual void  AttachmentBarrier (AttachmentName::Ref, EResourceState srcState, EResourceState dstState)                     __Th___ = 0;
         virtual void  CommitBarriers ()                                                                                             __Th___ = 0;
 
         // clear //
-        virtual bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
-        virtual bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
-        virtual bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
-        virtual bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
-        virtual bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
+        virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
+        virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
+        virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
+        virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
+        virtual bool  ClearAttachment (AttachmentName::Ref, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
 
         // vertex stream //
         ND_ virtual bool  AllocVStream (Bytes size, OUT VertexStream &result)                                                       __Th___ = 0;
@@ -206,7 +206,7 @@ namespace AE::Graphics
     // Base Context interface
     //
 
-    class IBaseContext
+    class NO_VTABLE IBaseContext
     {
     // interface
     public:
@@ -285,23 +285,26 @@ namespace AE::Graphics
             virtual void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)      __Th___ = 0;
 
         //      image: EResourceState::CopyDst
-        ND_         Bytes UploadImage (ImageID image, const UploadImageDesc &desc, const void* data, Bytes size)        __Th___;
             virtual void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)           __Th___ = 0;
+            virtual void  UploadImage (VideoImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)      __Th___ = 0;
 
     // read from device local memory using staging buffer //
         //      buffer, image: EResourceState::CopySrc
         ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)            __Th___ = 0;
         ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                __Th___ = 0;
+        ND_ virtual Promise<ImageMemView>   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)           __Th___ = 0;
 
     // partially upload //
         //      stream.buffer, stream.image: EResourceState::CopyDst
             virtual void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)                         __Th___ = 0;
             virtual void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)                            __Th___ = 0;
+            virtual void  UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView)                       __Th___ = 0;
 
     // partially read //
         //      stream.buffer, stream.image: EResourceState::CopySrc
         ND_ virtual Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                 __Th___ = 0;
         ND_ virtual Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                   __Th___ = 0;
+        ND_ virtual Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)                              __Th___ = 0;
 
     // only for host-visible memory //
         //      buffer: EResourceState::Host_Write
@@ -358,8 +361,13 @@ namespace AE::Graphics
         template <typename T>   ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, const Array<T> &data)        __Th___ { return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 
         // copy to device local memory using staging buffer
-        template <typename T>   ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, ArrayView<T> data)  __Th___ { return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
-        template <typename T>   ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, const Array<T> &data)__Th___{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
+                                ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &, const void* data, Bytes size)   __Th___;
+        template <typename T>   ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, ArrayView<T> data)          __Th___ { return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
+        template <typename T>   ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, const Array<T> &data)       __Th___ { return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
+
+                                ND_ Bytes  UploadImage (VideoImageID id, const UploadImageDesc &, const void* data, Bytes size) __Th___;
+        template <typename T>   ND_ Bytes  UploadImage (VideoImageID id, const UploadImageDesc &desc, ArrayView<T> data)        __Th___ { return UploadImage( id, desc, data.data(), ArraySizeOf(data) ); }
+        template <typename T>   ND_ Bytes  UploadImage (VideoImageID id, const UploadImageDesc &desc, const Array<T> &data)     __Th___ { return UploadImage( id, desc, data.data(), ArraySizeOf(data) ); }
 
         // copy to device local memory using staging buffer
         template <typename T>   ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, ArrayView<T> data,
@@ -381,7 +389,7 @@ namespace AE::Graphics
         virtual void  BindPipeline (ComputePipelineID ppln)                                                                         __Th___ = 0;
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
         virtual void  Dispatch (const uint3 &groupCount)                                                                            __Th___ = 0;
@@ -433,7 +441,7 @@ namespace AE::Graphics
         virtual void  BindPipeline (RayTracingPipelineID ppln)                                                                      __Th___ = 0;
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
-        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, const ShaderStructName &typeName) __Th___ = 0;
+        virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)   __Th___ = 0;
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
 
@@ -577,10 +585,33 @@ namespace AE::Graphics
 
 /*
 =================================================
-    UploadImage
+    UploadImage (ImageID)
 =================================================
 */
     inline Bytes  ITransferContext::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, const void* data, Bytes size) __Th___
+    {
+        ImageMemView    mem_view;
+        UploadImage( imageId, uploadDesc, OUT mem_view );
+
+        Bytes   written;
+        for (auto& dst : mem_view.Parts())
+        {
+            MemCopy( OUT dst.ptr, data + written, dst.size );
+            written += dst.size;
+        }
+
+        ASSERT( written <= size );
+        Unused( size );
+
+        return written;
+    }
+
+/*
+=================================================
+    UploadImage (VideoImageID)
+=================================================
+*/
+    inline Bytes  ITransferContext::UploadImage (VideoImageID imageId, const UploadImageDesc &uploadDesc, const void* data, Bytes size) __Th___
     {
         ImageMemView    mem_view;
         UploadImage( imageId, uploadDesc, OUT mem_view );

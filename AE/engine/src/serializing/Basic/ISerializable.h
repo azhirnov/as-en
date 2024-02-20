@@ -10,7 +10,7 @@ namespace AE::Serializing
     //
     // Serializable interface
     //
-    class ISerializable
+    class NO_VTABLE ISerializable
     {
     // interface
     public:

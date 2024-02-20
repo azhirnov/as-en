@@ -50,12 +50,12 @@ namespace AE::Threading
 
     // variables
     private:
-        BitAtomic<Bits>     _packed     { Bits{} };
-        uint                _count      = 0;
-        void *              _arr        = null;
+        StructAtomic< Bits >    _packed     { Bits{} };
+        uint                    _count      = 0;
+        void *                  _arr        = null;
 
         NO_UNIQUE_ADDRESS
-         Allocator_t        _allocator;
+         Allocator_t            _allocator;
 
         DRC_ONLY( RWDataRaceCheck   _drCheck;)
 

@@ -51,11 +51,13 @@ namespace AE::Networking
     Update
 =================================================
 */
-    void  ClientServerBase::Update (const FrameUID frameId) __NE___
+    ClientServerBase::MsgQueueStatistic  ClientServerBase::Update (const FrameUID frameId) __NE___
     {
         DRC_EXLOCK( _drCheck );
 
         ASSERT( _IsInitialized2() );
+
+        // frame index must be the same or increase monotonously
         ASSERT( frameId == _prevFrameId     or
                 frameId == _prevFrameId.Next()  );
 
@@ -81,10 +83,12 @@ namespace AE::Networking
         }
 
         // send & receive
+        MsgQueueStatistic   stat;
+
         for (auto& ch : _channels)
         {
             if ( ch )
-                ch->ProcessMessages( frameId );
+                ch->ProcessMessages( frameId, INOUT stat );
         }
 
         // consume incoming messages
@@ -96,7 +100,7 @@ namespace AE::Networking
             auto&   msg_map = ch->Receive();
             for (auto [id, list] : msg_map)
             {
-                if_unlikely( list.first.empty() )
+                if_unlikely( list.first.empty() or list.first.FirstChunk()->IsEmpty() )
                     continue;   // TODO: empty only if memory is out
 
                 auto    it = _consumers.find( id );
@@ -112,6 +116,8 @@ namespace AE::Networking
             }
             msg_map.clear();
         }
+
+        return stat;
     }
 
 /*
@@ -121,6 +127,9 @@ namespace AE::Networking
 */
     void  ClientServerBase::Send (EChannel type, MsgList_t msgList) __NE___
     {
+        if_unlikely( auto* first = msgList.FirstChunk();  first == null or first->IsEmpty() )
+            return;
+
         DRC_EXLOCK( _drCheck );
 
         ASSERT( _IsInitialized2() );

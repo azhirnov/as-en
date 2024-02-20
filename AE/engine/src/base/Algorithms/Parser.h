@@ -41,8 +41,8 @@ namespace AE::Base
 
             template <typename IfNotEqualFn, typename IfSizeIsNotEqualFn>
             static bool  CompareLineByLine (StringView left, StringView right,
-                                            IfNotEqualFn &&ifNotEqual,
-                                            IfSizeIsNotEqualFn &&ifSizeNotEqual)                                    __Th___;
+                                            const IfNotEqualFn &ifNotEqual,
+                                            const IfSizeIsNotEqualFn &ifSizeNotEqual)                               __NE___;
 
             static void  Preprocessor_CPP (StringView str, ArrayView<StringView> defines,
                                            OUT Array<StringView> &result)                                           __Th___;
@@ -63,14 +63,15 @@ namespace AE::Base
 =================================================
 */
     template <typename IfNotEqualFn, typename IfSizeIsNotEqualFn>
-    inline bool  Parser::CompareLineByLine (StringView left, StringView right,
-                                            IfNotEqualFn &&ifNotEqual,
-                                            IfSizeIsNotEqualFn &&ifSizeNotEqual) __Th___
+    bool  Parser::CompareLineByLine (StringView                 left,
+                                     StringView                 right,
+                                     const IfNotEqualFn         &ifNotEqual,
+                                     const IfSizeIsNotEqualFn   &ifSizeNotEqual) __NE___
     {
         usize       l_pos   = 0;
         usize       r_pos   = 0;
-        uint2       line_number;
-        StringView  line_str[2];
+        uint        line_number [2] = {};
+        StringView  line_str [2];
 
         const auto  LeftValid   = [&l_pos, &left ] ()   {{ return l_pos < left.length(); }};
         const auto  RightValid  = [&r_pos, &right] ()   {{ return r_pos < right.length(); }};
@@ -103,15 +104,19 @@ namespace AE::Base
 
             if ( line_str[0] != line_str[1] )
             {
+                CheckNothrow( IsNoExcept( ifNotEqual( line_number[0], line_str[0], line_number[1], line_str[1] )));
+
                 ifNotEqual( line_number[0], line_str[0],
-                            line_number[1], line_str[1] );      // may throw
+                            line_number[1], line_str[1] );
                 return false;
             }
         }
 
         if ( LeftValid() != RightValid() )
         {
-            ifSizeNotEqual();   // may throw
+            CheckNothrow( IsNoExcept( ifSizeNotEqual() ));
+
+            ifSizeNotEqual();
             return false;
         }
         return true;

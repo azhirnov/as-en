@@ -30,32 +30,33 @@
 # define VMA_IMPLEMENTATION                 1
 # define VMA_ASSERT                         ASSERT
 
-#ifdef AE_COMPILER_MSVC
+# ifdef AE_COMPILER_MSVC
 #   pragma warning (push, 0)
 #   pragma warning (disable: 4701)
 #   pragma warning (disable: 4703)
-#endif
-#ifdef AE_COMPILER_CLANG
+# endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wmissing-field-initializers"
 #   pragma clang diagnostic ignored "-Wunused-variable"
 #   pragma clang diagnostic ignored "-Wcast-align"
 #   pragma clang diagnostic ignored "-Wunused-private-field"
 #   pragma clang diagnostic ignored "-Wnullability-completeness"
-#endif
-#ifdef AE_COMPILER_GCC
+#   pragma clang diagnostic ignored "-Wunused-parameter"
+# endif
+# ifdef AE_COMPILER_GCC
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #   pragma GCC diagnostic ignored "-Wunused-variable"
 #   pragma GCC diagnostic ignored "-Wcast-align"
-#endif
+# endif
 
 # include "vk_mem_alloc.h"
 
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
 #endif
 #ifdef AE_COMPILER_GCC

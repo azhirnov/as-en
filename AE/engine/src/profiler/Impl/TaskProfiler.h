@@ -79,7 +79,7 @@ namespace AE::Profiler
         // variables
         private:
             void*           _data       = null;
-            Byte32u         _dataSize;
+            Bytes32u        _dataSize;
 
             Atomic<uint>    _writePos   {0};
             Atomic<uint>    _availPos   {0};

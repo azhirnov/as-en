@@ -152,7 +152,7 @@ namespace AE::Graphics
         FrameUIDs_t                         _perFrameUID    = {};
 
         // CPU side time
-        BitAtomic<TimePoint_t>              _lastUpdate;            // \__ changed in 'BeginFrame()'
+        StructAtomic<TimePoint_t>           _lastUpdate;            // \__ changed in 'BeginFrame()'
         FAtomic<float>                      _timeDelta      {0.f};  // /
 
         alignas(AE_CACHE_LINE)

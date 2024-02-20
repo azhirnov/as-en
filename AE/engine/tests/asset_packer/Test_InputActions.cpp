@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
+using namespace AE::InputActions;
 
 #include "platform/Private/SerializableInputActions.h"
 #include "platform/Android/SerializableInputActionsAndroid.h"
@@ -123,16 +124,8 @@ namespace
 extern void Test_InputActions ()
 {
     {
-        Path    dll_path{ AE_INPUT_ACTIONS_BINDING_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
-        #else
-            dll_path.append( "InputActionsBinding-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_INPUT_ACTIONS_BINDING_LIBRARY ));
         TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
 
         TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));

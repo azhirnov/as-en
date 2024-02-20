@@ -625,8 +625,7 @@ namespace
         CHECK_ERR_MSG( _resUsage != Default, "failed to create image '"s << _dbgName << "'" );
         for (auto usage : BitfieldIterate( _resUsage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( usage )
+            switch_enum( usage )
             {
                 case EResourceUsage::ComputeRead :      _desc.usage |= EImageUsage::Storage | EImageUsage::TransferSrc;         break;
                 case EResourceUsage::ComputeWrite :     _desc.usage |= EImageUsage::Storage;                                    break;
@@ -651,7 +650,7 @@ namespace
                 case EResourceUsage::WithHistory :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and not AnyBits( _desc.usage, EImageUsage::DepthStencilAttachment ))

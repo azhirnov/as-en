@@ -59,6 +59,7 @@ namespace
         }
 
         TEST( supported > 0 );
+        Unused( unsupported );
     }
 }
 

@@ -75,54 +75,57 @@ namespace AE::ResLoader
 
     // methods
     public:
-        IntermImage ()                                                                                              __NE___ {}
-        IntermImage (IntermImage &&)                                                                                __NE___;
-        explicit IntermImage (Path path)                                                                            __NE___ : _srcPath{RVRef(path)} {}
-        IntermImage (Mipmaps_t data, EImage type, StringView path = Default)                                        __NE___ : _srcPath{path}, _data{RVRef(data)}, _imageType{type} {}
+        IntermImage ()                                                                          __NE___ {}
+        IntermImage (IntermImage &&)                                                            __NE___;
+        explicit IntermImage (Path path)                                                        __NE___ : _srcPath{RVRef(path)} {}
+        IntermImage (Mipmaps_t data, EImage type, Path path = Default)                          __NE___ : _srcPath{path}, _data{RVRef(data)}, _imageType{type} {}
 
-        IntermImage&  operator = (IntermImage &&)                                                                   __NE___;
+        IntermImage&  operator = (IntermImage &&)                                               __NE___;
 
-            void  MakeImmutable ()                                                                                  __NE___ { _immutable = true; }
-            void  ReleaseData ()                                                                                    __NE___ { Reconstruct( INOUT _data ); }
+            void  MakeImmutable ()                                                              __NE___ { _immutable = true; }
+            void  ReleaseData ()                                                                __NE___ { Reconstruct( INOUT _data ); }
 
-        ND_ bool  SetData (Mipmaps_t data, EImage type)                                                             __NE___;
-        ND_ bool  SetData (const ImageMemView &memView, RC<SharedMem> storage)                                      __NE___;
+        ND_ bool  SetData (Mipmaps_t data, EImage type)                                         __NE___;
+        ND_ bool  SetData (const ImageMemView &memView, RC<SharedMem> storage)                  __NE___;
 
-        ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator)                                      __NE___;
-        ND_ bool  Copy (const ImageMemView &memView)                                                                __NE___;
+        ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator)                  __NE___;
+        ND_ bool  Copy (const ImageMemView &memView)                                            __NE___;
 
         ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers,
-                            MipmapLevel mipmaps, RC<IAllocator> allocator)                                          __NE___;
-        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, RC<IAllocator> allocator)              __NE___;
+                            MipmapLevel mipmaps, RC<IAllocator> allocator)                      __NE___;
+        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim,
+                            RC<IAllocator> allocator)                                           __NE___;
 
         // with default allocator
-        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps)__NE___;
-        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim)                                        __NE___;
+        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim,
+                            ImageLayer layers, MipmapLevel mipmaps)                             __NE___;
+        ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim)                    __NE___;
 
-        ND_ bool  Reserve (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps) __NE___;
+        ND_ bool  Reserve (EImage type, EPixelFormat fmt, const uint3 &dim,
+                           ImageLayer layers, MipmapLevel mipmaps)                              __NE___;
 
-        ND_ ImageMemView        ToView (MipmapLevel mipmap, ImageLayer layer)                                       __NE___;
-        ND_ ImageMemView        ToView (MipmapLevel mipmap)                                                         __NE___ { return ToView( mipmap, Default ); }
-        ND_ ImageMemView        ToView (ImageLayer layer)                                                           __NE___ { return ToView( Default, layer ); }
-        ND_ ImageMemView        ToView ()                                                                           __NE___ { return ToView( Default, Default ); }
+        ND_ ImageMemView        ToView (MipmapLevel mipmap, ImageLayer layer)                   __NE___;
+        ND_ ImageMemView        ToView (MipmapLevel mipmap)                                     __NE___ { return ToView( mipmap, Default ); }
+        ND_ ImageMemView        ToView (ImageLayer layer)                                       __NE___ { return ToView( Default, layer ); }
+        ND_ ImageMemView        ToView ()                                                       __NE___ { return ToView( Default, Default ); }
 
-        ND_ bool                IsValid ()                                                                          C_NE___;
-        ND_ bool                IsImmutable ()                                                                      C_NE___ { return _immutable; }
-        ND_ bool                IsMutable ()                                                                        C_NE___ { return not _immutable; }
-        ND_ bool                IsEmpty ()                                                                          C_NE___ { return _data.empty(); }
+        ND_ bool                IsValid ()                                                      C_NE___;
+        ND_ bool                IsImmutable ()                                                  C_NE___ { return _immutable; }
+        ND_ bool                IsMutable ()                                                    C_NE___ { return not _immutable; }
+        ND_ bool                IsEmpty ()                                                      C_NE___ { return _data.empty(); }
 
-        ND_ Path const&         GetPath ()                                                                          C_NE___ { return _srcPath; }
-        ND_ Mipmaps_t const&    GetData ()                                                                          C_NE___ { return _data; }
-        ND_ Mipmaps_t *         GetMutableData ()                                                                   __NE___ { return IsMutable() ? &_data : null; }
-        ND_ Level const*        GetLevel (MipmapLevel mipmap, ImageLayer layer)                                     C_NE___;
-        ND_ EImage              GetType ()                                                                          C_NE___ { return _imageType; }
-        ND_ EImageDim           GetImageDim ()                                                                      C_NE___;
+        ND_ Path const&         GetPath ()                                                      C_NE___ { return _srcPath; }
+        ND_ Mipmaps_t const&    GetData ()                                                      C_NE___ { return _data; }
+        ND_ Mipmaps_t *         GetMutableData ()                                               __NE___ { return IsMutable() ? &_data : null; }
+        ND_ Level const*        GetLevel (MipmapLevel mipmap, ImageLayer layer)                 C_NE___;
+        ND_ EImage              GetType ()                                                      C_NE___ { return _imageType; }
+        ND_ EImageDim           GetImageDim ()                                                  C_NE___;
 
-        ND_ EPixelFormat        PixelFormat ()                                                                      C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].format : Default; }
-        ND_ uint                MipLevels ()                                                                        C_NE___ { return uint(_data.size()); }
-        ND_ uint                ArrayLayers ()                                                                      C_NE___ { return _data.size() ? uint(_data[0].size()) : 0u; }
-        ND_ uint3               Dimension ()                                                                        C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].dimension : Default; }
-        ND_ Bytes               RowPitch ()                                                                         C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].rowPitch : Default; }
+        ND_ EPixelFormat        PixelFormat ()                                                  C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].format : Default; }
+        ND_ uint                MipLevels ()                                                    C_NE___ { return uint(_data.size()); }
+        ND_ uint                ArrayLayers ()                                                  C_NE___ { return _data.size() ? uint(_data[0].size()) : 0u; }
+        ND_ uint3               Dimension ()                                                    C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].dimension : Default; }
+        ND_ Bytes               RowPitch ()                                                     C_NE___ { return _data.size() and _data[0].size() ? _data[0][0].rowPitch : Default; }
     };
 
 

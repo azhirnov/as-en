@@ -15,7 +15,7 @@
 #   pragma warning(disable: 4946)
 # endif
 
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
 #  if __clang_major__ >= 15
@@ -32,7 +32,7 @@
 # ifdef AE_COMPILER_MSVC
 #   pragma warning(pop)
 # endif
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
 # endif
 

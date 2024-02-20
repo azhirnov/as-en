@@ -3,6 +3,7 @@
 #pragma once
 
 #include "graphics_hl/GraphicsHL.pch.h"
+#include "graphics_hl/Canvas/SurfaceDimensions.h"
 
 namespace AE::Graphics
 {
@@ -36,7 +37,8 @@ namespace AE::Graphics
         ND_ constexpr uint              VertexCount ()                      C_NE___ { return 4; }
 
         constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-                             OUT void* positionPtr, OUT void* attributePtr) C_NE___
+                             OUT void* positionPtr, OUT void* attributePtr,
+                             const SurfaceDimensions &)                     C_NE___
         {
             // front face CCW
             if constexpr( Strip ){
@@ -106,7 +108,8 @@ namespace AE::Graphics
         ND_ constexpr uint              VertexCount ()                      C_NE___ { return 16; }
 
         constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-                             OUT void* positionPtr, OUT void* attributePtr) C_NE___
+                             OUT void* positionPtr, OUT void* attributePtr,
+                             const SurfaceDimensions &)                     C_NE___
         {
             // indices (front face CCW)
             {
@@ -233,14 +236,15 @@ namespace AE::Graphics
 
     // methods
         constexpr CircleBatch () __NE___ {}
-        constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : position{pos}, color{color}, segments{segments} {}
+        constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color)   __NE___ : position{pos}, color{color}, segments{segments} {}
 
-        ND_ static constexpr EPrimitive Topology ()                 __NE___ { return EPrimitive::LineList; }
-        ND_ constexpr uint              IndexCount ()               C_NE___ { return segments * 2; }
-        ND_ constexpr uint              VertexCount ()              C_NE___ { return segments; }
+        ND_ static constexpr EPrimitive Topology ()                             __NE___ { return EPrimitive::LineList; }
+        ND_ constexpr uint              IndexCount ()                           C_NE___ { return segments * 2; }
+        ND_ constexpr uint              VertexCount ()                          C_NE___ { return segments; }
 
         void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-                   OUT void* positionPtr, OUT void* attributePtr)   C_NE___
+                   OUT void* positionPtr, OUT void* attributePtr,
+                   const SurfaceDimensions &)                                   C_NE___
         {
             // indices (front face CCW)
             {
@@ -302,12 +306,13 @@ namespace AE::Graphics
             ASSERT( segments >= 4 );
         }
 
-        ND_ static constexpr EPrimitive Topology ()                 __NE___ { return EPrimitive::TriangleList; }
-        ND_ constexpr uint              IndexCount ()               C_NE___ { return segments * 3; }
-        ND_ constexpr uint              VertexCount ()              C_NE___ { return segments + 1; }
+        ND_ static constexpr EPrimitive Topology ()                         __NE___ { return EPrimitive::TriangleList; }
+        ND_ constexpr uint              IndexCount ()                       C_NE___ { return segments * 3; }
+        ND_ constexpr uint              VertexCount ()                      C_NE___ { return segments + 1; }
 
         void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-                   OUT void* positionPtr, OUT void* attributePtr)   C_NE___
+                   OUT void* positionPtr, OUT void* attributePtr,
+                   const SurfaceDimensions &)                               C_NE___
         {
             // indices (front face CCW)
             {
@@ -350,6 +355,54 @@ namespace AE::Graphics
             }
         }
     };
+
+
+
+    //
+    // Line Strip Batch
+    //
+    template <typename PointType, typename PosType, typename AttribType, bool Strip>
+    struct LineStripBatch
+    {
+    // types
+        using Position_t    = PosType;
+        using Attribs_t     = AttribType;
+
+    // variables
+        ArrayView<PointType>    points;
+        RGBA8u                  color;
+
+    // methods
+        ND_ static constexpr EPrimitive Topology ()                         __NE___ { return Strip ? EPrimitive::LineStrip : EPrimitive::LineList; }
+        ND_ constexpr uint              IndexCount ()                       C_NE___ { return uint(Strip ? points.size() : points.size()*2); }
+        ND_ constexpr uint              VertexCount ()                      C_NE___ { return uint(points.size()); }
+
+        constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+                             OUT void* positionPtr, OUT void* attributePtr,
+                             const SurfaceDimensions &)                     C_NE___
+        {
+            if constexpr( Strip ){
+                for (uint i = 0, cnt = IndexCount(); i < cnt; ++i) {
+                    idx[i] = BatchIndex_t(i) + firstIdx;
+                }
+            }else{
+                for (uint i = 0, cnt = IndexCount(); i < cnt; ++i) {
+                    idx[i*2+0] = BatchIndex_t(i) + firstIdx;
+                    idx[i*2+1] = BatchIndex_t(i+1) + firstIdx;
+                }
+            }
+
+            auto*   pos     = Cast<PosType>( positionPtr );
+            auto*   attr    = Cast<AttribType>( attributePtr );
+
+            for (usize i = 0; i < points.size(); ++i)
+            {
+                pos[i]  = PosType{ points[i] };
+                attr[i] = AttribType{ color };
+            }
+        }
+    };
+
 
     using Rectangle2D       = RectangleBatch< VB_Position_f2, VB_UVf2_Col8, /*Strip*/false >;
     using Rectangle2DStrip  = RectangleBatch< VB_Position_f2, VB_UVf2_Col8, /*Strip*/true >;

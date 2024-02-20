@@ -58,6 +58,9 @@ namespace AE::Base
     using Graphics::ESamplerYcbcrRange;
     using Graphics::ImageSwizzle;
     using Graphics::ESurfaceFormat;
+    using Graphics::EVideoFormat;
+    using Graphics::EVideoCodec;
+    using Graphics::EPixelFormatExternal;
 
 /*
 =================================================
@@ -66,8 +69,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EQueueType queue) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( queue )
+        switch_enum( queue )
         {
             case EQueueType::Graphics :     return "Graphics";
             case EQueueType::AsyncCompute : return "AsyncCompute";
@@ -77,7 +79,7 @@ namespace AE::Base
             case EQueueType::_Count :
             case EQueueType::Unknown :      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown queue type" );
     }
 
@@ -88,8 +90,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EPixelFormat value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             #define AE_PIXELFORMAT_VISIT( _name_ )      case EPixelFormat::_name_ : return AE_TOSTRING( _name_ );
             AE_PIXELFORMAT_LIST( AE_PIXELFORMAT_VISIT )
@@ -99,7 +100,7 @@ namespace AE::Base
             case EPixelFormat::Unknown :        return "Unknown";
             case EPixelFormat::_Count :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown pixel format" );
     }
 
@@ -110,8 +111,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EAttachmentLoadOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAttachmentLoadOp::Invalidate :    return "Invalidate";
             case EAttachmentLoadOp::Load :          return "Load";
@@ -120,7 +120,7 @@ namespace AE::Base
             case EAttachmentLoadOp::_Count :
             case EAttachmentLoadOp::Unknown :       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown attachment load op" );
     }
 
@@ -131,8 +131,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EAttachmentStoreOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAttachmentStoreOp::Invalidate :                   return "Invalidate";
             case EAttachmentStoreOp::Store :                        return "Store";
@@ -141,7 +140,7 @@ namespace AE::Base
             case EAttachmentStoreOp::_Count :
             case EAttachmentStoreOp::Unknown :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown attachment store op" );
     }
 
@@ -152,8 +151,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EShaderIO value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EShaderIO::Int :           return "Int";
             case EShaderIO::UInt :          return "UInt";
@@ -170,7 +168,7 @@ namespace AE::Base
             case EShaderIO::Unknown :
             case EShaderIO::_Count :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown fragment IO type" );
     }
 
@@ -181,8 +179,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EShader value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EShader::Vertex :          return "Vertex";
             case EShader::TessControl :     return "TessControl";
@@ -202,7 +199,7 @@ namespace AE::Base
             case EShader::_Count :
             case EShader::Unknown :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown shader type" );
     }
 
@@ -259,8 +256,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EPrimitive value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EPrimitive::Point :                    return "Point";
             case EPrimitive::LineList :                 return "LineList";
@@ -276,7 +272,7 @@ namespace AE::Base
             case EPrimitive::_Count :
             case EPrimitive::Unknown :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown primitive type" );
     }
 
@@ -287,8 +283,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EVendorID value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EVendorID::AMD :       return "AMD";
             case EVendorID::NVidia :    return "NVidia";
@@ -304,7 +299,7 @@ namespace AE::Base
             case EVendorID::VeriSilicon:return "VeriSilicon";
             case EVendorID::_Count :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown vendor id" );
     }
 
@@ -315,8 +310,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EFilter value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EFilter::Nearest :     return "Nearest";
             case EFilter::Linear :      return "Linear";
@@ -324,7 +318,7 @@ namespace AE::Base
             case EFilter::Unknown :
             default :                   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown filter type" );
     }
 
@@ -335,8 +329,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EMipmapFilter value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EMipmapFilter::None :      return "None";
             case EMipmapFilter::Nearest :   return "Nearest";
@@ -345,7 +338,7 @@ namespace AE::Base
             case EMipmapFilter::Unknown :
             default :                       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown filter type" );
     }
 
@@ -356,8 +349,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EAddressMode value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EAddressMode::Repeat :             return "Repeat";
             case EAddressMode::MirrorRepeat :       return "MirrorRepeat";
@@ -368,7 +360,7 @@ namespace AE::Base
             case EAddressMode::Unknown :
             default :                               break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown address mode" );
     }
 
@@ -379,8 +371,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ECompareOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECompareOp::Never :    return "Never";
             case ECompareOp::Less :     return "Less";
@@ -394,7 +385,7 @@ namespace AE::Base
             case ECompareOp::Unknown :
             default :                   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown compare op" );
     }
 
@@ -405,8 +396,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EBorderColor value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EBorderColor::FloatTransparentBlack :  return "FloatTransparentBlack";
             case EBorderColor::FloatOpaqueBlack :       return "FloatOpaqueBlack";
@@ -418,7 +408,7 @@ namespace AE::Base
             case EBorderColor::Unknown :
             default :                                   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown border color type" );
     }
 
@@ -429,8 +419,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EReductionMode value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EReductionMode::Average :      return "Average";
             case EReductionMode::Min :          return "Min";
@@ -439,10 +428,9 @@ namespace AE::Base
             case EReductionMode::Unknown :
             default :                           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown sampler reduction mode" );
     }
-
 
 /*
 =================================================
@@ -451,8 +439,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESamplerUsage value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESamplerUsage::Default :                       return "Default";
         //  case ESamplerUsage::Subsampled :                    return "Subsampled";
@@ -461,7 +448,7 @@ namespace AE::Base
             case ESamplerUsage::_Count :
             default :                                           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown sampler usage" );
     }
 
@@ -504,15 +491,14 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EVertexInputRate value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EVertexInputRate::Vertex :     return "Vertex";
             case EVertexInputRate::Instance :   return "Instance";
             case EVertexInputRate::Unknown :
             case EVertexInputRate::_Count :     break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown vertex input rate" );
     }
 
@@ -523,8 +509,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ELogicOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ELogicOp::None :           return "None";
             case ELogicOp::Clear :          return "Clear";
@@ -546,7 +531,7 @@ namespace AE::Base
             case ELogicOp::_Count :
             case ELogicOp::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown logic op" );
     }
 
@@ -557,8 +542,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EBlendFactor value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EBlendFactor::Zero :               return "Zero";
             case EBlendFactor::One :                return "One";
@@ -582,7 +566,7 @@ namespace AE::Base
             case EBlendFactor::_Count :
             case EBlendFactor::Unknown :            break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown blend factor" );
     }
 
@@ -593,8 +577,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EBlendOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EBlendOp::Add :        return "Add";
             case EBlendOp::Sub :        return "Sub";
@@ -604,7 +587,7 @@ namespace AE::Base
             case EBlendOp::_Count :
             case EBlendOp::Unknown :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown blend op" );
     }
 
@@ -615,8 +598,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EStencilOp value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EStencilOp::Keep :         return "Keep";
             case EStencilOp::Zero :         return "Zero";
@@ -629,7 +611,7 @@ namespace AE::Base
             case EStencilOp::_Count :
             case EStencilOp::Unknown :      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown stencil op" );
     }
 
@@ -640,8 +622,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EPolygonMode value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EPolygonMode::Point :      return "Point";
             case EPolygonMode::Line :       return "Line";
@@ -649,7 +630,7 @@ namespace AE::Base
             case EPolygonMode::_Count :
             case EPolygonMode::Unknown :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown polygon mode" );
     }
 
@@ -660,15 +641,14 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ECullMode value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECullMode::None :          return "None";
             case ECullMode::Front :         return "Front";
             case ECullMode::Back :          return "Back";
             case ECullMode::FontAndBack :   return "FontAndBack";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown cull mode" );
     }
 
@@ -685,8 +665,7 @@ namespace AE::Base
             if ( not str.empty() )
                 str << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EPipelineDynamicState::StencilCompareMask :    str << "StencilCompareMask";    break;
                 case EPipelineDynamicState::StencilWriteMask :      str << "StencilWriteMask";      break;
@@ -702,7 +681,7 @@ namespace AE::Base
                 case EPipelineDynamicState::Unknown :
                 default :                                           RETURN_ERR( "unknown pipeline dynamic state" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         if ( str.empty() )
             str << "0";
@@ -722,8 +701,7 @@ namespace AE::Base
             if ( not str.empty() )
                 str << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EDescSetUsage::AllowPartialyUpdate :   str << "AllowPartialyUpdate";   break;
                 case EDescSetUsage::UpdateTemplate :        str << "UpdateTemplate";        break;
@@ -734,7 +712,7 @@ namespace AE::Base
                 case EDescSetUsage::All :
                 default :                                   RETURN_ERR( "unknown descriptor set usage" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         if ( str.empty() )
             str << "0";
@@ -754,8 +732,7 @@ namespace AE::Base
             if ( not str.empty() )
                 str << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EPipelineOpt::Optimize :                       str << "Optimize";                      break;
                 case EPipelineOpt::CS_DispatchBase :                str << "CS_DispatchBase";               break;
@@ -773,7 +750,7 @@ namespace AE::Base
                 case EPipelineOpt::All :
                 default :                                           RETURN_ERR( "unknown pipeline option" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         if ( str.empty() )
             str << "0";
@@ -800,8 +777,7 @@ namespace AE::Base
             if ( not str.empty() )
                 str << " | ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EMemoryType::DeviceLocal :     str << "DeviceLocal";   break;
                 case EMemoryType::Transient :       str << "Transient";     break;
@@ -818,7 +794,7 @@ namespace AE::Base
                 case EMemoryType::Unknown :
                 default :                           RETURN_ERR( "unknown memory type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         if ( str.empty() )
             str << "0";
@@ -832,8 +808,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EColorSpace value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EColorSpace::sRGB_nonlinear :          return "sRGB_nonlinear";
             case EColorSpace::Display_P3_nonlinear :    return "Display_P3_nonlinear";
@@ -853,7 +828,7 @@ namespace AE::Base
             case EColorSpace::_Count :
             case EColorSpace::Unknown :                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown color space" );
     }
 
@@ -864,8 +839,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EPresentMode value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EPresentMode::Immediate :                  return "Immediate";
             case EPresentMode::Mailbox :                    return "Mailbox";
@@ -876,7 +850,7 @@ namespace AE::Base
             case EPresentMode::_Count :
             case EPresentMode::Unknown :                    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown present mode" );
     }
 
@@ -887,8 +861,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EDescriptorType value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EDescriptorType::UniformBuffer :                   return "UniformBuffer";
             case EDescriptorType::StorageBuffer :                   return "StorageBuffer";
@@ -905,14 +878,13 @@ namespace AE::Base
             case EDescriptorType::_Count :
             case EDescriptorType::Unknown :                         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown descriptor type" );
     }
 
     ND_ inline StringView  ToString (EDescriptorType value, int) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EDescriptorType::UniformBuffer :
             case EDescriptorType::StorageBuffer :                   return "Buffer";
@@ -929,7 +901,7 @@ namespace AE::Base
             case EDescriptorType::_Count :
             case EDescriptorType::Unknown :                         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown descriptor type" );
     }
 
@@ -940,8 +912,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESubgroupOperation value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             #define CASE( _name_ )  case ESubgroupOperation::_name_ : return AE_TOSTRING( _name_ )
             CASE( IndexAndSize );
@@ -999,7 +970,7 @@ namespace AE::Base
             #undef CASE
             case ESubgroupOperation::_Count :   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown subgroup operation type" );
     }
 
@@ -1013,9 +984,7 @@ namespace AE::Base
         using _EResState = Graphics::_EResState;
 
         String  str;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( ToEResState( value ))
+        switch_enum( ToEResState( value ))
         {
             case _EResState::ShaderStorage_Read :               str += "ShaderStorage_Read";                    break;
             case _EResState::ShaderStorage_Write :              str += "ShaderStorage_Write";                   break;
@@ -1058,7 +1027,7 @@ namespace AE::Base
             case _EResState::_AccessCount :
             default :                                           DBG_WARNING( "unknown resource state" );        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( AnyBits( value, EResourceState::DSTestBeforeFS ))
             str += " | DSTestBeforeFS";
@@ -1121,8 +1090,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESurfaceFormat value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESurfaceFormat::BGRA8_sRGB_nonlinear :         return "BGRA8_sRGB_nonlinear";
             case ESurfaceFormat::RGBA8_sRGB_nonlinear :         return "RGBA8_sRGB_nonlinear";
@@ -1137,33 +1105,8 @@ namespace AE::Base
             case ESurfaceFormat::_Count :
             case ESurfaceFormat::Unknown :                      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown surface format" );
-    }
-
-/*
-=================================================
-    ToString (EnumBitSet)
-=================================================
-*/
-    template <typename E>
-    ND_ String  ToString (const EnumBitSet<E> &x) __Th___
-    {
-        String  str;
-        auto    tmp = x;
-
-        for (usize i = 0;; ++i)
-        {
-            auto    e = tmp.ExtractFirst();
-            if_unlikely( ToNearUInt(e) >= tmp.size() )
-                break;
-
-            if ( i > 0 )
-                str << " | ";
-
-            str << Base::ToString( e );
-        }
-        return str;
     }
 
 /*
@@ -1173,15 +1116,14 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESamplerChromaLocation value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESamplerChromaLocation::CositedEven :  return "CositedEven";
             case ESamplerChromaLocation::Midpoint :     return "Midpoint";
             case ESamplerChromaLocation::_Count :
             case ESamplerChromaLocation::Unknown :      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown sampler chroma location" );
     }
 
@@ -1192,8 +1134,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESamplerYcbcrModelConversion value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESamplerYcbcrModelConversion::RGB_Identity :   return "RGB_Identity";
             case ESamplerYcbcrModelConversion::Ycbcr_Identity : return "Ycbcr_Identity";
@@ -1203,7 +1144,7 @@ namespace AE::Base
             case ESamplerYcbcrModelConversion::_Count :
             case ESamplerYcbcrModelConversion::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown sampler ycbcr model conversion" );
     }
 
@@ -1214,15 +1155,14 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (ESamplerYcbcrRange value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESamplerYcbcrRange::ITU_Full :     return "ITU_Full";
             case ESamplerYcbcrRange::ITU_Narrow :   return "ITU_Narrow";
             case ESamplerYcbcrRange::_Count :
             case ESamplerYcbcrRange::Unknown :      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown sampler ycbcr range" );
     }
 
@@ -1241,6 +1181,103 @@ namespace AE::Base
             str << comp_str[ comp[i] ];
         }
         return str;
+    }
+
+/*
+=================================================
+    ToString (EVideoFormat)
+=================================================
+*/
+    ND_ inline StringView  ToString (EVideoFormat value) __NE___
+    {
+        switch_enum( value )
+        {
+            case EVideoFormat::YUV420P :        return "YUV420P";
+            case EVideoFormat::YUV422P :        return "YUV422P";
+            case EVideoFormat::YUV444P :        return "YUV444P";
+            case EVideoFormat::YUV420P10LE :    return "YUV420P10LE";
+            case EVideoFormat::YUV422P10LE :    return "YUV422P10LE";
+            case EVideoFormat::YUV444P10LE :    return "YUV444P10LE";
+            case EVideoFormat::YUV420P12LE :    return "YUV420P12LE";
+            case EVideoFormat::YUV422P12LE :    return "YUV422P12LE";
+            case EVideoFormat::YUV444P12LE :    return "YUV444P12LE";
+            case EVideoFormat::YUV420P16LE :    return "YUV420P16LE";
+            case EVideoFormat::YUV422P16LE :    return "YUV422P16LE";
+            case EVideoFormat::YUV444P16LE :    return "YUV444P16LE";
+            case EVideoFormat::YUVA444P16LE :   return "YUVA444P16LE";
+            case EVideoFormat::NV12 :           return "NV12";
+            case EVideoFormat::NV21 :           return "NV21";
+            case EVideoFormat::NV16 :           return "NV16";
+            case EVideoFormat::NV24 :           return "NV24";
+            case EVideoFormat::NV42 :           return "NV42";
+            case EVideoFormat::NV20LE :         return "NV20LE";
+            case EVideoFormat::P010LE :         return "P010LE";
+            case EVideoFormat::Unknown :
+            case EVideoFormat::_Count :         break;
+        }
+        switch_end
+        RETURN_ERR( "unknown video format" );
+    }
+
+/*
+=================================================
+    ToString (EVideoCodec)
+=================================================
+*/
+    ND_ inline StringView  ToString (EVideoCodec value) __NE___
+    {
+        switch_enum( value )
+        {
+            case EVideoCodec::GIF :     return "GIF";
+            case EVideoCodec::MPEG4 :   return "MPEG4";
+            case EVideoCodec::H264 :    return "H264";
+            case EVideoCodec::H265 :    return "H265";
+            case EVideoCodec::WEBP :    return "WEBP";
+            case EVideoCodec::VP8 :     return "VP8";
+            case EVideoCodec::VP9 :     return "VP9";
+            case EVideoCodec::AV1 :     return "AV1";
+            case EVideoCodec::Unknown :
+            case EVideoCodec::_Count :  break;
+        }
+        switch_end
+        RETURN_ERR( "unknown video codec" );
+    }
+
+/*
+=================================================
+    ToString (EPixelFormatExternal)
+=================================================
+*/
+    ND_ inline StringView  ToString (EPixelFormatExternal value) __NE___
+    {
+        switch_enum( value )
+        {
+            case EPixelFormatExternal::Android_Depth16 :        return "Android_Depth16";
+            case EPixelFormatExternal::Android_DepthJPEG :      return "Android_DepthJPEG";
+            case EPixelFormatExternal::Android_DepthPointCloud: return "Android_DepthPointCloud";
+            case EPixelFormatExternal::Android_JPEG :           return "Android_JPEG";
+            case EPixelFormatExternal::Android_Private :        return "Android_Private";
+            case EPixelFormatExternal::Android_Raw16 :          return "Android_Raw16";
+            case EPixelFormatExternal::Android_Raw12 :          return "Android_Raw12";
+            case EPixelFormatExternal::Android_Raw10 :          return "Android_Raw10";
+            case EPixelFormatExternal::Android_RawPrivate :     return "Android_RawPrivate";
+            case EPixelFormatExternal::Android_NV16 :           return "Android_NV16";
+            case EPixelFormatExternal::Android_NV21 :           return "Android_NV21";
+            case EPixelFormatExternal::Android_YCBCR_P010 :     return "Android_YCBCR_P010";
+            case EPixelFormatExternal::Android_YUV_420 :        return "Android_YUV_420";
+            case EPixelFormatExternal::Android_YUV_422 :        return "Android_YUV_422";
+            case EPixelFormatExternal::Android_YUV_444 :        return "Android_YUV_444";
+            case EPixelFormatExternal::Android_YUY2 :           return "Android_YUY2";
+            case EPixelFormatExternal::Android_YV12 :           return "Android_YV12";
+            case EPixelFormatExternal::Android_Y8 :             return "Android_Y8";
+            case EPixelFormatExternal::Android_HEIC :           return "Android_HEIC";
+
+            case EPixelFormatExternal::_Android_End :
+            case EPixelFormatExternal::_Count :
+            case EPixelFormatExternal::Unknown :                break;
+        }
+        switch_end
+        RETURN_ERR( "unknown external pixel format" );
     }
 
 

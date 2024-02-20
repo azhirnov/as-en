@@ -123,14 +123,15 @@ DECL_SCRIPT_TYPE( double );
 DECL_SCRIPT_TYPE( int    );
 #undef DECL_SCRIPT_TYPE
 
-AE_DECL_SCRIPT_TYPE( AE::uint,          "uint"      );
-AE_DECL_SCRIPT_TYPE( AE::sbyte,         "int8"      );
-AE_DECL_SCRIPT_TYPE( AE::ubyte,         "uint8"     );
-AE_DECL_SCRIPT_TYPE( AE::sshort,        "int16"     );
-AE_DECL_SCRIPT_TYPE( AE::ushort,        "uint16"    );
-AE_DECL_SCRIPT_TYPE( AE::slong,         "int64"     );
-AE_DECL_SCRIPT_TYPE( AE::ulong,         "uint64"    );
-AE_DECL_SCRIPT_OBJ(  AE::Base::String,  "string"    );
+AE_DECL_SCRIPT_TYPE( AE::uint,              "uint"      );
+AE_DECL_SCRIPT_TYPE( AE::sbyte,             "int8"      );
+AE_DECL_SCRIPT_TYPE( AE::ubyte,             "uint8"     );
+AE_DECL_SCRIPT_TYPE( AE::sshort,            "int16"     );
+AE_DECL_SCRIPT_TYPE( AE::ushort,            "uint16"    );
+AE_DECL_SCRIPT_TYPE( AE::slong,             "int64"     );
+AE_DECL_SCRIPT_TYPE( AE::ulong,             "uint64"    );
+AE_DECL_SCRIPT_OBJ(  AE::Base::String,      "string"    );
+AE_DECL_SCRIPT_OBJ(  AE::Base::U8String,    "string"    );
 
 
 namespace AE::Scripting
@@ -356,11 +357,43 @@ namespace AE::Scripting
             return new T{};
         }
 
+        template <typename T, typename ...Args>
+        static T *  FactoryCreate2 (const Args& ...args)
+        {
+            StaticAssert( not IsBaseOf< SimpleRefCounter, T > );
+            return new T{ args... };
+        }
+
+        template <typename ...Args>
+        struct GetFactoryCreate2
+        {
+            template <typename T>
+            static auto*  Get () {
+                return &FactoryCreate2< T, Args... >;
+            }
+        };
+
+
         template <typename T>
         static T *  FactoryCreateRC ()
         {
             return SharedPtr<T>{ new T{} }.Detach();
         }
+
+        template <typename T, typename ...Args>
+        static T *  FactoryCreateRC2 (const Args& ...args)
+        {
+            return SharedPtr<T>{ new T{ args... }}.Detach();
+        }
+
+        template <typename ...Args>
+        struct GetFactoryCreateRC2
+        {
+            template <typename T>
+            static auto*  Get () {
+                return &FactoryCreateRC2< T, Args... >;
+            }
+        };
 
 
         template <typename T>

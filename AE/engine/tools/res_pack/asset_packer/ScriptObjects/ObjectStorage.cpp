@@ -7,6 +7,8 @@
 #include "ScriptObjects/ScriptMesh.h"
 #include "ScriptObjects/ScriptModel.h"
 #include "ScriptObjects/ScriptMaterial.h"
+#include "ScriptObjects/ScriptUIStyleCollection.h"
+#include "ScriptObjects/ScriptUIWidget.h"
 
 #include "scripting/Impl/EnumBinder.h"
 
@@ -188,12 +190,19 @@ namespace AE::AssetPacker
         {
             EnumBinder<ECubeFace>   binder{ se };
             binder.Create();
-            binder.AddValue( "XPos", ECubeFace::XPos );
-            binder.AddValue( "XNeg", ECubeFace::XNeg );
-            binder.AddValue( "YPos", ECubeFace::YPos );
-            binder.AddValue( "YNeg", ECubeFace::YNeg );
-            binder.AddValue( "ZPos", ECubeFace::ZPos );
-            binder.AddValue( "ZNeg", ECubeFace::ZNeg );
+            switch_enum( ECubeFace::XPos )
+            {
+                #define BIND( _name_ )  case ECubeFace::_name_ : binder.AddValue( #_name_, ECubeFace::_name_ );
+                BIND( XPos )
+                BIND( XNeg )
+                BIND( YPos )
+                BIND( YNeg )
+                BIND( ZPos )
+                BIND( ZNeg )
+                #undef BIND
+                default : break;
+            }
+            switch_end
         }
 
         ScriptTexture::Bind( se );
@@ -202,6 +211,8 @@ namespace AE::AssetPacker
         ScriptMesh::Bind( se );
         ScriptModel::Bind( se );
         ScriptMaterial::Bind( se );
+        ScriptUIStyleCollection::Bind( se );
+        ScriptUIWidget::Bind( se );
     }
 
 } // AE::AssetPacker

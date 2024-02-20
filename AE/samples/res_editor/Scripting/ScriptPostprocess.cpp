@@ -116,10 +116,7 @@ namespace
             binder.AddValue( "ShadertoyVR_180", EPostprocess::ShadertoyVR_180 );
             binder.AddValue( "ShadertoyVR_360", EPostprocess::ShadertoyVR_360 );
             binder.AddValue( "Shadertoy_360",   EPostprocess::Shadertoy_360 );
-            binder.AddValue( "Curved_1000R",    EPostprocess::Curved_1000R );
-            binder.AddValue( "Curved_1500R",    EPostprocess::Curved_1500R );
-            binder.AddValue( "Curved_1800R",    EPostprocess::Curved_1800R );
-            StaticAssert( uint(EPostprocess::_Count) == 9 );
+            StaticAssert( uint(EPostprocess::_Count) == 6 );
         }
         {
             ClassBinder<ScriptPostprocess>  binder{ se };
@@ -172,9 +169,9 @@ namespace
         result->_rtech = _CompilePipeline( OUT ub_size ); // throw
         result->_depthRange = this->_depthRange;
 
-        EnumBitSet<IPass::EDebugMode>   dbg_modes;
+        EnumSet<IPass::EDebugMode>  dbg_modes;
 
-        const auto  AddPpln = [this, pp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, const PipelineName &name)
+        const auto  AddPpln = [this, pp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, PipelineName::Ref name)
         {{
             if ( AllBits( _baseFlags, flag ))
             {
@@ -209,7 +206,7 @@ namespace
         {
             CHECK_ERR( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
                                                       ppln, DescriptorSetName{"ds0"} ));
-            _args.InitResources( OUT result->_resources );  // throw
+            _args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
         }
 
         uint    min_layer_count = UMax;
@@ -271,12 +268,7 @@ namespace
 
 
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
-
-#include "base/DataSource/FileStream.h"
 #include "base/Algorithms/Parser.h"
-
-#include "res_editor/Scripting/ScriptImage.h"
-#include "res_editor/Scripting/ScriptVideoImage.h"
 
 namespace AE::ResEditor
 {
@@ -444,8 +436,7 @@ ND_ int3  GetGlobalSize() {
 #define iDate               un_PerPass.date
 #define iSampleRate         un_PerPass.sampleRate
 )#";
-                BEGIN_ENUM_CHECKS();
-                switch ( _ppFlags )
+                switch_enum( _ppFlags )
                 {
                     case EPostprocess::Shadertoy :
                         header << R"#(
@@ -465,9 +456,6 @@ void Main ()
                     case EPostprocess::ShadertoyVR_180 :
                     case EPostprocess::ShadertoyVR_360 :
                     case EPostprocess::Shadertoy_360 :
-                    case EPostprocess::Curved_1000R :
-                    case EPostprocess::Curved_1500R :
-                    case EPostprocess::Curved_1800R :
                     {
                         header << R"#(
 #include "Ray.glsl"
@@ -476,7 +464,7 @@ void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in
 void Main ()
 {
     Ray ray = )#";
-                        END_ENUM_CHECKS();
+                        AE_END_ENUM_CHECKS();
                         switch ( _ppFlags )
                         {
                             case EPostprocess::ShadertoyVR :
@@ -491,20 +479,8 @@ void Main ()
                             case EPostprocess::Shadertoy_360 :
                                 header << "Ray_PlaneTo360( un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
                                 break;
-                            case EPostprocess::Curved_1000R :
-                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1000.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
-                                break;
-                            case EPostprocess::Curved_1500R :
-                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1500.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
-                                break;
-                            case EPostprocess::Curved_1800R :
-                                header << "Ray_PlaneToSphere( iResolution.xy * un_PerPass.pixToMm / 1800.0, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
-                                header << "\tRay_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );\n";
-                                break;
                         }
-                        BEGIN_ENUM_CHECKS();
+                        AE_BEGIN_ENUM_CHECKS();
                         header << R"#(
     float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
     coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
@@ -516,7 +492,7 @@ void Main ()
                     case EPostprocess::_Count :
                         break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
 
             _AddSliders( INOUT header );
@@ -546,6 +522,7 @@ void Main ()
 
         _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), ppln_opt );
 
+      #ifdef AE_ENABLE_GLSL_TRACE
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
 
@@ -554,6 +531,7 @@ void Main ()
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
             _CompilePipeline3( subpass, vs, fs, fs_line, "postprocess.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+      #endif
     }
 
 /*

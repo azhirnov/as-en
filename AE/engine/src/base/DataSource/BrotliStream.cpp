@@ -73,7 +73,7 @@ namespace
             return true;
         }
 
-        char    buf [512];
+        ubyte   buf [_BufferSize];
 
         for (; offset > 0_b;)
         {
@@ -104,7 +104,7 @@ namespace
         // decompress next part
         if ( result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT )
         {
-            usize           available_out   = usize(size);
+            usize           available_out   = usize{size};
             ubyte*          next_out        = Cast<ubyte>( buffer );
             usize           available_in    = 0;
             ubyte const*    next_in         = null;
@@ -120,12 +120,12 @@ namespace
 
         for (; (result == BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT) and (written < size);)
         {
-            usize           available_out   = usize(size - written);
+            usize           available_out   = usize{size - written};
             ubyte*          next_out        = Cast<ubyte>( buffer + written );
-            usize           available_in    = usize(_stream->ReadSeq( OUT temp, Sizeof(temp) ));
+            usize           available_in    = usize{_stream->ReadSeq( OUT temp, Sizeof(temp) )};
             ubyte const*    next_in         = &temp[0];
 
-            if ( available_in == 0 )
+            if_unlikely( available_in == 0 )
                 return written;
 
             _position += available_in;
@@ -156,6 +156,23 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+    ExtractConfig
+=================================================
+*/
+namespace {
+    static void  ExtractConfig (const BrotliWStream::Config &cfg,
+                                OUT int &quality,
+                                OUT int &lgwin,
+                                OUT int &lgblock)
+    {
+        quality = int( Lerp( float(BROTLI_MIN_QUALITY), float(BROTLI_MAX_QUALITY), Saturate( cfg.quality )) + 0.5f );
+        lgwin   = int( Lerp( float(BROTLI_MIN_WINDOW_BITS), float(BROTLI_MAX_WINDOW_BITS), Saturate( cfg.windowBits )) + 0.5f );
+        lgblock = int( Lerp( float(BROTLI_MIN_INPUT_BLOCK_BITS), float(BROTLI_MAX_INPUT_BLOCK_BITS), Saturate( cfg.inBlockSize )) + 0.5f );
+    }
+}
 /*
 =================================================
     constructor
@@ -174,21 +191,13 @@ namespace
 
         if ( _instance != null )
         {
-            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),
-                                       BROTLI_PARAM_MODE,
-                                       BROTLI_MODE_GENERIC );
+            int quality, lgwin, lgblock;
+            ExtractConfig( cfg, OUT quality, OUT lgwin, OUT lgblock );
 
-            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),
-                                       BROTLI_PARAM_QUALITY,
-                                       uint( Lerp( float(BROTLI_MIN_QUALITY), float(BROTLI_MAX_QUALITY), Clamp( cfg.quality, 0.0f, 1.0f )) + 0.5f ));
-
-            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),
-                                       BROTLI_PARAM_LGWIN,
-                                       uint( Lerp( float(BROTLI_MIN_WINDOW_BITS), float(BROTLI_MAX_WINDOW_BITS), Clamp( cfg.windowBits, 0.0f, 1.0f )) + 0.5f ));
-
-            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),
-                                       BROTLI_PARAM_LGBLOCK,
-                                       uint( Lerp( float(BROTLI_MIN_INPUT_BLOCK_BITS), float(BROTLI_MAX_INPUT_BLOCK_BITS), Clamp( cfg.inBlockSize, 0.0f, 1.0f )) + 0.5f ));
+            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),    BROTLI_PARAM_MODE,      BROTLI_MODE_GENERIC );
+            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),    BROTLI_PARAM_QUALITY,   quality );
+            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),    BROTLI_PARAM_LGWIN,     lgwin );
+            BrotliEncoderSetParameter( static_cast<BrotliEncoderState *>(_instance),    BROTLI_PARAM_LGBLOCK,   lgblock );
         }
     }
 
@@ -241,7 +250,7 @@ namespace
         ASSERT( not BrotliEncoderIsFinished( static_cast<BrotliEncoderState *>(_instance) ));
 
         ubyte           temp [_BufferSize];
-        usize           available_in    = usize(size);
+        usize           available_in    = usize{size};
         ubyte const*    next_in         = static_cast<ubyte const *>(buffer);
 
         for (; available_in > 0;)
@@ -294,6 +303,45 @@ namespace
             CHECK_ERR( _stream->Write( &temp[0], out_size ));
         }
         return true;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Compress
+=================================================
+*/
+    bool  BrotliUtils::Compress (OUT void* dstData, INOUT Bytes &dstSize,
+                                 const void* srcData, Bytes srcSize,
+                                 const BrotliWStream::Config &cfg) __NE___
+    {
+        int quality, lgwin, lgblock;
+        ExtractConfig( cfg, OUT quality, OUT lgwin, OUT lgblock );
+
+        usize   encoded_size = usize{dstSize};
+
+        bool    res = BrotliEncoderCompress( quality, lgwin, BROTLI_MODE_GENERIC,
+                                             usize{srcSize}, Cast<uint8_t>(srcData),
+                                             INOUT &encoded_size, OUT Cast<uint8_t>(dstData) ) == BROTLI_TRUE;
+        dstSize = Bytes{res ? encoded_size : 0};
+        return res;
+    }
+
+/*
+=================================================
+    Decompress
+=================================================
+*/
+    bool  BrotliUtils::Decompress (OUT void* dstData, INOUT Bytes &dstSize,
+                                    const void* srcData, Bytes srcSize) __NE___
+    {
+        usize   decoded_size = usize{dstSize};
+        bool    res = BrotliDecoderDecompress(  usize{srcSize}, Cast<uint8_t>(srcData),
+                                                INOUT &decoded_size, OUT Cast<uint8_t>(dstData) ) == BROTLI_DECODER_RESULT_SUCCESS;
+        dstSize = Bytes{res ? decoded_size : 0};
+        return res;
     }
 
 

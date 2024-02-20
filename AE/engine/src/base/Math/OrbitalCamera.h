@@ -46,6 +46,7 @@ namespace AE::Math
         ND_ Mat4_t const&       Projection ()                               C_NE___ { return _camera.projection; }
 
         ND_ Vec3_t              CameraOffset ()                             C_NE___ { return Orientation() * Vec3_t{ T{0}, T{0}, -_offset }; }
+        ND_ T                   CmeraOffsetScalar ()                        C_NE___ { return _offset; }
         ND_ Vec3_t const&       CameraPosition ()                           C_NE___ { return _camera.transform.position; }
 
         ND_ Mat4_t              ToModelViewProjMatrix ()                    C_NE___ { return Projection() * ToModelViewMatrix(); }
@@ -69,7 +70,8 @@ namespace AE::Math
         ND_ Vec3_t  Transform (const Vec3_t &delta)                         C_NE___;
 
             Self&   SetPosition (const Vec3_t &pos)                         __NE___;
-            Self&   SetRotation (const Quat_t &q)                           __NE___;
+            Self&   SetOrientation (const Quat_t &q)                        __NE___;
+            Self&   ResetOrientation ()                                     __NE___ { return SetOrientation( Quat::Identity() ); }
     };
 
 
@@ -93,7 +95,7 @@ namespace AE::Math
     template <typename T>
     TOrbitalCamera<T>&  TOrbitalCamera<T>::Rotate (Rad_t horizontal, Rad_t vertical) __NE___
     {
-        if ( IsZero( vertical ) & IsZero( horizontal ))
+        if_likely( IsZero( vertical ) and IsZero( horizontal ))
             return *this;
 
         Quat_t&     q = _camera.transform.orientation;
@@ -152,11 +154,11 @@ namespace AE::Math
 
 /*
 =================================================
-    SetRotation
+    SetOrientation
 =================================================
 */
     template <typename T>
-    TOrbitalCamera<T>&  TOrbitalCamera<T>::SetRotation (const Quat_t &q) __NE___
+    TOrbitalCamera<T>&  TOrbitalCamera<T>::SetOrientation (const Quat_t &q) __NE___
     {
         _camera.transform.orientation = q;
         return *this;

@@ -3,6 +3,7 @@
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
+#include "res_editor/_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -340,9 +341,9 @@ namespace
 
         result->_rtech = _CompilePipeline( OUT ub_size );   // throw
 
-        EnumBitSet<IPass::EDebugMode>   dbg_modes;
+        EnumSet<IPass::EDebugMode>  dbg_modes;
 
-        const auto  AddPpln = [this, cp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, const PipelineName &name)
+        const auto  AddPpln = [this, cp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, PipelineName::Ref name)
         {{
             if ( AllBits( _baseFlags, flag ))
             {
@@ -379,8 +380,11 @@ namespace
         {
             CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
                                                         ppln, DescriptorSetName{"ds0"} ));
-            _args.InitResources( OUT result->_resources );  // throw
+            _args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
         }
+
+        result->_pcIndex = res_mngr.GetPushConstantIndex<ShaderTypes::ComputePassPC>( ppln, PushConstantName{"pc"} );
+        CHECK_THROW( result->_pcIndex );
 
         _Init( *result, null );
         UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Compute );
@@ -447,14 +451,39 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    _CreatePCType
+=================================================
+*/
+    auto  ScriptComputePass::_CreatePCType () __Th___
+    {
+        auto&   obj_storage = *ObjectStorage::Instance();
+        auto    it          = obj_storage.structTypes.find( "ComputePassPC" );
+
+        if ( it != obj_storage.structTypes.end() )
+            return it->second;
+
+        ShaderStructTypePtr st{ new ShaderStructType{"ComputePassPC"}};
+        st->Set( EStructLayout::Std140, R"#(
+                uint    dispatchIndex;
+            )#");
+
+        return st;
+    }
+
+/*
+=================================================
     GetShaderTypes
 =================================================
 */
     void  ScriptComputePass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
     {
-        auto    st = _CreateUBType();   // throw
-
-        CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+        {
+            auto    st = _CreateUBType();   // throw
+            CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+        }{
+            auto    st = _CreatePCType();   // throw
+            CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+        }
     }
 
 /*
@@ -516,6 +545,7 @@ namespace AE::ResEditor
 
         _CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), ppln_opt );
 
+      #ifdef AE_ENABLE_GLSL_TRACE
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
             _CompilePipeline3( cs, cs_line, "compute.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
 
@@ -524,6 +554,7 @@ namespace AE::ResEditor
 
         if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
             _CompilePipeline3( cs, cs_line, "compute.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+      #endif
     }
 
 /*
@@ -536,6 +567,7 @@ namespace AE::ResEditor
     {
         PipelineLayoutPtr       ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
         ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
+        ppln_layout->AddPushConst2( "pc", _CreatePCType(), EShader::Compute );
 
         if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
             ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Compute) );

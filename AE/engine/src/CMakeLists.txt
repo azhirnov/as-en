@@ -25,6 +25,7 @@ add_subdirectory( "graphics" )
 add_subdirectory( "vfs" )
 add_subdirectory( "ecs-st" )
 
+add_subdirectory( "audio" )
 add_subdirectory( "platform" )
 add_subdirectory( "video" )
 

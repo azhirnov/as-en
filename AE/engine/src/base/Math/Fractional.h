@@ -84,8 +84,8 @@ namespace AE::Math
 
         ND_ constexpr bool  operator == (const Self &rhs)       C_NE___
         {
-            return  ((this->num == T{0})    & (rhs.num == T{0}))    |
-                    ((this->num == rhs.num) & (this->den == rhs.den));
+            return  ((this->num == T{0})    and (rhs.num == T{0}))  or
+                    ((this->num == rhs.num) and (this->den == rhs.den));
         }
 
         ND_ constexpr bool  IsZero ()                           C_NE___ { return num == T{0}; }

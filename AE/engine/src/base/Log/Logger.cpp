@@ -19,6 +19,7 @@
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/FileStream.h"
 #include "base/Platforms/ThreadUtils.h"
+#include "base/Utils/FileSystem.h"
 
 
 #ifdef AE_PLATFORM_EMSCRIPTEN
@@ -38,39 +39,12 @@ namespace
 {
 /*
 =================================================
-    ToShortPath
-=================================================
-*/
-    ND_ static StringView  ToShortPath (StringView file) __NE___
-    {
-        const uint  max_parts = 3;
-
-        usize   i = Max( file.length(), 1u ) - 1;
-        uint    j = 0;
-
-        for (; i < file.length() and j < max_parts; --i)
-        {
-            const char  c = file[i];
-
-            if_unlikely( (c == '\\') | (c == '/') )
-                ++j;
-        }
-
-        if ( i < file.length() )
-            return file.substr( i + (j == max_parts ? 2 : 0) );
-        else
-            return file;
-    }
-
-/*
-=================================================
     ScopeToString
 =================================================
 */
     ND_ static StringView  ScopeToString (ELogScope scope) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( scope )
+        switch_enum( scope )
         {
             case ELogScope::GraphicsDriver :    return "GraphicsDriver ";   break;
             case ELogScope::Engine :            return "Engine ";           break;
@@ -82,7 +56,7 @@ namespace
             case ELogScope::_Count :
             default :                           return {};
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -92,8 +66,7 @@ namespace
 */
     ND_ static StringView  LevelToString (ELogLevel level) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( level )
+        switch_enum( level )
         {
             case ELogLevel::Debug :         return "Debug";         break;
             case ELogLevel::Info :          return "Info";          break;
@@ -105,7 +78,7 @@ namespace
             case ELogLevel::_Count :
             default :                       return {};
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -115,8 +88,7 @@ namespace
 */
     ND_ static char  LevelToChar (ELogLevel level) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( level )
+        switch_enum( level )
         {
             case ELogLevel::Debug :         return 'D';     break;
             case ELogLevel::Info :          return 'I';     break;
@@ -128,7 +100,7 @@ namespace
             case ELogLevel::_Count :
             default :                       return ' ';
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 } // namespace
@@ -189,7 +161,7 @@ namespace
 
         const String    caption = "Error message";
 
-        String  str = "File:      "s << ToShortPath( info.file ) <<
+        String  str = "File:      "s << FileSystem::ToShortPath( info.file ) <<
                       "\nLine:     " << ToString( info.line ) <<
                       "\nFunction: " << info.func <<
                       "\nScope:    " << ScopeToString( info.scope ) <<
@@ -296,9 +268,9 @@ namespace
 */
     ILogger::EResult  AndroidLogOutput::Process (const MessageInfo &info)
     {
-        int log_level   = ANDROID_LOG_VERBOSE;
-        BEGIN_ENUM_CHECKS();
-        switch ( info.level )
+        int log_level = ANDROID_LOG_VERBOSE;
+
+        switch_enum( info.level )
         {
             case ELevel::Debug :    log_level = ANDROID_LOG_DEBUG;  break;
             case ELevel::Info :     log_level = ANDROID_LOG_INFO;   break;
@@ -309,11 +281,11 @@ namespace
             case ELevel::_Count :
             default :               break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         char        buf [800];
         usize       offset      = 0;
-        StringView  short_path  = ToShortPath( info.file );
+        StringView  short_path  = FileSystem::ToShortPath( info.file );
 
         for (; offset < info.message.size();)
         {
@@ -362,10 +334,9 @@ namespace
 */
     ILogger::EResult  ConsoleLogOutput::Process (const MessageInfo &info)
     {
-        String str = String{ ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
+        String str = String{ FileSystem::ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( info.level )
+        switch_enum( info.level )
         {
             case ELevel::Debug :
             case ELevel::Info :         str << '\n';                            break;
@@ -378,7 +349,7 @@ namespace
 
             case ELevel::_Count :       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         EXLOCK( _guard );
         std::cout << str;
@@ -450,7 +421,7 @@ namespace
 
             str << info.message;
 
-            str << "\n\t{" << ToShortPath( info.file ) << '(' << ToString( info.line ) << ")}";
+            str << "\n\t{" << FileSystem::ToShortPath( info.file ) << '(' << ToString( info.line ) << ")}";
 
             Unused( _file->Write( str ));
             _file->Flush();
@@ -568,8 +539,7 @@ namespace
         EColor  col         = EColor::Black;
         EColor  bg_col      = EColor::White;
 
-        BEGIN_ENUM_CHECKS();
-        /*switch ( info.scope )
+        /*switch_enum( info.scope )
         {
             case EScope::Unknown :          col = EColor::Black;    break;
             case EScope::GraphicsDriver :   col = EColor::Green;    break;
@@ -580,7 +550,7 @@ namespace
             case EScope::_Count :
             default :                       DBG_WARNING( "unknown log level" );
         }*/
-        switch ( info.level )
+        switch_enum( info.level )
         {
             case ELevel::Debug :        add_time = true;    add_file = true;    col = EColor::Navy;         break;
             case ELevel::Info :         add_time = true;    add_file = true;    col = EColor::DarkGreen;    break;
@@ -591,7 +561,7 @@ namespace
             case ELevel::_Count :
             default :                   DBG_WARNING( "unknown log level" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
 
         EXLOCK( _guard );
@@ -637,7 +607,7 @@ namespace
             if ( add_file )
             {
                 _SetColor( EColor::Silver, EColor(_bgColor), INOUT str );
-                str << "  (file: '" << ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")";
+                str << "  (file: '" << FileSystem::ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")";
             }
 
             str << "\n";

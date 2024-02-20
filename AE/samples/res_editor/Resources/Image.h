@@ -124,7 +124,7 @@ namespace AE::ResEditor
                RC<DynamicDim>       outDynSize,
                StringView           dbgName)                                        __Th___;
 
-        ~Image () override;
+        ~Image ()                                                                   __NE_OV;
 
             bool  Resize (TransferCtx_t &ctx)                                       __Th_OV;
             bool  RequireResize ()                                                  C_Th_OV;

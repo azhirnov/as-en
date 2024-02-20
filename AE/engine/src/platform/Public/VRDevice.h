@@ -7,6 +7,9 @@
 
 namespace AE::App
 {
+    using Graphics::EImageUsage;
+    using Graphics::EImageOpt;
+
 
     //
     // VR Device interface
@@ -22,7 +25,7 @@ namespace AE::App
         //   InForeground   - HMD is mounted
         //   Focused        - same as InForeground
         //   Stopped        - HMD is turned OFF
-
+        //
         using EState = IWindow::EState;
 
         class IVRDeviceEventListener : public NothrowAllocatable

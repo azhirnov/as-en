@@ -51,8 +51,8 @@ namespace AE::Video
         bool  GetNextFrame (INOUT ImageMemView &    memView,
                             OUT FrameInfo &         info)           __NE_OV;
 
-    //  bool  GetNextFrame (OUT VideoImageID &  id,
-    //                      OUT FrameInfo &     info)               __NE_OV;
+        bool  GetNextFrame (INOUT ImageMemViewArr & memView,
+                            OUT FrameInfo &         info)           __NE_OV;
 
         bool  End ()                                                __NE_OV;
 

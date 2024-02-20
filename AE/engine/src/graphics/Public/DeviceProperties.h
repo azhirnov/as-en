@@ -70,7 +70,7 @@ namespace AE::Graphics
             POTBytes    minVertexBufferOffsetAlign;
             uint        minVertexBufferElementsAlign    {1};
 
-            Byte32u     maxUniformBufferRange           {1};
+            Bytes32u    maxUniformBufferRange           {1};
 
             uint        maxBoundDescriptorSets          = 0;
 
@@ -131,7 +131,7 @@ namespace AE::Graphics
         EImageUsage     imageUsage      = Default;
         EImageOpt       imageOptions    = Default;
 
-        EnumBitSet<EDescriptorType> descrTypes;
+        EnumSet<EDescriptorType>    descrTypes;
 
         FixedSet<EMemoryType, 8>    memTypes;
 

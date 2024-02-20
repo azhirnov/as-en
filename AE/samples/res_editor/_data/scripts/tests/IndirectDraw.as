@@ -37,7 +37,7 @@
             RC<UnifiedGeometry>     geometry        = UnifiedGeometry();
             const uint              max_commands    = 64;
 
-            indirect_buf.Layout(
+            indirect_buf.UseLayout(
                 "IndirectCmd",
                 "   uint                        count;" +
                 "   DrawIndexedIndirectCommand  commands [" + max_commands + "];"

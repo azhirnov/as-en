@@ -60,6 +60,12 @@
 #ifdef __cpp_lib_barrier
 #  include <barrier>
 #endif
+#ifdef __cpp_lib_semaphore
+#   include <semaphore>
+#endif
+#ifdef __cpp_lib_coroutine
+#   include <coroutine>
+#endif
 
 #ifdef __has_include
 # if __has_include(<bit>)
@@ -69,6 +75,21 @@
 
 #ifdef AE_COMPILER_MSVC
 # include <intrin.h>
+# include <mmintrin.h>      // MMX
+# include <xmmintrin.h>     // SSE
+# include <emmintrin.h>     // SSE2
+# include <pmmintrin.h>     // SSE3
+# include <tmmintrin.h>     // SSSE3
+# include <smmintrin.h>     // SSE4.1
+# include <nmmintrin.h>     // SSE4.2
+# include <ammintrin.h>     // SSE4A
+# include <wmmintrin.h>     // AES
+# include <immintrin.h>     // AVX, AVX2, FMA
+
+# ifndef AE_COMPILER_CLANG_CL
+#   include <zmmintrin.h>   // AVX512
+# endif
+
 # pragma intrinsic( _BitScanForward, _BitScanReverse )
 # pragma intrinsic( __popcnt16, __popcnt )
 # if AE_PLATFORM_BITS == 64

@@ -37,8 +37,7 @@
                 RC<Shader>  vs = Shader();
                 vs.LoadSelf();
                 ppln.SetVertexShader( vs );
-            }
-            {
+            }{
                 RC<Shader>  fs = Shader();
                 fs.LoadSelf();
                 ppln.SetFragmentShader( fs );

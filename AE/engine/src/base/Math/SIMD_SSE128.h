@@ -57,126 +57,127 @@ namespace AE::Math
 
     // methods
     public:
-        SimdFloat4 ()                                       __NE___ : _value{ _mm_setzero_ps() } {}
-        explicit SimdFloat4 (float v)                       __NE___ : _value{ _mm_set1_ps( v )} {}
-        explicit SimdFloat4 (const float* ptr)              __NE___ : _value{ _mm_loadu_ps( ptr )} { ASSERT( ptr != null ); }
-        explicit SimdFloat4 (const __m128 &v)               __NE___ : _value{ v } {}
-        SimdFloat4 (float x, float y, float z, float w)     __NE___ : _value{ _mm_set_ps( x, y, z, w )} {}
+        SimdFloat4 ()                                           __NE___ : _value{ _mm_setzero_ps() } {}
+        explicit SimdFloat4 (float v)                           __NE___ : _value{ _mm_set1_ps( v )} {}
+        explicit SimdFloat4 (const float* ptr)                  __NE___ : _value{ _mm_loadu_ps( ptr )} { ASSERT( ptr != null ); }
+        explicit SimdFloat4 (const __m128 &v)                   __NE___ : _value{ v } {}
+        SimdFloat4 (float x, float y, float z, float w)         __NE___ : _value{ _mm_set_ps( x, y, z, w )} {}
 
-        ND_ Self  operator +  (const Self &rhs)             C_NE___ { return Add( rhs ); }
-        ND_ Self  operator -  (const Self &rhs)             C_NE___ { return Sub( rhs ); }
-        ND_ Self  operator *  (const Self &rhs)             C_NE___ { return Mul( rhs ); }
-        ND_ Self  operator /  (const Self &rhs)             C_NE___ { return Div( rhs ); }
+        ND_ Self  operator +  (const Self &rhs)                 C_NE___ { return Add( rhs ); }
+        ND_ Self  operator -  (const Self &rhs)                 C_NE___ { return Sub( rhs ); }
+        ND_ Self  operator *  (const Self &rhs)                 C_NE___ { return Mul( rhs ); }
+        ND_ Self  operator /  (const Self &rhs)                 C_NE___ { return Div( rhs ); }
 
-        ND_ Self  operator &  (const Self &rhs)             C_NE___ { return And( rhs ); }
-        ND_ Self  operator |  (const Self &rhs)             C_NE___ { return Or( rhs ); }
-        ND_ Self  operator ^  (const Self &rhs)             C_NE___ { return Xor( rhs ); }
+        ND_ Self  operator &  (const Self &rhs)                 C_NE___ { return And( rhs ); }
+        ND_ Self  operator |  (const Self &rhs)                 C_NE___ { return Or( rhs ); }
+        ND_ Self  operator ^  (const Self &rhs)                 C_NE___ { return Xor( rhs ); }
 
-        ND_ Bool4  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
-        ND_ Bool4  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
-        ND_ Bool4  operator >  (const Self &rhs)            C_NE___ { return Greater( rhs ); }
-        ND_ Bool4  operator <  (const Self &rhs)            C_NE___ { return Less( rhs ); }
-        ND_ Bool4  operator >= (const Self &rhs)            C_NE___ { return GEqual( rhs ); }
-        ND_ Bool4  operator <= (const Self &rhs)            C_NE___ { return LEqual( rhs ); }
+        ND_ Bool4  operator == (const Self &rhs)                C_NE___ { return Equal( rhs ); }
+        ND_ Bool4  operator != (const Self &rhs)                C_NE___ { return NotEqual( rhs ); }
+        ND_ Bool4  operator >  (const Self &rhs)                C_NE___ { return Greater( rhs ); }
+        ND_ Bool4  operator <  (const Self &rhs)                C_NE___ { return Less( rhs ); }
+        ND_ Bool4  operator >= (const Self &rhs)                C_NE___ { return GEqual( rhs ); }
+        ND_ Bool4  operator <= (const Self &rhs)                C_NE___ { return LEqual( rhs ); }
 
-        ND_ Value_t  GetX ()                                C_NE___ { return _mm_cvtss_f32( _value ); }
+        ND_ Value_t  GetX ()                                    C_NE___ { return _mm_cvtss_f32( _value ); }
 
-        ND_ __m128 const&  Get ()                           C_NE___ { return _value; }
+        ND_ __m128 const&  Get ()                               C_NE___ { return _value; }
 
-        ND_ Self  Add (const Self &rhs)                     C_NE___ { return Self{ _mm_add_ps( _value, rhs._value )}; }
-        ND_ Self  Sub (const Self &rhs)                     C_NE___ { return Self{ _mm_sub_ps( _value, rhs._value )}; }
-        ND_ Self  Mul (const Self &rhs)                     C_NE___ { return Self{ _mm_mul_ps( _value, rhs._value )}; }
-        ND_ Self  Div (const Self &rhs)                     C_NE___ { return Self{ _mm_div_ps( _value, rhs._value )}; }
-        ND_ Self  Min (const Self &rhs)                     C_NE___ { return Self{ _mm_min_ps( _value, rhs._value )}; }
-        ND_ Self  Max (const Self &rhs)                     C_NE___ { return Self{ _mm_max_ps( _value, rhs._value )}; }
+        ND_ Self  Add (const Self &rhs)                         C_NE___ { return Self{ _mm_add_ps( _value, rhs._value )}; }
+        ND_ Self  Sub (const Self &rhs)                         C_NE___ { return Self{ _mm_sub_ps( _value, rhs._value )}; }
+        ND_ Self  Mul (const Self &rhs)                         C_NE___ { return Self{ _mm_mul_ps( _value, rhs._value )}; }
+        ND_ Self  Div (const Self &rhs)                         C_NE___ { return Self{ _mm_div_ps( _value, rhs._value )}; }
+        ND_ Self  Min (const Self &rhs)                         C_NE___ { return Self{ _mm_min_ps( _value, rhs._value )}; }
+        ND_ Self  Max (const Self &rhs)                         C_NE___ { return Self{ _mm_max_ps( _value, rhs._value )}; }
 
-        ND_ Self  And (const Self &rhs)                     C_NE___ { return Self{ _mm_and_ps( _value, rhs._value )}; }
-        ND_ Self  Or  (const Self &rhs)                     C_NE___ { return Self{ _mm_or_ps( _value, rhs._value )}; }
-        ND_ Self  Xor (const Self &rhs)                     C_NE___ { return Self{ _mm_xor_ps( _value, rhs._value )}; }
-        ND_ Self  AndNot (const Self &rhs)                  C_NE___ { return Self{ _mm_andnot_ps( _value, rhs._value )}; }      // !a & b
+        ND_ Self  And (const Self &rhs)                         C_NE___ { return Self{ _mm_and_ps( _value, rhs._value )}; }
+        ND_ Self  Or  (const Self &rhs)                         C_NE___ { return Self{ _mm_or_ps( _value, rhs._value )}; }
+        ND_ Self  Xor (const Self &rhs)                         C_NE___ { return Self{ _mm_xor_ps( _value, rhs._value )}; }
+        ND_ Self  AndNot (const Self &rhs)                      C_NE___ { return Self{ _mm_andnot_ps( _value, rhs._value )}; }      // !a & b
 
       #if AE_SIMD_SSE >= 30
-        ND_ Self  HAdd (const Self &rhs)                    C_NE___ { return Self{ _mm_hadd_ps( _value, rhs._value )}; }        // { a0 + a1, a2 + a3, b0 + b1, b2 + b3 }
-        ND_ Self  HSub (const Self &rhs)                    C_NE___ { return Self{ _mm_hsub_ps( _value, rhs._value )}; }        // { a0 - a1, a2 - a3, b0 - b1, b2 - b3 }
+        ND_ Self  HAdd (const Self &rhs)                        C_NE___ { return Self{ _mm_hadd_ps( _value, rhs._value )}; }        // { a0 + a1, a2 + a3, b0 + b1, b2 + b3 }
+        ND_ Self  HSub (const Self &rhs)                        C_NE___ { return Self{ _mm_hsub_ps( _value, rhs._value )}; }        // { a0 - a1, a2 - a3, b0 - b1, b2 - b3 }
 
-        ND_ Self  AddSub (const Self &rhs)                  C_NE___ { return Self{ _mm_addsub_ps( _value, rhs._value )}; }      // { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
+        ND_ Self  AddSub (const Self &rhs)                      C_NE___ { return Self{ _mm_addsub_ps( _value, rhs._value )}; }      // { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
       #endif
 
-        ND_ Self  FMAdd (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmadd_ps(    _value, b._value, c._value )}; }    // a * b + c
-        ND_ Self  FMSub (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmsub_ps(    _value, b._value, c._value )}; }    // a * b - c
-        ND_ Self  FMAddSub (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_ps( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1, a2 * b2 - c2, a3 * b3 + c3 }
-        ND_ Self  FMSubAdd (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_ps( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1, a2 * b2 + c2, a3 * b3 - c3 }
-        ND_ Self  FNMAdd (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmadd_ps(   _value, b._value, c._value )}; }    // -a * b + c
-        ND_ Self  FNMSub (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmsub_ps(   _value, b._value, c._value )}; }    // -a * b - c
+        // fused multiply (FM) / fused negative multiply (FNM)
+        ND_ Self  FusedMulAdd (const Self &b, const Self &c)    C_NE___ { return Self{ _mm_fmadd_ps(    _value, b._value, c._value )}; }    // a * b + c
+        ND_ Self  FusedMulSub (const Self &b, const Self &c)    C_NE___ { return Self{ _mm_fmsub_ps(    _value, b._value, c._value )}; }    // a * b - c
+        ND_ Self  FusedMulAddSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fmaddsub_ps( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1, a2 * b2 - c2, a3 * b3 + c3 }
+        ND_ Self  FusedMulSubAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fmaddsub_ps( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1, a2 * b2 + c2, a3 * b3 - c3 }
+        ND_ Self  FusedNegMulAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fnmadd_ps(   _value, b._value, c._value )}; }    // -a * b + c
+        ND_ Self  FusedNegMulSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fnmsub_ps(   _value, b._value, c._value )}; }    // -a * b - c
 
-        ND_ Self  Sqrt ()                                   C_NE___ { return Self{ _mm_sqrt_ps( _value )}; }
-        ND_ Self  Reciprocal ()                             C_NE___ { return Self{ _mm_rcp_ps( _value )}; }                         // 1 / x
-        ND_ Self  RSqrt ()                                  C_NE___ { return Self{ _mm_rsqrt_ps( _value )}; }                       // 1 / sqrt(x)
-        ND_ Self  FastSqrt ()                               C_NE___ { return Self{ _mm_mul_ps( _value, _mm_rsqrt_ps( _value ))}; }  // x / sqrt(x)
-        ND_ Self  Scale (const Self &rhs)                   C_NE___ { return Self{ _mm_scalef_ps( _value, rhs._value )}; }          // a * 2^b
+        ND_ Self  Sqrt ()                                       C_NE___ { return Self{ _mm_sqrt_ps( _value )}; }
+        ND_ Self  Reciprocal ()                                 C_NE___ { return Self{ _mm_rcp_ps( _value )}; }                         // 1 / x
+        ND_ Self  RSqrt ()                                      C_NE___ { return Self{ _mm_rsqrt_ps( _value )}; }                       // 1 / sqrt(x)
+        ND_ Self  FastSqrt ()                                   C_NE___ { return Self{ _mm_mul_ps( _value, _mm_rsqrt_ps( _value ))}; }  // x / sqrt(x)
+        ND_ Self  Scale (const Self &rhs)                       C_NE___ { return Self{ _mm_scalef_ps( _value, rhs._value )}; }          // a * 2^b
 
-        ND_ Self  Abs ()                                    C_NE___
+        ND_ Self  Abs ()                                        C_NE___
         {
             __m128  signmask = _mm_set1_ps( -0.0f );
             return Self{ _mm_andnot_ps( signmask, _value )};
         }
 
-        ND_ Self  AddScalar (const Self &rhs)               C_NE___ { return Self{ _mm_add_ss( _value, rhs._value )}; }         // { a0 + b0, a1, a2, a3 }
-        ND_ Self  SubScalar (const Self &rhs)               C_NE___ { return Self{ _mm_sub_ss( _value, rhs._value )}; }         // { a0 - b0, a1, a2, a3 }
-        ND_ Self  MulScalar (const Self &rhs)               C_NE___ { return Self{ _mm_mul_ss( _value, rhs._value )}; }         // { a0 * b0, a1, a2, a3 }
-        ND_ Self  DivScalar (const Self &rhs)               C_NE___ { return Self{ _mm_div_ss( _value, rhs._value )}; }         // { a0 / b0, a1, a2, a3 }
-        ND_ Self  SqrtScalar ()                             C_NE___ { return Self{ _mm_sqrt_ss( _value )}; }                    // { sqrt(a0), a1, a2, a3 }
-        ND_ Self  RSqrtScalar ()                            C_NE___ { return Self{ _mm_rsqrt_ss( _value )}; }                   // { 1 / sqrt(a0), a1, a2, a3 }
-        ND_ Self  ReciprocalScalar ()                       C_NE___ { return Self{ _mm_rcp_ps( _value )}; }                     // { 1 / a0, a1, a2, a3 }
+        ND_ Self  AddScalar (const Self &rhs)                   C_NE___ { return Self{ _mm_add_ss( _value, rhs._value )}; }         // { a0 + b0, a1, a2, a3 }
+        ND_ Self  SubScalar (const Self &rhs)                   C_NE___ { return Self{ _mm_sub_ss( _value, rhs._value )}; }         // { a0 - b0, a1, a2, a3 }
+        ND_ Self  MulScalar (const Self &rhs)                   C_NE___ { return Self{ _mm_mul_ss( _value, rhs._value )}; }         // { a0 * b0, a1, a2, a3 }
+        ND_ Self  DivScalar (const Self &rhs)                   C_NE___ { return Self{ _mm_div_ss( _value, rhs._value )}; }         // { a0 / b0, a1, a2, a3 }
+        ND_ Self  SqrtScalar ()                                 C_NE___ { return Self{ _mm_sqrt_ss( _value )}; }                    // { sqrt(a0), a1, a2, a3 }
+        ND_ Self  RSqrtScalar ()                                C_NE___ { return Self{ _mm_rsqrt_ss( _value )}; }                   // { 1 / sqrt(a0), a1, a2, a3 }
+        ND_ Self  ReciprocalScalar ()                           C_NE___ { return Self{ _mm_rcp_ps( _value )}; }                     // { 1 / a0, a1, a2, a3 }
 
-        ND_ Bool4  Equal    (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmpeq_ps(  _value, rhs._value )}; }
-        ND_ Bool4  NotEqual (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmpneq_ps( _value, rhs._value )}; }
-        ND_ Bool4  Greater  (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmpgt_ps(  _value, rhs._value )}; }
-        ND_ Bool4  Less     (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmplt_ps(  _value, rhs._value )}; }
-        ND_ Bool4  GEqual   (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmpge_ps(  _value, rhs._value )}; }
-        ND_ Bool4  LEqual   (const Self &rhs)               C_NE___ { return Bool4{ _mm_cmple_ps(  _value, rhs._value )}; }
+        ND_ Bool4  Equal    (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmpeq_ps(  _value, rhs._value )}; }
+        ND_ Bool4  NotEqual (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmpneq_ps( _value, rhs._value )}; }
+        ND_ Bool4  Greater  (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmpgt_ps(  _value, rhs._value )}; }
+        ND_ Bool4  Less     (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmplt_ps(  _value, rhs._value )}; }
+        ND_ Bool4  GEqual   (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmpge_ps(  _value, rhs._value )}; }
+        ND_ Bool4  LEqual   (const Self &rhs)                   C_NE___ { return Bool4{ _mm_cmple_ps(  _value, rhs._value )}; }
 
         // compare only first element
-        ND_ Bool4  Equal1    (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmpeq_ss(  _value, rhs._value )}; }
-        ND_ Bool4  NotEqual1 (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmpneq_ss( _value, rhs._value )}; }
-        ND_ Bool4  Greater1  (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmpgt_ss(  _value, rhs._value )}; }
-        ND_ Bool4  Less1     (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmplt_ss(  _value, rhs._value )}; }
-        ND_ Bool4  GEqual1   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmpge_ss(  _value, rhs._value )}; }
-        ND_ Bool4  LEqual1   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmple_ss(  _value, rhs._value )}; }
+        ND_ Bool4  Equal1    (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmpeq_ss(  _value, rhs._value )}; }
+        ND_ Bool4  NotEqual1 (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmpneq_ss( _value, rhs._value )}; }
+        ND_ Bool4  Greater1  (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmpgt_ss(  _value, rhs._value )}; }
+        ND_ Bool4  Less1     (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmplt_ss(  _value, rhs._value )}; }
+        ND_ Bool4  GEqual1   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmpge_ss(  _value, rhs._value )}; }
+        ND_ Bool4  LEqual1   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmple_ss(  _value, rhs._value )}; }
 
       #if AE_SIMD_AVX >= 1  // AVX 1
         // ordered - comparison with NaN returns false
-        ND_ Bool4  EqualO    (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_EQ_OQ  )}; }
-        ND_ Bool4  NotEqualO (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NEQ_OQ )}; }
-        ND_ Bool4  GreaterO  (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_GT_OQ  )}; }
-        ND_ Bool4  LessO     (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_LT_OQ  )}; }
-        ND_ Bool4  GEqualO   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_GE_OQ  )}; }
-        ND_ Bool4  LEqualO   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_LE_OQ  )}; }
+        ND_ Bool4  EqualO    (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_EQ_OQ  )}; }
+        ND_ Bool4  NotEqualO (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NEQ_OQ )}; }
+        ND_ Bool4  GreaterO  (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_GT_OQ  )}; }
+        ND_ Bool4  LessO     (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_LT_OQ  )}; }
+        ND_ Bool4  GEqualO   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_GE_OQ  )}; }
+        ND_ Bool4  LEqualO   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_LE_OQ  )}; }
 
         // unordered - comparison with NaN returns true
-        ND_ Bool4  EqualU    (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_EQ_UQ  )}; }
-        ND_ Bool4  NotEqualU (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NEQ_UQ )}; }
-        ND_ Bool4  GreaterU  (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NLE_UQ )}; }
-        ND_ Bool4  LessU     (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NGE_UQ )}; }
-        ND_ Bool4  GEqualU   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NLT_UQ )}; }
-        ND_ Bool4  LEqualU   (const Self &rhs)              C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NGT_UQ )}; }
+        ND_ Bool4  EqualU    (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_EQ_UQ  )}; }
+        ND_ Bool4  NotEqualU (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NEQ_UQ )}; }
+        ND_ Bool4  GreaterU  (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NLE_UQ )}; }
+        ND_ Bool4  LessU     (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NGE_UQ )}; }
+        ND_ Bool4  GEqualU   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NLT_UQ )}; }
+        ND_ Bool4  LEqualU   (const Self &rhs)                  C_NE___ { return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NGT_UQ )}; }
       #endif
 
       #if AE_SIMD_SSE >= 41
-        ND_ Self  Floor ()                                  C_NE___ { return Self{ _mm_floor_ps( _value )}; }
-        ND_ Self  Ceil ()                                   C_NE___ { return Self{ _mm_ceil_ps( _value )}; }
+        ND_ Self  Floor ()                                      C_NE___ { return Self{ _mm_floor_ps( _value )}; }
+        ND_ Self  Ceil ()                                       C_NE___ { return Self{ _mm_ceil_ps( _value )}; }
 
-        template <int Mode> ND_ Self  Round ()              C_NE___ { return Self{ _mm_round_ps( _value, Mode )}; }
+        template <int Mode> ND_ Self  Round ()                  C_NE___ { return Self{ _mm_round_ps( _value, Mode )}; }
 
-        ND_ Self  Dot (const Self &rhs)                     C_NE___ { return Self{ _mm_dp_ps( _value, rhs._value, 0xFF )}; }
+        ND_ Self  Dot (const Self &rhs)                         C_NE___ { return Self{ _mm_dp_ps( _value, rhs._value, 0xFF )}; }
       #endif
 
-        ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm_storeu_ps( OUT arr.data(), _value );  return arr; }
-            void        ToArray (OUT Value_t* dst)          C_NE___ { _mm_storeu_ps( OUT dst, _value ); }
-            void        ToAlignedArray (OUT Value_t* dst)   C_NE___ { CheckPointerCast<__m128>( dst );  _mm_store_ps( OUT dst, _value ); }
+        ND_ Array_t     ToArray ()                              C_NE___ { Array_t arr;  _mm_storeu_ps( OUT arr.data(), _value );  return arr; }
+            void        ToArray (OUT Value_t* dst)              C_NE___ { _mm_storeu_ps( OUT dst, _value ); }
+            void        ToAlignedArray (OUT Value_t* dst)       C_NE___ { CheckPointerCast<__m128>( dst );  _mm_store_ps( OUT dst, _value ); }
 
         template <typename DstType>
-        ND_ auto        Cast ()                             C_NE___;
+        ND_ auto        Cast ()                                 C_NE___;
     };
 
 
@@ -202,20 +203,20 @@ namespace AE::Math
             __m128i     _value;
 
         public:
-            explicit Bool2 (bool val)                       __NE___ : _value{_mm_set1_epi64x( val ? -1 : 0 )} {}
-            explicit Bool2 (__m128d val)                    __NE___ : _value{_mm_castpd_si128(val)} {}
-            explicit Bool2 (__m128i val)                    __NE___ : _value{val} {}
-            Bool2 (const SimdLong2 &v)                      __NE___;
-            Bool2 (const SimdULong2 &v)                     __NE___;
+            explicit Bool2 (bool val)                           __NE___ : _value{_mm_set1_epi64x( val ? -1 : 0 )} {}
+            explicit Bool2 (__m128d val)                        __NE___ : _value{_mm_castpd_si128(val)} {}
+            explicit Bool2 (__m128i val)                        __NE___ : _value{val} {}
+            Bool2 (const SimdLong2 &v)                          __NE___;
+            Bool2 (const SimdULong2 &v)                         __NE___;
 
-            ND_ Bool2  operator | (const Bool2 &rhs)        C_NE___ { return Bool2{ _mm_or_si128( _value, rhs._value )}; }
-            ND_ Bool2  operator & (const Bool2 &rhs)        C_NE___ { return Bool2{ _mm_and_si128( _value, rhs._value )}; }
-            ND_ Bool2  operator ^ (const Bool2 &rhs)        C_NE___ { return Bool2{ _mm_xor_si128( _value, rhs._value )}; }
-            ND_ Bool2  operator ~ ()                        C_NE___ { return Bool2{ _mm_andnot_si128( _value, _mm_set1_epi64x(-1) )}; }
+            ND_ Bool2  operator | (const Bool2 &rhs)            C_NE___ { return Bool2{ _mm_or_si128( _value, rhs._value )}; }
+            ND_ Bool2  operator & (const Bool2 &rhs)            C_NE___ { return Bool2{ _mm_and_si128( _value, rhs._value )}; }
+            ND_ Bool2  operator ^ (const Bool2 &rhs)            C_NE___ { return Bool2{ _mm_xor_si128( _value, rhs._value )}; }
+            ND_ Bool2  operator ~ ()                            C_NE___ { return Bool2{ _mm_andnot_si128( _value, _mm_set1_epi64x(-1) )}; }
 
-            ND_ bool  All ()                                C_NE___ { return _mm_movemask_epi8( _value ) == 0xFFFF; }
-            ND_ bool  Any ()                                C_NE___ { return _mm_movemask_epi8( _value ) != 0; }
-            ND_ bool  None ()                               C_NE___ { return _mm_movemask_epi8( _value ) == 0; }
+            ND_ bool  All ()                                    C_NE___ { return _mm_movemask_epi8( _value ) == 0xFFFF; }
+            ND_ bool  Any ()                                    C_NE___ { return _mm_movemask_epi8( _value ) != 0; }
+            ND_ bool  None ()                                   C_NE___ { return _mm_movemask_epi8( _value ) == 0; }
         };
 
 
@@ -226,122 +227,122 @@ namespace AE::Math
 
     // methods
     public:
-        SimdDouble2 ()                                      __NE___ : _value{ _mm_setzero_pd() } {}
-        explicit SimdDouble2 (double v)                     __NE___ : _value{ _mm_set1_pd( v )} {}
-        explicit SimdDouble2 (const double* v)              __NE___ : _value{ _mm_loadu_pd( v )} {}
-        explicit SimdDouble2 (const __m128d &v)             __NE___ : _value{ v } {}
-        SimdDouble2 (double x, double y)                    __NE___ : _value{_mm_set_pd( x, y )} {}
+        SimdDouble2 ()                                          __NE___ : _value{ _mm_setzero_pd() } {}
+        explicit SimdDouble2 (double v)                         __NE___ : _value{ _mm_set1_pd( v )} {}
+        explicit SimdDouble2 (const double* v)                  __NE___ : _value{ _mm_loadu_pd( v )} {}
+        explicit SimdDouble2 (const __m128d &v)                 __NE___ : _value{ v } {}
+        SimdDouble2 (double x, double y)                        __NE___ : _value{_mm_set_pd( x, y )} {}
 
-        ND_ Self  operator +  (const Self &rhs)             C_NE___ { return Add( rhs ); }
-        ND_ Self  operator -  (const Self &rhs)             C_NE___ { return Sub( rhs ); }
-        ND_ Self  operator *  (const Self &rhs)             C_NE___ { return Mul( rhs ); }
-        ND_ Self  operator /  (const Self &rhs)             C_NE___ { return Div( rhs ); }
+        ND_ Self  operator +  (const Self &rhs)                 C_NE___ { return Add( rhs ); }
+        ND_ Self  operator -  (const Self &rhs)                 C_NE___ { return Sub( rhs ); }
+        ND_ Self  operator *  (const Self &rhs)                 C_NE___ { return Mul( rhs ); }
+        ND_ Self  operator /  (const Self &rhs)                 C_NE___ { return Div( rhs ); }
 
-        ND_ Self  operator &  (const Self &rhs)             C_NE___ { return And( rhs ); }
-        ND_ Self  operator |  (const Self &rhs)             C_NE___ { return Or( rhs ); }
-        ND_ Self  operator ^  (const Self &rhs)             C_NE___ { return Xor( rhs ); }
+        ND_ Self  operator &  (const Self &rhs)                 C_NE___ { return And( rhs ); }
+        ND_ Self  operator |  (const Self &rhs)                 C_NE___ { return Or( rhs ); }
+        ND_ Self  operator ^  (const Self &rhs)                 C_NE___ { return Xor( rhs ); }
 
-        ND_ Bool2  operator == (const Self &rhs)            C_NE___ { return Equal( rhs ); }
-        ND_ Bool2  operator != (const Self &rhs)            C_NE___ { return NotEqual( rhs ); }
-        ND_ Bool2  operator >  (const Self &rhs)            C_NE___ { return Greater( rhs ); }
-        ND_ Bool2  operator <  (const Self &rhs)            C_NE___ { return Less( rhs ); }
-        ND_ Bool2  operator >= (const Self &rhs)            C_NE___ { return GEqual( rhs ); }
-        ND_ Bool2  operator <= (const Self &rhs)            C_NE___ { return LEqual( rhs ); }
+        ND_ Bool2  operator == (const Self &rhs)                C_NE___ { return Equal( rhs ); }
+        ND_ Bool2  operator != (const Self &rhs)                C_NE___ { return NotEqual( rhs ); }
+        ND_ Bool2  operator >  (const Self &rhs)                C_NE___ { return Greater( rhs ); }
+        ND_ Bool2  operator <  (const Self &rhs)                C_NE___ { return Less( rhs ); }
+        ND_ Bool2  operator >= (const Self &rhs)                C_NE___ { return GEqual( rhs ); }
+        ND_ Bool2  operator <= (const Self &rhs)                C_NE___ { return LEqual( rhs ); }
 
-        ND_ __m128d const&  Get ()                          C_NE___ { return _value; }
+        ND_ __m128d const&  Get ()                              C_NE___ { return _value; }
 
 
-        ND_ Self  Add (const Self &rhs)                     C_NE___ { return Self{ _mm_add_pd( _value, rhs._value )}; }
-        ND_ Self  Sub (const Self &rhs)                     C_NE___ { return Self{ _mm_sub_pd( _value, rhs._value )}; }
-        ND_ Self  Mul (const Self &rhs)                     C_NE___ { return Self{ _mm_mul_pd( _value, rhs._value )}; }
-        ND_ Self  Div (const Self &rhs)                     C_NE___ { return Self{ _mm_div_pd( _value, rhs._value )}; }
-        ND_ Self  Min (const Self &rhs)                     C_NE___ { return Self{ _mm_min_pd( _value, rhs._value )}; }
-        ND_ Self  Max (const Self &rhs)                     C_NE___ { return Self{ _mm_max_pd( _value, rhs._value )}; }
+        ND_ Self  Add (const Self &rhs)                         C_NE___ { return Self{ _mm_add_pd( _value, rhs._value )}; }
+        ND_ Self  Sub (const Self &rhs)                         C_NE___ { return Self{ _mm_sub_pd( _value, rhs._value )}; }
+        ND_ Self  Mul (const Self &rhs)                         C_NE___ { return Self{ _mm_mul_pd( _value, rhs._value )}; }
+        ND_ Self  Div (const Self &rhs)                         C_NE___ { return Self{ _mm_div_pd( _value, rhs._value )}; }
+        ND_ Self  Min (const Self &rhs)                         C_NE___ { return Self{ _mm_min_pd( _value, rhs._value )}; }
+        ND_ Self  Max (const Self &rhs)                         C_NE___ { return Self{ _mm_max_pd( _value, rhs._value )}; }
 
-        ND_ Self  And (const Self &rhs)                     C_NE___ { return Self{ _mm_and_pd( _value, rhs._value )}; }
-        ND_ Self  Or  (const Self &rhs)                     C_NE___ { return Self{ _mm_or_pd( _value, rhs._value )}; }
-        ND_ Self  Xor (const Self &rhs)                     C_NE___ { return Self{ _mm_xor_pd( _value, rhs._value )}; }
-        ND_ Self  AndNot (const Self &rhs)                  C_NE___ { return Self{ _mm_andnot_pd( _value, rhs._value )}; } // !a & b
+        ND_ Self  And (const Self &rhs)                         C_NE___ { return Self{ _mm_and_pd( _value, rhs._value )}; }
+        ND_ Self  Or  (const Self &rhs)                         C_NE___ { return Self{ _mm_or_pd( _value, rhs._value )}; }
+        ND_ Self  Xor (const Self &rhs)                         C_NE___ { return Self{ _mm_xor_pd( _value, rhs._value )}; }
+        ND_ Self  AndNot (const Self &rhs)                      C_NE___ { return Self{ _mm_andnot_pd( _value, rhs._value )}; } // !a & b
 
       #if AE_SIMD_SSE >= 30
-        ND_ Self  HAdd (const Self &rhs)                    C_NE___ { return Self{ _mm_hadd_pd( _value, rhs._value )}; }    // { a0 + a1,  b0 + b1 }
-        ND_ Self  HSub (const Self &rhs)                    C_NE___ { return Self{ _mm_hsub_pd( _value, rhs._value )}; }    // { a0 - a1,  b0 - b1 }
+        ND_ Self  HAdd (const Self &rhs)                        C_NE___ { return Self{ _mm_hadd_pd( _value, rhs._value )}; }    // { a0 + a1,  b0 + b1 }
+        ND_ Self  HSub (const Self &rhs)                        C_NE___ { return Self{ _mm_hsub_pd( _value, rhs._value )}; }    // { a0 - a1,  b0 - b1 }
 
-        ND_ Self  AddSub (const Self &rhs)                  C_NE___ { return Self{ _mm_addsub_pd( _value, rhs._value )}; }  // { a0 - b0, a1 + b1 }
+        ND_ Self  AddSub (const Self &rhs)                      C_NE___ { return Self{ _mm_addsub_pd( _value, rhs._value )}; }  // { a0 - b0, a1 + b1 }
       #endif
 
-        ND_ Bool2  Equal    (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmpeq_pd(  _value, rhs._value )}; }
-        ND_ Bool2  NotEqual (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmpneq_pd( _value, rhs._value )}; }
-        ND_ Bool2  Greater  (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmpgt_pd(  _value, rhs._value )}; }
-        ND_ Bool2  Less     (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmplt_pd(  _value, rhs._value )}; }
-        ND_ Bool2  GEqual   (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmpge_pd(  _value, rhs._value )}; }
-        ND_ Bool2  LEqual   (const Self &rhs)               C_NE___ { return Bool2{ _mm_cmple_pd(  _value, rhs._value )}; }
+        ND_ Bool2  Equal    (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmpeq_pd(  _value, rhs._value )}; }
+        ND_ Bool2  NotEqual (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmpneq_pd( _value, rhs._value )}; }
+        ND_ Bool2  Greater  (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmpgt_pd(  _value, rhs._value )}; }
+        ND_ Bool2  Less     (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmplt_pd(  _value, rhs._value )}; }
+        ND_ Bool2  GEqual   (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmpge_pd(  _value, rhs._value )}; }
+        ND_ Bool2  LEqual   (const Self &rhs)                   C_NE___ { return Bool2{ _mm_cmple_pd(  _value, rhs._value )}; }
 
         // compare only first element
-        ND_ Bool2  Equal1    (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmpeq_sd(  _value, rhs._value )}; }
-        ND_ Bool2  NotEqual1 (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmpneq_sd( _value, rhs._value )}; }
-        ND_ Bool2  Greater1  (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmpgt_sd(  _value, rhs._value )}; }
-        ND_ Bool2  Less1     (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmplt_sd(  _value, rhs._value )}; }
-        ND_ Bool2  GEqual1   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmpge_sd(  _value, rhs._value )}; }
-        ND_ Bool2  LEqual1   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmple_sd(  _value, rhs._value )}; }
+        ND_ Bool2  Equal1    (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmpeq_sd(  _value, rhs._value )}; }
+        ND_ Bool2  NotEqual1 (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmpneq_sd( _value, rhs._value )}; }
+        ND_ Bool2  Greater1  (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmpgt_sd(  _value, rhs._value )}; }
+        ND_ Bool2  Less1     (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmplt_sd(  _value, rhs._value )}; }
+        ND_ Bool2  GEqual1   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmpge_sd(  _value, rhs._value )}; }
+        ND_ Bool2  LEqual1   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmple_sd(  _value, rhs._value )}; }
 
       #if AE_SIMD_AVX >= 1  // AVX 1
         // ordered - comparison with NaN returns false
-        ND_ Bool2  EqualO    (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_EQ_OQ  )}; }
-        ND_ Bool2  NotEqualO (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NEQ_OQ )}; }
-        ND_ Bool2  GreaterO  (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_GT_OQ  )}; }
-        ND_ Bool2  LessO     (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_LT_OQ  )}; }
-        ND_ Bool2  GEqualO   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_GE_OQ  )}; }
-        ND_ Bool2  LEqualO   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_LE_OQ  )}; }
+        ND_ Bool2  EqualO    (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_EQ_OQ  )}; }
+        ND_ Bool2  NotEqualO (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NEQ_OQ )}; }
+        ND_ Bool2  GreaterO  (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_GT_OQ  )}; }
+        ND_ Bool2  LessO     (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_LT_OQ  )}; }
+        ND_ Bool2  GEqualO   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_GE_OQ  )}; }
+        ND_ Bool2  LEqualO   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_LE_OQ  )}; }
 
         // unordered - comparison with NaN returns true
-        ND_ Bool2  EqualU    (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_EQ_UQ  )}; }
-        ND_ Bool2  NotEqualU (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NEQ_UQ )}; }
-        ND_ Bool2  GreaterU  (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NLE_UQ )}; }
-        ND_ Bool2  LessU     (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NGE_UQ )}; }
-        ND_ Bool2  GEqualU   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NLT_UQ )}; }
-        ND_ Bool2  LEqualU   (const Self &rhs)              C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NGT_UQ )}; }
+        ND_ Bool2  EqualU    (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_EQ_UQ  )}; }
+        ND_ Bool2  NotEqualU (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NEQ_UQ )}; }
+        ND_ Bool2  GreaterU  (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NLE_UQ )}; }
+        ND_ Bool2  LessU     (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NGE_UQ )}; }
+        ND_ Bool2  GEqualU   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NLT_UQ )}; }
+        ND_ Bool2  LEqualU   (const Self &rhs)                  C_NE___ { return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NGT_UQ )}; }
       #endif
 
       #if AE_SIMD_SSE >= 41
-        ND_ Self  Dot (const Self &rhs)                     C_NE___
+        ND_ Self  Dot (const Self &rhs)                         C_NE___
         {
             return Self{ _mm_dp_pd( _value, rhs._value, 0xFF )};
             //__m128d   ab = _mm_mul_pd( _value, rhs._value );
             //return Self{ _mm_add_pd( ab, _mm_shuffle_pd( ab, ab, _MM_SHUFFLE2(1, 0) ))};
         }
 
-        ND_ Self  Floor ()                                  C_NE___ { return Self{ _mm_floor_pd( _value )}; }
-        ND_ Self  Ceil ()                                   C_NE___ { return Self{ _mm_ceil_pd( _value )}; }
-        template <int Mode> ND_ Self  Round ()              C_NE___ { return Self{ _mm_round_pd( _value, Mode )}; }
+        ND_ Self  Floor ()                                      C_NE___ { return Self{ _mm_floor_pd( _value )}; }
+        ND_ Self  Ceil ()                                       C_NE___ { return Self{ _mm_ceil_pd( _value )}; }
+        template <int Mode> ND_ Self  Round ()                  C_NE___ { return Self{ _mm_round_pd( _value, Mode )}; }
       #endif
 
-        ND_ Self  Abs ()                                    C_NE___
+        ND_ Self  Abs ()                                        C_NE___
         {
             __m128d signmask = _mm_set1_pd( -0.0 );
             return Self{ _mm_andnot_pd( signmask, _value )};
         }
 
-        ND_ Self  Reciprocal ()                             C_NE___ { return Self{ _mm_rcp14_pd( _value )}; }                           // 1 / x
-        ND_ Self  Sqrt ()                                   C_NE___ { return Self{ _mm_sqrt_pd( _value )}; }
-    //  ND_ Self  RSqrt ()                                  C_NE___ { return Self{ _mm_rsqrt14_pd( _value )}; }                         // 1 / sqrt(x)
-    //  ND_ Self  FastSqrt ()                               C_NE___ { return Self{ _mm_mul_pd( _value, _mm_rsqrt14_pd( _value ))}; }    // x / sqrt(x)
-        ND_ Self  Scale (const Self &rhs)                   C_NE___ { return Self{ _mm_scalef_pd( _value, rhs._value )}; }              // a * 2^b
+        ND_ Self  Reciprocal ()                                 C_NE___ { return Self{ _mm_rcp14_pd( _value )}; }                           // 1 / x
+        ND_ Self  Sqrt ()                                       C_NE___ { return Self{ _mm_sqrt_pd( _value )}; }
+    //  ND_ Self  RSqrt ()                                      C_NE___ { return Self{ _mm_rsqrt14_pd( _value )}; }                         // 1 / sqrt(x)
+    //  ND_ Self  FastSqrt ()                                   C_NE___ { return Self{ _mm_mul_pd( _value, _mm_rsqrt14_pd( _value ))}; }    // x / sqrt(x)
+        ND_ Self  Scale (const Self &rhs)                       C_NE___ { return Self{ _mm_scalef_pd( _value, rhs._value )}; }              // a * 2^b
 
         // fused multiply (FM) / fused negative multiply (FNM)
-        ND_ Self  FMAdd (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmadd_pd(    _value, b._value, c._value )}; }    // a * b + c
-        ND_ Self  FMSub (const Self &b, const Self &c)      C_NE___ { return Self{ _mm_fmsub_pd(    _value, b._value, c._value )}; }    // a * b - c
-        ND_ Self  FMAddSub (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1 }
-        ND_ Self  FMSubAdd (const Self &b, const Self &c)   C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1 }
-        ND_ Self  FNMAdd (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmadd_pd(   _value, b._value, c._value )}; }    // -a * b + c
-        ND_ Self  FNMSub (const Self &b, const Self &c)     C_NE___ { return Self{ _mm_fnmsub_pd(   _value, b._value, c._value )}; }    // -a * b - c
+        ND_ Self  FusedMulAdd (const Self &b, const Self &c)    C_NE___ { return Self{ _mm_fmadd_pd(    _value, b._value, c._value )}; }    // a * b + c
+        ND_ Self  FusedMulSub (const Self &b, const Self &c)    C_NE___ { return Self{ _mm_fmsub_pd(    _value, b._value, c._value )}; }    // a * b - c
+        ND_ Self  FusedMulAddSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 - c0, a1 * b1 + c1 }
+        ND_ Self  FusedMulSubAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fmaddsub_pd( _value, b._value, c._value )}; }    // { a0 * b0 + c0, a1 * b1 - c1 }
+        ND_ Self  FusedNegMulAdd (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fnmadd_pd(   _value, b._value, c._value )}; }    // -a * b + c
+        ND_ Self  FusedNegMulSub (const Self &b, const Self &c) C_NE___ { return Self{ _mm_fnmsub_pd(   _value, b._value, c._value )}; }    // -a * b - c
 
-        ND_ Array_t     ToArray ()                          C_NE___ { Array_t arr;  _mm_storeu_pd( OUT arr.data(), _value );  return arr; }
-            void        ToArray (OUT Value_t* dst)          C_NE___ { _mm_storeu_pd( OUT dst, _value ); }
-            void        ToAlignedArray (OUT Value_t* dst)   C_NE___ { CheckPointerCast<__m128d>( dst );  _mm_store_pd( OUT dst, _value ); }
+        ND_ Array_t     ToArray ()                              C_NE___ { Array_t arr;  _mm_storeu_pd( OUT arr.data(), _value );  return arr; }
+            void        ToArray (OUT Value_t* dst)              C_NE___ { _mm_storeu_pd( OUT dst, _value ); }
+            void        ToAlignedArray (OUT Value_t* dst)       C_NE___ { CheckPointerCast<__m128d>( dst );  _mm_store_pd( OUT dst, _value ); }
 
         template <typename DstType>
-        ND_ auto        Cast ()                             C_NE___;
+        ND_ auto        Cast ()                                 C_NE___;
     };
 
 

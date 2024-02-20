@@ -69,6 +69,16 @@ namespace AE::ResEditor
         _transitions.arr.push_back( id );
     }
 
+    void  DataTransferQueue::EnqueueImageTransition (VideoImageID id)
+    {
+        if ( not id )
+            return;
+
+        auto*   res = GraphicsScheduler().GetResourceManager().GetResource( id );
+        if ( res != null )
+            EnqueueImageTransition( res->GetImageID() );
+    }
+
 /*
 =================================================
     Upload
@@ -151,8 +161,7 @@ namespace AE::ResEditor
                 auto    status = EUploadStatus::Failed;
                 NOTHROW( status = res->Upload( ctx ));
 
-                BEGIN_ENUM_CHECKS();
-                switch ( status )
+                switch_enum( status )
                 {
                     case EUploadStatus::Failed :
                         res->Cancel();
@@ -179,7 +188,7 @@ namespace AE::ResEditor
                         break;
                     }
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
     }
@@ -261,8 +270,7 @@ namespace AE::ResEditor
                 auto    status = EUploadStatus::Failed;
                 NOTHROW( status = res->Readback( ctx ));
 
-                BEGIN_ENUM_CHECKS();
-                switch ( status )
+                switch_enum( status )
                 {
                     case EUploadStatus::Failed :
                         res->Cancel();
@@ -289,7 +297,7 @@ namespace AE::ResEditor
                         break;
                     }
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
     }

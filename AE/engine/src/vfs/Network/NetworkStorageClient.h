@@ -14,7 +14,6 @@ namespace AE::VFS
     class NetworkStorageClient final : public NetworkStorageBase
     {
     // types
-    public:
     private:
         enum class EStatus : ubyte
         {
@@ -57,7 +56,7 @@ namespace AE::VFS
 
 
         //
-        // Request Protected Pointer
+        // Protected Pointer for Request
         //
         template <typename T>
         struct Shared : MovableOnly
@@ -247,6 +246,14 @@ namespace AE::VFS
         using WDataSourcePool_t     = PoolTmpl< NetWDataSource,  _FileCount >;
 
 
+        class MsgProducer final :
+            public AsyncCSMessageProducer< LfLinearAllocator< usize{NetConfig::ChannelStorageSize * 4}, usize{8_b}, 2 >>
+        {
+        public:
+            EnumSet<EChannel>  GetChannels ()   C_NE_OV { return {EChannel::Reliable}; }
+        };
+
+
         class MsgConsumer final : public ICSMessageConsumer
         {
         private:
@@ -263,6 +270,7 @@ namespace AE::VFS
 
     // variables
     private:
+        StaticRC<MsgProducer>   _msgProducer;
         StaticRC<MsgConsumer>   _msgConsumer;
 
         ReadRequestPool_t       _readResultPool;
@@ -274,34 +282,46 @@ namespace AE::VFS
 
     // methods
     public:
-        NetworkStorageClient ()                                             __NE___;
-        ~NetworkStorageClient ()                                            __NE___;
+        NetworkStorageClient ()                                         __NE___;
+        ~NetworkStorageClient ()                                        __NE___;
 
-        ND_ auto  OpenForRead (FileNameRef name)                            __NE___ -> RC<AsyncRDataSource>;
-        ND_ auto  OpenForWrite (FileNameRef name)                           __NE___ -> RC<AsyncWDataSource>;
+        ND_ bool  Init (StringView prefix)                              __NE___;
 
-        ND_ ICSMessageProducer&  GetMessageProducer ()                      __NE___ { return *_msgProducer; }
-        ND_ ICSMessageConsumer&  GetMessageConsumer ()                      __NE___ { return *_msgConsumer; }
+        ND_ auto  OpenForRead (FileName::Ref name)                      __NE___ -> RC<AsyncRDataSource>;
+        ND_ auto  OpenForWrite (FileName::Ref name)                     __NE___ -> RC<AsyncWDataSource>;
+
+        ND_ ICSMessageProducer&  GetMessageProducer ()                  __NE___ { return *_msgProducer; }
+        ND_ ICSMessageConsumer&  GetMessageConsumer ()                  __NE___ { return *_msgConsumer; }
+
+
+    private:
+        ND_ auto  _GetReadReq (NDSRequestID id)                         __NE___ -> Shared<NetReadRequest>;
+        ND_ auto  _GetWriteReq (NDSRequestID id)                        __NE___ -> Shared<NetWriteRequest>;
+
+        ND_ auto  _GetReadDS (NetDataSourceID id)                       __NE___ -> NetRDataSource*;
+        ND_ auto  _GetWriteDS (NetDataSourceID id)                      __NE___ -> NetWDataSource*;
+
+        template <typename T>
+        ND_ auto  _CreateMsg (Bytes extraSize = 0_b)                    __NE___ { return _msgProducer->CreateMsg<T>( extraSize ); }
+
+        template <typename T>
+        ND_ auto  _CreateMsgOpt (Bytes extraSize = 0_b)                 __NE___ { return _msgProducer->CreateMsgOpt<T>( extraSize ); }
+
+        template <typename T>
+        ND_ bool  _AddMessage (T &msg)                                  __NE___ { return _msgProducer->AddMessage( msg ); }
 
 
     private:
-        ND_ auto  _GetReadReq (NDSRequestID id)                             __NE___ -> Shared<NetReadRequest>;
-        ND_ auto  _GetWriteReq (NDSRequestID id)                            __NE___ -> Shared<NetWriteRequest>;
+        void  _OpenForReadResult (CSMsg_VFS_OpenForReadResult const&)   __NE___;
+        void  _OpenForWriteResult (CSMsg_VFS_OpenForWriteResult const&) __NE___;
 
-        ND_ auto  _GetReadDS (NetDataSourceID id)                           __NE___ -> NetRDataSource*;
-        ND_ auto  _GetWriteDS (NetDataSourceID id)                          __NE___ -> NetWDataSource*;
+        void  _CloseReadFile (CSMsg_VFS_CloseReadFile const&)           __NE___;
+        void  _CloseWriteFile (CSMsg_VFS_CloseWriteFile const&)         __NE___;
 
-    private:
-        void  _OpenForReadResult (CSMsg_VFS_OpenForReadResult const&)       __NE___;
-        void  _OpenForWriteResult (CSMsg_VFS_OpenForWriteResult const&)     __NE___;
+        void  _ReadResult (CSMsg_VFS_ReadResult const&)                 __NE___;
+        void  _ReadComplete (CSMsg_VFS_ReadComplete const&)             __NE___;
 
-        void  _CloseReadFile (CSMsg_VFS_CloseReadFile const&)               __NE___;
-        void  _CloseWriteFile (CSMsg_VFS_CloseWriteFile const&)             __NE___;
-
-        void  _ReadResult (CSMsg_VFS_ReadResult const&)                     __NE___;
-        void  _ReadComplete (CSMsg_VFS_ReadComplete const&)                 __NE___;
-
-        void  _WriteComplete (CSMsg_VFS_WriteComplete const&)               __NE___;
+        void  _WriteComplete (CSMsg_VFS_WriteComplete const&)           __NE___;
     };
 
 

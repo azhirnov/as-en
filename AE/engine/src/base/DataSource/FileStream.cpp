@@ -17,7 +17,8 @@
 #   define ftell    ftello
 #endif
 #ifdef AE_PLATFORM_UNIX_BASED
-#   define fopen_s( _outFile_, _name_, _mode_ ) (*_outFile_=fopen(_name_, _mode_))
+#   define fopen_s( _outFile_, _name_, _mode_ ) (*_outFile_ = std::fopen( _name_, _mode_ ))
+#   define tmpfile_s( _outFile_ )               (*_outFile_ = std::tmpfile())
 #endif
 
 
@@ -48,6 +49,18 @@ namespace
 
 /*
 =================================================
+    OpenTempFile
+=================================================
+*/
+    ND_ static FILE*  OpenTempFile () __NE___
+    {
+        FILE*   file = null;
+        tmpfile_s( OUT &file );
+        return file;
+    }
+
+/*
+=================================================
     GetSize
 =================================================
 */
@@ -73,27 +86,25 @@ namespace
 */
     ND_ static const char*  ModeToStr (FileWStream::EMode mode) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case FileWStream::EMode::Rewrite :  return "wb";
-            case FileWStream::EMode::Update :   return "rb+";
+            case FileWStream::EMode::Update :   return "rb+";   // open file for read/write
             case FileWStream::EMode::Append :   return "ab";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown file mode" );
     }
 
     ND_ static const wchar_t*  ModeToWStr (FileWStream::EMode mode) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case FileWStream::EMode::Rewrite :  return L"wb";
-            case FileWStream::EMode::Update :   return L"rb+";
+            case FileWStream::EMode::Update :   return L"rb+";  // open file for read/write
             case FileWStream::EMode::Append :   return L"ab";
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown file mode" );
     }
 
@@ -162,6 +173,31 @@ DEBUG_ONLY(
 
 /*
 =================================================
+    SetBufferSize / SetBuffer / DisableBuffering
+=================================================
+*/
+    bool  FileRStream::SetBufferSize (Bytes size) __NE___
+    {
+        ASSERT( IsOpen() );
+        ASSERT( size > 0 );
+        return std::setvbuf( _file, null, _IOFBF, usize{size} ) == 0;
+    }
+
+    bool  FileRStream::SetBuffer (char* buf, Bytes size) __NE___
+    {
+        ASSERT( IsOpen() );
+        ASSERT( buf != null and size > 0 );
+        return std::setvbuf( _file, buf, _IOFBF, usize{size} ) == 0;
+    }
+
+    bool  FileRStream::DisableBuffering () __NE___
+    {
+        ASSERT( IsOpen() );
+        return std::setvbuf( _file, null, _IONBF, 0 ) == 0;
+    }
+
+/*
+=================================================
     GetSourceType
 =================================================
 */
@@ -226,21 +262,6 @@ DEBUG_ONLY(
 
         return readn;
     }
-
-/*
-=================================================
-    AsRDataSource
-=================================================
-*/
-    RC<RDataSource>  FileRStream::AsRDataSource ()
-    {
-        CHECK_ERR( _file != null );
-
-        FILE*   tmp = _file;
-        _file = null;
-
-        return RC<RDataSource>{ new FileRDataSource{ tmp DEBUG_ONLY(, _filename )}};
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -262,6 +283,10 @@ DEBUG_ONLY(
         if ( _file == null )
             AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
     }
+
+    FileWStream::FileWStream () __NE___ :
+        FileWStream{ OpenTempFile() DEBUG_ONLY(, Path{} )}
+    {}
 
 /*
 =================================================
@@ -447,21 +472,6 @@ DEBUG_ONLY(
 
         return readn;
     }
-
-/*
-=================================================
-    AsRStream
-=================================================
-*
-    RC<RStream>  FileRDataSource::AsRStream ()
-    {
-        CHECK_ERR( IsOpen() );
-
-        FILE*   tmp = _file;
-        _file = null;
-
-        return RC<RStream>{ new FileRStream{ tmp DEBUG_ONLY(, _filename )}};
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -484,6 +494,10 @@ DEBUG_ONLY(
         if ( _file == null )
             AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
     }
+
+    FileWDataSource::FileWDataSource () __NE___ :
+        FileWDataSource{ OpenTempFile() DEBUG_ONLY(, Path{} )}
+    {}
 
 /*
 =================================================
@@ -570,20 +584,5 @@ DEBUG_ONLY(
         CHECK( fflush( _file ) == 0 );
     }
 
-/*
-=================================================
-    AsWStream
-=================================================
-*
-    RC<WStream>  FileWDataSource::AsWStream ()
-    {
-        CHECK_ERR( IsOpen() );
-
-        FILE*   tmp = _file;
-        _file = null;
-
-        return RC<WStream>{ new FileWStream{ tmp DEBUG_ONLY(, _filename )}};
-    }
-*/
 
 } // AE::Base

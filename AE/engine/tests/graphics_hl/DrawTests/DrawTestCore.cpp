@@ -191,10 +191,6 @@ GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
     info.maxFrames      = 2;
     info.staging.readStaticSize .fill( 2_Mb );
     info.staging.writeStaticSize.fill( 2_Mb );
-    info.staging.maxReadDynamicSize     = 16_Mb;
-    info.staging.maxWriteDynamicSize    = 16_Mb;
-    info.staging.dynamicBlockSize       = 4_Mb;
-    info.staging.vstreamSize            = 4_Mb;
 
     info.swapchain.colorFormat  = EPixelFormat::RGBA8_UNorm;
 
@@ -346,14 +342,15 @@ bool  DrawTestCore::_CompareDumps (StringView filename) const
     }
 
     return Parser::CompareLineByLine( left, right,
-                [filename] (uint lline, StringView lstr, uint rline, StringView rstr)
+                [filename] (uint lline, StringView lstr, uint rline, StringView rstr) __NE___
                 {
                     AE_LOGE( "in: "s << filename << "\n\n"
                                 << "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
                                 << "\n(" << ToString( rline ) << "): " << rstr );
                 },
-                [filename] () { AE_LOGE( "in: "s << filename << "\n\n" << "sizes of dumps are not equal!" ); }
-            );
+                [filename] () __NE___ {
+                    AE_LOGE( "in: "s << filename << "\n\n" << "sizes of dumps are not equal!" );
+                });
 }
 
 #endif // AE_ENABLE_VULKAN
@@ -406,17 +403,6 @@ bool  DrawTestCore::_Create (IApplication &, IWindow &wnd)
 {
     using namespace AE::Networking;
 
-    class ServerProvider final : public IServerProvider
-    {
-        IpAddress   _addr4;
-
-    public:
-        ServerProvider (const IpAddress &addr4) __NE___ : _addr4{addr4} {}
-
-        void  GetAddress (EChannel, uint, Bool, OUT IpAddress &addr)    __NE_OV { addr = _addr4; }
-        void  GetAddress (EChannel, uint, Bool, OUT IpAddress6 &)       __NE_OV {}
-    };
-
     GraphicsCreateInfo  info = _GetGraphicsCreateInfo();
 
     info.device.appName         = "TestApp";
@@ -431,7 +417,7 @@ bool  DrawTestCore::_Create (IApplication &, IWindow &wnd)
     info.swapchain.minImageCount= 2;
 
     CHECK_ERR( _device.Init( info,
-                             MakeRC<ServerProvider>( IpAddress::FromLocalPortTCP( _serverPort )),
+                             MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( _serverPort )),
                              EThreadArray{ EThread::Main, EThread::PerFrame, EThread::Renderer }
                             ));
 

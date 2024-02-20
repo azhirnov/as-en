@@ -88,7 +88,7 @@ namespace AE::Graphics
 =================================================
 */
     bool  VResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
-                                                  PipelinePackID packId, const DSLayoutName &dslName,
+                                                  PipelinePackID packId, DSLayoutName::Ref dslName,
                                                   DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
     {
         auto*   pack = GetResource( packId ? packId : _defaultPack.Get() );
@@ -134,7 +134,7 @@ namespace AE::Graphics
     CreateSampler
 =================================================
 */
-    Strong<SamplerID>  VResourceManager::CreateSampler (const VkSamplerCreateInfo &info, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo, StringView dbgName) __NE___
+    Strong<SamplerID>  VResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo) __NE___
     {
         return _CreateResource<SamplerID>( "failed when creating sampler", *this, info, ycbcrInfo, dbgName );
     }
@@ -144,48 +144,11 @@ namespace AE::Graphics
     GetVkSampler
 =================================================
 */
-    VkSampler  VResourceManager::GetVkSampler (const SamplerName &name) C_NE___
+    VkSampler  VResourceManager::GetVkSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
     {
-        auto*   res = GetResource( GetSampler( name ));
-
-        if_unlikely( res == null )
-            res = GetResource( _defaultSampler );
-
+        auto*   res = GetResource( GetSampler( packId, name ));
+        CHECK_ERR( res != null );
         return res->Handle();
-    }
-
-/*
-=================================================
-    _CreateDefaultSampler
-=================================================
-*/
-    bool  VResourceManager::_CreateDefaultSampler () __NE___
-    {
-        CHECK_ERR( _defaultSampler == Default );
-
-        VkSamplerCreateInfo     info = {};
-        info.sType                  = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        info.flags                  = 0;
-        info.magFilter              = VK_FILTER_NEAREST;
-        info.minFilter              = VK_FILTER_NEAREST;
-        info.mipmapMode             = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-        info.addressModeU           = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.addressModeV           = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.addressModeW           = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.mipLodBias             = 0.0f;
-        info.anisotropyEnable       = VK_FALSE;
-        info.maxAnisotropy          = 0.0f;
-        info.compareEnable          = VK_FALSE;
-        info.compareOp              = VK_COMPARE_OP_NEVER;
-        info.minLod                 = 0.0f;
-        info.maxLod                 = 0.0f;
-        info.borderColor            = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-        info.unnormalizedCoordinates= VK_FALSE;
-
-        _defaultSampler = CreateSampler( info, null, "Default" );
-        CHECK_ERR( _defaultSampler );
-
-        return true;
     }
 //-----------------------------------------------------------------------------
 

@@ -6,7 +6,7 @@
 */
 #pragma once
 
-#include "geometry_tools/GeometryTools.pch.h"
+#include "pch/Base.h"
 
 namespace AE::GeometryTools
 {
@@ -97,19 +97,19 @@ namespace AE::GeometryTools
         c.y = -c.y;
 
         // front (xy space)
-        if ( (Abs(c.x) <= c.z) & (c.z > 0.0) & (Abs(c.y) <= c.z) )
+        if ( (Abs(c.x) <= c.z) and (c.z > 0.0) and (Abs(c.y) <= c.z) )
             return Tuple{ double2{c.x, c.y}, c.z, ECubeFace::ZPos };
 
         // right (zy space)
-        if ( (Abs(c.z) <= c.x) & (c.x > 0.0) & (Abs(c.y) <= c.x) )
+        if ( (Abs(c.z) <= c.x) and (c.x > 0.0) and (Abs(c.y) <= c.x) )
             return Tuple{ double2{-c.z, c.y}, c.x, ECubeFace::XPos };
 
         // back (xy space)
-        if ( (Abs(c.x) <= -c.z) & (c.z < 0.0) & (Abs(c.y) <= -c.z) )
+        if ( (Abs(c.x) <= -c.z) and (c.z < 0.0) and (Abs(c.y) <= -c.z) )
             return Tuple{ double2{-c.x, c.y}, -c.z, ECubeFace::ZNeg };
 
         // left (zy space)
-        if ( (Abs(c.z) <= -c.x) & (c.x < 0.0) & (Abs(c.y) <= -c.x) )
+        if ( (Abs(c.z) <= -c.x) and (c.x < 0.0) and (Abs(c.y) <= -c.x) )
             return Tuple{ double2{c.z, c.y}, -c.x, ECubeFace::XNeg };
 
         // up (xz space)

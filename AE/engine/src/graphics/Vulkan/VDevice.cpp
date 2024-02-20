@@ -32,7 +32,7 @@ namespace
 
     StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-    StaticAssert( VK_HEADER_VERSION == 261 );
+    StaticAssert( VK_HEADER_VERSION == 275 );
 
     static constexpr usize  c_MaxMemTypes = std::initializer_list<EMemoryType>{
                                                 EMemoryType::DeviceLocal,   EMemoryType::Transient,     EMemoryType::HostCoherent,
@@ -95,17 +95,18 @@ namespace
 */
     ND_ static VkObjectType  DebugReportObjectTypeToObjectType (VkDebugReportObjectTypeEXT objType)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( objType )
+        switch_enum( objType )
         {
             #define REPORT_TO_UTILS( _dbgReportType_, _dbgUtilsType_ )  case _dbgReportType_ :  return _dbgUtilsType_;
             VK_DBGUTILS_DBGREPORT_OBJECT_TYPES( REPORT_TO_UTILS );
             #undef REPORT_TO_UTILS
 
             case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA_EXT :
+            case VK_DEBUG_REPORT_OBJECT_TYPE_CUDA_MODULE_NV_EXT :
+            case VK_DEBUG_REPORT_OBJECT_TYPE_CUDA_FUNCTION_NV_EXT :
             case VK_DEBUG_REPORT_OBJECT_TYPE_MAX_ENUM_EXT : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return VK_OBJECT_TYPE_MAX_ENUM;
     }
 
@@ -116,8 +117,7 @@ namespace
 */
     ND_ static VkDebugReportObjectTypeEXT  DebugReportObjectTypeToObjectType (VkObjectType objType)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( objType )
+        switch_enum( objType )
         {
             #define UTILS_TO_REPORT( _dbgReportType_, _dbgUtilsType_ )  case _dbgUtilsType_ :  return _dbgReportType_;
             VK_DBGUTILS_DBGREPORT_OBJECT_TYPES( UTILS_TO_REPORT );
@@ -134,9 +134,11 @@ namespace
             case VK_OBJECT_TYPE_MICROMAP_EXT :
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :
             case VK_OBJECT_TYPE_SHADER_EXT :
+            case VK_OBJECT_TYPE_CUDA_MODULE_NV :
+            case VK_OBJECT_TYPE_CUDA_FUNCTION_NV :
             case VK_OBJECT_TYPE_MAX_ENUM :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return VK_DEBUG_REPORT_OBJECT_TYPE_MAX_ENUM_EXT;
     }
 
@@ -151,8 +153,7 @@ namespace
 
         for (auto t : BitfieldIterate( inFlags ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT :          result |= VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;  break;
                 case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT :             result |= VK_DEBUG_REPORT_INFORMATION_BIT_EXT;  break;
@@ -161,7 +162,7 @@ namespace
                 case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT :
                 default_unlikely :                                              DBG_WARNING( "unknown message severity type" ); break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return result;
     }
@@ -173,8 +174,7 @@ namespace
 */
     ND_ static StringView  VkObjectTypeToString (VkObjectType objType)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( objType )
+        switch_enum( objType )
         {
             case VK_OBJECT_TYPE_INSTANCE :                      return "Instance";
             case VK_OBJECT_TYPE_PHYSICAL_DEVICE :               return "PhysicalDevice";
@@ -222,6 +222,8 @@ namespace
             case VK_OBJECT_TYPE_MICROMAP_EXT :                  return "Mcromap";
             case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :       return "OpticalFlowSessionNV";
             case VK_OBJECT_TYPE_SHADER_EXT :                    return "Shader";
+            case VK_OBJECT_TYPE_CUDA_MODULE_NV :                return "CUDA module";
+            case VK_OBJECT_TYPE_CUDA_FUNCTION_NV :              return "CUDA fn";
 
             case VK_OBJECT_TYPE_UNKNOWN :
             case VK_OBJECT_TYPE_VALIDATION_CACHE_EXT :
@@ -229,7 +231,7 @@ namespace
             case VK_OBJECT_TYPE_MAX_ENUM :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "unknown";
     }
 }
@@ -430,8 +432,7 @@ namespace
 
         constexpr EMemoryType       mask = EMemoryType::DeviceLocal | EMemoryType::Transient | EMemoryType::HostCachedCoherent;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( memType & mask )
+        switch_enum( memType & mask )
         {
             case EMemoryType::DeviceLocal :
                 include_flags       = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -480,7 +481,7 @@ namespace
             default_unlikely :
                 RETURN_ERR( "unsupported memory type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return GetMemoryTypeIndex( memoryTypeBits, include_flags, opt_include_flags, exclude_flags, opt_exclude_flags, OUT memoryTypeIndex );
     }
@@ -718,8 +719,7 @@ namespace
                     AppendToString( INOUT str, name.size(), max_len, !!(j++ & 1), '.', ' ' );
                     str << ' ';
 
-                    BEGIN_ENUM_CHECKS();
-                    switch ( stat.format )
+                    switch_enum( stat.format )
                     {
                         case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_BOOL32_KHR :   str << (stat.value.b32 ? "true" : "false");     break;
                         case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_INT64_KHR :    str << ToString( stat.value.i64 );              break;
@@ -727,7 +727,7 @@ namespace
                         case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR :  str << ToString( stat.value.f64 );              break;
                         case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_MAX_ENUM_KHR : break;
                     }
-                    END_ENUM_CHECKS();
+                    switch_end
                     str << "  (" << stat.description << ')';
                 }
             }
@@ -967,12 +967,11 @@ namespace
 */
     bool  VDeviceInitializer::LoadNvPerf () __NE___
     {
-        //DRC_EXLOCK( _drCheck );
-        //CHECK_ERR( not _nvPerf.IsLoaded() );
-        //CHECK_ERR( GetVkInstance() == Default );
+        DRC_EXLOCK( _drCheck );
+        CHECK_ERR( not _nvPerf.IsLoaded() );
+        CHECK_ERR( GetVkInstance() == Default );
 
-        //return _nvPerf.Load();
-        return false;
+        return _nvPerf.Load();
     }
 
 /*
@@ -1043,8 +1042,8 @@ namespace
         Array< const char* >    instance_extensions = _GetInstanceExtensions( _vkInstanceVersion );         // throw
         instance_extensions.insert( instance_extensions.end(), extensions.begin(), extensions.end() );      // throw
 
-        //if ( _nvPerf.IsLoaded() )
-        //    _nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
+        if ( _nvPerf.IsLoaded() )
+            _nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
 
         _ValidateInstanceLayers( INOUT instance_layers, Bool{not _enableInfoLog} );                             // throw
         _ValidateInstanceExtensions( instance_layers, INOUT instance_extensions, Bool{not _enableInfoLog} );    // throw
@@ -1158,8 +1157,8 @@ namespace
 
         VulkanLoader::Unload();
 
-        //if ( _nvPerf.IsLoaded() )
-        //    _nvPerf.Deinitialize();
+        if ( _nvPerf.IsLoaded() )
+            _nvPerf.Deinitialize();
 
         _vkInstance         = Default;
         _vkPhysicalDevice   = Default;
@@ -1691,8 +1690,7 @@ namespace {
 
             for (uint bits = prop.purposes; bits != 0;)
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( ExtractBit( INOUT bits ))
+                switch_enum( ExtractBit( INOUT bits ))
                 {
                     case VK_TOOL_PURPOSE_VALIDATION_BIT :           str << "Validation";            break;
                     case VK_TOOL_PURPOSE_PROFILING_BIT :            str << "Profiling";             break;
@@ -1703,7 +1701,7 @@ namespace {
                     case VK_TOOL_PURPOSE_DEBUG_MARKERS_BIT_EXT :    str << "DebugMarkers";          break;
                     default :                                       str << "unknown";               break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 if ( bits != 0 )
                     str << " | ";
@@ -1775,8 +1773,7 @@ namespace {
             VkQueueFlagBits     include_flags   = Zero;
             VkQueueFlagBits     exclude_flags   = Zero;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( type )
+            switch_enum( type )
             {
                 case EQueueType::Graphics :
                     include_flags   = VK_QUEUE_GRAPHICS_BIT;
@@ -1806,7 +1803,7 @@ namespace {
                 default_unlikely :
                     RETURN_ERR( "unknown queue type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             for (usize i = 0; i < queue_family_props.size(); ++i)
             {
@@ -1923,8 +1920,8 @@ namespace {
         Array<const char *>     device_extensions = _GetDeviceExtensions( _vkDeviceVersion );       // throw
         device_extensions.insert( device_extensions.end(), extensions.begin(), extensions.end() );  // throw
 
-        //if ( _nvPerf.IsLoaded() )
-        //    _nvPerf.GetDeviceExtensions( *this, INOUT device_extensions );
+        if ( _nvPerf.IsLoaded() )
+            _nvPerf.GetDeviceExtensions( *this, INOUT device_extensions );
 
         _ValidateDeviceExtensions( _vkPhysicalDevice, INOUT device_extensions );    // throw
 
@@ -2070,8 +2067,8 @@ namespace {
             _LogExternalTools();    // throw
         }
 
-        //if ( not (_nvPerf.IsLoaded() and _nvPerf.Initialize( *this )) )
-        //    _nvPerf.Deinitialize();
+        if ( not (_nvPerf.IsLoaded() and _nvPerf.Initialize( *this )) )
+            _nvPerf.Deinitialize();
 
         return true;
     }
@@ -2160,8 +2157,7 @@ namespace {
             str << "\n  conformanceVersion: . . . . " << ToString( ver.major ) << '.' << ToString( ver.minor ) << '.' << ToString( ver.subminor ) << '.' << ToString( ver.patch );
             str << "\n  driverID:                   ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( _properties.driverPropertiesProps.driverID )
+            switch_enum( _properties.driverPropertiesProps.driverID )
             {
                 case VK_DRIVER_ID_AMD_PROPRIETARY :             str << "AMD proprietary";               break;
                 case VK_DRIVER_ID_AMD_OPEN_SOURCE :             str << "AMD open source";               break;
@@ -2188,10 +2184,11 @@ namespace {
                 case VK_DRIVER_ID_MESA_DOZEN :                  str << "Mesa Dozen";                    break;
                 case VK_DRIVER_ID_MESA_NVK :                    str << "Mesa NVK";                      break;
                 case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA: str << "Mesa Img open source";          break;
+                case VK_DRIVER_ID_MESA_AGXV :                   str << "Mesa AGXV";                     break;
                 case VK_DRIVER_ID_MAX_ENUM :
                 default :                                       str << "unknown";                       break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         str << _GetVulkanExtensionsString();
         str << "\n----";
@@ -2786,7 +2783,6 @@ namespace {
 
         static constexpr VErrorName stage_mask1     {"VUID-vkCmdPipelineBarrier2-srcStageMask-03849"};  // __ false-positive on queue ownership transfer
         static constexpr VErrorName stage_mask2     {"VUID-vkCmdPipelineBarrier2-dstStageMask-03850"};  // /
-        static constexpr VErrorName spv_ext         {"VUID-VkShaderModuleCreateInfo-pCode-04147"};      // - noisy
         static constexpr VErrorName img_fmt_list    {"VUID-VkImageViewCreateInfo-image-01762"};         // - false-positive: image format list allows to create image view with different format without VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT
         static constexpr VErrorName iface_mismatch  {"UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch"};
         static constexpr VErrorName access_mask1    {"VUID-VkMemoryBarrier2-srcAccessMask-07454"};      // \ https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/6628
@@ -2795,9 +2791,8 @@ namespace {
         auto*               self    = static_cast<VDeviceInitializer *>(pUserData);
         const VErrorName    msg_id  {pCallbackData->pMessageIdName};
 
-        if ( (msg_id == stage_mask1)    | (msg_id == stage_mask2)       | (msg_id == spv_ext)       |
-             (msg_id == img_fmt_list)   | (msg_id == iface_mismatch)    | (msg_id == access_mask1)  |
-             (msg_id == access_mask2) )
+        if ( (msg_id == stage_mask1)    or (msg_id == stage_mask2)  or (msg_id == img_fmt_list) or
+             (msg_id == iface_mismatch) or (msg_id == access_mask1) or (msg_id == access_mask2) )
             return VK_FALSE;
 
         auto    dbg_report = self->_dbgReport.WriteNoLock();
@@ -3037,8 +3032,7 @@ namespace {
             instance_ci.instanceLayers      = layers;
             instance_ci.instanceExtensions  = instanceExtensions;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( ci.device.validation )
+            switch_enum( ci.device.validation )
             {
                 case EDeviceValidation::Disabled :
                 case EDeviceValidation::Enabled :
@@ -3073,7 +3067,7 @@ namespace {
                     DBG_WARNING( "unknown validation type" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             CHECK_ERR( CreateInstance( instance_ci ));
 
@@ -3099,8 +3093,8 @@ namespace {
             CHECK_ERR( CreateLogicalDevice() );
         }
 
-        //if ( AllBits( dev_flags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
-        //    _nvPerf.SetStableClockState( true );
+        if ( AllBits( dev_flags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
+            _nvPerf.SetStableClockState( true );
 
         return true;
     }

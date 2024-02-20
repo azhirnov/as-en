@@ -23,8 +23,7 @@ namespace
         if ( has_attribs )
             str << inShader->ThreadgroupsMSL( features );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( inShader->type )
+        switch_enum( inShader->type )
         {
             case EShader::Vertex :      str << (has_attribs ? "[[vertex]]"   : "vertex");       break;
             case EShader::Fragment :    str << (has_attribs ? "[[fragment]]" : "fragment");     break;
@@ -46,7 +45,7 @@ namespace
             case EShader::Unknown :
             default :                   CHECK_THROW_MSG( false, "unsupported shader type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
         str << " \n";
 
         // TODO:
@@ -588,8 +587,7 @@ namespace
         {
             str << "layout(location=" << ToString( fo.index ) << ") out ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( fo.type )
+            switch_enum( fo.type )
             {
                 case EShaderIO::Float :
                 case EShaderIO::UFloat :
@@ -609,7 +607,7 @@ namespace
                 case EShaderIO::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown ShaderIO type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             str << "  " << storage.GetName( fo.name ) << ";\n";
         }
@@ -632,9 +630,7 @@ namespace
         for (auto& fo : fragOut)
         {
             str << "\t";
-
-            BEGIN_ENUM_CHECKS();
-            switch ( fo.type )
+            switch_enum( fo.type )
             {
                 case EShaderIO::UFloat :
                 case EShaderIO::UNorm :
@@ -654,7 +650,7 @@ namespace
                 case EShaderIO::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown ShaderIO type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             str << "  " << storage.GetName( fo.name ) << "  [[color(" << ToString( fo.index ) << ")]];\n";
         }
@@ -835,8 +831,7 @@ namespace
 
         for (auto opt : BitfieldIterate( _options ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( opt )
+            switch_enum( opt )
             {
                 case EPipelineOpt::Optimize :
                     break;  // ok
@@ -866,7 +861,7 @@ namespace
                 case EPipelineOpt::Unknown :
                 default :   CHECK_THROW_MSG( false, "unknown pipeline option" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 
@@ -886,8 +881,7 @@ namespace
 
         for (auto dyn_st : BitfieldIterate( dynamicState ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( dyn_st )
+            switch_enum( dyn_st )
             {
                 case EPipelineDynamicState::StencilCompareMask :
                 case EPipelineDynamicState::StencilWriteMask :
@@ -910,7 +904,7 @@ namespace
                     CHECK_THROW_MSG( false, "unknown pipeline dynamic state" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         if ( state.rasterization.polygonMode != EPolygonMode::Fill )

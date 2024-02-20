@@ -114,85 +114,101 @@ namespace AE::Graphics::_hidden_
 
     // methods
     public:
-        explicit _VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)            __Th___;
+        explicit _VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)    __Th___;
 
-        _VTransferContextImpl ()                                                                                                = delete;
-        _VTransferContextImpl (const _VTransferContextImpl &)                                                                   = delete;
+        _VTransferContextImpl ()                                                                                        = delete;
+        _VTransferContextImpl (const _VTransferContextImpl &)                                                           = delete;
 
         using RawCtx::ClearColorImage;
         using RawCtx::ClearDepthStencilImage;
 
-        void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)                    __Th___ { _ClearColorImage( image, color, ranges ); }
-        void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)                    __Th___ { _ClearColorImage( image, color, ranges ); }
-        void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)                    __Th___ { _ClearColorImage( image, color, ranges ); }
-        void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges) __Th___;
+        void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)            __Th___ { _ClearColorImage( image, color, ranges ); }
+        void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)            __Th___ { _ClearColorImage( image, color, ranges ); }
+        void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)            __Th___ { _ClearColorImage( image, color, ranges ); }
+        void  ClearDepthStencilImage (ImageID image, const DepthStencil &, ArrayView<ImageSubresourceRange> ranges)     __Th___;
 
         using RawCtx::UpdateBuffer;
-        void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                                        __Th_OV;
+        void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                                __Th_OV;
 
         using RawCtx::FillBuffer;
-        void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)                                                 __Th_OV;
+        void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)                                         __Th_OV;
 
         using RawCtx::CopyBuffer;
         using RawCtx::CopyImage;
 
-        void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)                                 __Th_OV;
-        void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)                                       __Th_OV;
+        void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)                         __Th_OV;
+        void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)                               __Th_OV;
 
         using RawCtx::CopyBufferToImage;
         using RawCtx::CopyImageToBuffer;
 
-        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)                       __Th_OV;
-        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)                       __Th_OV;
+        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)               __Th_OV;
+        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)               __Th_OV;
 
-        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)                      __Th_OV;
-        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)                      __Th_OV;
+        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)              __Th_OV;
+        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)              __Th_OV;
 
         using RawCtx::BlitImage;
 
-        void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)                  __Th_OV;
+        void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)          __Th_OV;
 
-        void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)                                __Th___;
+        void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)                        __Th___;
 
-        void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)                          __Th_OV;
-        void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)                              __Th_OV;
+        void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)                  __Th_OV;
+        void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)                      __Th_OV { _UploadImage( image, desc, OUT memView ); }
+        void  UploadImage  (VideoImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)                 __Th_OV { _UploadImage( image, desc, OUT memView ); }
 
-        void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)                                                   __Th_OV;
-        void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)                                                      __Th_OV;
+        void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)                                           __Th_OV;
+        void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)                                              __Th_OV { _UploadImage( stream, OUT memView ); }
+        void  UploadImage (VideoImageStream &stream, OUT ImageMemView &memView)                                         __Th_OV { _UploadImage( stream, OUT memView ); }
 
-        ND_ Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)                            __Th_OV;
-        ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                                __Th_OV;
+        ND_ Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)                    __Th_OV;
+        ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                        __Th_OV { return _ReadbackImage( image, desc ); }
+        ND_ Promise<ImageMemView>   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)                   __Th_OV { return _ReadbackImage( image, desc ); }
 
-        ND_ Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                                 __Th_OV;
-        ND_ Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                                   __Th_OV;
+        ND_ Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)                                         __Th_OV;
+        ND_ Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)                                           __Th_OV { return _ReadbackImage( stream ); }
+        ND_ Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)                                      __Th_OV { return _ReadbackImage( stream ); }
 
-        ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)                           __Th___;
-        ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)                              __Th_OV;
+        ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)                   __Th___;
+        ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)                      __Th_OV;
 
-        ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)                               __Th_OV;
+        ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)                       __Th_OV;
 
         using RawCtx::GenerateMipmaps;
 
-        void  GenerateMipmaps (ImageID image, EResourceState state)                                                             __Th_OV;
-        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)                    __Th_OV;
+        void  GenerateMipmaps (ImageID image, EResourceState state)                                                     __Th_OV;
+        void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)            __Th_OV;
 
         using ITransferContext::UpdateHostBuffer;
         using ITransferContext::UploadBuffer;
         using ITransferContext::UploadImage;
         using ITransferContext::UpdateBuffer;
 
-        uint3  MinImageTransferGranularity ()                                                                                   C_NE_OF;
+        uint3  MinImageTransferGranularity ()                                                                           C_NE_OF;
 
         VBARRIERMNGR_INHERIT_BARRIERS
 
     private:
+        template <typename ID>
+        void  _UploadImage (ID image, const UploadImageDesc &desc, OUT ImageMemView &memView)                           __Th___;
+
+        template <typename StreamType>
+        void  _UploadImage (INOUT StreamType &stream, OUT ImageMemView &memView)                                        __Th___;
+
+        template <typename ID>
+        ND_ Promise<ImageMemView>  _ReadbackImage (ID image, const ReadbackImageDesc &desc)                             __Th___;
+
+        template <typename StreamType>
+        ND_ Promise<ImageMemView>  _ReadbackImage (INOUT StreamType &stream)                                            __Th___;
+
         template <typename ColType>
         void  _ClearColorImage (ImageID image, const ColType &color, ArrayView<ImageSubresourceRange> ranges)                                           __Th___;
 
         static void  _ConvertImageSubresourceRange (OUT VkImageSubresourceRange& dst, const ImageSubresourceRange& src, const ImageDesc &desc)          __NE___;
         static void  _ConvertImageSubresourceLayer (OUT VkImageSubresourceLayers &dst, const ImageSubresourceLayers &src, const ImageDesc &desc)        __NE___;
         static void  _ConvertBufferImageCopy (OUT VkBufferImageCopy& dst, const BufferImageCopy& src, const ImageDesc &desc)                            __NE___;
-        static void  _ConvertBufferImageCopy (OUT VkBufferImageCopy& dst, const BufferImageCopy2& src, const ImageDesc &desc, const PixelFormatInfo &fmtInfo) __Th___;
+        static void  _ConvertBufferImageCopy (OUT VkBufferImageCopy& dst, const BufferImageCopy2& src, const ImageDesc &desc, const PixelFormatInfo &)  __Th___;
 
         ND_ bool  _MapHostBuffer (BufferID bufferId, INOUT Bytes &offset, INOUT Bytes &size, OUT VulkanMemoryObjInfo &memInfo)                          __Th___;
     };

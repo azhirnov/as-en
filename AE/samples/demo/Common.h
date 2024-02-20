@@ -2,21 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Random.h"
-
-#include "platform/Public/InputActions.h"
-#include "platform/Public/InputSurface.h"
-#include "platform/Public/OutputSurface.h"
-
-#include "platform/BaseAppV1/AppConfig.h"
-#include "platform/BaseAppV1/DefaultAppV1.h"
-
-#include "graphics/Public/GraphicsImpl.h"
-
-#include "graphics_hl/Canvas/Canvas.h"
-
-#include "vfs/VirtualFileSystem.h"
-
+#include "Demo.pch.h"
 
 namespace AE::Samples::Demo
 {
@@ -24,5 +10,7 @@ namespace AE::Samples::Demo
     using namespace AE::App;
 
     using AE::Threading::AsyncTask;
+    using AE::Threading::IAsyncTask;
+    using AE::Threading::PromiseResult;
 
 } // AE::Samples::Demo

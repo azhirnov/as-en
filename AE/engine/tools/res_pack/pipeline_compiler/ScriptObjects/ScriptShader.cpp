@@ -14,8 +14,7 @@ namespace
 */
     ND_ static StringView  ETessPatch_ToString (ETessPatch value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ETessPatch::Points :       return "point_mode";
             case ETessPatch::Isolines :     return "isolines";
@@ -25,7 +24,7 @@ namespace
             case ETessPatch::Unknown :
             case ETessPatch::_Count :       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unsupported tessellation patch mode" );
     }
 
@@ -36,8 +35,7 @@ namespace
 */
     ND_ static StringView  ETessSpacing_ToString (ETessSpacing value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ETessSpacing::Equal :          return "equal_spacing";
             case ETessSpacing::FractionalEven : return "fractional_even_spacing";
@@ -46,7 +44,7 @@ namespace
             case ETessSpacing::Unknown :
             case ETessSpacing::_Count :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unsupported tessellation patch mode" );
     }
 
@@ -69,8 +67,7 @@ namespace
 */
     void  ScriptShader::AddSpec (EValueType valType, const String &name) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( valType )
+        switch_enum( valType )
         {
             case EValueType::Bool8 :
             case EValueType::Bool32 :
@@ -95,7 +92,7 @@ namespace
             case EValueType::_Count :
             default :                       CHECK_THROW_MSG( false, "unsupported value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         ObjectStorage::Instance()->AddName<SpecializationName>( name );
         CHECK_THROW_MSG( _spec.size() < _spec.capacity() );
@@ -556,8 +553,7 @@ namespace
 
                 String  def_val;
 
-                BEGIN_ENUM_CHECKS();
-                switch ( spec.type )
+                switch_enum( spec.type )
                 {
                     case EValueType::Bool8 :
                     case EValueType::Bool32 :   str << "bool";      def_val = "false";  break;
@@ -582,7 +578,7 @@ namespace
                     case EValueType::_Count :
                     default :                   CHECK_THROW_MSG( false, "unsupported value type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 str << "  " << storage.GetName( name ) << " = " << def_val << ";\n";
             }
@@ -672,8 +668,7 @@ namespace
         {
             str << "constant ";
 
-            BEGIN_ENUM_CHECKS();
-            switch ( spec.type )
+            switch_enum( spec.type )
             {
                 case EValueType::Bool8 :
                 case EValueType::Bool32 :       str << "bool";      break;
@@ -698,7 +693,7 @@ namespace
                 case EValueType::_Count :
                 default :                       CHECK_THROW_MSG( false, "unsupported value type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             str << "  " << storage.GetName( name ) << " [[function_constant(" << ToString( spec.index ) << ")]];\n";
         }
@@ -801,18 +796,34 @@ namespace
         {
             EnumBinder<ETessPatch>  binder{ se };
             binder.Create();
-            binder.AddValue( "Points",      ETessPatch::Points );
-            binder.AddValue( "Isolines",    ETessPatch::Isolines );
-            binder.AddValue( "Triangles",   ETessPatch::Triangles );
-            binder.AddValue( "Quads",       ETessPatch::Quads );
-            StaticAssert( uint(ETessPatch::_Count) == 5 );
+            switch_enum( ETessPatch::Unknown )
+            {
+                case ETessPatch::Unknown :
+                case ETessPatch::_Count :
+                #define CASE( _name_ )  case ETessPatch::_name_ : binder.AddValue( #_name_, ETessPatch::_name_ );
+                CASE( Points )
+                CASE( Isolines )
+                CASE( Triangles )
+                CASE( Quads )
+                #undef CASE
+                default : break;
+            }
+            switch_end
         }{
             EnumBinder<ETessSpacing>    binder{ se };
             binder.Create();
-            binder.AddValue( "Equal",           ETessSpacing::Equal );
-            binder.AddValue( "FractionalEven",  ETessSpacing::FractionalEven );
-            binder.AddValue( "FractionalOdd",   ETessSpacing::FractionalOdd );
-            StaticAssert( uint(ETessSpacing::_Count) == 4 );
+            switch_enum( ETessSpacing::Unknown )
+            {
+                case ETessSpacing::Unknown :
+                case ETessSpacing::_Count :
+                #define CASE( _name_ )  case ETessSpacing::_name_ : binder.AddValue( #_name_, ETessSpacing::_name_ );
+                CASE( Equal )
+                CASE( FractionalEven )
+                CASE( FractionalOdd )
+                #undef CASE
+                default : break;
+            }
+            switch_end
         }
 
         ClassBinder<ScriptShader>   binder{ se };

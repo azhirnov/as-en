@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Core/ImGuiRenderer.h"
+#include "demo/Core/ISample.h"
 
 namespace AE::Samples::Demo
 {
@@ -13,7 +13,6 @@ namespace AE::Samples::Demo
     {
     // types
     private:
-        class UploadTask;
         class DrawTask;
         class ProcessInputTask;
 
@@ -30,7 +29,7 @@ namespace AE::Samples::Demo
         explicit ImGuiSample (ImGuiContext* ctx)                                            __NE___ : imgui{ctx} {}
 
         // ISample //
-        bool            Init (PipelinePackID pack)                                          __NE_OV;
+        bool            Init (PipelinePackID, IApplicationTS)                               __NE_OV;
         AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE_OV;
         AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   __NE_OV;
         InputModeName   GetInputMode ()                                                     C_NE_OV;

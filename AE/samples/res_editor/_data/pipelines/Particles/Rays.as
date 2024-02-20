@@ -185,7 +185,7 @@
 
     void Main ()
     {
-        out_Color = In.color * (1.0 - Distance( ToSNorm(In.uv), float2(0.0) ));
+        out_Color = In.color * (1.0 - Length( ToSNorm( In.uv )));
     }
 
 #endif

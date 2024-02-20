@@ -211,7 +211,7 @@ namespace AE::Graphics
     CopyHandle
 =================================================
 */
-    bool  VRayTracingPipeline::CopyHandle (const VDevice &dev, const RayTracingGroupName &name, OUT void* dst, Bytes dstSize) C_NE___
+    bool  VRayTracingPipeline::CopyHandle (const VDevice &dev, RayTracingGroupName::Ref name, OUT void* dst, Bytes dstSize) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -262,7 +262,7 @@ namespace AE::Graphics
     GetShaderGroupStackSize
 =================================================
 */
-    Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, const RayTracingGroupName &name, VkShaderGroupShaderKHR type) C_NE___
+    Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, RayTracingGroupName::Ref name, VkShaderGroupShaderKHR type) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

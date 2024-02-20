@@ -2,15 +2,17 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
 #include "base/Math/Vec.h"
+#include "base/Math/Quat.h"
 #include "base/Math/Rectangle.h"
 #include "base/Math/VecSwizzle.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Math/Color.h"
 #include "base/Math/BitMath.h"
 #include "base/Math/POTValue.h"
+#include "base/Math/Range.h"
 #include "base/Utils/Version.h"
+#include "base/Utils/EnumSet.h"
 
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/MemUtils.h"
@@ -71,13 +73,17 @@ namespace AE::Base
     template <typename T, typename A>
     BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, T const * const rhs) __Th___
     {
-        return RVRef( RVRef(lhs).append( rhs ));
+        return  rhs != null ?
+                    RVRef( RVRef(lhs).append( rhs )) :
+                    RVRef(lhs);
     }
 
     template <typename T, typename A>
     BasicString<T,A>&  operator << (BasicString<T,A> &lhs, T const * const rhs) __Th___
     {
-        return lhs.append( rhs );
+        return  rhs != null ?
+                    lhs.append( rhs ) :
+                    lhs;
     }
 
     template <typename T, typename A>
@@ -173,6 +179,86 @@ namespace AE::Base
 
 
 
+namespace _hidden_
+{
+/*
+=================================================
+    find_avx2_align
+----
+    from https://gms.tf/stdfind-and-memchr-optimizations.html#alignment
+=================================================
+*/
+#if AE_SIMD_AVX >= 2
+    ND_ forceinline const char*  find_avx2_align (const char *b, const char *e, const char c) __NE___
+    {
+        auto*   i = b;
+        __m256i q = _mm256_set1_epi8( c );
+        {
+            // unaligned case is allowed for AVX
+            __m256i x = _mm256_lddqu_si256( static_cast<__m256i const *>( static_cast<void const *>( i )));
+            __m256i r = _mm256_cmpeq_epi8( x, q );
+            int     z = _mm256_movemask_epi8( r );
+
+            if_unlikely( z ) {
+                auto* r2 = i + BitScanForward( z );
+                return Min( r2, e );
+            }
+        }
+
+        usize   ai  = BitCast<usize>( b + 32 );
+        ai  &= ~usize{0b11111u};
+        i   = BitCast<const char *>( ai );
+
+        for_likely (; i < e; i += 32)
+        {
+            __m256i x = _mm256_lddqu_si256( Cast<__m256i>( i ));
+            __m256i r = _mm256_cmpeq_epi8( x, q );
+            int     z = _mm256_movemask_epi8( r );
+
+            if_unlikely( z ) {
+                auto* r2 = i + BitScanForward( z );
+                return Min( r2, e );
+            }
+        }
+        return e;
+    }
+#endif
+
+} // _hidden_
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    FindChar
+----
+    faster than StringView{}.find( ... )
+    returns 'size' if not found
+=================================================
+*/
+    ND_ forceinline usize  FindChar (const char* ptr, const usize first, const usize size, const char ch) __NE___
+    {
+    #if AE_SIMD_AVX >= 2
+        auto* p = Base::_hidden_::find_avx2_align( ptr + first, ptr + size, ch );
+        return usize(p - ptr);
+    #elif 0
+        // TODO: neon
+    #else
+        auto* p = std::memchr( ptr + first, ch, size - first );
+        return (p != null ? usize(Cast<char>(p) - ptr) : size);
+    #endif
+    }
+
+    ND_ forceinline usize  FindChar (StringView str, const char ch, const usize first = 0)
+    {
+    #if 1
+        return FindChar( str.data(), first, str.size(), ch );
+    #else
+        return Min( str.find( ch, first ), str.size() );
+    #endif
+    }
+
 /*
 =================================================
     IsNullTerminated
@@ -191,7 +277,7 @@ namespace AE::Base
 */
     ND_ forceinline bool  IsUpperCase (const char c) __NE___
     {
-        return (c >= 'A' and c <= 'Z');
+        return (c >= 'A') and (c <= 'Z');
     }
 
 /*
@@ -201,7 +287,7 @@ namespace AE::Base
 */
     ND_ forceinline bool  IsLowerCase (const char c) __NE___
     {
-        return (c >= 'a' and c <= 'z');
+        return (c >= 'a') and (c <= 'z');
     }
 
 /*
@@ -209,7 +295,7 @@ namespace AE::Base
     ToLowerCase
 =================================================
 */
-    ND_ forceinline const char  ToLowerCase (const char c) __NE___
+    ND_ forceinline char  ToLowerCase (const char c) __NE___
     {
         return IsUpperCase( c ) ? (c - 'A' + 'a') : c;
     }
@@ -219,7 +305,7 @@ namespace AE::Base
     ToUpperCase
 =================================================
 */
-    ND_ forceinline const char  ToUpperCase (const char c) __NE___
+    ND_ forceinline char  ToUpperCase (const char c) __NE___
     {
         return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
     }
@@ -247,6 +333,88 @@ namespace AE::Base
 
 /*
 =================================================
+    FindString
+----
+    faster than StringView{}.find( ... )
+    returns 'str.size()' if not found
+=================================================
+*/
+    ND_ inline usize  FindString (StringView str, StringView substr, usize first = 0) __NE___
+    {
+        if ( str.size() < substr.size() )
+            return str.size();
+
+        const usize cnt = str.size() - substr.size() + 1;
+
+        for_likely (; first < cnt;)
+        {
+            first = FindChar( str.data(), first, cnt, substr[0] );
+            if_likely( first < cnt )
+            {
+                usize j = 1;
+                for (;(j < substr.size()) and (substr[j] == str[first+j]); ++j)
+                {}
+                if_unlikely( j >= substr.size() )
+                    return first;
+                ++first;
+            }
+        }
+        return str.size();
+    }
+
+/*
+=================================================
+    FindStringIC
+----
+    faster than StringView{}.find( ... )
+    returns 'str.size()' if not found,
+    comparison is case insensitive.
+=================================================
+*/
+    ND_ inline usize  FindStringIC (StringView str, StringView substr, const usize first = 0) __NE___
+    {
+        if ( str.size() < substr.size() )
+            return str.size();
+
+        const usize cnt = str.size() - substr.size() + 1;
+        const char  up  = ToUpperCase( substr[0] );
+        const char  low = ToLowerCase( substr[0] );
+
+        for_likely (usize i = first; i < cnt;)
+        {
+            i = FindChar( str.data(), i, cnt, up );
+            if_likely( i < cnt )
+            {
+                usize j = 1;
+                for (;(j < substr.size()) and (ToUpperCase( substr[j] ) == ToUpperCase( str[i+j] )); ++j)
+                {}
+                if_unlikely( j >= substr.size() )
+                    return i;
+                ++i;
+            }
+        }
+
+        if_likely( up == low )
+            return str.size();
+
+        for_likely (usize i = first; i < cnt;)
+        {
+            i = FindChar( str.data(), i, cnt, low );
+            if_likely( i < cnt )
+            {
+                usize j = 1;
+                for (;(j < substr.size()) and (ToLowerCase( substr[j] ) == ToLowerCase( str[i+j] )); ++j)
+                {}
+                if_unlikely( j >= substr.size() )
+                    return i;
+                ++i;
+            }
+        }
+        return str.size();
+    }
+
+/*
+=================================================
     HasSubString
 ----
     returns 'true' if 'str' has substring 'substr',
@@ -255,7 +423,7 @@ namespace AE::Base
 */
     ND_ inline bool  HasSubString (StringView str, StringView substr) __NE___
     {
-        return (str.find( substr ) != StringView::npos);
+        return FindString( str, substr ) < str.size();
     }
 
 /*
@@ -268,22 +436,7 @@ namespace AE::Base
 */
     ND_ inline bool  HasSubStringIC (StringView str, StringView substr) __NE___
     {
-        if ( str.empty() or substr.empty() )
-            return false;
-
-        for (usize i = 0, j = 0; i < str.length(); ++i)
-        {
-            while ( (i+j < str.length()) and
-                    (j < substr.length()) and
-                    ToLowerCase( substr[j] ) == ToLowerCase( str[i+j] ))
-            {
-                ++j;
-                if_unlikely( j >= substr.length() )
-                    return true;
-            }
-            j = 0;
-        }
-        return false;
+        return FindStringIC( str, substr ) < str.size();
     }
 
 /*
@@ -299,12 +452,7 @@ namespace AE::Base
         if ( str.length() < substr.length() )
             return false;
 
-        for (usize i = 0; i < substr.length(); ++i)
-        {
-            if_unlikely( str[i] != substr[i] )
-                return false;
-        }
-        return true;
+        return std::memcmp( str.data(), substr.data(), substr.length() ) == 0;
     }
 
 /*
@@ -320,9 +468,9 @@ namespace AE::Base
         if ( str.length() < substr.length() )
             return false;
 
-        for (usize i = 0; i < substr.length(); ++i)
+        for_likely (usize i = 0; i < substr.length(); ++i)
         {
-            if_unlikely( ToLowerCase(str[i]) != ToLowerCase(substr[i]) )
+            if_unlikely( ToLowerCase( str[i] ) != ToLowerCase( substr[i] ))
                 return false;
         }
         return true;
@@ -341,12 +489,7 @@ namespace AE::Base
         if ( str.length() < substr.length() )
             return false;
 
-        for (usize i = 1; i <= substr.length(); ++i)
-        {
-            if_unlikely( str[str.length() - i] != substr[substr.length() - i] )
-                return false;
-        }
-        return true;
+        return std::memcmp( str.data()+str.size() -substr.length(), substr.data(), substr.length() ) == 0;
     }
 
 /*
@@ -362,7 +505,7 @@ namespace AE::Base
         if ( str.length() < substr.length() )
             return false;
 
-        for (usize i = 1; i <= substr.length(); ++i)
+        for_likely (usize i = 1; i <= substr.length(); ++i)
         {
             if_unlikely( ToLowerCase(str[str.length() - i]) != ToLowerCase(substr[substr.length() - i]) )
                 return false;
@@ -377,12 +520,11 @@ namespace AE::Base
     returns number of replaced symbols/substrings
 =================================================
 */
-    inline uint  FindAndReplace (INOUT String& str, char oldSymb, char newSymb) __NE___
+    inline uint  FindAndReplace (INOUT String& str, const char oldSymb, const char newSymb) __NE___
     {
-        String::size_type   pos     = 0;
-        uint                count   = 0;
-
-        while ( (pos = StringView{str}.find( oldSymb, pos )) != StringView::npos )
+        uint    count = 0;
+        for (usize pos = 0;
+             (pos = FindChar( str.data(), pos, str.size(), oldSymb )) < str.size();)
         {
             str[pos] = newSymb;
             ++pos;
@@ -445,7 +587,7 @@ namespace AE::Base
 
         bool    res = true;
         usize   i   = 0;
-        for (usize pos = 0; (pos < len) & (i < len); ++i)
+        for (usize pos = 0; (pos < len) and (i < len); ++i)
         {
             CharUtf32   utf = Utf8Decode( src, len, INOUT pos );
             res     &= (utf <= 0x7F);
@@ -543,7 +685,7 @@ namespace AE::Base
 */
     ND_ inline String  ToString (String value) __Th___
     {
-        return value;
+        return RVRef(value);
     }
 
     ND_ inline String  ToString (const char value[]) __Th___
@@ -556,16 +698,8 @@ namespace AE::Base
     {
         return std::to_string( value );
     }
-    /*
-    template <typename E>
-    ND_ EnableIf<IsEnum<E>, String>  ToString (const E &value) __Th___
-    {
-        using T = Conditional< (sizeof(E) > sizeof(uint)), uint, ulong >;
 
-        return std::to_string( T(value) );
-    }*/
-
-    ND_ inline String  ToString (bool value) __Th___
+    ND_ inline StringView  ToString (const bool value) __Th___
     {
         return value ? "true" : "false";
     }
@@ -603,7 +737,7 @@ namespace AE::Base
     ToString (float / double)
 =================================================
 */
-    ND_ inline String  ToString (double value, uint fractParts, Bool exponent = False{}) __Th___
+    ND_ inline String  ToString (const double value, uint fractParts, Bool exponent = False{}) __Th___
     {
         ASSERT( (fractParts > 0) and (fractParts < 100) );
         fractParts = Clamp( fractParts, 1u, 99u );
@@ -617,9 +751,30 @@ namespace AE::Base
         return buf;
     }
 
-    ND_ inline String  ToString (float value, uint fractParts, Bool exponent = False{}) __Th___
+    ND_ inline String  ToString (const double value) __Th___
+    {
+        return ToString( value, 2 );
+    }
+
+    ND_ inline String  ToString (const float value, const uint fractParts, Bool exponent = False{}) __Th___
     {
         return ToString( double(value), fractParts, exponent );
+    }
+
+    ND_ inline String  ToString (const float value) __Th___
+    {
+        return ToString( double(value), 2 );
+    }
+
+/*
+=================================================
+    ToString (Radian)
+=================================================
+*/
+    template <typename T>
+    ND_ auto  ToString (const TRadian<T> &value) __Th___
+    {
+        return ToString( T{value} );
     }
 
 /*
@@ -639,6 +794,23 @@ namespace AE::Base
             str << ToString( value[i] );
         }
         str << " )";
+        return str;
+    }
+
+/*
+=================================================
+    ToString (Quat)
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    ND_ String  ToString (const TQuat<T,Q> &value) __Th___
+    {
+        String  str;
+        str << "( w: " << ToString( value.w )
+            << " axis: "
+            << ToString( value.x ) << ", "
+            << ToString( value.y ) << ", "
+            << ToString( value.z ) << " )";
         return str;
     }
 
@@ -898,9 +1070,15 @@ namespace AE::Base
     }
 
     template <typename V, typename D, typename S>
-    ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
+    ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts, Bool exponent = True{}) __Th___
     {
         return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
+    }
+
+    template <typename V, typename D, typename S>
+    ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
+    {
+        return ToString( value, 2 );
     }
 
 /*
@@ -935,6 +1113,129 @@ namespace AE::Base
     ND_ String  ToString (TVersion3<UID> value) __Th___
     {
         return ToString( value.major ) << '.' << ToString( value.minor ) << '.' << ToString( value.patch );
+    }
+
+/*
+=================================================
+    ToString (Tuple)
+=================================================
+*/
+namespace _hidden_
+{
+    struct TupleToString
+    {
+        String  str;
+
+        template <typename T>
+        void  operator () (const T &x) __Th___
+        {
+            if ( not str.empty() ) str << ", ";
+            if constexpr( IsSpecializationOf< T, BasicString >      or
+                          IsSpecializationOf< T, BasicStringView >  or
+                          IsSameTypes< T, Path >                    or
+                          (IsPointer<T> and IsChar<RemovePointer<T>>)
+                         )
+                str << '\'' << ToString( x ) << '\'';
+            else
+                str << ToString( x );
+        }
+    };
+}
+
+    template <typename ...Types>
+    ND_ String  ToString (const Tuple<Types...> &t) __Th___
+    {
+        Base::_hidden_::TupleToString   tmp;
+        t.ForEach( tmp );
+        return RVRef(tmp.str);
+    }
+
+/*
+=================================================
+    ToString (Array)
+=================================================
+*/
+namespace _hidden_
+{
+    template <typename T, typename ToStringFn>
+    ND_ String  Array_ToString (ArrayView<T> arr, ToStringFn fn, StringView div) __Th___
+    {
+        String  str;
+        for (const auto& item : arr)
+        {
+            if ( not str.empty() )
+                str << div;
+
+            str << fn( item );
+        }
+        return str;
+    }
+}
+
+    template <typename T>
+    ND_ String  ToString (ArrayView<T> arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( arr, fn, div );
+    }
+
+    template <typename T>
+    ND_ String  ToString (ArrayView<T> arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( arr, fn, div );
+    }
+
+    template <typename T, usize S>
+    ND_ String  ToString (const StaticArray<T,S> &arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
+    }
+
+    template <typename T, usize S>
+    ND_ String  ToString (const StaticArray<T,S> &arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
+    }
+
+    template <typename T, typename A>
+    ND_ String  ToString (const Array<T,A> &arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
+    }
+
+    template <typename T, typename A>
+    ND_ String  ToString (const Array<T,A> &arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
+    {
+        return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
+    }
+
+/*
+=================================================
+    ToString (EnumSet)
+=================================================
+*/
+    template <typename E>
+    ND_ String  ToString (EnumSet<E> bits, StringView (*fn)(E), StringView div = " | ") __Th___
+    {
+        String  str;
+        for (; bits.Any();)
+        {
+            if ( not str.empty() )
+                str << div;
+
+            str << fn( bits.ExtractFirst() );
+        }
+        return str;
+    }
+
+/*
+=================================================
+    ToString (Range)
+=================================================
+*/
+    template <typename T>
+    ND_ String  ToString (const Range<T> &range) __Th___
+    {
+        return "["s << ToString( range.begin ) << "; " << ToString( range.end ) << "]";
     }
 //-----------------------------------------------------------------------------
 
@@ -1060,7 +1361,7 @@ namespace AE::Base
 
             usize   off = 0;
 
-            if ( str.size() > 2 and ((str[0] == '0') & (ToLowerCase(str[1]) == 'x')) )
+            if ( str.size() > 2 and ((str[0] == '0') and (ToLowerCase(str[1]) == 'x')) )
                 off = 2;
             else
             if ( str.size() > 1 and str[0] == '#' )

@@ -6,7 +6,7 @@
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
-# include "base/Math/Bytes.h"
+# include "base/Math/Byte.h"
 # include "base/Utils/Helpers.h"
 # include "base/Utils/SourceLoc.h"
 # include "base/Utils/Threading.h"
@@ -134,6 +134,9 @@ namespace AE::Base
 =================================================
     ThreadSleep_1us
 ----
+    WFE instruction turns CPU off until event has been occurred
+    or until time is out (ARM_BOARD_WFE_TIMEOUT_NS).
+----
     Mac M1:                         ~1.1us
     Android Cortex A76, A78, A55:   10-30us
     Android Cortex A53:             1-3us
@@ -148,6 +151,26 @@ namespace AE::Base
     #endif
     }
 #endif
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_DEBUG
+#   define UNIX_CHECK_DEV( _msg_ ) \
+        AE::Base::UnixUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+
+#   define UNIX_CHECK_DEV2( _err_, _msg_ ) \
+        AE::Base::UnixUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+#else
+#   define UNIX_CHECK_DEV( _msg_ )          {}
+#   define UNIX_CHECK_DEV2( _err_, _msg_ )  {}
+#endif
+
+#define UNIX_CHECK( _msg_ ) \
+    AE::Base::UnixUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+
+#define UNIX_CHECK2( _err_, _msg_ ) \
+    AE::Base::UnixUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+
 
 } // AE::Base
 

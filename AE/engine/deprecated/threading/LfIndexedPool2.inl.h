@@ -306,7 +306,7 @@ namespace AE::Threading
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
                 {
                     i = 0;
-                    ThreadUtils::YieldOrMicroSleep();
+                    ThreadUtils::Sleep_500us();
                 }
                 ThreadUtils::Pause();
             }

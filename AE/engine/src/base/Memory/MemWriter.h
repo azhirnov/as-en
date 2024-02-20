@@ -12,8 +12,7 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 #include "base/Memory/MemUtils.h"
 
 namespace AE::Base
@@ -42,9 +41,10 @@ namespace AE::Base
             void    AlignTo (Bytes align)                           __NE___ { Unused( Reserve( 0_b, align )); }
 
         ND_ void*   Reserve (Bytes size, Bytes align)               __NE___;
+        ND_ void*   Reserve (const SizeAndAlign sa)                 __NE___ { return Reserve( sa.size, sa.align ); }
 
         template <typename T>
-        ND_ T&      Reserve ()                                      __NE___ { return *Cast<T>( Reserve( SizeOf<T>, AlignOf<T> )); }
+        ND_ T&      Reserve ()                                      __NE___ { return *Cast<T>( Reserve( SizeAndAlignOf<T> )); }
 
         template <typename T>
         ND_ T*      ReserveArray (usize count)                      __NE___;
@@ -140,7 +140,9 @@ namespace AE::Base
     template <typename T>
     T*  MemWriter::ReserveArray (usize count) __NE___
     {
-        return count ? Cast<T>( Reserve( SizeOf<T> * count, AlignOf<T> )) : null;
+        return  count > 0 ?
+                    Cast<T>( Reserve( SizeOf<T> * count, AlignOf<T> )) :
+                    null;
     }
 
 /*

@@ -40,8 +40,7 @@ namespace AE::Graphics
 */
     ImageDesc&  ImageDesc::SetType (EImage value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EImage_1D :
             case EImage_1DArray :       imageDim = EImageDim_1D;    break;
@@ -55,7 +54,7 @@ namespace AE::Graphics
             case EImage::_Count :
             default_unlikely :          DBG_WARNING( "unknown image type" );    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return *this;
     }
 
@@ -105,8 +104,7 @@ namespace AE::Graphics
         dimension   = Max( dimension, uint3{1} );
         arrayLayers = Max( arrayLayers, 1_layer );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( imageDim )
+        switch_enum( imageDim )
         {
             case EImageDim_1D :
                 ASSERT( not samples.IsEnabled() );
@@ -150,7 +148,7 @@ namespace AE::Graphics
                 DBG_WARNING( "unknown image dimension type" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( memType == Default )
             memType = EMemoryType::DeviceLocal;
@@ -214,15 +212,15 @@ namespace AE::Graphics
 */
     bool  ImageDesc::operator == (const ImageDesc &rhs) C_NE___
     {
-        return  (All( dimension == rhs.dimension )) &
-                (arrayLayers    == rhs.arrayLayers) &
-                (maxLevel       == rhs.maxLevel)    &
-                (imageDim       == rhs.imageDim)    &
-                (options        == rhs.options)     &
-                (usage          == rhs.usage)       &
-                (format         == rhs.format)      &
-                (samples        == rhs.samples)     &
-                (memType        == rhs.memType)     &
+        return  (All( dimension == rhs.dimension )) and
+                (arrayLayers    == rhs.arrayLayers) and
+                (maxLevel       == rhs.maxLevel)    and
+                (imageDim       == rhs.imageDim)    and
+                (options        == rhs.options)     and
+                (usage          == rhs.usage)       and
+                (format         == rhs.format)      and
+                (samples        == rhs.samples)     and
+                (memType        == rhs.memType)     and
                 (queues         == rhs.queues);
     }
 
@@ -343,8 +341,7 @@ namespace AE::Graphics
             baseLayer   = ImageLayer{Clamp( baseLayer.Get(), 0u, max_layers-1 )};
             layerCount  = CheckCast<ushort>( Clamp( layerCount, 1u, max_layers - baseLayer.Get() ));
 
-            BEGIN_ENUM_CHECKS();
-            switch ( desc.imageDim )
+            switch_enum( desc.imageDim )
             {
                 case EImageDim_1D :
                     if ( layerCount > 1 )
@@ -373,7 +370,7 @@ namespace AE::Graphics
                 case EImageDim::Unknown :
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         else
         // validate view type
@@ -382,8 +379,7 @@ namespace AE::Graphics
 
             baseLayer = ImageLayer{Clamp( baseLayer.Get(), 0u, max_layers-1 )};
 
-            BEGIN_ENUM_CHECKS();
-            switch ( viewType )
+            switch_enum( viewType )
             {
                 case EImage_1D :
                     ASSERT( desc.imageDim == EImageDim_1D );
@@ -437,7 +433,7 @@ namespace AE::Graphics
                     DBG_WARNING( "unknown image view type" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 
@@ -448,13 +444,13 @@ namespace AE::Graphics
 */
     bool ImageViewDesc::operator == (const ImageViewDesc &rhs) C_NE___
     {
-        return  (this->viewType     == rhs.viewType)    &
-                (this->format       == rhs.format)      &
-                (this->baseMipmap   == rhs.baseMipmap)  &
-                (this->mipmapCount  == rhs.mipmapCount) &
-                (this->baseLayer    == rhs.baseLayer)   &
-                (this->layerCount   == rhs.layerCount)  &
-                (this->aspectMask   == rhs.aspectMask)  &
+        return  (this->viewType     == rhs.viewType)    and
+                (this->format       == rhs.format)      and
+                (this->baseMipmap   == rhs.baseMipmap)  and
+                (this->mipmapCount  == rhs.mipmapCount) and
+                (this->baseLayer    == rhs.baseLayer)   and
+                (this->layerCount   == rhs.layerCount)  and
+                (this->aspectMask   == rhs.aspectMask)  and
                 (this->swizzle      == rhs.swizzle);
     }
 

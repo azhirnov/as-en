@@ -43,21 +43,32 @@ namespace AE::Video
 */
     ND_ inline AVPixelFormat  EnumCast (EVideoFormat fmt)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( fmt )
+        switch_enum( fmt )
         {
             case EVideoFormat::YUV420P :        return AV_PIX_FMT_YUV420P;
             case EVideoFormat::YUV422P :        return AV_PIX_FMT_YUV422P;
             case EVideoFormat::YUV444P :        return AV_PIX_FMT_YUV444P;
-            case EVideoFormat::YUVA444P16LE :   return AV_PIX_FMT_YUVA444P16LE;
             case EVideoFormat::YUV420P10LE :    return AV_PIX_FMT_YUV420P10LE;
+            case EVideoFormat::YUV422P10LE :    return AV_PIX_FMT_YUV422P10LE;
+            case EVideoFormat::YUV444P10LE :    return AV_PIX_FMT_YUV444P10LE;
+            case EVideoFormat::YUV420P12LE :    return AV_PIX_FMT_YUV420P12LE;
+            case EVideoFormat::YUV422P12LE :    return AV_PIX_FMT_YUV422P12LE;
+            case EVideoFormat::YUV444P12LE :    return AV_PIX_FMT_YUV444P12LE;
+            case EVideoFormat::YUV420P16LE :    return AV_PIX_FMT_YUV420P16LE;
+            case EVideoFormat::YUV422P16LE :    return AV_PIX_FMT_YUV422P16LE;
+            case EVideoFormat::YUV444P16LE :    return AV_PIX_FMT_YUV444P16LE;
+            case EVideoFormat::YUVA444P16LE :   return AV_PIX_FMT_YUVA444P16LE;
             case EVideoFormat::NV12 :           return AV_PIX_FMT_NV12;
             case EVideoFormat::NV21 :           return AV_PIX_FMT_NV21;
+            case EVideoFormat::NV16 :           return AV_PIX_FMT_NV16;
+            case EVideoFormat::NV24 :           return AV_PIX_FMT_NV24;
+            case EVideoFormat::NV42 :           return AV_PIX_FMT_NV42;
+            case EVideoFormat::NV20LE :         return AV_PIX_FMT_NV20LE;
             case EVideoFormat::P010LE :         return AV_PIX_FMT_P010LE;
             case EVideoFormat::Unknown :
             case EVideoFormat::_Count :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return AV_PIX_FMT_NONE;
     }
 
@@ -68,17 +79,29 @@ namespace AE::Video
 */
     ND_ inline EVideoFormat  EnumCast (AVPixelFormat fmt)
     {
-        StaticAssert( uint(EVideoFormat::_Count) == 8 );
+        StaticAssert( uint(EVideoFormat::_Count) == 20 );
         switch ( fmt )
         {
             case AV_PIX_FMT_YUV420P :           return EVideoFormat::YUV420P;
             case AV_PIX_FMT_YUVJ420P :          return EVideoFormat::YUV420P;
             case AV_PIX_FMT_YUV422P :           return EVideoFormat::YUV422P;
             case AV_PIX_FMT_YUV444P :           return EVideoFormat::YUV444P;
-            case AV_PIX_FMT_YUVA444P16LE :      return EVideoFormat::YUVA444P16LE;
             case AV_PIX_FMT_YUV420P10LE :       return EVideoFormat::YUV420P10LE;
+            case AV_PIX_FMT_YUV422P10LE :       return EVideoFormat::YUV422P10LE;
+            case AV_PIX_FMT_YUV444P10LE :       return EVideoFormat::YUV444P10LE;
+            case AV_PIX_FMT_YUV420P12LE :       return EVideoFormat::YUV420P12LE;
+            case AV_PIX_FMT_YUV422P12LE :       return EVideoFormat::YUV422P12LE;
+            case AV_PIX_FMT_YUV444P12LE :       return EVideoFormat::YUV444P12LE;
+            case AV_PIX_FMT_YUV420P16LE :       return EVideoFormat::YUV420P16LE;
+            case AV_PIX_FMT_YUV422P16LE :       return EVideoFormat::YUV422P16LE;
+            case AV_PIX_FMT_YUV444P16LE :       return EVideoFormat::YUV444P16LE;
+            case AV_PIX_FMT_YUVA444P16LE :      return EVideoFormat::YUVA444P16LE;
             case AV_PIX_FMT_NV12 :              return EVideoFormat::NV12;
             case AV_PIX_FMT_NV21 :              return EVideoFormat::NV21;
+            case AV_PIX_FMT_NV16 :              return EVideoFormat::NV16;
+            case AV_PIX_FMT_NV24 :              return EVideoFormat::NV24;
+            case AV_PIX_FMT_NV42 :              return EVideoFormat::NV42;
+            case AV_PIX_FMT_NV20LE :            return EVideoFormat::NV20LE;
             case AV_PIX_FMT_P010LE :            return EVideoFormat::P010LE;
         }
         return Default;
@@ -86,29 +109,82 @@ namespace AE::Video
 
 /*
 =================================================
-    EnumCast (EPixelFormat)
+    PixelFormatCast (EPixelFormat)
 =================================================
 */
-    ND_ inline AVPixelFormat  EnumCast (EPixelFormat fmt)
+    ND_ inline AVPixelFormat  PixelFormatCast (EPixelFormat fmt)
     {
         switch ( fmt )
         {
             case EPixelFormat::RGB8_UNorm :
-            case EPixelFormat::sRGB8 :          return AV_PIX_FMT_RGB24;
+            case EPixelFormat::sRGB8 :                      return AV_PIX_FMT_RGB24;
 
             case EPixelFormat::RGBA8_UNorm :
-            case EPixelFormat::sRGB8_A8 :       return AV_PIX_FMT_RGB0;     // AV_PIX_FMT_RGBA
+            case EPixelFormat::sRGB8_A8 :                   return AV_PIX_FMT_RGB0;     // AV_PIX_FMT_RGBA
 
             case EPixelFormat::BGR8_UNorm :
-            case EPixelFormat::sBGR8 :          return AV_PIX_FMT_BGR24;
+            case EPixelFormat::sBGR8 :                      return AV_PIX_FMT_BGR24;
 
             case EPixelFormat::BGRA8_UNorm :
-            case EPixelFormat::sBGR8_A8 :       return AV_PIX_FMT_BGR0;     // AV_PIX_FMT_BGRA
+            case EPixelFormat::sBGR8_A8 :                   return AV_PIX_FMT_BGR0;     // AV_PIX_FMT_BGRA
 
-            case EPixelFormat::RGB16_UNorm :    return AV_PIX_FMT_RGB48BE;
-            case EPixelFormat::RGBA16_UNorm :   return AV_PIX_FMT_RGBA64BE;
+            case EPixelFormat::RGB16_UNorm :                return AV_PIX_FMT_RGB48BE;
+            case EPixelFormat::RGBA16_UNorm :               return AV_PIX_FMT_RGBA64BE;
+
+            case EPixelFormat::G8_B8_R8_420_UNorm :         return AV_PIX_FMT_YUV420P;
+            case EPixelFormat::G8_B8_R8_422_UNorm :         return AV_PIX_FMT_YUV422P;
+            case EPixelFormat::G8_B8_R8_444_UNorm :         return AV_PIX_FMT_YUV444P;
+
+            case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm: return AV_PIX_FMT_YUV420P10LE;
+            case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm: return AV_PIX_FMT_YUV422P10LE;
+            case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm: return AV_PIX_FMT_YUV444P10LE;
+
+            case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm: return AV_PIX_FMT_YUV420P12LE;
+            case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm: return AV_PIX_FMT_YUV422P12LE;
+            case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm: return AV_PIX_FMT_YUV444P12LE;
+
+            case EPixelFormat::G16_B16_R16_420_UNorm :      return AV_PIX_FMT_YUV420P16LE;
+            case EPixelFormat::G16_B16_R16_422_UNorm :      return AV_PIX_FMT_YUV422P16LE;
+            case EPixelFormat::G16_B16_R16_444_UNorm :      return AV_PIX_FMT_YUV444P16LE;
+
+            case EPixelFormat::G8B8G8R8_422_UNorm :         return AV_PIX_FMT_YUYV422;
+            case EPixelFormat::B8G8R8G8_422_UNorm :         return AV_PIX_FMT_YVYU422;
         }
         return AV_PIX_FMT_NONE;
+    }
+
+/*
+=================================================
+    PixelFormatCast (AVPixelFormat)
+=================================================
+*/
+    ND_ inline EPixelFormat  PixelFormatCast (AVPixelFormat fmt)
+    {
+        switch ( fmt )
+        {
+            case AV_PIX_FMT_RGB48BE :       return EPixelFormat::RGB16_UNorm;
+            case AV_PIX_FMT_RGBA64BE :      return EPixelFormat::RGBA16_UNorm;
+
+            case AV_PIX_FMT_YUV420P :       return EPixelFormat::G8_B8_R8_420_UNorm;
+            case AV_PIX_FMT_YUV422P :       return EPixelFormat::G8_B8_R8_422_UNorm;
+            case AV_PIX_FMT_YUV444P :       return EPixelFormat::G8_B8_R8_444_UNorm;
+
+            case AV_PIX_FMT_YUV420P10LE :   return EPixelFormat::G10x6_B10x6_R10x6_420_UNorm;
+            case AV_PIX_FMT_YUV422P10LE :   return EPixelFormat::G10x6_B10x6_R10x6_422_UNorm;
+            case AV_PIX_FMT_YUV444P10LE :   return EPixelFormat::G10x6_B10x6_R10x6_444_UNorm;
+
+            case AV_PIX_FMT_YUV420P12LE :   return EPixelFormat::G12x4_B12x4_R12x4_420_UNorm;
+            case AV_PIX_FMT_YUV422P12LE :   return EPixelFormat::G12x4_B12x4_R12x4_422_UNorm;
+            case AV_PIX_FMT_YUV444P12LE :   return EPixelFormat::G12x4_B12x4_R12x4_444_UNorm;
+
+            case AV_PIX_FMT_YUV420P16LE :   return EPixelFormat::G16_B16_R16_420_UNorm;
+            case AV_PIX_FMT_YUV422P16LE :   return EPixelFormat::G16_B16_R16_422_UNorm;
+            case AV_PIX_FMT_YUV444P16LE :   return EPixelFormat::G16_B16_R16_444_UNorm;
+
+            case AV_PIX_FMT_YUYV422 :       return EPixelFormat::G8B8G8R8_422_UNorm;
+            case AV_PIX_FMT_YVYU422 :       return EPixelFormat::B8G8R8G8_422_UNorm;
+        }
+        return Default;
     }
 
 /*
@@ -245,8 +321,7 @@ namespace AE::Video
                                 OUT AVColorSpace                    &colorSpace,
                                 OUT AVChromaLocation                &chromaLocation)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( preset )
+        switch_enum( preset )
         {
             case EColorPreset::Unspecified :
                 colorRange      = AVCOL_RANGE_UNSPECIFIED;
@@ -309,7 +384,7 @@ namespace AE::Video
             default :
                 return false;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 } // AE::Video
@@ -326,8 +401,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVMediaType value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVMEDIA_TYPE_UNKNOWN :     return "Unknown";
             case AVMEDIA_TYPE_VIDEO :       return "Video";
@@ -337,7 +411,7 @@ namespace AE::Base
             case AVMEDIA_TYPE_ATTACHMENT :  return "Attachment";
             case AVMEDIA_TYPE_NB :          break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Undefined";
     }
 
@@ -356,8 +430,7 @@ namespace AE::Base
 
     ND_ inline StringView  ToString (AVPixelFormat value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AV_PIX_FMT_NONE :              break;
             case AV_PIX_FMT_YUV420P :           return "YUV420P  - planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)";
@@ -568,7 +641,7 @@ namespace AE::Base
             case AV_PIX_FMT_P416LE :            return "P416LE  - interleaved chroma YUV 4:4:4, 48bpp, little-endian";
             case AV_PIX_FMT_NB :                break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 #endif
@@ -580,8 +653,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVSampleFormat value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AV_SAMPLE_FMT_U8 :     return "U8  - unsigned 8 bits";
             case AV_SAMPLE_FMT_S16 :    return "S16  - signed 16 bits";
@@ -598,7 +670,7 @@ namespace AE::Base
             case AV_SAMPLE_FMT_NONE :
             case AV_SAMPLE_FMT_NB :     break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 
@@ -609,8 +681,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVColorSpace value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVCOL_SPC_BT709 :              return "BT709";                 // - also ITU-R BT1361 / IEC 61966-2-4 xvYCC709 / derived in SMPTE RP 177 Annex B";
             case AVCOL_SPC_UNSPECIFIED :        return "UNSPECIFIED";
@@ -629,7 +700,7 @@ namespace AE::Base
             case AVCOL_SPC_RGB :                return "RGB";                   // - order of coefficients is actually GBR, also IEC 61966-2-1 (sRGB), YZX and ST 428-1
             case AVCOL_SPC_NB :                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 
@@ -640,15 +711,14 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVColorRange value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVCOL_RANGE_UNSPECIFIED :  return "UNSPECIFIED";
             case AVCOL_RANGE_MPEG :         return "MPEG";
             case AVCOL_RANGE_JPEG :         return "JPEG";
             case AVCOL_RANGE_NB :           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 
@@ -659,8 +729,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVColorPrimaries value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVCOL_PRI_RESERVED0 :      return "RESERVED0";
             case AVCOL_PRI_BT709 :          return "BT709";
@@ -678,7 +747,7 @@ namespace AE::Base
             case AVCOL_PRI_EBU3213 :        return "EBU3213";
             case AVCOL_PRI_NB :             break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 
@@ -689,8 +758,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVColorTransferCharacteristic value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVCOL_TRC_RESERVED0 :      return "RESERVED0";
             case AVCOL_TRC_BT709 :          return "BT709";
@@ -713,7 +781,7 @@ namespace AE::Base
             case AVCOL_TRC_ARIB_STD_B67 :   return "ARIB_STD_B67";
             case AVCOL_TRC_NB :             break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 
@@ -724,8 +792,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (AVChromaLocation value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case AVCHROMA_LOC_UNSPECIFIED : return "UNSPECIFIED";
             case AVCHROMA_LOC_LEFT :        return "LEFT";
@@ -736,7 +803,7 @@ namespace AE::Base
             case AVCHROMA_LOC_BOTTOM :      return "BOTTOM";
             case AVCHROMA_LOC_NB :          break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "Unknown";
     }
 

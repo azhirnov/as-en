@@ -21,23 +21,22 @@ namespace
     {
         EnumBinder<EImage>  binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( EImage(0) )
+        switch_enum( EImage::Unknown )
         {
-            #define BIND( _name_ )  case EImage_ ## _name_ : binder.AddValue( #_name_, EImage_ ## _name_ )
-            BIND( 1D );
-            BIND( 2D );
-            BIND( 3D );
-            BIND( 1DArray );
-            BIND( 2DArray );
-            BIND( Cube );
-            BIND( CubeArray );
-            case EImage::_Count :
             case EImage::Unknown :
-            default :               break;
+            case EImage::_Count :
+            #define BIND( _name_ )  case EImage_ ## _name_ : binder.AddValue( AE_TOSTRING(_name_), EImage_ ## _name_ );
+            BIND( 1D )
+            BIND( 2D )
+            BIND( 3D )
+            BIND( 1DArray )
+            BIND( 2DArray )
+            BIND( Cube )
+            BIND( CubeArray )
             #undef BIND
+            default : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -49,9 +48,17 @@ namespace
     {
         EnumBinder<EIndex>  binder{ se };
         binder.Create();
-        binder.AddValue( "UShort",      EIndex::UShort );
-        binder.AddValue( "UInt",        EIndex::UInt );
-        StaticAssert( uint(EIndex::_Count) == 2 );
+        switch_enum( EIndex::Unknown )
+        {
+            case EIndex::Unknown :
+            case EIndex::_Count :
+            #define BIND( _name_ )  case EIndex::_name_ : binder.AddValue( AE_TOSTRING(_name_), EIndex::_name_ );
+            BIND( UShort )
+            BIND( UInt )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -64,11 +71,52 @@ namespace
         EnumBinder<EPixelFormat>    binder{ se };
         binder.Create();
 
-        #define AE_PIXELFORMAT_VISIT( _name_ )  binder.AddValue( AE_TOSTRING( _name_ ), EPixelFormat::_name_ );
+        #define AE_PIXELFORMAT_VISIT( _name_ )  binder.AddValue( AE_TOSTRING(_name_), EPixelFormat::_name_ );
         AE_PIXELFORMAT_LIST( AE_PIXELFORMAT_VISIT );
         #undef AE_PIXELFORMAT_VISIT
 
         binder.AddValue( "SwapchainColor", EPixelFormat::SwapchainColor );
+    }
+
+/*
+=================================================
+    Bind_EPixelFormatExternal
+=================================================
+*/
+    static void  Bind_EPixelFormatExternal (const ScriptEnginePtr &se) __Th___
+    {
+        EnumBinder<EPixelFormatExternal>    binder{ se };
+        binder.Create();
+        switch_enum( EPixelFormatExternal::Unknown )
+        {
+            case EPixelFormatExternal::Unknown :
+            case EPixelFormatExternal::Android_Private :
+            case EPixelFormatExternal::Android_RawPrivate :
+            case EPixelFormatExternal::_Android_End :
+            case EPixelFormatExternal::_Count :
+            #define BIND( _name_ )  case EPixelFormatExternal::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPixelFormatExternal::_name_ );
+            BIND( Android_Depth16 )
+            BIND( Android_DepthJPEG )
+            BIND( Android_DepthPointCloud )
+            BIND( Android_JPEG )
+            BIND( Android_Raw16 )
+            BIND( Android_Raw12 )
+            BIND( Android_Raw10 )
+            BIND( Android_NV16 )
+            BIND( Android_NV21 )
+            BIND( Android_YCBCR_P010 )
+            BIND( Android_YUV_420 )
+            BIND( Android_YUV_422 )
+            BIND( Android_YUV_444 )
+            BIND( Android_YUY2 )
+            BIND( Android_YV12 )
+            BIND( Android_Y8 )
+            BIND( Android_HEIC )
+            #undef BIND
+            default : break;
+        }
+        switch_end
+
     }
 
 /*
@@ -80,11 +128,19 @@ namespace
     {
         EnumBinder<EAttachmentLoadOp>   binder{ se };
         binder.Create();
-        binder.AddValue( "Invalidate",  EAttachmentLoadOp::Invalidate );
-        binder.AddValue( "Load",        EAttachmentLoadOp::Load );
-        binder.AddValue( "Clear",       EAttachmentLoadOp::Clear );
-        binder.AddValue( "None",        EAttachmentLoadOp::None );
-        StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
+        switch_enum( EAttachmentLoadOp::Unknown )
+        {
+            case EAttachmentLoadOp::Unknown :
+            case EAttachmentLoadOp::_Count :
+            #define BIND( _name_ )  case EAttachmentLoadOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAttachmentLoadOp::_name_ );
+            BIND( Invalidate )
+            BIND( Load )
+            BIND( Clear )
+            BIND( None )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -96,10 +152,19 @@ namespace
     {
         EnumBinder<EAttachmentStoreOp>  binder{ se };
         binder.Create();
-        binder.AddValue( "Invalidate",  EAttachmentStoreOp::Invalidate );
-        binder.AddValue( "Store",       EAttachmentStoreOp::Store );
-        binder.AddValue( "None",        EAttachmentStoreOp::None );
-        StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
+        switch_enum( EAttachmentStoreOp::Unknown )
+        {
+            case EAttachmentStoreOp::Unknown :
+            case EAttachmentStoreOp::_Count :
+            #define BIND( _name_ )  case EAttachmentStoreOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAttachmentStoreOp::_name_ );
+            BIND( Invalidate )
+            BIND( Store )
+            BIND( None )
+            BIND( StoreCustomSamplePositions )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -111,28 +176,27 @@ namespace
     {
         EnumBinder<ECompareOp>  binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( ECompareOp(0) )
+        switch_enum( ECompareOp::Unknown )
         {
-            #define BIND( _name_ )  case ECompareOp::_name_ : binder.AddValue( #_name_, ECompareOp::_name_ )
-            BIND( Never );
-            BIND( Less );
-            BIND( Equal );
-            BIND( LEqual );
-            BIND( Greater );
-            BIND( NotEqual );
-            BIND( GEqual );
-            BIND( Always );
-            case ECompareOp::_Count :
             case ECompareOp::Unknown :
+            case ECompareOp::_Count :
+            #define BIND( _name_ )  case ECompareOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), ECompareOp::_name_ );
+            BIND( Never )
+            BIND( Less )
+            BIND( Equal )
+            BIND( LEqual )
+            BIND( Greater )
+            BIND( NotEqual )
+            BIND( GEqual )
+            BIND( Always )
+            #undef BIND
             default :
                 // alias
                 binder.AddValue( "LessOrEqual",     ECompareOp::LEqual );
                 binder.AddValue( "GreaterOrEqual",  ECompareOp::GEqual );
                 break;
-            #undef BIND
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -144,35 +208,34 @@ namespace
     {
         EnumBinder<EBlendFactor>    binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( EBlendFactor(0) )
+        switch_enum( EBlendFactor::Unknown )
         {
-            #define BIND( _name_ )  case EBlendFactor::_name_ : binder.AddValue( #_name_, EBlendFactor::_name_ )
-            BIND( Zero );
-            BIND( One );
-            BIND( SrcColor );
-            BIND( OneMinusSrcColor );
-            BIND( DstColor );
-            BIND( OneMinusDstColor );
-            BIND( SrcAlpha );
-            BIND( OneMinusSrcAlpha );
-            BIND( DstAlpha );
-            BIND( OneMinusDstAlpha );
-            BIND( ConstColor );
-            BIND( OneMinusConstColor );
-            BIND( ConstAlpha );
-            BIND( OneMinusConstAlpha );
-            BIND( SrcAlphaSaturate );
-            BIND( Src1Color );
-            BIND( OneMinusSrc1Color );
-            BIND( Src1Alpha );
-            BIND( OneMinusSrc1Alpha );
-            case EBlendFactor::_Count :
             case EBlendFactor::Unknown :
-            default : break;
+            case EBlendFactor::_Count :
+            #define BIND( _name_ )      case EBlendFactor::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBlendFactor::_name_ );
+            BIND( Zero )
+            BIND( One )
+            BIND( SrcColor )
+            BIND( OneMinusSrcColor )
+            BIND( DstColor )
+            BIND( OneMinusDstColor )
+            BIND( SrcAlpha )
+            BIND( OneMinusSrcAlpha )
+            BIND( DstAlpha )
+            BIND( OneMinusDstAlpha )
+            BIND( ConstColor )
+            BIND( OneMinusConstColor )
+            BIND( ConstAlpha )
+            BIND( OneMinusConstAlpha )
+            BIND( SrcAlphaSaturate )
+            BIND( Src1Color )
+            BIND( OneMinusSrc1Color )
+            BIND( Src1Alpha )
+            BIND( OneMinusSrc1Alpha )
             #undef BIND
+            default : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -184,12 +247,20 @@ namespace
     {
         EnumBinder<EBlendOp>    binder{ se };
         binder.Create();
-        binder.AddValue( "Add",     EBlendOp::Add );
-        binder.AddValue( "Sub",     EBlendOp::Sub );
-        binder.AddValue( "RevSub",  EBlendOp::RevSub );
-        binder.AddValue( "Min",     EBlendOp::Min );
-        binder.AddValue( "Max",     EBlendOp::Max );
-        StaticAssert( uint(EBlendOp::_Count) == 5 );
+        switch_enum( EBlendOp::Unknown )
+        {
+            case EBlendOp::Unknown :
+            case EBlendOp::_Count :
+            #define BIND( _name_ )  case EBlendOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBlendOp::_name_ );
+            BIND( Add )
+            BIND( Sub )
+            BIND( RevSub )
+            BIND( Min )
+            BIND( Max )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -201,33 +272,32 @@ namespace
     {
         EnumBinder<ELogicOp>    binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( ELogicOp(0) )
+        switch_enum( ELogicOp::Unknown )
         {
-            #define BIND( _name_ )  case ELogicOp::_name_ : binder.AddValue( #_name_, ELogicOp::_name_ )
-            BIND( None );
-            BIND( Clear );
-            BIND( Set );
-            BIND( Copy );
-            BIND( CopyInverted );
-            BIND( NoOp );
-            BIND( Invert );
-            BIND( And );
-            BIND( NotAnd );
-            BIND( Or );
-            BIND( NotOr );
-            BIND( Xor );
-            BIND( Equiv );
-            BIND( AndReverse );
-            BIND( AndInverted );
-            BIND( OrReverse );
-            BIND( OrInverted );
-            case ELogicOp::_Count :
             case ELogicOp::Unknown :
-            default : break;
+            case ELogicOp::_Count :
+            #define BIND( _name_ )  case ELogicOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), ELogicOp::_name_ );
+            BIND( None )
+            BIND( Clear )
+            BIND( Set )
+            BIND( Copy )
+            BIND( CopyInverted )
+            BIND( NoOp )
+            BIND( Invert )
+            BIND( And )
+            BIND( NotAnd )
+            BIND( Or )
+            BIND( NotOr )
+            BIND( Xor )
+            BIND( Equiv )
+            BIND( AndReverse )
+            BIND( AndInverted )
+            BIND( OrReverse )
+            BIND( OrInverted )
             #undef BIND
+            default : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -239,15 +309,23 @@ namespace
     {
         EnumBinder<EStencilOp>  binder{ se };
         binder.Create();
-        binder.AddValue( "Keep",        EStencilOp::Keep );
-        binder.AddValue( "Zero",        EStencilOp::Zero );
-        binder.AddValue( "Replace",     EStencilOp::Replace );
-        binder.AddValue( "Incr",        EStencilOp::Incr );
-        binder.AddValue( "IncrWrap",    EStencilOp::IncrWrap );
-        binder.AddValue( "Decr",        EStencilOp::Decr );
-        binder.AddValue( "DecrWrap",    EStencilOp::DecrWrap );
-        binder.AddValue( "Invert",      EStencilOp::Invert );
-        StaticAssert( uint(EStencilOp::_Count) == 8 );
+        switch_enum( EStencilOp::Unknown )
+        {
+            case EStencilOp::Unknown :
+            case EStencilOp::_Count :
+            #define BIND( _name_ )  case EStencilOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EStencilOp::_name_ );
+            BIND( Keep )
+            BIND( Zero )
+            BIND( Replace )
+            BIND( Incr )
+            BIND( IncrWrap )
+            BIND( Decr )
+            BIND( DecrWrap )
+            BIND( Invert )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -259,10 +337,18 @@ namespace
     {
         EnumBinder<EPolygonMode>    binder{ se };
         binder.Create();
-        binder.AddValue( "Point",   EPolygonMode::Point );
-        binder.AddValue( "Line",    EPolygonMode::Line );
-        binder.AddValue( "Fill",    EPolygonMode::Fill );
-        StaticAssert( uint(EPolygonMode::_Count) == 3 );
+        switch_enum( EPolygonMode::Unknown )
+        {
+            case EPolygonMode::Unknown :
+            case EPolygonMode::_Count :
+            #define BIND( _name_ )  case EPolygonMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPolygonMode::_name_ );
+            BIND( Point )
+            BIND( Line )
+            BIND( Fill )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -274,18 +360,26 @@ namespace
     {
         EnumBinder<EPrimitive>  binder{ se };
         binder.Create();
-        binder.AddValue( "Point",                   EPrimitive::Point );
-        binder.AddValue( "LineList",                EPrimitive::LineList );
-        binder.AddValue( "LineStrip",               EPrimitive::LineStrip );
-        binder.AddValue( "LineListAdjacency",       EPrimitive::LineListAdjacency );
-        binder.AddValue( "LineStripAdjacency",      EPrimitive::LineStripAdjacency );
-        binder.AddValue( "TriangleList",            EPrimitive::TriangleList );
-        binder.AddValue( "TriangleStrip",           EPrimitive::TriangleStrip );
-        binder.AddValue( "TriangleFan",             EPrimitive::TriangleFan );
-        binder.AddValue( "TriangleListAdjacency",   EPrimitive::TriangleListAdjacency );
-        binder.AddValue( "TriangleStripAdjacency",  EPrimitive::TriangleStripAdjacency );
-        binder.AddValue( "Patch",                   EPrimitive::Patch );
-        StaticAssert( uint(EPrimitive::_Count) == 11 );
+        switch_enum( EPrimitive::Unknown )
+        {
+            case EPrimitive::Unknown :
+            case EPrimitive::_Count :
+            #define BIND( _name_ )  case EPrimitive::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPrimitive::_name_ );
+            BIND( Point )
+            BIND( LineList )
+            BIND( LineStrip )
+            BIND( LineListAdjacency )
+            BIND( LineStripAdjacency )
+            BIND( TriangleList )
+            BIND( TriangleStrip )
+            BIND( TriangleFan )
+            BIND( TriangleListAdjacency )
+            BIND( TriangleStripAdjacency )
+            BIND( Patch )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -297,11 +391,17 @@ namespace
     {
         EnumBinder<ECullMode>   binder{ se };
         binder.Create();
-        binder.AddValue( "None",        ECullMode::None );
-        binder.AddValue( "Front",       ECullMode::Front );
-        binder.AddValue( "Back",        ECullMode::Back );
-        binder.AddValue( "FontAndBack", ECullMode::FontAndBack );
-        StaticAssert( uint(ECullMode::_Last) == 3 );
+        switch_enum( ECullMode::None )
+        {
+            #define BIND( _name_ )  case ECullMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), ECullMode::_name_ );
+            BIND( None )
+            BIND( Front )
+            BIND( Back )
+            BIND( FontAndBack )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -313,25 +413,24 @@ namespace
     {
         EnumBinder<EPipelineDynamicState>   binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( EPipelineDynamicState::Unknown )
+        switch_enum( EPipelineDynamicState::All )
         {
-            #define BIND( _name_ )  case EPipelineDynamicState::_name_ : binder.AddValue( #_name_, EPipelineDynamicState::_name_ )
-            case EPipelineDynamicState::Unknown :   binder.AddValue( "None", EPipelineDynamicState::Unknown );
-            BIND( StencilCompareMask );
-            BIND( StencilWriteMask );
-            BIND( StencilReference );
-            BIND( DepthBias );
-            BIND( BlendConstants );
-            BIND( RTStackSize );
-            BIND( FragmentShadingRate );
-            case EPipelineDynamicState::_Last :
             case EPipelineDynamicState::All :
+            case EPipelineDynamicState::_Last :
             case EPipelineDynamicState::GraphicsPipelineMask :
-            default : break;
+            case EPipelineDynamicState::Unknown :   binder.AddValue( "None", EPipelineDynamicState::Unknown );
+            #define BIND( _name_ )                  case EPipelineDynamicState::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPipelineDynamicState::_name_ );
+            BIND( StencilCompareMask )
+            BIND( StencilWriteMask )
+            BIND( StencilReference )
+            BIND( DepthBias )
+            BIND( BlendConstants )
+            BIND( RTStackSize )
+            BIND( FragmentShadingRate )
             #undef BIND
+            default : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -343,14 +442,24 @@ namespace
     {
         EnumBinder<EImageAspect>    binder{ se };
         binder.Create();
-        binder.AddValue( "Color",       EImageAspect::Color );
-        binder.AddValue( "Depth",       EImageAspect::Depth );
-        binder.AddValue( "Stencil",     EImageAspect::Stencil );
-        //binder.AddValue( "Metadata",  EImageAspect::Metadata );
-        binder.AddValue( "Plane_0",     EImageAspect::Plane_0 );
-        binder.AddValue( "Plane_1",     EImageAspect::Plane_1 );
-        binder.AddValue( "Plane_2",     EImageAspect::Plane_2 );
-        StaticAssert( uint(EImageAspect::_Last) == 65 );
+        switch_enum( EImageAspect::Unknown )
+        {
+            case EImageAspect::Unknown :
+            case EImageAspect::Metadata :
+            case EImageAspect::_Last :
+            case EImageAspect::_PlaneMask :
+            #define BIND( _name_ )          case EImageAspect::_name_ : binder.AddValue( AE_TOSTRING(_name_), EImageAspect::_name_ );
+            BIND( Color )
+            BIND( Depth )
+            BIND( Stencil )
+            BIND( DepthStencil )
+            BIND( Plane_0 )
+            BIND( Plane_1 )
+            BIND( Plane_2 )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -362,19 +471,27 @@ namespace
     {
         EnumBinder<EShaderIO>       binder{ se };
         binder.Create();
-        binder.AddValue( "Int",         EShaderIO::Int );
-        binder.AddValue( "UInt",        EShaderIO::UInt );
-        binder.AddValue( "Float",       EShaderIO::Float );
-        binder.AddValue( "UFloat",      EShaderIO::UFloat );
-        binder.AddValue( "Half",        EShaderIO::Half );
-        binder.AddValue( "UNorm",       EShaderIO::UNorm );
-        binder.AddValue( "SNorm",       EShaderIO::SNorm );
-        binder.AddValue( "sRGB",        EShaderIO::sRGB );
-        binder.AddValue( "AnyColor",    EShaderIO::AnyColor );
-        binder.AddValue( "Depth",       EShaderIO::Depth );
-        binder.AddValue( "Stencil",     EShaderIO::Stencil );
-        binder.AddValue( "DepthStencil",EShaderIO::DepthStencil );
-        StaticAssert( uint(EShaderIO::_Count) == 13 );
+        switch_enum( EShaderIO::Unknown )
+        {
+            case EShaderIO::Unknown :
+            case EShaderIO::_Count :
+            #define BIND( _name_ )          case EShaderIO::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShaderIO::_name_ );
+            BIND( Int )
+            BIND( UInt )
+            BIND( Float )
+            BIND( UFloat )
+            BIND( Half )
+            BIND( UNorm )
+            BIND( SNorm )
+            BIND( sRGB )
+            BIND( AnyColor )
+            BIND( Depth )
+            BIND( Stencil )
+            BIND( DepthStencil )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -386,13 +503,22 @@ namespace
     {
         EnumBinder<ESubgroupTypes>      binder{ se };
         binder.Create();
-        binder.AddValue( "Float16", ESubgroupTypes::Float16 );
-        binder.AddValue( "Float32", ESubgroupTypes::Float32 );
-        binder.AddValue( "Int8",    ESubgroupTypes::Int8 );
-        binder.AddValue( "Int16",   ESubgroupTypes::Int16 );
-        binder.AddValue( "Int32",   ESubgroupTypes::Int32 );
-        binder.AddValue( "Int64",   ESubgroupTypes::Int64 );
-        StaticAssert( uint(ESubgroupTypes::All) == 63 );
+        switch_enum( ESubgroupTypes::Unknown )
+        {
+            case ESubgroupTypes::Unknown :
+            case ESubgroupTypes::_Last :
+            case ESubgroupTypes::All :
+            #define BIND( _name_ )          case ESubgroupTypes::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESubgroupTypes::_name_ );
+            BIND( Float16 )
+            BIND( Float32 )
+            BIND( Int8 )
+            BIND( Int16 )
+            BIND( Int32 )
+            BIND( Int64 )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -404,84 +530,92 @@ namespace
     {
         EnumBinder<ESubgroupOperation>      binder{ se };
         binder.Create();
-        // Basic
-        binder.AddValue( "IndexAndSize",            ESubgroupOperation::IndexAndSize );
-        binder.AddValue( "Elect",                   ESubgroupOperation::Elect );
-        binder.AddValue( "Barrier",                 ESubgroupOperation::Barrier );
-        // Vote
-        binder.AddValue( "Any",                     ESubgroupOperation::Any );
-        binder.AddValue( "All",                     ESubgroupOperation::All );
-        binder.AddValue( "AllEqual",                ESubgroupOperation::AllEqual );
-        // Arithmetic
-        binder.AddValue( "Add",                     ESubgroupOperation::Add );
-        binder.AddValue( "Mul",                     ESubgroupOperation::Mul );
-        binder.AddValue( "Min",                     ESubgroupOperation::Min );
-        binder.AddValue( "Max",                     ESubgroupOperation::Max );
-        binder.AddValue( "And",                     ESubgroupOperation::And );
-        binder.AddValue( "Or",                      ESubgroupOperation::Or );
-        binder.AddValue( "Xor",                     ESubgroupOperation::Xor );
-        binder.AddValue( "InclusiveMul",            ESubgroupOperation::InclusiveMul );
-        binder.AddValue( "InclusiveAdd",            ESubgroupOperation::InclusiveAdd );
-        binder.AddValue( "InclusiveMin",            ESubgroupOperation::InclusiveMin );
-        binder.AddValue( "InclusiveMax",            ESubgroupOperation::InclusiveMax );
-        binder.AddValue( "InclusiveAnd",            ESubgroupOperation::InclusiveAnd );
-        binder.AddValue( "InclusiveOr",             ESubgroupOperation::InclusiveOr );
-        binder.AddValue( "InclusiveXor",            ESubgroupOperation::InclusiveXor );
-        binder.AddValue( "ExclusiveAdd",            ESubgroupOperation::ExclusiveAdd );
-        binder.AddValue( "ExclusiveMul",            ESubgroupOperation::ExclusiveMul );
-        binder.AddValue( "ExclusiveMin",            ESubgroupOperation::ExclusiveMin );
-        binder.AddValue( "ExclusiveMax",            ESubgroupOperation::ExclusiveMax );
-        binder.AddValue( "ExclusiveAnd",            ESubgroupOperation::ExclusiveAnd );
-        binder.AddValue( "ExclusiveOr",             ESubgroupOperation::ExclusiveOr );
-        binder.AddValue( "ExclusiveXor",            ESubgroupOperation::ExclusiveXor );
-        // Ballot
-        binder.AddValue( "Ballot",                  ESubgroupOperation::Ballot );
-        binder.AddValue( "Broadcast",               ESubgroupOperation::Broadcast );
-        binder.AddValue( "BroadcastFirst",          ESubgroupOperation::BroadcastFirst );
-        binder.AddValue( "InverseBallot",           ESubgroupOperation::InverseBallot );
-        binder.AddValue( "BallotBitExtract",        ESubgroupOperation::BallotBitExtract );
-        binder.AddValue( "BallotBitCount",          ESubgroupOperation::BallotBitCount );
-        binder.AddValue( "BallotInclusiveBitCount", ESubgroupOperation::BallotInclusiveBitCount );
-        binder.AddValue( "BallotExclusiveBitCount", ESubgroupOperation::BallotExclusiveBitCount );
-        binder.AddValue( "BallotFindLSB",           ESubgroupOperation::BallotFindLSB );
-        binder.AddValue( "BallotFindMSB",           ESubgroupOperation::BallotFindMSB );
-        // Shuffle
-        binder.AddValue( "Shuffle",                 ESubgroupOperation::Shuffle );
-        binder.AddValue( "ShuffleXor",              ESubgroupOperation::ShuffleXor );
-        // Shuffle Relative
-        binder.AddValue( "ShuffleUp",               ESubgroupOperation::ShuffleUp );
-        binder.AddValue( "ShuffleDown",             ESubgroupOperation::ShuffleDown );
-        // Clustered
-        binder.AddValue( "ClusteredAdd",            ESubgroupOperation::ClusteredAdd );
-        binder.AddValue( "ClusteredMul",            ESubgroupOperation::ClusteredMul );
-        binder.AddValue( "ClusteredMin",            ESubgroupOperation::ClusteredMin );
-        binder.AddValue( "ClusteredMax",            ESubgroupOperation::ClusteredMax );
-        binder.AddValue( "ClusteredAnd",            ESubgroupOperation::ClusteredAnd );
-        binder.AddValue( "ClusteredOr",             ESubgroupOperation::ClusteredOr );
-        binder.AddValue( "ClusteredXor",            ESubgroupOperation::ClusteredXor );
-        // Quad
-        binder.AddValue( "QuadBroadcast",           ESubgroupOperation::QuadBroadcast );
-        binder.AddValue( "QuadSwapHorizontal",      ESubgroupOperation::QuadSwapHorizontal );
-        binder.AddValue( "QuadSwapVertical",        ESubgroupOperation::QuadSwapVertical );
-        binder.AddValue( "QuadSwapDiagonal",        ESubgroupOperation::QuadSwapDiagonal );
-        // ranges
-        binder.AddValue( "_Basic_Begin",            ESubgroupOperation::_Basic_Begin );
-        binder.AddValue( "_Basic_End",              ESubgroupOperation::_Basic_End );
-        binder.AddValue( "_Vote_Begin",             ESubgroupOperation::_Vote_Begin );
-        binder.AddValue( "_Vote_End",               ESubgroupOperation::_Vote_End );
-        binder.AddValue( "_Arithmetic_Begin",       ESubgroupOperation::_Arithmetic_Begin );
-        binder.AddValue( "_Arithmetic_End",         ESubgroupOperation::_Arithmetic_End );
-        binder.AddValue( "_Ballot_Begin",           ESubgroupOperation::_Ballot_Begin );
-        binder.AddValue( "_Ballot_End",             ESubgroupOperation::_Ballot_End );
-        binder.AddValue( "_Shuffle_Begin",          ESubgroupOperation::_Shuffle_Begin );
-        binder.AddValue( "_Shuffle_End",            ESubgroupOperation::_Shuffle_End );
-        binder.AddValue( "_ShuffleRelative_Begin",  ESubgroupOperation::_ShuffleRelative_Begin );
-        binder.AddValue( "_ShuffleRelative_End",    ESubgroupOperation::_ShuffleRelative_End );
-        binder.AddValue( "_Clustered_Begin",        ESubgroupOperation::_Clustered_Begin );
-        binder.AddValue( "_Clustered_End",          ESubgroupOperation::_Clustered_End );
-        binder.AddValue( "_Quad_Begin",             ESubgroupOperation::_Quad_Begin );
-        binder.AddValue( "_Quad_End",               ESubgroupOperation::_Quad_End );
-        StaticAssert( uint(ESubgroupOperation::_Count) == 52 );
+        switch_enum( ESubgroupOperation::_Count )
+        {
+            case ESubgroupOperation::_Count :
+            #define BIND( _name_ )      case ESubgroupOperation::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESubgroupOperation::_name_ );
+            // Basic
+            BIND( IndexAndSize )
+            BIND( Elect )
+            BIND( Barrier )
+            // Vote
+            BIND( Any )
+            BIND( All )
+            BIND( AllEqual )
+            // Arithmetic
+            BIND( Add )
+            BIND( Mul );
+            BIND( Min );
+            BIND( Max );
+            BIND( And );
+            BIND( Or );
+            BIND( Xor );
+            BIND( InclusiveMul );
+            BIND( InclusiveAdd );
+            BIND( InclusiveMin );
+            BIND( InclusiveMax );
+            BIND( InclusiveAnd );
+            BIND( InclusiveOr );
+            BIND( InclusiveXor );
+            BIND( ExclusiveAdd );
+            BIND( ExclusiveMul );
+            BIND( ExclusiveMin );
+            BIND( ExclusiveMax );
+            BIND( ExclusiveAnd );
+            BIND( ExclusiveOr );
+            BIND( ExclusiveXor );
+            // Ballot
+            BIND( Ballot )
+            BIND( Broadcast )
+            BIND( BroadcastFirst )
+            BIND( InverseBallot )
+            BIND( BallotBitExtract )
+            BIND( BallotBitCount )
+            BIND( BallotInclusiveBitCount )
+            BIND( BallotExclusiveBitCount )
+            BIND( BallotFindLSB )
+            BIND( BallotFindMSB )
+            // Shuffle
+            BIND( Shuffle )
+            BIND( ShuffleXor )
+            // Shuffle Relative
+            BIND( ShuffleUp )
+            BIND( ShuffleDown )
+            // Clustered
+            BIND( ClusteredAdd )
+            BIND( ClusteredMul )
+            BIND( ClusteredMin )
+            BIND( ClusteredMax )
+            BIND( ClusteredAnd )
+            BIND( ClusteredOr )
+            BIND( ClusteredXor )
+            // Quad
+            BIND( QuadBroadcast )
+            BIND( QuadSwapHorizontal )
+            BIND( QuadSwapVertical )
+            BIND( QuadSwapDiagonal )
+            #undef BIND
+            // ranges
+            default :
+                binder.AddValue( "_Basic_Begin",            ESubgroupOperation::_Basic_Begin );
+                binder.AddValue( "_Basic_End",              ESubgroupOperation::_Basic_End );
+                binder.AddValue( "_Vote_Begin",             ESubgroupOperation::_Vote_Begin );
+                binder.AddValue( "_Vote_End",               ESubgroupOperation::_Vote_End );
+                binder.AddValue( "_Arithmetic_Begin",       ESubgroupOperation::_Arithmetic_Begin );
+                binder.AddValue( "_Arithmetic_End",         ESubgroupOperation::_Arithmetic_End );
+                binder.AddValue( "_Ballot_Begin",           ESubgroupOperation::_Ballot_Begin );
+                binder.AddValue( "_Ballot_End",             ESubgroupOperation::_Ballot_End );
+                binder.AddValue( "_Shuffle_Begin",          ESubgroupOperation::_Shuffle_Begin );
+                binder.AddValue( "_Shuffle_End",            ESubgroupOperation::_Shuffle_End );
+                binder.AddValue( "_ShuffleRelative_Begin",  ESubgroupOperation::_ShuffleRelative_Begin );
+                binder.AddValue( "_ShuffleRelative_End",    ESubgroupOperation::_ShuffleRelative_End );
+                binder.AddValue( "_Clustered_Begin",        ESubgroupOperation::_Clustered_Begin );
+                binder.AddValue( "_Clustered_End",          ESubgroupOperation::_Clustered_End );
+                binder.AddValue( "_Quad_Begin",             ESubgroupOperation::_Quad_Begin );
+                binder.AddValue( "_Quad_End",               ESubgroupOperation::_Quad_End );
+                break;
+        }
+        switch_end
     }
 
 /*
@@ -493,10 +627,17 @@ namespace
     {
         EnumBinder<EFeature>        binder{ se };
         binder.Create();
-        binder.AddValue( "Ignore",          EFeature::Ignore );
-        binder.AddValue( "RequireTrue",     EFeature::RequireTrue );
-        binder.AddValue( "RequireFalse",    EFeature::RequireFalse );
-        StaticAssert( uint(EFeature::_Count) == 3 );
+        switch_enum( EFeature::_Count )
+        {
+            case EFeature::_Count :
+            #define BIND( _name_ )      case EFeature::_name_ : binder.AddValue( AE_TOSTRING(_name_), EFeature::_name_ );
+            BIND( Ignore )
+            BIND( RequireTrue )
+            BIND( RequireFalse )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -508,22 +649,30 @@ namespace
     {
         EnumBinder<EShader>     binder{ se };
         binder.Create();
-        binder.AddValue( "Vertex",          EShader::Vertex );
-        binder.AddValue( "TessControl",     EShader::TessControl );
-        binder.AddValue( "TessEvaluation",  EShader::TessEvaluation );
-        binder.AddValue( "Geometry",        EShader::Geometry );
-        binder.AddValue( "Fragment",        EShader::Fragment );
-        binder.AddValue( "Compute",         EShader::Compute );
-        binder.AddValue( "Tile",            EShader::Tile );
-        binder.AddValue( "MeshTask",        EShader::MeshTask );
-        binder.AddValue( "Mesh",            EShader::Mesh );
-        binder.AddValue( "RayGen",          EShader::RayGen );
-        binder.AddValue( "RayAnyHit",       EShader::RayAnyHit );
-        binder.AddValue( "RayClosestHit",   EShader::RayClosestHit );
-        binder.AddValue( "RayMiss",         EShader::RayMiss );
-        binder.AddValue( "RayIntersection", EShader::RayIntersection );
-        binder.AddValue( "RayCallable",     EShader::RayCallable );
-        StaticAssert( uint(EShader::_Count) == 15 );
+        switch_enum( EShader::Unknown )
+        {
+            case EShader::Unknown :
+            case EShader::_Count :
+            #define BIND( _name_ )      case EShader::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShader::_name_ );
+            BIND( Vertex )
+            BIND( TessControl )
+            BIND( TessEvaluation )
+            BIND( Geometry )
+            BIND( Fragment )
+            BIND( Compute )
+            BIND( Tile )
+            BIND( MeshTask )
+            BIND( Mesh )
+            BIND( RayGen )
+            BIND( RayAnyHit )
+            BIND( RayClosestHit )
+            BIND( RayMiss )
+            BIND( RayIntersection )
+            BIND( RayCallable )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -535,31 +684,37 @@ namespace
     {
         EnumBinder<EShaderStages>       binder{ se };
         binder.Create();
-        binder.AddValue( "Vertex",          EShaderStages::Vertex );
-        binder.AddValue( "TessControl",     EShaderStages::TessControl );
-        binder.AddValue( "TessEvaluation",  EShaderStages::TessEvaluation );
-        binder.AddValue( "Geometry",        EShaderStages::Geometry );
-        binder.AddValue( "Fragment",        EShaderStages::Fragment );
-        binder.AddValue( "Compute",         EShaderStages::Compute );
-        binder.AddValue( "Tile",            EShaderStages::Tile );
-        binder.AddValue( "MeshTask",        EShaderStages::MeshTask );
-        binder.AddValue( "Mesh",            EShaderStages::Mesh );
-        binder.AddValue( "RayGen",          EShaderStages::RayGen );
-        binder.AddValue( "RayAnyHit",       EShaderStages::RayAnyHit );
-        binder.AddValue( "RayClosestHit",   EShaderStages::RayClosestHit );
-        binder.AddValue( "RayMiss",         EShaderStages::RayMiss );
-        binder.AddValue( "RayIntersection", EShaderStages::RayIntersection );
-        binder.AddValue( "RayCallable",     EShaderStages::RayCallable );
-
-        binder.AddValue( "All",                     EShaderStages::All );
-        binder.AddValue( "AllGraphics",             EShaderStages::AllGraphics );
-        binder.AddValue( "AllRayTracing",           EShaderStages::AllRayTracing );
-        binder.AddValue( "GraphicsStages",          EShaderStages::GraphicsStages );
-        binder.AddValue( "MeshStages",              EShaderStages::MeshStages );
-        binder.AddValue( "VertexProcessingStages",  EShaderStages::VertexProcessingStages );
-        binder.AddValue( "PreRasterizationStages",  EShaderStages::PreRasterizationStages );
-        binder.AddValue( "PostRasterizationStages", EShaderStages::PostRasterizationStages );
-        StaticAssert( uint(EShaderStages::All) == 0x7FFF );
+        switch_enum( EShaderStages::Unknown )
+        {
+            case EShaderStages::Unknown :
+            #define BIND( _name_ )          case EShaderStages::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShaderStages::_name_ );
+            BIND( Vertex )
+            BIND( TessControl )
+            BIND( TessEvaluation )
+            BIND( Geometry )
+            BIND( Fragment )
+            BIND( Compute )
+            BIND( Tile )
+            BIND( MeshTask )
+            BIND( Mesh )
+            BIND( RayGen )
+            BIND( RayAnyHit )
+            BIND( RayClosestHit )
+            BIND( RayMiss )
+            BIND( RayIntersection )
+            BIND( RayCallable )
+            BIND( All )
+            BIND( AllGraphics )
+            BIND( GraphicsStages )
+            BIND( MeshStages )
+            BIND( VertexProcessingStages )
+            BIND( PreRasterizationStages )
+            BIND( PostRasterizationStages )
+            BIND( AllRayTracing )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -571,19 +726,26 @@ namespace
     {
         EnumBinder<EVendorID>       binder{ se };
         binder.Create();
-        binder.AddValue( "AMD",         EVendorID::AMD );
-        binder.AddValue( "NVidia",      EVendorID::NVidia );
-        binder.AddValue( "Intel",       EVendorID::Intel );
-        binder.AddValue( "ARM",         EVendorID::ARM );
-        binder.AddValue( "Qualcomm",    EVendorID::Qualcomm );
-        binder.AddValue( "ImgTech",     EVendorID::ImgTech );
-        binder.AddValue( "Microsoft",   EVendorID::Microsoft );
-        binder.AddValue( "Apple",       EVendorID::Apple );
-        binder.AddValue( "Mesa",        EVendorID::Mesa );
-        binder.AddValue( "Broadcom",    EVendorID::Broadcom );
-        binder.AddValue( "Samsung",     EVendorID::Samsung );
-        binder.AddValue( "VeriSilicon", EVendorID::VeriSilicon );
-        StaticAssert( uint(EVendorID::_Count) == 12 );
+        switch_enum( EVendorID::Unknown )
+        {
+            case EVendorID::Unknown :
+            #define BIND( _name_ )      case EVendorID::_name_ : binder.AddValue( AE_TOSTRING(_name_), EVendorID::_name_ );
+            BIND( AMD )
+            BIND( NVidia )
+            BIND( Intel )
+            BIND( ARM )
+            BIND( Qualcomm )
+            BIND( ImgTech )
+            BIND( Microsoft )
+            BIND( Apple )
+            BIND( Mesa )
+            BIND( Broadcom )
+            BIND( Samsung )
+            BIND( VeriSilicon )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -596,7 +758,7 @@ namespace
         EnumBinder<EGraphicsDeviceID>       binder{ se };
         binder.Create();
 
-        #define AE_GRAPHICS_DEVICE_VISIT( _name_ )      binder.AddValue( AE_TOSTRING( _name_ ), EGraphicsDeviceID::_name_ );
+        #define AE_GRAPHICS_DEVICE_VISIT( _name_ )      binder.AddValue( AE_TOSTRING(_name_), EGraphicsDeviceID::_name_ );
         AE_GRAPHICS_DEVICE_LIST( AE_GRAPHICS_DEVICE_VISIT );
         #undef AE_GRAPHICS_DEVICE_VISIT
     }
@@ -611,7 +773,7 @@ namespace
         EnumBinder<EVertexType> binder{ se };
         binder.Create();
 
-        #define AE_VERTEXTYPE_VISIT( _name_, _value_ )  binder.AddValue( AE_TOSTRING( _name_ ), EVertexType::_name_ );
+        #define AE_VERTEXTYPE_VISIT( _name_, _value_ )  binder.AddValue( AE_TOSTRING(_name_), EVertexType::_name_ );
         AE_VERTEXTYPE_LIST( AE_VERTEXTYPE_VISIT );
         #undef AE_VERTEXTYPE_VISIT
     }
@@ -625,9 +787,17 @@ namespace
     {
         EnumBinder<EFilter>     binder{ se };
         binder.Create();
-        binder.AddValue( "Nearest",     EFilter::Nearest );
-        binder.AddValue( "Linear",      EFilter::Linear );
-        StaticAssert( uint(EFilter::_Count) == 2 );
+        switch_enum( EFilter::Unknown )
+        {
+            case EFilter::Unknown :
+            case EFilter::_Count :
+            #define BIND( _name_ )      case EFilter::_name_ : binder.AddValue( AE_TOSTRING(_name_), EFilter::_name_ );
+            BIND( Nearest )
+            BIND( Linear )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -639,10 +809,18 @@ namespace
     {
         EnumBinder<EMipmapFilter>       binder{ se };
         binder.Create();
-        binder.AddValue( "None",        EMipmapFilter::None );
-        binder.AddValue( "Nearest",     EMipmapFilter::Nearest );
-        binder.AddValue( "Linear",      EMipmapFilter::Linear );
-        StaticAssert( uint(EMipmapFilter::_Count) == 3 );
+        switch_enum( EMipmapFilter::Unknown )
+        {
+            case EMipmapFilter::Unknown :
+            case EMipmapFilter::_Count :
+            #define BIND( _name_ )      case EMipmapFilter::_name_ : binder.AddValue( AE_TOSTRING(_name_), EMipmapFilter::_name_ );
+            BIND( None )
+            BIND( Nearest )
+            BIND( Linear )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -654,15 +832,24 @@ namespace
     {
         EnumBinder<EAddressMode>        binder{ se };
         binder.Create();
-        binder.AddValue( "Repeat",              EAddressMode::Repeat );
-        binder.AddValue( "MirrorRepeat",        EAddressMode::MirrorRepeat );
-        binder.AddValue( "ClampToEdge",         EAddressMode::ClampToEdge );
-        binder.AddValue( "ClampToBorder",       EAddressMode::ClampToBorder );
-        binder.AddValue( "MirrorClampToEdge",   EAddressMode::MirrorClampToEdge );
-        // alias:
-        binder.AddValue( "Clamp",               EAddressMode::ClampToEdge );
-        binder.AddValue( "MirrorClamp",         EAddressMode::MirrorClampToEdge );
-        StaticAssert( uint(EAddressMode::_Count) == 5 );
+        switch_enum( EAddressMode::Unknown )
+        {
+            case EAddressMode::Unknown :
+            case EAddressMode::_Count :
+            #define BIND( _name_ )      case EAddressMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAddressMode::_name_ );
+            BIND( Repeat )
+            BIND( MirrorRepeat )
+            BIND( ClampToEdge )
+            BIND( ClampToBorder )
+            BIND( MirrorClampToEdge )
+            #undef BIND
+            default :
+                // alias:
+                binder.AddValue( "Clamp",       EAddressMode::ClampToEdge );
+                binder.AddValue( "MirrorClamp", EAddressMode::MirrorClampToEdge );
+                break;
+        }
+        switch_end
     }
 
 /*
@@ -674,13 +861,21 @@ namespace
     {
         EnumBinder<EBorderColor>        binder{ se };
         binder.Create();
-        binder.AddValue( "FloatTransparentBlack",   EBorderColor::FloatTransparentBlack );
-        binder.AddValue( "FloatOpaqueBlack",        EBorderColor::FloatOpaqueBlack );
-        binder.AddValue( "FloatOpaqueWhite",        EBorderColor::FloatOpaqueWhite );
-        binder.AddValue( "IntTransparentBlack",     EBorderColor::IntTransparentBlack );
-        binder.AddValue( "IntOpaqueBlack",          EBorderColor::IntOpaqueBlack );
-        binder.AddValue( "IntOpaqueWhite",          EBorderColor::IntOpaqueWhite );
-        StaticAssert( uint(EBorderColor::_Count) == 6 );
+        switch_enum( EBorderColor::Unknown )
+        {
+            case EBorderColor::Unknown :
+            case EBorderColor::_Count :
+            #define BIND( _name_ )      case EBorderColor::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBorderColor::_name_ );
+            BIND( FloatTransparentBlack )
+            BIND( FloatOpaqueBlack )
+            BIND( FloatOpaqueWhite )
+            BIND( IntTransparentBlack )
+            BIND( IntOpaqueBlack )
+            BIND( IntOpaqueWhite )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -692,10 +887,18 @@ namespace
     {
         EnumBinder<EReductionMode>      binder{ se };
         binder.Create();
-        binder.AddValue( "Average", EReductionMode::Average );
-        binder.AddValue( "Min",     EReductionMode::Min );
-        binder.AddValue( "Max",     EReductionMode::Max );
-        StaticAssert( uint(EReductionMode::_Count) == 3 );
+        switch_enum( EReductionMode::Unknown )
+        {
+            case EReductionMode::Unknown :
+            case EReductionMode::_Count :
+            #define BIND( _name_ )      case EReductionMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EReductionMode::_name_ );
+            BIND( Average )
+            BIND( Min )
+            BIND( Max )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -707,11 +910,18 @@ namespace
     {
         EnumBinder<ESamplerUsage>       binder{ se };
         binder.Create();
-        binder.AddValue( "Default",                         ESamplerUsage::Default );
-    //  binder.AddValue( "Subsampled",                      ESamplerUsage::Subsampled );
-    //  binder.AddValue( "SubsampledCoarseReconstruction",  ESamplerUsage::SubsampledCoarseReconstruction );
-        binder.AddValue( "NonSeamlessCubeMap",              ESamplerUsage::NonSeamlessCubeMap );
-        StaticAssert( uint(ESamplerUsage::_Count) == 2 );
+        switch_enum( ESamplerUsage::_Count )
+        {
+            case ESamplerUsage::_Count :
+            #define BIND( _name_ )      case ESamplerUsage::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerUsage::_name_ );
+            BIND( Default )
+        //  BIND( Subsampled )
+        //  BIND( SubsampledCoarseReconstruction )
+            BIND( NonSeamlessCubeMap )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -723,8 +933,17 @@ namespace
     {
         EnumBinder<EVertexInputRate>    binder{ se };
         binder.Create();
-        binder.AddValue( "Vertex",      EVertexInputRate::Vertex );
-        binder.AddValue( "Instance",    EVertexInputRate::Instance );
+        switch_enum( EVertexInputRate::Unknown )
+        {
+            case EVertexInputRate::Unknown :
+            case EVertexInputRate::_Count :
+            #define BIND( _name_ )      case EVertexInputRate::_name_ : binder.AddValue( AE_TOSTRING(_name_), EVertexInputRate::_name_ );
+            BIND( Vertex )
+            BIND( Instance )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -736,11 +955,20 @@ namespace
     {
         EnumBinder<EDescSetUsage>   binder{ se };
         binder.Create();
-        binder.AddValue( "AllowPartialyUpdate", EDescSetUsage::AllowPartialyUpdate );
-        binder.AddValue( "UpdateTemplate",      EDescSetUsage::UpdateTemplate );
-        binder.AddValue( "ArgumentBuffer",      EDescSetUsage::ArgumentBuffer );
-        binder.AddValue( "MutableArgBuffer",    EDescSetUsage::MutableArgBuffer );
-        StaticAssert( uint(EDescSetUsage::All) == 0xF );
+        switch_enum( EDescSetUsage::Unknown )
+        {
+            case EDescSetUsage::Unknown :
+            case EDescSetUsage::_Last :
+            case EDescSetUsage::All :
+            #define BIND( _name_ )      case EDescSetUsage::_name_ : binder.AddValue( AE_TOSTRING(_name_), EDescSetUsage::_name_ );
+            BIND( AllowPartialyUpdate )
+            BIND( UpdateTemplate )
+            BIND( ArgumentBuffer )
+            BIND( MutableArgBuffer )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -752,28 +980,27 @@ namespace
     {
         EnumBinder<EPipelineOpt>    binder{ se };
         binder.Create();
-        BEGIN_ENUM_CHECKS();
-        switch ( EPipelineOpt::Unknown )
+        switch_enum( EPipelineOpt::Unknown )
         {
-            #define BIND( _name_ )  case EPipelineOpt::_name_ : binder.AddValue( #_name_, EPipelineOpt::_name_ )
             case EPipelineOpt::Unknown :
-            BIND( Optimize );
-            BIND( CS_DispatchBase );
-            BIND( RT_NoNullAnyHitShaders );
-            BIND( RT_NoNullClosestHitShaders );
-            BIND( RT_NoNullMissShaders );
-            BIND( RT_NoNullIntersectionShaders );
-            BIND( RT_SkipTriangles );
-            BIND( RT_SkipAABBs );
-            BIND( DontCompile );
-            BIND( CaptureStatistics );
-            BIND( CaptureInternalRepresentation );
             case EPipelineOpt::_Last :
             case EPipelineOpt::All :
-            default : break;
+            #define BIND( _name_ )          case EPipelineOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPipelineOpt::_name_ );
+            BIND( Optimize )
+            BIND( CS_DispatchBase )
+            BIND( RT_NoNullAnyHitShaders )
+            BIND( RT_NoNullClosestHitShaders )
+            BIND( RT_NoNullMissShaders )
+            BIND( RT_NoNullIntersectionShaders )
+            BIND( RT_SkipTriangles )
+            BIND( RT_SkipAABBs )
+            BIND( DontCompile )
+            BIND( CaptureStatistics )
+            BIND( CaptureInternalRepresentation )
             #undef BIND
+            default : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -785,12 +1012,20 @@ namespace
     {
         EnumBinder<EQueueMask>  binder{ se };
         binder.Create();
-        binder.AddValue( "Graphics",        EQueueMask::Graphics        );
-        binder.AddValue( "AsyncCompute",    EQueueMask::AsyncCompute    );
-        binder.AddValue( "AsyncTransfer",   EQueueMask::AsyncTransfer   );
-        binder.AddValue( "VideoEncode",     EQueueMask::VideoEncode     );
-        binder.AddValue( "VideoDecode",     EQueueMask::VideoDecode     );
-        StaticAssert( uint(EQueueMask::All) == 31 );
+        switch_enum( EQueueMask::Unknown )
+        {
+            case EQueueMask::Unknown :
+            #define BIND( _name_ )      case EQueueMask::_name_ : binder.AddValue( AE_TOSTRING(_name_), EQueueMask::_name_ );
+            BIND( Graphics )
+            BIND( AsyncCompute )
+            BIND( AsyncTransfer )
+            BIND( VideoEncode )
+            BIND( VideoDecode )
+            BIND( All )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -802,9 +1037,17 @@ namespace
     {
         EnumBinder<ESamplerChromaLocation>  binder{ se };
         binder.Create();
-        binder.AddValue( "CositedEven",     ESamplerChromaLocation::CositedEven     );
-        binder.AddValue( "Midpoint",        ESamplerChromaLocation::Midpoint        );
-        StaticAssert( uint(ESamplerChromaLocation::_Count) == 2 );
+        switch_enum( ESamplerChromaLocation::Unknown )
+        {
+            case ESamplerChromaLocation::Unknown :
+            case ESamplerChromaLocation::_Count :
+            #define BIND( _name_ )      case ESamplerChromaLocation::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerChromaLocation::_name_ );
+            BIND( CositedEven )
+            BIND( Midpoint )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -816,12 +1059,20 @@ namespace
     {
         EnumBinder<ESamplerYcbcrModelConversion>    binder{ se };
         binder.Create();
-        binder.AddValue( "RGB_Identity",    ESamplerYcbcrModelConversion::RGB_Identity  );
-        binder.AddValue( "Ycbcr_Identity",  ESamplerYcbcrModelConversion::Ycbcr_Identity);
-        binder.AddValue( "Ycbcr_709",       ESamplerYcbcrModelConversion::Ycbcr_709     );
-        binder.AddValue( "Ycbcr_601",       ESamplerYcbcrModelConversion::Ycbcr_601     );
-        binder.AddValue( "Ycbcr_2020",      ESamplerYcbcrModelConversion::Ycbcr_2020    );
-        StaticAssert( uint(ESamplerYcbcrModelConversion::_Count) == 5 );
+        switch_enum( ESamplerYcbcrModelConversion::Unknown )
+        {
+            case ESamplerYcbcrModelConversion::Unknown :
+            case ESamplerYcbcrModelConversion::_Count :
+            #define BIND( _name_ )      case ESamplerYcbcrModelConversion::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerYcbcrModelConversion::_name_ );
+            BIND( RGB_Identity )
+            BIND( Ycbcr_Identity )
+            BIND( Ycbcr_709 )
+            BIND( Ycbcr_601 )
+            BIND( Ycbcr_2020 )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -833,9 +1084,17 @@ namespace
     {
         EnumBinder<ESamplerYcbcrRange>  binder{ se };
         binder.Create();
-        binder.AddValue( "ITU_Full",        ESamplerYcbcrRange::ITU_Full    );
-        binder.AddValue( "ITU_Narrow",      ESamplerYcbcrRange::ITU_Narrow  );
-        StaticAssert( uint(ESamplerYcbcrRange::_Count) == 2 );
+        switch_enum( ESamplerYcbcrRange::Unknown )
+        {
+            case ESamplerYcbcrRange::Unknown :
+            case ESamplerYcbcrRange::_Count :
+            #define BIND( _name_ )      case ESamplerYcbcrRange::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerYcbcrRange::_name_ );
+            BIND( ITU_Full )
+            BIND( ITU_Narrow )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -847,17 +1106,25 @@ namespace
     {
         EnumBinder<ESurfaceFormat>  binder{ se };
         binder.Create();
-        binder.AddValue( "BGRA8_sRGB_nonlinear",            ESurfaceFormat::BGRA8_sRGB_nonlinear            );
-        binder.AddValue( "RGBA8_sRGB_nonlinear",            ESurfaceFormat::RGBA8_sRGB_nonlinear            );
-        binder.AddValue( "BGRA8_BT709_nonlinear",           ESurfaceFormat::BGRA8_BT709_nonlinear           );
-        binder.AddValue( "RGBA16F_Extended_sRGB_linear",    ESurfaceFormat::RGBA16F_Extended_sRGB_linear    );
-        binder.AddValue( "RGBA16F_sRGB_nonlinear",          ESurfaceFormat::RGBA16F_sRGB_nonlinear          );
-        binder.AddValue( "RGBA16F_BT709_nonlinear",         ESurfaceFormat::RGBA16F_BT709_nonlinear         );
-        binder.AddValue( "RGBA16F_HDR10_ST2084",            ESurfaceFormat::RGBA16F_HDR10_ST2084            );
-        binder.AddValue( "RGBA16F_BT2020_linear",           ESurfaceFormat::RGBA16F_BT2020_linear           );
-        binder.AddValue( "RGB10A2_sRGB_nonlinear",          ESurfaceFormat::RGB10A2_sRGB_nonlinear          );
-        binder.AddValue( "RGB10A2_HDR10_ST2084",            ESurfaceFormat::RGB10A2_HDR10_ST2084            );
-        StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
+        switch_enum( ESurfaceFormat::Unknown )
+        {
+            case ESurfaceFormat::Unknown :
+            case ESurfaceFormat::_Count :
+            #define BIND( _name_ )      case ESurfaceFormat::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESurfaceFormat::_name_ );
+            BIND( BGRA8_sRGB_nonlinear )
+            BIND( RGBA8_sRGB_nonlinear )
+            BIND( BGRA8_BT709_nonlinear )
+            BIND( RGBA16F_Extended_sRGB_linear )
+            BIND( RGBA16F_sRGB_nonlinear )
+            BIND( RGBA16F_BT709_nonlinear )
+            BIND( RGBA16F_HDR10_ST2084 )
+            BIND( RGBA16F_BT2020_linear )
+            BIND( RGB10A2_sRGB_nonlinear )
+            BIND( RGB10A2_HDR10_ST2084 )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -869,13 +1136,23 @@ namespace
     {
         EnumBinder<ERTInstanceOpt>  binder{ se };
         binder.Create();
-        binder.AddValue( "TriangleCullDisable", ERTInstanceOpt::TriangleCullDisable );
-        binder.AddValue( "TriangleFrontCCW",    ERTInstanceOpt::TriangleFrontCCW    );
-        binder.AddValue( "ForceOpaque",         ERTInstanceOpt::ForceOpaque         );
-        binder.AddValue( "ForceNonOpaque",      ERTInstanceOpt::ForceNonOpaque      );
-        binder.AddValue( "TriangleCullBack",    ERTInstanceOpt::TriangleCullBack    );
-        binder.AddValue( "TriangleFrontCW",     ERTInstanceOpt::TriangleFrontCW     );
-        StaticAssert( uint(ERTInstanceOpt::All) == 15 );
+        switch_enum( ERTInstanceOpt::Unknown )
+        {
+            case ERTInstanceOpt::Unknown :
+            case ERTInstanceOpt::_Last :
+            case ERTInstanceOpt::All :
+            #define BIND( _name_ )      case ERTInstanceOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), ERTInstanceOpt::_name_ );
+            BIND( TriangleCullDisable )
+            BIND( TriangleFrontCCW )
+            BIND( ForceOpaque )
+            BIND( ForceNonOpaque )
+            #undef BIND
+            default :
+                binder.AddValue( "TriangleCullBack",    ERTInstanceOpt::TriangleCullBack    );
+                binder.AddValue( "TriangleFrontCW",     ERTInstanceOpt::TriangleFrontCW     );
+                break;
+        }
+        switch_end
     }
 
 /*
@@ -887,76 +1164,73 @@ namespace
     {
         EnumBinder<EResourceState>  binder{ se };
         binder.Create();
-
-        BEGIN_ENUM_CHECKS();
-        switch ( EResourceState(0) )
+        switch_enum( EResourceState::_InvalidState )
         {
-        #define BIND( _name_ )\
-            case EResourceState::_name_ :  binder.AddValue( AE_TOSTRING(_name_), EResourceState::_name_ );
-
             case EResourceState::_InvalidState :
-            BIND( Unknown );
-            BIND( Preserve );
-            BIND( ShaderStorage_Read );
-            BIND( ShaderStorage_Write );
-            BIND( ShaderStorage_RW );
-            BIND( ShaderUniform );
-            BIND( ShaderSample );
-            BIND( CopySrc );
-            BIND( CopyDst );
-            BIND( ClearDst );
-            BIND( BlitSrc );
-            BIND( BlitDst );
-            BIND( InputColorAttachment );
-            BIND( InputColorAttachment_RW );
-            BIND( ColorAttachment );
-            BIND( ColorAttachment_Blend );
-            BIND( DepthStencilAttachment_Read );
-            BIND( DepthStencilAttachment_Write );
-            BIND( DepthStencilAttachment_RW );
-            BIND( DepthTest_StencilRW );
-            BIND( DepthRW_StencilTest );
-            BIND( DepthStencilTest_ShaderSample );
-            BIND( DepthTest_DepthSample_StencilRW );
-            BIND( InputDepthStencilAttachment );
-            BIND( InputDepthStencilAttachment_RW );
-            BIND( Host_Read );
-            BIND( Host_Write );
-            BIND( PresentImage );
-            BIND( IndirectBuffer );
-            BIND( IndexBuffer );
-            BIND( VertexBuffer );
-            BIND( ShadingRateImage );
-            BIND( CopyRTAS_Read );
-            BIND( CopyRTAS_Write );
-            BIND( BuildRTAS_Read );
-            BIND( BuildRTAS_Write );
-            BIND( BuildRTAS_RW );
-            BIND( BuildRTAS_IndirectBuffer );
-            BIND( ShaderRTAS );
-            BIND( RTShaderBindingTable );
-            BIND( DSTestBeforeFS );
-            BIND( DSTestAfterFS );
-            BIND( Invalidate );
-            BIND( General );
-            BIND( MeshTaskShader );
-            BIND( VertexProcessingShaders );
-            BIND( TileShader );
-            BIND( FragmentShader );
-            BIND( PreRasterizationShaders );
-            BIND( PostRasterizationShaders );
-            BIND( ComputeShader );
-            BIND( RayTracingShaders );
-            BIND( AllGraphicsShaders );
-            BIND( AllShaders );
+            #define BIND( _name_ )                  case EResourceState::_name_ :  binder.AddValue( AE_TOSTRING(_name_), EResourceState::_name_ );
+            BIND( Unknown )
+            BIND( Preserve )
+            BIND( ShaderStorage_Read )
+            BIND( ShaderStorage_Write )
+            BIND( ShaderStorage_RW )
+            BIND( ShaderUniform )
+            BIND( ShaderSample )
+            BIND( CopySrc )
+            BIND( CopyDst )
+            BIND( ClearDst )
+            BIND( BlitSrc )
+            BIND( BlitDst )
+            BIND( InputColorAttachment )
+            BIND( InputColorAttachment_RW )
+            BIND( ColorAttachment )
+            BIND( ColorAttachment_Blend )
+            BIND( DepthStencilAttachment_Read )
+            BIND( DepthStencilAttachment_Write )
+            BIND( DepthStencilAttachment_RW )
+            BIND( DepthTest_StencilRW )
+            BIND( DepthRW_StencilTest )
+            BIND( DepthStencilTest_ShaderSample )
+            BIND( DepthTest_DepthSample_StencilRW )
+            BIND( InputDepthStencilAttachment )
+            BIND( InputDepthStencilAttachment_RW )
+            BIND( Host_Read )
+            BIND( Host_Write )
+            BIND( PresentImage )
+            BIND( IndirectBuffer )
+            BIND( IndexBuffer )
+            BIND( VertexBuffer )
+            BIND( ShadingRateImage )
+            BIND( CopyRTAS_Read )
+            BIND( CopyRTAS_Write )
+            BIND( BuildRTAS_Read )
+            BIND( BuildRTAS_Write )
+            BIND( BuildRTAS_RW )
+            BIND( BuildRTAS_IndirectBuffer )
+            BIND( ShaderRTAS )
+            BIND( RTShaderBindingTable )
+            BIND( DSTestBeforeFS )
+            BIND( DSTestAfterFS )
+            BIND( Invalidate )
+            BIND( General )
+            BIND( MeshTaskShader )
+            BIND( VertexProcessingShaders )
+            BIND( TileShader )
+            BIND( FragmentShader )
+            BIND( PreRasterizationShaders )
+            BIND( PostRasterizationShaders )
+            BIND( ComputeShader )
+            BIND( RayTracingShaders )
+            BIND( AllGraphicsShaders )
+            BIND( AllShaders )
+            #undef BIND
             // helpers:
-            default :   binder.AddValue( "BuildRTAS_ScratchBuffer", EResourceState::BuildRTAS_ScratchBuffer );
-                        binder.AddValue( "InputDepthAttachment",    EResourceState::InputDepthStencilAttachment );
-                        binder.AddValue( "DepthStencilAttachment",  EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS );
-                        break;
-        #undef BIND
+            default :
+                binder.AddValue( "BuildRTAS_ScratchBuffer", EResourceState::BuildRTAS_ScratchBuffer );
+                binder.AddValue( "InputDepthAttachment",    EResourceState::InputDepthStencilAttachment );
+                binder.AddValue( "DepthStencilAttachment",  EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS );
+                break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -1323,6 +1597,7 @@ namespace
         Bind_EImage( se );
         Bind_EIndex( se );
         Bind_EPixelFormat( se );
+        Bind_EPixelFormatExternal( se );
         Bind_EAttachmentLoadOp( se );
         Bind_EAttachmentStoreOp( se );
         Bind_ECompareOp( se );

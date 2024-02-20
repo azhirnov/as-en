@@ -44,8 +44,19 @@ namespace AE::ResLoader
         GLTF,       // .gltf
     };
 
-    ND_ EModelFormat    PathToModelFormat (const Path &path)    __NE___;
-    ND_ StringView      ModelFormatToExt (EModelFormat)         __NE___;
+    ND_ EModelFormat    PathToModelFormat (const Path &path)        __NE___;
+    ND_ StringView      ModelFormatToExt (EModelFormat)             __NE___;
+
+
+    //
+    // Audio Format
+    //
+    using AE::Audio::EAudioFormat;
+
+    ND_ EAudioFormat    PathToSoundFileFormat (const Path &path)    __NE___;
+    ND_ StringView      SoundFormatToExt (EAudioFormat)             __NE___;
+
+    using AE::Audio::AudioDataDesc;
 
 
 } // AE::ResLoader

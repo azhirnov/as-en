@@ -14,7 +14,7 @@
 #   pragma warning (disable: 4005)
 #   pragma warning (disable: 4668)
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
@@ -46,7 +46,7 @@
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #   pragma clang diagnostic pop
 #endif
 #ifdef AE_COMPILER_GCC
@@ -410,8 +410,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&            spirvData,
 
     if ( dbgInfo )
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case ETraceMode::DebugTrace :
                 CHECK_ERR( dbgInfo->InsertTraceRecording( INOUT *intermediate, dbgBufferSetIndex ));
@@ -432,7 +431,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&            spirvData,
             default :
                 RETURN_ERR( "unknown shader trace mode" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         for (auto* src : source) {
             dbgInfo->AddSource( StringView{src} );
@@ -1687,12 +1686,15 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
     }
 
     CHECK_ERR( Parser::CompareLineByLine( file_data, merged,
-                    [referenceFile] (uint lline, StringView lstr, uint rline, StringView rstr) {
+                    [referenceFile] (uint lline, StringView lstr, uint rline, StringView rstr) __NE___
+                    {
                         AE_LOGE( "in: "s << referenceFile << "\n\n"
                                     << "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
                                     << "\n(" << ToString( rline ) << "): " << rstr );
                     },
-                    [referenceFile] () { AE_LOGE( "in: "s << referenceFile << "\n\n" << "sizes of dumps are not equal!" ); }
+                    [referenceFile] () __NE___ {
+                        AE_LOGE( "in: "s << referenceFile << "\n\n" << "sizes of dumps are not equal!" );
+                    }
              ));
     return true;
 }
@@ -1781,8 +1783,7 @@ void  TestDevice::FreeTempHandles ()
 {
     for (auto& [type, hnd] : tempHandles)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EHandleType::Memory :
                 vkFreeMemory( GetVkDevice(), VkDeviceMemory(hnd), null );
@@ -1820,7 +1821,7 @@ void  TestDevice::FreeTempHandles ()
             default :
                 CHECK_MSG( false, "unknown handle type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
     tempHandles.clear();
 }

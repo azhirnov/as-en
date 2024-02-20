@@ -119,7 +119,7 @@ namespace AE::Graphics::_hidden_
         auto*   dst = static_cast< void *>(&cmd + 1);
         cmd.buffer  = buffer;
         cmd.offset  = offset;
-        cmd.size    = CheckCast< Byte32u >( size );
+        cmd.size    = CheckCast< Bytes32u >( size );
         MemCopy( OUT dst, data, size );
     }
 

@@ -89,8 +89,7 @@ namespace
 */
     ND_ static StringView  EValueType_ToString (EValueType type)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EValueType::Bool8 :        return "Bool8";
             case EValueType::Bool32 :       return "Bool32";
@@ -113,7 +112,7 @@ namespace
             case EValueType::Unknown :
             case EValueType::_Count :       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown EValueType" );
     }
 
@@ -124,8 +123,7 @@ namespace
 */
     ND_ static StringView  EStructLayout_ToString (EStructLayout type)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EStructLayout::Compatible_Std140 : return "Compatible_Std140";
             case EStructLayout::Compatible_Std430 : return "Compatible_Std430";
@@ -136,7 +134,7 @@ namespace
             case EStructLayout::_Count :
             case EStructLayout::Unknown :           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown EStructLayout" );
     }
 
@@ -272,11 +270,11 @@ namespace
 
         const auto  IsTypeNameStart = [] (char c) -> bool
         {{
-            return ((c >= 'a') & (c <= 'z')) | ((c >= 'A') & (c <= 'Z')) | (c == '_');
+            return ((c >= 'a') and (c <= 'z')) or ((c >= 'A') and (c <= 'Z')) or (c == '_');
         }};
         const auto  IsNumber = [] (char c) -> bool
         {{
-            return (c >= '0') & (c <= '9');
+            return (c >= '0') and (c <= '9');
         }};
 
         Array<StringView>   tokens;
@@ -286,7 +284,7 @@ namespace
             field.name = String{*it};
 
             for (auto c : field.name) {
-                if ( not ( ((c >= 'a') & (c <= 'z')) | ((c >= 'A') & (c <= 'Z')) | ((c >= '0') & (c <= '9')) | (c == '_') ))
+                if ( not ( ((c >= 'a') and (c <= 'z')) or ((c >= 'A') and (c <= 'Z')) or ((c >= '0') and (c <= '9')) or (c == '_') ))
                     CHECK_THROW_MSG( false, "invalid name: '"s << field.name << "'" );
             }
             ++it;
@@ -313,7 +311,7 @@ namespace
                 }
 
                 for (auto c : *it) {
-                    if ( not ( (c >= '0') & (c <= '9') ))
+                    if ( not ( (c >= '0') and (c <= '9') ))
                         CHECK_THROW_MSG( false, "invalid array size: '"s << *it << "'" );
                 }
 
@@ -526,8 +524,7 @@ namespace
             else
             if ( field.IsStruct() )
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( layout )
+                switch_enum( layout )
                 {
                     case EStructLayout::Compatible_Std140 :
                     {
@@ -553,14 +550,13 @@ namespace
                     case EStructLayout::Unknown :
                     default :                               CHECK_THROW_MSG( false, "unknown layout type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
             else
             {
                 field.size *= field.rows;
 
-                BEGIN_ENUM_CHECKS();
-                switch ( layout )
+                switch_enum( layout )
                 {
                     case EStructLayout::Compatible_Std140 :
                     {
@@ -663,7 +659,7 @@ namespace
                     default :
                         CHECK_THROW_MSG( false, "unknown layout type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
 
             if ( field.IsArray() )
@@ -701,8 +697,7 @@ namespace
     {
     #define SWITCH_TYPE( _prefix_, _suffix_, ... )                                                      \
         {                                                                                               \
-            BEGIN_ENUM_CHECKS();                                                                        \
-            switch ( field.type )                                                                       \
+            switch_enum( field.type )                                                                   \
             {                                                                                           \
                 case EValueType::Bool32 :       return SizeAndAlignOf<_prefix_ ## lbool  ## _suffix_>;  \
                 case EValueType::Int32 :        return SizeAndAlignOf<_prefix_ ## int    ## _suffix_>;  \
@@ -726,12 +721,11 @@ namespace
                 __VA_ARGS__                                                                             \
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );         \
             }                                                                                           \
-            END_ENUM_CHECKS();                                                                          \
+            switch_end                                                                          \
         }
     #define SWITCH_MAT_TYPE( _prefix_, _suffix_ )                                                       \
         {                                                                                               \
-            BEGIN_ENUM_CHECKS();                                                                        \
-            switch ( field.type )                                                                       \
+            switch_enum( field.type )                                                                   \
             {                                                                                           \
                 case EValueType::Float32 :      return SizeAndAlignOf<_prefix_ ## float  ## _suffix_>;  \
                 case EValueType::Float64 :      return SizeAndAlignOf<_prefix_ ## double ## _suffix_>;  \
@@ -755,7 +749,7 @@ namespace
                 case EValueType::_Count :                                                               \
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );         \
             }                                                                                           \
-            END_ENUM_CHECKS();                                                                          \
+            switch_end                                                                          \
         }
 
         CHECK_THROW_MSG( not (field.IsStruct() or field.IsDeviceAddress()) );
@@ -867,8 +861,8 @@ namespace
         {
             CHECK_THROW_MSG( field.rows >= 1 and field.rows <= 4 );
             CHECK_THROW_MSG( field.cols >= 1 and field.cols <= 4 );
-            BEGIN_ENUM_CHECKS();
-            switch ( field.type )
+
+            switch_enum( field.type )
             {
                 case EValueType::Bool8 :        return SizeAndAlign{ 1_b * field.rows * field.cols,  1_b };
                 case EValueType::Int8 :
@@ -892,7 +886,7 @@ namespace
                 case EValueType::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         else
         if ( field.IsVec() or field.IsMat() )
@@ -903,8 +897,7 @@ namespace
             const uint  rows    = field.rows == 3 ? 4 : field.rows;
             const uint  count   = rows * field.cols;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( field.type )
+            switch_enum( field.type )
             {
                 case EValueType::Bool8 :        return SizeAndAlign{ 1_b * count,  1_b * rows };
                 case EValueType::Int8 :
@@ -928,7 +921,7 @@ namespace
                 case EValueType::_Count :
                 default :                       CHECK_THROW_MSG( false, "unknown value type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         CHECK_THROW_MSG( false, "unknown field type" );
@@ -962,8 +955,7 @@ namespace
 */
     SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign2 (const Field &field) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( field.type )
+        switch_enum( field.type )
         {
             case EValueType::Bool8 :        return SizeAndAlign{ 1_b,  1_b };
             case EValueType::Int8 :
@@ -987,7 +979,7 @@ namespace
             case EValueType::_Count :
             default :                       CHECK_THROW_MSG( false, "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
     SizeAndAlign  ShaderStructType::_GetGLSLSizeAndAlign (const Field &field, EStructLayout layout) __Th___
@@ -1036,8 +1028,7 @@ namespace
     {
         offset += data.baseOffset;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( data.layout )
+        switch_enum( data.layout )
         {
             case EStructLayout::Compatible_Std140 :
             case EStructLayout::Compatible_Std430 :
@@ -1061,7 +1052,7 @@ namespace
             case EStructLayout::Unknown :
             default :               CHECK_THROW_MSG( false );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -1133,8 +1124,7 @@ namespace
             }
             else
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( field.type )
+                switch_enum( field.type )
                 {
                     case EValueType::Bool32 :
                     case EValueType::Int32 :
@@ -1186,7 +1176,7 @@ namespace
                     case EValueType::_Count :
                     default :                   CHECK_THROW_MSG( false, "unknown value type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 Bytes   msl_offset  = data.mslOffset;
                 Bytes   glsl_offset = data.glslOffset;
@@ -1249,8 +1239,7 @@ namespace
 */
     void  ShaderStructType::_AddPadding (const EStructLayout layout, INOUT Array<Field> &fields) __Th___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( layout )
+        switch_enum( layout )
         {
             case EStructLayout::Compatible_Std430 :
             case EStructLayout::Std430 :
@@ -1286,7 +1275,7 @@ namespace
             case EStructLayout::_Count :
             case EStructLayout::Unknown :   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
     }
 
@@ -1584,8 +1573,7 @@ namespace
 namespace {
     ND_ static bool  ValueTypeToStrGLSL (EValueType type, OUT StringView &s_name, OUT StringView &v_name, OUT StringView &m_name)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EValueType::Int8 :
             case EValueType::Int8_Norm :    s_name = "int8_t";      v_name = "i8vec";   break;
@@ -1610,7 +1598,7 @@ namespace {
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 }
@@ -1628,8 +1616,7 @@ namespace {
 namespace {
     ND_ static bool  ValueTypeToStrGLSL_WithPrecision (EValueType type, OUT StringView &s_name, OUT StringView &v_name, OUT StringView &m_name)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             // integer
             case EValueType::Int8 :         s_name = "lowp int";        v_name = "lowp ivec";       break;
@@ -1657,7 +1644,7 @@ namespace {
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 }
@@ -1670,8 +1657,7 @@ namespace {
 namespace {
     ND_ static bool  ValueTypeToStrCPP (EValueType type, INOUT String &src)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EValueType::Bool8 :        src << "bool";          break;
             case EValueType::Bool32 :       src << "lbool";         break;
@@ -1696,7 +1682,7 @@ namespace {
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 }
@@ -1961,8 +1947,7 @@ namespace {
 namespace {
     ND_ static bool  ValueTypeToStrMSL (EValueType type, INOUT String &src)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EValueType::Bool8 :        src << "bool";      break;
             case EValueType::Int8 :
@@ -1987,7 +1972,7 @@ namespace {
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 }
@@ -2032,8 +2017,7 @@ namespace {
                 break;
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case EValueType::Bool8 :        src << "bool";      break;
             case EValueType::Int8 :
@@ -2058,7 +2042,7 @@ namespace {
             case EValueType::_Count :
             default :                       RETURN_ERR( "unknown value type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( rows > 1 )
             src << ToString(rows);
@@ -2456,8 +2440,7 @@ namespace {
                     "Matrix is not supported for VertexInput" );
 
                 EVertexType type = Default;
-                BEGIN_ENUM_CHECKS();
-                switch ( field.type )
+                switch_enum( field.type )
                 {
                     case EValueType::Int8 :         type = EVertexType::Byte;           break;
                     case EValueType::UInt8 :        type = EVertexType::UByte;          break;
@@ -2482,7 +2465,7 @@ namespace {
                     case EValueType::_Count :
                     default :                       CHECK_THROW_MSG( false, "unknown value type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
 
                 if ( field.IsVec() )
                     type |= EVertexType((field.rows - 1) << uint(EVertexType::_VecOffset));
@@ -2490,7 +2473,7 @@ namespace {
                 auto&   dst = arr.emplace_back();
                 dst.type    = type;
                 dst.index   = CheckCast<ubyte>(loc++);
-                dst.offset  = Byte16u{field.offset};
+                dst.offset  = Bytes16u{field.offset};
 
                 TestFeature_VertexType( _features, &FeatureSet::vertexFormats, type, "vertexFormats" );  // throw
             }
@@ -2522,8 +2505,7 @@ namespace {
         bool    is_array    = false;
         String  str;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( shaderType )
+        switch_enum( shaderType )
         {
             case EShader::Vertex :          str << "Vertex";         break;
             case EShader::TessControl :     str << "TessControl";    is_array = true;       break;
@@ -2546,7 +2528,7 @@ namespace {
             default :
                 CHECK_THROW_MSG( false, "unsupported shader type for shader IO" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         (input ?
             "// stage input\n"s  << (is_array ? "layout(location="s << ToString(loc) << ") " : "") << "in " :

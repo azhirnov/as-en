@@ -77,23 +77,41 @@ namespace AE::AssetPacker
 
     // methods
     public:
-        ImagePacker ()                                                                      __NE___ {}
-        explicit ImagePacker (const Header &h)                                              __NE___ : _header{h} {}
-
-            bool    SaveHeader (WStream &stream)                                            C_NE___;
-            bool    SaveImage (WStream &stream, const ResLoader::IntermImage &src)          C_NE___;
-
-            void    GetOffset (ImageLayer layer, MipmapLevel mipmap,
-                               OUT uint3 &imageDim, OUT Bytes &offset, OUT Bytes &size,
-                               OUT Bytes &rowSize, OUT Bytes &sliceSize)                    C_NE___;
-
-            bool    ReadHeader (RStream &stream)                                            __NE___;
-        ND_ bool    IsValid ()                                                              C_NE___;
-
-        ND_ Bytes   MaxSliceSize ()                                                         C_NE___;
-
-        ND_ Header const*  operator -> ()                                                   C_NE___ { return &_header.hdr; }
+        ImagePacker ()                              __NE___ {}
+        explicit ImagePacker (const Header &h)      __NE___ : _header{h} {}
     };
+
+
+/*
+=================================================
+    Header::ToDesc
+=================================================
+*/
+    inline ImageDesc  ImagePacker::Header::ToDesc () C_NE___
+    {
+        EImageOpt   options = Default;
+        switch ( viewType ) {
+            case EImage::Cube :
+            case EImage::CubeArray :    options |= EImageOpt::CubeCompatible;   break;
+        }
+        return ImageDesc{}
+            .SetDimension( uint3{dimension} )
+            .SetArrayLayers( arrayLayers )
+            .SetMaxMipmaps( mipmaps )
+            .SetType( viewType )
+            .SetFormat( format )
+            .SetOptions( options );
+    }
+
+/*
+=================================================
+    Header::ToViewDesc
+=================================================
+*/
+    inline ImageViewDesc  ImagePacker::Header::ToViewDesc () C_NE___
+    {
+        return ImageViewDesc{ viewType };
+    }
 
 
 } // AE::AssetPacker

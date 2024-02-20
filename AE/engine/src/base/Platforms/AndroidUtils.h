@@ -32,6 +32,8 @@ namespace AE::Base
         // OS //
         ND_ static Version3         GetOSVersion ()                                         __NE___;
         ND_ static uint             GetSDKVersion ()                                        __NE___;
+        ND_ static uint             GetTargetSDKVersion ()                                  __NE___;
+        ND_ static constexpr uint   GetMinSDKVersion ()                                     __NE___ { return __ANDROID_API__; }
         ND_ static StringView       GetOSName ()                                            __NE___ { return "Android"; }
     };
 

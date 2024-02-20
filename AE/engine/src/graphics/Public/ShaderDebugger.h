@@ -102,24 +102,24 @@ namespace AE::Graphics
         ~ShaderDebugger ();
 
         ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID,
-                                   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)           __Th___;
+                                   DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)             __Th___;
 
         ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln,
-                                   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)           __Th___;
+                                   DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)             __Th___;
 
         ND_ bool  AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID,
-                                      const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)        __Th___;
+                                      DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)          __Th___;
 
         ND_ bool  AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln,
-                                      const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)        __Th___;
+                                      DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)          __Th___;
 
         template <typename PplnID>
         ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord,
-                                    const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)          __Th___;
+                                    DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)            __Th___;
 
         template <typename PplnID>
         ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln,
-                                    const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)          __Th___;
+                                    DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)            __Th___;
 
 
         ND_ Promise<Array<String>>  Read (ITransferContext &ctx, const Result &request, ELogFormat format = Default)            __Th___;
@@ -131,14 +131,14 @@ namespace AE::Graphics
 
 
     private:
-        ND_ bool  _GetComputePipeline (ComputePipelineID ppln, const DescriptorSetName &dsName, OUT Result &result);
-        ND_ bool  _GetRayTracingPipeline (RayTracingPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result);
-        ND_ bool  _GetGraphicsPipeline (GraphicsPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result);
-        ND_ bool  _GetGraphicsPipeline (MeshPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result);
-        ND_ bool  _GetGraphicsPipeline (TilePipelineID ppln, const DescriptorSetName &dsName, OUT Result &result);
+        ND_ bool  _GetComputePipeline (ComputePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+        ND_ bool  _GetRayTracingPipeline (RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+        ND_ bool  _GetGraphicsPipeline (GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+        ND_ bool  _GetGraphicsPipeline (MeshPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
+        ND_ bool  _GetGraphicsPipeline (TilePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
 
         template <typename PplnID>
-        ND_ bool  _GetPipeline (PplnID ppln, const DescriptorSetName &dsName, OUT Result &result);
+        ND_ bool  _GetPipeline (PplnID ppln, DescriptorSetName::Ref dsName, OUT Result &result);
 
             void  _FillBuffer (const Result &result, ITransferContext &ctx, Bytes headerSize, const void* headerData) const;
 
@@ -158,7 +158,7 @@ namespace AE::Graphics
 =================================================
 */
     template <typename PplnID>
-    bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -176,7 +176,7 @@ namespace AE::Graphics
     }
 
     template <typename PplnID>
-    bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         return AllocForGraphics( OUT result, ctx, ppln, uint2{~0u}, dsName, size );
     }

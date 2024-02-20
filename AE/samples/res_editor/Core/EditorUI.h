@@ -49,7 +49,7 @@ namespace AE::ResEditor
         using AllSliders_t = Array< Tuple< PerPassMutableSliders*, const PerPassSlidersInfo* >>;
 
         using EDebugMode        = IPass::EDebugMode;
-        using EDebugModeBits    = EnumBitSet< EDebugMode >;
+        using EDebugModeBits    = EnumSet< EDebugMode >;
 
         struct PassDebugInfo
         {
@@ -153,7 +153,6 @@ namespace AE::ResEditor
         class UploadTask;
         class DrawTask;
 
-        using TimePoint_t       = std::chrono::high_resolution_clock::time_point;
         using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
         using DbgViewData_t     = StaticArray< float4, UIInteraction::MaxDebugViews >;
 
@@ -199,13 +198,12 @@ namespace AE::ResEditor
 
         struct ScriptDirData
         {
-            TimePoint_t         lastCheck;
-            const seconds       interval    {10};
+            Timer               timer;
             const uint          maxDepth    {3};
             const Path          root;
             ScriptFolder        rootInfo;
 
-            explicit ScriptDirData (Path path) : root{RVRef(path)} {}
+            explicit ScriptDirData (Path path) : root{RVRef(path)} { timer.StartSignaled(seconds{10}); }
         };
 
         struct PipelineSet

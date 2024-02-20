@@ -72,6 +72,15 @@ git clone --bare "https://github.com/abseil/abseil-cpp.git" "Abseil"
 rmdir /Q /S "CDT"
 git clone --bare "https://github.com/artem-ogre/CDT.git" "CDT"
 
+rmdir /Q /S "meshoptimizer"
+git clone --bare "https://github.com/zeux/meshoptimizer.git" "meshoptimizer"
+
+rmdir /Q /S "zstd"
+git clone --bare "https://github.com/facebook/zstd.git" "zstd"
+
+rmdir /Q /S "lz4"
+git clone --bare "https://github.com/lz4/lz4.git" "lz4"
+
 :: delete 'temp'
 cd ..
 rmdir /Q /S "temp"

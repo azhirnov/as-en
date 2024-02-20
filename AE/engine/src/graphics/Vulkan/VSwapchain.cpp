@@ -13,10 +13,6 @@
 #   include <vulkan/vulkan_xlib.h>
 # endif
 
-# ifdef AE_PLATFORM_ANDROID
-#   include <vulkan/vulkan_android.h>
-# endif
-
 # ifdef AE_PLATFORM_APPLE
 #   include <vulkan/vulkan_metal.h>
 # endif
@@ -27,6 +23,7 @@
 #   include <vulkan/vulkan_ios.h>
 # endif
 
+# include "base/Defines/Undef.h"
 # include "graphics/Vulkan/VSwapchain.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VRenderTaskScheduler.h"

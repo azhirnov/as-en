@@ -7,6 +7,10 @@ namespace AE::Graphics
 {
     using namespace AE::AssetPacker;
 
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+}
+
 /*
 =================================================
     destructor
@@ -50,15 +54,15 @@ namespace AE::Graphics
         auto    image       = MakeRC<LoadableImage>();
         auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
 
-        ImagePacker unpacker;
-        CHECK_ERR( unpacker.ReadHeader( *stream ));
+        ImagePacker::Header2    header;
+        CHECK_ERR( ImagePacker_ReadHeader( *stream, OUT header ));
 
-        image->_imageId = res_mngr.CreateImage( unpacker->ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
+        image->_imageId = res_mngr.CreateImage( header.hdr.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
         CHECK_ERR( image->_imageId );
 
-        CHECK_ERR( _Load( *stream, image->_imageId, unpacker.operator->(), ctx ));
+        CHECK_ERR( _Load( *stream, image->_imageId, &header.hdr, ctx ));
 
-        image->_viewType = unpacker->viewType;
+        image->_viewType = header.hdr.viewType;
         return image;
     }
 
@@ -69,10 +73,10 @@ namespace AE::Graphics
 */
     bool  LoadableImage::Loader::_Load (RStream &stream, ImageID imageId, const void* hdr, ITransferContext &ctx) __NE___
     {
-        ImagePacker     unpacker    {*Cast<ImagePacker::Header>(hdr)};
+        auto&           header      = *Cast<ImagePacker::Header>(hdr);
         const Bytes     base_off    = stream.Position();
 
-        RC<SharedMem>   tmp         = SharedMem::Create( AE::GetDefaultAllocator(), unpacker.MaxSliceSize() );
+        RC<SharedMem>   tmp         = SharedMem::Create( AE::GetDefaultAllocator(), ImagePacker_MaxSliceSize( header ));
         CHECK_ERR( tmp );
 
         // copy to staging buffer
@@ -82,16 +86,16 @@ namespace AE::Graphics
         UploadImageDesc upload;
         upload.heapType = EStagingHeapType::Dynamic;
 
-        for (uint mip = 0, mip_cnt = unpacker->mipmaps; mip < mip_cnt; ++mip)
+        for (uint mip = 0, mip_cnt = header.mipmaps; mip < mip_cnt; ++mip)
         {
-            for (uint layer = 0, layer_cnt = unpacker->arrayLayers; layer < layer_cnt; ++layer)
+            for (uint layer = 0, layer_cnt = header.arrayLayers; layer < layer_cnt; ++layer)
             {
                 upload.arrayLayer   = ImageLayer{layer};
                 upload.mipLevel     = MipmapLevel{mip};
 
                 Bytes   off, size;
-                unpacker.GetOffset( upload.arrayLayer, upload.mipLevel,
-                                    OUT upload.imageSize, OUT off, OUT size, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
+                ImagePacker_GetOffset( header, upload.arrayLayer, upload.mipLevel, uint3{0},
+                                        OUT upload.imageDim, OUT off, OUT size, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
 
                 CHECK_ERR( stream.Position() == off + base_off );
                 CHECK_ERR( size <= tmp->Size() );
@@ -100,8 +104,8 @@ namespace AE::Graphics
                 ImageMemView    dst_mem;
                 ctx.UploadImage( imageId, upload, OUT dst_mem );
 
-                ImageMemView    src_mem { tmp->Data(), size, uint3{}, upload.imageSize, upload.dataRowPitch,
-                                          upload.dataSlicePitch, unpacker->format, EImageAspect::Color };
+                ImageMemView    src_mem { tmp->Data(), size, uint3{}, upload.imageDim, upload.dataRowPitch,
+                                          upload.dataSlicePitch, header.format, EImageAspect::Color };
                 CHECK_ERR( dst_mem.CopyFrom( src_mem ));
             }
         }

@@ -12,7 +12,7 @@ void ASmain ()
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "canvas2d.ds0" );
         ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
     }{
-        RC<PipelineLayout>          pl = PipelineLayout( "canvas2d.pl" );
+        RC<PipelineLayout>      pl = PipelineLayout( "canvas2d.pl" );
         pl.DSLayout( 0, "canvas2d.ds0" );
     }
 
@@ -24,15 +24,12 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            vs.options  = EShaderOpt::Optimize;
+            vs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetVertexShader( vs );
-        }
-        {
+        }{
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 1" );
-            fs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            fs.options  = EShaderOpt::Optimize;
+            fs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetFragmentShader( fs );
         }
 
@@ -61,15 +58,12 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            vs.options  = EShaderOpt::Optimize;
+            vs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetVertexShader( vs );
-        }
-        {
+        }{
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 2" );
-            fs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            fs.options  = EShaderOpt::Optimize;
+            fs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetFragmentShader( fs );
         }
 
@@ -113,15 +107,12 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            vs.options  = EShaderOpt::Optimize;
+            vs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetVertexShader( vs );
-        }
-        {
+        }{
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 3" );
-            fs.file     = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
-            fs.options  = EShaderOpt::Optimize;
+            fs.file = "canvas2d.glsl";  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/canvas2d.glsl)
             ppln.SetFragmentShader( fs );
         }
 

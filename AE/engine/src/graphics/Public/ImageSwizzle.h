@@ -27,6 +27,7 @@ namespace AE::Graphics
 
         ND_ constexpr uint  Get ()                                                              C_NE___ { return _value; }
         ND_ constexpr bool  IsDefault ()                                                        C_NE___ { return _value == ImageSwizzle().Get(); }
+        ND_ constexpr bool  IsUndefined ()                                                      C_NE___ { return _value == 0; }
 
         ND_ uint4           ToVec ()                                                            C_NE___;
 
@@ -35,6 +36,7 @@ namespace AE::Graphics
 
         ND_ static constexpr ImageSwizzle  FromString (const char* str, const usize len)        __NE___;
         ND_ static constexpr ImageSwizzle  FromString (StringView str)                          __NE___ { return FromString( str.data(), str.size() ); }
+        ND_ static constexpr ImageSwizzle  Undefined ()                                         __NE___ { ImageSwizzle tmp;  tmp._value = 0;  return tmp; }
 
         // 0..3 - src0
         // 4..7 - src1

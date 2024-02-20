@@ -235,6 +235,12 @@
 #if 1
 #   define StaticAssert                             static_assert
 
+# if AE_PLATFORM_BITS == 32
+#   define StaticAssert32                           static_assert
+# else
+#   define StaticAssert32( /* expr, msg */... )     static_assert(true)
+# endif
+
 # if AE_PLATFORM_BITS == 64
 #   define StaticAssert64                           static_assert
 # else
@@ -367,7 +373,7 @@
         NOTHROW_ERR( (_expr_), void() )
 
 #else
-#   define NOTHROW( ... )                               {__VA_ARGS__;}
+#   define NOTHROW( ... )                                   {__VA_ARGS__;}
 #   define NOTHROW_ERR( /* expr, return_on_exc*/... )       {AE_PRIVATE_GETARG_0( __VA_ARGS__ );}
 #   define NOTHROW_ERRV( _expr_ )                           {_expr_;}
 #endif

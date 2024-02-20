@@ -22,8 +22,8 @@ namespace
     template <typename T>   ND_ T const&  GetXv2 (const Vec<T,2> &v)            __NE___ { return v.x; }
     template <typename T>   ND_ T const&  GetYv2 (const Vec<T,2> &v)            __NE___ { return v.y; }
 
-                inline      ND_ CDT::VertInd  EdgeGetI1 (const CDT::Edge& e)    __NE___ { return e.v1(); }
-                inline      ND_ CDT::VertInd  EdgeGetI2 (const CDT::Edge& e)    __NE___ { return e.v2(); }
+                            ND_ CDT::VertInd  EdgeGetI1 (const CDT::Edge& e)    __NE___ { return e.v1(); }
+                            ND_ CDT::VertInd  EdgeGetI2 (const CDT::Edge& e)    __NE___ { return e.v2(); }
 
 
 /*
@@ -32,8 +32,7 @@ namespace
 =================================================
 */
     static void  AppendIndexedLineList (CDT::Triangulation<float>               &cdt,
-                                        CDT::Edge*                              tempEdges,
-                                        const usize                             tempEdgeCount,
+                                        MutableArrayView<CDT::Edge>             tempEdges,
                                         CDT_Triangulator::InArrayOfVertices_t   verticesArray,
                                         CDT_Triangulator::InArrayOfIndices_t    indicesArray,
                                         const bool                              conformingDelaunayTriangulation) __Th___
@@ -55,7 +54,7 @@ namespace
 
             for (; idx_pos < indices.size();)
             {
-                const usize count = Min( (indices.size() - idx_pos)/2, tempEdgeCount );
+                const usize count = Min( (indices.size() - idx_pos)/2, tempEdges.size() );
 
                 for (edge_cnt = 0; edge_cnt < count; ++edge_cnt, idx_pos += 2)
                 {
@@ -70,9 +69,9 @@ namespace
                 if ( edge_cnt > 0 )
                 {
                     if ( conformingDelaunayTriangulation ) {
-                        cdt.conformToEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.conformToEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     } else {
-                        cdt.insertEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.insertEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     }
                 }
             }
@@ -87,8 +86,7 @@ namespace
 =================================================
 */
     static void  AppendIndexedLineStrip (CDT::Triangulation<float>              &cdt,
-                                         CDT::Edge*                             tempEdges,
-                                         const usize                            tempEdgeCount,
+                                         MutableArrayView<CDT::Edge>            tempEdges,
                                          CDT_Triangulator::InArrayOfVertices_t  verticesArray,
                                          CDT_Triangulator::InArrayOfIndices_t   indicesArray,
                                          const bool                             conformingDelaunayTriangulation) __Th___
@@ -109,7 +107,7 @@ namespace
 
             for (; idx_pos < indices.size();)
             {
-                const usize count = Min( indices.size()-1 - idx_pos, tempEdgeCount-1 );
+                const usize count = Min( indices.size()-1 - idx_pos, tempEdges.size()-1 );
 
                 for (edge_cnt = 0; edge_cnt < count; ++edge_cnt, ++idx_pos)
                 {
@@ -132,9 +130,9 @@ namespace
                 if ( edge_cnt > 0 )
                 {
                     if ( conformingDelaunayTriangulation ) {
-                        cdt.conformToEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.conformToEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     } else {
-                        cdt.insertEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.insertEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     }
                 }
             }
@@ -149,8 +147,7 @@ namespace
 =================================================
 */
     static void  AppendLineStrip (CDT::Triangulation<float>             &cdt,
-                                  CDT::Edge*                            tempEdges,
-                                  const usize                           tempEdgeCount,
+                                  MutableArrayView<CDT::Edge>           tempEdges,
                                   CDT_Triangulator::InArrayOfVertices_t verticesArray,
                                   const bool                            conformingDelaunayTriangulation) __Th___
     {
@@ -167,7 +164,7 @@ namespace
 
             for (; vert_idx < vertices.size();)
             {
-                const usize count = Min( vertices.size()-1 - vert_idx, tempEdgeCount-1 );
+                const usize count = Min( vertices.size()-1 - vert_idx, tempEdges.size()-1 );
 
                 for (edge_cnt = 0; edge_cnt < count; ++edge_cnt, ++vert_idx)
                 {
@@ -187,9 +184,9 @@ namespace
                 if ( edge_cnt > 0 )
                 {
                     if ( conformingDelaunayTriangulation ) {
-                        cdt.conformToEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.conformToEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     } else {
-                        cdt.insertEdges( tempEdges, tempEdges + edge_cnt, EdgeGetI1, EdgeGetI2 );
+                        cdt.insertEdges( tempEdges.data(), tempEdges.data() + edge_cnt, EdgeGetI1, EdgeGetI2 );
                     }
                 }
             }
@@ -241,19 +238,20 @@ namespace
             using EdgeArr_t = UninitializedStaticArray< CDT::Edge, c_TempEdgeCount >;
 
             EdgeArr_t   edge_storage;
+            auto        edge_arr    = MutableArrayView<CDT::Edge>{ edge_storage.Ptr<CDT::Edge>(), c_TempEdgeCount };
 
             switch ( flags & EFlags::_IndicesMode )
             {
                 case EFlags::IndexedLineStrip :
-                    AppendIndexedLineStrip( cdt, edge_storage.Ptr< CDT::Edge >(), c_TempEdgeCount, verticesArray, indicesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
+                    AppendIndexedLineStrip( cdt, edge_arr, verticesArray, indicesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
                     break;
 
                 case EFlags::IndexedLineList :
-                    AppendIndexedLineList( cdt, edge_storage.Ptr< CDT::Edge >(), c_TempEdgeCount, verticesArray, indicesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
+                    AppendIndexedLineList( cdt, edge_arr, verticesArray, indicesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
                     break;
 
                 case EFlags::LineStrip :
-                    AppendLineStrip( cdt, edge_storage.Ptr< CDT::Edge >(), c_TempEdgeCount, verticesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
+                    AppendLineStrip( cdt, edge_arr, verticesArray, AllBits( flags, EFlags::ConformingDelaunayTriangulation ));
                     break;
 
                 default :   return false;

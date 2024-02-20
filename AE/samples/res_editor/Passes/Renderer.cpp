@@ -14,7 +14,6 @@ namespace AE::ResEditor
 =================================================
 */
     Renderer::Renderer (uint seed) __Th___ :
-        _lastUpdateTime{ TimePoint_t::clock::now() },
         _seed{ seed }
     {
         const auto& shader_trace_folder = ResEditorAppConfig::Get().shaderTraceFolder;
@@ -146,8 +145,7 @@ namespace AE::ResEditor
         // update timers
         {
             constexpr auto  max_dt  = nanoseconds{seconds{1}} / 30;
-            const auto      time    = TimePoint_t::clock::now();
-            const auto      dt      = Min( time - _lastUpdateTime, max_dt );
+            const auto      dt      = Min( _frameClock.Tick(), max_dt );
 
             update_pd.frameTime = secondsf{dt};
             update_pd.totalTime = secondsf{_totalTime};
@@ -155,11 +153,12 @@ namespace AE::ResEditor
             update_pd.seed      = _seed;
 
             _totalTime      += TimeCast<microseconds>( dt );
-            _lastUpdateTime  = time;
-            _frameCounter    ++;
+            _frameCounter   ++;
 
+            int     surf_scale  = UIInteraction::Instance().GetDynamicSize()->Scale().x;
             float2  surf_size   {1.f};
             float   pix_to_mm   = 1.f;
+
             if ( auto  surf = rg.GetSurface() ) {
                 if ( auto  infos = surf->GetTargetInfo();  not infos.empty() ) {
                     surf_size   = infos[0].dimension;
@@ -173,7 +172,7 @@ namespace AE::ResEditor
             update_pd.unormCursorPos= input->cursorPos / surf_size;
             update_pd.pressed       = input->pressed;
             update_pd.customKeys    = input->customKeys;
-            update_pd.pixToMm       = pix_to_mm;
+            update_pd.pixToMm       = pix_to_mm * (surf_scale > 0 ? 1.f/float(surf_scale) : float(-surf_scale));
         }
 
         // setup shader debugger
@@ -255,8 +254,7 @@ namespace AE::ResEditor
         {
             for (auto t : BitfieldIterate( pass->GetType() ))
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( t )
+                switch_enum( t )
                 {
                     case EPass::Sync :
                     {
@@ -272,7 +270,7 @@ namespace AE::ResEditor
                     case EPass::Unknown :
                     default :               RETURN_ERR( "unknown pass type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 

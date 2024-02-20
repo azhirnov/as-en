@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "base/Common.h"
+
 namespace AE::Graphics
 {
 
@@ -26,7 +28,7 @@ namespace AE::Graphics
     // Query Manager interface
     //
 
-    class IQueryManager
+    class NO_VTABLE IQueryManager
     {
     };
 

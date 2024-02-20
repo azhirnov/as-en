@@ -43,8 +43,7 @@ namespace
         out_capabilities.sType  = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR;
         CHECK_ERR( ConvertVideoProfile( profile, OUT profile_info ));
 
-        BEGIN_ENUM_CHECKS();
-        switch ( profile_info.videoCodecOperation )
+        switch_enum( profile_info.videoCodecOperation )
         {
             // decode h264
             case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
@@ -107,13 +106,13 @@ namespace
             }
 
             // encode h264
-            case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_EXT :
+            case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
             {
                 CHECK_ERR( ext.videoEncodeQueue and ext.videoEncodeH264 );
 
                 VkVideoEncodeCapabilitiesKHR*       encode_cap;             AllocateOnStack_ZeroMem( OUT encode_cap, 1 );
-                VkVideoEncodeH264CapabilitiesEXT*   encode_cap_h264;        AllocateOnStack_ZeroMem( OUT encode_cap_h264, 1 );
-                VkVideoEncodeH264ProfileInfoEXT*    encode_h264_profile;    AllocateOnStack_ZeroMem( OUT encode_h264_profile, 1 );
+                VkVideoEncodeH264CapabilitiesKHR*   encode_cap_h264;        AllocateOnStack_ZeroMem( OUT encode_cap_h264, 1 );
+                VkVideoEncodeH264ProfileInfoKHR*    encode_h264_profile;    AllocateOnStack_ZeroMem( OUT encode_h264_profile, 1 );
                 CHECK_ERR(  encode_cap          != null and
                             encode_cap_h264     != null and
                             encode_h264_profile != null );
@@ -121,10 +120,10 @@ namespace
                 out_capabilities.pNext      = encode_cap;
                 encode_cap->pNext           = encode_cap_h264;
                 encode_cap->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR;
-                encode_cap_h264->sType      = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_EXT;
+                encode_cap_h264->sType      = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR;
 
                 profile_info.pNext          = encode_h264_profile;
-                encode_h264_profile->sType  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_EXT;
+                encode_h264_profile->sType  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_KHR;
 
                 if ( auto* spec = UnionGet<VideoProfile::Encode_H264>( profile.spec ))
                 {
@@ -136,13 +135,13 @@ namespace
             }
 
             // encode h265
-            case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_EXT :
+            case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
             {
                 CHECK_ERR( ext.videoEncodeQueue and ext.videoEncodeH265 );
 
                 VkVideoEncodeCapabilitiesKHR*       encode_cap;             AllocateOnStack_ZeroMem( OUT encode_cap, 1 );
-                VkVideoEncodeH265CapabilitiesEXT*   encode_cap_h265;        AllocateOnStack_ZeroMem( OUT encode_cap_h265, 1 );
-                VkVideoEncodeH265ProfileInfoEXT*    encode_h265_profile;    AllocateOnStack_ZeroMem( OUT encode_h265_profile, 1 );
+                VkVideoEncodeH265CapabilitiesKHR*   encode_cap_h265;        AllocateOnStack_ZeroMem( OUT encode_cap_h265, 1 );
+                VkVideoEncodeH265ProfileInfoKHR*    encode_h265_profile;    AllocateOnStack_ZeroMem( OUT encode_h265_profile, 1 );
                 CHECK_ERR(  encode_cap          != null and
                             encode_cap_h265     != null and
                             encode_h265_profile != null );
@@ -150,10 +149,10 @@ namespace
                 out_capabilities.pNext      = encode_cap;
                 encode_cap->pNext           = encode_cap_h265;
                 encode_cap->sType           = VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR;
-                encode_cap_h265->sType      = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_EXT;
+                encode_cap_h265->sType      = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR;
 
                 profile_info.pNext          = encode_h265_profile;
-                encode_h265_profile->sType  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_EXT;
+                encode_h265_profile->sType  = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_KHR;
 
                 if ( auto* spec = UnionGet<VideoProfile::Encode_H265>( profile.spec ))
                 {
@@ -169,7 +168,7 @@ namespace
             default_unlikely :
                 RETURN_ERR( "unsupported video codec op" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         VK_CHECK_ERR( vkGetPhysicalDeviceVideoCapabilitiesKHR( dev.GetVkPhysicalDevice(), &profile_info, OUT &out_capabilities ));
 

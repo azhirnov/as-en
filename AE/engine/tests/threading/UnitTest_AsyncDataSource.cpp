@@ -2,6 +2,9 @@
 
 #include "UnitTest_Common.h"
 
+#include "threading/DataSource/UnixAsyncDataSource.h"
+#include "threading/DataSource/WinAsyncDataSource.h"
+
 #ifndef AE_DISABLE_THREADS
 namespace
 {
@@ -44,22 +47,22 @@ namespace
             RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-            TEST( rfile->Size() == file_size );
+            TEST_Eq( rfile->Size(), file_size );
 
             ulong   pos = 0;
             while ( pos < file_size + buf_size )
             {
                 auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
                 TEST( req );    // always non-null
-                TEST( req.use_count() == 2 );
+                TEST_Eq( req.use_count(), 2 );
 
                 auto    task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
                                 .Then(  [pos] (const AsyncRDataSource::Result_t &res)
                                         {
                                             TEST( res.data != null );
-                                            TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-                                            TEST( res.pos == pos );
-                                            TEST( res.rc.use_count() == 1 );        // because executed sequentially and synchronously
+                                            TEST_Eq( res.dataSize, (pos < file_size ? buf_size : 0) );
+                                            TEST_Eq( res.pos, pos );
+                                            TEST_Gt( res.rc.use_count(), 0 );       // because executed sequentially and synchronously
 
                                             ulong   ref_buf [buf_size / sizeof(ulong)];
 
@@ -72,7 +75,7 @@ namespace
 
                 for (;;)
                 {
-                    if ( scheduler->GetFileIOService()->ProcessEvents() )
+                    if ( scheduler->GetFileIOService()->ProcessEvents() or req->IsFinished() )
                         break;
                 }
 
@@ -122,13 +125,13 @@ namespace
                 pos += buf_size;
             }
 
-            TEST( wfile.Capacity() == file_size );
+            TEST_Eq( wfile.Capacity(), file_size );
         }
         {
             RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-            TEST( rfile->Size() == file_size );
+            TEST_Eq( rfile->Size(), file_size );
 
             class ReadFileTask final : public IAsyncTask
             {
@@ -150,9 +153,9 @@ namespace
                                         .Then(  [cur_pos = pos] (const AsyncRDataSource::Result_t &res)
                                                 {
                                                     TEST( res.data != null );
-                                                    TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
-                                                    TEST( res.pos == cur_pos );
-                                                    TEST( res.rc.use_count() > 0 ); // is alive
+                                                    TEST_Eq( res.dataSize, (cur_pos < file_size ? buf_size : 0) );
+                                                    TEST_Eq( res.pos, cur_pos );
+                                                    TEST_Gt( res.rc.use_count(), 0 );   // is alive
 
                                                     ulong   ref_buf [buf_size / sizeof(ulong)];
 
@@ -180,7 +183,7 @@ namespace
             TEST( task->Status() == EStatus::Completed );
 
             task = null;
-            TEST( rfile.use_count() == 1 );
+            TEST_Eq( rfile.use_count(), 1 );
         }
     }
 
@@ -218,7 +221,7 @@ namespace
             RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-            TEST( rfile->Size() == file_size );
+            TEST_Eq( rfile->Size(), file_size );
 
             ulong   pos = 0;
             while ( pos < file_size + buf_size )
@@ -231,9 +234,9 @@ namespace
                 req = null;     // request is not used anymore, but memory in 'res' must be alive
 
                 TEST( res.data != null );
-                TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-                TEST( res.pos == pos );
-                TEST( res.rc.use_count() > 0 ); // is alive
+                TEST_Eq( res.dataSize, (pos < file_size ? buf_size : 0) );
+                TEST_Eq( res.pos, pos );
+                TEST_Gt( res.rc.use_count(), 0 );   // is alive
 
                 ulong   ref_buf [buf_size / sizeof(ulong)];
 
@@ -244,7 +247,7 @@ namespace
 
                 pos += buf_size;
             }
-            TEST( rfile.use_count() == 1 );
+            TEST_Eq( rfile.use_count(), 1 );
         }
     }
 
@@ -298,13 +301,13 @@ namespace
 
                 auto    req = wfile->WriteBlock( Bytes{pos}, Bytes{buf_size}, src_buf );
                 TEST( req );    // always non-null
-                TEST( req.use_count() == 2 );
+                TEST_Eq( req.use_count(), 2 );
 
                 auto    task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
                                 .Then(  [pos] (const AsyncWDataSource::Result_t &res)
                                         {
-                                            TEST( pos == res.pos );
-                                            TEST( buf_size == res.dataSize );
+                                            TEST_Eq( pos, res.pos );
+                                            TEST_Eq( buf_size, res.dataSize );
                                             TEST( res.data == null );
                                             TEST( res.rc == null );
                                         })};
@@ -312,7 +315,7 @@ namespace
 
                 for (;;)
                 {
-                    if ( scheduler->GetFileIOService()->ProcessEvents() )
+                    if ( scheduler->GetFileIOService()->ProcessEvents() or req->IsFinished() )
                         break;
                 }
 
@@ -324,13 +327,13 @@ namespace
 
                 pos += buf_size;
             }
-            TEST( wfile.use_count() == 1 );
+            TEST_Eq( wfile.use_count(), 1 );
         }
         {
             RFile   rfile {fname};
             TEST( rfile.IsOpen() );
             TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
-            TEST( rfile.Size() == file_size );
+            TEST_Eq( rfile.Size(), file_size );
 
             ulong   dst_buf [buf_size / sizeof(ulong)];
             ulong   ref_buf [buf_size / sizeof(ulong)];
@@ -354,8 +357,16 @@ namespace
 
 extern void UnitTest_AsyncDataSource ()
 {
+    // minimize disk usage for debug build
+  #ifdef AE_RELEASE
+
+  # ifdef AE_PLATFORM_ANDROID
+    const Path  curr    {"/storage/emulated/0/Android/data/AE.Test/cache"};
+    const Path  folder  = curr / "ds_test";
+  # else
     const Path  curr    = FileSystem::CurrentPath();
     const Path  folder  {AE_CURRENT_DIR "/ds_test"};
+  # endif
 
     FileSystem::RemoveAll( folder );
     FileSystem::CreateDirectories( folder );
@@ -368,12 +379,23 @@ extern void UnitTest_AsyncDataSource ()
         AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
     #  endif
         AsyncWriteDS_Test1< FileRDataSource, WinAsyncWDataSource >();
+    #else
+        AsyncReadDS_Test1< UnixAsyncRDataSource, FileWDataSource >();
+        AsyncReadDS_Test2< UnixAsyncRDataSource, FileWDataSource >();
+    #  ifdef AE_HAS_COROUTINE
+        AsyncReadDS_Test3< UnixAsyncRDataSource, FileWDataSource >();
+    #  endif
+        AsyncWriteDS_Test1< FileRDataSource, UnixAsyncWDataSource >();
     #endif
 
     // TODO: async stream
 
     FileSystem::SetCurrentPath( curr );
+    FileSystem::RemoveAll( folder );
+
     TEST_PASSED();
+
+  #endif // AE_RELEASE
 }
 
 #else

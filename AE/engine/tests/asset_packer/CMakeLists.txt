@@ -2,10 +2,10 @@
 
 if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARGET "InputActionsBinding-shared")
 
-    set( PIPELINE_COMPILER_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
-    set( SHADER_TRACE_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shader_trace" )
-    set( GRAPHICS_DIR           "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics" )
-    set( PLATFORM_DIR           "${CMAKE_CURRENT_SOURCE_DIR}/../../src/platform" )
+    set( PIPELINE_COMPILER_DIR  "${MAIN_SOURCE_DIR}/engine/tools/res_pack/pipeline_compiler" )
+    set( SHADER_TRACE_DIR       "${MAIN_SOURCE_DIR}/engine/tools/res_pack/shader_trace" )
+    set( GRAPHICS_DIR           "${MAIN_SOURCE_DIR}/engine/src/graphics" )
+    set( PLATFORM_DIR           "${MAIN_SOURCE_DIR}/engine/src/platform" )
 
     file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.txt" "*.glsl" "*.msl" )
     file( GLOB_RECURSE SHARED_DATA "${AE_ENGINE_SHARED_DATA}/*.*" )
@@ -78,15 +78,15 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
     )
 
     if (TARGET "PipelineCompiler-shared")
-        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}" )
+        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_PIPELINE_COMPILER_LIBRARY="$<TARGET_FILE:PipelineCompiler-shared>" )
         add_dependencies( "Tests.AssetPacker" "PipelineCompiler-shared" )
         target_sources( "Tests.AssetPacker" PRIVATE "${PipelineCompiler.trigger}" )
         source_group( "_gen_" FILES "${PipelineCompiler.trigger}" )
         set_property( SOURCE "${PipelineCompiler.trigger}" PROPERTY GENERATED 1 )
     endif()
 
-    if (TARGET "PipelineCompiler-shared")
-        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_ASSET_PACKER_LIBRARY="${MAIN_BINARY_DIR}" )
+    if (TARGET "AssetPacker-shared")
+        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_ASSET_PACKER_LIBRARY="$<TARGET_FILE:AssetPacker-shared>" )
         add_dependencies( "Tests.AssetPacker" "AssetPacker-shared" )
         target_sources( "Tests.AssetPacker" PRIVATE "${AssetPacker.trigger}" )
         source_group( "_gen_" FILES "${AssetPacker.trigger}" )
@@ -94,23 +94,14 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
     endif()
 
     if (TARGET "InputActionsBinding-shared")
-        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_INPUT_ACTIONS_BINDING_LIBRARY="${MAIN_BINARY_DIR}" )
+        target_compile_definitions( "Tests.AssetPacker" PUBLIC AE_INPUT_ACTIONS_BINDING_LIBRARY="$<TARGET_FILE:InputActionsBinding-shared>" )
         add_dependencies( "Tests.AssetPacker" "InputActionsBinding-shared" )
         target_sources( "Tests.AssetPacker" PRIVATE "${InputActionsBinding.trigger}" )
         source_group( "_gen_" FILES "${InputActionsBinding.trigger}" )
         set_property( SOURCE "${InputActionsBinding.trigger}" PROPERTY GENERATED 1 )
     endif()
 
-    # must be same as in 'Graphics' module
-    if (DEFINED AE_GRAPHICS_STRONG_VALIDATION)
-        if (${AE_GRAPHICS_STRONG_VALIDATION})
-            target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=1 )
-        else()
-            target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=0 )
-        endif()
-    else()
-        message( FATAL_ERROR "AE_GRAPHICS_STRONG_VALIDATION is not defined" )
-    endif()
+    target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=0 )
 
     add_test( NAME "Tests.AssetPacker" COMMAND "Tests.AssetPacker" )
 

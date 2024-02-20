@@ -18,7 +18,13 @@
 #include FT_TRUETYPE_TABLES_H
 
 
+#ifdef ANDROID
+# include "TestHelper.h"
+
+extern int AE_FreeType_Test ()
+#else
 int main ()
+#endif
 {
     return 0;
 }

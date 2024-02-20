@@ -46,15 +46,16 @@ ND_ float3  GetGroupCoordSNorm ();  // -1..1
 
 // global linear index
 ND_ int    GetGlobalIndexSize ();
-ND_ int    GetGlobalIndex ();       // 0..size-1
-ND_ float  GetGlobalIndexUNorm ();  //  0..1
-ND_ float  GetGlobalIndexSNorm ();  // -1..1
+ND_ int    GetGlobalIndex ();           // 0..size-1
+ND_ float  GetGlobalIndexUNorm ();      //  0..1
+ND_ float  GetGlobalIndexSNorm ();      // -1..1
 
 // global coordinate in 3D
 ND_ int3    GetGlobalSize ();
-ND_ int3    GetGlobalCoord ();      // 0..size-1
-ND_ float3  GetGlobalCoordUNorm (); //  0..1
-ND_ float3  GetGlobalCoordSNorm (); // -1..1
+ND_ int3    GetGlobalCoord ();          // 0..size-1
+ND_ float3  GetGlobalCoordUNorm ();     //  0..1
+ND_ float3  GetGlobalCoordSNorm ();     // -1..1
+ND_ float3  GetGlobalCoordSFloat ();    // -size/2 .. +size/2
 
 // global normalized coordinate in 2D with same aspect ratio
 ND_ float2  GetGlobalCoordUNormCorrected ();        //  0..1
@@ -312,6 +313,11 @@ float3  GetGlobalCoordUNorm ()
 float3  GetGlobalCoordSNorm ()
 {
     return ToSNorm( GetGlobalCoordUNorm() );
+}
+
+float3  GetGlobalCoordSFloat ()
+{
+    return float3(GetGlobalCoord()) - float3(GetGlobalSize()) * 0.5f;
 }
 
 

@@ -11,20 +11,6 @@ using namespace AE::Networking;
 using namespace AE::Threading;
 using namespace AE::App;
 
-namespace
-{
-    class ServerProvider final : public IServerProvider
-    {
-        IpAddress   _addr4;
-
-    public:
-        ServerProvider (const IpAddress &addr4) __NE___ : _addr4{addr4} {}
-
-        void  GetAddress (EChannel, uint, Bool, OUT IpAddress &addr)    __NE_OV { addr = _addr4; }
-        void  GetAddress (EChannel, uint, Bool, OUT IpAddress6 &)       __NE_OV {}
-    };
-}
-
 
 extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 {
@@ -36,7 +22,7 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 
         RDeviceInitializer::InstanceCreateInfo  inst_ci;
         inst_ci.appName         = "TestApp";
-        inst_ci.serverProvider  = MakeRC<ServerProvider>( IpAddress::FromLocalPortTCP( 3000 ));
+        inst_ci.serverProvider  = MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( 3000 ));
 
         CHECK_FATAL( dev.CreateInstance( inst_ci ));
         CHECK_FATAL( dev.CreateDefaultQueue() );
@@ -60,10 +46,6 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 
         info.staging.readStaticSize .fill( 2_Mb );
         info.staging.writeStaticSize.fill( 2_Mb );
-        info.staging.maxReadDynamicSize     = 16_Mb;
-        info.staging.maxWriteDynamicSize    = 256_Mb;
-        info.staging.dynamicBlockSize       = 16_Mb;
-        info.staging.vstreamSize            = 4_Mb;
 
         info.device.appName         = "TestApp";
         info.device.requiredQueues  = EQueueMask::Graphics;
@@ -78,7 +60,7 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
         info.swapchain.minImageCount= 2;
 
         CHECK_FATAL( dev.Init( info,
-                               MakeRC<ServerProvider>( IpAddress::FromLocalPortTCP( 3000 )),
+                               MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( 3000 )),
                                EThreadArray{ EThread::Main }
                               ));
 

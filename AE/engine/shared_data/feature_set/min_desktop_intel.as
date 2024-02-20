@@ -6,6 +6,7 @@ void ASmain ()
     // include:
     //  Intel(R) UHD Graphics 620.json
     //  Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
+    //  Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
     //  Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
     //  Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 
@@ -122,6 +123,8 @@ void ASmain ()
     fset.maxTexelBufferElements (128 << 20);
     fset.maxUniformBufferSize (134217724);
     fset.maxStorageBufferSize (1073741820);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (8);
     fset.perDescrSet_maxInputAttachments (8);
     fset.perDescrSet_maxSampledImages (1800);
     fset.perDescrSet_maxSamplers (576);

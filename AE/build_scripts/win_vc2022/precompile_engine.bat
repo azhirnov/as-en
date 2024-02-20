@@ -45,6 +45,10 @@ cmake --build . --config Debug --target Platform
 copy /Y "bin\Debug\Platform.lib" "..\AE-Temp\engine\precompiled\Debug\Platform.lib"
 copy /Y "bin\Debug\Platform.pdb" "..\AE-Temp\engine\precompiled\Debug\Platform.pdb"
 
+cmake --build . --config Debug --target Audio
+copy /Y "bin\Debug\Audio.lib" "..\AE-Temp\engine\precompiled\Debug\Audio.lib"
+copy /Y "bin\Debug\Audio.pdb" "..\AE-Temp\engine\precompiled\Debug\Audio.pdb"
+
 cmake --build . --config Debug --target Video
 copy /Y "bin\Debug\Video.lib" "..\AE-Temp\engine\precompiled\Debug\Video.lib"
 copy /Y "bin\Debug\Video.pdb" "..\AE-Temp\engine\precompiled\Debug\Video.pdb"
@@ -127,6 +131,10 @@ copy /Y "bin\Develop\ECS-st.pdb" "..\AE-Temp\engine\precompiled\Develop\ECS-st.p
 cmake --build . --config Develop --target Platform
 copy /Y "bin\Develop\Platform.lib" "..\AE-Temp\engine\precompiled\Develop\Platform.lib"
 copy /Y "bin\Develop\Platform.pdb" "..\AE-Temp\engine\precompiled\Develop\Platform.pdb"
+
+cmake --build . --config Develop --target Audio
+copy /Y "bin\Develop\Audio.lib" "..\AE-Temp\engine\precompiled\Develop\Audio.lib"
+copy /Y "bin\Develop\Audio.pdb" "..\AE-Temp\engine\precompiled\Develop\Audio.pdb"
 
 cmake --build . --config Develop --target Video
 copy /Y "bin\Develop\Video.lib" "..\AE-Temp\engine\precompiled\Develop\Video.lib"
@@ -211,6 +219,10 @@ cmake --build . --config Profile --target Platform
 copy /Y "bin\Profile\Platform.lib" "..\AE-Temp\engine\precompiled\Profile\Platform.lib"
 copy /Y "bin\Profile\Platform.pdb" "..\AE-Temp\engine\precompiled\Profile\Platform.pdb"
 
+cmake --build . --config Profile --target Audio
+copy /Y "bin\Profile\Audio.lib" "..\AE-Temp\engine\precompiled\Profile\Audio.lib"
+copy /Y "bin\Profile\Audio.pdb" "..\AE-Temp\engine\precompiled\Profile\Audio.pdb"
+
 cmake --build . --config Profile --target Video
 copy /Y "bin\Profile\Video.lib" "..\AE-Temp\engine\precompiled\Profile\Video.lib"
 copy /Y "bin\Profile\Video.pdb" "..\AE-Temp\engine\precompiled\Profile\Video.pdb"
@@ -293,6 +305,10 @@ copy /Y "bin\Release\ECS-st.pdb" "..\AE-Temp\engine\precompiled\Release\ECS-st.p
 cmake --build . --config Release --target Platform
 copy /Y "bin\Release\Platform.lib" "..\AE-Temp\engine\precompiled\Release\Platform.lib"
 copy /Y "bin\Release\Platform.pdb" "..\AE-Temp\engine\precompiled\Release\Platform.pdb"
+
+cmake --build . --config Release --target Audio
+copy /Y "bin\Release\Audio.lib" "..\AE-Temp\engine\precompiled\Release\Audio.lib"
+copy /Y "bin\Release\Audio.pdb" "..\AE-Temp\engine\precompiled\Release\Audio.pdb"
 
 cmake --build . --config Release --target Video
 copy /Y "bin\Release\Video.lib" "..\AE-Temp\engine\precompiled\Release\Video.lib"

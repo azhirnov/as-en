@@ -3,8 +3,10 @@
 #include "UnitTest_Common.h"
 
 extern void UnitTest_AsyncMutex ();
+extern void UnitTest_Barrier ();
 extern void UnitTest_Coroutine ();
 extern void UnitTest_Promise ();
+extern void UnitTest_Semaphore ();
 extern void UnitTest_TaskDeps ();
 extern void UnitTest_TaskUsage ();
 
@@ -17,6 +19,7 @@ extern void UnitTest_LfStaticQueue ();
 
 extern void UnitTest_LfFixedBlockAllocator3 ();
 extern void UnitTest_LfLinearAllocator ();
+extern void UnitTest_LfStaticBlockAllocator ();
 
 extern void UnitTest_SpinLock ();
 extern void UnitTest_Synchronized ();
@@ -33,10 +36,7 @@ int main ()
 {
     AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    // minimize disk usage for debug build
-  #if defined(AE_RELEASE) and not defined(AE_PLATFORM_ANDROID)
     UnitTest_AsyncDataSource();
-  #endif
 
     UnitTest_TsSharedMem();
 
@@ -49,9 +49,12 @@ int main ()
 
     UnitTest_LfFixedBlockAllocator3();
     UnitTest_LfLinearAllocator();
+    UnitTest_LfStaticBlockAllocator();
 
     UnitTest_SpinLock();
     UnitTest_Synchronized();
+    UnitTest_Barrier();
+    UnitTest_Semaphore();
 
     UnitTest_TaskDeps();
     UnitTest_TaskUsage();

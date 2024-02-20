@@ -9,6 +9,8 @@
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
+#else
+# include "Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler
@@ -219,7 +221,7 @@ namespace AE::PipelineCompiler
     RenderPassExists
 =================================================
 */
-    CompatibleRenderPassDescPtr  ObjectStorage::RenderPassExists (const RenderPassName &rpName, const SubpassName &subpass) C_Th___
+    CompatibleRenderPassDescPtr  ObjectStorage::RenderPassExists (RenderPassName::Ref rpName, SubpassName::Ref subpass) C_Th___
     {
         auto    rp_it = renderPassToCompat.find( rpName );
         CHECK_THROW_MSG( rp_it != renderPassToCompat.end(),
@@ -245,7 +247,7 @@ namespace AE::PipelineCompiler
     GetRenderPass
 =================================================
 */
-    RenderPassSpecPtr  ObjectStorage::GetRenderPass (const RenderPassName &rpName) C_Th___
+    RenderPassSpecPtr  ObjectStorage::GetRenderPass (RenderPassName::Ref rpName) C_Th___
     {
         auto    rp_it = renderPassToCompat.find( rpName );
         CHECK_THROW_MSG( rp_it != renderPassToCompat.end(),
@@ -381,12 +383,16 @@ namespace AE::PipelineCompiler
     CopyFeatures
 =================================================
 */
-    FSNameArr_t  ObjectStorage::CopyFeatures (ArrayView<ScriptFeatureSetPtr> feats)
+    FSNameArr_t  ObjectStorage::CopyFeatures (ArrayView<ScriptFeatureSetPtr> inFeats)
     {
-        if ( feats.empty() )
+        if ( inFeats.empty() )
             return Default;
 
-        ASSERT( not HasDuplicates( feats.begin(), feats.end() ));
+        Array<ScriptFeatureSetPtr>  feats {inFeats};
+        RemoveDuplicates( INOUT feats );
+
+        // sort by name
+        std::sort( feats.begin(), feats.end(), [](auto& lhs, auto& rhs){ return lhs->Hash() < rhs->Hash(); });
 
         auto*       dst = allocator.Allocate< FeatureSetName::Optimized_t >( feats.size() );
         FSNameArr_t res{ dst, feats.size() };
@@ -402,13 +408,16 @@ namespace AE::PipelineCompiler
     GetDefaultFeatureSets
 =================================================
 */
-    Array<ScriptFeatureSetPtr>  ObjectStorage::GetDefaultFeatureSets ()
+    Array<ScriptFeatureSetPtr>  ObjectStorage::GetDefaultFeatureSets () __Th___
     {
-        auto    it = featureSets.find( FeatureSetName{defaultFeatureSet} );
-        if ( it != featureSets.end() )
-            return {it->second};
-        else
+        if ( defaultFeatureSet.empty() )
             return {};
+
+        auto    it = featureSets.find( FeatureSetName{defaultFeatureSet} );
+        CHECK_THROW_MSG( it != featureSets.end(),
+            "Can't find default feature set '"s << defaultFeatureSet << "'" );
+
+        return {it->second};
     }
 
 /*
@@ -845,7 +854,25 @@ namespace {
     static bool  Cfg_IsMetal_Mac ()     { return ObjectStorage::Instance()->target == ECompilationTarget::Metal_Mac; }
     static bool  Cfg_IsMetal ()         { return Cfg_IsMetal_iOS() or Cfg_IsMetal_Mac(); }
 
-    static ShaderStructType*  GetShaderStructType (const String &name)
+    static bool  Cfg_IsShaderTraceSupported ()
+    {
+    #ifdef AE_ENABLE_GLSL_TRACE
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
+    static bool  Cfg_IsMetalCompilerSupported ()
+    {
+    #if defined(AE_METAL_TOOLS) and defined(AE_ENABLE_SPIRV_CROSS)
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
+    static ShaderStructType*  GetShaderStructType (const String &name) __Th___
     {
         auto&   struct_types    = ObjectStorage::Instance()->structTypes;
         auto    it              = struct_types.find( name );
@@ -855,6 +882,14 @@ namespace {
 
         CHECK_THROW_MSG( false,
             "ShaderStructType '"s << name << "' is not exists" );
+    }
+
+    static bool  HasRenderTech (const String &name) __Th___
+    {
+        auto&   rtech_map   = ObjectStorage::Instance()->rtechMap;
+        auto    it          = rtech_map.find( name );
+
+        return it != rtech_map.end();
     }
 }
 
@@ -913,11 +948,14 @@ namespace {
         ScriptSampler::Bind( se );
         RayTracingShaderBinding::Bind( se );
 
-        se->AddFunction( &Cfg_IsVulkan,         "IsVulkan",             {} );
-        se->AddFunction( &Cfg_IsMetal_iOS,      "IsMetal_iOS",          {} );
-        se->AddFunction( &Cfg_IsMetal_Mac,      "IsMetal_Mac",          {} );
-        se->AddFunction( &Cfg_IsMetal,          "IsMetal",              {} );
-        se->AddFunction( &GetShaderStructType,  "GetShaderStructType",  {"name"} );
+        se->AddFunction( &Cfg_IsShaderTraceSupported,   "IsShaderTraceSupported",   {} );
+        se->AddFunction( &Cfg_IsMetalCompilerSupported, "IsMetalCompilerSupported", {} );
+        se->AddFunction( &Cfg_IsVulkan,                 "IsVulkan",                 {} );
+        se->AddFunction( &Cfg_IsMetal_iOS,              "IsMetal_iOS",              {} );
+        se->AddFunction( &Cfg_IsMetal_Mac,              "IsMetal_Mac",              {} );
+        se->AddFunction( &Cfg_IsMetal,                  "IsMetal",                  {} );
+        se->AddFunction( &GetShaderStructType,          "GetShaderStructType",      {"name"} );
+        se->AddFunction( &HasRenderTech,                "HasRenderTech",            {} );
 
         se->AddCppHeader( "", "#define SCRIPT\n\n", 0 );
     }
@@ -940,6 +978,7 @@ namespace {
         binder.AddValue( "SPIRV_1_6",       EShaderVersion::SPIRV_1_6 );
         StaticAssert( EShaderVersion::_SPIRV_Last == EShaderVersion::SPIRV_1_6 );
 
+        binder.Comment( "Metal API" );
         binder.AddValue( "Metal_2_0",       EShaderVersion::Metal_2_0 );
         binder.AddValue( "Metal_2_1",       EShaderVersion::Metal_2_1 );
         binder.AddValue( "Metal_2_2",       EShaderVersion::Metal_2_2 );
@@ -1133,25 +1172,33 @@ namespace {
     {
         EnumBinder<EValueType>  binder{ se };
         binder.Create();
-        binder.AddValue( "Bool8",           EValueType::Bool8 );
-        binder.AddValue( "Bool32",          EValueType::Bool32 );
-        binder.AddValue( "Int8",            EValueType::Int8 );
-        binder.AddValue( "Int16",           EValueType::Int16 );
-        binder.AddValue( "Int32",           EValueType::Int32 );
-        binder.AddValue( "Int64",           EValueType::Int64 );
-        binder.AddValue( "UInt8",           EValueType::UInt8 );
-        binder.AddValue( "UInt16",          EValueType::UInt16 );
-        binder.AddValue( "UInt32",          EValueType::UInt32 );
-        binder.AddValue( "UInt64",          EValueType::UInt64 );
-        binder.AddValue( "Float16",         EValueType::Float16 );
-        binder.AddValue( "Float32",         EValueType::Float32 );
-        binder.AddValue( "Float64",         EValueType::Float64 );
-        binder.AddValue( "Int8_Norm",       EValueType::Int8_Norm );
-        binder.AddValue( "Int16_Norm",      EValueType::Int16_Norm );
-        binder.AddValue( "UInt8_Norm",      EValueType::UInt8_Norm );
-        binder.AddValue( "UInt16_Norm",     EValueType::UInt16_Norm );
-        binder.AddValue( "DeviceAddress",   EValueType::DeviceAddress );
-        StaticAssert( uint(EValueType::_Count) == 19 );
+        switch_enum( EValueType::Unknown )
+        {
+            case EValueType::Unknown :
+            case EValueType::_Count :
+            #define BIND( _name_ )      case EValueType::_name_ : binder.AddValue( #_name_, EValueType::_name_ );
+            BIND( Bool8 )
+            BIND( Bool32 )
+            BIND( Int8 )
+            BIND( Int16 )
+            BIND( Int32 )
+            BIND( Int64 )
+            BIND( UInt8 )
+            BIND( UInt16 )
+            BIND( UInt32 )
+            BIND( UInt64 )
+            BIND( Float16 )
+            BIND( Float32 )
+            BIND( Float64 )
+            BIND( Int8_Norm )
+            BIND( Int16_Norm )
+            BIND( UInt8_Norm )
+            BIND( UInt16_Norm )
+            BIND( DeviceAddress )
+            #undef BIND
+            default : break;
+        }
+        switch_end
     }
 
     void  ObjectStorage::Bind_EShaderPreprocessor (const ScriptEnginePtr &se)

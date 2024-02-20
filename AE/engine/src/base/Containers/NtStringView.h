@@ -56,8 +56,8 @@ namespace AE::Base
         template <typename A> Self& operator = (const BasicString<T,A> &) = delete;
         Self& operator = (const T*)                         = delete;
 
-        explicit operator BasicStringView<T> ()             C_NE___ { return BasicStringView<T>{ _data, _length }; }
-        explicit operator BasicString<T> ()                 C_NE___ { return BasicString<T>{ _data, _length }; }
+        ND_ explicit operator BasicStringView<T> ()         C_NE___ { return BasicStringView<T>{ _data, _length }; }
+        ND_ explicit operator BasicString<T> ()             C_NE___ { return BasicString<T>{ _data, _length }; }
 
         ND_ T const*    c_str ()                            C_NE___ { return _data; }       // always non-null
         ND_ usize       size ()                             C_NE___ { return _length; }

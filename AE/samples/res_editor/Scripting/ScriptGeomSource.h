@@ -33,8 +33,8 @@ namespace AE::ResEditor
 
             PplnNameAndObjectId ()                                                      = default;
             PplnNameAndObjectId (const PplnNameAndObjectId &)                           = default;
-            explicit PplnNameAndObjectId (const PipelineName &name)                     : pplnName{name} {}
-            PplnNameAndObjectId (const PipelineName &name, usize objId, EDebugMode dbg) : pplnName{name}, objId{objId}, dbgMode{dbg} {}
+            explicit PplnNameAndObjectId (PipelineName::Ref name)                       : pplnName{name} {}
+            PplnNameAndObjectId (PipelineName::Ref name, usize objId, EDebugMode dbg)   : pplnName{name}, objId{objId}, dbgMode{dbg} {}
         };
 
         using PipelineNames_t           = Array< PplnNameAndObjectId >;

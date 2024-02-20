@@ -46,9 +46,7 @@ namespace AE::Base::_hidden_
         }
     };
 
-    template <typename T, uint UID> struct StaticTypeIdOf< const T,          UID > final : StaticTypeIdOf<T, UID> {};
-    template <typename T, uint UID> struct StaticTypeIdOf< volatile T,       UID > final : StaticTypeIdOf<T, UID> {};
-    template <typename T, uint UID> struct StaticTypeIdOf< const volatile T, UID > final : StaticTypeIdOf<T, UID> {};
+    template <typename T, uint UID> struct StaticTypeIdOf< const T, UID > final : StaticTypeIdOf<T, UID> {};
 
 } // AE::Base::_hidden_
 

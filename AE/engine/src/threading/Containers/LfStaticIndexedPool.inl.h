@@ -225,7 +225,7 @@ namespace AE::Threading
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        if_likely( (_arr != null) & (index < capacity()) )
+        if_likely( (_arr != null) and (index < capacity()) )
         {
             const uint  chunk_idx   = index / ChunkSize;
             const uint  bit_idx     = index % ChunkSize;

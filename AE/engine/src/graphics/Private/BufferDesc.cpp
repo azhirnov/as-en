@@ -47,10 +47,10 @@ namespace AE::Graphics
 */
     bool  BufferDesc::operator == (const BufferDesc &rhs) C_NE___
     {
-        return  (size       == rhs.size)    &
-                (usage      == rhs.usage)   &
-                (options    == rhs.options) &
-                (queues     == rhs.queues)  &
+        return  (size       == rhs.size)    and
+                (usage      == rhs.usage)   and
+                (options    == rhs.options) and
+                (queues     == rhs.queues)  and
                 (memType    == rhs.memType);
     }
 //-----------------------------------------------------------------------------
@@ -78,8 +78,8 @@ namespace AE::Graphics
 */
     bool  BufferViewDesc::operator == (const BufferViewDesc &rhs) C_NE___
     {
-        return  (format == rhs.format)  &
-                (offset == rhs.offset)  &
+        return  (format == rhs.format)  and
+                (offset == rhs.offset)  and
                 (size   == rhs.size);
     }
 

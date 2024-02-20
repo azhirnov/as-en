@@ -1,0 +1,8 @@
+rm -rf "../../../../../AE-Data/external/source/xxHash"
+rm -rf "temp"
+git clone --branch "v0.8.2" "../../../../../3party/xxHash" "temp"
+mkdir "../../../../../AE-Data/external/source/xxHash"
+cp "temp/xxhash.h" "../../../../../AE-Data/external/source/xxHash/xxhash.h"
+cp "temp/LICENSE" "../../../../../AE-Data/external/source/xxHash/LICENSE.txt"
+rm -rf "temp"
+read -p "press any key..."

@@ -27,24 +27,22 @@ namespace AE::App
 
     // variables
     private:
-        DubleBufferedQueue  _dbQueue;
+        float2                  _cursorPosPx;
+        float2                  _cursorDeltaSNorm;
+        float2                  _mouseWheel;
 
-        float2              _cursorPosPx;
-        float2              _cursorDeltaSNorm;
-        float2              _mouseWheel;
+        bool                    _touchActive        : 1;    // \ 
+        bool                    _touchBegin         : 1;    // |-- touch emulation by mouse & left button
+        bool                    _touchEnd           : 1;    // /
 
-        bool                _touchActive        : 1;    // \ 
-        bool                _touchBegin         : 1;    // |-- touch emulation by mouse & left button
-        bool                _touchEnd           : 1;    // /
+        float2                  _surfaceSize;
 
-        float2              _surfaceSize;
-
-        GestureRecognizer   _gestureRecognizer;
+        GestureRecognizer       _gestureRecognizer;
 
 
     // methods
     public:
-        explicit InputActionsWinAPI (DubleBufferedQueue* q)                 __NE___;
+        explicit InputActionsWinAPI (TsDoubleBufferedQueue* q)              __NE___;
 
         ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam,
                                   Duration_t timestamp, bool hasFocus)      __NE___;
@@ -69,10 +67,6 @@ namespace AE::App
         void  _SetCursorPos (float2 pos)                                    __NE___;
         void  _SetCursorDelta (float2 pos)                                  __NE___;
         void  _SetMouseWheel (uint idx, float delta)                        __NE___;
-
-        ND_ static constexpr bool  _IsKey (EInputType type)                 __NE___ { return SerializableInputActionsWinAPI::_IsKey( type ); }
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)            __NE___ { return SerializableInputActionsWinAPI::_IsCursor1D( type ); }
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)            __NE___ { return SerializableInputActionsWinAPI::_IsCursor2D( type ); }
     };
 
 

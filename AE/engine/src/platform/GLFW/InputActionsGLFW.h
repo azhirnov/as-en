@@ -27,21 +27,19 @@ namespace AE::App
 
     // variables
     private:
-        DubleBufferedQueue  _dbQueue;
+        float2                  _cursorPosPx;
+        float2                  _cursorDeltaPx;
 
-        float2              _cursorPosPx;
-        float2              _cursorDeltaPx;
+        bool                    _touchActive        : 1;
+        bool                    _touchBegin         : 1;
+        bool                    _touchEnd           : 1;
 
-        bool                _touchActive        : 1;
-        bool                _touchBegin         : 1;
-        bool                _touchEnd           : 1;
-
-        GestureRecognizer   _gestureRecognizer;
+        GestureRecognizer       _gestureRecognizer;
 
 
     // methods
     public:
-        explicit InputActionsGLFW (DubleBufferedQueue* q)                           __NE___;
+        explicit InputActionsGLFW (TsDoubleBufferedQueue* q)                        __NE___;
 
         // api for window
         void  SetKey (int key, EGestureState state, Duration_t timestamp)           __NE___;
@@ -50,6 +48,12 @@ namespace AE::App
         void  SetMouseWheel (float2 delta)                                          __NE___;
         void  SetMonitor (const uint2 &surfaceSize, const Monitor &)                __NE___;
         void  CursorPosChanged (float2 pos)                                         __NE___ { _cursorPosPx = pos; }
+
+        // api for external input
+        void  SetSensor1f (EInputType type, float value)                            __NE___ { _Update1F( type, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }
+        void  SetSensor3f (EInputType type, float3 value)                           __NE___ { _Update3F( type, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }
+        void  SetSensorQf (EInputType type, Quat value)                             __NE___ { _UpdateQuatF( type, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }
+        void  SetGNS (const GNSData &value)                                         __NE___ { _UpdateGNS( EInputType::GeoLocation, EGestureType::Move, ControllerID::Sensor, value, EGestureState::Update ); }
 
         void  Update (Duration_t timeSinceStart)                                    __NE___;
 
@@ -65,10 +69,6 @@ namespace AE::App
 
     private:
         bool  _ValidateForVREmulation ();
-
-        ND_ static constexpr bool  _IsKey (EInputType type)         { return SerializableInputActionsGLFW::_IsKey( type ); }
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    { return SerializableInputActionsGLFW::_IsCursor1D( type ); }
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    { return SerializableInputActionsGLFW::_IsCursor2D( type ); }
     };
 
 

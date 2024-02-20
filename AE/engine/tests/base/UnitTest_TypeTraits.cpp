@@ -8,6 +8,12 @@ namespace
     StaticAssert( sizeof(bool)   == 1 );
     StaticAssert( sizeof(Bool32) == 4 );
 
+    StaticAssert( sizeof(CharAnsi)   == 1 );
+    StaticAssert( sizeof(CharUtf8)   == 1 );
+    StaticAssert( sizeof(CharUtf16)  == 2 );
+    StaticAssert( sizeof(CharUtf32)  == 4 );
+    //StaticAssert( sizeof(wchar_t)  == 2 );
+
     StaticAssert( sizeof(char)  == 1 );         StaticAssert( IsInteger<         char >);
     StaticAssert( sizeof(sbyte) == 1 );         StaticAssert( IsSignedInteger<   sbyte >);
     StaticAssert( sizeof(ubyte) == 1 );         StaticAssert( IsUnsignedInteger< ubyte >);
@@ -53,6 +59,7 @@ namespace
     StaticAssert( sizeof(ssize) == 8 );         StaticAssert( IsSignedInteger<   ssize >);
     StaticAssert( sizeof(usize) == 8 );         StaticAssert( IsUnsignedInteger< usize >);
     #endif
+
 
     static void  Test_IsSpecializationOf ()
     {

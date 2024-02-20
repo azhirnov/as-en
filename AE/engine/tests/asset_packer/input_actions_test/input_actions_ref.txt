@@ -1,9 +1,162 @@
 InputActionsAndroid {
+  '7b09036' {
+    lockAndHideCursor: false
+    enableSensors: { Gravity, GameRotationVector }
+    InputKey: TouchDelta_norm, state: Begin
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: Begin
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: Begin
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: TouchDelta_norm, state: Update
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: Update
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: Update
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: TouchDelta_norm, state: End
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: End
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: End
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+  }
   '891542da' {
+    lockAndHideCursor: false
   }
 }
 
 InputActionsGLFW {
+  '7b09036' {
+    lockAndHideCursor: false
+    enableSensors: { Android_Gravity, Android_GameRotationVector }
+    InputKey: TouchDelta_norm, state: Begin
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: Begin
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: Begin
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: TouchDelta_norm, state: Update
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: Update
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: Update
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: TouchDelta_norm, state: End
+    {
+      name:    'cc3b70a5'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( -2.00, -2.00, -2.00, -2.00 )
+    }
+    InputKey: Gravity, state: End
+    {
+      name:    'f5ec8cc9'
+      value:   Float3
+      gesture: Move
+      swizzle: XYZ0
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+    InputKey: GameRotationVector, state: End
+    {
+      name:    '477607ed'
+      value:   Quat
+      gesture: Move
+      swizzle: 0000
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
+    }
+  }
   '891542da' {
     lockAndHideCursor: true
     InputKey: MouseBtn2, state: Begin
@@ -12,7 +165,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Escape, state: Begin
     {
@@ -20,7 +173,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Enter, state: Begin
     {
@@ -28,7 +181,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn1, state: Begin
     {
@@ -36,7 +189,7 @@ InputActionsGLFW {
       value:   Float4
       gesture: Hold
       swizzle: 0+00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: Begin
     {
@@ -44,7 +197,7 @@ InputActionsGLFW {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
+      scale:   ( 0.50, 0.25, 0.00, 0.00 )
     }
     InputKey: MouseBtn1, state: Update
     {
@@ -52,7 +205,7 @@ InputActionsGLFW {
       value:   Float4
       gesture: Hold
       swizzle: 0+00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: Update
     {
@@ -60,7 +213,7 @@ InputActionsGLFW {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
+      scale:   ( 0.50, 0.25, 0.00, 0.00 )
     }
     InputKey: MouseBtn2, state: End
     {
@@ -68,7 +221,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Escape, state: End
     {
@@ -76,7 +229,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Enter, state: End
     {
@@ -84,7 +237,7 @@ InputActionsGLFW {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn1, state: End
     {
@@ -92,7 +245,7 @@ InputActionsGLFW {
       value:   Float4
       gesture: Hold
       swizzle: 0+00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: End
     {
@@ -100,7 +253,7 @@ InputActionsGLFW {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
+      scale:   ( 0.50, 0.25, 0.00, 0.00 )
     }
   }
 }
@@ -114,7 +267,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Enter, state: Begin
     {
@@ -122,7 +275,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Escape, state: Begin
     {
@@ -130,7 +283,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn0, state: Begin
     {
@@ -138,7 +291,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Hold
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: Begin
     {
@@ -146,7 +299,7 @@ InputActionsWinAPI {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn0, state: Update
     {
@@ -154,7 +307,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Hold
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: Update
     {
@@ -162,7 +315,7 @@ InputActionsWinAPI {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn1, state: End
     {
@@ -170,7 +323,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Enter, state: End
     {
@@ -178,7 +331,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: Escape, state: End
     {
@@ -186,7 +339,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Down
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: MouseBtn0, state: End
     {
@@ -194,7 +347,7 @@ InputActionsWinAPI {
       value:   none
       gesture: Hold
       swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
     InputKey: CursorPos, state: End
     {
@@ -202,7 +355,7 @@ InputActionsWinAPI {
       value:   Float2
       gesture: Move
       swizzle: XY00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+      scale:   ( 1.00, 1.00, 1.00, 1.00 )
     }
   }
 }

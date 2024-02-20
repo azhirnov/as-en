@@ -14,7 +14,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static',
-						  '-DANDROID_ARM_NEON=ON'
+                          '-DANDROID_ARM_NEON=ON'
             }
         }
     }
@@ -30,9 +30,9 @@ android {
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
-	android {
-		namespace 'AE.External'
-	}
+    android {
+        namespace 'AE.External'
+    }
 
     ndkVersion "24.0.8215888"
 }

@@ -125,6 +125,12 @@ namespace AE::Graphics
 #   pragma detect_mismatch( "VK_USE_PLATFORM_ANDROID_KHR", "0" )
 #  endif
 
+#  if defined(VK_USE_PLATFORM_METAL_EXT) and VK_USE_PLATFORM_METAL_EXT
+#   pragma detect_mismatch( "VK_USE_PLATFORM_METAL_EXT", "1" )
+#  else
+#   pragma detect_mismatch( "VK_USE_PLATFORM_METAL_EXT", "0" )
+#  endif
+
 #  if defined(VK_USE_PLATFORM_IOS_MVK) and VK_USE_PLATFORM_IOS_MVK
 #   pragma detect_mismatch( "VK_USE_PLATFORM_IOS_MVK", "1" )
 #  else
@@ -135,12 +141,6 @@ namespace AE::Graphics
 #   pragma detect_mismatch( "VK_USE_PLATFORM_MACOS_MVK", "1" )
 #  else
 #   pragma detect_mismatch( "VK_USE_PLATFORM_MACOS_MVK", "0" )
-#  endif
-
-#  if defined(VK_USE_PLATFORM_MIR_KHR) and VK_USE_PLATFORM_MIR_KHR
-#   pragma detect_mismatch( "VK_USE_PLATFORM_MIR_KHR", "1" )
-#  else
-#   pragma detect_mismatch( "VK_USE_PLATFORM_MIR_KHR", "0" )
 #  endif
 
 #  if defined(VK_USE_PLATFORM_VI_NN) and VK_USE_PLATFORM_VI_NN

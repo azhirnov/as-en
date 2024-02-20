@@ -3,7 +3,6 @@
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
-
 #ifdef SH_MESH
 
     const vec2  g_Positions[3] = vec2[](
@@ -38,7 +37,6 @@
 
 #endif
 //-----------------------------------------------------------------------------
-
 #ifdef SH_FRAG
 
     layout(location=0) out vec4  out_Color;

@@ -22,7 +22,7 @@ namespace AE::Math
         using Quat_t        = typename Transform_t::Quat_t;
         using Rect_t        = Rectangle<T>;
         using Vec2_t        = Vec< T, 2 >;
-        using Radians_t     = TRadian<T>;
+        using Rad_t         = TRadian<T>;
         using Self          = TCamera<T>;
         using Value_t       = T;
 
@@ -48,24 +48,25 @@ namespace AE::Math
         Self&  Move (const Vec3_t &delta)                                                   __NE___ { transform.Move( delta );  return *this; }
         Self&  SetPosition (const Vec3_t &value)                                            __NE___ { transform.position = value;  return *this; }
         Self&  Rotate (const Quat_t &delta)                                                 __NE___ { transform.Rotate( delta );  return *this; }
-        Self&  Rotate (Radians_t angle, const Vec3_t &normal)                               __NE___;
+        Self&  Rotate (Rad_t angle, const Vec3_t &normal)                                   __NE___;
         Self&  SetOrientation (const Quat_t &value)                                         __NE___ { transform.orientation = value;  return *this;}
 
 
         // for projection
         Self&  SetOrtho (const Rect_t &viewport, const Vec2_t &range)                       __NE___;
 
-        Self&  SetPerspective (Radians_t fovY, Value_t aspect,
+        Self&  SetPerspective (Rad_t fovY, Value_t aspect,
                                const Vec2_t &range, Bool reverseZ = False{})                __NE___;
-        Self&  SetPerspective (Radians_t fovY, const Vec2_t &viewport,
+        Self&  SetPerspective (Rad_t fovY, const Vec2_t &viewport,
                                const Vec2_t &range, Bool reverseZ = False{})                __NE___;
 
         Self&  SetFrustum (const Rect_t &viewport, const Vec2_t &range,
                            Bool reverseZ = False{})                                         __NE___;
 
-        static const Vec3_t  UpDir ()                                                       __NE___ { return Vec3_t( T(0), T(1), T(0) ); }
-        static const Vec3_t  RightDir ()                                                    __NE___ { return Vec3_t( T(1), T(0), T(0) ); }
-        static const Vec3_t  ForwardDir ()                                                  __NE___ { return Vec3_t( T(0), T(0), T(1) ); }
+
+        ND_ static Vec3_t  UpDir ()                                                         __NE___ { return Vec3_t( T(0), T(1), T(0) ); }
+        ND_ static Vec3_t  RightDir ()                                                      __NE___ { return Vec3_t( T(1), T(0), T(0) ); }
+        ND_ static Vec3_t  ForwardDir ()                                                    __NE___ { return Vec3_t( T(0), T(0), T(1) ); }
     };
 
 
@@ -90,7 +91,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    TCamera<T>&  TCamera<T>::Rotate (Radians_t angle, const Vec3_t &normal) __NE___
+    TCamera<T>&  TCamera<T>::Rotate (Rad_t angle, const Vec3_t &normal) __NE___
     {
         transform.Rotate( Quat_t::Identity().Rotate( angle, normal ));
         return *this;
@@ -114,7 +115,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    TCamera<T>&  TCamera<T>::SetPerspective (Radians_t fovY, Value_t aspect, const Vec2_t &range, Bool reverseZ) __NE___
+    TCamera<T>&  TCamera<T>::SetPerspective (Rad_t fovY, Value_t aspect, const Vec2_t &range, Bool reverseZ) __NE___
     {
         if ( IsFinite( range.y ))
             projection = Mat4_t::Perspective( fovY, aspect, range );
@@ -126,7 +127,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    TCamera<T>&  TCamera<T>::SetPerspective (Radians_t fovY, const Vec2_t &viewport, const Vec2_t &range, Bool reverseZ) __NE___
+    TCamera<T>&  TCamera<T>::SetPerspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range, Bool reverseZ) __NE___
     {
         projection = Mat4_t::Perspective( fovY, viewport, range );
         if ( reverseZ )

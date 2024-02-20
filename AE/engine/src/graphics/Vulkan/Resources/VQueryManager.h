@@ -85,25 +85,25 @@ namespace AE::Graphics
 
     // variables
     private:
-        VDevice const&          _device;
+        VDevice const&              _device;
 
-        PoolArr_t               _poolArr            {};
-        EQueueMask              _timestampAllowed   = Default;
-        float                   _timestampPeriod    = 1.f;  // nanoseconds
+        PoolArr_t                   _poolArr            {};
+        EQueueMask                  _timestampAllowed   = Default;
+        float                       _timestampPeriod    = 1.f;  // nanoseconds
 
-        TimestampBitsPerQueue_t _tsBits;
+        TimestampBitsPerQueue_t     _tsBits;
 
-        BitAtomic<PackedIdx>    _packedIdx;
-        uint                    _maxFrames      : 8;
+        StructAtomic<PackedIdx>     _packedIdx;
+        uint                        _maxFrames      : 8;
 
-        uint                    _hostReset      : 1;
-        uint                    _perfQuery      : 1;
-        uint                    _calibratedTs   : 1;
+        uint                        _hostReset      : 1;
+        uint                        _perfQuery      : 1;
+        uint                        _calibratedTs   : 1;
 
-        Atomic<bool>            _perfLockAcquired   {false};
+        Atomic<bool>                _perfLockAcquired   {false};
 
         DRC_ONLY(
-            RWDataRaceCheck     _drCheck;
+            RWDataRaceCheck         _drCheck;
         )
 
 
@@ -139,7 +139,7 @@ namespace AE::Graphics
 
         //  bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size)     C_NE___;
             bool  GetPipelineStatistic (const Query &q, OUT PipelineStatistic* result, Bytes size)                  C_NE___;
-            bool  GetRTASProperty (const Query &q, OUT Byte64u* result, Bytes size)                                 C_NE___;
+            bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size)                                C_NE___;
 
     private:
         static void  _ResetPoolOnHost (const VDevice &, uint idx, QueryPool &pool, uint count)                      __NE___;

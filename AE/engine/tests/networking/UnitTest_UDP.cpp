@@ -10,7 +10,8 @@ namespace
     {
         LocalSocketMngr mngr;
 
-        const char  send_data[] = "12346ewiofdklijnskdn";
+        const char          send_data[] = "12346ewiofdklijnskdn";
+        Threading::Barrier  sync {2};
 
         StdThread   listener{ [&] ()
             {{
@@ -18,8 +19,10 @@ namespace
                 TEST( sock2.Open( Address::FromLocalhostUDP(4000) ));
                 TEST( sock2.IsOpen() );
 
+                sync.Wait();
+
                 Array<char> recv_data;
-                for (uint i = 0; i < 100; ++i)
+                for (uint i = 0; i < 1'000; ++i)    // max: 100s
                 {
                     Address     addr;
                     char        buf[128];
@@ -46,6 +49,8 @@ namespace
         UdpSocket   sock1;
         TEST( sock1.Open( Address::FromLocalhostUDP(3000) ));
         TEST( sock1.IsOpen() );
+
+        sync.Wait();
 
         auto [err, sent] = sock1.Send( Address::FromHostPortUDP( "localhost", 4000 ), send_data, Sizeof(send_data) );
 

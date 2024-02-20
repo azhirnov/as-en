@@ -182,12 +182,19 @@ namespace {
         // create scaler
         {
             const AVPixelFormat src_fmt = CorrectPixFormat( _codecCtx->pix_fmt );
-            const AVPixelFormat dst_fmt = EnumCast( _config.dstFormat );
-            const int           filter  = EnumCast( _config.filter );
+            AVPixelFormat       dst_fmt = PixelFormatCast( _config.dstFormat );
 
-            CHECK_ERR( src_fmt != AV_PIX_FMT_NONE and
-                       dst_fmt != AV_PIX_FMT_NONE );
+            if ( dst_fmt == AV_PIX_FMT_NONE )
+            {
+                dst_fmt             = src_fmt;
+                _config.dstFormat   = PixelFormatCast( src_fmt );
+            }
 
+            CHECK_ERR(  src_fmt != AV_PIX_FMT_NONE and
+                        dst_fmt != AV_PIX_FMT_NONE and
+                        _config.dstFormat != Default );
+
+            const int   filter = EnumCast( _config.filter );
             _swsCtx = ffmpeg.sws_getContext( int(src_dim.x), int(src_dim.y), src_fmt,
                                              int(_config.dstDim.x), int(_config.dstDim.y), dst_fmt,
                                              filter, null, null, null );
@@ -303,8 +310,7 @@ namespace {
     GetNextFrame
 =================================================
 */
-    bool  FFmpegVideoDecoder::GetNextFrame (INOUT ImageMemView &    memView,
-                                            OUT FrameInfo &         outInfo) __NE___
+    bool  FFmpegVideoDecoder::GetNextFrame (INOUT ImageMemView& memView, OUT FrameInfo& outInfo) __NE___
     {
         EXLOCK( _guard );
 
@@ -389,12 +395,96 @@ namespace {
 
 /*
 =================================================
-    GetFrame
+    GetNextFrame
 =================================================
-*
-    bool  FFmpegVideoDecoder::GetFrame (OUT VideoImageID &, OUT FrameInfo &) __NE___
+*/
+    bool  FFmpegVideoDecoder::GetNextFrame (INOUT ImageMemViewArr& memViewArr, OUT FrameInfo& outInfo) __NE___
     {
-        // not supported
+        EXLOCK( _guard );
+
+        if_unlikely( not _decodingStarted )
+            return false;
+
+        ASSERT( _formatCtx      != null     and
+                _videoPacket    != null     and
+                _codecCtx       != null     and
+                _swsCtx         != null     and
+                _config.videoStreamIdx >= 0 and
+                _config.videoStreamIdx < int(_formatCtx->nb_streams) );
+        ASSERT( memViewArr.size() == 3 );
+
+        AVStream*   vstream = _formatCtx->streams[ _config.videoStreamIdx ];
+
+        for (; ffmpeg.av_read_frame( _formatCtx, _videoPacket ) >= 0;)
+        {
+            slong   packed_pts = -1;
+
+            // read frame to packet
+            {
+                if ( _videoPacket->stream_index != _config.videoStreamIdx )
+                {
+                    ffmpeg.av_packet_unref( _videoPacket );
+                    continue;   // skip other streams
+                }
+
+                int err = ffmpeg.avcodec_send_packet( _codecCtx, _videoPacket );
+
+                packed_pts          = _videoPacket->pts;
+                outInfo.timestamp   = Second_t{ _videoPacket->pts * av_q2d( vstream->time_base )};
+                outInfo.duration    = Second_t{ _videoPacket->duration * av_q2d( vstream->time_base )};
+                outInfo.frameIdx    = _PTStoFrameIdx( _videoPacket->pts );
+
+                //ASSERT_Eq( _videoPacket->pts, _FrameIdxToPTS( outInfo.frameIdx ));
+
+                ffmpeg.av_packet_unref( _videoPacket );
+                FF_CHECK_ERR( err );
+            }
+
+            // receive frame into '_videoFrame'
+            for (;;)
+            {
+                int err = ffmpeg.avcodec_receive_frame( _codecCtx, _videoFrame );
+
+                if_unlikely( err == AVERROR_EOF )
+                    return false;
+
+                if_unlikely( err == AVERROR(EAGAIN) )
+                    break;
+
+                if_unlikely( err < 0 )
+                {
+                    FF_CHECK( err );
+                    return false;
+                }
+
+                //ASSERT( packed_pts == _videoFrame->pts );
+
+                const int   src_slice_y                         = 0;
+                int         dst_stride [AV_NUM_DATA_POINTERS]   = {};
+                ubyte*      dst_data   [AV_NUM_DATA_POINTERS]   = {};
+
+                for (usize i = 0; i < memViewArr.size(); ++i)
+                {
+                    ASSERT( memViewArr[i].Parts().size() == 1 );
+                    auto&   part = memViewArr[i].Parts().front();
+
+                    dst_stride[i]   = int(memViewArr[i].RowPitch());
+                    dst_data[i]     = Cast<ubyte>(part.ptr);
+                }
+
+                const int   scaled_h = ffmpeg.sws_scale( _swsCtx, _videoFrame->data, _videoFrame->linesize, src_slice_y, _videoFrame->height,
+                                                         OUT dst_data, dst_stride );
+
+                if_unlikely( scaled_h < 0 or scaled_h != int(_config.dstDim.y) )
+                {
+                    FF_CHECK( scaled_h );
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -546,7 +636,8 @@ namespace {
             dst.index           = stream->index;
             dst.type            = EnumCast( codec->type );
             dst.codec           = EnumCast( params->codec_id );
-            dst.format          = EnumCast( AVPixelFormat( params->format ));
+            dst.videoFormat     = EnumCast( AVPixelFormat( params->format ));
+            dst.pixFormat       = VideoFormatToPixelFormat( dst.videoFormat, 3 );
             dst.colorPreset     = EnumCast( params->color_range, params->color_primaries, params->color_trc, params->color_space, params->chroma_location );
             dst.frameCount      = stream->nb_frames;
             dst.duration        = stream->duration > 0 ? Second_t{ stream->duration * av_q2d( stream->time_base )} : duration;

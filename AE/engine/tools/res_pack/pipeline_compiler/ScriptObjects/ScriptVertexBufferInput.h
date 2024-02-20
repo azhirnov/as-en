@@ -41,7 +41,7 @@ namespace AE::PipelineCompiler
             uint                    glslLoc     = UMax;
             uint                    mslIndex    = UMax;
             ubyte                   index       = UMax;
-            Byte16u                 stride;
+            Bytes16u                stride;
             EVertexInputRate        rate        = EVertexInputRate::Vertex;
             uint                    divisor     = 0;
         };

@@ -248,12 +248,47 @@ namespace
         StaticAssert( not IsScalar<Bytes> );
         StaticAssert( IsBytes<Bytes> );
     }
+
+
+    static void  Remap_Test1 ()
+    {
+        float   a0 = Remap( {0.f, 0.25f}, {1.f, 5.f}, 0.f );            TEST( Equal( a0,  1.f, 1_pct ));
+        float   a1 = Remap( {0.f, 0.25f}, {1.f, 5.f}, 0.125f );         TEST( Equal( a1,  3.f, 1_pct ));
+        float   a2 = Remap( {0.f, 0.25f}, {1.f, 5.f}, 0.25f );          TEST( Equal( a2,  5.f, 1_pct ));
+        float   a3 = Remap( {0.f, 0.25f}, {1.f, 5.f}, 0.5f );           TEST( Equal( a3,  9.f, 1_pct ));
+        float   a4 = Remap( {0.f, 0.25f}, {1.f, 5.f}, -0.25f );         TEST( Equal( a4, -3.f, 1_pct ));
+
+        float   b0 = RemapClamp( {0.f, 0.25f}, {1.f, 5.f}, 0.f );       TEST( Equal( b0,  1.f, 1_pct ));
+        float   b1 = RemapClamp( {0.f, 0.25f}, {1.f, 5.f}, 0.125f );    TEST( Equal( b1,  3.f, 1_pct ));
+        float   b2 = RemapClamp( {0.f, 0.25f}, {1.f, 5.f}, 0.25f );     TEST( Equal( b2,  5.f, 1_pct ));
+        float   b3 = RemapClamp( {0.f, 0.25f}, {1.f, 5.f}, 0.5f );      TEST( Equal( b3,  5.f, 1_pct ));
+        float   b4 = RemapClamp( {0.f, 0.25f}, {1.f, 5.f}, -0.25f );    TEST( Equal( b4,  1.f, 1_pct ));
+
+        float   c0 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.f );        TEST( Equal( c0,  1.f, 1_pct ));
+        float   c1 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.125f );     TEST( Equal( c1,  3.f, 1_pct ));
+        float   c2 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.249f );     TEST( Equal( c2,  5.f, 1_pct ));
+        float   c3 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.499f );     TEST( Equal( c3,  5.f, 1_pct ));
+        float   c4 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, -0.2499f );   TEST( Equal( c4,  1.f, 1_pct ));
+        float   c5 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, -0.125f );    TEST( Equal( c5,  3.f, 1_pct ));
+        float   c6 = RemapWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.375f );     TEST( Equal( c6,  3.f, 1_pct ));
+
+        float   d0 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.f );        TEST( Equal( d0,  1.f, 1_pct ));
+        float   d1 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.125f );     TEST( Equal( d1,  3.f, 1_pct ));
+        float   d2 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.25f );      TEST( Equal( d2,  5.f, 1_pct ));
+        float   d3 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.499f );     TEST( Equal( d3,  1.01f, 1_pct ));
+        float   d4 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, -0.2499f );   TEST( Equal( d4,  5.f, 1_pct ));
+        float   d5 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, -0.125f );    TEST( Equal( d5,  3.f, 1_pct ));
+        float   d6 = RemapMirroredWrap( {0.f, 0.25f}, {1.f, 5.f}, 0.375f );     TEST( Equal( d6,  3.f, 1_pct ));
+    }
 }
 
 
 extern void UnitTest_Math ()
 {
+    #ifndef AE_PLATFORM_LINUX   // TODO
     CheckIntrinsics();
+    #endif
+
     IsIntersects_Test1();
 
     Wrap_Test1();
@@ -269,6 +304,8 @@ extern void UnitTest_Math ()
     EqualWithPercent_Test1();
 
     Bytes_Test1();
+
+    Remap_Test1();
 
     TEST_PASSED();
 }

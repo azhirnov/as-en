@@ -7,6 +7,7 @@
 #include "res_editor/Controllers/FlightCamera.h"
 #include "res_editor/Controllers/FPSCamera.h"
 #include "res_editor/Controllers/FPVCamera.h"
+#include "res_editor/Controllers/RemoteCamera.h"
 
 namespace AE::ResEditor
 {
@@ -523,6 +524,50 @@ namespace
 
         _controller = MakeRCTh<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
                                            float2{_rotationScale}, _initialPos, _reverseZ );
+        return _controller;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptControllerRemoteCamera::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptControllerRemoteCamera>  binder{ se };
+        binder.CreateRef();
+
+        binder.Comment( "Set scale for forward and backward movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale", {} );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale", {"forward", "backward"} );
+
+        binder.Comment( "Set scale for up and down movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,          "UpDownScale",          {} );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,          "UpDownScale",          {"up", "down"} );
+
+        binder.Comment( "Set scale for side (left/right) movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,     "SideMovementScale",    {} );
+
+        _BindCamera3D( binder );
+    }
+
+/*
+=================================================
+    ToController
+=================================================
+*/
+    RC<IController>  ScriptControllerRemoteCamera::ToController () __Th___
+    {
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRCTh<RemoteCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
+                                              _initialPos, _reverseZ );
         return _controller;
     }
 //-----------------------------------------------------------------------------

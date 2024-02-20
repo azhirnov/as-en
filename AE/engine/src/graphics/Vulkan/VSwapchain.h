@@ -67,7 +67,7 @@ namespace AE::Graphics
         VkSurfaceKHR                    _vkSurface          = Default;  // protected by '_guard'
 
         Atomic< uint >                  _surfaceSize;
-        BitAtomic< MutableIdxBits >     _indices;
+        StructAtomic< MutableIdxBits >  _indices;
 
         Images_t                        _vkImages           {};         // protected by '_guard'
         ImageIDs_t                      _imageIDs           {};         // protected by '_guard'

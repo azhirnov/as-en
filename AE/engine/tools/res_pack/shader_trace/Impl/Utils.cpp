@@ -36,7 +36,7 @@ namespace AE::PipelineCompiler
     #define ENABLE_ALL 0
 
         #if ENABLE_ALL
-            BEGIN_ENUM_CHECKS();
+            AE_BEGIN_ENUM_CHECKS();
         #endif
         switch ( op->getOp() )
         {
@@ -904,7 +904,7 @@ namespace AE::PipelineCompiler
         #endif
         }
         #if ENABLE_ALL
-            END_ENUM_CHECKS();
+            AE_END_ENUM_CHECKS();
         #endif
 
         //CHECK(false);

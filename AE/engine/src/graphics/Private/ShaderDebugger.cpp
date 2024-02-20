@@ -177,7 +177,7 @@ namespace {
     _Get***Pipeline
 =================================================
 */
-    bool  ShaderDebugger::_GetComputePipeline (ComputePipelineID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetComputePipeline (ComputePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         result = Default;
         result._state = EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
@@ -185,7 +185,7 @@ namespace {
         return _GetPipeline( ppln, dsName, OUT result );
     }
 
-    bool  ShaderDebugger::_GetRayTracingPipeline (RayTracingPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetRayTracingPipeline (RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         result = Default;
         result._state = EResourceState::ShaderStorage_RW | EResourceState::RayTracingShaders;
@@ -193,7 +193,7 @@ namespace {
         return _GetPipeline( ppln, dsName, OUT result );
     }
 
-    bool  ShaderDebugger::_GetGraphicsPipeline (GraphicsPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetGraphicsPipeline (GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         result = Default;
         result._state = EResourceState::ShaderStorage_RW | EResourceState::AllGraphicsShaders;
@@ -201,7 +201,7 @@ namespace {
         return _GetPipeline( ppln, dsName, OUT result );
     }
 
-    bool  ShaderDebugger::_GetGraphicsPipeline (MeshPipelineID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetGraphicsPipeline (MeshPipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         result = Default;
         result._state = EResourceState::ShaderStorage_RW | EResourceState::AllGraphicsShaders;
@@ -209,7 +209,7 @@ namespace {
         return _GetPipeline( ppln, dsName, OUT result );
     }
 
-    bool  ShaderDebugger::_GetGraphicsPipeline (TilePipelineID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetGraphicsPipeline (TilePipelineID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         result = Default;
         result._state = EResourceState::ShaderStorage_RW | EResourceState::TileShader;
@@ -218,7 +218,7 @@ namespace {
     }
 
     template <typename PplnID>
-    bool  ShaderDebugger::_GetPipeline (PplnID ppln, const DescriptorSetName &dsName, OUT Result &result)
+    bool  ShaderDebugger::_GetPipeline (PplnID ppln, DescriptorSetName::Ref dsName, OUT Result &result)
     {
         auto&   res_mngr = GraphicsScheduler().GetResourceManager();
 
@@ -297,7 +297,7 @@ namespace {
     AllocForCompute
 =================================================
 */
-    bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -314,7 +314,7 @@ namespace {
         return true;
     }
 
-    bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         return AllocForCompute( OUT result, ctx, ppln, uint3{~0u}, dsName, size );
     }
@@ -324,7 +324,7 @@ namespace {
     AllocForRayTracing
 =================================================
 */
-    bool  ShaderDebugger::AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -341,7 +341,7 @@ namespace {
         return true;
     }
 
-    bool  ShaderDebugger::AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const DescriptorSetName &dsName, Bytes size) __Th___
+    bool  ShaderDebugger::AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, Bytes size) __Th___
     {
         return AllocForRayTracing( OUT result, ctx, ppln, uint3{~0u}, dsName, size );
     }

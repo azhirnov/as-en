@@ -165,8 +165,8 @@ namespace AE::Scripting
         ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module)         __NE___;
 
         template <typename T>
-        ND_ bool  IsRegistred ()                                                                    __NE___;
-        ND_ bool  IsRegistred (NtStringView name)                                                   __NE___;
+        ND_ bool  IsRegistered ()                                                                   __NE___;
+        ND_ bool  IsRegistered (NtStringView name)                                                  __NE___;
 
 
         template <typename T>

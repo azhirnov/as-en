@@ -56,7 +56,7 @@ namespace
         template <typename T>   static bool  AnyBits (T x, T y)             { return Math::AnyBits( x, y ); }
 
         template <typename T>   static T  ExtractBit (T& x)                 { return Math::ExtractBit( x ); }
-        template <typename T>   static T  ExtractBitLog2 (T& x)             { return Math::ExtractBitLog2( x ); }
+        template <typename T>   static T  ExtractBitIndex (T& x)                { return Math::ExtractBitIndex( x ); }
 
         template <typename T>   static T  BitRotateLeft (T x, uint shift)   { return Math::BitRotateLeft( x, shift ); }
         template <typename T>   static T  BitRotateRight (T x, uint shift)  { return Math::BitRotateRight( x, shift ); }
@@ -98,8 +98,8 @@ namespace
 
         template <typename T>   static T  Average (T x, T y)                { return Math::Average( x, y ); }
 
-        template <typename T>   static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)           { return Math::Remap( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
-        template <typename T>   static T  RemapClamped (T srcMin, T srcMax, T dstMin, T dstMax, T x)    { return Math::RemapClamped( Range{srcMin, srcMax}, Range{dstMin, dstMax}, x ); }
+        template <typename T>   static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)       { return Math::Remap( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
+        template <typename T>   static T  RemapClamp (T srcMin, T srcMax, T dstMin, T dstMax, T x)  { return Math::RemapClamp( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
 
         template <typename T>   static T  Pi ()                             { return T{Math::TRadian<T>::Pi()}; }
     };
@@ -132,7 +132,7 @@ namespace
         se->AddFunction( &ScalarFunc::AllBits<T>,           "AllBits",          {"x", "y"} );
         se->AddFunction( &ScalarFunc::AnyBits<T>,           "AnyBits",          {"x", "y"} );
         se->AddFunction( &ScalarFunc::ExtractBit<T>,        "ExtractBit",       {"x"} );
-        se->AddFunction( &ScalarFunc::ExtractBitLog2<T>,    "ExtractBitLog2",   {"x"} );
+        se->AddFunction( &ScalarFunc::ExtractBitIndex<T>,   "ExtractBitIndex",  {"x"} );
         se->AddFunction( &ScalarFunc::BitRotateLeft<T>,     "BitRotateLeft",    {"x", "shift"} );
         se->AddFunction( &ScalarFunc::BitRotateRight<T>,    "BitRotateRight",   {"x", "shift"} );
         se->AddFunction( &ScalarFunc::FloorPOT<T>,          "FloorPOT",         {"x"} );
@@ -193,7 +193,7 @@ namespace
         se->AddFunction( &ScalarFunc::ToUNorm<T>,       "ToUNorm",      {"x"} );
 
         se->AddFunction( &ScalarFunc::Remap<T>,         "Remap",        {"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
-        se->AddFunction( &ScalarFunc::RemapClamped<T>,  "RemapClamped", {"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
+        se->AddFunction( &ScalarFunc::RemapClamp<T>,    "RemapClamp",   {"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
 
         se->AddFunction( &ScalarFunc::RoundToInt<T>,    "RoundToInt",   {"x"} );
         se->AddFunction( &ScalarFunc::RoundToUint<T>,   "RoundToUint",  {"x"} );

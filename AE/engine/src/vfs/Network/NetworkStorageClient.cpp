@@ -197,7 +197,7 @@ namespace AE::VFS
                 msg->reqId  = _id;
                 msg->size   = size;
                 msg->index  = ushort(_partIdx);
-                MemCopy( OUT msg->data, _data + _sent, size );
+                msg.Put( &CSMsg_VFS_WritePart::data, _data + _sent, size );
 
                 if_likely( s_NetVFS->_AddMessage( msg ))
                 {
@@ -462,8 +462,8 @@ namespace AE::VFS
 
     AsyncDSRequest  NetworkStorageClient::NetRDataSource::ReadBlock (Bytes pos, Bytes size) __NE___
     {
-        RC<SharedMem>   mem     = SharedMem::Create( AE::GetDefaultAllocator(), size ); // TODO: optimize
-        void*           data    = mem->Data();
+        RC<SharedMem>   mem     = SharedMem::Create( AE::GetDefaultAllocator(), size ); // TODO: optimize, delayed allocation
+        void*           data    = mem ? mem->Data() : null;
         return ReadBlock( pos, data, size, RVRef(mem) );
     }
 
@@ -656,6 +656,22 @@ namespace AE::VFS
 
 /*
 =================================================
+    Init
+=================================================
+*/
+    bool  NetworkStorageClient::Init (StringView prefix) __NE___
+    {
+        auto    msg = _CreateMsg< CSMsg_VFS_Init >( StringSizeOf( prefix ));
+        CHECK_ERR( msg );
+
+        msg.Put( &CSMsg_VFS_Init::prefix, prefix );
+        msg->size = ubyte(prefix.size());
+
+        return _AddMessage( msg );
+    }
+
+/*
+=================================================
     _OpenForReadResult
 =================================================
 */
@@ -756,7 +772,7 @@ namespace AE::VFS
     OpenForRead
 =================================================
 */
-    auto  NetworkStorageClient::OpenForRead (FileNameRef name) __NE___ -> RC<AsyncRDataSource>
+    auto  NetworkStorageClient::OpenForRead (FileName::Ref name) __NE___ -> RC<AsyncRDataSource>
     {
         auto    msg = _CreateMsg< CSMsg_VFS_OpenForReadRequest >();
         CHECK_ERR( msg );
@@ -782,7 +798,7 @@ namespace AE::VFS
     OpenForWrite
 =================================================
 */
-    auto  NetworkStorageClient::OpenForWrite (FileNameRef name) __NE___ -> RC<AsyncWDataSource>
+    auto  NetworkStorageClient::OpenForWrite (FileName::Ref name) __NE___ -> RC<AsyncWDataSource>
     {
         auto    msg = _CreateMsg< CSMsg_VFS_OpenForWriteRequest >();
         CHECK_ERR( msg );

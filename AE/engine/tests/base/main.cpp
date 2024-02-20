@@ -7,8 +7,9 @@ extern void UnitTest_Atomic ();
 extern void UnitTest_ChunkList ();
 extern void UnitTest_Color ();
 extern void UnitTest_Cast ();
+extern void UnitTest_CPUInfo ();
 extern void UnitTest_Date ();
-extern void UnitTest_EnumBitSet ();
+extern void UnitTest_EnumSet ();
 extern void UnitTest_Iterators ();
 extern void UnitTest_FileSystem ();
 extern void UnitTest_FixedArray ();
@@ -41,6 +42,7 @@ extern void UnitTest_StackAllocator ();
 extern void UnitTest_DataSource ();
 extern void UnitTest_Parser ();
 extern void UnitTest_StructView ();
+extern void UnitTest_StringUtils ();
 extern void UnitTest_ToString ();
 extern void UnitTest_TypeList ();
 extern void UnitTest_TypeTraits ();
@@ -61,6 +63,10 @@ int main ()
              "\nOS name: " << PlatformUtils::GetOSName() <<
              "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
 
+    AE_LOGI( "\nMemory page size: "s << ToString( PlatformUtils::GetMemoryPageInfo().pageSize ));
+
+    AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
+
     UnitTest_Array();
     UnitTest_Atomic();
     UnitTest_ChunkList();
@@ -68,7 +74,7 @@ int main ()
     UnitTest_Cast();
     UnitTest_Date();
     UnitTest_DataSource();
-    UnitTest_EnumBitSet();
+    UnitTest_EnumSet();
     UnitTest_Iterators();
     UnitTest_FileSystem();
     UnitTest_FixedArray();
@@ -100,9 +106,11 @@ int main ()
     UnitTest_StackAllocator();
     UnitTest_Parser();
     UnitTest_StructView();
+    UnitTest_StringUtils();
     UnitTest_ToString();
     UnitTest_TypeList();
     UnitTest_TypeTraits();
+    UnitTest_CPUInfo();
 
     AE_LOGI( "Tests.Base finished" );
     return 0;

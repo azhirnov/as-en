@@ -46,8 +46,11 @@ namespace AE::GraphicsTest
             DDSImageLoader  loader;
             _loaded = loader.LoadImage( OUT _image, *imgFile, False{"don't flipY"}, null, Default );
 
-            CHECK_ERR( _image.MipLevels() == 1 );
-            CHECK_ERR( _image.ArrayLayers() == 1 );
+            if ( _loaded )
+            {
+                CHECK_ERR( _image.MipLevels() == 1 );
+                CHECK_ERR( _image.ArrayLayers() == 1 );
+            }
         }
         return _loaded;
     }
@@ -84,6 +87,7 @@ namespace AE::GraphicsTest
             _newRef = true;
             _loaded = true;
             CHECK_ERR( _image.Copy( view ));
+            CHECK_ERR( _dstFile );
         }
         return true;
     }

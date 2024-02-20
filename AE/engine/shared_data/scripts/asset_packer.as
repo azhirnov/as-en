@@ -1,4 +1,4 @@
-//bfe1cedf
+//76ac8f07
 #include <vector>
 #include <string>
 
@@ -20,90 +20,108 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EPipelineDynamicState;
-struct EFilter;
-struct MultiSamples;
-struct EFeature;
-struct ESamplerChromaLocation;
 struct EDescSetUsage;
-struct EVertexInputRate;
-struct EBorderColor;
 struct EAttachmentStoreOp;
-struct EImageAspect;
+struct EBorderColor;
+struct EVertexInputRate;
 struct EShaderIO;
+struct EImageAspect;
 struct EVendorID;
 struct EResourceState;
-struct float3;
-struct EPipelineOpt;
-struct RasterFont;
+struct UIWidget;
 struct float2;
-struct float4;
-struct RectU;
-struct ECompareOp;
-struct EIndex;
-struct uint4;
-struct uint3;
-struct RectI;
-struct EShaderStages;
-struct uint2;
-struct EShader;
-struct RectF;
+struct float3;
+struct EPipelineDynamicState;
+struct EPipelineOpt;
+struct EFilter;
+struct RasterFont;
+struct UIStyleCollection;
+struct UIColorStyle;
+struct MultiSamples;
+struct BaseLayout;
+struct EFeature;
+struct BaseUIController;
+struct ESamplerChromaLocation;
 struct ESubgroupTypes;
+struct RectF;
 struct RGBA32u;
+struct ELayoutType;
+struct sbyte4;
 struct ESamplerYcbcrModelConversion;
 struct ImageAtlas;
+struct sbyte3;
 struct EMipmapFilter;
+struct ushort4;
 struct short2;
 struct Texture;
-struct sbyte4;
-struct short4;
-struct sbyte3;
-struct RGBA8u;
-struct ushort4;
-struct sbyte2;
 struct short3;
+struct RGBA8u;
+struct AlignedLayout;
+struct FillStackLayout;
+struct float4;
+struct ECompareOp;
+struct uint4;
+struct RectU;
+struct EIndex;
+struct UIImageStyle;
+struct uint2;
+struct uint3;
+struct RectI;
+struct EShader;
+struct EShaderStages;
+struct EAddressMode;
+struct EStackOrigin;
+struct ButtonController;
+struct EAttachmentLoadOp;
+struct EPolygonMode;
+struct RectangleDrawable;
+struct ERasterFontMode;
+struct EBlendFactor;
+struct ERTInstanceOpt;
+struct Model;
+struct short4;
 struct ushort3;
+struct sbyte2;
 struct ushort2;
 struct RGBA32f;
 struct HSVColor;
-struct bool2;
-struct int3;
-struct int4;
 struct EPixelFormat;
+struct int4;
 struct EImage;
-struct RGBA32i;
+struct int3;
+struct bool2;
 struct bool3;
 struct int2;
-struct bool4;
-struct ECullMode;
-struct EAddressMode;
-struct ECubeFace;
-struct EQueueMask;
-struct EAttachmentLoadOp;
-struct EVertexType;
-struct EPolygonMode;
-struct ImageLayer;
-struct EBlendFactor;
-struct ERasterFontMode;
+struct RGBA32i;
 struct EBlendOp;
 struct ELogicOp;
-struct Model;
-struct ERTInstanceOpt;
+struct bool4;
+struct ECullMode;
+struct EPixelFormatExternal;
+struct EVertexType;
+struct EQueueMask;
+struct ESubgroupOperation;
+struct ECubeFace;
+struct ubyte3;
+struct ubyte2;
+struct EGraphicsDeviceID;
+struct ImageLayer;
+struct BaseUIDrawable;
 struct EStencilOp;
+struct Mesh;
+struct Material;
+struct UIFontStyle;
+struct FixedLayout;
+struct ELayoutAlign;
+struct EPrimitive;
+struct PaddingLayout;
+struct DepthStencil;
 struct ESurfaceFormat;
 struct MipmapLevel;
 struct ESamplerYcbcrRange;
 struct ubyte4;
-struct ESamplerUsage;
 struct EReductionMode;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct ubyte2;
-struct ESubgroupOperation;
-struct Mesh;
-struct Material;
-struct DepthStencil;
-struct EPrimitive;
+struct ESamplerUsage;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -130,7 +148,7 @@ bool  IsSingleBitSet (int x);
 bool  AllBits (int x, int y);
 bool  AnyBits (int x, int y);
 int  ExtractBit (int & x);
-int  ExtractBitLog2 (int & x);
+int  ExtractBitIndex (int & x);
 int  BitRotateLeft (int x, uint shift);
 int  BitRotateRight (int x, uint shift);
 int  FloorPOT (int x);
@@ -154,7 +172,7 @@ bool  IsSingleBitSet (uint x);
 bool  AllBits (uint x, uint y);
 bool  AnyBits (uint x, uint y);
 uint  ExtractBit (uint & x);
-uint  ExtractBitLog2 (uint & x);
+uint  ExtractBitIndex (uint & x);
 uint  BitRotateLeft (uint x, uint shift);
 uint  BitRotateRight (uint x, uint shift);
 uint  FloorPOT (uint x);
@@ -201,7 +219,7 @@ float  Lerp (float x, float y, float factor);
 float  ToSNorm (float x);
 float  ToUNorm (float x);
 float  Remap (float srcMin, float srcMax, float dstMin, float dstMax, float x);
-float  RemapClamped (float srcMin, float srcMax, float dstMin, float dstMax, float x);
+float  RemapClamp (float srcMin, float srcMax, float dstMin, float dstMax, float x);
 int  RoundToInt (float x);
 uint  RoundToUint (float x);
 float  IsInfinity (float x);
@@ -1426,37 +1444,65 @@ struct EPixelFormat
     static constexpr uint8 B8G8R8G8_422_UNorm = 138;
     static constexpr uint8 G8_B8R8_420_UNorm = 139;
     static constexpr uint8 G8_B8R8_422_UNorm = 140;
-    static constexpr uint8 G8_B8_R8_420_UNorm = 141;
-    static constexpr uint8 G8_B8_R8_422_UNorm = 142;
-    static constexpr uint8 G8_B8_R8_444_UNorm = 143;
-    static constexpr uint8 B10x6G10x6R10x6G10x6_422_UNorm = 144;
-    static constexpr uint8 G10x6B10x6G10x6R10x6_422_UNorm = 145;
-    static constexpr uint8 G10x6_B10x6R10x6_420_UNorm = 146;
-    static constexpr uint8 G10x6_B10x6R10x6_422_UNorm = 147;
-    static constexpr uint8 G10x6_B10x6_R10x6_420_UNorm = 148;
-    static constexpr uint8 G10x6_B10x6_R10x6_422_UNorm = 149;
-    static constexpr uint8 G10x6_B10x6_R10x6_444_UNorm = 150;
-    static constexpr uint8 R10x6G10x6B10x6A10x6_UNorm = 151;
-    static constexpr uint8 R10x6G10x6_UNorm = 152;
-    static constexpr uint8 R10x6_UNorm = 153;
-    static constexpr uint8 B12x4G12x4R12x4G12x4_422_UNorm = 154;
-    static constexpr uint8 G12x4B12x4G12x4R12x4_422_UNorm = 155;
-    static constexpr uint8 G12x4_B12x4R12x4_420_UNorm = 156;
-    static constexpr uint8 G12x4_B12x4R12x4_422_UNorm = 157;
-    static constexpr uint8 G12x4_B12x4_R12x4_420_UNorm = 158;
-    static constexpr uint8 G12x4_B12x4_R12x4_422_UNorm = 159;
-    static constexpr uint8 G12x4_B12x4_R12x4_444_UNorm = 160;
-    static constexpr uint8 R12x4G12x4B12x4A12x4_UNorm = 161;
-    static constexpr uint8 R12x4G12x4_UNorm = 162;
-    static constexpr uint8 R12x4_UNorm = 163;
-    static constexpr uint8 B16G16R16G16_422_UNorm = 164;
-    static constexpr uint8 G16B16G16R16_422_UNorm = 165;
-    static constexpr uint8 G16_B16R16_420_UNorm = 166;
-    static constexpr uint8 G16_B16R16_422_UNorm = 167;
-    static constexpr uint8 G16_B16_R16_420_UNorm = 168;
-    static constexpr uint8 G16_B16_R16_422_UNorm = 169;
-    static constexpr uint8 G16_B16_R16_444_UNorm = 170;
+    static constexpr uint8 G8_B8R8_444_UNorm = 141;
+    static constexpr uint8 G8_B8_R8_420_UNorm = 142;
+    static constexpr uint8 G8_B8_R8_422_UNorm = 143;
+    static constexpr uint8 G8_B8_R8_444_UNorm = 144;
+    static constexpr uint8 B10x6G10x6R10x6G10x6_422_UNorm = 145;
+    static constexpr uint8 G10x6B10x6G10x6R10x6_422_UNorm = 146;
+    static constexpr uint8 G10x6_B10x6R10x6_420_UNorm = 147;
+    static constexpr uint8 G10x6_B10x6R10x6_422_UNorm = 148;
+    static constexpr uint8 G10x6_B10x6R10x6_444_UNorm = 149;
+    static constexpr uint8 G10x6_B10x6_R10x6_420_UNorm = 150;
+    static constexpr uint8 G10x6_B10x6_R10x6_422_UNorm = 151;
+    static constexpr uint8 G10x6_B10x6_R10x6_444_UNorm = 152;
+    static constexpr uint8 R10x6G10x6B10x6A10x6_UNorm = 153;
+    static constexpr uint8 R10x6G10x6_UNorm = 154;
+    static constexpr uint8 R10x6_UNorm = 155;
+    static constexpr uint8 B12x4G12x4R12x4G12x4_422_UNorm = 156;
+    static constexpr uint8 G12x4B12x4G12x4R12x4_422_UNorm = 157;
+    static constexpr uint8 G12x4_B12x4R12x4_420_UNorm = 158;
+    static constexpr uint8 G12x4_B12x4R12x4_422_UNorm = 159;
+    static constexpr uint8 G12x4_B12x4R12x4_444_UNorm = 160;
+    static constexpr uint8 G12x4_B12x4_R12x4_420_UNorm = 161;
+    static constexpr uint8 G12x4_B12x4_R12x4_422_UNorm = 162;
+    static constexpr uint8 G12x4_B12x4_R12x4_444_UNorm = 163;
+    static constexpr uint8 R12x4G12x4B12x4A12x4_UNorm = 164;
+    static constexpr uint8 R12x4G12x4_UNorm = 165;
+    static constexpr uint8 R12x4_UNorm = 166;
+    static constexpr uint8 B16G16R16G16_422_UNorm = 167;
+    static constexpr uint8 G16B16G16R16_422_UNorm = 168;
+    static constexpr uint8 G16_B16R16_420_UNorm = 169;
+    static constexpr uint8 G16_B16R16_422_UNorm = 170;
+    static constexpr uint8 G16_B16R16_444_UNorm = 171;
+    static constexpr uint8 G16_B16_R16_420_UNorm = 172;
+    static constexpr uint8 G16_B16_R16_422_UNorm = 173;
+    static constexpr uint8 G16_B16_R16_444_UNorm = 174;
     static constexpr uint8 SwapchainColor = 254;
+};
+
+struct EPixelFormatExternal
+{
+    EPixelFormatExternal () {}
+    EPixelFormatExternal (uint8) {}
+    operator uint8 () const;
+    static constexpr uint8 Android_Depth16 = 0;
+    static constexpr uint8 Android_DepthJPEG = 1;
+    static constexpr uint8 Android_DepthPointCloud = 2;
+    static constexpr uint8 Android_JPEG = 3;
+    static constexpr uint8 Android_Raw16 = 5;
+    static constexpr uint8 Android_Raw12 = 6;
+    static constexpr uint8 Android_Raw10 = 7;
+    static constexpr uint8 Android_NV16 = 9;
+    static constexpr uint8 Android_NV21 = 10;
+    static constexpr uint8 Android_YCBCR_P010 = 11;
+    static constexpr uint8 Android_YUV_420 = 12;
+    static constexpr uint8 Android_YUV_422 = 13;
+    static constexpr uint8 Android_YUV_444 = 14;
+    static constexpr uint8 Android_YUY2 = 15;
+    static constexpr uint8 Android_YV12 = 16;
+    static constexpr uint8 Android_Y8 = 17;
+    static constexpr uint8 Android_HEIC = 18;
 };
 
 struct EAttachmentLoadOp
@@ -1478,6 +1524,7 @@ struct EAttachmentStoreOp
     static constexpr uint8 Invalidate = 0;
     static constexpr uint8 Store = 1;
     static constexpr uint8 None = 2;
+    static constexpr uint8 StoreCustomSamplePositions = 3;
 };
 
 struct ECompareOp
@@ -1700,6 +1747,7 @@ struct EImageAspect
     static constexpr uint8 Color = 1;
     static constexpr uint8 Depth = 2;
     static constexpr uint8 Stencil = 4;
+    static constexpr uint8 DepthStencil = 6;
     static constexpr uint8 Plane_0 = 16;
     static constexpr uint8 Plane_1 = 32;
     static constexpr uint8 Plane_2 = 64;
@@ -1866,12 +1914,12 @@ struct EShaderStages
     static constexpr uint16 RayCallable = 16384;
     static constexpr uint16 All = 32767;
     static constexpr uint16 AllGraphics = 415;
-    static constexpr uint16 AllRayTracing = 32256;
     static constexpr uint16 GraphicsStages = 31;
     static constexpr uint16 MeshStages = 400;
     static constexpr uint16 VertexProcessingStages = 271;
     static constexpr uint16 PreRasterizationStages = 399;
     static constexpr uint16 PostRasterizationStages = 80;
+    static constexpr uint16 AllRayTracing = 32256;
 };
 
 struct EVendorID
@@ -2160,6 +2208,7 @@ struct EQueueMask
     static constexpr uint8 AsyncTransfer = 4;
     static constexpr uint8 VideoEncode = 8;
     static constexpr uint8 VideoDecode = 16;
+    static constexpr uint8 All = 31;
 };
 
 struct ESamplerChromaLocation
@@ -2341,10 +2390,204 @@ struct Material
     Material ();
 };
 
+struct UIColorStyle
+{
+    void  Disabled (const RGBA8u & colorWhenDisabled);
+    void  Enabled (const RGBA8u & colorWhenEnabled);
+    void  MouseOver (const RGBA8u & colorWhenMouseOver);
+    void  TouchDown (const RGBA8u & colorWhenTouchDown);
+    void  Selected (const RGBA8u & colorWhenSelected);
+    void  Pipeline (const string & pplnName);
+};
+
+struct UIImageStyle
+{
+    void  Disabled (const RGBA8u & colorWhenDisabled, const string & imageNameInAtlas);
+    void  Enabled (const RGBA8u & colorWhenEnabled, const string & imageNameInAtlas);
+    void  MouseOver (const RGBA8u & colorWhenMouseOver, const string & imageNameInAtlas);
+    void  TouchDown (const RGBA8u & colorWhenTouchDown, const string & imageNameInAtlas);
+    void  Selected (const RGBA8u & colorWhenSelected, const string & imageNameInAtlas);
+    void  Pipeline (const string & pplnName);
+};
+
+struct UIFontStyle
+{
+    void  Disabled (const RGBA8u & colorWhenDisabled);
+    void  Enabled (const RGBA8u & colorWhenEnabled);
+    void  MouseOver (const RGBA8u & colorWhenMouseOver);
+    void  TouchDown (const RGBA8u & colorWhenTouchDown);
+    void  Selected (const RGBA8u & colorWhenSelected);
+    void  Font (const string & fontName);
+    void  Pipeline (const string & pplnName);
+};
+
+struct UIStyleCollection
+{
+    UIStyleCollection ();
+    void  Atlas (const string & atlasName);
+    void  DebugPipeline (const string & pplnName);
+    RC<UIColorStyle>  AddColorStyle (const string & name);
+    RC<UIImageStyle>  AddImageStyle (const string & name);
+    RC<UIFontStyle>  AddFontStyle (const string & name);
+    void  Store (const string & nameInArchive);
+};
+
+struct ELayoutType
+{
+    ELayoutType () {}
+    ELayoutType (uint8) {}
+    operator uint8 () const;
+    static constexpr uint8 FixedLayoutPx = 1;
+    static constexpr uint8 FixedLayoutMm = 2;
+    static constexpr uint8 PaddingLayoutPx = 3;
+    static constexpr uint8 PaddingLayoutMm = 4;
+    static constexpr uint8 PaddingLayoutRel = 5;
+    static constexpr uint8 AlignedLayoutPx = 6;
+    static constexpr uint8 AlignedLayoutMm = 7;
+    static constexpr uint8 AlignedLayoutRel = 8;
+    static constexpr uint8 StackLayoutL = 9;
+    static constexpr uint8 StackLayoutR = 10;
+    static constexpr uint8 StackLayoutB = 11;
+    static constexpr uint8 StackLayoutT = 12;
+    static constexpr uint8 FillStackLayout = 13;
+};
+
+struct ELayoutAlign
+{
+    ELayoutAlign () {}
+    ELayoutAlign (uint8) {}
+    operator uint8 () const;
+    static constexpr uint8 Left = 1;
+    static constexpr uint8 Right = 2;
+    static constexpr uint8 Bottom = 4;
+    static constexpr uint8 Top = 8;
+    static constexpr uint8 CenterX = 16;
+    static constexpr uint8 CenterY = 32;
+    static constexpr uint8 FillX = 3;
+    static constexpr uint8 FillY = 12;
+    static constexpr uint8 Center = 48;
+    static constexpr uint8 Fill = 15;
+};
+
+struct EStackOrigin
+{
+    EStackOrigin () {}
+    EStackOrigin (uint8) {}
+    operator uint8 () const;
+    static constexpr uint8 Left = 0;
+    static constexpr uint8 Right = 1;
+    static constexpr uint8 Bottom = 2;
+    static constexpr uint8 Top = 3;
+};
+
+struct BaseUIDrawable
+{
+};
+
+struct RectangleDrawable
+{
+    RectangleDrawable (const string &);
+};
+
+struct BaseUIController
+{
+};
+
+struct ButtonController
+{
+    ButtonController ();
+    void  OnClick (const string &);
+    void  OnDoubleClick (const string &);
+    void  OnLongPress (const string &);
+};
+
+struct BaseLayout
+{
+};
+
+struct FixedLayout
+{
+    FixedLayout ();
+    FixedLayout (const ELayoutType &);
+    void  Region (const RectF &);
+    void  AddChild (const RC<BaseLayout> &);
+    void  SetDrawable (const RC<BaseUIDrawable> &);
+    void  SetController (const RC<BaseUIController> &);
+};
+
+struct PaddingLayout
+{
+    PaddingLayout ();
+    PaddingLayout (const ELayoutType &);
+    void  PaddingX (float, float);
+    void  PaddingY (float, float);
+    void  Padding (float);
+    void  AddChild (const RC<BaseLayout> &);
+    void  SetDrawable (const RC<BaseUIDrawable> &);
+    void  SetController (const RC<BaseUIController> &);
+};
+
+struct AlignedLayout
+{
+    AlignedLayout ();
+    AlignedLayout (const ELayoutType &);
+    void  Size (const float2 &);
+    void  Align (ELayoutAlign);
+    void  AddChild (const RC<BaseLayout> &);
+    void  SetDrawable (const RC<BaseUIDrawable> &);
+    void  SetController (const RC<BaseUIController> &);
+};
+
+struct FillStackLayout
+{
+    FillStackLayout ();
+    void  Origin (EStackOrigin);
+    void  AddChild (const RC<BaseLayout> &);
+    void  SetDrawable (const RC<BaseUIDrawable> &);
+    void  SetController (const RC<BaseUIController> &);
+};
+
+struct UIWidget
+{
+    UIWidget ();
+    void  Initialize (const RC<BaseLayout> &);
+    void  Store (const string &);
+};
+
+template <>
+struct RC<UIWidget> : UIWidget
+{
+    RC (const UIWidget &);
+};
+
 template <>
 struct RC<RasterFont> : RasterFont
 {
     RC (const RasterFont &);
+};
+
+template <>
+struct RC<UIStyleCollection> : UIStyleCollection
+{
+    RC (const UIStyleCollection &);
+};
+
+template <>
+struct RC<UIColorStyle> : UIColorStyle
+{
+    RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<BaseLayout> : BaseLayout
+{
+    RC (const BaseLayout &);
+};
+
+template <>
+struct RC<BaseUIController> : BaseUIController
+{
+    RC (const BaseUIController &);
 };
 
 template <>
@@ -2360,9 +2603,45 @@ struct RC<Texture> : Texture
 };
 
 template <>
+struct RC<AlignedLayout> : AlignedLayout
+{
+    RC (const AlignedLayout &);
+};
+
+template <>
+struct RC<FillStackLayout> : FillStackLayout
+{
+    RC (const FillStackLayout &);
+};
+
+template <>
+struct RC<UIImageStyle> : UIImageStyle
+{
+    RC (const UIImageStyle &);
+};
+
+template <>
+struct RC<ButtonController> : ButtonController
+{
+    RC (const ButtonController &);
+};
+
+template <>
+struct RC<RectangleDrawable> : RectangleDrawable
+{
+    RC (const RectangleDrawable &);
+};
+
+template <>
 struct RC<Model> : Model
 {
     RC (const Model &);
+};
+
+template <>
+struct RC<BaseUIDrawable> : BaseUIDrawable
+{
+    RC (const BaseUIDrawable &);
 };
 
 template <>
@@ -2375,5 +2654,23 @@ template <>
 struct RC<Material> : Material
 {
     RC (const Material &);
+};
+
+template <>
+struct RC<UIFontStyle> : UIFontStyle
+{
+    RC (const UIFontStyle &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+    RC (const FixedLayout &);
+};
+
+template <>
+struct RC<PaddingLayout> : PaddingLayout
+{
+    RC (const PaddingLayout &);
 };
 

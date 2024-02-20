@@ -216,6 +216,32 @@ namespace {
 
     #endif
     }
+
+/*
+=================================================
+    ToShortPath
+=================================================
+*/
+    StringView  FileSystem::ToShortPath (StringView file) __NE___
+    {
+        const uint  max_parts = 3;
+
+        usize   i = Max( file.length(), 1u ) - 1;
+        uint    j = 0;
+
+        for (; i < file.length() and j < max_parts; --i)
+        {
+            const char  c = file[i];
+
+            if_unlikely( (c == '\\') or (c == '/') )
+                ++j;
+        }
+
+        if ( i < file.length() )
+            return file.substr( i + (j == max_parts ? 2 : 0) );
+        else
+            return file;
+    }
 //-----------------------------------------------------------------------------
 
 

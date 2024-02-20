@@ -1,0 +1,8 @@
+rm -rf "../../../../../AE-Data/external/source/FileSystem"
+rm -rf "temp"
+git clone --branch "v1.5.8" "../../../../../3party/filesystem" "temp"
+mkdir "../../../../../AE-Data/external/source/FileSystem"
+cp -R "temp/include" "../../../../../AE-Data/external/source/FileSystem/include"
+cp "temp/LICENSE" "../../../../../AE-Data/external/source/FileSystem/LICENSE.txt"
+rm -rf "temp"
+read -p "press any key..."

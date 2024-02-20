@@ -29,8 +29,8 @@ namespace AE::Graphics
     // variables
     protected:
         BufferMemView       _content;
-        Byte32u             _rowPitch;
-        Byte32u             _slicePitch;
+        Bytes32u            _rowPitch;
+        Bytes32u            _slicePitch;
         ushort3             _offset;
         ushort3             _dimension;
         ushort              _bitsPerBlock   = 0;
@@ -60,7 +60,7 @@ namespace AE::Graphics
         ND_ Bytes           RowPitch ()                     C_NE___ { return Bytes(_rowPitch); }
         ND_ Bytes           SlicePitch ()                   C_NE___ { return Bytes(_slicePitch); }
         ND_ uint            BitsPerBlock ()                 C_NE___ { return _bitsPerBlock; }
-        ND_ Bytes           BytesPerBlock ()                C_NE___ { return ImageUtils::BytesPerBlock( _bitsPerBlock, TexBlockDim() ); }
+        ND_ Bytes           BytesPerBlock ()                C_NE___ { ASSERT( (_bitsPerBlock & 7) == 0 );  return Bytes{uint{_bitsPerBlock} >> 3}; }
         ND_ Bytes           MinRowSize ()                   C_NE___ { return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexBlockDim() ); };
         ND_ Bytes           MinSliceSize ()                 C_NE___ { return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexBlockDim() ); }
         ND_ Bytes           Image2DSize ()                  C_NE___ { return RowPitch() * _dimension.y; }

@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-         VERSION 23.12.214  # year, month, version
+         VERSION 24.02.228  # year, month, version
          LANGUAGES C CXX
          DESCRIPTION "async game engine"
         )
@@ -70,6 +70,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     add_subdirectory( "web" )
 
 else()
+    add_subdirectory( "docs" )
     add_subdirectory( "engine" )
     add_subdirectory( "samples" )
 

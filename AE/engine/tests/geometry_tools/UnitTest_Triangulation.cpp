@@ -2,11 +2,12 @@
 
 #include "../shared/UnitTest_Shared.h"
 #include "geometry_tools/Triangulation/CDT_Triangulator.h"
-using namespace AE::GeometryTools;
 
 namespace
 {
 #ifdef AE_ENABLE_CDT
+    using namespace AE::GeometryTools;
+
     using CDTFlags = CDT_Triangulator::EFlags;
 
 

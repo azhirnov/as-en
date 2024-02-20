@@ -71,8 +71,8 @@
             sim_pass.Slider( "iTimeScale",  1.f,    4.f );
         }{
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
-            draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Particles/Rays.as)
-                                              "Particles/Dots.as" );    // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Particles/Dots.as)
+            draw_pass.AddPipeline( use_rays ? "particles/Rays.as" :     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays.as)
+                                              "particles/Dots.as" );    // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots.as)
             draw_pass.Output( "out_Color", rt, RGBA32f(0.0) );
             draw_pass.Output( ds, DepthStencil(1.f, 0) );
         }

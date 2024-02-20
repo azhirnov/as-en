@@ -262,7 +262,7 @@ namespace AE::App
     SetMode
 =================================================
 */
-    bool  VRDeviceEmulator::InputActions::SetMode (const InputModeName &value) __NE___
+    bool  VRDeviceEmulator::InputActions::SetMode (InputModeName::Ref value) __NE___
     {
         if_likely( _vrDev._window )
             return _vrDev._window->InputActions().SetMode( value );
@@ -292,7 +292,7 @@ namespace AE::App
     GetReflection
 =================================================
 */
-    bool  VRDeviceEmulator::InputActions::GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &result) C_NE___
+    bool  VRDeviceEmulator::InputActions::GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &result) C_NE___
     {
         if_likely( _vrDev._window )
             return _vrDev._window->InputActions().GetReflection( mode, action, OUT result );
@@ -305,7 +305,7 @@ namespace AE::App
     BeginBindAction
 =================================================
 */
-    bool  VRDeviceEmulator::InputActions::BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) __NE___
+    bool  VRDeviceEmulator::InputActions::BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action, EValueType type, EGestureType gesture) __NE___
     {
         if_likely( _vrDev._window )
             return _vrDev._window->InputActions().BeginBindAction( mode, action, type, gesture );

@@ -15,41 +15,41 @@ namespace AE::Base
     constructor
 =================================================
 */
-    WinRFileStream::WinRFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+    WinFileRStream::WinFileRStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
         _file{ file.Ref<HANDLE>() },
         _fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
         _flags{ flags }
         DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
     {}
 
-    WinRFileStream::WinRFileStream (const char* filename, EFlags flags)     __NE___ :
-        WinRFileStream{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
+    WinFileRStream::WinFileRStream (const char* filename, EFlags flags)     __NE___ :
+        WinFileRStream{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
     }
 
-    WinRFileStream::WinRFileStream (const wchar_t* filename, EFlags flags)  __NE___ :
-        WinRFileStream{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
+    WinFileRStream::WinFileRStream (const wchar_t* filename, EFlags flags)  __NE___ :
+        WinFileRStream{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
     }
 
-    WinRFileStream::WinRFileStream (NtStringView filename, EFlags flags)    __NE___ : WinRFileStream{ filename.c_str(), flags } {}
-    WinRFileStream::WinRFileStream (const String &filename, EFlags flags)   __NE___ : WinRFileStream{ filename.c_str(), flags } {}
+    WinFileRStream::WinFileRStream (NtStringView filename, EFlags flags)    __NE___ : WinFileRStream{ filename.c_str(), flags } {}
+    WinFileRStream::WinFileRStream (const String &filename, EFlags flags)   __NE___ : WinFileRStream{ filename.c_str(), flags } {}
 
-    WinRFileStream::WinRFileStream (NtWStringView filename, EFlags flags)   __NE___ : WinRFileStream{ filename.c_str(), flags } {}
-    WinRFileStream::WinRFileStream (const WString &filename, EFlags flags)  __NE___ : WinRFileStream{ filename.c_str(), flags } {}
+    WinFileRStream::WinFileRStream (NtWStringView filename, EFlags flags)   __NE___ : WinFileRStream{ filename.c_str(), flags } {}
+    WinFileRStream::WinFileRStream (const WString &filename, EFlags flags)  __NE___ : WinFileRStream{ filename.c_str(), flags } {}
 
-    WinRFileStream::WinRFileStream (const Path &path, EFlags flags)         __NE___ : WinRFileStream{ path.c_str(), flags } {}
+    WinFileRStream::WinFileRStream (const Path &path, EFlags flags)         __NE___ : WinFileRStream{ path.c_str(), flags } {}
 
 /*
 =================================================
     destructor
 =================================================
 */
-    WinRFileStream::~WinRFileStream () __NE___
+    WinFileRStream::~WinFileRStream () __NE___
     {
         if ( IsOpen() )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -60,7 +60,7 @@ namespace AE::Base
     IsOpen
 =================================================
 */
-    bool  WinRFileStream::IsOpen () C_NE___
+    bool  WinFileRStream::IsOpen () C_NE___
     {
         return _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE;
     }
@@ -70,7 +70,7 @@ namespace AE::Base
     GetSourceType
 =================================================
 */
-    IDataSource::ESourceType  WinRFileStream::GetSourceType () C_NE___
+    IDataSource::ESourceType  WinFileRStream::GetSourceType () C_NE___
     {
         return  (AllBits( _flags, EFlags::SequentialScan )  ? ESourceType::SequentialAccess : ESourceType::Unknown) |
                 (AllBits( _flags, EFlags::RandomAccess )    ? ESourceType::RandomAccess     : ESourceType::Unknown) |
@@ -82,10 +82,10 @@ namespace AE::Base
     _Position
 =================================================
 */
-    Bytes  WinRFileStream::_Position () C_NE___
+    Bytes  WinFileRStream::_Position () C_NE___
     {
         ASSERT( IsOpen() );
-        return Bytes{ulong( GetPositionInFile( _file.Ref<HANDLE>() ))};
+        return Bytes{ulong( Max( 0, GetPositionInFile( _file.Ref<HANDLE>() )) )};
     }
 
 /*
@@ -93,7 +93,7 @@ namespace AE::Base
     SeekSet
 =================================================
 */
-    bool  WinRFileStream::SeekSet (Bytes newPos) __NE___
+    bool  WinFileRStream::SeekSet (Bytes newPos) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -108,7 +108,7 @@ namespace AE::Base
     SeekFwd
 =================================================
 */
-    bool  WinRFileStream::SeekFwd (Bytes offset) __NE___
+    bool  WinFileRStream::SeekFwd (Bytes offset) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -123,7 +123,7 @@ namespace AE::Base
     ReadSeq
 =================================================
 */
-    Bytes  WinRFileStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
+    Bytes  WinFileRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
@@ -143,40 +143,39 @@ namespace AE::Base
     constructor
 =================================================
 */
-    WinWFileStream::WinWFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
-        _file{ file.Ref<HANDLE>() },
-        _flags{ flags }
+    WinFileWStream::WinFileWStream (const Handle_t &file, EFlags DEBUG_ONLY(, Path filename)) __NE___ :
+        _file{ file.Ref<HANDLE>() }
         DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
     {}
 
-    WinWFileStream::WinWFileStream (const char* filename, EFlags flags)     __NE___ :
-        WinWFileStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
+    WinFileWStream::WinFileWStream (const char* filename, EFlags flags)     __NE___ :
+        WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
     }
 
-    WinWFileStream::WinWFileStream (const wchar_t* filename, EFlags flags)  __NE___ :
-        WinWFileStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
+    WinFileWStream::WinFileWStream (const wchar_t* filename, EFlags flags)  __NE___ :
+        WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << ToAnsiString<char>(filename) << "\": " );
     }
 
-    WinWFileStream::WinWFileStream (NtStringView filename, EFlags flags)    __NE___ : WinWFileStream{ filename.c_str(), flags } {}
-    WinWFileStream::WinWFileStream (const String &filename, EFlags flags)   __NE___ : WinWFileStream{ filename.c_str(), flags } {}
+    WinFileWStream::WinFileWStream (NtStringView filename, EFlags flags)    __NE___ : WinFileWStream{ filename.c_str(), flags } {}
+    WinFileWStream::WinFileWStream (const String &filename, EFlags flags)   __NE___ : WinFileWStream{ filename.c_str(), flags } {}
 
-    WinWFileStream::WinWFileStream (NtWStringView filename, EFlags flags)   __NE___ : WinWFileStream{ filename.c_str(), flags } {}
-    WinWFileStream::WinWFileStream (const WString &filename, EFlags flags)  __NE___ : WinWFileStream{ filename.c_str(), flags } {}
+    WinFileWStream::WinFileWStream (NtWStringView filename, EFlags flags)   __NE___ : WinFileWStream{ filename.c_str(), flags } {}
+    WinFileWStream::WinFileWStream (const WString &filename, EFlags flags)  __NE___ : WinFileWStream{ filename.c_str(), flags } {}
 
-    WinWFileStream::WinWFileStream (const Path &path, EFlags flags)         __NE___ : WinWFileStream{ path.c_str(), flags } {}
+    WinFileWStream::WinFileWStream (const Path &path, EFlags flags)         __NE___ : WinFileWStream{ path.c_str(), flags } {}
 
 /*
 =================================================
     destructor
 =================================================
 */
-    WinWFileStream::~WinWFileStream ()
+    WinFileWStream::~WinFileWStream () __NE___
     {
         if ( IsOpen() )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -187,7 +186,7 @@ namespace AE::Base
     IsOpen
 =================================================
 */
-    bool  WinWFileStream::IsOpen () C_NE___
+    bool  WinFileWStream::IsOpen () C_NE___
     {
         return _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE;
     }
@@ -197,7 +196,7 @@ namespace AE::Base
     GetSourceType
 =================================================
 */
-    IDataSource::ESourceType  WinWFileStream::GetSourceType () C_NE___
+    IDataSource::ESourceType  WinFileWStream::GetSourceType () C_NE___
     {
         return  ESourceType::SequentialAccess | ESourceType::WriteAccess;
     }
@@ -207,7 +206,7 @@ namespace AE::Base
     Reserve
 =================================================
 */
-    Bytes  WinWFileStream::Reserve (Bytes additionalSize) __NE___
+    Bytes  WinFileWStream::Reserve (Bytes additionalSize) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -232,25 +231,10 @@ namespace AE::Base
     Position
 =================================================
 */
-    Bytes  WinWFileStream::Position () C_NE___
+    Bytes  WinFileWStream::Position () C_NE___
     {
         ASSERT( IsOpen() );
-        return Bytes{ulong( GetPositionInFile( _file.Ref<HANDLE>() ))};
-    }
-
-/*
-=================================================
-    Size
-=================================================
-*
-    Bytes  WinWFileStream::Size () const
-    {
-        LARGE_INTEGER   size = {};
-
-        if ( ::GetFileSizeEx( _file.Ref<HANDLE>(), OUT &size ) != FALSE )   // winxp
-            return Bytes{ulong( size.QuadPart )};
-
-        return 0_b;
+        return Bytes{ulong( Min( 0, GetPositionInFile( _file.Ref<HANDLE>() )) )};
     }
 
 /*
@@ -258,7 +242,7 @@ namespace AE::Base
     SeekFwd
 =================================================
 */
-    bool  WinWFileStream::SeekFwd (Bytes offset) __NE___
+    bool  WinFileWStream::SeekFwd (Bytes offset) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -273,7 +257,7 @@ namespace AE::Base
     WriteSeq
 =================================================
 */
-    Bytes  WinWFileStream::WriteSeq (const void* buffer, Bytes size) __NE___
+    Bytes  WinFileWStream::WriteSeq (const void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
@@ -290,11 +274,11 @@ namespace AE::Base
     Flush
 =================================================
 */
-    void  WinWFileStream::Flush () __NE___
+    void  WinFileWStream::Flush () __NE___
     {
         ASSERT( IsOpen() );
 
-        ::FlushFileBuffers( _file.Ref<HANDLE>() );  // winxp
+        CHECK( ::FlushFileBuffers( _file.Ref<HANDLE>() ) != 0 );    // winxp
     }
 //-----------------------------------------------------------------------------
 
@@ -305,39 +289,39 @@ namespace AE::Base
     constructor
 =================================================
 */
-    WinRFileDataSource::WinRFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+    WinFileRDataSource::WinFileRDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
         _file{ file.Ref<HANDLE>() },
         _fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
         _flags{ flags }
         DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
     {}
 
-    WinRFileDataSource::WinRFileDataSource (NtStringView filename, EFlags flags)    __NE___ : WinRFileDataSource{ filename.c_str(), flags } {}
-    WinRFileDataSource::WinRFileDataSource (const String &filename, EFlags flags)   __NE___ : WinRFileDataSource{ filename.c_str(), flags } {}
-    WinRFileDataSource::WinRFileDataSource (const char* filename, EFlags flags)     __NE___ :
-        WinRFileDataSource{ Handle_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+    WinFileRDataSource::WinFileRDataSource (NtStringView filename, EFlags flags)    __NE___ : WinFileRDataSource{ filename.c_str(), flags } {}
+    WinFileRDataSource::WinFileRDataSource (const String &filename, EFlags flags)   __NE___ : WinFileRDataSource{ filename.c_str(), flags } {}
+    WinFileRDataSource::WinFileRDataSource (const char* filename, EFlags flags)     __NE___ :
+        WinFileRDataSource{ Handle_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
     }
 
-    WinRFileDataSource::WinRFileDataSource (NtWStringView filename, EFlags flags)   __NE___ : WinRFileDataSource{ filename.c_str(), flags } {}
-    WinRFileDataSource::WinRFileDataSource (const WString &filename, EFlags flags)  __NE___ : WinRFileDataSource{ filename.c_str(), flags } {}
-    WinRFileDataSource::WinRFileDataSource (const wchar_t* filename, EFlags flags)  __NE___ :
-        WinRFileDataSource{ Handle_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+    WinFileRDataSource::WinFileRDataSource (NtWStringView filename, EFlags flags)   __NE___ : WinFileRDataSource{ filename.c_str(), flags } {}
+    WinFileRDataSource::WinFileRDataSource (const WString &filename, EFlags flags)  __NE___ : WinFileRDataSource{ filename.c_str(), flags } {}
+    WinFileRDataSource::WinFileRDataSource (const wchar_t* filename, EFlags flags)  __NE___ :
+        WinFileRDataSource{ Handle_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
     }
 
-    WinRFileDataSource::WinRFileDataSource (const Path &path, EFlags flags)         __NE___ : WinRFileDataSource{ path.c_str(), flags } {}
+    WinFileRDataSource::WinFileRDataSource (const Path &path, EFlags flags)         __NE___ : WinFileRDataSource{ path.c_str(), flags } {}
 
 /*
 =================================================
     destructor
 =================================================
 */
-    WinRFileDataSource::~WinRFileDataSource () __NE___
+    WinFileRDataSource::~WinFileRDataSource () __NE___
     {
         if ( IsOpen() )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -348,7 +332,7 @@ namespace AE::Base
     GetSourceType
 =================================================
 */
-    IDataSource::ESourceType  WinRFileDataSource::GetSourceType () C_NE___
+    IDataSource::ESourceType  WinFileRDataSource::GetSourceType () C_NE___
     {
         return  (AllBits( _flags, EFlags::SequentialScan )  ? ESourceType::SequentialAccess : ESourceType::Unknown) |
                 (AllBits( _flags, EFlags::RandomAccess )    ? ESourceType::RandomAccess     : ESourceType::Unknown) |
@@ -360,7 +344,7 @@ namespace AE::Base
     IsOpen
 =================================================
 */
-    bool  WinRFileDataSource::IsOpen () C_NE___
+    bool  WinFileRDataSource::IsOpen () C_NE___
     {
         return _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE;
     }
@@ -373,7 +357,7 @@ namespace AE::Base
     https://learn.microsoft.com/en-us/troubleshoot/windows/win32/asynchronous-disk-io-synchronous
 =================================================
 */
-    Bytes  WinRFileDataSource::ReadBlock (const Bytes pos, OUT void* buffer, Bytes size) __NE___
+    Bytes  WinFileRDataSource::ReadBlock (const Bytes pos, OUT void* buffer, Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
@@ -412,38 +396,37 @@ namespace AE::Base
     constructor
 =================================================
 */
-    WinWFileDataSource::WinWFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
-        _file{ file.Ref<HANDLE>() },
-        _flags{ flags }
+    WinFileWDataSource::WinFileWDataSource (const Handle_t &file, EFlags DEBUG_ONLY(, Path filename)) __NE___ :
+        _file{ file.Ref<HANDLE>() }
         DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
     {}
 
-    WinWFileDataSource::WinWFileDataSource (NtStringView filename, EFlags flags)    __NE___ : WinWFileDataSource{ filename.c_str(), flags } {}
-    WinWFileDataSource::WinWFileDataSource (const String &filename, EFlags flags)   __NE___ : WinWFileDataSource{ filename.c_str(), flags } {}
-    WinWFileDataSource::WinWFileDataSource (const char* filename, EFlags flags)     __NE___ :
-        WinWFileDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, Path{filename} )}
+    WinFileWDataSource::WinFileWDataSource (NtStringView filename, EFlags flags)    __NE___ : WinFileWDataSource{ filename.c_str(), flags } {}
+    WinFileWDataSource::WinFileWDataSource (const String &filename, EFlags flags)   __NE___ : WinFileWDataSource{ filename.c_str(), flags } {}
+    WinFileWDataSource::WinFileWDataSource (const char* filename, EFlags flags)     __NE___ :
+        WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, Path{filename} )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
     }
 
-    WinWFileDataSource::WinWFileDataSource (NtWStringView filename, EFlags flags)   __NE___ : WinWFileDataSource{ filename.c_str(), flags } {}
-    WinWFileDataSource::WinWFileDataSource (const WString &filename, EFlags flags)  __NE___ : WinWFileDataSource{ filename.c_str(), flags } {}
-    WinWFileDataSource::WinWFileDataSource (const wchar_t* filename, EFlags flags)  __NE___ :
-        WinWFileDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, Path{filename} )}
+    WinFileWDataSource::WinFileWDataSource (NtWStringView filename, EFlags flags)   __NE___ : WinFileWDataSource{ filename.c_str(), flags } {}
+    WinFileWDataSource::WinFileWDataSource (const WString &filename, EFlags flags)  __NE___ : WinFileWDataSource{ filename.c_str(), flags } {}
+    WinFileWDataSource::WinFileWDataSource (const wchar_t* filename, EFlags flags)  __NE___ :
+        WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, Path{filename} )}
     {
         if_unlikely( not IsOpen() )
             WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
     }
 
-    WinWFileDataSource::WinWFileDataSource (const Path &path, EFlags flags)         __NE___ : WinWFileDataSource{ path.c_str(), flags } {}
+    WinFileWDataSource::WinFileWDataSource (const Path &path, EFlags flags)         __NE___ : WinFileWDataSource{ path.c_str(), flags } {}
 
 /*
 =================================================
     destructor
 =================================================
 */
-    WinWFileDataSource::~WinWFileDataSource ()
+    WinFileWDataSource::~WinFileWDataSource () __NE___
     {
         if ( IsOpen() )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -454,7 +437,7 @@ namespace AE::Base
     IsOpen
 =================================================
 */
-    bool  WinWFileDataSource::IsOpen () C_NE___
+    bool  WinFileWDataSource::IsOpen () C_NE___
     {
         return _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE;
     }
@@ -464,7 +447,7 @@ namespace AE::Base
     GetSourceType
 =================================================
 */
-    IDataSource::ESourceType  WinWFileDataSource::GetSourceType () C_NE___
+    IDataSource::ESourceType  WinFileWDataSource::GetSourceType () C_NE___
     {
         return  ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::ThreadSafe;
     }
@@ -474,7 +457,7 @@ namespace AE::Base
     Capacity
 =================================================
 */
-    Bytes  WinWFileDataSource::Capacity () C_NE___
+    Bytes  WinFileWDataSource::Capacity () C_NE___
     {
         return GetFileSize( _file.Ref<HANDLE>() );
     }
@@ -484,7 +467,7 @@ namespace AE::Base
     Reserve
 =================================================
 */
-    Bytes  WinWFileDataSource::Reserve (Bytes newSize) __NE___
+    Bytes  WinFileWDataSource::Reserve (Bytes newSize) __NE___
     {
         ASSERT( IsOpen() );
 
@@ -512,7 +495,7 @@ namespace AE::Base
     WriteBlock
 =================================================
 */
-    Bytes  WinWFileDataSource::WriteBlock (const Bytes pos, const void* buffer, const Bytes size) __NE___
+    Bytes  WinFileWDataSource::WriteBlock (const Bytes pos, const void* buffer, const Bytes size) __NE___
     {
         ASSERT( IsOpen() );
         ASSERT_Lt( size, MaxValue<DWORD>() );
@@ -548,11 +531,11 @@ namespace AE::Base
     Flush
 =================================================
 */
-    void  WinWFileDataSource::Flush () __NE___
+    void  WinFileWDataSource::Flush () __NE___
     {
         ASSERT( IsOpen() );
 
-        ::FlushFileBuffers( _file.Ref<HANDLE>() );  // winxp
+        CHECK( ::FlushFileBuffers( _file.Ref<HANDLE>() ) != 0 );    // winxp
     }
 
 

@@ -9,7 +9,7 @@
 
 namespace AE::Math
 {
-    /*
+
 #if AE_SIMD_AVX >= 3
     //
     // 128 bit half (AVX512_FP16 + AVX512VL)
@@ -24,12 +24,12 @@ namespace AE::Math
 
     // variables
     private:
-        __m128      _value;     // half[8]
+        __m128h     _value;     // half[8]
 
 
     // methods
     public:
-        SimdHalf8 ()    __NE___ : _value{_mm_setzero_ps()}  {}
+        SimdHalf8 ()    __NE___ : _value{_mm_setzero_ph()}  {}
     };
 
 
@@ -47,15 +47,38 @@ namespace AE::Math
 
     // variables
     private:
-        __m256      _value;     // half[16]
+        __m256h     _value;     // half[16]
 
 
     // methods
     public:
-        SimdHalf16 ()   __NE___ : _value{_mm256_setzero_ps()}   {}
+        SimdHalf16 ()   __NE___ : _value{_mm256_setzero_ph()}   {}
+    };
+
+
+
+    //
+    // 512 bit half (AVX512_FP16 + AVX512VL)
+    //
+    struct SimdHalf32
+    {
+    // types
+    public:
+        using Value_t   = glm::detail::hdata;
+        using Self      = SimdHalf32;
+
+
+    // variables
+    private:
+        __m512h     _value;     // half[32]
+
+
+    // methods
+    public:
+        SimdHalf32 ()   __NE___ : _value{_mm512_setzero_ph()}   {}
     };
 #endif // AE_SIMD_AVX >= 3
-    */
+
 
 //-----------------------------------------------------------------------------
 

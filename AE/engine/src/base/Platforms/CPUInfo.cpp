@@ -18,8 +18,7 @@ namespace
 */
     ND_ const char*  ToString (ECPUArch value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECPUArch::X86 :    return "x86";
             case ECPUArch::X64 :    return "x64";
@@ -28,7 +27,7 @@ namespace
             case ECPUArch::_Count :
             case ECPUArch::Unknown: break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "";
     }
 
@@ -39,8 +38,7 @@ namespace
 */
     ND_ const char*  ToString (ECoreType value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECoreType::HighPerformance :   return "HighPerformance";
             case ECoreType::Performance :       return "Performance";
@@ -48,7 +46,7 @@ namespace
             case ECoreType::_Count :
             case ECoreType::Unknown:            break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "";
     }
 
@@ -59,8 +57,7 @@ namespace
 */
     ND_ const char*  ToString (ECPUVendor value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ECPUVendor::AMD :          return "AMD";
             case ECPUVendor::ARM :          return "ARM";
@@ -79,7 +76,7 @@ namespace
             case ECPUVendor::Ampere :       return "Ampere";
             case ECPUVendor::Unknown:       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return "";
     }
 

@@ -12,10 +12,12 @@
 
 #pragma once
 
-#include "graphics_hl/GraphicsHL.pch.h"
+#include "pch/Serializing.h"
 
 namespace AE::Graphics
 {
+    using namespace AE::Base;
+
 
     //
     // Formatted Text

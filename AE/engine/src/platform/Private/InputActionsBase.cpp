@@ -11,9 +11,9 @@ namespace AE::App
     constructor
 =================================================
 */
-    InputActionsBase::DubleBufferedQueue::DubleBufferedQueue () __NE___
+    InputActionsBase::TsDoubleBufferedQueue::TsDoubleBufferedQueue () __NE___
     {
-        const Bytes hdr_size    = SizeOf<ActionQueue::Header> * _MaxHeaders;
+        const Bytes hdr_size    = SizeOf<TsActionQueue::Header> * _MaxHeaders;
         const Bytes data_size   = _DataSizePerHeader * _MaxHeaders;
         const Bytes q_size      = (hdr_size + data_size) * CountOf( _actionQueues );
 
@@ -22,7 +22,7 @@ namespace AE::App
         Bytes   offset;
         for (usize i = 0; i < CountOf( _actionQueues ); ++i)
         {
-            Reconstruct( INOUT _actionQueues[i], ActionQueue{ _actionsQueueMem + offset, hdr_size, data_size });
+            Reconstruct( INOUT _actionQueues[i], TsActionQueue{ _actionsQueueMem + offset, hdr_size, data_size });
             offset += hdr_size + data_size;
         }
         CHECK( offset == q_size );
@@ -33,7 +33,7 @@ namespace AE::App
     destructor
 =================================================
 */
-    InputActionsBase::DubleBufferedQueue::~DubleBufferedQueue () __NE___
+    InputActionsBase::TsDoubleBufferedQueue::~TsDoubleBufferedQueue () __NE___
     {
         UntypedAllocator::Deallocate( _actionsQueueMem );
     }
@@ -43,7 +43,7 @@ namespace AE::App
     _ReadInput
 =================================================
 */
-    IInputActions::ActionQueueReader  InputActionsBase::DubleBufferedQueue::_ReadInput (const FrameUID frameId) C_NE___
+    IInputActions::ActionQueueReader  InputActionsBase::TsDoubleBufferedQueue::_ReadInput (const FrameUID frameId) C_NE___
     {
         DEBUG_ONLY(
             const auto  cur_frame = _curFrameId.load();
@@ -61,7 +61,7 @@ namespace AE::App
     _NextFrame
 =================================================
 */
-    void  InputActionsBase::DubleBufferedQueue::_NextFrame (const FrameUID frameId) __NE___
+    void  InputActionsBase::TsDoubleBufferedQueue::_NextFrame (const FrameUID frameId) __NE___
     {
         DEBUG_ONLY(
             const auto  cur_frame = _curFrameId.load();
@@ -90,9 +90,18 @@ namespace AE::App
     SetMode
 =================================================
 */
-    bool  InputActionsBase::SetMode (const InputModeName &value) __NE___
+    bool  InputActionsBase::SetMode (InputModeName::Ref value) __NE___
     {
         DRC_EXLOCK( _drCheck );
+
+        if_unlikely( not value.IsDefined() )
+        {
+            _curMode    = null;
+            _bindAction = Default;
+            _inputMode  = Default;
+            return true;
+        }
+
         ASSERT( not _modeMap.empty() );
 
         auto    it = _modeMap.find( value );
@@ -120,7 +129,7 @@ namespace AE::App
     GetReflection
 =================================================
 */
-    bool  InputActionsBase::GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &) C_NE___
+    bool  InputActionsBase::GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &) C_NE___
     {
         Unused( mode, action );
         // TODO
@@ -132,7 +141,7 @@ namespace AE::App
     BeginBindAction
 =================================================
 */
-    bool  InputActionsBase::BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) __NE___
+    bool  InputActionsBase::BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action, EValueType type, EGestureType gesture) __NE___
     {
         DRC_EXLOCK( _drCheck );
         CHECK_ERR( not _bindAction.isActive );
@@ -193,9 +202,9 @@ namespace AE::App
 
         auto    key_it = _pressedKeys.begin();
 
-        StaticAssert( uint(EGestureType::Click)+1        == uint(EGestureType::DoubleClick) );
+        StaticAssert( uint(EGestureType::Click)+1       == uint(EGestureType::DoubleClick) );
         StaticAssert( uint(EGestureType::DoubleClick)+1 == uint(EGestureType::Hold) );
-        StaticAssert( uint(EGestureType::Hold)+1         == uint(EGestureType::LongPress) );
+        StaticAssert( uint(EGestureType::Hold)+1        == uint(EGestureType::LongPress) );
 
         _Skip< EGestureType::Click >( INOUT key_it );
 
@@ -210,7 +219,7 @@ namespace AE::App
 =================================================
 */
     template <EGestureType GestureType>
-    void  InputActionsBase::_Skip (INOUT PressedKeys_t::iterator &key_it)
+    void  InputActionsBase::_Skip (INOUT PressedKeys_t::iterator &key_it) __NE___
     {
         for (; key_it != _pressedKeys.end();)
         {
@@ -224,7 +233,7 @@ namespace AE::App
     }
 
     template <EGestureType GestureType>
-    void  InputActionsBase::_Update (INOUT PressedKeys_t::iterator &key_it, Duration_t timeSinceStart)
+    void  InputActionsBase::_Update (INOUT PressedKeys_t::iterator &key_it, Duration_t timeSinceStart) __NE___
     {
         for (; key_it != _pressedKeys.end();)
         {
@@ -283,10 +292,25 @@ namespace AE::App
 
 /*
 =================================================
+    SetQueue
+=================================================
+*/
+    void  InputActionsBase::SetQueue (TsDoubleBufferedQueue* q) __NE___
+    {
+        DRC_EXLOCK( _drCheck );
+
+        if ( q != null )
+            _dbQueueRef = DoubleBufferedQueueRef{ *q };
+        else
+            _dbQueueRef = DoubleBufferedQueueRef{ _dbQueue };
+    }
+
+/*
+=================================================
     GetQueue
 =================================================
 */
-    InputActionsBase::DubleBufferedQueue*  InputActionsBase::GetQueue (IInputActions* act) __NE___
+    InputActionsBase::TsDoubleBufferedQueue*  InputActionsBase::GetQueue (IInputActions* act) __NE___
     {
         ASSERT( CastAllowed<InputActionsBase>( act ));
 

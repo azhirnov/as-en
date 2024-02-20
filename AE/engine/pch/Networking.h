@@ -14,4 +14,9 @@
 #include "networking/HighLevel/Messages.h"
 
 // Utils
-#include "networking/HighLevel/AsyncCSMessageProducer.h"
+#include "networking/Utils/AsyncCSMessageProducer.h"
+#include "networking/Utils/SyncCSMessageProducer.h"
+#include "networking/Utils/NetLog.h"
+#include "networking/Utils/DefaultClientListener.h"
+#include "networking/Utils/DefaultServerProvider.h"
+#include "networking/Utils/DefaultCSMessageConsumer.h"

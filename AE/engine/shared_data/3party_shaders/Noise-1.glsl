@@ -134,7 +134,7 @@ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, float u, f
         float3 o = hash( p + g ) * float3(u,u,1.0);
         float3 r = g - f + o;
         float d = Dot( r, r );
-        float ww = Pow( 1.0 - SmoothStep(0.0,1.414, Sqrt(d)), k );
+        float ww = Pow( 1.0 - SmoothStep( Sqrt(d), 0.0, 1.414 ), k );
         va += o.z*ww;
         wt += ww;
     }
@@ -162,7 +162,7 @@ float  IQNoise (const float3 pos, float u, float v)
         float3 o = hash( p + g ) * float3(u,u,1.0);
         float3 r = g - f + o;
         float d = Dot( r, r );
-        float ww = Pow( 1.0 - SmoothStep(0.0,1.414, Sqrt(d)), k );
+        float ww = Pow( 1.0 - SmoothStep( Sqrt(d), 0.0, 1.414 ), k );
         va += o.z*ww;
         wt += ww;
     }
@@ -477,7 +477,7 @@ float  WaveletNoise (float2 coord, const float z, const float k)
         g += Dot(g, g + 23.234f);
         float a = Fract(g.x * g.y) * 1.0e+3f;// +z*(mod(g.x+g.y, 2.)-1.); // add vorticity
         q = (Fract(q) - 0.5) * float2x2(Cos(a), -Sin(a), Sin(a), Cos(a));
-        d += Sin(q.x * 10.0 + z) * SmoothStep(0.25f, 0.0f, Dot(q,q)) / s;
+        d += Sin(q.x * 10.0 + z) * SmoothStep( Dot(q,q), 0.25f, 0.0f ) / s;
         coord = coord * float2x2(0.54f, -0.84f, 0.84f, 0.54f) + i;
         m += 1.0 / s;
         s *= k;

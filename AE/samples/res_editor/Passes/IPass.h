@@ -146,7 +146,7 @@ namespace AE::ResEditor
 
     // interface
     public:
-        ~IPass () override;
+        ~IPass ()                                                                           __NE_OV;
 
 
         ND_ StringView          GetName ()                                                  C_NE___ { return _dbgName; }
@@ -170,7 +170,7 @@ namespace AE::ResEditor
         // EPassType::SeparateBatch
         //ND_ virtual Tuple< CommandBatchPtr, AsyncTask >  SeparateBatch (const PassData &) { DBG_WARNING("SeparateBatch");  return Default; }
 
-        ND_ virtual void        GetResourcesToResize (INOUT Array<RC<IResource>> &)         __NE___ = 0;
+            virtual void        GetResourcesToResize (INOUT Array<RC<IResource>> &)         __NE___ = 0;
 
 
     protected:

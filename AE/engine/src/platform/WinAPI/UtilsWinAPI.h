@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "platform/Public/IApplication.h"
+# include "platform/Private/ApplicationBase.h"
 
 namespace AE::App
 {
@@ -14,7 +14,7 @@ namespace AE::App
 
     struct UtilsWinAPI
     {
-        static void  SetMonitorNames (INOUT IApplication::Monitors_t &monitors) __NE___;
+        static void  SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)  __NE___;
     };
 
 

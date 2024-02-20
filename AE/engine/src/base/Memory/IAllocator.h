@@ -4,7 +4,7 @@
 
 #include "base/Memory/AllocatorFwdDecl.h"
 #include "base/Memory/AllocatorHelper.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Math/POTValue.h"
 #include "base/Utils/RefCounter.h"
 
@@ -30,6 +30,11 @@ namespace AE::Base
         ND_ virtual void*   Allocate (const SizeAndAlign sizeAndAlign)              __NE___ = 0;
             virtual void    Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE___ = 0;
 
+            virtual void    Reserve (const SizeAndAlign sizeAndAlign)               __NE___ { Unused( sizeAndAlign ); }
+            virtual void    Reserve (Bytes size)                                    __NE___ { Reserve( SizeAndAlign{ size, DefaultAllocatorAlign }); }
+
+            virtual void    Discard ()                                              __NE___ { DBG_WARNING( "not supported" ); }
+
         //ND_ virtual void* Allocate (POTBytes size)                                __NE___ { return Allocate( Bytes{size} ); }
         //ND_ virtual void* Allocate (POTBytes size, POTBytes align)                __NE___ { return Allocate(SizeAndAlign{ size, align }); }
 
@@ -44,7 +49,15 @@ namespace AE::Base
     // Thread-safe Allocator interface
     //
     class IAllocatorTS : public IAllocator
-    {};
+    {
+        //  Thread-safe:  yes
+        // void*  Allocate (...)
+        // void   Deallocate (...)
+        // void   Reserve (...)
+
+        //  Thread-safe:  optional
+        // void  Discard ()
+    };
 
 
 

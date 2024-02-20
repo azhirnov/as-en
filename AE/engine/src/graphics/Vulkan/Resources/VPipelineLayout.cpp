@@ -116,7 +116,7 @@ namespace AE::Graphics
     GetDescriptorSetLayout
 =================================================
 */
-    bool  VPipelineLayout::GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___
+    bool  VPipelineLayout::GetDescriptorSetLayout (DescriptorSetName::Ref id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 

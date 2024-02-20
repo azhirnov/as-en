@@ -17,10 +17,15 @@ namespace AE::Video
     class IVideoDecoder : public EnableRC<IVideoDecoder>
     {
     // types
+    private:
+        static constexpr usize  _PlaneCount = 3; //BitCount( Graphics::EImageAspect::_PlaneMask );
+
     public:
-        using Bitrate_t     = DefaultPhysicalQuantity<ulong>::BitPerSecond;
-        using Second_t      = DefaultPhysicalQuantity<double>::Second;
-        using FrameRate_t   = FractionalI;
+        using Bitrate_t         = DefaultPhysicalQuantity<ulong>::BitPerSecond;
+        using Second_t          = DefaultPhysicalQuantity<double>::Second;
+        using FrameRate_t       = FractionalI;
+        using ImageMemViewArr   = FixedArray< ImageMemView, _PlaneCount >;
+
 
         struct Config
         {
@@ -35,13 +40,15 @@ namespace AE::Video
             uint                threadCount     = 0;
         };
 
+
         struct StreamInfo
         {
             FixedString<32>     codecName;
             int                 index           = -1;
             EMediaType          type            = Default;
             EVideoCodec         codec           = Default;
-            EVideoFormat        format          = Default;
+            EPixelFormat        pixFormat       = Default;
+            EVideoFormat        videoFormat     = Default;
             EColorPreset        colorPreset     = Default;
             ulong               frameCount      = 0;        // may be undefined
             Second_t            duration;
@@ -54,6 +61,7 @@ namespace AE::Video
         };
         using StreamInfos_t = FixedArray< StreamInfo, 8 >;
 
+
         struct Properties
         {
             StreamInfos_t       streams;
@@ -61,6 +69,7 @@ namespace AE::Video
             ND_ String              ToString ()         C_Th___;
             ND_ StreamInfo const*   GetStream (int idx) C_NE___;
         };
+
 
         struct FrameInfo
         {
@@ -82,8 +91,8 @@ namespace AE::Video
         ND_ virtual bool  GetNextFrame (INOUT ImageMemView &    memView,
                                         OUT FrameInfo &         info)           __NE___ = 0;
 
-    //  ND_ virtual bool  GetNextFrame (OUT VideoImageID &  id,
-    //                                  OUT FrameInfo &     info)               __NE___ = 0;
+        ND_ virtual bool  GetNextFrame (INOUT ImageMemViewArr & memView,
+                                        OUT FrameInfo &         info)           __NE___ = 0;
 
         ND_ virtual bool  End ()                                                __NE___ = 0;
 
@@ -99,32 +108,16 @@ namespace AE::Video
         // TODO: get codecs
 
         // helpers
-        template <typename A>
         ND_ static bool  AllocMemView (const Config         &cfg,
                                        OUT ImageMemView     &memView,
-                                       A                    &allocator)         __NE___;
+                                       IAllocator           &allocator,
+                                       Bytes                minAlign = 1_b)     __NE___;
+
+        ND_ static bool  AllocMemView (const Config         &cfg,
+                                       OUT ImageMemViewArr  &memView,
+                                       IAllocator           &allocator,
+                                       Bytes                minAlign = 1_b)     __NE___;
     };
-
-
-/*
-=================================================
-    AllocMemView
-=================================================
-*/
-    template <typename A>
-    bool  IVideoDecoder::AllocMemView (const Config         &cfg,
-                                       OUT ImageMemView     &memView,
-                                       A                    &allocator) __NE___
-    {
-        auto&   fmt_info    = EPixelFormat_GetInfo( cfg.dstFormat );
-        Bytes   row_pitch   = Graphics::ImageUtils::RowSize( cfg.dstDim.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
-        Bytes   img_size    = row_pitch * cfg.dstDim.y;
-        void*   data        = allocator.Allocate( SizeAndAlign{ img_size, AE_CACHE_LINE });
-        CHECK_ERR( data != null );
-
-        memView = ImageMemView{ data, img_size, uint3{}, uint3{cfg.dstDim, 1}, row_pitch, img_size, cfg.dstFormat, Graphics::EImageAspect::Color };
-        return true;
-    }
 
 
 } // AE::Video

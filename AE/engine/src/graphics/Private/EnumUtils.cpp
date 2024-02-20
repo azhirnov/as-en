@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "graphics/Public/ImageUtils.h"
 #include "graphics/Private/EnumUtils.h"
 #include "graphics/Private/EnumToString.h"
 
@@ -38,7 +39,7 @@ namespace AE::Graphics
 */
     bool  EResourceState_RequireMemoryBarrier (EResourceState srcState, EResourceState dstState, Bool relaxedStateTransition) __NE___
     {
-        if ( EResourceState_IsSameStates( srcState, dstState ) & relaxedStateTransition )
+        if ( EResourceState_IsSameStates( srcState, dstState ) and relaxedStateTransition )
             return false;
 
         bool    src_write   = EResourceState_HasWriteAccess( srcState );
@@ -49,7 +50,7 @@ namespace AE::Graphics
 
     bool  EResourceState_RequireImageBarrier (EResourceState srcState, EResourceState dstState, Bool relaxedStateTransition) __NE___
     {
-        if ( EResourceState_IsSameImageLayouts( srcState, dstState ) & relaxedStateTransition )
+        if ( EResourceState_IsSameImageLayouts( srcState, dstState ) and relaxedStateTransition )
             return false;
 
         bool    src_write   = EResourceState_HasWriteAccess( srcState );
@@ -65,7 +66,7 @@ namespace AE::Graphics
                                               EResourceState dstState, EImageAspect dstMask,
                                               Bool relaxedStateTransition) __NE___
     {
-        if ( EResourceState_IsSameImageLayouts( srcState, dstState ) & relaxedStateTransition )
+        if ( EResourceState_IsSameImageLayouts( srcState, dstState ) and relaxedStateTransition )
             return false;
 
         bool    src_write   = EResourceState_HasWriteAccess( srcState, srcMask );
@@ -91,8 +92,7 @@ namespace AE::Graphics
 
         const bool  has_any_shader = AnyBits( shaders, EResourceState::AllShaders );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( access )
+        switch_enum( access )
         {
             case _EResState::ShaderStorage_Read :
             case _EResState::ShaderStorage_Write :
@@ -149,7 +149,7 @@ namespace AE::Graphics
             case _EResState::_AccessCount :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 
@@ -169,8 +169,7 @@ namespace AE::Graphics
             if ( not AllBits( values, t ))
                 continue;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( t )
+            switch_enum( t )
             {
                 case EShaderStages::Vertex :
                 case EShaderStages::TessControl :
@@ -208,7 +207,7 @@ namespace AE::Graphics
                 case EShaderStages::Unknown :
                 default_unlikely :              RETURN_ERR( "unknown shader type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return result;
     }
@@ -222,8 +221,7 @@ namespace AE::Graphics
 */
     bool  EResourceState_RequireShaderStage (EResourceState state) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( ToEResState( state ))
+        switch_enum( ToEResState( state ))
         {
             case _EResState::ShaderStorage_Read :
             case _EResState::ShaderStorage_Write :
@@ -270,7 +268,7 @@ namespace AE::Graphics
             case _EResState::_AccessCount :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown resource state", false );
     }
 //-----------------------------------------------------------------------------
@@ -431,10 +429,11 @@ namespace AE::Graphics
             { EPixelFormat::ASTC_RGBA16F_12x12,     128,    {12,12}, 4, EType::SFloat,              16*4    },
 
             // ycbcr format                                 bits  used bits channels    flags                   aspect (planes)
-            { EPixelFormat::G8B8G8R8_422_UNorm,             8*4,    8*3,    4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
-            { EPixelFormat::B8G8R8G8_422_UNorm,             8*4,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
+            { EPixelFormat::G8B8G8R8_422_UNorm,             8*4,    8*4,    4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
+            { EPixelFormat::B8G8R8G8_422_UNorm,             8*4,    8*4,    4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
             { EPixelFormat::G8_B8R8_420_UNorm,              8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G8_B8R8_422_UNorm,              8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
+            { EPixelFormat::G8_B8R8_444_UNorm,              8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G8_B8_R8_420_UNorm,             8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G8_B8_R8_422_UNorm,             8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G8_B8_R8_444_UNorm,             8*3,    8*3,    3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
@@ -442,6 +441,7 @@ namespace AE::Graphics
             { EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm, 16*4,   10*4,   4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
             { EPixelFormat::G10x6_B10x6R10x6_420_UNorm,     16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G10x6_B10x6R10x6_422_UNorm,     16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
+            { EPixelFormat::G10x6_B10x6R10x6_444_UNorm,     16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G10x6_B10x6_R10x6_420_UNorm,    16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G10x6_B10x6_R10x6_422_UNorm,    16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G10x6_B10x6_R10x6_444_UNorm,    16*3,   10*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
@@ -452,6 +452,7 @@ namespace AE::Graphics
             { EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm, 16*4,   12*4,   4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
             { EPixelFormat::G12x4_B12x4R12x4_420_UNorm,     16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G12x4_B12x4R12x4_422_UNorm,     16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
+            { EPixelFormat::G12x4_B12x4R12x4_444_UNorm,     16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G12x4_B12x4_R12x4_420_UNorm,    16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G12x4_B12x4_R12x4_422_UNorm,    16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G12x4_B12x4_R12x4_444_UNorm,    16*3,   12*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
@@ -462,6 +463,7 @@ namespace AE::Graphics
             { EPixelFormat::G16B16G16R16_422_UNorm,         16*4,   16*4,   4,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 },
             { EPixelFormat::G16_B16R16_420_UNorm,           16,     16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G16_B16R16_422_UNorm,           16*3,   16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
+            { EPixelFormat::G16_B16R16_444_UNorm,           16*3,   16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 },
             { EPixelFormat::G16_B16_R16_420_UNorm,          16*3,   16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G16_B16_R16_422_UNorm,          16*3,   16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
             { EPixelFormat::G16_B16_R16_444_UNorm,          16*3,   16*3,   3,  EType::UNorm | EType::Ycbcr,    EImageAspect::Plane_0 | EImageAspect::Plane_1 | EImageAspect::Plane_2 },
@@ -677,7 +679,7 @@ namespace AE::Graphics
             {
                 const auto& fmt = EPixelFormat_GetInfo( EPixelFormat(i) );
 
-                if ( fmt.IsCompressed() )
+                if ( fmt.IsCompressed() or fmt.IsMultiPlanar() )
                     continue;
 
                 if ( fmt.HasDepthOrStencil() )
@@ -767,24 +769,28 @@ namespace AE::Graphics
             case EPixelFormat::G8_B8R8_420_UNorm :
             case EPixelFormat::G8_B8_R8_422_UNorm :
             case EPixelFormat::G8_B8R8_422_UNorm :
+            case EPixelFormat::G8_B8R8_444_UNorm :
             case EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm :
             case EPixelFormat::B10x6G10x6R10x6G10x6_422_UNorm :
             case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :
             case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :
             case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :
+            case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :
             case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm :
             case EPixelFormat::B12x4G12x4R12x4G12x4_422_UNorm :
             case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :
             case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :
             case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :
+            case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :
             case EPixelFormat::G16B16G16R16_422_UNorm :
             case EPixelFormat::B16G16R16G16_422_UNorm :
             case EPixelFormat::G16_B16_R16_420_UNorm :
             case EPixelFormat::G16_B16R16_420_UNorm :
             case EPixelFormat::G16_B16_R16_422_UNorm :
             case EPixelFormat::G16_B16R16_422_UNorm :
+            case EPixelFormat::G16_B16R16_444_UNorm :
                 return true;
 
             default :
@@ -855,10 +861,14 @@ namespace AE::Graphics
             case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :
                 return uint2{ 2, 2 };
 
+            case EPixelFormat::G8_B8R8_444_UNorm :
             case EPixelFormat::G8_B8_R8_444_UNorm :
             case EPixelFormat::G16_B16_R16_444_UNorm :
             case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm :
             case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm :
+            case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :
+            case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :
+            case EPixelFormat::G16_B16R16_444_UNorm :
 
             case EPixelFormat::R10x6G10x6B10x6A10x6_UNorm :
             case EPixelFormat::R10x6G10x6_UNorm :
@@ -869,6 +879,364 @@ namespace AE::Graphics
                 return uint2{ 1, 1 };
         }
         RETURN_ERR( "unsupported video image format" );
+    }
+
+/*
+=================================================
+    EPixelFormat_GetPlaneInfo
+=================================================
+*/
+    bool  EPixelFormat_GetPlaneInfo (EPixelFormat fmt, EImageAspect aspect, OUT EPixelFormat &planeFormat, OUT uint2 &dimScale) __NE___
+    {
+        ASSERT( EPixelFormat_isXChromaSubsampled( fmt ));
+
+        switch ( fmt )
+        {
+            case EPixelFormat::G8_B8_R8_420_UNorm :
+            {
+                planeFormat = EPixelFormat::R8_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G8_B8R8_420_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R8_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG8_UNorm;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G8_B8_R8_422_UNorm :
+            {
+                planeFormat = EPixelFormat::R8_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G8_B8R8_422_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R8_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG8_UNorm;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G8_B8_R8_444_UNorm :
+            {
+                planeFormat = EPixelFormat::R8_UNorm;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 : return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm :
+            {
+                planeFormat = EPixelFormat::R10x6_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R10x6_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R10x6G10x6_UNorm;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :
+            {
+                planeFormat = EPixelFormat::R10x6_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R10x6_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R10x6G10x6_UNorm;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm :
+            {
+                planeFormat = EPixelFormat::R10x6_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {1,1};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :
+            {
+                planeFormat = EPixelFormat::R12x4_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R12x4_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R12x4G12x4_UNorm;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :
+            {
+                planeFormat = EPixelFormat::R12x4_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R12x4_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R12x4G12x4_UNorm;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm :
+            {
+                planeFormat = EPixelFormat::R12x4_UNorm;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16_R16_420_UNorm :
+            {
+                planeFormat = EPixelFormat::R16_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,2};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16R16_420_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R16_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG16_UNorm;
+                        dimScale    = {2,2};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16_R16_422_UNorm :
+            {
+                planeFormat = EPixelFormat::R16_UNorm;
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :    dimScale = {1,1};   return true;
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    dimScale = {2,1};   return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16R16_422_UNorm :
+            {
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R16_UNorm;
+                        dimScale    = {1,1};
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG16_UNorm;
+                        dimScale    = {2,1};
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16_R16_444_UNorm :
+            {
+                planeFormat = EPixelFormat::R16_UNorm;
+                dimScale    = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                    case EImageAspect::Plane_1 :
+                    case EImageAspect::Plane_2 :    return true;
+                }
+                break;
+            }
+            case EPixelFormat::G8_B8R8_444_UNorm :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R8_UNorm;
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG8_UNorm;
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G10x6_B10x6R10x6_444_UNorm :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R10x6_UNorm;
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R10x6G10x6_UNorm;
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G12x4_B12x4R12x4_444_UNorm :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R12x4_UNorm;
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::R12x4G12x4_UNorm;
+                        return true;
+                }
+                break;
+            }
+            case EPixelFormat::G16_B16R16_444_UNorm :
+            {
+                dimScale = {1,1};
+                switch ( aspect ) {
+                    case EImageAspect::Plane_0 :
+                        planeFormat = EPixelFormat::R16_UNorm;
+                        return true;
+
+                    case EImageAspect::Plane_1 :
+                        planeFormat = EPixelFormat::RG16_UNorm;
+                        return true;
+                }
+                break;
+            }
+        }
+        return false;
+    }
+
+/*
+=================================================
+    EPixelFormat_ImageSize
+=================================================
+*/
+    Bytes  EPixelFormat_ImageSize (EPixelFormat fmt, const uint2 &dim, Bytes planeAlign) __NE___
+    {
+        return EPixelFormat_ImageSize( fmt, uint3{dim,1}, planeAlign );
+    }
+
+    Bytes  EPixelFormat_ImageSize (const EPixelFormat fmt, const uint3 &imageDim, const Bytes planeAlign) __NE___
+    {
+        auto&   fmt_info    = EPixelFormat_GetInfo( fmt );
+
+        if_unlikely( fmt_info.IsMultiPlanar() )
+        {
+            CHECK_ERR( imageDim.z == 1 );
+
+            Bytes   total_size;
+            for (uint i = 0, cnt = fmt_info.PlaneCount(); i < cnt; ++i)
+            {
+                EPixelFormat    plane_fmt;
+                uint2           plane_scale;
+                const auto      aspect      = EImageAspect_Plane( i );
+
+                CHECK_ERR( EPixelFormat_GetPlaneInfo( fmt, aspect, OUT plane_fmt, OUT plane_scale ));
+                CHECK_ERR( All( IsMultipleOf( uint2{imageDim}, plane_scale )));
+
+                const uint2     dim         = uint2{imageDim} / plane_scale;
+                auto&           plane_info  = EPixelFormat_GetInfo( plane_fmt );
+                const Bytes     row_pitch   = ImageUtils::RowSize( dim.x, plane_info.bitsPerBlock, plane_info.TexBlockDim() );
+                const Bytes     img_size    = row_pitch * dim.y;
+                const Bytes     align       = Max( planeAlign, plane_info.BytesPerBlock() );
+
+                total_size = AlignUp( total_size, align ) + img_size;
+            }
+            return total_size;
+        }
+        else
+        {
+            return ImageUtils::ImageSize( imageDim, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() );
+        }
     }
 //-----------------------------------------------------------------------------
 
@@ -1175,8 +1543,7 @@ namespace AE::Graphics
 */
     Pair<EPixelFormat, EColorSpace>  ESurfaceFormat_Cast (ESurfaceFormat value) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case ESurfaceFormat::BGRA8_sRGB_nonlinear :         return { EPixelFormat::BGRA8_UNorm,     EColorSpace::sRGB_nonlinear         };
             case ESurfaceFormat::RGBA8_sRGB_nonlinear :         return { EPixelFormat::RGBA8_UNorm,     EColorSpace::sRGB_nonlinear         };
@@ -1194,7 +1561,7 @@ namespace AE::Graphics
             case ESurfaceFormat::Unknown :                      return { Default, Default };
             case ESurfaceFormat::_Count :                       break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unsupported surface format" );
     }
 
@@ -1302,6 +1669,45 @@ namespace AE::Graphics
         }
 
         RETURN_ERR( "invalid vertex type", float_type );
+    }
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+    VideoFormatToPixelFormat
+=================================================
+*/
+    EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount) __NE___
+    {
+        switch_enum( fmt )
+        {
+            case EVideoFormat::YUV420P :        return planeCount == 2 ? EPixelFormat::G8_B8R8_420_UNorm            : EPixelFormat::G8_B8_R8_420_UNorm;
+            case EVideoFormat::YUV422P :        return planeCount == 2 ? EPixelFormat::G8_B8R8_422_UNorm            : EPixelFormat::G8_B8_R8_422_UNorm;
+            case EVideoFormat::YUV444P :        return planeCount == 2 ? EPixelFormat::G8_B8R8_444_UNorm            : EPixelFormat::G8_B8_R8_444_UNorm;
+            case EVideoFormat::YUV420P10LE :    return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_420_UNorm   : EPixelFormat::G10x6_B10x6_R10x6_420_UNorm;
+            case EVideoFormat::YUV422P10LE :    return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_422_UNorm   : EPixelFormat::G10x6_B10x6_R10x6_422_UNorm;
+            case EVideoFormat::YUV444P10LE :    return planeCount == 2 ? EPixelFormat::G10x6_B10x6R10x6_444_UNorm   : EPixelFormat::G10x6_B10x6_R10x6_444_UNorm;
+            case EVideoFormat::YUV420P12LE :    return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_420_UNorm   : EPixelFormat::G12x4_B12x4_R12x4_420_UNorm;
+            case EVideoFormat::YUV422P12LE :    return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_422_UNorm   : EPixelFormat::G12x4_B12x4_R12x4_422_UNorm;
+            case EVideoFormat::YUV444P12LE :    return planeCount == 2 ? EPixelFormat::G12x4_B12x4R12x4_444_UNorm   : EPixelFormat::G12x4_B12x4_R12x4_444_UNorm;
+            case EVideoFormat::YUV420P16LE :    return planeCount == 2 ? EPixelFormat::G16_B16R16_420_UNorm         : EPixelFormat::G16_B16_R16_420_UNorm;
+            case EVideoFormat::YUV422P16LE :    return planeCount == 2 ? EPixelFormat::G16_B16R16_422_UNorm         : EPixelFormat::G16_B16_R16_422_UNorm;
+            case EVideoFormat::YUV444P16LE :    return planeCount == 2 ? EPixelFormat::G16_B16R16_444_UNorm         : EPixelFormat::G16_B16_R16_444_UNorm;
+
+            case EVideoFormat::NV12 :
+            case EVideoFormat::NV21 :
+            case EVideoFormat::NV16 :
+            case EVideoFormat::NV24 :
+            case EVideoFormat::NV42 :
+            case EVideoFormat::NV20LE :
+            case EVideoFormat::P010LE :
+            case EVideoFormat::YUVA444P16LE :
+            case EVideoFormat::_Count :
+            case EVideoFormat::Unknown :        break;
+        }
+        switch_end
+        RETURN_ERR( "can't convert video format to pixel format" );
     }
 
 

@@ -11,6 +11,10 @@
 #   pragma warning (disable: 4267)
 #   pragma warning (disable: 4101)
 # endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wunused-variable"
+# endif
 
 # define TINYGLTF_IMPLEMENTATION
 # define TINYGLTF_NOEXCEPTION
@@ -20,6 +24,9 @@
 
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
+#endif
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#   pragma clang diagnostic pop
 #endif
 
 # define null   nullptr

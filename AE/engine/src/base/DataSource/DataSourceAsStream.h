@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 
 namespace AE::Base
 {

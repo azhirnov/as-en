@@ -55,7 +55,7 @@ namespace AE::Base::_hidden_
 
     ND_ inline constexpr uint  crc32_hash (char const* str, usize len, uint prev_crc) __NE___
     {
-        for (; (*str != '\0') & (len != 0); ++str, --len)
+        for (; (*str != '\0') and (len != 0); ++str, --len)
         {
             prev_crc = (prev_crc >> 8) ^ crc_table[(prev_crc ^ *str) & 0xFF];
         }

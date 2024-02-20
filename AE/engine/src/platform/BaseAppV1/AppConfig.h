@@ -26,7 +26,7 @@ namespace AE::AppV1
 
         struct ThreadConfig : Threading::TaskScheduler::Config
         {
-            EnumBitSet<EThread>     mask        {EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
+            EnumSet<EThread>        mask        {EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
             uint                    maxThreads  = 2;
         };
 
@@ -37,6 +37,7 @@ namespace AE::AppV1
         ThreadConfig        threading;
         WindowDesc          window;
         bool                enableNetwork   = false;
+        bool                enableAudio     = false;
 
         bool                enableVR        = false;
         VRDeviceTypes       vrDevices;

@@ -6,13 +6,19 @@ void ASmain ()
     // include:
     //  NVIDIA GeForce RTX 2080.json
     //  AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
+    //  AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
     //  AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
     //  AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
+    //  AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
+    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
+    //  Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
     //  NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
-    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
+    //  NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+    //  samsung SM-S901B driver 2.0.0 on Android 14.0
     //  Samsung Xclipse 920 driver 2.0.0 on Android 12.0
+    //  samsung SM-S926B driver 2.0.0 on Android 14.0
     //  vivo V2324A driver 44.1.0 on Android 14.0
     //  Apple8
     //  Apple8_Mac
@@ -93,27 +99,29 @@ void ASmain ()
     fset.maxTexelBufferElements (64 << 20);
     fset.maxUniformBufferSize (64 << 10);
     fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (4);
     fset.perDescrSet_maxInputAttachments (9);
-    fset.perDescrSet_maxSampledImages (500000);
+    fset.perDescrSet_maxSampledImages (393210);
     fset.perDescrSet_maxSamplers (1024);
-    fset.perDescrSet_maxStorageBuffers (500000);
-    fset.perDescrSet_maxStorageImages (500000);
+    fset.perDescrSet_maxStorageBuffers (393210);
+    fset.perDescrSet_maxStorageImages (393210);
     fset.perDescrSet_maxUniformBuffers (216);
-    fset.perDescrSet_maxAccelStructures (500000);
+    fset.perDescrSet_maxAccelStructures (65535);
     fset.perDescrSet_maxTotalResources (512);
     fset.perStage_maxInputAttachments (9);
-    fset.perStage_maxSampledImages (500000);
+    fset.perStage_maxSampledImages (65535);
     fset.perStage_maxSamplers (8192);
-    fset.perStage_maxStorageBuffers (500000);
-    fset.perStage_maxStorageImages (500000);
+    fset.perStage_maxStorageBuffers (65535);
+    fset.perStage_maxStorageImages (65535);
     fset.perStage_maxUniformBuffers (36);
-    fset.perStage_maxAccelStructures (500000);
+    fset.perStage_maxAccelStructures (65535);
     fset.perStage_maxTotalResources (500000);
     fset.maxDescriptorSets (7);
     fset.maxTexelOffset (7);
     fset.maxTexelGatherOffset (7);
     fset.maxFragmentOutputAttachments (8);
-    fset.maxFragmentCombinedOutputResources (1000008);
+    fset.maxFragmentCombinedOutputResources (131078);
     fset.maxPushConstantsSize (128);
     fset.maxComputeSharedMemorySize (32 << 10);
     fset.maxComputeWorkGroupInvocations (1 << 10);
@@ -121,7 +129,7 @@ void ASmain ()
     fset.maxComputeWorkGroupSizeY (1 << 10);
     fset.maxComputeWorkGroupSizeZ (64);
     fset.computeShader (True);
-    fset.maxVertexAttributes (31);
+    fset.maxVertexAttributes (29);
     fset.maxVertexBuffers (31);
     fset.AddVertexFormats({
         EVertexType::Byte, EVertexType::Byte2, EVertexType::Byte3, EVertexType::Byte4, 
@@ -157,13 +165,13 @@ void ASmain ()
         EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
         EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
         EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-        EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, 
-        EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
-        EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
-        EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
-        EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
-        EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
-        EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+        EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, 
+        EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, 
+        EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, 
+        EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, 
+        EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
+        EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
+        EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
     });
     fset.AddAccelStructVertexFormats({
         EVertexType::Float3

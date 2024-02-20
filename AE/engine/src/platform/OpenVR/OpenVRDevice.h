@@ -132,7 +132,7 @@ namespace AE::App
         ~OpenVRDevice ()                                                        __NE___;
 
         ND_ bool  Create ()                                                     __NE___;
-        ND_ bool  Update (Duration_t timeSinceStart)                            __NE___;
+        ND_ bool  Update (Duration_t timeSinceStart)                            __NE_OV;
 
 
     // IVRDevice //

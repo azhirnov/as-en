@@ -25,7 +25,6 @@ namespace
     static void  BrotliStream_Test1 ()
     {
         const auto      uncompressed = GenRandomArray( 1_Mb );
-
         Array<ubyte>    file_data;
 
         // compress
@@ -56,9 +55,9 @@ namespace
             TEST( decoder.IsOpen() );
             TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
             TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
-            TEST( decoder.Position() == compressed_size );
+            TEST_Eq( decoder.Position(), compressed_size );
 
-            TEST( uncompressed.size() == (data2.size() + data3.size()) );
+            TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
             TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
             TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
         }
@@ -69,7 +68,6 @@ namespace
     {
         const auto      uncompressed = GenRandomArray( 2_Mb );
         const Bytes     block_size   = 1_Kb;
-
         Array<ubyte>    file_data;
 
         // compress
@@ -107,9 +105,9 @@ namespace
             TEST( decoder.IsOpen() );
             TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
             TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
-            TEST( decoder.Position() == compressed_size );
+            TEST_Eq( decoder.Position(), compressed_size );
 
-            TEST( uncompressed.size() == (data2.size() + data3.size()) );
+            TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
             TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
             TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
         }
@@ -119,7 +117,6 @@ namespace
     static void  BrotliStream_Test3 ()
     {
         const auto      uncompressed = GenRandomArray( 2_Mb );
-
         Array<ubyte>    file_data;
 
         // compress
@@ -149,11 +146,164 @@ namespace
             MemWStream      dst_mem;
             const Bytes     size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
 
-            TEST( size == ArraySizeOf(uncompressed) );
+            TEST_Eq( size, ArraySizeOf(uncompressed) );
             TEST( dst_mem.GetData() == uncompressed );
         }
     }
 #endif // AE_ENABLE_BROTLI
+
+
+#ifdef AE_ENABLE_ZSTD
+    static void  ZStdStream_Test1 ()
+    {
+        const auto      uncompressed = GenRandomArray( 1_Mb );
+        Array<ubyte>    file_data;
+
+        // compress
+        {
+            auto    stream = MakeRC<MemWStream>();
+            {
+                ZStdWStream::Config cfg;
+                ZStdWStream         encoder{ stream, cfg };
+
+                TEST( encoder.IsOpen() );
+                TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
+                encoder.Flush();
+            }
+            file_data = stream->ReleaseData();
+        }
+
+        const Bytes compressed_size {file_data.size()};
+        TEST( compressed_size < uncompressed.size() );
+
+        // uncompress
+        {
+            ZStdRStream     decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+            Array<ubyte>    data2, data3;
+
+            TEST( decoder.IsOpen() );
+            TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+            TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+            TEST_Eq( decoder.Position(), compressed_size );
+
+            TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
+            TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+            TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
+        }
+    }
+
+
+    static void  ZStdStream_Test2 ()
+    {
+        const auto      uncompressed = GenRandomArray( 2_Mb );
+        const Bytes     block_size   = 1_Kb;
+        Array<ubyte>    file_data;
+
+        // compress
+        {
+            ZStdWStream::Config cfg;
+
+            auto            stream = MakeRC<MemWStream>();
+            ZStdWStream     encoder{ stream, cfg };
+
+            TEST( encoder.IsOpen() );
+            for (Bytes pos, size = ArraySizeOf(uncompressed); pos < size;)
+            {
+                Bytes   wr_size = Min( block_size, size - pos );
+                Bytes   written = encoder.WriteSeq( uncompressed.data() + pos, wr_size );
+
+                TEST( written > 0 );
+                pos += written;
+            }
+            encoder.Flush();
+
+            file_data = stream->ReleaseData();
+        }
+
+        const Bytes compressed_size {file_data.size()};
+        TEST( compressed_size < uncompressed.size() );
+
+        // uncompress
+        {
+            ZStdRStream     decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+            Array<ubyte>    data2, data3;
+
+            TEST( decoder.IsOpen() );
+            TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+            TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+            TEST_Eq( decoder.Position(), compressed_size );
+
+            TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
+            TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+            TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
+        }
+    }
+
+
+    static void  ZStdStream_Test3 ()
+    {
+        const auto      uncompressed = GenRandomArray( 2_Mb );
+        Array<ubyte>    file_data;
+
+        // compress
+        {
+            auto    stream = MakeRC<MemWStream>();
+            {
+                ZStdWStream     encoder{ stream };
+
+                TEST( encoder.IsOpen() );
+                TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
+                encoder.Flush();
+            }
+            file_data = stream->ReleaseData();
+        }
+
+        const Bytes compressed_size {file_data.size()};
+
+        // uncompress
+        {
+            ZStdRStream     decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+            TEST( decoder.IsOpen() );
+
+            MemWStream      dst_mem;
+            const Bytes     size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
+
+            TEST_Eq( size, ArraySizeOf(uncompressed) );
+            TEST( dst_mem.GetData() == uncompressed );
+        }
+    }
+
+
+    static void  ZStdStream_Test4 ()
+    {
+        const auto      uncompressed = GenRandomArray( 2_Mb );
+        Array<ubyte>    file_data;
+
+        // compress
+        {
+            file_data.resize( uncompressed.size() );
+
+            Bytes   size = ArraySizeOf(file_data);
+            TEST( ZStdUtils::Compress( OUT file_data.data(), INOUT size, uncompressed.data(), ArraySizeOf(uncompressed) ));
+
+            file_data.resize( usize{size} );
+        }
+
+        const Bytes compressed_size {file_data.size()};
+
+        // uncompress
+        {
+            ZStdRStream     decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+            TEST( decoder.IsOpen() );
+
+            MemWStream      dst_mem;
+            const Bytes     size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
+
+            TEST_Eq( size, ArraySizeOf(uncompressed) );
+            TEST( dst_mem.GetData() == uncompressed );
+        }
+    }
+#endif // AE_ENABLE_ZSTD
 
 
     static void  StdStream_Test1 ()
@@ -202,7 +352,7 @@ namespace
         {
             uint    j = 0;
             TEST( stream4->Read( OUT j ));
-            TEST( i == j );
+            TEST_Eq( i, j );
         }
     }
 
@@ -235,7 +385,7 @@ namespace
         TEST( (begin2 + 4_b * count - 8_b) == end2 );
 
         for (uint i = 0; i < count-2; ++i)
-            TEST( Cast<uint>(begin2)[i] == i+2 );
+            TEST_Eq( Cast<uint>(begin2)[i], i+2 );
     }
 
 
@@ -257,7 +407,7 @@ namespace
         TEST( (begin1 + 128_b) == end1 );
 
         for (uint i = 0; i < 128/4; ++i)
-            TEST( Cast<uint>(begin1)[i] == i );
+            TEST_Eq( Cast<uint>(begin1)[i], i );
 
         const void* begin2  = begin1 + 128_b;
         const void* end2    = end1;
@@ -268,7 +418,7 @@ namespace
         TEST( end1 == end2 );
 
         for (uint i = 0; i < 128/4; ++i)
-            TEST( Cast<uint>(begin2)[i] == (i + 128/4) );
+            TEST_Eq( Cast<uint>(begin2)[i], (i + 128/4) );
     }
 
 
@@ -298,10 +448,10 @@ namespace
         stream1->EndFastStream( begin2 + 128_b );
 
         ArrayView<uint> arr = stream1->GetData().Cast<uint>();
-        TEST( arr.size() == (128/4 * 2) );
+        TEST_Eq( arr.size(), (128/4 * 2) );
 
         for (uint i = 0; i < uint(arr.size()); ++i)
-            TEST( arr[i] == i );
+            TEST_Eq( arr[i], i );
     }
 
 
@@ -334,10 +484,10 @@ namespace
         stream2 = null;
 
         ArrayView<uint> arr = stream1->GetData().Cast<uint>();
-        TEST( arr.size() == (128/4 * 2) );
+        TEST_Eq( arr.size(), (128/4 * 2) );
 
         for (uint i = 0; i < uint(arr.size()); ++i)
-            TEST( arr[i] == i );
+            TEST_Eq( arr[i], i );
     }
 
 
@@ -363,17 +513,17 @@ namespace
                     buf[i] = pos + i;
                 }
 
-                TEST( wfile.WriteSeq( buf, Sizeof(buf) ) == buf_size );
+                TEST_Eq( wfile.WriteSeq( buf, Sizeof(buf) ), buf_size );
                 pos += buf_size;
             }
 
-            TEST( wfile.Position() == file_size );
+            TEST_Eq( wfile.Position(), file_size );
         }
         {
             RStream     rfile {fname};
             TEST( rfile.IsOpen() );
             TEST( AllBits( rfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::ReadAccess ));
-            TEST( rfile.Size() == file_size );
+            TEST_Eq( rfile.Size(), file_size );
 
             ulong   dst_buf [buf_size / sizeof(ulong)];
             ulong   ref_buf [buf_size / sizeof(ulong)];
@@ -385,7 +535,7 @@ namespace
                     ref_buf[i] = pos + i;
                 }
 
-                TEST( rfile.ReadSeq( OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
+                TEST_Eq( rfile.ReadSeq( OUT dst_buf, Sizeof(dst_buf) ), buf_size );
                 TEST( MemEqual( dst_buf, ref_buf ));
 
                 pos += buf_size;
@@ -409,8 +559,8 @@ namespace
 
             if ( reserve )
             {
-                TEST( wfile.Reserve( Bytes{file_size} ) == file_size );
-                TEST( wfile.Capacity() == file_size );
+                TEST_Eq( wfile.Reserve( Bytes{file_size} ), file_size );
+                TEST_Eq( wfile.Capacity(), file_size );
             }
 
             ulong   buf [buf_size / sizeof(ulong)];
@@ -422,17 +572,17 @@ namespace
                     buf[i] = pos + i;
                 }
 
-                TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
+                TEST_Eq( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ), buf_size );
                 pos += buf_size;
             }
 
-            TEST( wfile.Capacity() == file_size );
+            TEST_Eq( wfile.Capacity(), file_size );
         }
         {
             RFile   rfile {fname};
             TEST( rfile.IsOpen() );
             TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
-            TEST( rfile.Size() == file_size );
+            TEST_Eq( rfile.Size(), file_size );
 
             ulong   dst_buf [buf_size / sizeof(ulong)];
             ulong   ref_buf [buf_size / sizeof(ulong)];
@@ -444,7 +594,7 @@ namespace
                     ref_buf[i] = pos + i;
                 }
 
-                TEST( rfile.ReadBlock( Bytes{pos}, OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
+                TEST_Eq( rfile.ReadBlock( Bytes{pos}, OUT dst_buf, Sizeof(dst_buf) ), buf_size );
                 TEST( MemEqual( dst_buf, ref_buf ));
 
                 pos += buf_size;
@@ -462,6 +612,13 @@ extern void UnitTest_DataSource ()
     BrotliStream_Test3();
     #endif
 
+    #ifdef AE_ENABLE_ZSTD
+    ZStdStream_Test1();
+    ZStdStream_Test2();
+    ZStdStream_Test3();
+    ZStdStream_Test4();
+    #endif
+
     StdStream_Test1();
     BufferedStream_Test1();
 
@@ -472,10 +629,15 @@ extern void UnitTest_DataSource ()
 
 
     // minimize disk usage for debug build
-  #if defined(AE_RELEASE) and not defined(AE_PLATFORM_ANDROID)
+  #ifdef AE_RELEASE
 
+  # ifdef AE_PLATFORM_ANDROID
+    const Path  curr    {"/storage/emulated/0/Android/data/AE.Test/cache"};
+    const Path  folder  = curr / "ds_test";
+  # else
     const Path  curr    = FileSystem::CurrentPath();
     const Path  folder  {AE_CURRENT_DIR "/ds_test"};
+  # endif
 
     FileSystem::RemoveAll( folder );
     FileSystem::CreateDirectories( folder );
@@ -485,17 +647,28 @@ extern void UnitTest_DataSource ()
     File_Test1<   FileRDataSource,  FileWDataSource >( false );
 
     #ifdef AE_PLATFORM_WINDOWS
-        Stream_Test1< WinRFileStream,       WinWFileStream      >();
-        Stream_Test1< FileRStream,          WinWFileStream      >();
-        Stream_Test1< WinRFileStream,       FileWStream         >();
-        File_Test1<   WinRFileDataSource,   WinWFileDataSource  >( false );
-        File_Test1<   WinRFileDataSource,   FileWDataSource     >( false );
-        File_Test1<   FileRDataSource,      WinWFileDataSource  >( false );
-        File_Test1<   WinRFileDataSource,   WinWFileDataSource  >( true );
+        Stream_Test1< WinFileRStream,       WinFileWStream      >();
+        Stream_Test1< FileRStream,          WinFileWStream      >();
+        Stream_Test1< WinFileRStream,       FileWStream         >();
+        File_Test1<   WinFileRDataSource,   WinFileWDataSource  >( false );
+        File_Test1<   WinFileRDataSource,   FileWDataSource     >( false );
+        File_Test1<   FileRDataSource,      WinFileWDataSource  >( false );
+        File_Test1<   WinFileRDataSource,   WinFileWDataSource  >( true );
+    #else
+        Stream_Test1< UnixFileRStream,      UnixFileWStream     >();
+        Stream_Test1< FileRStream,          UnixFileWStream     >();
+        Stream_Test1< UnixFileRStream,      FileWStream         >();
+        File_Test1<   UnixFileRDataSource,  UnixFileWDataSource >( false );
+        File_Test1<   UnixFileRDataSource,  FileWDataSource     >( false );
+        File_Test1<   FileRDataSource,      UnixFileWDataSource >( false );
+    # ifndef AE_PLATFORM_ANDROID
+        File_Test1<   UnixFileRDataSource,  UnixFileWDataSource >( true );
+    # endif
     #endif
 
     FileSystem::SetCurrentPath( curr );
-  #endif
+    FileSystem::RemoveAll( folder );
+  #endif // AE_RELEASE
 
     TEST_PASSED();
 }

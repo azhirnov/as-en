@@ -23,13 +23,12 @@ namespace AE::ResLoader
 */
     StringView  ModelFormatToExt (EModelFormat fmt) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( fmt )
+        switch_enum( fmt )
         {
             case EModelFormat::GLTF :       return ".gltf";
             case EModelFormat::Unknown :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown model format" );
     }
 

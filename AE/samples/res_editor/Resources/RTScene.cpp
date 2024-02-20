@@ -105,7 +105,7 @@ namespace AE::ResEditor
     destructor
 =================================================
 */
-    RTGeometry::~RTGeometry ()
+    RTGeometry::~RTGeometry () __NE___
     {
         auto&   res_mngr    = RenderGraph().GetStateTracker();
         auto    geom_id     = _geomId.Release();
@@ -198,8 +198,7 @@ namespace AE::ResEditor
 
         Allocator_t     alloc;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EBuildMode::Direct :
             {
@@ -228,7 +227,7 @@ namespace AE::ResEditor
             default :
                 return false;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         _version.Update( ctx.GetFrameId() );
         return true;
@@ -413,7 +412,7 @@ namespace AE::ResEditor
     destructor
 =================================================
 */
-    RTScene::~RTScene ()
+    RTScene::~RTScene () __NE___
     {
         auto&   res_mngr = RenderGraph().GetStateTracker();
         res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _sceneId );
@@ -526,8 +525,7 @@ namespace AE::ResEditor
         scene_build.SetInstanceData( _instanceBuffer->GetBufferId( fid ));
         scene_build.SetScratchBuffer( _scratchBuffer );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case EBuildMode::Direct :
                 ctx.Build( scene_build, _sceneId );
@@ -545,7 +543,7 @@ namespace AE::ResEditor
             default :
                 return false;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         for (auto& [geom, ver] : _uniqueGeometries) {
             ver = geom->GetVersion( fid );

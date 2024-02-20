@@ -12,11 +12,11 @@ namespace AE::App
 */
     bool  VRDeviceBase::_StateChanged (EState newState) const
     {
-        const bool  skip_focused    = ((_hmdState == EState::InForeground) & (newState == EState::InBackground)) |
-                                      ((_hmdState == EState::InBackground) & (newState == EState::InForeground));
+        const bool  skip_focused    = ((_hmdState == EState::InForeground) and (newState == EState::InBackground)) or
+                                      ((_hmdState == EState::InBackground) and (newState == EState::InForeground));
         const int   diff            = Abs( int(_hmdState) - int(newState) );
 
-        return  (diff == 1) | skip_focused;
+        return  (diff == 1) or skip_focused;
     }
 
 /*

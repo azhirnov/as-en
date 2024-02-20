@@ -21,8 +21,7 @@ namespace AE::PipelineCompiler
         CHECK_THROW_MSG( storage.target != Default );
         CHECK_THROW_MSG( storage.target < ECompilationTarget::_Count );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( storage.target )
+        switch_enum( storage.target )
         {
             case ECompilationTarget::Vulkan :
             {
@@ -48,7 +47,7 @@ namespace AE::PipelineCompiler
             case ECompilationTarget::_Count :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -140,8 +139,7 @@ namespace AE::PipelineCompiler
         auto&   msl = ObjectStorage::Instance()->metalCompiler;
         CHECK_THROW_MSG( spv or msl );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EShaderPreprocessor::None :
                 if ( spv ) spv->SetPreprocessor( null );
@@ -157,7 +155,7 @@ namespace AE::PipelineCompiler
             default :
                 CHECK_THROW_MSG( false, "unknown shader preprocessor type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*

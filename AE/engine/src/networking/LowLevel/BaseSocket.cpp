@@ -25,7 +25,7 @@ namespace AE::Networking
 */
     BaseSocket::BaseSocket (BaseSocket &&other) __NE___ :
         _handle{ other._handle }
-        DEBUG_ONLY(, _dbgName{ RVRef(_dbgName) })
+        DEBUG_ONLY(, _dbgName{ RVRef(other._dbgName) })
     {
         other._handle = Default;
     }
@@ -100,12 +100,30 @@ namespace AE::Networking
         const int   size = int(inSize);
 
         // The total per-socket buffer space reserved for sends.
-        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_SNDBUF, Cast<NativeSocketOpPtr_t>(&size), sizeof(size) ) != 0 )
+        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_SNDBUF, Cast<NativeSocketOptPtr_t>(&size), sizeof(size) ) != 0 )
         {
             NET_CHECK2( "Failed to set socket send buffer size: " );
             return false;
         }
         return true;
+    }
+
+/*
+=================================================
+    GetSendBufferSize
+=================================================
+*/
+    Bytes  BaseSocket::GetSendBufferSize () C_NE___
+    {
+        ASSERT( IsOpen() );
+
+        int         buf_size    = 0;
+        socklen_t   len         = sizeof(buf_size);
+
+        if_likely( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_SNDBUF, OUT Cast<NativeSocketOptPtr_t>(&buf_size), INOUT &len ) == 0 )
+            return Bytes{uint(buf_size)};
+
+        return 0_b;
     }
 
 /*
@@ -120,12 +138,30 @@ namespace AE::Networking
         const int   size = int(inSize);
 
         // Specifies the total per-socket buffer space reserved for receives.
-        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_RCVBUF, Cast<NativeSocketOpPtr_t>(&size), sizeof(size) ) != 0 )
+        if_unlikely( ::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_RCVBUF, Cast<NativeSocketOptPtr_t>(&size), sizeof(size) ) != 0 )
         {
             NET_CHECK2( "Failed to set socket receive buffer size: " );
             return false;
         }
         return true;
+    }
+
+/*
+=================================================
+    GetReceiveBufferSize
+=================================================
+*/
+    Bytes  BaseSocket::GetReceiveBufferSize () C_NE___
+    {
+        ASSERT( IsOpen() );
+
+        int         buf_size    = 0;
+        socklen_t   len         = sizeof(buf_size);
+
+        if_likely( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_RCVBUF, OUT Cast<NativeSocketOptPtr_t>(&buf_size), INOUT &len ) == 0 )
+            return Bytes{uint(buf_size)};
+
+        return 0_b;
     }
 
 /*

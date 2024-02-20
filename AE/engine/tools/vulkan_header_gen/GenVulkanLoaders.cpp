@@ -442,6 +442,10 @@ namespace AE::Vulkan
             { "deviceGroupCreation",            VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME,                {1,1},  {1,0},  {} },
             { "deviceProps2",                   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,     {1,1},  {1,0},  {} },
 
+        // external //
+            { "externalMemoryCaps",             VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,         {1,1},  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+            { "externalSemaphoreCaps",          VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,      {1,1},  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+
         // extensions //
             { "portabilityEnum",                VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,              NoVer,  {1,0},  {} },
         };
@@ -506,9 +510,8 @@ namespace AE::Vulkan
             { "subgroupSizeControl",            VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,                NoVer,  {1,1},  {} },
             { "astcHdr",                        VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME,         NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
             { "shaderTerminateInvocation",      VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME,          NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-            // TODO: VK_EXT_ycbcr_2plane_444_formats
-            // VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME
-
+            { "ycbcr2Plane444",                 VK_EXT_YCBCR_2PLANE_444_FORMATS_EXTENSION_NAME,             NoVer,  {1,0},  {VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME} },
+            { "shaderDemoteToHelperInvocation", VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME,   NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
         // extensions //
             { "swapchain",                      VK_KHR_SWAPCHAIN_EXTENSION_NAME,                            NoVer,  {1,0},  {VK_KHR_SURFACE_EXTENSION_NAME} },
@@ -542,6 +545,13 @@ namespace AE::Vulkan
 
         // queue priority //
             { "queueGlobalPriority",            VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME,                      NoVer,  {1,0},  {} },
+
+        // external memory //
+            { "externalMemory",                 VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,                      NoVer,  {1,0},  {VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME} },
+            { "externalSemaphore",              VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,                   NoVer,  {1,0},  {VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME} },
+            { "externalSemaphoreFd",            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,                NoVer,  {1,0},  {VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME} },
+            { "queueFamilyForeign",             VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,                 NoVer,  {1,0},  {VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME} },
+            { "androidExternalMemoryHwBuf", VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,  NoVer,  {1,0},  {VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME, VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME, VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME} },
 
         // debugging & profiling //
             { "performanceQuery",               VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME,                    NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -583,8 +593,8 @@ namespace AE::Vulkan
             { "videoDecodeQueue",               VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,                   NoVer,  {1,1},  {VK_KHR_VIDEO_QUEUE_EXTENSION_NAME} },
             { "videoDecodeH264",                VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
             { "videoDecodeH265",                VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME} },
-            { "videoEncodeH264",                VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
-            { "videoEncodeH265",                VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
+            { "videoEncodeH264",                VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
+            { "videoEncodeH265",                VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,                    NoVer,  {1,1},  {VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME} },
 
         // NVidia //
         //  { "rayTracingNV",                   VK_NV_RAY_TRACING_EXTENSION_NAME,                           NoVer,  {1,0},  {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME} },
@@ -729,6 +739,16 @@ namespace AE::Vulkan
 
 /*
 =================================================
+    IsPlatformSpecificExtension
+=================================================
+*/
+    ND_ inline bool  IsPlatformSpecificExtension (StringView extName)
+    {
+        return  StartsWith( extName, "VK_ANDROID_" );
+    }
+
+/*
+=================================================
     _GetFeaturesBoolStruct
 =================================================
 */
@@ -838,10 +858,18 @@ namespace AE::Vulkan
                 if ( not feat.enabled or feat.extension.empty() )
                     continue;
 
-                if ( feat.coreVersion != NoVer )
-                    core_ext[ feat.coreVersion ][ feat.requireVersion ] << "\n\t\t\t" << ExtToName( feat.extension ) << ",";
-                else
-                    other_ext[ feat.requireVersion ] << "\n\t\t\t" << ExtToName( feat.extension ) << ",";
+                String  ext_name    = ExtToName( feat.extension );
+                auto&   dst         = feat.coreVersion != NoVer ?
+                                        core_ext[ feat.coreVersion ][ feat.requireVersion ] :
+                                        other_ext[ feat.requireVersion ];
+
+                if ( IsPlatformSpecificExtension( ext_name ))
+                {
+                    dst << "\n\t\t\t#ifdef " << ext_name
+                        << "\n\t\t\t\t" << ext_name << ","
+                        << "\n\t\t\t#endif";
+                }else
+                    dst << "\n\t\t\t" << ext_name << ",";
             }
 
             for (auto& [core_ver, ext] : core_ext)
@@ -891,10 +919,18 @@ namespace AE::Vulkan
                 if ( not feat.enabled or feat.extension.empty() )
                     continue;
 
-                if ( feat.coreVersion != NoVer )
-                    core_ext[ feat.coreVersion ][ feat.requireVersion ] << "\n\t\t\t" << ExtToName( feat.extension ) << ",";
-                else
-                    other_ext[ feat.requireVersion ] << "\n\t\t\t" << ExtToName( feat.extension ) << ",";
+                String  ext_name    = ExtToName( feat.extension );
+                auto&   dst         = feat.coreVersion != NoVer ?
+                                        core_ext[ feat.coreVersion ][ feat.requireVersion ] :
+                                        other_ext[ feat.requireVersion ];
+
+                if ( IsPlatformSpecificExtension( ext_name ))
+                {
+                    dst << "\n\t\t\t#ifdef " << ext_name
+                        << "\n\t\t\t\t" << ext_name << ","
+                        << "\n\t\t\t#endif";
+                }else
+                    dst << "\n\t\t\t" << ext_name << ",";
             }
 
             for (auto& [core_ver, ext] : core_ext)
@@ -1077,14 +1113,17 @@ namespace AE::Vulkan
     {
         constexpr Version2  NoVer = Version2::Max();
 
-        String  str;
-        str << "\tvoid  VDeviceInitializer::_CheckInstanceExtensions ()\n\t{\n"
-            << "\t\tCHECK_ERRV(( GetInstanceVersion() >= InstanceVersion{" << ToString(feats.minVer.major) << "," << ToString(feats.minVer.minor) << "} ));\n\n";
+        String  gstr;
+        gstr << "\tvoid  VDeviceInitializer::_CheckInstanceExtensions ()\n\t{\n"
+             << "\t\tCHECK_ERRV(( GetInstanceVersion() >= InstanceVersion{" << ToString(feats.minVer.major) << "," << ToString(feats.minVer.minor) << "} ));\n\n";
 
         for (auto& feat : feats.instance)
         {
             if ( not feat.enabled )
                 continue;
+
+            String  str;
+            String  macro_check;
 
             str << "\t\t_extensions." << feat.shortName;
             AppendToString( INOUT str, feats.maxNameLen - feat.shortName.size() );
@@ -1107,24 +1146,35 @@ namespace AE::Vulkan
                 if ( feat.requireVersion > feats.minVer )
                     str << "GetInstanceVersion() >= InstanceVersion{" << ToString( feat.requireVersion.major ) << ',' << ToString( feat.requireVersion.minor ) << "} and ";
 
-                str << "HasInstanceExtension( " << ExtToName( feat.extension ) << " ))";
+                String  ext_name = ExtToName( feat.extension );
+                if ( IsPlatformSpecificExtension( ext_name ))
+                    macro_check << (macro_check.empty() ? "" : " and ") << "defined(" << ext_name << ")";
+
+                str << "HasInstanceExtension( " << ext_name << " ))";
                 has_ext_check = true;
             }
 
-            if ( not (has_ver_check or has_ext_check) )
-                str << "true";
+            CHECK( has_ver_check or has_ext_check );
 
             str << ";\n";
+
+            if ( not macro_check.empty() )
+                gstr << "\t\t#if " << macro_check << "\n" << str << "\t\t#endif\n";
+            else
+                gstr << str;
         }
 
-        str << "\t}\n\n"
-            << "\tvoid  VDeviceInitializer::_CheckDeviceExtensions ()\n\t{\n"
-            << "\t\tCHECK_ERRV(( GetDeviceVersion() >= DeviceVersion{" << ToString(feats.minVer.major) << "," << ToString(feats.minVer.minor) << "} ));\n\n";
+        gstr << "\t}\n\n"
+             << "\tvoid  VDeviceInitializer::_CheckDeviceExtensions ()\n\t{\n"
+             << "\t\tCHECK_ERRV(( GetDeviceVersion() >= DeviceVersion{" << ToString(feats.minVer.major) << "," << ToString(feats.minVer.minor) << "} ));\n\n";
 
         for (auto& feat : feats.device)
         {
             if ( not feat.enabled )
                 continue;
+
+            String  str;
+            String  macro_check;
 
             str << "\t\t_extensions." << feat.shortName;
             AppendToString( INOUT str, feats.maxNameLen - feat.shortName.size() );
@@ -1147,18 +1197,26 @@ namespace AE::Vulkan
                 if ( feat.requireVersion > feats.minVer )
                     str << "GetDeviceVersion() >= DeviceVersion{" << ToString( feat.requireVersion.major ) << ',' << ToString( feat.requireVersion.minor ) << "} and ";
 
-                str << "HasDeviceExtension( " << ExtToName( feat.extension ) << " ))";
+                String  ext_name = ExtToName( feat.extension );
+                if ( IsPlatformSpecificExtension( ext_name ))
+                    macro_check << (macro_check.empty() ? "" : " and ") << "defined(" << ext_name << ")";
+
+                str << "HasDeviceExtension( " << ext_name << " ))";
                 has_ext_check = true;
             }
 
-            if ( not (has_ver_check or has_ext_check) )
-                str << "true";
+            CHECK( has_ver_check or has_ext_check );
 
             str << ";\n";
+
+            if ( not macro_check.empty() )
+                gstr << "\t\t#if " << macro_check << "\n" << str << "\t\t#endif\n";
+            else
+                gstr << str;
         }
 
-        str << "\t}\n";
-        return str;
+        gstr << "\t}\n";
+        return gstr;
     }
 
 /*

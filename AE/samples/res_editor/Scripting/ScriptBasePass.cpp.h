@@ -36,7 +36,7 @@ namespace
         // enums
         {
             Scripting::EnumBinder<EFlags>   binder{ classBinder.GetEngine() };
-            if ( not binder.IsRegistred() )
+            if ( not binder.IsRegistered() )
             {
                 binder.Create();
                 binder.AddValue( "None",                EFlags::Unknown );
@@ -52,7 +52,7 @@ namespace
 
                 //binder.AddValue( "Enable_ShaderTmProf",   EFlags::Enable_ShaderTmProf );  // not supported yet
 
-                binder.Comment( "Enable alll debug features." );
+                binder.Comment( "Enable all debug features." );
                 binder.AddValue( "Enable_AllShaderDbg", EFlags::Enable_AllShaderDbg );
                 StaticAssert( uint(EFlags::All) == 7 );
             }

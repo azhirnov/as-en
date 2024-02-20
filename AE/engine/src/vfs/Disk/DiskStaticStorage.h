@@ -37,43 +37,43 @@ namespace AE::VFS
     public:
 
       // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, FileNameRef name)                                  C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, FileNameRef name)                                  C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, FileNameRef name)                             C_NE_OV;
+        bool  Open (OUT RC<RStream> &stream, FileName::Ref name)                            C_NE_OV;
+        bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)                            C_NE_OV;
+        bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)                       C_NE_OV;
 
         using IVirtualFileStorage::Open;
 
-        bool  Exists (FileNameRef name)                                                         C_NE_OV;
-        bool  Exists (FileGroupNameRef name)                                                    C_NE_OV;
+        bool  Exists (FileName::Ref name)                                                   C_NE_OV;
+        bool  Exists (FileGroupName::Ref name)                                              C_NE_OV;
 
 
     private:
-        void  _Append (INOUT GlobalFileMap_t &)                                                 C_Th_OV;
+        void  _Append (INOUT GlobalFileMap_t &)                                             C_Th_OV;
 
-        bool  _OpenByIter (OUT RC<RStream> &stream, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileNameRef name, const void* ref)     C_NE_OV;
+        bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)    C_NE_OV;
 
-        bool  _OpenByIter (OUT RC<WStream> &stream, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<WDataSource> &ds, FileNameRef name, const void* ref)          C_NE_OV;
-        bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileNameRef name, const void* ref)     C_NE_OV;
+        bool  _OpenByIter (OUT RC<WStream> &stream, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<WDataSource> &ds, FileName::Ref, const void* ref)         C_NE_OV;
+        bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref, const void* ref)    C_NE_OV;
 
         using IVirtualFileStorage::_OpenByIter;
 
         template <typename ImplType, typename ResultType>
-        ND_ bool  _Open (OUT ResultType &, FileNameRef name)                                    C_NE___;
+        ND_ bool  _Open (OUT ResultType &, FileName::Ref name)                              C_NE___;
 
         template <typename ImplType, typename ResultType>
-        ND_ bool  _OpenByIter2 (OUT ResultType &, FileNameRef name, const void* ref)            C_NE___;
+        ND_ bool  _OpenByIter2 (OUT ResultType &, FileName::Ref name, const void* ref)      C_NE___;
 
 
     private:
         friend class VirtualFileStorageFactory;
-        DiskStaticStorage ()                                                                    __NE___ {}
-        ~DiskStaticStorage ()                                                                   __NE_OV {}
+        DiskStaticStorage ()                                                                __NE___ {}
+        ~DiskStaticStorage ()                                                               __NE_OV {}
 
-        ND_ bool  _Create (const Path &folder, StringView prefix)                               __NE___;
-        ND_ bool  _Create2 (const Path &folder, StringView prefix)                              __Th___;
+        ND_ bool  _Create (const Path &folder, StringView prefix)                           __NE___;
+        ND_ bool  _Create2 (const Path &folder, StringView prefix)                          __Th___;
     };
 
 

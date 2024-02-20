@@ -1361,7 +1361,7 @@ int main ()
     {
         CHECK_ERR( FileSystem::IsDirectory( DEVICE_INFO_FOLDER ));
 
-        Deque<Path> stack;
+        RingBuffer<Path>    stack;
         stack.push_back( DEVICE_INFO_FOLDER );
 
         while ( not stack.empty() )

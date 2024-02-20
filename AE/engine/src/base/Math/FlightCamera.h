@@ -63,7 +63,8 @@ namespace AE::Math
         ND_ Vec3_t  Transform (const Vec3_t &delta)                         C_NE___;
 
             Self&   SetPosition (const Vec3_t &pos)                         __NE___;
-            Self&   SetRotation (const Quat_t &q)                           __NE___;
+            Self&   SetOrientation (const Quat_t &q)                        __NE___;
+            Self&   ResetOrientation ()                                     __NE___ { return SetOrientation( Quat::Identity() ); }
     };
 
 
@@ -93,11 +94,11 @@ namespace AE::Math
 
 /*
 =================================================
-    SetRotation
+    SetOrientation
 =================================================
 */
     template <typename T>
-    TFlightCamera<T>&  TFlightCamera<T>::SetRotation (const Quat_t &q) __NE___
+    TFlightCamera<T>&  TFlightCamera<T>::SetOrientation (const Quat_t &q) __NE___
     {
         _camera.transform.orientation = q;
         return *this;
@@ -111,7 +112,7 @@ namespace AE::Math
     template <typename T>
     TFlightCamera<T>&  TFlightCamera<T>::Rotate (Rad_t yaw, Rad_t pitch, Rad_t roll) __NE___
     {
-        if ( IsZero( yaw ) & IsZero( pitch ) & IsZero( roll ))
+        if_likely( IsZero( yaw ) and IsZero( pitch ) and IsZero( roll ))
             return *this;
 
         Quat_t& q = _camera.transform.orientation;

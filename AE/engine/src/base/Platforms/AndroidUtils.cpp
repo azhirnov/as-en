@@ -121,11 +121,26 @@ namespace AE::Base
 */
     uint  AndroidUtils::GetSDKVersion () __NE___
     {
+    #if 0
         char    sdk_ver_str [92];
         if ( __system_property_get( "ro.build.version.sdk", OUT sdk_ver_str )) {
             return std::atoi( sdk_ver_str );
         }
         return 0;
+    #else
+        return android_get_device_api_level();
+    #endif
+    }
+
+/*
+=================================================
+    GetTargetSDKVersion
+=================================================
+*/
+    uint  AndroidUtils::GetTargetSDKVersion () __NE___
+    {
+        ASSERT( GetSDKVersion() >= 24 );
+        return android_get_application_target_sdk_version();
     }
 
 /*
@@ -135,6 +150,7 @@ namespace AE::Base
 */
     Version3  AndroidUtils::GetOSVersion () __NE___
     {
+    #if 0
         char    sdk_ver_str [92];
         if ( __system_property_get( "ro.build.version.release", OUT sdk_ver_str ))
         {
@@ -143,6 +159,23 @@ namespace AE::Base
             return Version3{ uint(std::atoi(str.data())), uint(std::atoi(str.data() + pos)), 0 };
         }
         return Default;
+    #else
+        switch ( android_get_device_api_level() )
+        {
+            case 34 :   return Version3{ 14, 0, 0 };
+            case 33 :   return Version3{ 13, 0, 0 };
+            case 32 :
+            case 31 :   return Version3{ 12, 0, 0 };
+            case 30 :   return Version3{ 11, 0, 0 };
+            case 29 :   return Version3{ 10, 0, 0 };
+            case 28 :   return Version3{  9, 0, 0 };
+            case 27 :   return Version3{  8, 1, 0 };
+            case 26 :   return Version3{  8, 0, 0 };
+            case 25 :   return Version3{  7, 1, 0 };
+            case 24 :   return Version3{  7, 0, 0 };
+        }
+        return Default;
+    #endif
     }
 
 

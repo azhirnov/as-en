@@ -30,7 +30,7 @@ namespace AE::ResEditor
         {
             RC<Buffer>      vbuffer;
             RC<Buffer>      ibuffer;
-            Byte32u         vertexStride;
+            Bytes32u        vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
 
@@ -71,7 +71,7 @@ namespace AE::ResEditor
         RTGeometry (Renderer &          renderer,
                     StringView          dbgName)                                    __Th___;
 
-        ~RTGeometry () override;
+        ~RTGeometry ()                                                              __NE_OV;
 
         ND_ RTGeometryID    GetGeometryId (FrameUID)                                const   { return _geomId.Get(); }
 
@@ -156,7 +156,7 @@ namespace AE::ResEditor
                  StringView     dbgName,
                  Bool           allowUpdate)                                    __Th___;
 
-        ~RTScene () override;
+        ~RTScene ()                                                             __NE_OV;
 
         ND_ RTSceneID   GetSceneId (FrameUID)                                   const   { return _sceneId; }
             void        Validate (FrameUID fid)                                 const;

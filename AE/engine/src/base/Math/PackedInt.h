@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Math/GLM.h"
-#include "base/Math/BitMath.h"
 #include "base/CompileTime/Math.h"
 
 namespace AE::Math

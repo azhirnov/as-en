@@ -122,7 +122,7 @@ namespace AE::Graphics::_hidden_
         {
             VkBuffer            buffer;
             Bytes               offset;
-            Byte32u             size;
+            Bytes32u            size;
             //ubyte             data[];
         };
 
@@ -198,7 +198,7 @@ namespace AE::Graphics::_hidden_
             uint                srcCount;
             VkBuffer            dstBuffer;
             Bytes               dstOffset;
-            Byte32u             stride;
+            Bytes32u            stride;
             VkQueryResultFlags  flags;
         };
 

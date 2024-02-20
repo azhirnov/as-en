@@ -26,7 +26,6 @@ namespace AE::ResEditor
 
     private:
         using PassArr_t     = Array< RC<IPass> >;
-        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
         using CustomKeys_t  = StaticArray< float, 1 >;
 
         struct ScriptFile
@@ -64,7 +63,7 @@ namespace AE::ResEditor
         Unique<ShaderDebugger>  _shaderDebugger;
 
         microseconds            _totalTime          {};
-        TimePoint_t             _lastUpdateTime;
+        Clock                   _frameClock;
         uint                    _frameCounter       = 0;
 
         InputDataSync           _input;

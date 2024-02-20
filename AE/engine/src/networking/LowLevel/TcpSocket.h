@@ -71,6 +71,10 @@ namespace AE::Networking
 
             bool  KeepAlive (bool enable = true)                                __NE___;
 
+        ND_ bool  IsNoDelay ()                                                  C_NE___;
+        ND_ bool  IsKeepAlive ()                                                C_NE___;
+
+
     private:
         ND_ bool  _Create (const Config &cfg, Bool useIPv6)                     __NE___;
         ND_ bool  _SetNoDelay ()                                                __NE___;

@@ -87,7 +87,7 @@ namespace AE::Graphics
         ND_ SPNameToIdx_t const&        SubpassMap ()                                       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpassMap; }
         ND_ ArrayView<SubpassInfo>      Subpasses ()                                        C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _subpasses; }
 
-        ND_ EPixelFormat                GetPixelFormat (const AttachmentName &name)         C_NE___;
+        ND_ EPixelFormat                GetPixelFormat (AttachmentName::Ref)                C_NE___;
         ND_ EPixelFormat                GetPixelFormat (uint attachmentIdx)                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _pixFormats[attachmentIdx]; }
 
         DEBUG_ONLY(

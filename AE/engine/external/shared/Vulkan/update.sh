@@ -1,0 +1,8 @@
+rm -rf "../../../../../AE-Data/external/source/Vulkan"
+rm -rf "temp"
+git clone --branch "vulkan-sdk-1.3.275.0" "../../../../../3party/Vulkan-Headers" "temp"
+mkdir "../../../../../AE-Data/external/source/Vulkan"
+cp -R "temp/include/**/*.h" "../../../../../AE-Data/external/source/Vulkan"
+cp "temp/LICENSE.txt" "../../../../../AE-Data/external/source/Vulkan/LICENSE.txt"
+rm -rf "temp"
+read -p "press any key..."

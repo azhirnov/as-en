@@ -19,11 +19,11 @@ namespace AE::Graphics
     bool  VPrimaryCmdBufState::operator == (const VPrimaryCmdBufState &rhs) C_NE___
     {
         // ignore 'userData'
-        return  (renderPass         == rhs.renderPass)          &
-                (framebuffer        == rhs.framebuffer)         &
-                (frameId            == rhs.frameId)             &
-                (subpassIndex       == rhs.subpassIndex)        &
-                (hasViewLocalDeps   == rhs.hasViewLocalDeps)    &
+        return  (renderPass         == rhs.renderPass)          and
+                (framebuffer        == rhs.framebuffer)         and
+                (frameId            == rhs.frameId)             and
+                (subpassIndex       == rhs.subpassIndex)        and
+                (hasViewLocalDeps   == rhs.hasViewLocalDeps)    and
                 (useSecondaryCmdbuf == rhs.useSecondaryCmdbuf);
     }
 
@@ -385,8 +385,7 @@ namespace AE::Graphics
             VkCommandBufferInheritanceInfo  inheritance_info = {};
             inheritance_info.sType  = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( cmdType )
+            switch_enum( cmdType )
             {
                 case ECommandBufferType::Primary_OneTimeSubmit :
                     info.level  = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -415,7 +414,7 @@ namespace AE::Graphics
                     RETURN_ERR( "unknown command buffer type" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             VkCommandBuffer cmd = Default;
             VK_CHECK_ERR( vkAllocateCommandBuffers( _device.GetVkDevice(), &info, OUT &cmd ));

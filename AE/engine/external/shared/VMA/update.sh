@@ -1,0 +1,8 @@
+rm -rf "../../../../../AE-Data/external/source/VMA"
+rm -rf "temp"
+git clone --branch "v3.0.1" "../../../../../3party/VulkanMemoryAllocator" "temp"
+mkdir "../../../../../AE-Data/external/source/VMA"
+cp "temp/include/vk_mem_alloc.h" "../../../../../AE-Data/external/source/VMA/vk_mem_alloc.h"
+cp "temp/LICENSE.txt" "../../../../../AE-Data/external/source/VMA/LICENSE.txt"
+rm -rf "temp"
+read -p "press any key..."

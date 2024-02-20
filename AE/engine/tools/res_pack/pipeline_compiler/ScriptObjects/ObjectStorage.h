@@ -173,8 +173,8 @@ namespace AE::PipelineCompiler
                               const SubpassShaderIO &fragIO, bool requireDepth, bool requireStencil)                                __Th___;
 
         ND_ CompatibleRenderPassDescPtr  RenderPassExists (const String &rpName, const String &subpass)                             __Th___;
-        ND_ CompatibleRenderPassDescPtr  RenderPassExists (const RenderPassName &rpName, const SubpassName &subpass)                C_Th___;
-        ND_ RenderPassSpecPtr            GetRenderPass (const RenderPassName &rpName)                                               C_Th___;
+        ND_ CompatibleRenderPassDescPtr  RenderPassExists (RenderPassName::Ref rpName, SubpassName::Ref subpass)                    C_Th___;
+        ND_ RenderPassSpecPtr            GetRenderPass (RenderPassName::Ref rpName)                                                 C_Th___;
 
         void  CompileShaderGLSL (INOUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
                                  const String &defines, const String &resources, ArrayView<String> include,
@@ -197,7 +197,7 @@ namespace AE::PipelineCompiler
         template <usize Size, uint UID, bool Optimize, uint Seed>
         ND_ bool  HasHashName (const NamedID<Size, UID, Optimize, Seed> &id)                                                        C_NE___;
 
-        ND_ Array<ScriptFeatureSetPtr>  GetDefaultFeatureSets ();
+        ND_ Array<ScriptFeatureSetPtr>  GetDefaultFeatureSets ()                                                                    __Th___;
         ND_ FSNameArr_t                 CopyFeatures (ArrayView<ScriptFeatureSetPtr> feats);
 
         static void  Bind (const ScriptEnginePtr &se)                                                                               __Th___;

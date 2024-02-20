@@ -1,9 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
-
 # include "geometry_tools/SphericalCube/SphericalCubeRenderer.h"
-# include "graphics/Public/GraphicsImpl.h"
 
 namespace AE::GeometryTools
 {

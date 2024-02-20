@@ -22,6 +22,10 @@ if (TARGET "Graphics")
 
     target_compile_definitions( "Tests.Graphics" PUBLIC AE_TEST_GRAPHICS )
 
+    if (TARGET "ShaderTrace")
+        target_compile_definitions( "Tests.Graphics" PRIVATE AE_TEST_SHADER_DEBUGGER )
+    endif()
+
     target_compile_definitions( "Tests.Graphics" PRIVATE
         AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
         AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
@@ -30,7 +34,9 @@ if (TARGET "Graphics")
     if (TARGET "OfflinePacker")
         add_custom_target( "Tests.Graphics.PackRes"
             DEPENDS  "OfflinePacker"
-            COMMAND  "${MAIN_BINARY_DIR}/$<CONFIG>/OfflinePacker${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/RenderGraph/res_pack.as" "${AE_TEMP_FOLDER}/engine/graphics"
+            COMMAND  $<TARGET_FILE:OfflinePacker>
+                        -i "${CMAKE_CURRENT_SOURCE_DIR}/RenderGraph/res_pack.as"
+                        -o "${AE_TEMP_FOLDER}/engine/graphics"
             COMMENT  "pack resources for 'Tests.Graphics' ..."
             VERBATIM
         )
@@ -46,7 +52,7 @@ if (TARGET "Graphics")
 
     elseif (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         target_compile_definitions( "Tests.Graphics" PRIVATE
-            AE_REFDUMP_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Vulkan/ref"
+            AE_REFDUMP_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
             AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
             AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/vk/pipelines.bin" )
 

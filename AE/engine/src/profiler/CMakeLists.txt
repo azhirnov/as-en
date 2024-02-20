@@ -12,11 +12,7 @@ if (TARGET "GraphicsHL")
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
     set_property( TARGET "Profiler" PROPERTY FOLDER "Engine" )
-    target_link_libraries( "Profiler" PUBLIC "GraphicsHL" )
-
-    if (TARGET "ImGUI-lib")
-        target_link_libraries( "Profiler" PUBLIC "ImGUI-lib" )
-    endif()
+    target_link_libraries( "Profiler" PUBLIC "GraphicsHL" "Networking" )
 
     if (DEFINED ANDROID)
         target_link_libraries( "Profiler" PUBLIC "ARM-HWCPipe-lib" "HWPerfCounter-lib" )

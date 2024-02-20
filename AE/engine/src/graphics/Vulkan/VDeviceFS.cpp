@@ -19,7 +19,7 @@ namespace
 */
     void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
     {
-        StaticAssert( sizeof(FeatureSet) == 688 );
+        StaticAssert( sizeof(FeatureSet) == 696 );
 
         const EFeature  True    = EFeature::RequireTrue;
         const EFeature  False   = EFeature::RequireFalse;
@@ -63,8 +63,7 @@ namespace
 
             for (auto f : BitfieldIterate( VkSubgroupFeatureFlagBits( _properties.subgroupProperties.supportedOperations )))
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( f )
+                switch_enum( f )
                 {
                     case VK_SUBGROUP_FEATURE_BASIC_BIT :            outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Basic_Begin,             ESubgroupOperation::_Basic_End );           break;
                     case VK_SUBGROUP_FEATURE_VOTE_BIT :             outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Vote_Begin,              ESubgroupOperation::_Vote_End );            break;
@@ -78,7 +77,7 @@ namespace
                     case VK_SUBGROUP_FEATURE_FLAG_BITS_MAX_ENUM :
                     default_unlikely :                              DBG_WARNING( "unknown subgroup feature" );  break;
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 
@@ -367,21 +366,23 @@ namespace
             SET_FEAT2( variableSampleLocations, _properties.sampleLocationsProps );
         }
 
-        outFeatureSet.perDescrSet.maxInputAttachments   = limits.maxDescriptorSetInputAttachments;
-        outFeatureSet.perDescrSet.maxSampledImages      = limits.maxDescriptorSetSampledImages;
-        outFeatureSet.perDescrSet.maxSamplers           = limits.maxDescriptorSetSamplers;
-        outFeatureSet.perDescrSet.maxStorageBuffers     = limits.maxDescriptorSetStorageBuffers;
-        outFeatureSet.perDescrSet.maxStorageImages      = limits.maxDescriptorSetStorageImages;
-        outFeatureSet.perDescrSet.maxUniformBuffers     = limits.maxDescriptorSetUniformBuffers;
-        outFeatureSet.perDescrSet.maxTotalResources     = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : c_MaxPerSetDescriptors;
+        outFeatureSet.perDescrSet_maxUniformBuffersDynamic  = limits.maxDescriptorSetUniformBuffersDynamic;
+        outFeatureSet.perDescrSet_maxStorageBuffersDynamic  = limits.maxDescriptorSetStorageBuffersDynamic;
+        outFeatureSet.perDescrSet.maxInputAttachments       = limits.maxDescriptorSetInputAttachments;
+        outFeatureSet.perDescrSet.maxSampledImages          = limits.maxDescriptorSetSampledImages;
+        outFeatureSet.perDescrSet.maxSamplers               = limits.maxDescriptorSetSamplers;
+        outFeatureSet.perDescrSet.maxStorageBuffers         = limits.maxDescriptorSetStorageBuffers;
+        outFeatureSet.perDescrSet.maxStorageImages          = limits.maxDescriptorSetStorageImages;
+        outFeatureSet.perDescrSet.maxUniformBuffers         = limits.maxDescriptorSetUniformBuffers;
+        outFeatureSet.perDescrSet.maxTotalResources         = _extensions.maintenance3 ? _properties.maintenance3Props.maxPerSetDescriptors : c_MaxPerSetDescriptors;
 
-        outFeatureSet.perStage.maxInputAttachments      = limits.maxPerStageDescriptorInputAttachments;
-        outFeatureSet.perStage.maxSampledImages         = limits.maxPerStageDescriptorSampledImages;
-        outFeatureSet.perStage.maxSamplers              = limits.maxPerStageDescriptorSamplers;
-        outFeatureSet.perStage.maxStorageBuffers        = limits.maxPerStageDescriptorStorageBuffers;
-        outFeatureSet.perStage.maxStorageImages         = limits.maxPerStageDescriptorStorageImages;
-        outFeatureSet.perStage.maxUniformBuffers        = limits.maxPerStageDescriptorUniformBuffers;
-        outFeatureSet.perStage.maxTotalResources        = limits.maxPerStageResources;
+        outFeatureSet.perStage.maxInputAttachments          = limits.maxPerStageDescriptorInputAttachments;
+        outFeatureSet.perStage.maxSampledImages             = limits.maxPerStageDescriptorSampledImages;
+        outFeatureSet.perStage.maxSamplers                  = limits.maxPerStageDescriptorSamplers;
+        outFeatureSet.perStage.maxStorageBuffers            = limits.maxPerStageDescriptorStorageBuffers;
+        outFeatureSet.perStage.maxStorageImages             = limits.maxPerStageDescriptorStorageImages;
+        outFeatureSet.perStage.maxUniformBuffers            = limits.maxPerStageDescriptorUniformBuffers;
+        outFeatureSet.perStage.maxTotalResources            = limits.maxPerStageResources;
 
         if ( _extensions.accelerationStructure )
         {
@@ -500,6 +501,9 @@ namespace
         if ( _extensions.samplerYcbcrConversion )
             outFeatureSet.samplerYcbcrConversion = True;
 
+        if ( _extensions.ycbcr2Plane444 )
+            outFeatureSet.ycbcr2Plane444 = True;
+
         if ( _extensions.samplerFilterMinmax )
         {
             outFeatureSet.samplerFilterMinmax = True;
@@ -532,6 +536,9 @@ namespace
                 continue;
 
             if ( not _extensions.samplerYcbcrConversion and EPixelFormat_IsYcbcr( fmt ))
+                continue;
+
+            if ( not _extensions.ycbcr2Plane444 and EPixelFormat_IsYcbcr2Plane444( fmt ))
                 continue;
 
             vkGetPhysicalDeviceFormatProperties( GetVkPhysicalDevice(), VEnumCast( fmt ), OUT &props );
@@ -621,6 +628,8 @@ namespace
             }
         }
 
+        outFeatureSet.externalFormatAndroid = (_extensions.androidExternalMemoryHwBuf ? True : False);
+
         outFeatureSet.AddDevice( _properties.properties.vendorID,
                                  _properties.properties.deviceID,
                                  _properties.properties.deviceName );
@@ -642,7 +651,7 @@ namespace
         #define SET_FEAT( _name_ )          feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
         #define SET_FEAT2( _name_, _feat_ ) _feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
-        StaticAssert( sizeof(FeatureSet) == 688 );
+        StaticAssert( sizeof(FeatureSet) == 696 );
 
         auto&           feats10     = _properties.features;
         auto&           f16i8_feats = _properties.shaderFloat16Int8Feats;
@@ -926,6 +935,17 @@ namespace
 
         _extensions.samplerFilterMinmax = (inFS.samplerFilterMinmax == True);
         SET_FEAT2( filterMinmaxImageComponentMapping,   _properties.samplerFilterMinmaxProps );
+
+        _extensions.samplerYcbcrConversion  = (inFS.samplerYcbcrConversion == True);
+        _extensions.ycbcr2Plane444          = (inFS.ycbcr2Plane444 == True);
+
+        if ( inFS.externalFormatAndroid == True ) {
+            _extensions.androidExternalMemoryHwBuf  = true;
+            _extensions.samplerYcbcrConversion      = true;
+            _extensions.externalMemory              = true;
+            _extensions.queueFamilyForeign          = true;
+            _extensions.dedicatedAllocation         = true;
+        }
 
         return true;
 

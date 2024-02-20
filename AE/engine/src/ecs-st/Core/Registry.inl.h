@@ -175,7 +175,7 @@ DEBUG_ONLY(
 
         _entities.GetArchetype( entId, OUT src_storage, OUT src_index );
 
-        if ( src_storage )
+        if ( src_storage != null )
         {
             ASSERT( not src_storage->IsLocked() );
 
@@ -222,7 +222,7 @@ DEBUG_ONLY(
 
         _entities.GetArchetype( entId, OUT src_storage, OUT src_index );
 
-        if ( src_storage )
+        if ( src_storage != null )
         {
             ASSERT( not src_storage->IsLocked() );
 
@@ -400,7 +400,7 @@ DEBUG_ONLY(
         StaticAssert( std::is_standard_layout_v<T> );
         StaticAssert( std::is_trivially_copyable_v<T> );
         StaticAssert( IsTriviallyDestructible<T> );
-        StaticAssert( std::is_nothrow_destructible_v<T> );
+        StaticAssert( std::is_nothrow_destructible_v<T> );  // TODO: add IsECSComponentCompatible<>
 
         auto&   comp = _singleComponents[ TypeIdOf<T>() ];
         if ( not comp.data )
@@ -766,17 +766,17 @@ DEBUG_ONLY(
 
 /*
 =================================================
-    Enque
+    Enqueue
 =================================================
 */
     template <typename Obj, typename Class, typename ...Args>
-    void  Registry::Enque (QueryID query, Obj obj, void (Class::*fn)(Args&&...)) __NE___
+    void  Registry::Enqueue (QueryID query, Obj obj, void (Class::*fn)(Args&&...)) __NE___
     {
-        return Enque( query, [obj, fn](Args&& ...args) { return (obj->*fn)( FwdArg<Args>(args)... ); });
+        return Enqueue( query, [obj, fn](Args&& ...args) { return (obj->*fn)( FwdArg<Args>(args)... ); });
     }
 
     template <typename Fn>
-    void  Registry::Enque (QueryID query, Fn &&fn) __NE___
+    void  Registry::Enqueue (QueryID query, Fn &&fn) __NE___
     {
         DRC_EXLOCK( _drCheck );
 
@@ -787,7 +787,7 @@ DEBUG_ONLY(
         else
         {
             _pendingEvents.push_back(
-                [this, query, fn = FwdArg<Fn>(fn)] ()
+                [this, query, fn = FwdArg<Fn>(fn)] () __NE___
                 {
                     Execute( query, RVRef(fn) );
                 });
@@ -810,7 +810,7 @@ DEBUG_ONLY(
         if constexpr( IsSpecializationOf< typename Args::template Get<0>, ArrayView >)
             return _Execute_v1( query, FwdArg<Fn>(fn) );
         else
-            return _Execute_v2( query, FwdArg<Fn>(fn), (const Args*)null );
+            return _Execute_v2( query, FwdArg<Fn>(fn), static_cast<const Args*>(null) );
     }
 
 /*
@@ -844,11 +844,11 @@ DEBUG_ONLY(
 
             auto&   storage = ptr->second;
             storage->Lock();
-            storages.emplace_back( storage.get() );                                     // throw
-            chunks.emplace_back( _GetChunk( storage.get(), (const CompOnly *)null ));   // throw
+            storages.emplace_back( storage.get() );                                                 // throw
+            chunks.emplace_back( _GetChunk( storage.get(), static_cast<const CompOnly *>(null) ));  // throw
         }
 
-        _WithSingleComponents( RVRef(fn), ArrayView<Chunk>{chunks.data(), chunks.size()}, (const SCTuple*)null );
+        _WithSingleComponents( FwdArg<Fn>(fn), ArrayView<Chunk>{chunks.data(), chunks.size()}, static_cast< SCTuple const *>(null) );
 
         for (auto* st : storages)
         {
@@ -968,16 +968,18 @@ DEBUG_ONLY(
 =================================================
 */
     template <typename Fn, typename ...Args>
-    void  Registry::_Execute_v2 (QueryID query, Fn &&fn, const TypeList<Args...>*) __NE___
+    void  Registry::_Execute_v2 (QueryID query, Fn &&inFn, const TypeList<Args...>*) __NE___
     {
         _Execute_v1( query,
-            [&fn] (ArrayView<Tuple< usize, _reg_detail_::MapCompType<Args>... >> chunks)
+            [fn = FwdArg<Fn>(inFn)] (ArrayView<Tuple< usize, _reg_detail_::MapCompType<Args>... >> chunks) __NE___
             {
                 for (auto& chunk : chunks)
                 {
                     for (usize i = 0, cnt = chunk.template Get<0>(); i < cnt; ++i)
                     {
-                        fn( _reg_detail_::GetStorageElement<Args>::template Get( chunk, i )... );   // may throw?
+                        CheckNothrow( IsNoExcept( fn( _reg_detail_::GetStorageElement<Args>::template Get( chunk, i )... )));
+
+                        fn( _reg_detail_::GetStorageElement<Args>::template Get( chunk, i )... );
                     }
                 }
             });
@@ -1242,9 +1244,17 @@ DEBUG_ONLY(
     void  Registry::_WithSingleComponents (Fn &&fn, ArrayView<Chunk> chunks, const Tuple<Types...> *) __NE___
     {
         if constexpr( CountOf<Types...>() == 0 )
-            return fn( chunks );    // may throw?
+        {
+            CheckNothrow( IsNoExcept( fn( chunks )));
+
+            return fn( chunks );
+        }
         else
-            return fn( chunks, Tuple<Types...>{ _GetSingleComponent<Types>() ... });    // may throw?
+        {
+            CheckNothrow( IsNoExcept( fn( chunks, Tuple<Types...>{ _GetSingleComponent<Types>() ... })));
+
+            return fn( chunks, Tuple<Types...>{ _GetSingleComponent<Types>() ... });
+        }
     }
 //-----------------------------------------------------------------------------
 
@@ -1265,16 +1275,16 @@ DEBUG_ONLY(
 
 /*
 =================================================
-    EnqueEvent
+    EnqueueEvent
 =================================================
 */
     template <typename Ev>
-    void  Registry::EnqueEvent () __NE___
+    void  Registry::EnqueueEvent () __NE___
     {
         DRC_EXLOCK( _drCheck );
         StaticAssert( IsEmpty<Ev> );
 
-        _pendingEvents.push_back( [this]()
+        _pendingEvents.push_back( [this]() __NE___
         {
             _RunEvent<BeforeEvent<Ev>>();
             _RunEvent<Ev>();

@@ -4,9 +4,6 @@
     https://learn.microsoft.com/en-us/windows/win32/fileio/synchronous-and-asynchronous-i-o
     https://learn.microsoft.com/en-us/troubleshoot/windows/win32/asynchronous-disk-io-synchronous
     https://learn.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports
-    impl:
-    https://github.com/microsoft/Windows-classic-samples/tree/main/Samples/Win7Samples/winbase/io/unbufcpy
-    https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/CloudMirror/CloudMirror/FileCopierWithProgress.cpp
 */
 
 #ifdef AE_PLATFORM_WINDOWS
@@ -20,6 +17,8 @@ namespace AE::Threading
 namespace
 {
     using RWReqPromise_t = AsyncDSRequest::Value_t::Promise_t;
+
+    static constexpr uint   c_CompletionKey = 0xAE0024;
 
 /*
 =================================================
@@ -40,10 +39,10 @@ namespace
             return false;   // error
         }
 
-        HANDLE  ioPort = Cast<WindowsIOService>(io_service)->GetIOCompletionPort().Ref<HANDLE>();
+        HANDLE  dst_io_port = Cast<WindowsIOService>(io_service)->GetIOCompletionPort().Ref<HANDLE>();
 
         // attach file to the IO thread completion port
-        HANDLE  port = ::CreateIoCompletionPort( file, ioPort, 0, 0 );  // winxp
+        HANDLE  port = ::CreateIoCompletionPort( file, dst_io_port, c_CompletionKey, 0 );   // winxp
         if_unlikely( port == null )
         {
             WIN_CHECK_DEV( "CreateIoCompletionPort() for file failed: " );
@@ -145,7 +144,8 @@ namespace
         CHECK( _status.exchange( EStatus::InProgress ) == EStatus::Destroyed );
 
         // async request will be added to IO queue, so increase ref counter
-        RefCounterUtils::IncRef( *this );
+        int cnt = RefCounterUtils::IncRef( *this );
+        ASSERT( cnt == 1 );
     }
 
 /*
@@ -172,18 +172,17 @@ namespace
     _Complete
 =================================================
 */
-    void  WindowsIOService::_RequestBase::_Complete (const Bytes size, const long err, const void* ovPtr) __NE___
+    void  WindowsIOService::_RequestBase::_Complete (const Bytes size, const long err) __NE___
     {
         _actualSize.store( size );
 
-        const auto*     ov = _overlapped.Ptr<OVERLAPPED>();
-        ASSERT( ovPtr == ov );  Unused( ovPtr );
-
+        const auto*     ov          = _overlapped.Ptr<OVERLAPPED>();
         const bool      complete    = HasOverlappedIoCompleted( ov ) and AnyEqual( err, ERROR_SUCCESS, ERROR_HANDLE_EOF );
         const EStatus   stat        = _status.exchange( complete ? EStatus::Completed : EStatus::Cancelled );
 
         ASSERT( complete );
         ASSERT( stat == EStatus::InProgress );  Unused( stat );
+        ASSERT( RefCounterUtils::UseCount( *this ) > 0 );
 
         _SetDependencyCompleteStatus( complete );
 
@@ -223,7 +222,7 @@ namespace
         if_likely( ::ReadFile( hfile, OUT _data, DWORD(dataSize), OUT &readn, INOUT &ov ) != FALSE )
         {
             // completed synchronously
-            _Complete( Bytes{readn}, ERROR_SUCCESS, &ov );
+            _Complete( Bytes{readn}, ERROR_SUCCESS );
             return true;
         }
 
@@ -341,7 +340,7 @@ namespace
         if_likely( ::WriteFile( hfile, data, DWORD(dataSize), OUT &written, INOUT &ov ) != FALSE )
         {
             // completed synchronously
-            _Complete( Bytes{written}, ERROR_SUCCESS, &ov );
+            _Complete( Bytes{written}, ERROR_SUCCESS );
             return true;
         }
 
@@ -478,7 +477,7 @@ namespace
     destructor
 =================================================
 */
-    WinAsyncRDataSource::~WinAsyncRDataSource ()
+    WinAsyncRDataSource::~WinAsyncRDataSource () __NE___
     {
         if ( _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -524,7 +523,7 @@ namespace
     AsyncDSRequest  WinAsyncRDataSource::ReadBlock (Bytes pos, Bytes size) __NE___
     {
         RC<SharedMem>   mem     = SharedMem::Create( AE::GetDefaultAllocator(), size ); // TODO: optimize
-        void*           data    = mem->Data();
+        void*           data    = mem ? mem->Data() : null;
         return ReadBlock( pos, data, size, RVRef(mem) );
     }
 
@@ -558,9 +557,8 @@ namespace
     constructor
 =================================================
 */
-    WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
-        _file{ file.Ref<HANDLE>() },
-        _flags{ flags }
+    WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EFlags DEBUG_ONLY(, Path filename))   __NE___ :
+        _file{ file.Ref<HANDLE>() }
         DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
     {
         if ( not IsOpen()   or
@@ -596,7 +594,7 @@ namespace
     destructor
 =================================================
 */
-    WinAsyncWDataSource::~WinAsyncWDataSource ()
+    WinAsyncWDataSource::~WinAsyncWDataSource () __NE___
     {
         if ( _file.Ref<HANDLE>() != INVALID_HANDLE_VALUE )
             ::CloseHandle( _file.Ref<HANDLE>() );
@@ -708,9 +706,11 @@ namespace
             return true;
         }
 
-        UNTESTED;
-        self->_readResultPool.Unassign( index );
-        RETURN_ERR( "failed to allocate read result" );
+        res->_Complete( 0_b, ERROR_OPERATION_ABORTED );
+        res = null;
+        ASSERT( not self->_readResultPool.IsAssigned( index ));
+
+        return false;
     }
 
 /*
@@ -748,9 +748,11 @@ namespace
             return true;
         }
 
-        UNTESTED;
-        self->_writeResultPool.Unassign( index );
-        RETURN_ERR( "failed to allocate write result" );
+        res->_Complete( 0_b, ERROR_OPERATION_ABORTED );
+        res = null;
+        ASSERT( not self->_readResultPool.IsAssigned( index ));
+
+        return false;
     }
 //-----------------------------------------------------------------------------
 
@@ -763,11 +765,9 @@ namespace
     warning: Scheduler().GetFileIOService() is not valid here
 =================================================
 */
-    WindowsIOService::WindowsIOService (uint maxThreads) __NE___ :
-        _ioCompletionPort{ ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, null, 0, maxThreads )}
+    WindowsIOService::WindowsIOService (uint maxAccessThreads) __NE___ :
+        _ioCompletionPort{ ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, null, c_CompletionKey, maxAccessThreads )}
     {
-        ASSERT( maxThreads > 0 );
-
         if ( _ioCompletionPort.Ref<HANDLE>() == null )
             WIN_CHECK_DEV( "CreateIoCompletionPort() for global port failed: " );
     }
@@ -813,17 +813,21 @@ namespace
             ULONG_PTR       completion_key      = 0;
             LPOVERLAPPED    overlapped          = null;
 
-            bool    ok  = ::GetQueuedCompletionStatus( _ioCompletionPort.Ref<HANDLE>(), OUT &byte_transferred, OUT &completion_key, OUT &overlapped, timeout ) != FALSE;    // winxp
+            bool    ok  = ::GetQueuedCompletionStatus( _ioCompletionPort.Ref<HANDLE>(), OUT &byte_transferred,
+                                                       OUT &completion_key, OUT &overlapped, timeout ) != FALSE;    // winxp
             long    err = ok ? ERROR_SUCCESS : ::GetLastError();
 
             // ERROR_HANDLE_EOF         - reached end of file
             // ERROR_OPERATION_ABORTED  - request was cancelled by 'CancelIoEX()'
 
-            if_likely( AnyEqual( err, ERROR_SUCCESS, ERROR_HANDLE_EOF, ERROR_OPERATION_ABORTED ) & (overlapped != null) )
+            if_likely( AnyEqual( err, ERROR_SUCCESS, ERROR_HANDLE_EOF, ERROR_OPERATION_ABORTED ) and (overlapped != null) )
             {
-                _RequestBase*   res = Cast<_RequestBase>( overlapped - Bytes{_OverlappedOffset});
+                ASSERT( completion_key == c_CompletionKey );
 
-                res->_Complete( Bytes{byte_transferred}, err, overlapped );
+                _RequestBase*   res = Cast<_RequestBase>( overlapped - Bytes{c_OverlappedOffset});
+                ASSERT( res->_overlapped.Ptr<OVERLAPPED>() == overlapped );
+
+                res->_Complete( Bytes{byte_transferred}, err );
 
                 ++num_events;
             }

@@ -28,7 +28,7 @@ namespace AE::Serializing
 
     private:
         #if AE_DEBUG_SERIALIZER
-            uint _dbgCounter = (uint('A') << 16) | (uint('E') << 24);
+            uint _dbgCounter = 0;
         #endif
 
 

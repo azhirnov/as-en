@@ -7,7 +7,7 @@
 #pragma once
 
 #include "base/CompileTime/TypeList.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Math/POTValue.h"
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Memory/IAllocator.h"
@@ -65,7 +65,7 @@ namespace AE::Base
     //
     // Dynamic Untyped Storage
     //
-    struct DynUntypedStorage final : Noncopyable
+    struct DynUntypedStorage final : MovableOnly
     {
     // variables
     private:
@@ -80,6 +80,9 @@ namespace AE::Base
     public:
         DynUntypedStorage ()                                            __NE___ : _size{0}, _align{0} {}
         ~DynUntypedStorage ()                                           __NE___ { Dealloc( null ); }
+
+        DynUntypedStorage (DynUntypedStorage &&)                        __NE___;
+        DynUntypedStorage&  operator = (DynUntypedStorage &&)           __NE___;
 
         explicit DynUntypedStorage (Bytes size, Bytes align = DefaultAllocatorAlign, IAllocator* alloc = null)  __NE___;
         explicit DynUntypedStorage (SizeAndAlign sizeAndAlign, IAllocator* alloc = null)                        __NE___;
@@ -183,6 +186,23 @@ namespace AE::Base
         _size{0}, _align{0}
     {
         Alloc( sizeAndAlign, allocator );
+    }
+
+    inline DynUntypedStorage::DynUntypedStorage (DynUntypedStorage &&other) __NE___ :
+        _ptr{ other._ptr }, _size{ other._size }, _align{ other._align }
+        DEBUG_ONLY(, _dbgAllocator{ RVRef(other._dbgAllocator) })
+    {
+        other._ptr = null;
+    }
+
+    inline DynUntypedStorage&  DynUntypedStorage::operator = (DynUntypedStorage &&rhs) __NE___
+    {
+        _ptr    = rhs._ptr;
+        _size   = rhs._size;
+        _align  = rhs._align;
+        DEBUG_ONLY( _dbgAllocator = RVRef(rhs._dbgAllocator); )
+        rhs._ptr = null;
+        return *this;
     }
 
 /*

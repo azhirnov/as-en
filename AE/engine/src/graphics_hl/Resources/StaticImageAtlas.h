@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics_hl/GraphicsHL.pch.h"
+#include "graphics/Public/CommandBuffer.h"
 
 #include "AssetPackerImpl.h"
 
@@ -24,7 +24,7 @@ namespace AE::Graphics
         using ImageRects_t  = AssetPacker::ImageAtlasPacker::ImageRects_t;
 
         struct AsyncLoader {
-        /// ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream) __NE___;
+        //  ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream) __NE___;
         };
 
         struct Loader {
@@ -43,14 +43,14 @@ namespace AE::Graphics
 
     // methods
     public:
-        StaticImageAtlas ()                                         __NE___ {}
-        ~StaticImageAtlas ()                                        __NE___;
+        StaticImageAtlas ()                                             __NE___ {}
+        ~StaticImageAtlas ()                                            __NE___;
 
-        bool  Get (const ImageInAtlasName &name, OUT RectI &region) C_NE___;
-        bool  Get (const ImageInAtlasName &name, OUT RectF &region) C_NE___;
+            bool  Get (ImageInAtlasName::Ref name, OUT RectI &region)   C_NE___;
+            bool  Get (ImageInAtlasName::Ref name, OUT RectF &region)   C_NE___;
 
-        ND_ ImageID             GetImageID ()                       C_NE___ { return _imageId; }
-        ND_ ImageViewID         GetViewID ()                        C_NE___ { return _viewId; }
+        ND_ ImageID         GetImageID ()                               C_NE___ { return _imageId; }
+        ND_ ImageViewID     GetViewID ()                                C_NE___ { return _viewId; }
     };
 
 

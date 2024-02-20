@@ -661,8 +661,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
     TIntermSymbol*  coord       = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Coord", TType{type} };
     TIntermBinary*  assign_coord = null;
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( dbgInfo.GetShaderType() )
+        switch_enum( dbgInfo.GetShaderType() )
         {
             case EShLanguage::EShLangVertex :
             case EShLanguage::EShLangTessControl :
@@ -695,7 +694,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
             default :
                 return false;   // unknown
         }
-        END_ENUM_CHECKS();
+        switch_end
         CHECK_ERR( assign_coord );
     }
 

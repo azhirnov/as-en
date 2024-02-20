@@ -16,8 +16,7 @@ namespace
     {
         using EState = IWindow::EState;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( src )
+        switch_enum( src )
         {
             case EState::Unknown :          return AnyEqual( dst, EState::Created,      EState::Destroyed    );
             case EState::Created :          return AnyEqual( dst, EState::Started,      EState::Destroyed    );
@@ -30,7 +29,7 @@ namespace
 
             default :                       return false;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 }
 //-----------------------------------------------------------------------------
@@ -106,8 +105,7 @@ namespace
 
         if_likely( _listener )
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( _wndState )
+            switch_enum( _wndState )
             {
                 case EState::Started :
                     _listener->OnStateChanged( *this, _wndState );
@@ -134,7 +132,7 @@ namespace
                     DBG_WARNING( "unknown state" );
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
     }
 

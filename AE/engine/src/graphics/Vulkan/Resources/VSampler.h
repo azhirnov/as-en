@@ -29,7 +29,7 @@ namespace AE::Graphics
         VSampler ()                                                                         __NE___ {}
         ~VSampler ()                                                                        __NE___;
 
-        ND_ bool  Create (const VResourceManager &, const VkSamplerCreateInfo &,
+        ND_ bool  Create (const VResourceManager &, const SamplerDesc &,
                           const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)   __NE___;
             void  Destroy (VResourceManager &)                                              __NE___;
 
@@ -39,12 +39,20 @@ namespace AE::Graphics
 
         DEBUG_ONLY( ND_ StringView      GetDebugName ()                                     C_NE___ { return Default; })
 
+        ND_ static bool  IsSupported (const VDevice &dev,
+                                      const SamplerDesc &desc,
+                                      const SamplerYcbcrConversionDesc &)                   __NE___;
+        ND_ static bool  IsSupported (const SamplerDesc &desc,
+                                      const SamplerYcbcrConversionDesc &,
+                                      VkFormatFeatureFlags available)                       __NE___;
 
-            static void  ConvertSampler (const SamplerDesc &desc, OUT VkSamplerCreateInfo &info)                                    __NE___;
-            static void  ConvertSampler (const SamplerYcbcrConversionDesc &desc, OUT VkSamplerYcbcrConversionCreateInfo &info)      __NE___;
+        ND_ static bool  ConvertSampler (OUT VkSamplerYcbcrConversionCreateInfo &convCI,
+                                         const SamplerDesc &sampDesc,
+                                         const SamplerYcbcrConversionDesc &ycbcrDesc,
+                                         const VDevice &dev,
+                                         IAllocator &alloc)                                 __NE___;
 
-        ND_ static bool  IsSupported (const VDevice &dev, const VkSamplerCreateInfo &desc)                                          __NE___;
-        ND_ static bool  IsSupported (const VDevice &dev, const VkSamplerCreateInfo &, const VkSamplerYcbcrConversionCreateInfo &)  __NE___;
+    private:
     };
 
 

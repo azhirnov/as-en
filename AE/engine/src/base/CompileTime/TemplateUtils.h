@@ -34,6 +34,15 @@ namespace AE::Base
 
 
     //
+    // Tag
+    //
+
+    template <typename T>
+    struct Tag
+    {};
+
+
+    //
     // Deferred Template Type
     //
 

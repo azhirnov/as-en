@@ -159,8 +159,8 @@
                     d  = SDF_OpSub( d, SDF2_Circle( uv, 0.2 * iRadius ));
           #endif
 
-            float   a  = SmoothStep( 0.02, 0.025, -d*4.0/iRadius );
-            float   b  = SmoothStep( 0.02, 0.025, -d*2.5/iRadius );
+            float   a  = SmoothStep( -d*4.0/iRadius, 0.02, 0.025 );
+            float   b  = SmoothStep( -d*2.5/iRadius, 0.02, 0.025 );
 
             out_Color.rgb *= (1.0 - a);
             out_Color.rgb = Lerp( out_Color.rgb, float3(0.8, 0.0, 1.0), b );

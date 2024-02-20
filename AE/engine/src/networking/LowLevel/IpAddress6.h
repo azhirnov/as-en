@@ -40,7 +40,7 @@ namespace AE::Networking
     private:
         IPv6Bits    _address    = {};   // in network order
         ushort      _port       = 0;
-        ushort      _scopeId    = 0;
+        ushort      _scopeId    = 0;    // in network order
 
 
     // methods
@@ -58,9 +58,14 @@ namespace AE::Networking
         ND_ bool    operator == (const IpAddress6 &rhs)         C_NE___ { return MemEqual( *this, rhs ); }
         ND_ bool    operator <  (const IpAddress6 &rhs)         C_NE___ { return MemLess( *this, rhs ); }
 
+        ND_ bool    EqualAddress (const IpAddress6 &rhs)        C_NE___ { return MemEqual( _address, rhs._address ); }
+
         ND_ String  ToString ()                                 C_Th___;
 
             void    ToNative (OUT AnyTypeRef addr)              C_NE___;
+
+        ND_ HashVal CalcHash ()                                 C_NE___;
+        ND_ HashVal CalcHashOfAddress ()                        C_NE___;
 
 
         ND_ static IpAddress6  FromServiceUDP (NtStringView hostName, NtStringView serviceName) __NE___;

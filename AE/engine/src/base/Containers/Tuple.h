@@ -115,6 +115,10 @@ namespace _hidden_
             return std::apply( FwdArg<Fn>(fn), static_cast<const Base_t &>(*this) );
         }
 
+        template <typename Fn>
+        constexpr void                  ForEach (Fn &fn)            C_Th___ { _ForEach<0>( fn ); }
+
+
     private:
         template <usize I>
         ND_ HashVal  _RecursiveCalcHash ()                          C_NE___
@@ -133,6 +137,14 @@ namespace _hidden_
 
             if constexpr( I+1 < sizeof... (Types) )
                 _RecursiveSet<I+1>( FwdArg<Args>(args)... );
+        }
+
+        template <usize I, typename Fn>
+        constexpr void  _ForEach (Fn &fn)                           C_Th___
+        {
+            fn( Get<I>() );
+            if constexpr( I+1 < sizeof... (Types) )
+                _ForEach<I+1>( fn );
         }
     };
 
@@ -240,7 +252,7 @@ namespace _hidden_
         ND_ constexpr bool  _RecursiveNonNull ()        C_NE___
         {
             if constexpr( I+1 < sizeof...(Types) )
-                return IsNotNull<I>() & _RecursiveNonNull<I+1>();
+                return IsNotNull<I>() and _RecursiveNonNull<I+1>();
             else
                 return IsNotNull<I>();
         }
@@ -249,7 +261,7 @@ namespace _hidden_
         ND_ constexpr bool  _RecursiveNull ()           C_NE___
         {
             if constexpr( I+1 < sizeof...(Types) )
-                return IsNull<I>() & _RecursiveNull<I+1>();
+                return IsNull<I>() and _RecursiveNull<I+1>();
             else
                 return IsNull<I>();
         }

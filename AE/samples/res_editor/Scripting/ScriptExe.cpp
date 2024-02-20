@@ -219,7 +219,7 @@ namespace {
 
         RC<IPass>   ToPass () C_Th_OV
         {
-            return MakeRC<ResEditor::ExportImage>( image->ToResource(), RVRef(prefix) );
+            return MakeRCTh<ResEditor::ExportImage>( image->ToResource(), RVRef(prefix) );
         }
     };
 //-----------------------------------------------------------------------------
@@ -287,8 +287,7 @@ namespace {
         str.reserve( 1024 );
 
         str << "buffer ";
-        BEGIN_ENUM_CHECKS();
-        switch ( _bufferType.Layout() )
+        switch_enum( _bufferType.Layout() )
         {
             case EStructLayout::Compatible_Std140 :
             case EStructLayout::Std140 :            str << "(std140) "; break;
@@ -299,7 +298,7 @@ namespace {
             case EStructLayout::_Count :
             case EStructLayout::Unknown :           break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         str << _bufferType.Typename() << " {\n";
 
         CHECK( _Parse( _bufferType, 0_b, 1 ));
@@ -322,8 +321,7 @@ namespace {
         }
         else
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( field.type )
+            switch_enum( field.type )
             {
                 case EValueType::Bool8 :        str << "bool";          break;
                 case EValueType::Bool32 :       str << "bool";          break;
@@ -346,7 +344,7 @@ namespace {
                 case EValueType::Unknown :
                 case EValueType::_Count :       str << "<unknown>";     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             if ( field.IsVec() )    str << ToString( field.rows );
             if ( field.IsMat() )    str << ToString( field.cols ) << 'x' << ToString( field.rows );
@@ -383,7 +381,7 @@ namespace {
             {
                 const uint  depth2 = depth+1 + uint(array_size > 0);
 
-                for (ulong i = 0, cnt = Max( array_size, 1 ); i < cnt; ++i)
+                for (ulong i = 0, cnt = Max( array_size, 1u ); i < cnt; ++i)
                 {
                     if ( array_size > 0 ) {
                         AppendToString( INOUT str, (depth+1)*2, ' ' );
@@ -408,8 +406,7 @@ namespace {
             }
             else
             {
-                BEGIN_ENUM_CHECKS();
-                switch ( field.type )
+                switch_enum( field.type )
                 {
                     case EValueType::Bool8 :        CHECK_ERR( _ParseVal< bool   >( field, baseOffset, array_size, depth+1 ));  break;
                     case EValueType::Bool32 :       CHECK_ERR( _ParseVal< lbool  >( field, baseOffset, array_size, depth+1 ));  break;
@@ -433,7 +430,7 @@ namespace {
                     case EValueType::_Count :
                     default :                       RETURN_ERR( "unsupported value type" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
 
             if ( array_size > 0 )   { AppendToString( INOUT str, depth*2, ' ' );  str << "} // " << field.name << "[]\n"; }
@@ -453,13 +450,13 @@ namespace {
                                                             const ulong arraySize, const uint depth)
     {
         const bool  is_array    = arraySize > 0;
-        const Bytes elem_size   = field.size / Max( arraySize, 1 );
+        const Bytes elem_size   = field.size / Max( arraySize, 1u );
 
         baseOffset += field.offset;
         ASSERT( baseOffset + field.size <= _memView.DataSize() );
         ASSERT( SizeOf<T> * field.rows * field.cols == elem_size );
 
-        for (ulong i = 0, cnt = Max( arraySize, 1 ); i < cnt; ++i)
+        for (ulong i = 0, cnt = Max( arraySize, 1u ); i < cnt; ++i)
         {
             Bytes   off  = baseOffset + elem_size * i;
             auto    data = _memView.GetRange( off, elem_size );
@@ -822,8 +819,7 @@ namespace {
         for (const auto& slider : data.sliders)
         {
             const uint  idx = slider_idx[ uint(slider.type) ]++;
-            BEGIN_ENUM_CHECKS();
-            switch ( slider.type )
+            switch_enum( slider.type )
             {
                 case ESlider::Int :
                     info.intRange [idx][0]                          = slider.intRange[0];
@@ -847,7 +843,7 @@ namespace {
                 case ESlider::_Count :
                     break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         info.passName = "Global";
@@ -1316,8 +1312,7 @@ namespace {
 
         CHECK_THROW_MSG( idx < UIInteraction::MaxDebugViews );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( flags )
+        switch_enum( flags )
         {
             case DebugView::EFlags::Copy :          rt->AddUsage( EResourceUsage::Transfer );       break;
             case DebugView::EFlags::NoCopy :        rt->AddUsage( EResourceUsage::Present );        break;
@@ -1327,7 +1322,7 @@ namespace {
             case DebugView::EFlags::_Count :
             default :                               CHECK_THROW_MSG( false, "unsupported flags" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         data.passGroup->Add( ScriptBasePassPtr{ new ScriptDbgView{ rt, layer, mipmap, flags, idx }});
     }
@@ -1683,6 +1678,7 @@ namespace {
         ScriptControllerOrbitalCamera::Bind( se );
         ScriptControllerFlightCamera::Bind( se );
         ScriptControllerFPVCamera::Bind( se );
+        ScriptControllerRemoteCamera::Bind( se );
         ScriptControllerFreeCamera::Bind( se );
 
         ScriptBasePass::Bind( se );
@@ -1823,12 +1819,19 @@ namespace {
     {
         EnumBinder<DebugView::EFlags>   binder {se};
         binder.Create();
-        binder.AddValue( "NoCopy",      DebugView::EFlags::NoCopy );
-        binder.AddValue( "Copy",        DebugView::EFlags::Copy );
-        binder.AddValue( "Histogram",   DebugView::EFlags::Histogram );
-        binder.AddValue( "LinearDepth", DebugView::EFlags::LinearDepth );
-        binder.AddValue( "Stencil",     DebugView::EFlags::Stencil );
-        StaticAssert( uint(DebugView::EFlags::_Count) == 5 );
+        switch_enum( DebugView::EFlags::_Count )
+        {
+            case DebugView::EFlags::_Count :
+            #define CASE( _name_ )  case DebugView::EFlags::_name_ : binder.AddValue( #_name_, DebugView::EFlags::_name_ );
+            CASE( NoCopy )
+            CASE( Copy )
+            CASE( Histogram )
+            CASE( LinearDepth )
+            CASE( Stencil )
+            #undef CASE
+            default : break;
+        }
+        switch_end
     }
 
 /*
@@ -2155,14 +2158,13 @@ namespace {
     {
         CHECK_THROW( s_scriptExe != null );
 
-        auto&       cfg = s_scriptExe->_config;
-        const usize cnt = Min( cfg.vfsPaths.size(), cfg.vfsPathPrefixes.size() );
+        auto&   cfg = s_scriptExe->_config;
 
-        for (usize i = 0; i < cnt; ++i)
+        for (auto& [folder, prefix] : cfg.vfsPaths)
         {
-            if ( StartsWith( inPath, cfg.vfsPathPrefixes[i] ))
+            if ( StartsWith( inPath, prefix ))
             {
-                Path    path = cfg.vfsPaths[i] / inPath.substr( cfg.vfsPathPrefixes[i].size() );
+                Path    path = folder / inPath.substr( prefix.size() );
                 if ( FileSystem::IsFile( path ))
                     return FileSystem::ToAbsolute( path );
             }
@@ -2399,6 +2401,7 @@ namespace {
                     float4x4    view;
                     float3      pos;
                     float2      clipPlanes;
+                    float       zoom;
                     float4      frustum [6];
                 )#");
         }

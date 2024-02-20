@@ -1,0 +1,828 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'graphics batch |0| graphics task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'compute batch |0| async compute task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'graphics batch |0| graphics task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'compute batch |0| async compute task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'graphics batch |0| graphics task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-4',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-4',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'compute batch |0| async compute task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'copy task |0| Readback task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [1920000, 3840000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-6',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.graphics'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-11',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-11',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+      queue:   0 ---> 2  (acquire)
+  ----------
+
+  BindPipeline
+    pipeline:  'async_comp1.compute'
+    layout:    '1', DSCount: 1
+    bindPoint: COMPUTE
+  ----------
+
+  Dispatch
+    descriptors:
+    [0] pl: '1'
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (release)
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> FRAGMENT_SHADER
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> SHADER_SAMPLED_READ
+      layout:  GENERAL ---> SHADER_READ_ONLY_OPTIMAL
+      queue:   2 ---> 0  (acquire)
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), COLOR } ---> { [1920000, 3840000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-13',  stage: ALL_COMMANDS
+}
+==================================================

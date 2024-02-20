@@ -14,7 +14,7 @@ struct IntervalProfiler
 // types
 private:
     using Clock_t       = std::chrono::high_resolution_clock;
-    using TimePoint_t   = std::chrono::time_point< Clock_t >;
+    using TimePoint_t   = Clock_t::time_point;
     using Duration_t    = Clock_t::duration;
 
     struct TestInfo

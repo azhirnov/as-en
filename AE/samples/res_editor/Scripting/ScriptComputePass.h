@@ -89,6 +89,7 @@ namespace AE::ResEditor
                                      uint shaderOpts, EPipelineOpt pplnOpt)                             C_Th___;
 
         ND_ static auto  _CreateUBType ()                                                               __Th___;
+        ND_ static auto  _CreatePCType ()                                                               __Th___;
 
     // ScriptBasePass //
         void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;

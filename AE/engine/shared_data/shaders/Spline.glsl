@@ -63,7 +63,7 @@ Gen_CATMULLROM( float, float_vec_t )
     ND_ _type_  QLerp (_type_ p0, _type_ p1, _stype_ t)                     \
     {                                                                       \
         /* SmoothStep() - Hermite interpolation */                          \
-        return Lerp( p0, p1, SmoothStep( _stype_(0.0), _stype_(1.0), t ));  \
+        return Lerp( p0, p1, SmoothStep( t, _stype_(0.0), _stype_(1.0) ));  \
     }
 
 #define Gen_QLERP( _stype_, _vtype_ )   \

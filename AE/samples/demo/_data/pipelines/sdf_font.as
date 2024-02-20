@@ -33,14 +33,11 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file     = "sdf_font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/sdf_font.glsl)
-        vs.options  = EShaderOpt::Optimize;
+        vs.file = "sdf_font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/sdf_font.glsl)
         ppln.SetVertexShader( vs );
-    }
-    {
+    }{
         RC<Shader>  fs = Shader();
-        fs.file     = "sdf_font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/sdf_font.glsl)
-        fs.options  = EShaderOpt::Optimize;
+        fs.file = "sdf_font.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/sdf_font.glsl)
         ppln.SetFragmentShader( fs );
     }
 

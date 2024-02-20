@@ -347,6 +347,22 @@ namespace AE::RG::_hidden_
 
 /*
 =================================================
+    _AddResource (VideoImageID)
+=================================================
+*/
+    bool  ResStateTracker::_AddResource (VideoImageID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+    {
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
+        auto*   res         = res_mngr.GetResource( id );
+
+        if ( res != null )
+            return _AddResource( res->GetImageID(), currentState, defaultState, batch, queue );
+
+        return false;
+    }
+
+/*
+=================================================
     _AddResource2
 =================================================
 */
@@ -411,12 +427,12 @@ namespace AE::RG::_hidden_
     bool  ResStateTracker::_ReleaseResource (INOUT ID &id) __NE___
     {
         auto    tmp = id.Get();
-        bool    res = _ResMngr().ReleaseResource( INOUT id );
+        bool    ok  = _ResMngr().ReleaseResource( INOUT id );
 
-        if ( res )
+        if ( ok )
             RemoveResource( tmp );
 
-        return res;
+        return ok;
     }
 
     bool  ResStateTracker::ReleaseResource (INOUT Strong<ImageID>       &id) __NE___ { return _ReleaseResource( id ); }
@@ -425,6 +441,19 @@ namespace AE::RG::_hidden_
     bool  ResStateTracker::ReleaseResource (INOUT Strong<RTSceneID>     &id) __NE___ { return _ReleaseResource( id ); }
     bool  ResStateTracker::ReleaseResource (INOUT Strong<ImageViewID>   &id) __NE___ { return _ResMngr().ReleaseResource( INOUT id ); }
     bool  ResStateTracker::ReleaseResource (INOUT Strong<BufferViewID>  &id) __NE___ { return _ResMngr().ReleaseResource( INOUT id ); }
+
+    bool  ResStateTracker::ReleaseResource (INOUT Strong<VideoImageID>  &id) __NE___
+    {
+        auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
+        auto*   res         = res_mngr.GetResource( id );
+        ImageID img         = (res != null ? res->GetImageID() : Default);
+        bool    ok          = res_mngr.ReleaseResource( INOUT id );
+
+        if ( ok )
+            RemoveResource( img );
+
+        return ok;
+    }
 
 /*
 =================================================

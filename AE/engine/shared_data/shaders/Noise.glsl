@@ -38,7 +38,7 @@ ND_ float  SimplexNoise (const float3 pos);                                     
 
 struct VoronoiResult2
 {
-    float2  icenter;
+    float2  icenter;    // range: floor(coord) +-1
     float2  offset;     // ceil center = icenter + offset
     float   minDist;    // squared distance in range [0..inf]
 };
@@ -46,7 +46,7 @@ ND_ VoronoiResult2  Voronoi (const float2 coord, const float2 seedScaleBias);
 
 struct VoronoiResult3
 {
-    float3  icenter;
+    float3  icenter;    // range: floor(coord) +-1
     float3  offset;     // ceil center = icenter + offset
     float   minDist;    // squared distance in range [0..inf]
 };
@@ -226,7 +226,6 @@ float3  Turbulence2 (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const
 //-----------------------------------------------------------------------------
 
 
-// range [0..inf]
 VoronoiResult2  Voronoi (const float2 coord, const float2 seedScaleBias)
 {
     float2  ipoint  = Floor( coord );
@@ -253,7 +252,6 @@ VoronoiResult2  Voronoi (const float2 coord, const float2 seedScaleBias)
     return result;
 }
 
-// range [0..inf]
 VoronoiResult3  Voronoi (const float3 coord, const float2 seedScaleBias)
 {
     float3  ipoint  = Floor( coord );

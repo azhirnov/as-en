@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Math/BitMath.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
 #   define AE_PC_API    AE_DLL_EXPORT
@@ -20,8 +20,10 @@ namespace AE::PipelineCompiler
 
     enum class EPathParamsFlags : uint
     {
-        Unknown                     = 0,
-        Recursive                   = 1 << 0,
+        Unknown                     = 0,        // auto-detect
+        File                        = 1 << 0,
+        Folder                      = 1 << 1,
+        RecursiveFolder             = 1 << 2,
         _Last,
         All                         = ((_Last - 1) << 1) - 1,
     };
@@ -58,9 +60,7 @@ namespace AE::PipelineCompiler
     struct PipelinesInfo
     {
         // input pipelines
-        const PathParams *      pipelineFolders         = null;     // [pipelineFolderCount]
-        usize                   pipelineFolderCount     = 0;
-        const PathParams *      inPipelines             = null;     // [inPipelineCount]
+        const PathParams *      inPipelines             = null;     // [inPipelineCount]    // files or folders
         usize                   inPipelineCount         = 0;
 
         // input shaders

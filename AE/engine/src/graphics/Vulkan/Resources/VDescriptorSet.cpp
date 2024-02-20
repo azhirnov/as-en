@@ -59,7 +59,7 @@ namespace AE::Graphics
     {
         DRC_EXLOCK( _drCheck );
 
-        if ( (_allocator != null) & (_descrSet.handle != Default) )
+        if ( (_allocator != null) and (_descrSet.handle != Default) )
         {
             _allocator->Deallocate( _layoutId, INOUT _descrSet );
         }

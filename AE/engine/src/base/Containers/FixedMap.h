@@ -15,7 +15,6 @@
 #include "base/Algorithms/Cast.h"
 #include "base/Containers/ArrayView.h"
 #include "base/Memory/CopyPolicy.h"
-#include "base/Math/Math.h"
 #include "base/Math/Vec.h"
 #include "base/CompileTime/TypeList.h"
 
@@ -86,7 +85,7 @@ namespace AE::Base
             Iter&  operator = (Iter &&)                 __NE___ = default;
 
             ND_ bool  operator != (const Iter &rhs)     C_NE___ { return not (*this == rhs); }
-            ND_ bool  operator == (const Iter &rhs)     C_NE___ { return (_mapPtr == rhs._mapPtr) & (_index == rhs._index); }
+            ND_ bool  operator == (const Iter &rhs)     C_NE___ { return (_mapPtr == rhs._mapPtr) and (_index == rhs._index); }
 
             ND_ explicit operator bool ()               C_NE___ { return _mapPtr != null; }
 
@@ -347,7 +346,7 @@ namespace AE::Base
             Index_t lhs_idx = _indices[i];
             Index_t rhs_idx = rhs._indices[i];
 
-            if_unlikely( not ((_keyArray[lhs_idx] == rhs._keyArray[rhs_idx]) &
+            if_unlikely( not ((_keyArray[lhs_idx] == rhs._keyArray[rhs_idx]) and
                               (_valArray[lhs_idx] == rhs._valArray[rhs_idx])) )
                 return false;
         }

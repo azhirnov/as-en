@@ -20,12 +20,11 @@ ND_ bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, cons
 */
 bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, const float radius)
 {
-    bool  is_visible = true;
+    float  invisible = 0.f;
     for (int i = 0; i < 6; ++i)
     {
         float   d = Dot( center, frustum[i].xyz ) + frustum[i].w;
-        if ( d < -radius )
-            is_visible = false;
+        invisible += float(d < -radius);
     }
-    return is_visible;
+    return invisible <= 0.f;
 }

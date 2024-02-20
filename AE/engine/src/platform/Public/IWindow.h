@@ -56,11 +56,11 @@ namespace AE::App
     // Window interface
     //
 
-    class IWindow
+    class NO_VTABLE IWindow
     {
     // types
     public:
-        class IWndListener : public NothrowAllocatable
+        class NO_VTABLE IWndListener : public NothrowAllocatable
         {
         // types
         public:
@@ -80,9 +80,11 @@ namespace AE::App
         public:
             virtual ~IWndListener ()                                        __NE___ {}
 
+            //   Thread safe: main thread only
             virtual void  OnSurfaceCreated (IWindow &wnd)                   __NE___ = 0;
             virtual void  OnSurfaceDestroyed (IWindow &wnd)                 __NE___ = 0;
 
+            //   Thread safe: main thread only
             virtual void  OnStateChanged (IWindow &wnd, EState state)       __NE___ = 0;
         };
 
@@ -128,6 +130,8 @@ namespace AE::App
         //   Thread safe: no
         //
         ND_ virtual EWindowMode  GetCurrentMode ()                                  C_NE___ = 0;
+        ND_ bool                 IsFullscreenMode ()                                C_NE___ { return EWindowMode_IsFullscreen( GetCurrentMode() ); }
+        ND_ bool                 IsWindowedMode ()                                  C_NE___ { return not IsFullscreenMode(); }
 
 
     // surface api
@@ -155,6 +159,12 @@ namespace AE::App
         //   Thread safe: main thread only
         //
         virtual void  SetSize (const uint2 &size)                                   __NE___ = 0;
+
+        void  SetSize (const uint2 &size, float targetPPI)                          __NE___
+        {
+            ASSERT( targetPPI > 0.f );
+            return SetSize( uint2{ float2{size} * GetMonitor().ppi / targetPPI + 0.5f });
+        }
 
         // Set window position.
         //   Thread safe: main thread only

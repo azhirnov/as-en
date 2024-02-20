@@ -18,7 +18,7 @@ namespace AE::App
     private:
         using Duration_t    = IApplication::Duration_t;
         using InputKey      = InputActionsBase::InputKey;
-        using GestureBits_t = EnumBitSet< EGestureType >;
+        using GestureBits_t = EnumSet< EGestureType >;
 
         struct Touch
         {
@@ -59,6 +59,7 @@ namespace AE::App
         }                   _tapRecognizer;
 
         struct {
+            EGestureType        type            = Default;
             EGestureState       state           = Default;
             ubyte               touchIdx        = UMax;
 
@@ -73,20 +74,20 @@ namespace AE::App
             float               rotate          = 0.f;
         }                   _twoTouchRecognizer;
 
-        const ushort        _keyTouchPosPx;
-        const ushort        _keyTouchPosMm;
-        const ushort        _keyTouchDeltaPx;
-        const ushort        _keyTouchDeltaNorm;
-        const ushort        _keyMultiTouch;
+        const ushort        _touchPosPxCode;
+        const ushort        _touchPosMmCode;
+        const ushort        _touchDeltaPxCode;
+        const ushort        _touchDeltaNormCode;
+        const ushort        _multiTouchCode;
 
         static const auto   _id                 = ControllerID::Touchscreen;
 
 
     // methods
     public:
-        GestureRecognizer (ushort keyTouchPosPx, ushort keyTouchPosMm,
-                           ushort keyTouchDeltaPx, ushort keyTouchDeltaNorm,
-                           ushort keyMultiTouch)                                                    __NE___;
+        GestureRecognizer (ushort touchPosPxCode, ushort touchPosMmCode,
+                           ushort touchDeltaPxCode, ushort touchDeltaNormCode,
+                           ushort multiTouchCode)                                                   __NE___;
 
         void  Update (Duration_t timestamp, InputActionsBase &ia)                                   __NE___;
         void  SetTouch (uint id, const float2 posInPx, EGestureState state, Duration_t timestamp)   __NE___;

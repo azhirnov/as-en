@@ -284,32 +284,32 @@ namespace AE::Graphics
         ND_ DeviceAddress           GetDeviceAddress (RTGeometryID  id)                                                                             C_NE_OV;
 
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          GraphicsPipelineID ppln, const DescriptorSetName &dsName,
+                                                          GraphicsPipelineID ppln, DescriptorSetName::Ref dsName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          MeshPipelineID ppln, const DescriptorSetName &dsName,
+                                                          MeshPipelineID ppln, DescriptorSetName::Ref dsName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          ComputePipelineID ppln, const DescriptorSetName &dsName,
+                                                          ComputePipelineID ppln, DescriptorSetName::Ref dsName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          RayTracingPipelineID ppln, const DescriptorSetName &dsName,
+                                                          RayTracingPipelineID ppln, DescriptorSetName::Ref dsName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          TilePipelineID ppln, const DescriptorSetName &dsName,
+                                                          TilePipelineID ppln, DescriptorSetName::Ref dsName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
 
         ND_ bool                    CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
-                                                          PipelinePackID packId, const DSLayoutName &dslName,
+                                                          PipelinePackID packId, DSLayoutName::Ref dslName,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
         ND_ bool                    CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId,
                                                           DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                    __NE_OV;
 
-        ND_ PushConstantIndex       GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
-        ND_ PushConstantIndex       GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
-        ND_ PushConstantIndex       GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
-        ND_ PushConstantIndex       GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
-        ND_ PushConstantIndex       GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE_OV;
+        ND_ PushConstantIndex       GetPushConstantIndex (GraphicsPipelineID   ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)  __NE_OV;
+        ND_ PushConstantIndex       GetPushConstantIndex (MeshPipelineID       ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)  __NE_OV;
+        ND_ PushConstantIndex       GetPushConstantIndex (ComputePipelineID    ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)  __NE_OV;
+        ND_ PushConstantIndex       GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)  __NE_OV;
+        ND_ PushConstantIndex       GetPushConstantIndex (TilePipelineID       ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)  __NE_OV;
 
         using IResourceManager::GetPushConstantIndex;
 
@@ -318,11 +318,11 @@ namespace AE::Graphics
         ND_ NativeBufferView_t      GetBufferViewHandle (BufferViewID id)                                                                           C_NE_OV;
         ND_ NativeImageView_t       GetImageViewHandle (ImageViewID id)                                                                             C_NE_OV;
 
-        ND_ SamplerID               GetSampler (const SamplerName &name)                                                                            C_NE___;
+        ND_ SamplerID               GetSampler (PipelinePackID packId, SamplerName::Ref name)                                                       C_NE___;
 
-        ND_ RenderPassID            GetCompatibleRenderPass (PipelinePackID packId, const CompatRenderPassName &name)                               C_NE___;
-        ND_ RenderPassID            GetCompatibleRenderPass (PipelinePackID packId, const RenderPassName &name)                                     C_NE___;
-        ND_ RenderPassID            GetRenderPass (PipelinePackID packId, const RenderPassName &name)                                               C_NE___;
+        ND_ RenderPassID            GetCompatibleRenderPass (PipelinePackID packId, CompatRenderPassName::Ref name)                                 C_NE___;
+        ND_ RenderPassID            GetCompatibleRenderPass (PipelinePackID packId, RenderPassName::Ref name)                                       C_NE___;
+        ND_ RenderPassID            GetRenderPass (PipelinePackID packId, RenderPassName::Ref name)                                                 C_NE___;
 
         ND_ Strong<PipelineCacheID>     CreatePipelineCache ()                                                                                      __NE_OV;
 
@@ -330,14 +330,14 @@ namespace AE::Graphics
         ND_ Strong<VideoBufferID>       CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)  __NE_OV;
         ND_ Strong<VideoImageID>        CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)    __NE_OV;
 
-        ND_ AsyncRTechPipelines         LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)              __NE_OV;
-        ND_ RenderTechPipelinesPtr      LoadRenderTech      (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)              __NE_OV;
+        ND_ AsyncRTechPipelines         LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache)                __NE_OV;
+        ND_ RenderTechPipelinesPtr      LoadRenderTech      (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache)                __NE_OV;
 
-        ND_ Strong<GraphicsPipelineID>  CreateGraphicsPipeline   (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache = Default) __NE_OV;
-        ND_ Strong<MeshPipelineID>      CreateMeshPipeline       (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc       &desc, PipelineCacheID cache = Default) __NE_OV;
-        ND_ Strong<ComputePipelineID>   CreateComputePipeline    (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache = Default) __NE_OV;
-        ND_ Strong<RayTracingPipelineID>CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache = Default) __NE_OV;
-        ND_ Strong<TilePipelineID>      CreateTilePipeline       (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache = Default) __NE_OV;
+        ND_ Strong<GraphicsPipelineID>  CreateGraphicsPipeline   (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache = Default)   __NE_OV;
+        ND_ Strong<MeshPipelineID>      CreateMeshPipeline       (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc       &desc, PipelineCacheID cache = Default)   __NE_OV;
+        ND_ Strong<ComputePipelineID>   CreateComputePipeline    (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc    &desc, PipelineCacheID cache = Default)   __NE_OV;
+        ND_ Strong<RayTracingPipelineID>CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cache = Default)   __NE_OV;
+        ND_ Strong<TilePipelineID>      CreateTilePipeline       (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc       &desc, PipelineCacheID cache = Default)   __NE_OV;
 
             bool    GetMemoryInfo (ImageID  id, OUT NativeMemObjInfo_t &info)                           C_NE_OV;
             bool    GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)                           C_NE_OV;
@@ -402,7 +402,7 @@ namespace AE::Graphics
 
         template <usize IS, usize GS, uint UID>
         ND_ bool                    IsAlive (HandleTmpl<IS,GS,UID> id)                                  C_NE___;
-        ND_ bool                    IsAlive (const SamplerName &name)                                   C_NE___;
+    //  ND_ bool                    IsAlive (SamplerName::Ref name)                                     C_NE___;
 
         ND_ bool                    IsResourceAlive (BufferID           id)                             C_NE_OV { return IsAlive( id ); }
         ND_ bool                    IsResourceAlive (ImageID            id)                             C_NE_OV { return IsAlive( id ); }
@@ -496,12 +496,12 @@ namespace AE::Graphics
 
         template <typename PplnID>
         ND_ bool  _CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-                                         const PplnID &pplnId, const DescriptorSetName &dsName,
+                                         const PplnID &pplnId, DescriptorSetName::Ref dsName,
                                          DescriptorAllocatorPtr allocator, StringView dbgName) __NE___;
 
         template <typename PplnID>
-        ND_ PushConstantIndex  _GetPushConstantIndex (PplnID ppln, const PushConstantName &pcName,
-                                                      const ShaderStructName &typeName, Bytes dataSize) __NE___;
+        ND_ PushConstantIndex  _GetPushConstantIndex (PplnID ppln, PushConstantName::Ref pcName,
+                                                      ShaderStructName::Ref typeName, Bytes dataSize) __NE___;
 
     // resource pool
         ND_ auto&       _GetResourcePool (const BufferID &)                     __NE___ { return _resPool.buffers; }
@@ -599,9 +599,9 @@ namespace AE::Graphics
 
         ND_ Strong<PipelineCacheID> LoadPipelineCache (RC<RStream> stream)                                                  __NE___;
 
-        ND_ Strong<SamplerID>       CreateSampler (const VkSamplerCreateInfo &, const VkSamplerYcbcrConversionCreateInfo *,
-                                                   StringView dbgName = Default)                                            __NE___;
-        ND_ VkSampler               GetVkSampler (const SamplerName &name)                                                  C_NE___;
+        ND_ Strong<SamplerID>       CreateSampler (const SamplerDesc &, StringView dbgName = Default,
+                                                    const VkSamplerYcbcrConversionCreateInfo * = null)                      __NE___;
+        ND_ VkSampler               GetVkSampler (PipelinePackID packId, SamplerName::Ref name)                             C_NE___;
 
         ND_ Strong<RenderPassID>    CreateRenderPass (const SerializableRenderPassInfo &, const SerializableVkRenderPass &,
                                                       RenderPassID compatId, StringView dbgName = Default)                  __NE___;
@@ -630,7 +630,7 @@ namespace AE::Graphics
 
         ND_ Strong<PipelineCacheID> LoadPipelineCache (const Path &filename)                                                __NE___;
 
-        ND_ MetalSampler            GetMtlSampler (const SamplerName &name)                                                 C_NE___;
+        ND_ MetalSampler            GetMtlSampler (PipelinePackID packId, SamplerName::Ref name)                            C_NE___;
         ND_ Strong<SamplerID>       CreateSampler (const SamplerDesc &desc, StringView dbgName)                             __NE___;
 
         ND_ Strong<RenderPassID>    CreateRenderPass (const SerializableRenderPassInfo &, const SerializableMtlRenderPass &,
@@ -789,7 +789,7 @@ namespace AE::Graphics
 
         if_likely( auto* res = pool.At( id.Index() ))
         {
-            if_likely( res->IsCreated() & (res->GetGeneration() == id.Generation()) )
+            if_likely( res->IsCreated() and (res->GetGeneration() == id.Generation()) )
             {
                 // Without ref increment access to the resource is not safe,
                 // but resource is still alive because of delayed destruction.

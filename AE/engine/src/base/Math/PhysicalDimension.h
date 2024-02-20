@@ -7,7 +7,6 @@
 namespace AE::Math
 {
 
-
     //
     // Physical Dimension
     //
@@ -30,9 +29,9 @@ namespace AE::Math
         StaticAssert( AmperasDenom      > 0 );
         StaticAssert( KelvinsDenom      > 0 );
         StaticAssert( MolesDenom        > 0 );
-        StaticAssert( CandelasDenom > 0 );
-        StaticAssert( CurrencyDenom > 0 );
-        StaticAssert( BitsDenom     > 0 );
+        StaticAssert( CandelasDenom     > 0 );
+        StaticAssert( CurrencyDenom     > 0 );
+        StaticAssert( BitsDenom         > 0 );
 
         //              SI
         static constexpr FractionalI    seconds     { SecondsNum,   SecondsDenom };     // time
@@ -65,7 +64,7 @@ namespace AE::Math
                 (seconds + Rhs::seconds),  (kilograms + Rhs::kilograms),  (meters + Rhs::meters),      (amperes + Rhs::amperes),
                 (kelvins + Rhs::kelvins),  (moles + Rhs::moles),          (candelas + Rhs::candelas),  (currency + Rhs::currency),  (bits + Rhs::bits)
             };
-            using type = TPhysicalDimension<    values[0].num, values[0].den,
+            using type = TPhysicalDimension<values[0].num, values[0].den,
                                             values[1].num, values[1].den,
                                             values[2].num, values[2].den,
                                             values[3].num, values[3].den,
@@ -83,7 +82,7 @@ namespace AE::Math
                 (seconds - Rhs::seconds),  (kilograms - Rhs::kilograms),  (meters - Rhs::meters),      (amperes - Rhs::amperes),
                 (kelvins - Rhs::kelvins),  (moles - Rhs::moles),          (candelas - Rhs::candelas),  (currency - Rhs::currency),  (bits - Rhs::bits)
             };
-            using type = TPhysicalDimension<    values[0].num, values[0].den,
+            using type = TPhysicalDimension<values[0].num, values[0].den,
                                             values[1].num, values[1].den,
                                             values[2].num, values[2].den,
                                             values[3].num, values[3].den,
@@ -97,7 +96,7 @@ namespace AE::Math
 
         template <uint value>
         struct _Pow {
-            using type = TPhysicalDimension<    seconds  .num * value,  seconds  .den,
+            using type = TPhysicalDimension<seconds  .num * value,  seconds  .den,
                                             kilograms.num * value,  kilograms.den,
                                             meters   .num * value,  meters   .den,
                                             amperes  .num * value,  amperes  .den,
@@ -143,7 +142,7 @@ namespace AE::Math
                   int CurrencyNum,  int CurrencyDenom,
                   int BitsNum,      int BitsDenom
                 >
-        struct _IsPhysicalDimension< TPhysicalDimension<        SecondsNum,     SecondsDenom,
+        struct _IsPhysicalDimension< TPhysicalDimension<    SecondsNum,     SecondsDenom,
                                                             KilogramsNum,   KilogramsDenom,
                                                             MetersNum,      MetersDenom,
                                                             AmperasNum,     AmperasDenom,
@@ -178,6 +177,7 @@ namespace AE::Math
         using Currency                  = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;   // $
         using Bit                       = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;   // bit
 
+        using Diopter                   = NonDimensional::Div< Meter >;                         // 1/m
         using Radian                    = NonDimensional;                                       // rad = m / m      - planar angle  - SI
         using Steradian                 = NonDimensional;                                       // sr = m^2 / m^2   - 3D angle      - SI
         using SquareMeter               = Meter::Pow< 2 >;                                      // m^2
@@ -234,31 +234,31 @@ namespace AE::Math
     //
 
     template <typename T>
-    static constexpr bool   IsTimeUnits             = T::Dimension_t::template Equal< DefaultPhysicalDimensions::Second >::value;
+    static constexpr bool   IsTimeUnits             = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Second >;
 
     template <typename T>
-    static constexpr bool   IsMassUnits             = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Kilogram >::value;
+    static constexpr bool   IsMassUnits             = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Kilogram >;
 
     template <typename T>
-    static constexpr bool   IsDistanceUnits         = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Meter >::value;
+    static constexpr bool   IsDistanceUnits         = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Meter >;
 
     template <typename T>
-    static constexpr bool   IsElectricCurrentUnits  = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Ampere >::value;
+    static constexpr bool   IsElectricCurrentUnits  = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Ampere >;
 
     template <typename T>
-    static constexpr bool   IsTemperatureUnits      = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Kelvin >::value;
+    static constexpr bool   IsTemperatureUnits      = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Kelvin >;
 
     template <typename T>
-    static constexpr bool   IsSubstanceAmountUnits  = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Mole >::value;
+    static constexpr bool   IsSubstanceAmountUnits  = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Mole >;
 
     template <typename T>
-    static constexpr bool   IsLuminousIntensityUnits= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Candela >::value;
+    static constexpr bool   IsLuminousIntensityUnits= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Candela >;
 
     template <typename T>
-    static constexpr bool   IsCurrencyUnits         = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Currency >::value;
+    static constexpr bool   IsCurrencyUnits         = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Currency >;
 
     template <typename T>
-    static constexpr bool   IsInformationUnits      = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Bit >::value;
+    static constexpr bool   IsInformationUnits      = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Bit >;
 
 
     //
@@ -266,13 +266,13 @@ namespace AE::Math
     //
 
     template <typename T>
-    static constexpr bool   IsDensityUnits          = T::Dimension_t::template Equal< DefaultPhysicalDimensions::KilogramPerCubicMeter >::value;
+    static constexpr bool   IsDensityUnits          = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::KilogramPerCubicMeter >;
 
     template <typename T>
-    static constexpr bool   IsVelocityUnits         = T::Dimension_t::template Equal< DefaultPhysicalDimensions::MeterPerSecond >::value;
+    static constexpr bool   IsVelocityUnits         = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::MeterPerSecond >;
 
     template <typename T>
-    static constexpr bool   IsAccelerationUnits     = T::Dimension_t::template Equal< DefaultPhysicalDimensions::MeterPerSquareSecond >::value;
+    static constexpr bool   IsAccelerationUnits     = T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::MeterPerSquareSecond >;
 
 
     //
@@ -280,7 +280,7 @@ namespace AE::Math
     //
 
     template <typename T1, typename T2>
-    static constexpr bool   IsSameDimensions        = T1::Dimension_t::template Equal< T2::Dimension_t >::value;
+    static constexpr bool   IsSameDimensions        = T1::Dimension_t::template Equal< typename T2::Dimension_t >;
 
 
 } // AE::Math

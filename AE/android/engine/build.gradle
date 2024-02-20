@@ -4,8 +4,8 @@ android {
     compileSdk 34
 
     defaultConfig {
-        minSdkVersion 		24 // 24+ for vulkan
-        targetSdkVersion 	34
+        minSdkVersion       24 // 24+ for vulkan
+        targetSdkVersion    34
     }
 
     buildTypes {

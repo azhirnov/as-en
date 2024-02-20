@@ -47,7 +47,7 @@ namespace
 */
     ScriptVideoImage::~ScriptVideoImage ()
     {
-        if ( not _resource )
+        if ( IsNullUnion( _resource ))
             AE_LOG_SE( "Unused VideoImage '"s << _dbgName << "'" );
     }
 
@@ -86,6 +86,58 @@ namespace
 
 /*
 =================================================
+    Ycbcr_*
+=================================================
+*/
+    void  ScriptVideoImage::Ycbcr_SetFormat (EPixelFormat value) __Th___
+    {
+        _ycbcrDesc.format = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetModel (ESamplerYcbcrModelConversion value) __Th___
+    {
+        _ycbcrDesc.ycbcrModel = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetRange (ESamplerYcbcrRange value) __Th___
+    {
+        _ycbcrDesc.ycbcrRange = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetComponents (const String &value) __Th___
+    {
+        CHECK_THROW_MSG( not value.empty() );
+
+        _ycbcrDesc.components = ImageSwizzle::FromString( value.data(), value.size() );
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetXChromaOffset (ESamplerChromaLocation value) __Th___
+    {
+        _ycbcrDesc.xChromaOffset = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetYChromaOffset (ESamplerChromaLocation value) __Th___
+    {
+        _ycbcrDesc.yChromaOffset = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_SetChromaFilter (EFilter value) __Th___
+    {
+        _ycbcrDesc.chromaFilter = value;
+    }
+
+    void  ScriptVideoImage::Ycbcr_ForceExplicitReconstruction (bool value) __Th___
+    {
+        _ycbcrDesc.forceExplicitReconstruction = value;
+    }
+
+    void  ScriptVideoImage::SetSampler (const String &name) __Th___
+    {
+        _sampName = name;
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -97,10 +149,37 @@ namespace
         binder.AddFactoryCtor( &ScriptVideoImage_Ctor2,     {"format", "videoFilePath"} );
 
         binder.Comment( "Set resource name. It is used for debugging." );
-        binder.AddMethod( &ScriptVideoImage::Name,      "Name",         {} );
+        binder.AddMethod( &ScriptVideoImage::Name,                              "Name",                             {} );
 
         binder.Comment( "Returns dynamic dimension of the image" );
-        binder.AddMethod( &ScriptVideoImage::Dimension, "Dimension",    {} );
+        binder.AddMethod( &ScriptVideoImage::Dimension,                         "Dimension",                        {} );
+
+        binder.AddMethod( &ScriptVideoImage::SetSampler,                        "Sampler",                          {} );
+
+        binder.Comment( "Set Ycbcr format. Requires multiplanar format." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetFormat,                   "Ycbcr_Format",                     {} );
+
+        binder.Comment( "Set Ycbcr model conversion." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetModel,                    "Ycbcr_Model",                      {} );
+
+        binder.Comment( "Set Ycbcr range." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetRange,                    "Ycbcr_Range",                      {} );
+
+        binder.Comment( "Set Ycbcr component swizzle.\n"
+                        "Format: 'ARGB', 'R001'." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetComponents,               "Ycbcr_Components",                 {} );
+
+        binder.Comment( "Set Ycbcr X chroma location." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetXChromaOffset,            "Ycbcr_XChromaOffset",              {} );
+
+        binder.Comment( "Set Ycbcr Y chroma location." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetYChromaOffset,            "Ycbcr_YChromaOffset",              {} );
+
+        binder.Comment( "Set Ycbcr Y chroma filter." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_SetChromaFilter,             "Ycbcr_ChromaFilter",               {} );
+
+        binder.Comment( "Set Ycbcr force explicit reconstruction." );
+        binder.AddMethod( &ScriptVideoImage::Ycbcr_ForceExplicitReconstruction, "Ycbcr_ForceExplicitReconstruction", {} );
     }
 
 /*
@@ -108,9 +187,9 @@ namespace
     ToResource
 =================================================
 */
-    RC<VideoImage>  ScriptVideoImage::ToResource () __Th___
+    ScriptVideoImage::VideImage_t  ScriptVideoImage::ToResource (PipelinePackID packId) __Th___
     {
-        if ( _resource )
+        if ( not IsNullUnion( _resource ))
             return _resource;
 
         ImageDesc   desc;
@@ -120,8 +199,7 @@ namespace
         CHECK_ERR( _resUsage != Default );
         for (auto usage : BitfieldIterate( _resUsage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( usage )
+            switch_enum( usage )
             {
                 case EResourceUsage::ComputeRead :
                 case EResourceUsage::ComputeWrite :     desc.usage |= EImageUsage::Storage;     break;
@@ -145,13 +223,95 @@ namespace
                 case EResourceUsage::WithHistory :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
-        _resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), _dbgName );
+        if ( HasYcbcrSampler() )
+        {
+            CHECK_THROW_MSG( not _ycbcrSampName.empty() );
+            _resource = MakeRCTh<VideoImage2>( renderer, desc, _videoFile, _outDynSize->Get(), SamplerName{_ycbcrSampName}, packId, _dbgName );
+        }
+        else{
+            _resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), _dbgName );
+        }
         return _resource;
+    }
+
+/*
+=================================================
+    Validate
+=================================================
+*/
+    void  ScriptVideoImage::Validate (String sampName) __Th___
+    {
+        if ( HasYcbcrSampler() )
+        {
+            _CreateYcbcrSampler( sampName );
+        }
+        else
+        {
+            CHECK_THROW_MSG( not IsNullUnion( ToResource( Default )));
+        }
+    }
+
+/*
+=================================================
+    _CreateYcbcrSampler
+=================================================
+*/
+    void  ScriptVideoImage::_CreateYcbcrSampler (String sampName) __Th___
+    {
+        using namespace AE::PipelineCompiler;
+
+        if ( sampName.empty() )
+            sampName = _sampName;
+
+        auto    obj_storage = ObjectStorage::Instance();
+
+        CHECK_THROW_MSG( obj_storage != null );
+        CHECK_THROW_MSG( HasYcbcrSampler() );
+
+        auto    it = obj_storage->samplerMap.find( sampName );
+        CHECK_THROW_MSG( it != obj_storage->samplerMap.end(),
+            "origin sampler '"s << sampName << "' is not exists" );
+
+        ScriptSamplerPtr    src_samp = obj_storage->samplerRefs[ it->second ];
+        CHECK_THROW_MSG( not src_samp->HasYcbcr(),
+            "origin sampler must not be ycbcr sampler" );
+
+        const auto  GetUniqueName = [obj_storage] () -> String
+        {{
+            String  name;
+            for (usize i = 0; i < 100'000; i += 100)
+            {
+                name = "ycbcr-"s << ToString(i);
+
+                if ( not obj_storage->samplerMap.contains( name ))
+                {
+                    usize       j   = (i == 0 ? 0 : i-100);
+                    const usize max = (i == 0 ? 100 : i);
+
+                    for (; j < max; ++j)
+                    {
+                        name = "ycbcr-"s << ToString(i);
+
+                        if ( not obj_storage->samplerMap.contains( name ))
+                            return name;
+                    }
+                }
+            }
+            CHECK_THROW_MSG( false, "can't find unique name for sampler" );
+        }};
+        const String    name = GetUniqueName();
+
+        ScriptSamplerPtr    sampler {new ScriptSampler{ name }};
+
+        sampler->SetDesc( src_samp->Desc() );
+        sampler->SetYcbcrDesc( GetYcbcrDesc() );
+
+        _ycbcrSampName = name;
     }
 
 

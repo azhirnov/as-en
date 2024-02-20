@@ -57,6 +57,9 @@ namespace AE::Base
         template <template <typename> class Tmpl>
         using                           Apply_t             = TypeList< typename Tmpl< Types >::type ... >;
 
+        template <template <typename ...> class Tmpl>
+        using                           Transform           = Tmpl< Types... >;
+
         template <template <typename> class Tmpl>
         static constexpr auto           ForEach_Or ()       __NE___ { return (... or Tmpl<Types>::value); }
 

@@ -56,9 +56,9 @@ namespace AE::Graphics
         //
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
-            Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Byte32u                                                     offset;
-            Byte32u                                                     dataSize;
+            mutable Threading::RWSpinLock                               guard;      // protects 'module', 'dbgTrace', 'constants'
+            Bytes32u                                                    offset;
+            Bytes32u                                                    dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
 
             // initialized in '_GetShader()':
@@ -89,8 +89,8 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
             Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Byte32u                                                     offset;
-            Byte32u                                                     dataSize;
+            Bytes32u                                                    offset;
+            Bytes32u                                                    dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
             mutable MetalLibraryRC                                      lib;
             mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t    constants;
@@ -117,8 +117,8 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) ShaderModule
         {
             Threading::RWSpinLock                                       guard;      // protects 'module', 'dbgTrace', 'constants'
-            Byte32u                                                     offset;
-            Byte32u                                                     dataSize;
+            Bytes32u                                                    offset;
+            Bytes32u                                                    dataSize;
             ubyte                                                       shaderTypeIdx   = UMax;
         //  mutable VkShaderModule                                      module          = Default;
             mutable Unique< PipelineCompiler::ShaderTrace >             dbgTrace;
@@ -175,28 +175,28 @@ namespace AE::Graphics
         using SpecConstants_t       = PipelineCompiler::ShaderBytecode::SpecConstants_t;
         using Uniform_t             = PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
         using UniformOffsets_t      = PipelineCompiler::DescriptorSetLayoutDesc::UniformOffsets_t;
-        using Uniforms_t            = Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Byte16u* >;
+        using Uniforms_t            = Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
 
-        using DSLayouts_t           = Tuple< uint, Strong< DescriptorSetLayoutID > *>;
-        using PplnLayouts_t         = Tuple< uint, Strong< PipelineLayoutID > *     >;
-        using ShaderModules_t       = Tuple< uint, ShaderModule* >;
+        using DSLayouts_t           = MutableArrayView< Strong< DescriptorSetLayoutID > >;
+        using PplnLayouts_t         = MutableArrayView< Strong< PipelineLayoutID > >;
+        using ShaderModules_t       = MutableArrayView< ShaderModule >;
 
-        using SerRStates_t          = Tuple< uint, const PipelineCompiler::SerializableRenderState *>;
-        using SerDSStates_t         = Tuple< uint, const PipelineCompiler::SerializableDepthStencilState *>;
+        using SerRStates_t          = ArrayView< PipelineCompiler::SerializableRenderState >;
+        using SerDSStates_t         = ArrayView< PipelineCompiler::SerializableDepthStencilState >;
 
-        using SerGPplnTempl_t       = Tuple< uint, const PipelineCompiler::SerializableGraphicsPipeline *       >;
-        using SerMPplnTempl_t       = Tuple< uint, const PipelineCompiler::SerializableMeshPipeline *           >;
-        using SerCPplnTempl_t       = Tuple< uint, const PipelineCompiler::SerializableComputePipeline *        >;
-        using SerRTPplnTempl_t      = Tuple< uint, const PipelineCompiler::SerializableRayTracingPipeline *     >;
-        using SerTPplnTempl_t       = Tuple< uint, const PipelineCompiler::SerializableTilePipeline *           >;
+        using SerGPplnTempl_t       = ArrayView< PipelineCompiler::SerializableGraphicsPipeline >;
+        using SerMPplnTempl_t       = ArrayView< PipelineCompiler::SerializableMeshPipeline >;
+        using SerCPplnTempl_t       = ArrayView< PipelineCompiler::SerializableComputePipeline >;
+        using SerRTPplnTempl_t      = ArrayView< PipelineCompiler::SerializableRayTracingPipeline >;
+        using SerTPplnTempl_t       = ArrayView< PipelineCompiler::SerializableTilePipeline >;
 
-        using SerGPplnSpec_t        = Tuple< uint, const PipelineCompiler::SerializableGraphicsPipelineSpec *   >;
-        using SerMPplnSpec_t        = Tuple< uint, const PipelineCompiler::SerializableMeshPipelineSpec *       >;
-        using SerCPplnSpec_t        = Tuple< uint, const PipelineCompiler::SerializableComputePipelineSpec *    >;
-        using SerRTPplnSpec_t       = Tuple< uint, const PipelineCompiler::SerializableRayTracingPipelineSpec * >;
-        using SerTPplnSpec_t        = Tuple< uint, const PipelineCompiler::SerializableTilePipelineSpec *       >;
+        using SerGPplnSpec_t        = ArrayView< PipelineCompiler::SerializableGraphicsPipelineSpec >;
+        using SerMPplnSpec_t        = ArrayView< PipelineCompiler::SerializableMeshPipelineSpec >;
+        using SerCPplnSpec_t        = ArrayView< PipelineCompiler::SerializableComputePipelineSpec >;
+        using SerRTPplnSpec_t       = ArrayView< PipelineCompiler::SerializableRayTracingPipelineSpec >;
+        using SerTPplnSpec_t        = ArrayView< PipelineCompiler::SerializableTilePipelineSpec >;
 
-        using SerRTSBTs_t           = Tuple< uint, const PipelineCompiler::SerializableRTShaderBindingTable *   >;
+        using SerRTSBTs_t           = ArrayView< PipelineCompiler::SerializableRTShaderBindingTable >;
 
         using StackAllocator_t      = StackAllocator< UntypedAllocator, 16, false >;
         using FeatureNames_t        = THashSet< FeatureSetName::Optimized_t >;
@@ -224,7 +224,7 @@ namespace AE::Graphics
                 ND_ ID  Cast ()     C_NE___ { return ID{ pplnId.Index(), pplnId.Generation() }; }
             };
 
-            using Passes_t          = Tuple< uint, PipelineCompiler::SerializableRenderTechnique::Pass * >;
+            using Passes_t          = MutableArrayView< PipelineCompiler::SerializableRenderTechnique::Pass >;
             using PplnSpecMap_t     = THashMap< PipelineName::Optimized_t, PipelineInfo >;
             using PplnSpecIter_t    = PplnSpecMap_t::iterator;
 
@@ -263,15 +263,15 @@ namespace AE::Graphics
             ND_ RenderTechName::Optimized_t Name ()                                                                 C_NE_OV { DRC_SHAREDLOCK( _drCheck );  return _name; }
             ND_ bool                        IsSupported ()                                                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _isSupported; }
 
-            GraphicsPipelineID      GetGraphicsPipeline  (const PipelineName &name)                                 C_NE_OV;
-            MeshPipelineID          GetMeshPipeline      (const PipelineName &name)                                 C_NE_OV;
-            TilePipelineID          GetTilePipeline      (const PipelineName &name)                                 C_NE_OV;
-            ComputePipelineID       GetComputePipeline   (const PipelineName &name)                                 C_NE_OV;
-            RayTracingPipelineID    GetRayTracingPipeline(const PipelineName &name)                                 C_NE_OV;
-            RTShaderBindingID       GetRTShaderBinding   (const RTShaderBindingName &name)                          C_NE_OV;
-            PassInfo                GetPass              (const RenderTechPassName &pass)                           C_NE_OV;
-            bool                    FeatureSetSupported  (const FeatureSetName &name)                               C_NE_OV;
-            EPixelFormat            GetAttachmentFormat  (const RenderTechPassName &pass, const AttachmentName &)   C_NE_OV;
+            GraphicsPipelineID      GetGraphicsPipeline  (PipelineName::Ref name)                                   C_NE_OV;
+            MeshPipelineID          GetMeshPipeline      (PipelineName::Ref name)                                   C_NE_OV;
+            TilePipelineID          GetTilePipeline      (PipelineName::Ref name)                                   C_NE_OV;
+            ComputePipelineID       GetComputePipeline   (PipelineName::Ref name)                                   C_NE_OV;
+            RayTracingPipelineID    GetRayTracingPipeline(PipelineName::Ref name)                                   C_NE_OV;
+            RTShaderBindingID       GetRTShaderBinding   (RTShaderBindingName::Ref name)                            C_NE_OV;
+            PassInfo                GetPass              (RenderTechPassName::Ref pass)                             C_NE_OV;
+            bool                    FeatureSetSupported  (FeatureSetName::Ref name)                                 C_NE_OV;
+            EPixelFormat            GetAttachmentFormat  (RenderTechPassName::Ref pass, AttachmentName::Ref)        C_NE_OV;
 
 
         private:
@@ -279,15 +279,15 @@ namespace AE::Graphics
             ND_ bool  _CompilePipelines (ResMngr_t &, PipelineCacheID, PplnSpecIter_t begin, PplnSpecIter_t end)    __NE___;
             ND_ bool  _CreateSBTs (ResMngr_t &resMngr)                                                              __NE___;
 
-            void  _PrintPipelines (const PipelineName &name,
+            void  _PrintPipelines (PipelineName::Ref name,
                                    PipelineCompiler::PipelineSpecUID mask)                                          C_NE___;
-            void  _PrintSBTs (const RTShaderBindingName &reqName)                                                   C_NE___;
+            void  _PrintSBTs (RTShaderBindingName::Ref reqName)                                                     C_NE___;
 
             template <PipelineCompiler::PipelineSpecUID  SpecMask,
                       PipelineCompiler::PipelineTemplUID TemplMask,
                       typename SpecType,
                       typename TemplType>
-            ND_ Pair< const typename TypeList<SpecType>::template Get<1>, const typename TypeList<TemplType>::template Get<1> >
+            ND_ Pair< const typename SpecType::value_type*, const typename TemplType::value_type* >
                 _Extract (const ResMngr_t &, PipelineCompiler::PipelineSpecUID uid, SpecType &specArr, TemplType &templArr,
                           const FeatureNames_t &unsupportedFS DEBUG_ONLY(, const FeatureNames_t &allFeatureSets ))  __NE___;
 
@@ -301,7 +301,7 @@ namespace AE::Graphics
         };
 
     private:
-        using RenTechs_t    = Tuple< uint, StaticRC<RenderTech> * >;
+        using RenTechs_t    = MutableArrayView< StaticRC<RenderTech> >;
         using RenTechMap_t  = THashMap< RenderTechName::Optimized_t, ushort >;
 
 
@@ -364,34 +364,34 @@ namespace AE::Graphics
 
     // methods
     public:
-        PPLNPACK ()                                                                                                                                                 __NE___ {}
-        ~PPLNPACK ()                                                                                                                                                __NE___ {}
+        PPLNPACK ()                                                                                                                                 __NE___ {}
+        ~PPLNPACK ()                                                                                                                                __NE___ {}
 
-        ND_ bool  Create (ResMngr_t &, const PipelinePackDesc &desc)                                                                                                __NE___;
-            void  Destroy (ResMngr_t &)                                                                                                                             __NE___;
+        ND_ bool  Create (ResMngr_t &, const PipelinePackDesc &desc)                                                                                __NE___;
+            void  Destroy (ResMngr_t &)                                                                                                             __NE___;
 
-        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, const RenderPassName &name)                                                           C_NE___;
-        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, const CompatRenderPassName &name)                                                     C_NE___;
+        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, RenderPassName::Ref name)                                             C_NE___;
+        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, CompatRenderPassName::Ref name)                                       C_NE___;
 
-        ND_ SamplerID                       GetSampler (const SamplerName &name)                                                                                    C_NE___;
-        ND_ Array<RenderTechName>           GetSupportedRenderTechs ()                                                                                              C_NE___;
+        ND_ SamplerID                       GetSampler (SamplerName::Ref name)                                                                      C_NE___;
+        ND_ Array<RenderTechName>           GetSupportedRenderTechs ()                                                                              C_NE___;
 
-        ND_ Strong<GraphicsPipelineID>      CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache)   C_NE___;
-        ND_ Strong<ComputePipelineID>       CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache)   C_NE___;
-        ND_ Strong<MeshPipelineID>          CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const MeshPipelineDesc       &desc, PipelineCacheID cache)   C_NE___;
-        ND_ Strong<TilePipelineID>          CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache)   C_NE___;
-        ND_ Strong<RayTracingPipelineID>    CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache)   C_NE___;
+        ND_ Strong<GraphicsPipelineID>      CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const GraphicsPipelineDesc   &, PipelineCacheID)    C_NE___;
+        ND_ Strong<ComputePipelineID>       CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const ComputePipelineDesc    &, PipelineCacheID)    C_NE___;
+        ND_ Strong<MeshPipelineID>          CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const MeshPipelineDesc       &, PipelineCacheID)    C_NE___;
+        ND_ Strong<TilePipelineID>          CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const TilePipelineDesc       &, PipelineCacheID)    C_NE___;
+        ND_ Strong<RayTracingPipelineID>    CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const RayTracingPipelineDesc &, PipelineCacheID)    C_NE___;
 
-        ND_ DescriptorSetLayoutID           GetDSLayout (const DSLayoutName &name)                                                                                  C_NE___;
+        ND_ DescriptorSetLayoutID           GetDSLayout (DSLayoutName::Ref name)                                                                    C_NE___;
 
-        ND_ Promise<RenderTechPipelinesPtr> LoadRenderTechAsync (ResMngr_t &, const RenderTechName &name, PipelineCacheID cache)                                    C_NE___;
-        ND_ RenderTechPipelinesPtr          LoadRenderTech (ResMngr_t &, const RenderTechName &name, PipelineCacheID cache)                                         C_NE___;
+        ND_ Promise<RenderTechPipelinesPtr> LoadRenderTechAsync (ResMngr_t &, RenderTechName::Ref name, PipelineCacheID cache)                      C_NE___;
+        ND_ RenderTechPipelinesPtr          LoadRenderTech (ResMngr_t &, RenderTechName::Ref name, PipelineCacheID cache)                           C_NE___;
 
-        ND_ EPixelFormat                    GetSurfaceFormat ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _surfaceFormat; }
-        DEBUG_ONLY( ND_ StringView          GetDebugName ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        ND_ EPixelFormat                    GetSurfaceFormat ()                                                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _surfaceFormat; }
+        DEBUG_ONLY( ND_ StringView          GetDebugName ()                                                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
-        ND_ FeatureNames_t const&               GetUnsupportedFS ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_unsupportedFS; }
-        DEBUG_ONLY( ND_ FeatureNames_t const&   GetAllFS ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_allFeatureSets; })
+        ND_ FeatureNames_t const&               GetUnsupportedFS ()                                                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_unsupportedFS; }
+        DEBUG_ONLY( ND_ FeatureNames_t const&   GetAllFS ()                                                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_allFeatureSets; })
 
 
     private:
@@ -430,13 +430,13 @@ namespace AE::Graphics
         ND_ bool  _LoadPipelineNames (Serializing::Deserializer &des, OUT THashMap<TName, TUID> &)                          __Th___;
 
         template <typename T>
-        ND_ bool  _LoadPipelineArray (Serializing::Deserializer &des, OUT Tuple<uint, const T*> &arr)                       __NE___;
+        ND_ bool  _LoadPipelineArray (Serializing::Deserializer &des, OUT ArrayView<T> &arr)                                __NE___;
 
         ND_ PipelineLayoutID    _GetPipelineLayout (PipelineCompiler::PipelineLayoutUID uid)                                C_NE___;
 
         template <PipelineCompiler::PipelineTemplUID TemplMask, typename TemplType>
-        ND_ const typename TypeList<TemplType>::template Get<1>
-            _Extract (ResMngr_t &, const PipelineTmplName &name, const TemplType &templArr)                                 C_NE___;
+        ND_ const typename TemplType::value_type*
+            _Extract (ResMngr_t &, PipelineTmplName::Ref name, const TemplType &templArr)                                   C_NE___;
 
         ND_ RenderState const*  _GetRenderState (PipelineCompiler::RenderStateUID uid)                                      C_NE___;
     };

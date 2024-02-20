@@ -58,7 +58,7 @@ namespace AE::VFS
                         IsMultipleOf( hdr.fileHeadersSize, sizeof(FileHeader) ));
 
             const uint  file_count = hdr.fileHeadersSize / sizeof(FileHeader);
-            _map.reserve( file_count );
+            _map.reserve( file_count );  // throw
 
             auto    mem = MakeRC<MemRStream>();
             CHECK_ERR( mem->Load( inDS, Sizeof(hdr), Bytes{hdr.fileHeadersSize} ));
@@ -70,7 +70,7 @@ namespace AE::VFS
             {
                 FileHeader  fhdr;
                 CHECK_ERR( stream.Read( OUT fhdr ));
-                CHECK_ERR( _map.emplace( fhdr.name, fhdr.info ).second );
+                CHECK_ERR( _map.emplace( fhdr.name, fhdr.info ).second );  // throw
 
                 ASSERT( fhdr.info.Offset() < ds_size );
                 ASSERT( (fhdr.info.Offset() + fhdr.info.size) <= ds_size );
@@ -87,7 +87,7 @@ namespace AE::VFS
     Open (RStream)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<RStream> &outStream, FileNameRef name) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<RStream> &outStream, FileName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -102,8 +102,7 @@ namespace AE::VFS
     {
         auto    substream = MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( info.type )
+        switch_enum( info.type )
         {
             case EFileType::Raw :
             {
@@ -120,6 +119,7 @@ namespace AE::VFS
                 return true;
             }
 
+            // Brotli //
           #ifdef AE_ENABLE_BROTLI
             case EFileType::Brotli :
             {
@@ -129,8 +129,8 @@ namespace AE::VFS
 
             case EFileType::BrotliInMemory :
             {
-                BrotliRStream   brotli{ substream };
-                auto            result = MakeRC<MemRStream>();
+                BrotliRStream   brotli  { substream };
+                auto            result  = MakeRC<MemRStream>();
 
                 CHECK_ERR( result->Decompress( brotli ));
                 outStream = RVRef(result);
@@ -143,11 +143,36 @@ namespace AE::VFS
                 break;
           #endif
 
+            // ZStd //
+          #ifdef AE_ENABLE_ZSTD
+            case EFileType::ZStd :
+            {
+                outStream = MakeRC<ZStdRStream>( substream );
+                return true;
+            }
+
+            case EFileType::ZStdInMemory :
+            {
+                ZStdRStream     zstd    { substream };
+                auto            result  = MakeRC<MemRStream>();
+
+                CHECK_ERR( result->Decompress( zstd ));
+                outStream = RVRef(result);
+                return true;
+            }
+          #else
+
+            case EFileType::ZStd :
+            case EFileType::ZStdInMemory :
+                break;
+          #endif
+
+            case EFileType::Unknown :
             case EFileType::_Last :
             case EFileType::All :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return false;
     }
@@ -157,7 +182,7 @@ namespace AE::VFS
     Open (RDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<RDataSource> &outDS, FileNameRef name) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<RDataSource> &outDS, FileName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -172,8 +197,7 @@ namespace AE::VFS
     {
         auto    ds = MakeRC<ArchiveDataSource_t>( _archive, info.Offset(), info.Size() );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( info.type )
+        switch_enum( info.type )
         {
             case EFileType::Raw :
             {
@@ -190,15 +214,16 @@ namespace AE::VFS
                 return true;
             }
 
+            // Brotli //
           #ifdef AE_ENABLE_BROTLI
             case EFileType::Brotli :
                 break;  // not supported
 
             case EFileType::BrotliInMemory :
             {
-                auto            stream = MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
-                BrotliRStream   brotli{ stream };
-                auto            result = MakeRC<MemRDataSource>();
+                auto            stream  = MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
+                BrotliRStream   brotli  { stream };
+                auto            result  = MakeRC<MemRDataSource>();
 
                 CHECK_ERR( result->Decompress( brotli ));
                 outDS = RVRef(result);
@@ -211,11 +236,34 @@ namespace AE::VFS
                 break;
           #endif
 
+            // ZStd //
+          #ifdef AE_ENABLE_ZSTD
+            case EFileType::ZStd :
+                break;  // not supported
+
+            case EFileType::ZStdInMemory :
+            {
+                auto            stream  = MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
+                ZStdRStream     zstd    { stream };
+                auto            result  = MakeRC<MemRDataSource>();
+
+                CHECK_ERR( result->Decompress( zstd ));
+                outDS = RVRef(result);
+                return true;
+            }
+          #else
+
+            case EFileType::ZStd :
+            case EFileType::ZStdInMemory :
+                break;
+          #endif
+
+            case EFileType::Unknown :
             case EFileType::_Last :
             case EFileType::All :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return false;
     }
@@ -225,7 +273,7 @@ namespace AE::VFS
     Open (AsyncRDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &, FileNameRef) C_NE___
+    bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &, FileName::Ref) C_NE___
     {
         // TODO: replace '_archive' by asyncDS
         return false;
@@ -236,7 +284,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  ArchiveStaticStorage::Exists (FileNameRef name) C_NE___
+    bool  ArchiveStaticStorage::Exists (FileName::Ref name) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -249,7 +297,7 @@ namespace AE::VFS
     Exists
 =================================================
 */
-    bool  ArchiveStaticStorage::Exists (FileGroupNameRef) C_NE___
+    bool  ArchiveStaticStorage::Exists (FileGroupName::Ref) C_NE___
     {
         // not supported
         return false;
@@ -275,7 +323,7 @@ namespace AE::VFS
     _OpenByIter (RStream)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RStream> &outStream, FileNameRef name, const void* ref) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RStream> &outStream, FileName::Ref name, const void* ref) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -294,7 +342,7 @@ namespace AE::VFS
     _OpenByIter (RDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RDataSource> &outDS, FileNameRef name, const void* ref) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<RDataSource> &outDS, FileName::Ref name, const void* ref) C_NE___
     {
         DRC_SHAREDLOCK( _drCheck );
 
@@ -313,7 +361,7 @@ namespace AE::VFS
     _OpenByIter (AsyncRDataSource)
 =================================================
 */
-    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, FileNameRef, const void*) C_NE___
+    bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, FileName::Ref, const void*) C_NE___
     {
         // TODO: replace '_archive' by asyncDS
         return false;

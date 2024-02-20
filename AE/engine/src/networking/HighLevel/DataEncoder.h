@@ -26,16 +26,25 @@ namespace AE::Networking
 
     // methods
     public:
-        DataEncoder (void* ptr, Bytes size)                 __NE___ : _ser{FastWStream{ ptr, ptr+size }} {}
-        DataEncoder (void* ptr, const void* end)            __NE___ : _ser{FastWStream{ ptr, end }} {}
+        DataEncoder (void* ptr, Bytes size)                             __NE___ : _ser{FastWStream{ ptr, ptr+size }} {}
+        DataEncoder (void* ptr, const void* end)                        __NE___ : _ser{FastWStream{ ptr, end }} {}
 
-        ND_ Bytes   RemainingSize ()                        C_NE___ { return _ser.stream.RemainingSize(); }
-        ND_ bool    IsFull ()                               C_NE___ { return _ser.stream.Empty(); }
+        ND_ Bytes   RemainingSize ()                                    C_NE___ { return _ser.stream.RemainingSize(); }
+        ND_ bool    IsFull ()                                           C_NE___ { return _ser.stream.Empty(); }
 
-        template <typename ...Args>
-        ND_ bool    operator () (const Args& ...args)       __NE___ { return _ser( args... ); }
+        template <typename Arg0, typename ...Args>
+        ND_ bool    operator () (const Arg0 &arg0, const Args& ...args) __NE___ { return _ser( arg0, args... ); }
+        ND_ bool    operator () ()                                      __NE___ { return true; }
 
-        ND_ bool    Write (const void* buffer, Bytes size)  __NE___ { return _ser.stream.Write( buffer, size ); }
+        ND_ bool    Write (const void* buffer, Bytes size)              __NE___ { return _ser.stream.Write( buffer, size ); }
+
+        template <typename T>
+        ND_ bool    Encode (const T* arr, const usize count)            __NE___
+        {
+            bool    ok = true;
+            for (usize i = 0; (i < count) & ok; ++i) { ok = _ser( arr[i] ); }
+            return ok;
+        }
     };
 
 

@@ -5,6 +5,7 @@
     DDS     - without locks (only for allocations)
     DevIL   = internal mutex, single threaded
     STB     - without locks (only for allocations)
+    AE      - without locks
 */
 
 #pragma once

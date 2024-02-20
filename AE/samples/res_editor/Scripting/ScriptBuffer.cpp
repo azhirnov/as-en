@@ -907,11 +907,11 @@ namespace
 
         binder.Comment( "Allow to declare single structure as a buffer layout.\n"
                         "'typeName' must be previously declared or one of built-in type (see 'ArrayLayout')." );
-        binder.AddMethod( &ScriptBuffer::SetLayout1,            "Layout",           {"typeName"} );
+        binder.AddMethod( &ScriptBuffer::SetLayout1,            "UseLayout",        {"typeName"} );
 
         binder.Comment( "Created a new structure with type 'typeName' and fields in 'source'.\n"
                         "See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
-        binder.AddMethod( &ScriptBuffer::SetLayout2,            "Layout",           {"typeName", "source"} );
+        binder.AddMethod( &ScriptBuffer::SetLayout2,            "UseLayout",        {"typeName", "source"} );
 
         binder.Comment( "Returns buffer device address.\n"
                         "Requires 'GL_EXT_buffer_reference extension' in GLSL.\n"
@@ -1035,8 +1035,7 @@ namespace
         CHECK_ERR_MSG( _resUsage != Default, "failed to create buffer '"s << _dbgName << "'" );
         for (auto usage : BitfieldIterate( _resUsage ))
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( usage )
+            switch_enum( usage )
             {
                 case EResourceUsage::ComputeRead :      _desc.usage |= EBufferUsage::Storage | EBufferUsage::TransferSrc;       break;
                 case EResourceUsage::ComputeWrite :     _desc.usage |= EBufferUsage::Storage;                                   break;
@@ -1062,11 +1061,10 @@ namespace
                 case EResourceUsage::Present :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _type )
+        switch_enum( _type )
         {
             case EBufferType::ConstDataFromScript :
             {
@@ -1079,7 +1077,7 @@ namespace
             case EBufferType::MutableDataFromScript :           break;
             case EBufferType::Unknown :                         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         // allow 'FillBuffer' on init
         _desc.usage |= EBufferUsage::TransferDst;

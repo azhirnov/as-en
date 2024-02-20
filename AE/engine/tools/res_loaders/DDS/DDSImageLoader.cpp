@@ -26,8 +26,7 @@ namespace
         uint3           dim             = { header.dwWidth, header.dwHeight, 1 };
         EImage          img_type        = Default;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( headerDX10.resourceDimension )
+        switch_enum( headerDX10.resourceDimension )
         {
             case D3D11_RESOURCE_DIMENSION_BUFFER :
                 RETURN_ERR( "buffer is not supported" );
@@ -58,7 +57,7 @@ namespace
             default :
                 RETURN_ERR( "unknown dimension" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         CHECK_ERR( img_type != Default );
 
@@ -128,7 +127,7 @@ namespace
 */
     static bool  LoadDDSImage (INOUT IntermImage &image, const DDS_HEADER &header, RStream &stream, RC<IAllocator> allocator)
     {
-        Unused( image, header, stream );
+        Unused( image, header, stream, allocator );
         // TODO
         return false;
     }

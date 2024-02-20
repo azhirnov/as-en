@@ -15,7 +15,8 @@ namespace AE::ResEditor
     {
     // types
     public:
-        using AnyResource_t     = Union< NullUnion, RC<Buffer>, RC<RTScene>, RC<Image>, RC<VideoImage>, Array<RC<Image>> >;
+        using AnyResource_t     = Union< NullUnion, RC<Buffer>, RC<RTScene>, RC<Image>, RC<VideoImage>,
+                                         RC<VideoImage2>, Array<RC<Image>> >;
         using Resources_t       = Array<Tuple< UniformName, AnyResource_t, EResourceState >>;
 
 

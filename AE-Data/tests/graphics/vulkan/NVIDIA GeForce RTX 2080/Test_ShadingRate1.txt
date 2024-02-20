@@ -1,0 +1,218 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'Draw1 |0| Draw task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'VRS-image'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'SSWB {f:1} {q:Graphics}'
+    dst:       'VRS-image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1024) } ---> { off:(0, 0, 0), ext:(32, 32, 1), COLOR }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+    ImageBarrier:
+      name:    'VRS-image'
+      stage:   COPY ---> FRAGMENT_SHADING_RATE_ATTACHMENT
+      access:  TRANSFER_WRITE ---> FRAGMENT_SHADING_RATE_ATTACHMENT_READ
+      layout:  TRANSFER_DST_OPTIMAL ---> FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'per_draw'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'DrawTest.Draw_1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'per_primitive'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  BindVertexBuffers
+    [0] buffer: 'vstream', offset: 0
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'VRSTest.Draw'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+      aspect:  ---
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT | FRAGMENT_SHADING_RATE_ATTACHMENT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BindPipeline
+    pipeline:  'vrs_attachment'
+    layout:    '7', DSCount: 1
+    bindPoint: GRAPHICS
+  ----------
+
+  Draw
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      aspect:  0
+      storeOp: STORE
+    attachment:
+      view:    'VRS-view'
+      image:   'VRS-image'
+      layout:  FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL
+      aspect:  0
+      storeOp: NONE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT | FRAGMENT_SHADING_RATE_ATTACHMENT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+}
+--------------------------------------------------
+name: 'Draw1 |1| Readback task'
+{
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [0, 1048576) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [1048576, 2097152) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(512, 512, 1), COLOR } ---> { [2097152, 3145728) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

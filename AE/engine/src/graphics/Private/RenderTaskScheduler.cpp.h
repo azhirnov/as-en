@@ -52,8 +52,7 @@
             CHECK( not AnyBits( old.packed.pending, bf.packed.pending )); // already exists
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case ESubmitMode::Auto :
             case ESubmitMode::Deferred :
@@ -65,7 +64,7 @@
                 rts._FlushQueue( batch.GetQueueType(), batch.GetFrameId(), (mode == ESubmitMode::Force) );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 //-----------------------------------------------------------------------------
 
@@ -187,7 +186,7 @@
         // Timeline semaphore allow to submit commands without strict ordering.
         for (auto q = q_mask; q != Zero;)
         {
-            rts._FlushQueue( ExtractBitLog2<EQueueType>( INOUT q ), _frameId, true );
+            rts._FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), _frameId, true );
         }
 
         for (auto& q : rts._queueMap)
@@ -746,7 +745,7 @@
             bool        complete    = true;
 
             for (auto q = q_mask; q != Zero;) {
-                _FlushQueue( ExtractBitLog2<EQueueType>( INOUT q ), frame_id, false );
+                _FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), frame_id, false );
             }
 
             for (uint f = 0, cnt = frame_id.MaxFrames(); f < cnt; ++f)
@@ -819,8 +818,7 @@
 
             const auto  status = batch._status.load();
 
-            BEGIN_ENUM_CHECKS();
-            switch ( status )
+            switch_enum( status )
             {
                 case EStatus::Destroyed :   info << "Destroyed";    break;
                 case EStatus::Initial :     info << "Initial";      break;
@@ -829,7 +827,7 @@
                 case EStatus::Submitted :   { info << "Submitted";  EXLOCK( batch._onSubmitDepsGuard );     ASSERT( batch._onSubmitDeps.empty() );      break; }
                 case EStatus::Completed :   { info << "Completed";  EXLOCK( batch._onCompleteDepsGuard );   ASSERT( batch._onCompleteDeps.empty() );    break; }
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             {
                 EXLOCK( batch._onSubmitDepsGuard );

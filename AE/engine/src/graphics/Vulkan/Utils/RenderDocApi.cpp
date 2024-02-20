@@ -204,7 +204,7 @@ namespace AE::Graphics
     bool  RenderDocApi::EndFrame ()                                     C_NE___ { return false; }
     bool  RenderDocApi::IsFrameCapturing ()                             C_NE___ { return false; }
     bool  RenderDocApi::TriggerFrameCapture ()                          C_NE___ { return false; }
-    bool  RenderDocApi::TriggerMultiFrameCapture (uint count)           C_NE___ { return false; }
+    bool  RenderDocApi::TriggerMultiFrameCapture (uint)                 C_NE___ { return false; }
 
 } // AE::Graphics
 

@@ -8,7 +8,7 @@
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 # define VGFXALLOC  VBlockMemAllocator
-# include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.inl.h"
+# include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.cpp.h"
 
 namespace AE::Graphics
 {
@@ -88,11 +88,11 @@ namespace AE::Graphics
 
         for (uint try_count = 0; try_count < _HighWaitCount; ++try_count)
         {
-            const uint  hi_lvl          = pageArr.hiLevel.load();
-            const uint  alloc_page_bits = (hi_lvl >> 16) & hi_mask;             // 1 - allocated bit
-            const uint  empty_page_bits = (hi_lvl & hi_mask);                   // 0 - empty page bit
-            uint        hi_available    = (~empty_page_bits) & alloc_page_bits; // 1 - empty & allocated
-            int         hi_lvl_idx      = BitScanForward( hi_available );       // first 1 bit
+            const uint      hi_lvl          = pageArr.hiLevel.load();
+            const uint      alloc_page_bits = (hi_lvl >> 16) & hi_mask;                 // 1 - allocated bit
+            const uint      empty_page_bits = (hi_lvl & hi_mask);                       // 0 - empty page bit
+            Bitfield<uint>  hi_available    { (~empty_page_bits) & alloc_page_bits };   // 1 - empty & allocated
+            int             hi_lvl_idx      = hi_available.ExtractBitIndex();           // first 1 bit
 
             for (; hi_lvl_idx >= 0 and hi_lvl_idx < int(_PageCount);)
             {
@@ -126,8 +126,7 @@ namespace AE::Graphics
                     ThreadUtils::Pause();
                 }
 
-                hi_available &= ~(1u << hi_lvl_idx);            // 1 -> 0
-                hi_lvl_idx = BitScanForward( hi_available );    // first 1 bit
+                hi_lvl_idx = hi_available.ExtractBitIndex();        // first 1 bit
             }
             ThreadUtils::Pause();
         }

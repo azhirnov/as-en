@@ -6,7 +6,7 @@
 # error AE_LFAS_ENABLED is required
 #endif
 
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 #include "base/Utils/Helpers.h"
 #include "base/Memory/MemUtils.h"
 #include "base/Algorithms/StringUtils.h"
@@ -46,5 +46,6 @@ namespace LFAS
 
     using AE::Math::Random;
     using AE::Math::Max;
+    using AE::Base::FwdArg;
 
 } // LFAS

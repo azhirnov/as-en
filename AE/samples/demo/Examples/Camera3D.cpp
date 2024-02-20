@@ -80,7 +80,7 @@ namespace AE::Samples::Demo
     //
     // Process Input Task
     //
-    class Camera3DSample::ProcessInputTask final : public Threading::IAsyncTask
+    class Camera3DSample::ProcessInputTask final : public IAsyncTask
     {
     public:
         RC<Camera3DSample>  t;
@@ -93,26 +93,41 @@ namespace AE::Samples::Demo
 
         void  Run () __Th_OV
         {
-            packed_float3   move;
-            packed_float2   rotation;
+            float3  move;
+            float2  rotation;
+            Quat    rot_quat {Zero};
+            float3  sensor3f;
 
             ActionQueueReader::Header   hdr;
             for (; reader.ReadHeader( OUT hdr );)
             {
                 StaticAssert( IA.actionCount == 1 );
                 StaticAssert( IA.Desktop.actionCount == 1 );
+                StaticAssert( IA.Mobile.actionCount == 1 );
 
                 switch ( uint{hdr.name} )
                 {
                     case IA.Camera_Rotate :
-                        rotation += reader.Data<packed_float2>( hdr.offset );   break;
+                        rotation += reader.DataCopy<float2>( hdr.offset );      break;
 
                     case IA.Desktop.Camera_Move :
-                        move += reader.Data<packed_float3>( hdr.offset );       break;
+                        move += reader.DataCopy<float3>( hdr.offset );          break;
+
+                    //case IA.Mobile.Camera_Rotate3D :
+                    //  rot_quat = Quat{reader.DataCopy<Quat>( hdr.offset )};   break;
+
+                    case IA.Mobile.Camera_Sensor3f :
+                        sensor3f = reader.DataCopy<float3>( hdr.offset );       break;
                 }
             }
 
-            t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
+            //AE_LOGI( "Sensor3f: "s << ToString(sensor3f) );
+
+            if ( rot_quat.LengthSq() > 0.f )
+                t->camera.SetOrientation( rot_quat );
+            else
+                t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
+
             t->camera.Move3D( move );
         }
 
@@ -198,7 +213,7 @@ namespace AE::Samples::Demo
         }
 
 
-        DirectCtx::Graphics     gctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+        DirectCtx::Graphics     gfx_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
         // draw
         for (usize i = 0; i < targets.size(); ++i)
@@ -210,12 +225,12 @@ namespace AE::Samples::Demo
             StaticAssert( rtech_pass.attachmentsCount == 2 );
 
             const auto      rp_desc =
-                RenderPassDesc{ t->rtech, rtech_pass, view_size }
+                RenderPassDesc{ *t->rtech, rtech_pass, view_size }
                     .AddViewport( view_size )
                     .AddTarget( rtech_pass.att_Color, rt.viewId,        RGBA32f{HtmlColor::Black},  rt.initialState | EResourceState::Invalidate,   rt.finalState )
                     .AddTarget( rtech_pass.att_Depth, t->depthBuf.view, DepthStencil{1.0f},         EResourceState::Invalidate,                     EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
 
-            auto    dctx = gctx.BeginRenderPass( rp_desc );
+            auto    dctx = gfx_ctx.BeginRenderPass( rp_desc );
 
             dctx.BindPipeline( t->ppln );
             dctx.BindDescriptorSet( t->dsIndex, t->descSet, {off} );
@@ -225,10 +240,10 @@ namespace AE::Samples::Demo
             else
                 t->cube2.Draw( dctx, t->lod );
 
-            gctx.EndRenderPass( dctx, rp_desc );
+            gfx_ctx.EndRenderPass( dctx, rp_desc );
         }
 
-        Execute( gctx );
+        Execute( gfx_ctx );
     }
 //-----------------------------------------------------------------------------
 
@@ -239,7 +254,7 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  Camera3DSample::Init (PipelinePackID pack) __NE___
+    bool  Camera3DSample::Init (PipelinePackID pack, IApplicationTS) __NE___
     {
         auto&   res_mngr = GraphicsScheduler().GetResourceManager();
                 gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();

@@ -3,10 +3,6 @@
 #include "base/Defines/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
-
-# include <android/native_window_jni.h>
-# include <android/keycodes.h>
-
 # include "platform/Android/WindowAndroid.h"
 # include "platform/Android/ApplicationAndroid.h"
 
@@ -115,7 +111,7 @@ namespace {
     _App
 =================================================
 */
-    ApplicationAndroid&  WindowAndroid::_App () __NE___
+    AE_INTRINSIC ApplicationAndroid&  WindowAndroid::_App () __NE___
     {
         return static_cast< ApplicationAndroid &>( _app );
     }
@@ -235,9 +231,14 @@ namespace {
 
         window->_java.window = JavaObj{ jwnd, je };
 
-        window->_java.window.Method( "Close", window->_methods.close );
+        InputActionsAndroid::EnableSensorsFn_t  enable_sensors;
+
+        CHECK( window->_java.window.Method( "Close",            OUT window->_methods.close ));
+        CHECK( window->_java.window.Method( "EnableSensors",    OUT enable_sensors ));
 
         window->_SetState( EState::Created );
+        window->_input.Initialize( RVRef(enable_sensors) );
+
         return id;
     }
 
@@ -423,7 +424,7 @@ namespace {
     native_Update
 =================================================
 */
-    jint JNICALL  WindowAndroid::native_Update (JNIEnv*, jclass, WinID wndId) __NE___
+    void JNICALL  WindowAndroid::native_Update (JNIEnv*, jclass, WinID wndId) __NE___
     {
         if_likely( auto window = GetAppWindow( wndId ))
         {
@@ -434,12 +435,10 @@ namespace {
             window->_input.Update( window->_App().GetTimeSinceStart() );
 
             window->_App().AfterUpdate();
-            return 1000 / 240;  // TODO: framerate
         }
         else
         {
             DBG_WARNING( "unknown window" );
-            return 1000;
         }
     }
 
@@ -473,14 +472,8 @@ namespace {
             JavaArray<jfloat>       touches     { touchData, True{"readOnly"}, JavaEnv{env} };
             const auto              timestamp   = window->_app.GetTimeSinceStart();
 
-            //AE_LOGI( "----------------------" );
-
             for (int i = 0, j = 0; i < touchCount; ++i, j += 4)
             {
-                //AE_LOGI( "touch"s << ToString(i) << ", id:" << ToString(uint(touches[j+0])) <<
-                //       ", pos:" << ToString(float2{touches[j+1], touches[j+2]}) <<
-                //       ", state:" << ToString(uint(changedIndex == i ? state : EGestureState::Update)) );
-
                 // touches[j+3] - pressure
                 window->_input.SetTouch( uint(touches[j+0]), touches[j+1], touches[j+2],
                                          (changedIndex == i ? state : EGestureState::Update), timestamp );

@@ -1,29 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler.as>
 
-void  DeclUIRenderTech ()
-{
-    RC<RenderTechnique> rtech = RenderTechnique( "UI.RTech" );
-    {
-        RC<ShaderStructType>    st1 = ShaderStructType( "ui.global.ublock" );
-        st1.Set( "float2    posScale;" +
-                 "float2    posBias;" );
-
-        RC<ShaderStructType>    st2 = ShaderStructType( "ui.material.ublock" );
-        st2.Set( "uint      id;" );
-
-        RC<DescriptorSetLayout> ds = DescriptorSetLayout( "ui.ds0" );
-        ds.SampledImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D );
-        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "globalUB", "ui.global.ublock"    );
-        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "mtrUB",    "ui.material.ublock"  );
-    }
-    {
-        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );
-        pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
-        pass.SetDSLayout( "ui.ds0" );
-    }
-}
-
 
 void  DeclCanvasRenderTech ()
 {
@@ -55,10 +32,20 @@ void  DeclScene3DRenderTech ()
 }
 
 
+void  DeclHWCameraRenderTech ()
+{
+    RC<RenderTechnique> rtech = RenderTechnique( "HwCamera.RTech" );
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );
+        pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
+    }
+}
+
+
 void  ASmain ()
 {
-    DeclUIRenderTech();
     DeclCanvasRenderTech();
     DeclImGuiRenderTech();
     DeclScene3DRenderTech();
+    DeclHWCameraRenderTech();
 }

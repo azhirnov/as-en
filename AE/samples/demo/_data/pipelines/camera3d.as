@@ -52,14 +52,11 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "CUBE" );
-            vs.file     = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
-            vs.options  = EShaderOpt::Optimize;
+            vs.file = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
             ppln.SetVertexShader( vs );
-        }
-        {
+        }{
             RC<Shader>  fs = Shader();
-            fs.file     = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
-            fs.options  = EShaderOpt::Optimize;
+            fs.file = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
             ppln.SetFragmentShader( fs );
         }
 
@@ -90,14 +87,11 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "SPHERICAL_CUBE" );
-            vs.file     = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
-            vs.options  = EShaderOpt::Optimize;
+            vs.file = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
             ppln.SetVertexShader( vs );
-        }
-        {
+        }{
             RC<Shader>  fs = Shader();
-            fs.file     = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
-            fs.options  = EShaderOpt::Optimize;
+            fs.file = "camera3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/camera3d.glsl)
             ppln.SetFragmentShader( fs );
         }
 

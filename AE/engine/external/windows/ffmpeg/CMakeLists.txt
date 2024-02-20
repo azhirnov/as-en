@@ -9,6 +9,10 @@ add_custom_target( "FFmpeg-copy-dll"
     COMMENT "Copying FFmpeg DLLs..." )
 set_property( TARGET "FFmpeg-copy-dll" PROPERTY FOLDER "Engine/External" )
 
+if (NOT EXISTS "${FFMPEG_PATH}/bin")
+	message( FATAL_ERROR "'${FFMPEG_PATH}/bin' path is not found" )
+endif()
+
 add_library( "FFmpeg-lib" INTERFACE )
 target_include_directories( "FFmpeg-lib" INTERFACE "${FFMPEG_PATH}/include" )
 target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_ENABLE_FFMPEG" )

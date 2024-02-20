@@ -216,7 +216,7 @@ namespace AE::ECS
                 auto    src = srcStorage->GetComponent( srcIndex, comp_id );
                 auto    dst = dstStorage->GetComponent( dstIndex, comp_id );
 
-                if ( (src.first != null) & (dst.first != null) )
+                if ( (src.first != null) and (dst.first != null) )
                 {
                     ASSERT( src.second == dst.second );
                     MemCopy( OUT dst.first, src.first, src.second );
@@ -340,7 +340,7 @@ namespace AE::ECS
                     const auto* src         = src_storage->GetComponents( comp_id );
                     auto*       dst         = comp_data[i];
 
-                    if ( (src != null) & (dst != null) )
+                    if ( (src != null) and (dst != null) )
                     {
                         dst = dst + (comp_size * usize(start));
 
@@ -396,10 +396,10 @@ namespace AE::ECS
     {
         DRC_EXLOCK( _drCheck );
 
-        const auto  FlushEvents = [this] ()
+        const auto  FlushEvents = [this] () __NE___
         {{
-            for (auto iter = _pendingEvents.rbegin(); iter != _pendingEvents.rend(); ++iter) {
-                _eventQueue.push_back( RVRef(*iter) );  // throw
+            for (auto it = _pendingEvents.rbegin(); it != _pendingEvents.rend(); ++it) {
+                _eventQueue.push_back( RVRef(*it) );    // throw
             }
             _pendingEvents.clear();
         }};

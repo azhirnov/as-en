@@ -63,7 +63,7 @@ namespace
     destructor
 =================================================
 */
-    IPass::~IPass ()
+    IPass::~IPass () __NE___
     {
         UIInteraction::Instance().RemovePass( this );
     }
@@ -129,8 +129,7 @@ namespace
         const uint  lhs = _enablePass.dynamic->Get();
         const uint  rhs = _enablePass.ref;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( _enablePass.op )
+        switch_enum( _enablePass.op )
         {
             case ECompareOp::Less :         return lhs <  rhs;
             case ECompareOp::Equal :        return lhs == rhs;
@@ -144,7 +143,7 @@ namespace
             case ECompareOp::_Count :
             case ECompareOp::Unknown :      break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return true;
     }
 

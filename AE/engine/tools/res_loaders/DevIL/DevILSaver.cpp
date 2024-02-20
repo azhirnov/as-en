@@ -70,8 +70,7 @@ namespace
         const ILenum    img_type = ILEnumCast( fileFormat );
         CHECK_ERR( img_type != IL_TYPE_UNKNOWN );
 
-        BEGIN_ENUM_CHECKS();
-        switch ( image.GetType() )
+        switch_enum( image.GetType() )
         {
             case EImage_1D :
             case EImage_2D :
@@ -102,7 +101,7 @@ namespace
             default :
                 RETURN_ERR( "unsupported image type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         for (uint layer = 0; layer < arr_layers; ++layer)
         {

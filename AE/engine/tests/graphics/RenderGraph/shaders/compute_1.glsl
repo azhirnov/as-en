@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 //layout(set=0, binding=0, rgba8) writeonly uniform image2D  un_OutImage;
 

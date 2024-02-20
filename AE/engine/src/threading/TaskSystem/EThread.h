@@ -27,7 +27,8 @@ namespace AE::Threading
                         //      - File IO
                         //      - Network
 
-        _Count
+        _Count,
+        Unknown     = _Count
     };
 
 
@@ -48,8 +49,8 @@ namespace AE::Threading
     StaticAssert( uint(EThread::_Count) == 6 );
 
 
-    using ETaskQueueBits    = EnumBitSet< ETaskQueue >;
-    using EThreadBits       = EnumBitSet< EThread >;
+    using ETaskQueueBits    = EnumSet< ETaskQueue >;
+    using EThreadBits       = EnumSet< EThread >;
 
 
 

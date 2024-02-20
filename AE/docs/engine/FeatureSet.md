@@ -399,6 +399,7 @@ Formats which supports `VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT` in `v
 * filterMinmaxImageComponentMapping
 * samplerMipLodBias
 * samplerYcbcrConversion
+* ycbcr2Plane444
 * maxSamplerAnisotropy
 * maxSamplerLodBias
 

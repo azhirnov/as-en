@@ -17,7 +17,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T>>  ToNearUInt (const T value) __NE___
+    ND_ AE_INTRINSIC constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T>>  ToNearUInt (const T value) __NE___
     {
         StaticAssert( IsScalarOrEnum<T> );
         StaticAssert( not IsFloatPoint<T> );
@@ -32,7 +32,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, ToSignedInteger<T>>  ToNearInt (const T value) __NE___
+    ND_ AE_INTRINSIC constexpr EnableIf<IsScalar<T>, ToSignedInteger<T>>  ToNearInt (const T value) __NE___
     {
         StaticAssert( IsScalarOrEnum<T> );
         StaticAssert( not IsFloatPoint<T> );
@@ -48,15 +48,21 @@ namespace AE::Math
     returns 'true' if 'lhs' has ALL bits that presented in 'rhs'
 =================================================
 */
-    template <typename T1, typename T2>
+    template <typename T1, typename T2,
+              ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
+             >
     ND_ constexpr bool  AllBits (const T1 lhs, const T2 rhs) __NE___
     {
-        StaticAssert( IsScalarOrEnum< T1 > );
-        StaticAssert( IsScalarOrEnum< T2 > );
         StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
         //ASSERT( rhs != T2(0) );
-
         return ( ToNearUInt(lhs) & ToNearUInt(rhs) ) == ToNearUInt(rhs);
+    }
+
+    template <usize S>
+    ND_ constexpr bool  AllBits (const BitSet<S> &lhs, const BitSet<S> &rhs) __NE___
+    {
+        if constexpr( S <= 32 ) return AllBits( lhs.to_ulong(), rhs.to_ulong );
+        if constexpr( S <= 64 ) return AllBits( lhs.to_ullong(), rhs.to_ullong );
     }
 
 /*
@@ -64,12 +70,11 @@ namespace AE::Math
     AllBits
 =================================================
 */
-    template <typename T1, typename T2, typename T3>
+    template <typename T1, typename T2, typename T3,
+              ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 > and IsScalarOrEnum< T3 >)
+             >
     ND_ constexpr bool  AllBits (const T1 lhs, const T2 rhs, const T3 mask) __NE___
     {
-        StaticAssert( IsScalarOrEnum< T1 > );
-        StaticAssert( IsScalarOrEnum< T2 > );
-        StaticAssert( IsScalarOrEnum< T3 > );
         StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
         StaticAssert( not (IsEnum<T1> and IsEnum<T3>) or IsSameTypes<T1, T3> );
         ASSERT( mask != T2(0) );
@@ -84,20 +89,28 @@ namespace AE::Math
     returns 'true' if 'lhs' has ANY bit that presented in 'rhs'
 =================================================
 */
-    template <typename T1, typename T2>
+    template <typename T1, typename T2,
+              ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
+             >
     ND_ constexpr bool  AnyBits (const T1 lhs, const T2 rhs) __NE___
     {
-        StaticAssert( IsScalarOrEnum< T1 > );
-        StaticAssert( IsScalarOrEnum< T2 > );
         StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
         //ASSERT( rhs != T2(0) );
-
         return !!( ToNearUInt(lhs) & ToNearUInt(rhs) );
+    }
+
+    template <usize S>
+    ND_ constexpr bool  AnyBits (const BitSet<S> &lhs, const BitSet<S> &rhs) __NE___
+    {
+        if constexpr( S <= 32 ) return AnyBits( lhs.to_ulong(), rhs.to_ulong );
+        if constexpr( S <= 64 ) return AnyBits( lhs.to_ullong(), rhs.to_ullong );
     }
 
 /*
 =================================================
     ExtractBit
+----
+    extract lowest non-zero bit.
 =================================================
 */
     template <typename T>
@@ -136,7 +149,7 @@ namespace AE::Math
         return std::has_single_bit( U(x) );
       #else
         U   val = U( x );
-        return (val != U{0}) & ((val & (val - U{1})) == U{0});
+        return (val != U{0}) and ((val & (val - U{1})) == U{0});
       #endif
     }
 
@@ -151,6 +164,7 @@ namespace AE::Math
     IntLog2 / GetPowerOfTwo / BitScanReverse / MSB
 ----
     returns < 0 if x == 0
+    find high non-zero bit.
 =================================================
 */
     template <typename T>
@@ -207,19 +221,21 @@ namespace AE::Math
 
 /*
 =================================================
-    ExtractBitLog2
+    ExtractBitIndex
+----
+    extract index of lowest non-zero bit.
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, int>  ExtractBitLog2 (INOUT T& value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, int>  ExtractBitIndex (INOUT T& value) __NE___
     {
         return IntLog2( ExtractBit( INOUT value ));
     }
 
     template <typename Dst, typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, Dst>  ExtractBitLog2 (INOUT T& value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, Dst>  ExtractBitIndex (INOUT T& value) __NE___
     {
-        return static_cast<Dst>( ExtractBitLog2( INOUT value ));
+        return static_cast<Dst>( ExtractBitIndex( INOUT value ));
     }
 
 /*
@@ -227,6 +243,7 @@ namespace AE::Math
     BitScanForward / LSB
 ----
     returns < 0 if x == 0
+    find low non-zero bit.
 =================================================
 */
     template <typename T>

@@ -11,9 +11,15 @@
 
 #include "vfs/Archive/ArchivePacker.h"
 
-#include "pipeline_compiler/PipelineCompilerImpl.h"
+#include "pipeline_compiler/PipelineCompiler.h"
 #include "input_actions/InputActionsBinding.h"
 #include "asset_packer/AssetPacker.h"
+
+#ifdef AE_OFFLINE_PACKER_USE_STATIC_LIBS
+#   define STATIC_LIBS  1
+#else
+#   define STATIC_LIBS  0
+#endif
 
 using namespace AE;
 using namespace AE::Base;
@@ -24,22 +30,24 @@ namespace
 {
     using EReflectionFlags = PipelineCompiler::EReflectionFlags;
 
+    static Array<Path>  s_SearchDirs;
+
 /*
 =================================================
     ConvertArray
 =================================================
 */
-    using EPathParamsFlags = AE::PipelineCompiler::EPathParamsFlags;
-
     struct PathParams2
     {
         BasicString<CharType>   path;
         usize                   priority    : 16;
         usize                   flags       : 8;
     };
-    ND_ static Array<AE::PipelineCompiler::PathParams>  ConvertArray (const Array<PathParams2> &src)
+
+    template <typename R>
+    ND_ static Array<R>  ConvertArray (const Array<PathParams2> &src)
     {
-        Array<AE::PipelineCompiler::PathParams>     dst;
+        Array<R>    dst;
         dst.resize( src.size() );
 
         for (usize i = 0; i < src.size(); ++i)
@@ -56,14 +64,14 @@ namespace
     ConvertString
 =================================================
 */
-    ND_ static BasicString<CharType>  ConvertString (const String &src)
+    ND_ inline BasicString<CharType>  ConvertString (const String &src)
     {
         BasicString<CharType>   dst;
         dst.assign( src.begin(), src.end() );
         return dst;
     }
 
-    ND_ static BasicString<CharType>  ConvertString (const WString &src)
+    ND_ inline BasicString<CharType>  ConvertString (const WString &src)
     {
         BasicString<CharType>   dst;
         dst.assign( src.begin(), src.end() );
@@ -73,6 +81,45 @@ namespace
     ND_ static BasicString<CharType>  ConvertString (const Path &src)
     {
         return ConvertString( src.native() );
+    }
+
+/*
+=================================================
+    FindPath
+=================================================
+*/
+    ND_ static Path  FindPath (const String &src, StringView msg) __Th___
+    {
+        Path    path = FileSystem::ToAbsolute( src );
+
+        if ( not FileSystem::IsFileOrDirectory( path ))
+        {
+            bool    found = false;
+
+            for (const auto& dir : s_SearchDirs)
+            {
+                Path    path2 = dir / src;
+
+                if ( FileSystem::IsFileOrDirectory( path2 ))
+                {
+                    path    = RVRef(path2);
+                    found   = true;
+                    break;
+                }
+            }
+            CHECK_THROW_MSG( found, String{msg} << " '" << src << "' is not exist" );
+        }
+        return path;
+    }
+
+/*
+=================================================
+    FindPathAndConvertString
+=================================================
+*/
+    ND_ static BasicString<CharType>  FindPathAndConvertString (const String &src, StringView msg) __Th___
+    {
+        return ConvertString( FindPath( src, msg ));
     }
 
 /*
@@ -99,7 +146,6 @@ namespace
     class ScriptPipelineCompiler final : public AngelScriptHelper::SimpleRefCounter
     {
     private:
-        Array< PathParams2 >                _pipelineFolders;
         Array< PathParams2 >                _pipelines;
 
         Array< BasicString<CharType> >      _shaderFolders;
@@ -107,60 +153,42 @@ namespace
         Array< BasicString<CharType> >      _pplnIncludeDirs;
         EReflectionFlags                    _reflFlags      = Default;
 
-        String                              _outputCppStructsFile;
-        String                              _outputCppNamesFile;
+        Path                                _outputCppStructsFile;
+        Path                                _outputCppNamesFile;
+
+        Library                                             _lib;
+        decltype(&AE::PipelineCompiler::CompilePipelines)   _fnCompilePipelines = null;
 
 
     public:
-        void  AddPipelineFolder (const String &path, uint priority, EPathParamsFlags flags) __Th___
+        void  AddPipelineRecursiveFolder (const String &path) __Th___
         {
-            PathParams2&    params = _pipelineFolders.emplace_back();
-            params.path     = ConvertString( path );
-            params.priority = priority;
-            params.flags    = usize(flags);
+            return _AddPipeline( path, uint(_pipelines.size()), PipelineCompiler::EPathParamsFlags::RecursiveFolder );
         }
 
-        void  AddPipelineFolder2 (const String &path, EPathParamsFlags flags) __Th___
+        void  AddPipelineFolder (const String &path) __Th___
         {
-            return AddPipelineFolder( path, uint(_pipelineFolders.size() + _pipelines.size()), flags );
+            return _AddPipeline( path, uint(_pipelines.size()), PipelineCompiler::EPathParamsFlags::Folder );
         }
 
-        void  AddPipelineFolder3 (const String &path) __Th___
+        void  AddPipeline (const String &path) __Th___
         {
-            return AddPipelineFolder2( path, Default );
-        }
-
-        void  AddPipeline (const String &path, uint priority, EPathParamsFlags flags) __Th___
-        {
-            PathParams2&    params = _pipelines.emplace_back();
-            params.path     = ConvertString( path );
-            params.priority = priority;
-            params.flags    = usize(flags);
-        }
-
-        void  AddPipeline2 (const String &path, EPathParamsFlags flags) __Th___
-        {
-            return AddPipeline( path, uint(_pipelineFolders.size() + _pipelines.size()), flags );
-        }
-
-        void  AddPipeline3 (const String &path) __Th___
-        {
-            return AddPipeline2( path, Default );
+            return _AddPipeline( path, uint(_pipelines.size()), PipelineCompiler::EPathParamsFlags::File );
         }
 
         void  AddShaderFolder (const String &path) __Th___
         {
-            _shaderFolders.push_back( ConvertString( path ));
+            _shaderFolders.push_back( FindPathAndConvertString( path, "Shader folder" ));
         }
 
         void  AddShaderIncludeDir (const String &path) __Th___
         {
-            _shaderIncludeDirs.push_back( ConvertString( path ));
+            _shaderIncludeDirs.push_back( FindPathAndConvertString( path, "Shader include directory" ));
         }
 
         void  AddPipelineIncludeDir (const String &path) __Th___
         {
-            _pplnIncludeDirs.push_back( ConvertString( path ));
+            _pplnIncludeDirs.push_back( FindPathAndConvertString( path, "Pipeline include directory" ));
         }
 
         void  SetOutputCPPFile1 (const String &structs, const String &names, uint flags) __Th___
@@ -173,8 +201,8 @@ namespace
             CHECK_THROW_MSG( _outputCppStructsFile.empty() );
             CHECK_THROW_MSG( _outputCppNamesFile.empty() );
 
-            _outputCppStructsFile   = structs;
-            _outputCppNamesFile     = names;
+            _outputCppStructsFile   = FileSystem::ToAbsolute( structs );
+            _outputCppNamesFile     = FileSystem::ToAbsolute( names );
             _reflFlags              = flags;
         }
 
@@ -189,16 +217,33 @@ namespace
         }
 
     private:
+        void  _AddPipeline (const String &path, uint priority, PipelineCompiler::EPathParamsFlags flags) __Th___
+        {
+            PathParams2&    params = _pipelines.emplace_back();
+            params.path     = FindPathAndConvertString( path, "Pipeline file/folder" );
+            params.priority = priority;
+            params.flags    = usize(flags);
+        }
+
         void  _Compile (const String &outputPackName, const bool addNameMapping) __Th___
         {
             using namespace AE::PipelineCompiler;
 
-            const auto  output_pack_name        = ConvertString( outputPackName );
+            #if STATIC_LIBS
+                _fnCompilePipelines = &CompilePipelines;
+            #else
+            if ( _fnCompilePipelines == null )
+            {
+                CHECK_THROW_MSG( _lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
+                CHECK_THROW_MSG( _lib.GetProcAddr( "CompilePipelines", OUT _fnCompilePipelines ));
+            }
+            #endif
+
+            const auto  output_pack_name        = ConvertString( FileSystem::ToAbsolute( outputPackName ));
             const auto  output_cpp_types_file   = ConvertString( _outputCppStructsFile );
             const auto  output_cpp_names_file   = ConvertString( _outputCppNamesFile );
 
-            const auto  pipeline_folders        = ConvertArray( _pipelineFolders );
-            const auto  pipelines               = ConvertArray( _pipelines );
+            const auto  pipelines               = ConvertArray<PipelineCompiler::PathParams>( _pipelines );
             const auto  shader_folders          = ConvertArray( _shaderFolders );
             const auto  shader_include_dirs     = ConvertArray( _shaderIncludeDirs );
             const auto  ppln_include_dirs       = ConvertArray( _pplnIncludeDirs );
@@ -206,8 +251,6 @@ namespace
             PipelinesInfo   info = {};
 
             // input pipelines
-            info.pipelineFolders        = pipeline_folders.data();
-            info.pipelineFolderCount    = pipeline_folders.size();
             info.inPipelines            = pipelines.data();
             info.inPipelineCount        = pipelines.size();
 
@@ -230,10 +273,9 @@ namespace
             info.cppReflectionFlags     = _reflFlags;
             info.addNameMapping         = addNameMapping;
 
-            CHECK_THROW_MSG( CompilePipelines( &info ));
+            CHECK_THROW_MSG( _fnCompilePipelines( &info ));
 
             // reset
-            _pipelineFolders.clear();
             _pipelines.clear();
             _shaderFolders.clear();
             _shaderIncludeDirs.clear();
@@ -250,37 +292,59 @@ namespace
     {
     private:
         Array< BasicString<CharType> >  _files;
-        String                          _outputCppFile;
+        Array< BasicString<CharType> >  _include;
+        Path                            _outputCppFile;
+
+        Library                                             _lib;
+        decltype(&AE::InputActions::ConvertInputActions)    _fnConvertInputActions  = null;
 
     public:
         void  Add (const String &filename) __Th___
         {
-            _files.push_back( ConvertString( filename ));
+            _files.push_back( FindPathAndConvertString( filename, "File" ));
+        }
+
+        void  Include (const String &folder) __Th___
+        {
+            _include.push_back( FindPathAndConvertString( folder, "Include directory" ));
         }
 
         void  SetOutputCPPFile (const String &value) __Th___
         {
             CHECK_THROW_MSG( _outputCppFile.empty() );
-            _outputCppFile = value;
+            _outputCppFile = FileSystem::ToAbsolute( value );
         }
 
         void  Convert (const String &outputName) __Th___
         {
             using namespace AE::InputActions;
 
+            #if STATIC_LIBS
+                _fnConvertInputActions = &ConvertInputActions;
+            #else
+            if ( _fnConvertInputActions == null )
+            {
+                CHECK_THROW_MSG( _lib.Load( AE_ASSET_PACKER_LIBRARY ));
+                CHECK_THROW_MSG( _lib.GetProcAddr( "ConvertInputActions", OUT _fnConvertInputActions ));
+            }
+            #endif
+
             CHECK_THROW_MSG( not _files.empty() );
 
-            const auto  output      = ConvertString( outputName );
-            const auto  temp        = ConvertArray( _files );
+            const auto  output      = ConvertString( FileSystem::ToAbsolute( outputName ));
+            const auto  files       = ConvertArray( _files );
+            const auto  include     = ConvertArray( _include );
             const auto  output_cpp  = ConvertString( _outputCppFile );
 
-            InputActionsInfo    info = {};
-            info.inFiles        = temp.data();
-            info.inFileCount    = temp.size();
-            info.outputPackName = output.c_str();
-            info.outputCppFile  = output_cpp.empty() ? null : output_cpp.c_str();
+            InputActionsInfo    info    = {};
+            info.inFiles                = files.data();
+            info.inFileCount            = files.size();
+            info.inIncludeFolders       = include.data();
+            info.inIncludeFolderCount   = include.size();
+            info.outputPackName         = output.c_str();
+            info.outputCppFile          = output_cpp.empty() ? null : output_cpp.c_str();
 
-            CHECK_THROW_MSG( ConvertInputActions( &info ));
+            CHECK_THROW_MSG( _fnConvertInputActions( &info ));
 
             _files.clear();
         }
@@ -294,8 +358,12 @@ namespace
     class ScriptAssetPacker final : public AngelScriptHelper::SimpleRefCounter
     {
     private:
-        Array< BasicString<CharType> >  _files;
+        Array< PathParams2 >            _files;
         BasicString<CharType>           _tempFile;
+        Array< BasicString<CharType> >  _include;
+
+        Library                                 _lib;
+        decltype(&AE::AssetPacker::PackAssets)  _fnPackAssets   = null;
 
     public:
         void  Add (const String &filename) __Th___
@@ -303,39 +371,30 @@ namespace
             const auto  ext = Path{filename}.extension().string();
             CHECK_THROW_MSG( ext == ".as" );
 
-            _files.push_back( ConvertString( filename ));
+            PathParams2&    params = _files.emplace_back();
+            params.path     = FindPathAndConvertString( filename, "Asset file" );
+            params.priority = uint(_files.size()-1);
+            params.flags    = usize(AssetPacker::EPathParamsFlags::File);
         }
 
         void  AddFolder (const String &inFolder) __Th___
         {
-            Deque<Path>     stack;
-            stack.push_back( Path{inFolder} );
+            PathParams2&    params = _files.emplace_back();
+            params.path     = FindPathAndConvertString( inFolder, "Folder with assets" );
+            params.priority = uint(_files.size()-1);
+            params.flags    = usize(AssetPacker::EPathParamsFlags::RecursiveFolder);
+        }
 
-            for (; not stack.empty();)
-            {
-                Path    folder = RVRef(stack.front());
-                stack.pop_front();
-
-                for (auto& path : FileSystem::Enum( folder ))
-                {
-                    if ( path.IsDirectory() )
-                    {
-                        stack.push_back( path.Get() );
-                    }
-                    else
-                    {
-                        const auto  ext = path.Get().extension().string();
-                        if ( ext == ".as" )
-                            _files.push_back( ConvertString( path.Get() ));
-                    }
-                }
-            }
+        void  Include (const String &folder) __Th___
+        {
+            _include.push_back( FindPathAndConvertString( folder, "Include directory" ));
         }
 
         void  SetTempFile (const String &fileName) __Th___
         {
             CHECK_THROW_MSG( not FileSystem::IsDirectory( fileName ) or
-                             FileSystem::IsFile( fileName ));
+                             FileSystem::IsFile( fileName ),
+                "Temp file '"s << fileName << "' must not be an existing folder" );
 
             const Path  path {fileName};
 
@@ -349,16 +408,31 @@ namespace
         {
             using namespace AE::AssetPacker;
 
-            const auto  output  = ConvertString( FileSystem::ToAbsolute( outputName ));
-            const auto  temp    = ConvertArray( _files );
+            #if STATIC_LIBS
+                _fnPackAssets = &PackAssets;
+            #else
+            if ( _fnPackAssets == null )
+            {
+                CHECK_THROW_MSG( _lib.Load( AE_INPUT_ACTIONS_BINDING_LIBRARY ));
+                CHECK_THROW_MSG( _lib.GetProcAddr( "PackAssets", OUT _fnPackAssets ));
+            }
+            #endif
 
-            AssetInfo   info    = {};
-            info.inFiles        = temp.data();
-            info.inFileCount    = temp.size();
-            info.tempFile       = _tempFile.c_str();
-            info.outputArchive  = output.c_str();
+            CHECK_THROW_MSG( not _files.empty() );
 
-            CHECK_THROW_MSG( PackAssets( &info ));
+            const auto  output      = ConvertString( FileSystem::ToAbsolute( outputName ));
+            const auto  files       = ConvertArray<AssetPacker::PathParams>( _files );
+            const auto  include     = ConvertArray( _include );
+
+            AssetInfo   info            = {};
+            info.inFiles                = files.data();
+            info.inFileCount            = files.size();
+            info.inIncludeFolders       = include.data();
+            info.inIncludeFolderCount   = include.size();
+            info.tempFile               = _tempFile.c_str();
+            info.outputArchive          = output.c_str();
+
+            CHECK_THROW_MSG( _fnPackAssets( &info ));
 
             FileSystem::Remove( _tempFile );
 
@@ -385,7 +459,7 @@ namespace
         void  Add1 (const String &name, const String &filename, EFileType type) __Th___
         {
             CHECK_THROW_MSG( name.length() < VFS::FileName::MaxStringLength() );
-            CHECK_THROW_MSG( _archive.Add( VFS::FileName::WithString_t{name}, Path{filename}, type ));
+            CHECK_THROW_MSG( _archive.Add( VFS::FileName::WithString_t{name}, FindPath( filename, "VFS file" ), type ));
         }
 
         void  Add2 (const String &filename, EFileType type) __Th___
@@ -405,12 +479,13 @@ namespace
 
         void  AddArchive (const String &filename) __Th___
         {
-            CHECK_THROW_MSG( _archive.AddArchive( Path{filename} ));
+            CHECK_THROW_MSG( _archive.AddArchive( FindPath( filename, "Archive" )));
         }
 
         void  Store (const String &filename) __Th___
         {
-            CHECK_THROW_MSG( _archive.Store( Path{filename} ));
+            CHECK_THROW_MSG( _archive.Store( Path{filename} ),
+                "Failed to store archive to '"s << filename << "'" );
 
             FileSystem::Remove( _tempFile );
             _tempFile.clear();
@@ -424,15 +499,16 @@ namespace
         void  SetTempFile (const String &fileName) __Th___
         {
             CHECK_THROW_MSG( not FileSystem::IsDirectory( fileName ) or
-                             FileSystem::IsFile( fileName ));
+                             FileSystem::IsFile( fileName ),
+                "Temp file '"s << fileName << "' must not be an existing folder" );
 
-            const Path  path {fileName};
+            const Path  path = FileSystem::ToAbsolute( fileName );
 
             FileSystem::Remove( path );
             FileSystem::CreateDirectories( path.parent_path() );
 
-            CHECK_THROW_MSG( _archive.Create( FileSystem::ToAbsolute( path )));
-            _tempFile = ConvertString( FileSystem::ToAbsolute( path ));
+            CHECK_THROW_MSG( _archive.Create( path ));
+            _tempFile = ConvertString( path );
         }
     };
 
@@ -443,7 +519,6 @@ AE_DECL_SCRIPT_OBJ_RC(  ScriptPipelineCompiler, "PipelineCompiler"  );
 AE_DECL_SCRIPT_OBJ_RC(  ScriptInputActions,     "InputActions"      );
 AE_DECL_SCRIPT_OBJ_RC(  ScriptAssetPacker,      "AssetPacker"       );
 AE_DECL_SCRIPT_OBJ_RC(  ScriptArchive,          "Archive"           );
-AE_DECL_SCRIPT_TYPE(    EPathParamsFlags,       "EPathParamsFlags"  );
 AE_DECL_SCRIPT_TYPE(    EFileType,              "EFileType"         );
 AE_DECL_SCRIPT_TYPE(    EReflectionFlags,       "EReflectionFlags"  );
 
@@ -455,15 +530,37 @@ namespace
     GetSharedFeatureSetPath
     GetSharedShadersPath
     GetCanvasVerticesPath
+    GetUIBindingsPath
     GetOutputDir
+    IsGLSLCompilerSupported
+    IsMetalCompilerSupported
 =================================================
 */
-    static String  GetSharedFeatureSetPath ()   { return AE_SHARED_DATA "/feature_set"; }
-    static String  GetSharedShadersPath ()      { return AE_SHARED_DATA "/shaders"; }
-    static String  GetCanvasVerticesPath ()     { return AE_CANVAS_VERTS; }
+    static String   GetSharedFeatureSetPath ()  { return AE_SHARED_DATA "/feature_set"; }
+    static String   GetSharedShadersPath ()     { return AE_SHARED_DATA "/shaders"; }
+    static String   GetCanvasVerticesPath ()    { return AE_CANVAS_VERTS; }
+    static String   GetUIBindingsPath ()        { return AE_UI_BINDINGS; }
 
     static String   _s_OutputDir;
-    static String  GetOutputDir ()              { return _s_OutputDir; }
+    static String   GetOutputDir ()             { return _s_OutputDir; }
+
+    static bool     IsGLSLCompilerSupported ()
+    {
+    #if defined(AE_ENABLE_GLSLANG) or defined(AE_PIPELINE_COMPILER_LIBRARY)
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
+    static bool     IsMetalCompilerSupported ()
+    {
+    #if defined(AE_METAL_TOOLS) and defined(AE_ENABLE_SPIRV_CROSS)
+        return true;
+    #else
+        return false;
+    #endif
+    }
 
 /*
 =================================================
@@ -487,62 +584,73 @@ namespace
         CoreBindings::BindVectorMath( se );
         CoreBindings::BindArray( se );
         CoreBindings::BindString( se );
+        CoreBindings::BindLog( se );
 
         se->AddFunction( &GetSharedFeatureSetPath,  "GetSharedFeatureSetPath"   );
         se->AddFunction( &GetSharedShadersPath,     "GetSharedShadersPath"      );
         se->AddFunction( &GetCanvasVerticesPath,    "GetCanvasVerticesPath"     );
+        se->AddFunction( &GetUIBindingsPath,        "GetUIBindingsPath"         );
         se->AddFunction( &GetOutputDir,             "GetOutputDir"              );
         se->AddFunction( &DeleteFolder,             "DeleteFolder"              );
-
-        // pipeline compiler path params
-        {
-            EnumBinder<EPathParamsFlags>    binder{ se };
-            binder.Create();
-            binder.AddValue( "Unknown",     EPathParamsFlags::Unknown   );
-            binder.AddValue( "Recursive",   EPathParamsFlags::Recursive );
-            StaticAssert( uint(EPathParamsFlags::All) == 1 );
-        }
+        se->AddFunction( &IsGLSLCompilerSupported,  "IsGLSLCompilerSupported"   );
+        se->AddFunction( &IsMetalCompilerSupported, "IsMetalCompilerSupported"  );
 
         // pipeline compiler path params
         {
             EnumBinder<EFileType>   binder{ se };
             binder.Create();
-            binder.AddValue( "Raw",             EFileType::Raw  );
-            binder.AddValue( "Brotli",          EFileType::Brotli   );
-            binder.AddValue( "InMemory",        EFileType::InMemory );
-            binder.AddValue( "BrotliInMemory",  EFileType::BrotliInMemory   );
-            StaticAssert( uint(EFileType::All) == 7 );
+            switch_enum( EFileType::Unknown )
+            {
+                case EFileType::Unknown :
+                case EFileType::All :
+                case EFileType::_Last :
+                #define CASE( _name_ )  case EFileType::_name_ :  binder.AddValue( #_name_, EFileType::_name_ );
+                CASE( Raw )
+                CASE( Brotli )
+                CASE( InMemory )
+                CASE( BrotliInMemory )
+                CASE( ZStd )
+                CASE( ZStdInMemory )
+                #undef CASE
+                default : break;
+            }
+            switch_end
         }
 
         //
         {
             EnumBinder<EReflectionFlags>    binder{ se };
             binder.Create();
-            binder.AddValue( "RenderTechniques",            EReflectionFlags::RenderTechniques  );
-            binder.AddValue( "RTechPass_Pipelines",         EReflectionFlags::RTechPass_Pipelines   );
-            binder.AddValue( "RTech_ShaderBindingTable",    EReflectionFlags::RTech_ShaderBindingTable  );
-            binder.AddValue( "All",                         EReflectionFlags::All   );
-            StaticAssert( uint(EReflectionFlags::All) == 7 );
+            switch_enum( EReflectionFlags::Unknown )
+            {
+                case EReflectionFlags::Unknown :
+                case EReflectionFlags::_Last :
+                #define CASE( _name_ )  case EReflectionFlags::_name_ :  binder.AddValue( #_name_, EReflectionFlags::_name_ );
+                CASE( RenderTechniques )
+                CASE( RTechPass_Pipelines )
+                CASE( RTech_ShaderBindingTable )
+                CASE( All )
+                #undef CASE
+                default : break;
+            }
+            switch_end
         }
 
         // pipeline compiler
         {
             ClassBinder<ScriptPipelineCompiler>     binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,       "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder2,      "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder3,      "AddPipelineFolder"         );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,             "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline2,            "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline3,            "AddPipeline"               );
-            binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,         "AddShaderFolder"           );
-            binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,     "ShaderIncludeDir"          );
-            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,   "PipelineIncludeDir"        );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,           "AddPipelineFolder"         );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineRecursiveFolder,  "AddPipelineFolderRecursive");
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,                 "AddPipeline"               );
+            binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,             "AddShaderFolder"           );
+            binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,         "ShaderIncludeDir"          );
+            binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,       "PipelineIncludeDir"        );
 
-            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,       "SetOutputCPPFile"          );
-            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,       "SetOutputCPPFile"          );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile1,                "Compile"                   );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile4,                "CompileWithNameMapping"    );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,           "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,           "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::Compile1,                    "Compile"                   );
+            binder.AddMethod( &ScriptPipelineCompiler::Compile4,                    "CompileWithNameMapping"    );
         }
 
         // input actions
@@ -550,6 +658,7 @@ namespace
             ClassBinder<ScriptInputActions>     binder{ se };
             binder.CreateRef();
             binder.AddMethod( &ScriptInputActions::Add,                 "Add"               );
+            binder.AddMethod( &ScriptInputActions::Include,             "Include"           );
             binder.AddMethod( &ScriptInputActions::SetOutputCPPFile,    "SetOutputCPPFile"  );
             binder.AddMethod( &ScriptInputActions::Convert,             "Convert"           );
         }
@@ -560,6 +669,7 @@ namespace
             binder.CreateRef();
             binder.AddMethod( &ScriptAssetPacker::Add,                  "Add"               );
             binder.AddMethod( &ScriptAssetPacker::AddFolder,            "AddFolder"         );
+            binder.AddMethod( &ScriptAssetPacker::Include,              "Include"           );
             binder.AddMethod( &ScriptAssetPacker::SetTempFile,          "SetTempFile"       );
             binder.AddMethod( &ScriptAssetPacker::ToArchive,            "ToArchive"         );
         }
@@ -568,14 +678,14 @@ namespace
         {
             ClassBinder<ScriptArchive>      binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptArchive::SetTempFile,              "SetTempFile"       );
-            binder.AddMethod( &ScriptArchive::SetDefaultFileType,       "SetDefaultFileType");
-            binder.AddMethod( &ScriptArchive::Add1,                     "Add"               );
-            binder.AddMethod( &ScriptArchive::Add2,                     "Add"               );
-            binder.AddMethod( &ScriptArchive::Add3,                     "Add"               );
-            binder.AddMethod( &ScriptArchive::Add4,                     "Add"               );
-            binder.AddMethod( &ScriptArchive::AddArchive,               "AddArchive"        );
-            binder.AddMethod( &ScriptArchive::Store,                    "Store"             );
+            binder.AddMethod( &ScriptArchive::SetTempFile,              "SetTempFile"           );
+            binder.AddMethod( &ScriptArchive::SetDefaultFileType,       "SetDefaultFileType"    );
+            binder.AddMethod( &ScriptArchive::Add1,                     "Add",                  {"nameInArchive", "filePath", "archiveFileType"} );
+            binder.AddMethod( &ScriptArchive::Add2,                     "Add",                  {"filePath", "archiveFileType"} );
+            binder.AddMethod( &ScriptArchive::Add3,                     "Add",                  {"nameInArchive", "filePath"} );
+            binder.AddMethod( &ScriptArchive::Add4,                     "Add",                  {"filePath"} );
+            binder.AddMethod( &ScriptArchive::AddArchive,               "AddArchive"            );
+            binder.AddMethod( &ScriptArchive::Store,                    "Store"                 );
         }
     }
 
@@ -586,8 +696,14 @@ namespace
 */
     ND_ static bool  RunScript (const Path &respackScript, const Path &outputDir)
     {
-        AE_LOGI( "OfflinePacker args: \n"
-                 "\""s << ToString(respackScript) << "\" \"" << ToString(outputDir) << "\"\n" );
+        {
+            String  str = "OfflinePacker args: \n";
+            str << "-i \""s << ToString(respackScript) << "\" -o \"" << ToString(outputDir) << "\"\n";
+            for (auto& dir : s_SearchDirs) {
+                str << " -d \"" << ToString(dir) << "\"\n";
+            }
+            AE_LOGI( str );
+        }
 
         CHECK_ERR( FileSystem::IsFile( respackScript ));
 
@@ -597,7 +713,6 @@ namespace
         CHECK_ERR( FileSystem::IsDirectory( outputDir ));
 
         _s_OutputDir = ToString(outputDir);
-        AE_LOGI( "Output folder: '"s << ToString( _s_OutputDir ) << "'" );
         CHECK_ERR( outputDir == Path{_s_OutputDir} );   // if path has unicode
         _s_OutputDir << '/';
 
@@ -638,19 +753,34 @@ namespace
     main
 =================================================
 */
-int main (int argc, char* argv[])
-{
-    AE::Base::StaticLogger::LoggerScope log{};  // don't check for memleak because of false possitive in 'SpirvToMsl'
+#ifndef AE_OFFLINE_PACKER_LIB
 
-    CHECK_ERR( argc == 2 or argc == 3, -1 );
+    int main (int argc, char* argv[])
+    {
+        AE::Base::StaticLogger::LoggerScope log{};  // don't check for memleak because of false possitive in 'SpirvToMsl'
 
-    Path    output_dir;
-    if ( argc == 3 )
-        output_dir = Path{argv[2]};
-    else
-        output_dir = FileSystem::CurrentPath();
+        Path    input_script;
+        Path    output_dir      = FileSystem::CurrentPath();
 
-    CHECK_ERR( RunScript( FileSystem::ToAbsolute(Path{argv[1]}),
-                          FileSystem::ToAbsolute(output_dir) ), -2 );
-    return 0;
-}
+        s_SearchDirs.clear();
+
+        for (int i = 1; i+1 < argc; i += 2)
+        {
+            auto    type    = StringView{argv[i+0]};
+            if ( type == "-i" )
+                input_script = FileSystem::ToAbsolute( Path{ argv[i+1] });
+            else
+            if ( type == "-o" )
+                output_dir = FileSystem::ToAbsolute( Path{ argv[i+1] });
+            else
+            if ( type == "-d" )
+                s_SearchDirs.push_back( FileSystem::ToAbsolute( Path{ argv[i+1] }));
+            else
+                RETURN_ERR( "unknown command: '"s << type << "' + '" << argv[i+1] << "'", -1 );
+        }
+
+        CHECK_ERR( RunScript( input_script, output_dir ), -2 );
+        return 0;
+    }
+
+#endif

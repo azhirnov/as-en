@@ -20,7 +20,7 @@ void ASmain ()
 
     // setup camera
     {
-        RC<FPVCamera>   camera = FPVCamera();
+        RC<RemoteCamera>    camera = RemoteCamera();
 
         camera.ClipPlanes( 0.1f, 10.f );
         camera.FovY( 70.f );

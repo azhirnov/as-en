@@ -21,8 +21,9 @@ namespace AE::Threading
              >
     class LfLinearAllocator final : public IAllocatorTS
     {
-        StaticAssert( BlockSize_v > 0 );
+        StaticAssert( BlockSize_v > 0 and IsMultipleOf( BlockSize_v, MemAlign ));
         StaticAssert( MaxBlocks_v > 0 and MaxBlocks_v < 64 );
+        StaticAssert( MemAlign > 0 and IsPowerOfTwo( MemAlign ));
 
     // types
     public:
@@ -62,7 +63,6 @@ namespace AE::Threading
 
         // must be externally synchronized
             void    Release ()                                              __NE___;
-            void    Discard ()                                              __NE___;
 
         ND_ Bytes   CurrentSize ()                                          C_NE___;
 
@@ -73,13 +73,14 @@ namespace AE::Threading
 
         // IAllocator //
         ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)              __NE_OV;
+            using   IAllocator::Allocate;
 
         // only for debugging
             void    Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE_OV { Deallocate( ptr, sizeAndAlign.size ); }
             void    Deallocate (void* ptr, const Bytes size)                __NE_OV;
             void    Deallocate (void* ptr)                                  __NE_OV { Deallocate( ptr, 1_b ); }
 
-            using IAllocator::Allocate;
+            void    Discard ()                                              __NE_OV;
     };
 
 

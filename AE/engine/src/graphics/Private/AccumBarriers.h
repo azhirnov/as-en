@@ -108,7 +108,7 @@ namespace AE::Graphics::_hidden_
         ACCUMDRAWBARRIER (Self &&)          __NE___ = default;
         ~ACCUMDRAWBARRIER ()                __Th___ { _ctx.CommitBarriers(); }
 
-        Self&&  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)   rvTh___ { _ctx.AttachmentBarrier( name, srcState, dstState ); return RVRef(*this); }
+        Self&&  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)  rvTh___ { _ctx.AttachmentBarrier( name, srcState, dstState ); return RVRef(*this); }
     };
 
 

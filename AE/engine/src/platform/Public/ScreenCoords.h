@@ -85,6 +85,7 @@ namespace _hidden_
     using Pixels2u      = App::_hidden_::Pixels< uint2 >;
     using Pixels2i      = App::_hidden_::Pixels< int2 >;
     using PixelsRectI   = App::_hidden_::Pixels< RectI >;
+    using PixelsRectUS  = App::_hidden_::Pixels< Rectangle<ushort> >;
     using PixelsRectF   = App::_hidden_::Pixels< RectF >;
 
     using Dips2f        = App::_hidden_::Dips< float2 >;

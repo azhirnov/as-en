@@ -365,7 +365,7 @@ namespace
     SetRenderPass
 =================================================
 */
-    void  MeshPipelineSpecScriptBinding::SetRenderPass (const RenderPassName &rpName, const SubpassName &subpass) __Th___
+    void  MeshPipelineSpecScriptBinding::SetRenderPass (RenderPassName::Ref rpName, SubpassName::Ref subpass) __Th___
     {
         CHECK_THROW_MSG( rpName.IsDefined() and subpass.IsDefined() );
 

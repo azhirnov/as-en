@@ -17,7 +17,7 @@ struct quat
 
 
 ND_ quat    QIdentity ();
-ND_ quat    QCreate (const float4 vec);
+ND_ quat    QCreate (const float4 v);
 ND_ quat    QCreate (const float3 axis, const float angle);
 ND_ quat    QCreate (float x, float y, float z, float w);
 
@@ -59,10 +59,10 @@ quat  QIdentity ()
     QCreate
 =================================================
 */
-quat  QCreate (const float4 vec)
+quat  QCreate (const float4 v)
 {
     quat    ret;
-    ret.data = vec;
+    ret.data = v;
     return ret;
 }
 

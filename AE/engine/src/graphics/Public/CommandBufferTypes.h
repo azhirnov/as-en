@@ -395,7 +395,7 @@ namespace AE::Graphics
     struct UploadImageDesc
     {
         uint3               imageOffset     {0};
-        uint3               imageSize       {~0u};  // UMax - remaining size
+        uint3               imageDim        {~0u};  // UMax - remaining size
         ImageLayer          arrayLayer;
         MipmapLevel         mipLevel;
         Bytes               dataRowPitch;           // 0 - auto
@@ -434,6 +434,7 @@ namespace AE::Graphics
                       EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
             _bufferId{id}, _desc{ offset, size, blockSize, heapType} {}
 
+        BufferStream (const BufferStream &)                     __NE___ = default;
         BufferStream&  operator = (const BufferStream &)        __NE___ = default;
 
         BufferStream&  SetHeapType (EStagingHeapType type)      __NE___ { _desc.heapType = type;    return *this; }
@@ -474,14 +475,15 @@ namespace AE::Graphics
         ImageStream ()                                          __NE___ {}
         ImageStream (ImageID id, const UploadImageDesc &desc)   __NE___ : _imageId{id}, _desc{desc} {}
 
+        ImageStream (const ImageStream &)                       __NE___ = default;
         ImageStream&  operator = (const ImageStream &)          __NE___ = default;
 
         ImageStream&  SetHeapType (EStagingHeapType type)       __NE___ { _desc.heapType = type;  return *this; }
 
         ND_ ImageID             ImageId ()                      C_NE___ { return _imageId; }
         ND_ uint3 const&        Begin ()                        C_NE___ { return _desc.imageOffset; }
-        ND_ uint3               End ()                          C_NE___ { return _desc.imageOffset + _desc.imageSize; }
-        ND_ uint3 const&        RegionSize ()                   C_NE___ { return _desc.imageSize; }
+        ND_ uint3               End ()                          C_NE___ { return _desc.imageOffset + _desc.imageDim; }
+        ND_ uint3 const&        RegionSize ()                   C_NE___ { return _desc.imageDim; }
         ND_ Bytes               DataOffset ()                   C_NE___ { return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
         ND_ EStagingHeapType    HeapType ()                     C_NE___ { return _desc.heapType; }
 
@@ -489,7 +491,44 @@ namespace AE::Graphics
         ND_ auto const&         ToReadbackDesc ()               C_NE___ { return _desc; }
 
         ND_ bool                IsInitialized ()                C_NE___ { return _imageId != Default; }
-        ND_ bool                IsCompleted ()                  C_NE___ { return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
+        ND_ bool                IsCompleted ()                  C_NE___ { return IsInitialized() and (posYZ[1] >= _desc.imageDim.z); }
+    };
+
+
+    //
+    // Video Image Stream
+    //
+    struct VideoImageStream
+    {
+    // variables
+    public:
+        packed_uint2        posYZ;
+    private:
+        VideoImageID        _imageId;
+        UploadImageDesc     _desc;
+
+    // methods
+    public:
+        VideoImageStream ()                                             __NE___ {}
+        VideoImageStream (VideoImageID id, const UploadImageDesc &desc) __NE___ : _imageId{id}, _desc{desc} {}
+
+        VideoImageStream (const VideoImageStream &)                     __NE___ = default;
+        VideoImageStream&  operator = (const VideoImageStream &)        __NE___ = default;
+
+        VideoImageStream&  SetHeapType (EStagingHeapType type)          __NE___ { _desc.heapType = type;  return *this; }
+
+        ND_ VideoImageID        ImageId ()                              C_NE___ { return _imageId; }
+        ND_ uint3 const&        Begin ()                                C_NE___ { return _desc.imageOffset; }
+        ND_ uint3               End ()                                  C_NE___ { return _desc.imageOffset + _desc.imageDim; }
+        ND_ uint3 const&        RegionSize ()                           C_NE___ { return _desc.imageDim; }
+        ND_ Bytes               DataOffset ()                           C_NE___ { return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
+        ND_ EStagingHeapType    HeapType ()                             C_NE___ { return _desc.heapType; }
+
+        ND_ auto const&         ToUploadDesc ()                         C_NE___ { return _desc; }
+        ND_ auto const&         ToReadbackDesc ()                       C_NE___ { return _desc; }
+
+        ND_ bool                IsInitialized ()                        C_NE___ { return _imageId != Default; }
+        ND_ bool                IsCompleted ()                          C_NE___ { return IsInitialized() and (posYZ[1] >= _desc.imageDim.z); }
     };
 //-----------------------------------------------------------------------------
 
@@ -565,8 +604,8 @@ namespace AE::Graphics
     {
         // limit for dynamic staging buffers
         struct {
-            Byte32u     write   {UMax};
-            Byte32u     read    {UMax};
+            Bytes32u        write   {UMax};
+            Bytes32u        read    {UMax};
         }   stagingBufferPerFrameLimits;
 
         BeginFrameConfig () __NE___ = default;

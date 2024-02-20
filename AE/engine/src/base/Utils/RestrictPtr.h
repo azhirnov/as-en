@@ -1,8 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    MSVC docs: https://learn.microsoft.com/en-us/cpp/cpp/extension-restrict?view=msvc-170
+*/
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Math/Byte.h"
 
 namespace AE::Base
 {
@@ -16,7 +19,8 @@ namespace AE::Base
     {
     // types
     public:
-        using Self  = RstPtr<T>;
+        using Self      = RstPtr< T >;
+        using CSelf     = RstPtr< const T >;
 
 
     // variables
@@ -35,19 +39,21 @@ namespace AE::Base
 
     // methods
     public:
-        RstPtr ()                                       __NE___ {}
-        explicit RstPtr (T* ptr)                        __NE___ : _ptr{ptr} {}
-        RstPtr (std::nullptr_t)                         __NE___ {}
+        constexpr RstPtr ()                             __NE___ {}
+        constexpr explicit RstPtr (T* ptr)              __NE___ : _ptr{ptr} {}
+        constexpr RstPtr (std::nullptr_t)               __NE___ {}
 
-        RstPtr (Self &&)                                __NE___ = default;
-        Self&  operator = (Self &&)                     __NE___ = default;
+        constexpr RstPtr (Self &&)                      __NE___ = default;
+        constexpr Self&  operator = (Self &&)           __NE___ = default;
 
-        RstPtr (const Self &)                           __NE___ = default;
-        Self&  operator = (const Self &)                __NE___ = default;
+        constexpr RstPtr (const Self &)                 __NE___ = default;
+        constexpr Self&  operator = (const Self &)      __NE___ = default;
 
-        Self&  operator = (T* ptr)                      __NE___ { _ptr = ptr;  return *this; }
+        constexpr Self&  operator = (T* ptr)            __NE___ { _ptr = ptr;  return *this; }
 
-        ND_ explicit operator bool ()                   C_NE___ { return _ptr != null; }
+        ND_ constexpr explicit operator bool ()         C_NE___ { return _ptr != null; }
+
+        ND_ constexpr Self  operator + (Bytes offset)   C_NE___ { return Self{ _ptr + offset }; }
 
 
       #if defined(AE_COMPILER_MSVC)

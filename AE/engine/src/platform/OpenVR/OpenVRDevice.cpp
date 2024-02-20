@@ -257,8 +257,7 @@ namespace
         _vrCompositor->SetTrackingSpace( ETrackingUniverseOrigin_TrackingUniverseStanding );    // TODO: move to config
 
         EDeviceActivityLevel level = _vrSystem->GetTrackedDeviceActivityLevel( k_unTrackedDeviceIndex_Hmd );
-        BEGIN_ENUM_CHECKS();
-        switch ( level )
+        switch_enum( level )
         {
             case EDeviceActivityLevel_k_EDeviceActivityLevel_Unknown :                  _hmdState = EState::Created;        break;
             case EDeviceActivityLevel_k_EDeviceActivityLevel_Idle :                     _hmdState = EState::Started;        break;
@@ -267,7 +266,7 @@ namespace
             case EDeviceActivityLevel_k_EDeviceActivityLevel_Standby :                  _hmdState = EState::InBackground;   break;
             case EDeviceActivityLevel_k_EDeviceActivityLevel_Idle_Timeout :             _hmdState = EState::InBackground;   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         for (uint st = uint(EState::Created); st <= uint(_hmdState); ++st)
             _listener->OnStateChanged( *this, EState(st) );
@@ -652,9 +651,7 @@ namespace
     ControllerID  OpenVRDevice::_GetControllerID (uint tdi) const
     {
         ETrackedControllerRole  role = _vrSystem->GetControllerRoleForTrackedDeviceIndex( tdi );
-
-        BEGIN_ENUM_CHECKS();
-        switch ( role )
+        switch_enum( role )
         {
             case ETrackedControllerRole_TrackedControllerRole_LeftHand :    return LeftHand_ID;
             case ETrackedControllerRole_TrackedControllerRole_RightHand :   return RightHand_ID;
@@ -663,7 +660,7 @@ namespace
             case ETrackedControllerRole_TrackedControllerRole_Treadmill :
             case ETrackedControllerRole_TrackedControllerRole_Max :         break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return ControllerID::Invalid;
     }
 

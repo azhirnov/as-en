@@ -29,7 +29,7 @@ namespace {
     struct UdpUnreliable::_MsgHeader
     {
         ushort          magic   = 0;
-        Byte16u         size;
+        Bytes16u        size;
         CSMessageUID    msgId   = CSMessageUID(0);
     };
 
@@ -108,7 +108,7 @@ namespace {
             pending  = 0_b;
         }};
 
-        for (auto it = qs.queue.begin(); (it != qs.queue.end()) & (not isDisconnected);)
+        for (auto it = qs.queue.begin(); (it != qs.queue.end()) and (not isDisconnected);)
         {
             if_unlikely( encoded + sizeof(_MsgHeader) >= qs.storage.Size() )
                 SendData();
@@ -118,15 +118,14 @@ namespace {
             DataEncoder     enc         { qs.storage.Ptr( msg_off ), qs.storage.Size() - msg_off };
             auto            err         = (*it)->Serialize( enc );
 
-            BEGIN_ENUM_CHECKS();
-            switch ( err )
+            switch_enum( err )
             {
                 case_likely CSMessage::EncodeError::OK :
                 {
                     encoded = qs.storage.Size() - enc.RemainingSize();
 
                     _MsgHeader  header;
-                    header.magic = _magic;
+                    header.magic = _magicByte;
                     header.msgId = (*it)->UniqueId();
                     header.size  = encoded - msg_off;
 
@@ -159,7 +158,7 @@ namespace {
                     break;
                 }
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
 
         SendData();
@@ -209,7 +208,7 @@ namespace {
     ProcessMessages
 =================================================
 */
-    void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID frameId) __NE___
+    void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
     {
         if_unlikely( not _socket.IsOpen() )
             return;
@@ -287,7 +286,7 @@ namespace {
     ProcessMessages
 =================================================
 */
-    void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID frameId) __NE___
+    void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
     {
         if_unlikely( not _socket.IsOpen() )
             return;

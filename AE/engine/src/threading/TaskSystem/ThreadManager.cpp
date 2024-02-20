@@ -1,4 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    TODO:
+    - cache thread id to avoid system call
+    - cache core id if SetAffinity() is succeeded
+*/
 
 #include "threading/TaskSystem/ThreadManager.h"
 
@@ -63,6 +68,8 @@ namespace
             auto&       scheduler   = Scheduler();
 
             ThreadUtils::SetName( _cfg.name );
+
+            // TODO: Android in background does not allow to bind (some?) threads
             if ( coreId != Default )
                 CHECK( ThreadUtils::SetAffinity( uint(coreId) % ThreadUtils::MaxThreadCount() ));
 
@@ -253,7 +260,7 @@ namespace
 =================================================
 */
     bool  ThreadMngr::SetupThreads (const TaskScheduler::Config &cfg,
-                                    const EnumBitSet<EThread>    mask,
+                                    const EnumSet<EThread>       mask,
                                     const uint                   maxThreads,
                                     Bool                         bindThreadToPhysicalCore,
                                     OUT EThreadArray            &allowProcessInMain) __NE___
@@ -262,7 +269,7 @@ namespace
         CHECK_ERR( (cfg.maxRenderQueues > 0) == mask.contains( EThread::Renderer ));
         CHECK_ERR( (cfg.maxPerFrameQueues > 0) == mask.contains( EThread::PerFrame ));
         CHECK_ERR( (cfg.maxBackgroundQueues > 0) == mask.contains( EThread::Background ));
-        CHECK_ERR( (cfg.maxIOThreads > 0) == mask.contains( EThread::FileIO ));
+        CHECK_ERR( (cfg.maxIOAccessThreads > 0) == mask.contains( EThread::FileIO ));
 
         auto&   cpu_info = CpuArchInfo::Get();
         AE_LOG_DBG( cpu_info.Print() );
@@ -282,7 +289,7 @@ namespace
 */
     bool  ThreadMngr::_SetupThreads_v1 (TaskScheduler::Config        cfg,
                                         const CpuArchInfo           &cpuInfo,
-                                        const EnumBitSet<EThread>    mask,
+                                        const EnumSet<EThread>       mask,
                                         const uint                   maxThreads,
                                         OUT EThreadArray            &allowProcessInMain) __NE___
     {
@@ -337,7 +344,7 @@ namespace
 */
     bool  ThreadMngr::_SetupThreads_v2 (TaskScheduler::Config        cfg,
                                         const CpuArchInfo           &cpuInfo,
-                                        const EnumBitSet<EThread>    mask,
+                                        const EnumSet<EThread>       mask,
                                         const uint                   maxThreads,
                                         bool                         bindThreadToPhysicalCore,
                                         OUT EThreadArray            &allowProcessInMain) __NE___

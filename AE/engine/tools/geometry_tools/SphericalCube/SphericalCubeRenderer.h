@@ -3,6 +3,7 @@
 #pragma once
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
+# include "graphics/Public/GraphicsImpl.h"
 # include "geometry_tools/SphericalCube/SphericalCubeGen.h"
 
 namespace AE::GeometryTools

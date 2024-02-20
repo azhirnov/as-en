@@ -8,6 +8,11 @@ namespace AE::Graphics
     using namespace AE::Serializing;
     using namespace AE::AssetPacker;
 
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+#   include "Packer/RasterFontPacker.cpp.h"
+}
+
 /*
 =================================================
     destructor
@@ -124,7 +129,7 @@ namespace AE::Graphics
 
                 const float width_px = glyph->advance * font_scale_px;
 
-                if_unlikely( result.IsWordWrap() & (line_px.x + width_px > areaSizeInPix.x) )
+                if_unlikely( result.IsWordWrap() and (line_px.x + width_px > areaSizeInPix.x) )
                     ToNextLine( chunk );
                 else
                     line_px.x += width_px;
@@ -163,21 +168,22 @@ namespace AE::Graphics
         CHECK_ERR( stream and stream->IsOpen() );
 
         RasterFontPacker    unpacker;
+        auto&               header  = unpacker.Header();
         {
             Serializing::Deserializer   des{ MakeRC<BufferedRStream>( stream )};
-            CHECK_ERR( unpacker.Deserialize( des ));
+            CHECK_ERR( RasterFontPacker_Deserialize( unpacker, des ));
         }
 
         auto    font        = MakeRC<RasterFont>();
         auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
 
-        font->_imageId = res_mngr.CreateImage( unpacker.Header().ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
+        font->_imageId = res_mngr.CreateImage( header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
         CHECK_ERR( font->_imageId );
 
-        font->_viewId = res_mngr.CreateImageView( unpacker.Header().ToViewDesc(), font->_imageId, Default );
+        font->_viewId = res_mngr.CreateImageView( header.ToViewDesc(), font->_imageId, Default );
         CHECK_ERR( font->_viewId );
 
-        CHECK_ERR( LoadableImage::Loader::_Load( *stream, font->_imageId, &unpacker.Header(), ctx ));
+        CHECK_ERR( LoadableImage::Loader::_Load( *stream, font->_imageId, &header, ctx ));
 
         font->_glyphMap     = RVRef(unpacker.glyphMap);
         font->_fontHeight   = unpacker.fontHeight;

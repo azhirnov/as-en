@@ -2,6 +2,8 @@
 
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
+set( AE_ENABLE_KTX              OFF CACHE INTERNAL "" FORCE )
+
 #----------------------------------------------------------
 
 if (NOT DEFINED AE_DST_PATH)

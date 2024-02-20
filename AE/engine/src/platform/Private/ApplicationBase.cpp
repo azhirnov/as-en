@@ -14,8 +14,7 @@ namespace AE::App
 =================================================
 */
     ApplicationBase::ApplicationBase (Unique<IAppListener> listener) __NE___ :
-        _listener{ RVRef(listener) },
-        _timerStart{ TimePoint_t::clock::now() }
+        _listener{ RVRef(listener) }
     {
         CHECK( _listener );
     }
@@ -32,8 +31,7 @@ namespace AE::App
         CHECK_ERR( _isRunning.load() );
         CHECK_ERR( listener );
 
-        BEGIN_ENUM_CHECKS()
-        switch ( type )
+        switch_enum( type )
         {
             case EDeviceType::Emulator :
             {
@@ -77,7 +75,7 @@ namespace AE::App
 
             case EDeviceType::Unknown : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         return Default;
     }
@@ -90,8 +88,7 @@ namespace AE::App
     {
         ASSERT( _isRunning.load() );
 
-        auto    dt = TimePoint_t::clock::now() - _timerStart;
-        _timeSinceStart.store( TimeCast<Duration_t>( dt ).count() );
+        _timeSinceStart.store( _timer.TimeSince<Duration_t>().count() );
 
         if_likely( _listener )
             _listener->BeforeWndUpdate( *this );

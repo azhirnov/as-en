@@ -9,7 +9,13 @@ namespace
         Atomic<int>     a;
         int             prev;
 
-        a.store(10);    prev = a.fetch_min( 0 );        TEST_Eq( a.load(), 0 );         TEST_Eq( prev, 10 );
+        a.store(10);
+        prev = a.fetch_min( 0 );        TEST_Eq( a.load(), 0 );         TEST_Eq( prev, 10 );
+        prev = a.fetch_min( 0 );        TEST_Eq( a.load(), 0 );         TEST_Eq( prev, 0 );
+
+        a.store(10);
+        prev = a.fetch_max( 20 );       TEST_Eq( a.load(), 20 );        TEST_Eq( prev, 10 );
+        prev = a.fetch_max( 20 );       TEST_Eq( a.load(), 20 );        TEST_Eq( prev, 20 );
     }
 
 

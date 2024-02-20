@@ -1,12 +1,12 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders") AND (TARGET "ImGUI-lib") AND AE_HAS_CXX_COROUTINE)
+if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders") AND AE_HAS_CXX_COROUTINE)
 
     file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" "*.md" )
     file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
     file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" )
-    file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
+    file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
 
     add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} )
 
@@ -29,7 +29,6 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
         # engine
         "GraphicsHL" "Profiler" "Video"
     )
-    target_link_libraries( "ResourceEditor" PUBLIC "ImGUI-lib" )
 
     target_compile_definitions( "ResourceEditor" PUBLIC
         AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
@@ -48,7 +47,9 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
     if (TARGET "OfflinePacker")
         add_custom_target( "ResourceEditor.PackRes"
             DEPENDS  "OfflinePacker"
-            COMMAND  "${MAIN_BINARY_DIR}/$<CONFIG>/OfflinePacker${CMAKE_EXECUTABLE_SUFFIX}"  "${CMAKE_CURRENT_SOURCE_DIR}/_ui_data/main.as" "${AE_TEMP_FOLDER_RESEDITOR}"
+            COMMAND  $<TARGET_FILE:OfflinePacker>
+                        -i "${CMAKE_CURRENT_SOURCE_DIR}/_ui_data/main.as"
+                        -o "${AE_TEMP_FOLDER_RESEDITOR}"
             COMMENT  "pack resources for 'ResourceEditor' ..."
             VERBATIM
         )

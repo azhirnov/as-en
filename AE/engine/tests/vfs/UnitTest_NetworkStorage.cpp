@@ -9,17 +9,6 @@ namespace
     static const FrameUID   c_InitialFrameId = FrameUID::Init( 2 );
 
 
-    class ClientListener final : public IClientListener
-    {
-        ushort  _id = 0;
-
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress &)     __NE_OV { return EClientLocalID(_id++); }
-        EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)    __NE_OV { return EClientLocalID(_id++); }
-
-        void  OnClientDisconnected (EChannel, EClientLocalID)               __NE_OV {}
-    };
-
-
     class ServerProvider final : public IServerProvider
     {
         IpAddress   _addr4;
@@ -32,12 +21,46 @@ namespace
     };
 
 
+    class ClientListener final : public DefaultClientListener
+    {
+        NetworkStorageServer&   _server;
+
+    public:
+        ClientListener (NetworkStorageServer &server)                           __NE___ : _server{server} {}
+
+        EClientLocalID  OnClientConnected (EChannel ch, const IpAddress &addr)  __NE_OV
+        {
+            auto    id = DefaultClientListener::OnClientConnected( ch, addr );
+            if ( id != Default )
+                _server.AddClient( id );
+            return id;
+        }
+
+        EClientLocalID  OnClientConnected (EChannel ch, const IpAddress6 &addr) __NE_OV
+        {
+            auto    id = DefaultClientListener::OnClientConnected( ch, addr );
+            if ( id != Default )
+                _server.AddClient( id );
+            return id;
+        }
+
+        void  OnClientDisconnected (EChannel ch, EClientLocalID id)             __NE_OV
+        {
+            _server.RemoveClient( id );
+            DefaultClientListener::OnClientDisconnected( ch, id );
+        }
+    };
+
+
     class Server final : public BaseServer
     {
     public:
-        explicit Server (RC<MessageFactory> mf) { TEST( _Initialize( RVRef(mf), MakeRC<ClientListener>(), null, c_InitialFrameId )); }
+        explicit Server (RC<MessageFactory> mf, NetworkStorageServer &server)
+        {
+            TEST( _Initialize( RVRef(mf), MakeRC<ClientListener>( server ), null, c_InitialFrameId ));
+        }
 
-        ND_ bool  AddChannel (ushort port)      { return _AddChannelTCP( port ); }
+        ND_ bool  AddChannel (ushort port)      { return _AddChannelReliableTCP( port ); }
     };
 
 
@@ -46,7 +69,9 @@ namespace
     public:
         explicit Client (RC<MessageFactory> mf, const IpAddress &addr)  { TEST( _Initialize( RVRef(mf), MakeRC<ServerProvider>( addr ), null, c_InitialFrameId )); }
 
-        ND_ bool  AddChannel ()                                         { return _AddChannelTCP(); }
+        ND_ bool  AddChannel ()                                         { return _AddChannelReliableTCP(); }
+
+        ND_ bool  IsConnected ()                                        { return _IsConnected(); }
     };
 
 
@@ -73,10 +98,10 @@ namespace
         NetworkStorageClient    vfs_client;
 
         const String            a1_name     = "a1.bin";
-        const Array<ubyte>      a1_data     = GenRandomArray( 128_Kb );
+        const Array<ubyte>      a1_data     = GenRandomArray( 4_Mb );
 
         const String            a2_name     = "a2.bin";
-        const Array<ubyte>      a2_data     = GenRandomArray( 128_Kb );
+        const Array<ubyte>      a2_data     = GenRandomArray( 4_Mb );
 
         // setup server folders
         {
@@ -88,9 +113,7 @@ namespace
                 FileWStream file {a2_name};
                 TEST( file.IsOpen() );
             }
-
-            TEST( GetVFS().AddStorage( VirtualFileStorageFactory::CreateStaticFolder( FileSystem::CurrentPath() )));
-            TEST( GetVFS().MakeImmutable() );
+            TEST( vfs_server.AddStorage( VirtualFileStorageFactory::CreateStaticFolder( FileSystem::CurrentPath() )));
         }
 
         Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
@@ -102,7 +125,7 @@ namespace
         StdThread   server_thread{ [&] ()
             {{
                 auto        mf      = MakeRC<MessageFactory>();
-                Server      server  {mf};
+                Server      server  { mf, vfs_server };
                 FrameUID    fid     = c_InitialFrameId;
 
                 TEST( Register_NetVFS( *mf ));
@@ -111,9 +134,12 @@ namespace
                 TEST( server.Add( vfs_server.GetMessageProducer().GetRC() ));
                 TEST( server.Add( vfs_server.GetMessageConsumer().GetRC() ));
 
-                for (; not stop.load(); fid.Inc())
+                for (; not stop.load();)
                 {
-                    server.Update( fid );
+                    auto    stat = server.Update( fid );
+
+                    if ( stat )
+                        fid.Inc();
 
                     ThreadUtils::Sleep_15ms();
                 }
@@ -131,13 +157,20 @@ namespace
                 TEST( client.Add( vfs_client.GetMessageProducer().GetRC() ));
                 TEST( client.Add( vfs_client.GetMessageConsumer().GetRC() ));
 
-                for (; not stop.load(); fid.Inc())
+                TEST( vfs_client.Init( Default ));
+
+                for (; not stop.load();)
                 {
-                    client.Update( fid );
+                    auto    stat = client.Update( fid );
+
+                    if ( stat )
+                        fid.Inc();
 
                     ThreadUtils::Sleep_15ms();
                 }
             }}};
+
+        ThreadUtils::Sleep_15ms();
 
         // try to read from server
         {

@@ -41,7 +41,7 @@ namespace AE::Networking
 
 #if defined(AE_WINDOWS_SOCKET)
     using NativeSocket_t        = SOCKET;
-    using NativeSocketOpPtr_t   = char;
+    using NativeSocketOptPtr_t  = char;
     using NativeSoketSendBuf_t  = char;
     using Byte_t                = int;
 
@@ -52,7 +52,7 @@ namespace AE::Networking
 
 #elif defined(AE_UNIX_SOCKET)
     using NativeSocket_t        = int;
-    using NativeSocketOpPtr_t   = void;
+    using NativeSocketOptPtr_t  = void;
     using NativeSoketSendBuf_t  = void;
     using Byte_t                = ssize;
 
@@ -60,6 +60,7 @@ namespace AE::Networking
     ND_ inline bool     IsNotConnected (int err)        __NE___ { return err == ENOTCONN; }
     ND_ inline bool     IsInProgress (int err)          __NE___ { return AnyEqual( err, 0, EAGAIN, EWOULDBLOCK, EINPROGRESS ); }
 
+    // TODO: android_setsocknetwork, android_setprocnetwork, android_tag_socket
 
 #else
 #   error Unsupported platform!

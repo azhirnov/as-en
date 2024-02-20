@@ -89,24 +89,25 @@ namespace _hidden_
     // types
     public:
         using Self          = Synchronized< SyncObj, T0, T1, Types... >;
-        using Types_t       = TypeList< T0, T1, Types... >;
+        using SyncObj_t     = SyncObj;
+        using ValueTypes_t  = TypeList< T0, T1, Types... >;
 
         //StaticAssert(( AllNothrowMoveCtor< T0, T1, Types... >));
         //StaticAssert(( AllNothrowDefaultCtor< T0, T1, Types... >));
 
     private:
-        using TypesNoRC_t   = typename Types_t::template Apply< RemoveRC >;
-        using TypesNoPtr_t  = typename Types_t::template Apply< RemovePtr >;
-        using TypesNoPtr2_t = typename Types_t::template Apply< RemovePointer >;
-        using Tuple_t       = typename Types_t::AsTuple::type;
+        using TypesNoRC_t   = typename ValueTypes_t::template Apply< RemoveRC >;
+        using TypesNoPtr_t  = typename ValueTypes_t::template Apply< RemovePtr >;
+        using TypesNoPtr2_t = typename ValueTypes_t::template Apply< RemovePointer >;
+        using Tuple_t       = typename ValueTypes_t::AsTuple::type;
 
         template <typename T>
         ND_ static constexpr usize  _IndexOf () __NE___
         {
-            if constexpr( Types_t::template HasType<T> )
+            if constexpr( ValueTypes_t::template HasType<T> )
             {
-                StaticAssert( Types_t::template HasSingle<T> );
-                return Types_t::template Index<T>;
+                StaticAssert( ValueTypes_t::template HasSingle<T> );
+                return ValueTypes_t::template Index<T>;
             }else
             if constexpr( TypesNoRC_t::template HasType<T> )
             {
@@ -152,7 +153,7 @@ namespace _hidden_
 
             template <typename  T,
                       usize     Index   = _IndexOf<T>(),
-                      typename  RawT    = typename Types_t::template Get<Index>
+                      typename  RawT    = typename ValueTypes_t::template Get<Index>
                      >
             ND_ RawT const&  Get ()                         C_NE___
             {
@@ -161,7 +162,7 @@ namespace _hidden_
             }
 
             template <usize     Index,
-                      typename  RawT    = typename Types_t::template Get<Index>
+                      typename  RawT    = typename ValueTypes_t::template Get<Index>
                      >
             ND_ RawT const&  Get ()                         C_NE___
             {
@@ -196,7 +197,7 @@ namespace _hidden_
 
             template <typename  T,
                       usize     Index   = _IndexOf<T>(),
-                      typename  RawT    = typename Types_t::template Get<Index>
+                      typename  RawT    = typename ValueTypes_t::template Get<Index>
                      >
             ND_ RawT&   Get ()                                  __NE___
             {
@@ -205,7 +206,7 @@ namespace _hidden_
             }
 
             template <usize     Index,
-                      typename  RawT    = typename Types_t::template Get<Index>
+                      typename  RawT    = typename ValueTypes_t::template Get<Index>
                      >
             ND_ RawT&   Get ()                                  __NE___
             {
@@ -266,7 +267,7 @@ namespace _hidden_
 
         template <typename  T,
                   usize     Index           = _IndexOf<T>(),
-                  typename  RawT            = typename Types_t::template Get<Index>
+                  typename  RawT            = typename ValueTypes_t::template Get<Index>
                  >
         ND_ RawT  Read ()                   CNoExcept(IsNothrowCopyCtor<RawT>)
         {
@@ -275,7 +276,7 @@ namespace _hidden_
         }
 
         template <usize     Index,
-                  typename  RawT            = typename Types_t::template Get<Index>
+                  typename  RawT            = typename ValueTypes_t::template Get<Index>
                  >
         ND_ RawT  Read ()                   CNoExcept(IsNothrowCopyCtor<RawT>)
         {
@@ -295,7 +296,7 @@ namespace _hidden_
                  >
         void  Write (T &&value)             __NE___
         {
-            StaticAssert( Types_t::template HasSingle<RawT> );
+            StaticAssert( ValueTypes_t::template HasSingle<RawT> );
             EXLOCK( _sync );
             auto&   dst = _values.template Get<RawT>();
             dst.~RawT();
@@ -312,7 +313,7 @@ namespace _hidden_
 
         template <typename  T,
                   usize     Index           = _IndexOf<T>(),
-                  typename  RawT            = typename Types_t::template Get<Index>
+                  typename  RawT            = typename ValueTypes_t::template Get<Index>
                  >
         void  Reset ()                      __NE___
         {
@@ -323,7 +324,7 @@ namespace _hidden_
         }
 
         template <usize     Index,
-                  typename  RawT            = typename Types_t::template Get<Index>
+                  typename  RawT            = typename ValueTypes_t::template Get<Index>
                  >
         void  Reset ()                      __NE___
         {
@@ -389,7 +390,9 @@ namespace _hidden_
 
     // types
     public:
-        using Self  = Synchronized< SyncObj, T >;
+        using Self      = Synchronized< SyncObj, T >;
+        using SyncObj_t = SyncObj;
+        using Value_t   = T;
 
         class ReadNoLock_t
         {

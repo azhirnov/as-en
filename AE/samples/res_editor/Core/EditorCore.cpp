@@ -2,6 +2,7 @@
 
 #include "vfs/Disk/DiskStaticStorage.h"
 #include "vfs/Disk/DiskDynamicStorage.h"
+#include "vfs/Network/Messages.h"
 
 #include "res_editor/Core/EditorCore.h"
 #include "res_editor/Scripting/ScriptExe.h"
@@ -19,7 +20,8 @@ namespace AE::ResEditor
 namespace
 {
     static ResEditorAppConfig       s_REConfig;
-    static constexpr auto           c_WindowMode = EWindowMode::Resizable;
+    static constexpr auto           c_WindowMode    = EWindowMode::Resizable;
+    static constexpr ushort         c_IAServerPort  = 3000;
 
 /*
 =================================================
@@ -32,9 +34,9 @@ namespace
 
         // threading
         {
-            cfg.threading.maxThreads    = 2;
-            cfg.threading.maxIOThreads  = 1;
-            cfg.threading.mask          = { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
+            cfg.threading.maxThreads            = 2;
+            cfg.threading.maxIOAccessThreads    = 1;
+            cfg.threading.mask                  = { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
         }
 
         // graphics
@@ -43,10 +45,6 @@ namespace
 
             cfg.graphics.staging.readStaticSize .fill( 1_Mb );
             cfg.graphics.staging.writeStaticSize.fill( 2_Mb );
-            cfg.graphics.staging.maxReadDynamicSize     = 64_Mb;
-            cfg.graphics.staging.maxWriteDynamicSize    = 64_Mb;
-            cfg.graphics.staging.dynamicBlockSize       = 32_Mb;
-            cfg.graphics.staging.vstreamSize            = 4_Mb;
 
             cfg.graphics.device.appName         = "ResourceEditor";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
@@ -86,6 +84,8 @@ namespace
             cfg.vr.options      = EImageOpt::BlitDst;
         }
 
+        cfg.enableNetwork = true;
+
         return cfg;
     }
 
@@ -99,8 +99,23 @@ namespace
         CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
             "VFSPath '"s << ToString(path) << "' must be existed folder" );
 
-        self.vfsPaths.push_back( FileSystem::ToAbsolute( Path{path} ));
-        self.vfsPathPrefixes.push_back( prefix );
+        self.vfsPaths.emplace_back( FileSystem::ToAbsolute( Path{path} ), prefix );
+    }
+
+    static void  ResEditorAppConfig_MakeVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
+    {
+        FileSystem::CreateDirectories( path );
+        ResEditorAppConfig_VFSPath( self, path, prefix );
+    }
+
+/*
+=================================================
+    ResEditorAppConfig_NetVFS
+=================================================
+*/
+    static void  ResEditorAppConfig_NetVFS (ResEditorAppConfig &self, const String &host, const String &service, const String &prefix)
+    {
+        self.netVFS.emplace_back( host, service, prefix );
     }
 
 /*
@@ -299,6 +314,8 @@ namespace
             ClassBinder<ResEditorAppConfig>     binder{ se };
             binder.CreateClassValue();
             binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,                "VFSPath",              {"path", "prefixInVFS"} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_MakeVFSPath,            "MakeVFSPath",          {"path", "prefixInVFS"} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_NetVFS,                 "NetVFS",               {"host", "service", "prefixInVFS"} );
             binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,              "UIDataDir",            {} );
             binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,      "PipelineSearchDir",    {} );
             binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineIncludeDir,     "PipelineIncludeDir",   {} );
@@ -391,7 +408,8 @@ void main (Config &out cfg)
     //  attach path on disk to VFS
     cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
     cfg.VFSPath( vfs_path + "res_editor_data",  "res/" );
-    cfg.VFSPath( local_path + "../_export",     "export/" );
+    cfg.MakeVFSPath( local_path + "../_export", "export/" );
+    //cfg.NetVFS( "localhost", "4000", "net/" );
 
     // pipeline dirs //
     //  where to search pipelines for 'UnifiedGeometry' and 'Model'.
@@ -428,7 +446,7 @@ void main (Config &out cfg)
     //  set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
     cfg.setStableGPUClock = false;
 
-    //  on start attach RenderDoc to the app, this will disable mesh shader and ray tracing extensions.
+    //  on start attach RenderDoc to the app, this will disable some new extensions including ray tracing.
     cfg.enableRenderDoc = false;
 }
 )";
@@ -522,16 +540,30 @@ void main (Config &out cfg)
 */
     bool  ResEditorApplication::_InitVFS ()
     {
-        for (usize i = 0; i < s_REConfig.vfsPaths.size(); ++i)
+        for (auto& [path, prefix] : s_REConfig.vfsPaths)
         {
-            String&     prefix = s_REConfig.vfsPathPrefixes[i];
             ASSERT( not prefix.empty() );
 
             if ( prefix.empty() )           continue;
             if ( prefix.back() != '/' )     prefix << '/';
 
-            CHECK_ERR( GetVFS().AddStorage( VFS::VirtualFileStorageFactory::CreateStaticFolder( s_REConfig.vfsPaths[i], prefix )));
+            CHECK_ERR( GetVFS().AddStorage( VFS::VirtualFileStorageFactory::CreateStaticFolder( path, prefix )));
         }
+
+        for (auto& [host, service, prefix] : s_REConfig.netVFS)
+        {
+            Networking::IpAddress   addr = Networking::IpAddress::FromServiceTCP( host, service );
+
+            ASSERT( not prefix.empty() );
+
+            if ( prefix.empty() )           continue;
+            if ( prefix.back() != '/' )     prefix << '/';
+
+            auto&   client = _Core()._vfsClients.emplace_back( MakeRC<ResEditorCore::VFSClient>() );
+            CHECK_ERR( client->Init( addr, prefix ));
+            CHECK_ERR( GetVFS().AddStorage( client->Storage() ));
+        }
+        s_REConfig.netVFS.clear();
 
         if ( not s_REConfig.exportFolder.empty() )
         {
@@ -574,6 +606,103 @@ void main (Config &out cfg)
 
 /*
 =================================================
+    VFSClient::Init
+=================================================
+*/
+    bool  ResEditorCore::VFSClient::Init (const Networking::IpAddress &addr, StringView prefix)
+    {
+        using namespace AE::Networking;
+
+        auto    mf = MakeRC<Networking::MessageFactory>();
+        CHECK_ERR( Networking::Register_NetVFS( *mf ));
+
+        CHECK_ERR( _Initialize( RVRef(mf), MakeRC<DefaultServerProviderV1>( addr ), null, _frameId ));
+        CHECK_ERR( _AddChannelReliableTCP( "VFS "s << prefix ));
+
+        _storage = VFS::VirtualFileStorageFactory::CreateNetworkStorage( *this, prefix );
+        CHECK_ERR( _storage );
+
+        return true;
+    }
+
+/*
+=================================================
+    VFSClient::Tick
+=================================================
+*/
+    AsyncTask  ResEditorCore::VFSClient::Tick ()
+    {
+        return  Scheduler().Run(
+                    ETaskQueue::Background,
+                    [](RC<VFSClient> client) -> CoroTask
+                    {
+                        auto    stat = client->Update( client->_frameId );
+                        if ( stat )
+                            client->_frameId.Inc();
+
+                        co_return;
+                    }( GetRC() ),
+                    Tuple{},
+                    "VFS client tick" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    RemoteInputServer::Init
+=================================================
+*/
+    bool  ResEditorCore::RemoteInputServer::Init (ushort port, IInputActions &ia) __NE___
+    {
+        using namespace AE::Networking;
+
+        _remoteIA.Init( ia );
+
+        auto    mf = MakeRC<MessageFactory>();
+
+        CHECK_ERR( Register_RemoteControl( *mf ));
+        CHECK_ERR( _Initialize( RVRef(mf), MakeRC<DefaultClientListener>(), null, _frameId ));
+        CHECK_ERR( _AddChannelReliableTCP( port, "RemoteInput" ));
+
+        CHECK_ERR( Add( _msgProducer.GetRC() ));
+        CHECK_ERR( Add( _remoteIA.GetMsgConsumer() ));
+
+        return true;
+    }
+
+/*
+=================================================
+    RemoteInputServer::Tick
+=================================================
+*/
+    AsyncTask  ResEditorCore::RemoteInputServer::Tick () __NE___
+    {
+        // in main thread
+        {
+            _remoteIA.EnableSensors( *_msgProducer );
+        }
+
+        return  Scheduler().Run(
+                    ETaskQueue::Background,
+                    [](RC<RemoteInputServer> server) -> CoroTask
+                    {
+                        auto    stat = server->Update( server->_frameId );
+                        if ( stat )
+                            server->_frameId.Inc();
+
+                        co_return;
+                    }( GetRC() ),
+                    Tuple{},
+                    "IA Server tick" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
     constructor
 =================================================
 */
@@ -609,7 +738,6 @@ void main (Config &out cfg)
             cfg.cppTypesFolder          = s_REConfig.cppTypesFolder;
             cfg.scriptHeaderOutFolder   = s_REConfig.scriptHeaderOutFolder;
             cfg.vfsPaths                = s_REConfig.vfsPaths;
-            cfg.vfsPathPrefixes         = s_REConfig.vfsPathPrefixes;
             cfg.scriptIncludeDirs       = s_REConfig.scriptIncludeDirs;
 
             _script.reset( new ScriptExe{ RVRef(cfg) });    // throw
@@ -657,6 +785,9 @@ void main (Config &out cfg)
         CHECK( ia.LoadSerialized( stream ));
 
         CHECK( ia.SetMode( InputModeName{"Main.UI"} ));
+
+        _remoteIA = MakeRC<RemoteInputServer>();
+        CHECK( _remoteIA->Init( c_IAServerPort, ia ));
     }
 
 /*
@@ -731,15 +862,15 @@ void main (Config &out cfg)
         if ( not renderer )
             return false;
 
-        Scheduler().Run< AsyncTaskFn >(
-            Tuple{  [this, renderer] ()
-                    {
-                        _ui.SetHelpText( renderer->GetHelpText() );
-                        _ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
-                        _mainLoop->renderer = RVRef(renderer);
-                    },
-                    "StartRendering",
-                    ETaskQueue::Main });
+        MakeTask( [this, renderer] ()
+                {
+                    _ui.SetHelpText( renderer->GetHelpText() );
+                    _ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
+                    _mainLoop->renderer = RVRef(renderer);
+                }, {},
+                "StartRendering",
+                ETaskQueue::Main );
+
         return true;
     }
 
@@ -836,16 +967,21 @@ void main (Config &out cfg)
                                           Tuple{}, "Core::ProcessInput" );
         }
 
+        Array<AsyncTask>    client_tasks;
+        for (auto& client : _vfsClients) {
+            client_tasks.push_back( client->Tick() );
+        }
+
         // rendering depends on input processing
-        if ( renderer or ui )
+        if ( (renderer or ui) and rg.BeginFrame( output ))
         {
-            if ( not rg.BeginFrame( output ))
-                return;
+            if ( _remoteIA )
+                GraphicsScheduler().AddNextFrameDeps( _remoteIA->Tick() );
 
             AsyncTask   draw_task   = renderer  ? renderer->Execute({ proc_input }) : null;
             AsyncTask   ui_task     = ui        ? ui->Draw({ proc_input })          : null;
 
-            AsyncTask   end_frame   = rg.EndFrame( Tuple{ draw_task, ui_task });
+            AsyncTask   end_frame   = rg.EndFrame( Tuple{ draw_task, ui_task, WeakDepArray{client_tasks} });
 
             if ( input )
                 input->NextFrame( rg.GetNextFrameId() );

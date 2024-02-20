@@ -2,6 +2,8 @@
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
+#else
+# include "Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::Graphics
@@ -342,7 +344,7 @@ namespace
         // if pipeline has attributes then buffer binding must be defined too
         CHECK( vertexInput.empty() == vertexBuffers.empty() );
 
-        if ( vertexInput.empty() | vertexBuffers.empty() )
+        if ( vertexInput.empty() or vertexBuffers.empty() )
             return true;
 
         uint    divisor_count = 0;

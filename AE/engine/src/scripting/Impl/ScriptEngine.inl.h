@@ -11,15 +11,15 @@ namespace AE::Scripting
 
 /*
 =================================================
-    IsRegistred
+    IsRegistered
 =================================================
 */
     template <typename T>
-    bool  ScriptEngine::IsRegistred () __NE___
+    bool  ScriptEngine::IsRegistered () __NE___
     {
         String  name;
         ScriptTypeInfo< T >::Name( INOUT name );
-        return IsRegistred( name );
+        return IsRegistered( name );
     }
 
 /*

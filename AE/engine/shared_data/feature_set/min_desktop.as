@@ -6,21 +6,29 @@ void ASmain ()
     // include:
     //  Intel(R) UHD Graphics 620.json
     //  NVIDIA GeForce RTX 2080.json
+    //  AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
+    //  AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
     //  AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
     //  AMD Radeon RX 6500 XT driver 2.0.220 on Windows 10
+    //  AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
     //  AMD Radeon RX 6800 XT driver 2.0.213 on Windows 10
     //  AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
+    //  AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
+    //  AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
     //  AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
     //  Apple M1 driver 0.2.1914 on Osx 12.0
     //  Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
+    //  Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
     //  Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
     //  Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
     //  NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
+    //  NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
     //  NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
     //  NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
     //  NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+    //  NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
     //  Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
     //  Apple8_Mac
     //  Apple7_Mac_Metal3
@@ -68,7 +76,6 @@ void ASmain ()
     fset.storageBuffer8BitAccess (True);
     fset.uniformAndStorageBuffer8BitAccess (True);
     fset.uniformBufferStandardLayout (True);
-    fset.scalarBlockLayout (True);
     fset.fragmentStoresAndAtomics (True);
     fset.vertexPipelineStoresAndAtomics (True);
     fset.shaderClipDistance (True);
@@ -89,6 +96,8 @@ void ASmain ()
     fset.maxTexelBufferElements (64 << 20);
     fset.maxUniformBufferSize (64 << 10);
     fset.maxStorageBufferSize (64 << 10);
+    fset.perDescrSet_maxUniformBuffersDynamic (8);
+    fset.perDescrSet_maxStorageBuffersDynamic (4);
     fset.perDescrSet_maxInputAttachments (8);
     fset.perDescrSet_maxSampledImages (640);
     fset.perDescrSet_maxSamplers (80);

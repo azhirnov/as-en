@@ -32,6 +32,9 @@ namespace AE::PipelineCompiler
         ScriptSampler (ScriptSampler &&)                                        __NE___;
         explicit ScriptSampler (const String &name)                             __Th___;
 
+        void  SetDesc (const SamplerDesc &)                                     __Th___;
+        void  SetYcbcrDesc (const SamplerYcbcrConversionDesc &)                 __Th___;
+
         void  SetFilter (EFilter mag, EFilter min, EMipmapFilter mipmap)        __Th___;
         void  SetAddressModeV (EAddressMode uvw)                                __Th___;
         void  SetAddressMode (EAddressMode u, EAddressMode v, EAddressMode w)   __Th___;
@@ -46,6 +49,7 @@ namespace AE::PipelineCompiler
 
         // samplerYcbcrConversion
         void  Ycbcr_SetFormat (EPixelFormat value)                              __Th___;
+        void  Ycbcr_SetFormat2 (EPixelFormatExternal value)                     __Th___;
         void  Ycbcr_SetModel (ESamplerYcbcrModelConversion value)               __Th___;
         void  Ycbcr_SetRange (ESamplerYcbcrRange value)                         __Th___;
         void  Ycbcr_SetComponents (const String &value)                         __Th___;

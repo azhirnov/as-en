@@ -62,7 +62,7 @@ void  CreatePipeline (const array<string> &passNames)
         st.Set( "float2     scale;" +
                 "float2     translate;" );
 
-        RC<DescriptorSetLayout> ds = DescriptorSetLayout( "imgui.ds0" );
+        RC<DescriptorSetLayout> ds = DescriptorSetLayout( "imgui.ds" );
         ds.SampledImage( EShaderStages::Fragment, "un_Textures", ArraySize(8), EImageType::FImage2D );
         ds.ImtblSampler( EShaderStages::Fragment, "un_Sampler", "imgui.LinearRepeat" );
     }{
@@ -70,7 +70,7 @@ void  CreatePipeline (const array<string> &passNames)
         st.Set( "uint   textureIdx;" );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "imgui.pl" );
-        pl.DSLayout( 0, "imgui.ds0" );
+        pl.DSLayout( 0, "imgui.ds" );
         pl.PushConst( "ub", "imgui.ub", EShader::Vertex );
         pl.PushConst( "pc", "imgui.pc", EShader::Fragment );
     }

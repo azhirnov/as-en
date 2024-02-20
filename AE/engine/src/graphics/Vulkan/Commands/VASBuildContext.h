@@ -297,15 +297,14 @@ namespace AE::Graphics::_hidden_
     {
         EQueryType  q_type = Default;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( property )
+        switch_enum( property )
         {
             case ERTASProperty::CompactedSize :     q_type = EQueryType::AccelStructCompactedSize;      break;
             case ERTASProperty::SerializationSize : q_type = EQueryType::AccelStructSerializationSize;  break;
             case ERTASProperty::Size :              q_type = EQueryType::AccelStructSize;               break;
             default_unlikely :                      CHECK_THROW( false ); // unknown ERTASProperty
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         auto&   qm      = this->_mngr.GetQueryManager();
         auto    query   = qm.AllocQuery( this->_mngr.GetQueueType(), q_type );

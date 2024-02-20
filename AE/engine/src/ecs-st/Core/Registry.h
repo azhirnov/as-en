@@ -40,8 +40,8 @@ namespace AE::ECS
             using Ctor_t = void (*) (void *);
 
             Ctor_t      ctor        = null;
-            Byte16u     align;
-            Byte16u     size;
+            Bytes16u    align;
+            Bytes16u    size;
             bool        created     = false;
 
             DEBUG_ONLY(
@@ -196,13 +196,13 @@ namespace AE::ECS
             void  Execute (QueryID query, Fn &&fn)                                      __NE___;
 
             template <typename Fn>
-            void  Enque (QueryID query, Fn &&fn)                                        __NE___;
+            void  Enqueue (QueryID query, Fn &&fn)                                      __NE___;
 
             template <typename Obj, typename Class, typename ...Args>
-            void  Enque (QueryID query, Obj obj, void (Class::*)(Args&&...))            __NE___;
+            void  Enqueue (QueryID query, Obj obj, void (Class::*)(Args&&...))          __NE___;
 
             template <typename Ev>
-            void  EnqueEvent ()                                                         __NE___;
+            void  EnqueueEvent ()                                                       __NE___;
 
             void  Process ()                                                            __NE___;
 

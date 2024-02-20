@@ -81,8 +81,7 @@ namespace
             ci.numFaces         = 1;
             ci.generateMipmaps  = false;
 
-            BEGIN_ENUM_CHECKS();
-            switch ( image.GetType() )
+            switch_enum( image.GetType() )
             {
                 case EImage_1D :        ci.numDimensions = 1;   ci.isArray = false;     break;
                 case EImage_2D :        ci.numDimensions = 2;   ci.isArray = false;     break;
@@ -95,7 +94,7 @@ namespace
                 case EImage::_Count :
                 default :               RETURN_ERR( "unsupported image type" );
             }
-            END_ENUM_CHECKS();
+            switch_end
 
             ktxTexture2*    temp_tex2 = null;
             CHECK_ERR( ktxTexture2_Create( &ci, KTX_TEXTURE_CREATE_ALLOC_STORAGE, OUT &temp_tex2 ) == KTX_SUCCESS );

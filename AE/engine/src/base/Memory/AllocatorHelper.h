@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base/Math/BitMath.h"
-#include "base/Math/Bytes.h"
+#include "base/Math/Byte.h"
 
 namespace AE::Base
 {

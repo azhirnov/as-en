@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/Radian.h"
+#include "base/Math/Vec.h"
 
 namespace AE::Math
 {
@@ -35,11 +36,13 @@ namespace AE::Math
         constexpr TSpherical ()                                                 __NE___ {}
         constexpr TSpherical (T phi, T theta)                                   __NE___ : phi{phi}, theta{theta} {}
         constexpr TSpherical (Angle_t phi, Angle_t theta)                       __NE___ : phi{phi}, theta{theta} {}
-        constexpr explicit TSpherical (const Vec<T,2> &angle)                   __NE___ : phi{angle.y}, theta{angle.x} {}
-        constexpr explicit TSpherical (const Vec<Angle_t, 2> &angle)            __NE___ : phi{angle.y}, theta{angle.x} {}
 
-        ND_ constexpr explicit operator Vec<T,2> ()                             C_NE___ { return Vec<T,2>{ T{phi}, T{theta} }; }
-        ND_ constexpr explicit operator Vec<Angle_t,2> ()                       C_NE___ { return Vec<Angle_t,2>{ phi, theta }; }
+        explicit TSpherical (const Vec<T,2> &angle)                             __NE___ : phi{angle.y}, theta{angle.x} {}
+        explicit TSpherical (const Vec<Angle_t, 2> &angle)                      __NE___ : phi{angle.y}, theta{angle.x} {}
+        explicit TSpherical (const TQuat<T> &q)                                 __NE___;
+
+        ND_ explicit operator Vec<T,2> ()                                       C_NE___ { return Vec<T,2>{ T{phi}, T{theta} }; }
+        ND_ explicit operator Vec<Angle_t,2> ()                                 C_NE___ { return Vec<Angle_t,2>{ phi, theta }; }
 
         ND_ constexpr Self  operator + (const Self &rhs)                        C_NE___;
         ND_ constexpr Self  operator - (const Self &rhs)                        C_NE___;
@@ -47,6 +50,7 @@ namespace AE::Math
         ND_ static Pair<Self, Value_t>  FromCartesian (const Vec3_t &cartesian) __NE___;
         ND_ Vec3_t                      ToCartesian ()                          C_NE___;
         ND_ Vec3_t                      ToCartesian (Value_t radius)            C_NE___;
+        ND_ TQuat<T>                    ToQuaternion ()                         C_NE___;
     };
 
 
@@ -115,6 +119,22 @@ namespace AE::Math
     {
         return ToCartesian() * radius;
     }
+
+/*
+=================================================
+    ToQuaternion
+=================================================
+*/
+    template <typename T>
+    TQuat<T>  TSpherical<T>::ToQuaternion () C_NE___
+    {
+        auto    sct = SinCos( theta * T{0.5} );
+        auto    scp = SinCos( phi * T{0.5} );
+        return TQuat<T>{ scp[1]*sct[1], -scp[0]*sct[0], sct[0]*scp[1], scp[0]*sct[1] };
+    }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================

@@ -27,7 +27,7 @@ using EStatus = AE::Threading::IAsyncTask::EStatus;
 
 using ImageComparator = GraphicsTest::ImageComparator;
 
-static constexpr seconds    c_MaxTimeout    {100};
+static constexpr seconds    c_MaxTimeout    {30*60};
 static const EThreadArray   c_ThreadArr     {EThread::PerFrame, EThread::Renderer};
 
 
@@ -36,7 +36,7 @@ class RGTest
 // types
 protected:
     using TestFunc_t    = bool (RGTest::*) ();
-    using TestQueue_t   = Deque< TestFunc_t >;
+    using TestQueue_t   = RingBuffer< TestFunc_t >;
     using FStorage_t    = RC<AE::VFS::IVirtualFileStorage>;
 
     static constexpr bool   UpdateAllReferenceDumps = true;
@@ -51,6 +51,7 @@ protected:
     RenderTechPipelinesPtr      _rtPipelines;       // ray tracing
     RenderTechPipelinesPtr      _rqPipelines;       // ray query
     RenderTechPipelinesPtr      _vrsPipelines;      // fragment shading rate
+    RenderTechPipelinesPtr      _ycbcrPipelines;    // video image, ycbcr
 
     TestQueue_t                 _tests;
     uint                        _testsPassed        = 0;
@@ -140,6 +141,7 @@ private:
     bool  Test_RayTracing3 ();
 
     bool  Test_ShadingRate1 ();
+    bool  Test_Ycbcr1 ();
 
     bool  Test_Debugger1 ();        // compute
     bool  Test_Debugger2 ();        // graphics

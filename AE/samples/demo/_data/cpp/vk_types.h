@@ -1,3 +1,16 @@
+#ifndef VB_Position_f2_DEFINED
+#   define VB_Position_f2_DEFINED
+    // size: 8, align: 4
+    struct VB_Position_f2
+    {
+        static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa843e002u}};  // 'VB_Position_f2'
+
+        packed_float2  Position;
+    };
+#endif
+    StaticAssert( offsetof(VB_Position_f2, Position) == 0 );
+    StaticAssert( sizeof(VB_Position_f2) == 8 );
+
 #ifndef VB_UVs2_SCs1_Col8_DEFINED
 #   define VB_UVs2_SCs1_Col8_DEFINED
     // size: 12, align: 2
@@ -13,19 +26,6 @@
     StaticAssert( offsetof(VB_UVs2_SCs1_Col8, Color) == 8 );
     StaticAssert( sizeof(VB_UVs2_SCs1_Col8) == 12 );
 
-#ifndef VB_Position_f2_DEFINED
-#   define VB_Position_f2_DEFINED
-    // size: 8, align: 4
-    struct VB_Position_f2
-    {
-        static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa843e002u}};  // 'VB_Position_f2'
-
-        packed_float2  Position;
-    };
-#endif
-    StaticAssert( offsetof(VB_Position_f2, Position) == 0 );
-    StaticAssert( sizeof(VB_Position_f2) == 8 );
-
 #ifndef VB_UVf2_Col8_DEFINED
 #   define VB_UVf2_Col8_DEFINED
     // size: 12, align: 4
@@ -40,6 +40,19 @@
     StaticAssert( offsetof(VB_UVf2_Col8, UV) == 0 );
     StaticAssert( offsetof(VB_UVf2_Col8, Color) == 8 );
     StaticAssert( sizeof(VB_UVf2_Col8) == 12 );
+
+#ifndef camera3d_ub_DEFINED
+#   define camera3d_ub_DEFINED
+    // size: 64, align: 16
+    struct camera3d_ub
+    {
+        static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd53dbd02u}};  // 'camera3d_ub'
+
+        float4x4_storage  mvp;
+    };
+#endif
+    StaticAssert( offsetof(camera3d_ub, mvp) == 0 );
+    StaticAssert( sizeof(camera3d_ub) == 64 );
 
 #ifndef CubeVertex_DEFINED
 #   define CubeVertex_DEFINED
@@ -61,6 +74,25 @@
     StaticAssert( offsetof(CubeVertex, Tangent) == 24 );
     StaticAssert( offsetof(CubeVertex, BiTangent) == 32 );
     StaticAssert( sizeof(CubeVertex) == 40 );
+
+#ifndef SphericalCubeVertex_DEFINED
+#   define SphericalCubeVertex_DEFINED
+    // size: 32, align: 2
+    struct SphericalCubeVertex
+    {
+        static constexpr auto  TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};  // 'SphericalCubeVertex'
+
+        packed_short4  Position;
+        packed_short4  Texcoord;
+        packed_short4  Tangent;
+        packed_short4  BiTangent;
+    };
+#endif
+    StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
+    StaticAssert( offsetof(SphericalCubeVertex, Texcoord) == 8 );
+    StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
+    StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
+    StaticAssert( sizeof(SphericalCubeVertex) == 32 );
 
 #ifndef sdf_font_ublock_DEFINED
 #   define sdf_font_ublock_DEFINED
@@ -84,38 +116,6 @@
     StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
     StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
     StaticAssert( sizeof(sdf_font_ublock) == 48 );
-
-#ifndef camera3d_ub_DEFINED
-#   define camera3d_ub_DEFINED
-    // size: 64, align: 16
-    struct camera3d_ub
-    {
-        static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd53dbd02u}};  // 'camera3d_ub'
-
-        float4x4_storage  mvp;
-    };
-#endif
-    StaticAssert( offsetof(camera3d_ub, mvp) == 0 );
-    StaticAssert( sizeof(camera3d_ub) == 64 );
-
-#ifndef SphericalCubeVertex_DEFINED
-#   define SphericalCubeVertex_DEFINED
-    // size: 32, align: 2
-    struct SphericalCubeVertex
-    {
-        static constexpr auto  TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};  // 'SphericalCubeVertex'
-
-        packed_short4  Position;
-        packed_short4  Texcoord;
-        packed_short4  Tangent;
-        packed_short4  BiTangent;
-    };
-#endif
-    StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
-    StaticAssert( offsetof(SphericalCubeVertex, Texcoord) == 8 );
-    StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
-    StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
-    StaticAssert( sizeof(SphericalCubeVertex) == 32 );
 
 #ifndef imgui_ub_DEFINED
 #   define imgui_ub_DEFINED

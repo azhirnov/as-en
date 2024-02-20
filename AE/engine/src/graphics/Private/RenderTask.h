@@ -278,8 +278,7 @@ namespace AE::Graphics
     {
         if ( color == DebugLabel::ColorTable::Undefined )
         {
-            BEGIN_ENUM_CHECKS();
-            switch ( queue ) {
+            switch_enum( queue ) {
                 case EQueueType::Graphics :         return DebugLabel::ColorTable::GraphicsQueue;
                 case EQueueType::AsyncCompute :     return DebugLabel::ColorTable::AsyncComputeQueue;
                 case EQueueType::AsyncTransfer :    return DebugLabel::ColorTable::AsyncTransfersQueue;
@@ -288,7 +287,7 @@ namespace AE::Graphics
                 case EQueueType::Unknown :
                 case EQueueType::_Count :           break;
             }
-            END_ENUM_CHECKS();
+            switch_end
         }
         return color;
     }
@@ -391,9 +390,9 @@ namespace AE::Threading::_hidden_
         RenderTaskCoro&  operator = (RenderTaskCoro &&)         __NE___ = default;
         RenderTaskCoro&  operator = (const RenderTaskCoro &)    __NE___ = default;
 
-        operator AsyncTask ()                                   C_NE___ { return _coro; }
-        explicit operator RC<Graphics::RenderTask> ()           C_NE___ { return _coro; }
-        explicit operator bool ()                               C_NE___ { return bool{_coro}; }
+        ND_ operator AsyncTask ()                               C_NE___ { return _coro; }
+        ND_ explicit operator RC<Graphics::RenderTask> ()       C_NE___ { return _coro; }
+        ND_ explicit operator bool ()                           C_NE___ { return bool{_coro}; }
 
         ND_ Graphics::RenderTask&   AsRenderTask ()             __NE___ { return *_coro; }
         ND_ promise_type&           Promise ()                  __NE___ { return *_coro; }
@@ -524,9 +523,9 @@ namespace AE::Graphics
     template <typename CmdBufType>
     struct RenderTask_Execute
     {
-        CmdBufType &    _cmdbuf;
+        CmdBufType &    _cmdbuf1;
 
-        explicit RenderTask_Execute (CmdBufType &cmdbuf)__NE___ : _cmdbuf{cmdbuf} {}
+        explicit RenderTask_Execute (CmdBufType &cmdbuf)__NE___ : _cmdbuf1{cmdbuf} {}
 
         ND_ auto  operator co_await ()                  __NE___
         {
@@ -534,23 +533,19 @@ namespace AE::Graphics
 
             struct Awaiter
             {
-            private:
-                CmdBufType &    _cmdbuf;
+                CmdBufType &    _cmdbuf2;
 
-            public:
-                explicit Awaiter (CmdBufType &cmdbuf)   __NE___ : _cmdbuf{cmdbuf} {}
-
-                ND_ bool    await_ready ()              C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
-                    void    await_resume ()             C_NE___ {}
+                ND_ bool    await_ready ()      C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
+                    void    await_resume ()     C_NE___ {}
 
                 ND_ bool    await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
                 {
                     auto&   rtask = curCoro.promise();
-                    rtask.Execute( _cmdbuf );   // throw
-                    return false;               // resume coroutine
+                    rtask.Execute( this->_cmdbuf2 );    // throw
+                    return false;                       // resume coroutine
                 }
             };
-            return Awaiter{ _cmdbuf };
+            return Awaiter{ _cmdbuf1 };
         }
     };
 

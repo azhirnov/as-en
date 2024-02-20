@@ -182,8 +182,8 @@ namespace AE::PipelineCompiler
         {
             EResourceState      state                   = Default;
             DynamicOffsetIdx_t  dynamicOffsetIndex      = UMax;
-            Byte32u             staticSize;
-            Byte32u             arrayStride;
+            Bytes32u            staticSize;
+            Bytes32u            arrayStride;
             ShaderStructName    typeName;
 
             ND_ bool  HasDynamicOffset ()   const   { return dynamicOffsetIndex != UMax; }
@@ -295,11 +295,11 @@ namespace AE::PipelineCompiler
             ShaderStructName    typeName;
             EShader             stage           = Default;
             ubyte               metalBufferId   = UMax;
-            Byte16u             vulkanOffset;
-            Byte16u             size;
+            Bytes16u            vulkanOffset;
+            Bytes16u            size;
 
             PushConst () {}
-            PushConst (EShader stage, uint bufferId, Byte32u offset, Byte32u size, const ShaderStructName &typeName) :
+            PushConst (EShader stage, uint bufferId, Bytes32u offset, Bytes32u size, ShaderStructName::Ref typeName) :
                 typeName{typeName}, stage{stage}, metalBufferId{ubyte(bufferId)}, vulkanOffset{offset}, size{size} {}
 
             ND_ bool    operator == (const PushConst &rhs) const;
@@ -441,7 +441,7 @@ namespace AE::PipelineCompiler
     // types
     public:
         using Shaders_t         = FixedMap< EShader, ShaderUID, 5 >;
-        using TopologyBits_t    = EnumBitSet< EPrimitive >;
+        using TopologyBits_t    = EnumSet< EPrimitive >;
 
         struct VertexAttrib
         {
@@ -1156,17 +1156,17 @@ namespace AE::PipelineCompiler
         ND_ RenderStateUID      AddRenderState (SerializableRenderState);
         ND_ DepthStencilStateUID AddDepthStencilState (SerializableDepthStencilState);
 
-        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (const PipelineTmplName &name, SerializableGraphicsPipeline);
-        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (const PipelineTmplName &name, SerializableMeshPipeline);
-        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (const PipelineTmplName &name, SerializableComputePipeline);
-        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (const PipelineTmplName &name, SerializableTilePipeline);
-        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (const PipelineTmplName &name, SerializableRayTracingPipeline);
+        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (PipelineTmplName::Ref name, SerializableGraphicsPipeline);
+        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (PipelineTmplName::Ref name, SerializableMeshPipeline);
+        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (PipelineTmplName::Ref name, SerializableComputePipeline);
+        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (PipelineTmplName::Ref name, SerializableTilePipeline);
+        ND_ Pair<PipelineTemplUID, bool>    AddPipeline (PipelineTmplName::Ref name, SerializableRayTracingPipeline);
 
-        ND_ PipelineSpecUID     AddPipeline (const PipelineName &name, SerializableGraphicsPipelineSpec);
-        ND_ PipelineSpecUID     AddPipeline (const PipelineName &name, SerializableMeshPipelineSpec);
-        ND_ PipelineSpecUID     AddPipeline (const PipelineName &name, SerializableComputePipelineSpec);
-        ND_ PipelineSpecUID     AddPipeline (const PipelineName &name, SerializableTilePipelineSpec);
-        ND_ PipelineSpecUID     AddPipeline (const PipelineName &name, SerializableRayTracingPipelineSpec);
+        ND_ PipelineSpecUID     AddPipeline (PipelineName::Ref name, SerializableGraphicsPipelineSpec);
+        ND_ PipelineSpecUID     AddPipeline (PipelineName::Ref name, SerializableMeshPipelineSpec);
+        ND_ PipelineSpecUID     AddPipeline (PipelineName::Ref name, SerializableComputePipelineSpec);
+        ND_ PipelineSpecUID     AddPipeline (PipelineName::Ref name, SerializableTilePipelineSpec);
+        ND_ PipelineSpecUID     AddPipeline (PipelineName::Ref name, SerializableRayTracingPipelineSpec);
 
         ND_ RenderTechUID       AddRenderTech (SerializableRenderTechnique);
 
@@ -1224,10 +1224,10 @@ namespace AE::PipelineCompiler
         ND_ ShaderUID  _AddMslShader (MetalBytecode_t msl, const SpecConstants_t &spec, ShaderUID mask, ArrType &arr, MapType &mapType);
 
         template <typename PplnType, typename PplnArr, typename PplnMap>
-        ND_ Pair<PipelineTemplUID, bool>  _AddPipelineTmpl (const PipelineTmplName &name, PplnType, PplnArr&, PplnMap&, PipelineTemplUID uidType);
+        ND_ Pair<PipelineTemplUID, bool>  _AddPipelineTmpl (PipelineTmplName::Ref name, PplnType, PplnArr&, PplnMap&, PipelineTemplUID uidType);
 
         template <typename PplnType, typename PplnArr, typename PplnMap>
-        ND_ PipelineSpecUID  _AddPipelineSpec (const PipelineName &name, PplnType, PplnArr&, PplnMap&, PipelineSpecUID uidType);
+        ND_ PipelineSpecUID  _AddPipelineSpec (PipelineName::Ref name, PplnType, PplnArr&, PplnMap&, PipelineSpecUID uidType);
     };
 
 

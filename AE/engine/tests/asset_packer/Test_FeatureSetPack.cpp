@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_Common.h"
-
+using namespace AE::PipelineCompiler;
 
 namespace
 {
@@ -11,8 +11,8 @@ namespace
 
     static void  FeatureSetPack_Test1 ()
     {
-        const PathParams    features[]  = { {TXT("config_vk.as"), 0} };
-        const PathParams    fs_folder[] = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
+        const PathParams    features[]  = { {TXT("config_vk.as"), 0},
+                                            {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder} };
         Path                output      = TXT("_output");
 
         FileSystem::RemoveAll( output );
@@ -23,8 +23,6 @@ namespace
         PipelinesInfo   info = {};
         info.inPipelines        = features;
         info.inPipelineCount    = CountOf( features );
-        info.pipelineFolders    = fs_folder;
-        info.pipelineFolderCount= CountOf( fs_folder );
         info.outputPackName     = Cast<CharType>(output.c_str());
 
         TEST( compile_pipelines( &info ));
@@ -62,7 +60,7 @@ namespace
 
         uint    count = 0;
         TEST( des( OUT count ));
-        TEST_Eq( count, 42 );
+        TEST_Eq( count, 44 );
 
         for (uint i = 0; i < count; ++i)
         {
@@ -84,16 +82,8 @@ extern void Test_FeatureSetPack ()
 {
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
     {
-        Path    dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-
-        #ifdef AE_COMPILER_MSVC
-            dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-        #else
-            dll_path.append( "PipelineCompiler-shared.so" );
-        #endif
-
         Library     lib;
-        TEST( lib.Load( dll_path ));
+        TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
         TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
         TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/featset_test" ));

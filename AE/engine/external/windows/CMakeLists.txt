@@ -6,6 +6,7 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 set( AE_ENABLE_OPENVR       ON  CACHE BOOL "use OpenVR" )
 set( AE_ENABLE_FFMPEG       ON  CACHE BOOL "use FFmpeg (GPL or LGPL)" )
 set( AE_ENABLE_DEVIL        ON  CACHE BOOL "use DevIL" )
+set( AE_ENABLE_NVIDIA_API   OFF CACHE BOOL "use NVPerf & NVAPI" )
 #----------------------------------------------------------
 
 
@@ -35,4 +36,8 @@ endif ()
 
 if (${AE_ENABLE_DEVIL})
     add_subdirectory( "DevIL" )
+endif ()
+
+if (${AE_ENABLE_NVIDIA_API})
+    add_subdirectory( "NVidia" )
 endif ()

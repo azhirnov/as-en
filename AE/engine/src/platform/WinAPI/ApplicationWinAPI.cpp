@@ -128,7 +128,7 @@ namespace AE::App
     TODO: CapabilitiesRequestAndCapabilitiesReply
 =================================================
 */
-    ApplicationWinAPI::Monitors_t  ApplicationWinAPI::GetMonitors (bool update) __NE___
+    ArrayView<Monitor>  ApplicationWinAPI::GetMonitors (bool update) __NE___
     {
         DRC_EXLOCK( _stCheck );
 
@@ -181,7 +181,7 @@ namespace AE::App
 
                 if ( ::GetPhysicalMonitorsFromHMONITOR( hMonitor, DWORD(win_monitors.size()), OUT win_monitors.data() ) != FALSE )  // winvista
                 {
-                    for (usize i = 0; (not has_freq) & (i < win_monitors.size()); ++i)
+                    for (usize i = 0; (not has_freq) and (i < win_monitors.size()); ++i)
                     {
                         MC_TIMING_REPORT    timing = {};
                         if ( ::GetTimingReport( win_monitors[i].hPhysicalMonitor, OUT &timing ) != FALSE )  // winvista

@@ -27,12 +27,20 @@
      * AE_LICENSE_MIT
      * AE_LICENSE_MPL_2     - Mozilla Public License    // https://en.wikipedia.org/wiki/Mozilla_Public_License
      * AE_LICENSE_ZLIB                                  // https://en.wikipedia.org/wiki/Zlib_License
-     * AE_LICENSE_FREE_NON_COMMERCIAL
      * AE_LICENSE_UNLICENSE
+
+    TODO:
+     * Don't Ask Me About Anything License
+     * Evil License
+     * Do What the Fuck You Want to Public License
 
     reference:
     https://en.wikipedia.org/wiki/Comparison_of_free_and_open-source_software_licenses
 */
+
+#if defined(AE_LICENSE_FREE_NON_COMMERCIAL) and defined(AE_RELEASE)
+#  error only for non-commercial use!
+#endif
 
 
 // MIT & BSD

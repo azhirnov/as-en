@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Utils/EnumBitSet.h"
+#include "base/Utils/EnumSet.h"
 #include "graphics/Private/EnumUtils.h"
 #include "UnitTest_Common.h"
 
@@ -12,6 +12,13 @@ namespace
         {
             auto&   info = EPixelFormat_GetInfo( fmt );
             TEST( info.format == fmt );
+            TEST( EPixelFormat_IsYcbcr( fmt ) == info.IsMultiPlanar() );
+
+            const bool  comp =  EPixelFormat_IsBC( fmt )    or
+                                EPixelFormat_IsETC( fmt )   or
+                                EPixelFormat_IsEAC( fmt )   or
+                                EPixelFormat_IsASTC( fmt );
+            TEST( info.IsCompressed() == comp );
         }
     }
 
@@ -201,12 +208,12 @@ namespace
     static void VertexType_Test1 ()
     {
         HashSet<EVertexType>    unique;
-        EnumBitSet<EVertexType> bits;
+        EnumSet<EVertexType>    bits;
 
-        #define AE_VERTEXTYPE_VISIT( _name_, _value_ )                                          \
-            StaticAssert( EVertexType::_name_ < EVertexType::_Count );                          \
-            TEST( unique.insert( EVertexType::_name_ ).second );                                \
-            TEST( (bits & EnumBitSet<EVertexType>{}.insert( EVertexType::_name_ )).None() );    \
+        #define AE_VERTEXTYPE_VISIT( _name_, _value_ )                                      \
+            StaticAssert( EVertexType::_name_ < EVertexType::_Count );                      \
+            TEST( unique.insert( EVertexType::_name_ ).second );                            \
+            TEST( (bits & EnumSet<EVertexType>{}.insert( EVertexType::_name_ )).None() );   \
             bits.insert( EVertexType::_name_ );
 
         AE_VERTEXTYPE_LIST( AE_VERTEXTYPE_VISIT );

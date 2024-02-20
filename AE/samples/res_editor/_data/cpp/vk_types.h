@@ -1,4 +1,4 @@
-//725a45c8
+//5c159bd4
 #ifndef CameraData_DEFINED
 #   define CameraData_DEFINED
     // size: 384, align: 16
@@ -12,6 +12,7 @@
         float4x4_storage  view;
         float3  pos;
         float2  clipPlanes;
+        float  zoom;
         StaticArray< float4, 6 >    frustum;
     };
 #endif
@@ -21,6 +22,7 @@
     StaticAssert( offsetof(CameraData, view) == 192 );
     StaticAssert( offsetof(CameraData, pos) == 256 );
     StaticAssert( offsetof(CameraData, clipPlanes) == 272 );
+    StaticAssert( offsetof(CameraData, zoom) == 280 );
     StaticAssert( offsetof(CameraData, frustum) == 288 );
     StaticAssert( sizeof(CameraData) == 384 );
 
@@ -105,6 +107,19 @@
     StaticAssert( offsetof(ComputePassUB, floatConst) == 624 );
     StaticAssert( offsetof(ComputePassUB, intConst) == 688 );
     StaticAssert( sizeof(ComputePassUB) == 752 );
+
+#ifndef ComputePassPC_DEFINED
+#   define ComputePassPC_DEFINED
+    // size: 4, align: 4 (16)
+    struct ComputePassPC
+    {
+        static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa1d3ae84u}};  // 'ComputePassPC'
+
+        uint  dispatchIndex;
+    };
+#endif
+    StaticAssert( offsetof(ComputePassPC, dispatchIndex) == 0 );
+    StaticAssert( sizeof(ComputePassPC) == 4 );
 
 #ifndef RayTracingPassUB_DEFINED
 #   define RayTracingPassUB_DEFINED

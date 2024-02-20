@@ -61,6 +61,9 @@ namespace AE::Networking
 
         ND_ auto  NativeHandle ()                       C_NE___ { return _handle; }
 
+        ND_ Bytes  GetSendBufferSize ()                 C_NE___;
+        ND_ Bytes  GetReceiveBufferSize ()              C_NE___;
+
       #ifdef AE_DEBUG
             void        SetDebugName (String name)      __NE___ { _dbgName = RVRef(name); }
         ND_ StringView  GetDebugName ()                 C_NE___ { return _dbgName; }

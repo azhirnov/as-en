@@ -4,40 +4,46 @@
 
 #ifdef AE_PLATFORM_ANDROID
 # include <android/keycodes.h>
+# include <android/sensor.h>
 #endif
-#include "pch/Scripting.h"
 
-#include "platform/Private/EnumToString.h"
+#include "pch/Scripting.h"
 #include "platform/Android/SerializableInputActionsAndroid.h"
 
 namespace AE::App
 {
 # ifdef AE_PLATFORM_ANDROID
 
-    #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ ) \
+    #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )\
         StaticAssert( uint(SerializableInputActionsAndroid::EInputType::_key_) == uint(_and_code_) );
 
     AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
     #undef AE_ANDROID_KEY_CODES_VISITOR
 
+    #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, _api_, _valType_, _and_code_ )\
+        StaticAssert( _bitIndex_ == uint(_and_code_) );
+
+    AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+    #undef AE_ANDROID_SERNSORS_VISITOR
+
 # endif
 
 /*
 =================================================
-    EInputTypeToString
+    InputTypeToString
 =================================================
 */
-namespace {
-    ND_ String  EInputTypeToString (SerializableInputActionsAndroid::EInputType value)
+    String  SerializableInputActionsAndroid::InputTypeToString (InputType_t value) C_Th___
     {
-        using EInputType = SerializableInputActionsAndroid::EInputType;
-
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( EInputType(value) )
         {
-            #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )   case EInputType::_key_ :    return _name_;
+            #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )  case EInputType::_key_ : return _name_;
             AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
             #undef AE_ANDROID_KEY_CODES_VISITOR
+
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )                  case EInputType::_type_ : return AE_TOSTRING( _type_ );
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
 
             case EInputType::MultiTouch :       return "MultiTouch";
 
@@ -48,79 +54,118 @@ namespace {
             case EInputType::TouchDelta_norm :  return "TouchDelta_norm";
             // Cursor2DEnd
 
-            // Sensors1fBegin
-            case EInputType::AirTemperature :   return "AirTemperature";
-            case EInputType::AmbientLight :     return "AmbientLight";
-            case EInputType::AirPressure :      return "AirPressure";
-            case EInputType::Proximity :        return "Proximity";
-            case EInputType::RelativeHumidity : return "RelativeHumidity";
-            case EInputType::StepCount :        return "StepCount";
-            case EInputType::BatteryState :     return "BatteryState";
-            // Sensors1fEnd
-
-            // Sensors2dBegin
-            case EInputType::GeoLocation :      return "GeoLocation";
-            // Sensors2dEnd
-
-            // Sensors3fBegin
-            case EInputType::Accelerometer :    return "Accelerometer";
-            case EInputType::Gravity :          return "Gravity";
-            case EInputType::Gyroscope :        return "Gyroscope";
-            case EInputType::LinearAcceleration:return "LinearAcceleration";
-            case EInputType::MagneticField :    return "MagneticField";
-            case EInputType::RotationVector :   return "RotationVector";
-            // Sensors3fEnd
-
-            // Sensors4x4fBegin
-            case EInputType::Pose6DOF :         return "Pose6DOF";
-            // Sensors4x4fEnd
-
             case EInputType::KeyBegin :
             case EInputType::KeyEnd :
 
             case EInputType::_Count :
             case EInputType::Unknown :  break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
-        return "code_"s << Base::ToString( uint(value) );
+        return "code_"s << Base::ToString( value );
     }
-}
 
 /*
 =================================================
-    ToString
+    SensorBitsToString
 =================================================
 */
-    String  SerializableInputActionsAndroid::ToString (const Reflection &refl) C_Th___
+    String  SerializableInputActionsAndroid::SensorBitsToString (ESensorBits bits) C_Th___
     {
-        String      str      = "InputActionsAndroid {\n";
-        const auto  mode_arr = _ToArray(_modeMap);
-
-        for (auto& [name, mode] : mode_arr)
+        String  str;
+        for (auto idx : BitIndexIterate<ESensorType>(bits))
         {
-            str << "  '" << refl.Get( name ) << "' {\n";
+            if ( not str.empty() )
+                str << ", ";
 
-            const auto  act_arr = _ToArray(mode->actions);
-            for (auto& [key, info] : act_arr)
+            switch_enum( idx )
             {
-                auto [code, gesture, state] = _Unpack( key );
+                #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )  case ESensorType::_type_ : str << AE_TOSTRING( _type_ ); break;
+                AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+                #undef AE_ANDROID_SERNSORS_VISITOR
 
-                str <<   "    InputKey: " << EInputTypeToString( EInputType(code) ) << ", state: " << Base::ToString( state )
-                    << "\n    {"
-                    << "\n      name:    '" << refl.Get( info->name ) << "'"
-                    << "\n      value:   " << Base::ToString( info->valueType )
-                    << "\n      gesture: " << Base::ToString( info->gesture )
-                    << "\n      swizzle: " << Base::ToString( info->swizzle )
-                    << "\n      scale:   " << Base::ToString( info->GetScale() )
-                    << "\n    }\n";
+                case ESensorType::Unknown : break;
             }
-
-            str << "  }\n";
+            switch_end
         }
-        str << "}\n\n";
-
         return str;
+    }
+
+/*
+=================================================
+    InputTypeToSensorType
+=================================================
+*/
+    SerializableInputActionsAndroid::ESensorType  SerializableInputActionsAndroid::InputTypeToSensorType (const EInputType inputType) __NE___
+    {
+        switch ( inputType )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )  case EInputType::_type_ : return ESensorType::_type_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+        }
+        return Default;
+    }
+
+/*
+=================================================
+    SensorTypeToInputType
+=================================================
+*/
+    SerializableInputActionsAndroid::EInputType  SerializableInputActionsAndroid::SensorTypeToInputType (const ESensorType sensorType) __NE___
+    {
+        switch_enum( sensorType )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )  case ESensorType::_type_ : return EInputType::_type_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            case ESensorType::Unknown :     break;
+        }
+        switch_end
+        return Default;
+    }
+
+/*
+=================================================
+    SensorTypeToValueType
+=================================================
+*/
+    SerializableInputActionsAndroid::EValueType  SerializableInputActionsAndroid::SensorTypeToValueType (const ESensorType sensorType) __NE___
+    {
+        switch_enum( sensorType )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, _api_, _valType_, ... )    case ESensorType::_type_ : return EValueType::_valType_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            case ESensorType::Unknown :     break;
+        }
+        switch_end
+        return Default;
+    }
+
+/*
+=================================================
+    RequiredValueType
+=================================================
+*/
+    SerializableInputActionsAndroid::EValueType  SerializableInputActionsAndroid::RequiredValueType (const InputType_t type) C_NE___
+    {
+        const auto  input_type = EInputType(type);
+        switch ( input_type )
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, _api_, _valType_, ... )    case EInputType::_type_ : return EValueType::_valType_;
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            case EInputType::MultiTouch :       return EValueType::Float2;  // float2 (scale, rotate)
+            case EInputType::TouchPos :         return EValueType::Float2;  // float2 (absolute in pixels)
+            case EInputType::TouchPos_mm :      return EValueType::Float2;  // float2 (absolute in mm)
+            case EInputType::TouchDelta :       return EValueType::Float2;  // float2 (delta in pixels)
+            case EInputType::TouchDelta_norm :  return EValueType::Float2;  // snorm2
+        }
+        return Default;
     }
 //-----------------------------------------------------------------------------
 
@@ -175,46 +220,32 @@ namespace {
         {
             EnumBinder<EInputType>  binder{ se };
             binder.Create();
+            switch_enum( EInputType::Unknown )
+            {
+                case EInputType::Unknown :
+                case EInputType::KeyBegin :
+                case EInputType::KeyEnd :
+                case EInputType::_Count :
 
-            #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )       binder.AddValue( _name_, EInputType::_key_ );
-            AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
-            #undef AE_ANDROID_KEY_CODES_VISITOR
+                #define BIND( _name_ )                                              case EInputType::_name_ : binder.AddValue( #_name_, EInputType::_name_ );
+                #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, ... )  case EInputType::_key_  : binder.AddValue( _name_, EInputType::_key_ );
+                AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
+                #define AE_ANDROID_SERNSORS_VISITOR( _type_, ... )                  case EInputType::_type_ : binder.AddValue( #_type_, EInputType::_type_ );
+                AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
 
-            binder.AddValue( "MultiTouch",          EInputType::MultiTouch );
+                BIND( MultiTouch )
 
-            StaticAssert( uint(EInputType::Cursor2DBegin) == 523 );
-            StaticAssert( uint(EInputType::Cursor2DEnd)   == 526 );
-            binder.AddValue( "TouchPos",            EInputType::TouchPos );
-            binder.AddValue( "TouchPos_mm",         EInputType::TouchPos_mm );
-            binder.AddValue( "TouchDelta",          EInputType::TouchDelta );
-            binder.AddValue( "TouchDelta_norm",     EInputType::TouchDelta_norm );
+                BIND( TouchPos )
+                BIND( TouchPos_mm )
+                BIND( TouchDelta )
+                BIND( TouchDelta_norm )
 
-            StaticAssert( uint(EInputType::Sensors1fBegin) == 527 );
-            StaticAssert( uint(EInputType::Sensors1fEnd)   == 533 );
-            binder.AddValue( "AirTemperature",      EInputType::AirTemperature );
-            binder.AddValue( "AmbientLight",        EInputType::AmbientLight );
-            binder.AddValue( "AirPressure",         EInputType::AirPressure );
-            binder.AddValue( "Proximity",           EInputType::Proximity );
-            binder.AddValue( "RelativeHumidity",    EInputType::RelativeHumidity );
-            binder.AddValue( "StepCount",           EInputType::StepCount );
-            binder.AddValue( "BatteryState",        EInputType::BatteryState );
-
-            StaticAssert( uint(EInputType::Sensors2dBegin) == 534 );
-            StaticAssert( uint(EInputType::Sensors2dEnd)   == 534 );
-            binder.AddValue( "GeoLocation",         EInputType::GeoLocation );
-
-            StaticAssert( uint(EInputType::Sensors3fBegin) == 535 );
-            StaticAssert( uint(EInputType::Sensors3fEnd)   == 540 );
-            binder.AddValue( "Accelerometer",       EInputType::Accelerometer );
-            binder.AddValue( "Gravity",             EInputType::Gravity );
-            binder.AddValue( "Gyroscope",           EInputType::Gyroscope );
-            binder.AddValue( "LinearAcceleration",  EInputType::LinearAcceleration );
-            binder.AddValue( "MagneticField",       EInputType::MagneticField );
-            binder.AddValue( "RotationVector",      EInputType::RotationVector );
-
-            StaticAssert( uint(EInputType::Sensors4x4fBegin) == 541 );
-            StaticAssert( uint(EInputType::Sensors4x4fEnd)   == 541 );
-            binder.AddValue( "Pose6DOF",            EInputType::Pose6DOF );
+                #undef AE_ANDROID_KEY_CODES_VISITOR
+                #undef AE_ANDROID_SERNSORS_VISITOR
+                #undef BIND
+                default : break;
+            }
+            switch_end
         }
 
         // BindingsMode
@@ -240,18 +271,36 @@ namespace {
     LoadFromScript
 =================================================
 */
-    bool  SerializableInputActionsAndroid::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc, Reflection &refl)
+    bool  SerializableInputActionsAndroid::LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, ArrayView<Path> includeDirs,
+                                                            const SourceLoc &loc, INOUT Reflection &refl) __NE___
     {
         CHECK_ERR( se );
         CHECK_ERR( not script.empty() );
 
         ScriptActionBindings    bindings{ *this, refl };
 
-        auto    mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }});
+        auto    mod = se->CreateModule( {ScriptEngine::ModuleSource{ "def"s, RVRef(script), loc, True{"preprocessor"} }},
+                                        Default,
+                                        includeDirs );
         CHECK_ERR( mod );
 
         auto    scr = se->CreateScript< void (ScriptActionBindings *) >( "ASmain", mod );
         CHECK_ERR( scr and scr->Run( &bindings ));
+
+        // enable sensors
+        for (auto [name, mode] : _modeMap)
+        {
+            ASSERT( mode.enableSensors == Default );
+
+            for (const auto& [key, info] : mode.actions)
+            {
+                auto code = EInputType(_Unpack( key ).Get<0>());
+
+                ESensorType sensor = InputTypeToSensorType( EInputType(code) );
+
+                mode.enableSensors |= ESensorBits(1ull << uint(sensor));
+            }
+        }
 
         return true;
     }

@@ -12,12 +12,6 @@
 #pragma once
 
 #include "platform/Public/Projection.h"
-
-#include "graphics/Public/IDs.h"
-#include "graphics/Public/ImageLayer.h"
-#include "graphics/Public/MultiSamples.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/EResourceState.h"
 #include "graphics/Public/GraphicsImpl.h"
 
 namespace AE::App
@@ -28,8 +22,6 @@ namespace AE::App
     using Graphics::EResourceState;
     using Graphics::MultiSamples;
     using Graphics::EPixelFormat;
-    using Graphics::EImageUsage;
-    using Graphics::EImageOpt;
     using Graphics::EPresentMode;
     using Graphics::EColorSpace;
     using Graphics::CommandBatchPtr;
@@ -38,7 +30,7 @@ namespace AE::App
 
 
     //
-    // Output Surface
+    // Output Surface interface
     //
 
     class IOutputSurface
@@ -134,6 +126,10 @@ namespace AE::App
             EPresentMode    presentMode     = Default;
 
         // methods
+            SurfaceInfo ()                                      __NE___ {}
+            SurfaceInfo (const SurfaceFormat &other)            __NE___ : SurfaceFormat{other} {}
+            SurfaceInfo (const SurfaceInfo &)                   __NE___ = default;
+
             SurfaceInfo&  operator = (const SurfaceFormat &rhs) __NE___ { SurfaceFormat::operator = (rhs);  return *this; }
             SurfaceInfo&  operator = (const SurfaceInfo &rhs)   __NE___ = default;
         };
@@ -156,8 +152,8 @@ namespace AE::App
 
         // Begin rendering.
         // Returns image acquire task which is implicitly synchronized with present/blit task which returned by 'End()', returns 'null' on error.
-        // 'beginCmdBatch'  - batch where render targets will be rendered.
-        // 'endCmdBatch'    - batch where render targets was rendered.
+        // 'beginCmdBatch'  - first batch where render targets will be rendered.
+        // 'endCmdBatch'    - last batch where render targets was rendered.
         // 'deps'           - list of tasks which must be executed before.
         //
         ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)    __NE___ = 0;

@@ -18,8 +18,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EGestureType value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             // continious
             case EGestureType::Hold :           return "Hold";
@@ -36,7 +35,7 @@ namespace AE::Base
             case EGestureType::_Count :
             case EGestureType::Unknown :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown gesture type" );
     }
 
@@ -47,8 +46,7 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EGestureState value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
             case EGestureState::Begin :     return "Begin";
             case EGestureState::Update :    return "Update";
@@ -57,7 +55,7 @@ namespace AE::Base
             case EGestureState::Outside :   return "Outside";
             case EGestureState::Unknown :   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown gesture state" );
     }
 
@@ -68,22 +66,20 @@ namespace AE::Base
 */
     ND_ inline StringView  ToString (EInputActionValueType value)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( value )
+        switch_enum( value )
         {
-            case EInputActionValueType::Bool :      return "Bool";
-            case EInputActionValueType::Int :       return "Int";
             case EInputActionValueType::Float :     return "Float";
             case EInputActionValueType::Float2 :    return "Float2";
             case EInputActionValueType::Float3 :    return "Float3";
             case EInputActionValueType::Float4 :    return "Float4";
             case EInputActionValueType::Quat :      return "Quat";
             case EInputActionValueType::Float4x4 :  return "Float4x4";
-            case EInputActionValueType::String :    return "String";
+            case EInputActionValueType::Chars :     return "Chars";
+            case EInputActionValueType::GNS :       return "GNS";
             case EInputActionValueType::Unknown :   return "none";
             case EInputActionValueType::_Count :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown input action value type" );
     }
 

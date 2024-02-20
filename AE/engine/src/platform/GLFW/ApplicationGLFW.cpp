@@ -94,7 +94,7 @@ namespace {
     GetMonitors
 =================================================
 */
-    ApplicationGLFW::Monitors_t  ApplicationGLFW::GetMonitors (bool update) __NE___
+    ArrayView<Monitor>  ApplicationGLFW::GetMonitors (bool update) __NE___
     {
         DRC_EXLOCK( _stCheck );
 
@@ -191,7 +191,8 @@ namespace {
             result.region   = result.workArea;
         }
 
-        result.ppi = result._CalculatePPI();
+        float2  ppi = result._CalculatePPI();
+        result.ppi = Average( ppi.x, ppi.y );
 
         // WinAPI returns 'Generic PnP Monitor', correct name will be set later in 'UtilsWinAPI::SetMonitorNames()'
         result.name = glfwGetMonitorName( ptr );

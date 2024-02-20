@@ -1,4 +1,4 @@
-// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "demo/Examples/Canvas2D.h"
 
@@ -122,7 +122,7 @@ namespace AE::Samples::Demo
         DescriptorSetID     ds;
         VFS::FileName       fname;
 
-        UploadRasterFontTask (RC<RasterFont> *f, DescriptorSetID ds, const VFS::FileName &name, CommandBatchPtr batch, DebugLabel) __NE___ :
+        UploadRasterFontTask (RC<RasterFont> *f, DescriptorSetID ds, VFS::FileName::Ref name, CommandBatchPtr batch, DebugLabel) __NE___ :
             RenderTask{ batch, {"Canvas2D::UploadRasterFont"} },
             font{ *f }, ds{ds}, fname{name}
         {}
@@ -170,7 +170,7 @@ namespace AE::Samples::Demo
     //
     // Process Input Task
     //
-    class Canvas2DSample::ProcessInputTask final : public Threading::IAsyncTask
+    class Canvas2DSample::ProcessInputTask final : public IAsyncTask
     {
     public:
         RC<Canvas2DSample>  t;
@@ -199,8 +199,7 @@ namespace AE::Samples::Demo
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            StaticAssert( IA.actionCount == 2 );
-            switch ( uint{hdr.name} )
+            switch_IA( hdr.name )
             {
                 case IA.Cursor :
                     t->cursorPos = reader.Data<packed_float2>( hdr.offset );    break;
@@ -208,6 +207,7 @@ namespace AE::Samples::Demo
                 case IA.Enter :
                     t->enter = true;                                            break;
             }
+            switch_end
         }
     }
 //-----------------------------------------------------------------------------
@@ -268,9 +268,9 @@ namespace AE::Samples::Demo
             copy_ctx.UpdateBuffer( t->ublock, AlignUp( SizeOf<ShaderTypes::sdf_font_ublock>, DeviceLimits.res.minUniformBufferOffsetAlign ), Sizeof(ublock_data), &ublock_data );
         }
 
-        DirectCtx::Graphics     gctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+        DirectCtx::Graphics     gfx_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
-        gctx.AccumBarriers()
+        gfx_ctx.AccumBarriers()
             .MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
             .MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer )
             .MemoryBarrier( EResourceState::CopyDst,    EResourceState::UniformRead | EResourceState::PreRasterizationShaders | EResourceState::FragmentShader );
@@ -284,11 +284,11 @@ namespace AE::Samples::Demo
             constexpr auto& rtech_pass = RTech.Main;
             StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-            const auto  rp_desc = RenderPassDesc{ t->rtech, rtech_pass, rt.RegionSize() }
+            const auto  rp_desc = RenderPassDesc{ *t->rtech, rtech_pass, rt.RegionSize() }
                                     .AddViewport( rt.RegionSize() )
                                     .AddTarget( rtech_pass.att_Color, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState );
 
-            auto    dctx = gctx.BeginRenderPass( rp_desc );
+            auto    dctx = gfx_ctx.BeginRenderPass( rp_desc );
 
             //{
             //  canvas.Draw( Circle2D{ 16, RectF{-0.9f, -0.5f, 0.2f, 0.2f}, HtmlColor::Blue });
@@ -347,17 +347,17 @@ namespace AE::Samples::Demo
             // text regions
             //const RectF   txt_region{ -0.38f, -0.7f, -0.15f, -0.45f };
             const RectF     txt_region{ -0.38f, -0.7f, -0.0f, -0.3f };
-            /*{
+            {
                 canvas.Draw( Rectangle2D{ txt_region, t->enter ? HtmlColor::Red : HtmlColor::DarkGray });
                 dctx.BindPipeline( t->ppln2 );
                 canvas.Flush( dctx, EPrimitive::TriangleList );
-            }*/
+            }
 
             // text
             Canvas::FontParams  fnt_params;
             fnt_params.heightInPx   = t->fontHeight;
 
-            const U8StringView  text{u8"111 223\n456\ngL^.-"};
+            const U8StringView  text{u8"111 223\n456\ngL^.-Я"};
 
             fnt_params.color = HtmlColor::LightCoral;
             {
@@ -392,10 +392,10 @@ namespace AE::Samples::Demo
 
             t->profiler.Draw( canvas );
 
-            gctx.EndRenderPass( dctx, rp_desc );
+            gfx_ctx.EndRenderPass( dctx, rp_desc );
         }
 
-        Execute( gctx );
+        Execute( gfx_ctx );
     }
 //-----------------------------------------------------------------------------
 
@@ -406,7 +406,7 @@ namespace AE::Samples::Demo
     Init
 =================================================
 */
-    bool  Canvas2DSample::Init (PipelinePackID pack) __NE___
+    bool  Canvas2DSample::Init (PipelinePackID pack, IApplicationTS) __NE___
     {
         auto&   res_mngr    = GraphicsScheduler().GetResourceManager();
                 gfxAlloc    = res_mngr.CreateLinearGfxMemAllocator();
@@ -458,7 +458,7 @@ namespace AE::Samples::Demo
 
         canvasPtr.reset( new Canvas{} );
 
-        CHECK( profiler.Initialize() );
+        CHECK( profiler.Initialize( null ));
 
         return true;
     }

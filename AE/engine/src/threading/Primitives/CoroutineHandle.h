@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_HAS_COROUTINE
-# include <coroutine>
 # include "threading/Common.h"
 
 namespace AE::Threading

@@ -8,7 +8,7 @@
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 # define VGFXALLOC  VLinearMemAllocator
-# include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.inl.h"
+# include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.cpp.h"
 
 namespace AE::Graphics
 {

@@ -18,7 +18,7 @@ namespace AE::Serializing
     // types
     private:
         using Serialize_t   = bool (*) (Serializer &, const void *) __NE___;
-        using Deserialize_t = bool (*) (Deserializer &, OUT void *, bool create) __NE___;
+        using Deserialize_t = bool (*) (Deserializer &, INOUT void *&, Ptr<IAllocator>) __NE___;
 
         struct ObjInfo
         {
@@ -28,7 +28,7 @@ namespace AE::Serializing
 
         using ObjectMap_t   = HashMap< SerializedID, ObjInfo >;     // requires pointer stability
         using ObjectTypes_t = FlatHashMap< TypeId, Pair<const SerializedID, ObjInfo>* >;
-        using HashToObj_t   = FlatHashMap< uint, Pair<const SerializedID, ObjInfo>* >;
+        using HashToObj_t   = FlatHashMap< SerializedID::Optimized_t, Pair<const SerializedID, ObjInfo>* >;
 
 
     // variables
@@ -51,17 +51,36 @@ namespace AE::Serializing
         ObjectFactory ()                                                                    __NE___ {}
 
         template <typename T>
-            bool  Register (const SerializedID &id, Serialize_t ser, Deserialize_t deser)   __NE___;
+            bool  Register (SerializedID::Ref id, Serialize_t ser, Deserialize_t deser)     __NE___;
 
         template <typename T>
-            bool  Register (const SerializedID &id)                                         __NE___;
+            bool  Register (SerializedID::Ref id)                                           __NE___;
+
 
         template <typename T>
-        ND_ bool  Serialize (Serializer &, const T& obj)                                    C_NE___;
+        ND_ bool  Serialize (Serializer &, const T &obj)                                    C_NE___;
 
         template <typename T>
-        ND_ bool  Deserialize (Deserializer &, INOUT T& obj)                                C_NE___;
-        ND_ bool  Deserialize (Deserializer &, INOUT void* obj)                             C_NE___;
+        ND_ bool  Serialize (Serializer &, const RC<T> &obj)                                C_NE___;
+
+        template <typename T>
+        ND_ bool  Serialize (Serializer &, const Unique<T> &obj)                            C_NE___;
+
+
+        template <typename T>
+        ND_ bool  Deserialize (Deserializer &, Ptr<IAllocator> alloc, INOUT T &obj)         C_NE___;
+
+        template <typename T>
+        ND_ bool  Deserialize (Deserializer &, Ptr<IAllocator> alloc, INOUT RC<T> &obj)     C_NE___;
+
+        template <typename T>
+        ND_ bool  Deserialize (Deserializer &, Ptr<IAllocator> alloc, INOUT Unique<T> &)    C_NE___;
+
+
+    private:
+        template <typename T>
+        ND_ bool  _Serialize (Serializer &, const void* obj)                                C_NE___;
+        ND_ bool  _Deserialize (Deserializer &, Ptr<IAllocator> alloc, INOUT void* &)       C_NE___;
     };
 
 
@@ -71,19 +90,21 @@ namespace AE::Serializing
 =================================================
 */
     template <typename T>
-    inline bool  ObjectFactory::Register (const SerializedID &id, Serialize_t ser, Deserialize_t deser) __NE___
+    bool  ObjectFactory::Register (SerializedID::Ref id, Serialize_t ser, Deserialize_t des) __NE___
     {
-        StaticAssert( not IsTriviallySerializable<T>, "Can not register POD type" );
+        StaticAssert( not IsTriviallySerializable<T>, "Can not register trivial type" );
+        CHECK_ERR( id.IsDefined() );
+
         EXLOCK( _guard );
 
         TRY{
-            auto [iter, inserted] = _objects.emplace( id, ObjInfo{ser, deser} );        // throw
+            auto [it, inserted] = _objects.emplace( id, ObjInfo{ser, des} );            // throw
             CHECK_ERR( inserted );
 
-            CHECK_ERR( _objectTypes.emplace( TypeIdOf<T>(), iter.operator->() ).second );   // throw
+            CHECK_ERR( _objectTypes.emplace( TypeIdOf<T>(), it.operator->() ).second ); // throw
 
             #if not AE_OPTIMIZE_IDS
-                _hashToObj.emplace( uint(usize(id.GetHash())), iter.operator->() );
+                _hashToObj.emplace( id, it.operator->() );
             #endif
 
             DEBUG_ONLY( _hashCollisionCheck.Add( id ));
@@ -95,17 +116,23 @@ namespace AE::Serializing
     }
 
     template <typename T>
-    inline bool  ObjectFactory::Register (const SerializedID &id) __NE___
+    bool  ObjectFactory::Register (SerializedID::Ref id) __NE___
     {
+        StaticAssert( not IsTriviallySerializable<T>, "Can not register trivial type" );
         StaticAssert( IsBaseOf< ISerializable, T >);
         CheckNothrow( IsNothrowCtor< T >);
 
         return Register<T>( id,
-                            [] (Serializer &ser, const void* ptr) __NE___ {
+                            [] (Serializer &ser, const void* ptr) __NE___ -> bool
+                            {
                                 return Cast<ISerializable>(ptr)->Serialize( ser );
                             },
-                            [] (Deserializer &des, OUT void* ptr, bool create) __NE___ {
-                                if ( create ) PlacementNew<T>( OUT ptr );
+                            [] (Deserializer &des, INOUT void* &ptr, Ptr<IAllocator> alloc) __NE___ -> bool
+                            {
+                                Unused( alloc );    // TODO: allocator can not be used with RC<>, Unique<>
+                                if ( ptr == null )
+                                    ptr = new T{};
+
                                 return Cast<ISerializable>(ptr)->Deserialize( des );
                             }
                           );
@@ -117,16 +144,49 @@ namespace AE::Serializing
 =================================================
 */
     template <typename T>
-    inline bool  ObjectFactory::Serialize (Serializer &ser, const T& obj) C_NE___
+    bool  ObjectFactory::Serialize (Serializer &ser, const T &obj) C_NE___
     {
-        StaticAssert( not IsTriviallySerializable<T>, "Can not serialize POD type" );
+        StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
+        StaticAssert( not IsPointer<T> );
         SHAREDLOCK( _guard );
 
-        auto    iter = _objectTypes.find( TypeIdOf<T>() );
-        CHECK_ERR( iter != _objectTypes.end() );
+        auto    it = _objectTypes.find( TypeIdOf<T>() );
+        CHECK_ERR( it != _objectTypes.end() );
 
-        CHECK_ERR( ser.stream.Write( uint(usize(iter->second->first.GetHash())) ) and
-                   iter->second->second.serialize( ser, &obj ));
+        CHECK_ERR(  ser( it->second->first )                and
+                    it->second->second.serialize( ser, &obj ));
+        return true;
+    }
+
+    template <typename T>
+    bool  ObjectFactory::Serialize (Serializer &ser, const RC<T> &obj) C_NE___
+    {
+        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+
+        return _Serialize<T>( ser, obj.get() );
+    }
+
+    template <typename T>
+    bool  ObjectFactory::Serialize (Serializer &ser, const Unique<T> &obj) C_NE___
+    {
+        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+
+        return _Serialize<T>( ser, obj.get() );
+    }
+
+    template <typename T>
+    bool  ObjectFactory::_Serialize (Serializer &ser, const void* obj) C_NE___
+    {
+        if ( obj == null )
+            return ser( SerializedID{} );
+
+        SHAREDLOCK( _guard );
+
+        auto    it = _objectTypes.find( TypeIdOf<T>() );
+        CHECK_ERR( it != _objectTypes.end() );
+
+        CHECK_ERR(  ser( it->second->first )                and
+                    it->second->second.serialize( ser, obj ));
         return true;
     }
 
@@ -136,19 +196,24 @@ namespace AE::Serializing
 =================================================
 */
     template <typename T>
-    inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT T& obj) C_NE___
+    bool  ObjectFactory::Deserialize (Deserializer &des, Ptr<IAllocator>, INOUT T &obj) C_NE___
     {
-        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize POD type" );
+        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+        StaticAssert( not IsPointer<T> );
         SHAREDLOCK( _guard );
 
-        auto    iter = _objectTypes.find( TypeIdOf<T>() );
-        CHECK_ERR( iter != _objectTypes.end() );
+        auto    it = _objectTypes.find( TypeIdOf<T>() );
+        CHECK_ERR( it != _objectTypes.end() );
 
-        uint    id;
-        CHECK_ERR( deser.stream.Read( OUT id )                      and
-                   id == uint(usize(iter->second->first.GetHash())) and
-                   iter->second->second.deserialize( deser, INOUT &obj, false ));
-        return true;
+        SerializedID    id;
+        void*           ptr = &obj;
+        bool            res =
+            des( OUT id )                   and
+            id == it->second->first         and
+            it->second->second.deserialize( des, INOUT ptr, null );
+
+        ASSERT( ptr == &obj );
+        return res;
     }
 
 /*
@@ -156,28 +221,68 @@ namespace AE::Serializing
     Deserialize
 =================================================
 */
-    inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT void* obj) C_NE___
+    inline bool  ObjectFactory::_Deserialize (Deserializer &des, Ptr<IAllocator> alloc, INOUT void* &ptr) C_NE___
     {
         SHAREDLOCK( _guard );
 
-        uint    id = 0;
-        CHECK_ERR( deser.stream.Read( OUT id ));
+        SerializedID    id;
+        CHECK_ERR( des( OUT id ));
+
+        if ( id == Default )
+        {
+            ptr = null;
+            return true;
+        }
 
         ObjInfo const*  info = null;
 
         #if AE_OPTIMIZE_IDS
-            auto    iter = _objects.find( SerializedID{ HashVal32{ id }});
-            CHECK_ERR( iter != _objects.end() );
-            info = &iter->second;
+            auto    it = _objects.find( id );
+            CHECK_ERR( it != _objects.end() );
+            info = &it->second;
         #else
-            auto    iter = _hashToObj.find( id );
-            CHECK_ERR( iter != _hashToObj.end() );
-            info = &iter->second->second;
+            auto    it = _hashToObj.find( id );
+            CHECK_ERR( it != _hashToObj.end() );
+            info = &it->second->second;
         #endif
 
-        CHECK_ERR( info->deserialize( deser, INOUT obj, true ));
-        return true;
+        return info->deserialize( des, INOUT ptr, alloc );
     }
+
+/*
+=================================================
+    Deserialize
+=================================================
+*/
+    template <typename T>
+    bool  ObjectFactory::Deserialize (Deserializer &des, Ptr<IAllocator> alloc, INOUT RC<T> &obj) C_NE___
+    {
+        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+
+        void*   ptr = null;
+        bool    res = _Deserialize( des, alloc, INOUT ptr );
+
+        obj.reset( Cast<T>( ptr ));
+        return res;
+    }
+
+/*
+=================================================
+    Deserialize
+=================================================
+*/
+    template <typename T>
+    bool  ObjectFactory::Deserialize (Deserializer &des, Ptr<IAllocator> alloc, INOUT Unique<T> &obj) C_NE___
+    {
+        StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+
+        void*   ptr = null;
+        bool    res = _Deserialize( des, alloc, INOUT ptr );
+
+        obj.reset( Cast<T>( ptr ));
+        return res;
+    }
+
 
 } // AE::Serializing
 

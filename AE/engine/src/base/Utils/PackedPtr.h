@@ -13,7 +13,7 @@
 #include "base/Common.h"
 #include "base/CompileTime/Math.h"
 #include "base/Math/BitMath.h"
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 #include "base/Math/POTValue.h"
 
 namespace AE::Base

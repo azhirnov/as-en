@@ -40,33 +40,20 @@ void ASmain (WinAPI_ActionBindings& bindings)
         bind.Add( WinAPI_Input::MouseWheel,
                   ActionInfo( "MouseWheel", EValueType::Float2, EGestureType::Move ));
 
-
-        //bind.Add( WinAPI_Input::TouchPos,
-        //        ActionInfo( "Touch", EValueType::Float2, EGestureType::Move ));
-
         bind.Add( WinAPI_Input::TouchPos,
-                  ActionInfo( "Test.Move", EValueType::Float2, EGestureType::Move ));
-        bind.Add( WinAPI_Input::TouchPos,
-                  ActionInfo( "Test.Down", EValueType::Float2, EGestureType::Down ));
+                  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
         bind.Add( WinAPI_Input::TouchPos,
                   ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
-        bind.Add( WinAPI_Input::TouchPos,
-                  ActionInfo( "Test.DoubleClick", EValueType::Float2, EGestureType::DoubleClick ));
-        bind.Add( WinAPI_Input::TouchPos,
-                  ActionInfo( "Test.LongPress", EValueType::Float2, EGestureType::LongPress_Move ));
-        bind.Add( WinAPI_Input::MultiTouch,
-                  ActionInfo( "Test.ScaleRotate2D", EValueType::Float4, EGestureType::ScaleRotate2D ));
+    }
 
-        bind.Add( WinAPI_Input::Q,
-                  ActionInfo( "Test.Hold", EGestureType::Hold ));
-        bind.Add( WinAPI_Input::W,
-                  ActionInfo( "Test.Down", EGestureType::Down ));
-        bind.Add( WinAPI_Input::E,
-                  ActionInfo( "Test.Click", EGestureType::Click ));
-        bind.Add( WinAPI_Input::R,
-                  ActionInfo( "Test.DoubleClick", EGestureType::DoubleClick ));
-        bind.Add( WinAPI_Input::T,
-                  ActionInfo( "Test.LongPress", EGestureType::LongPress ));
+    // HwCamera bindings
+    {
+        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "HwCamera" );
+
+        bind.Add( WinAPI_Input::TouchPos,
+                  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
+        bind.Add( WinAPI_Input::TouchPos,
+                  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
     }
 
     // Camera3D bindings

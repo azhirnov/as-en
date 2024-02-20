@@ -3,7 +3,6 @@
 #pragma once
 
 #include "AssetPacker.pch.h"
-#include "geometry_tools/SphericalCube/SphericalCubeMath.h"
 
 namespace AE::AssetPacker
 {

@@ -39,8 +39,7 @@
                 RC<Shader>  vs = Shader();
                 vs.LoadSelf();
                 ppln.SetVertexShader( vs );
-            }
-            {
+            }{
                 RC<Shader>  fs = Shader();
                 fs.LoadSelf();
                 ppln.SetFragmentShader( fs );
@@ -87,10 +86,10 @@
     {
         const float3    light_dir   = float3( 0.f, 0.f, 1.f );
         const float3    norm        = gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
-        const float3    color       = gl.texture.Sample( un_AlbedoMap, In.texcoord ).xyz;
+        const float3    color       = gl.texture.Sample( un_HeightMap, In.texcoord ).xxx;
         const float     light       = Dot( norm, light_dir );
 
-        out_Color = float4( color * light, 1.0 );
+        out_Color = float4( light );
     }
 
 #endif

@@ -142,6 +142,7 @@ namespace AE::RG::_hidden_
             void        OnBeginFrame (FrameUID prevFrameId)                     __NE___;
             void        OnEndFrame ()                                           __NE___;
 
+        ND_ FrameUID    GetFrameId ()                                           C_NE___ { return _rts.GetFrameId(); }
         ND_ FrameUID    GetPrevFrameId ()                                       C_NE___ { return _prevFrameId; }
         ND_ FrameUID    GetNextFrameId ()                                       C_NE___ { return _prevFrameId.Next(); }
 
@@ -154,7 +155,6 @@ namespace AE::RG::_hidden_
 
 
     // graph //
-
         ND_ CmdBatchBuilder  CmdBatch (EQueueType queue, DebugLabel dbg)        __NE___ { return CmdBatchBuilder{ *this, _CmdBatch( queue, dbg )}; }
 
 

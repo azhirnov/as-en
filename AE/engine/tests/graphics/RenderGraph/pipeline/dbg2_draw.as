@@ -2,7 +2,7 @@
 
 void ASmain ()
 {
-    if ( ! IsVulkan() )
+    if ( ! IsVulkan() || ! IsShaderTraceSupported() )
         return;
 
     {

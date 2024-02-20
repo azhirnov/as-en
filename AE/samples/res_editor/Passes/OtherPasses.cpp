@@ -79,7 +79,7 @@ namespace AE::ResEditor
         {
             ReadbackImageDesc       readback;
             readback.heapType       = EStagingHeapType::Static;
-            readback.imageSize      = uint3{1};
+            readback.imageDim       = uint3{1};
             readback.imageOffset    = uint3{ UIInteraction::Instance().selectedPixel.ConstPtr()->pendingPos, 0 };
             readback.imageOffset    = Min( readback.imageOffset, desc.dimension-1u );
 
@@ -111,7 +111,7 @@ namespace AE::ResEditor
             {
                 ReadbackImageDesc   readback;
                 readback.heapType   = EStagingHeapType::Dynamic;
-                readback.imageSize  = desc.dimension;
+                readback.imageDim   = desc.dimension;
 
                 auto    task = ctx.ReadbackImage( src->GetImageId(), readback )
                                 .Then(  [self, capture, encoder = self->_videoEncoder] (const ImageMemView &inView)
@@ -233,8 +233,7 @@ namespace AE::ResEditor
         }
 
         // TODO: optimize - skip if dbg view disabled
-        BEGIN_ENUM_CHECKS();
-        switch ( _flags )
+        switch_enum( _flags )
         {
             case EFlags::Copy :
                 return _CopyImage( pd );
@@ -267,7 +266,7 @@ namespace AE::ResEditor
             default :
                 RETURN_ERR( "unsupported dbg view mode" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -321,8 +320,7 @@ namespace AE::ResEditor
                     view_desc   = Default;
         bool        make_copy   = true;
 
-        BEGIN_ENUM_CHECKS();
-        switch ( flags )
+        switch_enum( flags )
         {
             case EFlags::Copy :
                 img_desc.usage = EImageUsage::Transfer | EImageUsage::Sampled;
@@ -355,7 +353,7 @@ namespace AE::ResEditor
             case EFlags::_Count :
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         if ( make_copy )
         {
@@ -384,9 +382,7 @@ namespace AE::ResEditor
         }
         CHECK_THROW( _copy and _view );
 
-
-        BEGIN_ENUM_CHECKS();
-        switch ( _flags )
+        switch_enum( _flags )
         {
             case EFlags::Copy :
                 CHECK_THROW( _src != _copy );
@@ -412,7 +408,7 @@ namespace AE::ResEditor
             default :
                 CHECK_THROW_MSG( false, "unsupported dbg view mode" );
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
@@ -547,7 +543,7 @@ namespace AE::ResEditor
 
             StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
-            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            RenderPassDesc  rp_desc{ *_rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId(), RGBA32f{0.f} );
             rp_desc.DefaultViewport();
 
@@ -633,7 +629,7 @@ namespace AE::ResEditor
 
             StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
-            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            RenderPassDesc  rp_desc{ *_rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
             rp_desc.DefaultViewport();
 
@@ -717,7 +713,7 @@ namespace AE::ResEditor
 
             StaticAssert( RTech.Graphics.attachmentsCount == 2 );
 
-            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            RenderPassDesc  rp_desc{ *_rtech, RTech.Graphics, dst_dim };
             rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
             rp_desc.AddTarget( RTech.Graphics.att_Stencil, srcImage.GetViewId() );
             rp_desc.DefaultViewport();

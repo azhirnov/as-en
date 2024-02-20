@@ -70,7 +70,7 @@ namespace AE::Graphics
         {
             // additional params are required to copy between staging buffer and image
             uint3           imageOffset;
-            uint3           imageSize;
+            uint3           imageDim;
           #if defined(AE_ENABLE_VULKAN)
             uint            bufferImageHeight   = 0;    // in pixels, for BufferImageCopy::bufferImageHeight
           #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
@@ -85,7 +85,9 @@ namespace AE::Graphics
         struct StagingImageResultRanges
         {
             ImageRanges_t   buffers;
-            uint            bufferRowLength     = 0;    // in pixels, for BufferImageCopy::bufferRowLength
+            uint            bufferRowLength     = 0;        // in pixels, for BufferImageCopy::bufferRowLength
+            uint            planeScaleY         = 0;
+            EPixelFormat    format              = Default;  // used for multiplanar image, otherwise equal to image desc
             Bytes           dataRowPitch;
             Bytes           dataSlicePitch;
         };
@@ -100,9 +102,9 @@ namespace AE::Graphics
         struct alignas(AE_CACHE_LINE) StaticBuffer
         {
             AtomicByte<uint>    size            {0_b};
-            Byte32u             capacity;
+            Bytes32u            capacity;
           #ifdef AE_ENABLE_VULKAN
-            Byte32u             memOffset;
+            Bytes32u            memOffset;
           #endif
             Strong<BufferID>    buffer;
             NativeBuffer_t      bufferHandle    = Default;
@@ -243,7 +245,7 @@ namespace AE::Graphics
         Dynamic             _dynamic;
         StaticVStream       _vstream;
 
-        Byte16u             _memSizeAlign   {1};
+        Bytes16u            _memSizeAlign   {1};
         MappedMemRanges     _memRanges;
 
         ResourceManager_t&  _resMngr;
@@ -267,7 +269,10 @@ namespace AE::Graphics
             void  GetBufferRanges (OUT BufferRanges_t &result, Bytes reqSize, Bytes blockSize, Bytes memOffsetAlign,
                                    FrameUID frameId, EStagingHeapType heap, EQueueType queue, Bool upload)                      __NE___;
 
-            void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const ImageDesc &imgDesc,
+            void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const ImageDesc &,
+                                  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)               __NE___;
+
+            void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const VideoImageDesc &,
                                   const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)               __NE___;
 
             bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result)                                         __NE___;
@@ -287,7 +292,7 @@ namespace AE::Graphics
         ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) const;
 
         template <typename RangeType, typename BufferType>
-        ND_ static bool  _AllocStatic (Byte32u reqSize, Byte32u blockSize, Byte32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
+        ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
 
         template <bool SingleAlloc, typename RangeType>
         ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload, INOUT RangeType& buffers, DynamicBuffers &db) const;
@@ -295,12 +300,12 @@ namespace AE::Graphics
         template <typename RangeType>
         ND_ bool  _AddToCurrent (INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, Strong<BufferID> id, INOUT RangeType& buffers, DynamicBuffers &db) const;
 
-        ND_ static bool  _AllocStaticImage (Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockSize,
-                                            const uint3 &imageOffset, const uint3 &imageSize,
+        ND_ static bool  _AllocStaticImage (Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockDim,
+                                            const uint3 &imageOffset, const uint3 &imageDim,
                                             INOUT StagingImageResultRanges &result, StaticBuffer& sb);
 
-        void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockSize,
-                                  const uint3 &imageOffset, const uint3 &imageDataSize, bool upload,
+        void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockDim,
+                                  const uint3 &imageOffset, const uint3 &imageDataDim, bool upload,
                                   INOUT StagingImageResultRanges &result, DynamicBuffers& db) const;
     };
 

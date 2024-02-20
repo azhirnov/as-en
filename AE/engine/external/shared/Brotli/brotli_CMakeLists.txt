@@ -5,6 +5,9 @@ project( "Brotli-main" LANGUAGES CXX )
 set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
 include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
+set( BUILD_SHARED_LIBS      OFF  CACHE INTERNAL "" FORCE )
+set( BROTLI_BUILD_TOOLS     OFF  CACHE INTERNAL "" FORCE )
+
 include( "origin_CMakeLists.txt" )
 
 install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" DESTINATION "." )

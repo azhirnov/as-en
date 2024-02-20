@@ -77,9 +77,9 @@ namespace AE::Math
             ND_ Bool4  operator ~ ()                    C_NE___ { return Bool4{ vmvn_u16( _value )}; }
             ND_ bool   operator [] (usize i)            C_NE___ { ASSERT( i < 4 );  return _value[i] == UMax; }
 
-            ND_ bool  All ()                            C_NE___ { return uint16_t(_value[0] & _value[1] & _value[2] & _value[3]) == UMax; }
-            ND_ bool  Any ()                            C_NE___ { return uint16_t(_value[0] | _value[1] | _value[2] | _value[3]) == UMax; }
-            ND_ bool  None ()                           C_NE___ { return uint16_t(_value[0] | _value[1] | _value[2] | _value[3]) == 0; }
+            ND_ bool  All ()                            C_NE___ { return (_value[0] & _value[1] & _value[2] & _value[3]) == 0xFFFF; }
+            ND_ bool  Any ()                            C_NE___ { return (_value[0] | _value[1] | _value[2] | _value[3]) == 0xFFFF; }
+            ND_ bool  None ()                           C_NE___ { return (_value[0] | _value[1] | _value[2] | _value[3]) == 0; }
         };
 
 
@@ -736,9 +736,9 @@ namespace AE::Math
             ND_ Bool8  operator ~ ()                    C_NE___ { return Bool8{ vmvnq_u16( _value )}; }
             ND_ bool   operator [] (usize i)            C_NE___ { ASSERT( i < 8 );  return _value[i] == UMax; }
 
-            ND_ bool  All ()                            C_NE___ { return uint16_t(_value[0] & _value[1] & _value[2] & _value[3] & _value[4] & _value[5] & _value[6] & _value[7]) == UMax; }
-            ND_ bool  Any ()                            C_NE___ { return uint16_t(_value[0] | _value[1] | _value[2] | _value[3] | _value[4] | _value[5] | _value[6] | _value[7]) == UMax; }
-            ND_ bool  None ()                           C_NE___ { return uint16_t(_value[0] | _value[1] | _value[2] | _value[3] | _value[4] | _value[5] | _value[6] | _value[7]) == 0; }
+            ND_ bool  All ()                            C_NE___ { return (_value[0] & _value[1] & _value[2] & _value[3] & _value[4] & _value[5] & _value[6] & _value[7]) == 0xFFFF; }
+            ND_ bool  Any ()                            C_NE___ { return (_value[0] | _value[1] | _value[2] | _value[3] | _value[4] | _value[5] | _value[6] | _value[7]) == 0xFFFF; }
+            ND_ bool  None ()                           C_NE___ { return (_value[0] | _value[1] | _value[2] | _value[3] | _value[4] | _value[5] | _value[6] | _value[7]) == 0; }
         };
 
 

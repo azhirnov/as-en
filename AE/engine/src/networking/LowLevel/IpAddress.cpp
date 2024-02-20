@@ -214,5 +214,20 @@ namespace
         return IpAddress{ NetworkToHost(addr.sin_addr.s_addr), NetworkToHost(addr.sin_port) };
     }
 
+/*
+=================================================
+    CalcHash / CalcHashOfAddress
+=================================================
+*/
+    HashVal  IpAddress::CalcHash () C_NE___
+    {
+        return HashOf( _address ) + HashVal{_port};
+    }
+
+    HashVal  IpAddress::CalcHashOfAddress () C_NE___
+    {
+        return HashOf( _address );
+    }
+
 
 } // AE::Networking

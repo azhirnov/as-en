@@ -66,7 +66,7 @@ namespace AE::ResEditor
 
         template <typename DSL, typename AS, typename AT>
         void  ArgsToDescSet (EShaderStages stages, DSL &dsLayout, AS arraySize, AT accessType)              C_Th___;
-        void  InitResources (OUT ResourceArray &resources)                                                  C_Th___;
+        void  InitResources (OUT ResourceArray &resources, PipelinePackID packId)                           C_Th___;
         void  ValidateArgs ()                                                                               C_Th___;
         void  AddLayoutReflection ()                                                                        C_Th___;
 
@@ -110,7 +110,8 @@ namespace AE::ResEditor
                         dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, arg.samplerName );
                 },
                 [&] (ScriptVideoImagePtr video) {
-                    dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, PipelineCompiler::EImageType(video->ImageType()), arg.state, arg.samplerName );
+                    String  sampler = (video->HasYcbcrSampler() ? video->GetSamplerName() : arg.samplerName);
+                    dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, PipelineCompiler::EImageType(video->ImageType()), arg.state, sampler );
                 },
                 [&] (ScriptRTScenePtr) {
                     dsLayout->AddRayTracingScene( stages, arg.name, array_size );

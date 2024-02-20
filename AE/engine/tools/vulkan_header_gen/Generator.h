@@ -6,7 +6,6 @@
 #include "base/Containers/FixedArray.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
-#include "base/DataSource/Stream.h"
 #include "base/DataSource/FileStream.h"
 #include "base/Utils/FileSystem.h"
 #include "base/Utils/Version.h"
@@ -14,6 +13,7 @@
 #define VK_NO_PROTOTYPES
 #define VK_ENABLE_BETA_EXTENSIONS
 #include "vulkan/vulkan.h"
+#include "vulkan/vulkan_android.h"
 
 namespace AE::Vulkan
 {

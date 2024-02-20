@@ -1,0 +1,18 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "lz4-main" LANGUAGES CXX )
+
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
+set( LZ4_POSITION_INDEPENDENT_LIB   ON  CACHE INTERNAL "" FORCE )
+set( LZ4_BUILD_CLI                  OFF CACHE INTERNAL "" FORCE )
+set( LZ4_BUILD_LEGACY_LZ4C          OFF CACHE INTERNAL "" FORCE )
+set( BUILD_SHARED_LIBS              OFF CACHE INTERNAL "" FORCE )
+
+add_subdirectory( "build/cmake" )
+
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/lz4.h"   DESTINATION "include" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/lz4hc.h" DESTINATION "include" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/LICENSE" DESTINATION "." )
+install( TARGETS "lz4_static" ARCHIVE DESTINATION "lib" )

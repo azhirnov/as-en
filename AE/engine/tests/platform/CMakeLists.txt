@@ -14,9 +14,5 @@ if (TARGET "Platform")
     target_link_libraries( "Tests.Platform" PUBLIC "Platform" )
     target_compile_definitions( "Tests.Platform" PUBLIC AE_TEST_PLATFORM )
 
-    if ( (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin") OR (${CMAKE_SYSTEM_NAME} STREQUAL "iOS") )
-        set_target_properties( "Tests.Platform" PROPERTIES LINK_FLAGS "-u main" )
-    endif()
-
     add_test( NAME "Tests.Platform" COMMAND "Tests.Platform" )
 endif()

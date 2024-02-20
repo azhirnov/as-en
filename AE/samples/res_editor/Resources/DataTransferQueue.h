@@ -52,6 +52,7 @@ namespace AE::ResEditor
         void  EnqueueForUpload (RC<IResource> res);
         void  EnqueueForReadback (RC<IResource> res);
         void  EnqueueImageTransition (ImageID id);
+        void  EnqueueImageTransition (VideoImageID id);
 
         void  CancelAll ()                                                              __NE___;
 

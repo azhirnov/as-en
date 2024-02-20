@@ -13,7 +13,7 @@ namespace AE::Base
     {
     // types
     public:
-        enum class EResult : unsigned short
+        enum class EResult : unsigned int
         {
             Continue,
             Break,
@@ -21,7 +21,7 @@ namespace AE::Base
             Unknown = Continue,
         };
 
-        enum class ELevel : unsigned short
+        enum class ELevel : unsigned char
         {
             Debug,
             Info,
@@ -32,7 +32,7 @@ namespace AE::Base
             _Count
         };
 
-        enum class EScope : unsigned short
+        enum class EScope : unsigned char
         {
             Unknown,
             GraphicsDriver,
@@ -134,14 +134,13 @@ namespace AE
 #ifdef AE_ENABLE_LOGS
 # define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
     TRY{ \
-        BEGIN_ENUM_CHECKS() \
-        {switch ( AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
+        {switch_enum( AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
         { \
             case_likely AE::Base::StaticLogger::EResult::Continue :     break; \
             case        AE::Base::StaticLogger::EResult::Break :        AE_PRIVATE_BREAK_POINT();   break; \
             case        AE::Base::StaticLogger::EResult::Abort :        AE_PRIVATE_EXIT();          break; \
         }} \
-        END_ENUM_CHECKS() \
+        switch_end \
     }CATCH_ALL();   // to catch exceptions in string formatting
 
 #else

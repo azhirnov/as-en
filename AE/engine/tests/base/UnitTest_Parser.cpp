@@ -188,7 +188,7 @@ namespace
 
     static void  Parser_Preprocessor_CPP ()
     {
-        const char  source[] = 
+        const char  source[] =
 R"(aaaj sdi kas jnd
 trurt qwa   fdgh
 #ifdef PART0

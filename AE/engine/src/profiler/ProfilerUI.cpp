@@ -23,23 +23,29 @@ namespace AE::Profiler
     Initialize
 =================================================
 */
-    bool  ProfilerUI::Initialize ()
+    bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase> client)
     {
         const auto  start_time = ProfilerUtils::TimePoint_t::clock::now();
+
+        if ( client )
+        {
+            _msgProducer = MakeRC<MsgProducer>();
+            CHECK( client->Add( _msgProducer ));
+        }
 
         _task       = MakeRC<TaskProfiler>( start_time );
         _graphics   = MakeRC<GraphicsProfiler>( start_time );
         _memory     = MakeRC<MemoryProfiler>( start_time );
 
         _hwpcProf.reset( new HwpcProfiler{ start_time });
-        if ( not _hwpcProf->Initialize() )
+        if ( not _hwpcProf->Initialize( client, _msgProducer ))
             _hwpcProf.reset( null );
 
         Scheduler().SetProfiler( _task );
         MemoryManager().SetProfiler( _memory );
         GraphicsScheduler().SetProfiler( _graphics );
 
-        _lastUpdate = TimePoint_t::clock::now();
+        _timer.Start( start_time, secondsf{1.f} );
 
         return true;
     }
@@ -64,6 +70,16 @@ namespace AE::Profiler
 
 /*
 =================================================
+    IsInitialized
+=================================================
+*/
+    bool  ProfilerUI::IsInitialized () const
+    {
+        return _task or _graphics or _memory or _hwpcProf;
+    }
+
+/*
+=================================================
     Enable
 =================================================
 */
@@ -79,13 +95,8 @@ namespace AE::Profiler
 */
     void  ProfilerUI::_Update ()
     {
-        const auto  cur_time    = TimePoint_t::clock::now();
-        const auto  dt          = secondsf{cur_time - _lastUpdate};
-
-        if_unlikely( dt >= _updateRate )
+        if_unlikely( auto dt = _timer.Tick() )
         {
-            _lastUpdate = cur_time;
-
             if ( _task )        _task    ->Update( dt );
             if ( _graphics )    _graphics->Update( dt );
             if ( _memory )      _memory  ->Update( dt );
@@ -134,7 +145,7 @@ namespace AE::Profiler
 #else
 
     ProfilerUI::~ProfilerUI ()                  {}
-    bool  ProfilerUI::Initialize ()             { return true; }
+    bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase>) { return true; }
     void  ProfilerUI::Deinitialize ()           {}
     void  ProfilerUI::Enable (bool)             {}
     void  ProfilerUI::DrawImGUI ()              {}

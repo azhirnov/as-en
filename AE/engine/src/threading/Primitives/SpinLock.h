@@ -263,7 +263,7 @@ namespace AE::Threading
         ASSERT( numAttempts > 0 );
 
         int exp = 0;
-        for (uint i = 0; (i < numAttempts) & (exp < minReaders); ++i)
+        for (uint i = 0; (i < numAttempts) and (exp < minReaders); ++i)
         {
             if ( _flag.CAS( INOUT exp, -1, _Exlock_AcquireOrder, EMemoryOrder::Relaxed ))
                 return true;
@@ -328,7 +328,7 @@ namespace AE::Threading
         ASSERT( numAttempts > 0 );
 
         int exp = 0;
-        for (uint i = 0; (i < numAttempts) & (exp > minWriters); ++i)
+        for (uint i = 0; (i < numAttempts) and (exp > minWriters); ++i)
         {
             if ( _flag.CAS( INOUT exp, exp + 1, _Shlock_AcquireOrder, EMemoryOrder::Relaxed ))
                 return true;
@@ -390,7 +390,7 @@ namespace AE::Threading
         ASSERT( numAttempts > 0 );
 
         int exp = 1;
-        for (uint i = 0; (i < numAttempts) & (exp < minReaders); ++i)
+        for (uint i = 0; (i < numAttempts) and (exp < minReaders); ++i)
         {
             if ( _flag.CAS( INOUT exp, -1 ))
                 return true;
@@ -439,7 +439,7 @@ namespace AE::Threading
         ASSERT( numAttempts > 0 );
 
         int exp = -1;
-        for (uint i = 0; (i < numAttempts) & (exp < minReaders); ++i)
+        for (uint i = 0; (i < numAttempts) and (exp < minReaders); ++i)
         {
             if ( _flag.CAS( INOUT exp, 1 ))
                 return true;

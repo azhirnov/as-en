@@ -49,6 +49,7 @@ namespace
             Execute( ctx );
 
             const auto  stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            CHECK( stat.dynamicWrite > 0 );
             CHECK( stat.dynamicWrite <= upload_limit );
         }
     };
@@ -159,8 +160,8 @@ namespace
 
         t.imageData = ImageMemView{ img_data, uint3{}, uint3{t.dimension, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
-        UploadImageDesc upload_desc;
-        upload_desc.imageSize   = uint3{t.dimension, 1u};
+        UploadImageDesc         upload_desc;
+        upload_desc.imageDim    = uint3{t.dimension, 1u};
         upload_desc.heapType    = EStagingHeapType::Dynamic;
         t.stream = ImageStream{ t.image, upload_desc };
 

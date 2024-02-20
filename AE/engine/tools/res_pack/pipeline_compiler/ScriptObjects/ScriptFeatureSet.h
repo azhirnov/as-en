@@ -49,6 +49,8 @@ namespace AE::PipelineCompiler
         ND_ auto        Hash ()                             const   { return _hash; }
 
         static void  Minimize (INOUT Array<ScriptFeatureSetPtr> &feats);
+
+        ND_ static String  GetNames (ArrayView<ScriptFeatureSetPtr>);
     };
 
 } // AE::PipelineCompiler
@@ -75,10 +77,10 @@ namespace AE::Math
 
 namespace AE::PipelineCompiler
 {
-    void  TestFeature_PixelFormat (ArrayView<ScriptFeatureSetPtr> features, EnumBitSet<EPixelFormat> FeatureSet::*member,
+    void  TestFeature_PixelFormat (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EPixelFormat> FeatureSet::*member,
                                    EPixelFormat fmt, StringView memberName, StringView message = Default) __Th___;
 
-    void  TestFeature_VertexType (ArrayView<ScriptFeatureSetPtr> features, EnumBitSet<EVertexType> FeatureSet::*member,
+    void  TestFeature_VertexType (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EVertexType> FeatureSet::*member,
                                   EVertexType fmt, StringView memberName, StringView message = Default) __Th___;
 
 /*
@@ -86,7 +88,7 @@ namespace AE::PipelineCompiler
     TEST_FEATURE
 =================================================
 */
-#   define TEST_FEATURE( _featArr_, _feature_, ... )                                                                    \
+#   define TEST_FEATURE( _featArr_, _feature_, /*msg*/... )                                                             \
     {                                                                                                                   \
         CHECK( not _featArr_.empty() );                                                                                 \
                                                                                                                         \
@@ -98,7 +100,8 @@ namespace AE::PipelineCompiler
                 "Feature '" # _feature_ "' required to be unsupported in FS '"s << feat->Name() << "'" __VA_ARGS__ );   \
         }                                                                                                               \
         CHECK_THROW_MSG( has_feat,                                                                                      \
-            "Feature '" # _feature_ "' is not marked as RequireTrue in at least one feature set" __VA_ARGS__ );         \
+            "Feature '" # _feature_ "' is not marked as RequireTrue in at least one feature set" __VA_ARGS__ ""s <<     \
+            ScriptFeatureSet::GetNames( _featArr_ ));                                                                   \
     }
 
 /*
@@ -121,7 +124,8 @@ namespace AE::PipelineCompiler
         {
             CHECK_THROW_MSG( value <= max_value,
                 "Specified '"s << valueName << "' (" << ToString(value) << ") must be <= than '" << memberName << "' in feature sets, " <<
-                "maximum allowed value (" << ToString(max_value) << ")" );
+                "maximum allowed value (" << ToString(max_value) << ")" <<
+                ScriptFeatureSet::GetNames( features ));
         }
     }
 

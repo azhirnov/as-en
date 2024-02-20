@@ -9,6 +9,7 @@ set( AE_ENABLE_ABSEIL           ON  CACHE BOOL "use Absel" )
 set( AE_ENABLE_ANGELSCRIPT      ON  CACHE BOOL "use AngelScript" )
 set( AE_ENABLE_ASSIMP           ON  CACHE BOOL "use Assimp" )
 
+set( AE_ENABLE_BASS             OFF CACHE BOOL "use BASS" )
 set( AE_ENABLE_BROTLI           ON  CACHE BOOL "use brotli" )
 
 set( AE_ENABLE_CDT              ON  CACHE BOOL "use CDT" )
@@ -23,8 +24,11 @@ set( AE_ENABLE_IMGUI            ON  CACHE BOOL "use ImGUI" )
 
 set( AE_ENABLE_KTX              ON  CACHE BOOL "use KTX" )
 
+set( AE_ENABLE_LZ4              ON  CACHE BOOL "use lz4" )
+
 set( AE_ENABLE_MSDFGEN          ON  CACHE BOOL "use msdfgen" )
 set( AE_ENABLE_METAL            OFF CACHE BOOL "enable Metal API" )
+set( AE_ENABLE_MESH_OPTIMIZER   ON  CACHE BOOL "use MeshOptimizer" )
 
 set( AE_ENABLE_REMOTE_GRAPHICS  OFF CACHE BOOL "enable Remote Graphics" )
 set( AE_ENABLE_RGRAPHICS_SERVER ON  CACHE BOOL "enable Remote Graphics server" )
@@ -41,6 +45,8 @@ set( AE_ENABLE_UTF8PROC         ON  CACHE BOOL "use Utf8Proc" )
 
 set( AE_ENABLE_XXHASH           ON  CACHE BOOL "use xxHash" )
 
+set( AE_ENABLE_ZSTD             ON  CACHE BOOL "use zstd" )
+
 if (${AE_ENABLE_REMOTE_GRAPHICS} AND ${AE_ENABLE_RGRAPHICS_SERVER})
     message( FATAL_ERROR "AE_ENABLE_REMOTE_GRAPHICS and AE_ENABLE_RGRAPHICS_SERVER are not compatible" )
 endif()
@@ -48,6 +54,7 @@ endif()
 
 
 if (${AE_CI_BUILD_NO_GRAPHICS})
+    set( AE_ENABLE_BASS         OFF CACHE INTERNAL "" FORCE )
     set( AE_ENABLE_GLSLANG      OFF CACHE INTERNAL "" FORCE )
     set( AE_ENABLE_FREETYPE     OFF CACHE INTERNAL "" FORCE )
     set( AE_ENABLE_MSDFGEN      OFF CACHE INTERNAL "" FORCE )
@@ -59,6 +66,17 @@ endif()
 if (NOT DEFINED AE_DST_PATH)
     message( FATAL_ERROR "AE_DST_PATH is not defined" )
 endif()
+if (NOT EXISTS "${AE_DST_PATH}")
+    message( FATAL_ERROR "AE_DST_PATH: '${AE_DST_PATH}' is not exists" )
+endif()
+
+if (NOT DEFINED AE_DST_SHARED_PATH)
+    message( FATAL_ERROR "AE_DST_SHARED_PATH is not defined" )
+endif()
+if (NOT EXISTS "${AE_DST_SHARED_PATH}")
+    message( FATAL_ERROR "AE_DST_SHARED_PATH: '${AE_DST_SHARED_PATH}' is not exists" )
+endif()
+
 
 if (${AE_ENABLE_ABSEIL})
     add_subdirectory( "Abseil" )
@@ -70,6 +88,10 @@ endif()
 
 if (${AE_ENABLE_ASSIMP})
     add_subdirectory( "Assimp" )
+endif()
+
+if (${AE_ENABLE_BASS})
+    add_subdirectory( "BASS" )
 endif()
 
 if (${AE_ENABLE_BROTLI})
@@ -106,8 +128,16 @@ if (${AE_ENABLE_KTX})
     add_subdirectory( "KTX-Software" )
 endif()
 
+if (${AE_ENABLE_LZ4})
+    add_subdirectory( "lz4" )
+endif()
+
 if (${AE_ENABLE_MSDFGEN})
     add_subdirectory( "msdfgen" )
+endif()
+
+if (${AE_ENABLE_MESH_OPTIMIZER})
+    add_subdirectory( "MeshOptimizer" )
 endif()
 
 if (${AE_ENABLE_SPIRV_CROSS})
@@ -136,4 +166,8 @@ endif()
 
 if (${AE_ENABLE_XXHASH})
     add_subdirectory( "xxHash" )
+endif()
+
+if (${AE_ENABLE_ZSTD})
+    add_subdirectory( "zstd" )
 endif()

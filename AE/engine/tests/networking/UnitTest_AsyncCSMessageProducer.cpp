@@ -6,10 +6,10 @@
 namespace
 {
     class MsgProducer final :
-        public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, AE_CACHE_LINE, 16 >>
+        public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, usize{8_b}, 16 >>
     {
     public:
-        EnumBitSet<EChannel>  GetChannels ()    C_NE_OV { return {EChannel::Reliable}; }
+        EnumSet<EChannel>  GetChannels ()   C_NE_OV { return {EChannel::Reliable}; }
     };
 
 

@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics_hl/Resources/FormattedText.h"
 #include "UnitTest_Common.h"
 
 using namespace AE::Graphics;

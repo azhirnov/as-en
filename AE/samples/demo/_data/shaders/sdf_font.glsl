@@ -3,17 +3,17 @@
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
-
 #ifdef SH_VERT
+
     void Main ()
     {
         gl.Position     = float4( float2x2(drawUB.rotation0, drawUB.rotation1) * in_Position, 0.0, 1.0 );
         Out.uv_scale    = float3( in_UV_Scale.xy, in_UV_Scale.z * 4.0 );
         Out.color       = in_Color;
     }
+
 #endif
 //-----------------------------------------------------------------------------
-
 #ifdef SH_FRAG
     #include "SDF.glsl"
 
@@ -37,4 +37,6 @@
 
         out_Color = Lerp( drawUB.bgColor, In.color, sd );
     }
+
 #endif
+//-----------------------------------------------------------------------------

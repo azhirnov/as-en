@@ -398,7 +398,7 @@ namespace AE::Threading
     {
         DRC_SHAREDLOCK( _drCheck );
 
-        if_likely( (index < capacity()) & (_highLvl != null) )
+        if_likely( (index < capacity()) and (_highLvl != null) )
         {
             HighLevelChunk&     high_chunk  = (*_highLvl)[ index / ChunkSize ];
             LowLvlChunkArray_t* low_chunks  = high_chunk.chunksPtr.load();

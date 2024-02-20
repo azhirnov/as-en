@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
+#include "base/DataSource/DataStream.h"
 #include "base/Algorithms/ArrayUtils.h"
 
 namespace AE::Base
@@ -29,6 +29,9 @@ namespace AE::Base
 
         template <typename T>
         explicit MemRefRStream (ArrayView<T> data)                              __NE___ : MemRefRStream{data.data(), ArraySizeOf(data)} {}
+
+        template <typename T>
+        explicit MemRefRStream (MutableArrayView<T> data)                       __NE___ : MemRefRStream{data.data(), ArraySizeOf(data)} {}
 
 
         // RStream //
@@ -84,6 +87,8 @@ namespace AE::Base
 
         ND_ bool  LoadAll (RStream &srcStream)                                  __NE___ { return Load( srcStream, 0_b, UMax ); }
         ND_ bool  LoadAll (RDataSource &srcDS)                                  __NE___ { return Load( srcDS, 0_b, UMax ); }
+
+        ND_ Array<ubyte>  ReleaseData ()                                        __NE___;
     };
 
 
@@ -126,9 +131,10 @@ namespace AE::Base
             void    Clear ()                                                    __NE___;
         ND_ bool    Store (WStream &dstFile)                                    C_NE___;
 
-        ND_ ArrayView<ubyte>    GetData ()                                      C_NE___ { return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
-        ND_ Array<ubyte>        ReleaseData ()                                  __NE___;
-        ND_ RC<MemRefRStream>   ToRStream ()                                    C_NE___ { return MakeRC<MemRefRStream>( GetData() ); }
+        ND_ ArrayView<ubyte>        GetData ()                                  C_NE___ { return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
+        ND_ MutableArrayView<ubyte> GetData ()                                  __NE___ { return MutableArrayView<ubyte>{ _data.data(), usize(_pos) }; }
+        ND_ Array<ubyte>            ReleaseData ()                              __NE___;
+        ND_ RC<MemRefRStream>       ToRStream ()                                C_NE___ { return MakeRC<MemRefRStream>( GetData() ); }
     };
 
 

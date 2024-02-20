@@ -67,7 +67,9 @@ namespace
             {
                 if ( ds.second.vkIndex == 0 )
                 {
-                    CHECK_THROW_MSG( ds.second.uid == _dsLayout->UID() );
+                    CHECK_THROW_MSG( ds.second.uid == _dsLayout->UID(),
+                        "Incompatible Global DS layout in RTech pass '"s << _name << "' in pipeline '" <<
+                        ObjectStorage::Instance()->GetName( ptr->Name() ) << "'" );
                     found = true;
                 }
             }
@@ -517,7 +519,7 @@ namespace
 
         if ( ppln_spec_count == 0 )
         {
-            AE_LOGI( "skip empty render technique '"s << _name << "'" );
+            AE_LOG_DBG( "skip empty render technique '"s << _name << "'" );
             return true;
         }
 

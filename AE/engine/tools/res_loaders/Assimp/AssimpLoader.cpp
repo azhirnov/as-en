@@ -8,12 +8,6 @@
 
 #ifdef AE_ENABLE_ASSIMP
 # include "res_loaders/Assimp/AsssimpUtils.cpp.h"
-
-# include "assimp/Importer.hpp"
-# include "assimp/PostProcess.h"
-# include "assimp/Scene.h"
-# include "assimp/GltfMaterial.h"
-
 # include "res_loaders/Assimp/AssimpLoader.h"
 # include "res_loaders/Intermediate/IntermScene.h"
 # include "res_loaders/Intermediate/IntermVertexAttribs_Setter.h"
@@ -104,8 +98,7 @@ namespace
 */
     ND_ static EAddressMode  ConvertWrapMode (aiTextureMapMode mode)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( mode )
+        switch_enum( mode )
         {
             case aiTextureMapMode_Wrap :        return EAddressMode::Repeat;
             case aiTextureMapMode_Mirror :      return EAddressMode::MirrorRepeat;
@@ -113,7 +106,7 @@ namespace
             case aiTextureMapMode_Decal :       return EAddressMode::ClampToBorder; // TODO: add transparent border color
             case _aiTextureMapMode_Force32Bit : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown wrap mode", EAddressMode::Repeat );
     }
 
@@ -141,8 +134,7 @@ namespace
 
     ND_ static ETextureMapping  ConvertMapping (aiTextureMapping mapping)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( mapping )
+        switch_enum( mapping )
         {
             case aiTextureMapping_UV :          return ETextureMapping::UV;
             case aiTextureMapping_SPHERE :      return ETextureMapping::Sphere;
@@ -152,7 +144,7 @@ namespace
             case aiTextureMapping_OTHER :       break;
             case _aiTextureMapping_Force32Bit : break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         RETURN_ERR( "unknown texture mapping" );
     };
 
@@ -163,8 +155,7 @@ namespace
 */
     ND_ static IntermMaterial::EKey  TextureTypeToMaterialKey (aiTextureType type)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( type )
+        switch_enum( type )
         {
             case aiTextureType_DIFFUSE :            return IntermMaterial::EKey::Diffuse;
             case aiTextureType_SPECULAR :           return IntermMaterial::EKey::Specular;
@@ -192,7 +183,7 @@ namespace
             case aiTextureType_UNKNOWN :
             case _aiTextureType_Force32Bit :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return Default;
     }
 
@@ -222,8 +213,7 @@ namespace
             break;                                                  \
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( texType )
+        switch_enum( texType )
         {
             case aiTextureType_DIFFUSE :            GET_COLOR( AI_MATKEY_COLOR_DIFFUSE );
             case aiTextureType_SPECULAR :           GET_COLOR( AI_MATKEY_COLOR_SPECULAR );
@@ -260,7 +250,7 @@ namespace
             case aiTextureType_UNKNOWN :
             case _aiTextureType_Force32Bit :        break;
         }
-        END_ENUM_CHECKS();
+        switch_end
         return false;
 
         #undef GET_COLOR
@@ -295,8 +285,7 @@ namespace
             if ( src->Get( AI_MATKEY_BLEND_FUNC, OUT blend_mode ) == AI_SUCCESS )
             {
                 auto&   blend = dst->EditSettings().blendMode;
-                BEGIN_ENUM_CHECKS();
-                switch ( aiBlendMode(blend_mode) )
+                switch_enum( aiBlendMode(blend_mode) )
                 {
                     case aiBlendMode_Default :
                         blend.src = EBlendFactor::SrcAlpha;
@@ -313,7 +302,7 @@ namespace
                     case _aiBlendMode_Force32Bit :
                     default :                       DBG_WARNING( "unknown blend mode" );
                 }
-                END_ENUM_CHECKS();
+                switch_end
             }
         }
 
@@ -526,8 +515,7 @@ namespace
         }
 
         EPrimitive  topology = Default;
-        BEGIN_ENUM_CHECKS();
-        switch ( src->mPrimitiveTypes )
+        switch_enum( src->mPrimitiveTypes )
         {
             case aiPrimitiveType_POINT :        topology = EPrimitive::Point;           break;
             case aiPrimitiveType_LINE :         topology = EPrimitive::LineList;        break;
@@ -537,7 +525,7 @@ namespace
             case _aiPrimitiveType_Force32Bit :
             default :                           RETURN_ERR( "unsupported type" );
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         dst = MakeRC<IntermMesh>( RVRef(vertices), RVRef(attribs), vert_stride, topology, RVRef(indices), EIndex::UInt );
         return true;
@@ -566,8 +554,7 @@ namespace
 
         light.coneAngleInnerOuter = float2{ src->mAngleInnerCone, src->mAngleOuterCone };
 
-        BEGIN_ENUM_CHECKS();
-        switch ( src->mType )
+        switch_enum( src->mType )
         {
             case aiLightSource_DIRECTIONAL :    light.type = ELightType::Directional;   break;
             case aiLightSource_POINT :          light.type = ELightType::Point;         break;
@@ -578,7 +565,7 @@ namespace
             case _aiLightSource_Force32Bit :
             default :                           DBG_WARNING( "unknown light type" );    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         dst = MakeRC<IntermLight>( RVRef(light) );
         return true;

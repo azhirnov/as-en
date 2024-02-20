@@ -17,9 +17,30 @@ namespace AE::PipelineCompiler
     template <typename T>
     using ScriptArray           = AE::Scripting::ScriptArray<T>;
 
+    struct DescriptorCount
+    {
+        uint    uniformBuffers          = 0;
+        uint    dynamicUniformBuffers   = 0;
+        uint    storageBuffers          = 0;
+        uint    dynamicStorageBuffers   = 0;
+        uint    storageImages           = 0;
+        uint    sampledImages           = 0;
+        uint    subpassInputs           = 0;
+        uint    samplers                = 0;
+        uint    rayTracingScenes        = 0;
+
+        DescriptorCount () {}
+
+        void  Add (const DescriptorSetLayoutDesc::Uniform &);
+
+        ND_ uint  TotalCount () const {
+            return  uniformBuffers + dynamicUniformBuffers + storageBuffers + dynamicStorageBuffers +
+                    storageImages + sampledImages + subpassInputs + samplers + rayTracingScenes;
+        }
+    };
+
     using ShaderDefines_t       = Array< String >;
-    using DescriptorCount_t     = StaticArray< uint, uint(EDescriptorType::_Count) >;
-    using PerStageDescCount_t   = FixedMap< EShader, DescriptorCount_t, uint(EShader::_Count) >;
+    using PerStageDescCount_t   = FixedMap< EShader, DescriptorCount, uint(EShader::_Count) >;
 
     struct GraphicsPipelineScriptBinding;
     struct MeshPipelineScriptBinding;

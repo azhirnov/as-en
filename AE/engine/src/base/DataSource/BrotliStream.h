@@ -3,8 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_BROTLI
-
-#include "base/DataSource/Stream.h"
+# include "base/DataSource/DataStream.h"
 
 namespace AE::Base
 {
@@ -96,6 +95,23 @@ namespace AE::Base
 
     private:
         bool        _Flush ()                                               __NE___;
+    };
+
+
+
+    //
+    // Brotli Utils
+    //
+
+    class BrotliUtils final : public Noninstanceable
+    {
+    public:
+        ND_ static bool  Compress (OUT void* dstData, INOUT Bytes &dstSize,
+                                   const void* srcData, Bytes srcSize,
+                                   const BrotliWStream::Config &cfg = Default)  __NE___;
+
+        ND_ static bool  Decompress (OUT void* dstData, INOUT Bytes &dstSize,
+                                     const void* srcData, Bytes srcSize)        __NE___;
     };
 
 

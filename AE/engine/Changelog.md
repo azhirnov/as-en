@@ -1,3 +1,22 @@
+## 24.02.xxx
+
+- UI Editor
+- Threading: Unix Async file (Android/Linux/MacOS)
+
+
+## 24.01.222
+
+- Base: Unix file
+- Base: zstd stream
+- Networking: reliable/unreliable TCP channel
+- Android: remote profiler, remote input source
+- Android: dynamic loading for API26 functions
+- Graphics|Android: added VK_ANDROID_external_memory_android_hardware_buffer for ycbcr sampler
+- Graphics: EPixelFormatExternal for ycbcr sampler
+- Added support for MSVC + ClangCL compiler
+- Graphics: upload/readback multiplanar image
+- Graphics: ImGUI renderer
+
 
 ## 23.12.214
 

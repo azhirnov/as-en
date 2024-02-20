@@ -8,6 +8,10 @@
 #include "platform/WinAPI/WinAPICommon.h"
 #include "platform/OpenVR/OpenVRCommon.h"
 
+#ifdef AE_ENABLE_AUDIO
+# include "audio/Public/IAudioSystem.h"
+#endif
+
 // Enable it if you have very rare bug with synchs.
 // When Vulkan validation reports error put breakpoint in 'log.clear();' and check 'log' content.
 #define ENABLE_SYNC_LOG     0
@@ -25,8 +29,15 @@ namespace AE::AppV2
     constructor
 =================================================
 */
-    AppCore::AppCore () __NE___
+    AppCore::AppCore (const AppConfig &cfg) __NE___ :
+        _config{ cfg }
     {
+        // TODO: allow to override
+        CHECK_FATAL( ThreadMngr::SetupThreads( cfg.threading,
+                                               cfg.threading.mask,
+                                               cfg.threading.maxThreads,
+                                               True{"bind threads to physical cores"},
+                                               OUT _allowProcessInMain ));
     }
 
 /*
@@ -36,44 +47,51 @@ namespace AE::AppV2
 */
     AppCore::~AppCore () __NE___
     {
-        _mainLoop.Write( Default );
+        _curState.Write( Default );
     }
 
 /*
 =================================================
     OpenView
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCore::OpenView (const ViewModeName &name) __NE___
+    void  AppCore::OpenView (ViewModeName::Ref name) __NE___
     {
-        RC<IViewMode>       mode = _CreateViewMode( name );
-        Ptr<IInputActions>  input;
+        RC<IViewMode>   new_view = _CreateViewMode( name );
 
-        if ( not mode )
+        if ( not new_view )
             return;
 
+        CurrentState    data;
         {
-            auto    main_loop = _mainLoop.WriteNoLock();
-            EXLOCK( main_loop );
+            auto    state = _curState.WriteNoLock();
+            EXLOCK( state );
 
-            main_loop->mode = mode;
-            input = main_loop->input;
+            data = *state;
+            state->view = new_view;
         }
 
-        //_SetInputMode( input, mode->GetInputMode() );
+        if ( data.view )
+            data.view->Close();
+
+        CHECK( data.input->SetMode( new_view->GetInputMode() ));
+        CHECK( new_view->Open( data.output ));
 
         // TODO: UI animation
     }
 
 /*
 =================================================
-    OnStart
+    OpenViewAsync
 =================================================
 */
-    bool  AppCore::OnStart (IApplication &app) __NE___
+    AsyncTask  AppCore::OpenViewAsync (ViewModeName::Ref name) __NE___
     {
-        return  _InitVFS( app )     and
-                _LoadInputActions();
+        return MakeTask( [name, app = GetRC()]() { app->OpenView( name ); }, {},
+                         "OpenViewAsync",
+                         ETaskQueue::Main );
     }
 
 /*
@@ -81,22 +99,21 @@ namespace AE::AppV2
     _InitVFS
 ----
     This is default implementation and can be overriden.
+    Thread-safe:  yes
 =================================================
 */
-    bool  AppCore::_InitVFS (IApplication &app) __NE___
+#ifdef AE_PLATFORM_ANDROID
+    bool  AppCore::_InitVFS (VFS::FileName::Ref archiveInAssets) __NE___
     {
-      #ifdef AE_PLATFORM_ANDROID
-        auto    assets = app.OpenStorage( EAppStorage::Builtin );
+        using namespace AE::VFS;
+
+        auto    assets = GetApplication()->OpenStorage( EAppStorage::Builtin );
         CHECK_ERR( assets );
 
         RC<RDataSource> ds;
-        CHECK_ERR( assets->Open( OUT ds, VFS::FileName{"resources.bin"} ));
+        CHECK_ERR( assets->Open( OUT ds, archiveInAssets ));
 
-        auto    storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( RVRef(ds) );
-      #else
-        Unused( app );
-        auto    storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( "resources.bin" );
-      #endif
+        auto    storage = VirtualFileStorageFactory::CreateStaticArchive( RVRef(ds) );
 
         CHECK_ERR( storage );
         CHECK_ERR( GetVFS().AddStorage( storage ));
@@ -104,166 +121,162 @@ namespace AE::AppV2
         GetVFS().MakeImmutable();
         return true;
     }
-
-/*
-=================================================
-    _LoadInputActions
-=================================================
-*/
-    bool  AppCore::_LoadInputActions () __NE___
+#else
+    bool  AppCore::_InitVFS (const Path &archivePath) __NE___
     {
-        // load input actions
-        _inputActionsData = MakeRC<MemRStream>();
+        auto    storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( archivePath );
 
-        auto    file = GetVFS().Open<RStream>( VFS::FileName{"controls"} );
-        CHECK_ERR( file );
-        CHECK_ERR( _inputActionsData->LoadRemaining( *file ));
+        CHECK_ERR( storage );
+        CHECK_ERR( GetVFS().AddStorage( storage ));
 
+        GetVFS().MakeImmutable();
         return true;
     }
-
-/*
-=================================================
-    OnSurfaceCreated
-=================================================
-*/
-    bool  AppCore::OnSurfaceCreated (IOutputSurface &surface) __NE___
-    {
-        CHECK_ERR( surface.IsInitialized() );
-
-        OpenView( ViewModeName{"splash"} );
-        return true;
-    }
+#endif
 
 /*
 =================================================
     _InitInputActions
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCore::_InitInputActions (IInputActions &ia) __NE___
+    bool  AppCore::_InitInputActions (IInputActions &ia, VFS::FileName::Ref fname) __NE___
     {
-        CHECK_ERRV( _inputActionsData );
+        // file can be cached if switch between desktop and VR is possible
 
-        MemRefRStream   stream{ _inputActionsData->GetData() };
+        auto    file = GetVFS().Open<RStream>( fname );
+        CHECK_ERR( file );
 
-        // may be switch between 'glfw'/'winapi' and 'openvr'/'openxr' platforms
-        CHECK_ERRV( ia.LoadSerialized( stream ));
+        MemRefRStream&  stream = *Cast<MemRefRStream>(file.get());
+        ASSERT( CastAllowed<MemRefRStream>( file.get() ));
 
-        if (RC<IViewMode> mode = _mainLoop->mode)
-            CHECK( ia.SetMode( mode->GetInputMode() ));
-    }
+        CHECK_ERR( ia.LoadSerialized( stream ));
 
-/*
-=================================================
-    _SetInputMode
-=================================================
-*/
-    AsyncTask  AppCore::_SetInputMode (Ptr<IInputActions> input, InputModeName mode) __NE___
-    {
-        if ( input == null )
-            return null;
+        if (RC<IViewMode> view = _curState->view)
+            CHECK_ERR( ia.SetMode( view->GetInputMode() ));
 
-        return Scheduler().Run<AsyncTaskFn>(
-                    Tuple{  [input, mode] () { Unused( input->SetMode( mode )); },
-                            "AppCore::SetInputMode",
-                            ETaskQueue::Main },
-                    Tuple{} );
+        return true;
     }
 
 /*
 =================================================
     StartRendering
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output, IWindow::EState state) __NE___
+    void  AppCore::StartRendering (IWindow &wnd, IWindow::EState wndState) __NE___
     {
-        ASSERT( bool{input} == bool{output} );
+        _StartRendering( wnd.InputActions(), wnd.GetSurface(), wndState, WindowOrVR_t{&wnd} );
+    }
 
-        const bool  focused = (state == IWindow::EState::Focused);
+    void  AppCore::StartRendering (IVRDevice &vr, IVRDevice::EState wndState) __NE___
+    {
+        _StartRendering( vr.InputActions(), vr.GetSurface(), wndState, WindowOrVR_t{&vr} );
+    }
+
+    inline void  AppCore::_StartRendering (IInputActions &input, IOutputSurface &output, const IWindow::EState wndState, WindowOrVR_t wndOrVR) __NE___
+    {
+        const bool  focused         = (wndState == IWindow::EState::Focused);
+        const bool  in_foreground   = (wndState >= IWindow::EState::InForeground) and (wndState <= IWindow::EState::Focused);
         bool        ia_changed;
+        bool        has_view;
 
         {
-            auto    main_loop = _mainLoop.WriteNoLock();
-            EXLOCK( main_loop );
+            auto    state = _curState.WriteNoLock();
+            EXLOCK( state );
 
-            if ( not focused and main_loop->output != null )
+            if ( not focused and state->output != null )
                 return;
 
-            ia_changed = (main_loop->input != input) and (input != null);
+            ia_changed          = (state->input != &input);
+            has_view            = output.IsInitialized() and (state->view != null);
 
-            main_loop->input  = input;
-            main_loop->output = output;
+            state->input        = &input;
+            state->output       = &output;
+            state->windowOrVR   = wndOrVR;
         }
 
-        if ( ia_changed )
-            _InitInputActions( *input );
+        if_unlikely( ia_changed )
+            _InputActionsChanged( input );
+
+        if_unlikely( not has_view and in_foreground )
+            OpenView( ViewModeName_Initial );
     }
 
 /*
 =================================================
     StopRendering
+----
+    Thread-safe:  main thread only
 =================================================
 */
     void  AppCore::StopRendering (Ptr<IOutputSurface> output) __NE___
     {
-        auto    main_loop = _mainLoop.WriteNoLock();
-        EXLOCK( main_loop );
+        auto    state = _curState.WriteNoLock();
+        EXLOCK( state );
 
-        if ( output == null or main_loop->output == output )
-            main_loop->output = null;
+        if ( output == null or state->output == output )
+            state->output = null;
     }
 
 /*
 =================================================
     WaitFrame
+----
+    Thread-safe:    main thread only
+    Usage:          every frame
 =================================================
 */
-    void  AppCore::WaitFrame (const Threading::EThreadArray &threads) __NE___
+    void  AppCore::WaitFrame () __NE___
     {
-        CHECK( GraphicsScheduler().WaitNextFrame( threads, AE::DefaultTimeout ));
+        CHECK( GraphicsScheduler().WaitNextFrame( _allowProcessInMain, AE::DefaultTimeout ));
     }
 
 /*
 =================================================
     RenderFrame
+----
+    Thread-safe:    main thread only
+    Usage:          every frame
 =================================================
 */
     void  AppCore::RenderFrame () __NE___
     {
         Ptr<IInputActions>      input;
         Ptr<IOutputSurface>     output;
-        RC<IViewMode>           mode;
+        RC<IViewMode>           view;
         auto&                   rts     = GraphicsScheduler();
         auto                    rg      = rts.GetRenderGraphPtr();
+        const auto              frame_id = rts.GetFrameId();
 
         {
-            auto    main_loop = _mainLoop.ReadNoLock();
-            SHAREDLOCK( main_loop );
+            auto    state = _curState.ReadNoLock();
+            SHAREDLOCK( state );
 
-            input   = main_loop->input;
-            output  = main_loop->output;
-            mode    = main_loop->mode;
+            input   = state->input;
+            output  = state->output;
+            view    = state->view;
         }
 
         if_unlikely( input == null               or
                      output == null              or
                      not output->IsInitialized() or
-                     mode == null )
+                     view == null                or
+                     not rts.BeginFrame() )
+        {
+            ThreadUtils::Sleep_15ms();
             return;
-
-        const auto  frame_id = rts.GetFrameId();
-        CHECK_ERRV( rts.BeginFrame() );
+        }
 
         if ( rg )
             rg->OnBeginFrame( frame_id );
 
-        AsyncTask   proc_input  = mode->Update( input->ReadInput( frame_id ), Default );
-        // 'proc_input' can be null
+        AsyncTask   view_task   = view->Update( input->ReadInput( frame_id ), output, Default );
+        // 'view_task' can be null
 
-        AsyncTask   draw_task   = mode->Draw( output, { proc_input });
-        CHECK( draw_task );
-
-        AsyncTask   end_frame   = rts.EndFrame( Tuple{ draw_task });
+        AsyncTask   end_frame   = rts.EndFrame( Tuple{ view_task });
 
         if ( rg )
             rg->OnEndFrame();
@@ -279,30 +292,33 @@ namespace AE::AppV2
     constructor
 =================================================
 */
-    AppCoreV2::AppCoreV2 (const AppConfig &cfg, AppCoreCtor_t ctor) __NE___ :
-        _device{ True{"enable info log"} },
-        _config{ cfg }
+    AppMainV2::AppMainV2 (AppCoreCtor_t ctor) __NE___ :
+        _device{ True{"enable info log"} }
     {
-        CHECK( _config.graphics.maxFrames <= _config.graphics.swapchain.minImageCount );
-
         TaskScheduler::InstanceCtor::Create();
         VFS::VirtualFileSystem::InstanceCtor::Create();
+      #ifdef AE_ENABLE_AUDIO
+        Audio::IAudioSystem::InstanceCtor::Create();
+      #endif
 
         _core = ctor();
         CHECK_FATAL( _core );
 
-        CHECK_FATAL( ThreadMngr::SetupThreads( _config.threading,
-                                               _config.threading.mask,
-                                               _config.threading.maxThreads,
-                                               True{"bind threads to physical cores"},
-                                               OUT _allowProcessInMain ));
+        auto&   cfg = _core->Config();
 
-        if ( _config.enableNetwork )
+        CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
+
+        if ( cfg.enableNetwork )
             CHECK_FATAL( Networking::SocketService::Instance().Initialize() );
+
+      #ifdef AE_ENABLE_AUDIO
+        if ( cfg.enableAudio )
+            CHECK_FATAL( AudioSystem().Initialize() );
+      #endif
     }
 
-    AppCoreV2::AppCoreV2 (const AppConfig &cfg, RC<AppCore> core) __NE___ :
-        AppCoreV2{ cfg, [core](){ return core; }}
+    AppMainV2::AppMainV2 (RC<AppCore> core) __NE___ :
+        AppMainV2{ [core](){ return core; }}
     {}
 
 /*
@@ -310,16 +326,25 @@ namespace AE::AppV2
     destructor
 =================================================
 */
-    AppCoreV2::~AppCoreV2 () __NE___
+    AppMainV2::~AppMainV2 () __NE___
     {
+        const bool  enable_network  = _core ? _core->Config().enableNetwork : false;
+        const bool  enable_audio    = _core ? _core->Config().enableAudio : false;
+
         _core = null;
         _windows.clear();
         _vrDevice = null;
 
         Scheduler().Release();
 
-        if ( _config.enableNetwork )
+        if ( enable_network )
             Networking::SocketService::Instance().Deinitialize();
+
+      #ifdef AE_ENABLE_AUDIO
+        if ( enable_audio )
+            AudioSystem().Deinitialize();
+        Audio::IAudioSystem::InstanceCtor::Destroy();
+      #endif
 
         VFS::VirtualFileSystem::InstanceCtor::Destroy();
         TaskScheduler::InstanceCtor::Destroy();
@@ -328,9 +353,12 @@ namespace AE::AppV2
 /*
 =================================================
     BeforeWndUpdate
+----
+    Thread-safe:    main thread only
+    Usage:          every frame
 =================================================
 */
-    void  AppCoreV2::BeforeWndUpdate (IApplication &) __NE___
+    void  AppMainV2::BeforeWndUpdate (IApplication &) __NE___
     {
         PROFILE_ONLY({
             auto    profiler = Scheduler().GetProfiler();
@@ -338,15 +366,18 @@ namespace AE::AppV2
                 profiler->EndNonTaskWork( this, "NativeApp" );
         })
 
-        _core->WaitFrame( GetMainThreadMask() );
+        _core->WaitFrame();
     }
 
 /*
 =================================================
     AfterWndUpdate
+----
+    Thread-safe:    main thread only
+    Usage:          every frame
 =================================================
 */
-    void  AppCoreV2::AfterWndUpdate (IApplication &app) __NE___
+    void  AppMainV2::AfterWndUpdate (IApplication &app) __NE___
     {
         _core->RenderFrame();
 
@@ -376,12 +407,12 @@ namespace AE::AppV2
 /*
 =================================================
     OnStart
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::OnStart (IApplication &app) __NE___
+    void  AppMainV2::OnStart (IApplication &app) __NE___
     {
-        CHECK_FATAL( _core->OnStart( app ));
-
         CHECK_FATAL( _InitGraphics( app ));
         CHECK_FATAL( _CreateWindow( app ));
     }
@@ -391,25 +422,27 @@ namespace AE::AppV2
     _CreateWindow
 =================================================
 */
-    bool  AppCoreV2::_CreateWindow (IApplication &app)
+    bool  AppMainV2::_CreateWindow (IApplication &app) __NE___
     {
+        auto&   cfg = _core->Config();
+
         // create window
         {
-            auto    wnd = app.CreateWindow( MakeUnique<AppCoreV2::WindowEventListener>( _core, *this ), _config.window );
+            auto    wnd = app.CreateWindow( MakeUnique<AppMainV2::WindowEventListener>( _core ), cfg.window );
             CHECK_ERR( wnd );
             _windows.emplace_back( RVRef(wnd) );
         }
 
         // create VR device
-        if ( _config.enableVR )
+        if ( cfg.enableVR )
         {
-            const auto  CreateVR = [this, &app] (IVRDevice::EDeviceType type) -> bool
+            const auto  CreateVR = [this, &app, &cfg] (IVRDevice::EDeviceType type) -> bool
             {{
-                _vrDevice = app.CreateVRDevice( MakeUnique<AppCoreV2::VRDeviceEventListener>( _core, *this ), &_windows[0]->InputActions(), type );
-                return _vrDevice and _vrDevice->CreateRenderSurface( _config.vr );
+                _vrDevice = app.CreateVRDevice( MakeUnique<AppMainV2::VRDeviceEventListener>( _core ), &_windows[0]->InputActions(), type );
+                return _vrDevice and _vrDevice->CreateRenderSurface( cfg.vr );
             }};
 
-            for (auto type : _config.vrDevices) {
+            for (auto type : cfg.vrDevices) {
                 if ( CreateVR( type )) break;
             }
         }
@@ -420,15 +453,20 @@ namespace AE::AppV2
 /*
 =================================================
     OnStop
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::OnStop (IApplication &) __NE___
+    void  AppMainV2::OnStop (IApplication &) __NE___
     {
         if ( _core )
         {
-            _core->WaitFrame( GetMainThreadMask() );
+            _core->WaitFrame();
+
+            ASSERT( _core.use_count() == 1 );
             _core = null;
         }
+
         _windows.clear();
         _vrDevice = null;
 
@@ -440,7 +478,7 @@ namespace AE::AppV2
     _InitGraphics
 =================================================
 */
-    bool  AppCoreV2::_InitGraphics (IApplication &app)
+    bool  AppMainV2::_InitGraphics (IApplication &app) __NE___
     {
         if_unlikely( _device.IsInitialized() )
             return true;
@@ -448,7 +486,7 @@ namespace AE::AppV2
         RenderTaskScheduler::InstanceCtor::Create( _device );
 
       #ifdef AE_ENABLE_VULKAN
-        CHECK_ERR( _device.Init( _config.graphics, app.GetVulkanInstanceExtensions() ));
+        CHECK_ERR( _device.Init( _core->Config().graphics, app.GetVulkanInstanceExtensions() ));
 
         #if ENABLE_SYNC_LOG
         {
@@ -463,7 +501,7 @@ namespace AE::AppV2
         #endif
 
       #elif defined(AE_ENABLE_METAL) and defined(AE_ENABLE_REMOTE_GRAPHICS)
-        CHECK_ERR( _device.Init( _config.graphics ));
+        CHECK_ERR( _device.Init( _core->Config().graphics ));
 
       #else
       # error not implemented
@@ -472,7 +510,7 @@ namespace AE::AppV2
         CHECK_ERR( _device.CheckConstantLimits() );
         CHECK_ERR( _device.CheckExtensions() );
 
-        CHECK_ERR( GraphicsScheduler().Initialize( _config.graphics ));
+        CHECK_ERR( GraphicsScheduler().Initialize( _core->Config().graphics ));
         return true;
     }
 
@@ -481,7 +519,7 @@ namespace AE::AppV2
     _DestroyGraphics
 =================================================
 */
-    void  AppCoreV2::_DestroyGraphics ()
+    void  AppMainV2::_DestroyGraphics () __NE___
     {
         if_unlikely( not _device.IsInitialized() )
             return;
@@ -501,23 +539,24 @@ namespace AE::AppV2
 /*
 =================================================
     OnStateChanged
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::WindowEventListener::OnStateChanged (IWindow &wnd, EState state) __NE___
+    void  AppMainV2::WindowEventListener::OnStateChanged (IWindow &wnd, EState state) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( state )
+        switch_enum( state )
         {
             case EState::InForeground :
             case EState::Focused :
-                _core->StartRendering( &wnd.InputActions(), &wnd.GetSurface(), state );
+                _core->StartRendering( wnd, state );
                 break;
 
             case EState::InBackground :
             case EState::Stopped :
             case EState::Destroyed :
                 _core->StopRendering( &wnd.GetSurface() );
-                _core->WaitFrame( _app.GetMainThreadMask() );
+                _core->WaitFrame();
                 break;
 
             case EState::Created :
@@ -529,33 +568,35 @@ namespace AE::AppV2
                 DBG_WARNING( "unsupported window state" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 /*
 =================================================
     OnSurfaceCreated
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::WindowEventListener::OnSurfaceCreated (IWindow &wnd) __NE___
+    void  AppMainV2::WindowEventListener::OnSurfaceCreated (IWindow &wnd) __NE___
     {
         // create render surface
-        CHECK_FATAL( wnd.CreateRenderSurface( _app.Config().graphics.swapchain ));
+        CHECK_FATAL( wnd.CreateRenderSurface( _core->Config().graphics.swapchain ));
 
-        _core->StartRendering( &wnd.InputActions(), &wnd.GetSurface(), IWindow::EState::InForeground );
-
-        CHECK_FATAL( _core->OnSurfaceCreated( wnd.GetSurface() ));
+        _core->StartRendering( wnd, wnd.GetState() );
     }
 
 /*
 =================================================
     OnSurfaceDestroyed
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::WindowEventListener::OnSurfaceDestroyed (IWindow &) __NE___
+    void  AppMainV2::WindowEventListener::OnSurfaceDestroyed (IWindow &) __NE___
     {
         _core->StopRendering( null );
-        _core->WaitFrame( _app.GetMainThreadMask() );
+        _core->WaitFrame();
     }
 //-----------------------------------------------------------------------------
 
@@ -564,23 +605,24 @@ namespace AE::AppV2
 /*
 =================================================
     OnStateChanged
+----
+    Thread-safe:  main thread only
 =================================================
 */
-    void  AppCoreV2::VRDeviceEventListener::OnStateChanged (IVRDevice &vr, EState state) __NE___
+    void  AppMainV2::VRDeviceEventListener::OnStateChanged (IVRDevice &vr, EState state) __NE___
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( state )
+        switch_enum( state )
         {
             case EState::InForeground :
             case EState::Focused :
-                _core->StartRendering( &vr.InputActions(), &vr.GetSurface(), state );
+                _core->StartRendering( vr, state );
                 break;
 
             case EState::InBackground :
             case EState::Stopped :
             case EState::Destroyed :
                 _core->StopRendering( &vr.GetSurface() );
-                _core->WaitFrame( _app.GetMainThreadMask() );
+                _core->WaitFrame();
                 break;
 
             case EState::Created :
@@ -592,7 +634,7 @@ namespace AE::AppV2
                 DBG_WARNING( "unsupported VR state" );
                 break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 

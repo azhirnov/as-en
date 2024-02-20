@@ -17,6 +17,7 @@ Engine documentation:
  * [Build instructions](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Build.md)
  * [Licensing information](https://github.com/azhirnov/as-en/blob/dev/AE/LICENSE)
  * [Engine Concept](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/Concept.md)
+ * [Changelog](https://github.com/azhirnov/as-en/blob/dev/AE/engine/Changelog.md)
  * Graphics: [DeviceProperties](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/DeviceProperties.md)
  * Graphics: [FeatureSet](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/FeatureSet.md)
  * Low-level Graphics features: [Vulkan](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanFeatures.md), [Metal](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/MetalFeatures.md)

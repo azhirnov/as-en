@@ -15,6 +15,10 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::AssetPacker::ScriptTexture, "Texture" );
 
 namespace AE::AssetPacker
 {
+namespace {
+#   include "Packer/ImagePacker.cpp.h"
+}
+
     using namespace AE::Graphics;
     using namespace AE::ResLoader;
 
@@ -316,16 +320,15 @@ namespace AE::AssetPacker
 
         // serialize
         {
-            ImagePacker::Header img_hdr;
-            img_hdr.dimension   = ushort3{dst_image.Dimension()};
-            img_hdr.arrayLayers = CheckCast<ushort>(dst_image.ArrayLayers());
-            img_hdr.mipmaps     = CheckCast<ushort>(dst_image.MipLevels());
-            img_hdr.format      = _dstFormat;
-            img_hdr.viewType    = dst_image.GetType();
+            ImagePacker::Header2    img_hdr;
+            img_hdr.hdr.dimension   = ushort3{dst_image.Dimension()};
+            img_hdr.hdr.arrayLayers = CheckCast<ushort>(dst_image.ArrayLayers());
+            img_hdr.hdr.mipmaps     = CheckCast<ushort>(dst_image.MipLevels());
+            img_hdr.hdr.format      = _dstFormat;
+            img_hdr.hdr.viewType    = dst_image.GetType();
 
-            ImagePacker     packer {img_hdr};
-            CHECK_ERR( packer.SaveHeader( *stream ));
-            CHECK_ERR( packer.SaveImage( *stream, dst_image ));
+            CHECK_ERR( ImagePacker_SaveHeader( *stream, img_hdr ));
+            CHECK_ERR( ImagePacker_SaveImage( *stream, img_hdr.hdr, dst_image ));
         }
         return true;
     }

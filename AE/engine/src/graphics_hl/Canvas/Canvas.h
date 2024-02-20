@@ -1,4 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Thread-safe:  no
+
+    Canvas does not allocate memory, it uses vstream from 'StagingBufferManager'.
+    VStream allocation granularity defined in 'Canvas::_MaxVertsPerBatch' and 'Canvas::_IndexBufSize'.
+    You should reuse canvas for small draw commands in single thread.
+*/
 
 #pragma once
 
@@ -50,7 +57,7 @@ namespace AE::Graphics
             uint    rangeIdx        : 4;
 
             ND_ bool  Equal (uint instCnt, uint range) C_NE___ {
-                return (instanceCount == instCnt) | (rangeIdx == range);
+                return (instanceCount == instCnt) and (rangeIdx == range);
             }
         };
 
@@ -59,22 +66,22 @@ namespace AE::Graphics
         // variables
             void *          ptr;
 
-            Byte32u         posSize;
-            Byte32u         attribsSize;
-            Byte32u         indexSize;
+            Bytes32u        posSize;
+            Bytes32u        attribsSize;
+            Bytes32u        indexSize;
 
-            Byte32u         posCapacity;
-            Byte32u         attribsCapacity;
-            Byte32u         indexCapacity;
+            Bytes32u        posCapacity;
+            Bytes32u        attribsCapacity;
+            Bytes32u        indexCapacity;
 
             Bytes           offset;
             NativeBuffer_t  handle;
 
 
         // methods
-            ND_ Byte32u     _PositionOffset ()                      C_NE___ { return 0_b; }
-            ND_ Byte32u     _AttribsOffset ()                       C_NE___ { return posCapacity; }
-            ND_ Byte32u     _IndicesOffset ()                       C_NE___ { return posCapacity + attribsCapacity; }
+            ND_ Bytes32u    _PositionOffset ()                      C_NE___ { return 0_b; }
+            ND_ Bytes32u    _AttribsOffset ()                       C_NE___ { return posCapacity; }
+            ND_ Bytes32u    _IndicesOffset ()                       C_NE___ { return posCapacity + attribsCapacity; }
 
             ND_ Bytes       PositionOffset ()                       C_NE___ { return offset + _PositionOffset(); }
             ND_ Bytes       AttribsOffset ()                        C_NE___ { return offset + _AttribsOffset(); }
@@ -91,8 +98,8 @@ namespace AE::Graphics
 
             ND_ bool  HasSpace (Bytes pos, Bytes attr, Bytes idx)   C_NE___
             {
-                return  (posSize     + pos  <= posCapacity)     |
-                        (attribsSize + attr <= attribsCapacity) |
+                return  (posSize     + pos  <= posCapacity)     and
+                        (attribsSize + attr <= attribsCapacity) and
                         (indexSize   + idx  <= indexCapacity);
             }
         };
@@ -103,9 +110,9 @@ namespace AE::Graphics
         using Allocator_t       = LinearAllocator< UntypedAllocator, 8, false >;
 
         static constexpr uint       _MaxVertsPerBatch   = 1u << 12;
-        static constexpr Byte32u    _PositionVBufSize   {8_b * _MaxVertsPerBatch};
-        static constexpr Byte32u    _AttribsVBufSize    {16_b * _MaxVertsPerBatch};
-        static constexpr Byte32u    _IndexBufSize       {SizeOf<BatchIndex_t> * _MaxVertsPerBatch * 3};
+        static constexpr Bytes32u   _PositionVBufSize   {8_b * _MaxVertsPerBatch};
+        static constexpr Bytes32u   _AttribsVBufSize    {16_b * _MaxVertsPerBatch};
+        static constexpr Bytes32u   _IndexBufSize       {SizeOf<BatchIndex_t> * _MaxVertsPerBatch * 3};
 
         using FontPosition_t    = VB_Position_f2;
         using FontAttribs_t     = VB_UVs2_SCs1_Col8;
@@ -140,8 +147,9 @@ namespace AE::Graphics
         void  NextFrame (FrameUID frameId)                                                                              __NE___;
 
         template <typename Ctx>
-        void  Flush (Ctx &ctx, EPrimitive topology = Default)                                                           __NE___;
+        void  Flush (Ctx &ctx, EPrimitive topology = Default)                                                           __Th___;
 
+        ND_ bool  IsEmpty ()                                                                                            C_NE___ { return _drawCalls.empty(); }
 
 
     // High level //
@@ -160,11 +168,11 @@ namespace AE::Graphics
 
 
     private:
-        template <typename PrimitiveType>   void  _BreakStrip    (const PrimitiveType &primitive, uint indexCount, uint vertexCount);
-        template <typename PrimitiveType>   void  _ContinueStrip (const PrimitiveType &primitive, uint indexCount, uint vertexCount);
+        template <typename PrimitiveType>   void  _BreakStrip    (const PrimitiveType &primitive, uint indexCount, uint vertexCount)__NE___;
+        template <typename PrimitiveType>   void  _ContinueStrip (const PrimitiveType &primitive, uint indexCount, uint vertexCount)__NE___;
 
-        ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Byte32u posSize, Byte32u attrSize, Byte32u idxDataSize);
-        ND_ bool  _Alloc ();
+        ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Bytes32u posSize, Bytes32u attrSize, Bytes32u idxDataSize)    __NE___;
+        ND_ bool  _Alloc ()                                                                                                         __NE___;
     };
 
 
@@ -175,8 +183,10 @@ namespace AE::Graphics
 =================================================
 */
     template <typename Ctx>
-    void  Canvas::Flush (Ctx &ctx, EPrimitive topology) __NE___
+    void  Canvas::Flush (Ctx &ctx, EPrimitive topology) __Th___
     {
+        StaticAssert( IsBaseOf< IDrawContext, Ctx >);
+
         if_unlikely( _drawCalls.empty() )
             return;
 
@@ -243,9 +253,9 @@ namespace AE::Graphics
 
         const uint      idx_count   = primitive.IndexCount();
         const uint      vert_count  = primitive.VertexCount();
-        const Byte32u   pos_size    = SizeOf< typename PrimitiveType::Position_t >;
-        const Byte32u   attr_size   = SizeOf< typename PrimitiveType::Attribs_t  >;
-        const Byte32u   idx_size    = SizeOf< BatchIndex_t > * idx_count;
+        const Bytes32u  pos_size    = SizeOf< typename PrimitiveType::Position_t >;
+        const Bytes32u  attr_size   = SizeOf< typename PrimitiveType::Attribs_t  >;
+        const Bytes32u  idx_size    = SizeOf< BatchIndex_t > * idx_count;
 
         // add primitive to draw call
         if constexpr( PrimitiveType::Topology() == EPrimitive::LineStrip    or
@@ -277,7 +287,7 @@ namespace AE::Graphics
 =================================================
 */
     template <typename PrimitiveType>
-    void  Canvas::_BreakStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount)
+    void  Canvas::_BreakStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount) __NE___
     {
         auto&       dc      = _drawCalls.back();
         auto&       buf     = _buffers[ dc.rangeIdx ];
@@ -285,7 +295,7 @@ namespace AE::Graphics
         const uint  off     = dc.indexCount ? 2 : 0;
         ASSERT( buf.ptr != null );
 
-        primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs() );
+        primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
 
         if_likely( off )
         {
@@ -304,13 +314,13 @@ namespace AE::Graphics
 =================================================
 */
     template <typename PrimitiveType>
-    void  Canvas::_ContinueStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount)
+    void  Canvas::_ContinueStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount) __NE___
     {
         auto&   dc  = _drawCalls.back();
         auto&   buf = _buffers[ dc.rangeIdx ];
         ASSERT( buf.ptr != null );
 
-        primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs() );
+        primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
 
         dc.indexCount   += indexCount;
         dc.vertexOffset += vertexCount;

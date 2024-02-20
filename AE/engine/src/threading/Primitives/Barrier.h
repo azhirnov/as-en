@@ -30,7 +30,6 @@
 
 
 #if (AE_BARRIER_MODE == 0)
-
 namespace AE::Threading
 {
 
@@ -56,16 +55,16 @@ namespace AE::Threading
         Barrier&  operator = (const Barrier &)  = delete;
         Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()                           __NE___;
+        void  Wait ()                           __NE___;
 
         ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }
     };
 
 } // AE::Threading
+//-----------------------------------------------------------------------------
 
 
 #elif (AE_BARRIER_MODE == 1)
-
 namespace AE::Threading
 {
 
@@ -104,67 +103,16 @@ namespace AE::Threading
         Barrier&  operator = (const Barrier &)  = delete;
         Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()                           __NE___
-        {
-            // flush cache
-            MemoryBarrier( EMemoryOrder::Release );
+        void  Wait ()                           __NE___;
 
-            const Bitfield  old_value   = _counter.load();
-            Bitfield        expected    = old_value;
-            Bitfield        new_value   = old_value;
-
-            // increment counter
-            old_value.index ? ++new_value.counter_2 : ++new_value.counter_1;
-
-            for (; not _counter.CAS( INOUT expected, new_value );)
-            {
-                new_value = expected;
-                old_value.index ? ++new_value.counter_2 : ++new_value.counter_1;
-
-                ThreadUtils::Pause();
-            }
-
-
-            // wait for other threads
-            new_value.index = ~old_value.index;
-            if ( old_value.index ) {
-                new_value.counter_1 = expected.counter_1;
-                new_value.counter_2 = 0;
-                expected.counter_2  = _numThreads;
-            }else{
-                new_value.counter_1 = 0;
-                new_value.counter_2 = expected.counter_2;
-                expected.counter_1  = _numThreads;
-            }
-
-            for (uint p = 0;; ++p)
-            {
-                for (uint i = 0; i < ThreadUtils::SpinBeforeLock(); ++i)
-                {
-                    if_likely(  _counter.CAS( INOUT expected, new_value ) or
-                                expected.index != old_value.index )
-                    {
-                        // invalidate cache
-                        MemoryBarrier( EMemoryOrder::Acquire );
-                        return;
-                    }
-
-                    old_value.index ? (expected.counter_2 = _numThreads) : (expected.counter_1 = _numThreads);
-
-                    ThreadUtils::Pause();
-                }
-                ThreadUtils::ProgressiveSleep( p );
-            }
-        }
-
-        ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }
+        ND_ static constexpr usize  Max ()      __NE___ { return uint{UMax}; }
     };
 
 } // AE::Threading
+//-----------------------------------------------------------------------------
 
 
 #elif (AE_BARRIER_MODE == 2)
-
 namespace AE::Threading
 {
 
@@ -180,7 +128,7 @@ namespace AE::Threading
         usize                   _cycle;
         const usize             _numThreads;
         Mutex                   _mutex;
-        std::condition_variable _cv;
+        ConditionVariable       _cv;
 
 
     // methods
@@ -197,7 +145,7 @@ namespace AE::Threading
         Barrier&  operator = (const Barrier &)  = delete;
         Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()                           __NE___
+        void  Wait ()                           __NE___
         {
             std::unique_lock    lock{ _mutex };
 
@@ -214,14 +162,14 @@ namespace AE::Threading
             _cv.wait( lock, [this, cycle = _cycle] () { return cycle != _cycle; });
         }
 
-        ND_ static constexpr usize  max ()      __NE___ { return UMax; }
+        ND_ static constexpr usize  Max ()      __NE___ { return UMax; }
     };
 
 } // AE::Threading
+//-----------------------------------------------------------------------------
 
 
 #elif (AE_BARRIER_MODE == 3)
-
 namespace AE::Threading
 {
 
@@ -249,15 +197,16 @@ namespace AE::Threading
         Barrier&  operator = (const Barrier &)  = delete;
         Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()                           __NE___
+        void  Wait ()                           __NE___
         {
             _barrier.arrive_and_wait();
         }
 
-        ND_ static constexpr ssize  max ()      __NE___ { return std::barrier<>::max(); }
+        ND_ static constexpr ssize  Max ()      __NE___ { return std::barrier<>::max(); }
     };
 
 } // AE::Threading
+//-----------------------------------------------------------------------------
 
 #else
 #   error not supported!

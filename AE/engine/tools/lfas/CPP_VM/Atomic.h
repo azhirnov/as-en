@@ -96,8 +96,7 @@ namespace LFAS::CPP
     inline void  MemoryBarrier (TMemoryOrder order)
     {
         VirtualMachine& vm = VirtualMachine::Instance();
-        BEGIN_ENUM_CHECKS();
-        switch ( order )
+        switch_enum( order )
         {
             case EMemoryOrder::Acquire :                vm.ThreadFenceAcquire();            break;
             case EMemoryOrder::Release :                vm.ThreadFenceRelease();            break;
@@ -107,8 +106,7 @@ namespace LFAS::CPP
             case std::memory_order::consume :
             default :                                   CHECK( !"unknown memory order" );   break;
         }
-        END_ENUM_CHECKS();
-
+        switch_end
         vm.Yield();
     }
 
@@ -430,8 +428,7 @@ namespace LFAS::CPP
     template <typename T>
     void  StdAtomic<T>::_Fence (VirtualMachine &vm, TMemoryOrder order)
     {
-        BEGIN_ENUM_CHECKS();
-        switch ( order )
+        switch_enum( order )
         {
             case EMemoryOrder::Acquire :                vm.ThreadFenceAcquire();            break;
             case EMemoryOrder::Release :                vm.ThreadFenceRelease();            break;
@@ -440,7 +437,7 @@ namespace LFAS::CPP
             case EMemoryOrder::Relaxed :                vm.ThreadFenceRelaxed();            break;
             default :                                   CHECK( !"unknown memory order" );   break;
         }
-        END_ENUM_CHECKS();
+        switch_end
     }
 
 

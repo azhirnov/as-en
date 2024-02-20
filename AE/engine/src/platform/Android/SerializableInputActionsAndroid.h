@@ -307,12 +307,59 @@ namespace AE::App
             _visitor_( Key_TV_MediaContextMenu, 257,    "TV_MediaContextMenu",  AKEYCODE_TV_MEDIA_CONTEXT_MENU  )\
             _visitor_( Key_TV_TimerProgramming, 258,    "TV_TimerProgramming",  AKEYCODE_TV_TIMER_PROGRAMMING   )\
 
-        enum class EInputType : ushort
+        #define AE_ANDROID_SERNSORS( _visitor_ )\
+            _visitor_( Accelerometer,                            1,      3,     Float3,     ASENSOR_TYPE_ACCELEROMETER      )\
+            _visitor_( MagneticField,                            2,      3,     Float3,     ASENSOR_TYPE_MAGNETIC_FIELD     )\
+            _visitor_( GeoLocation,                              3,      1,     GNS,        3                               )\
+            _visitor_( Gyroscope,                                4,      3,     Float3,     ASENSOR_TYPE_GYROSCOPE          )\
+            _visitor_( AmbientLight,                             5,      3,     Float,      ASENSOR_TYPE_LIGHT              )\
+            _visitor_( AirPressure,                              6,      3,     Float,      ASENSOR_TYPE_PRESSURE           )\
+            _visitor_( Proximity,                                8,      3,     Float,      ASENSOR_TYPE_PROXIMITY          )\
+            _visitor_( Gravity,                                  9,      9,     Float3,     ASENSOR_TYPE_GRAVITY            )\
+            _visitor_( LinearAcceleration,                      10,      9,     Float3,     ASENSOR_TYPE_LINEAR_ACCELERATION )\
+            _visitor_( RotationVector,                          11,      9,     Quat,       ASENSOR_TYPE_ROTATION_VECTOR    )\
+            _visitor_( RelativeHumidity,                        12,     14,     Float,      ASENSOR_TYPE_RELATIVE_HUMIDITY  )\
+            _visitor_( AirTemperature,                          13,     14,     Float,      ASENSOR_TYPE_AMBIENT_TEMPERATURE )\
+            _visitor_( GameRotationVector,                      15,     18,     Quat,       ASENSOR_TYPE_GAME_ROTATION_VECTOR )\
+            _visitor_( Pose6DOF,                                28,     24,     Float4x4,   ASENSOR_TYPE_POSE_6DOF          )\
+            /*\
+            _visitor_( Orientation,                              3,     15  )\
+            _visitor_( MagneticFieldUncalibrated,               14,     18,     Float3  )\
+            _visitor_( GyroscopeUncalibrated,                   16,     18,     Float3  )\
+            _visitor_( SignificantMotion,                       17,     18  )\
+            _visitor_( StepDetector,                            18,     19  )               / * permission.ACTIVITY_RECOGNITION * /\
+            _visitor_( StepCount,                               19,     19,     Float   )   /* permission.ACTIVITY_RECOGNITION * /\
+            _visitor_( GeomagneticRotationVector,               20,     19,     Quat    )\
+            _visitor_( HeartRate,                               21,     20  )               / * permission.BODY_SENSORS * /\
+            _visitor_( StationaryDetect,                        29,     24  )\
+            _visitor_( MotionDetect,                            30,     24  )\
+            _visitor_( HeartBeat,                               31,     24  )\
+            _visitor_( LowLatencyOffbodyDetect,                 34,     26  )\
+            _visitor_( AccelerometerUncalibrated,               35,     26,     Float3  )\
+            _visitor_( HingeAngle,                              36,     30  )\
+            _visitor_( HeadTracker,                             37,     33  )\
+            _visitor_( AccelerometerLimitedAxes,                38,     33,     Float3  )\
+            _visitor_( GyroscopeLimitedAxes,                    39,     33,     Float3  )\
+            _visitor_( AccelerometerLimitedAxesUncalibrated,    40,     33,     Float3  )\
+            _visitor_( GyroscopeLimitedAxesUncalibrated,        41,     33,     Float3  )\
+            _visitor_( Heading,                                 42,     33  )\
+            */
+
+        enum class ESensorType : int
+        {
+            #define AE_ANDROID_SERNSORS_VISITOR( _type_, _bitIndex_, ... )  _type_ = _bitIndex_,
+            AE_ANDROID_SERNSORS( AE_ANDROID_SERNSORS_VISITOR )
+            #undef AE_ANDROID_SERNSORS_VISITOR
+
+            Unknown             = 0xFF,
+        };
+
+        enum class EInputType : InputType_t
         {
             KeyBegin            = 0,
             KeyEnd              = 512,
 
-            #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )       _key_ = _code_,
+            #define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_,... )       _key_ = _code_,
             AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
             #undef AE_ANDROID_KEY_CODES_VISITOR
 
@@ -328,31 +375,31 @@ namespace AE::App
             // https://developer.android.com/guide/topics/sensors/sensors_overview
 
             Sensors1fBegin      = Cursor2DEnd + 1,
-            AirTemperature      = Sensors1fBegin,   // float  (celsious)
+            AirTemperature      = Sensors1fBegin,   // float  (Celsius)
             AmbientLight,                           // float  (lux)
             AirPressure,                            // float  (hPa or mbar)
-            Proximity,                              // float  (mm)
+            Proximity,                              // float  (cm) - on most devices it is 0 (too close) or >0 (too far, 3-5cm)
             RelativeHumidity,                       // float  (%)
-            StepCount,                              // ?
-            BatteryState,                           // ?
-            Sensors1fEnd        = BatteryState,
+            Sensors1fEnd        = RelativeHumidity,
 
-            Sensors2dBegin      = Sensors1fEnd + 1,
-            GeoLocation         = Sensors2dBegin,   // double2 ?
-            Sensors2dEnd        = GeoLocation,
-
-            Sensors3fBegin      = Sensors2dEnd + 1,
+            Sensors3fBegin      = Sensors1fEnd + 1,
             Accelerometer       = Sensors3fBegin,   // float3 (m/s2)
             Gravity,                                // float3 (m/s2)
             Gyroscope,                              // float3 (rad/s)
             LinearAcceleration,                     // float3 (m/s2)
-            MagneticField,                          // float3 (micro tesla)
-            RotationVector,                         // float3 (rad ?)
-            Sensors3fEnd        = RotationVector,
+            MagneticField,                          // float3 (micro tesla, uT)
+            Sensors3fEnd        = MagneticField,
 
-            Sensors4x4fBegin    = Sensors3fEnd + 1,
-            Pose6DOF            = Sensors4x4fBegin, // float4x4 ?
+            Sensors4fBegin      = Sensors3fEnd + 1,
+            RotationVector      = Sensors4fBegin,   // float4 (quaternion)
+            GameRotationVector,                     // float4 (quaternion)
+            Sensors4fEnd        = GameRotationVector,
+
+            Sensors4x4fBegin    = Sensors4fEnd + 1,
+            Pose6DOF            = Sensors4x4fBegin, // float4x4{ float4 quaternion;  float3 translation;  float4 delta_quaternion;  float3 delta_translation;  float seq; }
             Sensors4x4fEnd      = Pose6DOF,
+
+            GeoLocation,                            // GNS
 
             _Count,
             Unknown             = 0xFFFF,
@@ -368,34 +415,43 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsAndroid ()              __NE___ : SerializableInputActions{_Version} {}
+        SerializableInputActionsAndroid ()                              __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (InputType_t type)                                  C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (InputType_t type)                           C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsVec1D (InputType_t type)                                C_NE_OV { return _IsVec1D( EInputType(type) ); }
+        bool  IsVec2D (InputType_t type)                                C_NE_OV { return _IsVec2D( EInputType(type) ); }
+        bool  IsVec3D (InputType_t type)                                C_NE_OV { return _IsVec3D( EInputType(type) ); }
 
-        String      ToString (const Reflection &refl)   C_Th_OV;
-        StringView  GetApiName ()                       C_NE_OV { return "Android"; }
+        EValueType  RequiredValueType (InputType_t)                     C_NE_OV;
+        String      InputTypeToString (InputType_t)                     C_Th_OV;
+        String      SensorBitsToString (ESensorBits)                    C_Th_OV;
+        StringView  GetApiName ()                                       C_NE_OV { return "Android"; }
 
       #ifdef AE_ENABLE_SCRIPTING
         bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-                              const SourceLoc &loc, Reflection &refl) override;
+                              ArrayView<Path> includeDirs, const SourceLoc &loc,
+                              INOUT Reflection &refl)                   __NE_OV;
 
-        static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
+        static void  Bind (const Scripting::ScriptEnginePtr &se)        __Th___;
       #endif
 
+        ND_ static ESensorType  InputTypeToSensorType (EInputType)      __NE___;
+        ND_ static EInputType   SensorTypeToInputType (ESensorType)     __NE___;
+        ND_ static EValueType   SensorTypeToValueType (ESensorType)     __NE___;
+
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
-        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsSensor1f (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsSensor2d (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsSensor3f (EInputType type)    __NE___;
-        ND_ static constexpr bool  _IsSensor4x4f (EInputType type)  __NE___;
+        ND_ static constexpr bool  _IsKey (EInputType type)             __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)      __NE___;
+        ND_ static constexpr bool  _IsVec1D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec2D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsVec3D (EInputType type)           __NE___;
+        ND_ static constexpr bool  _IsSensor1f (EInputType type)        __NE___;
+        ND_ static constexpr bool  _IsSensor3f (EInputType type)        __NE___;
+        ND_ static constexpr bool  _IsSensor4f (EInputType type)        __NE___;
+        ND_ static constexpr bool  _IsSensor4x4f (EInputType type)      __NE___;
     };
 
 
@@ -405,37 +461,40 @@ namespace AE::App
 =================================================
 */
     inline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
-        return (type >= EInputType::KeyBegin) & (type <= EInputType::KeyEnd);
+        return (type >= EInputType::KeyBegin) and (type <= EInputType::KeyEnd);
     }
 
     inline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
-        return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
+        return _IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
     }
 
-    inline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsVec1D (EInputType type) __NE___ {
         return _IsSensor1f( type );
     }
 
-    inline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) __NE___ {
-        return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
-                _IsSensor2d( type )                                                         |
+    inline constexpr bool  SerializableInputActionsAndroid::_IsVec2D (EInputType type) __NE___ {
+        return  ((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd)) or
                 (type == EInputType::MultiTouch);
     }
 
-    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
-        return (type >= EInputType::Sensors1fBegin) & (type <= EInputType::Sensors1fEnd);
+    inline constexpr bool  SerializableInputActionsAndroid::_IsVec3D (EInputType type) __NE___ {
+        return  _IsSensor3f( type );
     }
 
-    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) __NE___ {
-        return (type >= EInputType::Sensors2dBegin) & (type <= EInputType::Sensors2dEnd);
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
+        return (type >= EInputType::Sensors1fBegin) and (type <= EInputType::Sensors1fEnd);
     }
 
     inline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
-        return (type >= EInputType::Sensors3fBegin) & (type <= EInputType::Sensors3fEnd);
+        return (type >= EInputType::Sensors3fBegin) and (type <= EInputType::Sensors3fEnd);
+    }
+
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor4f (EInputType type) __NE___ {
+        return (type >= EInputType::Sensors4fBegin) and (type <= EInputType::Sensors4fEnd);
     }
 
     inline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
-        return (type >= EInputType::Sensors4x4fBegin) & (type <= EInputType::Sensors4x4fEnd);
+        return (type >= EInputType::Sensors4x4fBegin) and (type <= EInputType::Sensors4x4fEnd);
     }
 
 } // AE::App

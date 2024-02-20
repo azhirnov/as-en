@@ -31,6 +31,29 @@ namespace RenderTechs
         } Main;
     } Canvas_RTech;
 
+    static constexpr struct _HwCamera_RTech
+    {
+        constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0x3b9de46eu}};}  // 'HwCamera.RTech'
+
+        // graphics (0)
+        static constexpr struct _Main
+        {
+            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1f1a625au}};}  // 'Main'
+
+            // RenderPass 'UIPass' subpass 'Main'
+
+            static constexpr uint  attachmentsCount = 1;
+            static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+            // pipelines
+            static constexpr PipelineName_t  hw_camera_NV16 {Hash_t{0xbe70194du}};  // 'hw_camera-NV16'
+            static constexpr PipelineName_t  hw_camera_NV21 {Hash_t{0xb39df2du}};  // 'hw_camera-NV21'
+            static constexpr PipelineName_t  hw_camera_YUV420 {Hash_t{0x57ca02fdu}};  // 'hw_camera-YUV420'
+            static constexpr PipelineName_t  hw_camera_YUY2 {Hash_t{0xdbb1ed84u}};  // 'hw_camera-YUY2'
+            static constexpr PipelineName_t  hw_camera_YV12 {Hash_t{0x74d3b272u}};  // 'hw_camera-YV12'
+        } Main;
+    } HwCamera_RTech;
+
     static constexpr struct _ImGui_RTech
     {
         constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xda495997u}};}  // 'ImGui.RTech'
@@ -70,21 +93,4 @@ namespace RenderTechs
             static constexpr PipelineName_t  camera3d_draw2 {Hash_t{0xd99db922u}};  // 'camera3d.draw2'
         } Main;
     } Scene3D_RTech;
-
-    static constexpr struct _UI_RTech
-    {
-        constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xd1c8aabcu}};}  // 'UI.RTech'
-
-        // graphics (0)
-        static constexpr struct _Main
-        {
-            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x1f1a625au}};}  // 'Main'
-            static constexpr DescriptorSetName_t  dsLayout {Hash_t{0x53f78985u}};  // 'ui.ds0'
-
-            // RenderPass 'UIPass' subpass 'Main'
-
-            static constexpr uint  attachmentsCount = 1;
-            static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
-        } Main;
-    } UI_RTech;
 }

@@ -1,4 +1,4 @@
-//457d401f
+//5fce0d8c
 #include <vector>
 #include <string>
 
@@ -20,37 +20,36 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct PipelineCompiler;
 struct float2;
 struct float3;
+struct PipelineCompiler;
+struct uint3;
+struct uint2;
 struct float4;
 struct uint4;
-struct uint2;
-struct uint3;
-struct AssetPacker;
-struct EReflectionFlags;
 struct short2;
 struct ushort4;
 struct short3;
 struct sbyte4;
 struct sbyte3;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct short4;
-struct Archive;
-struct bool2;
+struct AssetPacker;
+struct EReflectionFlags;
 struct int3;
+struct bool2;
 struct int2;
 struct bool3;
 struct int4;
-struct EPathParamsFlags;
 struct bool4;
+struct ushort3;
+struct sbyte2;
+struct ushort2;
+struct short4;
+struct Archive;
 struct ubyte4;
+struct InputActions;
 struct ubyte3;
 struct EFileType;
 struct ubyte2;
-struct InputActions;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -77,7 +76,7 @@ bool  IsSingleBitSet (int x);
 bool  AllBits (int x, int y);
 bool  AnyBits (int x, int y);
 int  ExtractBit (int & x);
-int  ExtractBitLog2 (int & x);
+int  ExtractBitIndex (int & x);
 int  BitRotateLeft (int x, uint shift);
 int  BitRotateRight (int x, uint shift);
 int  FloorPOT (int x);
@@ -101,7 +100,7 @@ bool  IsSingleBitSet (uint x);
 bool  AllBits (uint x, uint y);
 bool  AnyBits (uint x, uint y);
 uint  ExtractBit (uint & x);
-uint  ExtractBitLog2 (uint & x);
+uint  ExtractBitIndex (uint & x);
 uint  BitRotateLeft (uint x, uint shift);
 uint  BitRotateRight (uint x, uint shift);
 uint  FloorPOT (uint x);
@@ -148,7 +147,7 @@ float  Lerp (float x, float y, float factor);
 float  ToSNorm (float x);
 float  ToUNorm (float x);
 float  Remap (float srcMin, float srcMax, float dstMin, float dstMax, float x);
-float  RemapClamped (float srcMin, float srcMax, float dstMin, float dstMax, float x);
+float  RemapClamp (float srcMin, float srcMax, float dstMin, float dstMax, float x);
 int  RoundToInt (float x);
 uint  RoundToUint (float x);
 float  IsInfinity (float x);
@@ -1013,20 +1012,20 @@ float  Length (const float4 & x);
 float  LengthSq (const float4 & x);
 float  Distance (const float4 & x, const float4 & y);
 float  DistanceSq (const float4 & x, const float4 & y);
+void  LogError (const string & msg);
+void  LogInfo (const string & msg);
+void  LogDebug (const string & msg);
+void  LogFatal (const string & msg);
+void  Assert (bool expr);
+void  Assert (bool expr, const string & msg);
 string  GetSharedFeatureSetPath ();
 string  GetSharedShadersPath ();
 string  GetCanvasVerticesPath ();
+string  GetUIBindingsPath ();
 string  GetOutputDir ();
 void  DeleteFolder (const string &);
-struct EPathParamsFlags
-{
-    EPathParamsFlags () {}
-    EPathParamsFlags (uint32) {}
-    operator uint32 () const;
-    static constexpr uint32 Unknown = 0;
-    static constexpr uint32 Recursive = 1;
-};
-
+bool  IsGLSLCompilerSupported ();
+bool  IsMetalCompilerSupported ();
 struct EFileType
 {
     EFileType () {}
@@ -1036,6 +1035,8 @@ struct EFileType
     static constexpr uint32 Brotli = 2;
     static constexpr uint32 InMemory = 4;
     static constexpr uint32 BrotliInMemory = 6;
+    static constexpr uint32 ZStd = 16;
+    static constexpr uint32 ZStdInMemory = 20;
 };
 
 struct EReflectionFlags
@@ -1052,11 +1053,8 @@ struct EReflectionFlags
 struct PipelineCompiler
 {
     PipelineCompiler ();
-    void  AddPipelineFolder (const string &, uint, EPathParamsFlags);
-    void  AddPipelineFolder (const string &, EPathParamsFlags);
     void  AddPipelineFolder (const string &);
-    void  AddPipeline (const string &, uint, EPathParamsFlags);
-    void  AddPipeline (const string &, EPathParamsFlags);
+    void  AddPipelineFolderRecursive (const string &);
     void  AddPipeline (const string &);
     void  AddShaderFolder (const string &);
     void  ShaderIncludeDir (const string &);
@@ -1071,6 +1069,7 @@ struct InputActions
 {
     InputActions ();
     void  Add (const string &);
+    void  Include (const string &);
     void  SetOutputCPPFile (const string &);
     void  Convert (const string &);
 };
@@ -1080,6 +1079,7 @@ struct AssetPacker
     AssetPacker ();
     void  Add (const string &);
     void  AddFolder (const string &);
+    void  Include (const string &);
     void  SetTempFile (const string &);
     void  ToArchive (const string &);
 };
@@ -1089,10 +1089,10 @@ struct Archive
     Archive ();
     void  SetTempFile (const string &);
     void  SetDefaultFileType (EFileType);
-    void  Add (const string &, const string &, EFileType);
-    void  Add (const string &, EFileType);
-    void  Add (const string &, const string &);
-    void  Add (const string &);
+    void  Add (const string & nameInArchive, const string & filePath, EFileType archiveFileType);
+    void  Add (const string & filePath, EFileType archiveFileType);
+    void  Add (const string & nameInArchive, const string & filePath);
+    void  Add (const string & filePath);
     void  AddArchive (const string &);
     void  Store (const string &);
 };

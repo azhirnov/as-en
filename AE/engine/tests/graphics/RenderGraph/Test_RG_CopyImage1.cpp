@@ -65,7 +65,7 @@ namespace
 
             ReadbackImageDesc   read;
             read.imageOffset    = copy.dstOffset;
-            read.imageSize      = copy.extent;
+            read.imageDim       = copy.extent;
             read.heapType       = EStagingHeapType::Static;
 
             t.result = AsyncTask{ ctx.ReadbackImage( t.img_2, read )

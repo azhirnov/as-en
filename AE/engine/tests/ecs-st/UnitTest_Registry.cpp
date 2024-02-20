@@ -45,11 +45,11 @@ namespace
     }
 
     template <typename Fn>
-    static void  EnqueWithoutQuery (Registry &reg, Fn &&fn)
+    static void  EnqueueWithoutQuery (Registry &reg, Fn &&fn)
     {
         QueryID q = CreateQuery2( reg, (typename FunctionInfo<Fn>::args::template Get<0> *)null );
 
-        reg.Enque( q, FwdArg<Fn>(fn) );
+        reg.Enqueue( q, FwdArg<Fn>(fn) );
     }
 
 
@@ -365,13 +365,13 @@ namespace
         QueryID q = reg.CreateQuery< Require<Comp1, Comp2> >();
 
         usize   cnt1 = 0;
-        reg.Enque( q,
-            [&cnt1] (ArrayView<Tuple< usize, WriteAccess<Comp1>, ReadAccess<Comp2> >> chunks)
+        reg.Enqueue( q,
+            [&cnt1] (ArrayView<Tuple< usize, WriteAccess<Comp1>, ReadAccess<Comp2> >> chunks) __NE___
             {
                 for (auto& chunk : chunks)
                 {
                     chunk.Apply(
-                        [&cnt1] (const usize cnt, WriteAccess<Comp1> comp1, ReadAccess<Comp2> comp2)
+                        [&cnt1] (const usize cnt, WriteAccess<Comp1> comp1, ReadAccess<Comp2> comp2) __NE___
                         {
                             for (usize i = 0; i < cnt; ++i) {
                                 comp1[i].value = int(comp2[i].value);
@@ -382,8 +382,8 @@ namespace
             });
 
         usize   cnt2 = 0;
-        reg.Enque( q,
-            [&cnt2] (Comp1 &comp1, const Comp2 &comp2)
+        reg.Enqueue( q,
+            [&cnt2] (Comp1 &comp1, const Comp2 &comp2) __NE___
             {
                 comp1.value = int(comp2.value);
                 ++cnt2;
@@ -443,8 +443,8 @@ namespace
         }
 
         usize   cnt1 = 0;
-        EnqueWithoutQuery( reg,
-            [&cnt1] (ArrayView<Tuple< usize, ReadAccess<Comp1>, Subtractive<Tag1> >> chunks, Tuple< SingleComp1& > single)
+        EnqueueWithoutQuery( reg,
+            [&cnt1] (ArrayView<Tuple< usize, ReadAccess<Comp1>, Subtractive<Tag1> >> chunks, Tuple< SingleComp1& > single) __NE___
             {
                 usize&  sum = single.Get<0>().sum;
 
@@ -458,8 +458,8 @@ namespace
             });
 
         usize   cnt2 = 0;
-        EnqueWithoutQuery( reg,
-            [&cnt2] (ArrayView<Tuple< usize, ReadAccess<Comp2>, Require<Tag1, Comp1> >> chunks)
+        EnqueueWithoutQuery( reg,
+            [&cnt2] (ArrayView<Tuple< usize, ReadAccess<Comp2>, Require<Tag1, Comp1> >> chunks) __NE___
             {
                 for (auto& chunk : chunks)
                 {
@@ -497,21 +497,23 @@ namespace
         }
 
         Array<uint> arr;
-        EnqueWithoutQuery( reg,
-            [&reg, &arr] (ArrayView<Tuple< usize, ReadAccess<Comp1> >>)
+        EnqueueWithoutQuery( reg,
+            [&reg, &arr] (ArrayView<Tuple< usize, ReadAccess<Comp1> >>) __NE___
             {
                 arr.push_back( 1 );
 
-                EnqueWithoutQuery( reg, [&arr] (ArrayView<Tuple< usize, WriteAccess<Comp1>, ReadAccess<Comp2> >>)
-                                        {
-                                            arr.push_back( 2 );
-                                        });
+                EnqueueWithoutQuery( reg,
+                    [&arr] (ArrayView<Tuple< usize, WriteAccess<Comp1>, ReadAccess<Comp2> >>) __NE___
+                    {
+                        arr.push_back( 2 );
+                    });
             });
 
-        EnqueWithoutQuery( reg, [&arr] (ArrayView<Tuple< usize, ReadAccess<Comp2> >>)
-                                {
-                                    arr.push_back( 3 );
-                                });
+        EnqueueWithoutQuery( reg,
+            [&arr] (ArrayView<Tuple< usize, ReadAccess<Comp2> >>) __NE___
+            {
+                arr.push_back( 3 );
+            });
 
         reg.Process();
 
@@ -535,7 +537,7 @@ namespace
             [&arr] (Registry &registry)
             {
                 arr.push_back( 2 );
-                registry.EnqueEvent<Event2>();
+                registry.EnqueueEvent<Event2>();
             });
         reg.AddEventListener<AfterEvent<Event1>>(
             [&arr] (Registry &)
@@ -546,7 +548,7 @@ namespace
             [&arr] (Registry &registry)
             {
                 arr.push_back( 4 );
-                registry.EnqueEvent<Event3>();
+                registry.EnqueueEvent<Event3>();
             });
         reg.AddEventListener<Event2>(
             [&arr] (Registry &)
@@ -559,7 +561,7 @@ namespace
                 arr.push_back( 6 );
             });
 
-        reg.EnqueEvent<Event1>();
+        reg.EnqueueEvent<Event1>();
         reg.Process();
 
         TEST( arr == Array<uint>{1, 2, 3, 4, 5, 6} );
@@ -624,13 +626,13 @@ namespace
             TEST( e1 );
         }
 
-        EnqueWithoutQuery( reg,
-            [&reg] (ArrayView<Tuple< usize, ReadAccess<Comp1>, ReadAccess<EntityID> >> chunks)
+        EnqueueWithoutQuery( reg,
+            [&reg] (ArrayView<Tuple< usize, ReadAccess<Comp1>, ReadAccess<EntityID> >> chunks) __NE___
             {
                 for (auto& chunk : chunks)
                 {
                     chunk.Apply(
-                        [&reg] (const usize cnt, ReadAccess<Comp1>, ReadAccess<EntityID> entities)
+                        [&reg] (const usize cnt, ReadAccess<Comp1>, ReadAccess<EntityID> entities) __NE___
                         {
                             for (usize i = 0; i < cnt; ++i)
                             {

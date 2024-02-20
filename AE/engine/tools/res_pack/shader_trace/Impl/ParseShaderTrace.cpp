@@ -359,8 +359,7 @@ namespace
             return true;
         }
 
-        BEGIN_ENUM_CHECKS();
-        switch ( format )
+        switch_enum( format )
         {
             // pattern: 'file (line): ...'
             case Trace::ELogFormat::VS_Console :
@@ -381,7 +380,7 @@ namespace
             case Trace::ELogFormat::Unknown :
             case Trace::ELogFormat::_Count :    break;
         }
-        END_ENUM_CHECKS();
+        switch_end
 
         for (uint i = start_line; i <= end_line; ++i)
         {

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifndef AE_ENABLE_METAL
+#ifdef AE_TEST_SHADER_DEBUGGER
 # include "Test_RenderGraph.h"
 
 namespace
@@ -186,55 +186,55 @@ no source
 
 //> uv: float2 {0.500625, 0.500833}
 //  gl_GlobalInvocationID: uint3 {400, 300, 0}
-4. uv        = (vec2(gl_GlobalInvocationID.xy) + 0.5) / vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
+5. uv        = (vec2(gl_GlobalInvocationID.xy) + 0.5) / vec2(gl_WorkGroupSize.xy * gl_NumWorkGroups.xy);
 
 //> origin: float3 {0.500625, 0.499167, -1.000000}
 //  uv: float2 {0.500625, 0.500833}
-5. origin    = vec3(uv.x, 1.0 - uv.y, -1.0f);
+6. origin    = vec3(uv.x, 1.0 - uv.y, -1.0f);
 
 //> rayQueryInitialize(): void
 //  origin: float3 {0.500625, 0.499167, -1.000000}
-9.     rayQueryInitializeEXT( ray_query, un_RtScene, gl_RayFlagsNoneEXT,
-10.                            /*cullMask*/0xFF, origin, /*Tmin*/0.0f, direction, /*Tmax*/10.0f );
+10.     rayQueryInitializeEXT( ray_query, un_RtScene, gl_RayFlagsNoneEXT,
+11.                            /*cullMask*/0xFF, origin, /*Tmin*/0.0f, direction, /*Tmax*/10.0f );
 
 //> rayQueryProceed(): bool {true}
-12.     while ( rayQueryProceedEXT( ray_query ))
+13.     while ( rayQueryProceedEXT( ray_query ))
 
 //> rayQueryGetIntersectionType(): uint {0}
-14.         if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
+15.         if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
 
 //> (out): bool {true}
 //  rayQueryGetIntersectionType(): uint {0}
-14. if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
+15. if ( rayQueryGetIntersectionTypeEXT( ray_query, false ) == gl_RayQueryCandidateIntersectionTriangleEXT )
 
 //> rayQueryConfirmIntersection(): void
-15.             rayQueryConfirmIntersectionEXT( ray_query );
+16.             rayQueryConfirmIntersectionEXT( ray_query );
 
 //> rayQueryProceed(): bool {false}
-12.     while ( rayQueryProceedEXT( ray_query ))
+13.     while ( rayQueryProceedEXT( ray_query ))
 
 //> rayQueryGetIntersectionType(): uint {1}
-20.     if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
+21.     if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
 
 //> (out): bool {false}
 //  rayQueryGetIntersectionType(): uint {1}
-20. if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
+21. if ( rayQueryGetIntersectionTypeEXT( ray_query, true ) == gl_RayQueryCommittedIntersectionNoneEXT )
 
 //> attribs: float2 {0.252083, 0.498333}
-28. attribs      = rayQueryGetIntersectionBarycentricsEXT( ray_query, true );
+29. attribs      = rayQueryGetIntersectionBarycentricsEXT( ray_query, true );
 
 //> barycentrics: float3 {0.249583, 0.252083, 0.498333}
 //  attribs: float2 {0.252083, 0.498333}
-29. barycentrics = vec3( 1.0f - attribs.x - attribs.y, attribs.x, attribs.y );
+30. barycentrics = vec3( 1.0f - attribs.x - attribs.y, attribs.x, attribs.y );
 
 //> color: float4 {0.249583, 0.252083, 0.498333, 1.000000}
 //  barycentrics: float3 {0.249583, 0.252083, 0.498333}
-30. color = vec4(barycentrics, 1.0);
+31. color = vec4(barycentrics, 1.0);
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {400, 300, 0}
 //  color: float4 {0.249583, 0.252083, 0.498333, 1.000000}
-33.     imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
+34.     imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
                         ok &= (trace_str[0] == ref_str);
@@ -368,4 +368,4 @@ bool RGTest::Test_Debugger5 ()
     return result;
 }
 
-#endif // not AE_ENABLE_METAL
+#endif // AE_TEST_SHADER_DEBUGGER

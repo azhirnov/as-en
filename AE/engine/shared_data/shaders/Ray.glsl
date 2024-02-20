@@ -28,13 +28,13 @@ ND_ Ray     Ray_From (const float3 leftBottom, const float3 rightBottom, const f
                       const float3 origin, const float nearPlane, const float2 unormCoord);
 ND_ Ray     Ray_From (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord);
 
-ND_ Ray     Ray_FromFlatScreen (const float3 origin, const float distanceToEye, float2 screenSize, const float nearPlane, const float2 snormCoord);
+ND_ Ray     Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord);
 ND_ Ray     Ray_FromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize, const float nearPlane, const float2 snormCoord);
 
-ND_ Ray     Ray_PlaneToVR180 (const float ipd, const float3 origin, const float nearPlane, float2 uv);
-ND_ Ray     Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nearPlane, float2 uv);
-ND_ Ray     Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 uv);
-ND_ Ray     Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, float2 uv);
+ND_ Ray     Ray_PlaneToVR180 (const float ipd, const float3 origin, const float nearPlane, float2 unormCoord);
+ND_ Ray     Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nearPlane, float2 unormCoord);
+ND_ Ray     Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 unormCoord);
+ND_ Ray     Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 snormCoord);
 
 ND_ float2  Inverted_PlaneToVR180 (const float3 rayDir, const uint eye);
 ND_ float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye);
@@ -143,13 +143,11 @@ Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float near
        * -- eye
 =================================================
 */
-Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, float2 screenSize, const float nearPlane, const float2 snormCoord)
+Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
 {
-    screenSize *= 0.5f;
-
     Ray     ray;
     ray.origin  = origin;
-    ray.dir     = Normalize(float3( screenSize * snormCoord, distanceToEye ));
+    ray.dir     = Normalize(float3( screenSize * 0.5f * snormCoord, distanceToEye ));
 
     Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
     return ray;
@@ -169,15 +167,13 @@ Ray  Ray_FromCurvedScreen (const float3 origin, const float distanceToEye, const
 {
     screenSize *= 0.5f;
 
-    float2  corner;
-    corner.y = screenSize.x / screenRadius;
-    corner.x = Sqrt( 1.f - corner.y * corner.y );
+    float   a = screenSize.x / screenRadius * snormCoord.x;
 
     Ray     ray;
     ray.origin  = origin;
-    ray.dir     = Normalize(float3( corner.y * snormCoord.x,
-                                    screenSize.y * snormCoord.y,
-                                    (screenRadius - distanceToEye) - corner.x ));
+    ray.dir     = Normalize( float3( Sin( a ) * screenRadius,
+                                     screenSize.y * snormCoord.y,
+                                     (1.0 - Cos( a )) * screenRadius + distanceToEye ));
 
     Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
     return ray;
@@ -372,9 +368,8 @@ float2  Inverted_PlaneToCubemapVR360 (const float3 c, const uint eye)
     Z+ - forward, X+ - right, Y+ - down
 =================================================
 */
-Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, float2 uv)
+Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 uv)
 {
-            uv      = ToSNorm( uv );
             fov     *= 0.5;
     float   theta   = fov.x * -uv.x + Pi();
     float   phi     = fov.y * uv.y;
