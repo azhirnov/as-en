@@ -17,10 +17,10 @@ extern int AE_Assimp_Test ()
 int main ()
 #endif
 {
-    Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
-    Assimp::DefaultLogger::create( "", severity, aiDefaultLogStream_STDOUT );
+	Assimp::Logger::LogSeverity severity = Assimp::Logger::VERBOSE;
+	Assimp::DefaultLogger::create( "", severity, aiDefaultLogStream_STDOUT );
 
-    std::unique_ptr<Assimp::Importer>   p{ new Assimp::Importer{} };
+	std::unique_ptr<Assimp::Importer>	p{ new Assimp::Importer{} };
 
-    return 0;
+	return 0;
 }

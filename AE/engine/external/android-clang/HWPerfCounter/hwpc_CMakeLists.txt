@@ -11,8 +11,8 @@ include( "origin_CMakeLists.txt" )
 
 add_library( "hwpc-main" INTERFACE )
 target_link_libraries( "hwpc-main" INTERFACE
-    "hpc-gpu-mali-valhall"
-    "hpc-gpu-mali-bifrost"
-    "hpc-gpu-adreno-a5xx"
-    "hpc-gpu-adreno-a6xx"
+	"hpc-gpu-mali-valhall"
+	"hpc-gpu-mali-bifrost"
+	"hpc-gpu-adreno-a5xx"
+	"hpc-gpu-adreno-a6xx"
 )

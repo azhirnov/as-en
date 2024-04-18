@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_LZ4
-#   error AE_ENABLE_LZ4 required
+#	error AE_ENABLE_LZ4 required
 #endif
 
 #include "lz4.h"
@@ -14,9 +14,9 @@ extern int AE_lz4_Test ()
 int main ()
 #endif
 {
-    (void)&LZ4_compress_default;
-    (void)&LZ4_compress_HC;
-    (void)&LZ4_decompress_safe;
-
-    return 0;
+	(void)&LZ4_compress_default;
+	(void)&LZ4_compress_HC;
+	(void)&LZ4_decompress_safe;
+	
+	return 0;
 }

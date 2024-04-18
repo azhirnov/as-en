@@ -4,10 +4,10 @@
 #endif
 
 #ifdef _MSC_VER
-#   pragma warning (push, 0)
-#   pragma warning (disable: 4018)
-#   pragma warning (disable: 4267)
-#   pragma warning (disable: 4101)
+#	pragma warning (push, 0)
+#	pragma warning (disable: 4018)
+#	pragma warning (disable: 4267)
+#	pragma warning (disable: 4101)
 #endif
 
 #define TINYGLTF_IMPLEMENTATION
@@ -20,7 +20,7 @@
 #include "tiny_gltf.h"
 
 #ifdef _MSC_VER
-#   pragma warning (pop)
+#	pragma warning (pop)
 #endif
 
 #ifdef ANDROID
@@ -31,5 +31,5 @@ extern int AE_TinyglTF_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

@@ -5,64 +5,64 @@
 
 namespace
 {
-    class MsgProducer final :
-        public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, usize{8_b}, 16 >>
-    {
-    public:
-        EnumSet<EChannel>  GetChannels ()   C_NE_OV { return {EChannel::Reliable}; }
-    };
+	class MsgProducer final :
+		public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, usize{8_b}, 16 >>
+	{
+	public:
+		EnumSet<EChannel>  GetChannels ()	C_NE_OV	{ return {EChannel::Reliable}; }
+	};
 
 
-    static void  GenRandomString (OUT char* dst, uint len, Random &rnd)
-    {
-        for (uint i = 0; i < len; ++i) {
-            dst[i] = char(0xFF); //char(rnd.Uniform( uint('a'), uint('z') ));
-        }
-    }
+	static void  GenRandomString (OUT char* dst, uint len, Random &rnd)
+	{
+		for (uint i = 0; i < len; ++i) {
+			dst[i] = char(0xFF); //char(rnd.Uniform( uint('a'), uint('z') ));
+		}
+	}
 
 
-    static void  AsyncCSMessageProducer_Test1 ()
-    {
-        MsgProducer     msg_prod;
+	static void  AsyncCSMessageProducer_Test1 ()
+	{
+		MsgProducer		msg_prod;
 
-        const auto      ThreadFn = [&msg_prod] ()
-        {{
-            Random  rnd;
-            for (;;)
-            {
-                uint    len = rnd.Uniform( 3u, 200u );
+		const auto		ThreadFn = [&msg_prod] ()
+		{{
+			Random	rnd;
+			for (;;)
+			{
+				uint	len = rnd.Uniform( 3u, 200u );
 
-                auto    msg = msg_prod.CreateMsg< CSMsg_Log >( Bytes{len} );
-                if ( msg )
-                {
-                    GenRandomString( msg.Extra<char>(), len, rnd );
-                    msg->msg = StringView{ msg.Extra<char>(), len };
+				auto	msg = msg_prod.CreateMsg< CSMsg_Log >( Bytes{len} );
+				if ( msg )
+				{
+					GenRandomString( msg.Extra<char>(), len, rnd );
+					msg->msg = StringView{ msg.Extra<char>(), len };
 
-                    if ( not msg_prod.AddMessage( msg ))
-                        break;
-                }else
-                    break;
-            }
-        }};
+					if ( not msg_prod.AddMessage( msg ))
+						break;
+				}else
+					break;
+			}
+		}};
 
-        StaticArray< StdThread, 4 >     threads;
+		StaticArray< StdThread, 4 >		threads;
 
-        for (auto& t : threads)
-        {
-            t = StdThread{ ThreadFn };
-        }
+		for (auto& t : threads)
+		{
+			t = StdThread{ ThreadFn };
+		}
 
-        for (auto& t : threads)
-        {
-            t.join();
-        }
-    }
+		for (auto& t : threads)
+		{
+			t.join();
+		}
+	}
 }
 
 
 extern void UnitTest_AsyncCSMessageProducer ()
 {
-    AsyncCSMessageProducer_Test1();
+	AsyncCSMessageProducer_Test1();
 
-    TEST_PASSED();
+	TEST_PASSED();
 }

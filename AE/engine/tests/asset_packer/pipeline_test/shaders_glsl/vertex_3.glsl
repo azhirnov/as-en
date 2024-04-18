@@ -7,6 +7,6 @@
 
 void Main ()
 {
-    gl_Position  = vec4(in_Position, 1.0);
-    Out.Texcoord = in_Texcoord;
+	gl_Position  = vec4(in_Position, 1.0);
+	Out.Texcoord = in_Texcoord;
 }

@@ -5,6 +5,6 @@ extern int AE_AngelScript_Test ();
 
 void android_main (struct android_app* state)
 {
-    AE_AngelScript_Test();
+	AE_AngelScript_Test();
     std::abort();
 }

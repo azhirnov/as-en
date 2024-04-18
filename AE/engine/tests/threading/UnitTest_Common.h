@@ -8,43 +8,43 @@
 
 using namespace AE::Threading;
 
-enum class WorkerQueueCount : uint {};
-enum class IOThreadCount    : uint {};
+enum class WorkerQueueCount	: uint {};
+enum class IOThreadCount	: uint {};
 
 static constexpr seconds  c_MaxTimeout {100};
 
 
 struct LocalTaskScheduler
 {
-    explicit LocalTaskScheduler (WorkerQueueCount count)
-    {
-        TaskScheduler::Config   cfg;
-        cfg.maxPerFrameQueues   = ubyte(Max( 2u, uint(count) ));
-        cfg.mainThreadCoreId    = ECpuCoreId(0);
+	explicit LocalTaskScheduler (WorkerQueueCount count)
+	{
+		TaskScheduler::Config	cfg;
+		cfg.maxPerFrameQueues	= ubyte(Max( 2u, uint(count) ));
+		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
-        TaskScheduler::InstanceCtor::Create();
-        TEST( Scheduler().Setup( cfg ));
-    }
+		TaskScheduler::InstanceCtor::Create();
+		TEST( Scheduler().Setup( cfg ));
+	}
 
-    explicit LocalTaskScheduler (IOThreadCount count, ECpuCoreId mainThreadCoreId = ECpuCoreId(0))
-    {
-        TaskScheduler::Config   cfg;
-        cfg.maxPerFrameQueues   = 1;
-        cfg.maxIOAccessThreads  = ubyte(Max( 1u, uint(count) ));
-        cfg.mainThreadCoreId    = mainThreadCoreId;
+	explicit LocalTaskScheduler (IOThreadCount count, ECpuCoreId mainThreadCoreId = ECpuCoreId(0))
+	{
+		TaskScheduler::Config	cfg;
+		cfg.maxPerFrameQueues	= 1;
+		cfg.maxIOAccessThreads	= ubyte(Max( 1u, uint(count) ));
+		cfg.mainThreadCoreId	= mainThreadCoreId;
 
-        TaskScheduler::InstanceCtor::Create();
-        TEST( Scheduler().Setup( cfg ));
-    }
+		TaskScheduler::InstanceCtor::Create();
+		TEST( Scheduler().Setup( cfg ));
+	}
 
-    ~LocalTaskScheduler ()
-    {
-        Scheduler().Release();
-        TaskScheduler::InstanceCtor::Destroy();
-    }
+	~LocalTaskScheduler ()
+	{
+		Scheduler().Release();
+		TaskScheduler::InstanceCtor::Destroy();
+	}
 
-    TaskScheduler* operator -> ()
-    {
-        return &Scheduler();
-    }
+	TaskScheduler* operator -> ()
+	{
+		return &Scheduler();
+	}
 };

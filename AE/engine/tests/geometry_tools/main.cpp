@@ -15,11 +15,11 @@ extern int Test_GeometryTools ()
 int main ()
 #endif
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    UnitTest_SphericalCubeMath();
-    UnitTest_Triangulation();
+	UnitTest_SphericalCubeMath();
+	UnitTest_Triangulation();
 
-    AE_LOGI( "Tests.GeometryTools finished" );
-    return 0;
+	AE_LOGI( "Tests.GeometryTools finished" );
+	return 0;
 }

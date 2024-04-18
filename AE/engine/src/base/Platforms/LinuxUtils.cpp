@@ -20,143 +20,143 @@ namespace AE::Base
 
 /*
 =================================================
-    SecureZeroMem
+	SecureZeroMem
 =================================================
 */
-    void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
-    {
-        ::explicit_bzero( ptr, usize(size) );
-    }
+	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
+	{
+		::explicit_bzero( ptr, usize(size) );
+	}
 
 /*
 =================================================
-    SetCurrentThreadName
+	SetCurrentThreadName
 =================================================
 */
-    void  LinuxUtils::SetCurrentThreadName (NtStringView name) __NE___
-    {
-        StaticLogger::SetCurrentThreadName( StringView{name} );
+	void  LinuxUtils::SetCurrentThreadName (NtStringView name) __NE___
+	{
+		StaticLogger::SetCurrentThreadName( StringView{name} );
 
-        ASSERT( name.length() <= 16 );
-        int res = ::prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
-        ASSERT( res == 0 );
-    }
+		ASSERT( name.length() <= 16 );
+		int	res = ::prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
+		ASSERT( res == 0 );
+	}
 
 /*
 =================================================
-    GetCurrentThreadName
+	GetCurrentThreadName
 =================================================
 */
-    String  LinuxUtils::GetCurrentThreadName ()
-    {
-        char    buf [16];
-        int     res = ::prctl( PR_GET_NAME, buf, 0, 0, 0 );
-        ASSERT( res == 0 );
-        return String{buf};
-    }
+	String  LinuxUtils::GetCurrentThreadName ()
+	{
+		char	buf [16];
+		int		res = ::prctl( PR_GET_NAME, buf, 0, 0, 0 );
+		ASSERT( res == 0 );
+		return String{buf};
+	}
 
 /*
 =================================================
-    GetCurrentThreadHandle
+	GetCurrentThreadHandle
 =================================================
 */
-    ThreadHandle  LinuxUtils::GetCurrentThreadHandle () __NE___
-    {
-        return ::pthread_self();
-    }
+	ThreadHandle  LinuxUtils::GetCurrentThreadHandle () __NE___
+	{
+		return ::pthread_self();
+	}
 
 /*
 =================================================
-    SetThreadAffinity
+	SetThreadAffinity
 =================================================
 */
-    bool  LinuxUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
-    {
-        ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+	bool  LinuxUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	{
+		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
 
-        cpu_set_t cpuset;
-        CPU_ZERO( &cpuset );
-        CPU_SET( coreIdx, &cpuset );
-        return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
-    }
+		cpu_set_t cpuset;
+		CPU_ZERO( &cpuset );
+		CPU_SET( coreIdx, &cpuset );
+		return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
+	}
 
-    bool  LinuxUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
-    {
-        ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+	bool  LinuxUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	{
+		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
 
-        ::cpu_set_t  mask;
-        CPU_ZERO( OUT &mask );
-        CPU_SET( coreIdx, INOUT &mask );
+		::cpu_set_t  mask;
+		CPU_ZERO( OUT &mask );
+		CPU_SET( coreIdx, INOUT &mask );
 
-        return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
-    }
+		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
+	}
 
 /*
 =================================================
-    SetThreadPriority
+	SetThreadPriority
 =================================================
 */
-    bool  LinuxUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
-    {
-        // TODO:
-        //  pthread_setschedprio
-        //  https://pubs.opengroup.org/onlinepubs/007904875/functions/xsh_chap02_08.html#tag_02_08_04_01
-        Unused( handle, priority );
-        return false;
-    }
+	bool  LinuxUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	{
+		// TODO:
+		//	pthread_setschedprio
+		//	https://pubs.opengroup.org/onlinepubs/007904875/functions/xsh_chap02_08.html#tag_02_08_04_01
+		Unused( handle, priority );
+		return false;
+	}
 
-    bool  LinuxUtils::SetCurrentThreadPriority (float priority) __NE___
-    {
-        // TODO
-        Unused( priority );
-        return false;
-    }
+	bool  LinuxUtils::SetCurrentThreadPriority (float priority) __NE___
+	{
+		// TODO
+		Unused( priority );
+		return false;
+	}
 
 /*
 =================================================
-    GetProcessorCoreIndex
+	GetProcessorCoreIndex
 =================================================
 */
-    uint  LinuxUtils::GetProcessorCoreIndex () __NE___
-    {
-        return ::sched_getcpu();
-    }
+	uint  LinuxUtils::GetProcessorCoreIndex () __NE___
+	{
+		return ::sched_getcpu();
+	}
 
 /*
 =================================================
-    GetOSName
+	GetOSName
 =================================================
 */
 # ifndef AE_RELEASE
-    String  LinuxUtils::GetOSName () __NE___
-    {
-        utsname     os_info = {};
-        CHECK_ERR( ::uname( OUT &os_info ) == 0 );
+	String  LinuxUtils::GetOSName () __NE___
+	{
+		utsname		os_info = {};
+		CHECK_ERR( ::uname( OUT &os_info ) == 0 );
 
-        NOTHROW_ERR(
-            String  result;
-            result  << os_info.sysname << ' '
-                    << os_info.nodename << ' '
-                    << os_info.release << ' '
-                    << os_info.version;
-            return result;
-        )
-    }
+		NOTHROW_ERR(
+			String	result;
+			result	<< os_info.sysname << ' '
+					<< os_info.nodename << ' '
+					<< os_info.release << ' '
+					<< os_info.version;
+			return result;
+		)
+	}
 # endif
 
 /*
 =================================================
-    GetOSVersion
+	GetOSVersion
 =================================================
 */
-    Version3  LinuxUtils::GetOSVersion () __NE___
-    {
-        //utsname       os_info = {};
-        //CHECK_ERR( ::uname( OUT &os_info ) == 0 );
+	Version3  LinuxUtils::GetOSVersion () __NE___
+	{
+		//utsname		os_info = {};
+		//CHECK_ERR( ::uname( OUT &os_info ) == 0 );
 
-        // TODO
-        return Version3{};
-    }
+		// TODO
+		return Version3{};
+	}
 
 
 } // AE::Base

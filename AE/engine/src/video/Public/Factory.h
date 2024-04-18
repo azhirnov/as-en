@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Thread-safe:    yes
+	Thread-safe:	yes
 */
 
 #pragma once
@@ -9,23 +9,23 @@
 
 namespace AE::Video
 {
-    class IVideoEncoder;
-    class IVideoDecoder;
+	class IVideoEncoder;
+	class IVideoDecoder;
 
 
-    //
-    // Video Encoder/Decoder Factory
-    //
+	//
+	// Video Encoder/Decoder Factory
+	//
 
-    class VideoFactory : public Noninstanceable
-    {
-    public:
-        ND_ static RC<IVideoEncoder>  CreateFFmpegEncoder ()        __NE___;
-        ND_ static RC<IVideoEncoder>  CreateGraphicsHWEncoder ()    __NE___;
+	class VideoFactory : public Noninstanceable
+	{
+	public:
+		ND_ static RC<IVideoEncoder>  CreateFFmpegEncoder ()		__NE___;
+		ND_ static RC<IVideoEncoder>  CreateGraphicsHWEncoder ()	__NE___;
 
-        ND_ static RC<IVideoDecoder>  CreateFFmpegDecoder ()        __NE___;
-        ND_ static RC<IVideoDecoder>  CreateGraphicsHWDecoder ()    __NE___;
-    };
+		ND_ static RC<IVideoDecoder>  CreateFFmpegDecoder ()		__NE___;
+		ND_ static RC<IVideoDecoder>  CreateGraphicsHWDecoder ()	__NE___;
+	};
 
 
 } // AE::Video

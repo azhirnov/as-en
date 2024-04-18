@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Thread-safe: yes
+	Thread-safe: yes
 */
 
 #pragma once
@@ -9,27 +9,27 @@
 
 namespace AE::ResLoader
 {
-    class IntermSound;
+	class IntermSound;
 
 
-    //
-    // Sound Saver interface
-    //
+	//
+	// Sound Saver interface
+	//
 
-    class ISoundSaver
-    {
-    // methods
-    public:
-        virtual ~ISoundSaver ()                                     __NE___ {}
+	class ISoundSaver
+	{
+	// methods
+	public:
+		virtual ~ISoundSaver ()										__NE___	{}
 
-        bool  SaveSound (const Path &       filename,
-                         const IntermSound& sound,
-                         EAudioFormat       fileFormat  = Default)  __NE___;
+		bool  SaveSound (const Path	&		filename,
+						 const IntermSound&	sound,
+						 EAudioFormat		fileFormat	= Default)	__NE___;
 
-        virtual bool  SaveSound (WStream &          stream,
-                                 const IntermSound& sound,
-                                 EAudioFormat       fileFormat)     __NE___ = 0;
-    };
+		virtual bool  SaveSound (WStream &			stream,
+								 const IntermSound&	sound,
+								 EAudioFormat		fileFormat)		__NE___ = 0;
+	};
 
 
 } // AE::ResLoader

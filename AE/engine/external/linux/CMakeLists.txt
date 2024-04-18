@@ -2,13 +2,13 @@
 
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
-set( AE_ENABLE_KTX              OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_KTX	 			OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 
 if (NOT DEFINED AE_DST_PATH)
-    message( FATAL_ERROR "AE_DST_PATH is not defined" )
+	message( FATAL_ERROR "AE_DST_PATH is not defined" )
 endif()
 if (NOT DEFINED AE_DST_SHARED_PATH)
-    message( FATAL_ERROR "AE_DST_SHARED_PATH is not defined" )
+	message( FATAL_ERROR "AE_DST_SHARED_PATH is not defined" )
 endif()

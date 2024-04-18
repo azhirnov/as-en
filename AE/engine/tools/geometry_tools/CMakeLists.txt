@@ -2,7 +2,7 @@
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 if (NOT (DEFINED ENGINE_LIBS_PATH))
-    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
@@ -13,11 +13,11 @@ target_include_directories( "GeometryTools" PUBLIC ".." )
 set_property( TARGET "GeometryTools" PROPERTY FOLDER "Engine/Tools" )
 
 if (TARGET "Graphics")
-    target_link_libraries( "GeometryTools" PUBLIC "Graphics" )
-    target_compile_definitions( "GeometryTools" PUBLIC "AE_GEOMTOOLS_HAS_GRAPHICS" )
+	target_link_libraries( "GeometryTools" PUBLIC "Graphics" )
+	target_compile_definitions( "GeometryTools" PUBLIC "AE_GEOMTOOLS_HAS_GRAPHICS" )
 endif()
 if (TARGET "CDT-lib")
-    target_link_libraries( "GeometryTools" PUBLIC "CDT-lib" )
+	target_link_libraries( "GeometryTools" PUBLIC "CDT-lib" )
 endif()
 
 EnablePCH( "GeometryTools" )

@@ -6,37 +6,37 @@
 
 namespace AE::AssetPacker
 {
-    class ScriptBaseLayout;
+	class ScriptBaseLayout;
 
 
-    //
-    // Script UI Widget
-    //
+	//
+	// Script UI Widget
+	//
 
-    class ScriptUIWidget final : public EnableScriptRC
-    {
-    // types
-    public:
-
-
-    // variables
-    private:
-        ScriptRC<ScriptBaseLayout>      _root;
+	class ScriptUIWidget final : public EnableScriptRC
+	{
+	// types
+	public:
 
 
-    // methods
-    public:
-        ScriptUIWidget ();
-        ~ScriptUIWidget ();
+	// variables
+	private:
+		ScriptRC<ScriptBaseLayout>		_root;
 
 
-        void  Initialize (const ScriptRC<ScriptBaseLayout> &)   __Th___;
-        void  Store (const String &nameInArchive)               __Th___;
+	// methods
+	public:
+		ScriptUIWidget ();
+		~ScriptUIWidget ();
 
-        static void  Bind (const ScriptEnginePtr &se)           __Th___;
-    };
 
-    using ScriptUIWidgetPtr = ScriptRC< ScriptUIWidget >;
+		void  Initialize (const ScriptRC<ScriptBaseLayout> &)	__Th___;
+		void  Store (const String &nameInArchive)				__Th___;
+
+		static void  Bind (const ScriptEnginePtr &se)			__Th___;
+	};
+
+	using ScriptUIWidgetPtr = ScriptRC< ScriptUIWidget >;
 
 
 } // AE::AssetPacker

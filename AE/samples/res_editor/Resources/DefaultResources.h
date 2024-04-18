@@ -7,51 +7,51 @@
 namespace AE::ResEditor
 {
 
-    //
-    // Default Resources
-    //
+	//
+	// Default Resources
+	//
 
-    class DefaultResources : public EnableRC< DefaultResources >
-    {
-    // variables
-    private:
-        RC<DataTransferQueue>   _dtQueue;
+	class DefaultResources : public EnableRC< DefaultResources >
+	{
+	// variables
+	private:
+		RC<DataTransferQueue>	_dtQueue;
 
-        GfxMemAllocatorPtr      _gfxLinearAlloc;
-        GfxMemAllocatorPtr      _gfxDynamicAlloc;
+		GfxMemAllocatorPtr		_gfxLinearAlloc;
+		GfxMemAllocatorPtr		_gfxDynamicAlloc;
 
-        struct {
-            StrongImageAndViewID    image2D;
-            StrongImageAndViewID    imageCube;
-            StrongImageAndViewID    image3D;
+		struct {
+			StrongImageAndViewID	image2D;
+			StrongImageAndViewID	imageCube;
+			StrongImageAndViewID	image3D;
 
-            Strong<RTGeometryID>    rtGeometry;
-            Strong<RTSceneID>       rtScene;
-        }                       _dummyRes;
+			Strong<RTGeometryID>	rtGeometry;
+			Strong<RTSceneID>		rtScene;
+		}						_dummyRes;
 
 
-    // methods
-    public:
-        ~DefaultResources ();
+	// methods
+	public:
+		~DefaultResources ();
 
-        ND_ DataTransferQueue&      GetDataTransferQueue ()             C_NE___ { return *_dtQueue; }
-        ND_ GfxMemAllocatorPtr      GetAllocator ()                     C_NE___ { return _gfxLinearAlloc; }
-        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()              C_NE___ { return _gfxDynamicAlloc; }
+		ND_ DataTransferQueue&		GetDataTransferQueue ()				C_NE___	{ return *_dtQueue; }
+		ND_ GfxMemAllocatorPtr		GetAllocator ()						C_NE___	{ return _gfxLinearAlloc; }
+		ND_ GfxMemAllocatorPtr		GetDynamicAllocator ()				C_NE___	{ return _gfxDynamicAlloc; }
 
-        ND_ StrongImageAndViewID    GetDummyImage (const ImageDesc &)   C_NE___;
-        ND_ Strong<RTGeometryID>    GetDummyRTGeometry ()               C_NE___;
-        ND_ Strong<RTSceneID>       GetDummyRTScene ()                  C_NE___;
+		ND_ StrongImageAndViewID	GetDummyImage (const ImageDesc &)	C_NE___;
+		ND_ Strong<RTGeometryID>	GetDummyRTGeometry ()				C_NE___;
+		ND_ Strong<RTSceneID>		GetDummyRTScene ()					C_NE___;
 
-    protected:
-        DefaultResources ();
+	protected:
+		DefaultResources ();
 
-    private:
-        void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)      const;
-        void  _CreateDummyImage3D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)      const;
-        void  _CreateDummyImageCube (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)    const;
-        void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)   const;
-        void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)         const;
-    };
+	private:
+		void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)		const;
+		void  _CreateDummyImage3D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)		const;
+		void  _CreateDummyImageCube (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)	const;
+		void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)	const;
+		void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)			const;
+	};
 
 
 } // AE::ResEditor

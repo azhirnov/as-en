@@ -9,15 +9,15 @@ extern void  Test_FFmpeg ();
 
 int main ()
 {
-    StaticLogger::LoggerDbgScope log{};
+	StaticLogger::LoggerDbgScope log{};
 
-    const Path  folder  {AE_CURRENT_DIR "/video_test"};
-    FileSystem::RemoveAll( folder );
-    FileSystem::CreateDirectories( folder );
-    TEST( FileSystem::SetCurrentPath( folder ));
+	const Path	folder	{AE_CURRENT_DIR "/video_test"};
+	FileSystem::RemoveAll( folder );
+	FileSystem::CreateDirectories( folder );
+	TEST( FileSystem::SetCurrentPath( folder ));
 
-    Test_FFmpeg();
+	Test_FFmpeg();
 
-    AE_LOGI( "Tests.Video finished" );
-    return 0;
+	AE_LOGI( "Tests.Video finished" );
+	return 0;
 }

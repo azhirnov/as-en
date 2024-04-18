@@ -9,120 +9,120 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>    dstGeometry,
-                                      bool              indirect,
-                                      StringView        dbgName) __Th___ :
-        IPass{ dbgName },
-        _dstGeometry{ RVRef(dstGeometry) }
-    {
-        CHECK_THROW( _dstGeometry );
+	BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>	dstGeometry,
+									  bool				indirect,
+									  StringView		dbgName) __Th___ :
+		IPass{ dbgName },
+		_dstGeometry{ RVRef(dstGeometry) }
+	{
+		CHECK_THROW( _dstGeometry );
 
-        auto&   fs = GraphicsScheduler().GetFeatureSet();
-        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
-            "AS build is not supported" );
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
+			"AS build is not supported" );
 
-        if ( indirect )
-        {
-            if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
-                _mode = RTGeometry::EBuildMode::Indirect;
-            else
-                _mode = RTGeometry::EBuildMode::IndirectEmulated;
-        }
-        else
-            _mode = RTGeometry::EBuildMode::Direct;
-    }
+		if ( indirect )
+		{
+			if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
+				_mode = RTGeometry::EBuildMode::Indirect;
+			else
+				_mode = RTGeometry::EBuildMode::IndirectEmulated;
+		}
+		else
+			_mode = RTGeometry::EBuildMode::Direct;
+	}
 
 /*
 =================================================
-    Execute
+	Execute
 =================================================
 */
-    bool  BuildRTGeometry::Execute (SyncPassData &pd) __Th___
-    {
-        if_unlikely( not _IsEnabled() )
-            return true;
+	bool  BuildRTGeometry::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
 
-        DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
-        bool                result;
+		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+		bool				result;
 
-        result = _dstGeometry->Build( ctx, _mode );
+		result = _dstGeometry->Build( ctx, _mode );
 
-        pd.cmdbuf = ctx.ReleaseCommandBuffer();
-        return result;
-    }
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return result;
+	}
 
 /*
 =================================================
-    Update
+	Update
 =================================================
 */
-    bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __Th___
-    {
-        return true;
-    }
+	bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __Th___
+	{
+		return true;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    BuildRTScene::BuildRTScene (RC<RTScene> dstScene,
-                                bool        indirect,
-                                StringView  dbgName) __Th___ :
-        IPass{ dbgName },
-        _dstScene{ RVRef(dstScene) }
-    {
-        CHECK_THROW( _dstScene );
+	BuildRTScene::BuildRTScene (RC<RTScene>	dstScene,
+								bool		indirect,
+								StringView	dbgName) __Th___ :
+		IPass{ dbgName },
+		_dstScene{ RVRef(dstScene) }
+	{
+		CHECK_THROW( _dstScene );
 
-        auto&   fs = GraphicsScheduler().GetFeatureSet();
-        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
-            "AS build is not supported" );
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
+			"AS build is not supported" );
 
-        if ( indirect )
-        {
-            if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
-                _mode = RTGeometry::EBuildMode::Indirect;
-            else
-                _mode = RTGeometry::EBuildMode::IndirectEmulated;
-        }
-        else
-            _mode = RTGeometry::EBuildMode::Direct;
-    }
+		if ( indirect )
+		{
+			if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
+				_mode = RTGeometry::EBuildMode::Indirect;
+			else
+				_mode = RTGeometry::EBuildMode::IndirectEmulated;
+		}
+		else
+			_mode = RTGeometry::EBuildMode::Direct;
+	}
 
 /*
 =================================================
-    Execute
+	Execute
 =================================================
 */
-    bool  BuildRTScene::Execute (SyncPassData &pd) __Th___
-    {
-        if_unlikely( not _IsEnabled() )
-            return true;
+	bool  BuildRTScene::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
 
-        DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
-        bool                result;
+		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+		bool				result;
 
-        result = _dstScene->Build( ctx, _mode );
+		result = _dstScene->Build( ctx, _mode );
 
-        pd.cmdbuf = ctx.ReleaseCommandBuffer();
-        return result;
-    }
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return result;
+	}
 
 /*
 =================================================
-    Update
+	Update
 =================================================
 */
-    bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __Th___
-    {
-        return true;
-    }
+	bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __Th___
+	{
+		return true;
+	}
 
 
 } // AE::ResEditor

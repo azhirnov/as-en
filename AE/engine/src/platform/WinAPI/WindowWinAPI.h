@@ -12,77 +12,77 @@
 namespace AE::App
 {
 
-    //
-    // WinAPI Window
-    //
+	//
+	// WinAPI Window
+	//
 
-    class WindowWinAPI final : public WindowBase
-    {
-        friend class ApplicationWinAPI;
+	class WindowWinAPI final : public WindowBase
+	{
+		friend class ApplicationWinAPI;
 
-    // types
-    private:
-        enum class EVisibility
-        {
-            VisibleFocused,
-            VisibleUnfocused,
-            Invisible,
-        };
-
-
-    // variables
-    private:
-        void*               _wnd                = null;     // HWND
-        uint2               _surfaceSize;
-        int2                _windowPos;
-        bool                _requestQuit        = false;
-        bool                _lockAndHideCursor  = false;
-        void*               _cursorHandle       = null;     // HCURSOR
-
-        InputActionsWinAPI  _input;
-
-        RectI               _lastWindowSize;    // before switching to fullscreen
+	// types
+	private:
+		enum class EVisibility
+		{
+			VisibleFocused,
+			VisibleUnfocused,
+			Invisible,
+		};
 
 
-    // methods
-    public:
-        ~WindowWinAPI ()                                                    __NE_OV;
+	// variables
+	private:
+		void*				_wnd				= null;		// HWND
+		uint2				_surfaceSize;
+		int2				_windowPos;
+		bool				_requestQuit		= false;
+		bool				_lockAndHideCursor	= false;
+		void*				_cursorHandle		= null;		// HCURSOR
 
-    // IWindow //
-        void        Close ()                                                __NE_OV;
+		InputActionsWinAPI	_input;
 
-        uint2       GetSurfaceSize ()                                       C_NE_OV;
-        Monitor     GetMonitor ()                                           C_NE_OV;
-
-        IInputActions&  InputActions ()                                     __NE_OV { return _input; }
-        NativeWindow    GetNative ()                                        C_NE_OV;
-
-        void  SetSize (const uint2 &size)                                   __NE_OV;
-        void  SetPosition (const int2 &pos)                                 __NE_OV;
-        void  SetPosition (Monitor::ID monitor, const int2 &pos)            __NE_OV;
-        void  SetTitle (NtStringView title)                                 __NE_OV;
-        void  SetFocus ()                                                   C_NE_OV;
-        bool  SetMode (EWindowMode mode, Monitor::ID monitor)               __NE_OV;
+		RectI				_lastWindowSize;	// before switching to fullscreen
 
 
-    private:
-        explicit WindowWinAPI (ApplicationWinAPI &, Unique<IWndListener>, IInputActions*) __NE___;
+	// methods
+	public:
+		~WindowWinAPI ()													__NE_OV;
 
-        ND_ ApplicationWinAPI&  _GetApp ()                                  C_NE___;
+	// IWindow //
+		void		Close ()												__NE_OV;
 
-        ND_ bool  _Create (const WindowDesc &desc)                          __NE___;
-            void  _Destroy ()                                               __NE___;
-        ND_ bool  _Update ()                                                __NE___;
-        ND_ ssize _ProcessMessage (uint uMsg, usize wParam, ssize lParam)   __NE___;
-            void  _UpdateDescription ()                                     __NE___;
-            void  _ShowWindow (EVisibility value)                           C_NE___;
+		uint2		GetSurfaceSize ()										C_NE_OV;
+		Monitor		GetMonitor ()											C_NE_OV;
 
-            void  _LockAndHideCursor (bool value)                           __NE___;
-            void  _ClipCursor ()                                            __NE___;
+		IInputActions&	InputActions ()										__NE_OV	{ return _input; }
+		NativeWindow	GetNative ()										C_NE_OV;
 
-        ND_ bool  _WindowModeToStyle (EWindowMode, Monitor::ID monitorId,
-                                      OUT uint &, OUT uint &, INOUT int2 &, OUT int2 &) C_NE___;
-    };
+		void  SetSize (const uint2 &size)									__NE_OV;
+		void  SetPosition (const int2 &pos)									__NE_OV;
+		void  SetPosition (Monitor::ID monitor, const int2 &pos)			__NE_OV;
+		void  SetTitle (NtStringView title)									__NE_OV;
+		void  SetFocus ()													C_NE_OV;
+		bool  SetMode (EWindowMode mode, Monitor::ID monitor)				__NE_OV;
+
+
+	private:
+		explicit WindowWinAPI (ApplicationWinAPI &, Unique<IWndListener>, IInputActions*) __NE___;
+
+		ND_ ApplicationWinAPI&  _GetApp ()									C_NE___;
+
+		ND_ bool  _Create (const WindowDesc &desc)							__NE___;
+			void  _Destroy ()												__NE___;
+		ND_ bool  _Update ()												__NE___;
+		ND_ ssize _ProcessMessage (uint uMsg, usize wParam, ssize lParam)	__NE___;
+			void  _UpdateDescription ()										__NE___;
+			void  _ShowWindow (EVisibility value)							C_NE___;
+
+			void  _LockAndHideCursor (bool value)							__NE___;
+			void  _ClipCursor ()											__NE___;
+
+		ND_	bool  _WindowModeToStyle (EWindowMode, Monitor::ID monitorId,
+									  OUT uint &, OUT uint &, INOUT int2 &, OUT int2 &) C_NE___;
+	};
 
 
 } // AE::App

@@ -4,160 +4,160 @@
 
 namespace AE::App
 {
-    using namespace AE::Graphics;
+	using namespace AE::Graphics;
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    VRSurface::VRSurface () __NE___
-    {
-    }
+	VRSurface::VRSurface () __NE___
+	{
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    VRSurface::~VRSurface () __NE___
-    {}
+	VRSurface::~VRSurface () __NE___
+	{}
 
 /*
 =================================================
-    Create
+	Create
 =================================================
 */
-    bool  VRSurface::Create (const VRImageDesc &desc) __NE___
-    {
-        CHECK_ERR( desc.format != Default );
+	bool  VRSurface::Create (const VRImageDesc &desc) __NE___
+	{
+		CHECK_ERR( desc.format != Default );
 
-        EXLOCK( _guard );
+		EXLOCK( _guard );
 
-        Destroy();
+		Destroy();
 
-        auto&           res_mngr = GraphicsScheduler().GetResourceManager();
-        ImageDesc       img_desc;
-        ImageViewDesc   view_desc;
+		auto&			res_mngr = GraphicsScheduler().GetResourceManager();
+		ImageDesc		img_desc;
+		ImageViewDesc	view_desc;
 
-        img_desc.dimension      = uint3{ desc.dimension, 1u };
-        img_desc.imageDim       = EImageDim_2D;
-        img_desc.usage          = desc.usage;
-        img_desc.options        = desc.options;
-        img_desc.samples        = desc.samples;
-        img_desc.format         = desc.format;
+		img_desc.dimension		= uint3{ desc.dimension, 1u };
+		img_desc.imageDim		= EImageDim_2D;
+		img_desc.usage			= desc.usage;
+		img_desc.options		= desc.options;
+		img_desc.samples		= desc.samples;
+		img_desc.format			= desc.format;
 
-        view_desc.viewType      = EImage_2D;
-        view_desc.aspectMask    = EImageAspect::Color;
+		view_desc.viewType		= EImage_2D;
+		view_desc.aspectMask	= EImageAspect::Color;
 
-        for (usize i = 0; i < _images.size(); ++i)
-        {
-            _images[i] = res_mngr.CreateImage( img_desc, "VR image-" + ToString(i) );
-            CHECK_ERR( _images[i] );
+		for (usize i = 0; i < _images.size(); ++i)
+		{
+			_images[i] = res_mngr.CreateImage( img_desc, "VR image-" + ToString(i) );
+			CHECK_ERR( _images[i] );
 
-            _views[i] = res_mngr.CreateImageView( view_desc, _images[i], "VR image-"  + ToString(i) + " view" );
-            CHECK_ERR( _views[i] );
-        }
+			_views[i] = res_mngr.CreateImageView( view_desc, _images[i], "VR image-"  + ToString(i) + " view" );
+			CHECK_ERR( _views[i] );
+		}
 
-        _desc = desc;
+		_desc = desc;
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    Destroy
+	Destroy
 =================================================
 */
-    void  VRSurface::Destroy () __NE___
-    {
-        EXLOCK( _guard );
+	void  VRSurface::Destroy () __NE___
+	{
+		EXLOCK( _guard );
 
-        CHECK( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
+		CHECK( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 
-        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-        for (usize i = 0; i < _images.size(); ++i)
-        {
-            res_mngr.ReleaseResource( _images[i] );
-            res_mngr.ReleaseResource( _views[i] );
+		for (usize i = 0; i < _images.size(); ++i)
+		{
+			res_mngr.ReleaseResource( _images[i] );
+			res_mngr.ReleaseResource( _views[i] );
 
-            _images[i]  = Default;
-            _views[i]   = Default;
-        }
-    }
+			_images[i]	= Default;
+			_views[i]	= Default;
+		}
+	}
 
 /*
 =================================================
-    IsInitialized
+	IsInitialized
 =================================================
 */
-    bool  VRSurface::IsInitialized () C_NE___
-    {
-        EXLOCK( _guard );
-        return _images[0].IsValid();
-    }
+	bool  VRSurface::IsInitialized () C_NE___
+	{
+		EXLOCK( _guard );
+		return _images[0].IsValid();
+	}
 
 /*
 =================================================
-    GetRenderPassInfo
+	GetRenderPassInfo
 =================================================
 */
-    IOutputSurface::RenderPassInfo  VRSurface::GetRenderPassInfo () C_NE___
-    {
-        RenderPassInfo::Attachment  att;
-        att.format      = _desc.format;
-        att.samples     = _desc.samples;
+	IOutputSurface::RenderPassInfo  VRSurface::GetRenderPassInfo () C_NE___
+	{
+		RenderPassInfo::Attachment	att;
+		att.format		= _desc.format;
+		att.samples		= _desc.samples;
 
-        RenderPassInfo  result;
-        result.attachments.push_back( att );
-        return result;
-    }
+		RenderPassInfo	result;
+		result.attachments.push_back( att );
+		return result;
+	}
 
 /*
 =================================================
-    GetTargets
+	GetTargets
 =================================================
 */
-    bool  VRSurface::GetTargets (OUT RenderTargets_t &targets) C_NE___
-    {
-        targets.clear();
+	bool  VRSurface::GetTargets (OUT RenderTargets_t &targets) C_NE___
+	{
+		targets.clear();
 
-        EXLOCK( _guard );
+		EXLOCK( _guard );
 
-        targets.resize( _images.size() );
+		targets.resize( _images.size() );
 
-        for (usize i = 0; i < _images.size(); ++i)
-        {
-            auto&   dst = targets[i];
+		for (usize i = 0; i < _images.size(); ++i)
+		{
+			auto&	dst = targets[i];
 
-            dst.imageId         = _images[i];
-            dst.viewId          = _views[i];
-            dst.region          = RectI{ int2{0}, int2(_desc.dimension) };
-            dst.layer           = 0_layer;  // TODO: supports 2D array
-            dst.pixToMm         = 1.0f;
-            dst.initialState    = EResourceState::ColorAttachment;
-            dst.finalState      = EResourceState::ColorAttachment;
-            dst.format          = _desc.format;
-            dst.colorSpace      = _colorSpace;
-            dst.projection      = null;
-        }
-        return true;
-    }
+			dst.imageId			= _images[i];
+			dst.viewId			= _views[i];
+			dst.region			= RectI{ int2{0}, int2(_desc.dimension) };
+			dst.layer			= 0_layer;	// TODO: supports 2D array
+			dst.pixToMm			= 1.0f;
+			dst.initialState	= EResourceState::ColorAttachment;
+			dst.finalState		= EResourceState::ColorAttachment;
+			dst.format			= _desc.format;
+			dst.colorSpace		= _colorSpace;
+			dst.projection		= null;
+		}
+		return true;
+	}
 
 /*
 =================================================
-    GetTargetInfo
+	GetTargetInfo
 =================================================
 */
-    IOutputSurface::TargetInfos_t  VRSurface::GetTargetInfo () C_NE___
-    {
-        TargetInfos_t   result;
-        for (usize i = 0; i < _images.size(); ++i) {
-            result.emplace_back( _desc.dimension, 0.f );
-        }
-        return result;
-    }
+	IOutputSurface::TargetInfos_t  VRSurface::GetTargetInfo () C_NE___
+	{
+		TargetInfos_t	result;
+		for (usize i = 0; i < _images.size(); ++i) {
+			result.emplace_back( _desc.dimension, 0.f );
+		}
+		return result;
+	}
 
 
 } // AE::App

@@ -1,63 +1,63 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 34
+	compileSdk 34
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_8
+		targetCompatibility JavaVersion.VERSION_1_8
+	}
 
-    defaultConfig {
-        applicationId       'AE.Demo'
-        minSdkVersion       24 // 24+ for vulkan
-        targetSdkVersion    34
+	defaultConfig {
+		applicationId 		'AE.Demo'
+		minSdkVersion 		24 // 24+ for vulkan
+		targetSdkVersion 	34
+		
+		ndk {
+			abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
+		}
+		externalNativeBuild {
+			cmake {
+				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
+						  '-DANDROID_ARM_NEON=ON',
+						  '-DAE_ENABLE_VULKAN=ON'
+			}
+		}
+	}
+	
+	buildTypes {
+		release {
+			//debuggable true // to enable logcat in release
+			minifyEnabled = false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.debug
+		}
+	}
 
-        ndk {
-            abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
-        }
-        externalNativeBuild {
-            cmake {
-                arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
-                          '-DANDROID_ARM_NEON=ON',
-                          '-DAE_ENABLE_VULKAN=ON'
-            }
-        }
-    }
+	ndkVersion "24.0.8215888"
 
-    buildTypes {
-        release {
-            //debuggable true // to enable logcat in release
-            minifyEnabled = false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
-        }
-    }
-
-    ndkVersion "24.0.8215888"
-
-    externalNativeBuild {
-        cmake {
-            version '3.26.4'
-            path '../../CMakeLists.txt'
-        }
-    }
-    sourceSets {
-        main {
-            assets.srcDirs = ['../../../AE-Temp/samples/demo']
-        }
-    }
-    packagingOptions {
-        jniLibs {
-            excludes += ['lib/**/*.so']
-            pickFirsts += ['lib/**/libSampleDemo.so']
-            pickFirsts += ['lib/**/libc++_shared.so', 'lib/**/libVkLayer_khronos_validation.so']
-        }
-    }
-    namespace 'AE.demo'
+	externalNativeBuild {
+		cmake {
+			version '3.26.4'
+			path '../../CMakeLists.txt'
+		}
+	}
+	sourceSets {
+		main {
+			assets.srcDirs = ['../../../AE-Temp/samples/demo']
+		}
+	}
+	packagingOptions {
+		jniLibs {
+			excludes += ['lib/**/*.so']
+			pickFirsts += ['lib/**/libSampleDemo.so']
+			pickFirsts += ['lib/**/libc++_shared.so', 'lib/**/libVkLayer_khronos_validation.so']
+		}
+	}
+	namespace 'AE.demo'
 }
 
 dependencies {
-    implementation project(path: ':engine')
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+	implementation project(path: ':engine')
+	implementation 'androidx.appcompat:appcompat:1.6.1'
 }

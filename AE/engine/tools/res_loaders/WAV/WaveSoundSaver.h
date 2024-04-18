@@ -7,17 +7,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // Wave Sound Saver
-    //
+	//
+	// Wave Sound Saver
+	//
 
-    class WaveSoundSaver final : public ISoundSaver
-    {
-    // methods
-    public:
-        bool  SaveSound (WStream &stream, const IntermSound &sound, EAudioFormat fileFormat = Default) __NE_OV;
-        using ISoundSaver::SaveSound;
-    };
+	class WaveSoundSaver final : public ISoundSaver
+	{
+	// methods
+	public:
+		bool  SaveSound (WStream &stream, const IntermSound &sound, EAudioFormat fileFormat = Default) __NE_OV;
+		using ISoundSaver::SaveSound;
+	};
 
 
 } // AE::ResLoader

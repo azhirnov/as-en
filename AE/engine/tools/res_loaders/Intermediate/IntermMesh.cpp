@@ -4,77 +4,77 @@
 
 namespace AE::ResLoader
 {
-    using namespace AE::Graphics;
+	using namespace AE::Graphics;
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    IntermMesh::IntermMesh (Array<ubyte> vertices, RC<IntermVertexAttribs> attribs,
-                            Bytes vertStride, EPrimitive topology,
-                            Array<ubyte> indices, EIndex indexType) __NE___ :
-        _vertices{ RVRef(vertices) },   _attribs{ RVRef(attribs) },
-        _vertexStride{ vertStride },    _topology{ topology },
-        _indices{ RVRef(indices) },     _indexType{ indexType }
-    {}
+	IntermMesh::IntermMesh (Array<ubyte> vertices, RC<IntermVertexAttribs> attribs,
+							Bytes vertStride, EPrimitive topology,
+							Array<ubyte> indices, EIndex indexType) __NE___ :
+		_vertices{ RVRef(vertices) },	_attribs{ RVRef(attribs) },
+		_vertexStride{ vertStride },	_topology{ topology },
+		_indices{ RVRef(indices) },		_indexType{ indexType }
+	{}
 
 /*
 =================================================
-    CalcAABB
+	CalcAABB
 =================================================
 */
-    void  IntermMesh::CalcAABB () __NE___
-    {
-        CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
+	void  IntermMesh::CalcAABB () __NE___
+	{
+		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
 
-        _boundingBox = AABB{};
+		_boundingBox = AABB{};
 
-        auto    positions = _attribs->GetData<float3>( VertexAttributeName::Position, _vertices.data(),
-                                                       VertexCount(), _vertexStride );
-        if ( positions.empty() )
-            return;
+		auto	positions = _attribs->GetData<float3>( VertexAttributeName::Position, _vertices.data(),
+													   VertexCount(), _vertexStride );
+		if ( positions.empty() )
+			return;
 
-        AABB    bbox{ positions[0] };
+		AABB	bbox{ positions[0] };
 
-        for (size_t i = 1; i < positions.size(); ++i)
-        {
-            bbox.Add( positions[i] );
-        }
+		for (size_t i = 1; i < positions.size(); ++i)
+		{
+			bbox.Add( positions[i] );
+		}
 
-        _boundingBox = bbox;
-    }
+		_boundingBox = bbox;
+	}
 
 /*
 =================================================
-    IndexStride
+	IndexStride
 =================================================
 */
-    Bytes  IntermMesh::IndexStride () C_NE___
-    {
-        return EIndex_SizeOf( _indexType );
-    }
+	Bytes  IntermMesh::IndexStride () C_NE___
+	{
+		return EIndex_SizeOf( _indexType );
+	}
 
 /*
 =================================================
-    IsValid
+	IsValid
 =================================================
 */
-    bool  IntermMesh::IsValid () C_NE___
-    {
-        CHECK_ERR( _attribs );
+	bool  IntermMesh::IsValid () C_NE___
+	{
+		CHECK_ERR( _attribs );
 
-        /*if (auto normals = GetDataOpt< packed_float3 >( VertexAttributeName::Normal );  not normals.empty() )
-        {
-            bool    valid = true;
-            for (auto& n : normals) {
-                valid &= IsNormalized( n );
-            }
-            CHECK_ERR( valid );
-        }*/
+		/*if (auto normals = GetDataOpt< packed_float3 >( VertexAttributeName::Normal );  not normals.empty() )
+		{
+			bool	valid = true;
+			for (auto& n : normals) {
+				valid &= IsNormalized( n );
+			}
+			CHECK_ERR( valid );
+		}*/
 
-        return true;
-    }
+		return true;
+	}
 
 
 } // AE::ResLoader

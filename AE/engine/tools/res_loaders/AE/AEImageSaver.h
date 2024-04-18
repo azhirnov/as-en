@@ -7,17 +7,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // AE (engine internal format) Image Saver
-    //
+	//
+	// AE (engine internal format) Image Saver
+	//
 
-    class AEImageSaver final : public IImageSaver
-    {
-    // methods
-    public:
-        bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default, Bool flipY = False{}) __NE_OV;
-        using IImageSaver::SaveImage;
-    };
+	class AEImageSaver final : public IImageSaver
+	{
+	// methods
+	public:
+		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default, Bool flipY = False{}) __NE_OV;
+		using IImageSaver::SaveImage;
+	};
 
 
 } // AE::ResLoader

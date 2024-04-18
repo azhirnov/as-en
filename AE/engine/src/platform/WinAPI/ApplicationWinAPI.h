@@ -12,60 +12,60 @@
 namespace AE::App
 {
 
-    //
-    // WinAPI Application
-    //
+	//
+	// WinAPI Application
+	//
 
-    class ApplicationWinAPI final : public ApplicationBase
-    {
-    // types
-    private:
-        using Window        = WeakPtr< WindowWinAPI >;
-        using WindowArray_t = FixedArray< Window, PlatformConfig::MaxWindows >;
-
-
-    // variables
-    private:
-        RecursiveMutex      _windowsGuard;      // TODO: can be removed
-        WindowArray_t       _windows;
-
-        void *              _instance;      // HMODULE
-        String              _className;
-
-        Monitors_t          _cachedMonitors;
-
-        Locales_t           _locales;
+	class ApplicationWinAPI final : public ApplicationBase
+	{
+	// types
+	private:
+		using Window		= WeakPtr< WindowWinAPI >;
+		using WindowArray_t	= FixedArray< Window, PlatformConfig::MaxWindows >;
 
 
-    // methods
-    public:
+	// variables
+	private:
+		RecursiveMutex		_windowsGuard;		// TODO: can be removed
+		WindowArray_t		_windows;
 
-        StringView  GetClassName ()                                                     C_NE___ { return _className; }
-        void*       GetHInstance ()                                                     C_NE___ { return _instance; }
+		void *				_instance;		// HMODULE
+		String				_className;
 
-        static int  Run (Unique<IAppListener>)                                          __NE___;
+		Monitors_t			_cachedMonitors;
 
-
-    // IApplication //
-        WindowPtr   CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)   __NE_OV;
-        StringView  GetApiName ()                                                       C_NE_OV { return "winapi"; }
-        Locales_t   GetLocales ()                                                       C_NE_OV { return _locales; }
-
-        ArrayView<Monitor>      GetMonitors (bool update = false)                       __NE_OV;
-        RC<IVirtualFileStorage> OpenStorage (EAppStorage)                               __NE_OV { return null; }    // TODO: use GetTempPathW(), GetTempPath2W()
-        ArrayView<const char*>  GetVulkanInstanceExtensions ()                          __NE_OV;
+		Locales_t			_locales;
 
 
-    private:
-        explicit ApplicationWinAPI (Unique<IAppListener>)                               __NE___;
-        ~ApplicationWinAPI ()                                                           __NE___;
+	// methods
+	public:
 
-        ND_ bool  _RegisterClass ()                                                     __NE___;
-            void  _MainLoop ()                                                          __NE___;
+		StringView	GetClassName ()														C_NE___	{ return _className; }
+		void*		GetHInstance ()														C_NE___	{ return _instance; }
 
-            void  _UpdateMonitors (OUT Monitors_t &)                                    C_NE___;
-            void  _GetLocales (OUT Locales_t &)                                         C_NE___;
-    };
+		static int  Run (Unique<IAppListener>)											__NE___;
+
+
+	// IApplication //
+		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)	__NE_OV;
+		StringView	GetApiName ()														C_NE_OV	{ return "winapi"; }
+		Locales_t	GetLocales ()														C_NE_OV	{ return _locales; }
+
+		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
+		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV { return null; }	// TODO: use GetTempPathW(), GetTempPath2W()
+		ArrayView<const char*>  GetVulkanInstanceExtensions ()							__NE_OV;
+
+
+	private:
+		explicit ApplicationWinAPI (Unique<IAppListener>)								__NE___;
+		~ApplicationWinAPI ()															__NE___;
+
+		ND_ bool  _RegisterClass ()														__NE___;
+			void  _MainLoop ()															__NE___;
+
+			void  _UpdateMonitors (OUT Monitors_t &)									C_NE___;
+			void  _GetLocales (OUT Locales_t &)											C_NE___;
+	};
 
 
 } // AE::App

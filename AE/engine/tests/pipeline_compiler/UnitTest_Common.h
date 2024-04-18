@@ -12,38 +12,38 @@ using namespace AE::PipelineCompiler;
 template <typename T>
 ND_ String  ToGLSL (T &ptr)
 {
-    String  hdr     = "\n";
-    String  fields  = "Buffer {\n";
+	String	hdr		= "\n";
+	String	fields	= "Buffer {\n";
 
-    CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
-    hdr << fields << "}\n";
+	CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
+	hdr << fields << "}\n";
 
   #if not AE_PRIVATE_USE_TABS
-    hdr = Parser::TabsToSpaces( hdr );
+	hdr = Parser::TabsToSpaces( hdr );
   #endif
-    return hdr;
+	return hdr;
 }
 
 template <typename T>
 ND_ String  ToMSL (T &ptr)
 {
-    String  hdr = "\n";
-    CHECK_ERR( ptr->ToMSL( INOUT hdr ));
+	String	hdr	= "\n";
+	CHECK_ERR( ptr->ToMSL( INOUT hdr ));
 
   #if not AE_PRIVATE_USE_TABS
-    hdr = Parser::TabsToSpaces( hdr );
+	hdr = Parser::TabsToSpaces( hdr );
   #endif
-    return hdr;
+	return hdr;
 }
 
 template <typename T>
 ND_ String  ToCPP (T &ptr)
 {
-    String  src = "\n";
-    CHECK_ERR( ptr->ToCPP( INOUT src ));
+	String	src = "\n";
+	CHECK_ERR( ptr->ToCPP( INOUT src ));
 
   #if not AE_PRIVATE_USE_TABS
-    src = Parser::TabsToSpaces( src );
+	src = Parser::TabsToSpaces( src );
   #endif
-    return src;
+	return src;
 }

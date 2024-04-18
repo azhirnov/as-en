@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Color functions
+	Color functions
 */
 
 #ifdef __cplusplus
@@ -51,38 +51,38 @@ ND_ float3  RGBLerpOklab (const float3 a, const float3 b, const float factor);
 
 float4  Rainbow (const float factor)
 {
-    return float4( HSVtoRGB( float3( Saturate( factor * 0.74f ), 1.f, 1.f )), 1.f );
+	return float4( HSVtoRGB( float3( Saturate( factor * 0.74f ), 1.f, 1.f )), 1.f );
 }
 
 float4  RainbowWrap (const float factor)
 {
-    return float4( HSVtoRGB( float3( Wrap( factor * 0.74f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );
+	return float4( HSVtoRGB( float3( Wrap( factor * 0.74f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );
 }
 //-----------------------------------------------------------------------------
 
 
 float3  RGBLerpHSV (float3 a, float3 b, const float factor)
 {
-    a = RGBtoHSV( a );
-    b = RGBtoHSV( b );
-    return HSVtoRGB( LerpHSV( a, b, factor ));
+	a = RGBtoHSV( a );
+	b = RGBtoHSV( b );
+	return HSVtoRGB( LerpHSV( a, b, factor ));
 }
 //-----------------------------------------------------------------------------
 
 
 float  RGBtoLuminance (const float3 linear)
 {
-    return Dot( linear, float3(0.212671f, 0.715160f, 0.072169f) );
+	return Dot( linear, float3(0.212671f, 0.715160f, 0.072169f) );
 }
 
 
 float  RGBtoLogLuminance (const float3 linear, float gamma)
 {
-    return Log2( Lerp( 1.0f, Exp2(gamma), RGBtoLuminance( linear ))) / gamma;
+	return Log2( Lerp( 1.0f, Exp2(gamma), RGBtoLuminance( linear ))) / gamma;
 }
 
 float  RGBtoLogLuminance (const float3 linear)
 {
-    return RGBtoLogLuminance( linear, 4.0f );
+	return RGBtoLogLuminance( linear, 4.0f );
 }
 //-----------------------------------------------------------------------------

@@ -8,24 +8,24 @@
 namespace AE::Audio
 {
 
-    //
-    // BASS Audio Decoder
-    //
+	//
+	// BASS Audio Decoder
+	//
 
-    class AudioDecoderBASS : public IAudioDecoder
-    {
-    // variables
-    private:
-        uint        _streamId;      // HSTREAM
-
-
-    // methods
-    public:
-        AudioDecoderBASS ()             __NE___ {}
-        ~AudioDecoderBASS ()            __NE_OV {}
+	class AudioDecoderBASS : public IAudioDecoder
+	{
+	// variables
+	private:
+		uint		_streamId;		// HSTREAM
 
 
-    };
+	// methods
+	public:
+		AudioDecoderBASS ()				__NE___	{}
+		~AudioDecoderBASS ()			__NE_OV	{}
+
+
+	};
 
 
 } // AE::Audio

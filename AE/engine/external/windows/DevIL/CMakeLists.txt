@@ -5,8 +5,8 @@
 set( DEVIL_PATH "${AE_DST_SHARED_PATH}/DevIL" )
 
 add_custom_target( "DevIL-copy-dll"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVIL_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
-    COMMENT "Copying DevIL DLLs..." )
+	COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVIL_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
+	COMMENT "Copying DevIL DLLs..." )
 set_property( TARGET "DevIL-copy-dll" PROPERTY FOLDER "Engine/External" )
 
 if (NOT EXISTS "${DEVIL_PATH}/bin")

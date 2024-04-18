@@ -5,104 +5,104 @@
 #include "../Public/ShaderTrace.h"
 #include "base/Algorithms/StringUtils.h"
 
-#define HIGH_DETAIL_TRACE       1
-#define USE_STORAGE_QUALIFIERS  0
+#define HIGH_DETAIL_TRACE		1
+#define USE_STORAGE_QUALIFIERS	0
 
 
 // glslang includes
 #ifdef AE_ENABLE_GLSLANG
 # ifdef AE_COMPILER_MSVC
-#   pragma warning (push, 0)
-#   pragma warning (disable: 4005)
-#   pragma warning (disable: 4668)
+#	pragma warning (push, 0)
+#	pragma warning (disable: 4005)
+#	pragma warning (disable: 4668)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wdouble-promotion"
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
 #ifdef AE_COMPILER_GCC
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wundef"
-#   pragma GCC diagnostic ignored "-Wdouble-promotion"
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wundef"
+#	pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
 
 # include "glslang/MachineIndependent/localintermediate.h"
 # include "glslang/Include/intermediate.h"
 
 # ifdef AE_COMPILER_MSVC
-#   pragma warning (pop)
+#	pragma warning (pop)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-#   pragma clang diagnostic pop
+#	pragma clang diagnostic pop
 # endif
 # ifdef AE_COMPILER_GCC
-#   pragma GCC diagnostic pop
+#	pragma GCC diagnostic pop
 # endif
 #endif // AE_ENABLE_GLSLANG
 
 
 namespace AE::PipelineCompiler
 {
-    using VariableID = ShaderTrace::VariableID;
+	using VariableID = ShaderTrace::VariableID;
 
 
 # ifdef AE_ENABLE_GLSLANG
 
-    ND_ String  GetFunctionName (glslang::TIntermOperator* op);
+	ND_ String  GetFunctionName (glslang::TIntermOperator* op);
 
-    ND_ bool  ValidateInterm (glslang::TIntermediate &intermediate);
+	ND_ bool  ValidateInterm (glslang::TIntermediate &intermediate);
 
-
-/*
-=================================================
-    TSourceLoc::operator ==
-=================================================
-*/
-    ND_ inline bool  operator == (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
-    {
-        if ( lhs.name != rhs.name )
-        {
-            if ( lhs.name == null  or
-                 rhs.name == null  or
-                *lhs.name != *rhs.name )
-                return false;
-        }
-
-        return  lhs.string  == rhs.string   and
-                lhs.line    == rhs.line     and
-                lhs.column  == rhs.column;
-    }
-
-    ND_ inline bool  operator != (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
-    {
-        return not (lhs == rhs);
-    }
-
-    ND_ inline bool  operator < (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
-    {
-        if ( lhs.name != rhs.name )
-        {
-            if ( lhs.name == null  or
-                 rhs.name == null )
-                return false;
-
-            if ( *lhs.name != *rhs.name )
-                return *lhs.name < *rhs.name;
-        }
-
-        return  lhs.string  != rhs.string   ? lhs.string < rhs.string   :
-                lhs.line    != rhs.line     ? lhs.line   < rhs.line     :
-                                              lhs.column < rhs.column;
-    }
 
 /*
 =================================================
-    SourcePoint
+	TSourceLoc::operator ==
 =================================================
 */
-    inline ShaderTrace::SourcePoint::SourcePoint (const glslang::TSourceLoc &loc) __NE___ :
-        SourcePoint{ uint(loc.line), uint(loc.column) }
-    {}
+	ND_ inline bool  operator == (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	{
+		if ( lhs.name != rhs.name )
+		{
+			if ( lhs.name == null  or
+				 rhs.name == null  or
+				*lhs.name != *rhs.name )
+				return false;
+		}
+
+		return	lhs.string	== rhs.string	and
+				lhs.line	== rhs.line		and
+				lhs.column	== rhs.column;
+	}
+
+	ND_ inline bool  operator != (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	{
+		return not (lhs == rhs);
+	}
+
+	ND_ inline bool  operator < (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	{
+		if ( lhs.name != rhs.name )
+		{
+			if ( lhs.name == null  or
+				 rhs.name == null )
+				return false;
+
+			if ( *lhs.name != *rhs.name )
+				return *lhs.name < *rhs.name;
+		}
+
+		return	lhs.string	!= rhs.string	? lhs.string < rhs.string	:
+				lhs.line	!= rhs.line		? lhs.line	 < rhs.line		:
+											  lhs.column < rhs.column;
+	}
+
+/*
+=================================================
+	SourcePoint
+=================================================
+*/
+	inline ShaderTrace::SourcePoint::SourcePoint (const glslang::TSourceLoc &loc) __NE___ :
+		SourcePoint{ uint(loc.line), uint(loc.column) }
+	{}
 
 # endif // AE_ENABLE_GLSLANG
 

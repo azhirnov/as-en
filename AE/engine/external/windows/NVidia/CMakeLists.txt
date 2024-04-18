@@ -5,8 +5,8 @@
 set( NVPERF_PATH "${AE_DST_SHARED_PATH}/NvPerf" )
 
 add_custom_target( "NVPerf-copy-dll"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${NVPERF_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
-    COMMENT "Copying NVPerf DLLs..." )
+	COMMAND ${CMAKE_COMMAND} -E copy_directory "${NVPERF_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
+	COMMENT "Copying NVPerf DLLs..." )
 set_property( TARGET "NVPerf-copy-dll" PROPERTY FOLDER "Engine/External" )
 
 if (NOT EXISTS "${NVPERF_PATH}/bin")

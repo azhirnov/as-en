@@ -17,15 +17,15 @@ extern int AE_AngelScript_Test ()
 int main ()
 #endif
 {
-    asIScriptEngine* eng;
+	asIScriptEngine* eng;
 
-    eng = asCreateScriptEngine( ANGELSCRIPT_VERSION );
-    if ( !eng )
-        return 1;
+	eng = asCreateScriptEngine( ANGELSCRIPT_VERSION );
+	if ( !eng )
+		return 1;
 
-    RegisterScriptArray( eng, true );
-    RegisterStdString( eng );
+	RegisterScriptArray( eng, true );
+	RegisterStdString( eng );
 
-    eng->ShutDownAndRelease();
-    return 0;
+	eng->ShutDownAndRelease();
+	return 0;
 }

@@ -7,219 +7,219 @@
 
 namespace AE::ResEditor
 {
-    using AE::Networking::IpAddress;
-    using AE::Networking::CSMessageGroupID;
-    using AE::Networking::CSMessagePtr;
-    using AE::Networking::EChannel;
+	using AE::Networking::IpAddress;
+	using AE::Networking::CSMessageGroupID;
+	using AE::Networking::CSMessagePtr;
+	using AE::Networking::EChannel;
 
 
-    struct ResEditorAppConfig
-    {
-        using VFSPaths_t    = Array< Pair< Path, String >>;
-        using NetVFS_t      = Array< Tuple< String, String, String >>;
+	struct ResEditorAppConfig
+	{
+		using VFSPaths_t	= Array< Pair< Path, String >>;
+		using NetVFS_t		= Array< Tuple< String, String, String >>;
 
-        // VFS
-        VFSPaths_t      vfsPaths;
-        NetVFS_t        netVFS;
+		// VFS
+		VFSPaths_t		vfsPaths;
+		NetVFS_t		netVFS;
 
-        // UI
-        Path            uiDataFolder;
+		// UI
+		Path			uiDataFolder;
 
-        // pipelines
-        Array<Path>     pipelineSearchDirs;
-        Array<Path>     pipelineIncludeDirs;
+		// pipelines
+		Array<Path>		pipelineSearchDirs;
+		Array<Path>		pipelineIncludeDirs;
 
-        // shaders
-        Array<Path>     shaderSearchDirs;
-        Array<Path>     shaderIncludeDirs;
+		// shaders
+		Array<Path>		shaderSearchDirs;
+		Array<Path>		shaderIncludeDirs;
 
-        // script config
-        Path            scriptFolder;
-        Path            scriptCallableFolder;
-        Array<Path>     scriptIncludeDirs;
-        Path            cppTypesFolder;
-        Path            scriptHeaderOutFolder;
+		// script config
+		Path			scriptFolder;
+		Path			scriptCallableFolder;
+		Array<Path>		scriptIncludeDirs;
+		Path			cppTypesFolder;
+		Path			scriptHeaderOutFolder;
 
-        // output
-        Path            shaderTraceFolder;
-        Path            screenshotFolder;
-        Path            videoFolder;
-        Path            exportFolder;
+		// output
+		Path			shaderTraceFolder;
+		Path			screenshotFolder;
+		Path			videoFolder;
+		Path			exportFolder;
 
-        // graphics settings
-        bool            setStableGPUClock   = false;
-        bool            enableRenderDoc     = false;
-
-
-        ResEditorAppConfig ()                                   = default;
-        ResEditorAppConfig (ResEditorAppConfig &&)              = default;
-        ResEditorAppConfig (const ResEditorAppConfig &)         = default;
-        ResEditorAppConfig&  operator = (ResEditorAppConfig &&) = default;
-
-        ND_ static ResEditorAppConfig const&  Get ();
-    };
+		// graphics settings
+		bool			setStableGPUClock	= false;
+		bool			enableRenderDoc		= false;
 
 
+		ResEditorAppConfig ()									= default;
+		ResEditorAppConfig (ResEditorAppConfig &&)				= default;
+		ResEditorAppConfig (const ResEditorAppConfig &)			= default;
+		ResEditorAppConfig&  operator = (ResEditorAppConfig &&)	= default;
 
-    //
-    // Resource Editor Application
-    //
-
-    class ResEditorApplication final : public AppV1::AppCoreV1
-    {
-    // variables
-    private:
-        Ptr<IApplication>   _app;
-
-
-    // methods
-    public:
-        ResEditorApplication ()                                 __NE___;
-        ~ResEditorApplication ()                                __NE_OV;
-
-        void  OnStart (IApplication &)                          __NE_OV;
-        void  OnStop  (IApplication &)                          __NE_OV;
-
-        ND_ auto  GetApp ()                                     C_NE___ { return _app; }
-
-    private:
-        bool  _InitVFS ();
-
-        ND_ ResEditorCore&  _Core ()                            __NE___ { return RefCast<ResEditorCore>( GetBaseApp() ); }
-    };
+		ND_ static ResEditorAppConfig const&  Get ();
+	};
 
 
 
-    //
-    // Resource Editor Core
-    //
+	//
+	// Resource Editor Application
+	//
 
-    class ResEditorCore final : public AppV1::IBaseApp
-    {
-        friend class ResEditorApplication;
-
-    // types
-    private:
-        class ProcessInputTask;
-
-        struct MainLoopData
-        {
-            Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
-            Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
-            RC<Renderer>            renderer;
-        };
-        using MainLoopDataSync  = Synchronized< SharedMutex, MainLoopData >;
-
-        using MonitorSync       = Synchronized< SharedMutex, App::Monitor >;
+	class ResEditorApplication final : public AppV1::AppCoreV1
+	{
+	// variables
+	private:
+		Ptr<IApplication>	_app;
 
 
-        //
-        // VFS Client
-        //
-        class VFSClient final : public Networking::BaseClient, public EnableRC<VFSClient>
-        {
-        // variables
-        private:
-            RC<IVirtualFileStorage>     _storage;
-            FrameUID                    _frameId;
+	// methods
+	public:
+		ResEditorApplication ()									__NE___;
+		~ResEditorApplication ()								__NE_OV;
 
-        public:
-            VFSClient ()    __NE___ : _frameId{FrameUID::Init(2)} {}
-            ~VFSClient ()   __NE_OV { _Deinitialize(); }
+		void  OnStart (IApplication &)							__NE_OV;
+		void  OnStop  (IApplication &)							__NE_OV;
 
-            ND_ bool        Init (const IpAddress &addr, StringView prefix);
-            ND_ AsyncTask   Tick ();
-            ND_ auto        Storage ()      { return _storage; }
-        };
-        using VFSClients_t = Array< RC< VFSClient >>;
+		ND_ auto  GetApp ()										C_NE___	{ return _app; }
+
+	private:
+		bool  _InitVFS ();
+
+		ND_ ResEditorCore&	_Core ()							__NE___	{ return RefCast<ResEditorCore>( GetBaseApp() ); }
+	};
 
 
-        //
-        // Remote Input Server
-        //
-        class RemoteInputServer final : public Networking::BaseServer, public EnableRC<RemoteInputServer>
-        {
-        // types
-        private:
-            class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_Kb} >>
-            {
-            public:
-                EnumSet<EChannel>  GetChannels ()               C_NE_OV { return {EChannel::Reliable}; }
-            };
 
-        // variables
-        private:
-            RemoteInputActions          _remoteIA;
-            FrameUID                    _frameId;
-            StaticRC<_MsgProducer>      _msgProducer;
+	//
+	// Resource Editor Core
+	//
 
-        // methods
-        public:
-            RemoteInputServer ()                                    __NE___ : _frameId{FrameUID::Init(2)} {}
-            ~RemoteInputServer ()                                   __NE_OV { _Deinitialize(); }
+	class ResEditorCore final : public AppV1::IBaseApp
+	{
+		friend class ResEditorApplication;
 
-            ND_ bool        Init (ushort port, IInputActions &ia)   __NE___;
-            ND_ AsyncTask   Tick ()                                 __NE___;
+	// types
+	private:
+		class ProcessInputTask;
 
-            ND_ auto&       MsgProducer ()                          __NE___ { return *_msgProducer; }
-        };
+		struct MainLoopData
+		{
+			Ptr<IInputActions>		input;		// lifetime is same as Window/VRDevice lifetime
+			Ptr<IOutputSurface>		output;		// lifetime is same as Window/VRDevice lifetime
+			RC<Renderer>			renderer;
+		};
+		using MainLoopDataSync	= Synchronized< SharedMutex, MainLoopData >;
+
+		using MonitorSync		= Synchronized< SharedMutex, App::Monitor >;
 
 
-    // variables
-    private:
-        MainLoopDataSync            _mainLoop;
+		//
+		// VFS Client
+		//
+		class VFSClient final : public Networking::BaseClient, public EnableRC<VFSClient>
+		{
+		// variables
+		private:
+			RC<IVirtualFileStorage>		_storage;
+			FrameUID					_frameId;
 
-        EditorUI                    _ui;
-        Unique<ScriptExe>           _script;
+		public:
+			VFSClient ()	__NE___ : _frameId{FrameUID::Init(2)} {}
+			~VFSClient ()	__NE_OV	{ _Deinitialize(); }
 
-        Ptr<IWindow>                _window;
-        MonitorSync                 _monitor;
-
-        RC<MemRStream>              _inputActionsData;
-        RC<RemoteInputServer>       _remoteIA;
-
-        Unique<RenderGraphImpl>     _rg;
-
-        VFSClients_t                _vfsClients;
-
-
-    // methods
-    public:
-        ResEditorCore ();
-        ~ResEditorCore ();
+			ND_ bool		Init (const IpAddress &addr, StringView prefix);
+			ND_ AsyncTask	Tick ();
+			ND_ auto		Storage ()		{ return _storage; }
+		};
+		using VFSClients_t = Array< RC< VFSClient >>;
 
 
-    // API for EditorUI
-    public:
-        ND_ bool  RunRenderScriptAsync (const Path &);
+		//
+		// Remote Input Server
+		//
+		class RemoteInputServer final : public Networking::BaseServer, public EnableRC<RemoteInputServer>
+		{
+		// types
+		private:
+			class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_Kb} >>
+			{
+			public:
+				EnumSet<EChannel>  GetChannels ()				C_NE_OV	{ return {EChannel::Reliable}; }
+			};
+
+		// variables
+		private:
+			RemoteInputActions			_remoteIA;
+			FrameUID					_frameId;
+			StaticRC<_MsgProducer>		_msgProducer;
+
+		// methods
+		public:
+			RemoteInputServer ()									__NE___ : _frameId{FrameUID::Init(2)} {}
+			~RemoteInputServer ()									__NE_OV	{ _Deinitialize(); }
+
+			ND_ bool		Init (ushort port, IInputActions &ia)	__NE___;
+			ND_ AsyncTask	Tick ()									__NE___;
+
+			ND_ auto&		MsgProducer ()							__NE___	{ return *_msgProducer; }
+		};
 
 
-    // API for ResEditorWindow
-    public:
-        ND_ bool  OnStart ();
-    private:
-        ND_ bool  _LoadInputActions ();
+	// variables
+	private:
+		MainLoopDataSync			_mainLoop;
+
+		EditorUI					_ui;
+		Unique<ScriptExe>			_script;
+
+		Ptr<IWindow>				_window;
+		MonitorSync					_monitor;
+
+		RC<MemRStream>				_inputActionsData;
+		RC<RemoteInputServer>		_remoteIA;
+
+		Unique<RenderGraphImpl>		_rg;
+
+		VFSClients_t				_vfsClients;
 
 
-    // main loop
-    private:
-        ND_ static CoroTask  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
-        ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+	// methods
+	public:
+		ResEditorCore ();
+		~ResEditorCore ();
 
 
-    // IBaseApp //
-    private:
-        bool  OnSurfaceCreated (IWindow &)                                          __NE_OV;
-        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
-        void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
+	// API for EditorUI
+	public:
+		ND_ bool  RunRenderScriptAsync (const Path &);
 
-        void  RenderFrame ()                                                        __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray  &threadMask,
-                         Ptr<IWindow>                   window,
-                         Ptr<IVRDevice>                 vrDevice)                   __NE_OV;
 
-        void  _InitInputActions (IInputActions &)                                   __NE___;
-    };
+	// API for ResEditorWindow
+	public:
+		ND_ bool  OnStart ();
+	private:
+		ND_	bool  _LoadInputActions ();
+
+
+	// main loop
+	private:
+		ND_ static CoroTask  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
+		ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+
+
+	// IBaseApp //
+	private:
+		bool  OnSurfaceCreated (IWindow &)											__NE_OV;
+		void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)	__NE_OV;
+		void  StopRendering (Ptr<IOutputSurface>)									__NE_OV;
+
+		void  RenderFrame ()														__NE_OV;
+		void  WaitFrame (const Threading::EThreadArray	&threadMask,
+						 Ptr<IWindow>					window,
+						 Ptr<IVRDevice>					vrDevice)					__NE_OV;
+
+		void  _InitInputActions (IInputActions &)									__NE___;
+	};
 
 
 } // AE::ResEditor

@@ -6,18 +6,18 @@
 
 namespace AE::Audio
 {
-    struct AudioEncoderDesc
-    {
-    };
+	struct AudioEncoderDesc
+	{
+	};
 
 
-    //
-    // Audio Encoder interface
-    //
+	//
+	// Audio Encoder interface
+	//
 
-    class IAudioEncoder : public WStream
-    {
-    };
+	class IAudioEncoder : public WStream
+	{
+	};
 
 
 } // AE::Audio

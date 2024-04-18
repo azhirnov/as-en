@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    thread-safe: no
+	thread-safe: no
 */
 
 #pragma once
@@ -11,154 +11,154 @@
 namespace AE::Networking
 {
 
-    //
-    // UDP Unreliable Unordered Channel
-    //
+	//
+	// UDP Unreliable Unordered Channel
+	//
 
-    class UdpUnreliable : public IChannel
-    {
-    // types
-    protected:
-        #if 0 //def AE_DEBUG
-        using Socket_t  = UdpDbgSocket;
-        #else
-        using Socket_t  = UdpSocket;
-        #endif
+	class UdpUnreliable : public IChannel
+	{
+	// types
+	protected:
+		#if 0 //def AE_DEBUG
+		using Socket_t	= UdpDbgSocket;
+		#else
+		using Socket_t	= UdpSocket;
+		#endif
 
-        static constexpr char       _magicByte      = '\x2A';
-        static constexpr Bytes      _maxPacketSize  = NetConfig::UDP_MaxMsgSize;
+		static constexpr char		_magicByte		= '\x2A';
+		static constexpr Bytes		_maxPacketSize	= NetConfig::UDP_MaxMsgSize;
 
-        struct _PacketHeader;
-        struct _MsgHeader;
+		struct _PacketHeader;
+		struct _MsgHeader;
 
-        struct QueueAndStorage
-        {
-            Array< CSMessagePtr >   queue;
-            DynUntypedStorage       storage;
-        };
-
-
-    // variables
-    protected:
-        Socket_t                _socket;
-        RC<MessageFactory>      _msgFactory;
-
-        QueueAndStorage         _output;
-        Array< CSMessagePtr >   _inputQueue;
-
-        RC<IAllocator>          _allocator;
+		struct QueueAndStorage
+		{
+			Array< CSMessagePtr >	queue;
+			DynUntypedStorage		storage;
+		};
 
 
-    // methods
-    public:
-        ~UdpUnreliable ()                                               __NE_OV;
+	// variables
+	protected:
+		Socket_t				_socket;
+		RC<MessageFactory>		_msgFactory;
 
-      // IChannel //
-        void            Send (MsgList_t)                                __NE_OV;
-        MsgQueueMap_t&  Receive ()                                      __NE_OV { return *Cast<MsgQueueMap_t>(null); }
+		QueueAndStorage			_output;
+		Array< CSMessagePtr >	_inputQueue;
 
-        bool  DisconnectClient (EClientLocalID)                         __NE_OV { return false; }
-        void  DisconnectClientsWithIncompleteMsgQueue ()                __NE_OV {}
-        bool  IsConnected ()                                            C_NE_OV { return false; }
+		RC<IAllocator>			_allocator;
 
 
-    protected:
-        UdpUnreliable (RC<MessageFactory>   mf,
-                       RC<IAllocator>       alloc)                      __NE___;
+	// methods
+	public:
+		~UdpUnreliable ()												__NE_OV;
 
-        template <typename Address>
-        void  _SendMessages (const Address &, QueueAndStorage &, bool &)C_NE___;
+	  // IChannel //
+		void			Send (MsgList_t)								__NE_OV;
+		MsgQueueMap_t&	Receive ()										__NE_OV	{ return *Cast<MsgQueueMap_t>(null); }
 
-    //  void  _ReceiveMessages (QueueAndStorage &, FrameUID, bool &)    C_NE___;
-
-        void  _OnEncodingError (CSMessagePtr)                           C_NE___;
-        void  _OnDecodingError (CSMessageUID)                           C_NE___;
-    };
-
+		bool  DisconnectClient (EClientLocalID)							__NE_OV	{ return false; }
+		void  DisconnectClientsWithIncompleteMsgQueue ()				__NE_OV {}
+		bool  IsConnected ()											C_NE_OV	{ return false; }
 
 
-    //
-    // UDP Client Channel
-    //
+	protected:
+		UdpUnreliable (RC<MessageFactory>	mf,
+					   RC<IAllocator>		alloc)						__NE___;
 
-    class UdpUnreliableClientChannel final : public UdpUnreliable
-    {
-    // types
-    public:
-        class ClientAPI
-        {
-            friend class BaseClient;
-            ND_ static RC<IChannel>  Create (RC<MessageFactory> mf, RC<IAllocator>,
-                                             RC<IServerProvider>, ushort port) __NE___;
-        };
+		template <typename Address>
+		void  _SendMessages (const Address &, QueueAndStorage &, bool &)C_NE___;
 
+	//	void  _ReceiveMessages (QueueAndStorage &, FrameUID, bool &)	C_NE___;
 
-    // variables
-    private:
-        IpAddress               _serverAddress;
-        uint                    _serverIndex        = 0;
-        RC<IServerProvider>     _serverProvider;
-
-
-    // methods
-    public:
-        ~UdpUnreliableClientChannel ()                                  __NE_OV;
-
-      // IChannel //
-        void  ProcessMessages (FrameUID, MsgQueueStatistic &)           __NE_OV;
-
-    private:
-        UdpUnreliableClientChannel (RC<MessageFactory>  mf,
-                                    RC<IServerProvider> serverProvider,
-                                    RC<IAllocator>      alloc)          __NE___;
-        void  _Reconnect ()                                             __NE___;
-    };
+		void  _OnEncodingError (CSMessagePtr)							C_NE___;
+		void  _OnDecodingError (CSMessageUID)							C_NE___;
+	};
 
 
 
-    //
-    // UDP Server Channel
-    //
+	//
+	// UDP Client Channel
+	//
 
-    class UdpUnreliableServerChannel final : public UdpUnreliable
-    {
-    // types
-    public:
-        class ServerAPI
-        {
-            friend class BaseServer;
-            ND_ static RC<IChannel>  Create (RC<MessageFactory> mf, RC<IAllocator>,
-                                             RC<IClientListener>, ushort port) __NE___;
-        };
-
-    private:
-        static constexpr uint   _maxClients = 64;
-
-        struct Client
-        {
-            DynUntypedStorage       storage;
-        };
-        using Clients_t = FixedMap< IpAddress, Client, _maxClients >;
+	class UdpUnreliableClientChannel final : public UdpUnreliable
+	{
+	// types
+	public:
+		class ClientAPI
+		{
+			friend class BaseClient;
+			ND_ static RC<IChannel>  Create (RC<MessageFactory> mf, RC<IAllocator>,
+											 RC<IServerProvider>, ushort port) __NE___;
+		};
 
 
-    // variables
-    private:
-    //  Clients_t               _clients;
-        RC<IClientListener>     _listener;
+	// variables
+	private:
+		IpAddress				_serverAddress;
+		uint					_serverIndex		= 0;
+		RC<IServerProvider>		_serverProvider;
 
 
-    // methods
-    public:
-        ~UdpUnreliableServerChannel ()                                  __NE_OV;
+	// methods
+	public:
+		~UdpUnreliableClientChannel ()									__NE_OV;
 
-      // IChannel //
-        void  ProcessMessages (FrameUID, MsgQueueStatistic &)           __NE_OV;
+	  // IChannel //
+		void  ProcessMessages (FrameUID, MsgQueueStatistic &)			__NE_OV;
 
-    private:
-        UdpUnreliableServerChannel (RC<MessageFactory>  mf,
-                                    RC<IClientListener> listener,
-                                    RC<IAllocator>      alloc)          __NE___;
-    };
+	private:
+		UdpUnreliableClientChannel (RC<MessageFactory>	mf,
+									RC<IServerProvider>	serverProvider,
+									RC<IAllocator>		alloc)			__NE___;
+		void  _Reconnect ()												__NE___;
+	};
+
+
+
+	//
+	// UDP Server Channel
+	//
+
+	class UdpUnreliableServerChannel final : public UdpUnreliable
+	{
+	// types
+	public:
+		class ServerAPI
+		{
+			friend class BaseServer;
+			ND_ static RC<IChannel>  Create (RC<MessageFactory> mf, RC<IAllocator>,
+											 RC<IClientListener>, ushort port) __NE___;
+		};
+
+	private:
+		static constexpr uint	_maxClients = 64;
+
+		struct Client
+		{
+			DynUntypedStorage		storage;
+		};
+		using Clients_t	= FixedMap< IpAddress, Client, _maxClients >;
+
+
+	// variables
+	private:
+	//	Clients_t				_clients;
+		RC<IClientListener>		_listener;
+
+
+	// methods
+	public:
+		~UdpUnreliableServerChannel ()									__NE_OV;
+
+	  // IChannel //
+		void  ProcessMessages (FrameUID, MsgQueueStatistic &)			__NE_OV;
+
+	private:
+		UdpUnreliableServerChannel (RC<MessageFactory>	mf,
+									RC<IClientListener>	listener,
+									RC<IAllocator>		alloc)			__NE___;
+	};
 
 
 } // AE::Networking

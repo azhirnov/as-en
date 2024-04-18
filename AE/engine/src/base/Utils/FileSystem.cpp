@@ -9,258 +9,258 @@ namespace AE::Base
 
 /*
 =================================================
-    FindAndSetCurrent
+	FindAndSetCurrent
 =================================================
 */
-    bool  FileSystem::FindAndSetCurrent (const Path &ref, uint depth)
-    {
-        return FindAndSetCurrent( CurrentPath(), ref, depth );
-    }
+	bool  FileSystem::FindAndSetCurrent (const Path &ref, uint depth)
+	{
+		return FindAndSetCurrent( CurrentPath(), ref, depth );
+	}
 
-    bool  FileSystem::FindAndSetCurrent (const Path &base, const Path &ref, uint depth)
-    {
-        Path    dir;
+	bool  FileSystem::FindAndSetCurrent (const Path &base, const Path &ref, uint depth)
+	{
+		Path	dir;
 
-        if ( Search( base, ref, depth, depth, OUT dir ))
-            return SetCurrentPath( dir );
+		if ( Search( base, ref, depth, depth, OUT dir ))
+			return SetCurrentPath( dir );
 
-        return false;
-    }
+		return false;
+	}
 
 /*
 =================================================
-    SearchBackward
+	SearchBackward
 =================================================
 */
-    bool  FileSystem::SearchBackward (const Path &ref, uint depth, OUT Path &result)
-    {
-        return SearchBackward( CurrentPath(), ref, depth, OUT result );
-    }
+	bool  FileSystem::SearchBackward (const Path &ref, uint depth, OUT Path &result)
+	{
+		return SearchBackward( CurrentPath(), ref, depth, OUT result );
+	}
 
-    bool  FileSystem::SearchBackward (const Path &base, const Path &ref, uint depth, OUT Path &result)
-    {
-        CHECK_ERR( IsDirectory( base ));
+	bool  FileSystem::SearchBackward (const Path &base, const Path &ref, uint depth, OUT Path &result)
+	{
+		CHECK_ERR( IsDirectory( base ));
 
-        Path    curr = ToAbsolute( base );
+		Path	curr = ToAbsolute( base );
 
-        for (; not curr.empty(); --depth)
-        {
-            result = (Path{ curr } /= ref);
+		for (; not curr.empty(); --depth)
+		{
+			result = (Path{ curr } /= ref);
 
-            if ( IsFileOrDirectory( result ))
-                return true;
+			if ( IsFileOrDirectory( result ))
+				return true;
 
-            if ( depth == 0 )
-                break;
+			if ( depth == 0 )
+				break;
 
-            curr = curr.parent_path();
-        }
+			curr = curr.parent_path();
+		}
 
-        result.clear();
-        return false;
-    }
+		result.clear();
+		return false;
+	}
 
 /*
 =================================================
-    RecursiveSearchForward
+	RecursiveSearchForward
 =================================================
 */
 namespace {
-    static bool  RecursiveSearchForward (const Path &curr, const Path &ref, uint depth, OUT Path &result)
-    {
-        for (auto& dir : FileSystem::Enum( curr ))
-        {
-            if ( not dir.IsDirectory() )
-                continue;
+	static bool  RecursiveSearchForward (const Path &curr, const Path &ref, uint depth, OUT Path &result)
+	{
+		for (auto& dir : FileSystem::Enum( curr ))
+		{
+			if ( not dir.IsDirectory() )
+				continue;
 
-            result = (Path{ dir.Get() } /= ref);
+			result = (Path{ dir.Get() } /= ref);
 
-            if ( FileSystem::IsFileOrDirectory( result ))
-                return true;
+			if ( FileSystem::IsFileOrDirectory( result ))
+				return true;
 
-            if ( depth > 0 )
-            {
-                if ( RecursiveSearchForward( dir.Get(), ref, depth-1, OUT result ))
-                    return true;
-            }
-        }
+			if ( depth > 0 )
+			{
+				if ( RecursiveSearchForward( dir.Get(), ref, depth-1, OUT result ))
+					return true;
+			}
+		}
 
-        result.clear();
-        return false;
-    }
+		result.clear();
+		return false;
+	}
 } // namespace
 
 /*
 =================================================
-    SearchForward
+	SearchForward
 =================================================
 */
-    bool  FileSystem::SearchForward (const Path &ref, uint depth, OUT Path &result)
-    {
-        return SearchForward( CurrentPath(), ref, depth, OUT result );
-    }
+	bool  FileSystem::SearchForward (const Path &ref, uint depth, OUT Path &result)
+	{
+		return SearchForward( CurrentPath(), ref, depth, OUT result );
+	}
 
-    bool  FileSystem::SearchForward (const Path &base, const Path &ref, uint depth, OUT Path &result)
-    {
-        CHECK_ERR( IsDirectory( base ));
+	bool  FileSystem::SearchForward (const Path &base, const Path &ref, uint depth, OUT Path &result)
+	{
+		CHECK_ERR( IsDirectory( base ));
 
-        const Path  curr = ToAbsolute( base );
+		const Path	curr = ToAbsolute( base );
 
-        result = (Path{ curr } /= ref);
+		result = (Path{ curr } /= ref);
 
-        if ( FileSystem::IsFileOrDirectory( result ))
-            return true;
+		if ( FileSystem::IsFileOrDirectory( result ))
+			return true;
 
-        return RecursiveSearchForward( curr, ref, depth, OUT result );
-    }
+		return RecursiveSearchForward( curr, ref, depth, OUT result );
+	}
 
 /*
 =================================================
-    Search
+	Search
 =================================================
 */
-    bool  FileSystem::Search (const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)
-    {
-        return Search( CurrentPath(), ref, backwardDepth, forwardDepth, OUT result );
-    }
+	bool  FileSystem::Search (const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)
+	{
+		return Search( CurrentPath(), ref, backwardDepth, forwardDepth, OUT result );
+	}
 
-    bool  FileSystem::Search (const Path &base, const Path &ref, const uint backwardDepth, const uint forwardDepth, OUT Path &result)
-    {
-        CHECK_ERR( IsDirectory( base ));
+	bool  FileSystem::Search (const Path &base, const Path &ref, const uint backwardDepth, const uint forwardDepth, OUT Path &result)
+	{
+		CHECK_ERR( IsDirectory( base ));
 
-        Path    curr    = ToAbsolute( base );
-        uint    depth   = backwardDepth;
+		Path	curr	= ToAbsolute( base );
+		uint	depth	= backwardDepth;
 
-        for (; not curr.empty(); --depth)
-        {
-            result = (Path{ curr } /= ref);
+		for (; not curr.empty(); --depth)
+		{
+			result = (Path{ curr } /= ref);
 
-            if ( IsFileOrDirectory( result ))
-                return true;
+			if ( IsFileOrDirectory( result ))
+				return true;
 
-            if ( depth == 0 )
-                break;
+			if ( depth == 0 )
+				break;
 
-            if ( SearchForward( curr, ref, forwardDepth, OUT result ))
-                return true;
+			if ( SearchForward( curr, ref, forwardDepth, OUT result ))
+				return true;
 
-            curr = curr.parent_path();
-        }
+			curr = curr.parent_path();
+		}
 
-        result.clear();
-        return false;
-    }
+		result.clear();
+		return false;
+	}
 
 /*
 =================================================
-    FindUnusedFilename
+	FindUnusedFilename
 =================================================
 */
-    void  FileSystem::FindUnusedFilename (const Function< void (OUT Path &name, usize idx) >&   buildName,
-                                          const Function< bool (const Path &) > &               consume) __Th___
-    {
-        CHECK_ERRV( buildName and consume );
+	void  FileSystem::FindUnusedFilename (const Function< void (OUT Path &name, usize idx) >&	buildName,
+										  const Function< bool (const Path &) > &				consume) __Th___
+	{
+		CHECK_ERRV( buildName and consume );
 
-        Path        fname;
-        usize       min_index   = 0;
-        usize       max_index   = 1;
-        const usize step        = 100;
+		Path		fname;
+		usize		min_index	= 0;
+		usize		max_index	= 1;
+		const usize	step		= 100;
 
-        for (;;)
-        {
-            for (; min_index < max_index;)
-            {
-                buildName( OUT fname, max_index );
+		for (;;)
+		{
+			for (; min_index < max_index;)
+			{
+				buildName( OUT fname, max_index );
 
-                if ( not FileSystem::IsFile( fname ))
-                    break;
+				if ( not FileSystem::IsFile( fname ))
+					break;
 
-                min_index = max_index;
-                max_index += step;
-            }
+				min_index = max_index;
+				max_index += step;
+			}
 
-            for (usize index = min_index; index <= max_index; ++index)
-            {
-                buildName( OUT fname, index );
+			for (usize index = min_index; index <= max_index; ++index)
+			{
+				buildName( OUT fname, index );
 
-                if ( FileSystem::IsFile( fname ))
-                    continue;
+				if ( FileSystem::IsFile( fname ))
+					continue;
 
-                if ( consume( fname ))
-                    return;
+				if ( consume( fname ))
+					return;
 
-                break;
-            }
-        }
-    }
+				break;
+			}
+		}
+	}
 
 /*
 =================================================
-    CreateEmptyFile
+	CreateEmptyFile
 =================================================
 */
-    bool  FileSystem::CreateEmptyFile (const Path &p) __NE___
-    {
-    #ifdef AE_PLATFORM_WINDOWS
+	bool  FileSystem::CreateEmptyFile (const Path &p) __NE___
+	{
+	#ifdef AE_PLATFORM_WINDOWS
 
-        FILE*   file = null;
-        _wfopen_s( OUT &file, p.native().c_str(), L"w" );
-        if ( file != null ) fclose( file );
-        return file != null;
+		FILE*	file = null;
+		_wfopen_s( OUT &file, p.native().c_str(), L"w" );
+		if ( file != null ) fclose( file );
+		return file != null;
 
-    #else
+	#else
 
-        FILE*   file = fopen( p.native().c_str(), "w" );
-        if ( file != null ) fclose( file );
-        return file != null;
+		FILE*	file = fopen( p.native().c_str(), "w" );
+		if ( file != null ) fclose( file );
+		return file != null;
 
-    #endif
-    }
+	#endif
+	}
 
 /*
 =================================================
-    ToShortPath
+	ToShortPath
 =================================================
 */
-    StringView  FileSystem::ToShortPath (StringView file) __NE___
-    {
-        const uint  max_parts = 3;
+	StringView  FileSystem::ToShortPath (StringView file) __NE___
+	{
+		const uint	max_parts = 3;
 
-        usize   i = Max( file.length(), 1u ) - 1;
-        uint    j = 0;
+		usize	i = Max( file.length(), 1u ) - 1;
+		uint	j = 0;
 
-        for (; i < file.length() and j < max_parts; --i)
-        {
-            const char  c = file[i];
+		for (; i < file.length() and j < max_parts; --i)
+		{
+			const char	c = file[i];
 
-            if_unlikely( (c == '\\') or (c == '/') )
-                ++j;
-        }
+			if_unlikely( (c == '\\') or (c == '/') )
+				++j;
+		}
 
-        if ( i < file.length() )
-            return file.substr( i + (j == max_parts ? 2 : 0) );
-        else
-            return file;
-    }
+		if ( i < file.length() )
+			return file.substr( i + (j == max_parts ? 2 : 0) );
+		else
+			return file;
+	}
 //-----------------------------------------------------------------------------
 
 
 #ifdef AE_PLATFORM_WINDOWS
 /*
 =================================================
-    GetWindowsPath
+	GetWindowsPath
 =================================================
 */
-    Path  FileSystem::GetWindowsPath ()
-    {
-        wchar_t buf[MAX_PATH];
-        uint    len = ::GetWindowsDirectoryW( buf, uint(CountOf( buf )) );  // win2000
+	Path  FileSystem::GetWindowsPath ()
+	{
+		wchar_t buf[MAX_PATH];
+		uint	len = ::GetWindowsDirectoryW( buf, uint(CountOf( buf )) );  // win2000
 
-        return Path{ WStringView{ buf, len }};
-    }
+		return Path{ WStringView{ buf, len }};
+	}
 
 // TODO:
-//  SHGetKnownFolderPath
+// 	SHGetKnownFolderPath
 //  https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
 
 #endif // AE_PLATFORM_WINDOWS

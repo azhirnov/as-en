@@ -5,6 +5,6 @@ extern int AE_zstd_Test ();
 
 void android_main (struct android_app* state)
 {
-    AE_zstd_Test();
+	AE_zstd_Test();
     std::abort();
 }

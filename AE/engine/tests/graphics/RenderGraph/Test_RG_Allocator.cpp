@@ -10,54 +10,54 @@
 
 namespace
 {
-    ND_ static bool  TestBufferAllocation (GfxMemAllocatorPtr allocator, EMemoryType memType)
-    {
-        CHECK_ERR( allocator );
+	ND_ static bool  TestBufferAllocation (GfxMemAllocatorPtr allocator, EMemoryType memType)
+	{
+		CHECK_ERR( allocator );
 
-        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-        auto    buf_id = res_mngr.CreateBuffer( BufferDesc{ 1_Kb, EBufferUsage::Storage }.SetMemory( memType ), "", allocator );
-        CHECK_ERR( buf_id );
+		auto	buf_id = res_mngr.CreateBuffer( BufferDesc{ 1_Kb, EBufferUsage::Storage }.SetMemory( memType ), "", allocator );
+		CHECK_ERR( buf_id );
 
-        res_mngr.ReleaseResource( buf_id );
-        return true;
-    }
+		res_mngr.ReleaseResource( buf_id );
+		return true;
+	}
 
 
-    ND_ static bool  TestAllocators (GfxMemAllocatorPtr allocator)
-    {
-        CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::DeviceLocal ));
-        CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::HostCoherent ));
-        CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::HostCached ));
-        CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::Unified ));
-        return true;
-    }
+	ND_ static bool  TestAllocators (GfxMemAllocatorPtr allocator)
+	{
+		CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::DeviceLocal ));
+		CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::HostCoherent ));
+		CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::HostCached ));
+		CHECK_ERR( TestBufferAllocation( allocator, EMemoryType::Unified ));
+		return true;
+	}
 
 
 #ifdef AE_ENABLE_VULKAN
-    ND_ static bool  TestCustomAllocators ()
-    {
-        CHECK_ERR( TestAllocators( MakeRC<VDedicatedMemAllocator>() ));
-        CHECK_ERR( TestAllocators( MakeRC<VBlockMemAllocator>( 2_Kb, 64_Kb )));
-        CHECK_ERR( TestAllocators( MakeRC<VLinearMemAllocator>( 64_Kb )));
-        return true;
-    }
+	ND_ static bool  TestCustomAllocators ()
+	{
+		CHECK_ERR( TestAllocators( MakeRC<VDedicatedMemAllocator>() ));
+		CHECK_ERR( TestAllocators( MakeRC<VBlockMemAllocator>( 2_Kb, 64_Kb )));
+		CHECK_ERR( TestAllocators( MakeRC<VLinearMemAllocator>( 64_Kb )));
+		return true;
+	}
 #endif
 
 #ifdef AE_ENABLE_METAL
-    ND_ static bool  TestCustomAllocators ()
-    {
-        // TODO
-        return true;
-    }
+	ND_ static bool  TestCustomAllocators ()
+	{
+		// TODO
+		return true;
+	}
 #endif
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-    ND_ static bool  TestCustomAllocators ()
-    {
-        // TODO
-        return true;
-    }
+	ND_ static bool  TestCustomAllocators ()
+	{
+		// TODO
+		return true;
+	}
 #endif
 
 } // namespace
@@ -65,10 +65,10 @@ namespace
 
 bool RGTest::Test_Allocator ()
 {
-    bool    result = true;
+	bool	result = true;
 
-    RG_CHECK( TestCustomAllocators() );
+	RG_CHECK( TestCustomAllocators() );
 
-    AE_LOGI( TEST_NAME << " - passed" );
-    return result;
+	AE_LOGI( TEST_NAME << " - passed" );
+	return result;
 }

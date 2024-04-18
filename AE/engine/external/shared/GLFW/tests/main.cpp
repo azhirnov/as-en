@@ -7,20 +7,20 @@
 
 int main ()
 {
-    if ( glfwInit() != GLFW_TRUE )
-        return 1;
+	if ( glfwInit() != GLFW_TRUE )
+		return 1;
 
-    if ( glfwVulkanSupported() != GLFW_TRUE )
-        return 1;
+	if ( glfwVulkanSupported() != GLFW_TRUE )
+		return 1;
 
-    glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
+	glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
 
-    auto* wnd = glfwCreateWindow( 800, 600, "title", nullptr, nullptr );
-    if ( !wnd )
-        return 1;
+	auto* wnd = glfwCreateWindow( 800, 600, "title", nullptr, nullptr );
+	if ( !wnd )
+		return 1;
 
-    glfwDestroyWindow( wnd );
-    glfwTerminate();
+	glfwDestroyWindow( wnd );
+	glfwTerminate();
 
-    return 0;
+	return 0;
 }

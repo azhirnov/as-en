@@ -10,44 +10,44 @@ namespace AE::Base
 
 /*
 =================================================
-    ToString (EMediaType)
+	ToString (EMediaType)
 =================================================
 */
-    ND_ inline String  ToString (Video::EMediaType value)
-    {
-        switch_enum( value )
-        {
-            case Video::EMediaType::Video :     return "Video";
-            case Video::EMediaType::Audio :     return "Audio";
-            case Video::EMediaType::Unknown :
-            case Video::EMediaType::_Count :    break;
-        }
-        switch_end
-        RETURN_ERR( "unknown media type" );
-    }
+	ND_ inline String  ToString (Video::EMediaType value)
+	{
+		switch_enum( value )
+		{
+			case Video::EMediaType::Video :		return "Video";
+			case Video::EMediaType::Audio :		return "Audio";
+			case Video::EMediaType::Unknown :
+			case Video::EMediaType::_Count :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown media type" );
+	}
 
 /*
 =================================================
-    ToString (EColorPreset)
+	ToString (EColorPreset)
 =================================================
 */
-    ND_ inline String  ToString (Video::EColorPreset value)
-    {
-        switch_enum( value )
-        {
-            case Video::EColorPreset::Unspecified :     return "Unspecified";
-            case Video::EColorPreset::MPEG_BT709 :      return "MPEG_BT709";
-            case Video::EColorPreset::MPEG_BT709_2 :    return "MPEG_BT709_2";
-            case Video::EColorPreset::JPEG_BT709 :      return "JPEG_BT709";
-            case Video::EColorPreset::MPEG_BT2020_1 :   return "MPEG_BT2020_1";
-            case Video::EColorPreset::MPEG_BT2020_2 :   return "MPEG_BT2020_2";
-            case Video::EColorPreset::MPEG_SMPTE170M :  return "MPEG_SMPTE170M";
-            case Video::EColorPreset::Unknown :
-            case Video::EColorPreset::_Count :          break;
-        }
-        switch_end
-        RETURN_ERR( "unknown color preset" );
-    }
+	ND_ inline String  ToString (Video::EColorPreset value)
+	{
+		switch_enum( value )
+		{
+			case Video::EColorPreset::Unspecified :		return "Unspecified";
+			case Video::EColorPreset::MPEG_BT709 :		return "MPEG_BT709";
+			case Video::EColorPreset::MPEG_BT709_2 :	return "MPEG_BT709_2";
+			case Video::EColorPreset::JPEG_BT709 :		return "JPEG_BT709";
+			case Video::EColorPreset::MPEG_BT2020_1 :	return "MPEG_BT2020_1";
+			case Video::EColorPreset::MPEG_BT2020_2 :	return "MPEG_BT2020_2";
+			case Video::EColorPreset::MPEG_SMPTE170M :	return "MPEG_SMPTE170M";
+			case Video::EColorPreset::Unknown :
+			case Video::EColorPreset::_Count :			break;
+		}
+		switch_end
+		RETURN_ERR( "unknown color preset" );
+	}
 
 
 } // AE::Base

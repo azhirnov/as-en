@@ -13,73 +13,73 @@
 namespace AE::Audio
 {
 
-    //
-    // BASS Audio System
-    //
+	//
+	// BASS Audio System
+	//
 
-    class AudioSystemBASS final : public IAudioSystem
-    {
-    // types
-    private:
-        struct StreamWrap;
-
-
-    // variables
-    private:
-        bool            _initialized    = false;
-        const uint      _maxChannels    = 8;
+	class AudioSystemBASS final : public IAudioSystem
+	{
+	// types
+	private:
+		struct StreamWrap;
 
 
-    // methods
-    public:
-        AudioSystemBASS ()                                                      __NE___ {}
-        ~AudioSystemBASS ()                                                     __NE___ {}
+	// variables
+	private:
+		bool			_initialized	= false;
+		const uint		_maxChannels	= 8;
 
 
-    // IAudioSystem //
-        bool    Initialize (const Config &cfg)                                  __NE_OV;
-        void    Deinitialize ()                                                 __NE_OV;
+	// methods
+	public:
+		AudioSystemBASS ()														__NE___ {}
+		~AudioSystemBASS ()														__NE___ {}
 
 
-        // Playback //
-        void    Resume ()                                                       __NE_OV;
-        void    Pause ()                                                        __NE_OV;
-        bool    IsPlaying ()                                                    C_NE_OV;
-
-        float   Volume ()                                                       C_NE_OV;
-        void    SetVolume (float value)                                         __NE_OV;
+	// IAudioSystem //
+		bool	Initialize (const Config &cfg)									__NE_OV;
+		void	Deinitialize ()													__NE_OV;
 
 
-        // 3D //
-        void    SetListenerPosition (const Pos3D &value)                        __NE_OV;
-        Pos3D   ListenerPosition ()                                             C_NE_OV;
+		// Playback //
+		void	Resume ()														__NE_OV;
+		void	Pause ()														__NE_OV;
+		bool	IsPlaying ()													C_NE_OV;
 
-        void    SetListenerVelocity (const Vel3D &value)                        __NE_OV;
-        Vel3D   ListenerVelocity ()                                             C_NE_OV;
-
-        void    Apply3D ()                                                      __NE_OV;
+		float	Volume ()														C_NE_OV;
+		void	SetVolume (float value)											__NE_OV;
 
 
-        RC<IAudioData>      CreateData (RC<RStream>, ESoundFlags)               __NE_OV;
-        RC<IAudioData>      CreateData (const void* data,
-                                        Bytes dataSize,
-                                        ESoundFlags flags)                      __NE_OV;
+		// 3D //
+		void	SetListenerPosition (const Pos3D &value)						__NE_OV;
+		Pos3D	ListenerPosition ()												C_NE_OV;
 
-        RC<IAudioInput>     CreateInput (const AudioInputDesc &)                __NE_OV;
+		void	SetListenerVelocity (const Vel3D &value)						__NE_OV;
+		Vel3D	ListenerVelocity ()												C_NE_OV;
 
-        RC<IAudioOutput>    CreateOutput (RC<IAudioData>)                       __NE_OV;
+		void	Apply3D ()														__NE_OV;
 
-        RC<IAudioDecoder>   CreateDecoder (const AudioDecoderDesc &)            __NE_OV;
-        RC<IAudioEncoder>   CreateEncoder (const AudioEncoderDesc &)            __NE_OV;
 
-    private:
-        ND_ RC<IAudioData>  _CreateStream (RC<RStream>, ESoundFlags)            __NE___;
+		RC<IAudioData>		CreateData (RC<RStream>, ESoundFlags)				__NE_OV;
+		RC<IAudioData>		CreateData (const void* data,
+										Bytes dataSize,
+										ESoundFlags flags)						__NE_OV;
 
-        void  _PrintOutputDevices ()                                            C_Th___;
-        void  _PrintInputDevices ()                                             C_Th___;
+		RC<IAudioInput>		CreateInput (const AudioInputDesc &)				__NE_OV;
 
-        friend IAudioSystem&  AE::AudioSystem ()                                __NE___;
-    };
+		RC<IAudioOutput>	CreateOutput (RC<IAudioData>)						__NE_OV;
+
+		RC<IAudioDecoder>	CreateDecoder (const AudioDecoderDesc &)			__NE_OV;
+		RC<IAudioEncoder>	CreateEncoder (const AudioEncoderDesc &)			__NE_OV;
+
+	private:
+		ND_ RC<IAudioData>  _CreateStream (RC<RStream>, ESoundFlags)			__NE___;
+
+		void  _PrintOutputDevices ()											C_Th___;
+		void  _PrintInputDevices ()												C_Th___;
+
+		friend IAudioSystem&  AE::AudioSystem ()								__NE___;
+	};
 
 
 } // AE::Audio

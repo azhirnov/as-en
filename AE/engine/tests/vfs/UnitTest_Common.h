@@ -8,31 +8,31 @@
 using namespace AE::Threading;
 using namespace AE::VFS;
 
-static constexpr seconds    c_MaxTimeout {100};
+static constexpr seconds	c_MaxTimeout {100};
 
 
 struct LocalVFS
 {
-    LocalVFS ()
-    {
-        TaskScheduler::Config   cfg;
-        cfg.maxIOAccessThreads  = 1;
-        cfg.mainThreadCoreId    = ECpuCoreId(0);
+	LocalVFS ()
+	{
+		TaskScheduler::Config	cfg;
+		cfg.maxIOAccessThreads	= 1;
+		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
-        TaskScheduler::InstanceCtor::Create();
-        TEST( Scheduler().Setup( cfg ));
+		TaskScheduler::InstanceCtor::Create();
+		TEST( Scheduler().Setup( cfg ));
 
-        TEST( Networking::SocketService::Instance().Initialize() );
+		TEST( Networking::SocketService::Instance().Initialize() );
 
-        VirtualFileSystem::InstanceCtor::Create();
-    }
+		VirtualFileSystem::InstanceCtor::Create();
+	}
 
-    ~LocalVFS ()
-    {
-        Scheduler().Release();
-        Networking::SocketService::Instance().Deinitialize();
-        VirtualFileSystem::InstanceCtor::Destroy();
-        TaskScheduler::InstanceCtor::Destroy();
-    }
+	~LocalVFS ()
+	{
+		Scheduler().Release();
+		Networking::SocketService::Instance().Deinitialize();
+		VirtualFileSystem::InstanceCtor::Destroy();
+		TaskScheduler::InstanceCtor::Destroy();
+	}
 };
 

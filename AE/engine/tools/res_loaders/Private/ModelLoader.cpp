@@ -7,30 +7,30 @@ namespace AE::ResLoader
 
 /*
 =================================================
-    PathToModelFormat
+	PathToModelFormat
 =================================================
 */
-    EModelFormat  PathToModelFormat (const Path &) __NE___
-    {
-        // TODO
-        return Default;
-    }
+	EModelFormat  PathToModelFormat (const Path &) __NE___
+	{
+		// TODO
+		return Default;
+	}
 
 /*
 =================================================
-    ModelFormatToExt
+	ModelFormatToExt
 =================================================
 */
-    StringView  ModelFormatToExt (EModelFormat fmt) __NE___
-    {
-        switch_enum( fmt )
-        {
-            case EModelFormat::GLTF :       return ".gltf";
-            case EModelFormat::Unknown :    break;
-        }
-        switch_end
-        RETURN_ERR( "unknown model format" );
-    }
+	StringView  ModelFormatToExt (EModelFormat fmt) __NE___
+	{
+		switch_enum( fmt )
+		{
+			case EModelFormat::GLTF :		return ".gltf";
+			case EModelFormat::Unknown :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown model format" );
+	}
 
 
 } // AE::ResLoader

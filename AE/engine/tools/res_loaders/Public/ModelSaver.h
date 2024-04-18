@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Thread-safe: yes
+	Thread-safe: yes
 
-    Assimp  - locks in allocator
-    glTF    -
+	Assimp	- locks in allocator
+	glTF	-
 */
 
 #pragma once
@@ -12,23 +12,23 @@
 
 namespace AE::ResLoader
 {
-    class IntermScene;
+	class IntermScene;
 
 
-    //
-    // Model Saver interface
-    //
+	//
+	// Model Saver interface
+	//
 
-    class IModelSaver
-    {
-    // methods
-    public:
-        virtual ~IModelSaver ()                                 __NE___ {}
+	class IModelSaver
+	{
+	// methods
+	public:
+		virtual ~IModelSaver ()									__NE___	{}
 
-        virtual bool  SaveModel (const IntermScene  &scene,
-                                 const WStream      &stream,
-                                 EModelFormat       format)     __NE___ = 0;
-    };
+		virtual bool  SaveModel (const IntermScene	&scene,
+								 const WStream		&stream,
+								 EModelFormat		format)		__NE___ = 0;
+	};
 
 
 } // AE::ResLoader

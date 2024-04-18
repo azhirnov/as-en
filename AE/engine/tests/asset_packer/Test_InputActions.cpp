@@ -11,126 +11,126 @@ using namespace AE::InputActions;
 
 namespace
 {
-    using namespace AE::App;
+	using namespace AE::App;
 
-    const bool                      force_update            = true;
-    decltype(&ConvertInputActions)  convert_input_actions   = null;
-
-
-    static void  InputActions_Test1 ()
-    {
-        const CharType*     files[]         = { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
-        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/input_actions.as" );
-        const Path          ref_dump_fname  = FileSystem::ToAbsolute( "input_actions_ref.txt" );
-        const Path          output_folder   = TXT("_output");
-        const Path          output          = FileSystem::ToAbsolute( output_folder / "input_actions.bin" );
-        const Path          output_cpp      = FileSystem::ToAbsolute( output_folder / "../names.h" );
-
-        FileSystem::Remove( output );
-
-        InputActionsInfo    info = {};
-        info.inFiles            = files;
-        info.inFileCount        = CountOf( files );
-        info.outputPackName     = Cast<CharType>(output.c_str());
-        info.outputScriptFile   = Cast<CharType>(output_script.c_str());
-        info.outputCppFile      = Cast<CharType>(output_cpp.c_str());
-
-        TEST( convert_input_actions( &info ));
+	const bool						force_update			= true;
+	decltype(&ConvertInputActions)	convert_input_actions	= null;
 
 
-        auto    file = MakeRC<FileRStream>( output );
-        TEST( file->IsOpen() );
+	static void  InputActions_Test1 ()
+	{
+		const CharType*		files[]			= { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
+		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/input_actions.as" );
+		const Path			ref_dump_fname	= FileSystem::ToAbsolute( "input_actions_ref.txt" );
+		const Path			output_folder	= TXT("_output");
+		const Path			output			= FileSystem::ToAbsolute( output_folder / "input_actions.bin" );
+		const Path			output_cpp		= FileSystem::ToAbsolute( output_folder / "../names.h" );
 
-        auto    mem_stream = MakeRC<MemRStream>();
-        {
-            TEST( mem_stream->LoadRemaining( *file ));
+		FileSystem::Remove( output );
 
-            uint    name;
-            TEST( mem_stream->Read( OUT name ));
-            TEST_Eq( name, InputActions_Name );
-        }
+		InputActionsInfo	info = {};
+		info.inFiles			= files;
+		info.inFileCount		= CountOf( files );
+		info.outputPackName		= Cast<CharType>(output.c_str());
+		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+		info.outputCppFile		= Cast<CharType>(output_cpp.c_str());
 
-        Array<uint>     hashes;
-        Array<uint>     offsets;
+		TEST( convert_input_actions( &info ));
 
-        {
-            uint    count;
-            TEST( mem_stream->Read( OUT count ));
 
-            TEST( mem_stream->Read( count, hashes ));
-            TEST( mem_stream->Read( count, offsets ));
+		auto	file = MakeRC<FileRStream>( output );
+		TEST( file->IsOpen() );
 
-            offsets.push_back( uint(mem_stream->Size()) );
-        }
+		auto	mem_stream = MakeRC<MemRStream>();
+		{
+			TEST( mem_stream->LoadRemaining( *file ));
 
-        TEST_Eq( hashes.size(), 3 );
+			uint	name;
+			TEST( mem_stream->Read( OUT name ));
+			TEST_Eq( name, InputActions_Name );
+		}
 
-        String  ser_str;
+		Array<uint>		hashes;
+		Array<uint>		offsets;
 
-        SerializableInputActions::Reflection    refl;
+		{
+			uint	count;
+			TEST( mem_stream->Read( OUT count ));
 
-        for (usize i = 0; i < hashes.size(); ++i)
-        {
-            TEST_Lt( offsets[i], offsets[i+1] );
+			TEST( mem_stream->Read( count, hashes ));
+			TEST( mem_stream->Read( count, offsets ));
 
-            const uint  name = hashes[i];
+			offsets.push_back( uint(mem_stream->Size()) );
+		}
 
-            AE::Serializing::Deserializer   des{ mem_stream->ToSubStream( Bytes{offsets[i]}, Bytes{offsets[i+1] - offsets[i]} )};
+		TEST_Eq( hashes.size(), 3 );
 
-            if ( name == InputActionsAndroid_Name )
-            {
-                SerializableInputActionsAndroid     temp;
-                TEST( temp.Deserialize( des ));
+		String	ser_str;
 
-                ser_str << temp.ToString( refl );
-            }
-            else
-            if ( name == InputActionsGLFW_Name )
-            {
-                SerializableInputActionsGLFW    temp;
-                TEST( temp.Deserialize( des ));
+		SerializableInputActions::Reflection	refl;
 
-                ser_str << temp.ToString( refl );
-            }
-            else
-            if ( name == InputActionsWinAPI_Name )
-            {
-                SerializableInputActionsWinAPI  temp;
-                TEST( temp.Deserialize( des ));
+		for (usize i = 0; i < hashes.size(); ++i)
+		{
+			TEST_Lt( offsets[i], offsets[i+1] );
 
-                ser_str << temp.ToString( refl );
-            }
-            else
-            if ( name == InputActionsOpenVR_Name )
-            {
-                SerializableInputActionsOpenVR  temp;
-                TEST( temp.Deserialize( des ));
+			const uint	name = hashes[i];
 
-                ser_str << temp.ToString( refl );
-            }
-            else
-                TEST( false );
+			AE::Serializing::Deserializer	des{ mem_stream->ToSubStream( Bytes{offsets[i]}, Bytes{offsets[i+1] - offsets[i]} )};
 
-            TEST( des.IsEnd() );
-        }
+			if ( name == InputActionsAndroid_Name )
+			{
+				SerializableInputActionsAndroid		temp;
+				TEST( temp.Deserialize( des ));
 
-        #if not AE_OPTIMIZE_IDS
-            TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
-        #endif
-    }
+				ser_str << temp.ToString( refl );
+			}
+			else
+			if ( name == InputActionsGLFW_Name )
+			{
+				SerializableInputActionsGLFW	temp;
+				TEST( temp.Deserialize( des ));
+
+				ser_str << temp.ToString( refl );
+			}
+			else
+			if ( name == InputActionsWinAPI_Name )
+			{
+				SerializableInputActionsWinAPI	temp;
+				TEST( temp.Deserialize( des ));
+
+				ser_str << temp.ToString( refl );
+			}
+			else
+			if ( name == InputActionsOpenVR_Name )
+			{
+				SerializableInputActionsOpenVR	temp;
+				TEST( temp.Deserialize( des ));
+
+				ser_str << temp.ToString( refl );
+			}
+			else
+				TEST( false );
+
+			TEST( des.IsEnd() );
+		}
+
+		#if not AE_OPTIMIZE_IDS
+			TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
+		#endif
+	}
 }
 
 
 extern void Test_InputActions ()
 {
-    {
-        Library     lib;
-        TEST( lib.Load( AE_INPUT_ACTIONS_BINDING_LIBRARY ));
-        TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
+	{
+		Library		lib;
+		TEST( lib.Load( AE_INPUT_ACTIONS_BINDING_LIBRARY ));
+		TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
 
-        TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));
+		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));
 
-        InputActions_Test1();
-    }
-    TEST_PASSED();
+		InputActions_Test1();
+	}
+	TEST_PASSED();
 }

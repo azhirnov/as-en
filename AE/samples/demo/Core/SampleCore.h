@@ -8,78 +8,78 @@
 namespace AE::Samples::Demo
 {
 
-    //
-    // Sample Application
-    //
+	//
+	// Sample Application
+	//
 
-    class SampleApplication final : public AppV1::AppCoreV1
-    {
-    // methods
-    public:
-        SampleApplication ()                __NE___;
+	class SampleApplication final : public AppV1::AppCoreV1
+	{
+	// methods
+	public:
+		SampleApplication ()				__NE___;
 
-        void  OnStart (IApplication &)      __NE_OV;
+		void  OnStart (IApplication &)		__NE_OV;
 
-    private:
-        ND_ bool  _InitVFS (IApplication &);
-    };
-
-
-
-    //
-    // Sample Core
-    //
-
-    class SampleCore final : public AppV1::IBaseApp
-    {
-    // types
-    private:
-        struct MainLoopData
-        {
-            Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
-            Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
-        };
-        using MainLoopSync_t    = Threading::DRCSynchronized< MainLoopData >;
+	private:
+		ND_ bool  _InitVFS (IApplication &);
+	};
 
 
-    // variables
-    private:
-        Strong<PipelinePackID>      _pplnPack;
-        MainLoopSync_t              _mainLoop;
-        RC<ISample>                 _sample;
 
-        RC<MemRStream>              _inputActionsData;
+	//
+	// Sample Core
+	//
 
-        Atomic<bool>                _initialized {false};
-
-        IApplicationTS              _app;
-
-
-    // methods
-    public:
-        SampleCore ()                                                               __NE___;
-        ~SampleCore ();
-
-        ND_ bool  LoadInputActions ();
-            void  SetApplication (IApplication &app)                                        { _app = IApplicationTS{app}; }
-
-    private:
-        ND_ bool  _CompileBaseResources (IOutputSurface &);
-        ND_ bool  _CompileResources (IOutputSurface &);
+	class SampleCore final : public AppV1::IBaseApp
+	{
+	// types
+	private:
+		struct MainLoopData
+		{
+			Ptr<IInputActions>		input;		// lifetime is same as Window/VRDevice lifetime
+			Ptr<IOutputSurface>		output;		// lifetime is same as Window/VRDevice lifetime
+		};
+		using MainLoopSync_t	= Threading::DRCSynchronized< MainLoopData >;
 
 
-    // IBaseApp (main thread) //
-    private:
-        bool  OnSurfaceCreated (IWindow &)                                          __NE_OV;
-        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
-        void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
-        void  RenderFrame ()                                                        __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray  &threadMask,
-                         Ptr<IWindow>                   window,
-                         Ptr<IVRDevice>                 vrDevice)                   __NE_OV;
+	// variables
+	private:
+		Strong<PipelinePackID>		_pplnPack;
+		MainLoopSync_t				_mainLoop;
+		RC<ISample>					_sample;
 
-        void  _InitInputActions (IInputActions &);
-    };
+		RC<MemRStream>				_inputActionsData;
+
+		Atomic<bool>				_initialized {false};
+
+		IApplicationTS				_app;
+
+
+	// methods
+	public:
+		SampleCore ()																__NE___;
+		~SampleCore ();
+
+		ND_	bool  LoadInputActions ();
+			void  SetApplication (IApplication &app)										{ _app = IApplicationTS{app}; }
+
+	private:
+		ND_ bool  _CompileBaseResources (IOutputSurface &);
+		ND_ bool  _CompileResources (IOutputSurface &);
+
+
+	// IBaseApp (main thread) //
+	private:
+		bool  OnSurfaceCreated (IWindow &)											__NE_OV;
+		void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)	__NE_OV;
+		void  StopRendering (Ptr<IOutputSurface>)									__NE_OV;
+		void  RenderFrame ()														__NE_OV;
+		void  WaitFrame (const Threading::EThreadArray	&threadMask,
+						 Ptr<IWindow>					window,
+						 Ptr<IVRDevice>					vrDevice)					__NE_OV;
+
+		void  _InitInputActions (IInputActions &);
+	};
 
 
 } // AE::Samples::Demo

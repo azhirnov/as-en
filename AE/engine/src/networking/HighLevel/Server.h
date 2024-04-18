@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    thread-safe:  see ClientServerBase
+	thread-safe:  see ClientServerBase
 */
 
 #pragma once
@@ -10,55 +10,55 @@
 namespace AE::Networking
 {
 
-    //
-    // Server
-    //
+	//
+	// Server
+	//
 
-    class BaseServer : public ClientServerBase
-    {
-    // variables
-    private:
-        RC<IClientListener>     _clientListener;
-
-
-    // methods
-    protected:
-        ND_ bool  _Initialize (RC<MessageFactory>   mf,
-                               RC<IClientListener>  clientListener,
-                               RC<IAllocator>       alloc,
-                               FrameUID             firstFrameId)                       __NE___;
-            void  _Deinitialize ()                                                      __NE___;
-
-        ND_ bool  _AddChannelReliableTCP (ushort port, StringView dbgName = Default)    __NE___;
-        ND_ bool  _AddChannelUnreliableTCP (ushort port, StringView dbgName = Default)  __NE___;
-    //  ND_ bool  _AddChannelUnreliableUDP (ushort port, StringView dbgName = Default)  __NE___;
-
-        ND_ bool  _DisconnectClient (EClientLocalID)                                    __NE___;
-    };
+	class BaseServer : public ClientServerBase
+	{
+	// variables
+	private:
+		RC<IClientListener>		_clientListener;
 
 
+	// methods
+	protected:
+		ND_ bool  _Initialize (RC<MessageFactory>	mf,
+							   RC<IClientListener>	clientListener,
+							   RC<IAllocator>		alloc,
+							   FrameUID				firstFrameId)						__NE___;
+			void  _Deinitialize ()														__NE___;
 
-    //
-    // Client Event Listener interface
-    //
+		ND_ bool  _AddChannelReliableTCP (ushort port, StringView dbgName = Default)	__NE___;
+		ND_ bool  _AddChannelUnreliableTCP (ushort port, StringView dbgName = Default)	__NE___;
+	//	ND_ bool  _AddChannelUnreliableUDP (ushort port, StringView dbgName = Default)	__NE___;
 
-    class IClientListener : public EnableRC<IClientListener>
-    {
-    // interface
-    public:
+		ND_ bool  _DisconnectClient (EClientLocalID)									__NE___;
+	};
 
-        // Called when new client connected.
-        // Returns valid ID if client is allowed to connect, otherwise it will be disconnected.
-        //
-        // Thread-safe:
-        //  Can be used in multiple threads but not in concurrent when used in single client/server.
-        //
-        ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress &)     __NE___ = 0;
-        ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)    __NE___ = 0;
 
-        // TODO: reason
-            virtual void  OnClientDisconnected (EChannel, EClientLocalID)               __NE___ = 0;
-    };
+
+	//
+	// Client Event Listener interface
+	//
+
+	class IClientListener : public EnableRC<IClientListener>
+	{
+	// interface
+	public:
+
+		// Called when new client connected.
+		// Returns valid ID if client is allowed to connect, otherwise it will be disconnected.
+		//
+		// Thread-safe:
+		//	Can be used in multiple threads but not in concurrent when used in single client/server.
+		//
+		ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress &)		__NE___ = 0;
+		ND_ virtual EClientLocalID  OnClientConnected (EChannel, const IpAddress6 &)	__NE___ = 0;
+
+		// TODO: reason
+			virtual void  OnClientDisconnected (EChannel, EClientLocalID)				__NE___ = 0;
+	};
 
 
 } // AE::Networking

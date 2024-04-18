@@ -9,16 +9,16 @@ namespace AE::Scripting
 {
 /*
 =================================================
-    _BindVectorMath1
+	_BindVectorMath1
 =================================================
 */
-    void  CoreBindings::_BindVectorMath1 (const ScriptEnginePtr &se) __Th___
-    {
-        // declare
-        DefineVector_Func   func{ se };
+	void  CoreBindings::_BindVectorMath1 (const ScriptEnginePtr &se) __Th___
+	{
+		// declare
+		DefineVector_Func	func{ se };
 
-        VecTypes::VisitTh( func );
-    }
+		VecTypes::VisitTh( func );
+	}
 
 
 } // AE::Scripting

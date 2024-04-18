@@ -8,14 +8,14 @@
 namespace AE::App
 {
 
-    //
-    // Utils
-    //
+	//
+	// Utils
+	//
 
-    struct UtilsWinAPI
-    {
-        static void  SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)  __NE___;
-    };
+	struct UtilsWinAPI
+	{
+		static void  SetMonitorNames (INOUT ApplicationBase::Monitors_t &monitors)	__NE___;
+	};
 
 
 } // AE::App

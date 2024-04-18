@@ -7,46 +7,46 @@ namespace AE::App
 
 /*
 =================================================
-    _StateChanged
+	_StateChanged
 =================================================
 */
-    bool  VRDeviceBase::_StateChanged (EState newState) const
-    {
-        const bool  skip_focused    = ((_hmdState == EState::InForeground) and (newState == EState::InBackground)) or
-                                      ((_hmdState == EState::InBackground) and (newState == EState::InForeground));
-        const int   diff            = Abs( int(_hmdState) - int(newState) );
+	bool  VRDeviceBase::_StateChanged (EState newState) const
+	{
+		const bool	skip_focused	= ((_hmdState == EState::InForeground) and (newState == EState::InBackground)) or
+									  ((_hmdState == EState::InBackground) and (newState == EState::InForeground));
+		const int	diff			= Abs( int(_hmdState) - int(newState) );
 
-        return  (diff == 1) or skip_focused;
-    }
+		return	(diff == 1) or skip_focused;
+	}
 
 /*
 =================================================
-    _SetState
+	_SetState
 =================================================
 */
-    void  VRDeviceBase::_SetState (EState newState)
-    {
-        if_unlikely( not _StateChanged( newState ))
-            return;
+	void  VRDeviceBase::_SetState (EState newState)
+	{
+		if_unlikely( not _StateChanged( newState ))
+			return;
 
-        _hmdState = newState;
+		_hmdState = newState;
 
-        if_likely( _listener )
-            _listener->OnStateChanged( *this, _hmdState );
-    }
+		if_likely( _listener )
+			_listener->OnStateChanged( *this, _hmdState );
+	}
 
 /*
 =================================================
-    _DestroyListener
+	_DestroyListener
 =================================================
 */
-    void  VRDeviceBase::_DestroyListener ()
-    {
-        _SetState( EState::InBackground );
-        _SetState( EState::Stopped );
-        _SetState( EState::Destroyed );
+	void  VRDeviceBase::_DestroyListener ()
+	{
+		_SetState( EState::InBackground );
+		_SetState( EState::Stopped );
+		_SetState( EState::Destroyed );
 
-        _listener.reset();
-    }
+		_listener.reset();
+	}
 
 } // AE::App

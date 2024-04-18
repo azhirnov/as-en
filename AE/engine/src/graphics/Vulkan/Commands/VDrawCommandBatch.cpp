@@ -6,29 +6,29 @@
 
 namespace AE::Graphics
 {
-#   include "graphics/Private/DrawCommandBatch.cpp.h"
+#	include "graphics/Private/DrawCommandBatch.cpp.h"
 
 /*
 =================================================
-    GetCmdBuffers
+	GetCmdBuffers
 ----
-    same as 'EndAllSecondary()' for Metal
+	same as 'EndAllSecondary()' for Metal
 =================================================
 */
-    bool  DRAWCMDBATCH::GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
-    {
-        EStatus old_status = _status.exchange( EStatus::Submitted );
-        CHECK_ERR( AnyEqual( old_status, EStatus::Recording, EStatus::Submitted, EStatus::Pending ));
+	bool  DRAWCMDBATCH::GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
+	{
+		EStatus	old_status = _status.exchange( EStatus::Submitted );
+		CHECK_ERR( AnyEqual( old_status, EStatus::Recording, EStatus::Submitted, EStatus::Pending ));
 
-        _cmdPool.Lock();
-        CHECK_ERR( _cmdPool.IsReady() );
+		_cmdPool.Lock();
+		CHECK_ERR( _cmdPool.IsReady() );
 
-        auto&   rts = GraphicsScheduler();
-        CHECK_ERR( _cmdPool.CommitIndirectBuffers( rts.GetCommandPoolManager(), GetQueueType(), GetCmdBufType(), &GetPrimaryCtxState() ));
+		auto&	rts	= GraphicsScheduler();
+		CHECK_ERR( _cmdPool.CommitIndirectBuffers( rts.GetCommandPoolManager(), GetQueueType(), GetCmdBufType(), &GetPrimaryCtxState() ));
 
-        _cmdPool.GetCommands( cmdbufs.data(), OUT count, uint(cmdbufs.size()) );
-        return true;
-    }
+		_cmdPool.GetCommands( cmdbufs.data(), OUT count, uint(cmdbufs.size()) );
+		return true;
+	}
 
 
 } // AE::Graphics

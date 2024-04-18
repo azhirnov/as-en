@@ -25,7 +25,7 @@ void  Init ()
 void  RenderFrame ()
 {
     // get log of previous frame
-    String  log;
+    String	log;
     VulkanSyncLog::GetLog( OUT log );
     ...
 ]

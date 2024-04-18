@@ -9,141 +9,141 @@
 namespace AE::ResEditor
 {
 
-    //
-    // Unified Geometry Source
-    //
+	//
+	// Unified Geometry Source
+	//
 
-    class UnifiedGeometry final : public IGeomSource
-    {
-        friend class ScriptUniGeometry;
+	class UnifiedGeometry final : public IGeomSource
+	{
+		friend class ScriptUniGeometry;
 
-    // types
-    private:
-        class Material final : public IGSMaterials
-        {
-        // types
-        public:
-            using PplnID_t      = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
-            using PipelineMap_t = FlatHashMap< Pair<usize, EDebugMode>, PplnID_t >;
-
-
-        // variables
-        public:
-            RenderTechPipelinesPtr      rtech;
-
-            PipelineMap_t               pipelineMap;
-            PerFrameDescSet_t           descSets;
-
-            DescSetBinding              passDSIndex;
-            DescSetBinding              mtrDSIndex;
-
-            Strong<BufferID>            ubuffer;
+	// types
+	private:
+		class Material final : public IGSMaterials
+		{
+		// types
+		public:
+			using PplnID_t		= Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
+			using PipelineMap_t	= FlatHashMap< Pair<usize, EDebugMode>, PplnID_t >;
 
 
-        // methods
-        public:
-            Material ()     __NE___ {}
-            ~Material ();
+		// variables
+		public:
+			RenderTechPipelinesPtr		rtech;
 
-            DebugModeBits  GetDebugModeBits ()  C_NE_OV;
-        };
+			PipelineMap_t				pipelineMap;
+			PerFrameDescSet_t			descSets;
 
+			DescSetBinding				passDSIndex;
+			DescSetBinding				mtrDSIndex;
 
-        //-------------------------------------------------------
-        struct DrawCmd2 : Graphics::DrawCmd
-        {
-            RC<DynamicUInt>     dynVertexCount;
-            RC<DynamicUInt>     dynInstanceCount;
-        };
-
-        struct DrawIndexedCmd2 : Graphics::DrawIndexedCmd
-        {
-            EIndex              indexType           = Default;
-            RC<Buffer>          indexBufferPtr;
-            Bytes               indexBufferOffset;
-            RC<DynamicUInt>     dynIndexCount;
-            RC<DynamicUInt>     dynInstanceCount;
-        };
-
-        struct DrawIndirectCmd2 : Graphics::DrawIndirectCmd
-        {
-            RC<Buffer>          indirectBufferPtr;
-            RC<DynamicUInt>     dynDrawCount;
-        };
-
-        struct DrawIndexedIndirectCmd2 : Graphics::DrawIndexedIndirectCmd
-        {
-            EIndex              indexType           = Default;
-            RC<Buffer>          indexBufferPtr;
-            Bytes               indexBufferOffset;
-            RC<Buffer>          indirectBufferPtr;
-            RC<DynamicUInt>     dynDrawCount;
-        };
-
-        struct DrawMeshTasksCmd2
-        {
-            RC<DynamicUInt3>    dynTaskCount;
-            uint3               taskCount;
-        };
-
-        struct DrawMeshTasksIndirectCmd2 : Graphics::DrawMeshTasksIndirectCmd
-        {
-            RC<Buffer>          indirectBufferPtr;
-            RC<DynamicUInt>     dynDrawCount;
-        };
-
-        struct DrawIndirectCountCmd2 : Graphics::DrawIndirectCountCmd
-        {
-            RC<Buffer>          indirectBufferPtr;
-            RC<Buffer>          countBufferPtr;
-            RC<DynamicUInt>     dynMaxDrawCount;
-        };
-
-        struct DrawIndexedIndirectCountCmd2 : Graphics::DrawIndexedIndirectCountCmd
-        {
-            EIndex              indexType           = Default;
-            RC<Buffer>          indexBufferPtr;
-            Bytes               indexBufferOffset;
-            RC<Buffer>          indirectBufferPtr;
-            RC<Buffer>          countBufferPtr;
-            RC<DynamicUInt>     dynMaxDrawCount;
-        };
-
-        struct DrawMeshTasksIndirectCountCmd2 : Graphics::DrawMeshTasksIndirectCountCmd
-        {
-            RC<Buffer>          indirectBufferPtr;
-            RC<Buffer>          countBufferPtr;
-            RC<DynamicUInt>     dynMaxDrawCount;
-        };
-
-        using DrawCommand_t     = Union< DrawCmd2, DrawIndexedCmd2, DrawIndirectCmd2, DrawIndexedIndirectCmd2,
-                                         DrawMeshTasksCmd2, DrawMeshTasksIndirectCmd2, DrawIndirectCountCmd2,
-                                         DrawIndexedIndirectCountCmd2, DrawMeshTasksIndirectCountCmd2 >;
-        using DrawCommands_t    = Array< DrawCommand_t >;
-        //-------------------------------------------------------
+			Strong<BufferID>			ubuffer;
 
 
-    // variables
-    private:
-        DrawCommands_t      _drawCommands;
-        ResourceArray       _resources;
+		// methods
+		public:
+			Material ()		__NE___ {}
+			~Material ();
+
+			DebugModeBits  GetDebugModeBits ()	C_NE_OV;
+		};
 
 
-    // methods
-    public:
-        UnifiedGeometry (Renderer &r)                                               __NE___;
-        ~UnifiedGeometry ();
+		//-------------------------------------------------------
+		struct DrawCmd2 : Graphics::DrawCmd
+		{
+			RC<DynamicUInt>		dynVertexCount;
+			RC<DynamicUInt>		dynInstanceCount;
+		};
+
+		struct DrawIndexedCmd2 : Graphics::DrawIndexedCmd
+		{
+			EIndex				indexType			= Default;
+			RC<Buffer>			indexBufferPtr;
+			Bytes				indexBufferOffset;
+			RC<DynamicUInt>		dynIndexCount;
+			RC<DynamicUInt>		dynInstanceCount;
+		};
+
+		struct DrawIndirectCmd2 : Graphics::DrawIndirectCmd
+		{
+			RC<Buffer>			indirectBufferPtr;
+			RC<DynamicUInt>		dynDrawCount;
+		};
+
+		struct DrawIndexedIndirectCmd2 : Graphics::DrawIndexedIndirectCmd
+		{
+			EIndex				indexType			= Default;
+			RC<Buffer>			indexBufferPtr;
+			Bytes				indexBufferOffset;
+			RC<Buffer>			indirectBufferPtr;
+			RC<DynamicUInt>		dynDrawCount;
+		};
+
+		struct DrawMeshTasksCmd2
+		{
+			RC<DynamicUInt3>	dynTaskCount;
+			uint3				taskCount;
+		};
+
+		struct DrawMeshTasksIndirectCmd2 : Graphics::DrawMeshTasksIndirectCmd
+		{
+			RC<Buffer>			indirectBufferPtr;
+			RC<DynamicUInt>		dynDrawCount;
+		};
+
+		struct DrawIndirectCountCmd2 : Graphics::DrawIndirectCountCmd
+		{
+			RC<Buffer>			indirectBufferPtr;
+			RC<Buffer>			countBufferPtr;
+			RC<DynamicUInt>		dynMaxDrawCount;
+		};
+
+		struct DrawIndexedIndirectCountCmd2 : Graphics::DrawIndexedIndirectCountCmd
+		{
+			EIndex				indexType			= Default;
+			RC<Buffer>			indexBufferPtr;
+			Bytes				indexBufferOffset;
+			RC<Buffer>			indirectBufferPtr;
+			RC<Buffer>			countBufferPtr;
+			RC<DynamicUInt>		dynMaxDrawCount;
+		};
+
+		struct DrawMeshTasksIndirectCountCmd2 : Graphics::DrawMeshTasksIndirectCountCmd
+		{
+			RC<Buffer>			indirectBufferPtr;
+			RC<Buffer>			countBufferPtr;
+			RC<DynamicUInt>		dynMaxDrawCount;
+		};
+
+		using DrawCommand_t		= Union< DrawCmd2, DrawIndexedCmd2, DrawIndirectCmd2, DrawIndexedIndirectCmd2,
+										 DrawMeshTasksCmd2, DrawMeshTasksIndirectCmd2, DrawIndirectCountCmd2,
+										 DrawIndexedIndirectCountCmd2, DrawMeshTasksIndirectCountCmd2 >;
+		using DrawCommands_t	= Array< DrawCommand_t >;
+		//-------------------------------------------------------
 
 
-    // IGeomSource //
-        void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
-                                   const Debugger &, OUT ShaderDebugger::Result &)  __Th_OV;
-        void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)               __Th_OV;
-        using IGeomSource::StateTransition;
+	// variables
+	private:
+		DrawCommands_t		_drawCommands;
+		ResourceArray		_resources;
 
-        bool  Draw (const DrawData &)                                               __Th_OV;
-        bool  Update (const UpdateData &)                                           __Th_OV;
-    };
+
+	// methods
+	public:
+		UnifiedGeometry (Renderer &r)												__NE___;
+		~UnifiedGeometry ();
+
+
+	// IGeomSource //
+		void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
+								   const Debugger &, OUT ShaderDebugger::Result &)	__Th_OV;
+		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)				__Th_OV;
+		using IGeomSource::StateTransition;
+
+		bool  Draw (const DrawData &)												__Th_OV;
+		bool  Update (const UpdateData &)											__Th_OV;
+	};
 
 
 } // AE::ResEditor

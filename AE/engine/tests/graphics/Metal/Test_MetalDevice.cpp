@@ -7,20 +7,20 @@
 
 extern void Test_MetalDevice ()
 {
-    {
-        MDeviceInitializer  dev;
+	{
+		MDeviceInitializer	dev;
 
-        CHECK_FATAL( dev.CreateDefaultQueue() );
-        CHECK_FATAL( dev.CreateLogicalDevice() );
+		CHECK_FATAL( dev.CreateDefaultQueue() );
+		CHECK_FATAL( dev.CreateLogicalDevice() );
 
-        CHECK_FATAL( dev.IsInitialized() );
-        CHECK_FATAL( dev.CheckConstantLimits() );
-        CHECK_FATAL( dev.CheckExtensions() );
+		CHECK_FATAL( dev.IsInitialized() );
+		CHECK_FATAL( dev.CheckConstantLimits() );
+		CHECK_FATAL( dev.CheckExtensions() );
 
-        CHECK_FATAL( dev.DestroyLogicalDevice() );
-        CHECK_FATAL( not dev.IsInitialized() );
-    }
-    TEST_PASSED();
+		CHECK_FATAL( dev.DestroyLogicalDevice() );
+		CHECK_FATAL( not dev.IsInitialized() );
+	}
+	TEST_PASSED();
 }
 
 #endif // AE_ENABLE_METAL

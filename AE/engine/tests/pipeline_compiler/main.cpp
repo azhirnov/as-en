@@ -13,18 +13,18 @@ extern void  UnitTest_VertexBufferInput_MSL ();
 
 int main ()
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    UnitTest_StructType();
-    UnitTest_DSLayout_GLSL();
-    UnitTest_DSLayout_MSL();
+	UnitTest_StructType();
+	UnitTest_DSLayout_GLSL();
+	UnitTest_DSLayout_MSL();
 
-    UnitTest_PipelineLayout_GLSL();
-    UnitTest_PipelineLayout_MSL();
+	UnitTest_PipelineLayout_GLSL();
+	UnitTest_PipelineLayout_MSL();
 
-    UnitTest_VertexBufferInput_GLSL();
-    UnitTest_VertexBufferInput_MSL();
+	UnitTest_VertexBufferInput_GLSL();
+	UnitTest_VertexBufferInput_MSL();
 
-    AE_LOGI( "Tests.PipelineCompiler finished" );
-    return 0;
+	AE_LOGI( "Tests.PipelineCompiler finished" );
+	return 0;
 }

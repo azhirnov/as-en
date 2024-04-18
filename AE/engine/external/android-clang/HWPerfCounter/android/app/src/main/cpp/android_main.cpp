@@ -5,6 +5,6 @@ extern "C" int AE_HWPerfCounter_Test ();
 
 void android_main (struct android_app* state)
 {
-    AE_HWPerfCounter_Test();
+	AE_HWPerfCounter_Test();
     std::abort();
 }

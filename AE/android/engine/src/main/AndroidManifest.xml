@@ -1,30 +1,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<!-- min Vulkan API version: 1.0.82 -->
+	<uses-feature android:name="android.hardware.vulkan.version" android:version="0x400052" android:required="true" />
 
-    <!-- min Vulkan API version: 1.0.82 -->
-    <uses-feature android:name="android.hardware.vulkan.version" android:version="0x400052" android:required="true" />
+	<!--<uses-feature android:name="android.hardware.microphone" android:required="false" />-->
+	<!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
 
-    <!--<uses-feature android:name="android.hardware.microphone" android:required="false" />-->
-    <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
+	<uses-feature android:name="android.hardware.audio.output" android:required="false" />
+	<uses-feature android:name="android.hardware.gamepad" android:required="false" />
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	
+	<uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.ambient_temperature" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.hifi_sensors" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.light" android:required="false" />
+	<uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
 
-    <uses-feature android:name="android.hardware.audio.output" android:required="false" />
-    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
-    <uses-feature android:name="android.hardware.location" android:required="false" />
+	<!--<uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />-->
+	<!--<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />-->
 
-    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.ambient_temperature" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.hifi_sensors" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.light" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
+	<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />	<!-- API 31 -->
+	
+	<uses-feature android:name="android.hardware.faketouch" android:required="false" />
 
-    <!--<uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />-->
-    <!--<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />-->
-
-    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />    <!-- API 31 -->
-
-    <uses-feature android:name="android.hardware.faketouch" android:required="false" />
-
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	
 </manifest>

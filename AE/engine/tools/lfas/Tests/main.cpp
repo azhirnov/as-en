@@ -12,23 +12,23 @@ extern void Test_LfLinearAllocator ();
 
 int main ()
 {
-    AE::Base::StaticLogger::LoggerDbgScope  log{};
+	AE::Base::StaticLogger::LoggerDbgScope	log{};
 
-    #ifdef AE_DEBUG
-        return 0;
-    #endif
+	#ifdef AE_DEBUG
+		return 0;
+	#endif
 
-    UnitTest_Ranges();
-    Test_SpinLock();
-    Test_LfIndexedPool2();
-    Test_LfIndexedPool3();
-    Test_LfStaticPool();
-    Test_LfLinearAllocator();
+	UnitTest_Ranges();
+	Test_SpinLock();
+	Test_LfIndexedPool2();
+	Test_LfIndexedPool3();
+	Test_LfStaticPool();
+	Test_LfLinearAllocator();
 
-    // TODO:
-    //  LfFixedBlockAllocator
-    //  LfStaticQueue
-    //  LfStaticIndexedPool
+	// TODO:
+	//	LfFixedBlockAllocator
+	//	LfStaticQueue
+	//	LfStaticIndexedPool
 
-    return 0;
+	return 0;
 }

@@ -9,43 +9,43 @@ namespace AE::Audio
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    AudioDataBASS::AudioDataBASS (uint id, RC<RStream> stream, ESoundFlags flags) __NE___ :
-        _streamId{id}, _dataStream{RVRef(stream)}
-    {
-        if ( IsStream() )
-        {
-            float   bitrate = 0.0f;
-            BASS_CHECK( bass.ChannelGetAttribute( _streamId, BASS_ATTRIB_BITRATE, OUT &bitrate ));
-            _desc.bitrate   = KBitPerSec{ bitrate };
+	AudioDataBASS::AudioDataBASS (uint id, RC<RStream> stream, ESoundFlags flags) __NE___ :
+		_streamId{id}, _dataStream{RVRef(stream)}
+	{
+		if ( IsStream() )
+		{
+			float	bitrate = 0.0f;
+			BASS_CHECK( bass.ChannelGetAttribute( _streamId, BASS_ATTRIB_BITRATE, OUT &bitrate ));
+			_desc.bitrate	= KBitPerSec{ bitrate };
 
-            QWORD   byte_len = bass.ChannelGetLength( _streamId, BASS_POS_BYTE );
-            _desc.duration  = Seconds{ float( bass.ChannelBytes2Seconds( _streamId, byte_len ))};
+			QWORD	byte_len = bass.ChannelGetLength( _streamId, BASS_POS_BYTE );
+			_desc.duration	= Seconds{ float( bass.ChannelBytes2Seconds( _streamId, byte_len ))};
 
-            _desc.size      = Bytes{ byte_len };
-        }
-        else
-        {
-            SampleGetInfo( _streamId, OUT _desc );
-        }
+			_desc.size		= Bytes{ byte_len };
+		}
+		else
+		{
+			SampleGetInfo( _streamId, OUT _desc );
+		}
 
-        _desc.flags = flags;
-    }
+		_desc.flags = flags;
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    AudioDataBASS::~AudioDataBASS () __NE___
-    {
-        if ( IsStream() )
-            bass.StreamFree( _streamId );
-        else
-            bass.SampleFree( _streamId );
-    }
+	AudioDataBASS::~AudioDataBASS () __NE___
+	{
+		if ( IsStream() )
+			bass.StreamFree( _streamId );
+		else
+			bass.SampleFree( _streamId );
+	}
 
 
 } // AE::Audio

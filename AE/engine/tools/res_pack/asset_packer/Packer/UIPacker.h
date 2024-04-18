@@ -2,24 +2,24 @@
 
 namespace AE::AssetPacker
 {
-    using namespace AE::Base;
-    using namespace AE::Graphics;
+	using namespace AE::Base;
+	using namespace AE::Graphics;
 
 
-    //
-    // UI Packer
-    //
+	//
+	// UI Packer
+	//
 
-    class UIPacker final
-    {
-    // types
-    public:
-        static constexpr ushort     Version         = 1;
+	class UIPacker final
+	{
+	// types
+	public:
+		static constexpr ushort		Version			= 1;
 
 
-    // methods
-    public:
-    };
+	// methods
+	public:
+	};
 
 
 } // AE::AssetPacker

@@ -8,41 +8,41 @@
 
 namespace AE::AppV1
 {
-    using namespace AE::App;
+	using namespace AE::App;
 
 
-    //
-    // Application Config
-    //
+	//
+	// Application Config
+	//
 
-    struct AppConfig
-    {
-    // types
-    private:
-        using GraphicsCreateInfo    = Graphics::GraphicsCreateInfo;
-        using VRImageDesc           = IVRDevice::VRImageDesc;
-        using EThread               = Threading::EThread;
-        using VRDeviceTypes         = FixedArray< IVRDevice::EDeviceType, 4 >;
+	struct AppConfig
+	{
+	// types
+	private:
+		using GraphicsCreateInfo	= Graphics::GraphicsCreateInfo;
+		using VRImageDesc			= IVRDevice::VRImageDesc;
+		using EThread				= Threading::EThread;
+		using VRDeviceTypes			= FixedArray< IVRDevice::EDeviceType, 4 >;
 
-        struct ThreadConfig : Threading::TaskScheduler::Config
-        {
-            EnumSet<EThread>        mask        {EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
-            uint                    maxThreads  = 2;
-        };
+		struct ThreadConfig : Threading::TaskScheduler::Config
+		{
+			EnumSet<EThread>		mask		{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
+			uint					maxThreads	= 2;
+		};
 
 
-    // variables
-    public:
-        GraphicsCreateInfo  graphics;
-        ThreadConfig        threading;
-        WindowDesc          window;
-        bool                enableNetwork   = false;
-        bool                enableAudio     = false;
+	// variables
+	public:
+		GraphicsCreateInfo	graphics;
+		ThreadConfig		threading;
+		WindowDesc			window;
+		bool				enableNetwork	= false;
+		bool				enableAudio		= false;
 
-        bool                enableVR        = false;
-        VRDeviceTypes       vrDevices;
-        VRImageDesc         vr;
-    };
+		bool				enableVR		= false;
+		VRDeviceTypes		vrDevices;
+		VRImageDesc			vr;
+	};
 
 
 } // AE::AppV1

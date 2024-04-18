@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    [docs](https://developer.apple.com/documentation/dispatch/1388976-dispatch_io_create)
+	[docs](https://developer.apple.com/documentation/dispatch/1388976-dispatch_io_create)
 */
 
 #ifdef AE_ASYNCIO_USE_DISPATCH_IO
@@ -12,232 +12,232 @@
 
 namespace AE::Threading
 {
-#   include "base/DataSource/UnixFileHelper.cpp.h"
+#	include "base/DataSource/UnixFileHelper.cpp.h"
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    UnixIOService::_RequestBase::_RequestBase () __NE___
-    {
-    }
+	UnixIOService::_RequestBase::_RequestBase () __NE___
+	{
+	}
 
 /*
 =================================================
-    _Cancel
+	_Cancel
 =================================================
 */
-    bool  UnixIOService::_RequestBase::_Cancel () __NE___
-    {
-        return false;
-    }
+	bool  UnixIOService::_RequestBase::_Cancel () __NE___
+	{
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    _Create
+	_Create
 =================================================
 */
-    bool  UnixIOService::ReadRequest::_Create (RC<UnixAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
-    {
-        ASSERT_LE( dataSize, MaxValue<size_t>() );
+	bool  UnixIOService::ReadRequest::_Create (RC<UnixAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
+	{
+		ASSERT_LE( dataSize, MaxValue<size_t>() );
 
-        // initialize
-        _Init( RVRef(mem) );
-        _dataSource = RVRef(file);
-        _offset     = pos;
-        _data       = data;
+		// initialize
+		_Init( RVRef(mem) );
+		_dataSource	= RVRef(file);
+		_offset		= pos;
+		_data		= data;
 
-        // read data
-        void*   io_queue = Cast< UnixIOService >( Scheduler().GetFileIOService() )->_GetIOQueue();
+		// read data
+		void*	io_queue = Cast< UnixIOService >( Scheduler().GetFileIOService() )->_GetIOQueue();
 
-        dispatch_io_read(
-            (__bridge dispatch_io_t)_dataSource->GetIOChannel(),
-            off_t{pos},
-            size_t{dataSize},
-            (__bridge dispatch_queue_t)io_queue,
-            ^ (bool done, dispatch_data_t dataObj, int error)
-            {
-                ASSERT( done );  // partial result is not supported
+		dispatch_io_read(
+			(__bridge dispatch_io_t)_dataSource->GetIOChannel(),
+			off_t{pos},
+			size_t{dataSize},
+			(__bridge dispatch_queue_t)io_queue,
+			^ (bool done, dispatch_data_t dataObj, int error)
+			{
+				ASSERT( done );  // partial result is not supported
 
-                if_likely( dataObj != null and done )
-                {
-                    __block Bytes readn;
-                    dispatch_data_apply(
-                        dataObj,
-                        ^(dispatch_data_t region, size_t offset, const void* buffer, size_t size)
-                        {
-                            std::memcpy( OUT _data, buffer, size );
-                            readn = Bytes{size};
-                            return true;
-                        });
+				if_likely( dataObj != null and done )
+				{
+					__block Bytes readn;
+					dispatch_data_apply(
+						dataObj,
+						^(dispatch_data_t region, size_t offset, const void* buffer, size_t size)
+						{
+							std::memcpy( OUT _data, buffer, size );
+							readn = Bytes{size};
+							return true;
+						});
 
-                    _Complete( readn, true );
-                }
-                else
-                {
-                    // TODO: check errors
-                    _Complete( 0_b, false );
-                }
-            });
+					_Complete( readn, true );
+				}
+				else
+				{
+					// TODO: check errors
+					_Complete( 0_b, false );
+				}
+			});
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    GetResult
+	GetResult
 =================================================
 */
-    UnixIOService::ReadRequest::Result  UnixIOService::ReadRequest::GetResult () C_NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::ReadRequest::Result  UnixIOService::ReadRequest::GetResult () C_NE___
+	{
+		ASSERT( IsFinished() );
 
-        Result  res;
-        res.dataSize    = _actualSize.load();
-        res.pos         = _offset;
-        res.data        = IsCompleted() ? _data : null;
+		Result	res;
+		res.dataSize	= _actualSize.load();
+		res.pos			= _offset;
+		res.data		= IsCompleted() ? _data : null;
 
-        return res;
-    }
+		return res;
+	}
 
 /*
 =================================================
-    _GetResult
+	_GetResult
 =================================================
 */
-    UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
+	{
+		ASSERT( IsFinished() );
 
-        ResultWithRC    res;
-        res.dataSize    = _actualSize.load();
-        res.rc          = _memRC;
-        res.pos         = _offset;
-        res.data        = IsCompleted() ? _data : null;
+		ResultWithRC	res;
+		res.dataSize	= _actualSize.load();
+		res.rc			= _memRC;
+		res.pos			= _offset;
+		res.data		= IsCompleted() ? _data : null;
 
-        return res;
-    }
+		return res;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    _Create
+	_Create
 =================================================
 */
-    bool  UnixIOService::WriteRequest::_Create (RC<UnixAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___
-    {
-        // initialize
-        _Init( RVRef(mem) );
-        _dataSource = RVRef(file);
-        _offset     = pos;
-        _dataSize   = dataSize;
+	bool  UnixIOService::WriteRequest::_Create (RC<UnixAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___
+	{
+		// initialize
+		_Init( RVRef(mem) );
+		_dataSource	= RVRef(file);
+		_offset		= pos;
+		_dataSize	= dataSize;
 
-        // write data
-        void*   io_queue = Cast< UnixIOService >( Scheduler().GetFileIOService() )->_GetIOQueue();
+		// write data
+		void*	io_queue = Cast< UnixIOService >( Scheduler().GetFileIOService() )->_GetIOQueue();
 
-        dispatch_data_t data_obj = dispatch_data_create(
-                                        data, size_t{dataSize},
-                                        (__bridge dispatch_queue_t)io_queue,
-                                        ^(){} );
-        CHECK_ERR( data_obj != null );
+		dispatch_data_t data_obj = dispatch_data_create(
+										data, size_t{dataSize},
+										(__bridge dispatch_queue_t)io_queue,
+										^(){} );
+		CHECK_ERR( data_obj != null );
 
-        dispatch_io_write(
-            (__bridge dispatch_io_t)_dataSource->GetIOChannel(),
-            off_t{pos},
-            data_obj,
-            (__bridge dispatch_queue_t)io_queue,
-            ^ (bool done, dispatch_data_t dataObj, int error)
-            {
-                ASSERT( done );  // partial result is not supported
+		dispatch_io_write(
+			(__bridge dispatch_io_t)_dataSource->GetIOChannel(),
+			off_t{pos},
+			data_obj,
+			(__bridge dispatch_queue_t)io_queue,
+			^ (bool done, dispatch_data_t dataObj, int error)
+			{
+				ASSERT( done );  // partial result is not supported
 
-                Bytes   written;
-                if ( dataObj != null )
-                    written = Bytes{dispatch_data_get_size( dataObj )};
-                else
-                    written = _dataSize;
+				Bytes	written;
+				if ( dataObj != null )
+					written = Bytes{dispatch_data_get_size( dataObj )};
+				else
+					written = _dataSize;
 
-                _Complete( written, (done and error == 0) );
-            });
+				_Complete( written, (done and error == 0) );
+			});
 
-        dispatch_release( data_obj );
-        return true;
-    }
+		dispatch_release( data_obj );
+		return true;
+	}
 
 /*
 =================================================
-    GetResult
+	GetResult
 =================================================
 */
-    UnixIOService::WriteRequest::Result  UnixIOService::WriteRequest::GetResult () C_NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::WriteRequest::Result  UnixIOService::WriteRequest::GetResult () C_NE___
+	{
+		ASSERT( IsFinished() );
 
-        Result  res;
-        res.dataSize    = _actualSize.load();
-        res.data        = null;
-        res.pos         = _offset;
+		Result	res;
+		res.dataSize	= _actualSize.load();
+		res.data		= null;
+		res.pos			= _offset;
 
-        return res;
-    }
+		return res;
+	}
 
 /*
 =================================================
-    _GetResult
+	_GetResult
 =================================================
 */
-    UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
+	{
+		ASSERT( IsFinished() );
 
-        ResultWithRC    res;
-        res.dataSize    = _actualSize.load();
-        res.pos         = _offset;
+		ResultWithRC	res;
+		res.dataSize	= _actualSize.load();
+		res.pos			= _offset;
 
-        return res;
-    }
+		return res;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    CreateIOChannel
+	CreateIOChannel
 =================================================
 */
 namespace
 {
-    static void  CreateIOChannel (INOUT int &fd, OUT void* &ioChannel) __NE___
-    {
-        ASSERT( not ioChannel );
+	static void  CreateIOChannel (INOUT int &fd, OUT void* &ioChannel) __NE___
+	{
+		ASSERT( not ioChannel );
 
-        auto    service     = Cast< UnixIOService >( Scheduler().GetFileIOService() );
-        ASSERT( service);
+		auto	service		= Cast< UnixIOService >( Scheduler().GetFileIOService() );
+		ASSERT( service);
 
-        void*   io_queue    = service->_GetIOQueue();
-        ASSERT( io_queue );
+		void*	io_queue	= service->_GetIOQueue();
+		ASSERT( io_queue );
 
-        // use DISPATCH_IO_RANDOM because with DISPATCH_IO_STREAM file offset will be ignored
+		// use DISPATCH_IO_RANDOM because with DISPATCH_IO_STREAM file offset will be ignored
 
-        dispatch_io_t   channel = dispatch_io_create( DISPATCH_IO_RANDOM, fd, (__bridge dispatch_queue_t)io_queue, ^(int){} );
-        if_unlikely( channel == null )
-        {
-            ::close( fd );
-            fd = -1;
-            return;
-        }
+		dispatch_io_t	channel = dispatch_io_create( DISPATCH_IO_RANDOM, fd, (__bridge dispatch_queue_t)io_queue, ^(int){} );
+		if_unlikely( channel == null )
+		{
+			::close( fd );
+			fd = -1;
+			return;
+		}
 
-        dispatch_io_set_low_water( channel, SIZE_MAX ); // disable partial results
+		dispatch_io_set_low_water( channel, SIZE_MAX );	// disable partial results
 
-        // don't modify file descriptor after channel creation!
+		// don't modify file descriptor after channel creation!
 
-        ioChannel = (__bridge void*)channel;
-    }
+		ioChannel = (__bridge void*)channel;
+	}
 }
 //-----------------------------------------------------------------------------
 
@@ -245,129 +245,129 @@ namespace
 
 /*
 =================================================
-    constructor / destructor
+	constructor / destructor
 =================================================
 */
-    UnixAsyncRDataSource::UnixAsyncRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
-        _file{ file },
-        _fileSize{ GetFileSize( _file )},
-        _flags{ flags }
-        DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-    {
-        CreateIOChannel( INOUT _file, OUT _ioChannel );
-    }
+	UnixAsyncRDataSource::UnixAsyncRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+		_file{ file },
+		_fileSize{ GetFileSize( _file )},
+		_flags{ flags }
+		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+	{
+		CreateIOChannel( INOUT _file, OUT _ioChannel );
+	}
 
-    UnixAsyncRDataSource::~UnixAsyncRDataSource () __NE___
-    {
-        if ( _ioChannel != null )
-            dispatch_io_close( (__bridge dispatch_io_t)_ioChannel, DISPATCH_IO_STOP );
+	UnixAsyncRDataSource::~UnixAsyncRDataSource () __NE___
+	{
+		if ( _ioChannel != null )
+			dispatch_io_close( (__bridge dispatch_io_t)_ioChannel, DISPATCH_IO_STOP );
 
-        if ( IsOpen() )
-            ::close( _file );
-    }
+		if ( IsOpen() )
+			::close( _file );
+	}
 
 /*
 =================================================
-    CancelAllRequests
+	CancelAllRequests
 =================================================
 */
-    bool  UnixAsyncRDataSource::CancelAllRequests () __NE___
-    {
-        ASSERT( IsOpen() );
-        DBG_WARNING( "not supported" );
-        return false;
-    }
+	bool  UnixAsyncRDataSource::CancelAllRequests () __NE___
+	{
+		ASSERT( IsOpen() );
+		DBG_WARNING( "not supported" );
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    constructor / destructor
+	constructor / destructor
 =================================================
 */
-    UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
-        _file{ file }
-        DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-    {
-        CreateIOChannel( INOUT _file, OUT _ioChannel );
-    }
+	UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+		_file{ file }
+		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
+	{
+		CreateIOChannel( INOUT _file, OUT _ioChannel );
+	}
 
-    UnixAsyncWDataSource::~UnixAsyncWDataSource () __NE___
-    {
-        if ( _ioChannel != null )
-            dispatch_io_close( (__bridge dispatch_io_t)_ioChannel, DISPATCH_IO_STOP );
+	UnixAsyncWDataSource::~UnixAsyncWDataSource () __NE___
+	{
+		if ( _ioChannel != null )
+			dispatch_io_close( (__bridge dispatch_io_t)_ioChannel, DISPATCH_IO_STOP );
 
-        if ( IsOpen() )
-            ::close( _file );
-    }
+		if ( IsOpen() )
+			::close( _file );
+	}
 
 /*
 =================================================
-    CancelAllRequests
+	CancelAllRequests
 =================================================
 */
-    bool  UnixAsyncWDataSource::CancelAllRequests () __NE___
-    {
-        ASSERT( IsOpen() );
-        DBG_WARNING( "not supported" );
-        return false;
-    }
+	bool  UnixAsyncWDataSource::CancelAllRequests () __NE___
+	{
+		ASSERT( IsOpen() );
+		DBG_WARNING( "not supported" );
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    constructor
+	constructor
 ----
-    warning: Scheduler().GetFileIOService() is not valid here
+	warning: Scheduler().GetFileIOService() is not valid here
 =================================================
 */
-    UnixIOService::UnixIOService (uint) __NE___
-    {
-        dispatch_queue_t    queue = null;
+	UnixIOService::UnixIOService (uint) __NE___
+	{
+		dispatch_queue_t	queue = null;
 
-        queue = dispatch_queue_create_with_target(  "async io queue",
-                                                    DISPATCH_QUEUE_CONCURRENT,
-                                                    dispatch_get_global_queue( QOS_CLASS_UTILITY, 0 ));
-        _ioQueue = (__bridge void *)queue;
+		queue = dispatch_queue_create_with_target(	"async io queue",
+													DISPATCH_QUEUE_CONCURRENT,
+													dispatch_get_global_queue( QOS_CLASS_UTILITY, 0 ));
+		_ioQueue = (__bridge void *)queue;
 
-        CHECK( IsInitialized() );
-    }
+		CHECK( IsInitialized() );
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    UnixIOService::~UnixIOService () __NE___
-    {
-        if ( _ioQueue != null )
-            dispatch_release( (__bridge dispatch_queue_t)_ioQueue );
-    }
+	UnixIOService::~UnixIOService () __NE___
+	{
+		if ( _ioQueue != null )
+			dispatch_release( (__bridge dispatch_queue_t)_ioQueue );
+	}
 
 /*
 =================================================
-    IsInitialized
+	IsInitialized
 =================================================
 */
-    bool  UnixIOService::IsInitialized () C_NE___
-    {
-        return _ioQueue != null;
-    }
+	bool  UnixIOService::IsInitialized () C_NE___
+	{
+		return _ioQueue != null;
+	}
 
 /*
 =================================================
-    ProcessEvents
+	ProcessEvents
 =================================================
 */
-    usize  UnixIOService::ProcessEvents () __NE___
-    {
-        ASSERT( not IsInitialized() or Scheduler().GetFileIOService() == this );
+	usize  UnixIOService::ProcessEvents () __NE___
+	{
+		ASSERT( not IsInitialized() or Scheduler().GetFileIOService() == this );
 
-        return 0;
-    }
+		return 0;
+	}
 
 
 } // AE::Threading

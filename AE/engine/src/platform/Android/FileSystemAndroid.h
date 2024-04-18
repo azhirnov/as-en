@@ -9,129 +9,129 @@
 
 namespace AE::App
 {
-    using AE::Threading::Promise;
-    using AE::VFS::FileName;
-    using AE::VFS::FileGroupName;
+	using AE::Threading::Promise;
+	using AE::VFS::FileName;
+	using AE::VFS::FileGroupName;
 
 
-    //
-    // Stream for Android
-    //
+	//
+	// Stream for Android
+	//
 
-    class AndroidRStream final : public RStream
-    {
-    // variables
-    private:
-        AAsset *        _asset = null;
-        const Bytes     _size;
+	class AndroidRStream final : public RStream
+	{
+	// variables
+	private:
+		AAsset *		_asset = null;
+		const Bytes		_size;
 
-        DEBUG_ONLY( const String  _name; )
-
-
-    // methods
-    public:
-        AndroidRStream (AAsset* asset, const char* name)    __NE___;
-        ~AndroidRStream ()                                  __NE___ { AAsset_close( _asset ); }
-
-        // RStream //
-        bool        IsOpen ()                               C_NE_OV { return _asset != null; }
-        PosAndSize  PositionAndSize ()                      C_NE_OV;
-        ESourceType GetSourceType ()                        C_NE_OV;
-
-        bool        SeekSet (Bytes newPos)                  __NE_OV;
-        bool        SeekFwd (Bytes offset)                  __NE_OV;
-
-        Bytes       ReadSeq (OUT void* buffer, Bytes size)  __NE_OV;
-    };
+		DEBUG_ONLY( const String  _name; )
 
 
+	// methods
+	public:
+		AndroidRStream (AAsset* asset, const char* name)	__NE___;
+		~AndroidRStream ()									__NE___	{ AAsset_close( _asset ); }
 
-    //
-    // Android Asset Data Source
-    //
+		// RStream //
+		bool		IsOpen ()								C_NE_OV	{ return _asset != null; }
+		PosAndSize	PositionAndSize ()						C_NE_OV;
+		ESourceType	GetSourceType ()						C_NE_OV;
 
-    class AndroidRDataSource final : public RDataSource
-    {
-    // variables
-    private:
-        AAsset *        _asset = null;
-        Bytes           _pos;
-        const Bytes     _size;
+		bool		SeekSet (Bytes newPos)					__NE_OV;
+		bool		SeekFwd (Bytes offset)					__NE_OV;
 
-        DEBUG_ONLY( const String  _name; )
-
-
-    // methods
-    public:
-        AndroidRDataSource (AAsset*, const char*)       __NE___;
-        ~AndroidRDataSource ()                          __NE___ { AAsset_close( _asset ); }
-
-        // RDataSource //
-        bool        IsOpen ()                           C_NE_OV { return _asset != null; }
-        Bytes       Size ()                             C_NE_OV { return _size; }
-        ESourceType GetSourceType ()                    C_NE_OV;
-
-        Bytes       ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
-    };
+		Bytes		ReadSeq (OUT void* buffer, Bytes size)	__NE_OV;
+	};
 
 
 
-    //
-    // VFS Storage implementation for Android builtin storage
-    //
+	//
+	// Android Asset Data Source
+	//
 
-    class FileSystemAndroid final : public IVirtualFileStorage
-    {
-    // types
-    private:
-        using FileMap_t         = FlatHashMap< FileName::Optimized_t, const char* >;
-        using Allocator_t       = LinearAllocator<>;
-        using AsyncRDataSource  = Threading::AsyncRDataSource;
+	class AndroidRDataSource final : public RDataSource
+	{
+	// variables
+	private:
+		AAsset *		_asset = null;
+		Bytes			_pos;
+		const Bytes		_size;
 
-
-    // variables
-    private:
-        FileMap_t       _map;
-        Allocator_t     _allocator;
-        AAssetManager*  _assetMngr  = null;     // in specs: pointer may be shared across multiple threads.
-
-        DEBUG_ONLY(
-          String                        _folder;
-          NamedID_HashCollisionCheck    _hashCollisionCheck;
-        )
-        DRC_ONLY(
-            RWDataRaceCheck     _drCheck;
-        )
+		DEBUG_ONLY( const String  _name; )
 
 
-    // methods
-    public:
-        FileSystemAndroid ()                                                                __NE___ {}
-        ~FileSystemAndroid ()                                                               __NE_OV;
+	// methods
+	public:
+		AndroidRDataSource (AAsset*, const char*)		__NE___;
+		~AndroidRDataSource ()							__NE___	{ AAsset_close( _asset ); }
 
-        ND_ bool  Create (AAssetManager* mngr, StringView folder)                           __NE___;
+		// RDataSource //
+		bool		IsOpen ()							C_NE_OV	{ return _asset != null; }
+		Bytes		Size ()								C_NE_OV	{ return _size; }
+		ESourceType	GetSourceType ()					C_NE_OV;
+
+		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
+	};
 
 
-      // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, FileName::Ref name)                            C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)                            C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)                       C_NE_OV;
 
-        bool  Exists (FileName::Ref name)                                                   C_NE_OV;
-        bool  Exists (FileGroupName::Ref name)                                              C_NE_OV;
+	//
+	// VFS Storage implementation for Android builtin storage
+	//
 
-    private:
-        void  _Append (INOUT GlobalFileMap_t &)                                             C_Th_OV;
-        bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)         C_NE_OV;
-        bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)         C_NE_OV;
-        bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)    C_NE_OV;
+	class FileSystemAndroid final : public IVirtualFileStorage
+	{
+	// types
+	private:
+		using FileMap_t			= FlatHashMap< FileName::Optimized_t, const char* >;
+		using Allocator_t		= LinearAllocator<>;
+		using AsyncRDataSource	= Threading::AsyncRDataSource;
 
-        template <typename ImplType, typename ResultType>
-        ND_ bool  _Open (OUT ResultType &, FileName::Ref)                                   C_NE___;
 
-        template <typename ImplType, typename ResultType>
-        ND_ bool  _OpenByIter2 (OUT ResultType &, FileName::Ref, const void* ref, int mode) C_NE___;
-    };
+	// variables
+	private:
+		FileMap_t		_map;
+		Allocator_t		_allocator;
+		AAssetManager*	_assetMngr	= null;		// in specs: pointer may be shared across multiple threads.
+
+		DEBUG_ONLY(
+		  String						_folder;
+		  NamedID_HashCollisionCheck	_hashCollisionCheck;
+		)
+		DRC_ONLY(
+			RWDataRaceCheck		_drCheck;
+		)
+
+
+	// methods
+	public:
+		FileSystemAndroid ()																__NE___ {}
+		~FileSystemAndroid ()																__NE_OV;
+
+		ND_ bool  Create (AAssetManager* mngr, StringView folder)							__NE___;
+
+
+	  // IVirtualFileStorage //
+		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)							C_NE_OV;
+		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)							C_NE_OV;
+		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE_OV;
+
+		bool  Exists (FileName::Ref name)													C_NE_OV;
+		bool  Exists (FileGroupName::Ref name)												C_NE_OV;
+
+	private:
+		void  _Append (INOUT GlobalFileMap_t &)												C_Th_OV;
+		bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open (OUT ResultType &, FileName::Ref)									C_NE___;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _OpenByIter2 (OUT ResultType &, FileName::Ref, const void* ref, int mode)	C_NE___;
+	};
 
 
 } // AE::App

@@ -8,17 +8,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // STB Image Saver
-    //
+	//
+	// STB Image Saver
+	//
 
-    class STBImageSaver final : public IImageSaver
-    {
-    // methods
-    public:
-        bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY = False{}) __NE_OV;
-        using IImageSaver::SaveImage;
-    };
+	class STBImageSaver final : public IImageSaver
+	{
+	// methods
+	public:
+		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY = False{}) __NE_OV;
+		using IImageSaver::SaveImage;
+	};
 
 
 } // AE::ResLoader

@@ -10,141 +10,141 @@ namespace AE::App
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    ApplicationBase::ApplicationBase (Unique<IAppListener> listener) __NE___ :
-        _listener{ RVRef(listener) }
-    {
-        CHECK( _listener );
-    }
+	ApplicationBase::ApplicationBase (Unique<IAppListener> listener) __NE___ :
+		_listener{ RVRef(listener) }
+	{
+		CHECK( _listener );
+	}
 
 /*
 =================================================
-    CreateVRDevice
+	CreateVRDevice
 =================================================
 */
-    VRDevicePtr  ApplicationBase::CreateVRDevice (VRDevListenerPtr listener, IInputActions* dst, IVRDevice::EDeviceType type) __NE___
-    {
-        using EDeviceType = IVRDevice::EDeviceType;
+	VRDevicePtr  ApplicationBase::CreateVRDevice (VRDevListenerPtr listener, IInputActions* dst, IVRDevice::EDeviceType type) __NE___
+	{
+		using EDeviceType = IVRDevice::EDeviceType;
 
-        CHECK_ERR( _isRunning.load() );
-        CHECK_ERR( listener );
+		CHECK_ERR( _isRunning.load() );
+		CHECK_ERR( listener );
 
-        switch_enum( type )
-        {
-            case EDeviceType::Emulator :
-            {
-            #if 1
-                SharedPtr<VRDeviceEmulator> vr{ new VRDeviceEmulator{ *this, RVRef(listener), dst }};
-                if ( not vr->Create() ) return Default;
-                {
-                    EXLOCK( _vrDeviceGuard );
-                    CHECK_ERR( _vrDevice.lock() == null );
-                    _vrDevice = vr;
-                }
-                return vr;
-            #else
-                break;
-            #endif
-            }
+		switch_enum( type )
+		{
+			case EDeviceType::Emulator :
+			{
+			#if 1
+				SharedPtr<VRDeviceEmulator>	vr{ new VRDeviceEmulator{ *this, RVRef(listener), dst }};
+				if ( not vr->Create() ) return Default;
+				{
+					EXLOCK( _vrDeviceGuard );
+					CHECK_ERR( _vrDevice.lock() == null );
+					_vrDevice = vr;
+				}
+				return vr;
+			#else
+				break;
+			#endif
+			}
 
-            case EDeviceType::OpenVR :
-            {
-            #ifdef AE_ENABLE_OPENVR
-                SharedPtr<OpenVRDevice> vr{ new OpenVRDevice{ RVRef(listener), dst }};
-                if ( not vr->Create() ) return Default;
-                {
-                    EXLOCK( _vrDeviceGuard );
-                    CHECK_ERR( _vrDevice.lock() == null );
-                    _vrDevice = vr;
-                }
-                return vr;
-            #else
-                break;
-            #endif
-            }
+			case EDeviceType::OpenVR :
+			{
+			#ifdef AE_ENABLE_OPENVR
+				SharedPtr<OpenVRDevice>	vr{ new OpenVRDevice{ RVRef(listener), dst }};
+				if ( not vr->Create() ) return Default;
+				{
+					EXLOCK( _vrDeviceGuard );
+					CHECK_ERR( _vrDevice.lock() == null );
+					_vrDevice = vr;
+				}
+				return vr;
+			#else
+				break;
+			#endif
+			}
 
-            case EDeviceType::OpenXR :
-            {
-            //#ifdef AE_ENABLE_OPENXR
-            //#else
-                break;
-            //#endif
-            }
+			case EDeviceType::OpenXR :
+			{
+			//#ifdef AE_ENABLE_OPENXR
+			//#else
+				break;
+			//#endif
+			}
 
-            case EDeviceType::Unknown : break;
-        }
-        switch_end
+			case EDeviceType::Unknown : break;
+		}
+		switch_end
 
-        return Default;
-    }
+		return Default;
+	}
 /*
 =================================================
-    _BeforeUpdate
+	_BeforeUpdate
 =================================================
 */
-    void  ApplicationBase::_BeforeUpdate () __NE___
-    {
-        ASSERT( _isRunning.load() );
+	void  ApplicationBase::_BeforeUpdate () __NE___
+	{
+		ASSERT( _isRunning.load() );
 
-        _timeSinceStart.store( _timer.TimeSince<Duration_t>().count() );
+		_timeSinceStart.store( _timer.TimeSince<Duration_t>().count() );
 
-        if_likely( _listener )
-            _listener->BeforeWndUpdate( *this );
+		if_likely( _listener )
+			_listener->BeforeWndUpdate( *this );
 
-        // update VR
-        {
-            EXLOCK( _vrDeviceGuard );
+		// update VR
+		{
+			EXLOCK( _vrDeviceGuard );
 
-            SharedPtr<VRDeviceBase> vr = _vrDevice.lock();
+			SharedPtr<VRDeviceBase>	vr = _vrDevice.lock();
 
-            if ( vr )
-                vr->Update( GetTimeSinceStart() );
-        }
-    }
-
-/*
-=================================================
-    _AfterUpdate
-=================================================
-*/
-    void  ApplicationBase::_AfterUpdate () __NE___
-    {
-        if_likely( _listener )
-            _listener->AfterWndUpdate( *this );
-    }
+			if ( vr )
+				vr->Update( GetTimeSinceStart() );
+		}
+	}
 
 /*
 =================================================
-    _Destroy
+	_AfterUpdate
 =================================================
 */
-    void  ApplicationBase::_Destroy () __NE___
-    {
-        _isRunning.store( false );
-
-        {
-            EXLOCK( _vrDeviceGuard );
-            _vrDevice.reset();
-        }
-
-        if ( _listener )
-        {
-            _listener->OnStop( *this );
-            _listener.reset();
-        }
-    }
+	void  ApplicationBase::_AfterUpdate () __NE___
+	{
+		if_likely( _listener )
+			_listener->AfterWndUpdate( *this );
+	}
 
 /*
 =================================================
-    Terminate
+	_Destroy
 =================================================
 */
-    void  ApplicationBase::Terminate () __NE___
-    {
-        _isRunning.store( false );
-    }
+	void  ApplicationBase::_Destroy () __NE___
+	{
+		_isRunning.store( false );
+
+		{
+			EXLOCK( _vrDeviceGuard );
+			_vrDevice.reset();
+		}
+
+		if ( _listener )
+		{
+			_listener->OnStop( *this );
+			_listener.reset();
+		}
+	}
+
+/*
+=================================================
+	Terminate
+=================================================
+*/
+	void  ApplicationBase::Terminate () __NE___
+	{
+		_isRunning.store( false );
+	}
 
 
 } // AE::App

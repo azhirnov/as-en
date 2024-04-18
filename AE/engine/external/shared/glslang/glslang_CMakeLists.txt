@@ -16,12 +16,12 @@ set( BUILD_TESTING                OFF  CACHE BOOL "" FORCE )
 set( BUILD_SHARED_LIBS            OFF  CACHE BOOL "" FORCE )
 set( BUILD_EXTERNAL                ON  CACHE BOOL "" FORCE )
 set( GLSLANG_TARGETS
-    "GenericCodeGen"
-    "glslang"
-    "MachineIndependent"
-    "OGLCompiler"
-    "OSDependent"
-    "SPIRV"
+	"GenericCodeGen"
+	"glslang"
+	"MachineIndependent"
+	"OGLCompiler"
+	"OSDependent"
+	"SPIRV"
 )
 
 # spirv
@@ -29,30 +29,30 @@ set( SPIRV_HEADERS_SKIP_EXAMPLES  ON   CACHE BOOL "" FORCE )
 set( SPIRV_HEADERS_SKIP_INSTALL   OFF  CACHE BOOL "" FORCE )
 set( SPIRV_COLOR_TERMINAL         OFF  CACHE BOOL "" FORCE )
 set( SPIRV_TARGETS
-    "spirv-tools-build-version"
-    "spirv-tools-header-DebugInfo"
-    "spirv-tools-header-OpenCLDebugInfo100"
-    "spv-tools-cldi100"
-    "spv-tools-clspvreflection"
-    "spv-tools-debuginfo"
-    "spv-tools-spv-amd-gs"
-    "spv-tools-spv-amd-sb"
-    "spv-tools-spv-amd-sevp"
-    "spv-tools-spv-amd-stm"
-    "SPIRV-Tools-link"
-    "SPIRV-Tools-opt"
-    "SPIRV-Tools-reduce"
-    "SPIRV-Tools-shared"
-    "SPIRV-Tools-static"
-    "core_tables"
-    "enum_string_mapping"
-    "extinst_tables"
-    "spirv-tools-pkg-config"
-    "spirv-tools-shared-pkg-config"
-    "spirv-tools-vimsyntax"
-    "SPIRV-Tools-lint"
-    "spv-tools-shdi100"
-    "spirv-tools-header-NonSemanticShaderDebugInfo100"
+	"spirv-tools-build-version"
+	"spirv-tools-header-DebugInfo"
+	"spirv-tools-header-OpenCLDebugInfo100"
+	"spv-tools-cldi100"
+	"spv-tools-clspvreflection"
+	"spv-tools-debuginfo"
+	"spv-tools-spv-amd-gs"
+	"spv-tools-spv-amd-sb"
+	"spv-tools-spv-amd-sevp"
+	"spv-tools-spv-amd-stm"
+	"SPIRV-Tools-link"
+	"SPIRV-Tools-opt"
+	"SPIRV-Tools-reduce"
+	"SPIRV-Tools-shared"
+	"SPIRV-Tools-static"
+	"core_tables"
+	"enum_string_mapping"
+	"extinst_tables"
+	"spirv-tools-pkg-config"
+	"spirv-tools-shared-pkg-config"
+	"spirv-tools-vimsyntax"
+	"SPIRV-Tools-lint"
+	"spv-tools-shdi100"
+	"spirv-tools-header-NonSemanticShaderDebugInfo100"
 )
 
 set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
@@ -61,29 +61,29 @@ include( "${AE_EXTERNAL_PATH}/config.cmake" )
 include( "origin_CMakeLists.txt" )
 
 if (${ENABLE_OPT})
-    find_package( PythonInterp 3.7 REQUIRED )
+	find_package( PythonInterp 3.7 REQUIRED )
 endif ()
 
 foreach(LIB ${GLSLANG_TARGETS})
-    if (TARGET ${LIB})
-        set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
-    else()
-        message( STATUS "target is not found: '${LIB}'" )
-    endif()
+	if (TARGET ${LIB})
+		set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
+	else()
+		message( STATUS "target is not found: '${LIB}'" )
+	endif()
 endforeach()
 
 foreach(LIB ${SPIRV_TARGETS})
-    if (TARGET ${LIB})
-        set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
-    else()
-        message( STATUS "target is not found: '${LIB}'" )
-    endif()
+	if (TARGET ${LIB})
+		set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
+	else()
+		message( STATUS "target is not found: '${LIB}'" )
+	endif()
 endforeach()
 
-install( FILES "LICENSE.txt"                                            DESTINATION "." RENAME "glslang-LICENSE.txt" )
-install( FILES "External/spirv-tools/LICENSE"                           DESTINATION "." RENAME "SPIRV-Tools-LICENSE.txt" )
-install( FILES "External/spirv-tools/external/spirv-headers/LICENSE"    DESTINATION "." RENAME "SPIRV-Headers-LICENSE.txt" )
+install( FILES "LICENSE.txt" 										 	DESTINATION "."	RENAME "glslang-LICENSE.txt" )
+install( FILES "External/spirv-tools/LICENSE" 						 	DESTINATION "."	RENAME "SPIRV-Tools-LICENSE.txt" )
+install( FILES "External/spirv-tools/external/spirv-headers/LICENSE" 	DESTINATION "."	RENAME "SPIRV-Headers-LICENSE.txt" )
 
-install( DIRECTORY "glslang/Include"            DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )
-install( DIRECTORY "glslang/MachineIndependent" DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )
-install( DIRECTORY "SPIRV"                      DESTINATION "include/glslang"   FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY "glslang/Include"			DESTINATION "include/glslang"	FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY "glslang/MachineIndependent"	DESTINATION "include/glslang"	FILES_MATCHING PATTERN "*.h" )
+install( DIRECTORY "SPIRV"						DESTINATION "include/glslang"	FILES_MATCHING PATTERN "*.h" )

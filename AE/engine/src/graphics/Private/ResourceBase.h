@@ -7,109 +7,109 @@
 namespace AE::Graphics
 {
 
-    //
-    // Resource Wrapper
-    //
+	//
+	// Resource Wrapper
+	//
 
-    template <typename ResType, typename ID>
-    class alignas(AE_CACHE_LINE) ResourceBase final
-    {
-    // types
-    private:
-        enum class EState : ubyte
-        {
-            Destroyed   = 0,
-            Failed,
-            Created,
-        };
+	template <typename ResType, typename ID>
+	class alignas(AE_CACHE_LINE) ResourceBase final
+	{
+	// types
+	private:
+		enum class EState : ubyte
+		{
+			Destroyed	= 0,
+			Failed,
+			Created,
+		};
 
-    public:
-        using Self          = ResourceBase< ResType, ID >;
-        using Resource_t    = ResType;
-        using Generation_t  = typename ID::Generation_t;
-
-
-    // variables
-    private:
-        // instance counter used to detect deprecated handles
-        Atomic<Generation_t>    _generation {0};
-
-        Atomic<EState>          _state      {EState::Destroyed};
-
-        ResType                 _data;
-
-        mutable Atomic<int>     _refCounter {0};
+	public:
+		using Self			= ResourceBase< ResType, ID >;
+		using Resource_t	= ResType;
+		using Generation_t	= typename ID::Generation_t;
 
 
-    // methods
-    public:
-        ResourceBase ()                                 __NE___ {}
+	// variables
+	private:
+		// instance counter used to detect deprecated handles
+		Atomic<Generation_t>	_generation	{0};
 
-        ResourceBase (Self &&)                                  = delete;
-        ResourceBase (const Self &)                             = delete;
+		Atomic<EState>			_state		{EState::Destroyed};
 
-        Self& operator = (Self &&)                              = delete;
-        Self& operator = (const Self &)                         = delete;
+		ResType					_data;
 
-        ~ResourceBase ()                                __NE___ { ASSERT( IsDestroyed() ); }
-
-            void            AddRef ()                   C_NE___ { _refCounter.fetch_add( 1 ); }
-        ND_ int             ReleaseRef (int refCount)   C_NE___ { return (_refCounter.fetch_sub( refCount ) - refCount); }
+		mutable Atomic<int>		_refCounter	{0};
 
 
-        ND_ bool            IsCreated ()                C_NE___ { return _GetState() == EState::Created; }
-        ND_ bool            IsDestroyed ()              C_NE___ { return _GetState() == EState::Destroyed; }
+	// methods
+	public:
+		ResourceBase ()									__NE___	{}
 
-        ND_ Generation_t    GetGeneration ()            C_NE___ { return _generation.load(); }
-        ND_ int             GetRefCount ()              C_NE___ { return _refCounter.load(); }
+		ResourceBase (Self &&)									= delete;
+		ResourceBase (const Self &)								= delete;
 
-        ND_ ResType&        Data ()                     __NE___ { return _data; }
-        ND_ ResType const&  Data ()                     C_NE___ { return _data; }
+		Self& operator = (Self &&)								= delete;
+		Self& operator = (const Self &)							= delete;
+
+		~ResourceBase ()								__NE___	{ ASSERT( IsDestroyed() ); }
+
+			void			AddRef ()					C_NE___	{ _refCounter.fetch_add( 1 ); }
+		ND_ int				ReleaseRef (int refCount)	C_NE___	{ return (_refCounter.fetch_sub( refCount ) - refCount); }
 
 
-        template <typename ...Args>
-        ND_ bool  Create (Args&& ...args)               __NE___
-        {
-            ASSERT( IsDestroyed() );
-            ASSERT( GetRefCount() == 0 );
+		ND_ bool			IsCreated ()				C_NE___	{ return _GetState() == EState::Created; }
+		ND_ bool			IsDestroyed ()				C_NE___	{ return _GetState() == EState::Destroyed; }
 
-            bool    result = _data.Create( FwdArg<Args &&>( args )... );
+		ND_ Generation_t	GetGeneration ()			C_NE___	{ return _generation.load(); }
+		ND_ int				GetRefCount ()				C_NE___	{ return _refCounter.load(); }
 
-            // set state and flush cache
-            _state.store( result ? EState::Created : EState::Failed, EMemoryOrder::Release );
+		ND_ ResType&		Data ()						__NE___	{ return _data; }
+		ND_ ResType const&	Data ()						C_NE___	{ return _data; }
 
-            return result;
-        }
 
-        template <typename ...Args>
-        void  Destroy (Args&& ...args)                  __NE___
-        {
-            ASSERT( AnyEqual( _GetState(), EState::Created, EState::Failed ));
-            //ASSERT( GetRefCount() == 0 );
+		template <typename ...Args>
+		ND_ bool  Create (Args&& ...args)				__NE___
+		{
+			ASSERT( IsDestroyed() );
+			ASSERT( GetRefCount() == 0 );
 
-            _data.Destroy( FwdArg<Args>( args )... );
+			bool	result = _data.Create( FwdArg<Args &&>( args )... );
 
-            // flush cache
-            MemoryBarrier( EMemoryOrder::Release );
+			// set state and flush cache
+			_state.store( result ? EState::Created : EState::Failed, EMemoryOrder::Release );
 
-            // update atomics
-            _refCounter.store( 0 );
-            _state.store( EState::Destroyed );
+			return result;
+		}
 
-            constexpr Generation_t  max_gen = ID::MaxGeneration();
+		template <typename ...Args>
+		void  Destroy (Args&& ...args)					__NE___
+		{
+			ASSERT( AnyEqual( _GetState(), EState::Created, EState::Failed ));
+			//ASSERT( GetRefCount() == 0 );
 
-            for (Generation_t exp = _generation.load();;)
-            {
-                if_likely( _generation.CAS( INOUT exp, (exp < max_gen ? exp + 1 : 0) ))
-                    break;
+			_data.Destroy( FwdArg<Args>( args )... );
 
-                ThreadUtils::Pause();
-            }
-        }
+			// flush cache
+			MemoryBarrier( EMemoryOrder::Release );
 
-    private:
-        ND_ EState  _GetState ()                        C_NE___ { return _state.load(); }
-    };
+			// update atomics
+			_refCounter.store( 0 );
+			_state.store( EState::Destroyed );
+
+			constexpr Generation_t	max_gen = ID::MaxGeneration();
+
+			for (Generation_t exp = _generation.load();;)
+			{
+				if_likely( _generation.CAS( INOUT exp, (exp < max_gen ? exp + 1 : 0) ))
+					break;
+
+				ThreadUtils::Pause();
+			}
+		}
+
+	private:
+		ND_ EState	_GetState ()						C_NE___	{ return _state.load(); }
+	};
 
 
 } // AE::Graphics

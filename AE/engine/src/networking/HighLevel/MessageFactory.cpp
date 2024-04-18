@@ -7,93 +7,93 @@ namespace AE::Networking
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    MessageFactory::MessageFactory () __NE___
-    {
-        for (auto& alloc : _dbAlloc) {
-            alloc = MakeRC< Allocator_t >();
-        }
-    }
+	MessageFactory::MessageFactory () __NE___
+	{
+		for (auto& alloc : _dbAlloc) {
+			alloc = MakeRC< Allocator_t >();
+		}
+	}
 
 /*
 =================================================
-    Register
+	Register
 =================================================
 */
-    bool  MessageFactory::Register (const CSMessageUID uid, CreateAndDecode_t ctor) __NE___
-    {
-        auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
+	bool  MessageFactory::Register (const CSMessageUID uid, CreateAndDecode_t ctor) __NE___
+	{
+		auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
 
-        auto&   group = _msgTypes[group_id];
+		auto&	group = _msgTypes[group_id];
 
-        EXLOCK( group.guard );
-        CHECK_ERR( not group.immutable );
+		EXLOCK( group.guard );
+		CHECK_ERR( not group.immutable );
 
-        return group.map.emplace( msg_id, ctor ).second;
-    }
+		return group.map.emplace( msg_id, ctor ).second;
+	}
 
-    bool  MessageFactory::Register (const CSMessageGroupID groupId, ArrayView<MsgAndCtor_t> arr, Bool lockGroup) __NE___
-    {
-        auto&   group = _msgTypes[ uint(groupId) ];
+	bool  MessageFactory::Register (const CSMessageGroupID groupId, ArrayView<MsgAndCtor_t> arr, Bool lockGroup) __NE___
+	{
+		auto&	group = _msgTypes[ uint(groupId) ];
 
-        EXLOCK( group.guard );
-        CHECK_ERR( not group.immutable );
+		EXLOCK( group.guard );
+		CHECK_ERR( not group.immutable );
 
-        for (auto& [uid, ctor] : arr)
-        {
-            auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
-            CHECK_ERR( uint(groupId) == group_id );
-            CHECK_ERR( group.map.emplace( msg_id, ctor ).second );
-        }
+		for (auto& [uid, ctor] : arr)
+		{
+			auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
+			CHECK_ERR( uint(groupId) == group_id );
+			CHECK_ERR( group.map.emplace( msg_id, ctor ).second );
+		}
 
-        if ( lockGroup )
-            group.immutable = true;
+		if ( lockGroup )
+			group.immutable = true;
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    DeserializeMsg
+	DeserializeMsg
 =================================================
 */
-    bool  MessageFactory::DeserializeMsg (const FrameUID frameId, const CSMessageUID uid, EClientLocalID cid, OUT MsgPtr_t &msg, DataDecoder &des) __NE___
-    {
-        auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
+	bool  MessageFactory::DeserializeMsg (const FrameUID frameId, const CSMessageUID uid, EClientLocalID cid, OUT MsgPtr_t &msg, DataDecoder &des) __NE___
+	{
+		auto [group_id, msg_id] = CSMessage::_UnpackUID( uid );
 
-        CreateAndDecode_t   fn = null;
-        {
-            auto&   group = _msgTypes[group_id];
+		CreateAndDecode_t	fn = null;
+		{
+			auto&	group = _msgTypes[group_id];
 
-            SHAREDLOCK( group.guard );
-            ASSERT( group.immutable );
+			SHAREDLOCK( group.guard );
+			ASSERT( group.immutable );
 
-            auto    it = group.map.find( msg_id );
-            CHECK_ERR( it != group.map.end() );
+			auto	it = group.map.find( msg_id );
+			CHECK_ERR( it != group.map.end() );
 
-            fn = it->second;
-        }
+			fn = it->second;
+		}
 
-        return fn( OUT msg, GetAllocator( frameId ), cid, des );
-    }
+		return fn( OUT msg, GetAllocator( frameId ), cid, des );
+	}
 
 /*
 =================================================
-    NextFrame
+	NextFrame
 =================================================
 */
-    void  MessageFactory::NextFrame (const FrameUID frameId) __NE___
-    {
-        const uint  id = frameId.Remap2();
+	void  MessageFactory::NextFrame (const FrameUID frameId) __NE___
+	{
+		const uint	id = frameId.Remap2();
 
-        _dbAlloc[id]->Discard();
+		_dbAlloc[id]->Discard();
 
-        DEBUG_ONLY(
-            _dbFrameId[id].store( frameId );
-        )
-    }
+		DEBUG_ONLY(
+			_dbFrameId[id].store( frameId );
+		)
+	}
 
 
 } // AE::Networking

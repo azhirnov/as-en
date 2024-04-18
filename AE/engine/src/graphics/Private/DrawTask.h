@@ -1,231 +1,231 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Vulkan:
-        * can combine direct & indirect contexts
+	Vulkan:
+		* can combine direct & indirect contexts
 
-    Metal:
-        * use only direct or indirect context
+	Metal:
+		* use only direct or indirect context
 */
 
 #if defined(AE_ENABLE_VULKAN)
-#   define DRAWCMDBATCH     VDrawCommandBatch
+#	define DRAWCMDBATCH		VDrawCommandBatch
 
 #elif defined(AE_ENABLE_METAL)
-#   define DRAWCMDBATCH     MDrawCommandBatch
+#	define DRAWCMDBATCH		MDrawCommandBatch
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#   define DRAWCMDBATCH     RDrawCommandBatch
+#	define DRAWCMDBATCH		RDrawCommandBatch
 
 #else
-#   error not implemented
+#	error not implemented
 #endif
 
 namespace AE::Graphics
 {
 
-    //
-    // Draw Task interface
-    //
+	//
+	// Draw Task interface
+	//
 
-    class DrawTask : public Threading::IAsyncTask
-    {
-        friend class DRAWCMDBATCH;
+	class DrawTask : public Threading::IAsyncTask
+	{
+		friend class DRAWCMDBATCH;
 
-    // variables
-    private:
-        RC<DRAWCMDBATCH>    _batch;
-        uint                _drawIndex  = UMax;
+	// variables
+	private:
+		RC<DRAWCMDBATCH>	_batch;
+		uint				_drawIndex	= UMax;
 
-        DBG_GRAPHICS_ONLY(
-            String          _dbgName;
-            RGBA8u          _dbgColor;
-        )
-
-
-    // methods
-    protected:
-        DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg)       __NE___ :
-            IAsyncTask{ ETaskQueue::Renderer },
-            _batch{ RVRef(batch) },
-            _drawIndex{ _GetPool().Acquire() }
-            DBG_GRAPHICS_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( dbg.color )})
-        {
-            ASSERT( IsValid() );    // command buffer pool overflow
-            Unused( dbg );
-        }
-
-        enum class _DelayedInit {};
-        explicit DrawTask (_DelayedInit)                        __NE___ :
-            IAsyncTask{ ETaskQueue::Renderer }
-        {}
-
-        ND_ bool  _Init (RC<DRAWCMDBATCH> batch, DebugLabel dbg)__NE___
-        {
-            _batch      = RVRef(batch);
-            _drawIndex  = _GetPool().Acquire();
-
-            DBG_GRAPHICS_ONLY(
-                _dbgName    = dbg.label;
-                _dbgColor   = _ValidateDbgColor( dbg.color );
-            )
-            Unused( dbg );
-            return IsValid();
-        }
-
-    public:
-        ~DrawTask ()                                    __NE___;
-
-        ND_ RC<DRAWCMDBATCH>    GetDrawBatch ()         C_NE___ { return _batch; }
-        ND_ DRAWCMDBATCH *      GetDrawBatchPtr ()      C_NE___ { return _batch.get(); }
-        ND_ uint                GetDrawOrderIndex ()    C_NE___ { return _drawIndex; }
-        ND_ bool                IsValid ()              C_NE___ { return _drawIndex != UMax; }
+		DBG_GRAPHICS_ONLY(
+			String			_dbgName;
+			RGBA8u			_dbgColor;
+		)
 
 
-    // IAsyncTask
-    public:
-            void                OnCancel ()             __NE_OV;
+	// methods
+	protected:
+		DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg)		__NE___ :
+			IAsyncTask{ ETaskQueue::Renderer },
+			_batch{ RVRef(batch) },
+			_drawIndex{ _GetPool().Acquire() }
+			DBG_GRAPHICS_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( dbg.color )})
+		{
+			ASSERT( IsValid() );	// command buffer pool overflow
+			Unused( dbg );
+		}
 
-      #if AE_DBG_GRAPHICS
-        ND_ String              DbgFullName ()          C_NE___;
-        ND_ StringView          DbgName ()              C_NE_OF { return _dbgName; }
-        ND_ RGBA8u              DbgColor ()             C_NE___ { return _dbgColor; }
-      #else
-        ND_ String              DbgFullName ()          C_NE___ { return Default; }
-        ND_ StringView          DbgName ()              C_NE_OF { return Default; }
-        ND_ RGBA8u              DbgColor ()             C_NE___ { return HtmlColor::Lime; }
-      #endif
+		enum class _DelayedInit {};
+		explicit DrawTask (_DelayedInit)						__NE___ :
+			IAsyncTask{ ETaskQueue::Renderer }
+		{}
 
-    protected:
-        void  OnFailure ()                              __NE___;
+		ND_ bool  _Init (RC<DRAWCMDBATCH> batch, DebugLabel dbg)__NE___
+		{
+			_batch		= RVRef(batch);
+			_drawIndex	= _GetPool().Acquire();
 
-        template <typename CmdBufType>
-        void  Execute (CmdBufType &cmdbuf)              __Th___;
+			DBG_GRAPHICS_ONLY(
+				_dbgName	= dbg.label;
+				_dbgColor	= _ValidateDbgColor( dbg.color );
+			)
+			Unused( dbg );
+			return IsValid();
+		}
 
-    private:
-        ND_ DRAWCMDBATCH::CmdBufPool_t&  _GetPool ()    __NE___ { return _batch->_cmdPool; }
+	public:
+		~DrawTask ()									__NE___;
 
-        DBG_GRAPHICS_ONLY(
-        ND_ static RGBA8u  _ValidateDbgColor (RGBA8u color)
-        {
-            if ( color == DebugLabel::ColorTable::Undefined )
-                return DebugLabel::ColorTable::AsyncDrawBatch;
-            else
-                return color;
-        })
-    };
-
-
-
-    //
-    // Draw Task Function
-    //
-
-    class DrawTaskFn final : public DrawTask
-    {
-    // types
-    public:
-        using Func_t    = Function< void (DrawTaskFn &) >;
+		ND_ RC<DRAWCMDBATCH>	GetDrawBatch ()			C_NE___	{ return _batch; }
+		ND_ DRAWCMDBATCH *		GetDrawBatchPtr ()		C_NE___	{ return _batch.get(); }
+		ND_ uint				GetDrawOrderIndex ()	C_NE___	{ return _drawIndex; }
+		ND_ bool				IsValid ()				C_NE___	{ return _drawIndex != UMax; }
 
 
-    // variables
-    private:
-        Func_t  _fn;
+	// IAsyncTask
+	public:
+			void				OnCancel ()				__NE_OV;
+
+	  #if AE_DBG_GRAPHICS
+		ND_ String				DbgFullName ()			C_NE___;
+		ND_ StringView			DbgName ()				C_NE_OF	{ return _dbgName; }
+		ND_ RGBA8u				DbgColor ()				C_NE___	{ return _dbgColor; }
+	  #else
+		ND_ String				DbgFullName ()			C_NE___	{ return Default; }
+		ND_ StringView			DbgName ()				C_NE_OF	{ return Default; }
+		ND_ RGBA8u				DbgColor ()				C_NE___	{ return HtmlColor::Lime; }
+	  #endif
+
+	protected:
+		void  OnFailure ()								__NE___;
+
+		template <typename CmdBufType>
+		void  Execute (CmdBufType &cmdbuf)				__Th___;
+
+	private:
+		ND_ DRAWCMDBATCH::CmdBufPool_t&  _GetPool ()	__NE___	{ return _batch->_cmdPool; }
+
+		DBG_GRAPHICS_ONLY(
+		ND_ static RGBA8u  _ValidateDbgColor (RGBA8u color)
+		{
+			if ( color == DebugLabel::ColorTable::Undefined )
+				return DebugLabel::ColorTable::AsyncDrawBatch;
+			else
+				return color;
+		})
+	};
 
 
-    // methods
-    public:
-        template <typename Fn>
-        DrawTaskFn (Fn &&fn, RC<DRAWCMDBATCH> batch, DebugLabel dbg) __NE___ :
-            DrawTask{ RVRef(batch), dbg },
-            _fn{ FwdArg<Fn>(fn) }
-        {}
 
-        template <typename CmdBufType>
-        void  Execute (CmdBufType &cmdbuf) __Th___
-        {
-            return DrawTask::Execute( cmdbuf );
-        }
+	//
+	// Draw Task Function
+	//
 
-    private:
-        void Run () __Th_OV
-        {
-            return _fn( *this );
-        }
-    };
+	class DrawTaskFn final : public DrawTask
+	{
+	// types
+	public:
+		using Func_t	= Function< void (DrawTaskFn &) >;
+
+
+	// variables
+	private:
+		Func_t	_fn;
+
+
+	// methods
+	public:
+		template <typename Fn>
+		DrawTaskFn (Fn &&fn, RC<DRAWCMDBATCH> batch, DebugLabel dbg) __NE___ :
+			DrawTask{ RVRef(batch), dbg },
+			_fn{ FwdArg<Fn>(fn) }
+		{}
+
+		template <typename CmdBufType>
+		void  Execute (CmdBufType &cmdbuf) __Th___
+		{
+			return DrawTask::Execute( cmdbuf );
+		}
+
+	private:
+		void Run () __Th_OV
+		{
+			return _fn( *this );
+		}
+	};
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    inline DrawTask::~DrawTask () __NE___
-    {
-        if_unlikely( IsValid() )
-            _GetPool().Complete( INOUT _drawIndex );
-    }
+	inline DrawTask::~DrawTask () __NE___
+	{
+		if_unlikely( IsValid() )
+			_GetPool().Complete( INOUT _drawIndex );
+	}
 
 /*
 =================================================
-    OnCancel
+	OnCancel
 =================================================
 */
-    inline void  DrawTask::OnCancel () __NE___
-    {
-        if_likely( IsValid() )
-            _GetPool().Complete( INOUT _drawIndex );
+	inline void  DrawTask::OnCancel () __NE___
+	{
+		if_likely( IsValid() )
+			_GetPool().Complete( INOUT _drawIndex );
 
-        IAsyncTask::OnCancel();
-        ASSERT( not IsValid() );
-    }
+		IAsyncTask::OnCancel();
+		ASSERT( not IsValid() );
+	}
 
 /*
 =================================================
-    OnFailure
+	OnFailure
 =================================================
 */
-    inline void  DrawTask::OnFailure () __NE___
-    {
-        if_likely( IsValid() )
-            _GetPool().Complete( INOUT _drawIndex );
+	inline void  DrawTask::OnFailure () __NE___
+	{
+		if_likely( IsValid() )
+			_GetPool().Complete( INOUT _drawIndex );
 
-        IAsyncTask::OnFailure();
-        ASSERT( not IsValid() );
-    }
+		IAsyncTask::OnFailure();
+		ASSERT( not IsValid() );
+	}
 
 /*
 =================================================
-    Execute
+	Execute
 =================================================
 */
-    template <typename CmdBufType>
-    void  DrawTask::Execute (CmdBufType &cmdbuf) __Th___
-    {
-        ASSERT( IsValid() );
+	template <typename CmdBufType>
+	void  DrawTask::Execute (CmdBufType &cmdbuf) __Th___
+	{
+		ASSERT( IsValid() );
 
-        #if defined(AE_ENABLE_VULKAN)
-            _GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );      // throw
+		#if defined(AE_ENABLE_VULKAN)
+			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );		// throw
 
-        #elif defined(AE_ENABLE_METAL)
-            if constexpr( CmdBufType::IsIndirectContext )
-            {
-                _GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );  // throw
-            }
-            else
-            {
-                CHECK( cmdbuf.EndEncoding() );
-                _GetPool().Complete( INOUT _drawIndex );
-            }
+		#elif defined(AE_ENABLE_METAL)
+			if constexpr( CmdBufType::IsIndirectContext )
+			{
+				_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );	// throw
+			}
+			else
+			{
+				CHECK( cmdbuf.EndEncoding() );
+				_GetPool().Complete( INOUT _drawIndex );
+			}
 
-        #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-            _GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );      // throw
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );		// throw
 
-        #else
-        #   error not implemented
-        #endif
-    }
+		#else
+		#	error not implemented
+		#endif
+	}
 
 } // AE::Graphics
 //-----------------------------------------------------------------------------
@@ -236,201 +236,201 @@ namespace AE::Graphics
 namespace AE::Threading::_hidden_
 {
 
-    //
-    // Async Draw Task Coroutine
-    //
-    class DrawTaskCoro final
-    {
-    // types
-    public:
-        class promise_type;
-        using Handle_t = std::coroutine_handle< promise_type >;
+	//
+	// Async Draw Task Coroutine
+	//
+	class DrawTaskCoro final
+	{
+	// types
+	public:
+		class promise_type;
+		using Handle_t = std::coroutine_handle< promise_type >;
 
-        //
-        // promise_type
-        //
-        class promise_type final : public AE::Graphics::DrawTask
-        {
-        // methods
-        public:
-            promise_type ()                                     __NE___ : DrawTask{ _DelayedInit{0} } {}
+		//
+		// promise_type
+		//
+		class promise_type final : public AE::Graphics::DrawTask
+		{
+		// methods
+		public:
+			promise_type ()										__NE___ : DrawTask{ _DelayedInit{0} } {}
 
-            ND_ DrawTaskCoro        get_return_object ()        __NE___ { return DrawTaskCoro{ *this }; }
+			ND_ DrawTaskCoro		get_return_object ()		__NE___	{ return DrawTaskCoro{ *this }; }
 
-            ND_ std::suspend_always initial_suspend ()          C_NE___ { return {}; }  // delayed start
-            ND_ std::suspend_always final_suspend ()            C_NE___ { return {}; }  // must not be 'suspend_never'
+			ND_ std::suspend_always	initial_suspend ()			C_NE___	{ return {}; }	// delayed start
+			ND_ std::suspend_always	final_suspend ()			C_NE___	{ return {}; }	// must not be 'suspend_never'
 
-                void                return_void ()              C_NE___ {}
+				void				return_void ()				C_NE___	{}
 
-                void                unhandled_exception ()      C_Th___ { throw; }      // rethrow exceptions
+				void				unhandled_exception ()		C_Th___	{ throw; }		// rethrow exceptions
 
-        public:
-                void  Cancel ()                                 __NE___ { Unused( DrawTask::_SetCancellationState() ); }
-                void  Fail ()                                   __NE___ { DrawTask::OnFailure(); }
-            ND_ bool  IsCanceled ()                             __NE___ { return DrawTask::IsCanceled(); }
+		public:
+				void  Cancel ()									__NE___	{ Unused( DrawTask::_SetCancellationState() ); }
+				void  Fail ()									__NE___	{ DrawTask::OnFailure(); }
+			ND_ bool  IsCanceled ()								__NE___	{ return DrawTask::IsCanceled(); }
 
-            template <typename ...Deps>
-            void  Continue (const Tuple<Deps...> &deps)         __NE___ { return DrawTask::Continue( deps ); }
+			template <typename ...Deps>
+			void  Continue (const Tuple<Deps...> &deps)			__NE___	{ return DrawTask::Continue( deps ); }
 
-            template <typename CmdBufType>
-            void  Execute (CmdBufType &cmdbuf)                  __Th___ { return DrawTask::Execute( cmdbuf ); }
+			template <typename CmdBufType>
+			void  Execute (CmdBufType &cmdbuf)					__Th___	{ return DrawTask::Execute( cmdbuf ); }
 
-        private:
-            void  Run ()                                        __Th_OV
-            {
-                auto    coro_handle = Handle_t::from_promise( *this );
-                coro_handle.resume();   // throw
+		private:
+			void  Run ()										__Th_OV
+			{
+				auto	coro_handle = Handle_t::from_promise( *this );
+				coro_handle.resume();	// throw
 
-                if_unlikely( bool{coro_handle} and not coro_handle.done() )
-                    ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
-            }
+				if_unlikely( bool{coro_handle} and not coro_handle.done() )
+					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
+			}
 
-            void  _ReleaseObject ()                             __NE_OV
-            {
-                MemoryBarrier( EMemoryOrder::Acquire );
-                ASSERT( IsFinished() );
+			void  _ReleaseObject ()								__NE_OV
+			{
+				MemoryBarrier( EMemoryOrder::Acquire );
+				ASSERT( IsFinished() );
 
-                auto    coro_handle = Handle_t::from_promise( *this );
+				auto	coro_handle = Handle_t::from_promise( *this );
 
-                // internally calls 'promise_type' dtor
-                coro_handle.destroy();
-            }
-        };
-
-
-    // variables
-    private:
-        RC<promise_type>    _coro;
+				// internally calls 'promise_type' dtor
+				coro_handle.destroy();
+			}
+		};
 
 
-    // methods
-    public:
-        DrawTaskCoro ()                                     __NE___ {}
-        explicit DrawTaskCoro (promise_type &p)             __NE___ : _coro{ p.GetRC<promise_type>() } {}
-        explicit DrawTaskCoro (Handle_t handle)             __NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
-        ~DrawTaskCoro ()                                    __NE___ {}
-
-        DrawTaskCoro (DrawTaskCoro &&)                      __NE___ = default;
-        DrawTaskCoro (const DrawTaskCoro &)                 __NE___ = default;
-
-        DrawTaskCoro&  operator = (DrawTaskCoro &&)         __NE___ = default;
-        DrawTaskCoro&  operator = (const DrawTaskCoro &)    __NE___ = default;
-
-        ND_ operator AsyncTask ()                           C_NE___ { return _coro; }
-        ND_ explicit operator RC<Graphics::DrawTask> ()     C_NE___ { return _coro; }
-        ND_ explicit operator bool ()                       C_NE___ { return bool{_coro}; }
-
-        ND_ Graphics::DrawTask& AsDrawTask ()               __NE___ { return *_coro; }
-        ND_ promise_type&       Promise ()                  __NE___ { return *_coro; }
-    };
+	// variables
+	private:
+		RC<promise_type>	_coro;
 
 
+	// methods
+	public:
+		DrawTaskCoro ()										__NE___ {}
+		explicit DrawTaskCoro (promise_type &p)				__NE___ : _coro{ p.GetRC<promise_type>() } {}
+		explicit DrawTaskCoro (Handle_t handle)				__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
+		~DrawTaskCoro ()									__NE___ {}
 
-    //
-    // Get Draw Task Handle
-    //
-    struct DrawTask_Get
-    {
-        constexpr DrawTask_Get ()       __NE___ {}
+		DrawTaskCoro (DrawTaskCoro &&)						__NE___ = default;
+		DrawTaskCoro (const DrawTaskCoro &)					__NE___ = default;
 
-        ND_ auto  operator co_await ()  C_NE___
-        {
-            using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
-            using DrawTask  = AE::Graphics::DrawTask;
+		DrawTaskCoro&  operator = (DrawTaskCoro &&)			__NE___ = default;
+		DrawTaskCoro&  operator = (const DrawTaskCoro &)	__NE___ = default;
 
-            struct Awaiter
-            {
-            private:
-                RC<DrawTask>    _dtask;
+		ND_ operator AsyncTask ()							C_NE___	{ return _coro; }
+		ND_ explicit operator RC<Graphics::DrawTask> ()		C_NE___	{ return _coro; }
+		ND_ explicit operator bool ()						C_NE___	{ return bool{_coro}; }
 
-            public:
-                ND_ bool            await_ready ()      C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
-                ND_ RC<DrawTask>    await_resume ()     __NE___ { return RVRef(_dtask); }
-
-                ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
-                {
-                    _dtask = curCoro.promise().GetRC<DrawTask>();
-                    return false;   // resume coroutine
-                }
-            };
-            return Awaiter{};
-        }
-    };
+		ND_ Graphics::DrawTask&	AsDrawTask ()				__NE___	{ return *_coro; }
+		ND_ promise_type&		Promise ()					__NE___	{ return *_coro; }
+	};
 
 
-    //
-    // Get Draw Task Handle reference
-    //
-    struct DrawTask_GetRef
-    {
-        constexpr DrawTask_GetRef ()    __NE___ {}
 
-        ND_ auto  operator co_await ()  C_NE___
-        {
-            using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
-            using DrawTask  = AE::Graphics::DrawTask;
+	//
+	// Get Draw Task Handle
+	//
+	struct DrawTask_Get
+	{
+		constexpr DrawTask_Get ()		__NE___ {}
 
-            struct Awaiter
-            {
-            private:
-                DrawTask*   _dtask = null;
+		ND_ auto  operator co_await ()	C_NE___
+		{
+			using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
+			using DrawTask	= AE::Graphics::DrawTask;
 
-            public:
-                ND_ bool        await_ready ()      C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
-                ND_ DrawTask &  await_resume ()     __NE___ { ASSERT( _dtask != null );  return *_dtask; }
+			struct Awaiter
+			{
+			private:
+				RC<DrawTask>	_dtask;
 
-                ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
-                {
-                    _dtask = &curCoro.promise();
-                    return false;   // resume coroutine
-                }
-            };
-            return Awaiter{};
-        }
-    };
+			public:
+				ND_ bool			await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+				ND_ RC<DrawTask>	await_resume ()		__NE___	{ return RVRef(_dtask); }
+
+				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
+				{
+					_dtask = curCoro.promise().GetRC<DrawTask>();
+					return false;	// resume coroutine
+				}
+			};
+			return Awaiter{};
+		}
+	};
+
+
+	//
+	// Get Draw Task Handle reference
+	//
+	struct DrawTask_GetRef
+	{
+		constexpr DrawTask_GetRef ()	__NE___	{}
+
+		ND_ auto  operator co_await ()	C_NE___
+		{
+			using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
+			using DrawTask	= AE::Graphics::DrawTask;
+
+			struct Awaiter
+			{
+			private:
+				DrawTask*	_dtask = null;
+
+			public:
+				ND_ bool		await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+				ND_ DrawTask &	await_resume ()		__NE___	{ ASSERT( _dtask != null );  return *_dtask; }
+
+				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
+				{
+					_dtask = &curCoro.promise();
+					return false;	// resume coroutine
+				}
+			};
+			return Awaiter{};
+		}
+	};
 
 } // AE::Threading::_hidden_
 
 
 namespace AE::Graphics
 {
-    using DrawTaskCoro = Threading::_hidden_::DrawTaskCoro;
+	using DrawTaskCoro = Threading::_hidden_::DrawTaskCoro;
 
-    static constexpr Threading::_hidden_::DrawTask_Get      DrawTask_Get    {};
-    static constexpr Threading::_hidden_::DrawTask_GetRef   DrawTask_GetRef {};
+	static constexpr Threading::_hidden_::DrawTask_Get		DrawTask_Get	{};
+	static constexpr Threading::_hidden_::DrawTask_GetRef	DrawTask_GetRef {};
 
 
-    //
-    // Draw Task Execute
-    //
-    template <typename CmdBufType>
-    struct DrawTask_Execute
-    {
-        CmdBufType &    _cmdbuf1;
+	//
+	// Draw Task Execute
+	//
+	template <typename CmdBufType>
+	struct DrawTask_Execute
+	{
+		CmdBufType &	_cmdbuf1;
 
-        explicit DrawTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf1{cmdbuf} {}
+		explicit DrawTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf1{cmdbuf} {}
 
-        ND_ auto  operator co_await () __NE___
-        {
-            using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
+		ND_ auto  operator co_await () __NE___
+		{
+			using Promise_t = AE::Threading::_hidden_::DrawTaskCoro::promise_type;
 
-            struct Awaiter
-            {
-                CmdBufType &    _cmdbuf2;
+			struct Awaiter
+			{
+				CmdBufType &	_cmdbuf2;
 
-                ND_ bool    await_ready ()      C_NE___ { return false; }   // call 'await_suspend()' to get coroutine handle
-                    void    await_resume ()     C_NE___ {}
+				ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+					void	await_resume ()		C_NE___	{}
 
-                ND_ bool    await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
-                {
-                    auto&   dtask = curCoro.promise();
-                    dtask.Execute( this->_cmdbuf2 );    // throw
-                    return false;                       // resume coroutine
-                }
-            };
-            return Awaiter{ _cmdbuf1 };
-        }
-    };
+				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
+				{
+					auto&	dtask = curCoro.promise();
+					dtask.Execute( this->_cmdbuf2 );	// throw
+					return false;						// resume coroutine
+				}
+			};
+			return Awaiter{ _cmdbuf1 };
+		}
+	};
 
 
 } // AE::Graphics

@@ -11,28 +11,28 @@ using namespace AE::Networking;
 
 struct LocalSocketMngr
 {
-    LocalSocketMngr ()
-    {
-        TaskScheduler::InstanceCtor::Create();
+	LocalSocketMngr ()
+	{
+		TaskScheduler::InstanceCtor::Create();
 
-        TaskScheduler::Config   cfg;
-        cfg.mainThreadCoreId    = ECpuCoreId(0);
-        TEST( Scheduler().Setup( cfg ));
+		TaskScheduler::Config	cfg;
+		cfg.mainThreadCoreId	= ECpuCoreId(0);
+		TEST( Scheduler().Setup( cfg ));
 
-        TEST( SocketService::Instance().Initialize() );
-    }
+		TEST( SocketService::Instance().Initialize() );
+	}
 
-    ~LocalSocketMngr ()
-    {
-        Scheduler().Release();
-        TaskScheduler::InstanceCtor::Destroy();
+	~LocalSocketMngr ()
+	{
+		Scheduler().Release();
+		TaskScheduler::InstanceCtor::Destroy();
 
-        SocketService::Instance().Deinitialize();
-    }
+		SocketService::Instance().Deinitialize();
+	}
 
-    SocketService* operator -> ()
-    {
-        return &SocketService::Instance();
-    }
+	SocketService* operator -> ()
+	{
+		return &SocketService::Instance();
+	}
 };
 

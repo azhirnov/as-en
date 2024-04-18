@@ -7,7 +7,7 @@
 
 namespace AE::Base
 {
-    template <typename ...Args> struct TNothrowCtor< ImVec2, Args... > { static constexpr bool  value = true; };
+	template <typename ...Args> struct TNothrowCtor< ImVec2, Args... > { static constexpr bool  value = true; };
 }
 
 namespace AE::Profiler
@@ -15,229 +15,229 @@ namespace AE::Profiler
 
 /*
 =================================================
-    Draw
+	Draw
 =================================================
 */
-    void  ImColumnHistoryDiagram::Draw (INOUT RectF &inoutRegion) const
-    {
-        SHAREDLOCK( _guard );
+	void  ImColumnHistoryDiagram::Draw (INOUT RectF &inoutRegion) const
+	{
+		SHAREDLOCK( _guard );
 
-        const float     text_width          = ImGui::GetTextLineHeight() * 16;
-        const float     height_threshold    = 1.0f;
-        const float     rect_thickness      = 1.0f;
-        const float     padding             = rect_thickness * 2.0f;
-        const float     column_width        = Max( 2.f, Floor( (inoutRegion.Width() - padding - text_width) / _HistorySize - padding ));
-        const float     column_step         = column_width + padding;
-        const float     min_width           = column_step * _HistorySize;
-        const float     min_height          = Max( 200.f, inoutRegion.Height() - padding * 2.0f );
+		const float		text_width			= ImGui::GetTextLineHeight() * 16;
+		const float		height_threshold	= 1.0f;
+		const float		rect_thickness		= 1.0f;
+		const float		padding				= rect_thickness * 2.0f;
+		const float		column_width		= Max( 2.f, Floor( (inoutRegion.Width() - padding - text_width) / _HistorySize - padding ));
+		const float		column_step			= column_width + padding;
+		const float		min_width			= column_step * _HistorySize;
+		const float		min_height			= Max( 200.f, inoutRegion.Height() - padding * 2.0f );
 
-        const RectF     diag_region         = RectF{ inoutRegion.left, inoutRegion.top,
-                                                     inoutRegion.left + min_width + padding * 2.f, inoutRegion.top + min_height + padding * 2.f };
-        const RectF     diag_region_pad     = RectF{diag_region}.Stretch2( -padding );
-        ImDrawList*     draw_list           = ImGui::GetWindowDrawList();
+		const RectF		diag_region			= RectF{ inoutRegion.left, inoutRegion.top,
+													 inoutRegion.left + min_width + padding * 2.f, inoutRegion.top + min_height + padding * 2.f };
+		const RectF		diag_region_pad		= RectF{diag_region}.Stretch2( -padding );
+		ImDrawList*		draw_list			= ImGui::GetWindowDrawList();
 
-        // draw columns diagram
-        {
-            const float     y_scale     = min_height;
-            const float     column_y    = diag_region_pad.bottom;
+		// draw columns diagram
+		{
+			const float		y_scale		= min_height;
+			const float		column_y	= diag_region_pad.bottom;
 
-            ASSERT( diag_region_pad.top + y_scale == diag_region_pad.bottom );
+			ASSERT( diag_region_pad.top + y_scale == diag_region_pad.bottom );
 
-            // diagram border
-            draw_list->AddRect( ImVec2{diag_region.left, diag_region.top},
-                                ImVec2{diag_region.right, diag_region.bottom},
-                                BitCast<uint>(HtmlColor::White), 0.f, 0, rect_thickness );
+			// diagram border
+			draw_list->AddRect( ImVec2{diag_region.left, diag_region.top},
+								ImVec2{diag_region.right, diag_region.bottom},
+								BitCast<uint>(HtmlColor::White), 0.f, 0, rect_thickness );
 
-            for (int i = 0; i < _HistorySize; ++i)
-            {
-                const uint  fi       = Wrap( _currentFrameIdx + i+1, 0, _HistorySize-1 );
-                auto&       f        = _frames[fi];
-                const float column_x = diag_region_pad.left + column_step * i;
+			for (int i = 0; i < _HistorySize; ++i)
+			{
+				const uint	fi		 = Wrap( _currentFrameIdx + i+1, 0, _HistorySize-1 );
+				auto&		f		 = _frames[fi];
+				const float	column_x = diag_region_pad.left + column_step * i;
 
-                for (auto& item : f.items)
-                {
-                    float   item_y0 = column_y - float(item.begin / _maxHeight) * y_scale;
-                    float   item_y1 = column_y - float(item.end   / _maxHeight) * y_scale;
+				for (auto& item : f.items)
+				{
+					float	item_y0 = column_y - float(item.begin / _maxHeight) * y_scale;
+					float	item_y1 = column_y - float(item.end   / _maxHeight) * y_scale;
 
-                    if ( Abs( item_y1 - item_y0 ) > height_threshold )
-                    {
-                        draw_list->AddRectFilled( ImVec2{column_x, item_y0}, ImVec2{column_x + column_width, item_y1}, BitCast<uint>(item.color) );
+					if ( Abs( item_y1 - item_y0 ) > height_threshold )
+					{
+						draw_list->AddRectFilled( ImVec2{column_x, item_y0}, ImVec2{column_x + column_width, item_y1}, BitCast<uint>(item.color) );
 
-                        ASSERT( item_y0 >= diag_region_pad.top );
-                        ASSERT( item_y1 >= diag_region_pad.top );
-                    }
-                }
-            }
-        }
+						ASSERT( item_y0 >= diag_region_pad.top );
+						ASSERT( item_y1 >= diag_region_pad.top );
+					}
+				}
+			}
+		}
 
-        const float     text_padding    = 4.f;
-        const float     poly_padding    = 2.f;
-        const float     poly_part1      = 4.f;
-        const float     poly_part2      = poly_part1 + 10.0f;
-        const float     poly_part3      = poly_part2 + 4.0f;
-        const float     text_x_off      = poly_part3 + 4.0f;
-        const float     text_x_off2     = text_x_off + ImGui::GetTextLineHeight() * 6;
+		const float		text_padding	= 4.f;
+		const float		poly_padding	= 2.f;
+		const float		poly_part1		= 4.f;
+		const float		poly_part2		= poly_part1 + 10.0f;
+		const float		poly_part3		= poly_part2 + 4.0f;
+		const float		text_x_off		= poly_part3 + 4.0f;
+		const float		text_x_off2		= text_x_off + ImGui::GetTextLineHeight() * 6;
 
-        // draw legend
-        {
-            String  tmp;    tmp.reserve( 64 );
-            auto&   f = _frames[ _currentFrameIdx ];
+		// draw legend
+		{
+			String	tmp;	tmp.reserve( 64 );
+			auto&	f = _frames[ _currentFrameIdx ];
 
-            const float     text_height = ImGui::GetTextLineHeightWithSpacing();
-            const float     column_x    = diag_region.right + poly_padding;
-            const float     column_y    = diag_region_pad.bottom;
-            const float     y_scale     = min_height;
-            uint            txt_idx     = 0;
+			const float		text_height	= ImGui::GetTextLineHeightWithSpacing();
+			const float		column_x	= diag_region.right + poly_padding;
+			const float		column_y	= diag_region_pad.bottom;
+			const float		y_scale		= min_height;
+			uint			txt_idx		= 0;
 
-            for (auto& item : f.items)
-            {
-                float   item_y0 = float(item.begin / _maxHeight) * y_scale;
-                float   item_y1 = float(item.end   / _maxHeight) * y_scale;
-                float   text_y0 = (text_height + text_padding) * txt_idx + text_padding;
-                float   text_y1 = text_y0 + text_height;
-                float   text_y2 = text_y0 + text_height * 0.2f;
-                float   text_y3 = text_y1 - text_height * 0.2f;
+			for (auto& item : f.items)
+			{
+				float	item_y0 = float(item.begin / _maxHeight) * y_scale;
+				float	item_y1 = float(item.end   / _maxHeight) * y_scale;
+				float	text_y0	= (text_height + text_padding) * txt_idx + text_padding;
+				float	text_y1	= text_y0 + text_height;
+				float	text_y2 = text_y0 + text_height * 0.2f;
+				float	text_y3	= text_y1 - text_height * 0.2f;
 
-                FixedArray< ImVec2, 8 >     points;
-                points.emplace_back( column_x + poly_part1, column_y - item_y0 );
-                points.emplace_back( column_x,              column_y - item_y0 );
-                points.emplace_back( column_x,              column_y - item_y1 );
-                points.emplace_back( column_x + poly_part1, column_y - item_y1 );
-                points.emplace_back( column_x + poly_part2, column_y - text_y3 );
-                points.emplace_back( column_x + poly_part3, column_y - text_y3 );
-                points.emplace_back( column_x + poly_part3, column_y - text_y2 );
-                points.emplace_back( column_x + poly_part2, column_y - text_y2 );
+				FixedArray< ImVec2, 8 >		points;
+				points.emplace_back( column_x + poly_part1,	column_y - item_y0 );
+				points.emplace_back( column_x,				column_y - item_y0 );
+				points.emplace_back( column_x,				column_y - item_y1 );
+				points.emplace_back( column_x + poly_part1,	column_y - item_y1 );
+				points.emplace_back( column_x + poly_part2,	column_y - text_y3 );
+				points.emplace_back( column_x + poly_part3,	column_y - text_y3 );
+				points.emplace_back( column_x + poly_part3,	column_y - text_y2 );
+				points.emplace_back( column_x + poly_part2,	column_y - text_y2 );
 
-                draw_list->AddConvexPolyFilled( points.data(), int(points.size()), BitCast<uint>(item.color) );
+				draw_list->AddConvexPolyFilled( points.data(), int(points.size()), BitCast<uint>(item.color) );
 
-                tmp.clear();
-                tmp << '[' << ToString( nanosecondsd{item.end - item.begin}, 2 ) << "] ";
+				tmp.clear();
+				tmp << '[' << ToString( nanosecondsd{item.end - item.begin}, 2 ) << "] ";
 
-                draw_list->AddText( ImVec2{column_x + text_x_off, column_y - text_y1},
-                                    BitCast<uint>(item.color), tmp.c_str() );
+				draw_list->AddText( ImVec2{column_x + text_x_off, column_y - text_y1},
+									BitCast<uint>(item.color), tmp.c_str() );
 
-                draw_list->AddText( ImVec2{column_x + text_x_off2, column_y - text_y1},
-                                    BitCast<uint>(item.color), _uniqueNameArr[ usize(item.name) ].Get<String>().c_str() );
+				draw_list->AddText( ImVec2{column_x + text_x_off2, column_y - text_y1},
+									BitCast<uint>(item.color), _uniqueNameArr[ usize(item.name) ].Get<String>().c_str() );
 
-                ++txt_idx;
-            }
-        }
+				++txt_idx;
+			}
+		}
 
-        inoutRegion = diag_region;
-    }
+		inoutRegion = diag_region;
+	}
 
 /*
 =================================================
-    Begin
+	Begin
 =================================================
 */
-    void  ImColumnHistoryDiagram::Begin ()
-    {
-        _guard.lock();
+	void  ImColumnHistoryDiagram::Begin ()
+	{
+		_guard.lock();
 
-        _currentFrameIdx = (_currentFrameIdx + 1) % _HistorySize;
+		_currentFrameIdx = (_currentFrameIdx + 1) % _HistorySize;
 
-        auto&   f = _frames[ _currentFrameIdx ];
+		auto&	f = _frames[ _currentFrameIdx ];
 
-        f.min = f.max = 0.0;
-        f.items.clear();
-    }
+		f.min = f.max = 0.0;
+		f.items.clear();
+	}
 
 /*
 =================================================
-    Add
+	Add
 =================================================
 */
-    void  ImColumnHistoryDiagram::Add (const String &fullName, RGBA8u color, double begin, double end)
-    {
-        CHECK( not _guard.try_lock() );
+	void  ImColumnHistoryDiagram::Add (const String &fullName, RGBA8u color, double begin, double end)
+	{
+		CHECK( not _guard.try_lock() );
 
-        String  name;
-        {
-            usize   pos = fullName.rfind( "| " );
-            name = (pos != UMax ? fullName.substr( pos+2 ) : fullName);
-        }
+		String	name;
+		{
+			usize	pos = fullName.rfind( "| " );
+			name = (pos != UMax ? fullName.substr( pos+2 ) : fullName);
+		}
 
-        auto&           f                = _frames[ _currentFrameIdx ];
-        auto            [iter, inserted] = _uniqueNames.emplace( name, UniqueNameIdx{} );
-        UNameInfo_t*    info;
+		auto&			f				 = _frames[ _currentFrameIdx ];
+		auto			[iter, inserted] = _uniqueNames.emplace( name, UniqueNameIdx{} );
+		UNameInfo_t*	info;
 
-        if ( inserted )
-        {
-            iter->second = UniqueNameIdx(_uniqueNameArr.size());
-            info         = &_uniqueNameArr.emplace_back();
+		if ( inserted )
+		{
+			iter->second = UniqueNameIdx(_uniqueNameArr.size());
+			info		 = &_uniqueNameArr.emplace_back();
 
-            info->Get<String>()         = RVRef(name);
-            info->Get<UniqueNameIdx>()  = iter->second;
+			info->Get<String>()			= RVRef(name);
+			info->Get<UniqueNameIdx>()	= iter->second;
 
-            if ( color == Default )
-                color = RGBA8u{ Rainbow( HEHash( uint(iter->second) ))};
+			if ( color == Default )
+				color = RGBA8u{ Rainbow( HEHash( uint(iter->second) ))};
 
-            color.a = 255;
-            info->Get<RGBA8u>() = color;
-        }
-        else
-        {
-            info = &_uniqueNameArr[ uint(iter->second) ];
-        }
+			color.a = 255;
+			info->Get<RGBA8u>() = color;
+		}
+		else
+		{
+			info = &_uniqueNameArr[ uint(iter->second) ];
+		}
 
-        f.items.push_back( Item{ iter->second, info->Get<RGBA8u>(), begin, end });
-    }
+		f.items.push_back( Item{ iter->second, info->Get<RGBA8u>(), begin, end });
+	}
 
 /*
 =================================================
-    End
+	End
 =================================================
 */
-    void  ImColumnHistoryDiagram::End (double min, double max)
-    {
-        CHECK( not _guard.try_lock() );
+	void  ImColumnHistoryDiagram::End (double min, double max)
+	{
+		CHECK( not _guard.try_lock() );
 
-        // sort items
-        {
-            auto&   f = _frames[ _currentFrameIdx ];
+		// sort items
+		{
+			auto&	f = _frames[ _currentFrameIdx ];
 
-            f.min   = min;
-            f.max   = max;
+			f.min	= min;
+			f.max	= max;
 
-            for (auto& item : f.items)
-            {
-                item.begin  -= min;
-                item.end    -= min;
+			for (auto& item : f.items)
+			{
+				item.begin	-= min;
+				item.end	-= min;
 
-                ASSERT( item.begin >= 0.0 );
-                ASSERT( item.begin <= item.end );
-            }
+				ASSERT( item.begin >= 0.0 );
+				ASSERT( item.begin <= item.end );
+			}
 
-            std::sort( f.items.begin(), f.items.end(), [](auto& lhs, auto& rhs) { return lhs.begin < rhs.begin; });
-        }
+			std::sort( f.items.begin(), f.items.end(), [](auto& lhs, auto& rhs) { return lhs.begin < rhs.begin; });
+		}
 
-        // find max height for all frames in history
-        {
-            _maxHeight = 0.0;
+		// find max height for all frames in history
+		{
+			_maxHeight = 0.0;
 
-            for (auto& f : _frames) {
-                _maxHeight = Max( _maxHeight, f.Height() );
-            }
-        }
+			for (auto& f : _frames) {
+				_maxHeight = Max( _maxHeight, f.Height() );
+			}
+		}
 
-        _guard.unlock();
-    }
+		_guard.unlock();
+	}
 
-    void  ImColumnHistoryDiagram::End ()
-    {
-        auto&   f   = _frames[ _currentFrameIdx ];
-        double  min = MaxValue<double>();
-        double  max = 0.0;
+	void  ImColumnHistoryDiagram::End ()
+	{
+		auto&	f	= _frames[ _currentFrameIdx ];
+		double	min	= MaxValue<double>();
+		double	max	= 0.0;
 
-        for (auto& item : f.items)
-        {
-            min = Min( min, item.begin );
-            max = Max( max, item.end );
-        }
+		for (auto& item : f.items)
+		{
+			min = Min( min, item.begin );
+			max = Max( max, item.end );
+		}
 
-        return End( min, max );
-    }
+		return End( min, max );
+	}
 
 
 } // AE::Profiler

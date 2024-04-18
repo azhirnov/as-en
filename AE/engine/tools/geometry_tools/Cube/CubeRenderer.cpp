@@ -9,41 +9,41 @@ namespace AE::GeometryTools
 
 /*
 =================================================
-    Create
+	Create
 =================================================
 */
-    bool  CubeRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, Bool cubeMap, GfxMemAllocatorPtr gfxAlloc) __NE___
-    {
-        Destroy( resMngr );
+	bool  CubeRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, Bool cubeMap, GfxMemAllocatorPtr gfxAlloc) __NE___
+	{
+		Destroy( resMngr );
 
-        CubeGen     gen;
-        CHECK_ERR( gen.Create( cubeMap ));
+		CubeGen		gen;
+		CHECK_ERR( gen.Create( cubeMap ));
 
-        const auto  vertices    = gen.GetVertices();
-        const auto  indices     = gen.GetIndices();
+		const auto	vertices	= gen.GetVertices();
+		const auto	indices		= gen.GetIndices();
 
-        CHECK( _indexCount == indices.size() );
+		CHECK( _indexCount == indices.size() );
 
-        _vertexBuffer   = resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(vertices), EBufferUsage::Vertex | EBufferUsage::TransferDst }, "Cube vertices", gfxAlloc );
-        _indexBuffer    = resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(indices),  EBufferUsage::Index  | EBufferUsage::TransferDst }, "Cube indices",  gfxAlloc );
-        CHECK_ERR( _vertexBuffer and _indexBuffer );
+		_vertexBuffer	= resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(vertices), EBufferUsage::Vertex | EBufferUsage::TransferDst }, "Cube vertices", gfxAlloc );
+		_indexBuffer	= resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(indices),  EBufferUsage::Index  | EBufferUsage::TransferDst }, "Cube indices",  gfxAlloc );
+		CHECK_ERR( _vertexBuffer and _indexBuffer );
 
-        CHECK_ERR( ctx.UploadBuffer( _vertexBuffer, 0_b, vertices ));
-        CHECK_ERR( ctx.UploadBuffer( _indexBuffer,  0_b, indices  ));
+		CHECK_ERR( ctx.UploadBuffer( _vertexBuffer, 0_b, vertices ));
+		CHECK_ERR( ctx.UploadBuffer( _indexBuffer,  0_b, indices  ));
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    Destroy
+	Destroy
 =================================================
 */
-    void  CubeRenderer::Destroy (IResourceManager &resMngr) __NE___
-    {
-        resMngr.ReleaseResource( INOUT _vertexBuffer );
-        resMngr.ReleaseResource( INOUT _indexBuffer );
-    }
+	void  CubeRenderer::Destroy (IResourceManager &resMngr) __NE___
+	{
+		resMngr.ReleaseResource( INOUT _vertexBuffer );
+		resMngr.ReleaseResource( INOUT _indexBuffer );
+	}
 
 
 } // AE::GeometryTools

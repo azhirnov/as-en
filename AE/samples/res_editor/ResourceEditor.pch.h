@@ -16,7 +16,7 @@
 #include "platform/Remote/RemoteInputActions.h"
 
 #ifdef AE_ENABLE_VULKAN
-# define PIPELINE_STATISTICS    0   // 0 or 1
+# define PIPELINE_STATISTICS	0	// 0 or 1
 #else
-# define PIPELINE_STATISTICS    0   // not supported
+# define PIPELINE_STATISTICS	0	// not supported
 #endif

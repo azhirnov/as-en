@@ -9,55 +9,55 @@ namespace AE::Graphics
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    VRTShaderBindingTable::~VRTShaderBindingTable () __NE___
-    {
-        DRC_EXLOCK( _drCheck );
-        ASSERT( _bufferId == Default );
-        ASSERT( _pipelineId == Default );
-    }
+	VRTShaderBindingTable::~VRTShaderBindingTable () __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		ASSERT( _bufferId == Default );
+		ASSERT( _pipelineId == Default );
+	}
 
 /*
 =================================================
-    Create
+	Create
 =================================================
 */
-    bool  VRTShaderBindingTable::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
-    {
-        DRC_EXLOCK( _drCheck );
+	bool  VRTShaderBindingTable::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
 
-        CHECK_ERR( _bufferId == Default and _pipelineId == Default );
-        CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue );
+		CHECK_ERR( _bufferId == Default and _pipelineId == Default );
+		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue );
 
-        _sbt            = ci.sbt;
-        _bufferId       = resMngr.AcquireResource( ci.bufferId );
-        _pipelineId     = resMngr.AcquireResource( ci.pipelineId );
-        _desc           = ci.desc;
+		_sbt			= ci.sbt;
+		_bufferId		= resMngr.AcquireResource( ci.bufferId );
+		_pipelineId		= resMngr.AcquireResource( ci.pipelineId );
+		_desc			= ci.desc;
 
-        CHECK_ERR( _bufferId != Default and _pipelineId != Default );
+		CHECK_ERR( _bufferId != Default and _pipelineId != Default );
 
-        DEBUG_ONLY( _debugName = ci.dbgName; )
-        return true;
-    }
+		DEBUG_ONLY( _debugName = ci.dbgName; )
+		return true;
+	}
 
 /*
 =================================================
-    Destroy
+	Destroy
 =================================================
 */
-    void  VRTShaderBindingTable::Destroy (VResourceManager &resMngr) __NE___
-    {
-        DRC_EXLOCK( _drCheck );
+	void  VRTShaderBindingTable::Destroy (VResourceManager &resMngr) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
 
-        resMngr.ImmediatelyRelease( INOUT _bufferId );
-        resMngr.ImmediatelyRelease( INOUT _pipelineId );
+		resMngr.ImmediatelyRelease( INOUT _bufferId );
+		resMngr.ImmediatelyRelease( INOUT _pipelineId );
 
-        _sbt = Default;
+		_sbt = Default;
 
-        DEBUG_ONLY( _debugName.clear(); )
-    }
+		DEBUG_ONLY( _debugName.clear(); )
+	}
 
 
 } // AE::Graphics

@@ -11,11 +11,11 @@ no source
 
 //> traceRays(): void
 //  origin: float3 {0.503906, 0.496094, -1.000000}
-12.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-13.                  /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
-14.                  /*origin*/origin, /*Tmin*/0.0f,
-15.                  /*direction*/direction, /*Tmax*/10.0f,
-16.                  /*payload*/PAYLOAD_LOC );
+12. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
+13. 				 /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
+14. 				 /*origin*/origin, /*Tmin*/0.0f,
+15. 				 /*direction*/direction, /*Tmax*/10.0f,
+16. 				 /*payload*/PAYLOAD_LOC );
 
 //> payload: float4 {0.246094, 0.261719, 0.492188, 1.000000}
 16. C );
@@ -23,7 +23,7 @@ no source
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {64, 64, 0}
 //  payload: float4 {0.246094, 0.261719, 0.492188, 1.000000}
-18.     imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
+18. 	imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
 
 //---------------------------
 

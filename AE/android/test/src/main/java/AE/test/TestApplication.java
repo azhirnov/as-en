@@ -3,12 +3,10 @@
 package AE.test;
 
 
-import android.app.Application;
-
 public final class TestApplication
-        extends AE.engine.BaseApplication
+		extends AE.engine.BaseApplication
 {
-    static {
-        System.loadLibrary("TestLauncher" );
-    }
+	static {
+		System.loadLibrary("TestLauncher" );
+	}
 }

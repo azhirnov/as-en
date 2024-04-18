@@ -3,17 +3,17 @@
 
 void ASmain ()
 {
-    RC<RasterFont>  font = RasterFont();
+	RC<RasterFont>	font = RasterFont();
 
-    font.Load( "Roboto-Regular.ttf" );
-    font.AddCharset_Ascii();
-    font.AddCharset_Rus();
+	font.Load( "Roboto-Regular.ttf" );
+	font.AddCharset_Ascii();
+	font.AddCharset_Rus();
 
-    font.RasterMode( ERasterFontMode::Raster );
-    font.Format( EPixelFormat::R8_UNorm );
+	font.RasterMode( ERasterFontMode::Raster );
+	font.Format( EPixelFormat::R8_UNorm );
 
-    font.GlyphSize( 60 );   // pix
-    font.GlyphPadding( 2 ); // pix
+	font.GlyphSize( 60 );	// pix
+	font.GlyphPadding( 2 );	// pix
 
-    font.Store( "canvas2d.font" );
+	font.Store( "canvas2d.font" );
 }

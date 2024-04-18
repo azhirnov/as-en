@@ -12,16 +12,16 @@ extern int PerformanceTests_Threading ()
 int main ()
 #endif
 {
-    #ifndef AE_RELEASE
-    //  return 0; // skip
-    #endif
+	#ifndef AE_RELEASE
+	//	return 0; // skip
+	#endif
 
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    PerfTest_AsyncFile();
-    //PerfTest_AsyncMutex();
-    //PerfTest_TaskSystem();
+	PerfTest_AsyncFile();
+	//PerfTest_AsyncMutex();
+	//PerfTest_TaskSystem();
 
-    AE_LOGI( "PerformanceTests.Threading finished" );
-    return 0;
+	AE_LOGI( "PerformanceTests.Threading finished" );
+	return 0;
 }

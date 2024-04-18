@@ -6,37 +6,37 @@
 
 namespace
 {
-    using AE::Threading::LfLinearAllocator;
+	using AE::Threading::LfLinearAllocator;
 
-    enum class EAction
-    {
-        Allocate,
-        Deallocate,
-        Read,
-        Write,
-    };
+	enum class EAction
+	{
+		Allocate,
+		Deallocate,
+		Read,
+		Write,
+	};
 
 
-    static void  LfLinearAllocator_Test1 ()
-    {
-        using T = DebugInstanceCounter< int, 1 >;
+	static void  LfLinearAllocator_Test1 ()
+	{
+		using T = DebugInstanceCounter< int, 1 >;
 
-        VirtualMachine::CreateInstance();
-        T::ClearStatistic();
-        {
-            auto&   vm = VirtualMachine::Instance();
-            vm.ThreadFenceAcquireRelease();
+		VirtualMachine::CreateInstance();
+		T::ClearStatistic();
+		{
+			auto&	vm = VirtualMachine::Instance();
+			vm.ThreadFenceAcquireRelease();
 
-        }
-        VirtualMachine::DestroyInstance();
-        TEST( T::CheckStatistic() );
-    }
+		}
+		VirtualMachine::DestroyInstance();
+		TEST( T::CheckStatistic() );
+	}
 }
 
 
 extern void Test_LfLinearAllocator ()
 {
-    LfLinearAllocator_Test1();
+	LfLinearAllocator_Test1();
 
-    TEST_PASSED();
+	TEST_PASSED();
 }

@@ -9,81 +9,81 @@ namespace AE::Base
 
 /*
 =================================================
-    Open
+	Open
 =================================================
 */
-    bool  WindowsLibrary::Open (void* lib) __NE___
-    {
-        CHECK_ERR( _handle == null and lib != null );
-        _handle = lib;
-        return true;
-    }
+	bool  WindowsLibrary::Open (void* lib) __NE___
+	{
+		CHECK_ERR( _handle == null and lib != null );
+		_handle = lib;
+		return true;
+	}
 
 /*
 =================================================
-    Load
+	Load
 =================================================
 */
-    bool  WindowsLibrary::Load (NtStringView libName) __NE___
-    {
-        CHECK_ERR( _handle == null );
-        _handle = ::LoadLibraryA( libName.c_str() );
+	bool  WindowsLibrary::Load (NtStringView libName) __NE___
+	{
+		CHECK_ERR( _handle == null );
+		_handle = ::LoadLibraryA( libName.c_str() );
 
-        if_unlikely( _handle == null )
-            WIN_CHECK_DEV( "LoadLibrary error: " );
+		if_unlikely( _handle == null )
+			WIN_CHECK_DEV( "LoadLibrary error: " );
 
-        return _handle != null;
-    }
+		return _handle != null;
+	}
 
-    bool  WindowsLibrary::Load (const Path &libName) __NE___
-    {
-        CHECK_ERR( _handle == null );
-        _handle = ::LoadLibraryW( libName.c_str() );
+	bool  WindowsLibrary::Load (const Path &libName) __NE___
+	{
+		CHECK_ERR( _handle == null );
+		_handle = ::LoadLibraryW( libName.c_str() );
 
-        if_unlikely( _handle == null )
-            WIN_CHECK_DEV( "LoadLibrary error: " );
+		if_unlikely( _handle == null )
+			WIN_CHECK_DEV( "LoadLibrary error: " );
 
-        return _handle != null;
-    }
+		return _handle != null;
+	}
 
 /*
 =================================================
-    Unload
+	Unload
 =================================================
 */
-    void  WindowsLibrary::Unload () __NE___
-    {
-        if ( _handle != null )
-        {
-            ::FreeLibrary( BitCast<HMODULE>(_handle) );
-            _handle = null;
-        }
-    }
+	void  WindowsLibrary::Unload () __NE___
+	{
+		if ( _handle != null )
+		{
+			::FreeLibrary( BitCast<HMODULE>(_handle) );
+			_handle = null;
+		}
+	}
 
 /*
 =================================================
-    GetPath
+	GetPath
 =================================================
 */
-    Path  WindowsLibrary::GetPath () C_NE___
-    {
-        CHECK_ERR( _handle != null );
+	Path  WindowsLibrary::GetPath () C_NE___
+	{
+		CHECK_ERR( _handle != null );
 
-        wchar_t buf[MAX_PATH] = {};
-        CHECK_ERR( ::GetModuleFileNameW( BitCast<HMODULE>(_handle), buf, DWORD(CountOf(buf)) ) != FALSE );
+		wchar_t	buf[MAX_PATH] = {};
+		CHECK_ERR( ::GetModuleFileNameW( BitCast<HMODULE>(_handle), buf, DWORD(CountOf(buf)) ) != FALSE );
 
-        NOTHROW_ERR( return Path{ buf };)
-    }
+		NOTHROW_ERR( return Path{ buf };)
+	}
 
 /*
 =================================================
-    _GetProcAddress
+	_GetProcAddress
 =================================================
 */
-    void*  WindowsLibrary::_GetProcAddress (NtStringView name) C_NE___
-    {
-        return BitCast<void*>(::GetProcAddress( BitCast<HMODULE>(_handle), name.c_str() ));
-    }
+	void*  WindowsLibrary::_GetProcAddress (NtStringView name) C_NE___
+	{
+		return BitCast<void*>(::GetProcAddress( BitCast<HMODULE>(_handle), name.c_str() ));
+	}
 
 
 } // AE::Base

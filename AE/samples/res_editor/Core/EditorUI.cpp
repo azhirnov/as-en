@@ -17,18 +17,18 @@ namespace ImGui
 {
 /*
 =================================================
-    PushStyleColor
+	PushStyleColor
 =================================================
 */
-    void PushStyleColor (ImGuiCol idx, AE::Base::RGBA8u color)
-    {
-        ImGui::PushStyleColor( idx, AE::Base::BitCast<ImU32>(color) );
-    }
+	void PushStyleColor (ImGuiCol idx, AE::Base::RGBA8u color)
+	{
+		ImGui::PushStyleColor( idx, AE::Base::BitCast<ImU32>(color) );
+	}
 
-    void PushStyleColor (ImGuiCol idx, const AE::Base::RGBA32f &color)
-    {
-        ImGui::PushStyleColor( idx, ImVec4{ color.r, color.g, color.b, color.a });
-    }
+	void PushStyleColor (ImGuiCol idx, const AE::Base::RGBA32f &color)
+	{
+		ImGui::PushStyleColor( idx, ImVec4{ color.r, color.g, color.b, color.a });
+	}
 
 } // ImGui
 //-----------------------------------------------------------------------------
@@ -38,52 +38,52 @@ namespace AE::Base
 {
 /*
 =================================================
-    ToString (EDebugMode)
+	ToString (EDebugMode)
 =================================================
 */
-    ND_ StringView  ToString (AE::ResEditor::IPass::EDebugMode mode)
-    {
-        using EDebugMode = AE::ResEditor::IPass::EDebugMode;
-        switch_enum( mode )
-        {
-            case EDebugMode::Trace :        return "Trace";
-            case EDebugMode::FnProfiling :  return "FnProfiling";
-            case EDebugMode::TimeHeatMap :  return "TimeHeatMap";
-            case EDebugMode::Unknown :
-            case EDebugMode::_Count :
-            default :                       return "";
-        }
-        switch_end
-    }
+	ND_ StringView  ToString (AE::ResEditor::IPass::EDebugMode mode)
+	{
+		using EDebugMode = AE::ResEditor::IPass::EDebugMode;
+		switch_enum( mode )
+		{
+			case EDebugMode::Trace :		return "Trace";
+			case EDebugMode::FnProfiling :	return "FnProfiling";
+			case EDebugMode::TimeHeatMap :	return "TimeHeatMap";
+			case EDebugMode::Unknown :
+			case EDebugMode::_Count :
+			default :						return "";
+		}
+		switch_end
+	}
 
 /*
 =================================================
-    ToString (EImageFormat)
+	ToString (EImageFormat)
 =================================================
 */
-    ND_ StringView  ToString (AE::ResEditor::EImageFormat fmt)
-    {
-        using EImageFormat = AE::ResEditor::EImageFormat;
-        switch_enum( fmt )
-        {
-            case EImageFormat::DDS :        return "DDS";
-            case EImageFormat::BMP :        return "BMP";
-            case EImageFormat::JPG :        return "JPG";
-            case EImageFormat::PCX :        return "PCX";
-            case EImageFormat::PNG :        return "PNG";
-            case EImageFormat::TGA :        return "TGA";
-            case EImageFormat::TIF :        return "TIFF";
-            case EImageFormat::PSD :        return "PSD";
-            case EImageFormat::RadianceHDR: return "RadianceHDR";
-            case EImageFormat::OpenEXR :    return "OpenEXR";
-            case EImageFormat::KTX :        return "KTX";
-            case EImageFormat::AEImg :      return "AEImg";
-            case EImageFormat::Unknown :
-            case EImageFormat::_Count :
-            default :                       return "";
-        }
-        switch_end
-    }
+	ND_ StringView  ToString (AE::ResEditor::EImageFormat fmt)
+	{
+		using EImageFormat = AE::ResEditor::EImageFormat;
+		switch_enum( fmt )
+		{
+			case EImageFormat::DDS :		return "DDS";
+			case EImageFormat::BMP :		return "BMP";
+			case EImageFormat::JPG :		return "JPG";
+			case EImageFormat::PCX :		return "PCX";
+			case EImageFormat::PNG :		return "PNG";
+			case EImageFormat::TGA :		return "TGA";
+			case EImageFormat::TIF :		return "TIFF";
+			case EImageFormat::PSD :		return "PSD";
+			case EImageFormat::RadianceHDR:	return "RadianceHDR";
+			case EImageFormat::OpenEXR :	return "OpenEXR";
+			case EImageFormat::KTX :		return "KTX";
+			case EImageFormat::AEImg :		return "AEImg";
+			case EImageFormat::Unknown :
+			case EImageFormat::_Count :
+			default :						return "";
+		}
+		switch_end
+	}
 
 } // AE::Base
 //-----------------------------------------------------------------------------
@@ -95,51 +95,51 @@ namespace
 {
 /*
 =================================================
-    SurfaceScaleName
+	SurfaceScaleName
 =================================================
 */
-    ND_ const char*  SurfaceScaleName (int scaleIdx)
-    {
-        switch ( scaleIdx )
-        {
-            default :   return "=";
-            case -1 :   return "1/2";
-            case -2 :   return "1/4";
-            case 1 :    return "x2";
-        }
-    }
+	ND_ const char*  SurfaceScaleName (int scaleIdx)
+	{
+		switch ( scaleIdx )
+		{
+			default :	return "=";
+			case -1 :	return "1/2";
+			case -2 :	return "1/4";
+			case 1 :	return "x2";
+		}
+	}
 
 /*
 =================================================
-    SurfaceScaleToLog2
+	SurfaceScaleToLog2
 =================================================
 */
-    ND_ int  SurfaceScaleToLog2 (int scale)
-    {
-        switch ( scale )
-        {
-            default :   return 0;
-            case 2 :    return 1;
-            case -2 :   return -1;
-            case -4 :   return -2;
-        }
-    }
+	ND_ int  SurfaceScaleToLog2 (int scale)
+	{
+		switch ( scale )
+		{
+			default :	return 0;
+			case 2 :	return 1;
+			case -2 :	return -1;
+			case -4 :	return -2;
+		}
+	}
 
 /*
 =================================================
-    SurfaceScaleFromLog2
+	SurfaceScaleFromLog2
 =================================================
 */
-    ND_ int  SurfaceScaleFromLog2 (int scaleIdx)
-    {
-        switch ( scaleIdx )
-        {
-            case -1 :   return -2;
-            case -2 :   return -4;
-            case 1 :    return 2;
-            default :   return 1;
-        }
-    }
+	ND_ int  SurfaceScaleFromLog2 (int scaleIdx)
+	{
+		switch ( scaleIdx )
+		{
+			case -1 :	return -2;
+			case -2 :	return -4;
+			case 1 :	return 2;
+			default :	return 1;
+		}
+	}
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -148,1562 +148,1562 @@ namespace
 
 /*
 =================================================
-    Instance
+	Instance
 =================================================
 */
-    INTERNAL_LINKAGE( UIInteraction s_UIInteraction );
+	INTERNAL_LINKAGE( UIInteraction s_UIInteraction );
 
-    UIInteraction&  UIInteraction::Instance () {
-        return s_UIInteraction;
-    }
+	UIInteraction&  UIInteraction::Instance () {
+		return s_UIInteraction;
+	}
 
 /*
 =================================================
-    UIInteraction ctor
+	UIInteraction ctor
 =================================================
 */
-    UIInteraction::UIInteraction ()
-    {
-        graphics->dynSize       = MakeRC<DynamicDim>( uint2{1024} );
-        graphics->filterMode    = MakeRC<DynamicUInt>( 0u );
-    }
+	UIInteraction::UIInteraction ()
+	{
+		graphics->dynSize		= MakeRC<DynamicDim>( uint2{1024} );
+		graphics->filterMode	= MakeRC<DynamicUInt>( 0u );
+	}
 
 /*
 =================================================
-    AddSliders
+	AddSliders
 =================================================
 */
-    void  UIInteraction::AddSliders (const void* uid, PerPassSlidersInfo info)
-    {
-        SliderMap_t::mapped_type    val;
-        {
-            auto    sliders = val.Get<PerPassMutableSliders>().WriteNoLock();
-            EXLOCK( sliders );
+	void  UIInteraction::AddSliders (const void* uid, PerPassSlidersInfo info)
+	{
+		SliderMap_t::mapped_type	val;
+		{
+			auto	sliders = val.Get<PerPassMutableSliders>().WriteNoLock();
+			EXLOCK( sliders );
 
-            for (uint i = 0; i < MaxSlidersPerType; ++i) {
-                sliders->intSliders[i] = info.intRange[i][2];
-            }
+			for (uint i = 0; i < MaxSlidersPerType; ++i) {
+				sliders->intSliders[i] = info.intRange[i][2];
+			}
 
-            for (uint i = 0; i < MaxSlidersPerType; ++i) {
-                sliders->floatSliders[i] = info.floatRange[i][2];
-            }
+			for (uint i = 0; i < MaxSlidersPerType; ++i) {
+				sliders->floatSliders[i] = info.floatRange[i][2];
+			}
 
-            for (uint i = 0; i < MaxSlidersPerType; ++i) {
-                sliders->colors[i] = RGBA32f{info.colors[i]};
-            }
-        }
-        val.Get<PerPassSlidersInfo>() = RVRef(info);
+			for (uint i = 0; i < MaxSlidersPerType; ++i) {
+				sliders->colors[i] = RGBA32f{info.colors[i]};
+			}
+		}
+		val.Get<PerPassSlidersInfo>() = RVRef(info);
 
-        _sliderMap->insert_or_assign( uid, RVRef(val) );
-    }
+		_sliderMap->insert_or_assign( uid, RVRef(val) );
+	}
 
 /*
 =================================================
-    GetSliders
+	GetSliders
 =================================================
 */
-    auto  UIInteraction::GetSliders (const void* uid) const -> Ptr<const PerPassMutableSliders>
-    {
-        auto    slider_map = _sliderMap.ReadNoLock();
-        SHAREDLOCK( slider_map );
+	auto  UIInteraction::GetSliders (const void* uid) const -> Ptr<const PerPassMutableSliders>
+	{
+		auto	slider_map = _sliderMap.ReadNoLock();
+		SHAREDLOCK( slider_map );
 
-        auto    it = slider_map->find( uid );
-        if ( it != slider_map->end() )
-            return &it->second.Get<PerPassMutableSliders>();
-        else
-            return null;
-    }
+		auto	it = slider_map->find( uid );
+		if ( it != slider_map->end() )
+			return &it->second.Get<PerPassMutableSliders>();
+		else
+			return null;
+	}
 
 /*
 =================================================
-    GetAllSliders
+	GetAllSliders
 =================================================
 */
-    auto  UIInteraction::GetAllSliders () -> AllSliders_t
-    {
-        AllSliders_t    result;
+	auto  UIInteraction::GetAllSliders () -> AllSliders_t
+	{
+		AllSliders_t	result;
 
-        auto    slider_map = _sliderMap.WriteNoLock();
-        EXLOCK( slider_map );
+		auto	slider_map = _sliderMap.WriteNoLock();
+		EXLOCK( slider_map );
 
-        for (auto& [key, pass_sliders] : *slider_map)
-        {
-            result.emplace_back( &pass_sliders.Get<PerPassMutableSliders>(),
-                                 &pass_sliders.Get<PerPassSlidersInfo>() );
-        }
-        return result;
-    }
+		for (auto& [key, pass_sliders] : *slider_map)
+		{
+			result.emplace_back( &pass_sliders.Get<PerPassMutableSliders>(),
+								 &pass_sliders.Get<PerPassSlidersInfo>() );
+		}
+		return result;
+	}
 
 /*
 =================================================
-    RemovePass
+	RemovePass
 =================================================
 */
-    void  UIInteraction::RemovePass (const void* uid)
-    {
-        {
-            auto    slider_map = _sliderMap.WriteNoLock();
-            EXLOCK( slider_map );
-            slider_map->erase( uid );
-        }{
-            auto    dbg_map = _passDbgMap.WriteNoLock();
-            EXLOCK( dbg_map );
-            dbg_map->erase( uid );
-        }
-    }
+	void  UIInteraction::RemovePass (const void* uid)
+	{
+		{
+			auto	slider_map = _sliderMap.WriteNoLock();
+			EXLOCK( slider_map );
+			slider_map->erase( uid );
+		}{
+			auto	dbg_map = _passDbgMap.WriteNoLock();
+			EXLOCK( dbg_map );
+			dbg_map->erase( uid );
+		}
+	}
 
 /*
 =================================================
-    AddPassDbgInfo
+	AddPassDbgInfo
 =================================================
 */
-    void  UIInteraction::AddPassDbgInfo (const IPass* uid, EDebugModeBits modes, EShaderStages stages)
-    {
-        modes.erase( EDebugMode::Unknown );
-        if ( modes.None() or stages == Default )
-            return;
+	void  UIInteraction::AddPassDbgInfo (const IPass* uid, EDebugModeBits modes, EShaderStages stages)
+	{
+		modes.erase( EDebugMode::Unknown );
+		if ( modes.None() or stages == Default )
+			return;
 
-        auto    dbg_map = _passDbgMap.WriteNoLock();
-        EXLOCK( dbg_map );
+		auto	dbg_map = _passDbgMap.WriteNoLock();
+		EXLOCK( dbg_map );
 
-        PassDebugInfo   info;
-        info.name   = String{uid->GetName()};
-        info.pass   = uid;
-        info.modes  = modes;
-        info.stages = stages;
+		PassDebugInfo	info;
+		info.name	= String{uid->GetName()};
+		info.pass	= uid;
+		info.modes	= modes;
+		info.stages	= stages;
 
-        dbg_map->insert_or_assign( uid, info );
-    }
+		dbg_map->insert_or_assign( uid, info );
+	}
 
 /*
 =================================================
-    GetAllPassDbgInfo
+	GetAllPassDbgInfo
 =================================================
 */
-    auto  UIInteraction::GetAllPassDbgInfo () const -> AllPassDbgInfo_t
-    {
-        AllPassDbgInfo_t    result;
+	auto  UIInteraction::GetAllPassDbgInfo () const -> AllPassDbgInfo_t
+	{
+		AllPassDbgInfo_t	result;
 
-        auto    dbg_map = _passDbgMap.ReadNoLock();
-        SHAREDLOCK( dbg_map );
+		auto	dbg_map = _passDbgMap.ReadNoLock();
+		SHAREDLOCK( dbg_map );
 
-        for (auto& [uid, info] : *dbg_map)
-        {
-            result.push_back( &info );
-        }
-        return result;
-    }
+		for (auto& [uid, info] : *dbg_map)
+		{
+			result.push_back( &info );
+		}
+		return result;
+	}
 /*
 =================================================
-    DbgView
+	DbgView
 =================================================
 */
-    void  UIInteraction::SetDbgView (usize idx, RC<Image> img)
-    {
-        if ( idx < _dbgView.size() )
-            _dbgView[idx].store( RVRef(img) );
-    }
+	void  UIInteraction::SetDbgView (usize idx, RC<Image> img)
+	{
+		if ( idx < _dbgView.size() )
+			_dbgView[idx].store( RVRef(img) );
+	}
 
-    void  UIInteraction::ResetDbgView (usize idx)
-    {
-        if ( idx < _dbgView.size() )
-            _dbgView[idx].store( null );
-    }
+	void  UIInteraction::ResetDbgView (usize idx)
+	{
+		if ( idx < _dbgView.size() )
+			_dbgView[idx].store( null );
+	}
 
-    RC<Image>  UIInteraction::GetDbgView (usize idx)
-    {
-        if ( idx < _dbgView.size() )
-            return _dbgView[idx].load();
-        else
-            return null;
-    }
+	RC<Image>  UIInteraction::GetDbgView (usize idx)
+	{
+		if ( idx < _dbgView.size() )
+			return _dbgView[idx].load();
+		else
+			return null;
+	}
 //-----------------------------------------------------------------------------
 
 
 
-    //
-    // Draw Task
-    //
-    class EditorUI::DrawTask final : public RenderTask
-    {
-    // variables
-    private:
-        EditorUI &                      t;
-        IOutputSurface &                surface;
-        uint2                           rtSize;
-        ImGuiDataSync::WriteNoLock_t    imgui;
-        const bool                      isFirst;
+	//
+	// Draw Task
+	//
+	class EditorUI::DrawTask final : public RenderTask
+	{
+	// variables
+	private:
+		EditorUI &						t;
+		IOutputSurface &				surface;
+		uint2							rtSize;
+		ImGuiDataSync::WriteNoLock_t	imgui;
+		const bool						isFirst;
 
-        inline static const float       wnd_step        = 20.f;
+		inline static const float		wnd_step		= 20.f;
 
-        // button (start)
-        inline static const RGBA8u      start_btn_idle  { 80, 20, 170, 255};
-        inline static const RGBA8u      start_btn_hover { 95, 20, 210, 255};
-        inline static const RGBA8u      start_btn_press {110, 20, 250, 255};
+		// button (start)
+		inline static const RGBA8u		start_btn_idle	{ 80, 20, 170, 255};
+		inline static const RGBA8u		start_btn_hover	{ 95, 20, 210, 255};
+		inline static const RGBA8u		start_btn_press	{110, 20, 250, 255};
 
-        // button (stop)
-        inline static const RGBA8u      stop_btn_idle   {140, 20, 150, 255};
-        inline static const RGBA8u      stop_btn_hover  {160, 20, 180, 255};
-        inline static const RGBA8u      stop_btn_press  {200, 20, 220, 255};
+		// button (stop)
+		inline static const RGBA8u		stop_btn_idle	{140, 20, 150, 255};
+		inline static const RGBA8u		stop_btn_hover	{160, 20, 180, 255};
+		inline static const RGBA8u		stop_btn_press	{200, 20, 220, 255};
 
 
-    // methods
-    public:
-        DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
-            RenderTask{ batch, {"UI::Draw", HtmlColor::Aqua} },
-            t{ *t }, surface{ surf },
-            imgui{ this->t._imgui.WriteNoLock() },
-            isFirst{ isFirst }
-        {}
+	// methods
+	public:
+		DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
+			RenderTask{ batch, {"UI::Draw", HtmlColor::Aqua} },
+			t{ *t }, surface{ surf },
+			imgui{ this->t._imgui.WriteNoLock() },
+			isFirst{ isFirst }
+		{}
 
-        void  Run () __Th_OV;
+		void  Run () __Th_OV;
 
-    private:
-        ND_ bool  _Update ();
-            void  _UpdateMain (OUT float2 &wnd_pos);
-            void  _UpdateEditorTab ();
-            void  _UpdateGraphicsTab ();
-            void  _UpdateEditor_Debugger ();
-            void  _UpdateEditor_Capture ();
-            void  _UpdateEditor_Sliders ();
-            void  _UpdateDbgView (INOUT float2 &wnd_pos);
-            void  _UpdatePopups ();
-            void  _ShowHelp ();
+	private:
+		ND_ bool  _Update ();
+			void  _UpdateMain (OUT float2 &wnd_pos);
+			void  _UpdateEditorTab ();
+			void  _UpdateGraphicsTab ();
+			void  _UpdateEditor_Debugger ();
+			void  _UpdateEditor_Capture ();
+			void  _UpdateEditor_Sliders ();
+			void  _UpdateDbgView (INOUT float2 &wnd_pos);
+			void  _UpdatePopups ();
+			void  _ShowHelp ();
 
-            bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
-        ND_ bool  _UpdateDS (DirectCtx::Graphics &);
-        ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
+			bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
+		ND_ bool  _UpdateDS (DirectCtx::Graphics &);
+		ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
 
-            void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
-            void  _LoadScript (const Path &rootPath);
-    };
-
-/*
-=================================================
-    DrawTask::Run
-=================================================
-*/
-    void  EditorUI::DrawTask::Run ()
-    {
-        t._CheckScriptDir( t._scriptDir );
-        EXLOCK( imgui );
-
-        IOutputSurface::RenderTargets_t     targets;
-        CHECK_TE( surface.GetTargets( OUT targets ));
-
-        const auto&     rt = targets[0];
-        rtSize = rt.RegionSize();
-
-        CHECK_TE( _Update() );
-
-        // same as ImGui::GetDrawData()
-        auto*   viewport = imgui->ctx->Viewports[0];
-
-        DirectCtx::Graphics     gfx_ctx{ *this };
-
-        gfx_ctx.AddSurfaceTargets( targets );
-        CHECK_TE( _UpdateDS( gfx_ctx ));
-
-        if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
-                     fmt != Default or cs != Default )
-        {
-            imgui->reqSurfFormat = Default;
-
-            if ( fmt != targets[0].format or cs != targets[0].colorSpace )
-            {
-                IOutputSurface::SurfaceInfo new_mode;
-                new_mode.colorFormat    = fmt;
-                new_mode.colorSpace     = cs;
-
-                // will be changed at the next frame
-                Unused( surface.SetSurfaceMode( new_mode ));
-            }
-        }
-
-        PipelineSet ps;
-        {
-            auto    it = t._res.pplns.find( targets[0].format );
-            CHECK_TE( it != t._res.pplns.end(),
-                      "Failed to find pipeline for surface format "s << ToString(targets[0].format) );
-            ps = it->second;
-        }
-
-        auto    dctx = gfx_ctx.BeginRenderPass(
-                                RenderPassDesc{ *t._res.rtech, ps.pass, rt.RegionSize() }
-                                    .AddViewport( rt.RegionSize() )
-                                    .AddTarget( AttachmentName{"Color"}, rt.viewId, (isFirst ? EResourceState::Invalidate : Default), Default ),
-                                {DbgName(), DbgColor()} );
-
-        if_likely( viewport->DrawDataP.Valid )
-        {
-            CHECK( dctx.CheckResourceState( t._res.fontImg, EResourceState::ShaderSample | EResourceState::FragmentShader ));
-
-            if ( isFirst )
-                dctx.ClearAttachment( AttachmentName{"Color"}, RGBA32f{0.f}, rt.region, rt.layer, 1 );
-
-            _DrawUI( dctx, viewport->DrawDataP, ps );
-        }
-
-        gfx_ctx.EndRenderPass( dctx );
-
-        Execute( gfx_ctx );
-    }
+			void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
+			void  _LoadScript (const Path &rootPath);
+	};
 
 /*
 =================================================
-    DrawTask::_Update
+	DrawTask::Run
 =================================================
 */
-    bool  EditorUI::DrawTask::_Update ()
-    {
-        ImGui::SetCurrentContext( imgui->ctx );
+	void  EditorUI::DrawTask::Run ()
+	{
+		t._CheckScriptDir( t._scriptDir );
+		EXLOCK( imgui );
 
-        const float dt = GraphicsScheduler().GetFrameTimeDelta().count();
-        ImGuiIO &   io = ImGui::GetIO();
+		IOutputSurface::RenderTargets_t		targets;
+		CHECK_TE( surface.GetTargets( OUT targets ));
 
-        io.DisplaySize  = ImVec2{float(rtSize.x), float(rtSize.y)};
-        io.DeltaTime    = dt;
+		const auto&		rt = targets[0];
+		rtSize = rt.RegionSize();
 
-        // update input
-        {
-            ZeroMem( OUT io.MouseDown );
-            ZeroMem( OUT io.NavInputs );
+		CHECK_TE( _Update() );
 
-            io.MouseDown[0] = imgui->mouseLBDown;
-            io.MousePos     = { imgui->mousePos.x, imgui->mousePos.y };
-            io.MouseWheel   = Clamp( imgui->mouseWheel.y, -1.f, 1.f );
-            io.MouseWheelH  = Clamp( imgui->mouseWheel.x, -1.f, 1.f );
+		// same as ImGui::GetDrawData()
+		auto*	viewport = imgui->ctx->Viewports[0];
 
-            auto    surf_dim = s_UIInteraction.graphics.ConstPtr()->dynSize;
-            s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = surf_dim->Remap( uint2{ imgui->mousePos + 0.5f });
-        }
+		DirectCtx::Graphics		gfx_ctx{ *this };
 
-        ImGui::NewFrame();
+		gfx_ctx.AddSurfaceTargets( targets );
+		CHECK_TE( _UpdateDS( gfx_ctx ));
 
-        const usize     old_stack_size = imgui->ctx->ColorStack.size();
+		if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
+					 fmt != Default or cs != Default )
+		{
+			imgui->reqSurfFormat = Default;
 
-        // setup style
-        {
-            // window / frame
-            ImGui::PushStyleColor( ImGuiCol_WindowBg,               RGBA8u{ 20, 0,  60, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ChildBg,                RGBA8u{ 40, 0, 100, 255} );
+			if ( fmt != targets[0].format or cs != targets[0].colorSpace )
+			{
+				IOutputSurface::SurfaceInfo	new_mode;
+				new_mode.colorFormat	= fmt;
+				new_mode.colorSpace		= cs;
 
-            // window title
-            ImGui::PushStyleColor( ImGuiCol_TitleBg,                RGBA8u{ 30, 0,  80, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TitleBgActive,          RGBA8u{ 30, 0,  80, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TitleBgCollapsed,       RGBA8u{ 30, 0,  80, 255} );
+				// will be changed at the next frame
+				Unused( surface.SetSurfaceMode( new_mode ));
+			}
+		}
 
-            // background (checkbox, radio button, plot, slider, text input)
-            ImGui::PushStyleColor( ImGuiCol_FrameBg,                RGBA8u{ 40, 0, 100, 255} );
-            ImGui::PushStyleColor( ImGuiCol_FrameBgHovered,         RGBA8u{ 90, 0, 180, 255} );
-            ImGui::PushStyleColor( ImGuiCol_FrameBgActive,          RGBA8u{120, 0, 220, 255} );
+		PipelineSet	ps;
+		{
+			auto	it = t._res.pplns.find( targets[0].format );
+			CHECK_TE( it != t._res.pplns.end(),
+					  "Failed to find pipeline for surface format "s << ToString(targets[0].format) );
+			ps = it->second;
+		}
 
-            // tabs
-            ImGui::PushStyleColor( ImGuiCol_Tab,                    RGBA8u{ 90, 0, 180, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TabUnfocused,           RGBA8u{ 90, 0, 180, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TabHovered,             RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TabActive,              RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_TabUnfocusedActive,     RGBA8u{120, 0, 220, 255} );
+		auto	dctx = gfx_ctx.BeginRenderPass(
+								RenderPassDesc{ *t._res.rtech, ps.pass, rt.RegionSize() }
+									.AddViewport( rt.RegionSize() )
+									.AddTarget( AttachmentName{"Color"}, rt.viewId, (isFirst ? EResourceState::Invalidate : Default), Default ),
+								{DbgName(), DbgColor()} );
 
-            // tree view
-            ImGui::PushStyleColor( ImGuiCol_Header,                 RGBA8u{170, 0, 200, 255} );
-            ImGui::PushStyleColor( ImGuiCol_HeaderActive,           RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_HeaderHovered,          RGBA8u{ 90, 0, 180, 255} );
+		if_likely( viewport->DrawDataP.Valid )
+		{
+			CHECK( dctx.CheckResourceState( t._res.fontImg, EResourceState::ShaderSample | EResourceState::FragmentShader ));
 
-            // button
-            ImGui::PushStyleColor( ImGuiCol_Button,                 RGBA8u{ 90, 0, 180, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ButtonHovered,          RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ButtonActive,           RGBA8u{140, 0, 240, 255} ); // pressed
+			if ( isFirst )
+				dctx.ClearAttachment( AttachmentName{"Color"}, RGBA32f{0.f}, rt.region, rt.layer, 1 );
 
-            // scrollbar
-            ImGui::PushStyleColor( ImGuiCol_ScrollbarBg,            RGBA8u{ 30, 0,  80, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ScrollbarGrab,          RGBA8u{ 90, 0, 180, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabHovered,   RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabActive,    RGBA8u{120, 0, 220, 255} );
+			_DrawUI( dctx, viewport->DrawDataP, ps );
+		}
 
-            // checkbox
-            ImGui::PushStyleColor( ImGuiCol_CheckMark,              RGBA8u{230, 0, 255, 255} );
+		gfx_ctx.EndRenderPass( dctx );
 
-            // slider
-            ImGui::PushStyleColor( ImGuiCol_SliderGrab,             RGBA8u{120, 0, 220, 255} );
-            ImGui::PushStyleColor( ImGuiCol_SliderGrabActive,       RGBA8u{230, 0, 255, 255} );
-        }
-
-        float2      wnd_pos {0.f};
-        _UpdateMain( OUT wnd_pos );
-
-        _UpdateDbgView( INOUT wnd_pos );
-        _UpdatePopups();
-        _ShowHelp();
-
-        ImGui::PopStyleColor(int( imgui->ctx->ColorStack.size() - old_stack_size ));
-
-        if ( imgui->reloadScript )
-        {
-            imgui->reloadScript = false;
-            _LoadScript( imgui->scriptName );
-        }
-
-        t._profiler.DrawImGUI();
-
-        ImGui::Render();
-        return true;
-    }
+		Execute( gfx_ctx );
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateMain
+	DrawTask::_Update
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateMain (OUT float2 &wnd_pos)
-    {
-        ImGui::SetNextWindowPos( ImVec2{10.f, 10.f}, ImGuiCond_Once );
-        ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 450.f}, ImGui::GetIO().DisplaySize );
+	bool  EditorUI::DrawTask::_Update ()
+	{
+		ImGui::SetCurrentContext( imgui->ctx );
 
-        const auto  wnd_flags   = ImGuiWindowFlags_NoSavedSettings;
+		const float	dt = GraphicsScheduler().GetFrameTimeDelta().count();
+		ImGuiIO &	io = ImGui::GetIO();
 
-        if ( ImGui::Begin( ("ResEditor: "s << imgui->scriptName << " ##ResEditor").c_str(), null, wnd_flags ))
-        {
-            wnd_pos.x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() + wnd_step;
-            wnd_pos.y = ImGui::GetWindowPos().y;
+		io.DisplaySize	= ImVec2{float(rtSize.x), float(rtSize.y)};
+		io.DeltaTime	= dt;
 
-            if ( ImGui::BeginTabBar( "ResEditorTabs", ImGuiTabBarFlags_None ))
-            {
-                const ImGuiTabItemFlags     tab_scripts_flags   = (imgui->activeTab == 0 ? ImGuiTabItemFlags_SetSelected : 0);
-                const ImGuiTabItemFlags     tab_editor_flags    = (imgui->activeTab == 1 ? ImGuiTabItemFlags_SetSelected : 0);
-                const ImGuiTabItemFlags     tab_graphics_flags  = (imgui->activeTab == 2 ? ImGuiTabItemFlags_SetSelected : 0);
-                imgui->activeTab = UMax;
+		// update input
+		{
+			ZeroMem( OUT io.MouseDown );
+			ZeroMem( OUT io.NavInputs );
 
-                // script files tree view
-                if ( ImGui::BeginTabItem( "Scripts", null, tab_scripts_flags ))
-                {
-                    ImGui::BeginChild( "Scripts", ImVec2{ImGui::GetContentRegionAvail().x, 0.f}, true, ImGuiWindowFlags_HorizontalScrollbar );
+			io.MouseDown[0]	= imgui->mouseLBDown;
+			io.MousePos		= { imgui->mousePos.x, imgui->mousePos.y };
+			io.MouseWheel	= Clamp( imgui->mouseWheel.y, -1.f, 1.f );
+			io.MouseWheelH	= Clamp( imgui->mouseWheel.x, -1.f, 1.f );
 
-                    _RecursiveVisitFolder( Path{}, t._scriptDir.rootInfo );
+			auto	surf_dim = s_UIInteraction.graphics.ConstPtr()->dynSize;
+			s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = surf_dim->Remap( uint2{ imgui->mousePos + 0.5f });
+		}
 
-                    ImGui::EndChild();
-                    ImGui::EndTabItem();
-                }
+		ImGui::NewFrame();
 
-                if ( ImGui::BeginTabItem( "Editor", null, tab_editor_flags ))
-                {
-                    _UpdateEditorTab();
-                    ImGui::EndTabItem();
-                }
+		const usize		old_stack_size = imgui->ctx->ColorStack.size();
 
-                if ( ImGui::BeginTabItem( "Graphics", null, tab_graphics_flags ))
-                {
-                    _UpdateGraphicsTab();
-                    ImGui::EndTabItem();
-                }
-            }
+		// setup style
+		{
+			// window / frame
+			ImGui::PushStyleColor( ImGuiCol_WindowBg,				RGBA8u{ 20, 0,  60, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg,				RGBA8u{ 40, 0, 100, 255} );
 
-            ImGui::End();
-        }
-    }
+			// window title
+			ImGui::PushStyleColor( ImGuiCol_TitleBg,				RGBA8u{ 30, 0,  80, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TitleBgActive,			RGBA8u{ 30, 0,  80, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TitleBgCollapsed,		RGBA8u{ 30, 0,  80, 255} );
+
+			// background (checkbox, radio button, plot, slider, text input)
+			ImGui::PushStyleColor( ImGuiCol_FrameBg,				RGBA8u{ 40, 0, 100, 255} );
+			ImGui::PushStyleColor( ImGuiCol_FrameBgHovered,			RGBA8u{ 90, 0, 180, 255} );
+			ImGui::PushStyleColor( ImGuiCol_FrameBgActive,			RGBA8u{120, 0, 220, 255} );
+
+			// tabs
+			ImGui::PushStyleColor( ImGuiCol_Tab,					RGBA8u{ 90, 0, 180, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TabUnfocused,			RGBA8u{ 90, 0, 180, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TabHovered,				RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TabActive,				RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_TabUnfocusedActive,		RGBA8u{120, 0, 220, 255} );
+
+			// tree view
+			ImGui::PushStyleColor( ImGuiCol_Header,					RGBA8u{170, 0, 200, 255} );
+			ImGui::PushStyleColor( ImGuiCol_HeaderActive,			RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_HeaderHovered,			RGBA8u{ 90, 0, 180, 255} );
+
+			// button
+			ImGui::PushStyleColor( ImGuiCol_Button,					RGBA8u{ 90, 0, 180, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,			RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive,			RGBA8u{140, 0, 240, 255} );	// pressed
+
+			// scrollbar
+			ImGui::PushStyleColor( ImGuiCol_ScrollbarBg,			RGBA8u{ 30, 0,  80, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrab,			RGBA8u{ 90, 0, 180, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabHovered,	RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabActive,	RGBA8u{120, 0, 220, 255} );
+
+			// checkbox
+			ImGui::PushStyleColor( ImGuiCol_CheckMark,				RGBA8u{230, 0, 255, 255} );
+
+			// slider
+			ImGui::PushStyleColor( ImGuiCol_SliderGrab,				RGBA8u{120, 0, 220, 255} );
+			ImGui::PushStyleColor( ImGuiCol_SliderGrabActive,		RGBA8u{230, 0, 255, 255} );
+		}
+
+		float2		wnd_pos	{0.f};
+		_UpdateMain( OUT wnd_pos );
+
+		_UpdateDbgView( INOUT wnd_pos );
+		_UpdatePopups();
+		_ShowHelp();
+
+		ImGui::PopStyleColor(int( imgui->ctx->ColorStack.size() - old_stack_size ));
+
+		if ( imgui->reloadScript )
+		{
+			imgui->reloadScript = false;
+			_LoadScript( imgui->scriptName );
+		}
+
+		t._profiler.DrawImGUI();
+
+		ImGui::Render();
+		return true;
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateGraphicsTab
+	DrawTask::_UpdateMain
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateGraphicsTab ()
-    {
-        auto    g_mode  = s_UIInteraction.graphics.WriteNoLock();
-        auto    g_data  = t._graphics.ReadNoLock();
-        EXLOCK( g_mode );
-        SHAREDLOCK( g_data );
+	void  EditorUI::DrawTask::_UpdateMain (OUT float2 &wnd_pos)
+	{
+		ImGui::SetNextWindowPos( ImVec2{10.f, 10.f}, ImGuiCond_Once );
+		ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 450.f}, ImGui::GetIO().DisplaySize );
 
-        if ( s_UIInteraction.capture->video )
-        {
-            ImGui::Text( "Stop video capture to change surface parameters" );
-            return;
-        }
+		const auto	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
 
-        {
-            int     scale = SurfaceScaleToLog2( g_mode->dynSize->Scale().x );
-            ImGui::Text( "Surface scale" );
-            if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -2, 1, SurfaceScaleName( scale )) )
-                g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
+		if ( ImGui::Begin( ("ResEditor: "s << imgui->scriptName << " ##ResEditor").c_str(), null, wnd_flags ))
+		{
+			wnd_pos.x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() + wnd_step;
+			wnd_pos.y = ImGui::GetWindowPos().y;
 
-            ImGui::Text( ("Surface size: "s << ToString( g_mode->dynSize->Dimension2() )).c_str() );
+			if ( ImGui::BeginTabBar( "ResEditorTabs", ImGuiTabBarFlags_None ))
+			{
+				const ImGuiTabItemFlags		tab_scripts_flags	= (imgui->activeTab == 0 ? ImGuiTabItemFlags_SetSelected : 0);
+				const ImGuiTabItemFlags		tab_editor_flags	= (imgui->activeTab == 1 ? ImGuiTabItemFlags_SetSelected : 0);
+				const ImGuiTabItemFlags		tab_graphics_flags	= (imgui->activeTab == 2 ? ImGuiTabItemFlags_SetSelected : 0);
+				imgui->activeTab = UMax;
 
-            bool    linear = g_mode->filterMode->Get() > 0;
-            if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
-                g_mode->filterMode->Set( uint{linear} );
+				// script files tree view
+				if ( ImGui::BeginTabItem( "Scripts", null, tab_scripts_flags ))
+				{
+					ImGui::BeginChild( "Scripts", ImVec2{ImGui::GetContentRegionAvail().x, 0.f}, true, ImGuiWindowFlags_HorizontalScrollbar );
 
-            ImGui::Separator();
-        }
+					_RecursiveVisitFolder( Path{}, t._scriptDir.rootInfo );
 
-        auto        mode            = g_data->output->GetSurfaceInfo();
-        uint        color_mode      = int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
-        uint        present_mode    = int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, mode.presentMode ));
+					ImGui::EndChild();
+					ImGui::EndTabItem();
+				}
 
-        g_mode->colorModeIdx        = color_mode;
-        g_mode->presentModeIdx      = present_mode;
+				if ( ImGui::BeginTabItem( "Editor", null, tab_editor_flags ))
+				{
+					_UpdateEditorTab();
+					ImGui::EndTabItem();
+				}
 
-        const auto  cur_color_mode  = color_mode < g_data->surfaceFormats.size() ?
-                                        String{ToString( g_data->surfaceFormats[color_mode].colorFormat )} << " | " <<
-                                        ToString( g_data->surfaceFormats[color_mode].colorSpace ) :
-                                        "";
-        const auto  cur_present     = present_mode < g_data->presentModes.size() ?
-                                        ToString( g_data->presentModes[present_mode] ) : "";
+				if ( ImGui::BeginTabItem( "Graphics", null, tab_graphics_flags ))
+				{
+					_UpdateGraphicsTab();
+					ImGui::EndTabItem();
+				}
+			}
 
-        if ( ImGui::BeginCombo( "Surface format", cur_color_mode.c_str() ))
-        {
-            for (usize i = 0; i < g_data->surfaceFormats.size(); ++i)
-            {
-                const auto& item = g_data->surfaceFormats[i];
-                if ( ImGui::Selectable( (String{ToString( item.colorFormat )} << " | " << ToString( item.colorSpace )).c_str(), color_mode == i ))
-                    color_mode = uint(i);
-            }
-            ImGui::EndCombo();
-        }
-
-        if ( ImGui::BeginCombo( "Present mode", cur_present.data() ))
-        {
-            for (usize i = 0; i < g_data->presentModes.size(); ++i)
-            {
-                const auto& item = g_data->presentModes[i];
-                if ( ImGui::Selectable( ToString( item ).data(), present_mode == i ))
-                    present_mode = uint(i);
-            }
-            ImGui::EndCombo();
-        }
-
-        if ( color_mode     != g_mode->colorModeIdx or
-             present_mode   != g_mode->presentModeIdx )
-        {
-            mode                = g_data->surfaceFormats [color_mode];
-            mode.presentMode    = g_data->presentModes [present_mode];
-
-            // function does not check errors, surface mode will try to change in next frames
-            if ( g_data->output->SetSurfaceMode( mode ))
-            {
-                g_mode->colorModeIdx     = color_mode;
-                g_mode->presentModeIdx   = present_mode;
-                imgui->defaultSurfFormat = ESurfaceFormat_Cast( mode.colorFormat, mode.colorSpace );
-            }
-        }
-    }
+			ImGui::End();
+		}
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateEditorTab
+	DrawTask::_UpdateGraphicsTab
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateEditorTab ()
-    {
-        if ( ImGui::TreeNodeEx( "Debugger" ))
-        {
-            _UpdateEditor_Debugger();
-        }
+	void  EditorUI::DrawTask::_UpdateGraphicsTab ()
+	{
+		auto	g_mode	= s_UIInteraction.graphics.WriteNoLock();
+		auto	g_data	= t._graphics.ReadNoLock();
+		EXLOCK( g_mode );
+		SHAREDLOCK( g_data );
 
-        if ( ImGui::TreeNodeEx( "Capture" ))
-        {
-            _UpdateEditor_Capture();
-        }
+		if ( s_UIInteraction.capture->video )
+		{
+			ImGui::Text( "Stop video capture to change surface parameters" );
+			return;
+		}
 
-        if ( ImGui::TreeNodeEx( "Sliders", ImGuiTreeNodeFlags_DefaultOpen ))
-        {
-            _UpdateEditor_Sliders();
-        }
+		{
+			int		scale = SurfaceScaleToLog2( g_mode->dynSize->Scale().x );
+			ImGui::Text( "Surface scale" );
+			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -2, 1, SurfaceScaleName( scale )) )
+				g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
 
-        if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
-        {
-            const auto  sp = s_UIInteraction.selectedPixel.Read();
+			ImGui::Text( ("Surface size: "s << ToString( g_mode->dynSize->Dimension2() )).c_str() );
 
-            ImGui::Text( ("mouse pos:   "s << ToString( sp.pos )).c_str() );
-            ImGui::Text( ("pixel color: "s << ToString( sp.color, 3 )).c_str() );
-            ImGui::SameLine();
+			bool	linear = g_mode->filterMode->Get() > 0;
+			if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
+				g_mode->filterMode->Set( uint{linear} );
 
-            float   h   = ImGui::GetTextLineHeight();
-            RGBA32f col = sp.color;     col.a = 1.f;
-            ImGui::PushStyleColor( ImGuiCol_Button,         col );
-            ImGui::PushStyleColor( ImGuiCol_ButtonHovered,  col );
-            ImGui::PushStyleColor( ImGuiCol_ButtonActive,   col );
-            ImGui::Button( "##PixelColor", ImVec2{h,h} );
-            ImGui::PopStyleColor(3);
+			ImGui::Separator();
+		}
 
-            ImGui::TreePop();
-            ImGui::Separator();
-        }
-    }
+		auto		mode			= g_data->output->GetSurfaceInfo();
+		uint		color_mode		= int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
+		uint		present_mode	= int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, mode.presentMode ));
+
+		g_mode->colorModeIdx		= color_mode;
+		g_mode->presentModeIdx		= present_mode;
+
+		const auto	cur_color_mode	= color_mode < g_data->surfaceFormats.size() ?
+										String{ToString( g_data->surfaceFormats[color_mode].colorFormat )} << " | " <<
+										ToString( g_data->surfaceFormats[color_mode].colorSpace ) :
+										"";
+		const auto	cur_present		= present_mode < g_data->presentModes.size() ?
+										ToString( g_data->presentModes[present_mode] ) : "";
+
+		if ( ImGui::BeginCombo( "Surface format", cur_color_mode.c_str() ))
+		{
+			for (usize i = 0; i < g_data->surfaceFormats.size(); ++i)
+			{
+				const auto&	item = g_data->surfaceFormats[i];
+				if ( ImGui::Selectable( (String{ToString( item.colorFormat )} << " | " << ToString( item.colorSpace )).c_str(), color_mode == i ))
+					color_mode = uint(i);
+			}
+			ImGui::EndCombo();
+		}
+
+		if ( ImGui::BeginCombo( "Present mode", cur_present.data() ))
+		{
+			for (usize i = 0; i < g_data->presentModes.size(); ++i)
+			{
+				const auto&	item = g_data->presentModes[i];
+				if ( ImGui::Selectable( ToString( item ).data(), present_mode == i ))
+					present_mode = uint(i);
+			}
+			ImGui::EndCombo();
+		}
+
+		if ( color_mode		!= g_mode->colorModeIdx	or
+			 present_mode	!= g_mode->presentModeIdx )
+		{
+			mode				= g_data->surfaceFormats [color_mode];
+			mode.presentMode	= g_data->presentModes [present_mode];
+
+			// function does not check errors, surface mode will try to change in next frames
+			if ( g_data->output->SetSurfaceMode( mode ))
+			{
+				g_mode->colorModeIdx	 = color_mode;
+				g_mode->presentModeIdx	 = present_mode;
+				imgui->defaultSurfFormat = ESurfaceFormat_Cast( mode.colorFormat, mode.colorSpace );
+			}
+		}
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateEditor_Debugger
+	DrawTask::_UpdateEditorTab
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateEditor_Debugger ()
-    {
-        using EDebugModeBits = UIInteraction::EDebugModeBits;
+	void  EditorUI::DrawTask::_UpdateEditorTab ()
+	{
+		if ( ImGui::TreeNodeEx( "Debugger" ))
+		{
+			_UpdateEditor_Debugger();
+		}
 
-        const auto  DbgMode_ShaderStages = [this] (const EDebugModeBits &inModes, const EShaderStages inStages)
-        {{
-            const char* cur_mode    = ToString( IPass::EDebugMode(imgui->dbgModeIdx) ).data();
-            const char* cur_stage   = imgui->dbgStageIdx < uint(EShader::_Count) ? ToString( EShader(imgui->dbgStageIdx) ).data() : "";
+		if ( ImGui::TreeNodeEx( "Capture" ))
+		{
+			_UpdateEditor_Capture();
+		}
 
-            if ( ImGui::BeginCombo( "Mode", cur_mode ))
-            {
-                for (auto modes = inModes; modes.Any();)
-                {
-                    const auto  mode = modes.ExtractFirst();
-                    if ( ImGui::Selectable( ToString( mode ).data(), imgui->dbgModeIdx == uint(mode) ))
-                        imgui->dbgModeIdx = uint(mode);
-                }
-                ImGui::EndCombo();
-            }
+		if ( ImGui::TreeNodeEx( "Sliders", ImGuiTreeNodeFlags_DefaultOpen ))
+		{
+			_UpdateEditor_Sliders();
+		}
 
-            if ( ImGui::BeginCombo( "Stage", cur_stage ))
-            {
-                for (auto sh : BitIndexIterate<EShader>( inStages ))
-                {
-                    if ( ImGui::Selectable( ToString( sh ).data(), imgui->dbgStageIdx == uint(sh) ))
-                        imgui->dbgStageIdx = uint(sh);
-                }
-                ImGui::EndCombo();
-            }
-        }};
+		if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
+		{
+			const auto	sp = s_UIInteraction.selectedPixel.Read();
 
-        const auto  dbg_passes  = s_UIInteraction.GetAllPassDbgInfo();
-        const char* cur_pass    = imgui->dbgPassIdx < dbg_passes.size() ?
-                                    dbg_passes[imgui->dbgPassIdx]->name.c_str() :
-                                    (imgui->dbgPassIdx == dbg_passes.size() ? "All" : "");
+			ImGui::Text( ("mouse pos:   "s << ToString( sp.pos )).c_str() );
+			ImGui::Text( ("pixel color: "s << ToString( sp.color, 3 )).c_str() );
+			ImGui::SameLine();
 
-        ImGui::Text( "G  - run shader debugger for pixel under cursor" );
-        ImGui::Separator();
+			float	h	= ImGui::GetTextLineHeight();
+			RGBA32f	col	= sp.color;		col.a = 1.f;
+			ImGui::PushStyleColor( ImGuiCol_Button,			col );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	col );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	col );
+			ImGui::Button( "##PixelColor", ImVec2{h,h} );
+			ImGui::PopStyleColor(3);
 
-        if ( ImGui::BeginCombo( "Pass", cur_pass ))
-        {
-            for (usize i = 0; i < dbg_passes.size(); ++i) {
-                if ( ImGui::Selectable( dbg_passes[i]->name.c_str(), imgui->dbgPassIdx == i ))
-                    imgui->dbgPassIdx = uint(i);
-            }
-            if ( ImGui::Selectable( "All", imgui->dbgPassIdx == dbg_passes.size() ))
-                imgui->dbgPassIdx = uint(dbg_passes.size());
-            ImGui::EndCombo();
-        }
-
-        if ( imgui->dbgPassIdx < dbg_passes.size() )
-            DbgMode_ShaderStages( dbg_passes[ imgui->dbgPassIdx ]->modes, dbg_passes[ imgui->dbgPassIdx ]->stages );
-        else
-        if ( imgui->dbgPassIdx == dbg_passes.size() )
-            DbgMode_ShaderStages( EDebugModeBits{}.SetAll(), EShaderStages::Unknown );
-
-        ImGui::Separator();
-
-        ImGui::Checkbox( "Show debug view", INOUT &imgui->showDbgViews );
-        ImGui::TreePop();
-        ImGui::Separator();
-
-
-        auto    dbg = s_UIInteraction.debugger.WriteNoLock();
-        EXLOCK( dbg );
-
-        dbg->target = null;
-
-        if ( imgui->runShaderDebugger )
-        {
-            imgui->runShaderDebugger = false;
-
-            dbg->mode   = IPass::EDebugMode(imgui->dbgModeIdx);
-            dbg->coord  = imgui->mousePos / float2(rtSize);
-
-            if ( imgui->dbgPassIdx < dbg_passes.size() )
-            {
-                dbg->target = dbg_passes[imgui->dbgPassIdx]->pass;
-                dbg->stage  = EShaderStages(0) | EShader(imgui->dbgStageIdx);
-            }
-            else
-            if ( imgui->dbgPassIdx == dbg_passes.size() )
-            {
-                dbg->target = BitCast<void*>(usize(0x1));
-                dbg->stage  = EShaderStages::All;
-            }
-        }
-    }
+			ImGui::TreePop();
+			ImGui::Separator();
+		}
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateEditor_Capture
+	DrawTask::_UpdateEditor_Debugger
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateEditor_Capture ()
-    {
-        auto    capture = s_UIInteraction.capture.WriteNoLock();
-        EXLOCK( capture );
+	void  EditorUI::DrawTask::_UpdateEditor_Debugger ()
+	{
+		using EDebugModeBits = UIInteraction::EDebugModeBits;
 
-        // image capture
-        if ( ImGui::Button( "Screenshot (I)" ))
-            capture->screenshot = true;
+		const auto	DbgMode_ShaderStages = [this] (const EDebugModeBits &inModes, const EShaderStages inStages)
+		{{
+			const char*	cur_mode	= ToString( IPass::EDebugMode(imgui->dbgModeIdx) ).data();
+			const char*	cur_stage	= imgui->dbgStageIdx < uint(EShader::_Count) ? ToString( EShader(imgui->dbgStageIdx) ).data() : "";
 
-        if ( ImGui::BeginCombo( "Image format", ToString(capture->imageFormat).data() ))
-        {
-            for (uint i = 1; i < uint(EImageFormat::_Count); ++i)
-            {
-                if ( ImGui::Selectable( ToString( EImageFormat(i) ).data(), uint(capture->imageFormat) == i ))
-                    capture->imageFormat = EImageFormat(i);
-            }
-            ImGui::EndCombo();
-        }
+			if ( ImGui::BeginCombo( "Mode", cur_mode ))
+			{
+				for (auto modes = inModes; modes.Any();)
+				{
+					const auto	mode = modes.ExtractFirst();
+					if ( ImGui::Selectable( ToString( mode ).data(), imgui->dbgModeIdx == uint(mode) ))
+						imgui->dbgModeIdx = uint(mode);
+				}
+				ImGui::EndCombo();
+			}
+
+			if ( ImGui::BeginCombo( "Stage", cur_stage ))
+			{
+				for (auto sh : BitIndexIterate<EShader>( inStages ))
+				{
+					if ( ImGui::Selectable( ToString( sh ).data(), imgui->dbgStageIdx == uint(sh) ))
+						imgui->dbgStageIdx = uint(sh);
+				}
+				ImGui::EndCombo();
+			}
+		}};
+
+		const auto	dbg_passes	= s_UIInteraction.GetAllPassDbgInfo();
+		const char*	cur_pass	= imgui->dbgPassIdx < dbg_passes.size() ?
+									dbg_passes[imgui->dbgPassIdx]->name.c_str() :
+									(imgui->dbgPassIdx == dbg_passes.size() ? "All" : "");
+
+		ImGui::Text( "G  - run shader debugger for pixel under cursor" );
+		ImGui::Separator();
+
+		if ( ImGui::BeginCombo( "Pass", cur_pass ))
+		{
+			for (usize i = 0; i < dbg_passes.size(); ++i) {
+				if ( ImGui::Selectable( dbg_passes[i]->name.c_str(), imgui->dbgPassIdx == i ))
+					imgui->dbgPassIdx = uint(i);
+			}
+			if ( ImGui::Selectable( "All", imgui->dbgPassIdx == dbg_passes.size() ))
+				imgui->dbgPassIdx = uint(dbg_passes.size());
+			ImGui::EndCombo();
+		}
+
+		if ( imgui->dbgPassIdx < dbg_passes.size() )
+			DbgMode_ShaderStages( dbg_passes[ imgui->dbgPassIdx ]->modes, dbg_passes[ imgui->dbgPassIdx ]->stages );
+		else
+		if ( imgui->dbgPassIdx == dbg_passes.size() )
+			DbgMode_ShaderStages( EDebugModeBits{}.SetAll(), EShaderStages::Unknown );
+
+		ImGui::Separator();
+
+		ImGui::Checkbox( "Show debug view", INOUT &imgui->showDbgViews );
+		ImGui::TreePop();
+		ImGui::Separator();
 
 
-        // video capture
-        if ( not capture->video )
-        {
-            ImGui::PushStyleColor( ImGuiCol_Button,         start_btn_idle );
-            ImGui::PushStyleColor( ImGuiCol_ButtonHovered,  start_btn_hover );
-            ImGui::PushStyleColor( ImGuiCol_ButtonActive,   start_btn_press );
-            if ( ImGui::Button( "Start recording (U)" ))
-                capture->video = true;
-            ImGui::PopStyleColor(3);
-        }
-        else
-        {
-            ImGui::PushStyleColor( ImGuiCol_Button,         stop_btn_idle );
-            ImGui::PushStyleColor( ImGuiCol_ButtonHovered,  stop_btn_hover );
-            ImGui::PushStyleColor( ImGuiCol_ButtonActive,   stop_btn_press );
-            if ( ImGui::Button( "Stop recording (U)" ))
-                capture->video = false;
-            ImGui::PopStyleColor(3);
-        }
+		auto	dbg = s_UIInteraction.debugger.WriteNoLock();
+		EXLOCK( dbg );
 
-        ImGui::InputFloat( "Bitrate (Mbit/s)", INOUT &capture->bitrate, 1.f, 102.4f );
+		dbg->target	= null;
 
-        if ( ImGui::BeginCombo( "Video format", ToString(capture->videoFormat).data() ))
-        {
-            for (uint i = 1; i < uint(EVideoFormat::_Count); ++i)
-            {
-                if ( ImGui::Selectable( ToString( EVideoFormat(i) ).data(), uint(capture->videoFormat) == i ))
-                    capture->videoFormat = EVideoFormat(i);
-            }
-            ImGui::EndCombo();
-        }
+		if ( imgui->runShaderDebugger )
+		{
+			imgui->runShaderDebugger = false;
 
-        if ( ImGui::BeginCombo( "Video codec", ToString(capture->videoCodec).data() ))
-        {
-            for (uint i = 1; i < uint(EVideoCodec::_Count); ++i)
-            {
-                if ( ImGui::Selectable( ToString( EVideoCodec(i) ).data(), uint(capture->videoCodec) == i ))
-                    capture->videoCodec = EVideoCodec(i);
-            }
-            ImGui::EndCombo();
-        }
+			dbg->mode	= IPass::EDebugMode(imgui->dbgModeIdx);
+			dbg->coord	= imgui->mousePos / float2(rtSize);
 
-        if ( ImGui::BeginCombo( "Color preset", ToString(capture->colorPreset).data() ))
-        {
-            for (uint i = 1; i < uint(EVideoColorPreset::_Count); ++i)
-            {
-                if ( ImGui::Selectable( ToString( EVideoColorPreset(i) ).data(), uint(capture->colorPreset) == i ))
-                    capture->colorPreset = EVideoColorPreset(i);
-            }
-            ImGui::EndCombo();
-        }
-
-        ImGui::TreePop();
-        ImGui::Separator();
-    }
+			if ( imgui->dbgPassIdx < dbg_passes.size() )
+			{
+				dbg->target	= dbg_passes[imgui->dbgPassIdx]->pass;
+				dbg->stage	= EShaderStages(0) | EShader(imgui->dbgStageIdx);
+			}
+			else
+			if ( imgui->dbgPassIdx == dbg_passes.size() )
+			{
+				dbg->target	= BitCast<void*>(usize(0x1));
+				dbg->stage	= EShaderStages::All;
+			}
+		}
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateEditor_Sliders
+	DrawTask::_UpdateEditor_Capture
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateEditor_Sliders ()
-    {
-        const auto  all_sliders = s_UIInteraction.GetAllSliders();
-        const char  xyzw[]      = "xyzw";
+	void  EditorUI::DrawTask::_UpdateEditor_Capture ()
+	{
+		auto	capture = s_UIInteraction.capture.WriteNoLock();
+		EXLOCK( capture );
 
-        for (auto& pass : all_sliders)
-        {
-            if ( ImGui::TreeNodeEx( pass.Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
-            {
-                auto    sliders = pass.Get<0>()->WriteNoLock();
-                EXLOCK( sliders );
+		// image capture
+		if ( ImGui::Button( "Screenshot (I)" ))
+			capture->screenshot = true;
 
-                for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-                {
-                    const auto&     name    = pass.Get<1>()->names [i] [UIInteraction::IntSliderIdx];
-                    int4&           slider  = sliders->intSliders [i];
-                    int4 const*     range   = pass.Get<1>()->intRange [i].data();
-                    const uint      vsize   = pass.Get<1>()->intVecSize [i];
+		if ( ImGui::BeginCombo( "Image format", ToString(capture->imageFormat).data() ))
+		{
+			for (uint i = 1; i < uint(EImageFormat::_Count); ++i)
+			{
+				if ( ImGui::Selectable( ToString( EImageFormat(i) ).data(), uint(capture->imageFormat) == i ))
+					capture->imageFormat = EImageFormat(i);
+			}
+			ImGui::EndCombo();
+		}
 
-                    if ( name.empty() ) continue;
-                    for (uint j = 0; j < vsize; ++j)
-                    {
-                        const auto  sname = String{name} << '.' << xyzw[j] << "##CustomSliderI" << char('0'+i) << char('0'+j);
-                        ImGui::SliderInt( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
-                    }
-                }
 
-                for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-                {
-                    const auto&     name    = pass.Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
-                    float4&         slider  = sliders->floatSliders [i];
-                    float4 const*   range   = pass.Get<1>()->floatRange [i].data();
-                    const uint      vsize   = pass.Get<1>()->floatVecSize [i];
+		// video capture
+		if ( not capture->video )
+		{
+			ImGui::PushStyleColor( ImGuiCol_Button,			start_btn_idle );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	start_btn_hover );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	start_btn_press );
+			if ( ImGui::Button( "Start recording (U)" ))
+				capture->video = true;
+			ImGui::PopStyleColor(3);
+		}
+		else
+		{
+			ImGui::PushStyleColor( ImGuiCol_Button,			stop_btn_idle );
+			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	stop_btn_hover );
+			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	stop_btn_press );
+			if ( ImGui::Button( "Stop recording (U)" ))
+				capture->video = false;
+			ImGui::PopStyleColor(3);
+		}
 
-                    if ( name.empty() ) continue;
-                    for (uint j = 0; j < vsize; ++j)
-                    {
-                        const auto  sname = String{name} << '.' << xyzw[j] << "##CustomSliderF" << char('0'+i) << char('0'+j);
-                        ImGui::SliderFloat( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
-                    }
-                }
+		ImGui::InputFloat( "Bitrate (Mbit/s)", INOUT &capture->bitrate, 1.f, 102.4f );
 
-                for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-                {
-                    const auto&     name    = pass.Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
-                    auto&           slider  = sliders->colors[i];
+		if ( ImGui::BeginCombo( "Video format", ToString(capture->videoFormat).data() ))
+		{
+			for (uint i = 1; i < uint(EVideoFormat::_Count); ++i)
+			{
+				if ( ImGui::Selectable( ToString( EVideoFormat(i) ).data(), uint(capture->videoFormat) == i ))
+					capture->videoFormat = EVideoFormat(i);
+			}
+			ImGui::EndCombo();
+		}
 
-                    if ( name.empty() ) continue;
-                    ImGui::ColorEdit4( (name + "##CustomColor" + char('0'+i)).c_str(), INOUT slider.data(), ImGuiColorEditFlags_None );
-                }
-                ImGui::TreePop();
-            }
-        }
-        ImGui::TreePop();
-        ImGui::Separator();
-    }
+		if ( ImGui::BeginCombo( "Video codec", ToString(capture->videoCodec).data() ))
+		{
+			for (uint i = 1; i < uint(EVideoCodec::_Count); ++i)
+			{
+				if ( ImGui::Selectable( ToString( EVideoCodec(i) ).data(), uint(capture->videoCodec) == i ))
+					capture->videoCodec = EVideoCodec(i);
+			}
+			ImGui::EndCombo();
+		}
+
+		if ( ImGui::BeginCombo( "Color preset", ToString(capture->colorPreset).data() ))
+		{
+			for (uint i = 1; i < uint(EVideoColorPreset::_Count); ++i)
+			{
+				if ( ImGui::Selectable( ToString( EVideoColorPreset(i) ).data(), uint(capture->colorPreset) == i ))
+					capture->colorPreset = EVideoColorPreset(i);
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::TreePop();
+		ImGui::Separator();
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateDbgView
+	DrawTask::_UpdateEditor_Sliders
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdateDbgView (INOUT float2 &wnd_pos)
-    {
-        // setup style
-        {
-            // window / frame
-            ImGui::PushStyleColor( ImGuiCol_WindowBg,   RGBA8u{ 20, 0, 40, 255} );
-        }
+	void  EditorUI::DrawTask::_UpdateEditor_Sliders ()
+	{
+		const auto	all_sliders = s_UIInteraction.GetAllSliders();
+		const char	xyzw[]		= "xyzw";
 
-        const auto  dbg_wnd_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar |
-                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse;
+		for (auto& pass : all_sliders)
+		{
+			if ( ImGui::TreeNodeEx( pass.Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
+			{
+				auto	sliders = pass.Get<0>()->WriteNoLock();
+				EXLOCK( sliders );
 
-        if ( not imgui->showDbgViews )
-            return;
+				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+				{
+					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::IntSliderIdx];
+					int4&			slider	= sliders->intSliders [i];
+					int4 const*		range	= pass.Get<1>()->intRange [i].data();
+					const uint		vsize	= pass.Get<1>()->intVecSize [i];
 
-        for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
-        {
-            RC<Image>   img     = s_UIInteraction.GetDbgView( i );
-            float4&     data    = imgui->dbgViewData[i];            // { pos(x,y), scale, scaleIdx }
+					if ( name.empty() ) continue;
+					for (uint j = 0; j < vsize; ++j)
+					{
+						const auto	sname = String{name} << '.' << xyzw[j] << "##CustomSliderI" << char('0'+i) << char('0'+j);
+						ImGui::SliderInt( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
+					}
+				}
 
-            if ( not img )
-                continue;
+				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+				{
+					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
+					float4&			slider	= sliders->floatSliders [i];
+					float4 const*	range	= pass.Get<1>()->floatRange [i].data();
+					const uint		vsize	= pass.Get<1>()->floatVecSize [i];
 
-            const auto  wnd_name = String{img->GetName()} << "##DbgView-"s << ToString(i+1);
+					if ( name.empty() ) continue;
+					for (uint j = 0; j < vsize; ++j)
+					{
+						const auto	sname = String{name} << '.' << xyzw[j] << "##CustomSliderF" << char('0'+i) << char('0'+j);
+						ImGui::SliderFloat( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
+					}
+				}
 
-            ImGui::SetNextWindowPos( ImVec2{wnd_pos.x, wnd_pos.y}, ImGuiCond_Once );
-            ImGui::SetNextWindowSize( ImVec2{200.f, 200.f}, ImGuiCond_Once );
+				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+				{
+					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
+					auto&			slider	= sliders->colors[i];
 
-            if ( ImGui::Begin( wnd_name.c_str(), null, dbg_wnd_flags ))
-            {
-                const ImVec2    wpos    = ImGui::GetWindowPos();
-                const ImVec2    wsize   = ImGui::GetWindowSize();
-                const ImVec2    maxsc   { ImGui::GetScrollMaxX(), ImGui::GetScrollMaxY() };
-                const ImageDesc desc    = img->GetImageDesc();
-                bool            mwheel  = false;
-
-                wnd_pos.x = wpos.x + wsize.x + wnd_step;
-
-                if ( ImGui::IsWindowHovered( ImGuiHoveredFlags_None ))
-                {
-                    data.w = float(Clamp( data.w + imgui->mouseWheel.y * 0.25f, -1.f, 10.f ));
-                    mwheel = IsNotZero( imgui->mouseWheel.y );
-                }
-                data.z = Pow( 2.f, data.w );
-                data.x = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
-                data.y = ImGui::GetScrollY() / ImGui::GetScrollMaxY();
-
-                const ImVec2    img_size{ desc.dimension.x * data.z, desc.dimension.y * data.z };
-                /*if ( mwheel )
-                {
-                    const float2    delta = (imgui->mousePos - float2{wpos.x, wpos.y}) * data.z;
-                    ImGui::SetScrollX( ImGui::GetScrollX() + delta.x );
-                    ImGui::SetScrollY( ImGui::GetScrollY() + delta.y );
-                }*/
-
-                ImGui::Image( BitCast<ImTextureID>(usize(i+1)), img_size );
-                ImGui::End();
-            }
-        }
-    }
+					if ( name.empty() ) continue;
+					ImGui::ColorEdit4( (name + "##CustomColor" + char('0'+i)).c_str(), INOUT slider.data(), ImGuiColorEditFlags_None );
+				}
+				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+		ImGui::Separator();
+	}
 
 /*
 =================================================
-    DrawTask::_UpdatePopups
+	DrawTask::_UpdateDbgView
 =================================================
 */
-    void  EditorUI::DrawTask::_UpdatePopups ()
-    {
-        const bool  compiling       = t._compiling.load();
-        const bool  pause_rendering = t._pauseRendering.load();
+	void  EditorUI::DrawTask::_UpdateDbgView (INOUT float2 &wnd_pos)
+	{
+		// setup style
+		{
+			// window / frame
+			ImGui::PushStyleColor( ImGuiCol_WindowBg,	RGBA8u{ 20, 0, 40, 255} );
+		}
 
-        if ( not (compiling or pause_rendering) )
-            return;
+		const auto	dbg_wnd_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar |
+									ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse;
 
-        // setup style
-        {
-            // window / frame
-            ImGui::PushStyleColor( ImGuiCol_WindowBg,   RGBA8u{ 30, 0, 20, 255} );
-        }
+		if ( not imgui->showDbgViews )
+			return;
 
-        const char  text1 [] = "Compiling...";
-        const char  text2 [] = "Paused";
-        const auto  text     = StringView(compiling ? text1 : text2);
+		for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
+		{
+			RC<Image>	img		= s_UIInteraction.GetDbgView( i );
+			float4&		data	= imgui->dbgViewData[i];			// { pos(x,y), scale, scaleIdx }
 
-        const auto  wnd_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
-                                ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
-        ImGuiIO &   io      = ImGui::GetIO();
-        const float h       = ImGui::GetTextLineHeight();
-        const float w       = h * text.length();
+			if ( not img )
+				continue;
 
-        ImGui::SetNextWindowPos( ImVec2{(io.DisplaySize.x-w)/2, io.DisplaySize.y/2-h}, ImGuiCond_Always );
+			const auto	wnd_name = String{img->GetName()} << "##DbgView-"s << ToString(i+1);
 
-        ImGui::Begin( "CompilingPopup", null, wnd_flags );
-        ImGui::Text( text.data() );
-        ImGui::End();
-    }
+			ImGui::SetNextWindowPos( ImVec2{wnd_pos.x, wnd_pos.y}, ImGuiCond_Once );
+			ImGui::SetNextWindowSize( ImVec2{200.f, 200.f}, ImGuiCond_Once );
+
+			if ( ImGui::Begin( wnd_name.c_str(), null, dbg_wnd_flags ))
+			{
+				const ImVec2	wpos	= ImGui::GetWindowPos();
+				const ImVec2	wsize	= ImGui::GetWindowSize();
+				const ImVec2	maxsc	{ ImGui::GetScrollMaxX(), ImGui::GetScrollMaxY() };
+				const ImageDesc	desc	= img->GetImageDesc();
+				bool			mwheel	= false;
+
+				wnd_pos.x = wpos.x + wsize.x + wnd_step;
+
+				if ( ImGui::IsWindowHovered( ImGuiHoveredFlags_None ))
+				{
+					data.w = float(Clamp( data.w + imgui->mouseWheel.y * 0.25f, -1.f, 10.f ));
+					mwheel = IsNotZero( imgui->mouseWheel.y );
+				}
+				data.z = Pow( 2.f, data.w );
+				data.x = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
+				data.y = ImGui::GetScrollY() / ImGui::GetScrollMaxY();
+
+				const ImVec2	img_size{ desc.dimension.x * data.z, desc.dimension.y * data.z };
+				/*if ( mwheel )
+				{
+					const float2	delta = (imgui->mousePos - float2{wpos.x, wpos.y}) * data.z;
+					ImGui::SetScrollX( ImGui::GetScrollX() + delta.x );
+					ImGui::SetScrollY( ImGui::GetScrollY() + delta.y );
+				}*/
+
+				ImGui::Image( BitCast<ImTextureID>(usize(i+1)), img_size );
+				ImGui::End();
+			}
+		}
+	}
 
 /*
 =================================================
-    DrawTask::_ShowHelp
+	DrawTask::_UpdatePopups
 =================================================
 */
-    void  EditorUI::DrawTask::_ShowHelp ()
-    {
-        if ( not imgui->showHelp )
-            return;
+	void  EditorUI::DrawTask::_UpdatePopups ()
+	{
+		const bool	compiling		= t._compiling.load();
+		const bool	pause_rendering	= t._pauseRendering.load();
 
-        const auto  wnd_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
-                                ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
+		if ( not (compiling or pause_rendering) )
+			return;
 
-        ImGuiIO &   io      = ImGui::GetIO();
-        const float y       = io.DisplaySize.y / 2 - ImGui::GetTextLineHeight() * Parser::CalculateNumberOfLines( imgui->helpText );
-        const float x       = io.DisplaySize.x / 2;
+		// setup style
+		{
+			// window / frame
+			ImGui::PushStyleColor( ImGuiCol_WindowBg,	RGBA8u{ 30, 0, 20, 255} );
+		}
 
-        ImGui::SetNextWindowPos( ImVec2{x,y}, ImGuiCond_Always );
+		const char	text1 [] = "Compiling...";
+		const char	text2 [] = "Paused";
+		const auto	text	 = StringView(compiling ? text1 : text2);
 
-        ImGui::Begin( "Help", null, wnd_flags );
-        ImGui::Text( imgui->helpText.c_str() );
-        ImGui::End();
-    }
+		const auto	wnd_flags =	ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+								ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+								ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
+		ImGuiIO &	io		= ImGui::GetIO();
+		const float	h		= ImGui::GetTextLineHeight();
+		const float	w		= h * text.length();
+
+		ImGui::SetNextWindowPos( ImVec2{(io.DisplaySize.x-w)/2, io.DisplaySize.y/2-h}, ImGuiCond_Always );
+
+		ImGui::Begin( "CompilingPopup", null, wnd_flags );
+		ImGui::Text( text.data() );
+		ImGui::End();
+	}
 
 /*
 =================================================
-    DrawTask::_RecursiveVisitFolder
+	DrawTask::_ShowHelp
 =================================================
 */
-    void  EditorUI::DrawTask::_RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &dir)
-    {
-        const ImGuiTreeNodeFlags    base_flags  =   ImGuiTreeNodeFlags_OpenOnArrow      | //ImGuiTreeNodeFlags_OpenOnDoubleClick |
-                                                    ImGuiTreeNodeFlags_SpanAvailWidth   | ImGuiTreeNodeFlags_SpanFullWidth;
+	void  EditorUI::DrawTask::_ShowHelp ()
+	{
+		if ( not imgui->showHelp )
+			return;
 
-        auto    node_flags  = base_flags;
-        usize   node_id     = dir.baseId;
+		const auto	wnd_flags =	ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+								ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+								ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
 
-        if ( not dir.name.empty() )
-        {
-            bool    node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, dir.name.c_str() );
-            if ( not node_open )
-                return;
-        }
+		ImGuiIO &	io		= ImGui::GetIO();
+		const float	y		= io.DisplaySize.y / 2 - ImGui::GetTextLineHeight() * Parser::CalculateNumberOfLines( imgui->helpText );
+		const float	x		= io.DisplaySize.x / 2;
 
-        for (auto& folder : dir.folders) {
-            _RecursiveVisitFolder( rootPath / dir.name, *folder );
-        }
+		ImGui::SetNextWindowPos( ImVec2{x,y}, ImGuiCond_Always );
 
-        node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;// | ImGuiTreeNodeFlags_Bullet;
-
-        for (auto& script : dir.scripts)
-        {
-            node_flags &= ~ImGuiTreeNodeFlags_Selected;
-
-            ++node_id;
-
-            if ( node_id == imgui->nodeClicked )
-                node_flags |= ImGuiTreeNodeFlags_Selected;
-
-            ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, script.c_str() );
-
-            if ( ImGui::IsItemClicked() and not ImGui::IsItemToggledOpen() )
-            {
-                imgui->nodeClicked  = node_id;
-                imgui->scriptName   = ToString( rootPath / dir.name / script );
-
-                _LoadScript( rootPath / dir.name / script );
-            }
-        }
-
-        if ( not dir.name.empty() )
-            ImGui::TreePop();
-    }
+		ImGui::Begin( "Help", null, wnd_flags );
+		ImGui::Text( imgui->helpText.c_str() );
+		ImGui::End();
+	}
 
 /*
 =================================================
-    DrawTask::_LoadScript
+	DrawTask::_RecursiveVisitFolder
 =================================================
 */
-    void  EditorUI::DrawTask::_LoadScript (const Path &rootPath)
-    {
-        t._compiling.store( true );
+	void  EditorUI::DrawTask::_RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &dir)
+	{
+		const ImGuiTreeNodeFlags	base_flags	=	ImGuiTreeNodeFlags_OpenOnArrow		| //ImGuiTreeNodeFlags_OpenOnDoubleClick |
+													ImGuiTreeNodeFlags_SpanAvailWidth	| ImGuiTreeNodeFlags_SpanFullWidth;
 
-        imgui->activeTab    = 1;
-        imgui->dbgPassIdx   = UMax;
-        imgui->dbgModeIdx   = UMax;
-        imgui->dbgStageIdx  = UMax;
+		auto	node_flags	= base_flags;
+		usize	node_id		= dir.baseId;
 
-        Path    path = t._scriptDir.root;
-        path /= rootPath;
-        path.replace_extension( "as" );
+		if ( not dir.name.empty() )
+		{
+			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, dir.name.c_str() );
+			if ( not node_open )
+				return;
+		}
 
-        Scheduler().Run(
-            ETaskQueue::Background,
-            [] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
-            {
-                Unused( core->RunRenderScriptAsync( path ));
-                compiling.store( false );
-                pauseRendering.store( false );
-                co_return;
-            }
-            ( t._core.GetRC<ResEditorCore>(), path, t._compiling, t._pauseRendering ),
-            Tuple{},
-            "UI::LoadScript"
-        );
-    }
+		for (auto& folder : dir.folders) {
+			_RecursiveVisitFolder( rootPath / dir.name, *folder );
+		}
+
+		node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;// | ImGuiTreeNodeFlags_Bullet;
+
+		for (auto& script : dir.scripts)
+		{
+			node_flags &= ~ImGuiTreeNodeFlags_Selected;
+
+			++node_id;
+
+			if ( node_id == imgui->nodeClicked )
+				node_flags |= ImGuiTreeNodeFlags_Selected;
+
+			ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, script.c_str() );
+
+			if ( ImGui::IsItemClicked() and not ImGui::IsItemToggledOpen() )
+			{
+				imgui->nodeClicked	= node_id;
+				imgui->scriptName	= ToString( rootPath / dir.name / script );
+
+				_LoadScript( rootPath / dir.name / script );
+			}
+		}
+
+		if ( not dir.name.empty() )
+			ImGui::TreePop();
+	}
 
 /*
 =================================================
-    DrawTask::_UploadVB
+	DrawTask::_LoadScript
 =================================================
 */
-    bool  EditorUI::DrawTask::_UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData)
-    {
-        // allocate
-        Bytes   vtx_size;
-        Bytes   idx_size;
+	void  EditorUI::DrawTask::_LoadScript (const Path &rootPath)
+	{
+		t._compiling.store( true );
 
-        for (int i = 0; i < drawData.CmdListsCount; ++i)
-        {
-            ImDrawList const&   cmd_list = *drawData.CmdLists[i];
+		imgui->activeTab	= 1;
+		imgui->dbgPassIdx	= UMax;
+		imgui->dbgModeIdx	= UMax;
+		imgui->dbgStageIdx	= UMax;
 
-            vtx_size += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
-            idx_size += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
-        }
+		Path	path = t._scriptDir.root;
+		path /= rootPath;
+		path.replace_extension( "as" );
 
-        auto&       staging_mngr    = GraphicsScheduler().GetResourceManager().GetStagingManager();
-        const auto  frame_id        = GetFrameId();
-
-        VertexStream    vstream;
-        VertexStream    istream;
-        CHECK_ERR( staging_mngr.AllocVStream( frame_id, vtx_size, OUT vstream ));
-        CHECK_ERR( staging_mngr.AllocVStream( frame_id, idx_size, OUT istream ));
-
-
-        // upload
-        Bytes   vtx_offset;
-        Bytes   idx_offset;
-
-        for (int i = 0; i < drawData.CmdListsCount; ++i)
-        {
-            ImDrawList const&   cmd_list = *drawData.CmdLists[i];
-
-            std::memcpy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * sizeof(ImDrawVert) );
-            std::memcpy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * sizeof(ImDrawIdx) );
-
-            vtx_offset += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
-            idx_offset += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
-        }
-
-        ASSERT( vtx_size == vtx_offset );
-        ASSERT( idx_size == idx_offset );
-
-
-        // bind
-        dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
-        dctx.BindIndexBuffer( istream.id, istream.offset, IndexDesc<ImDrawIdx>::value );
-
-        return true;
-    }
+		Scheduler().Run(
+			ETaskQueue::Background,
+			[] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
+			{
+				Unused( core->RunRenderScriptAsync( path ));
+				compiling.store( false );
+				pauseRendering.store( false );
+				co_return;
+			}
+			( t._core.GetRC<ResEditorCore>(), path, t._compiling, t._pauseRendering ),
+			Tuple{},
+			"UI::LoadScript"
+		);
+	}
 
 /*
 =================================================
-    DrawTask::_UpdateDS
+	DrawTask::_UploadVB
 =================================================
 */
-    bool  EditorUI::DrawTask::_UpdateDS (DirectCtx::Graphics &ctx)
-    {
-        DescriptorSetID ds = t._res.descSets[ ctx.GetFrameId().Index() ];
+	bool  EditorUI::DrawTask::_UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData)
+	{
+		// allocate
+		Bytes	vtx_size;
+		Bytes	idx_size;
 
-        StaticArray< ImageViewID, 8 >   textures;
-        textures.fill( t._res.fontView );
+		for (int i = 0; i < drawData.CmdListsCount; ++i)
+		{
+			ImDrawList const&	cmd_list = *drawData.CmdLists[i];
 
-        for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
-        {
-            RC<Image>   img = s_UIInteraction.GetDbgView( i );
-            if ( img )
-            {
-                ctx.ResourceState( img->GetImageId(), EResourceState::FragmentShader | EResourceState::ShaderSample );
+			vtx_size += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
+			idx_size += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
+		}
 
-                textures[i+1] = img->GetViewId();
-            }
-        }
-        ctx.CommitBarriers();
+		auto&		staging_mngr	= GraphicsScheduler().GetResourceManager().GetStagingManager();
+		const auto	frame_id		= GetFrameId();
 
-        DescriptorUpdater   updater;
-        CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-        CHECK_ERR( textures.size() == updater.ImageCount( UniformName{"un_Textures"} ));
-        updater.BindImages( UniformName{"un_Textures"}, textures );
-        CHECK_ERR( updater.Flush() );
+		VertexStream	vstream;
+		VertexStream	istream;
+		CHECK_ERR( staging_mngr.AllocVStream( frame_id, vtx_size, OUT vstream ));
+		CHECK_ERR( staging_mngr.AllocVStream( frame_id, idx_size, OUT istream ));
 
-        return true;
-    }
+
+		// upload
+		Bytes	vtx_offset;
+		Bytes	idx_offset;
+
+		for (int i = 0; i < drawData.CmdListsCount; ++i)
+		{
+			ImDrawList const&	cmd_list = *drawData.CmdLists[i];
+
+			std::memcpy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * sizeof(ImDrawVert) );
+			std::memcpy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * sizeof(ImDrawIdx) );
+
+			vtx_offset += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
+			idx_offset += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
+		}
+
+		ASSERT( vtx_size == vtx_offset );
+		ASSERT( idx_size == idx_offset );
+
+
+		// bind
+		dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
+		dctx.BindIndexBuffer( istream.id, istream.offset, IndexDesc<ImDrawIdx>::value );
+
+		return true;
+	}
 
 /*
 =================================================
-    DrawTask::_DrawUI
+	DrawTask::_UpdateDS
 =================================================
 */
-    bool  EditorUI::DrawTask::_DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln)
-    {
-        const bool  is_minimized = (drawData.DisplaySize.x <= 0.0f or drawData.DisplaySize.y <= 0.0f);
+	bool  EditorUI::DrawTask::_UpdateDS (DirectCtx::Graphics &ctx)
+	{
+		DescriptorSetID	ds = t._res.descSets[ ctx.GetFrameId().Index() ];
 
-        if_unlikely( drawData.TotalVtxCount <= 0 or is_minimized )
-            return false;
+		StaticArray< ImageViewID, 8 >	textures;
+		textures.fill( t._res.fontView );
 
-        DescriptorSetID ds = t._res.descSets[ dctx.GetFrameId().Index() ];
+		for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
+		{
+			RC<Image>	img = s_UIInteraction.GetDbgView( i );
+			if ( img )
+			{
+				ctx.ResourceState( img->GetImageId(), EResourceState::FragmentShader | EResourceState::ShaderSample );
 
-        dctx.BindPipeline( ppln.blend );
-        dctx.BindDescriptorSet( t._res.dsIndex, ds );
+				textures[i+1] = img->GetViewId();
+			}
+		}
+		ctx.CommitBarriers();
 
-        {
-            ImVec2 const&           scale   = imgui->ctx->IO.DisplayFramebufferScale;
-            ShaderTypes::imgui_ub   ub_data;
+		DescriptorUpdater	updater;
+		CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+		CHECK_ERR( textures.size() == updater.ImageCount( UniformName{"un_Textures"} ));
+		updater.BindImages( UniformName{"un_Textures"}, textures );
+		CHECK_ERR( updater.Flush() );
 
-            ub_data.scale.x     = 2.0f / (drawData.DisplaySize.x * scale.x);
-            ub_data.scale.y     = 2.0f / (drawData.DisplaySize.y * scale.y);
+		return true;
+	}
 
-            ub_data.translate.x = -1.0f - (drawData.DisplayPos.x * ub_data.scale.x);
-            ub_data.translate.y = -1.0f - (drawData.DisplayPos.y * ub_data.scale.y);
+/*
+=================================================
+	DrawTask::_DrawUI
+=================================================
+*/
+	bool  EditorUI::DrawTask::_DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln)
+	{
+		const bool	is_minimized = (drawData.DisplaySize.x <= 0.0f or drawData.DisplaySize.y <= 0.0f);
 
-            dctx.PushConstant( t._res.pc1Index, ub_data );
-        }
+		if_unlikely( drawData.TotalVtxCount <= 0 or is_minimized )
+			return false;
 
-        CHECK_ERR( _UploadVB( dctx, drawData ));
+		DescriptorSetID	ds = t._res.descSets[ dctx.GetFrameId().Index() ];
 
-        uint    idx_offset  = 0;
-        uint    vtx_offset  = 0;
-        uint    cur_tex     = UMax;
+		dctx.BindPipeline( ppln.blend );
+		dctx.BindDescriptorSet( t._res.dsIndex, ds );
 
-        for (int i = 0; i < drawData.CmdListsCount; ++i)
-        {
-            ImDrawList const&   cmd_list = *drawData.CmdLists[i];
+		{
+			ImVec2 const&			scale	= imgui->ctx->IO.DisplayFramebufferScale;
+			ShaderTypes::imgui_ub	ub_data;
 
-            for (int j = 0; j < cmd_list.CmdBuffer.Size; ++j)
-            {
-                ImDrawCmd const&    cmd = cmd_list.CmdBuffer[j];
-                const uint          tex = uint(usize(cmd.TextureId));
+			ub_data.scale.x		= 2.0f / (drawData.DisplaySize.x * scale.x);
+			ub_data.scale.y		= 2.0f / (drawData.DisplaySize.y * scale.y);
 
-                if ( tex != cur_tex )
-                {
-                    cur_tex = tex;
-                    dctx.PushConstant( t._res.pc2Index, ShaderTypes::imgui_pc{tex} );
-                    dctx.BindPipeline( tex == 0 ? ppln.blend : ppln.opaque );
-                }
+			ub_data.translate.x	= -1.0f - (drawData.DisplayPos.x * ub_data.scale.x);
+			ub_data.translate.y	= -1.0f - (drawData.DisplayPos.y * ub_data.scale.y);
 
-                if_likely( cmd.UserCallback == null )
-                {
-                    RectI   scissor;
-                    scissor.left    = int(cmd.ClipRect.x + 0.5f);
-                    scissor.top     = int(cmd.ClipRect.y + 0.5f);
-                    scissor.right   = int(cmd.ClipRect.z + 0.5f);
-                    scissor.bottom  = int(cmd.ClipRect.w + 0.5f);
+			dctx.PushConstant( t._res.pc1Index, ub_data );
+		}
 
-                    dctx.SetScissor( scissor );
+		CHECK_ERR( _UploadVB( dctx, drawData ));
 
-                    dctx.DrawIndexed( cmd.ElemCount, 1, cmd.IdxOffset + idx_offset, cmd.VtxOffset + vtx_offset, 0 );
-                }
-                else
-                {
-                    cmd.UserCallback( &cmd_list, &cmd );
-                }
-            }
-            idx_offset += cmd_list.IdxBuffer.Size;
-            vtx_offset += cmd_list.VtxBuffer.Size;
-        }
-        return true;
-    }
+		uint	idx_offset	= 0;
+		uint	vtx_offset	= 0;
+		uint	cur_tex		= UMax;
+
+		for (int i = 0; i < drawData.CmdListsCount; ++i)
+		{
+			ImDrawList const&	cmd_list = *drawData.CmdLists[i];
+
+			for (int j = 0; j < cmd_list.CmdBuffer.Size; ++j)
+			{
+				ImDrawCmd const&	cmd = cmd_list.CmdBuffer[j];
+				const uint			tex	= uint(usize(cmd.TextureId));
+
+				if ( tex != cur_tex )
+				{
+					cur_tex = tex;
+					dctx.PushConstant( t._res.pc2Index, ShaderTypes::imgui_pc{tex} );
+					dctx.BindPipeline( tex == 0 ? ppln.blend : ppln.opaque );
+				}
+
+				if_likely( cmd.UserCallback == null )
+				{
+					RectI	scissor;
+					scissor.left	= int(cmd.ClipRect.x + 0.5f);
+					scissor.top		= int(cmd.ClipRect.y + 0.5f);
+					scissor.right	= int(cmd.ClipRect.z + 0.5f);
+					scissor.bottom	= int(cmd.ClipRect.w + 0.5f);
+
+					dctx.SetScissor( scissor );
+
+					dctx.DrawIndexed( cmd.ElemCount, 1, cmd.IdxOffset + idx_offset, cmd.VtxOffset + vtx_offset, 0 );
+				}
+				else
+				{
+					cmd.UserCallback( &cmd_list, &cmd );
+				}
+			}
+			idx_offset += cmd_list.IdxBuffer.Size;
+			vtx_offset += cmd_list.VtxBuffer.Size;
+		}
+		return true;
+	}
 //-----------------------------------------------------------------------------
 
 
 
-    //
-    // Upload Task
-    //
-    class EditorUI::UploadTask final : public RenderTask
-    {
-    public:
-        EditorUI&   t;
+	//
+	// Upload Task
+	//
+	class EditorUI::UploadTask final : public RenderTask
+	{
+	public:
+		EditorUI&	t;
 
-        UploadTask (EditorUI* t, CommandBatchPtr batch, DebugLabel) __NE___ :
-            RenderTask{ batch, {"UI::Upload"} },
-            t{ *t }
-        {}
+		UploadTask (EditorUI* t, CommandBatchPtr batch, DebugLabel) __NE___ :
+			RenderTask{ batch, {"UI::Upload"} },
+			t{ *t }
+		{}
 
-        void  Run () __Th_OV;
-    };
+		void  Run () __Th_OV;
+	};
 
 /*
 =================================================
-    UploadTask::Run
+	UploadTask::Run
 =================================================
 */
-    void  EditorUI::UploadTask::Run ()
-    {
-        ubyte*  pixels;
-        int     width, height;
-        t._imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
+	void  EditorUI::UploadTask::Run ()
+	{
+		ubyte*	pixels;
+		int		width, height;
+		t._imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
 
-        DirectCtx::Transfer copy_ctx{ *this };
+		DirectCtx::Transfer	copy_ctx{ *this };
 
-        UploadImageDesc     upload;
-        upload.aspectMask   = EImageAspect::Color;
-        upload.heapType     = EStagingHeapType::Dynamic;
-        upload.imageDim     = uint3{width, height, 1};
-        upload.dataRowPitch = Bytes{width * 4u};
+		UploadImageDesc		upload;
+		upload.aspectMask	= EImageAspect::Color;
+		upload.heapType		= EStagingHeapType::Dynamic;
+		upload.imageDim		= uint3{width, height, 1};
+		upload.dataRowPitch	= Bytes{width * 4u};
 
-        Unused( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, width * height * 4 * sizeof(ubyte) }));
+		Unused( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, width * height * 4 * sizeof(ubyte) }));
 
-        Execute( copy_ctx );
-    }
+		Execute( copy_ctx );
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    EditorUI::EditorUI (ResEditorCore &core, Path scriptPath) :
-        _core{core}, _scriptDir{RVRef(scriptPath)}
-    {
-        SetHelpText( "" );
-    }
+	EditorUI::EditorUI (ResEditorCore &core, Path scriptPath) :
+		_core{core}, _scriptDir{RVRef(scriptPath)}
+	{
+		SetHelpText( "" );
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    EditorUI::~EditorUI ()
-    {
-        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
+	EditorUI::~EditorUI ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-        res_mngr.ImmediatelyReleaseResources( _res.fontImg, _res.fontView );
-        res_mngr.ReleaseResourceArray( _res.descSets );
+		res_mngr.ImmediatelyReleaseResources( _res.fontImg, _res.fontView );
+		res_mngr.ReleaseResourceArray( _res.descSets );
 
-        {
-            auto    imgui = _imgui.WriteNoLock();
-            EXLOCK( imgui );
-            if ( imgui->ctx != null )
-                ImGui::DestroyContext( imgui->ctx );
-        }
-    }
+		{
+			auto	imgui = _imgui.WriteNoLock();
+			EXLOCK( imgui );
+			if ( imgui->ctx != null )
+				ImGui::DestroyContext( imgui->ctx );
+		}
+	}
 
 /*
 =================================================
-    Init
+	Init
 =================================================
 */
-    bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode)
-    {
-        if ( _initialized.load() )
-            return true;
+	bool  EditorUI::Init (IOutputSurface &surface, EWindowMode wndMode)
+	{
+		if ( _initialized.load() )
+			return true;
 
-        CHECK_ERR( surface.IsInitialized() );
+		CHECK_ERR( surface.IsInitialized() );
 
-        if ( _InitSurface( surface ) and _LoadPipelinePack() )
-        {
-            _initialized.store( true );
+		if ( _InitSurface( surface ) and _LoadPipelinePack() )
+		{
+			_initialized.store( true );
 
-            if ( EWindowMode_IsFullscreen( wndMode )) {
-                _windowMode.current.store( 1 | 2 );
-                _windowMode.fullscreenMode = wndMode;
-            }else{
-                _windowMode.current.store( 0 | 2 );
-                _windowMode.windowedMode = wndMode;
-            }
-            return true;
-        }
-        return false;
-    }
+			if ( EWindowMode_IsFullscreen( wndMode )) {
+				_windowMode.current.store( 1 | 2 );
+				_windowMode.fullscreenMode = wndMode;
+			}else{
+				_windowMode.current.store( 0 | 2 );
+				_windowMode.windowedMode = wndMode;
+			}
+			return true;
+		}
+		return false;
+	}
 
 /*
 =================================================
-    _InitSurface
+	_InitSurface
 =================================================
 */
-    bool  EditorUI::_InitSurface (IOutputSurface &surface)
-    {
-        auto    g_data = _graphics.WriteNoLock();
-        EXLOCK( g_data );
+	bool  EditorUI::_InitSurface (IOutputSurface &surface)
+	{
+		auto	g_data = _graphics.WriteNoLock();
+		EXLOCK( g_data );
 
-        g_data->output          = &surface;
-        g_data->surfaceFormats  = surface.GetSurfaceFormats();
-        g_data->presentModes    = surface.GetPresentModes();
+		g_data->output			= &surface;
+		g_data->surfaceFormats	= surface.GetSurfaceFormats();
+		g_data->presentModes	= surface.GetPresentModes();
 
-        const auto  info        = surface.GetSurfaceInfo();
-        auto        g_mode      = s_UIInteraction.graphics.WriteNoLock();
-        {
-            EXLOCK( g_mode );
-            g_mode->colorModeIdx    = int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
-            g_mode->presentModeIdx  = int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
-        }
+		const auto	info		= surface.GetSurfaceInfo();
+		auto		g_mode		= s_UIInteraction.graphics.WriteNoLock();
+		{
+			EXLOCK( g_mode );
+			g_mode->colorModeIdx	= int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
+			g_mode->presentModeIdx	= int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
+		}
 
-        _imgui->defaultSurfFormat = ESurfaceFormat_Cast( info.colorFormat, info.colorSpace );
-        return true;
-    }
+		_imgui->defaultSurfFormat = ESurfaceFormat_Cast( info.colorFormat, info.colorSpace );
+		return true;
+	}
 
 /*
 =================================================
-    _LoadPipelinePack
+	_LoadPipelinePack
 =================================================
 */
-    bool  EditorUI::_LoadPipelinePack ()
-    {
-        auto&   res_mngr = GraphicsScheduler().GetResourceManager();
+	bool  EditorUI::_LoadPipelinePack ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-        #ifdef AE_ENABLE_VULKAN
-            constexpr char  fname[] = "vk/ui_pipelines.bin";
-        #elif defined(AE_ENABLE_METAL)
-            constexpr char  fname[] ="mac/ui_pipelines.bin";
-        #else
-        #   error unsupported platform!
-        #endif
+		#ifdef AE_ENABLE_VULKAN
+			constexpr char	fname[] = "vk/ui_pipelines.bin";
+		#elif defined(AE_ENABLE_METAL)
+			constexpr char	fname[] ="mac/ui_pipelines.bin";
+		#else
+		#	error unsupported platform!
+		#endif
 
-        auto    file = MakeRC<FileRStream>( fname );
-        CHECK_ERR( file->IsOpen() );
+		auto	file = MakeRC<FileRStream>( fname );
+		CHECK_ERR( file->IsOpen() );
 
-        PipelinePackDesc    desc;
-        desc.stream     = file;
-        desc.options    = EPipelinePackOpt::All;
-        desc.dbgName    = "editor ui pack";
+		PipelinePackDesc	desc;
+		desc.stream		= file;
+		desc.options	= EPipelinePackOpt::All;
+		desc.dbgName	= "editor ui pack";
 
-        CHECK_ERR( res_mngr.InitializeResources( desc ));
-        CHECK_ERR( _InitUI( Default ));
+		CHECK_ERR( res_mngr.InitializeResources( desc ));
+		CHECK_ERR( _InitUI( Default ));
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    _InitUI
+	_InitUI
 =================================================
 */
-    bool  EditorUI::_InitUI (PipelinePackID pack)
-    {
-        auto    imgui = _imgui.WriteNoLock();
-        EXLOCK( imgui );
+	bool  EditorUI::_InitUI (PipelinePackID pack)
+	{
+		auto	imgui = _imgui.WriteNoLock();
+		EXLOCK( imgui );
 
-        CHECK( _profiler.Initialize( null ));
+		CHECK( _profiler.Initialize( null ));
 
-        // init ImGUI context
-        if ( imgui->ctx == null )
-        {
-            IMGUI_CHECKVERSION();
+		// init ImGUI context
+		if ( imgui->ctx == null )
+		{
+			IMGUI_CHECKVERSION();
 
-            imgui->ctx = ImGui::CreateContext();
-            CHECK_ERR( imgui->ctx != null );
+			imgui->ctx = ImGui::CreateContext();
+			CHECK_ERR( imgui->ctx != null );
 
-            ImGui::StyleColorsDark();
-            //ImGui::StyleColorsClassic();
-        }
+			ImGui::StyleColorsDark();
+			//ImGui::StyleColorsClassic();
+		}
 
 
-        auto&       res_mngr    = GraphicsScheduler().GetResourceManager();
-        const auto  max_frames  = GraphicsScheduler().GetMaxFrames();
-        auto&       rg          = RenderGraph();
+		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
+		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
+		auto&		rg			= RenderGraph();
 
-        // initialize font atlas
-        {
-            uint8_t*    pixels;
-            int         width, height;
-            imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
+		// initialize font atlas
+		{
+			uint8_t*	pixels;
+			int			width, height;
+			imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
 
-            _res.fontImg = res_mngr.CreateImage( ImageDesc{}.SetDimension( width, height )
-                                                    .SetFormat( EPixelFormat::RGBA8_UNorm )
-                                                    .SetUsage( EImageUsage::Sampled | EImageUsage::TransferDst ),
-                                                 "Imgui font image" );
-            CHECK_ERR( _res.fontImg );
+			_res.fontImg = res_mngr.CreateImage( ImageDesc{}.SetDimension( width, height )
+													.SetFormat( EPixelFormat::RGBA8_UNorm )
+													.SetUsage( EImageUsage::Sampled | EImageUsage::TransferDst ),
+												 "Imgui font image" );
+			CHECK_ERR( _res.fontImg );
 
-            _res.fontView = res_mngr.CreateImageView( ImageViewDesc{}, _res.fontImg, "Imgui font image view" );
-            CHECK_ERR( _res.fontView );
+			_res.fontView = res_mngr.CreateImageView( ImageViewDesc{}, _res.fontImg, "Imgui font image view" );
+			CHECK_ERR( _res.fontView );
 
-            rg.GetStateTracker().AddResource( _res.fontImg, Default, EResourceState::ShaderSample | EResourceState::FragmentShader );
-        }
+			rg.GetStateTracker().AddResource( _res.fontImg, Default, EResourceState::ShaderSample | EResourceState::FragmentShader );
+		}
 
-        _res.rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"UI.RTech"}, Default );
-        CHECK_ERR( _res.rtech );
+		_res.rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"UI.RTech"}, Default );
+		CHECK_ERR( _res.rtech );
 
-        const Pair< EPixelFormat, const char* > formats [] = {
-            { EPixelFormat::BGRA8_UNorm,    "BGRA8" },
-            { EPixelFormat::RGBA8_UNorm,    "RGBA8" },
-            { EPixelFormat::RGB10_A2_UNorm, "RGB10_A2" },
-            { EPixelFormat::RGBA16F,        "RGBA16F" }
-        };
-        GraphicsPipelineID  ppln;
+		const Pair< EPixelFormat, const char* >	formats [] = {
+			{ EPixelFormat::BGRA8_UNorm,	"BGRA8" },
+			{ EPixelFormat::RGBA8_UNorm,	"RGBA8" },
+			{ EPixelFormat::RGB10_A2_UNorm,	"RGB10_A2" },
+			{ EPixelFormat::RGBA16F,		"RGBA16F" }
+		};
+		GraphicsPipelineID	ppln;
 
-        for (auto& fmt : formats)
-        {
-            PipelineSet     ps;
-            ps.pass     = RenderTechPassName{"UI."s + fmt.second};
-            ps.blend    = _res.rtech->GetGraphicsPipeline( PipelineName{"imgui."s + fmt.second} );
-            ps.opaque   = _res.rtech->GetGraphicsPipeline( PipelineName{"imgui.opaque."s + fmt.second} );
+		for (auto& fmt : formats)
+		{
+			PipelineSet		ps;
+			ps.pass		= RenderTechPassName{"UI."s + fmt.second};
+			ps.blend	= _res.rtech->GetGraphicsPipeline( PipelineName{"imgui."s + fmt.second} );
+			ps.opaque	= _res.rtech->GetGraphicsPipeline( PipelineName{"imgui.opaque."s + fmt.second} );
 
-            if ( ps.blend and ps.opaque )
-            {
-                _res.pplns.emplace( fmt.first, ps );
-                ppln = ps.blend;
-            }
-        }
-        CHECK_ERR( not _res.pplns.empty() );
+			if ( ps.blend and ps.opaque )
+			{
+				_res.pplns.emplace( fmt.first, ps );
+				ppln = ps.blend;
+			}
+		}
+		CHECK_ERR( not _res.pplns.empty() );
 
-        CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _res.dsIndex, OUT _res.descSets.data(), max_frames,
-                                                  ppln, DescriptorSetName{"imgui.ds"} ));
+		CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _res.dsIndex, OUT _res.descSets.data(), max_frames,
+												  ppln, DescriptorSetName{"imgui.ds"} ));
 
-        _res.pc1Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_ub >( ppln, PushConstantName{"ub"} );
-        _res.pc2Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_pc >( ppln, PushConstantName{"pc"} );
-        CHECK_ERR( _res.pc1Index and _res.pc2Index );
+		_res.pc1Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_ub >( ppln, PushConstantName{"ub"} );
+		_res.pc2Index = res_mngr.GetPushConstantIndex< ShaderTypes::imgui_pc >( ppln, PushConstantName{"pc"} );
+		CHECK_ERR( _res.pc1Index and _res.pc2Index );
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    Draw
+	Draw
 =================================================
 */
-    AsyncTask  EditorUI::Draw (ArrayView<AsyncTask> inDeps)
-    {
-        if_unlikely( not _initialized.load() )
-            return null;
+	AsyncTask  EditorUI::Draw (ArrayView<AsyncTask> inDeps)
+	{
+		if_unlikely( not _initialized.load() )
+			return null;
 
-        if ( not _imgui.ConstPtr()->showUI )
-            return null;
+		if ( not _imgui.ConstPtr()->showUI )
+			return null;
 
-        auto&   rg      = RenderGraph();
+		auto&	rg		= RenderGraph();
 
-        auto    batch   = rg.UI();
-        CHECK_ERR( batch );
+		auto	batch	= rg.UI();
+		CHECK_ERR( batch );
 
-        auto    surf_acquire = rg.BeginOnSurface( batch );
-        CHECK_ERR( surf_acquire );
+		auto	surf_acquire = rg.BeginOnSurface( batch );
+		CHECK_ERR( surf_acquire );
 
-        ArrayView<AsyncTask>    deps        = inDeps;
-        AsyncTask               upload;
-        const bool              is_first    = batch.CurrentCmdBufIndex() == 0;
+		ArrayView<AsyncTask>	deps		= inDeps;
+		AsyncTask				upload;
+		const bool				is_first	= batch.CurrentCmdBufIndex() == 0;
 
-        if ( not _uploaded.load() )
-        {
-            _uploaded.store( true );
+		if ( not _uploaded.load() )
+		{
+			_uploaded.store( true );
 
-            upload = batch.Task< UploadTask >( Tuple{this} )
-                        .UseResource( _res.fontImg )
-                        .Run( Tuple{deps} );
+			upload = batch.Task< UploadTask >( Tuple{this} )
+						.UseResource( _res.fontImg )
+						.Run( Tuple{deps} );
 
-            deps = ArrayView<AsyncTask>{ upload };
-        }
+			deps = ArrayView<AsyncTask>{ upload };
+		}
 
-        return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first }, {"MainUI pass"} )
-                        .UseResource( _res.fontImg )
-                        .Run( Tuple{surf_acquire, deps} );
-    }
+		return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first }, {"MainUI pass"} )
+						.UseResource( _res.fontImg )
+						.Run( Tuple{surf_acquire, deps} );
+	}
 
 /*
 =================================================
-    ProcessInput
+	ProcessInput
 =================================================
 */
-    INTERNAL_LINKAGE( constexpr auto&   IA = InputActions::Main_UI );
+	INTERNAL_LINKAGE( constexpr auto&	IA = InputActions::Main_UI );
 
-    void  EditorUI::ProcessInput (ActionQueueReader reader, OUT bool &switchMode)
-    {
-        if ( not _initialized.load() )
-            return;
+	void  EditorUI::ProcessInput (ActionQueueReader reader, OUT bool &switchMode)
+	{
+		if ( not _initialized.load() )
+			return;
 
-        auto    imgui = _imgui.WriteNoLock();
-        EXLOCK( imgui );
+		auto	imgui = _imgui.WriteNoLock();
+		EXLOCK( imgui );
 
-        switchMode                  = false;
-        imgui->mouseLBDown          = false;
-        imgui->mouseWheel           = {};
-        imgui->runShaderDebugger    = false;
-        imgui->reloadScript         = false;
+		switchMode					= false;
+		imgui->mouseLBDown			= false;
+		imgui->mouseWheel			= {};
+		imgui->runShaderDebugger	= false;
+		imgui->reloadScript			= false;
 
-        ActionQueueReader::Header   hdr;
-        for (; reader.ReadHeader( OUT hdr );)
-        {
-            switch_IA( hdr.name )
-            {
-                case IA.UI_MousePos :
-                    imgui->mousePos = reader.Data<packed_float2>( hdr.offset );     break;
+		ActionQueueReader::Header	hdr;
+		for (; reader.ReadHeader( OUT hdr );)
+		{
+			switch_IA( hdr.name )
+			{
+				case IA.UI_MousePos :
+					imgui->mousePos = reader.Data<packed_float2>( hdr.offset );		break;
 
-                case IA.UI_MouseWheel :
-                    imgui->mouseWheel = reader.Data<packed_float2>( hdr.offset );   break;
+				case IA.UI_MouseWheel :
+					imgui->mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
 
-                case IA.UI_MouseLBDown :
-                    imgui->mouseLBDown = true;                                      break;
+				case IA.UI_MouseLBDown :
+					imgui->mouseLBDown = true;										break;
 
-                case IA.UI_SwitchInputMode :
-                    switchMode = true;                                              break;
+				case IA.UI_SwitchInputMode :
+					switchMode = true;												break;
 
-                case IA.UI_ShowHide :
-                    imgui->showUI = not imgui->showUI;                              break;
+				case IA.UI_ShowHide :
+					imgui->showUI = not imgui->showUI;								break;
 
-                case IA.UI_StartStopRecording :
-                    s_UIInteraction.capture->video = not s_UIInteraction.capture->video; break;
+				case IA.UI_StartStopRecording :
+					s_UIInteraction.capture->video = not s_UIInteraction.capture->video; break;
 
-                case IA.UI_Screenshot :
-                    s_UIInteraction.capture->screenshot = true;                     break;
+				case IA.UI_Screenshot :
+					s_UIInteraction.capture->screenshot = true;						break;
 
-                case IA.UI_ShaderDebugger :
-                    imgui->runShaderDebugger = true;                                break;
+				case IA.UI_ShaderDebugger :
+					imgui->runShaderDebugger = true;								break;
 
-                case IA.UI_ReloadScript :
-                    imgui->reloadScript = true;                                     break;
+				case IA.UI_ReloadScript :
+					imgui->reloadScript = true;										break;
 
-                case IA.UI_FrameCapture :
-                    _requestCapture.store( true );                                  break;
+				case IA.UI_FrameCapture :
+					_requestCapture.store( true );									break;
 
-                case IA.PauseRendering :
-                    _pauseRendering.store( not _pauseRendering.load() );            break;
+				case IA.PauseRendering :
+					_pauseRendering.store( not _pauseRendering.load() );			break;
 
-                case IA.ShowHelp :
-                    imgui->showHelp = not imgui->showHelp;                          break;
+				case IA.ShowHelp :
+					imgui->showHelp = not imgui->showHelp;							break;
 
-                case IA.FullscreenOnOff :
-                    _windowMode.current.store( (~_windowMode.current.load() & 1) ); break;
+				case IA.FullscreenOnOff :
+					_windowMode.current.store( (~_windowMode.current.load() & 1) );	break;
 
-                case IA.UI_MouseRBDown :
-                case IA.UI_ResExport :      break;  // ignore
-            }
-            switch_end
-        }
-    }
+				case IA.UI_MouseRBDown :
+				case IA.UI_ResExport :		break;	// ignore
+			}
+			switch_end
+		}
+	}
 
 /*
 =================================================
-    SetHelpText
+	SetHelpText
 =================================================
 */
-    void  EditorUI::SetHelpText (String txt)
-    {
+	void  EditorUI::SetHelpText (String txt)
+	{
 R"(UI controls:
   'Esc'       - switch to camera controls
   'Backspace' - pause rendering, keep only UI
@@ -1719,100 +1719,100 @@ R"(UI controls:
   'Right mouse btn' - pass mouse position to shader
 )" >> txt;
 
-        _imgui->helpText = RVRef(txt);
-    }
+		_imgui->helpText = RVRef(txt);
+	}
 
 /*
 =================================================
-    SetSurfaceFormat
+	SetSurfaceFormat
 =================================================
 */
-    void  EditorUI::SetSurfaceFormat (ESurfaceFormat fmt)
-    {
-        auto    imgui = _imgui.WriteNoLock();
-        EXLOCK( imgui );
+	void  EditorUI::SetSurfaceFormat (ESurfaceFormat fmt)
+	{
+		auto	imgui = _imgui.WriteNoLock();
+		EXLOCK( imgui );
 
-        imgui->reqSurfFormat = (fmt != Default ? fmt : imgui->defaultSurfFormat);
-    }
+		imgui->reqSurfFormat = (fmt != Default ? fmt : imgui->defaultSurfFormat);
+	}
 
 /*
 =================================================
-    _CheckScriptDir
+	_CheckScriptDir
 =================================================
 */
-    void  EditorUI::_CheckScriptDir (INOUT ScriptDirData &scriptDir)
-    {
-        if ( not scriptDir.timer.Tick() )
-            return;
+	void  EditorUI::_CheckScriptDir (INOUT ScriptDirData &scriptDir)
+	{
+		if ( not scriptDir.timer.Tick() )
+			return;
 
-        scriptDir.rootInfo  = Default;
+		scriptDir.rootInfo	= Default;
 
-        usize   node_id = 0;
-        _RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );
-    }
+		usize	node_id = 0;
+		_RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );
+	}
 
-    void  EditorUI::_RecursiveCheckScriptDir (INOUT ScriptFolder &rootDst, INOUT usize &nodeID, const Path &rootDir, uint depth, const uint maxDepth)
-    {
-        ASSERT( depth < maxDepth );
+	void  EditorUI::_RecursiveCheckScriptDir (INOUT ScriptFolder &rootDst, INOUT usize &nodeID, const Path &rootDir, uint depth, const uint maxDepth)
+	{
+		ASSERT( depth < maxDepth );
 
-        // process directories
-        for (auto& dir : FileSystem::Enum( rootDir ))
-        {
-            if ( not dir.IsDirectory() )
-                continue;
+		// process directories
+		for (auto& dir : FileSystem::Enum( rootDir ))
+		{
+			if ( not dir.IsDirectory() )
+				continue;
 
-            if ( not IsAnsiString( dir.Get().filename().native() ))
-                continue;
+			if ( not IsAnsiString( dir.Get().filename().native() ))
+				continue;
 
-            const String    name = ToString( dir.Get().filename().native() );
+			const String	name = ToString( dir.Get().filename().native() );
 
-            if ( depth+1 < maxDepth and not FileSystem::IsEmptyDirectory( dir ))
-            {
-                auto&   dst = rootDst.folders.emplace_back();
-                dst.reset( new ScriptFolder{} );
-                dst->name   = name;
+			if ( depth+1 < maxDepth and not FileSystem::IsEmptyDirectory( dir ))
+			{
+				auto&	dst = rootDst.folders.emplace_back();
+				dst.reset( new ScriptFolder{} );
+				dst->name	= name;
 
-                _RecursiveCheckScriptDir( INOUT *dst, INOUT nodeID, dir, depth+1, maxDepth );
-            }
-        }
+				_RecursiveCheckScriptDir( INOUT *dst, INOUT nodeID, dir, depth+1, maxDepth );
+			}
+		}
 
-        rootDst.baseId = nodeID;
+		rootDst.baseId = nodeID;
 
-        // process files
-        for (auto& dir : FileSystem::Enum( rootDir ))
-        {
-            if ( not dir.IsFile() )
-                continue;
+		// process files
+		for (auto& dir : FileSystem::Enum( rootDir ))
+		{
+			if ( not dir.IsFile() )
+				continue;
 
-            if ( not IsAnsiString( dir.Get().filename().native() ))
-                continue;
+			if ( not IsAnsiString( dir.Get().filename().native() ))
+				continue;
 
-            const String    name = ToString( dir.Get().filename().native() );
+			const String	name = ToString( dir.Get().filename().native() );
 
-            if ( EndsWith( name, ".as" ))
-            {
-                ++nodeID;
-                rootDst.scripts.push_back( name.substr( 0, name.length()-3 ));
-            }
-            //else
-            //  AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
-        }
-    }
+			if ( EndsWith( name, ".as" ))
+			{
+				++nodeID;
+				rootDst.scripts.push_back( name.substr( 0, name.length()-3 ));
+			}
+			//else
+			//	AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
+		}
+	}
 
 /*
 =================================================
-    GetNewWindowMode
+	GetNewWindowMode
 =================================================
 */
-    auto  EditorUI::GetNewWindowMode () -> Optional<EWindowMode>
-    {
-        ubyte   cur = _windowMode.current.fetch_or( 1 << 1 );
+	auto  EditorUI::GetNewWindowMode () -> Optional<EWindowMode>
+	{
+		ubyte	cur = _windowMode.current.fetch_or( 1 << 1 );
 
-        if ( HasBit( cur, 1 ))
-            return NullOptional;    // already used
+		if ( HasBit( cur, 1 ))
+			return NullOptional;	// already used
 
-        return HasBit( cur, 0 ) ? _windowMode.fullscreenMode : _windowMode.windowedMode;
-    }
+		return HasBit( cur, 0 ) ? _windowMode.fullscreenMode : _windowMode.windowedMode;
+	}
 
 
 } // AE::ResEditor

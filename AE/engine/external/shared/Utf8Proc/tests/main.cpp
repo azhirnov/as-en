@@ -1,10 +1,10 @@
 
 #ifndef AE_ENABLE_UTF8PROC
-#   error AE_ENABLE_UTF8PROC required
+#	error AE_ENABLE_UTF8PROC required
 #endif
 
 #ifndef UTF8PROC_STATIC
-#   error UTF8PROC_STATIC required
+#	error UTF8PROC_STATIC required
 #endif
 
 #include "utf8proc.h"
@@ -17,5 +17,5 @@ extern int AE_Utf8Proc_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

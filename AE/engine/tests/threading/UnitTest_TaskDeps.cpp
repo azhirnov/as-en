@@ -5,390 +5,390 @@
 #ifndef AE_DISABLE_THREADS
 namespace
 {
-    using EStatus = IAsyncTask::EStatus;
+	using EStatus = IAsyncTask::EStatus;
 
-    struct ExeOrder
-    {
-        Mutex   guard;
-        String  str;
+	struct ExeOrder
+	{
+		Mutex	guard;
+		String	str;
 
-        ExeOrder ()
-        {
-            EXLOCK( guard );
-            str.reserve( 128 );
-            str = "0";
-        }
-    };
+		ExeOrder ()
+		{
+			EXLOCK( guard );
+			str.reserve( 128 );
+			str = "0";
+		}
+	};
 //-----------------------------------------------------------------------------
 
 
 
-    class Test1_Task1 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test1_Task1 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test1_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test1_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '1';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '1';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test1_Task1"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test1_Task1"; }
+	};
 
-    class Test1_Task2 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test1_Task2 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test1_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test1_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '2';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '2';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test1_Task2"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test1_Task2"; }
+	};
 
-    static void  TaskDeps_Test1 ()
-    {
-        LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
+	static void  TaskDeps_Test1 ()
+	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
-        ExeOrder    value;  // access to value protected by internal synchronizations
-        AsyncTask   task1   = scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} );
-        AsyncTask   task2   = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{task1} );
+		ExeOrder	value;	// access to value protected by internal synchronizations
+		AsyncTask	task1	= scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} );
+		AsyncTask	task2	= scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{task1} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
-        TEST( task1->Status() == EStatus::Completed );
-        TEST( task2->Status() == EStatus::Completed );
+		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 
-        TEST( value.guard.try_lock() );
-        TEST( value.str == "012" );
-        value.guard.unlock();
-    }
+		TEST( value.guard.try_lock() );
+		TEST( value.str == "012" );
+		value.guard.unlock();
+	}
 //-----------------------------------------------------------------------------
 
 
 
-    class Test2_Task1 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test2_Task1 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test2_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test2_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'A';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'A';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '1';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '1';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test2_Task1"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test2_Task1"; }
+	};
 
-    class Test2_Task2 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test2_Task2 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test2_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test2_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'B';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'B';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '2';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '2';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test2_Task2"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test2_Task2"; }
+	};
 
-    static void  TaskDeps_Test2 ()
-    {
-        LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
+	static void  TaskDeps_Test2 ()
+	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
-        ExeOrder        value;  // access to value protected by internal synchronizations
-        AsyncTask       task1   = scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
+		ExeOrder		value;	// access to value protected by internal synchronizations
+		AsyncTask		task1	= scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
 
-        TEST( scheduler->Cancel( task1 ));
+		TEST( scheduler->Cancel( task1 ));
 
-        AsyncTask       task2   = scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
+		AsyncTask		task2	= scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
-        TEST( task1->Status() == EStatus::Canceled );
-        TEST( task2->Status() == EStatus::Canceled );
+		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( task1->Status() == EStatus::Canceled );
+		TEST( task2->Status() == EStatus::Canceled );
 
-        TEST( value.guard.try_lock() );
-        TEST( value.str == "012" );
-        value.guard.unlock();
-    }
+		TEST( value.guard.try_lock() );
+		TEST( value.str == "012" );
+		value.guard.unlock();
+	}
 //-----------------------------------------------------------------------------
 
 
 
-    class Test3_Task1 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test3_Task1 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test3_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test3_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'A';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'A';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '1';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '1';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test3_Task1"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test3_Task1"; }
+	};
 
-    class Test3_Task2 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test3_Task2 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test3_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test3_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '2';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '2';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'B';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'B';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test3_Task2"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test3_Task2"; }
+	};
 
-    static void  TaskDeps_Test3 ()
-    {
-        LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
+	static void  TaskDeps_Test3 ()
+	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
-        ExeOrder    value;  // access to value protected by internal synchronizations
-        AsyncTask   task1   = scheduler->Run<Test3_Task1>( Tuple{ArgRef(value)} );
+		ExeOrder	value;	// access to value protected by internal synchronizations
+		AsyncTask	task1	= scheduler->Run<Test3_Task1>( Tuple{ArgRef(value)} );
 
-        scheduler->Cancel( task1 );
+		scheduler->Cancel( task1 );
 
-        AsyncTask   task2   = scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)}, Tuple{WeakDep{task1}} );
+		AsyncTask	task2	= scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)}, Tuple{WeakDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
-        TEST( task1->Status() == EStatus::Canceled );
-        TEST( task2->Status() == EStatus::Completed );
+		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( task1->Status() == EStatus::Canceled );
+		TEST( task2->Status() == EStatus::Completed );
 
-        TEST( value.guard.try_lock() );
-        TEST( value.str == "012" );
-        value.guard.unlock();
-    }
+		TEST( value.guard.try_lock() );
+		TEST( value.str == "012" );
+		value.guard.unlock();
+	}
 //-----------------------------------------------------------------------------
 
 
 
-    struct Test4_CustomDep
-    {
-        Atomic<bool>*   flagRef = null;
-    };
+	struct Test4_CustomDep
+	{
+		Atomic<bool>*	flagRef = null;
+	};
 
-    class Test4_TaskDepManager final : public ITaskDependencyManager
-    {
-    private:
-        struct TaskDependency
-        {
-            Test4_CustomDep     dep;
-            AsyncTask           task;
-            uint                bitIndex;
+	class Test4_TaskDepManager final : public ITaskDependencyManager
+	{
+	private:
+		struct TaskDependency
+		{
+			Test4_CustomDep		dep;
+			AsyncTask			task;
+			uint				bitIndex;
 
-            TaskDependency (const Test4_CustomDep &dep, AsyncTask task, uint index) : dep{dep}, task{RVRef(task)}, bitIndex{index} {}
-        };
+			TaskDependency (const Test4_CustomDep &dep, AsyncTask task, uint index) : dep{dep}, task{RVRef(task)}, bitIndex{index} {}
+		};
 
-        class UpdateTask : public IAsyncTask
-        {
-        public:
-            RC<Test4_TaskDepManager>    _mngr;
+		class UpdateTask : public IAsyncTask
+		{
+		public:
+			RC<Test4_TaskDepManager>	_mngr;
 
-            UpdateTask (const RC<Test4_TaskDepManager> &mngr) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, _mngr{mngr}
-            {}
+			UpdateTask (const RC<Test4_TaskDepManager> &mngr) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, _mngr{mngr}
+			{}
 
-            void  Run () __Th_OV
-            {
-                _mngr->Update();
-            }
+			void  Run () __Th_OV
+			{
+				_mngr->Update();
+			}
 
-            StringView  DbgName () C_NE_OV { return "Test4_TaskDepManager::UpdateTask"; }
-        };
+			StringView  DbgName () C_NE_OV { return "Test4_TaskDepManager::UpdateTask"; }
+		};
 
-    private:
-        Mutex                   _depsListGuard;
-        Array<TaskDependency>   _depsList;
+	private:
+		Mutex					_depsListGuard;
+		Array<TaskDependency>	_depsList;
 
 
-    public:
-        void  Update ()
-        {
-            EXLOCK( _depsListGuard );
+	public:
+		void  Update ()
+		{
+			EXLOCK( _depsListGuard );
 
-            for (auto iter = _depsList.begin(); iter != _depsList.end();)
-            {
-                if ( iter->dep.flagRef->load() )
-                {
-                    _SetDependencyCompletionStatus( iter->task, iter->bitIndex, false );
-                    iter = _depsList.erase( iter );
-                }
-                else
-                    ++iter;
-            }
+			for (auto iter = _depsList.begin(); iter != _depsList.end();)
+			{
+				if ( iter->dep.flagRef->load() )
+				{
+					_SetDependencyCompletionStatus( iter->task, iter->bitIndex, false );
+					iter = _depsList.erase( iter );
+				}
+				else
+					++iter;
+			}
 
-            if ( _depsList.size() > 0 )
-                Scheduler().Run<UpdateTask>( Tuple{Cast<Test4_TaskDepManager>(GetRC())} );
-        }
+			if ( _depsList.size() > 0 )
+				Scheduler().Run<UpdateTask>( Tuple{Cast<Test4_TaskDepManager>(GetRC())} );
+		}
 
-        bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV
-        {
-            CHECK_ERR( dep.Is<Test4_CustomDep>() );
-            EXLOCK( _depsListGuard );
+		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV
+		{
+			CHECK_ERR( dep.Is<Test4_CustomDep>() );
+			EXLOCK( _depsListGuard );
 
-            _depsList.emplace_back( dep.As<Test4_CustomDep>(), RVRef(task), bitIndex );
-            ++bitIndex;
+			_depsList.emplace_back( dep.As<Test4_CustomDep>(), RVRef(task), bitIndex );
+			++bitIndex;
 
-            if ( _depsList.size() == 1 )
-                Scheduler().Run<UpdateTask>( Tuple{Cast<Test4_TaskDepManager>(GetRC())} );
+			if ( _depsList.size() == 1 )
+				Scheduler().Run<UpdateTask>( Tuple{Cast<Test4_TaskDepManager>(GetRC())} );
 
-            return true;
-        }
-    };
+			return true;
+		}
+	};
 
-    class Test4_Task1 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test4_Task1 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test4_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test4_Task1 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '1';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '1';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'A';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'A';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test4_Task1"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test4_Task1"; }
+	};
 
-    class Test4_Task2 : public IAsyncTask
-    {
-    public:
-        ExeOrder&   value;
+	class Test4_Task2 : public IAsyncTask
+	{
+	public:
+		ExeOrder&	value;
 
-        Test4_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
+		Test4_Task2 (ExeOrder &val) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-        void  Run () __Th_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += '2';
-            value.guard.unlock();
-        }
+		void  Run () __Th_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += '2';
+			value.guard.unlock();
+		}
 
-        void  OnCancel () __NE_OV
-        {
-            TEST( value.guard.try_lock() );
-            value.str += 'B';
-            value.guard.unlock();
-        }
+		void  OnCancel () __NE_OV
+		{
+			TEST( value.guard.try_lock() );
+			value.str += 'B';
+			value.guard.unlock();
+		}
 
-        StringView  DbgName () C_NE_OV { return "Test4_Task2"; }
-    };
+		StringView  DbgName () C_NE_OV { return "Test4_Task2"; }
+	};
 
-    static void  TaskDeps_Test4 ()
-    {
-        LocalTaskScheduler  scheduler   {WorkerQueueCount(1)};
-        Atomic<bool>        flag        {false};
-        Test4_CustomDep     custom_dep  {&flag};
-        auto                task_mngr   = MakeRC<Test4_TaskDepManager>();
+	static void  TaskDeps_Test4 ()
+	{
+		LocalTaskScheduler	scheduler	{WorkerQueueCount(1)};
+		Atomic<bool>		flag		{false};
+		Test4_CustomDep		custom_dep	{&flag};
+		auto				task_mngr	= MakeRC<Test4_TaskDepManager>();
 
-        ExeOrder    value;  // access to value protected by internal synchronizations
+		ExeOrder	value;	// access to value protected by internal synchronizations
 
-        scheduler->RegisterDependency<Test4_CustomDep>( task_mngr );
+		scheduler->RegisterDependency<Test4_CustomDep>( task_mngr );
 
-        AsyncTask   task1   = scheduler->Run<Test4_Task1>( Tuple{ArgRef(value)} );
-        AsyncTask   task2   = scheduler->Run<Test4_Task2>( Tuple{ArgRef(value)}, Tuple{task1, custom_dep} );
+		AsyncTask	task1	= scheduler->Run<Test4_Task1>( Tuple{ArgRef(value)} );
+		AsyncTask	task2	= scheduler->Run<Test4_Task2>( Tuple{ArgRef(value)}, Tuple{task1, custom_dep} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-        TEST( scheduler->Wait( {task1}, c_MaxTimeout ));
-        TEST( task1->Status() == EStatus::Completed );
-        TEST( not scheduler->Wait( {task2}, nanoseconds{100'000} ));
+		TEST( scheduler->Wait( {task1}, c_MaxTimeout ));
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( not scheduler->Wait( {task2}, nanoseconds{100'000} ));
 
-        flag.store( true );
+		flag.store( true );
 
-        TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
-        TEST( task2->Status() == EStatus::Completed );
-        TEST( flag.load() == true );
+		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( task2->Status() == EStatus::Completed );
+		TEST( flag.load() == true );
 
-        TEST( value.guard.try_lock() );
-        TEST( value.str == "012" );
-        value.guard.unlock();
-    }
+		TEST( value.guard.try_lock() );
+		TEST( value.str == "012" );
+		value.guard.unlock();
+	}
 }
 
 
 extern void UnitTest_TaskDeps ()
 {
-    StaticAssert( alignof(IAsyncTask) == AE_CACHE_LINE );
+	StaticAssert( alignof(IAsyncTask) == AE_CACHE_LINE );
 
-    TaskDeps_Test1();
-    TaskDeps_Test2();
-    TaskDeps_Test3();
-    TaskDeps_Test4();
+	TaskDeps_Test1();
+	TaskDeps_Test2();
+	TaskDeps_Test3();
+	TaskDeps_Test4();
 
-    TEST_PASSED();
+	TEST_PASSED();
 }
 
 #else

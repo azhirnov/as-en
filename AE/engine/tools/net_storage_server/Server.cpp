@@ -9,147 +9,147 @@ using namespace AE::VFS;
 
 namespace
 {
-    static const FrameUID   c_InitialFrameId = FrameUID::Init( 2 );
+	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
 
 
-    class Server final : public BaseServer
-    {
-    public:
-        Server () {}
+	class Server final : public BaseServer
+	{
+	public:
+		Server () {}
 
-        ND_ bool  AddChannel (ushort port)      { return _AddChannelReliableTCP( port ); }
+		ND_ bool  AddChannel (ushort port)		{ return _AddChannelReliableTCP( port ); }
 
-        using BaseServer::_Initialize;
-    };
-
-
-    class ClientListener final : public DefaultClientListener
-    {
-        NetworkStorageServer&   _server;
-
-    public:
-        ClientListener (NetworkStorageServer &server)                           __NE___ : _server{server} {}
-
-        EClientLocalID  OnClientConnected (EChannel ch, const IpAddress &addr)  __NE_OV
-        {
-            auto    id = DefaultClientListener::OnClientConnected( ch, addr );
-            if ( id != Default )
-                _server.AddClient( id );
-            return id;
-        }
-
-        EClientLocalID  OnClientConnected (EChannel ch, const IpAddress6 &addr) __NE_OV
-        {
-            auto    id = DefaultClientListener::OnClientConnected( ch, addr );
-            if ( id != Default )
-                _server.AddClient( id );
-            return id;
-        }
-
-        void  OnClientDisconnected (EChannel ch, EClientLocalID id)             __NE_OV
-        {
-            _server.RemoveClient( id );
-            DefaultClientListener::OnClientDisconnected( ch, id );
-        }
-    };
+		using BaseServer::_Initialize;
+	};
 
 
-    ND_ static bool  Initialize ()
-    {
-        TaskScheduler::Config   cfg;
-        cfg.maxBackgroundQueues = 2;
-        cfg.maxIOAccessThreads  = 1;
-        cfg.mainThreadCoreId    = ECpuCoreId(0);
+	class ClientListener final : public DefaultClientListener
+	{
+		NetworkStorageServer&	_server;
 
-        TaskScheduler::InstanceCtor::Create();
-        CHECK_ERR( Scheduler().Setup( cfg ));
+	public:
+		ClientListener (NetworkStorageServer &server)							__NE___ : _server{server} {}
 
-        CHECK_ERR( Networking::SocketService::Instance().Initialize() );
+		EClientLocalID  OnClientConnected (EChannel ch, const IpAddress &addr)	__NE_OV
+		{
+			auto	id = DefaultClientListener::OnClientConnected( ch, addr );
+			if ( id != Default )
+				_server.AddClient( id );
+			return id;
+		}
 
-        //VirtualFileSystem::InstanceCtor::Create();
-        return true;
-    }
+		EClientLocalID  OnClientConnected (EChannel ch, const IpAddress6 &addr)	__NE_OV
+		{
+			auto	id = DefaultClientListener::OnClientConnected( ch, addr );
+			if ( id != Default )
+				_server.AddClient( id );
+			return id;
+		}
+
+		void  OnClientDisconnected (EChannel ch, EClientLocalID id)				__NE_OV
+		{
+			_server.RemoveClient( id );
+			DefaultClientListener::OnClientDisconnected( ch, id );
+		}
+	};
 
 
-    static void  Deinitialize ()
-    {
-        Scheduler().Release();
-        TaskScheduler::InstanceCtor::Destroy();
+	ND_ static bool  Initialize ()
+	{
+		TaskScheduler::Config	cfg;
+		cfg.maxBackgroundQueues	= 2;
+		cfg.maxIOAccessThreads	= 1;
+		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
-        Networking::SocketService::Instance().Deinitialize();
-        //VirtualFileSystem::InstanceCtor::Destroy();
-    }
+		TaskScheduler::InstanceCtor::Create();
+		CHECK_ERR( Scheduler().Setup( cfg ));
+
+		CHECK_ERR( Networking::SocketService::Instance().Initialize() );
+
+		//VirtualFileSystem::InstanceCtor::Create();
+		return true;
+	}
 
 
-    ND_ static bool  RunVFSServer (const ushort port, ArrayView<Path> dirs)
-    {
-        using Clock_t = std::chrono::high_resolution_clock;
+	static void  Deinitialize ()
+	{
+		Scheduler().Release();
+		TaskScheduler::InstanceCtor::Destroy();
 
-        NetworkStorageServer    vfs_server;
-        auto                    mf          = MakeRC<MessageFactory>();
-        Server                  server;
+		Networking::SocketService::Instance().Deinitialize();
+		//VirtualFileSystem::InstanceCtor::Destroy();
+	}
 
-        CHECK_ERR( server._Initialize( mf, MakeRC<ClientListener>( vfs_server ), null, c_InitialFrameId ));
 
-        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-                EThreadArray{ EThread::Background, EThread::FileIO },
-                "background-1"
-            }));
+	ND_ static bool  RunVFSServer (const ushort port, ArrayView<Path> dirs)
+	{
+		using Clock_t = std::chrono::high_resolution_clock;
 
-        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-                EThreadArray{ EThread::Background, EThread::FileIO },
-                "background-2"
-            }));
+		NetworkStorageServer	vfs_server;
+		auto					mf			= MakeRC<MessageFactory>();
+		Server					server;
 
-        CHECK_ERR( Register_NetVFS( *mf ));
-        CHECK_ERR( server.AddChannel( port ));
+		CHECK_ERR( server._Initialize( mf, MakeRC<ClientListener>( vfs_server ), null, c_InitialFrameId ));
 
-        CHECK_ERR( server.Add( vfs_server.GetMessageProducer().GetRC() ));
-        CHECK_ERR( server.Add( vfs_server.GetMessageConsumer().GetRC() ));
+		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
+				EThreadArray{ EThread::Background, EThread::FileIO },
+				"background-1"
+			}));
 
-        CHECK_ERR( vfs_server.AddFolders( dirs ));
+		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
+				EThreadArray{ EThread::Background, EThread::FileIO },
+				"background-2"
+			}));
 
-        const milliseconds  server_tick {1000/30};  // ~30 FPS
+		CHECK_ERR( Register_NetVFS( *mf ));
+		CHECK_ERR( server.AddChannel( port ));
 
-        for (FrameUID fid = c_InitialFrameId;;)
-        {
-            const auto  begin = Clock_t::now();
+		CHECK_ERR( server.Add( vfs_server.GetMessageProducer().GetRC() ));
+		CHECK_ERR( server.Add( vfs_server.GetMessageConsumer().GetRC() ));
 
-            // don't reorder instructions
-            CompilerBarrier( EMemoryOrder::Acquire );
+		CHECK_ERR( vfs_server.AddFolders( dirs ));
 
-            // send & receive messages
-            auto    stat = server.Update( fid );
+		const milliseconds	server_tick {1000/30};	// ~30 FPS
 
-            // don't reorder instructions
-            CompilerBarrier( EMemoryOrder::Release );
+		for (FrameUID fid = c_InitialFrameId;;)
+		{
+			const auto	begin = Clock_t::now();
 
-            const auto  dt = TimeCast<milliseconds>(Clock_t::now() - begin);
+			// don't reorder instructions
+			CompilerBarrier( EMemoryOrder::Acquire );
 
-            if ( dt < server_tick )
-                ThreadUtils::MilliSleep( server_tick - dt );
+			// send & receive messages
+			auto	stat = server.Update( fid );
 
-            // increase frame index only when all messages are sent
-            if ( stat )
-                fid.Inc();
-        }
+			// don't reorder instructions
+			CompilerBarrier( EMemoryOrder::Release );
 
-        return true;
-    }
+			const auto	dt = TimeCast<milliseconds>(Clock_t::now() - begin);
+
+			if ( dt < server_tick )
+				ThreadUtils::MilliSleep( server_tick - dt );
+
+			// increase frame index only when all messages are sent
+			if ( stat )
+				fid.Inc();
+		}
+
+		return true;
+	}
 }
 
 
 int main ()
 {
-    AE::Base::StaticLogger::LoggerDbgScope  log{};
+	AE::Base::StaticLogger::LoggerDbgScope	log{};
 
-    Array<Path> dirs;
+	Array<Path>	dirs;
     dirs.push_back( R"(path)" );
 
-    CHECK_ERR( not dirs.empty(), -1 );
-    CHECK_ERR( Initialize(), -2 );
-    CHECK_ERR( RunVFSServer( 4000, dirs ), -3 );
-    Deinitialize();
+	CHECK_ERR( not dirs.empty(), -1 );
+	CHECK_ERR( Initialize(), -2 );
+	CHECK_ERR( RunVFSServer( 4000, dirs ), -3 );
+	Deinitialize();
 
-    return 0;
+	return 0;
 }

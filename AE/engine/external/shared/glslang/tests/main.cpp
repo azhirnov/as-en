@@ -15,8 +15,8 @@
 
 // SPIRV-Tools includes
 #ifdef ENABLE_OPT
-#   include "spirv-tools/optimizer.hpp"
-#   include "spirv-tools/libspirv.h"
+#	include "spirv-tools/optimizer.hpp"
+#	include "spirv-tools/libspirv.h"
 #endif
 
 #if GLSLANG_VERSION_MAJOR != 14 || GLSLANG_VERSION_MINOR != 0 || GLSLANG_VERSION_PATCH != 0
@@ -25,8 +25,8 @@
 
 int main ()
 {
-    glslang::InitializeProcess();
+	glslang::InitializeProcess();
 
-    glslang::FinalizeProcess();
-    return 0;
+	glslang::FinalizeProcess();
+	return 0;
 }

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    thread-safe: yes
+	thread-safe: yes
 */
 
 #pragma once
@@ -10,174 +10,174 @@
 namespace AE::Base
 {
 
-    //
-    // Stack Allocator
-    //
+	//
+	// Stack Allocator
+	//
 
-    template <typename AllocatorType,
-              uint MaxBlocks
-             >
-    class StackAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
-    {
-        StaticAssert( MaxBlocks > 0 );
+	template <typename AllocatorType,
+			  uint MaxBlocks
+			 >
+	class StackAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
+	{
+		StaticAssert( MaxBlocks > 0 );
 
-    // types
-    private:
-        using BaseAllocator_t   = StackAllocator< AllocatorType, MaxBlocks, false >;
-    public:
-        using Self              = StackAllocator< AllocatorType, MaxBlocks, true >;
-        using Allocator_t       = AllocatorType;
-        using Bookmark          = typename BaseAllocator_t::Bookmark;
-
-
-    // variables
-    private:
-        Mutex               _guard;
-        BaseAllocator_t     _base;
+	// types
+	private:
+		using BaseAllocator_t	= StackAllocator< AllocatorType, MaxBlocks, false >;
+	public:
+		using Self				= StackAllocator< AllocatorType, MaxBlocks, true >;
+		using Allocator_t		= AllocatorType;
+		using Bookmark			= typename BaseAllocator_t::Bookmark;
 
 
-    // methods
-    public:
-        StackAllocator ()                                               __NE___ {}
-        StackAllocator (Self &&other)                                   __NE___;
-        explicit StackAllocator (const Allocator_t &alloc)              __NE___ : _base{ alloc } {}
-        ~StackAllocator ()                                              __NE___ { Release(); }
-
-            Self&       operator = (Self &&rhs)                         __NE___;
-
-            void        SetBlockSize (Bytes size)                       __NE___;
-
-        ND_ Bookmark    Push ()                                         __NE___;
-            void        Pop (Bookmark bm)                               __NE___;
-
-            void        Release ()                                      __NE___;
+	// variables
+	private:
+		Mutex				_guard;
+		BaseAllocator_t		_base;
 
 
-        // IAllocator //
-        ND_ void*       Allocate (const SizeAndAlign sizeAndAlign)      __NE_OV;
-            using       IAllocator::Allocate;
+	// methods
+	public:
+		StackAllocator ()												__NE___ {}
+		StackAllocator (Self &&other)									__NE___;
+		explicit StackAllocator (const Allocator_t &alloc)				__NE___ : _base{ alloc } {}
+		~StackAllocator ()												__NE___	{ Release(); }
 
-            void        Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
-            void        Deallocate (void* ptr, Bytes size)              __NE_OV;
-            void        Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
+			Self&		operator = (Self &&rhs)							__NE___;
 
-            void        Discard ()                                      __NE_OV;
-    };
+			void		SetBlockSize (Bytes size)						__NE___;
+
+		ND_ Bookmark	Push ()											__NE___;
+			void		Pop (Bookmark bm)								__NE___;
+
+			void		Release ()										__NE___;
 
 
+		// IAllocator //
+		ND_ void*		Allocate (const SizeAndAlign sizeAndAlign)		__NE_OV;
+			using		IAllocator::Allocate;
 
-/*
-=================================================
-    constructor
-=================================================
-*/
-    template <typename A, uint MB>
-    StackAllocator<A,MB,true>::StackAllocator (Self &&other) __NE___
-    {
-        EXLOCK( _guard, other._guard );
-        _base = RVRef(other._base);
-    }
+			void		Deallocate (void* ptr)							__NE_OV	{ Deallocate( ptr, 1_b ); }
+			void		Deallocate (void* ptr, Bytes size)				__NE_OV;
+			void		Deallocate (void* ptr, const SizeAndAlign sa)	__NE_OV	{ Deallocate( ptr, sa.size ); }
+
+			void		Discard ()										__NE_OV;
+	};
+
+
 
 /*
 =================================================
-    operator =
+	constructor
 =================================================
 */
-    template <typename A, uint MB>
-    StackAllocator<A,MB,true>&  StackAllocator<A,MB,true>::operator = (Self &&rhs) __NE___
-    {
-        EXLOCK( _guard, rhs._guard );
-        _base = RVRef(rhs._base);
-        return *this;
-    }
+	template <typename A, uint MB>
+	StackAllocator<A,MB,true>::StackAllocator (Self &&other) __NE___
+	{
+		EXLOCK( _guard, other._guard );
+		_base = RVRef(other._base);
+	}
 
 /*
 =================================================
-    SetBlockSize
+	operator =
 =================================================
 */
-    template <typename A, uint MB>
-    void  StackAllocator<A,MB,true>::SetBlockSize (Bytes size) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.SetBlockSize( size );
-    }
+	template <typename A, uint MB>
+	StackAllocator<A,MB,true>&  StackAllocator<A,MB,true>::operator = (Self &&rhs) __NE___
+	{
+		EXLOCK( _guard, rhs._guard );
+		_base = RVRef(rhs._base);
+		return *this;
+	}
 
 /*
 =================================================
-    Allocate
+	SetBlockSize
 =================================================
 */
-    template <typename A, uint MB>
-    void*  StackAllocator<A,MB,true>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Allocate( sizeAndAlign );
-    }
+	template <typename A, uint MB>
+	void  StackAllocator<A,MB,true>::SetBlockSize (Bytes size) __NE___
+	{
+		EXLOCK( _guard );
+		return _base.SetBlockSize( size );
+	}
 
 /*
 =================================================
-    Deallocate
+	Allocate
 =================================================
 */
-    template <typename A, uint MB>
-    void  StackAllocator<A,MB,true>::Deallocate (void* ptr, Bytes size) __NE___
-    {
-    #ifdef AE_DEBUG
-        EXLOCK( _guard );
-        _base.Deallocate( ptr, size );
-    #else
-        Unused( ptr, size );
-    #endif
-    }
+	template <typename A, uint MB>
+	void*  StackAllocator<A,MB,true>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Allocate( sizeAndAlign );
+	}
 
 /*
 =================================================
-    Push
+	Deallocate
 =================================================
 */
-    template <typename A, uint MB>
-    typename StackAllocator<A,MB,true>::Bookmark  StackAllocator<A,MB,true>::Push () __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Push();
-    }
+	template <typename A, uint MB>
+	void  StackAllocator<A,MB,true>::Deallocate (void* ptr, Bytes size) __NE___
+	{
+	#ifdef AE_DEBUG
+		EXLOCK( _guard );
+		_base.Deallocate( ptr, size );
+	#else
+		Unused( ptr, size );
+	#endif
+	}
 
 /*
 =================================================
-    Pop
+	Push
 =================================================
 */
-    template <typename A, uint MB>
-    void  StackAllocator<A,MB,true>::Pop (Bookmark bm) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Pop( bm );
-    }
+	template <typename A, uint MB>
+	typename StackAllocator<A,MB,true>::Bookmark  StackAllocator<A,MB,true>::Push () __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Push();
+	}
 
 /*
 =================================================
-    Discard
+	Pop
 =================================================
 */
-    template <typename A, uint MB>
-    void  StackAllocator<A,MB,true>::Discard () __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Discard();
-    }
+	template <typename A, uint MB>
+	void  StackAllocator<A,MB,true>::Pop (Bookmark bm) __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Pop( bm );
+	}
 
 /*
 =================================================
-    Release
+	Discard
 =================================================
 */
-    template <typename A, uint MB>
-    void  StackAllocator<A,MB,true>::Release () __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Release();
-    }
+	template <typename A, uint MB>
+	void  StackAllocator<A,MB,true>::Discard () __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Discard();
+	}
+
+/*
+=================================================
+	Release
+=================================================
+*/
+	template <typename A, uint MB>
+	void  StackAllocator<A,MB,true>::Release () __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Release();
+	}
 
 
 } // AE::Base

@@ -9,51 +9,51 @@ namespace AE::GeometryTools
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    GridRenderer::~GridRenderer () __NE___
-    {
-        CHECK( not _vertexBuffer );
-        CHECK( not _indexBuffer );
-    }
+	GridRenderer::~GridRenderer () __NE___
+	{
+		CHECK( not _vertexBuffer );
+		CHECK( not _indexBuffer );
+	}
 
 /*
 =================================================
-    Create
+	Create
 =================================================
 */
-    bool  GridRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, GfxMemAllocatorPtr gfxAlloc, uint vertsPerEdge, uint patchSize) __NE___
-    {
-        Destroy( resMngr );
+	bool  GridRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, GfxMemAllocatorPtr gfxAlloc, uint vertsPerEdge, uint patchSize) __NE___
+	{
+		Destroy( resMngr );
 
-        GridGen     gen;
-        CHECK_ERR( gen.Create( vertsPerEdge, patchSize ));
+		GridGen		gen;
+		CHECK_ERR( gen.Create( vertsPerEdge, patchSize ));
 
-        const auto  vertices    = gen.GetVertices();
-        const auto  indices     = gen.GetIndices();
+		const auto	vertices	= gen.GetVertices();
+		const auto	indices		= gen.GetIndices();
 
-        _indexCount     = uint(indices.size());
-        _vertexBuffer   = resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(vertices), EBufferUsage::Vertex | EBufferUsage::TransferDst }, "Grid vertices", gfxAlloc );
-        _indexBuffer    = resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(indices),  EBufferUsage::Index  | EBufferUsage::TransferDst }, "Grid indices",  gfxAlloc );
-        CHECK_ERR( _vertexBuffer and _indexBuffer );
+		_indexCount		= uint(indices.size());
+		_vertexBuffer	= resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(vertices), EBufferUsage::Vertex | EBufferUsage::TransferDst }, "Grid vertices", gfxAlloc );
+		_indexBuffer	= resMngr.CreateBuffer( BufferDesc{ ArraySizeOf(indices),  EBufferUsage::Index  | EBufferUsage::TransferDst }, "Grid indices",  gfxAlloc );
+		CHECK_ERR( _vertexBuffer and _indexBuffer );
 
-        CHECK_ERR( ctx.UploadBuffer( _vertexBuffer, 0_b, vertices ));
-        CHECK_ERR( ctx.UploadBuffer( _indexBuffer,  0_b, indices  ));
+		CHECK_ERR( ctx.UploadBuffer( _vertexBuffer, 0_b, vertices ));
+		CHECK_ERR( ctx.UploadBuffer( _indexBuffer,  0_b, indices  ));
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    Destroy
+	Destroy
 =================================================
 */
-    void  GridRenderer::Destroy (IResourceManager &resMngr) __NE___
-    {
-        resMngr.ReleaseResource( INOUT _vertexBuffer );
-        resMngr.ReleaseResource( INOUT _indexBuffer );
-    }
+	void  GridRenderer::Destroy (IResourceManager &resMngr) __NE___
+	{
+		resMngr.ReleaseResource( INOUT _vertexBuffer );
+		resMngr.ReleaseResource( INOUT _indexBuffer );
+	}
 
 
 } // AE::GeometryTools

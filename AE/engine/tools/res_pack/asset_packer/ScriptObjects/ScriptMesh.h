@@ -7,29 +7,29 @@
 namespace AE::AssetPacker
 {
 
-    //
-    // Script Mesh
-    //
+	//
+	// Script Mesh
+	//
 
-    class ScriptMesh final : public EnableScriptRC
-    {
-    // types
-    private:
-
-
-    // variables
-    private:
+	class ScriptMesh final : public EnableScriptRC
+	{
+	// types
+	private:
 
 
-    // methods
-    public:
-        ScriptMesh ();
-        ~ScriptMesh ();
+	// variables
+	private:
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
-    };
 
-    using ScriptMeshPtr = ScriptRC< ScriptMesh >;
+	// methods
+	public:
+		ScriptMesh ();
+		~ScriptMesh ();
+
+		static void  Bind (const ScriptEnginePtr &se) __Th___;
+	};
+
+	using ScriptMeshPtr = ScriptRC< ScriptMesh >;
 
 
 } // AE::AssetPacker

@@ -12,7 +12,7 @@
 
 #ifdef AE_ENABLE_DATA_RACE_CHECK
 # if AE_ENABLE_DATA_RACE_CHECK
-#   error AE_ENABLE_DATA_RACE_CHECK must be 0
+#	error AE_ENABLE_DATA_RACE_CHECK must be 0
 # endif
 #endif
 

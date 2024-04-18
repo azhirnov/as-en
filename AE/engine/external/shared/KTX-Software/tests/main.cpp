@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_KTX
-#   error AE_ENABLE_KTX required
+#	error AE_ENABLE_KTX required
 #endif
 
 #define KHRONOS_STATIC
@@ -14,6 +14,6 @@ extern int AE_KTX_Test ()
 int main ()
 #endif
 {
-    ktxTexture2_CreateFromMemory( nullptr, 0, 0, nullptr );
-    return 0;
+	ktxTexture2_CreateFromMemory( nullptr, 0, 0, nullptr );
+	return 0;
 }

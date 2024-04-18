@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_IMGUI
-#   error AE_ENABLE_IMGUI required
+#	error AE_ENABLE_IMGUI required
 #endif
 
 #include "imgui.h"
@@ -14,9 +14,9 @@ extern int AE_imgui_Test ()
 int main ()
 #endif
 {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-    ImGui::DestroyContext(GImGui);
-    return 0;
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui::DestroyContext(GImGui);
+	return 0;
 }

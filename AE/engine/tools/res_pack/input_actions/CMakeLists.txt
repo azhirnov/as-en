@@ -2,22 +2,22 @@
 
 set( PLATFORM_DIR "${MAIN_SOURCE_DIR}/engine/src/platform" )
 set( PLATFORM_HPP_SRC
-    "${PLATFORM_DIR}/Private/SerializableInputActions.h"
-    "${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.h"
-    "${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.h"
-    "${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.h"
-    "${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.h" )
+	"${PLATFORM_DIR}/Private/SerializableInputActions.h"
+	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.h"
+	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.h"
+	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.h"
+	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.h" )
 
 set( PLATFORM_CPP_SRC
-    "${PLATFORM_DIR}/Private/SerializableInputActions.cpp"
-    "${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.cpp"
-    "${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.cpp"
-    "${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.cpp"
-    "${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.cpp" )
+	"${PLATFORM_DIR}/Private/SerializableInputActions.cpp"
+	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.cpp"
+	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.cpp"
+	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.cpp"
+	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.cpp" )
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 if (NOT (DEFINED ENGINE_LIBS_PATH))
-    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
@@ -33,9 +33,9 @@ EnablePCH( "InputActionsBinding" )
 EnablePrebuild( "InputActionsBinding" )
 
 add_library( "InputActionsBinding-shared" SHARED
-    "InputActionsBinding.h"
-    "Lib/Export.cpp"
-    "Lib/InputActionsBinding.def"
+	"InputActionsBinding.h"
+	"Lib/Export.cpp"
+	"Lib/InputActionsBinding.def"
 )
 target_link_libraries( "InputActionsBinding-shared" PUBLIC "InputActionsBinding" )
 

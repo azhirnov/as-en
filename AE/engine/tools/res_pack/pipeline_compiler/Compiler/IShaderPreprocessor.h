@@ -7,17 +7,17 @@
 namespace AE::PipelineCompiler
 {
 
-    //
-    // Shader Preprocessor interface
-    //
+	//
+	// Shader Preprocessor interface
+	//
 
-    class IShaderPreprocessor
-    {
-    public:
-        virtual ~IShaderPreprocessor () {}
+	class IShaderPreprocessor
+	{
+	public:
+		virtual ~IShaderPreprocessor () {}
 
-        virtual bool  Process (EShader shaderType, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr) = 0;
-    };
+		virtual bool  Process (EShader shaderType, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr) = 0;
+	};
 
 
 } // AE::PipelineCompiler

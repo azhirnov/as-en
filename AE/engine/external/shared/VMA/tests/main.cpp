@@ -13,5 +13,5 @@ extern int AE_VMA_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

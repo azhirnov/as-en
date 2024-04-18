@@ -7,30 +7,30 @@
 namespace AE::Networking
 {
 
-    //
-    // Default Client/Server Message Consumer
-    //
+	//
+	// Default Client/Server Message Consumer
+	//
 
-    class DefaultCSMessageConsumer final : public ICSMessageConsumer
-    {
-    // types
-    private:
-        using Fn = Function< void (ChunkList<const CSMessagePtr>) >;
-
-
-    // variables
-    private:
-        const Fn                _fn;
-        const CSMessageGroupID  _groupId;
+	class DefaultCSMessageConsumer final : public ICSMessageConsumer
+	{
+	// types
+	private:
+		using Fn = Function< void (ChunkList<const CSMessagePtr>) >;
 
 
-    // methods
-    public:
-        DefaultCSMessageConsumer (Fn fn, CSMessageGroupID id)   __NE___ : _fn{RVRef(fn)}, _groupId{id} {}
+	// variables
+	private:
+		const Fn				_fn;
+		const CSMessageGroupID	_groupId;
 
-        CSMessageGroupID  GetGroupID ()                         C_NE_OV { return _groupId; }
-        void  Consume (ChunkList<const CSMessagePtr> msgList)   __NE_OV { _fn( msgList ); }
-    };
+
+	// methods
+	public:
+		DefaultCSMessageConsumer (Fn fn, CSMessageGroupID id)	__NE___ : _fn{RVRef(fn)}, _groupId{id} {}
+
+		CSMessageGroupID  GetGroupID ()							C_NE_OV	{ return _groupId; }
+		void  Consume (ChunkList<const CSMessagePtr> msgList)	__NE_OV	{ _fn( msgList ); }
+	};
 
 
 } // AE::Networking

@@ -3,45 +3,45 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 # External dependencies
-set( AE_ENABLE_FILESYSTEM       ON  CACHE BOOL "enable alternative std::filesystem" )
-set( AE_ENABLE_ARM_HWCPIPE      ON  CACHE BOOL "enable ARM (Mali) performance counters" )
-set( AE_ENABLE_HWPERCOUNTER     ON  CACHE BOOL "enable Google performance counters for Adreno/Mali" )
+set( AE_ENABLE_FILESYSTEM  		ON  CACHE BOOL "enable alternative std::filesystem" )
+set( AE_ENABLE_ARM_HWCPIPE 		OFF CACHE BOOL "enable ARM (Mali) performance counters" )
+set( AE_ENABLE_HWPERCOUNTER		OFF CACHE BOOL "enable Google performance counters for Adreno/Mali" )
 
-set( AE_ENABLE_ASSIMP           OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_CDT              OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_GLSLANG          OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_SPIRV_CROSS      OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_GLFW             OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_FREETYPE         OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_MSDFGEN          OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_MESH_OPTIMIZER   OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_KTX              OFF CACHE INTERNAL "" FORCE )
-set( AE_ENABLE_TINYGLTF         OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_CDT				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_GLSLANG			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_SPIRV_CROSS 		OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_GLFW				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_FREETYPE			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_MSDFGEN			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_MESH_OPTIMIZER	OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_KTX				OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_TINYGLTF			OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 
-set( AE_DST_PATH        "${AE_EXTERNAL_REP_PATH}/external/android-clang" CACHE INTERNAL "" FORCE )
+set( AE_DST_PATH 		"${AE_EXTERNAL_REP_PATH}/external/android-clang" CACHE INTERNAL "" FORCE )
 set( AE_DST_SHARED_PATH "${AE_EXTERNAL_REP_PATH}/external/android-clang" CACHE INTERNAL "" FORCE )
 
 if (NOT EXISTS "${ANDROID_NDK}")
-    message( FATAL_ERROR "NDK path '${ANDROID_NDK}' is not exists" )
+	message( FATAL_ERROR "NDK path '${ANDROID_NDK}' is not exists" )
 endif()
 if (${AE_ENABLE_EXTERNAL_TESTS})
-    add_library( native_app_glue STATIC "${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c" )
-    target_include_directories( native_app_glue PUBLIC "${ANDROID_NDK}/sources/android/native_app_glue" )
-    target_link_libraries( native_app_glue PUBLIC android log )
+	add_library( native_app_glue STATIC "${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c" )
+	target_include_directories( native_app_glue PUBLIC "${ANDROID_NDK}/sources/android/native_app_glue" )
+	target_link_libraries( native_app_glue PUBLIC android log )
 endif()
 
 #----------------------------------------------------------
 
 if (${AE_ENABLE_FILESYSTEM})
-    add_subdirectory( "FileSystem" )
+	add_subdirectory( "FileSystem" )
 endif ()
 
 if (${AE_ENABLE_ARM_HWCPIPE})
-    add_subdirectory( "HWCPipe" )
+	add_subdirectory( "HWCPipe" )
 endif ()
 
 if (${AE_ENABLE_HWPERCOUNTER})
-    add_subdirectory( "HWPerfCounter" )
+	add_subdirectory( "HWPerfCounter" )
 endif ()

@@ -15,30 +15,30 @@ extern void Test_ImageAtlasPack ();
 
 int main ()
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    {
-        const Path  curr = FileSystem::CurrentPath();
+	{
+		const Path	curr = FileSystem::CurrentPath();
 
-        Test_FeatureSetPack();
-        FileSystem::SetCurrentPath( curr );
+		Test_FeatureSetPack();
+		FileSystem::SetCurrentPath( curr );
 
-        Test_SamplerPack();
-        FileSystem::SetCurrentPath( curr );
+		Test_SamplerPack();
+		FileSystem::SetCurrentPath( curr );
 
-        Test_RenderPassPack();
-        FileSystem::SetCurrentPath( curr );
+		Test_RenderPassPack();
+		FileSystem::SetCurrentPath( curr );
 
-        Test_PipelinePack();
-        FileSystem::SetCurrentPath( curr );
+		Test_PipelinePack();
+		FileSystem::SetCurrentPath( curr );
 
-        Test_InputActions();
-        FileSystem::SetCurrentPath( curr );
+		Test_InputActions();
+		FileSystem::SetCurrentPath( curr );
 
-        Test_ImageAtlasPack();
-        FileSystem::SetCurrentPath( curr );
-    }
+		Test_ImageAtlasPack();
+		FileSystem::SetCurrentPath( curr );
+	}
 
-    AE_LOGI( "Tests.AssetPacker finished" );
-    return 0;
+	AE_LOGI( "Tests.AssetPacker finished" );
+	return 0;
 }

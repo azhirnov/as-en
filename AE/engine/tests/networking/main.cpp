@@ -15,16 +15,16 @@ extern int Test_Networking ()
 int main ()
 #endif
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    UnitTest_UDP();
-    UnitTest_TCP();
+	UnitTest_UDP();
+	UnitTest_TCP();
 
-    UnitTest_AsyncCSMessageProducer();
+	UnitTest_AsyncCSMessageProducer();
 
-    UnitTest_TcpChannel();
-    //UnitTest_UdpChannel();
+	UnitTest_TcpChannel();
+	//UnitTest_UdpChannel();
 
-    AE_LOGI( "Tests.Network finished" );
-    return 0;
+	AE_LOGI( "Tests.Network finished" );
+	return 0;
 }

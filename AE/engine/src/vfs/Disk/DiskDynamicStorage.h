@@ -7,82 +7,82 @@
 namespace AE::VFS
 {
 
-    //
-    // Disk Dynamic Storage
-    //
+	//
+	// Disk Dynamic Storage
+	//
 
-    class DiskDynamicStorage final : public IVirtualFileStorage
-    {
-    // types
-    private:
-        using FileMap_t     = FlatHashMap< FileName::Optimized_t, String >;
-        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
+	class DiskDynamicStorage final : public IVirtualFileStorage
+	{
+	// types
+	private:
+		using FileMap_t		= FlatHashMap< FileName::Optimized_t, String >;
+		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
 
-        static constexpr seconds    _UpdateInterval {10};
+		static constexpr seconds	_UpdateInterval {10};
 
-        struct SyncData
-        {
-            FileMap_t       map;
-            TimePoint_t     lastUpdate;
+		struct SyncData
+		{
+			FileMap_t		map;
+			TimePoint_t		lastUpdate;
 
-            DEBUG_ONLY(
-              NamedID_HashCollisionCheck    hashCollisionCheck;
-            )
-        };
-        using SyncData_t = Threading::Synchronized< SharedMutex, SyncData >;
-
-
-    // variables
-    private:
-        Path                _folder;
-        String              _prefix;
-        mutable SyncData_t  _fileMap;
+			DEBUG_ONLY(
+			  NamedID_HashCollisionCheck	hashCollisionCheck;
+			)
+		};
+		using SyncData_t = Threading::Synchronized< SharedMutex, SyncData >;
 
 
-    // methods
-    public:
-
-      // IVirtualFileStorage //
-        bool  Open (OUT RC<RStream> &stream, FileName::Ref name)                    C_NE_OV;
-        bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)                    C_NE_OV;
-        bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)               C_NE_OV;
-
-        bool  Open (OUT RC<WStream> &stream, FileName::Ref name)                    C_NE_OV;
-        bool  Open (OUT RC<WDataSource> &ds, FileName::Ref name)                    C_NE_OV;
-        bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)               C_NE_OV;
-
-        bool  CreateFile (OUT FileName &name, const Path &path)                     C_NE_OV;
-        bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)               C_NE_OV;
-
-        bool  Exists (FileName::Ref name)                                           C_NE_OV;
-        bool  Exists (FileGroupName::Ref name)                                      C_NE_OV;
+	// variables
+	private:
+		Path				_folder;
+		String				_prefix;
+		mutable SyncData_t	_fileMap;
 
 
-    private:
-        void  _Append (INOUT GlobalFileMap_t &)                                     C_Th_OV {}
+	// methods
+	public:
 
-        bool  _OpenByIter (OUT RC<RStream>&, FileName::Ref, const void*)            C_NE_OV { DBG_WARNING("not supported");  return false; }
-        bool  _OpenByIter (OUT RC<RDataSource>&, FileName::Ref, const void*)        C_NE_OV { DBG_WARNING("not supported");  return false; }
-        bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileName::Ref, const void*)   C_NE_OV { DBG_WARNING("not supported");  return false; }
+	  // IVirtualFileStorage //
+		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
-        using IVirtualFileStorage::_OpenByIter;
+		bool  Open (OUT RC<WStream> &stream, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<WDataSource> &ds, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
-        template <typename ImplType, typename ResultType>
-        ND_ bool  _Open (OUT ResultType &, FileName::Ref name)                      C_NE___;
+		bool  CreateFile (OUT FileName &name, const Path &path)						C_NE_OV;
+		bool  CreateUniqueFile (OUT FileName &name, INOUT Path &path)				C_NE_OV;
 
-        template <typename ImplType, typename ResultType>
-        ND_ bool  _Open2 (OUT ResultType &, FileName::Ref name)                     C_NE___;
-
-        ND_ bool  _Update ()                                                        C_NE___;
+		bool  Exists (FileName::Ref name)											C_NE_OV;
+		bool  Exists (FileGroupName::Ref name)										C_NE_OV;
 
 
-    private:
-        friend class VirtualFileStorageFactory;
-        DiskDynamicStorage ()                                                       __NE___ {}
-        ~DiskDynamicStorage ()                                                      __NE_OV {}
+	private:
+		void  _Append (INOUT GlobalFileMap_t &)										C_Th_OV	{}
 
-        ND_ bool  _Create (const Path &folder, StringView prefix, bool createFolder)__NE___;
-    };
+		bool  _OpenByIter (OUT RC<RStream>&, FileName::Ref, const void*)			C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<RDataSource>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileName::Ref, const void*)	C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+
+		using IVirtualFileStorage::_OpenByIter;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open (OUT ResultType &, FileName::Ref name)						C_NE___;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open2 (OUT ResultType &, FileName::Ref name)						C_NE___;
+
+		ND_ bool  _Update ()														C_NE___;
+
+
+	private:
+		friend class VirtualFileStorageFactory;
+		DiskDynamicStorage ()														__NE___	{}
+		~DiskDynamicStorage ()														__NE_OV {}
+
+		ND_ bool  _Create (const Path &folder, StringView prefix, bool createFolder)__NE___;
+	};
 
 
 } // AE::VFS

@@ -3,8 +3,8 @@
 
 void ASmain (OpenVR_ActionBindings& bindings)
 {
-    // Camera3D bindings
-    {
-        RC<OpenVR_BindingsMode> bind = bindings.CreateMode( "Camera3D" );
-    }
+	// Camera3D bindings
+	{
+		RC<OpenVR_BindingsMode>	bind = bindings.CreateMode( "Camera3D" );
+	}
 }

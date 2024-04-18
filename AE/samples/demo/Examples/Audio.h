@@ -6,40 +6,40 @@
 namespace AE::Samples::Demo
 {
 
-    //
-    // Audio Sample
-    //
+	//
+	// Audio Sample
+	//
 
-    class AudioSample final : public ISample
-    {
-    // types
-    private:
-        class DrawTask;
-        class ProcessInputTask;
-        class SaveSoundTask;
-
-
-    // variables
-    public:
-        ImGuiRenderer               imgui;
-        Profiler::ProfilerUI        profiler;
-
-        RC<Audio::IAudioOutput>     sound;
-        RC<Audio::IAudioInput>      recorder;
-        RC<MemWStream>              inStream;
+	class AudioSample final : public ISample
+	{
+	// types
+	private:
+		class DrawTask;
+		class ProcessInputTask;
+		class SaveSoundTask;
 
 
-    // methods
-    public:
-        AudioSample ()                                                                      __NE___ : imgui{null} {}
-        explicit AudioSample (ImGuiContext* ctx)                                            __NE___ : imgui{ctx} {}
+	// variables
+	public:
+		ImGuiRenderer				imgui;
+		Profiler::ProfilerUI		profiler;
 
-        // ISample //
-        bool            Init (PipelinePackID, IApplicationTS)                               __NE_OV;
-        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE_OV;
-        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   __NE_OV;
-        InputModeName   GetInputMode ()                                                     C_NE_OV;
-    };
+		RC<Audio::IAudioOutput>		sound;
+		RC<Audio::IAudioInput>		recorder;
+		RC<MemWStream>				inStream;
+
+
+	// methods
+	public:
+		AudioSample ()																		__NE___	: imgui{null} {}
+		explicit AudioSample (ImGuiContext* ctx)											__NE___	: imgui{ctx} {}
+
+		// ISample //
+		bool			Init (PipelinePackID, IApplicationTS)								__NE_OV;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	__NE_OV;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					__NE_OV;
+		InputModeName	GetInputMode ()														C_NE_OV;
+	};
 
 
 } // AE::Samples::Demo

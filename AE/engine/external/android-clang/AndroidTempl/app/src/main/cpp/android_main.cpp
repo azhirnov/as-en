@@ -5,6 +5,6 @@ extern int AE_TEST_NAME ();
 
 void android_main (struct android_app* state)
 {
-    AE_TEST_NAME();
+	AE_TEST_NAME();
     std::abort();
 }

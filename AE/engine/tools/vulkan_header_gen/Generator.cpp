@@ -6,40 +6,40 @@ using namespace AE::Vulkan;
 
 /*
 =================================================
-    GenerateLoader
+	GenerateLoader
 =================================================
 */
 int GenerateLoader (const char* headerPath, const char* loaderPath, Version2 minVer)
 {
-    AE_LOGI( "Load vulkan headers from: '"s << headerPath << "'" );
+	AE_LOGI( "Load vulkan headers from: '"s << headerPath << "'" );
 
-    Generator   generator;
+	Generator	generator;
 
-    CHECK_ERR( generator.BuildBasicTypeMap(), -1 );
-    CHECK_ERR( generator.BuildResourceTypeMap(), -2 );
-    CHECK_ERR( generator.ParseVkHeaders( headerPath ), -3 );
-    CHECK_ERR( generator.SetFunctionsScope(), -4 );
+	CHECK_ERR( generator.BuildBasicTypeMap(), -1 );
+	CHECK_ERR( generator.BuildResourceTypeMap(), -2 );
+	CHECK_ERR( generator.ParseVkHeaders( headerPath ), -3 );
+	CHECK_ERR( generator.SetFunctionsScope(), -4 );
 
-    CHECK_ERR( generator.GenVulkanLoaders( loaderPath, minVer ), -5 );
-    CHECK_ERR( generator.GenVulkanFeatures( loaderPath, minVer ), -6 );
+	CHECK_ERR( generator.GenVulkanLoaders( loaderPath, minVer ), -5 );
+	CHECK_ERR( generator.GenVulkanFeatures( loaderPath, minVer ), -6 );
 
-    generator.RemoveEnumValDuplicates();
-    CHECK_ERR( generator.GenEnumToString( loaderPath ), -7 );
-    return 0;
+	generator.RemoveEnumValDuplicates();
+	CHECK_ERR( generator.GenEnumToString( loaderPath ), -7 );
+	return 0;
 }
 
 /*
 =================================================
-    main
+	main
 =================================================
 */
 int main ()
 {
-    AE::Base::StaticLogger::LoggerDbgScope  log{};
+	AE::Base::StaticLogger::LoggerDbgScope	log{};
 
-    int res = GenerateLoader( VULKAN_HEADER_PATH, VULKAN_LOADER_PATH, Version2{1,0} );
-    if (res < 0)
-        return res - 300;
+	int	res = GenerateLoader( VULKAN_HEADER_PATH, VULKAN_LOADER_PATH, Version2{1,0} );
+	if (res < 0)
+		return res - 300;
 
-    return 0;
+	return 0;
 }

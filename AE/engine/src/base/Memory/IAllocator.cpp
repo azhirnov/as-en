@@ -7,25 +7,25 @@ namespace AE::Base
 {
 namespace
 {
-    struct DefaultAllocator
-    {
-        using Alloc_t = IAllocatorAdaptor< UntypedAllocator >;
+	struct DefaultAllocator
+	{
+		using Alloc_t = IAllocatorAdaptor< UntypedAllocator >;
 
-        StaticRC< Alloc_t >     alloc;
-        AtomicRC<IAllocator>    rc;         // TODO: Atomic<IAllocator*> may be faster
+		StaticRC< Alloc_t >		alloc;
+		AtomicRC<IAllocator>	rc;			// TODO: Atomic<IAllocator*> may be faster
 
-        DefaultAllocator ()
-        {
-            rc.store( alloc->GetRC() );
-        }
+		DefaultAllocator ()
+		{
+			rc.store( alloc->GetRC() );
+		}
 
-        ~DefaultAllocator ()
-        {
-            rc.reset();
-        }
-    };
+		~DefaultAllocator ()
+		{
+			rc.reset();
+		}
+	};
 
-    static DefaultAllocator     s_DefaultAllocator;
+	static DefaultAllocator		s_DefaultAllocator;
 
 } // namespace
 } // AE::Base
@@ -33,24 +33,24 @@ namespace
 
 namespace AE
 {
-    using namespace AE::Base;
+	using namespace AE::Base;
 
-    void  SetDefaultAllocator (RC<IAllocator> value) __NE___
-    {
-        if_likely( value )
-            Base::s_DefaultAllocator.rc.store( value );
-        else
-            Base::s_DefaultAllocator.rc.store( Base::s_DefaultAllocator.alloc->GetRC() );
-    }
+	void  SetDefaultAllocator (RC<IAllocator> value) __NE___
+	{
+		if_likely( value )
+			Base::s_DefaultAllocator.rc.store( value );
+		else
+			Base::s_DefaultAllocator.rc.store( Base::s_DefaultAllocator.alloc->GetRC() );
+	}
 
-    RC<IAllocator>  GetDefaultAllocator () __NE___
-    {
-        return Base::s_DefaultAllocator.rc.load();
-    }
+	RC<IAllocator>  GetDefaultAllocator () __NE___
+	{
+		return Base::s_DefaultAllocator.rc.load();
+	}
 
-    Ptr<IAllocator>  GetDefaultAllocatorPtr () __NE___
-    {
-        return Base::s_DefaultAllocator.rc.unsafe_get();
-    }
+	Ptr<IAllocator>  GetDefaultAllocatorPtr () __NE___
+	{
+		return Base::s_DefaultAllocator.rc.unsafe_get();
+	}
 
 } // AE

@@ -7,72 +7,72 @@
 namespace AE::ECS
 {
 
-    template <typename T>
-    struct WriteAccess
-    {
-        StaticAssert( not IsEmpty<T> );
-    private:
-        T*  _elements;
+	template <typename T>
+	struct WriteAccess
+	{
+		StaticAssert( not IsEmpty<T> );
+	private:
+		T*  _elements;
 
-    public:
-        explicit WriteAccess (T* elems) __NE___ : _elements{ elems } { ASSERT( _elements ); }
+	public:
+		explicit WriteAccess (T* elems)	__NE___	: _elements{ elems } { ASSERT( _elements ); }
 
-        ND_ T&  operator [] (usize i)   C_NE___ { return _elements[i]; }
-    };
-
-
-    template <typename T>
-    struct ReadAccess
-    {
-        StaticAssert( not IsEmpty<T> );
-    private:
-        T const*  _elements;
-
-    public:
-        explicit ReadAccess (T const* elems)    __NE___ : _elements{ elems } { ASSERT( _elements ); }
-
-        ND_ T const&  operator [] (usize i)     C_NE___ { return _elements[i]; }
-    };
+		ND_ T&  operator [] (usize i)	C_NE___	{ return _elements[i]; }
+	};
 
 
-    template <typename T>
-    struct OptionalWriteAccess
-    {
-        StaticAssert( not IsEmpty<T> );
-    private:
-        T*  _elements;          // can be null
+	template <typename T>
+	struct ReadAccess
+	{
+		StaticAssert( not IsEmpty<T> );
+	private:
+		T const*  _elements;
 
-    public:
-        explicit OptionalWriteAccess (T* elems) __NE___ : _elements{ elems } {}
+	public:
+		explicit ReadAccess (T const* elems)	__NE___	: _elements{ elems } { ASSERT( _elements ); }
 
-        ND_ T&  operator [] (usize i)           C_NE___ { ASSERT( _elements != null ); return _elements[i]; }
-        ND_ explicit operator bool ()           C_NE___ { return _elements != null; }
-    };
-
-
-    template <typename T>
-    struct OptionalReadAccess
-    {
-        StaticAssert( not IsEmpty<T> );
-    private:
-        T const*  _elements;    // can be null
-
-    public:
-        explicit OptionalReadAccess (T const* elems)    __NE___ : _elements{ elems } {}
-
-        ND_ T const&  operator [] (usize i)             C_NE___ { ASSERT( _elements != null ); return _elements[i]; }
-        ND_ explicit operator bool ()                   C_NE___ { return _elements != null; }
-    };
+		ND_ T const&  operator [] (usize i)		C_NE___	{ return _elements[i]; }
+	};
 
 
-    template <typename ...Types>
-    struct Subtractive {};
+	template <typename T>
+	struct OptionalWriteAccess
+	{
+		StaticAssert( not IsEmpty<T> );
+	private:
+		T*  _elements;			// can be null
 
-    template <typename ...Types>
-    struct Require {};
+	public:
+		explicit OptionalWriteAccess (T* elems)	__NE___	: _elements{ elems } {}
 
-    template <typename ...Types>
-    struct RequireAny {};
+		ND_ T&  operator [] (usize i)			C_NE___	{ ASSERT( _elements != null ); return _elements[i]; }
+		ND_ explicit operator bool ()			C_NE___	{ return _elements != null; }
+	};
+
+
+	template <typename T>
+	struct OptionalReadAccess
+	{
+		StaticAssert( not IsEmpty<T> );
+	private:
+		T const*  _elements;	// can be null
+
+	public:
+		explicit OptionalReadAccess (T const* elems)	__NE___	: _elements{ elems } {}
+
+		ND_ T const&  operator [] (usize i)				C_NE___	{ ASSERT( _elements != null ); return _elements[i]; }
+		ND_ explicit operator bool ()					C_NE___	{ return _elements != null; }
+	};
+
+
+	template <typename ...Types>
+	struct Subtractive {};
+
+	template <typename ...Types>
+	struct Require {};
+
+	template <typename ...Types>
+	struct RequireAny {};
 
 
 } // AE::ECS

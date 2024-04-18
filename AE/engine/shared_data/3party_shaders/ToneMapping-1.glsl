@@ -17,20 +17,20 @@
 // I.e. ToneMap_Reinhard(x, 0.5) == ToneMap_Reinhard(x * 2.0, 1.0)
 
 float3  ToneMap_Reinhard (const float3 hdr, const float k) {
-    return hdr / (hdr + k);
+	return hdr / (hdr + k);
 }
 
 float3  ToneMap_Reinhard (const float3 hdr) {
-    return ToneMap_Reinhard( hdr, 1.0 );
+	return ToneMap_Reinhard( hdr, 1.0 );
 }
 
 // The inverse of Reinhard
 float3  InvToneMap_Reinhard (const float3 sdr, const float k) {
-    return k * sdr / (k - sdr);
+	return k * sdr / (k - sdr);
 }
 
 float3  InvToneMap_Reinhard (const float3 sdr) {
-    return InvToneMap_Reinhard( sdr, 1.0 );
+	return InvToneMap_Reinhard( sdr, 1.0 );
 }
 
 
@@ -52,21 +52,21 @@ float3  InvToneMap_Reinhard (const float3 sdr) {
 
 float3  ToneMap_ReinhardSq (const float3 hdr, const float k)
 {
-    float3 reinhard = hdr / (hdr + k);
-    return reinhard * reinhard;
+	float3 reinhard = hdr / (hdr + k);
+	return reinhard * reinhard;
 }
 
 float3  ToneMap_ReinhardSq (const float3 hdr) {
-    return ToneMap_ReinhardSq( hdr, 0.25 );
+	return ToneMap_ReinhardSq( hdr, 0.25 );
 }
 
 float3  InvToneMap_ReinhardSq (const float3 sdr, const float k)
 {
-    return k * (sdr + sqrt(sdr)) / (1.0 - sdr);
+	return k * (sdr + sqrt(sdr)) / (1.0 - sdr);
 }
 
 float3  InvToneMap_ReinhardSq (const float3 sdr) {
-    return InvToneMap_ReinhardSq( sdr, 0.25 );
+	return InvToneMap_ReinhardSq( sdr, 0.25 );
 }
 
 
@@ -80,12 +80,12 @@ float3  InvToneMap_ReinhardSq (const float3 sdr) {
 
 float3  ToneMap_Stanard (const float3 hdr)
 {
-    return ToneMap_Reinhard( hdr * sqrt(hdr), sqrt(4.0 / 27.0) );
+	return ToneMap_Reinhard( hdr * sqrt(hdr), sqrt(4.0 / 27.0) );
 }
 
 float3  InvToneMap_Stanard (const float3 sdr)
 {
-    return pow( InvToneMap_Reinhard( sdr, sqrt(4.0 / 27.0) ), float3(2.0 / 3.0) );
+	return pow( InvToneMap_Reinhard( sdr, sqrt(4.0 / 27.0) ), float3(2.0 / 3.0) );
 }
 
 
@@ -97,12 +97,12 @@ float3  InvToneMap_Stanard (const float3 sdr)
 
 float3  ToneMap_ACES (const float3 hdr)
 {
-    const float A = 2.51, B = 0.03, C = 2.43, D = 0.59, E = 0.14;
-    return (hdr * (A * hdr + B)) / (hdr * (C * hdr + D) + E);
+	const float A = 2.51, B = 0.03, C = 2.43, D = 0.59, E = 0.14;
+	return (hdr * (A * hdr + B)) / (hdr * (C * hdr + D) + E);
 }
 
 float3  InvToneMap_ACES (const float3 sdr)
 {
-    const float A = 2.51, B = 0.03, C = 2.43, D = 0.59, E = 0.14;
-    return 0.5 * (D * sdr - sqrt(((D*D - 4*C*E) * sdr + 4*A*E-2*B*D) * sdr + B*B) - B) / (A - C * sdr);
+	const float A = 2.51, B = 0.03, C = 2.43, D = 0.59, E = 0.14;
+	return 0.5 * (D * sdr - sqrt(((D*D - 4*C*E) * sdr + 4*A*E-2*B*D) * sdr + B*B) - B) / (A - C * sdr);
 }

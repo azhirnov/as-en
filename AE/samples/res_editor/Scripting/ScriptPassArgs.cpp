@@ -8,285 +8,285 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    InitResources
+	InitResources
 =================================================
 */
-    void  ScriptPassArgs::InitResources (OUT ResourceArray &resources, PipelinePackID packId) C_Th___
-    {
-        for (auto& arg : _args)
-        {
-            Visit( arg.res,
-                [&] (ScriptBufferPtr buf) {
-                    auto    res = buf->ToResource();
-                    CHECK_THROW( res );
-                    resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                },
-                [&] (ScriptImagePtr tex) {
-                    auto    res = tex->ToResource();
-                    CHECK_THROW( res );
-                    resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                },
-                [&] (ScriptVideoImagePtr video) {
-                    auto    res = video->ToResource( packId );
-                    CHECK_THROW( not IsNullUnion( res ));
-                    Visit( res,
-                        [&] (RC<VideoImage>  vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
-                        [&] (RC<VideoImage2> vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
-                        [] (NullUnion) {}
-                    );
-                },
-                [&] (ScriptRTScenePtr scene) {
-                    auto    res = scene->ToResource();
-                    CHECK_THROW( res );
-                    resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                },
-                [&] (const Array<ScriptImagePtr> &arr)
-                {
-                    Array<RC<Image>>    images;
-                    images.reserve( arr.size() );
+	void  ScriptPassArgs::InitResources (OUT ResourceArray &resources, PipelinePackID packId) C_Th___
+	{
+		for (auto& arg : _args)
+		{
+			Visit( arg.res,
+				[&] (ScriptBufferPtr buf) {
+					auto	res = buf->ToResource();
+					CHECK_THROW( res );
+					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+				},
+				[&] (ScriptImagePtr tex) {
+					auto	res = tex->ToResource();
+					CHECK_THROW( res );
+					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+				},
+				[&] (ScriptVideoImagePtr video) {
+					auto	res = video->ToResource( packId );
+					CHECK_THROW( not IsNullUnion( res ));
+					Visit( res,
+						[&] (RC<VideoImage>  vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
+						[&] (RC<VideoImage2> vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
+						[] (NullUnion) {}
+					);
+				},
+				[&] (ScriptRTScenePtr scene) {
+					auto	res = scene->ToResource();
+					CHECK_THROW( res );
+					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+				},
+				[&] (const Array<ScriptImagePtr> &arr)
+				{
+					Array<RC<Image>>	images;
+					images.reserve( arr.size() );
 
-                    for (auto& tex : arr) {
-                        auto    res = tex->ToResource();
-                        CHECK_THROW( res );
-                        images.push_back( RVRef(res) );
-                    }
-                    resources._resources.emplace_back( UniformName{arg.name}, RVRef(images), arg.state );
-                },
-                [] (NullUnion) {
-                    CHECK_THROW_MSG( false, "unsupported argument type" );
-                }
-            );
-        }
-    }
+					for (auto& tex : arr) {
+						auto	res = tex->ToResource();
+						CHECK_THROW( res );
+						images.push_back( RVRef(res) );
+					}
+					resources._resources.emplace_back( UniformName{arg.name}, RVRef(images), arg.state );
+				},
+				[] (NullUnion) {
+					CHECK_THROW_MSG( false, "unsupported argument type" );
+				}
+			);
+		}
+	}
 
 /*
 =================================================
-    ValidateArgs
+	ValidateArgs
 =================================================
 */
-    void  ScriptPassArgs::ValidateArgs () C_Th___
-    {
-        for (auto& arg : _args)
-        {
-            Visit( arg.res,
-                []  (ScriptBufferPtr buf)               { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
-                []  (ScriptImagePtr tex)                { CHECK_THROW_MSG( tex->ToResource() ); },
-                [&] (ScriptVideoImagePtr video)         { video->Validate( arg.samplerName ); },
-                []  (ScriptRTScenePtr scene)            { CHECK_THROW_MSG( scene->ToResource() ); },
-                []  (const Array<ScriptImagePtr> &arr)  { for (auto& tex : arr) CHECK_THROW_MSG( tex->ToResource() ); },
-                []  (NullUnion)                         { CHECK_THROW_MSG( false, "unsupported argument type" ); }
-            );
-        }
-    }
+	void  ScriptPassArgs::ValidateArgs () C_Th___
+	{
+		for (auto& arg : _args)
+		{
+			Visit( arg.res,
+				[]  (ScriptBufferPtr buf)				{ buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
+				[]  (ScriptImagePtr tex)				{ CHECK_THROW_MSG( tex->ToResource() ); },
+				[&] (ScriptVideoImagePtr video)			{ video->Validate( arg.samplerName ); },
+				[]  (ScriptRTScenePtr scene)			{ CHECK_THROW_MSG( scene->ToResource() ); },
+				[]  (const Array<ScriptImagePtr> &arr)	{ for (auto& tex : arr) CHECK_THROW_MSG( tex->ToResource() ); },
+				[]  (NullUnion)							{ CHECK_THROW_MSG( false, "unsupported argument type" ); }
+			);
+		}
+	}
 
 /*
 =================================================
-    AddLayoutReflection
+	AddLayoutReflection
 =================================================
 */
-    void  ScriptPassArgs::AddLayoutReflection () C_Th___
-    {
-        for (auto& arg : _args)
-        {
-            if ( auto* buf = UnionGet<ScriptBufferPtr>( arg.res )) {
-                (*buf)->AddLayoutReflection();
-            }
-        }
-    }
+	void  ScriptPassArgs::AddLayoutReflection () C_Th___
+	{
+		for (auto& arg : _args)
+		{
+			if ( auto* buf = UnionGet<ScriptBufferPtr>( arg.res )) {
+				(*buf)->AddLayoutReflection();
+			}
+		}
+	}
 
 /*
 =================================================
-    ArgSceneIn
+	ArgSceneIn
 =================================================
 */
-    void  ScriptPassArgs::ArgSceneIn (const String &name, const ScriptRTScenePtr &scene) __Th___
-    {
-        CHECK_THROW_MSG( scene );
+	void  ScriptPassArgs::ArgSceneIn (const String &name, const ScriptRTScenePtr &scene) __Th___
+	{
+		CHECK_THROW_MSG( scene );
 
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = scene;
-        arg.state   = EResourceState::ShaderRTAS;
+		Argument&	arg = _args.emplace_back();
+		arg.name	= name;
+		arg.res		= scene;
+		arg.state	= EResourceState::ShaderRTAS;
 
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    ArgBufferIn***
+	ArgBufferIn***
 =================================================
 */
-    void  ScriptPassArgs::ArgBufferIn (const String &name, const ScriptBufferPtr &buf)      __Th___ { _AddArg( name, buf, EResourceUsage::ComputeRead ); }
-    void  ScriptPassArgs::ArgBufferOut (const String &name, const ScriptBufferPtr &buf)     __Th___ { _AddArg( name, buf, EResourceUsage::ComputeWrite ); }
-    void  ScriptPassArgs::ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)   __Th___ { _AddArg( name, buf, EResourceUsage::ComputeRW ); }
+	void  ScriptPassArgs::ArgBufferIn (const String &name, const ScriptBufferPtr &buf)		__Th___	{ _AddArg( name, buf, EResourceUsage::ComputeRead ); }
+	void  ScriptPassArgs::ArgBufferOut (const String &name, const ScriptBufferPtr &buf)		__Th___	{ _AddArg( name, buf, EResourceUsage::ComputeWrite ); }
+	void  ScriptPassArgs::ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)	__Th___	{ _AddArg( name, buf, EResourceUsage::ComputeRW ); }
 
-    void  ScriptPassArgs::_AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage) __Th___
-    {
-        CHECK_THROW_MSG( buf );
-        buf->AddUsage( usage );
+	void  ScriptPassArgs::_AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage) __Th___
+	{
+		CHECK_THROW_MSG( buf );
+		buf->AddUsage( usage );
 
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = buf;
+		Argument&	arg = _args.emplace_back();
+		arg.name	= name;
+		arg.res		= buf;
 
-        switch ( usage ) {
-            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
-            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
-            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
-        }
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		switch ( usage ) {
+			case EResourceUsage::ComputeRead :	arg.state |= EResourceState::ShaderStorage_Read;	break;
+			case EResourceUsage::ComputeWrite :	arg.state |= EResourceState::ShaderStorage_Write;	break;
+			case EResourceUsage::ComputeRW :	arg.state |= EResourceState::ShaderStorage_RW;		break;
+			default :							CHECK_THROW_MSG( false, "unsupported usage" );
+		}
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    ArgImageIn***
+	ArgImageIn***
 =================================================
 */
-    void  ScriptPassArgs::ArgImageIn (const String &name, const ScriptImagePtr &img)    __Th___ { _AddArg( name, img, EResourceUsage::ComputeRead ); }
-    void  ScriptPassArgs::ArgImageOut (const String &name, const ScriptImagePtr &img)   __Th___ { _AddArg( name, img, EResourceUsage::ComputeWrite ); }
-    void  ScriptPassArgs::ArgImageInOut (const String &name, const ScriptImagePtr &img) __Th___ { _AddArg( name, img, EResourceUsage::ComputeRW ); }
+	void  ScriptPassArgs::ArgImageIn (const String &name, const ScriptImagePtr &img)	__Th___	{ _AddArg( name, img, EResourceUsage::ComputeRead ); }
+	void  ScriptPassArgs::ArgImageOut (const String &name, const ScriptImagePtr &img)	__Th___	{ _AddArg( name, img, EResourceUsage::ComputeWrite ); }
+	void  ScriptPassArgs::ArgImageInOut (const String &name, const ScriptImagePtr &img)	__Th___	{ _AddArg( name, img, EResourceUsage::ComputeRW ); }
 
-    void  ScriptPassArgs::_AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage) __Th___
-    {
-        CHECK_THROW_MSG( img );
-        img->AddUsage( usage );
+	void  ScriptPassArgs::_AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage) __Th___
+	{
+		CHECK_THROW_MSG( img );
+		img->AddUsage( usage );
 
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = img;
+		Argument&	arg = _args.emplace_back();
+		arg.name	= name;
+		arg.res		= img;
 
-        switch ( usage ) {
-            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
-            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
-            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
-        }
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		switch ( usage ) {
+			case EResourceUsage::ComputeRead :	arg.state |= EResourceState::ShaderStorage_Read;	break;
+			case EResourceUsage::ComputeWrite :	arg.state |= EResourceState::ShaderStorage_Write;	break;
+			case EResourceUsage::ComputeRW :	arg.state |= EResourceState::ShaderStorage_RW;		break;
+			default :							CHECK_THROW_MSG( false, "unsupported usage" );
+		}
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    ArgTextureIn
+	ArgTextureIn
 =================================================
 */
-    void  ScriptPassArgs::ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( not samplerName.empty() );
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+	void  ScriptPassArgs::ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName) __Th___
+	{
+		CHECK_THROW_MSG( tex );
+		CHECK_THROW_MSG( not samplerName.empty() );
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        tex->AddUsage( EResourceUsage::Sampled );
+		tex->AddUsage( EResourceUsage::Sampled );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name        = name;
-        arg.res         = tex;
-        arg.state       = EResourceState::ShaderSample;
-        arg.samplerName = samplerName;
+		Argument&	arg = _args.emplace_back();
+		arg.name		= name;
+		arg.res			= tex;
+		arg.state		= EResourceState::ShaderSample;
+		arg.samplerName	= samplerName;
 
-        if ( tex->IsDepthAndStencil() )
-        {
-            ScriptImagePtr  tmp;    tmp.Attach( tex->CreateView5() );
-            CHECK_THROW_MSG( tmp, "Failed to create depth view for depth stencil image" );
+		if ( tex->IsDepthAndStencil() )
+		{
+			ScriptImagePtr	tmp;	tmp.Attach( tex->CreateView5() );
+			CHECK_THROW_MSG( tmp, "Failed to create depth view for depth stencil image" );
 
-            tmp->SetAspectMask( EImageAspect::Depth );
-            arg.res = tmp;
-        }
+			tmp->SetAspectMask( EImageAspect::Depth );
+			arg.res = tmp;
+		}
 
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    ArgVideoIn
+	ArgVideoIn
 =================================================
 */
-    void  ScriptPassArgs::ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( tex->HasYcbcrSampler() or not samplerName.empty() );
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+	void  ScriptPassArgs::ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName) __Th___
+	{
+		CHECK_THROW_MSG( tex );
+		CHECK_THROW_MSG( tex->HasYcbcrSampler() or not samplerName.empty() );
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        tex->AddUsage( EResourceUsage::Sampled );
+		tex->AddUsage( EResourceUsage::Sampled );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name        = name;
-        arg.res         = tex;
-        arg.state       = EResourceState::ShaderSample;
-        arg.samplerName = samplerName;
+		Argument&	arg = _args.emplace_back();
+		arg.name		= name;
+		arg.res			= tex;
+		arg.state		= EResourceState::ShaderSample;
+		arg.samplerName	= samplerName;
 
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    ArgImageArr*
+	ArgImageArr*
 =================================================
 */
-    void  ScriptPassArgs::ArgImageArrIn (const String &name, Array<ScriptImagePtr> arr)     __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeRead ); }
-    void  ScriptPassArgs::ArgImageArrOut (const String &name, Array<ScriptImagePtr> arr)    __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeWrite ); }
-    void  ScriptPassArgs::ArgImageArrInOut (const String &name, Array<ScriptImagePtr> arr)  __Th___ { _AddArg( name, RVRef(arr), EResourceUsage::ComputeRW ); }
+	void  ScriptPassArgs::ArgImageArrIn (const String &name, Array<ScriptImagePtr> arr)		__Th___	{ _AddArg( name, RVRef(arr), EResourceUsage::ComputeRead ); }
+	void  ScriptPassArgs::ArgImageArrOut (const String &name, Array<ScriptImagePtr> arr)	__Th___	{ _AddArg( name, RVRef(arr), EResourceUsage::ComputeWrite ); }
+	void  ScriptPassArgs::ArgImageArrInOut (const String &name, Array<ScriptImagePtr> arr)	__Th___	{ _AddArg( name, RVRef(arr), EResourceUsage::ComputeRW ); }
 
-    void  ScriptPassArgs::_AddArg (const String &name, Array<ScriptImagePtr> arr, EResourceUsage usage) __Th___
-    {
-        CHECK_THROW_MSG( arr.size() > 1 );
-        CHECK_THROW_MSG( arr[0] );
+	void  ScriptPassArgs::_AddArg (const String &name, Array<ScriptImagePtr> arr, EResourceUsage usage) __Th___
+	{
+		CHECK_THROW_MSG( arr.size() > 1 );
+		CHECK_THROW_MSG( arr[0] );
 
-        const auto  img_type    = arr[0]->ImageType();
-        const auto  img_fmt     = arr[0]->Description().format;
+		const auto	img_type	= arr[0]->ImageType();
+		const auto	img_fmt		= arr[0]->Description().format;
 
-        for (auto& img : arr)
-        {
-            CHECK_THROW_MSG( img );
-            CHECK_THROW_MSG( img_type == img->ImageType() );
-            CHECK_THROW_MSG( img_fmt == img->Description().format );
+		for (auto& img : arr)
+		{
+			CHECK_THROW_MSG( img );
+			CHECK_THROW_MSG( img_type == img->ImageType() );
+			CHECK_THROW_MSG( img_fmt == img->Description().format );
 
-            img->AddUsage( usage );
-        }
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
+			img->AddUsage( usage );
+		}
+		CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name = name;
-        arg.res.emplace< Array<ScriptImagePtr> >( RVRef(arr) );
+		Argument&	arg = _args.emplace_back();
+		arg.name = name;
+		arg.res.emplace< Array<ScriptImagePtr> >( RVRef(arr) );
 
-        switch ( usage ) {
-            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderStorage_Write;   break;
-            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
-            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
-        }
-        if ( _onAddArg )
-            _onAddArg( arg );
-    }
+		switch ( usage ) {
+			case EResourceUsage::ComputeRead :	arg.state |= EResourceState::ShaderStorage_Read;	break;
+			case EResourceUsage::ComputeWrite :	arg.state |= EResourceState::ShaderStorage_Write;	break;
+			case EResourceUsage::ComputeRW :	arg.state |= EResourceState::ShaderStorage_RW;		break;
+			default :							CHECK_THROW_MSG( false, "unsupported usage" );
+		}
+		if ( _onAddArg )
+			_onAddArg( arg );
+	}
 
 /*
 =================================================
-    CopyFrom
+	CopyFrom
 =================================================
 */
-    void  ScriptPassArgs::CopyFrom (const ScriptPassArgs &other) __Th___
-    {
-        _args           = other._args;
-        _uniqueNames    = other._uniqueNames;
+	void  ScriptPassArgs::CopyFrom (const ScriptPassArgs &other) __Th___
+	{
+		_args			= other._args;
+		_uniqueNames	= other._uniqueNames;
 
-        if ( _onAddArg )
-        {
-            for (auto& arg : _args) {
-                _onAddArg( arg );
-            }
-        }
-    }
+		if ( _onAddArg )
+		{
+			for (auto& arg : _args) {
+				_onAddArg( arg );
+			}
+		}
+	}
 
 
 } // AE::ResEditor

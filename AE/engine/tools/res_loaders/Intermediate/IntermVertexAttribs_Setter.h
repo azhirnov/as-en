@@ -7,68 +7,68 @@
 namespace AE::ResLoader
 {
 
-    //
-    // Intermediate Vertex Attributes Setter
-    //
+	//
+	// Intermediate Vertex Attributes Setter
+	//
 
-    class IntermVertexAttribs::Setter
-    {
-    // variables
-    private:
-        IntermVertexAttribs &   _self;
-
-
-    // methods
-    public:
-        explicit Setter (IntermVertexAttribs &self) : _self{self} {}
-
-        Setter&  AddBuffer (Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
-        Setter&  AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
-
-        // add vertex to last buffer
-        Setter&  AddVertex (const Name_t &id, EVertexType type, Bytes offset);
-    };
+	class IntermVertexAttribs::Setter
+	{
+	// variables
+	private:
+		IntermVertexAttribs &	_self;
 
 
-/*
-=================================================
-    AddBuffer
-=================================================
-*/
-    inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddBuffer (Bytes stride, EVertexInputRate rate)
-    {
-        return AddBuffer( Name_t{}, stride, rate );
-    }
+	// methods
+	public:
+		explicit Setter (IntermVertexAttribs &self) : _self{self} {}
 
-    inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate)
-    {
-        ASSERT( not _self._bindings.contains( bufferId ));
+		Setter&  AddBuffer (Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
+		Setter&  AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
 
-        auto&   dst = _self._bindings( bufferId );
-        dst.index   = BufferIndex(_self._bindings.size()-1);
-        dst.stride  = stride;
-        dst.rate    = rate;
+		// add vertex to last buffer
+		Setter&  AddVertex (const Name_t &id, EVertexType type, Bytes offset);
+	};
 
-        return *this;
-    }
 
 /*
 =================================================
-    AddVertex
+	AddBuffer
 =================================================
 */
-    inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddVertex (const Name_t &id, EVertexType type, Bytes offset)
-    {
-        ASSERT( not _self._vertices.contains( id ));
+	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddBuffer (Bytes stride, EVertexInputRate rate)
+	{
+		return AddBuffer( Name_t{}, stride, rate );
+	}
 
-        auto&   dst = _self._vertices( id );
-        dst.type            = type;
-        dst.index           = uint(_self._vertices.size()-1);
-        dst.offset          = offset;
-        dst.bufferBinding   = BufferIndex(_self._bindings.size()-1);
+	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate)
+	{
+		ASSERT( not _self._bindings.contains( bufferId ));
 
-        return *this;
-    }
+		auto&	dst = _self._bindings( bufferId );
+		dst.index	= BufferIndex(_self._bindings.size()-1);
+		dst.stride	= stride;
+		dst.rate	= rate;
+
+		return *this;
+	}
+
+/*
+=================================================
+	AddVertex
+=================================================
+*/
+	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddVertex (const Name_t &id, EVertexType type, Bytes offset)
+	{
+		ASSERT( not _self._vertices.contains( id ));
+
+		auto&	dst = _self._vertices( id );
+		dst.type			= type;
+		dst.index			= uint(_self._vertices.size()-1);
+		dst.offset			= offset;
+		dst.bufferBinding	= BufferIndex(_self._bindings.size()-1);
+
+		return *this;
+	}
 
 
 } // AE::ResLoader

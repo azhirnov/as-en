@@ -11,44 +11,44 @@ namespace AE::Base
 
 /*
 =================================================
-    Execute
+	Execute
 =================================================
 */
-    bool  UnixProcess::Execute (const String &commandLine, EFlags flags, milliseconds timeout)
-    {
-        FILE*   file = ::popen( commandLine.c_str(), "r" );
-        CHECK_ERR( file != null );
+	bool  UnixProcess::Execute (const String &commandLine, EFlags flags, milliseconds timeout)
+	{
+		FILE*	file = ::popen( commandLine.c_str(), "r" );
+		CHECK_ERR( file != null );
 
-        char    buf [512] = {};
-        while ( ::fgets( OUT buf, int(CountOf(buf)), file ) != null )
-        {}
+		char	buf [512] = {};
+		while ( ::fgets( OUT buf, int(CountOf(buf)), file ) != null )
+		{}
 
-        CHECK_ERR( ::pclose( file ) != -1 );
-        return true;
-    }
+		CHECK_ERR( ::pclose( file ) != -1 );
+		return true;
+	}
 
-    bool  UnixProcess::Execute (const String &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
-    {
-        Unused( timeout );
+	bool  UnixProcess::Execute (const String &commandLine, INOUT String &output, Mutex* outputGuard, milliseconds timeout)
+	{
+		Unused( timeout );
 
-        FILE*   file = ::popen( commandLine.c_str(), "r" );
-        CHECK_ERR( file != null );
+		FILE*	file = ::popen( commandLine.c_str(), "r" );
+		CHECK_ERR( file != null );
 
-        char    buf [512] = {};
-        while ( ::fgets( OUT buf, int(CountOf(buf)), file ) != null )
-        {
-            if ( outputGuard != null )
-            {
-                EXLOCK( *outputGuard );
-                output << buf;
-            }
-            else
-                output << buf;
-        }
+		char	buf [512] = {};
+		while ( ::fgets( OUT buf, int(CountOf(buf)), file ) != null )
+		{
+			if ( outputGuard != null )
+			{
+				EXLOCK( *outputGuard );
+				output << buf;
+			}
+			else
+				output << buf;
+		}
 
-        CHECK_ERR( ::pclose( file ) != -1 );
-        return true;
-    }
+		CHECK_ERR( ::pclose( file ) != -1 );
+		return true;
+	}
 
 
 } // AE::Base

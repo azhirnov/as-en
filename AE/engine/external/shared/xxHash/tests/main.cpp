@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_XXHASH
-#   error AE_ENABLE_XXHASH required
+#	error AE_ENABLE_XXHASH required
 #endif
 
 #include "xxhash.h"
@@ -13,9 +13,9 @@ extern int AE_xxHash_Test ()
 int main ()
 #endif
 {
-    char    buffer [128];
-    XXH64_hash_t hash = XXH64( buffer, 128, 0 );
-    (void)(hash);
-
-    return 0;
+	char	buffer [128];
+	XXH64_hash_t hash = XXH64( buffer, 128, 0 );
+	(void)(hash);
+	
+	return 0;
 }

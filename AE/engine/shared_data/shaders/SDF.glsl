@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Default signed distance fields.
+	Default signed distance fields.
 */
 
 #ifdef __cplusplus
@@ -111,43 +111,43 @@ ND_ float  MCSDF_Median (const float3 msd);
 
 /*
 =================================================
-    AA_QuadGrid
+	AA_QuadGrid
 ----
-    anti-aliased SDF-based grid.
-    'invGridSize' - 1.0 / grid_size_in_px
-    'thicknessPx' - line thickness, must be >= 1.5
+	anti-aliased SDF-based grid.
+	'invGridSize' - 1.0 / grid_size_in_px
+	'thicknessPx' - line thickness, must be >= 1.5
 ----
-    example:
-        fragColor = float4(AA_QuadGrid( fragCoord, float2(1.0/100.0), 1.5 ));  // 100px grid
+	example:
+		fragColor = float4(AA_QuadGrid( fragCoord, float2(1.0/100.0), 1.5 ));  // 100px grid
 =================================================
 */
 float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float thicknessPx)
 {
-    uv = TriangleWave( uv * invGridSize );
-    // grid lines
-    uv = SmoothStep( uv, float2(0.0), invGridSize * thicknessPx );
-    return Min( uv.x, uv.y );
+	uv = TriangleWave( uv * invGridSize );
+	// grid lines
+	uv = SmoothStep( uv, float2(0.0), invGridSize * thicknessPx );
+	return Min( uv.x, uv.y );
 }
 
 /*
 =================================================
-    AA_Lines
+	AA_Lines
 =================================================
 */
 float  AA_Lines (float x, const float invStep, const float thicknessPx)
 {
-    x = TriangleWave( x * invStep );
-    return SmoothStep( x, 0.0, invStep * thicknessPx );
+	x = TriangleWave( x * invStep );
+	return SmoothStep( x, 0.0, invStep * thicknessPx );
 }
 
 /*
 =================================================
-    MCSDF_Median
+	MCSDF_Median
 =================================================
 */
 float  MCSDF_Median (const float3 msd)
 {
-    return Max( Min( msd.r, msd.g ), Min( Max( msd.r, msd.g ), msd.b ));
+	return Max( Min( msd.r, msd.g ), Min( Max( msd.r, msd.g ), msd.b ));
 }
 
 

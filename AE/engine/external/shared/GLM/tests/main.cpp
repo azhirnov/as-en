@@ -23,16 +23,16 @@ extern int AE_GLM_Test ()
 int main ()
 #endif
 {
-    using namespace glm;
+	using namespace glm;
 
-    (void)(vec2(1.0f) * 2.0f);
+	(void)(vec2(1.0f) * 2.0f);
 
 # if GLM_CONFIG_SIMD == GLM_DISABLE
-    static_assert(all(ivec2(1) == ivec2(1,1)), "1");
+	static_assert(all(ivec2(1) == ivec2(1,1)), "1");
 # else
-    if (! all(ivec2(1) == ivec2(1,1)))
-        return 1;
+	if (! all(ivec2(1) == ivec2(1,1)))
+		return 1;
 # endif
 
-    return 0;
+	return 0;
 }

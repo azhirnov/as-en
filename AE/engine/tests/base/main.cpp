@@ -54,64 +54,64 @@ extern int Test_Base ()
 int main ()
 #endif
 {
-    StaticLogger::LoggerDbgScope log{};
+	StaticLogger::LoggerDbgScope log{};
 
-    AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
-             "\nCPU arch: " << AE_CPU_ARCH_NAME <<
-             "\nCompiler: " << AE_COMPILER_NAME <<
-             "\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
-             "\nOS name: " << PlatformUtils::GetOSName() <<
-             "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
+	AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
+			 "\nCPU arch: " << AE_CPU_ARCH_NAME <<
+			 "\nCompiler: " << AE_COMPILER_NAME <<
+			 "\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
+			 "\nOS name: " << PlatformUtils::GetOSName() <<
+			 "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
 
-    AE_LOGI( "\nMemory page size: "s << ToString( PlatformUtils::GetMemoryPageInfo().pageSize ));
+	AE_LOGI( "\nMemory page size: "s << ToString( PlatformUtils::GetMemoryPageInfo().pageSize ));
 
-    AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
+	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
 
-    UnitTest_Array();
-    UnitTest_Atomic();
-    UnitTest_ChunkList();
-    UnitTest_Color();
-    UnitTest_Cast();
-    UnitTest_Date();
-    UnitTest_DataSource();
-    UnitTest_EnumSet();
-    UnitTest_Iterators();
-    UnitTest_FileSystem();
-    UnitTest_FixedArray();
-    UnitTest_FixedMap();
-    UnitTest_FixedSet();
-    UnitTest_FixedString();
-    UnitTest_FixedTupleArray();
-    UnitTest_FlatHashMap();
-    UnitTest_HashMap();
-    UnitTest_FlatHashSet();
-    UnitTest_HashSet();
-    UnitTest_FunctionInfo();
-    UnitTest_LinearAllocator();
-    UnitTest_Math();
-    UnitTest_Math_BitMath();
-    UnitTest_Math_Fractional();
-    UnitTest_Math_Frustum();
-    UnitTest_Math_Matrix();
-    UnitTest_Math_PhysicalQuantity();
-    UnitTest_Math_Rectangle();
-    UnitTest_Math_SIMD();
-    UnitTest_Math_Transformation();
-    UnitTest_Math_Vec();
-    UnitTest_MemChunkList();
-    UnitTest_NamedID();
-    UnitTest_NtStringView();
-    UnitTest_RingBuffer();
-    UnitTest_RC();
-    UnitTest_StackAllocator();
-    UnitTest_Parser();
-    UnitTest_StructView();
-    UnitTest_StringUtils();
-    UnitTest_ToString();
-    UnitTest_TypeList();
-    UnitTest_TypeTraits();
-    UnitTest_CPUInfo();
+	UnitTest_Array();
+	UnitTest_Atomic();
+	UnitTest_ChunkList();
+	UnitTest_Color();
+	UnitTest_Cast();
+	UnitTest_Date();
+	UnitTest_DataSource();
+	UnitTest_EnumSet();
+	UnitTest_Iterators();
+	UnitTest_FileSystem();
+	UnitTest_FixedArray();
+	UnitTest_FixedMap();
+	UnitTest_FixedSet();
+	UnitTest_FixedString();
+	UnitTest_FixedTupleArray();
+	UnitTest_FlatHashMap();
+	UnitTest_HashMap();
+	UnitTest_FlatHashSet();
+	UnitTest_HashSet();
+	UnitTest_FunctionInfo();
+	UnitTest_LinearAllocator();
+	UnitTest_Math();
+	UnitTest_Math_BitMath();
+	UnitTest_Math_Fractional();
+	UnitTest_Math_Frustum();
+	UnitTest_Math_Matrix();
+	UnitTest_Math_PhysicalQuantity();
+	UnitTest_Math_Rectangle();
+	UnitTest_Math_SIMD();
+	UnitTest_Math_Transformation();
+	UnitTest_Math_Vec();
+	UnitTest_MemChunkList();
+	UnitTest_NamedID();
+	UnitTest_NtStringView();
+	UnitTest_RingBuffer();
+	UnitTest_RC();
+	UnitTest_StackAllocator();
+	UnitTest_Parser();
+	UnitTest_StructView();
+	UnitTest_StringUtils();
+	UnitTest_ToString();
+	UnitTest_TypeList();
+	UnitTest_TypeTraits();
+	UnitTest_CPUInfo();
 
-    AE_LOGI( "Tests.Base finished" );
-    return 0;
+	AE_LOGI( "Tests.Base finished" );
+	return 0;
 }

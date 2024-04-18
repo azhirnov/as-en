@@ -6,39 +6,39 @@
 
 namespace AE::GeometryTools
 {
-    using namespace AE::Base;
+	using namespace AE::Base;
 
 
-    //
-    // Grid Generator
-    //
+	//
+	// Grid Generator
+	//
 
-    class GridGen final
-    {
-    // types
-    public:
-        struct Vertex
-        {
-            float2  uv;     // TODO: unorm
-        };
-        StaticAssert( sizeof(Vertex) == 8 );
+	class GridGen final
+	{
+	// types
+	public:
+		struct Vertex
+		{
+			float2	uv;		// TODO: unorm
+		};
+		StaticAssert( sizeof(Vertex) == 8 );
 
-        using Index = ushort;
-
-
-    // variables
-    private:
-        Array<Vertex>   _vertices;
-        Array<Index>    _indices;
+		using Index = ushort;
 
 
-    // methods
-    public:
-        ND_ bool  Create (uint vertsPerEdge, uint patchSize = 3)    __NE___;
+	// variables
+	private:
+		Array<Vertex>	_vertices;
+		Array<Index>	_indices;
 
-        ND_ ArrayView<Vertex>   GetVertices ()                      C_NE___ { return _vertices; }
-        ND_ ArrayView<Index>    GetIndices ()                       C_NE___ { return _indices; }
-    };
+
+	// methods
+	public:
+		ND_	bool  Create (uint vertsPerEdge, uint patchSize = 3)	__NE___;
+
+		ND_ ArrayView<Vertex>	GetVertices ()						C_NE___	{ return _vertices; }
+		ND_ ArrayView<Index>	GetIndices ()						C_NE___	{ return _indices; }
+	};
 
 
 } // AE::GeometryTools

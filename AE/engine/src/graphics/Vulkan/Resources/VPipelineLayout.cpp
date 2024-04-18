@@ -10,127 +10,127 @@ namespace AE::Graphics
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    VPipelineLayout::~VPipelineLayout () __NE___
-    {
-        DRC_EXLOCK( _drCheck );
-        CHECK( _layout == Default );
-    }
+	VPipelineLayout::~VPipelineLayout () __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK( _layout == Default );
+	}
 
 /*
 =================================================
-    Create
+	Create
 =================================================
 */
-    bool  VPipelineLayout::Create (VResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants,
-                                   VkDescriptorSetLayout emptyLayout, StringView dbgName) __NE___
-    {
-        using VkDescriptorSetLayouts_t  = StaticArray< VkDescriptorSetLayout, GraphicsConfig::MaxDescriptorSets >;
-        using VkPushConstantRanges_t    = FixedArray< VkPushConstantRange, GraphicsConfig::MaxPushConstants >;
+	bool  VPipelineLayout::Create (VResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants,
+								   VkDescriptorSetLayout emptyLayout, StringView dbgName) __NE___
+	{
+		using VkDescriptorSetLayouts_t	= StaticArray< VkDescriptorSetLayout, GraphicsConfig::MaxDescriptorSets >;
+		using VkPushConstantRanges_t	= FixedArray< VkPushConstantRange, GraphicsConfig::MaxPushConstants >;
 
-        DRC_EXLOCK( _drCheck );
-        CHECK_ERR( _layout == Default );
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( _layout == Default );
 
-        _descriptorSets = descSetLayouts;
-        _pushConstants  = pushConstants;
+		_descriptorSets	= descSetLayouts;
+		_pushConstants	= pushConstants;
 
-        VkDescriptorSetLayouts_t    vk_layouts  = {};
-        VkPushConstantRanges_t      vk_ranges   = {};
+		VkDescriptorSetLayouts_t	vk_layouts	= {};
+		VkPushConstantRanges_t		vk_ranges	= {};
 
-        for (auto& layout : vk_layouts) {
-            layout = emptyLayout;
-        }
+		for (auto& layout : vk_layouts) {
+			layout = emptyLayout;
+		}
 
-        uint    min_set = uint(vk_layouts.size());
-        uint    max_set = 1;
+		uint	min_set = uint(vk_layouts.size());
+		uint	max_set = 1;
 
-        for (auto [name, ds] : _descriptorSets)
-        {
-            CHECK_ERR( ds.index.vkIndex != UMax );
-            CHECK_ERR( vk_layouts[ ds.index.vkIndex ] == emptyLayout ); // already set
+		for (auto [name, ds] : _descriptorSets)
+		{
+			CHECK_ERR( ds.index.vkIndex != UMax );
+			CHECK_ERR( vk_layouts[ ds.index.vkIndex ] == emptyLayout );	// already set
 
-            auto*   ds_layout = resMngr.GetResource( ds.layoutId );
-            CHECK_ERR( ds_layout != null );
+			auto*	ds_layout = resMngr.GetResource( ds.layoutId );
+			CHECK_ERR( ds_layout != null );
 
-            vk_layouts[ ds.index.vkIndex ] = ds_layout->Handle();
-            min_set = Min( min_set, ds.index.vkIndex );
-            max_set = Max( max_set, ds.index.vkIndex + 1 );
-        }
+			vk_layouts[ ds.index.vkIndex ] = ds_layout->Handle();
+			min_set = Min( min_set, ds.index.vkIndex );
+			max_set = Max( max_set, ds.index.vkIndex + 1 );
+		}
 
-        for (auto pc : _pushConstants)
-        {
-            VkPushConstantRange range = {};
-            range.offset        = uint( pc.second.vulkanOffset );
-            range.size          = uint( pc.second.size );
-            range.stageFlags    = VEnumCast( pc.second.stage );
+		for (auto pc : _pushConstants)
+		{
+			VkPushConstantRange	range = {};
+			range.offset		= uint( pc.second.vulkanOffset );
+			range.size			= uint( pc.second.size );
+			range.stageFlags	= VEnumCast( pc.second.stage );
 
-            vk_ranges.push_back( range );
-        }
+			vk_ranges.push_back( range );
+		}
 
-        VkPipelineLayoutCreateInfo          layout_info = {};
-        layout_info.sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        layout_info.setLayoutCount          = max_set;
-        layout_info.pSetLayouts             = vk_layouts.data();
-        layout_info.pushConstantRangeCount  = uint(vk_ranges.size());
-        layout_info.pPushConstantRanges     = vk_ranges.data();
+		VkPipelineLayoutCreateInfo			layout_info = {};
+		layout_info.sType					= VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		layout_info.setLayoutCount			= max_set;
+		layout_info.pSetLayouts				= vk_layouts.data();
+		layout_info.pushConstantRangeCount	= uint(vk_ranges.size());
+		layout_info.pPushConstantRanges		= vk_ranges.data();
 
-        auto&   dev = resMngr.GetDevice();
-        VK_CHECK_ERR( dev.vkCreatePipelineLayout( dev.GetVkDevice(), &layout_info, null, OUT &_layout ));
+		auto&	dev = resMngr.GetDevice();
+		VK_CHECK_ERR( dev.vkCreatePipelineLayout( dev.GetVkDevice(), &layout_info, null, OUT &_layout ));
 
-        _firstDescSet = min_set;
+		_firstDescSet = min_set;
 
-        dev.SetObjectName( _layout, dbgName, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
+		dev.SetObjectName( _layout, dbgName, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
 
-        DEBUG_ONLY( _debugName = dbgName; )
-        return true;
-    }
+		DEBUG_ONLY( _debugName = dbgName; )
+		return true;
+	}
 
 /*
 =================================================
-    Destroy
+	Destroy
 =================================================
 */
-    void  VPipelineLayout::Destroy (VResourceManager &resMngr) __NE___
-    {
-        DRC_EXLOCK( _drCheck );
+	void  VPipelineLayout::Destroy (VResourceManager &resMngr) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
 
-        if ( _layout != Default )
-        {
-            auto&   dev = resMngr.GetDevice();
-            dev.vkDestroyPipelineLayout( dev.GetVkDevice(), _layout, null );
-        }
+		if ( _layout != Default )
+		{
+			auto&	dev = resMngr.GetDevice();
+			dev.vkDestroyPipelineLayout( dev.GetVkDevice(), _layout, null );
+		}
 
-        _descriptorSets.clear();
-        _pushConstants.clear();
+		_descriptorSets.clear();
+		_pushConstants.clear();
 
-        _layout         = Default;
-        _firstDescSet   = UMax;
+		_layout			= Default;
+		_firstDescSet	= UMax;
 
-        DEBUG_ONLY( _debugName.clear(); )
-    }
+		DEBUG_ONLY( _debugName.clear(); )
+	}
 
 /*
 =================================================
-    GetDescriptorSetLayout
+	GetDescriptorSetLayout
 =================================================
 */
-    bool  VPipelineLayout::GetDescriptorSetLayout (DescriptorSetName::Ref id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___
-    {
-        DRC_SHAREDLOCK( _drCheck );
+	bool  VPipelineLayout::GetDescriptorSetLayout (DescriptorSetName::Ref id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
 
-        auto    iter = _descriptorSets.find( id );
+		auto	iter = _descriptorSets.find( id );
 
-        if_likely( iter != _descriptorSets.end() )
-        {
-            layout  = iter->second.layoutId;
-            binding = iter->second.index;
-            return true;
-        }
+		if_likely( iter != _descriptorSets.end() )
+		{
+			layout	= iter->second.layoutId;
+			binding	= iter->second.index;
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 
 } // AE::Graphics

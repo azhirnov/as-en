@@ -5,6 +5,6 @@ extern int AE_Brotli_Test ();
 
 void android_main (struct android_app* state)
 {
-    AE_Brotli_Test();
+	AE_Brotli_Test();
     std::abort();
 }

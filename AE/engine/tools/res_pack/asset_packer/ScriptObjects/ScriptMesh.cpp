@@ -4,7 +4,7 @@
 
 #include "scripting/Impl/ClassBinder.h"
 
-AE_DECL_SCRIPT_OBJ_RC(  AE::AssetPacker::ScriptMesh,    "Mesh" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptMesh,	"Mesh" );
 
 
 namespace AE::AssetPacker
@@ -12,31 +12,31 @@ namespace AE::AssetPacker
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    ScriptMesh::ScriptMesh ()
-    {}
+	ScriptMesh::ScriptMesh ()
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    ScriptMesh::~ScriptMesh ()
-    {}
+	ScriptMesh::~ScriptMesh ()
+	{}
 
 /*
 =================================================
-    Bind
+	Bind
 =================================================
 */
-    void  ScriptMesh::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        Scripting::ClassBinder<ScriptMesh>  binder{ se };
-        binder.CreateRef();
+	void  ScriptMesh::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptMesh>	binder{ se };
+		binder.CreateRef();
 
-    }
+	}
 
 
 } // AE::AssetPacker

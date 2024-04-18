@@ -10,11 +10,11 @@ namespace AE::Profiler
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    MemoryProfiler::MemoryProfiler (TimePoint_t startTime) __NE___ :
-        ProfilerUtils{ startTime }
-    {}
+	MemoryProfiler::MemoryProfiler (TimePoint_t startTime) __NE___ :
+		ProfilerUtils{ startTime }
+	{}
 
 } // AE::Profiler

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Thread-safe:    yes (???)
+	Thread-safe:	yes	(???)
 */
 
 #pragma once
@@ -12,30 +12,30 @@
 namespace AE::ResLoader
 {
 
-    //
-    // glTF Model Loader
-    //
+	//
+	// glTF Model Loader
+	//
 
-    class glTFLoader final : public IModelLoader
-    {
-    // variables
-    private:
+	class glTFLoader final : public IModelLoader
+	{
+	// variables
+	private:
 
 
-    // methods
-    public:
-        glTFLoader ()                                   __NE___;
-        ~glTFLoader ()                                  __NE___;
+	// methods
+	public:
+		glTFLoader ()									__NE___;
+		~glTFLoader ()									__NE___;
 
-        bool  LoadModel (OUT IntermScene    &scene,
-                         RStream            &stream,
-                         const Config       &cfg,
-                         EModelFormat       format)     __NE_OV;
+		bool  LoadModel (OUT IntermScene	&scene,
+						 RStream			&stream,
+						 const Config		&cfg,
+						 EModelFormat		format)		__NE_OV;
 
-        bool  LoadModel (OUT IntermScene    &scene,
-                         const Path         &scenePath,
-                         const Config       &cfg)       __NE_OV;
-    };
+		bool  LoadModel (OUT IntermScene	&scene,
+						 const Path			&scenePath,
+						 const Config		&cfg)		__NE_OV;
+	};
 
 
 } // AE::ResLoader

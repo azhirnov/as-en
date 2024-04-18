@@ -5,6 +5,6 @@ extern int AE_Abseil_Test ();
 
 void android_main (struct android_app* state)
 {
-    AE_Abseil_Test();
+	AE_Abseil_Test();
     std::abort();
 }

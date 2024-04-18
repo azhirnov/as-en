@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_CDT
-#   error AE_ENABLE_CDT required
+#	error AE_ENABLE_CDT required
 #endif
 
 #include "CDT.h"
@@ -13,5 +13,5 @@ extern int AE_CDT_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

@@ -10,48 +10,48 @@
 namespace AE::Graphics
 {
 
-    //
-    // Vulkan Default Descriptor Allocator
-    //
+	//
+	// Vulkan Default Descriptor Allocator
+	//
 
-    class VDefaultDescriptorAllocator final : public IDescriptorAllocator
-    {
-    // types
-    private:
-        static constexpr uint   PoolsPerChunk   = 8;
+	class VDefaultDescriptorAllocator final : public IDescriptorAllocator
+	{
+	// types
+	private:
+		static constexpr uint	PoolsPerChunk	= 8;
 
-        struct DSPool
-        {
-            SpinLock            guard;
-            Atomic<uint>        allocFails  {0};
-            VkDescriptorPool    handle      = Default;
-        };
+		struct DSPool
+		{
+			SpinLock			guard;
+			Atomic<uint>		allocFails	{0};
+			VkDescriptorPool	handle		= Default;
+		};
 
-        struct alignas(AE_CACHE_LINE) Chunk
-        {
-            StaticArray< DSPool, PoolsPerChunk >    pools;
-            Atomic< Chunk *>                        next    {null};
-        };
+		struct alignas(AE_CACHE_LINE) Chunk
+		{
+			StaticArray< DSPool, PoolsPerChunk >	pools;
+			Atomic< Chunk *>						next	{null};
+		};
 
-        using PoolBits_t = BitSet< PoolsPerChunk >;
-
-
-    // variables
-    private:
-        Chunk       _firstChunk;
+		using PoolBits_t = BitSet< PoolsPerChunk >;
 
 
-    // methods
-    public:
-        VDefaultDescriptorAllocator ()                                          __NE___ {}
-        ~VDefaultDescriptorAllocator ()                                         __NE_OV;
+	// variables
+	private:
+		Chunk		_firstChunk;
 
-        bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)        __NE_OV;
-        void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)    __NE_OV;
 
-    private:
-        static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);
-    };
+	// methods
+	public:
+		VDefaultDescriptorAllocator ()											__NE___	{}
+		~VDefaultDescriptorAllocator ()											__NE_OV;
+
+		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
+		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
+
+	private:
+		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);
+	};
 
 
 } // AE::Graphics

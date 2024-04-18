@@ -8,35 +8,35 @@
 namespace AE::Audio
 {
 
-    //
-    // BASS Audio Input
-    //
+	//
+	// BASS Audio Input
+	//
 
-    class AudioInputBASS final : public IAudioInput
-    {
-    // variables
-    private:
-        uint            _recChannelId   = 0;    // HRECORD
-        uint            _deviceId       = 0;
-        RC<WStream>     _stream;
+	class AudioInputBASS final : public IAudioInput
+	{
+	// variables
+	private:
+		uint			_recChannelId	= 0;	// HRECORD
+		uint			_deviceId		= 0;
+		RC<WStream>		_stream;
 
-        AudioInputDesc  _inDesc;
+		AudioInputDesc	_inDesc;
 
 
-    // methods
-    public:
-        AudioInputBASS (const AudioInputDesc &desc, uint dev)   __NE___ : _deviceId{dev}, _inDesc{desc} {}
-        ~AudioInputBASS ()                                      __NE_OV;
+	// methods
+	public:
+		AudioInputBASS (const AudioInputDesc &desc, uint dev)	__NE___ : _deviceId{dev}, _inDesc{desc} {}
+		~AudioInputBASS ()										__NE_OV;
 
-        // IAudioInput //
-        bool  Begin (RC<WStream>)                               __NE_OV;
-        bool  End (OUT RC<WStream> &, OUT AudioDataDesc &)      __NE_OV;
-        bool  IsStarted ()                                      C_NE_OV { return bool{_stream} and _recChannelId != 0; }
+		// IAudioInput //
+		bool  Begin (RC<WStream>)								__NE_OV;
+		bool  End (OUT RC<WStream> &, OUT AudioDataDesc &)		__NE_OV;
+		bool  IsStarted ()										C_NE_OV	{ return bool{_stream} and _recChannelId != 0; }
 
-        void  Resume ()                                         __NE_OV;
-        void  Pause ()                                          __NE_OV;
-        bool  IsRecording ()                                    C_NE_OV;
-    };
+		void  Resume ()											__NE_OV;
+		void  Pause ()											__NE_OV;
+		bool  IsRecording ()									C_NE_OV;
+	};
 
 
 } // AE::Audio

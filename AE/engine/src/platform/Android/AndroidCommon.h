@@ -20,9 +20,9 @@
 
 namespace AE::App
 {
-    class ApplicationAndroid;
-    class InputActionsAndroid;
-    class WindowAndroid;
+	class ApplicationAndroid;
+	class InputActionsAndroid;
+	class WindowAndroid;
 
 } // AE::App
 

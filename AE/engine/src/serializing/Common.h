@@ -5,26 +5,26 @@
 #include "serializing/Serializing.pch.h"
 
 // for NamedID
-#define AE_SERIALIZE_HASH_ONLY  1
-#define AE_DEBUG_SERIALIZER     0
+#define AE_SERIALIZE_HASH_ONLY	1
+#define AE_DEBUG_SERIALIZER		0
 
 namespace AE::Serializing
 {
-    using namespace AE::Base;
+	using namespace AE::Base;
 
-    using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
+	using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
 
-    // Basic
-    struct Serializer;
-    struct Deserializer;
-    class ObjectFactory;
-
-
-    // BitPacking
-    struct BitSerializer;
-    struct BitDeserializer;
+	// Basic
+	struct Serializer;
+	struct Deserializer;
+	class ObjectFactory;
 
 
-    // IsTriviallySerializable<> defined in 'base/CompileTime/TypeTraits.h'
+	// BitPacking
+	struct BitSerializer;
+	struct BitDeserializer;
+
+
+	// IsTriviallySerializable<> defined in 'base/CompileTime/TypeTraits.h'
 
 } // AE::Serializing

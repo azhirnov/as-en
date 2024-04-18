@@ -8,36 +8,36 @@
 namespace AE::Serializing
 {
 
-    //
-    // Bit Serializer
-    //
+	//
+	// Bit Serializer
+	//
 
-    struct BitSerializer : Noncopyable
-    {
-        friend class ObjectFactory;
+	struct BitSerializer : Noncopyable
+	{
+		friend class ObjectFactory;
 
-    // types
-    public:
-        static constexpr uint   MaxStringLength = 0xFFFF;
-        static constexpr uint   MaxArrayLength  = 0xFFFFFF; // TODO: remove or limit mem size
-
-
-    // variables
-    public:
-        FastWStream         stream;
-        Ptr<ObjectFactory>  factory;
+	// types
+	public:
+		static constexpr uint	MaxStringLength	= 0xFFFF;
+		static constexpr uint	MaxArrayLength	= 0xFFFFFF;	// TODO: remove or limit mem size
 
 
-    // methods
-    public:
-        explicit BitSerializer (FastWStream wstream) __NE___ : stream{ RVRef(wstream) } {}
-        explicit BitSerializer (RC<WStream> wstream) __NE___ : stream{ RVRef(wstream) } {}
+	// variables
+	public:
+		FastWStream			stream;
+		Ptr<ObjectFactory>	factory;
 
-        template <typename ...Args>
-        ND_ bool  operator () (const Args& ...args) __NE___;
 
-    private:
-    };
+	// methods
+	public:
+		explicit BitSerializer (FastWStream wstream) __NE___ : stream{ RVRef(wstream) } {}
+		explicit BitSerializer (RC<WStream> wstream) __NE___ : stream{ RVRef(wstream) } {}
+
+		template <typename ...Args>
+		ND_ bool  operator () (const Args& ...args) __NE___;
+
+	private:
+	};
 
 
 } // AE::Serializing

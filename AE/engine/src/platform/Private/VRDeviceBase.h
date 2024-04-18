@@ -8,61 +8,61 @@
 namespace AE::App
 {
 
-    //
-    // VR Device Base
-    //
+	//
+	// VR Device Base
+	//
 
-    class VRDeviceBase : public IVRDevice
-    {
-    // types
-    protected:
-        using VRDeviceListener  = Unique< IVRDeviceEventListener >;
-        using Duration_t        = IApplication::Duration_t;
-
-
-    // variables
-    protected:
-        Atomic< bool >          _isRunning      {true};
-
-        VRDeviceListener        _listener;
-        EState                  _hmdState       = EState::Unknown;
-
-        DRC_ONLY(
-            RWDataRaceCheck     _drCheck;
-        )
+	class VRDeviceBase : public IVRDevice
+	{
+	// types
+	protected:
+		using VRDeviceListener	= Unique< IVRDeviceEventListener >;
+		using Duration_t		= IApplication::Duration_t;
 
 
-    // methods
-    public:
-        explicit VRDeviceBase (VRDeviceListener listener)                   __NE___ :
-            _listener{ RVRef(listener) }
-        {
-            CHECK( _listener );
-        }
+	// variables
+	protected:
+		Atomic< bool >			_isRunning		{true};
 
-        ~VRDeviceBase ()                                                    __NE___
-        {}
+		VRDeviceListener		_listener;
+		EState					_hmdState		= EState::Unknown;
 
-        EState  GetState ()                                                 C_NE_OF { DRC_SHAREDLOCK( _drCheck );  return _hmdState; }
-
-        void  Terminate ()                                                  __NE_OV
-        {
-            _isRunning.store( false );
-        }
-
-        // Used only in IApplication implementation.
-        //   Thread safe: no
-        //
-        virtual bool  Update (Duration_t timeSinceStart)                    __NE___ = 0;
+		DRC_ONLY(
+			RWDataRaceCheck		_drCheck;
+		)
 
 
-    protected:
-            void  _SetState (EState newState);
-            void  _SetStateV3 (EState newState);
-        ND_ bool  _StateChanged (EState newState) const;
+	// methods
+	public:
+		explicit VRDeviceBase (VRDeviceListener listener)					__NE___	:
+			_listener{ RVRef(listener) }
+		{
+			CHECK( _listener );
+		}
 
-            void  _DestroyListener ();
-    };
+		~VRDeviceBase ()													__NE___
+		{}
+
+		EState  GetState ()													C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _hmdState; }
+
+		void  Terminate ()													__NE_OV
+		{
+			_isRunning.store( false );
+		}
+
+		// Used only in IApplication implementation.
+		//   Thread safe: no
+		//
+		virtual bool  Update (Duration_t timeSinceStart)					__NE___	= 0;
+
+
+	protected:
+			void  _SetState (EState newState);
+			void  _SetStateV3 (EState newState);
+		ND_ bool  _StateChanged (EState newState) const;
+
+			void  _DestroyListener ();
+	};
 
 
 } // AE::App

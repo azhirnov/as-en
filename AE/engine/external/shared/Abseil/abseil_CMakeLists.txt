@@ -7,11 +7,11 @@ include( "${AE_EXTERNAL_PATH}/config.cmake" )
 
 file( GLOB_RECURSE HEADERS "*.h" )
 set( SOURCES
-    "absl/container/internal/raw_hash_set.cc"
-    "absl/hash/internal/hash.cc"
-    "absl/hash/internal/low_level_hash.cc"
-    "absl/hash/internal/city.cc"
-    "absl/base/internal/raw_logging.cc"
+	"absl/container/internal/raw_hash_set.cc"
+	"absl/hash/internal/hash.cc"
+	"absl/hash/internal/low_level_hash.cc"
+	"absl/hash/internal/city.cc"
+	"absl/base/internal/raw_logging.cc"
 )
 
 add_library( "Abseil" STATIC ${HEADERS} ${SOURCES} )

@@ -12,62 +12,62 @@
 namespace AE::App
 {
 
-    //
-    // Input Actions for WinAPI
-    //
+	//
+	// Input Actions for WinAPI
+	//
 
-    class InputActionsWinAPI final : public InputActionsBase
-    {
-    // types
-    private:
-        using EInputType = SerializableInputActionsWinAPI::EInputType;
+	class InputActionsWinAPI final : public InputActionsBase
+	{
+	// types
+	private:
+		using EInputType = SerializableInputActionsWinAPI::EInputType;
 
-        static constexpr uint   _Version = SerializableInputActionsWinAPI::_Version;
-
-
-    // variables
-    private:
-        float2                  _cursorPosPx;
-        float2                  _cursorDeltaSNorm;
-        float2                  _mouseWheel;
-
-        bool                    _touchActive        : 1;    // \ 
-        bool                    _touchBegin         : 1;    // |-- touch emulation by mouse & left button
-        bool                    _touchEnd           : 1;    // /
-
-        float2                  _surfaceSize;
-
-        GestureRecognizer       _gestureRecognizer;
+		static constexpr uint	_Version = SerializableInputActionsWinAPI::_Version;
 
 
-    // methods
-    public:
-        explicit InputActionsWinAPI (TsDoubleBufferedQueue* q)              __NE___;
+	// variables
+	private:
+		float2					_cursorPosPx;
+		float2					_cursorDeltaSNorm;
+		float2					_mouseWheel;
 
-        ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam,
-                                  Duration_t timestamp, bool hasFocus)      __NE___;
-        ND_ bool  Register (void* wnd)                                      __NE___;
-            void  Unregister ()                                             __NE___;
-            void  SetMonitor (const uint2 &surfaceSize, const Monitor &)    __NE___;
-            void  CursorPosChanged (float2 pos)                             __NE___ { _cursorPosPx = pos; }
+		bool					_touchActive		: 1;	// \ 
+		bool					_touchBegin			: 1;	// |-- touch emulation by mouse & left button
+		bool					_touchEnd			: 1;	// /
 
-            void  Update (Duration_t timeSinceStart)                        __NE___;
+		float2					_surfaceSize;
 
-
-    // IInputActions //
-        bool  LoadSerialized (MemRefRStream &stream)                        __NE_OV;
+		GestureRecognizer		_gestureRecognizer;
 
 
-    // ISerializable //
-        bool  Serialize (Serializing::Serializer &)                         C_NE_OV;
-        bool  Deserialize (Serializing::Deserializer &)                     __NE_OV;
+	// methods
+	public:
+		explicit InputActionsWinAPI (TsDoubleBufferedQueue* q)				__NE___;
+
+		ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam,
+								  Duration_t timestamp, bool hasFocus)		__NE___;
+		ND_ bool  Register (void* wnd)										__NE___;
+			void  Unregister ()												__NE___;
+			void  SetMonitor (const uint2 &surfaceSize, const Monitor &)	__NE___;
+			void  CursorPosChanged (float2 pos)								__NE___	{ _cursorPosPx = pos; }
+
+			void  Update (Duration_t timeSinceStart)						__NE___;
 
 
-    private:
-        void  _SetCursorPos (float2 pos)                                    __NE___;
-        void  _SetCursorDelta (float2 pos)                                  __NE___;
-        void  _SetMouseWheel (uint idx, float delta)                        __NE___;
-    };
+	// IInputActions //
+		bool  LoadSerialized (MemRefRStream &stream)						__NE_OV;
+
+
+	// ISerializable //
+		bool  Serialize (Serializing::Serializer &)							C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)						__NE_OV;
+
+
+	private:
+		void  _SetCursorPos (float2 pos)									__NE___;
+		void  _SetCursorDelta (float2 pos)									__NE___;
+		void  _SetMouseWheel (uint idx, float delta)						__NE___;
+	};
 
 
 } // AE::App

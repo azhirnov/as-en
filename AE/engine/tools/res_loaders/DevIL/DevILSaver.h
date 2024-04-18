@@ -8,17 +8,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // DevIL Image Saver
-    //
+	//
+	// DevIL Image Saver
+	//
 
-    class DevILSaver final : public IImageSaver
-    {
-    // methods
-    public:
-        bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY = False{}) __NE_OV;
-        using IImageSaver::SaveImage;
-    };
+	class DevILSaver final : public IImageSaver
+	{
+	// methods
+	public:
+		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY = False{}) __NE_OV;
+		using IImageSaver::SaveImage;
+	};
 
 
 } // AE::ResLoader

@@ -5,35 +5,35 @@
 
 namespace AE::GraphicsTest
 {
-    using namespace AE::Graphics;
+	using namespace AE::Graphics;
 
 
-    //
-    // Image Comparator
-    //
+	//
+	// Image Comparator
+	//
 
-    class ImageComparator
-    {
-    // variables
-    private:
-        Mutex                   _guard;
-        RC<WStream>             _dstFile;
-        Path                    _fname;
-        bool                    _loaded     = false;
-        bool                    _newRef     = false;
-        ResLoader::IntermImage  _image;
+	class ImageComparator
+	{
+	// variables
+	private:
+		Mutex					_guard;
+		RC<WStream>				_dstFile;
+		Path					_fname;
+		bool					_loaded		= false;
+		bool					_newRef		= false;
+		ResLoader::IntermImage	_image;
 
 
-    // methods
-    public:
-        ImageComparator () {}
-        ~ImageComparator ();
+	// methods
+	public:
+		ImageComparator () {}
+		~ImageComparator ();
 
-            bool  LoadReference (RC<RStream> imgFile, Path imgName);
-            void  Reset (RC<WStream> imgFile, Path imgName);
+			bool  LoadReference (RC<RStream> imgFile, Path imgName);
+			void  Reset (RC<WStream> imgFile, Path imgName);
 
-        ND_ bool  Compare (const ImageMemView &view);
-    };
+		ND_ bool  Compare (const ImageMemView &view);
+	};
 
 
 } // AE::GraphicsTest

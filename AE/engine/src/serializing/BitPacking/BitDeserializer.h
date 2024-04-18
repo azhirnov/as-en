@@ -7,35 +7,35 @@
 namespace AE::Serializing
 {
 
-    //
-    // Bit Deserializer
-    //
+	//
+	// Bit Deserializer
+	//
 
-    struct BitDeserializer final : Noncopyable
-    {
-    // types
-    public:
+	struct BitDeserializer final : Noncopyable
+	{
+	// types
+	public:
 
-    // variables
-    public:
-        FastRStream             stream;
-        Ptr<ObjectFactory>      factory;
-        RC<IAllocator>          allocator;
+	// variables
+	public:
+		FastRStream				stream;
+		Ptr<ObjectFactory>		factory;
+		RC<IAllocator>			allocator;
 
 
-    // methods
-    public:
-        explicit BitDeserializer (FastRStream rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
-        explicit BitDeserializer (RC<RStream> rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
+	// methods
+	public:
+		explicit BitDeserializer (FastRStream rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
+		explicit BitDeserializer (RC<RStream> rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
 
-            template <typename ...Args>
-        ND_ bool  operator () (INOUT Args& ...args) __NE___;
-        ND_ bool  operator () (INOUT void *)        __NE___;
+			template <typename ...Args>
+		ND_ bool  operator () (INOUT Args& ...args)	__NE___;
+		ND_ bool  operator () (INOUT void *)		__NE___;
 
-        ND_ bool  IsEnd ()                          C_NE___ { return stream.Empty(); }
+		ND_ bool  IsEnd ()							C_NE___	{ return stream.Empty(); }
 
-    private:
-    };
+	private:
+	};
 
 
 } // AE::Serializing

@@ -7,29 +7,29 @@
 namespace AE::AssetPacker
 {
 
-    //
-    // Script Model
-    //
+	//
+	// Script Model
+	//
 
-    class ScriptModel final : public EnableScriptRC
-    {
-    // types
-    private:
-
-
-    // variables
-    private:
+	class ScriptModel final : public EnableScriptRC
+	{
+	// types
+	private:
 
 
-    // methods
-    public:
-        ScriptModel ();
-        ~ScriptModel ();
+	// variables
+	private:
 
-        static void  Bind (const ScriptEnginePtr &se) __Th___;
-    };
 
-    using ScriptModelPtr = ScriptRC< ScriptModel >;
+	// methods
+	public:
+		ScriptModel ();
+		~ScriptModel ();
+
+		static void  Bind (const ScriptEnginePtr &se) __Th___;
+	};
+
+	using ScriptModelPtr = ScriptRC< ScriptModel >;
 
 
 } // AE::AssetPacker

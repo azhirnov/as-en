@@ -4,7 +4,7 @@
 
 #include "scripting/Impl/ClassBinder.h"
 
-AE_DECL_SCRIPT_OBJ_RC(  AE::AssetPacker::ScriptModel,   "Model" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptModel,	"Model" );
 
 
 namespace AE::AssetPacker
@@ -12,31 +12,31 @@ namespace AE::AssetPacker
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    ScriptModel::ScriptModel ()
-    {}
+	ScriptModel::ScriptModel ()
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    ScriptModel::~ScriptModel ()
-    {}
+	ScriptModel::~ScriptModel ()
+	{}
 
 /*
 =================================================
-    Bind
+	Bind
 =================================================
 */
-    void  ScriptModel::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        Scripting::ClassBinder<ScriptModel> binder{ se };
-        binder.CreateRef();
+	void  ScriptModel::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptModel>	binder{ se };
+		binder.CreateRef();
 
-    }
+	}
 
 
 } // AE::AssetPacker

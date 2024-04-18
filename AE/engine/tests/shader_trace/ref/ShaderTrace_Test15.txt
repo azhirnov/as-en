@@ -11,22 +11,22 @@ no source
 
 //> uv: float2 {0.472656, 0.316406}
 //  gl_LaunchIDEXT: uint3 {60, 40, 0}
-10. uv        = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+10. uv		 = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.472656, 0.683594, -1.000000}
 //  uv: float2 {0.472656, 0.316406}
-11. origin    = vec3(uv.x, 1.0f - uv.y, -1.0f);
+11. origin	 = vec3(uv.x, 1.0f - uv.y, -1.0f);
 
 //> (out): float4 {0.000000, 0.000000, 0.000000, 0.000000}
 14. payload.color = vec4(0.0);
 
 //> traceRays(): void
 //  origin: float3 {0.472656, 0.683594, -1.000000}
-16.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-17.                  /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
-18.                  /*origin*/origin, /*Tmin*/0.0f,
-19.                  /*direction*/direction, /*Tmax*/10.0f,
-20.                  /*payload*/PAYLOAD_LOC );
+16. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
+17. 				 /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
+18. 				 /*origin*/origin, /*Tmin*/0.0f,
+19. 				 /*direction*/direction, /*Tmax*/10.0f,
+20. 				 /*payload*/PAYLOAD_LOC );
 
 //> color: float4 {0.121094, 0.011719, 0.867188, 1.000000}
 22. color = payload.color;
@@ -34,7 +34,7 @@ no source
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {60, 40, 0}
 //  color: float4 {0.121094, 0.011719, 0.867188, 1.000000}
-23.     imageStore( un_Output, ivec2(gl_LaunchIDEXT), color );
+23. 	imageStore( un_Output, ivec2(gl_LaunchIDEXT), color );
 
 //---------------------------
 

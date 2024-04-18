@@ -8,13 +8,13 @@
 namespace AE::Audio
 {
 
-    //
-    // BASS Audio Encoder
-    //
+	//
+	// BASS Audio Encoder
+	//
 
-    class AudioEncoderBASS : public IAudioEncoder
-    {
-    };
+	class AudioEncoderBASS : public IAudioEncoder
+	{
+	};
 
 
 } // AE::Audio

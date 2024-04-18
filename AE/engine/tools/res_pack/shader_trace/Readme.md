@@ -39,7 +39,7 @@ glslang::GlslangToSpv( *intermediate, spirvData, ... );
 ...
 
 // create buffer for shader output
-VkBufferCreateInfo  info = {};
+VkBufferCreateInfo	info = {};
 info.sType  = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 info.size   = 4u << 20;
 info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
@@ -112,15 +112,15 @@ void main ()
     dbg_EnableTraceRecording( condition );
     ...
 
-    // pause
-    dbg_PauseTraceRecording( true );
+	// pause
+	dbg_PauseTraceRecording( true );
 
-    // trace will not be recorded
-    ...
+	// trace will not be recorded
+	...
 
-    // resume
-    dbg_PauseTraceRecording( false );
-    ...
+	// resume
+	dbg_PauseTraceRecording( false );
+	...
 }
 ```
 </details>
@@ -162,7 +162,7 @@ The `//>` symbol marks the modified variable or function result.
 
 ```cpp
 // get shader clock extension features
-VkPhysicalDeviceShaderClockFeaturesKHR  shaderClockFeat;
+VkPhysicalDeviceShaderClockFeaturesKHR	shaderClockFeat;
 ...
 
 // use glslang to compile shader from source
@@ -185,7 +185,7 @@ glslang::GlslangToSpv( *intermediate, spirvData, ... );
 ...
 
 // create buffer for shader output
-VkBufferCreateInfo  info = {};
+VkBufferCreateInfo	info = {};
 info.sType  = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 info.size   = 4u << 20;
 info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
@@ -284,10 +284,10 @@ no source
 
 ```cpp
 // check shader clock extension
-VkPhysicalDeviceShaderClockFeaturesKHR  shaderClockFeat;
+VkPhysicalDeviceShaderClockFeaturesKHR	shaderClockFeat;
 ...
 if ( !shaderClockFeat.shaderDeviceClock )
-    return; // not supported
+	return; // not supported
 
 // use glslang to compile shader from source
 // for full source code see 'Device::_Compile()' in 'tests/Vulkan/Device.cpp'
@@ -310,7 +310,7 @@ glslang::GlslangToSpv( *intermediate, spirvData, ... );
 
 // create buffer for shader output
 // image_width, image_height - size of render target
-VkBufferCreateInfo  info = {};
+VkBufferCreateInfo	info = {};
 info.sType  = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 info.size   = 16 + (image_width * image_height * 8);
 info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
@@ -339,10 +339,10 @@ uint64_t* bufferData = static_cast<uint64_t*>( ptr ) + 2;
 for (uint32_t y = 0; y < image_height; ++y)
 for (uint32_t x = 0; x < image_width; ++x)
 {
-    uint64_t  pixel_time = bufferData[x + y * image_width];
+	uint64_t  pixel_time = bufferData[x + y * image_width];
 
-    // process results
-    ...
+	// process results
+	...
 }
 ```
 </details>

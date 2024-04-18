@@ -9,17 +9,17 @@ namespace _hidden_
 
 /*
 =================================================
-    SecureZeroMemFallback
+	SecureZeroMemFallback
 =================================================
 */
-    using MemsetFn_t = decltype(&std::memset);
+	using MemsetFn_t = decltype(&std::memset);
 
-    static volatile MemsetFn_t  memset_fn = &std::memset;
+	static volatile MemsetFn_t	memset_fn = &std::memset;
 
-    void  SecureZeroMemFallback (OUT void* ptr, Bytes size) __NE___
-    {
-        memset_fn( OUT ptr, 0, usize(size) );
-    }
+	void  SecureZeroMemFallback (OUT void* ptr, Bytes size) __NE___
+	{
+		memset_fn( OUT ptr, 0, usize(size) );
+	}
 
 } // _hidden_
 } // AE::Base

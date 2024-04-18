@@ -8,17 +8,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // KTX image Loader
-    //
+	//
+	// KTX image Loader
+	//
 
-    class KTXImageLoader final : public IImageLoader
-    {
-    // methods
-    public:
-        bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE_OV;
-        using IImageLoader::LoadImage;
-    };
+	class KTXImageLoader final : public IImageLoader
+	{
+	// methods
+	public:
+		bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE_OV;
+		using IImageLoader::LoadImage;
+	};
 
 
 } // AE::ResLoader

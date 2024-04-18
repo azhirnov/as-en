@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_GFS
-#   error AE_ENABLE_GFS required
+#	error AE_ENABLE_GFS required
 #endif
 
 #include "filesystem.hpp"
@@ -8,6 +8,6 @@
 
 extern int AE_FileSystem_Test ()
 {
-    (void)(ghc::filesystem::current_path());
-    return 0;
+	(void)(ghc::filesystem::current_path());
+	return 0;
 }

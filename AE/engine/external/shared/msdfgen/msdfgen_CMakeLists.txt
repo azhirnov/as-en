@@ -15,7 +15,7 @@ set( FT2_INCLUDE_DIR "${FT2_DIR}/include/freetype2" )
 set( FT2_LIB_PATH "${FT2_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}freetype${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 
 if ( (NOT EXISTS "${FT2_INCLUDE_DIR}/ft2build.h") OR (NOT EXISTS "${FT2_LIB_PATH}") )
-    message( FATAL_ERROR "FreeType is not exists in '${FT2_INCLUDE_DIR}' and '${FT2_LIB_PATH}'" )
+	message( FATAL_ERROR "FreeType is not exists in '${FT2_INCLUDE_DIR}' and '${FT2_LIB_PATH}'" )
 endif()
 
 target_include_directories( "msdfgen-core" PUBLIC ${FT2_INCLUDE_DIR} )

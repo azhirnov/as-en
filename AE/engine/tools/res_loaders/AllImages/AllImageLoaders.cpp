@@ -12,57 +12,57 @@ namespace AE::ResLoader
 
 /*
 =================================================
-    LoadImage
+	LoadImage
 =================================================
 */
-    bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
-    {
-        // multithreaded
-        if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
-        {
-            DDSImageLoader  loader;
-            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
-                return true;
-        }
+	bool  AllImageLoaders::LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE___
+	{
+		// multithreaded
+		if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
+		{
+			DDSImageLoader	loader;
+			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+				return true;
+		}
 
-        // multithreaded
-        if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
-        {
-            AEImageLoader   loader;
-            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
-                return true;
-        }
+		// multithreaded
+		if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
+		{
+			AEImageLoader	loader;
+			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+				return true;
+		}
 
-        // multithreaded
-        #ifdef AE_ENABLE_STB
-        {
-            STBImageLoader  loader;
-            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
-                return true;
-        }
-        #endif
+		// multithreaded
+		#ifdef AE_ENABLE_STB
+		{
+			STBImageLoader	loader;
+			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+				return true;
+		}
+		#endif
 
-        // multithreaded
-        #ifdef AE_ENABLE_KTX
-        if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
-        {
-            KTXImageLoader  loader;
-            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
-                return true;
-        }
-        #endif
+		// multithreaded
+		#ifdef AE_ENABLE_KTX
+		if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
+		{
+			KTXImageLoader	loader;
+			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+				return true;
+		}
+		#endif
 
-        // DevIL is single threaded set low priority
-        #ifdef AE_ENABLE_DEVIL
-        {
-            DevILLoader     loader;
-            if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
-                return true;
-        }
-        #endif
+		// DevIL is single threaded set low priority
+		#ifdef AE_ENABLE_DEVIL
+		{
+			DevILLoader		loader;
+			if ( loader.LoadImage( image, stream, flipY, allocator, fileFormat ))
+				return true;
+		}
+		#endif
 
-        return false;
-    }
+		return false;
+	}
 
 
 } // AE::ResLoader

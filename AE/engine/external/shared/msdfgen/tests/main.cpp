@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_MSDFGEN
-#   error AE_ENABLE_MSDFGEN required
+#	error AE_ENABLE_MSDFGEN required
 #endif
 
 #include "msdfgen.h"
@@ -14,5 +14,5 @@ extern int AE_Utf8Proc_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

@@ -5,8 +5,8 @@
 set( OPENVR_PATH "${AE_DST_SHARED_PATH}/OpenVR" )
 
 add_custom_target( "OpenVR-copy-dll"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${OPENVR_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
-    COMMENT "Copying OpenVR DLLs..." )
+	COMMAND ${CMAKE_COMMAND} -E copy_directory "${OPENVR_PATH}/bin" "${MAIN_BINARY_DIR}/$<CONFIG>"
+	COMMENT "Copying OpenVR DLLs..." )
 set_property( TARGET "OpenVR-copy-dll" PROPERTY FOLDER "Engine/External" )
 
 if (NOT EXISTS "${OPENVR_PATH}/bin")

@@ -5,67 +5,67 @@
 namespace AE::PipelineCompiler
 {
 namespace {
-    ND_ bool  IsPartOfWord (const char c)
-    {
-        return  (c == '_') or
-                ((c >= 'a') and (c <= 'z')) or
-                ((c >= 'A') and (c <= 'Z')) or
-                ((c >= '0') and (c <= '9'));
-    }
+	ND_ bool  IsPartOfWord (const char c)
+	{
+		return	(c == '_') or
+				((c >= 'a') and (c <= 'z')) or
+				((c >= 'A') and (c <= 'Z')) or
+				((c >= '0') and (c <= '9'));
+	}
 }
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    AEStyleMSLPreprocessor::AEStyleMSLPreprocessor ()
-    {
-        // TODO
-    }
+	AEStyleMSLPreprocessor::AEStyleMSLPreprocessor ()
+	{
+		// TODO
+	}
 
 /*
 =================================================
-    Process
+	Process
 =================================================
 */
-    bool  AEStyleMSLPreprocessor::Process (EShader, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr)
-    {
-        usize   hdr_size = 0;
-        Parser::MoveToLine( inStr, INOUT hdr_size, headerLines );
+	bool  AEStyleMSLPreprocessor::Process (EShader, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr)
+	{
+		usize	hdr_size = 0;
+		Parser::MoveToLine( inStr, INOUT hdr_size, headerLines );
 
-        StringView  header = inStr.substr( 0, hdr_size );
-        StringView  source = inStr.substr( hdr_size );
-        //ASSERT( (String{header} << source) == inStr );
+		StringView	header = inStr.substr( 0, hdr_size );
+		StringView	source = inStr.substr( hdr_size );
+		//ASSERT( (String{header} << source) == inStr );
 
-        outStr.reserve( inStr.size() );
-        outStr = source;
+		outStr.reserve( inStr.size() );
+		outStr = source;
 
-        for (auto& [src, dst] : _typeMap)
-        {
-            for (usize i = 0; i < outStr.size();)
-            {
-                usize   pos = outStr.find( src, i );
-                if_unlikely( pos == StringView::npos )
-                    break;
+		for (auto& [src, dst] : _typeMap)
+		{
+			for (usize i = 0; i < outStr.size();)
+			{
+				usize	pos = outStr.find( src, i );
+				if_unlikely( pos == StringView::npos )
+					break;
 
-                const char  c0 = outStr[ pos - 1 ];
-                const char  c1 = outStr[ pos + src.size() ];
+				const char	c0 = outStr[ pos - 1 ];
+				const char	c1 = outStr[ pos + src.size() ];
 
-                if ( IsPartOfWord( c0 ) or IsPartOfWord( c1 ) or (c0 == '.') )
-                {
-                    i = pos + src.size();
-                    continue;
-                }
+				if ( IsPartOfWord( c0 ) or IsPartOfWord( c1 ) or (c0 == '.') )
+				{
+					i = pos + src.size();
+					continue;
+				}
 
-                outStr.replace( pos, src.length(), dst.data() );
-                i = pos + dst.length();
-            }
-        }
+				outStr.replace( pos, src.length(), dst.data() );
+				i = pos + dst.length();
+			}
+		}
 
-        header >> outStr;
-        return true;
-    }
+		header >> outStr;
+		return true;
+	}
 
 
 } // AE::PipelineCompiler

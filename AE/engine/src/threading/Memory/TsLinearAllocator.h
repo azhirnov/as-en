@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    thread-safe: yes
+	thread-safe: yes
 */
 
 #pragma once
@@ -10,141 +10,141 @@
 namespace AE::Base
 {
 
-    //
-    // Linear Allocator
-    //
+	//
+	// Linear Allocator
+	//
 
-    template <typename AllocatorType,
-              uint MaxBlocks
-             >
-    class LinearAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
-    {
-        StaticAssert( MaxBlocks > 0 );
+	template <typename AllocatorType,
+			  uint MaxBlocks
+			 >
+	class LinearAllocator< AllocatorType, MaxBlocks, true > final : public IAllocatorTS
+	{
+		StaticAssert( MaxBlocks > 0 );
 
-    // types
-    private:
-        using BaseAlloc_t   = LinearAllocator< AllocatorType, MaxBlocks, false >;
-    public:
-        using Allocator_t   = AllocatorType;
-        using Self          = LinearAllocator< AllocatorType, MaxBlocks, true >;
-
-
-    // variables
-    private:
-        Mutex               _guard;
-        BaseAlloc_t         _base;
+	// types
+	private:
+		using BaseAlloc_t	= LinearAllocator< AllocatorType, MaxBlocks, false >;
+	public:
+		using Allocator_t	= AllocatorType;
+		using Self			= LinearAllocator< AllocatorType, MaxBlocks, true >;
 
 
-    // methods
-    public:
-        LinearAllocator ()                                          __NE___ {}
-        LinearAllocator (Self &&other)                              __NE___;
-        explicit LinearAllocator (const Allocator_t &alloc)         __NE___ : _base{ alloc } {}
-        explicit LinearAllocator (Bytes blockSize)                  __NE___ : _base{ blockSize } {}
-        ~LinearAllocator ()                                         __NE___ { Release(); }
-
-            Self&   operator = (Self &&rhs)                         __NE___;
-
-            void    SetBlockSize (Bytes size)                       __NE___;
-            void    Release ()                                      __NE___;
+	// variables
+	private:
+		Mutex				_guard;
+		BaseAlloc_t			_base;
 
 
-        // IAllocator //
-        ND_ void*   Allocate (const SizeAndAlign sizeAndAlign)      __NE_OV;
-            using   IAllocator::Allocate;
+	// methods
+	public:
+		LinearAllocator ()											__NE___ {}
+		LinearAllocator (Self &&other)								__NE___;
+		explicit LinearAllocator (const Allocator_t &alloc)			__NE___ : _base{ alloc } {}
+		explicit LinearAllocator (Bytes blockSize)					__NE___ : _base{ blockSize } {}
+		~LinearAllocator ()											__NE___	{ Release(); }
 
-            void    Deallocate (void* ptr)                          __NE_OV { Deallocate( ptr, 1_b ); }
-            void    Deallocate (void* ptr, Bytes size)              __NE_OV;
-            void    Deallocate (void* ptr, const SizeAndAlign sa)   __NE_OV { Deallocate( ptr, sa.size ); }
+			Self&	operator = (Self &&rhs)							__NE___;
 
-            void    Discard ()                                      __NE_OV;
-    };
+			void	SetBlockSize (Bytes size)						__NE___;
+			void	Release ()										__NE___;
 
 
+		// IAllocator //
+		ND_ void*	Allocate (const SizeAndAlign sizeAndAlign)		__NE_OV;
+			using	IAllocator::Allocate;
 
-/*
-=================================================
-    constructor
-=================================================
-*/
-    template <typename A, uint MB>
-    LinearAllocator<A,MB,true>::LinearAllocator (Self &&other) __NE___
-    {
-        EXLOCK( _guard, other._guard );
-        _base = RVRef(other._base);
-    }
+			void	Deallocate (void* ptr)							__NE_OV { Deallocate( ptr, 1_b ); }
+			void	Deallocate (void* ptr, Bytes size)				__NE_OV;
+			void	Deallocate (void* ptr, const SizeAndAlign sa)	__NE_OV { Deallocate( ptr, sa.size ); }
 
-    template <typename A, uint MB>
-    LinearAllocator<A,MB,true>&  LinearAllocator<A,MB,true>::operator = (Self &&rhs) __NE___
-    {
-        EXLOCK( _guard, rhs._guard );
-        _base = RVRef(rhs._base);
-        return *this;
-    }
+			void	Discard ()										__NE_OV;
+	};
+
+
 
 /*
 =================================================
-    SetBlockSize
+	constructor
 =================================================
 */
-    template <typename A, uint MB>
-    void  LinearAllocator<A,MB,true>::SetBlockSize (Bytes size) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.SetBlockSize( size );
-    }
+	template <typename A, uint MB>
+	LinearAllocator<A,MB,true>::LinearAllocator (Self &&other) __NE___
+	{
+		EXLOCK( _guard, other._guard );
+		_base = RVRef(other._base);
+	}
+
+	template <typename A, uint MB>
+	LinearAllocator<A,MB,true>&  LinearAllocator<A,MB,true>::operator = (Self &&rhs) __NE___
+	{
+		EXLOCK( _guard, rhs._guard );
+		_base = RVRef(rhs._base);
+		return *this;
+	}
 
 /*
 =================================================
-    Allocate
+	SetBlockSize
 =================================================
 */
-    template <typename A, uint MB>
-    void*  LinearAllocator<A,MB,true>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Allocate( sizeAndAlign );
-    }
+	template <typename A, uint MB>
+	void  LinearAllocator<A,MB,true>::SetBlockSize (Bytes size) __NE___
+	{
+		EXLOCK( _guard );
+		return _base.SetBlockSize( size );
+	}
 
 /*
 =================================================
-    Deallocate
+	Allocate
 =================================================
 */
-    template <typename A, uint MB>
-    void  LinearAllocator<A,MB,true>::Deallocate (void* ptr, Bytes size) __NE___
-    {
-    #ifdef AE_DEBUG
-        EXLOCK( _guard );
-        _base.Deallocate( ptr, size );
-    #else
-        Unused( ptr, size );
-    #endif
-    }
+	template <typename A, uint MB>
+	void*  LinearAllocator<A,MB,true>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Allocate( sizeAndAlign );
+	}
 
 /*
 =================================================
-    Discard
+	Deallocate
 =================================================
 */
-    template <typename A, uint MB>
-    void  LinearAllocator<A,MB,true>::Discard () __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Discard();
-    }
+	template <typename A, uint MB>
+	void  LinearAllocator<A,MB,true>::Deallocate (void* ptr, Bytes size) __NE___
+	{
+	#ifdef AE_DEBUG
+		EXLOCK( _guard );
+		_base.Deallocate( ptr, size );
+	#else
+		Unused( ptr, size );
+	#endif
+	}
 
 /*
 =================================================
-    Release
+	Discard
 =================================================
 */
-    template <typename A, uint MB>
-    void  LinearAllocator<A,MB,true>::Release () __NE___
-    {
-        EXLOCK( _guard );
-        return _base.Release();
-    }
+	template <typename A, uint MB>
+	void  LinearAllocator<A,MB,true>::Discard () __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Discard();
+	}
+
+/*
+=================================================
+	Release
+=================================================
+*/
+	template <typename A, uint MB>
+	void  LinearAllocator<A,MB,true>::Release () __NE___
+	{
+		EXLOCK( _guard );
+		return _base.Release();
+	}
 
 
 } // AE::Base

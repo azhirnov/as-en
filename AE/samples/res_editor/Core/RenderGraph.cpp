@@ -5,44 +5,44 @@
 namespace AE::ResEditor
 {
 namespace {
-    static RenderGraphImpl*  _rgInstance = null;
+	static RenderGraphImpl*  _rgInstance = null;
 }
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    RenderGraphImpl::RenderGraphImpl () __Th___ :
-        _rg{ GraphicsScheduler().GetRenderGraph() }
-    {
-        CHECK_THROW( _rgInstance == null );
-        _rgInstance = this;
-    }
+	RenderGraphImpl::RenderGraphImpl () __Th___ :
+		_rg{ GraphicsScheduler().GetRenderGraph() }
+	{
+		CHECK_THROW( _rgInstance == null );
+		_rgInstance = this;
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    RenderGraphImpl::~RenderGraphImpl ()
-    {
-        CHECK( _rg.WaitAll( AE::DefaultTimeout ));
+	RenderGraphImpl::~RenderGraphImpl ()
+	{
+		CHECK( _rg.WaitAll( AE::DefaultTimeout ));
 
-        CHECK( _rgInstance == this );
-        _rgInstance = null;
-    }
+		CHECK( _rgInstance == this );
+		_rgInstance = null;
+	}
 
 /*
 =================================================
-    RenderGraph
+	RenderGraph
 =================================================
 */
-    RenderGraphImpl&  RenderGraph ()
-    {
-        ASSERT( _rgInstance != null );
-        return *_rgInstance;
-    }
+	RenderGraphImpl&  RenderGraph ()
+	{
+		ASSERT( _rgInstance != null );
+		return *_rgInstance;
+	}
 
 
 } // AE::ResEditor

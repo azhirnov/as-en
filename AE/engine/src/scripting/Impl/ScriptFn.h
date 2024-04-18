@@ -7,136 +7,136 @@
 
 namespace AE::Scripting
 {
-    template <typename F>
-    class ScriptFn;
+	template <typename F>
+	class ScriptFn;
 
 
-    //
-    // Script Function
-    //
+	//
+	// Script Function
+	//
 
-    template <typename R, typename ...Types>
-    class ScriptFn< R (Types...) > final : public EnableRC< ScriptFn<R (Types...)> >
-    {
-        friend class ScriptEngine;
+	template <typename R, typename ...Types>
+	class ScriptFn< R (Types...) > final : public EnableRC< ScriptFn<R (Types...)> >
+	{
+		friend class ScriptEngine;
 
-    // types
-    private:
-        using Result_t  = Conditional< IsSameTypes<R, void>, bool, Optional<R> >;
-        using Self      = ScriptFn< R (Types...) >;
-
-
-    // variables
-    private:
-        ScriptModulePtr                 _module;
-        AngelScript::asIScriptContext*  _ctx        = null;
+	// types
+	private:
+		using Result_t	= Conditional< IsSameTypes<R, void>, bool, Optional<R> >;
+		using Self		= ScriptFn< R (Types...) >;
 
 
-    // methods
-    private:
-        ScriptFn (const ScriptModulePtr &mod, AngelScript::asIScriptContext* ctx) __NE___ :
-            _module{ mod }, _ctx{ ctx }
-        {}
-
-    public:
-        ~ScriptFn ()                        __NE_OV
-        {
-            if ( _ctx != null )
-                _ctx->Release();
-        }
-
-        template <typename ...Args>
-        ND_ Result_t  Run (Args&& ...args)  __NE___;
-
-    private:
-        bool  _CheckError (int exec_res) const;
-    };
+	// variables
+	private:
+		ScriptModulePtr					_module;
+		AngelScript::asIScriptContext*	_ctx		= null;
 
 
+	// methods
+	private:
+		ScriptFn (const ScriptModulePtr &mod, AngelScript::asIScriptContext* ctx) __NE___ :
+			_module{ mod }, _ctx{ ctx }
+		{}
 
-/*
-=================================================
-    Run
-=================================================
-*/
-    template <typename R, typename ...Types>
-    template <typename ...Args>
-    typename ScriptFn< R (Types...) >::Result_t
-        ScriptFn< R (Types...) >::Run (Args&& ...args) __NE___
-    {
-        using namespace AngelScript;
+	public:
+		~ScriptFn ()						__NE_OV
+		{
+			if ( _ctx != null )
+				_ctx->Release();
+		}
 
-        using ExpectedArgs_t    = TypeList< Types... >;
-        using InputArgs_t       = TypeList< Args... >;
+		template <typename ...Args>
+		ND_ Result_t  Run (Args&& ...args)	__NE___;
 
-        StaticAssert( Scripting::_hidden_::CheckInputArgTypes< ExpectedArgs_t, InputArgs_t >::value );
+	private:
+		bool  _CheckError (int exec_res) const;
+	};
 
-        if_unlikely( not (_module and _ctx != null) )
-        {
-            if constexpr( IsSameTypes<R, void> ) {
-                RETURN_ERR( "not initialized", false );
-            }else{
-                RETURN_ERR( "not initialized", Optional<R>{} );
-            }
-        }
 
-        Scripting::_hidden_::SetContextArgs<Args...>::Set( _ctx, 0, FwdArg<Args>(args)... );
-
-        const int   exec_res = _ctx->Execute();
-        // result same as _ctx->GetState();
-
-        if constexpr( IsSameTypes<R, void> )
-        {
-            if_likely( exec_res == asEXECUTION_FINISHED )
-                return true;
-
-            return _CheckError( exec_res );
-        }
-        else
-        {
-            if_likely( exec_res == asEXECUTION_FINISHED )
-                return {Scripting::_hidden_::ContextSetterGetter<R>::Get( _ctx )};
-
-            _CheckError( exec_res );
-            return {};
-        }
-    }
 
 /*
 =================================================
-    _CheckError
+	Run
 =================================================
 */
-    template <typename R, typename ...Types>
-    bool  ScriptFn< R (Types...) >::_CheckError (int exec_res) const
-    {
-        using namespace AngelScript;
+	template <typename R, typename ...Types>
+	template <typename ...Args>
+	typename ScriptFn< R (Types...) >::Result_t
+		ScriptFn< R (Types...) >::Run (Args&& ...args) __NE___
+	{
+		using namespace AngelScript;
 
-        if ( exec_res == asEXECUTION_EXCEPTION )
-        {
-            String  err;
-            err << "Exception in function: "
-                << _ctx->GetExceptionFunction()->GetName();
+		using ExpectedArgs_t	= TypeList< Types... >;
+		using InputArgs_t		= TypeList< Args... >;
 
-            const char* section = 0;
-            int         column  = 0;
-            const int   line    = _ctx->GetExceptionLineNumber( OUT &column, OUT &section );
+		StaticAssert( Scripting::_hidden_::CheckInputArgTypes< ExpectedArgs_t, InputArgs_t >::value );
 
-            err << ", in script " << section << " (" << ToString( line ) << ", " << ToString( column ) << "):\n";
-            err << _ctx->GetExceptionString();
+		if_unlikely( not (_module and _ctx != null) )
+		{
+			if constexpr( IsSameTypes<R, void> ) {
+				RETURN_ERR( "not initialized", false );
+			}else{
+				RETURN_ERR( "not initialized", Optional<R>{} );
+			}
+		}
 
-            #if AE_DBG_SCRIPTS
-            if ( not _module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() ))
-            #endif
-                AE_LOG_SE( err );
+		Scripting::_hidden_::SetContextArgs<Args...>::Set( _ctx, 0, FwdArg<Args>(args)... );
 
-            return false;
-        }
-        else
-        {
-            RETURN_ERR( "AngelScript execution failed" );
-        }
-    }
+		const int	exec_res = _ctx->Execute();
+		// result same as _ctx->GetState();
+
+		if constexpr( IsSameTypes<R, void> )
+		{
+			if_likely( exec_res == asEXECUTION_FINISHED )
+				return true;
+
+			return _CheckError( exec_res );
+		}
+		else
+		{
+			if_likely( exec_res == asEXECUTION_FINISHED )
+				return {Scripting::_hidden_::ContextSetterGetter<R>::Get( _ctx )};
+
+			_CheckError( exec_res );
+			return {};
+		}
+	}
+
+/*
+=================================================
+	_CheckError
+=================================================
+*/
+	template <typename R, typename ...Types>
+	bool  ScriptFn< R (Types...) >::_CheckError (int exec_res) const
+	{
+		using namespace AngelScript;
+
+		if ( exec_res == asEXECUTION_EXCEPTION )
+		{
+			String	err;
+			err	<< "Exception in function: "
+				<< _ctx->GetExceptionFunction()->GetName();
+
+			const char*	section	= 0;
+			int			column	= 0;
+			const int	line	= _ctx->GetExceptionLineNumber( OUT &column, OUT &section );
+
+			err << ", in script " << section << " (" << ToString( line ) << ", " << ToString( column ) << "):\n";
+			err << _ctx->GetExceptionString();
+
+			#if AE_DBG_SCRIPTS
+			if ( not _module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() ))
+			#endif
+				AE_LOG_SE( err );
+
+			return false;
+		}
+		else
+		{
+			RETURN_ERR( "AngelScript execution failed" );
+		}
+	}
 
 
 } // AE::Scripting

@@ -8,13 +8,13 @@
 namespace AE::Networking
 {
 
-    //
-    // UDP Reliable Channel
-    //
+	//
+	// UDP Reliable Channel
+	//
 
-    class UdpReliable final : public IChannel
-    {
-    };
+	class UdpReliable final : public IChannel
+	{
+	};
 
 
 } // AE::Networking

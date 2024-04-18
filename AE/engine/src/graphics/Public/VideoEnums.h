@@ -7,153 +7,153 @@
 namespace AE::Graphics
 {
 
-    enum class EVideoCodecMode : ubyte
-    {
-        Encode,
-        Decode,
+	enum class EVideoCodecMode : ubyte
+	{
+		Encode,
+		Decode,
 
-        _Count,
-        Unknown     = 0xFF,
-    };
-
-
-    enum class EVideoCodec : ubyte
-    {
-        GIF,
-        MPEG4,
-        H264,
-        H265,   // HEVC
-        WEBP,
-        VP8,
-        VP9,
-        AV1,
-        // VVC,
-
-        _Count,
-        Unknown     = 0xFF,
-    };
+		_Count,
+		Unknown		= 0xFF,
+	};
 
 
-    enum class EVideoChromaSubsampling : ubyte
-    {
-        Unknown         = 0,
-        Monochrome,
-        _420,           // 4:2:0
-        _422,           // 4:2:2
-        _444,           // 4:4:4
-    };
+	enum class EVideoCodec : ubyte
+	{
+		GIF,
+		MPEG4,
+		H264,
+		H265,	// HEVC
+		WEBP,
+		VP8,
+		VP9,
+		AV1,
+		// VVC,
+
+		_Count,
+		Unknown		= 0xFF,
+	};
 
 
-    enum class EVideoComponentBitDepth : ubyte
-    {
-        Unknown         = 0,
-        _8,
-        _10,
-        _12,
-    };
+	enum class EVideoChromaSubsampling : ubyte
+	{
+		Unknown			= 0,
+		Monochrome,
+		_420,			// 4:2:0
+		_422,			// 4:2:2
+		_444,			// 4:4:4
+	};
 
 
-    enum class EStdVideoH264ProfileIdc : ubyte
-    {
-        Baseline,
-        Main,
-        High,
-        Hight444_Predictive,
-
-        _Count,
-        Unknown = 0xFF,
-    };
+	enum class EVideoComponentBitDepth : ubyte
+	{
+		Unknown			= 0,
+		_8,
+		_10,
+		_12,
+	};
 
 
-    enum class EStdVideoH265ProfileIdc : ubyte
-    {
-        Main,
-        Main10,
-        MainStillPicture,
-        RangeExtensions,
-        SCC_Extensions,
+	enum class EStdVideoH264ProfileIdc : ubyte
+	{
+		Baseline,
+		Main,
+		High,
+		Hight444_Predictive,
 
-        _Count,
-        Unknown = 0xFF,
-    };
-
-
-    enum class EVideoDecodeH264PictureLayout : ubyte
-    {
-        Progressive,
-        InterlacedInterleavedLines,
-        InterlacedSeparatePlanes,
-
-        _Count,
-        Unknown = 0xFF,
-    };
+		_Count,
+		Unknown	= 0xFF,
+	};
 
 
-    enum class EVideoFormat : ubyte
-    {
-        YUV420P,        // 12bpp
-        YUV422P,        // 16bpp
-        YUV444P,        // 24bpp
+	enum class EStdVideoH265ProfileIdc : ubyte
+	{
+		Main,
+		Main10,
+		MainStillPicture,
+		RangeExtensions,
+		SCC_Extensions,
 
-        YUV420P10LE,    // 15bpp
-        YUV422P10LE,    // 20bpp
-        YUV444P10LE,    // 30bpp
-
-        YUV420P12LE,    // 18bpp
-        YUV422P12LE,    // 24bpp
-        YUV444P12LE,    // 36bpp
-
-        YUV420P16LE,    // 24bpp
-        YUV422P16LE,    // 32bpp
-        YUV444P16LE,    // 48bpp
-
-        YUVA444P16LE,   // 64bpp
-
-        NV12,           // 12bpp
-        NV21,           // 12bpp
-        NV16,           // 16bpp
-        NV24,           // 24bpp
-        NV42,           // 24bpp
-        NV20LE,         // 20bpp
-
-        P010LE,         // 10bpp
-        _Count,
-        Unknown         = 0xFF,
-    };
+		_Count,
+		Unknown	= 0xFF,
+	};
 
 
-    enum class EVideoBufferUsage : ubyte
-    {
-        Unknown     = 0,
+	enum class EVideoDecodeH264PictureLayout : ubyte
+	{
+		Progressive,
+		InterlacedInterleavedLines,
+		InterlacedSeparatePlanes,
 
-        DecodeSrc   = 1 << 0,       // source video bitstream
-        DecodeDst   = 1 << 1,       // reserved
-
-        EncodeSrc   = 1 << 2,       // reserved
-        EncodeDst   = 1 << 3,       // destination video bitstream
-
-        _Last,
-        All         = ((_Last - 1) << 1) - 1
-    };
-    AE_BIT_OPERATORS( EVideoBufferUsage );
+		_Count,
+		Unknown	= 0xFF,
+	};
 
 
-    enum class EVideoImageUsage : ubyte
-    {
-        Unknown     = 0,
+	enum class EVideoFormat : ubyte
+	{
+		YUV420P,		// 12bpp
+		YUV422P,		// 16bpp
+		YUV444P,		// 24bpp
 
-        DecodeSrc   = 1 << 0,       // reserved
-        DecodeDst   = 1 << 1,       // decode output picture
-        DecodeDpb   = 1 << 2,       // decode output picture and reconstructed picture
+		YUV420P10LE,	// 15bpp
+		YUV422P10LE,	// 20bpp
+		YUV444P10LE,	// 30bpp
 
-        EncodeSrc   = 1 << 3,       // encode input picture
-        EncodeDst   = 1 << 4,       // reserved
-        EncodeDpb   = 1 << 5,       // encode input picture and reconstructed picture
+		YUV420P12LE,	// 18bpp
+		YUV422P12LE,	// 24bpp
+		YUV444P12LE,	// 36bpp
 
-        _Last,
-        All         = ((_Last - 1) << 1) - 1
-    };
-    AE_BIT_OPERATORS( EVideoImageUsage );
+		YUV420P16LE,	// 24bpp
+		YUV422P16LE,	// 32bpp
+		YUV444P16LE,	// 48bpp
+
+		YUVA444P16LE,	// 64bpp
+
+		NV12,			// 12bpp
+		NV21,			// 12bpp
+		NV16,			// 16bpp
+		NV24,			// 24bpp
+		NV42,			// 24bpp
+		NV20LE,			// 20bpp
+
+		P010LE,			// 10bpp
+		_Count,
+		Unknown			= 0xFF,
+	};
+
+
+	enum class EVideoBufferUsage : ubyte
+	{
+		Unknown		= 0,
+
+		DecodeSrc	= 1 << 0,		// source video bitstream
+		DecodeDst	= 1 << 1,		// reserved
+
+		EncodeSrc	= 1 << 2,		// reserved
+		EncodeDst	= 1 << 3,		// destination video bitstream
+
+		_Last,
+		All			= ((_Last - 1) << 1) - 1
+	};
+	AE_BIT_OPERATORS( EVideoBufferUsage );
+
+
+	enum class EVideoImageUsage : ubyte
+	{
+		Unknown		= 0,
+
+		DecodeSrc	= 1 << 0,		// reserved
+		DecodeDst	= 1 << 1,		// decode output picture
+		DecodeDpb	= 1 << 2,		// decode output picture and reconstructed picture
+
+		EncodeSrc	= 1 << 3,		// encode input picture
+		EncodeDst	= 1 << 4,		// reserved
+		EncodeDpb	= 1 << 5,		// encode input picture and reconstructed picture
+
+		_Last,
+		All			= ((_Last - 1) << 1) - 1
+	};
+	AE_BIT_OPERATORS( EVideoImageUsage );
 
 
 } // AE::Graphics

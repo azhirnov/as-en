@@ -30,41 +30,41 @@
 
 namespace AE::Base
 {
-    #if defined(AE_PLATFORM_WINDOWS)
-        using PlatformUtils = WindowsUtils;
-        using Process       = WindowsProcess;
+	#if defined(AE_PLATFORM_WINDOWS)
+		using PlatformUtils = WindowsUtils;
+		using Process		= WindowsProcess;
 
-    #elif defined(AE_PLATFORM_ANDROID)
-        using PlatformUtils = AndroidUtils;
+	#elif defined(AE_PLATFORM_ANDROID)
+		using PlatformUtils = AndroidUtils;
 
-    #elif defined(AE_PLATFORM_EMSCRIPTEN)
-        using PlatformUtils = EmscriptenUtils;
+	#elif defined(AE_PLATFORM_EMSCRIPTEN)
+		using PlatformUtils = EmscriptenUtils;
 
-    #elif defined(AE_PLATFORM_APPLE)
-        using PlatformUtils = AppleUtils;
+	#elif defined(AE_PLATFORM_APPLE)
+		using PlatformUtils = AppleUtils;
 
-    #elif defined(AE_PLATFORM_LINUX)
-        using PlatformUtils = LinuxUtils;
+	#elif defined(AE_PLATFORM_LINUX)
+		using PlatformUtils = LinuxUtils;
 
-    #endif
-
-
-    #if defined(AE_PLATFORM_WINDOWS)
-        using Library = WindowsLibrary;
-
-    #elif defined(AE_PLATFORM_EMSCRIPTEN)
-        // not supported
-
-    #elif defined(AE_PLATFORM_UNIX_BASED)
-        using Library = UnixLibrary;
-
-    #endif
+	#endif
 
 
-    #if defined(AE_PLATFORM_WINDOWS)
-        using OSPageAllocator = WindowsPageAllocator;
+	#if defined(AE_PLATFORM_WINDOWS)
+		using Library = WindowsLibrary;
 
-    #endif
+	#elif defined(AE_PLATFORM_EMSCRIPTEN)
+		// not supported
+
+	#elif defined(AE_PLATFORM_UNIX_BASED)
+		using Library = UnixLibrary;
+
+	#endif
+
+
+	#if defined(AE_PLATFORM_WINDOWS)
+		using OSPageAllocator = WindowsPageAllocator;
+
+	#endif
 
 } // AE::Base
 

@@ -20,26 +20,26 @@ target_compile_definitions( "angelscript" PUBLIC "AS_USE_NAMESPACE=1" )
 
 
 add_library( "angelscript_stdstring" STATIC
-    "${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring.cpp"
-    "${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring.h"
-    "${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring_utils.cpp"
+	"${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring.cpp"
+	"${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring.h"
+	"${SOURCE_PATH}/add_on/scriptstdstring/scriptstdstring_utils.cpp"
 )
 target_include_directories( "angelscript_stdstring" PRIVATE "${SOURCE_PATH}/angelscript/include" )
 target_link_libraries( "angelscript_stdstring" PUBLIC "angelscript" )
 
 
 add_library( "angelscript_scriptarray" STATIC
-    "${SOURCE_PATH}/add_on/scriptarray/scriptarray.cpp"
-    "${SOURCE_PATH}/add_on/scriptarray/scriptarray.h"
+	"${SOURCE_PATH}/add_on/scriptarray/scriptarray.cpp"
+	"${SOURCE_PATH}/add_on/scriptarray/scriptarray.h"
 )
 target_include_directories( "angelscript_scriptarray" PRIVATE "${SOURCE_PATH}/angelscript/include" )
 target_link_libraries( "angelscript_scriptarray" PUBLIC "angelscript" )
 target_compile_definitions( "angelscript_scriptarray" PUBLIC "AS_USE_STLNAMES=1" )
 
 if (NOT DEFINED ANDROID)
-    set_target_properties( "angelscript"                PROPERTIES DEBUG_POSTFIX "d" )
-    set_target_properties( "angelscript_stdstring"      PROPERTIES DEBUG_POSTFIX "d" )
-    set_target_properties( "angelscript_scriptarray"    PROPERTIES DEBUG_POSTFIX "d" )
+	set_target_properties( "angelscript" 				PROPERTIES DEBUG_POSTFIX "d" )
+	set_target_properties( "angelscript_stdstring" 		PROPERTIES DEBUG_POSTFIX "d" )
+	set_target_properties( "angelscript_scriptarray"	PROPERTIES DEBUG_POSTFIX "d" )
 endif()
 
 #----------------------------------------------------------------------------------

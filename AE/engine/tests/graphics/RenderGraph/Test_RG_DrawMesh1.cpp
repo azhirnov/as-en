@@ -5,176 +5,176 @@
 
 namespace
 {
-    struct DM1_TestData
-    {
-        Mutex                       guard;
+	struct DM1_TestData
+	{
+		Mutex						guard;
 
-        RenderTechPipelinesPtr      rtech;
-        uint2                       viewSize;
+		RenderTechPipelinesPtr		rtech;
+		uint2						viewSize;
 
-        GAutorelease<ImageID>       img;
-        GAutorelease<ImageViewID>   view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 
-        MeshPipelineID              ppln;
+		MeshPipelineID				ppln;
 
-        AsyncTask                   result;
+		AsyncTask					result;
 
-        CommandBatchPtr             batch;
-        bool                        isOK    = false;
+		CommandBatchPtr				batch;
+		bool						isOK	= false;
 
-        ImageComparator *           imgCmp  = null;
-        GfxMemAllocatorPtr          gfxAlloc;
-    };
+		ImageComparator *			imgCmp	= null;
+		GfxMemAllocatorPtr			gfxAlloc;
+	};
 
-    static constexpr auto&  RTech = RenderTechs::DrawMeshesTestRT;
-
-
-    template <typename CtxType>
-    class DM1_DrawTask final : public RenderTask
-    {
-    public:
-        DM1_TestData&   t;
-
-        DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-            RenderTask{ RVRef(batch), dbg },
-            t{ t }
-        {}
-
-        void  Run () __Th_OV
-        {
-            DeferExLock lock {t.guard};
-            CHECK_TE( lock.try_lock() );
-
-            const auto  img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
-
-            typename CtxType::Graphics  ctx{ *this };
-
-            ctx.AccumBarriers()
-                .ImageBarrier( t.img, EResourceState::Invalidate, img_state );
-
-            // draw
-            {
-                constexpr auto&     rtech_pass = RTech.DrawMeshes_1;
-                StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-                                    .AddViewport( t.viewSize )
-                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
-
-                dctx.BindPipeline( t.ppln );
-                dctx.DrawMeshTasks( uint3{1} );
-
-                ctx.EndRenderPass( dctx );
-            }
-
-            ctx.AccumBarriers()
-                .ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-
-            Execute( ctx );
-        }
-    };
-
-    template <typename Ctx>
-    class DM1_CopyTask final : public RenderTask
-    {
-    public:
-        DM1_TestData&   t;
-
-        DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-            RenderTask{ RVRef(batch), dbg },
-            t{ t }
-        {}
-
-        void  Run () __Th_OV
-        {
-            DeferExLock lock {t.guard};
-            CHECK_TE( lock.try_lock() );
-
-            Ctx     ctx{ *this };
-
-            t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-                        .Then(  [p = &t] (const ImageMemView &view)
-                                {
-                                    p->isOK = p->imgCmp->Compare( view );
-                                })};
-
-            ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-            Execute( ctx );
-        }
-    };
+	static constexpr auto&	RTech = RenderTechs::DrawMeshesTestRT;
 
 
-    template <typename CtxType, typename CopyCtx>
-    static bool  DrawMesh1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
-    {
-        auto&           rts         = GraphicsScheduler();
-        auto&           res_mngr    = rts.GetResourceManager();
-        const auto      format      = EPixelFormat::RGBA8_UNorm;
-        DM1_TestData    t;
+	template <typename CtxType>
+	class DM1_DrawTask final : public RenderTask
+	{
+	public:
+		DM1_TestData&	t;
 
-        t.rtech     = renderTech;
-        t.gfxAlloc  = res_mngr.CreateLinearGfxMemAllocator();
-        t.imgCmp    = imageCmp;
-        t.viewSize  = uint2{800, 600};
+		DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
+			RenderTask{ RVRef(batch), dbg },
+			t{ t }
+		{}
 
-        t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
-                                        .SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
-                                      "Image", t.gfxAlloc );
-        CHECK_ERR( t.img );
+		void  Run () __Th_OV
+		{
+			DeferExLock	lock {t.guard};
+			CHECK_TE( lock.try_lock() );
 
-        t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
-        CHECK_ERR( t.view );
+			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-        t.ppln = t.rtech->GetMeshPipeline( RTech.DrawMeshes_1.draw_mesh1 );
-        CHECK_ERR( t.ppln );
+			typename CtxType::Graphics	ctx{ *this };
+
+			ctx.AccumBarriers()
+				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+
+			// draw
+			{
+				constexpr auto&		rtech_pass = RTech.DrawMeshes_1;
+				StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+									.AddViewport( t.viewSize )
+									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
+
+				dctx.BindPipeline( t.ppln );
+				dctx.DrawMeshTasks( uint3{1} );
+
+				ctx.EndRenderPass( dctx );
+			}
+
+			ctx.AccumBarriers()
+				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
+			Execute( ctx );
+		}
+	};
+
+	template <typename Ctx>
+	class DM1_CopyTask final : public RenderTask
+	{
+	public:
+		DM1_TestData&	t;
+
+		DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
+			RenderTask{ RVRef(batch), dbg },
+			t{ t }
+		{}
+
+		void  Run () __Th_OV
+		{
+			DeferExLock	lock {t.guard};
+			CHECK_TE( lock.try_lock() );
+
+			Ctx		ctx{ *this };
+
+			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
+						.Then(	[p = &t] (const ImageMemView &view)
+								{
+									p->isOK = p->imgCmp->Compare( view );
+								})};
+
+			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
+
+			Execute( ctx );
+		}
+	};
 
 
-        CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
-        CHECK_ERR( rts.BeginFrame() );
+	template <typename CtxType, typename CopyCtx>
+	static bool  DrawMesh1Test (RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
+	{
+		auto&			rts			= GraphicsScheduler();
+		auto&			res_mngr	= rts.GetResourceManager();
+		const auto		format		= EPixelFormat::RGBA8_UNorm;
+		DM1_TestData	t;
 
-        t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawMesh1"} );
-        CHECK_ERR( t.batch );
+		t.rtech		= renderTech;
+		t.gfxAlloc	= res_mngr.CreateLinearGfxMemAllocator();
+		t.imgCmp	= imageCmp;
+		t.viewSize	= uint2{800, 600};
 
-        AsyncTask   task1   = t.batch->Run< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},                     {"Draw task"} );
-        AsyncTask   task2   = t.batch->Run< DM1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},  {"Readback task"} );
+		t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
+										.SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
+									  "Image", t.gfxAlloc );
+		CHECK_ERR( t.img );
 
-        AsyncTask   end     = rts.EndFrame( Tuple{task2} );
+		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
+		CHECK_ERR( t.view );
+
+		t.ppln = t.rtech->GetMeshPipeline( RTech.DrawMeshes_1.draw_mesh1 );
+		CHECK_ERR( t.ppln );
 
 
-        CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-        CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+		CHECK_ERR( rts.BeginFrame() );
 
-        CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawMesh1"} );
+		CHECK_ERR( t.batch );
 
-        CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-        CHECK_ERR( t.result->Status() == EStatus::Completed );
+		AsyncTask	task1	= t.batch->Run< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},						{"Draw task"} );
+		AsyncTask	task2	= t.batch->Run< DM1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
 
-        CHECK_ERR( t.isOK );
-        return true;
-    }
+		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
+
+
+		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
+		CHECK_ERR( end->Status() == EStatus::Completed );
+
+		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
+
+		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
+		CHECK_ERR( t.result->Status() == EStatus::Completed );
+
+		CHECK_ERR( t.isOK );
+		return true;
+	}
 
 } // namespace
 
 
 bool RGTest::Test_DrawMesh1 ()
 {
-    if ( _msPipelines == null )
-        return true; // skip
+	if ( _msPipelines == null )
+		return true; // skip
 
-    auto    img_cmp = _LoadReference( TEST_NAME );
-    bool    result  = true;
+	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-    RG_CHECK( DrawMesh1Test< DirectCtx,   DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
-    RG_CHECK( DrawMesh1Test< DirectCtx,   IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< DirectCtx,   DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< DirectCtx,   IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
 
-    RG_CHECK( DrawMesh1Test< IndirectCtx, DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
-    RG_CHECK( DrawMesh1Test< IndirectCtx, IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< IndirectCtx, DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< IndirectCtx, IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
 
-    RG_CHECK( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
-    AE_LOGI( TEST_NAME << " - passed" );
-    return result;
+	AE_LOGI( TEST_NAME << " - passed" );
+	return result;
 }
 
 #endif // not AE_ENABLE_METAL

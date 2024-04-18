@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Tone mapping functions.
+	Tone mapping functions.
 */
 
 ND_ float3  ToneMap_Reinhard (const float3 hdr, const float k);

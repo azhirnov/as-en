@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_HWPERCOUNTER
-//# error AE_ENABLE_HWPERCOUNTER required
+//#	error AE_ENABLE_HWPERCOUNTER required
 #endif
 
 #include <hpc/gpu/adreno/a5xx.h>
@@ -11,5 +11,5 @@
 
 extern int AE_HWPerfCounter_Test ()
 {
-    return 0;
+	return 0;
 }

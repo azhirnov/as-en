@@ -12,11 +12,11 @@ extern int Test_VFS ()
 int main ()
 #endif
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    UnitTest_ArchiveStorage();
-    UnitTest_NetworkStorage();
+	UnitTest_ArchiveStorage();
+	UnitTest_NetworkStorage();
 
-    AE_LOGI( "Tests.VFS finished" );
-    return 0;
+	AE_LOGI( "Tests.VFS finished" );
+	return 0;
 }

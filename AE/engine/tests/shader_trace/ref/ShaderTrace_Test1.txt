@@ -26,15 +26,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.000000}
 //  j: int {3}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-1.079408}
 //  k: float {0.593750}
 //  j: int {3}
 //  cos(): float {-0.899507}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-1.079408}
@@ -52,15 +52,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-1.079408}
 //  j: int {4}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-1.221441}
 //  k: float {0.593750}
 //  j: int {4}
 //  cos(): float {-0.118361}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-1.221441}
@@ -78,15 +78,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-1.221441}
 //  j: int {5}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-0.295515}
 //  k: float {0.593750}
 //  j: int {5}
 //  cos(): float {0.771605}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-0.295515}
@@ -104,15 +104,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-0.295515}
 //  j: int {6}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {0.847079}
 //  k: float {0.593750}
 //  j: int {6}
 //  cos(): float {0.952161}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {0.847079}
@@ -130,15 +130,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.847079}
 //  j: int {7}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {1.155844}
 //  k: float {0.593750}
 //  j: int {7}
 //  cos(): float {0.257305}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {1.155844}
@@ -156,15 +156,15 @@ no source
 //  k: float {0.593750}
 //  f: float {1.155844}
 //  j: int {8}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {0.346905}
 //  k: float {0.593750}
 //  j: int {8}
 //  cos(): float {-0.674116}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {0.346905}
@@ -182,15 +182,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.346905}
 //  j: int {9}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-0.836005}
 //  k: float {0.593750}
 //  j: int {9}
 //  cos(): float {-0.985758}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-0.836005}
@@ -250,15 +250,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.000000}
 //  j: int {3}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-1.079408}
 //  k: float {0.593750}
 //  j: int {3}
 //  cos(): float {-0.899507}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-1.079408}
@@ -276,15 +276,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-1.079408}
 //  j: int {4}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-1.221441}
 //  k: float {0.593750}
 //  j: int {4}
 //  cos(): float {-0.118361}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-1.221441}
@@ -302,15 +302,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-1.221441}
 //  j: int {5}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-0.295515}
 //  k: float {0.593750}
 //  j: int {5}
 //  cos(): float {0.771605}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-0.295515}
@@ -328,15 +328,15 @@ no source
 //  k: float {0.593750}
 //  f: float {-0.295515}
 //  j: int {6}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {0.847079}
 //  k: float {0.593750}
 //  j: int {6}
 //  cos(): float {0.952161}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {0.847079}
@@ -354,15 +354,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.847079}
 //  j: int {7}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {1.155844}
 //  k: float {0.593750}
 //  j: int {7}
 //  cos(): float {0.257305}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {1.155844}
@@ -380,15 +380,15 @@ no source
 //  k: float {0.593750}
 //  f: float {1.155844}
 //  j: int {8}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {0.346905}
 //  k: float {0.593750}
 //  j: int {8}
 //  cos(): float {-0.674116}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {0.346905}
@@ -406,15 +406,15 @@ no source
 //  k: float {0.593750}
 //  f: float {0.346905}
 //  j: int {9}
-16.         f += 1.2f *
-17.                 cos(float(j) + k);
+16. 		f += 1.2f *
+17. 				cos(float(j) + k);
 
 //> f: float {-0.836005}
 //  k: float {0.593750}
 //  j: int {9}
 //  cos(): float {-0.985758}
 16. f += 1.2f *
-17.                 cos(float(j) + k);
+17. 				cos(float(j) + k);
 
 //> (out): bool {false}
 //  f: float {-0.836005}

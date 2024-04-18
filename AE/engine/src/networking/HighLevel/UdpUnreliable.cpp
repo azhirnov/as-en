@@ -7,350 +7,350 @@
 namespace AE::Networking
 {
 namespace {
-    static constexpr auto   c_ChannelType = EChannel::Unreliable;
+	static constexpr auto	c_ChannelType = EChannel::Unreliable;
 }
 
 /*
 =================================================
-    _PacketHeader
+	_PacketHeader
 =================================================
 */
-    struct UdpUnreliable::_PacketHeader
-    {
-        ushort          magic       = 0;
-        ushort          packetId    = 0;
-    };
+	struct UdpUnreliable::_PacketHeader
+	{
+		ushort			magic		= 0;
+		ushort			packetId	= 0;
+	};
 
 /*
 =================================================
-    _MsgHeader
+	_MsgHeader
 =================================================
 */
-    struct UdpUnreliable::_MsgHeader
-    {
-        ushort          magic   = 0;
-        Bytes16u        size;
-        CSMessageUID    msgId   = CSMessageUID(0);
-    };
+	struct UdpUnreliable::_MsgHeader
+	{
+		ushort			magic	= 0;
+		Bytes16u		size;
+		CSMessageUID	msgId	= CSMessageUID(0);
+	};
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    UdpUnreliable::UdpUnreliable (RC<MessageFactory> mf, RC<IAllocator> alloc) __NE___ :
-        _msgFactory{ RVRef(mf) },
-        _allocator{ RVRef(alloc) }
-    {
-        //_input .storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
-        //_output.storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
-    }
+	UdpUnreliable::UdpUnreliable (RC<MessageFactory> mf, RC<IAllocator> alloc) __NE___ :
+		_msgFactory{ RVRef(mf) },
+		_allocator{ RVRef(alloc) }
+	{
+		//_input .storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
+		//_output.storage.Alloc( NetConfig::ChannelStorageSize, DefaultAllocatorAlign, _allocator.get() );
+	}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    UdpUnreliable::~UdpUnreliable () __NE___
-    {
-        //_input .storage.Dealloc( _allocator.get() );
-        //_output.storage.Dealloc( _allocator.get() );
-    }
+	UdpUnreliable::~UdpUnreliable () __NE___
+	{
+		//_input .storage.Dealloc( _allocator.get() );
+		//_output.storage.Dealloc( _allocator.get() );
+	}
 
 /*
 =================================================
-    _SendMessages
+	_SendMessages
 =================================================
 */
-    template <typename Address>
-    void  UdpUnreliable::_SendMessages (const Address &addr, QueueAndStorage &qs, INOUT bool &isDisconnected) C_NE___
-    {
-        if_unlikely( qs.queue.empty() )
-            return;
+	template <typename Address>
+	void  UdpUnreliable::_SendMessages (const Address &addr, QueueAndStorage &qs, INOUT bool &isDisconnected) C_NE___
+	{
+		if_unlikely( qs.queue.empty() )
+			return;
 
-        Bytes       encoded;        // offset in 'qs.storage' to the end of encoded messages
-        Bytes       pending;        // offset in 'qs.storage' to begin of data which can be sent
-        auto        last_failed_it  = qs.queue.end();
+		Bytes		encoded;		// offset in 'qs.storage' to the end of encoded messages
+		Bytes		pending;		// offset in 'qs.storage' to begin of data which can be sent
+		auto		last_failed_it	= qs.queue.end();
 
-        const auto  SendData        = [this, &addr, &qs, &encoded, &pending, &isDisconnected] ()
-        {{
-            for (bool retry = true; retry & (encoded - pending > 0);)
-            {
-                ASSERT( encoded > pending );
+		const auto	SendData		= [this, &addr, &qs, &encoded, &pending, &isDisconnected] ()
+		{{
+			for (bool retry = true; retry & (encoded - pending > 0);)
+			{
+				ASSERT( encoded > pending );
 
-                        retry       = false;
-                auto    [err, sent] = _socket.Send( addr, qs.storage.Ptr( pending ), encoded - pending );
+						retry		= false;
+				auto	[err, sent]	= _socket.Send( addr, qs.storage.Ptr( pending ), encoded - pending );
 
-                switch ( err )
-                {
-                    case_likely SocketSendError::Sent :
-                    {
-                        AE_LOGI( "Sent "s << ToString(sent) );
-                        ASSERT( sent > 0 );
-                        pending += sent;
-                        //retry = pending < encoded;    // TODO ?
-                        break;
-                    }
+				switch ( err )
+				{
+					case_likely SocketSendError::Sent :
+					{
+						AE_LOGI( "Sent "s << ToString(sent) );
+						ASSERT( sent > 0 );
+						pending += sent;
+						//retry	= pending < encoded;	// TODO ?
+						break;
+					}
 
-                    case SocketSendError::NotSent :
-                    case SocketSendError::ResourceTemporarilyUnavailable :
-                        break; // skip
+					case SocketSendError::NotSent :
+					case SocketSendError::ResourceTemporarilyUnavailable :
+						break; // skip
 
-                    case SocketSendError::NoSocket :
-                    case SocketSendError::NotConnected :
-                    case SocketSendError::ConnectionResetByPeer :
-                    case SocketSendError::UnknownError :
-                        isDisconnected = true;
-                        break;
-                }
-            }
-            encoded -= pending;
-            pending  = 0_b;
-        }};
+					case SocketSendError::NoSocket :
+					case SocketSendError::NotConnected :
+					case SocketSendError::ConnectionResetByPeer :
+					case SocketSendError::UnknownError :
+						isDisconnected = true;
+						break;
+				}
+			}
+			encoded -= pending;
+			pending  = 0_b;
+		}};
 
-        for (auto it = qs.queue.begin(); (it != qs.queue.end()) and (not isDisconnected);)
-        {
-            if_unlikely( encoded + sizeof(_MsgHeader) >= qs.storage.Size() )
-                SendData();
+		for (auto it = qs.queue.begin(); (it != qs.queue.end()) and (not isDisconnected);)
+		{
+			if_unlikely( encoded + sizeof(_MsgHeader) >= qs.storage.Size() )
+				SendData();
 
-            auto*           hdr_ptr     = qs.storage.Ptr( encoded );
-            const Bytes     msg_off     = encoded + sizeof(_MsgHeader);
-            DataEncoder     enc         { qs.storage.Ptr( msg_off ), qs.storage.Size() - msg_off };
-            auto            err         = (*it)->Serialize( enc );
+			auto*			hdr_ptr		= qs.storage.Ptr( encoded );
+			const Bytes		msg_off		= encoded + sizeof(_MsgHeader);
+			DataEncoder		enc			{ qs.storage.Ptr( msg_off ), qs.storage.Size() - msg_off };
+			auto			err			= (*it)->Serialize( enc );
 
-            switch_enum( err )
-            {
-                case_likely CSMessage::EncodeError::OK :
-                {
-                    encoded = qs.storage.Size() - enc.RemainingSize();
+			switch_enum( err )
+			{
+				case_likely CSMessage::EncodeError::OK :
+				{
+					encoded = qs.storage.Size() - enc.RemainingSize();
 
-                    _MsgHeader  header;
-                    header.magic = _magicByte;
-                    header.msgId = (*it)->UniqueId();
-                    header.size  = encoded - msg_off;
+					_MsgHeader	header;
+					header.magic = _magicByte;
+					header.msgId = (*it)->UniqueId();
+					header.size	 = encoded - msg_off;
 
-                    MemCopy( OUT hdr_ptr, &header, Sizeof(header) );
-                    ++it;
-                    break;
-                }
+					MemCopy( OUT hdr_ptr, &header, Sizeof(header) );
+					++it;
+					break;
+				}
 
-                // skip message
-                case CSMessage::EncodeError::Failed :
-                    _OnEncodingError( *it );
-                    ++it;
-                    break;
+				// skip message
+				case CSMessage::EncodeError::Failed :
+					_OnEncodingError( *it );
+					++it;
+					break;
 
-                // send and try again
-                case CSMessage::EncodeError::NoMemory :
-                {
-                    // skip on second try
-                    if ( last_failed_it == it )
-                    {
-                        _OnEncodingError( *it );
-                        ++it;
-                        break;
-                    }
+				// send and try again
+				case CSMessage::EncodeError::NoMemory :
+				{
+					// skip on second try
+					if ( last_failed_it == it )
+					{
+						_OnEncodingError( *it );
+						++it;
+						break;
+					}
 
-                    SendData();
-                    Reconstruct( INOUT enc, qs.storage.Ptr(), qs.storage.Size() );
+					SendData();
+					Reconstruct( INOUT enc, qs.storage.Ptr(), qs.storage.Size() );
 
-                    last_failed_it = it;
-                    break;
-                }
-            }
-            switch_end
-        }
+					last_failed_it = it;
+					break;
+				}
+			}
+			switch_end
+		}
 
-        SendData();
-        ASSERT( isDisconnected or encoded == pending );
-    }
+		SendData();
+		ASSERT( isDisconnected or encoded == pending );
+	}
 
 /*
 =================================================
-    _ReceiveMessages
+	_ReceiveMessages
 =================================================
 *
-    template <typename Address>
-    void  UdpUnreliable::_ReceiveMessages (const Address &addr, QueueAndStorage &qs, const FrameUID frameId, INOUT bool &isDisconnected) C_NE___
-    {
-    }
+	template <typename Address>
+	void  UdpUnreliable::_ReceiveMessages (const Address &addr, QueueAndStorage &qs, const FrameUID frameId, INOUT bool &isDisconnected) C_NE___
+	{
+	}
 
 /*
 =================================================
-    _OnEncodingError / _OnDecodingError
+	_OnEncodingError / _OnDecodingError
 =================================================
 */
-    inline void  UdpUnreliable::_OnEncodingError (CSMessagePtr) C_NE___
-    {
-        // TODO ?
-    }
+	inline void  UdpUnreliable::_OnEncodingError (CSMessagePtr) C_NE___
+	{
+		// TODO ?
+	}
 
-    inline void  UdpUnreliable::_OnDecodingError (CSMessageUID) C_NE___
-    {
-        // TODO ?
-    }
+	inline void  UdpUnreliable::_OnDecodingError (CSMessageUID) C_NE___
+	{
+		// TODO ?
+	}
 
 /*
 =================================================
-    Send
+	Send
 =================================================
 */
-    void  UdpUnreliable::Send (MsgList_t msgList) __NE___
-    {
-        //_output.queue.insert( _output.queue.end(), msgs.begin(), msgs.end() );
-    }
+	void  UdpUnreliable::Send (MsgList_t msgList) __NE___
+	{
+		//_output.queue.insert( _output.queue.end(), msgs.begin(), msgs.end() );
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    ProcessMessages
+	ProcessMessages
 =================================================
 */
-    void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
-    {
-        if_unlikely( not _socket.IsOpen() )
-            return;
+	void  UdpUnreliableClientChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
+	{
+		if_unlikely( not _socket.IsOpen() )
+			return;
 
-    //  _input.queue.clear();
+	//	_input.queue.clear();
 
-        bool    disconnected = false;
-    //  _ReceiveMessages( _serverAddress, _input, frameId, INOUT disconnected );
-        _SendMessages( _serverAddress, _output, INOUT disconnected );
+		bool	disconnected = false;
+	//	_ReceiveMessages( _serverAddress, _input, frameId, INOUT disconnected );
+		_SendMessages( _serverAddress, _output, INOUT disconnected );
 
-        _output.queue.clear();
+		_output.queue.clear();
 
-        if ( disconnected )
-            _Reconnect();
-    }
+		if ( disconnected )
+			_Reconnect();
+	}
 
 /*
 =================================================
-    _Reconnect
+	_Reconnect
 =================================================
 */
-    void  UdpUnreliableClientChannel::_Reconnect () __NE___
-    {
-        _serverProvider->GetAddress( c_ChannelType, _serverIndex, False{"UDP"}, OUT _serverAddress );
+	void  UdpUnreliableClientChannel::_Reconnect () __NE___
+	{
+		_serverProvider->GetAddress( c_ChannelType, _serverIndex, False{"UDP"}, OUT _serverAddress );
 
-        ++_serverIndex;
-    }
+		++_serverIndex;
+	}
 
 /*
 =================================================
-    ClientAPI::Create
+	ClientAPI::Create
 =================================================
 */
-    RC<IChannel>  UdpUnreliableClientChannel::ClientAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc,
-                                                                 RC<IServerProvider> serverProvider, ushort port) __NE___
-    {
-        CHECK_ERR( mf );
-        CHECK_ERR( alloc );
-        CHECK_ERR( serverProvider );
+	RC<IChannel>  UdpUnreliableClientChannel::ClientAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc,
+																 RC<IServerProvider> serverProvider, ushort port) __NE___
+	{
+		CHECK_ERR( mf );
+		CHECK_ERR( alloc );
+		CHECK_ERR( serverProvider );
 
-        RC<UdpUnreliableClientChannel>  result {new UdpUnreliableClientChannel{ RVRef(mf), RVRef(serverProvider), RVRef(alloc) }};
+		RC<UdpUnreliableClientChannel>	result {new UdpUnreliableClientChannel{ RVRef(mf), RVRef(serverProvider), RVRef(alloc) }};
 
-        DEBUG_ONLY( result->_socket.SetDebugName( "UDP client" );)
-        CHECK_ERR( result->_socket.Open( IpAddress::FromLocalPortUDP(port) ));
+		DEBUG_ONLY( result->_socket.SetDebugName( "UDP client" );)
+		CHECK_ERR( result->_socket.Open( IpAddress::FromLocalPortUDP(port) ));
 
-        AE_LOGI( "Started UDP client on port: "s << ToString(port) );
-        return result;
-    }
+		AE_LOGI( "Started UDP client on port: "s << ToString(port) );
+		return result;
+	}
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    UdpUnreliableClientChannel::UdpUnreliableClientChannel (RC<MessageFactory>  mf,
-                                                            RC<IServerProvider> serverProvider,
-                                                            RC<IAllocator>      alloc) __NE___ :
-        UdpUnreliable{ RVRef(mf), RVRef(alloc) },
-        _serverProvider{ RVRef(serverProvider) }
-    {}
+	UdpUnreliableClientChannel::UdpUnreliableClientChannel (RC<MessageFactory>	mf,
+															RC<IServerProvider>	serverProvider,
+															RC<IAllocator>		alloc) __NE___ :
+		UdpUnreliable{ RVRef(mf), RVRef(alloc) },
+		_serverProvider{ RVRef(serverProvider) }
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    UdpUnreliableClientChannel::~UdpUnreliableClientChannel ()__NE___
-    {}
+	UdpUnreliableClientChannel::~UdpUnreliableClientChannel ()__NE___
+	{}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    ProcessMessages
+	ProcessMessages
 =================================================
 */
-    void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
-    {
-        if_unlikely( not _socket.IsOpen() )
-            return;
+	void  UdpUnreliableServerChannel::ProcessMessages (const FrameUID frameId, INOUT MsgQueueStatistic &) __NE___
+	{
+		if_unlikely( not _socket.IsOpen() )
+			return;
 
-    //  _input.queue.clear();
+	//	_input.queue.clear();
 
-    //  _ReceiveMessages( _input, frameId, INOUT disconnected );
+	//	_ReceiveMessages( _input, frameId, INOUT disconnected );
 
-    //  for (auto it = _clients.begin(); it != _clients.end();)
-    //  {
-    //      bool    disconnected = false;
-    //      _SendMessages( it->first, _output, INOUT disconnected );
-    //
-    //      if_likely( not disconnected ){
-    //          ++it;
-    //      }else{
-    //          _listener->OnClientDisconnected( _channelId, it->first );
-    //          it = _clients.EraseByIter( it );
-    //      }
-    //  }
+	//	for (auto it = _clients.begin(); it != _clients.end();)
+	//	{
+	//		bool	disconnected = false;
+	//		_SendMessages( it->first, _output, INOUT disconnected );
+	//
+	//		if_likely( not disconnected ){
+	//			++it;
+	//		}else{
+	//			_listener->OnClientDisconnected( _channelId, it->first );
+	//			it = _clients.EraseByIter( it );
+	//		}
+	//	}
 
-        _output.queue.clear();
-    }
+		_output.queue.clear();
+	}
 
 /*
 =================================================
-    ServerAPI::Create
+	ServerAPI::Create
 =================================================
 */
-    RC<IChannel>  UdpUnreliableServerChannel::ServerAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc,
-                                                                 RC<IClientListener> listener, ushort port) __NE___
-    {
-        CHECK_ERR( mf );
-        CHECK_ERR( alloc );
-        CHECK_ERR( listener );
+	RC<IChannel>  UdpUnreliableServerChannel::ServerAPI::Create (RC<MessageFactory> mf, RC<IAllocator> alloc,
+																 RC<IClientListener> listener, ushort port) __NE___
+	{
+		CHECK_ERR( mf );
+		CHECK_ERR( alloc );
+		CHECK_ERR( listener );
 
-        RC<UdpUnreliableServerChannel>  result{ new UdpUnreliableServerChannel{ RVRef(mf), RVRef(listener), RVRef(alloc) }};
+		RC<UdpUnreliableServerChannel>	result{ new UdpUnreliableServerChannel{ RVRef(mf), RVRef(listener), RVRef(alloc) }};
 
-        DEBUG_ONLY( result->_socket.SetDebugName( "UDP server" );)
-        CHECK_ERR( result->_socket.Open( IpAddress::FromLocalPortUDP(port) ));
+		DEBUG_ONLY( result->_socket.SetDebugName( "UDP server" );)
+		CHECK_ERR( result->_socket.Open( IpAddress::FromLocalPortUDP(port) ));
 
-        AE_LOGI( "Started UDP server on port: "s << ToString(port) );
-        return result;
-    }
+		AE_LOGI( "Started UDP server on port: "s << ToString(port) );
+		return result;
+	}
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    UdpUnreliableServerChannel::UdpUnreliableServerChannel (RC<MessageFactory>  mf,
-                                                            RC<IClientListener> listener,
-                                                            RC<IAllocator>      alloc) __NE___ :
-        UdpUnreliable{ RVRef(mf), RVRef(alloc) },
-        _listener{ RVRef(listener) }
-    {}
+	UdpUnreliableServerChannel::UdpUnreliableServerChannel (RC<MessageFactory>	mf,
+															RC<IClientListener>	listener,
+															RC<IAllocator>		alloc) __NE___ :
+		UdpUnreliable{ RVRef(mf), RVRef(alloc) },
+		_listener{ RVRef(listener) }
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    UdpUnreliableServerChannel::~UdpUnreliableServerChannel () __NE___
-    {}
+	UdpUnreliableServerChannel::~UdpUnreliableServerChannel () __NE___
+	{}
 
 
 } // AE::Networking

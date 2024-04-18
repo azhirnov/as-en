@@ -9,173 +9,173 @@
 namespace AE::ResEditor
 {
 
-    //
-    // RayTracing Geometry
-    //
+	//
+	// RayTracing Geometry
+	//
 
-    class RTGeometry final : public IResource
-    {
-        friend class ScriptRTGeometry;
+	class RTGeometry final : public IResource
+	{
+		friend class ScriptRTGeometry;
 
-    // types
-    public:
-        enum class EBuildMode : uint
-        {
-            Direct,
-            Indirect,
-            IndirectEmulated,
-        };
+	// types
+	public:
+		enum class EBuildMode : uint
+		{
+			Direct,
+			Indirect,
+			IndirectEmulated,
+		};
 
-        struct TriangleMesh : RTGeometryBuild::TrianglesInfo
-        {
-            RC<Buffer>      vbuffer;
-            RC<Buffer>      ibuffer;
-            Bytes32u        vertexStride;
-            Bytes           vertexDataOffset;
-            Bytes           indexDataOffset;
+		struct TriangleMesh : RTGeometryBuild::TrianglesInfo
+		{
+			RC<Buffer>		vbuffer;
+			RC<Buffer>		ibuffer;
+			Bytes32u		vertexStride;
+			Bytes			vertexDataOffset;
+			Bytes			indexDataOffset;
 
-            void  operator = (const RTGeometryBuild::TrianglesInfo &rhs)    { TrianglesInfo::operator = (rhs); }
-        };
-        using TriangleMeshes_t  = Array< TriangleMesh >;
+			void  operator = (const RTGeometryBuild::TrianglesInfo &rhs)	{ TrianglesInfo::operator = (rhs); }
+		};
+		using TriangleMeshes_t	= Array< TriangleMesh >;
 
-    private:
-        using Allocator_t       = LinearAllocator<>;
-
-
-    // variables
-    private:
-        StrongAtom<RTGeometryID>        _geomId;
-        Strong<BufferID>                _scratchBuffer;         // can be null
-
-        RC<Buffer>                      _indirectBuffer;
-        Strong<BufferID>                _indirectBufferHostVis; // ASBuildIndirectCommand [GeometryCount * MaxFrames]
-        ASBuildIndirectCommand const*   _indirectBufferMem      = null;
-
-        TriangleMeshes_t                _triangleMeshes;
-
-        ContentVersion                  _version;
-        const bool                      _isMutable              = false;
-        const ERTASOptions              _options                = ERTASOptions::PreferFastBuild;
-
-        const String                    _dbgName;
+	private:
+		using Allocator_t		= LinearAllocator<>;
 
 
-    // methods
-    public:
-        RTGeometry (TriangleMeshes_t    triangleMeshes,
-                    RC<Buffer>          indirectBuffer,
-                    Renderer &          renderer,
-                    StringView          dbgName,
-                    Bool                allowUpdate)                                __Th___;
+	// variables
+	private:
+		StrongAtom<RTGeometryID>		_geomId;
+		Strong<BufferID>				_scratchBuffer;			// can be null
 
-        RTGeometry (Renderer &          renderer,
-                    StringView          dbgName)                                    __Th___;
+		RC<Buffer>						_indirectBuffer;
+		Strong<BufferID>				_indirectBufferHostVis;	// ASBuildIndirectCommand [GeometryCount * MaxFrames]
+		ASBuildIndirectCommand const*	_indirectBufferMem		= null;
 
-        ~RTGeometry ()                                                              __NE_OV;
+		TriangleMeshes_t				_triangleMeshes;
 
-        ND_ RTGeometryID    GetGeometryId (FrameUID)                                const   { return _geomId.Get(); }
+		ContentVersion					_version;
+		const bool						_isMutable				= false;
+		const ERTASOptions				_options				= ERTASOptions::PreferFastBuild;
 
-        ND_ ulong           GetVersion (uint fid)                                   const   { return _version.Get( fid ); }
-        ND_ ulong           GetVersion (FrameUID fid)                               const   { return _version.Get( fid ); }
-
-        ND_ bool            Build (DirectCtx::ASBuild &, EBuildMode)                __Th___;
-
-            void            Reset (Strong<RTGeometryID> geomId);
-            void            CompleteUploading ();
-
-        ND_ bool            IsMutable ()                                            const   { return _isMutable; }
+		const String					_dbgName;
 
 
-    // IResource //
-        bool                Resize (TransferCtx_t &)                                __Th_OV { return true; }
-        bool                RequireResize ()                                        C_Th_OV { return false; }
-        EUploadStatus       Upload (TransferCtx_t &)                                __Th_OV;
-        EUploadStatus       Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Completed; }
+	// methods
+	public:
+		RTGeometry (TriangleMeshes_t	triangleMeshes,
+					RC<Buffer>			indirectBuffer,
+					Renderer &			renderer,
+					StringView			dbgName,
+					Bool				allowUpdate)								__Th___;
+
+		RTGeometry (Renderer &			renderer,
+					StringView			dbgName)									__Th___;
+
+		~RTGeometry ()																__NE_OV;
+
+		ND_ RTGeometryID	GetGeometryId (FrameUID)								const	{ return _geomId.Get(); }
+
+		ND_ ulong			GetVersion (uint fid)									const	{ return _version.Get( fid ); }
+		ND_ ulong			GetVersion (FrameUID fid)								const	{ return _version.Get( fid ); }
+
+		ND_	bool			Build (DirectCtx::ASBuild &, EBuildMode)				__Th___;
+
+			void			Reset (Strong<RTGeometryID> geomId);
+			void			CompleteUploading ();
+
+		ND_ bool			IsMutable ()											const	{ return _isMutable; }
 
 
-    private:
-        ND_ bool  _GetTriangles (OUT RTGeometryBuild &, FrameUID, Allocator_t &)            const;
-
-        ND_ bool  _BuildIndirectEmulated (DirectCtx::ASBuild &, RTGeometryID, Allocator_t &) const;
-    };
-
-
-
-    //
-    // RayTracing Scene
-    //
-
-    class RTScene final : public IResource
-    {
-        friend class ScriptRTScene;
-
-    // types
-    public:
-        using EBuildMode        = RTGeometry::EBuildMode;
-
-    private:
-        struct Instance
-        {
-            RC<RTGeometry>      geometry;
-            RTMatrixStorage     transform;
-            uint                instanceCustomIndex;
-            uint                mask;
-            uint                instanceSBTOffset;
-            ERTInstanceOpt      flags;
-        };
-
-        using Instances_t       = Array< Instance >;
-        using GeomVerMap_t      = FlatHashMap< RC<RTGeometry>, ulong >;
+	// IResource //
+		bool				Resize (TransferCtx_t &)								__Th_OV	{ return true; }
+		bool				RequireResize ()										C_Th_OV	{ return false; }
+		EUploadStatus		Upload (TransferCtx_t &)								__Th_OV;
+		EUploadStatus		Readback (TransferCtx_t &)								__Th_OV	{ return EUploadStatus::Completed; }
 
 
-    // variables
-    private:
-        Strong<RTSceneID>               _sceneId;
-        Strong<BufferID>                _scratchBuffer;
-        RC<Buffer>                      _instanceBuffer;
+	private:
+		ND_	bool  _GetTriangles (OUT RTGeometryBuild &, FrameUID, Allocator_t &)			const;
 
-        RC<Buffer>                      _indirectBuffer;
-        Strong<BufferID>                _indirectBufferHostVis; // ASBuildIndirectCommand [MaxFrames]
-        ASBuildIndirectCommand const*   _indirectBufferMem      = null;
-
-        Instances_t                     _instances;
-        GeomVerMap_t                    _uniqueGeometries;
-
-        const ERTASOptions              _options                = ERTASOptions::PreferFastBuild;
-        const bool                      _isMutable              = false;
-
-        const String                    _dbgName;
+		ND_	bool  _BuildIndirectEmulated (DirectCtx::ASBuild &, RTGeometryID, Allocator_t &) const;
+	};
 
 
-    // methods
-    public:
-        RTScene (Instances_t    instances,
-                 RC<Buffer>     instanceBuffer,
-                 RC<Buffer>     indirectBuffer,
-                 Renderer &     renderer,
-                 StringView     dbgName,
-                 Bool           allowUpdate)                                    __Th___;
 
-        ~RTScene ()                                                             __NE_OV;
+	//
+	// RayTracing Scene
+	//
 
-        ND_ RTSceneID   GetSceneId (FrameUID)                                   const   { return _sceneId; }
-            void        Validate (FrameUID fid)                                 const;
+	class RTScene final : public IResource
+	{
+		friend class ScriptRTScene;
 
-        ND_ bool        Build (DirectCtx::ASBuild &, EBuildMode)                __Th___;
+	// types
+	public:
+		using EBuildMode		= RTGeometry::EBuildMode;
+
+	private:
+		struct Instance
+		{
+			RC<RTGeometry>		geometry;
+			RTMatrixStorage		transform;
+			uint				instanceCustomIndex;
+			uint				mask;
+			uint				instanceSBTOffset;
+			ERTInstanceOpt		flags;
+		};
+
+		using Instances_t		= Array< Instance >;
+		using GeomVerMap_t		= FlatHashMap< RC<RTGeometry>, ulong >;
 
 
-    // IResource //
-        bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
-        bool            RequireResize ()                                        C_Th_OV { return false; }
-        EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
-        EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Completed; }
+	// variables
+	private:
+		Strong<RTSceneID>				_sceneId;
+		Strong<BufferID>				_scratchBuffer;
+		RC<Buffer>						_instanceBuffer;
 
-    private:
-        ND_ bool        _Resize ();
-        ND_ bool        _UploadInstances (TransferCtx_t &);
+		RC<Buffer>						_indirectBuffer;
+		Strong<BufferID>				_indirectBufferHostVis;	// ASBuildIndirectCommand [MaxFrames]
+		ASBuildIndirectCommand const*	_indirectBufferMem		= null;
 
-        ND_ bool        _BuildIndirectEmulated (DirectCtx::ASBuild &, RTSceneBuild &, RTSceneID) const;
-    };
+		Instances_t						_instances;
+		GeomVerMap_t					_uniqueGeometries;
+
+		const ERTASOptions				_options				= ERTASOptions::PreferFastBuild;
+		const bool						_isMutable				= false;
+
+		const String					_dbgName;
+
+
+	// methods
+	public:
+		RTScene (Instances_t	instances,
+				 RC<Buffer>		instanceBuffer,
+				 RC<Buffer>		indirectBuffer,
+				 Renderer &		renderer,
+				 StringView		dbgName,
+				 Bool			allowUpdate)									__Th___;
+
+		~RTScene ()																__NE_OV;
+
+		ND_ RTSceneID	GetSceneId (FrameUID)									const	{ return _sceneId; }
+			void		Validate (FrameUID fid)									const;
+
+		ND_	bool		Build (DirectCtx::ASBuild &, EBuildMode)				__Th___;
+
+
+	// IResource //
+		bool			Resize (TransferCtx_t &)								__Th_OV	{ return true; }
+		bool			RequireResize ()										C_Th_OV	{ return false; }
+		EUploadStatus	Upload (TransferCtx_t &)								__Th_OV;
+		EUploadStatus	Readback (TransferCtx_t &)								__Th_OV	{ return EUploadStatus::Completed; }
+
+	private:
+		ND_ bool		_Resize ();
+		ND_ bool		_UploadInstances (TransferCtx_t &);
+
+		ND_ bool		_BuildIndirectEmulated (DirectCtx::ASBuild &, RTSceneBuild &, RTSceneID) const;
+	};
 
 
 } // AE::ResEditor

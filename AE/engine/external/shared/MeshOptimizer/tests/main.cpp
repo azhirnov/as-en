@@ -13,7 +13,7 @@ extern int AE_MeshOptimizer_Test ()
 int main ()
 #endif
 {
-    (void)&meshopt_buildMeshlets<unsigned>;
+	(void)&meshopt_buildMeshlets<unsigned>;
 
-    return 0;
+	return 0;
 }

@@ -34,34 +34,34 @@ extern int Test_Threading ()
 int main ()
 #endif
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    UnitTest_AsyncDataSource();
+	UnitTest_AsyncDataSource();
 
-    UnitTest_TsSharedMem();
+	UnitTest_TsSharedMem();
 
-    UnitTest_LfChunkList();
-    UnitTest_LfIndexedPool();
-    UnitTest_LfStaticPool();
-    UnitTest_LfStaticIndexedPool();
-    UnitTest_LfTaskQueue();
-    UnitTest_LfStaticQueue();
+	UnitTest_LfChunkList();
+	UnitTest_LfIndexedPool();
+	UnitTest_LfStaticPool();
+	UnitTest_LfStaticIndexedPool();
+	UnitTest_LfTaskQueue();
+	UnitTest_LfStaticQueue();
 
-    UnitTest_LfFixedBlockAllocator3();
-    UnitTest_LfLinearAllocator();
-    UnitTest_LfStaticBlockAllocator();
+	UnitTest_LfFixedBlockAllocator3();
+	UnitTest_LfLinearAllocator();
+	UnitTest_LfStaticBlockAllocator();
 
-    UnitTest_SpinLock();
-    UnitTest_Synchronized();
-    UnitTest_Barrier();
-    UnitTest_Semaphore();
+	UnitTest_SpinLock();
+	UnitTest_Synchronized();
+	UnitTest_Barrier();
+	UnitTest_Semaphore();
 
-    UnitTest_TaskDeps();
-    UnitTest_TaskUsage();
-    UnitTest_AsyncMutex ();
-    UnitTest_Promise();
-    UnitTest_Coroutine();
+	UnitTest_TaskDeps();
+	UnitTest_TaskUsage();
+	UnitTest_AsyncMutex ();
+	UnitTest_Promise();
+	UnitTest_Coroutine();
 
-    AE_LOGI( "Tests.Threading finished" );
-    return 0;
+	AE_LOGI( "Tests.Threading finished" );
+	return 0;
 }

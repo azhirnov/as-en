@@ -7,19 +7,19 @@
 
 namespace AE::Graphics
 {
-#   include "graphics/Private/RenderTaskScheduler.cpp.h"
+#	include "graphics/Private/RenderTaskScheduler.cpp.h"
 
 /*
 =================================================
-    Recycle
+	Recycle
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    void  RenderTaskScheduler::VirtualFenceApi::Recycle (VirtualFence* ptr) __NE___
-    {
-        auto&   rts = GraphicsScheduler();
-        rts._virtFencePool.Unassign( ptr );
-    }
+	void  RenderTaskScheduler::VirtualFenceApi::Recycle (VirtualFence* ptr) __NE___
+	{
+		auto&	rts = GraphicsScheduler();
+		rts._virtFencePool.Unassign( ptr );
+	}
 #endif
 //-----------------------------------------------------------------------------
 
@@ -27,304 +27,304 @@ namespace AE::Graphics
 
 /*
 =================================================
-    GraphicsContextApi
+	GraphicsContextApi
 =================================================
 */
-    RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
-                                                                                           const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
-                                                                                           DebugLabel dbg) __NE___
-    {
-        ASSERT( primaryState.subpassIndex == 0 );
+	RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
+																						   const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
+																						   DebugLabel dbg) __NE___
+	{
+		ASSERT( primaryState.subpassIndex == 0 );
 
-        VDrawCommandBatch::Viewports_t  viewports;
-        VDrawCommandBatch::Scissors_t   scissors;
-        Graphics::_hidden_::ConvertViewports( desc.viewports, Default, OUT viewports, OUT scissors );
+		VDrawCommandBatch::Viewports_t	viewports;
+		VDrawCommandBatch::Scissors_t	scissors;
+		Graphics::_hidden_::ConvertViewports( desc.viewports, Default, OUT viewports, OUT scissors );
 
-        return rts._CreateDrawBatch( primaryState, viewports, scissors, dbg );
-    }
+		return rts._CreateDrawBatch( primaryState, viewports, scissors, dbg );
+	}
 
-    RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
-                                                                                          const VDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
-    {
-        VPrimaryCmdBufState draw_state = prevBatch.GetPrimaryCtxState();
+	RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
+																						  const VDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
+	{
+		VPrimaryCmdBufState	draw_state = prevBatch.GetPrimaryCtxState();
 
-        ++draw_state.subpassIndex;
-        ASSERT( usize(draw_state.subpassIndex) < draw_state.renderPass->Subpasses().size() );
+		++draw_state.subpassIndex;
+		ASSERT( usize(draw_state.subpassIndex) < draw_state.renderPass->Subpasses().size() );
 
-        return rts._CreateDrawBatch( draw_state, prevBatch.GetViewports(), prevBatch.GetScissors(), dbg );
-    }
+		return rts._CreateDrawBatch( draw_state, prevBatch.GetViewports(), prevBatch.GetScissors(), dbg );
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    _CreateFence
+	_CreateFence
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    RC<RenderTaskScheduler::VirtualFence>  RenderTaskScheduler::_CreateFence ()
-    {
-        uint    idx;
-        CHECK_ERR( _virtFencePool.Assign( OUT idx ));
+	RC<RenderTaskScheduler::VirtualFence>  RenderTaskScheduler::_CreateFence ()
+	{
+		uint	idx;
+		CHECK_ERR( _virtFencePool.Assign( OUT idx ));
 
-        auto&   virt = _virtFencePool[ idx ];
-        CHECK_ERR( virt.Create( GetDevice() ));
+		auto&	virt = _virtFencePool[ idx ];
+		CHECK_ERR( virt.Create( GetDevice() ));
 
-        return RC<VirtualFence>{ &virt };
-    }
+		return RC<VirtualFence>{ &virt };
+	}
 #endif
 
 /*
 =================================================
-    _FlushQueue_Fence
+	_FlushQueue_Fence
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    bool  RenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending)
-    {
-        VTempStackAllocator allocator;
+	bool  RenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending)
+	{
+		VTempStackAllocator	allocator;
 
-        auto&       dev     = GetDevice();
-        auto        queue   = dev.GetQueue( queueType );
+		auto&		dev		= GetDevice();
+		auto		queue	= dev.GetQueue( queueType );
 
-        uint    submits_count   = 0;
-        auto*   submits         = allocator.Allocate<VkSubmitInfo>( pending.size() );
-        CHECK_ERR( submits != null );
+		uint	submits_count	= 0;
+		auto*	submits			= allocator.Allocate<VkSubmitInfo>( pending.size() );
+		CHECK_ERR( submits != null );
 
-        for (auto& batch : pending)
-        {
-            auto&   submit  = submits [submits_count++];
-            submit.sType    = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submit.pNext    = null;
+		for (auto& batch : pending)
+		{
+			auto&	submit	= submits [submits_count++];
+			submit.sType	= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submit.pNext	= null;
 
-            // command buffers
-            {
-                const uint  max_cb_count    = GraphicsConfig::MaxCmdBufPerBatch;
-                const auto  bm_cmdbufs      = allocator.Push();
-                auto*       cmdbufs         = allocator.Allocate<VkCommandBuffer>( max_cb_count );
-                CHECK_ERR( cmdbufs != null );
+			// command buffers
+			{
+				const uint	max_cb_count	= GraphicsConfig::MaxCmdBufPerBatch;
+				const auto	bm_cmdbufs		= allocator.Push();
+				auto*		cmdbufs			= allocator.Allocate<VkCommandBuffer>( max_cb_count );
+				CHECK_ERR( cmdbufs != null );
 
-                submit.pCommandBuffers = cmdbufs;
-                batch->_cmdPool.GetCommands( cmdbufs, OUT submit.commandBufferCount, max_cb_count );
-                allocator.Commit( bm_cmdbufs, SizeOf<VkCommandBuffer> * submit.commandBufferCount );
-            }
+				submit.pCommandBuffers = cmdbufs;
+				batch->_cmdPool.GetCommands( cmdbufs, OUT submit.commandBufferCount, max_cb_count );
+				allocator.Commit( bm_cmdbufs, SizeOf<VkCommandBuffer> * submit.commandBufferCount );
+			}
 
-            // wait semaphores
-            CHECK_ERR( batch->_GetWaitSemaphores( allocator, OUT submit.pWaitSemaphores, OUT submit.pWaitDstStageMask, OUT submit.waitSemaphoreCount ));
+			// wait semaphores
+			CHECK_ERR( batch->_GetWaitSemaphores( allocator, OUT submit.pWaitSemaphores, OUT submit.pWaitDstStageMask, OUT submit.waitSemaphoreCount ));
 
-            // signal semaphores
-            CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphores, OUT submit.signalSemaphoreCount ));
-        }
+			// signal semaphores
+			CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphores, OUT submit.signalSemaphoreCount ));
+		}
 
-        auto    fence = _CreateFence();
-        CHECK_ERR( fence );
+		auto	fence = _CreateFence();
+		CHECK_ERR( fence );
 
-        // submit
-        {
-            EXLOCK( queue->guard );
-            VK_CHECK_ERR( dev.vkQueueSubmit( queue->handle, submits_count, submits, fence->Handle() ));
+		// submit
+		{
+			EXLOCK( queue->guard );
+			VK_CHECK_ERR( dev.vkQueueSubmit( queue->handle, submits_count, submits, fence->Handle() ));
 
-            DBG_GRAPHICS_ONLY(
-                if ( auto prof = _profiler.load() )
-                {
-                    for (auto& batch : pending)
-                        prof->SubmitBatch( batch.get(), queueType );
-                })
-        }
+			DBG_GRAPHICS_ONLY(
+				if ( auto prof = _profiler.load() )
+				{
+					for (auto& batch : pending)
+						prof->SubmitBatch( batch.get(), queueType );
+				})
+		}
 
-        for (auto& batch : pending)
-            batch->_OnSubmit( fence );
+		for (auto& batch : pending)
+			batch->_OnSubmit( fence );
 
-        return true;
-    }
+		return true;
+	}
 #endif
 
 /*
 =================================================
-    _FlushQueue_Timeline
+	_FlushQueue_Timeline
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-    bool  RenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending)
-    {
-        VTempStackAllocator allocator;
+	bool  RenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending)
+	{
+		VTempStackAllocator	allocator;
 
-        auto&   dev     = GetDevice();
-        auto    queue   = dev.GetQueue( queueType );
+		auto&	dev		= GetDevice();
+		auto	queue	= dev.GetQueue( queueType );
 
-        uint    submits_count   = 0;
-        auto*   submits         = allocator.Allocate<VkSubmitInfo2KHR>( pending.size() );
-        CHECK_ERR( submits != null );
+		uint	submits_count	= 0;
+		auto*	submits			= allocator.Allocate<VkSubmitInfo2KHR>( pending.size() );
+		CHECK_ERR( submits != null );
 
-        for (auto& batch : pending)
-        {
-            auto&   submit  = submits [submits_count++];
-            submit.sType    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR;
-            submit.pNext    = null;
-            submit.flags    = 0;
+		for (auto& batch : pending)
+		{
+			auto&	submit	= submits [submits_count++];
+			submit.sType	= VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR;
+			submit.pNext	= null;
+			submit.flags	= 0;
 
-            // command buffers
-            {
-                const uint  max_cb_count    = GraphicsConfig::MaxCmdBufPerBatch;
-                const auto  bm_cmdbufs      = allocator.Push();
-                auto*       cmdbufs         = allocator.Allocate<VkCommandBufferSubmitInfoKHR>( max_cb_count );
-                CHECK_ERR( cmdbufs != null );
+			// command buffers
+			{
+				const uint	max_cb_count	= GraphicsConfig::MaxCmdBufPerBatch;
+				const auto	bm_cmdbufs		= allocator.Push();
+				auto*		cmdbufs			= allocator.Allocate<VkCommandBufferSubmitInfoKHR>( max_cb_count );
+				CHECK_ERR( cmdbufs != null );
 
-                submit.pCommandBufferInfos = cmdbufs;
-                batch->_cmdPool.GetCommands( cmdbufs, OUT submit.commandBufferInfoCount, max_cb_count );
-                allocator.Commit( bm_cmdbufs, SizeOf<VkCommandBufferSubmitInfoKHR> * submit.commandBufferInfoCount );
-            }
+				submit.pCommandBufferInfos = cmdbufs;
+				batch->_cmdPool.GetCommands( cmdbufs, OUT submit.commandBufferInfoCount, max_cb_count );
+				allocator.Commit( bm_cmdbufs, SizeOf<VkCommandBufferSubmitInfoKHR> * submit.commandBufferInfoCount );
+			}
 
-            // wait semaphores
-            CHECK_ERR( batch->_GetWaitSemaphores( allocator, OUT submit.pWaitSemaphoreInfos, OUT submit.waitSemaphoreInfoCount ));
+			// wait semaphores
+			CHECK_ERR( batch->_GetWaitSemaphores( allocator, OUT submit.pWaitSemaphoreInfos, OUT submit.waitSemaphoreInfoCount ));
 
-            // signal semaphores
-            CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphoreInfos, OUT submit.signalSemaphoreInfoCount ));
-        }
+			// signal semaphores
+			CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphoreInfos, OUT submit.signalSemaphoreInfoCount ));
+		}
 
-        // submit
-        {
-            EXLOCK( queue->guard );
-            VK_CHECK_ERR( dev.vkQueueSubmit2KHR( queue->handle, submits_count, submits, Default ));
+		// submit
+		{
+			EXLOCK( queue->guard );
+			VK_CHECK_ERR( dev.vkQueueSubmit2KHR( queue->handle, submits_count, submits, Default ));
 
-            DBG_GRAPHICS_ONLY(
-                if ( auto prof = _profiler.load() )
-                {
-                    for (auto& batch : pending)
-                        prof->SubmitBatch( batch.get(), queueType );
-                })
-        }
+			DBG_GRAPHICS_ONLY(
+				if ( auto prof = _profiler.load() )
+				{
+					for (auto& batch : pending)
+						prof->SubmitBatch( batch.get(), queueType );
+				})
+		}
 
-        for (auto& batch : pending)
-            batch->_OnSubmit();
+		for (auto& batch : pending)
+			batch->_OnSubmit();
 
-        return true;
-    }
+		return true;
+	}
 #endif
 
 /*
 =================================================
-    _IsFrameComplete_Fence
+	_IsFrameComplete_Fence
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-    bool  RenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId)
-    {
-        auto&   dev             = GetDevice();
-        auto&   frame           = _perFrame[ frameId.Index() ];
-        bool    all_complete    = true;
+	bool  RenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId)
+	{
+		auto&	dev				= GetDevice();
+		auto&	frame			= _perFrame[ frameId.Index() ];
+		bool	all_complete	= true;
 
-        EXLOCK( frame.guard );
+		EXLOCK( frame.guard );
 
-        // TODO: optimize
-        for (usize i = 0; i < frame.submitted.size(); ++i)
-        {
-            auto&   batch = frame.submitted[i];
-            if ( batch == null )
-                continue;
+		// TODO: optimize
+		for (usize i = 0; i < frame.submitted.size(); ++i)
+		{
+			auto&	batch = frame.submitted[i];
+			if ( batch == null )
+				continue;
 
-            ASSERT( batch->_fence != null );
+			ASSERT( batch->_fence != null );
 
-            if ( batch->_fence == null or batch->_fence->IsCompleted( dev ))
-            {
-                batch->_OnComplete();
-                batch = null;
-            }
-            else
-                all_complete = false;
-        }
+			if ( batch->_fence == null or batch->_fence->IsCompleted( dev ))
+			{
+				batch->_OnComplete();
+				batch = null;
+			}
+			else
+				all_complete = false;
+		}
 
-        if ( all_complete )
-            frame.submitted.clear();
+		if ( all_complete )
+			frame.submitted.clear();
 
-        return all_complete;
-    }
+		return all_complete;
+	}
 #endif
 
 /*
 =================================================
-    _IsFrameComplete_Timeline
+	_IsFrameComplete_Timeline
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-    bool  RenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId)
-    {
-        auto&   dev             = GetDevice();
-        auto&   frame           = _perFrame[ frameId.Index() ];
-        bool    all_complete    = true;
+	bool  RenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId)
+	{
+		auto&	dev				= GetDevice();
+		auto&	frame			= _perFrame[ frameId.Index() ];
+		bool	all_complete	= true;
 
-        EXLOCK( frame.guard );
+		EXLOCK( frame.guard );
 
-        // TODO: optimize
-        for (usize i = 0; i < frame.submitted.size(); ++i)
-        {
-            auto&   batch = frame.submitted[i];
-            if ( batch == null )
-                continue;
+		// TODO: optimize
+		for (usize i = 0; i < frame.submitted.size(); ++i)
+		{
+			auto&	batch = frame.submitted[i];
+			if ( batch == null )
+				continue;
 
-            CHECK_ERR( batch->_tlSemaphore != Default );
+			CHECK_ERR( batch->_tlSemaphore != Default );
 
-            ulong   val = 0;
-            VK_CHECK( dev.vkGetSemaphoreCounterValueKHR( dev.GetVkDevice(), batch->_tlSemaphore, OUT &val ));
+			ulong	val = 0;
+			VK_CHECK( dev.vkGetSemaphoreCounterValueKHR( dev.GetVkDevice(), batch->_tlSemaphore, OUT &val ));
 
-            if_likely( val >= batch->_tlSemaphoreVal.load() )
-            {
-                batch->_OnComplete();
-                batch = null;
-            }
-            else
-                all_complete = false;
-        }
+			if_likely( val >= batch->_tlSemaphoreVal.load() )
+			{
+				batch->_OnComplete();
+				batch = null;
+			}
+			else
+				all_complete = false;
+		}
 
-        if ( all_complete )
-            frame.submitted.clear();
+		if ( all_complete )
+			frame.submitted.clear();
 
-        return all_complete;
-    }
+		return all_complete;
+	}
 #endif
 
 /*
 =================================================
-    _IsFrameCompleted
+	_IsFrameCompleted
 =================================================
 */
-    bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId)
-    {
-        #if AE_VK_TIMELINE_SEMAPHORE
-            bool res = _IsFrameComplete_Timeline( frameId );
-        #else
-            bool res = _IsFrameComplete_Fence( frameId );
-        #endif
+	bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId)
+	{
+		#if AE_VK_TIMELINE_SEMAPHORE
+			bool res = _IsFrameComplete_Timeline( frameId );
+		#else
+			bool res = _IsFrameComplete_Fence( frameId );
+		#endif
 
-        //if_unlikely( res )
-        //  _depMngr->Update();
+		//if_unlikely( res )
+		//	_depMngr->Update();
 
-        return res;
-    }
+		return res;
+	}
 
 /*
 =================================================
-    _CreateDrawBatch
+	_CreateDrawBatch
 =================================================
 */
-    RC<VDrawCommandBatch>  RenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
-                                                                   ArrayView<VkRect2D> scissors, DebugLabel dbg) __NE___
-    {
-        ASSERT( primaryState.IsValid() );
-        CHECK_ERR( AnyEqual( _GetState(), EState::Idle, EState::BeginFrame, EState::RecordFrame ));
+	RC<VDrawCommandBatch>  RenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
+																   ArrayView<VkRect2D> scissors, DebugLabel dbg) __NE___
+	{
+		ASSERT( primaryState.IsValid() );
+		CHECK_ERR( AnyEqual( _GetState(), EState::Idle, EState::BeginFrame, EState::RecordFrame ));
 
-        uint    index;
-        CHECK_ERR( _drawBatchPool.Assign( OUT index ));
+		uint	index;
+		CHECK_ERR( _drawBatchPool.Assign( OUT index ));
 
-        auto&   batch = _drawBatchPool[ index ];
+		auto&	batch = _drawBatchPool[ index ];
 
-        if_likely( batch._Create( primaryState, viewports, scissors, dbg ))
-            return RC<VDrawCommandBatch>{ &batch };
+		if_likely( batch._Create( primaryState, viewports, scissors, dbg ))
+			return RC<VDrawCommandBatch>{ &batch };
 
-        _drawBatchPool.Unassign( index );
-        RETURN_ERR( "failed to allocate draw command batch" );
-    }
+		_drawBatchPool.Unassign( index );
+		RETURN_ERR( "failed to allocate draw command batch" );
+	}
 
 
 } // AE::Graphics

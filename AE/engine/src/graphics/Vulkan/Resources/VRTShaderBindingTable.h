@@ -10,52 +10,52 @@
 namespace AE::Graphics
 {
 
-    //
-    // Vulkan Ray Tracing Shader Binding Table
-    //
+	//
+	// Vulkan Ray Tracing Shader Binding Table
+	//
 
-    class VRTShaderBindingTable final
-    {
-    // types
-    public:
-        struct CreateInfo
-        {
-            RTShaderBindingTable        sbt;
-            BufferID                    bufferId;
-            RayTracingPipelineID        pipelineId;
-            RTShaderBindingDesc         desc;
-            StringView                  dbgName;
-        };
-
-
-    // variables
-    private:
-        RTShaderBindingTable            _sbt;
-        Strong<BufferID>                _bufferId;
-        Strong<RayTracingPipelineID>    _pipelineId;
-
-        RTShaderBindingDesc             _desc;
-
-        DEBUG_ONLY( DebugName_t         _debugName; )
-        DRC_ONLY(   RWDataRaceCheck     _drCheck;   )
+	class VRTShaderBindingTable final
+	{
+	// types
+	public:
+		struct CreateInfo
+		{
+			RTShaderBindingTable		sbt;
+			BufferID					bufferId;
+			RayTracingPipelineID		pipelineId;
+			RTShaderBindingDesc			desc;
+			StringView					dbgName;
+		};
 
 
-    // methods
-    public:
-        VRTShaderBindingTable ()                                    __NE___ {}
-        ~VRTShaderBindingTable ()                                   __NE___;
+	// variables
+	private:
+		RTShaderBindingTable			_sbt;
+		Strong<BufferID>				_bufferId;
+		Strong<RayTracingPipelineID>	_pipelineId;
 
-        ND_ bool  Create (VResourceManager &, const CreateInfo &ci) __NE___;
-            void  Destroy (VResourceManager &)                      __NE___;
+		RTShaderBindingDesc				_desc;
 
-        ND_ RTShaderBindingTable const& GetSBT ()                   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _sbt; }
-        ND_ BufferID                    BufferId ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
-        ND_ RayTracingPipelineID        RTPipelineId ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _pipelineId; }
+		DEBUG_ONLY(	DebugName_t			_debugName;	)
+		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
 
-        ND_ RTShaderBindingDesc const&  Description ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
-        DEBUG_ONLY(  ND_ StringView     GetDebugName ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
-    };
+	// methods
+	public:
+		VRTShaderBindingTable ()									__NE___	{}
+		~VRTShaderBindingTable ()									__NE___;
+
+		ND_ bool  Create (VResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (VResourceManager &)						__NE___;
+
+		ND_ RTShaderBindingTable const&	GetSBT ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sbt; }
+		ND_ BufferID					BufferId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
+		ND_ RayTracingPipelineID		RTPipelineId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipelineId; }
+
+		ND_ RTShaderBindingDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+
+		DEBUG_ONLY(  ND_ StringView		GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+	};
 
 
 } // AE::Graphics

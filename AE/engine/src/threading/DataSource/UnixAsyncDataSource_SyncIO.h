@@ -7,210 +7,210 @@ namespace AE::Threading
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    UnixIOService::_RequestBase::_RequestBase () __NE___
-    {
-    }
+	UnixIOService::_RequestBase::_RequestBase () __NE___
+	{
+	}
 
 /*
 =================================================
-    _Cancel
+	_Cancel
 =================================================
 */
-    bool  UnixIOService::_RequestBase::_Cancel () __NE___
-    {
-        return false;
-    }
+	bool  UnixIOService::_RequestBase::_Cancel () __NE___
+	{
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    _Create
+	_Create
 =================================================
 */
-    bool  UnixIOService::ReadRequest::_Create (RC<UnixAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
-    {
-        // initialize
-        _Init( RVRef(mem) );
-        _dataSource = RVRef(file);
-        _offset     = pos;
-        _data       = data;
+	bool  UnixIOService::ReadRequest::_Create (RC<UnixAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
+	{
+		// initialize
+		_Init( RVRef(mem) );
+		_dataSource	= RVRef(file);
+		_offset		= pos;
+		_data		= data;
 
-        // read data
-        ssize_t readn = ::pread( _dataSource->Handle(), OUT _data, size_t{dataSize}, off_t{pos} );
-        if_likely( readn >= 0 )
-        {
-            _Complete( Bytes{usize(readn)}, true );
-            return true;
-        }
+		// read data
+		ssize_t	readn = ::pread( _dataSource->Handle(), OUT _data, size_t{dataSize}, off_t{pos} );
+		if_likely( readn >= 0 )
+		{
+			_Complete( Bytes{usize(readn)}, true );
+			return true;
+		}
 
-        _Complete( 0_b, false );
+		_Complete( 0_b, false );
 
-        UNIX_CHECK_DEV( "Read request failed: " );
-        return false;
-    }
+		UNIX_CHECK_DEV( "Read request failed: " );
+		return false;
+	}
 
 /*
 =================================================
-    GetResult
+	GetResult
 =================================================
 */
-    UnixIOService::ReadRequest::Result  UnixIOService::ReadRequest::GetResult () C_NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::ReadRequest::Result  UnixIOService::ReadRequest::GetResult () C_NE___
+	{
+		ASSERT( IsFinished() );
 
-        Result  res;
-        res.dataSize    = _actualSize.load();
-        res.pos         = _offset;
-        res.data        = IsCompleted() ? _data : null;
+		Result	res;
+		res.dataSize	= _actualSize.load();
+		res.pos			= _offset;
+		res.data		= IsCompleted() ? _data : null;
 
-        return res;
-    }
+		return res;
+	}
 
 /*
 =================================================
-    _GetResult
+	_GetResult
 =================================================
 */
-    UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
+	{
+		ASSERT( IsFinished() );
 
-        ResultWithRC    res;
-        res.dataSize    = _actualSize.load();
-        res.rc          = _memRC;
-        res.pos         = _offset;
-        res.data        = IsCompleted() ? _data : null;
+		ResultWithRC	res;
+		res.dataSize	= _actualSize.load();
+		res.rc			= _memRC;
+		res.pos			= _offset;
+		res.data		= IsCompleted() ? _data : null;
 
-        return res;
-    }
+		return res;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    _Create
+	_Create
 =================================================
 */
-    bool  UnixIOService::WriteRequest::_Create (RC<UnixAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___
-    {
-        // initialize
-        _Init( RVRef(mem) );
-        _dataSource = RVRef(file);
-        _offset     = pos;
+	bool  UnixIOService::WriteRequest::_Create (RC<UnixAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___
+	{
+		// initialize
+		_Init( RVRef(mem) );
+		_dataSource	= RVRef(file);
+		_offset		= pos;
 
-        // write data
-        ssize_t written = ::pwrite( _dataSource->Handle(), data, ssize_t{dataSize}, off_t{pos} );
-        if_likely( written >= 0 )
-        {
-            _Complete( Bytes{usize(written)}, true );
-            return true;
-        }
+		// write data
+		ssize_t	written = ::pwrite( _dataSource->Handle(), data, ssize_t{dataSize}, off_t{pos} );
+		if_likely( written >= 0 )
+		{
+			_Complete( Bytes{usize(written)}, true );
+			return true;
+		}
 
-        _Complete( 0_b, false );
+		_Complete( 0_b, false );
 
-        UNIX_CHECK_DEV( "Write request failed: " );
-        return false;
-    }
+		UNIX_CHECK_DEV( "Write request failed: " );
+		return false;
+	}
 
 /*
 =================================================
-    GetResult
+	GetResult
 =================================================
 */
-    UnixIOService::WriteRequest::Result  UnixIOService::WriteRequest::GetResult () C_NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::WriteRequest::Result  UnixIOService::WriteRequest::GetResult () C_NE___
+	{
+		ASSERT( IsFinished() );
 
-        Result  res;
-        res.dataSize    = _actualSize.load();
-        res.data        = null;
-        res.pos         = _offset;
+		Result	res;
+		res.dataSize	= _actualSize.load();
+		res.data		= null;
+		res.pos			= _offset;
 
-        return res;
-    }
+		return res;
+	}
 
 /*
 =================================================
-    _GetResult
+	_GetResult
 =================================================
 */
-    UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
-    {
-        ASSERT( IsFinished() );
+	UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
+	{
+		ASSERT( IsFinished() );
 
-        ResultWithRC    res;
-        res.dataSize    = _actualSize.load();
-        res.pos         = _offset;
+		ResultWithRC	res;
+		res.dataSize	= _actualSize.load();
+		res.pos			= _offset;
 
-        return res;
-    }
+		return res;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    CancelAllRequests
+	CancelAllRequests
 =================================================
 */
-    bool  UnixAsyncRDataSource::CancelAllRequests () __NE___
-    {
-        return false;
-    }
+	bool  UnixAsyncRDataSource::CancelAllRequests () __NE___
+	{
+		return false;
+	}
 
-    bool  UnixAsyncWDataSource::CancelAllRequests () __NE___
-    {
-        return false;
-    }
+	bool  UnixAsyncWDataSource::CancelAllRequests () __NE___
+	{
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-    constructor
+	constructor
 ----
-    warning: Scheduler().GetFileIOService() is not valid here
+	warning: Scheduler().GetFileIOService() is not valid here
 =================================================
 */
-    UnixIOService::UnixIOService (uint) __NE___
-    {}
+	UnixIOService::UnixIOService (uint) __NE___
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    UnixIOService::~UnixIOService () __NE___
-    {}
+	UnixIOService::~UnixIOService () __NE___
+	{}
 
 /*
 =================================================
-    IsInitialized
+	IsInitialized
 =================================================
 */
-    bool  UnixIOService::IsInitialized () C_NE___
-    {
-        return true;
-    }
+	bool  UnixIOService::IsInitialized () C_NE___
+	{
+		return true;
+	}
 
 /*
 =================================================
-    ProcessEvents
+	ProcessEvents
 =================================================
 */
-    usize  UnixIOService::ProcessEvents () __NE___
-    {
-        ASSERT( not IsInitialized() or Scheduler().GetFileIOService() == this );
+	usize  UnixIOService::ProcessEvents () __NE___
+	{
+		ASSERT( not IsInitialized() or Scheduler().GetFileIOService() == this );
 
-        return 0;
-    }
+		return 0;
+	}
 
 
 } // AE::Threading

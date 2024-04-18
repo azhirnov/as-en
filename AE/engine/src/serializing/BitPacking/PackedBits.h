@@ -7,18 +7,18 @@
 namespace AE::Base
 {
 
-    //
-    // Packed Bits
-    //
+	//
+	// Packed Bits
+	//
 
-    template <uint Bits, typename T>
-    struct PackedBits
-    {
-        T   value;
+	template <uint Bits, typename T>
+	struct PackedBits
+	{
+		T	value;
 
-        ND_ T*          operator -> ()      __NE___ { return &value; }
-        ND_ T const*    operator -> ()      C_NE___ { return &value; }
-    };
+		ND_ T*			operator -> ()		__NE___	{ return &value; }
+		ND_ T const*	operator -> ()		C_NE___	{ return &value; }
+	};
 
 
 } // AE::Base

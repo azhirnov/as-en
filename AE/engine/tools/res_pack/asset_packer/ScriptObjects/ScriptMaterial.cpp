@@ -4,7 +4,7 @@
 
 #include "scripting/Impl/ClassBinder.h"
 
-AE_DECL_SCRIPT_OBJ_RC(  AE::AssetPacker::ScriptMaterial,    "Material" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptMaterial,	"Material" );
 
 
 namespace AE::AssetPacker
@@ -12,31 +12,31 @@ namespace AE::AssetPacker
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    ScriptMaterial::ScriptMaterial ()
-    {}
+	ScriptMaterial::ScriptMaterial ()
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    ScriptMaterial::~ScriptMaterial ()
-    {}
+	ScriptMaterial::~ScriptMaterial ()
+	{}
 
 /*
 =================================================
-    Bind
+	Bind
 =================================================
 */
-    void  ScriptMaterial::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        Scripting::ClassBinder<ScriptMaterial>  binder{ se };
-        binder.CreateRef();
+	void  ScriptMaterial::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptMaterial>	binder{ se };
+		binder.CreateRef();
 
-    }
+	}
 
 
 } // AE::AssetPacker

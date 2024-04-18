@@ -17,10 +17,10 @@ extern int AE_Abseil_Test ()
 int main ()
 #endif
 {
-    absl::flat_hash_set< int >          absl_flat_set;
-    absl::flat_hash_map< int, float >   absl_flat_map;
-    absl::node_hash_set< int >          absl_node_set;
-    absl::node_hash_map< int, float >   absl_node_map;
+	absl::flat_hash_set< int >			absl_flat_set;
+	absl::flat_hash_map< int, float >	absl_flat_map;
+	absl::node_hash_set< int >			absl_node_set;
+	absl::node_hash_map< int, float >	absl_node_map;
 
-    return 0;
+	return 0;
 }

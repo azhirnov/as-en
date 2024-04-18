@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    sRGB <-> linear color space
+	sRGB <-> linear color space
 */
 
 ND_ float   ApplySRGBCurve (float  x);
@@ -42,12 +42,12 @@ ND_ float3  DCIP3toREC709 (float3 RGBP3);
 ND_ float3  RGBFullToLimited10bit (float3 x);
 
 
-#define COLOR_FORMAT_LINEAR             0   // EColorSpace::PassThrough
-#define COLOR_FORMAT_sRGB_FULL          1   // EColorSpace::sRGB_nonlinear, EColorSpace::Extended_sRGB_linear, EColorSpace:Display_P3_linear
-#define COLOR_FORMAT_sRGB_LIMITED       2   // 10 bit
-#define COLOR_FORMAT_Rec709_FULL        3   // EColorSpace::BT709_linear / BT709_nonlinear
-#define COLOR_FORMAT_Rec709_LIMITED     4   // 10 bit
-#define COLOR_FORMAT_HDR10              5   // EColorSpace::HDR10_HLG
+#define COLOR_FORMAT_LINEAR				0	// EColorSpace::PassThrough
+#define COLOR_FORMAT_sRGB_FULL			1	// EColorSpace::sRGB_nonlinear, EColorSpace::Extended_sRGB_linear, EColorSpace:Display_P3_linear
+#define COLOR_FORMAT_sRGB_LIMITED		2	// 10 bit
+#define COLOR_FORMAT_Rec709_FULL		3	// EColorSpace::BT709_linear / BT709_nonlinear
+#define COLOR_FORMAT_Rec709_LIMITED		4	// 10 bit
+#define COLOR_FORMAT_HDR10				5	// EColorSpace::HDR10_HLG
 
 ND_ float3  ApplyDisplayProfile (const float3 color, const int displayFormat);
 //-----------------------------------------------------------------------------

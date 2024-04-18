@@ -7,131 +7,131 @@
 namespace AE::PipelineCompiler
 {
 
-    //
-    // Ray Tracing Pipeline Specialization
-    //
-    struct RayTracingPipelineSpecScriptBinding final : BasePipelineSpec
-    {
-    // variables
-    public:
-        Graphics::RayTracingPipelineDesc    desc;
+	//
+	// Ray Tracing Pipeline Specialization
+	//
+	struct RayTracingPipelineSpecScriptBinding final : BasePipelineSpec
+	{
+	// variables
+	public:
+		Graphics::RayTracingPipelineDesc	desc;
 
 
-    // methods
-    public:
-        RayTracingPipelineSpecScriptBinding () {}
-        RayTracingPipelineSpecScriptBinding (const RayTracingPipelineScriptBinding* base, const String &name) __Th___;
+	// methods
+	public:
+		RayTracingPipelineSpecScriptBinding () {}
+		RayTracingPipelineSpecScriptBinding (const RayTracingPipelineScriptBinding* base, const String &name) __Th___;
 
-        void  SetSpecValueU (const String &name, uint  value)           __Th___ { return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
-        void  SetSpecValueI (const String &name, int   value)           __Th___ { return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
-        void  SetSpecValueF (const String &name, float value)           __Th___ { return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
+		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
+		void  SetSpecValueI (const String &name, int   value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
+		void  SetSpecValueF (const String &name, float value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
 
-        void  SetOptions (EPipelineOpt value)                           __Th___ { return BasePipelineSpec::_SetOptions( value ); }
+		void  SetOptions (EPipelineOpt value)							__Th___	{ return BasePipelineSpec::_SetOptions( value ); }
 
-        void  MaxRecursionDepth (uint value)                            __Th___;
-        void  MaxPipelineRayPayloadSize (Bytes value)                   __Th___;
-        void  MaxPipelineRayHitAttributeSize (Bytes value)              __Th___;
+		void  MaxRecursionDepth (uint value)							__Th___;
+		void  MaxPipelineRayPayloadSize (Bytes value)					__Th___;
+		void  MaxPipelineRayHitAttributeSize (Bytes value)				__Th___;
 
-        void  SetDynamicState (/*EPipelineDynamicState*/uint states)    __Th___;
+		void  SetDynamicState (/*EPipelineDynamicState*/uint states)	__Th___;
 
-        void  AddToRenderTech (const String &rtech, const String &pass) __Th___ { return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
+		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
-        ND_ const RayTracingPipelineScriptBinding*  GetBase ()          const   { return Cast<RayTracingPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
+		ND_ const RayTracingPipelineScriptBinding*	GetBase ()			const	{ return Cast<RayTracingPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 
-        ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid);
 
-        static void  Bind (const ScriptEnginePtr &se)                   __Th___;
-    };
-    using RayTracingPipelineSpecPtr = ScriptRC< RayTracingPipelineSpecScriptBinding >;
-
-
-
-    //
-    // Ray Tracing Pipeline Template
-    //
-    struct RayTracingPipelineScriptBinding final : BasePipelineTmpl
-    {
-    // types
-    private:
-        using Specializations_t = Array< RayTracingPipelineSpecPtr >;
-
-        struct GeneralShader
-        {
-            String              name;
-            CompiledShaderPtr   shader;
-        };
-
-        struct TriangleHitGroup
-        {
-            String              name;
-            CompiledShaderPtr   closestHit;
-            CompiledShaderPtr   anyHit;
-        };
-
-        struct ProceduralHitGroup
-        {
-            String              name;
-            CompiledShaderPtr   intersection;
-            CompiledShaderPtr   closestHit;
-            CompiledShaderPtr   anyHit;
-        };
+		static void  Bind (const ScriptEnginePtr &se)					__Th___;
+	};
+	using RayTracingPipelineSpecPtr = ScriptRC< RayTracingPipelineSpecScriptBinding >;
 
 
-    // variables
-    private:
-        Array<GeneralShader>        _generalShaders;
-        Array<TriangleHitGroup>     _triangleGroups;
-        Array<ProceduralHitGroup>   _proceduralGroups;
-        FlatHashSet<String>         _uniqueNames;
 
-        Specializations_t           _pplnSpec;
-        bool                        _isPrepared     = false;
-        ubyte                       _isSupported    = 0;
+	//
+	// Ray Tracing Pipeline Template
+	//
+	struct RayTracingPipelineScriptBinding final : BasePipelineTmpl
+	{
+	// types
+	private:
+		using Specializations_t	= Array< RayTracingPipelineSpecPtr >;
+
+		struct GeneralShader
+		{
+			String				name;
+			CompiledShaderPtr	shader;
+		};
+
+		struct TriangleHitGroup
+		{
+			String				name;
+			CompiledShaderPtr	closestHit;
+			CompiledShaderPtr	anyHit;
+		};
+
+		struct ProceduralHitGroup
+		{
+			String				name;
+			CompiledShaderPtr	intersection;
+			CompiledShaderPtr	closestHit;
+			CompiledShaderPtr	anyHit;
+		};
 
 
-    // methods
-    public:
-        RayTracingPipelineScriptBinding ();
-        explicit RayTracingPipelineScriptBinding (const String &name)                       __Th___;
+	// variables
+	private:
+		Array<GeneralShader>		_generalShaders;
+		Array<TriangleHitGroup>		_triangleGroups;
+		Array<ProceduralHitGroup>	_proceduralGroups;
+		FlatHashSet<String>			_uniqueNames;
 
-        void  AddGeneralShader      (const String &name, const ScriptShaderPtr &shader)     __Th___;
-        void  AddTriangleHitGroup   (const String &name, const ScriptShaderPtr &closestHit,   const ScriptShaderPtr &anyHit) __Th___;
-        void  AddProceduralHitGroup (const String &name, const ScriptShaderPtr &intersection, const ScriptShaderPtr &closestHit, const ScriptShaderPtr &anyHit) __Th___;
+		Specializations_t			_pplnSpec;
+		bool						_isPrepared		= false;
+		ubyte						_isSupported	= 0;
 
-        void  SetLayout (const String &name)                                                __Th___ { BasePipelineTmpl::_SetLayout( name ); }
-        void  SetLayout2 (const PipelineLayoutPtr &pl)                                      __Th___ { BasePipelineTmpl::_SetLayout( pl ); }
-        void  Define (const String &value)                                                  __Th___ { BasePipelineTmpl::_Define( value ); }
-        void  AddFeatureSet (const String &name)                                            __Th___ { BasePipelineTmpl::_AddFeatureSet( name ); }
 
-        ND_ RayTracingPipelineSpecPtr               AddSpecialization2 (const String &name) __Th___;
-        ND_ RayTracingPipelineSpecScriptBinding*    AddSpecialization (const String &name)  __Th___;
+	// methods
+	public:
+		RayTracingPipelineScriptBinding ();
+		explicit RayTracingPipelineScriptBinding (const String &name)						__Th___;
 
-        ND_ bool    Build ();
-        ND_ usize   SpecCount ()                                                            const   { return _pplnSpec.size(); }
+		void  AddGeneralShader      (const String &name, const ScriptShaderPtr &shader)		__Th___;
+		void  AddTriangleHitGroup   (const String &name, const ScriptShaderPtr &closestHit,   const ScriptShaderPtr &anyHit) __Th___;
+		void  AddProceduralHitGroup (const String &name, const ScriptShaderPtr &intersection, const ScriptShaderPtr &closestHit, const ScriptShaderPtr &anyHit) __Th___;
 
-        ND_ Specializations_t const&    GetSpecializations ()                               const   { return _pplnSpec; }
+		void  SetLayout (const String &name)												__Th___	{ BasePipelineTmpl::_SetLayout( name ); }
+		void  SetLayout2 (const PipelineLayoutPtr &pl)										__Th___	{ BasePipelineTmpl::_SetLayout( pl ); }
+		void  Define (const String &value)													__Th___	{ BasePipelineTmpl::_Define( value ); }
+		void  AddFeatureSet (const String &name)											__Th___	{ BasePipelineTmpl::_AddFeatureSet( name ); }
 
-        ND_ bool  HasGeneralShader (const String &name, EShader type)                       const;
-        ND_ bool  HasTriangleHitGroup (const String &name, EShader type)                    const;
-        ND_ bool  HasProceduralHitGroup (const String &name, EShader type)                  const;
+		ND_ RayTracingPipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
+		ND_ RayTracingPipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 
-        ND_ uint  GetRayGenShader   (const String &name)                                    const;
-        ND_ uint  GetMissShader     (const String &name)                                    const;
-        ND_ uint  GetHitGroup       (const String &name)                                    const;
-        ND_ uint  GetCallableShader (const String &name)                                    const;
+		ND_ bool	Build ();
+		ND_ usize	SpecCount ()															const	{ return _pplnSpec.size(); }
 
-        ND_ StringView  GetRayGenShaderName (uint idx)                                      const;
-        ND_ StringView  GetMissShaderName (uint idx)                                        const;
-        ND_ StringView  GetHitGroupName (uint idx)                                          const;
-        ND_ StringView  GetCallableShaderName (uint idx)                                    const;
+		ND_ Specializations_t const&	GetSpecializations ()								const	{ return _pplnSpec; }
 
-        static void  Bind (const ScriptEnginePtr &se)                                       __Th___;
+		ND_ bool  HasGeneralShader (const String &name, EShader type)						const;
+		ND_ bool  HasTriangleHitGroup (const String &name, EShader type)					const;
+		ND_ bool  HasProceduralHitGroup (const String &name, EShader type)					const;
 
-    private:
-        void  _Prepare ()                                                                   __Th___;
-        void  _CheckSupport ()                                                              __Th___;
-    };
-    using RayTracingPipelinePtr = ScriptRC< RayTracingPipelineScriptBinding >;
+		ND_ uint  GetRayGenShader	(const String &name)									const;
+		ND_ uint  GetMissShader		(const String &name)									const;
+		ND_ uint  GetHitGroup		(const String &name)									const;
+		ND_ uint  GetCallableShader	(const String &name)									const;
+
+		ND_ StringView  GetRayGenShaderName (uint idx)										const;
+		ND_ StringView  GetMissShaderName (uint idx)										const;
+		ND_ StringView  GetHitGroupName (uint idx)											const;
+		ND_ StringView  GetCallableShaderName (uint idx)									const;
+
+		static void  Bind (const ScriptEnginePtr &se)										__Th___;
+
+	private:
+		void  _Prepare ()																	__Th___;
+		void  _CheckSupport ()																__Th___;
+	};
+	using RayTracingPipelinePtr = ScriptRC< RayTracingPipelineScriptBinding >;
 
 
 } // AE::PipelineCompiler

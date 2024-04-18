@@ -12,67 +12,67 @@
 
 namespace AE::Profiler
 {
-    using namespace AE::Base;
+	using namespace AE::Base;
 
-    using AE::Graphics::GraphicsPipelineID;
-    using AE::Graphics::DescriptorSetID;
-    using AE::Graphics::Canvas;
-    using AE::Graphics::RasterFont;
-    using AE::Graphics::IDrawContext;
+	using AE::Graphics::GraphicsPipelineID;
+	using AE::Graphics::DescriptorSetID;
+	using AE::Graphics::Canvas;
+	using AE::Graphics::RasterFont;
+	using AE::Graphics::IDrawContext;
 
-    using AE::Threading::Atomic;
-    using AE::Threading::FAtomic;
+	using AE::Threading::Atomic;
+	using AE::Threading::FAtomic;
 
-    using AE::Networking::EChannel;
-    using AE::Networking::CSMessageGroupID;
-    using AE::Networking::CSMessagePtr;
-
-
-    //
-    // Profiler Utils
-    //
-
-    class ProfilerUtils
-    {
-    // types
-    public:
-        using TimePoint_t   = Clock::TimePoint_t;
+	using AE::Networking::EChannel;
+	using AE::Networking::CSMessageGroupID;
+	using AE::Networking::CSMessagePtr;
 
 
-        class MsgProducer final : public Networking::IAsyncCSMessageProducer
-        {
-        public:
-            MsgProducer () __NE___ : Networking::IAsyncCSMessageProducer{ Tag<Threading::LfLinearAllocator< usize{1_Mb}, usize{8_b}, 4 >>{} } {}
+	//
+	// Profiler Utils
+	//
 
-            EnumSet<EChannel>  GetChannels ()                   C_NE_OV { return {EChannel::Reliable}; }
-        };
-
-
-        class MsgConsumer final : public Networking::ICSMessageConsumer
-        {
-        public:
-            CSMessageGroupID  GetGroupID ()                         C_NE_OV { return CSMessageGroup::Debug; }
-            void  Consume (ChunkList<const CSMessagePtr> msgList)   __NE_OV;
-        };
+	class ProfilerUtils
+	{
+	// types
+	public:
+		using TimePoint_t	= Clock::TimePoint_t;
 
 
-    // variables
-    private:
-        const Clock     _timer;
+		class MsgProducer final : public Networking::IAsyncCSMessageProducer
+		{
+		public:
+			MsgProducer () __NE___ : Networking::IAsyncCSMessageProducer{ Tag<Threading::LfLinearAllocator< usize{1_Mb}, usize{8_b}, 4 >>{} } {}
+
+			EnumSet<EChannel>  GetChannels ()					C_NE_OV	{ return {EChannel::Reliable}; }
+		};
 
 
-    // methods
-    public:
-        explicit ProfilerUtils (TimePoint_t startTime) :
-            _timer{ startTime }
-        {}
+		class MsgConsumer final : public Networking::ICSMessageConsumer
+		{
+		public:
+			CSMessageGroupID  GetGroupID ()							C_NE_OV	{ return CSMessageGroup::Debug; }
+			void  Consume (ChunkList<const CSMessagePtr> msgList)	__NE_OV;
+		};
 
-        ND_ usize           CurrentThreadID ()  const   { return ThreadUtils::GetIntID(); }
-        ND_ uint            CoreIndex ()        const   { return ThreadUtils::GetCoreIndex(); }
 
-        ND_ secondsf        CurrentTime ()      const   { return _timer.TimeSince<secondsf>(); }
-        ND_ nanosecondsd    CurrentTimeNano ()  const   { return _timer.TimeSince<nanosecondsd>(); }
-    };
+	// variables
+	private:
+		const Clock		_timer;
+
+
+	// methods
+	public:
+		explicit ProfilerUtils (TimePoint_t startTime) :
+			_timer{ startTime }
+		{}
+
+		ND_ usize			CurrentThreadID ()	const	{ return ThreadUtils::GetIntID(); }
+		ND_ uint			CoreIndex ()		const	{ return ThreadUtils::GetCoreIndex(); }
+
+		ND_ secondsf		CurrentTime ()		const	{ return _timer.TimeSince<secondsf>(); }
+		ND_ nanosecondsd	CurrentTimeNano ()	const	{ return _timer.TimeSince<nanosecondsd>(); }
+	};
 
 
 } // AE::Profiler

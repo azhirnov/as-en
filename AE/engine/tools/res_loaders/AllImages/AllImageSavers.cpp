@@ -12,57 +12,57 @@ namespace AE::ResLoader
 
 /*
 =================================================
-    SaveImage
+	SaveImage
 =================================================
 */
-    bool  AllImageSavers::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
-    {
-        // multithreaded
-        if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
-        {
-            DDSImageSaver   saver;
-            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
-                return true;
-        }
+	bool  AllImageSavers::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
+	{
+		// multithreaded
+		if ( fileFormat == Default or fileFormat == EImageFormat::DDS )
+		{
+			DDSImageSaver	saver;
+			if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+				return true;
+		}
 
-        // multithreaded
-        if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
-        {
-            AEImageSaver    saver;
-            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
-                return true;
-        }
+		// multithreaded
+		if ( fileFormat == Default or fileFormat == EImageFormat::AEImg )
+		{
+			AEImageSaver	saver;
+			if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+				return true;
+		}
 
-        // multithreaded
-        #ifdef AE_ENABLE_STB
-        {
-            STBImageSaver   saver;
-            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
-                return true;
-        }
-        #endif
+		// multithreaded
+		#ifdef AE_ENABLE_STB
+		{
+			STBImageSaver	saver;
+			if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+				return true;
+		}
+		#endif
 
-        // multithreaded
-        #ifdef AE_ENABLE_KTX
-        if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
-        {
-            KTXImageSaver   saver;
-            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
-                return true;
-        }
-        #endif
+		// multithreaded
+		#ifdef AE_ENABLE_KTX
+		if ( fileFormat == Default or fileFormat == EImageFormat::KTX )
+		{
+			KTXImageSaver	saver;
+			if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+				return true;
+		}
+		#endif
 
-        // DevIL is single threaded set low priority
-        #ifdef AE_ENABLE_DEVIL
-        {
-            DevILSaver  saver;
-            if ( saver.SaveImage( stream, image, fileFormat, flipY ))
-                return true;
-        }
-        #endif
+		// DevIL is single threaded set low priority
+		#ifdef AE_ENABLE_DEVIL
+		{
+			DevILSaver	saver;
+			if ( saver.SaveImage( stream, image, fileFormat, flipY ))
+				return true;
+		}
+		#endif
 
-        return false;
-    }
+		return false;
+	}
 
 
 } // AE::ResLoader

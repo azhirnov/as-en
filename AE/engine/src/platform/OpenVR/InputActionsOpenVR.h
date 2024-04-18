@@ -11,43 +11,43 @@
 namespace AE::App
 {
 
-    //
-    // Input Actions for OpenVR
-    //
+	//
+	// Input Actions for OpenVR
+	//
 
-    class InputActionsOpenVR final : public InputActionsBase
-    {
-    // types
-    private:
-        using EInputType = SerializableInputActionsOpenVR::EInputType;
+	class InputActionsOpenVR final : public InputActionsBase
+	{
+	// types
+	private:
+		using EInputType = SerializableInputActionsOpenVR::EInputType;
 
-        static constexpr uint   _Version    = SerializableInputActionsOpenVR::_Version;
-
-
-    // variables
-    private:
+		static constexpr uint	_Version	= SerializableInputActionsOpenVR::_Version;
 
 
-    // methods
-    public:
-        explicit InputActionsOpenVR (TsDoubleBufferedQueue* q)      __NE___ : InputActionsBase{ q } {}
-
-        void  SetPose (ControllerID id, const float3x3 &rot, const float3 &pos, const float3 &vel, const float3 &avel)  __NE___;
-        void  OnAxisStateChanged (ControllerID id, uint key, const float2 &value, const float2 &delta, float dt)        __NE___;
-        void  OnButton (ControllerID id, uint axisIdx, EGestureState state)                                             __NE___;
+	// variables
+	private:
 
 
-    // IInputActions //
-        bool  LoadSerialized (MemRefRStream &stream)                __NE_OV;
+	// methods
+	public:
+		explicit InputActionsOpenVR (TsDoubleBufferedQueue* q)		__NE___ : InputActionsBase{ q } {}
+
+		void  SetPose (ControllerID id, const float3x3 &rot, const float3 &pos, const float3 &vel, const float3 &avel)	__NE___;
+		void  OnAxisStateChanged (ControllerID id, uint key, const float2 &value, const float2 &delta, float dt)		__NE___;
+		void  OnButton (ControllerID id, uint axisIdx, EGestureState state)												__NE___;
 
 
-    // ISerializable //
-        bool  Serialize (Serializing::Serializer &)                 C_NE_OV;
-        bool  Deserialize (Serializing::Deserializer &)             __NE_OV;
+	// IInputActions //
+		bool  LoadSerialized (MemRefRStream &stream)				__NE_OV;
 
 
-    private:
-    };
+	// ISerializable //
+		bool  Serialize (Serializing::Serializer &)					C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)				__NE_OV;
+
+
+	private:
+	};
 
 
 } // AE::App

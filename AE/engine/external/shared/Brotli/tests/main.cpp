@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_BROTLI
-#   error AE_ENABLE_BROTLI required
+#	error AE_ENABLE_BROTLI required
 #endif
 
 #include <cstddef>
@@ -16,19 +16,19 @@ extern int AE_Brotli_Test ()
 int main ()
 #endif
 {
-    {
-        auto*   inst = BrotliDecoderCreateInstance( nullptr, nullptr, nullptr );
-        if ( ! inst )
-            return 1;
+	{
+		auto*	inst = BrotliDecoderCreateInstance( nullptr, nullptr, nullptr );
+		if ( ! inst )
+			return 1;
 
-        BrotliDecoderDestroyInstance( inst );
-    }
-    {
-        auto*   inst = BrotliEncoderCreateInstance( nullptr, nullptr, nullptr );
-        if ( ! inst )
-            return 2;
+		BrotliDecoderDestroyInstance( inst );
+	}
+	{
+		auto*	inst = BrotliEncoderCreateInstance( nullptr, nullptr, nullptr );
+		if ( ! inst )
+			return 2;
 
-        BrotliEncoderDestroyInstance( inst );
-    }
-    return 0;
+		BrotliEncoderDestroyInstance( inst );
+	}
+	return 0;
 }

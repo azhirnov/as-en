@@ -16,105 +16,105 @@ namespace AE::Base
 {
 /*
 =================================================
-    SecureZeroMem
+	SecureZeroMem
 =================================================
 */
-    void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
-    {
-        return Base::_hidden_::SecureZeroMemFallback( OUT ptr, size );
-    }
+	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
+	{
+		return Base::_hidden_::SecureZeroMemFallback( OUT ptr, size );
+	}
 
 /*
 =================================================
-    SetCurrentThreadName
+	SetCurrentThreadName
 =================================================
 */
-    void  AppleUtils::SetCurrentThreadName (NtStringView name) __NE___
-    {
-        StaticLogger::SetCurrentThreadName( StringView{name} );
+	void  AppleUtils::SetCurrentThreadName (NtStringView name) __NE___
+	{
+		StaticLogger::SetCurrentThreadName( StringView{name} );
 
-        //ASSERT( name.length() <= 16 );
-        //int   res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
-        //ASSERT( res == 0 );
-    }
+		//ASSERT( name.length() <= 16 );
+		//int	res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
+		//ASSERT( res == 0 );
+	}
 
 /*
 =================================================
-    GetCurrentThreadName
+	GetCurrentThreadName
 =================================================
 */
-    String  AppleUtils::GetCurrentThreadName ()
-    {
-        char    buf [16] = {};
-        //int       res = prctl( PR_GET_NAME, buf, 0, 0, 0 );
-        //ASSERT( res == 0 );
-        return String{buf};
-    }
+	String  AppleUtils::GetCurrentThreadName ()
+	{
+		char	buf [16] = {};
+		//int		res = prctl( PR_GET_NAME, buf, 0, 0, 0 );
+		//ASSERT( res == 0 );
+		return String{buf};
+	}
 
 /*
 =================================================
-    GetCurrentThreadHandle
+	GetCurrentThreadHandle
 =================================================
 */
-    ThreadHandle  AppleUtils::GetCurrentThreadHandle () __NE___
-    {
-        return ::pthread_self();
-    }
+	ThreadHandle  AppleUtils::GetCurrentThreadHandle () __NE___
+	{
+		return ::pthread_self();
+	}
 
 /*
 =================================================
-    SetThreadAffinity
+	SetThreadAffinity
 =================================================
 */
-    bool  AppleUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
-    {
-        ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+	bool  AppleUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	{
+		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
 
-        //cpu_set_t cpuset;
-        //CPU_ZERO( &cpuset );
-        //CPU_SET( coreIdx, &cpuset );
-        //return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
+		//cpu_set_t cpuset;
+		//CPU_ZERO( &cpuset );
+		//CPU_SET( coreIdx, &cpuset );
+		//return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
 
-        Unused( handle, coreIdx );
-        return true;
-    }
+		Unused( handle, coreIdx );
+		return true;
+	}
 
-    bool  AppleUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
-    {
-        ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+	bool  AppleUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	{
+		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    SetThreadPriority
+	SetThreadPriority
 =================================================
 */
-    bool  AppleUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
-    {
-        // TODO
-        Unused( handle, priority );
-        return false;
-    }
+	bool  AppleUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	{
+		// TODO
+		Unused( handle, priority );
+		return false;
+	}
 
-    bool  AppleUtils::SetCurrentThreadPriority (float priority) __NE___
-    {
-        // TODO
-        Unused( priority );
-        return false;
-    }
+	bool  AppleUtils::SetCurrentThreadPriority (float priority) __NE___
+	{
+		// TODO
+		Unused( priority );
+		return false;
+	}
 
 /*
 =================================================
-    GetProcessorCoreIndex
+	GetProcessorCoreIndex
 =================================================
 */
-    uint  AppleUtils::GetProcessorCoreIndex () __NE___
-    {
-        return 0;
-        //return ::sched_getcpu();
-    }
+	uint  AppleUtils::GetProcessorCoreIndex () __NE___
+	{
+		return 0;
+		//return ::sched_getcpu();
+	}
 
 
 } // AE::Base

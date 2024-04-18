@@ -7,17 +7,17 @@
 namespace AE::ResLoader
 {
 
-    //
-    // All Image Loaders
-    //
+	//
+	// All Image Loaders
+	//
 
-    class AllImageLoaders final : public IImageLoader
-    {
-    // methods
-    public:
-        bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE_OV;
-        using IImageLoader::LoadImage;
-    };
+	class AllImageLoaders final : public IImageLoader
+	{
+	// methods
+	public:
+		bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, RC<IAllocator> allocator, EImageFormat fileFormat) __NE_OV;
+		using IImageLoader::LoadImage;
+	};
 
 
 } // AE::ResLoader

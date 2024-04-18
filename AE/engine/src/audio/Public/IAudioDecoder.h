@@ -6,18 +6,18 @@
 
 namespace AE::Audio
 {
-    struct AudioDecoderDesc
-    {
-    };
+	struct AudioDecoderDesc
+	{
+	};
 
 
-    //
-    // Audio Decoder interface
-    //
+	//
+	// Audio Decoder interface
+	//
 
-    class IAudioDecoder : public RStream
-    {
-    };
+	class IAudioDecoder : public RStream
+	{
+	};
 
 
 } // AE::Audio

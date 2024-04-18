@@ -2,7 +2,7 @@
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 if (NOT (DEFINED ENGINE_LIBS_PATH))
-    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
@@ -13,7 +13,7 @@ set_property( TARGET "Video" PROPERTY FOLDER "Engine" )
 target_link_libraries( "Video" PUBLIC "Platform" )
 
 if (${AE_ENABLE_FFMPEG})
-    target_link_libraries( "Video" PUBLIC "FFmpeg-lib" )
+	target_link_libraries( "Video" PUBLIC "FFmpeg-lib" )
 endif()
 
 EnablePCH( "Video" )

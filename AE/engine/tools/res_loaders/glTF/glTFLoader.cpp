@@ -6,14 +6,14 @@
 # undef null
 
 # ifdef AE_COMPILER_MSVC
-#   pragma warning (push, 0)
-#   pragma warning (disable: 4018)
-#   pragma warning (disable: 4267)
-#   pragma warning (disable: 4101)
+#	pragma warning (push, 0)
+#	pragma warning (disable: 4018)
+#	pragma warning (disable: 4267)
+#	pragma warning (disable: 4101)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wunused-variable"
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wunused-variable"
 # endif
 
 # define TINYGLTF_IMPLEMENTATION
@@ -23,13 +23,13 @@
 # include "tiny_gltf.h"
 
 #ifdef AE_COMPILER_MSVC
-#   pragma warning (pop)
+#	pragma warning (pop)
 #endif
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-#   pragma clang diagnostic pop
+#	pragma clang diagnostic pop
 #endif
 
-# define null   nullptr
+# define null	nullptr
 
 # include "res_loaders/glTF/glTFLoader.h"
 
@@ -38,54 +38,54 @@ namespace AE::ResLoader
 
 /*
 =================================================
-    constructor
+	constructor
 =================================================
 */
-    glTFLoader::glTFLoader () __NE___
-    {}
+	glTFLoader::glTFLoader () __NE___
+	{}
 
 /*
 =================================================
-    destructor
+	destructor
 =================================================
 */
-    glTFLoader::~glTFLoader () __NE___
-    {}
+	glTFLoader::~glTFLoader () __NE___
+	{}
 
 /*
 =================================================
-    LoadModel
+	LoadModel
 =================================================
 *
-    bool  glTFLoader::LoadModel (OUT IntermScene    &scene,
-                                 RStream            &stream,
-                                 const Config       &cfg,
-                                 EModelFormat       format) __NE___
-    {
-        tinygltf::TinyGLTF  gltf_ctx;
-        tinygltf::Model     gltf_model;
-        String              error, warning;
+	bool  glTFLoader::LoadModel (OUT IntermScene	&scene,
+								 RStream			&stream,
+								 const Config		&cfg,
+								 EModelFormat		format) __NE___
+	{
+		tinygltf::TinyGLTF	gltf_ctx;
+		tinygltf::Model		gltf_model;
+		String				error, warning;
 
-        CHECK_ERR( gltf_ctx.LoadBinaryFromMemory( OUT &gltf_model, OUT &error, OUT &warning, );
+		CHECK_ERR( gltf_ctx.LoadBinaryFromMemory( OUT &gltf_model, OUT &error, OUT &warning, );
 
-        return true;
-    }
+		return true;
+	}
 
 /*
 =================================================
-    LoadModel
+	LoadModel
 =================================================
 *
-    bool  glTFLoader::LoadModel (OUT IntermScene    &scene,
-                                 const Path         &scenePath,
-                                 const Config       &cfg) __NE___
-    {
+	bool  glTFLoader::LoadModel (OUT IntermScene	&scene,
+								 const Path			&scenePath,
+								 const Config		&cfg) __NE___
+	{
 
-    //  CHECK_ERR( gltf_ctx.LoadBinaryFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
-        CHECK_ERR( gltf_ctx.LoadASCIIFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
+	//	CHECK_ERR( gltf_ctx.LoadBinaryFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
+		CHECK_ERR( gltf_ctx.LoadASCIIFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
 
-        return true;
-    }
+		return true;
+	}
 */
 
 } // AE::ResLoader

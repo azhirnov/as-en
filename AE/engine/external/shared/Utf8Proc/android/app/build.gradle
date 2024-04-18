@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 32
+	compileSdk 34
 
     defaultConfig {
         applicationId       'AE.External'
         minSdkVersion       24 // for vulkan
-        targetSdkVersion    32
+		targetSdkVersion 	34
 
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a" //, "x86", "x86_64"
@@ -14,7 +14,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static',
-                          '-DANDROID_ARM_NEON=ON'
+						  '-DANDROID_ARM_NEON=ON'
             }
         }
     }
@@ -26,13 +26,13 @@ android {
     }
     externalNativeBuild {
         cmake {
-            version '3.18.1'
+            version '3.26.4'
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
-    android {
-        namespace 'AE.External'
-    }
+	android {
+		namespace 'AE.External'
+	}
 
     ndkVersion "24.0.8215888"
 }

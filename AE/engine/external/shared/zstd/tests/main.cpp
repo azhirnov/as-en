@@ -1,6 +1,6 @@
 
 #ifndef AE_ENABLE_ZSTD
-#   error AE_ENABLE_ZSTD required
+#	error AE_ENABLE_ZSTD required
 #endif
 
 #include "zstd.h"
@@ -15,6 +15,6 @@ int main ()
 {
     (void)&ZSTD_compress;
     (void)&ZSTD_decompress;
-
-    return 0;
+	
+	return 0;
 }

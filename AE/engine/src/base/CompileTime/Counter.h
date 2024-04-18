@@ -9,8 +9,8 @@
 namespace AE::Base
 {
 
-    template <typename UniqueType>
-    using CT_Counter = fameta::counter< UniqueType >;
+	template <typename UniqueType>
+	using CT_Counter = fameta::counter< UniqueType >;
 
 
 } // AE::Base
