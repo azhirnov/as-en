@@ -35,6 +35,7 @@
 
 
 // bit operators
+// requires '#include "base/Math/BitMath.h"'
 #define AE_BIT_OPERATORS( _type_ )																																\
 	ND_ constexpr _type_	operator |  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }			\
 	ND_ constexpr _type_	operator &  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }			\
@@ -65,6 +66,14 @@
 #	define AE_END_ENUM_CHECKS() \
 		_Pragma( "clang diagnostic pop" )
 
+#elif defined(AE_COMPILER_GCC)
+#	define AE_BEGIN_ENUM_CHECKS()						\
+		_Pragma( "GCC diagnostic push" )				\
+		_Pragma( "GCC diagnostic error \"-Wswitch\"" )	\
+
+#	define AE_END_ENUM_CHECKS() \
+		_Pragma( "GCC diagnostic pop" )
+
 #else
 #	define AE_BEGIN_ENUM_CHECKS()
 #	define AE_END_ENUM_CHECKS()
@@ -88,26 +97,6 @@
 #endif
 
 
-// setup for build on CI
-#ifdef AE_CI_BUILD
-
-	// disable break points
-#	undef  AE_PRIVATE_BREAK_POINT
-#	define AE_PRIVATE_BREAK_POINT()	{}
-
-# ifdef AE_CFG_DEBUG
-#	undef  ASSERT
-#	define ASSERT	CHECK
-# endif
-
-#	include <cassert>
-#	undef  assert
-#	define assert( /* expr */ ... ) \
-		AE_PRIVATE_CHECK( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
-
-#endif // AE_CI_BUILD
-
-
 // enable/disable exceptions
 #ifdef AE_ENABLE_EXCEPTIONS
 #	define TRY					try
@@ -125,22 +114,29 @@
 
 
 // helper for 'template <..., EnableIf<..., bool>=true >'
-#define ENABLEIF( ... )		EnableIf< (__VA_ARGS__), bool > = true
-#define ENABLEIF2( ... )	EnableIf< (__VA_ARGS__), bool >
+#define ENABLEIF( ... )			EnableIf< (__VA_ARGS__), bool > = true
+#define ENABLEIF_IMPL( ... )	EnableIf< (__VA_ARGS__), bool >
 
-#define DISABLEIF( ... )	DisableIf< (__VA_ARGS__), bool > = true
-#define DISABLEIF2( ... )	DisableIf< (__VA_ARGS__), bool >
+#define DISABLEIF( ... )		DisableIf< (__VA_ARGS__), bool > = true
+#define DISABLEIF_IMPL( ... )	DisableIf< (__VA_ARGS__), bool >
 
 
 // offsetof without warnings
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
-#	define OffsetOfNoWarn( _class_, _member_ )						\
+#	define AE_DISABLE_OFFSETOF_WARNINGS( ... )						\
 		_Pragma( "clang diagnostic push" )							\
 		_Pragma( "clang diagnostic ignored \"-Winvalid-offsetof\"" )\
-		offsetof( _class_, _member_ )								\
+		__VA_ARGS__													\
 		_Pragma( "clang diagnostic pop" )
+
+#elif defined(AE_COMPILER_GCC)
+#	define AE_DISABLE_OFFSETOF_WARNINGS( ... )						\
+		_Pragma( "GCC diagnostic push" )							\
+		_Pragma( "GCC diagnostic ignored \"-Winvalid-offsetof\"" )	\
+		__VA_ARGS__													\
+		_Pragma( "GCC diagnostic pop" )
 #else
-#	define OffsetOfNoWarn( _class_, _member_ )\
-		offsetof( _class_, _member_ )
+#	define AE_DISABLE_OFFSETOF_WARNINGS( ... )						\
+		__VA_ARGS__
 #endif
 

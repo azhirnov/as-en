@@ -142,13 +142,23 @@ namespace AE::VFS
 		template <typename T>
 		ND_ RC<T>  Open (FileName::Ref name)													C_NE___;
 
+
+		// Create or reuse file with specified 'path' in VFS Storage with name 'storage' and write hash of file name to the 'name'.
+		// Returns 'true' if file created or already exists.
+		//
 		ND_ bool  CreateFile (OUT FileName		&name,
 							  const Path		&path,
 							  StorageName::Ref	storage)										C_NE___;
 
+		// Find unused name like a 'path' in VFS Storage with name 'storage' and write hash of file name to the 'name'.
+		// Actual file name will be written to 'path', path can be used to open file only for DiskStorage,
+		// for NetworkStorage it may be path in another device, so use only 'GetVFS().Open( name )'.
+		// Returns 'true' if unused name found.
+		//
 		ND_ bool  CreateUniqueFile (OUT FileName		&name,
 									INOUT Path			&path,
 									StorageName::Ref	storage)								C_NE___;
+
 
 		ND_ bool  Exists (FileName::Ref name)													C_NE___;
 		ND_ bool  Exists (FileGroupName::Ref name)												C_NE___;

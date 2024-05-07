@@ -83,8 +83,8 @@ namespace AE::Graphics::_hidden_
 		static void  CtxInit (EQueueMask rtaskQueue)																			__Th___;
 
 		static void  ClearColorImage (const ImageDesc &img, ArrayView<ImageSubresourceRange> ranges)							__Th___;
-
 		static void  ClearDepthStencilImage (const ImageDesc &img, ArrayView<ImageSubresourceRange> ranges)						__Th___;
+
 		static void  FillBuffer (const BufferDesc &buf, Bytes offset, Bytes size)												__Th___;
 
 		static void  UpdateBuffer (const BufferDesc &buf, Bytes offset, Bytes size, const void* data)							__Th___;
@@ -165,9 +165,6 @@ namespace AE::Graphics::_hidden_
 	//
 	class DrawContextValidation final : Noninstanceable
 	{
-	public:
-		using Viewport_t = RenderPassDesc::Viewport;
-
 	public:
 		//static void  CtxInit (EQueueMask rtaskQueue) __Th___;
 
@@ -322,7 +319,10 @@ namespace AE::Graphics::_hidden_
 		static void  WriteProperty (ERTASProperty property, const BufferDesc &dstBufferDesc, Bytes dstOffset, Bytes size)		__Th___;
 
 		static void  SerializeToMemory (const BufferDesc &dstBufferDesc, Bytes dstOffset)										__Th___;
+		static void  SerializeToMemory (DeviceAddress dst)																		__Th___;
+
 		static void  DeserializeFromMemory (const BufferDesc &srcBufferDesc, Bytes srcOffset)									__Th___;
+		static void  DeserializeFromMemory (DeviceAddress src)																	__Th___;
 
 		static void  BuildIndirect (const RTGeometryBuild &cmd,
 									const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset,
@@ -336,6 +336,16 @@ namespace AE::Graphics::_hidden_
 		static void  BuildIndirect (const RTSceneDesc &sceneDesc,
 									const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
 									const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset)								__Th___;
+
+	#ifdef AE_ENABLE_VULKAN
+		static void  BuildIndirect (const RTGeometryDesc &geometryDesc,
+									const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+									VkDeviceAddress indirectMem, Bytes indirectStride)											__Th___;
+		static void  BuildIndirect (const RTSceneDesc &sceneDesc,
+									const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+									const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset,
+									VkDeviceAddress indirectMem)																__Th___;
+	#endif
 	};
 
 

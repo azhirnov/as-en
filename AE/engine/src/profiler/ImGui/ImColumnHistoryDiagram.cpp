@@ -56,8 +56,8 @@ namespace AE::Profiler
 
 				for (auto& item : f.items)
 				{
-					float	item_y0 = column_y - float(item.begin / _maxHeight) * y_scale;
-					float	item_y1 = column_y - float(item.end   / _maxHeight) * y_scale;
+					float	item_y0 = column_y - float(item.begin.count() / _maxHeight) * y_scale;
+					float	item_y1 = column_y - float(item.end.count()   / _maxHeight) * y_scale;
 
 					if ( Abs( item_y1 - item_y0 ) > height_threshold )
 					{
@@ -91,8 +91,8 @@ namespace AE::Profiler
 
 			for (auto& item : f.items)
 			{
-				float	item_y0 = float(item.begin / _maxHeight) * y_scale;
-				float	item_y1 = float(item.end   / _maxHeight) * y_scale;
+				float	item_y0 = float(item.begin.count() / _maxHeight) * y_scale;
+				float	item_y1 = float(item.end.count()   / _maxHeight) * y_scale;
 				float	text_y0	= (text_height + text_padding) * txt_idx + text_padding;
 				float	text_y1	= text_y0 + text_height;
 				float	text_y2 = text_y0 + text_height * 0.2f;
@@ -111,7 +111,7 @@ namespace AE::Profiler
 				draw_list->AddConvexPolyFilled( points.data(), int(points.size()), BitCast<uint>(item.color) );
 
 				tmp.clear();
-				tmp << '[' << ToString( nanosecondsd{item.end - item.begin}, 2 ) << "] ";
+				tmp << '[' << ToString( item.end - item.begin, 2 ) << "] ";
 
 				draw_list->AddText( ImVec2{column_x + text_x_off, column_y - text_y1},
 									BitCast<uint>(item.color), tmp.c_str() );
@@ -139,7 +139,7 @@ namespace AE::Profiler
 
 		auto&	f = _frames[ _currentFrameIdx ];
 
-		f.min = f.max = 0.0;
+		f.min = f.max = nanosecondsd{0.0};
 		f.items.clear();
 	}
 
@@ -148,9 +148,9 @@ namespace AE::Profiler
 	Add
 =================================================
 */
-	void  ImColumnHistoryDiagram::Add (const String &fullName, RGBA8u color, double begin, double end)
+	void  ImColumnHistoryDiagram::Add (const String &fullName, RGBA8u color, nanosecondsd begin, nanosecondsd end)
 	{
-		CHECK( not _guard.try_lock() );
+		CHECK_ERRV( not _guard.try_lock() );
 
 		String	name;
 		{
@@ -179,6 +179,12 @@ namespace AE::Profiler
 		else
 		{
 			info = &_uniqueNameArr[ uint(iter->second) ];
+
+			if ( color != Default and color != info->Get<RGBA8u>() )
+			{
+				color.a = 255;
+				info->Get<RGBA8u>() = color;
+			}
 		}
 
 		f.items.push_back( Item{ iter->second, info->Get<RGBA8u>(), begin, end });
@@ -189,9 +195,9 @@ namespace AE::Profiler
 	End
 =================================================
 */
-	void  ImColumnHistoryDiagram::End (double min, double max)
+	void  ImColumnHistoryDiagram::End (nanosecondsd min, nanosecondsd max)
 	{
-		CHECK( not _guard.try_lock() );
+		CHECK_ERRV( not _guard.try_lock() );
 
 		// sort items
 		{
@@ -205,7 +211,7 @@ namespace AE::Profiler
 				item.begin	-= min;
 				item.end	-= min;
 
-				ASSERT( item.begin >= 0.0 );
+				ASSERT( item.begin >= nanosecondsd{0.0} );
 				ASSERT( item.begin <= item.end );
 			}
 
@@ -226,9 +232,9 @@ namespace AE::Profiler
 
 	void  ImColumnHistoryDiagram::End ()
 	{
-		auto&	f	= _frames[ _currentFrameIdx ];
-		double	min	= MaxValue<double>();
-		double	max	= 0.0;
+		auto&			f	= _frames[ _currentFrameIdx ];
+		nanosecondsd	min	{MaxValue<double>()};
+		nanosecondsd	max	{0.0};
 
 		for (auto& item : f.items)
 		{

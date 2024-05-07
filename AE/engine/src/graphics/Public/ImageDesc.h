@@ -32,7 +32,7 @@ namespace AE::Graphics
 		MultiSamples		samples;				// if > 1 then enabled multisampling
 		EMemoryType			memType			= EMemoryType::DeviceLocal;
 		EQueueMask			queues			= Default;
-		FormatList_t		viewFormats		{ Default, Default, Default, Default };
+		FormatList_t		viewFormats		{ Default, Default, Default, Default };		// 'imageFormatList' extension
 
 
 	// methods
@@ -41,10 +41,11 @@ namespace AE::Graphics
 		// Will remove unsupported combinations
 		void  Validate ()									__NE___;
 
-		ND_ bool  operator == (const ImageDesc &rhs)		C_NE___;
-		ND_ bool  IsExclusiveSharing ()						C_NE___	{ return queues == Default; }
-		ND_ bool  HasViewFormatList ()						C_NE___	{ return ViewFormatListSize() != 0; }
-		ND_ usize ViewFormatListSize ()						C_NE___;
+		ND_ bool	operator == (const ImageDesc &rhs)		C_NE___;
+		ND_ bool	IsExclusiveSharing ()					C_NE___	{ return queues == Default; }
+		ND_ bool	HasViewFormatList ()					C_NE___	{ return ViewFormatListSize() != 0; }
+		ND_ usize	ViewFormatListSize ()					C_NE___;
+		ND_ uint3	Dimension ()							C_NE___	{ return dimension; }
 
 		ImageDesc&  SetType (EImage value)					__NE___;
 		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
@@ -81,7 +82,7 @@ namespace AE::Graphics
 		EImage				viewType		= Default;
 		EPixelFormat		format			= Default;	// optional
 		EImageAspect		aspectMask		= Default;
-		EImageUsage			extUsage		= Default;
+		EImageUsage			extUsage		= Default;	// 'maintenance2' extension
 		MipmapLevel			baseMipmap;
 		ushort				mipmapCount		= UMax;
 		ImageLayer			baseLayer;
@@ -99,23 +100,23 @@ namespace AE::Graphics
 								ImageLayer		baseLayer	= Default,
 								uint			layerCount	= UMax,
 								ImageSwizzle	swizzle		= Default,
-								EImageAspect	aspectMask	= Default) __NE___;
+								EImageAspect	aspectMask	= Default)	__NE___;
 
-		explicit ImageViewDesc (const ImageDesc &desc)			__NE___;
+		explicit ImageViewDesc (const ImageDesc &desc)					__NE___;
 
-		void  Validate (const ImageDesc &desc)					__NE___;
+		void  Validate (const ImageDesc &desc)							__NE___;
 
-		ND_ bool  operator == (const ImageViewDesc &rhs)		C_NE___;
+		ND_ bool  operator == (const ImageViewDesc &rhs)				C_NE___;
 
-		ImageViewDesc&  SetType (EImage value)					__NE___	{ viewType	= value;				return *this; }
-		ImageViewDesc&  SetFormat (EPixelFormat value)			__NE___	{ format	= value;				return *this; }
-		ImageViewDesc&  SetBaseMipmap (uint value)				__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
-		ImageViewDesc&  SetMipLevels (uint base, uint count)	__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<ushort>(count);  return *this; }
-		ImageViewDesc&  SetBaseLayer (uint value)				__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
-		ImageViewDesc&  SetArrayLayers (uint base, uint count)	__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
-		ImageViewDesc&  SetSwizzle (ImageSwizzle value)			__NE___	{ swizzle	= value;				return *this; }
-		ImageViewDesc&  SetAspect (EImageAspect value)			__NE___	{ aspectMask= value;				return *this; }
-		ImageViewDesc&  SetExtUsage (EImageUsage value)			__NE___	{ extUsage	= value;				return *this; }
+		ImageViewDesc&  SetType (EImage value)							__NE___	{ viewType	= value;				return *this; }
+		ImageViewDesc&  SetFormat (EPixelFormat value)					__NE___	{ format	= value;				return *this; }
+		ImageViewDesc&  SetBaseMipmap (uint value)						__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
+		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetBaseLayer (uint value)						__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
+		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetSwizzle (ImageSwizzle value)					__NE___	{ swizzle	= value;				return *this; }
+		ImageViewDesc&  SetAspect (EImageAspect value)					__NE___	{ aspectMask= value;				return *this; }
+		ImageViewDesc&  SetExtUsage (EImageUsage value)					__NE___	{ extUsage	= value;				return *this; }
 	};
 
 

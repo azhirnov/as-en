@@ -99,7 +99,7 @@ namespace AE::Graphics
 		_bufferId = resMngr.CreateBuffer( vk_desc, dbgName );
 		CHECK_ERR( _bufferId );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return false;
 	}
 
@@ -117,7 +117,7 @@ namespace AE::Graphics
 		_buffer	= Default;
 		_desc	= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

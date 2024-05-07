@@ -1,4 +1,4 @@
-//76ac8f07
+//92be35cc
 #include <vector>
 #include <string>
 
@@ -20,108 +20,106 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EDescSetUsage;
-struct EAttachmentStoreOp;
-struct EBorderColor;
-struct EVertexInputRate;
-struct EShaderIO;
-struct EImageAspect;
-struct EVendorID;
-struct EResourceState;
-struct UIWidget;
-struct float2;
-struct float3;
-struct EPipelineDynamicState;
-struct EPipelineOpt;
-struct EFilter;
-struct RasterFont;
-struct UIStyleCollection;
-struct UIColorStyle;
-struct MultiSamples;
-struct BaseLayout;
-struct EFeature;
-struct BaseUIController;
-struct ESamplerChromaLocation;
+struct ELogicOp;
+struct EVertexType;
+struct ImageLayer;
 struct ESubgroupTypes;
 struct RectF;
 struct RGBA32u;
-struct ELayoutType;
-struct sbyte4;
+struct short2;
+struct ushort4;
 struct ESamplerYcbcrModelConversion;
 struct ImageAtlas;
-struct sbyte3;
-struct EMipmapFilter;
-struct ushort4;
-struct short2;
-struct Texture;
 struct short3;
 struct RGBA8u;
-struct AlignedLayout;
-struct FillStackLayout;
+struct sbyte4;
+struct UIFontStyle;
+struct sbyte3;
+struct EMipmapFilter;
+struct ESamplerOpt;
+struct Texture;
 struct float4;
 struct ECompareOp;
-struct uint4;
+struct EGPUVendor;
+struct ELayoutType;
+struct FillStackLayout;
 struct RectU;
-struct EIndex;
-struct UIImageStyle;
+struct ECubeFace;
+struct uint4;
 struct uint2;
 struct uint3;
 struct RectI;
+struct EIndex;
 struct EShader;
 struct EShaderStages;
-struct EAddressMode;
-struct EStackOrigin;
+struct BaseUIDrawable;
 struct ButtonController;
-struct EAttachmentLoadOp;
-struct EPolygonMode;
+struct UIImageStyle;
 struct RectangleDrawable;
-struct ERasterFontMode;
-struct EBlendFactor;
-struct ERTInstanceOpt;
-struct Model;
-struct short4;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct RGBA32f;
-struct HSVColor;
-struct EPixelFormat;
-struct int4;
-struct EImage;
-struct int3;
-struct bool2;
-struct bool3;
-struct int2;
-struct RGBA32i;
-struct EBlendOp;
-struct ELogicOp;
-struct bool4;
-struct ECullMode;
-struct EPixelFormatExternal;
-struct EVertexType;
-struct EQueueMask;
-struct ESubgroupOperation;
-struct ECubeFace;
+struct EVertexInputRate;
+struct EDescSetUsage;
+struct EImageAspect;
+struct EBorderColor;
+struct UIWidget;
+struct EShaderIO;
+struct float2;
+struct float3;
+struct EResourceState;
+struct EFilter;
+struct EPipelineOpt;
+struct RasterFont;
+struct UIColorStyle;
+struct EPipelineDynamicState;
+struct UIStyleCollection;
+struct BaseLayout;
+struct EFeature;
+struct MultiSamples;
+struct ESamplerChromaLocation;
+struct BaseUIController;
 struct ubyte3;
 struct ubyte2;
+struct EPixelFormatExternal;
 struct EGraphicsDeviceID;
-struct ImageLayer;
-struct BaseUIDrawable;
-struct EStencilOp;
+struct ESubgroupOperation;
+struct FixedLayout;
+struct PaddingLayout;
+struct AlignedLayout;
 struct Mesh;
 struct Material;
-struct UIFontStyle;
-struct FixedLayout;
-struct ELayoutAlign;
-struct EPrimitive;
-struct PaddingLayout;
 struct DepthStencil;
+struct EPrimitive;
+struct ELayoutAlign;
 struct ESurfaceFormat;
 struct MipmapLevel;
 struct ESamplerYcbcrRange;
 struct ubyte4;
 struct EReductionMode;
-struct ESamplerUsage;
+struct EAddressMode;
+struct ERasterFontMode;
+struct EStackOrigin;
+struct EPolygonMode;
+struct ERTInstanceOpt;
+struct EBlendFactor;
+struct EStencilOp;
+struct Model;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct short4;
+struct RGBA32f;
+struct HSVColor;
+struct bool2;
+struct int3;
+struct EPixelFormat;
+struct EBlendOp;
+struct int2;
+struct bool3;
+struct int4;
+struct bool4;
+struct EImage;
+struct ECullMode;
+struct EQueueMask;
+struct RGBA32i;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1133,6 +1131,11 @@ struct RectF
 	RectF (float left, float top, float right, float bottom);
 };
 
+string  FindAndReplace (const string &, const string &, const string &);
+bool  StartsWith (const string &, const string &);
+bool  StartsWithIC (const string &, const string &);
+bool  EndsWith (const string &, const string &);
+bool  EndsWithIC (const string &, const string &);
 RGBA32f  Lerp (const RGBA32f & x, const RGBA32f & y, float factor);
 RGBA32f  AdjustContrast (const RGBA32f & col, float factor);
 float  Luminance (const RGBA32f & col);
@@ -1503,28 +1506,6 @@ struct EPixelFormatExternal
 	static constexpr uint8 Android_YV12 = 16;
 	static constexpr uint8 Android_Y8 = 17;
 	static constexpr uint8 Android_HEIC = 18;
-};
-
-struct EAttachmentLoadOp
-{
-	EAttachmentLoadOp () {}
-	EAttachmentLoadOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Invalidate = 0;
-	static constexpr uint8 Load = 1;
-	static constexpr uint8 Clear = 2;
-	static constexpr uint8 None = 3;
-};
-
-struct EAttachmentStoreOp
-{
-	EAttachmentStoreOp () {}
-	EAttachmentStoreOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Invalidate = 0;
-	static constexpr uint8 Store = 1;
-	static constexpr uint8 None = 2;
-	static constexpr uint8 StoreCustomSamplePositions = 3;
 };
 
 struct ECompareOp
@@ -1922,10 +1903,10 @@ struct EShaderStages
 	static constexpr uint16 AllRayTracing = 32256;
 };
 
-struct EVendorID
+struct EGPUVendor
 {
-	EVendorID () {}
-	EVendorID (uint32) {}
+	EGPUVendor () {}
+	EGPUVendor (uint32) {}
 	operator uint32 () const;
 	static constexpr uint32 AMD = 0;
 	static constexpr uint32 NVidia = 1;
@@ -1939,6 +1920,7 @@ struct EVendorID
 	static constexpr uint32 Broadcom = 9;
 	static constexpr uint32 Samsung = 10;
 	static constexpr uint32 VeriSilicon = 11;
+	static constexpr uint32 Huawei = 12;
 };
 
 struct EVertexType
@@ -2083,16 +2065,19 @@ struct EGraphicsDeviceID
 	static constexpr uint32 NV_Ampere = 48;
 	static constexpr uint32 NV_Ampere_Orin = 49;
 	static constexpr uint32 NV_Ada = 50;
-	static constexpr uint32 Intel_Gen9 = 51;
-	static constexpr uint32 Intel_Gen11 = 52;
-	static constexpr uint32 Intel_Gen12 = 53;
-	static constexpr uint32 Intel_Gen12_7 = 54;
-	static constexpr uint32 PowerVR_Series8XE = 55;
-	static constexpr uint32 PowerVR_Series8XEP = 56;
-	static constexpr uint32 PowerVR_Series8XT = 57;
-	static constexpr uint32 PowerVR_Series9XE = 58;
-	static constexpr uint32 VeriSilicon = 59;
-	static constexpr uint32 SwiftShader = 60;
+	static constexpr uint32 Intel_Gen9_HD500 = 51;
+	static constexpr uint32 Intel_Gen9_HD600 = 52;
+	static constexpr uint32 Intel_Gen9_UHD600 = 53;
+	static constexpr uint32 Intel_Gen11 = 54;
+	static constexpr uint32 Intel_Gen12 = 55;
+	static constexpr uint32 Intel_Gen12_7 = 56;
+	static constexpr uint32 PowerVR_Series8XE = 57;
+	static constexpr uint32 PowerVR_Series8XEP = 58;
+	static constexpr uint32 PowerVR_Series8XT = 59;
+	static constexpr uint32 PowerVR_Series9XE = 60;
+	static constexpr uint32 PowerVR_BSeries = 61;
+	static constexpr uint32 VeriSilicon = 62;
+	static constexpr uint32 SwiftShader = 63;
 };
 
 struct EFilter
@@ -2151,13 +2136,14 @@ struct EReductionMode
 	static constexpr uint8 Max = 2;
 };
 
-struct ESamplerUsage
+struct ESamplerOpt
 {
-	ESamplerUsage () {}
-	ESamplerUsage (uint8) {}
+	ESamplerOpt () {}
+	ESamplerOpt (uint8) {}
 	operator uint8 () const;
-	static constexpr uint8 Default = 0;
-	static constexpr uint8 NonSeamlessCubeMap = 1;
+	static constexpr uint8 ArgumentBuffer = 1;
+	static constexpr uint8 UnnormalizedCoordinates = 4;
+	static constexpr uint8 NonSeamlessCubeMap = 2;
 };
 
 struct EVertexInputRate
@@ -2178,6 +2164,7 @@ struct EDescSetUsage
 	static constexpr uint8 UpdateTemplate = 2;
 	static constexpr uint8 ArgumentBuffer = 4;
 	static constexpr uint8 MutableArgBuffer = 8;
+	static constexpr uint8 MaybeUnsupported = 16;
 };
 
 struct EPipelineOpt
@@ -2555,6 +2542,54 @@ struct UIWidget
 };
 
 template <>
+struct RC<ImageAtlas> : ImageAtlas
+{
+	RC (const ImageAtlas &);
+};
+
+template <>
+struct RC<UIFontStyle> : UIFontStyle
+{
+	RC (const UIFontStyle &);
+};
+
+template <>
+struct RC<Texture> : Texture
+{
+	RC (const Texture &);
+};
+
+template <>
+struct RC<FillStackLayout> : FillStackLayout
+{
+	RC (const FillStackLayout &);
+};
+
+template <>
+struct RC<BaseUIDrawable> : BaseUIDrawable
+{
+	RC (const BaseUIDrawable &);
+};
+
+template <>
+struct RC<ButtonController> : ButtonController
+{
+	RC (const ButtonController &);
+};
+
+template <>
+struct RC<UIImageStyle> : UIImageStyle
+{
+	RC (const UIImageStyle &);
+};
+
+template <>
+struct RC<RectangleDrawable> : RectangleDrawable
+{
+	RC (const RectangleDrawable &);
+};
+
+template <>
 struct RC<UIWidget> : UIWidget
 {
 	RC (const UIWidget &);
@@ -2567,15 +2602,15 @@ struct RC<RasterFont> : RasterFont
 };
 
 template <>
-struct RC<UIStyleCollection> : UIStyleCollection
-{
-	RC (const UIStyleCollection &);
-};
-
-template <>
 struct RC<UIColorStyle> : UIColorStyle
 {
 	RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<UIStyleCollection> : UIStyleCollection
+{
+	RC (const UIStyleCollection &);
 };
 
 template <>
@@ -2591,57 +2626,21 @@ struct RC<BaseUIController> : BaseUIController
 };
 
 template <>
-struct RC<ImageAtlas> : ImageAtlas
+struct RC<FixedLayout> : FixedLayout
 {
-	RC (const ImageAtlas &);
+	RC (const FixedLayout &);
 };
 
 template <>
-struct RC<Texture> : Texture
+struct RC<PaddingLayout> : PaddingLayout
 {
-	RC (const Texture &);
+	RC (const PaddingLayout &);
 };
 
 template <>
 struct RC<AlignedLayout> : AlignedLayout
 {
 	RC (const AlignedLayout &);
-};
-
-template <>
-struct RC<FillStackLayout> : FillStackLayout
-{
-	RC (const FillStackLayout &);
-};
-
-template <>
-struct RC<UIImageStyle> : UIImageStyle
-{
-	RC (const UIImageStyle &);
-};
-
-template <>
-struct RC<ButtonController> : ButtonController
-{
-	RC (const ButtonController &);
-};
-
-template <>
-struct RC<RectangleDrawable> : RectangleDrawable
-{
-	RC (const RectangleDrawable &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<BaseUIDrawable> : BaseUIDrawable
-{
-	RC (const BaseUIDrawable &);
 };
 
 template <>
@@ -2657,20 +2656,8 @@ struct RC<Material> : Material
 };
 
 template <>
-struct RC<UIFontStyle> : UIFontStyle
+struct RC<Model> : Model
 {
-	RC (const UIFontStyle &);
-};
-
-template <>
-struct RC<FixedLayout> : FixedLayout
-{
-	RC (const FixedLayout &);
-};
-
-template <>
-struct RC<PaddingLayout> : PaddingLayout
-{
-	RC (const PaddingLayout &);
+	RC (const Model &);
 };
 

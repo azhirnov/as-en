@@ -58,7 +58,7 @@
 
 		// render loop
 		{
-			RC<ComputePass>		update_skybox = ComputePass( "", EPassFlags::None );
+			RC<ComputePass>		update_skybox = ComputePass();
 			update_skybox.ArgIn(	"un_CBuf",		cbuf );
 			update_skybox.ArgInOut(	"un_OutImage",	cubemap_view );
 			update_skybox.LocalSize( 8, 8 );

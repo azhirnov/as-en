@@ -145,6 +145,7 @@ namespace AE::ResEditor
 
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 
+		// Returns non-null resource or throw exception.
 		ND_ RC<RTGeometry>  ToResource ()																__Th___;
 
 
@@ -221,6 +222,7 @@ namespace AE::ResEditor
 
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 
+		// Returns non-null resource or throw exception.
 		ND_ RC<RTScene>  ToResource ()																	__Th___;
 
 

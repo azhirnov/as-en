@@ -10,7 +10,11 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_ENABLE_EXPERIMENTAL
-#define GLM_FORCE_CXX17
+#ifdef AE_CXX_20
+# define GLM_FORCE_CXX2A
+#else
+# define GLM_FORCE_CXX17
+#endif
 #define GLM_FORCE_VEC_EQUAL_OP	// special for AE
 #define GLM_FORCE_EXPLICIT_CTOR
 //#define GLM_FORCE_XYZW_ONLY	// will disable SIMD

@@ -15,7 +15,6 @@
 */
 
 #include "Test_RenderGraph.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -155,6 +154,8 @@ namespace
 									})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result[0], t.result[1] });
 		}
 	};
 
@@ -293,7 +294,7 @@ namespace
 
 		CHECK_ERR( t.frameIdx.load() == 4 );
 
-		CHECK_ERR( Scheduler().Wait( {t.result[0], t.result[1]}, c_MaxTimeout ));
+		CHECK_ERR( Scheduler().Wait( List{ t.result[0], t.result[1] }, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
 		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
 		CHECK_ERR( t.isOK[0] );
@@ -308,7 +309,10 @@ namespace
 bool RGTest::Test_AsyncCompute3 ()
 {
 	if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
-		return true; // skip
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

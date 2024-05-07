@@ -6,7 +6,7 @@
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/Helpers.h"
-# include "base/Utils/FileSystem.h"
+# include "base/FileSystem/Path.h"
 # include "base/Algorithms/ArrayUtils.h"
 
 namespace AE::Base
@@ -56,7 +56,7 @@ namespace AE::Base
 	template <typename T>
 	inline bool  WindowsLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
-		ASSERT( _handle != null );
+		NonNull( _handle );
 		ASSERT( not name.empty() );
 
 		result = BitCast<T>( _GetProcAddress( name.c_str() ));

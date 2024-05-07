@@ -29,7 +29,7 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
+			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy );
 			pass.Set( camera );
 			pass.Output( rt );
 		}

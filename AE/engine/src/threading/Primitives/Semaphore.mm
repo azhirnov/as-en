@@ -40,7 +40,7 @@ namespace AE::Threading::_hidden_
 */
 	void  AppleSemaphore::Acquire () __NE___
 	{
-		ASSERT( _sem != null );
+		NonNull( _sem );
 
 		auto ret = ::dispatch_semaphore_wait( (__bridge dispatch_semaphore_t)_sem, DISPATCH_TIME_FOREVER );
 		CHECK( ret == KERN_SUCCESS );
@@ -53,7 +53,7 @@ namespace AE::Threading::_hidden_
 */
 	void  AppleSemaphore::Release (const uint update) __NE___
 	{
-		ASSERT( _sem != null );
+		NonNull( _sem );
 		ASSERT( update >= 1 );
 		ASSERT( update <= Max() );
 
@@ -69,7 +69,7 @@ namespace AE::Threading::_hidden_
 */
 	bool  AppleSemaphore::TryAcquire () __NE___
 	{
-		ASSERT( _sem != null );
+		NonNull( _sem );
 		return	_sem != null and
 				(::dispatch_semaphore_wait( (__bridge dispatch_semaphore_t)_sem, DISPATCH_TIME_NOW ) == KERN_SUCCESS);
 	}

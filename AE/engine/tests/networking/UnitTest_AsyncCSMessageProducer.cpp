@@ -15,6 +15,7 @@ namespace
 
 	static void  GenRandomString (OUT char* dst, uint len, Random &rnd)
 	{
+		Unused( rnd );
 		for (uint i = 0; i < len; ++i) {
 			dst[i] = char(0xFF); //char(rnd.Uniform( uint('a'), uint('z') ));
 		}

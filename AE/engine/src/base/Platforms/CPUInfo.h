@@ -13,8 +13,10 @@ namespace AE::Base
 	{
 		X86,
 		X64,
-		ARM_32,
-		ARM_64,
+		ARM_32,		// ARMv7
+		ARM_64,		// ARMv8
+		RISCV,
+		RISCV_64,
 		_Count,
 		Unknown	= 0xFF,
 	};
@@ -168,21 +170,23 @@ namespace AE::Base
 
 	// methods
 	private:
-		CpuArchInfo ();
+		CpuArchInfo ()										__NE___;
 
-		void  _Validate ();
+		void  _Validate ()									__NE___;
+
+		ND_ static ECPUVendor  _NameToVendor (StringView)	__NE___;
 
 	public:
-		ND_ String		Print ()					C_NE___;
-		ND_ bool		IsGLMSupported ()			C_NE___;
+		ND_ String		Print ()							C_NE___;
+		ND_ bool		IsGLMSupported ()					C_NE___;
 
-		ND_ Core const*	GetCore (uint threadIdx)	C_NE___;
-		ND_ Core const*	GetCore (ECoreType type)	C_NE___;
+		ND_ Core const*	GetCore (uint threadIdx)			C_NE___;
+		ND_ Core const*	GetCore (ECoreType type)			C_NE___;
 
-		ND_ CoreBits_t	LogicalCoreMask ()			C_NE___;
-		ND_ CoreBits_t	PhysicalCoreMask ()			C_NE___;
+		ND_ CoreBits_t	LogicalCoreMask ()					C_NE___;
+		ND_ CoreBits_t	PhysicalCoreMask ()					C_NE___;
 
-		ND_ static CpuArchInfo const&  Get ()		__NE___;
+		ND_ static CpuArchInfo const&  Get ()				__NE___;
 	};
 
 
@@ -218,6 +222,79 @@ namespace AE::Base
 		ND_ static bool		GetPerfCounters (OUT PerProcessCounters &,
 											 OUT PerThreadCounters &)						__NE___;
 	};
+//-----------------------------------------------------------------------------
 
+
+
+/*
+=================================================
+	ToString (ECPUArch)
+=================================================
+*/
+	ND_ inline StringView  ToString (ECPUArch value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ECPUArch::X86 :		return "x86";
+			case ECPUArch::X64 :		return "x64";
+			case ECPUArch::ARM_32 :		return "ARM-32";
+			case ECPUArch::ARM_64 :		return "ARM-64";
+			case ECPUArch::RISCV :		return "RISC-V";
+			case ECPUArch::RISCV_64 :	return "RISC-V 64";
+			case ECPUArch::_Count :
+			case ECPUArch::Unknown:		break;
+		}
+		switch_end
+		return "";
+	}
+
+/*
+=================================================
+	ToString (ECoreType)
+=================================================
+*/
+	ND_ inline StringView  ToString (ECoreType value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ECoreType::HighPerformance :	return "HighPerformance";
+			case ECoreType::Performance :		return "Performance";
+			case ECoreType::EnergyEfficient :	return "EnergyEfficient";
+			case ECoreType::_Count :
+			case ECoreType::Unknown:			break;
+		}
+		switch_end
+		return "";
+	}
+
+/*
+=================================================
+	ToString (ECPUVendor)
+=================================================
+*/
+	ND_ inline StringView  ToString (ECPUVendor value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ECPUVendor::AMD :			return "AMD";
+			case ECPUVendor::ARM :			return "ARM";
+			case ECPUVendor::Apple :		return "Apple";
+			case ECPUVendor::Intel :		return "Intel";
+			case ECPUVendor::Qualcomm :		return "Qualcomm";
+			case ECPUVendor::Broadcom :		return "Broadcom";
+			case ECPUVendor::Cavium :		return "Cavium";
+			case ECPUVendor::Fujitsu :		return "Fujitsu";
+			case ECPUVendor::HiSilicon :	return "HiSilicon";
+			case ECPUVendor::NVidia :		return "NVidia";
+			case ECPUVendor::AppliedMicro :	return "AppliedMicro";
+			case ECPUVendor::Samsung :		return "Samsung";
+			case ECPUVendor::Marvell :		return "Marvell";
+			case ECPUVendor::HuaxintongSemiconductor :	return "HuaxintongSemiconductor";
+			case ECPUVendor::Ampere :		return "Ampere";
+			case ECPUVendor::Unknown:		break;
+		}
+		switch_end
+		return "";
+	}
 
 } // AE::Base

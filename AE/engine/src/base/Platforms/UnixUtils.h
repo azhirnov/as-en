@@ -12,6 +12,7 @@
 # include "base/Utils/Threading.h"
 # include "base/Utils/Version.h"
 # include "base/Platforms/CPUInfo.h"
+# include "base/Platforms/PlatformEnums.h"
 # include "base/Containers/NtStringView.h"
 
 namespace AE::Base
@@ -63,6 +64,8 @@ namespace AE::Base
 
 			static bool		ThreadWaitIO (milliseconds relativeTime)						__NE___;
 		ND_	static bool		SwitchToPendingThread ()										__NE___;
+
+		ND_ static Bytes	GetDefaultStackSize ()											__NE___;
 
 
 	private:

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "platform/Public/Common.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "pch/Graphics.h"
 
 namespace AE::App
 {
@@ -64,7 +64,7 @@ namespace AE::App
 
 	// interface
 	public:
-		virtual ~IInputSurface ()			__NE___	{}
+		virtual ~IInputSurface () __NE___	{}
 
 
 		// Set samplers which can be used for resource creation.

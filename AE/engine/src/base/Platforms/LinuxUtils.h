@@ -31,7 +31,9 @@ namespace AE::Base
 
 
 		// OS //
+		ND_ static bool			IsUnderDebugger ()											__NE___;
 		ND_ static Version3		GetOSVersion ()												__NE___;
+		ND_ static auto			GetOSType ()												__NE___	{ return EOperationSystem::Linux; }
 
 		#ifdef AE_RELEASE
 		ND_ static StringView	GetOSName ()												__NE___ { return "Linux"; }
@@ -39,6 +41,16 @@ namespace AE::Base
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
 	};
+
+
+	inline bool  LinuxUtils::IsUnderDebugger () __NE___
+	{
+	#ifdef AE_DEBUG
+		return true;
+	#else
+		return false;
+	#endif
+	}
 
 } // AE::Base
 

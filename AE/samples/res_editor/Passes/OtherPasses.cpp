@@ -27,16 +27,18 @@ namespace AE::ResEditor
 		{
 			auto&		ui		= UIInteraction::Instance();
 			const auto	capture	= ui.capture.Read();
+			auto		encoder	= _videoEncoder.load();
 
-			if ( capture.video != bool{_videoEncoder} )
+			if ( capture.video != bool{encoder} )
 			{
-				if ( _videoEncoder )
-					CHECK( _videoEncoder->End() );
+				if ( encoder )
+					CHECK( encoder->End() );
 
-				_videoEncoder = null;
+				_videoEncoder.reset();
+				encoder = null;
 
 				if ( capture.video )
-					_videoEncoder = _CreateEncoder( capture.bitrate, capture.videoFormat, capture.videoCodec, capture.colorPreset );
+					_videoEncoder.store( _CreateEncoder( capture.bitrate, capture.videoFormat, capture.videoCodec, capture.colorPreset ));
 			}
 		}
 
@@ -74,6 +76,7 @@ namespace AE::ResEditor
 
 		ctx.BlitImage( src->GetImageId(), dst.imageId, filter, ArrayView<ImageBlit>{ &blit, 1 });
 
+		auto&	rts = GraphicsScheduler();
 
 		// read pixel color for debugging
 		{
@@ -90,39 +93,61 @@ namespace AE::ResEditor
 										RGBA32f			color;
 										view.Load( uint3{}, OUT color );
 
-										auto	sp = UIInteraction::Instance().selectedPixel.WriteNoLock();
-										EXLOCK( sp );
-
+										auto	sp	= UIInteraction::Instance().selectedPixel.WriteLock();
 										sp->frame	= fid;
 										sp->pos		= uint2{view.Offset()};
 										sp->color	= color;
-									});
-			//GraphicsScheduler().AddNextCycleDeps( AsyncTask{task} );
+									},
+									"Read color under cursor",
+									ETaskQueue::PerFrame
+								  );
+			rts.AddNextCycleEndDeps( AsyncTask{task} );
 		}
 
 		// read image for screenshot / video
 		{
-			auto&		ui		= UIInteraction::Instance();
-			const auto	capture	= ui.capture.Read();
+			UIInteraction::Capture	capture;
+			{
+				auto	capture_wr	= UIInteraction::Instance().capture.WriteLock();
+						capture		= *capture_wr;
 
-			ui.capture->screenshot = false;
+				capture_wr->screenshot		= false;
+				capture_wr->testScreenshot	= false;
+			}
 
-			if ( capture.screenshot or capture.video )
+			if ( capture.video )
+			{
+				auto&		vi		= self->_videoInfo;
+				auto		dt		= Min( rts.GetFrameTimeDelta(), secondsf{vi.frameTime} );
+				secondsd	exp_dur	{vi.frameTime * (vi.frameCount+1)};
+
+				vi.duration += dt;
+
+				if ( exp_dur < vi.duration )
+					vi.frameCount ++;
+				else
+					capture.video = false;
+			}
+
+			if ( capture.screenshot or capture.testScreenshot or capture.video )
 			{
 				ReadbackImageDesc	readback;
 				readback.heapType	= EStagingHeapType::Dynamic;
 				readback.imageDim	= desc.dimension;
 
 				auto	task = ctx.ReadbackImage( src->GetImageId(), readback )
-								.Then(	[self, capture, encoder = self->_videoEncoder] (const ImageMemView &inView)
+								.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
 										{
-											if ( capture.screenshot )
-												_SaveScreenshot( inView, capture.imageFormat );
+											if ( capture.screenshot or capture.testScreenshot )
+												_SaveScreenshot( inView, capture.imageFormat, capture.testScreenshot );
 
 											if ( capture.video and encoder )
 												Unused( encoder->AddFrame( inView, True{"end encoding on error"} ));
-										});
-				//GraphicsScheduler().AddNextCycleDeps( AsyncTask{task} );
+										},
+										"Screen capture",
+										ETaskQueue::Background
+									  );
+				rts.AddNextCycleEndDeps( AsyncTask{task} );
 			}
 		}
 
@@ -134,34 +159,59 @@ namespace AE::ResEditor
 	_SaveScreenshot
 =================================================
 */
-	void  Present::_SaveScreenshot (const ImageMemView &inView, EImageFormat fmt)
+	void  Present::_SaveScreenshot (const ImageMemView &inView, EImageFormat fmt, const bool testScreenshot)
 	{
 		ResLoader::IntermImage	image;
 		CHECK_ERRV( image.Copy( inView ));
 
-		const auto&	screenshot_folder	= ResEditorAppConfig::Get().screenshotFolder;
+		const auto&	cfg = ResEditorAppConfig::Get();
 
-		const auto	BuildName = [&screenshot_folder, fmt] (OUT Path &fname, usize index)
-		{{
-			fname = screenshot_folder / ("screenshot_"s << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
-		}};
+		if ( testScreenshot )
+		{
+			if ( inView.Format() != EPixelFormat::RGBA8_UNorm )
+				fmt = EImageFormat::DDS;
 
-		const auto	WriteToFile = [&image, fmt] (const Path &fname) -> bool
-		{{
-			FileWStream		file {fname};
-			if ( file.IsOpen() )
-			{
-				ResLoader::AllImageSavers	saver;
-				if ( saver.SaveImage( file, image, fmt ))
+			const auto	fname = (cfg.testOutput / cfg.screenshotPrefix.Read()).replace_extension( ImageFileFormatToExt( fmt ));
+
+			FileWStream		file { fname };
+			CHECK_ERRV( file.IsOpen() );
+
+			ResLoader::AllImageSavers	saver;
+			CHECK_ERRV( saver.SaveImage( file, image, fmt ));
+
+			AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
+			// TODO: compare with previous
+		}
+		else
+		{
+			const auto&	screenshot_folder	= cfg.screenshotFolder;
+			auto		prefix				= cfg.screenshotPrefix.Read();
+
+			if ( prefix.empty() )
+				prefix = "screenshot_";
+
+			const auto	BuildName = [&screenshot_folder, &prefix, fmt] (OUT Path &fname, usize index)
+			{{
+				fname = screenshot_folder / (String{prefix} << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
+			}};
+
+			const auto	WriteToFile = [&image, fmt] (const Path &fname) -> bool
+			{{
+				FileWStream		file {fname};
+				if ( file.IsOpen() )
 				{
-					AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
-					return true;
+					ResLoader::AllImageSavers	saver;
+					if ( saver.SaveImage( file, image, fmt ))
+					{
+						AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
+						return true; // exit
+					}
 				}
-			}
-			return true; // exit
-		}};
+				return true; // exit
+			}};
 
-		FileSystem::FindUnusedFilename( BuildName, WriteToFile );
+			FileSystem::FindUnusedFilename( BuildName, WriteToFile );
+		}
 	}
 
 /*
@@ -175,7 +225,6 @@ namespace AE::ResEditor
 		CHECK_ERR( _src.size() == 1 );
 
 		const auto	desc	= _src[0]->GetImageDesc();
-		const auto&	fs		= GraphicsScheduler().GetFeatureSet();
 
 		IVideoEncoder::Config	cfg;
 		cfg.srcFormat		= desc.format;
@@ -186,10 +235,10 @@ namespace AE::ResEditor
 		cfg.colorPreset		= preset;
 		cfg.filter			= Video::EFilter::Bilinear;
 		cfg.quality			= 0.9f;
-		cfg.framerate		= FractionalI{ 60 };
-		cfg.bitrate			= IVideoEncoder::Bitrate_t{ ulong(double(bitrate) * 1024.0) * 1024 };
-		cfg.hwAccelerated	= true;
-		cfg.targetGPU		= fs.devicesIds.include.First();
+		cfg.framerate		= FractionalI{ int(_videoInfo.frameRate) };
+		cfg.bitrate			= Bitrate{ ulong(double(bitrate) * 1024.0) * 1024 };	// TODO
+		cfg.hwAccelerated	= EHwAcceleration::Optional;
+		cfg.targetGPU		= GraphicsScheduler().GetFeatureSet().devicesIds.include.First();
 		cfg.targetCPU		= CpuArchInfo::Get().cpu.vendor;
 
 
@@ -360,7 +409,7 @@ namespace AE::ResEditor
 			dbg_name << "-Copy";
 
 			auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
-			auto	image_id	= res_mngr.CreateImage( img_desc, dbg_name, renderer->GetAllocator() );
+			auto	image_id	= res_mngr.CreateImage( img_desc, dbg_name, renderer->ChooseAllocator( False{"static"}, img_desc ));
 			CHECK_THROW( image_id );
 
 			auto	view_id		= res_mngr.CreateImageView( ImageViewDesc{img_desc}, image_id, dbg_name );
@@ -452,7 +501,7 @@ namespace AE::ResEditor
 		_ppln2LS = res_mngr.GetResource( _ppln2 )->LocalSize().x;
 
 		_ssb = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::Histogram_ssb>, EBufferUsage::Transfer | EBufferUsage::Storage},
-									  "Histogram SSB", renderer->GetAllocator() );
+									  "Histogram SSB", renderer->GetStaticAllocator() );
 		CHECK_THROW( _ssb );
 
 		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT _ppln1DSIdx, OUT _ppln1DS.data(), max_frames, _ppln1, DescriptorSetName{"ds0"} ));
@@ -543,11 +592,9 @@ namespace AE::ResEditor
 
 			StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
-			RenderPassDesc	rp_desc{ *_rtech, RTech.Graphics, dst_dim };
-			rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId(), RGBA32f{0.f} );
-			rp_desc.DefaultViewport();
-
-			auto	dctx = gfx_ctx.BeginRenderPass( rp_desc );
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RTech.Graphics, dst_dim }
+									.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId(), RGBA32f{0.f} )
+									.DefaultViewport() );
 
 			dctx.BindPipeline( _ppln3 );
 			dctx.BindDescriptorSet( _ppln3DSIdx, gfx_ds );
@@ -629,11 +676,9 @@ namespace AE::ResEditor
 
 			StaticAssert( RTech.Graphics.attachmentsCount == 1 );
 
-			RenderPassDesc	rp_desc{ *_rtech, RTech.Graphics, dst_dim };
-			rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
-			rp_desc.DefaultViewport();
-
-			auto	dctx = ctx.BeginRenderPass( rp_desc );
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RTech.Graphics, dst_dim }
+								.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() )
+								.DefaultViewport() );
 
 			dctx.BindPipeline( _ppln );
 			dctx.BindDescriptorSet( _pplnDSIdx, ds );
@@ -713,12 +758,10 @@ namespace AE::ResEditor
 
 			StaticAssert( RTech.Graphics.attachmentsCount == 2 );
 
-			RenderPassDesc	rp_desc{ *_rtech, RTech.Graphics, dst_dim };
-			rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
-			rp_desc.AddTarget( RTech.Graphics.att_Stencil, srcImage.GetViewId() );
-			rp_desc.DefaultViewport();
-
-			auto	dctx = ctx.BeginRenderPass( rp_desc );
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RTech.Graphics, dst_dim }
+								.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() )
+								.AddTarget( RTech.Graphics.att_Stencil, srcImage.GetViewId() )
+								.DefaultViewport() );
 
 			dctx.BindPipeline( _ppln );
 			dctx.BindDescriptorSet( _pplnDSIdx, ds );

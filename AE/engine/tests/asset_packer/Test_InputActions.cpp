@@ -26,7 +26,7 @@ namespace
 		const Path			output			= FileSystem::ToAbsolute( output_folder / "input_actions.bin" );
 		const Path			output_cpp		= FileSystem::ToAbsolute( output_folder / "../names.h" );
 
-		FileSystem::Remove( output );
+		FileSystem::DeleteFile( output );
 
 		InputActionsInfo	info = {};
 		info.inFiles			= files;
@@ -41,9 +41,9 @@ namespace
 		auto	file = MakeRC<FileRStream>( output );
 		TEST( file->IsOpen() );
 
-		auto	mem_stream = MakeRC<MemRStream>();
+		auto	mem_stream = MakeRC<ArrayRStream>();
 		{
-			TEST( mem_stream->LoadRemaining( *file ));
+			TEST( mem_stream->LoadRemainingFrom( *file ));
 
 			uint	name;
 			TEST( mem_stream->Read( OUT name ));
@@ -128,7 +128,7 @@ extern void Test_InputActions ()
 		TEST( lib.Load( AE_INPUT_ACTIONS_BINDING_LIBRARY ));
 		TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
 
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "input_actions_test" ));
 
 		InputActions_Test1();
 	}

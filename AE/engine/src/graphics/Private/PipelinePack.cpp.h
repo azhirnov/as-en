@@ -6,9 +6,6 @@
 #elif defined(AE_ENABLE_METAL)
 #	define PPLNPACK			MPipelinePack
 
-#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define PPLNPACK			RPipelinePack
-
 #else
 #	error not implemented
 #endif
@@ -48,6 +45,7 @@ namespace AE::Graphics
 
 		resMngr.ImmediatelyRelease( INOUT _parentPackId );
 
+		_parentPack		= null;
 		_parentPackId	= Default;
 		_surfaceFormat	= Default;
 		_shaders		= Default;
@@ -55,20 +53,14 @@ namespace AE::Graphics
 		_shaderDataSize	= Default;
 
 		// none of the resources has strong reference on sampler
-		for (auto& [name, id] : *_samplerRefs)
-		{
-			int	cnt = resMngr.ImmediatelyRelease( INOUT id );
-			Unused( cnt );
-			ASSERT( AnyEqual( cnt, 0, -1 ));
+		for (auto& [name, id] : *_samplerRefs) {
+			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
 		}
 		_samplerRefs.Destroy();
 
 		// none of the resources has strong reference on render pass
-		for (auto& [name, id] : _renderPassRefs->specMap)
-		{
-			int	cnt = resMngr.ImmediatelyRelease( INOUT id );
-			Unused( cnt );
-			ASSERT( AnyEqual( cnt, 0, -1 ));
+		for (auto& [name, id] : _renderPassRefs->specMap) {
+			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
 		}
 
 		// release pipelines
@@ -80,33 +72,24 @@ namespace AE::Graphics
 		_renTechs = Default;
 
 		// pipelines has strong reference on compatible render pass
-		for (auto& [name, id] : _renderPassRefs->compatMap)
-		{
-			int	cnt = resMngr.ImmediatelyRelease( INOUT id );
-			Unused( cnt );
-			ASSERT( AnyEqual( cnt, 0, -1 ));
+		for (auto& [name, id] : _renderPassRefs->compatMap) {
+			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
 		}
 		_renderPassRefs.Destroy();
 
 		// pipelines has strong reference on pipeline layout
-		for (auto& pl : _pplnLayouts)
-		{
-			int	cnt = resMngr.ImmediatelyRelease( INOUT pl );
-			Unused( cnt );
-			ASSERT( AnyEqual( cnt, 0, -1 ));
+		for (auto& pl : _pplnLayouts) {
+			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT pl ));
 		}
 		_pplnLayouts = Default;
 
 		// pipeline layout has strong reference on descriptor set layout
-		for (auto& dsl : _dsLayouts)
-		{
-			int	cnt = resMngr.ImmediatelyRelease( INOUT dsl );
-			Unused( cnt );
-			ASSERT( AnyEqual( cnt, 0, -1 ));
+		for (auto& dsl : _dsLayouts) {
+			DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT dsl ));
 		}
 		_dsLayouts = Default;
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			_allFeatureSets.Destroy();
 		)
 		_unsupportedFS.Destroy();
@@ -127,7 +110,7 @@ namespace AE::Graphics
 		ASSERT( _allocator.use_count() == 1 );
 		_allocator = null;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -149,7 +132,7 @@ namespace AE::Graphics
 		_dsLayoutMap	.CreateTh( StdAlloc_t< Pair< const DescriptorSetName::Optimized_t,	DescriptorSetLayoutID	>>{ _allocator.get() });
 		_samplerRefs	.CreateTh( StdAlloc_t< Pair< const SamplerName::Optimized_t,		SamplerID				>>{ _allocator.get() });
 		_renderPassRefs	.CreateTh( _allocator.get() );
-		DEBUG_ONLY( _allFeatureSets.CreateTh( StdAlloc_t< FeatureSetName::Optimized_t >{ _allocator.get() }); )
+		GFX_DBG_ONLY( _allFeatureSets.CreateTh( StdAlloc_t< FeatureSetName::Optimized_t >{ _allocator.get() });)
 
 		EXLOCK( _fileGuard );
 
@@ -172,14 +155,16 @@ namespace AE::Graphics
 
 			if ( _parentPackId )
 			{
-				auto*		parent_pack		= resMngr.GetResource( _parentPackId );
-				const auto	parent_surf_fmt	= parent_pack->GetSurfaceFormat();
+				_parentPack = resMngr.GetResource( _parentPackId );
+				const auto	parent_surf_fmt	= _parentPack->GetSurfaceFormat();
 
 				CHECK_ERR( _surfaceFormat == parent_surf_fmt	or
 						   _surfaceFormat == Default			or
 						   parent_surf_fmt == Default );
 			}
 		}
+
+		const Bytes	base_offset = _file->Position();
 
 		uint	hdr_name = 0;
 		CHECK_ERR( _file->Read( OUT hdr_name ) and hdr_name == PackOffsets_Name );
@@ -189,30 +174,30 @@ namespace AE::Graphics
 
 		if ( AllBits( desc.options, EPipelinePackOpt::Pipelines ) and offsets.shaderDataSize > 8 )
 		{
-			_shaderOffset	= Bytes{offsets.shaderOffset}   + 8_b;	// skip block name and version
-			_shaderDataSize	= Bytes{offsets.shaderDataSize} - 8_b;
+			_shaderOffset	= offsets.shaderOffset   + 8_b + base_offset;	// skip block name and version
+			_shaderDataSize	= offsets.shaderDataSize - 8_b;
 			CHECK_ERR( offsets.shaderOffset + offsets.shaderDataSize <= _file->Size() );
 		}
 
-		if ( offsets.nameMappingOffset < ulong(_file->Size()) )
-			CHECK_ERR( _LoadNameMapping( resMngr, Bytes{offsets.nameMappingOffset}, Bytes{offsets.nameMappingDataSize} ));
+		if ( base_offset + offsets.nameMappingOffset < _file->Size() )
+			CHECK_ERR( _LoadNameMapping( resMngr, base_offset + offsets.nameMappingOffset, offsets.nameMappingDataSize ));
 
-		if ( AllBits( desc.options, EPipelinePackOpt::FeatureSets ) and offsets.featureSetOffset < ulong(_file->Size()) ) {
-			CHECK_ERR( _LoadFeatureSets( resMngr, Bytes{offsets.featureSetOffset}, Bytes{offsets.featureSetDataSize} ));	// throw
+		if ( AllBits( desc.options, EPipelinePackOpt::FeatureSets ) and (base_offset + offsets.featureSetOffset < _file->Size()) ) {
+			CHECK_ERR( _LoadFeatureSets( resMngr, base_offset + offsets.featureSetOffset, offsets.featureSetDataSize ));	// throw
 		}else{
-			CHECK_ERR( _CopyFeatureSets( resMngr ));
+			CHECK_ERR( _CopyFeatureSets() );
 		}
 
-		if ( AllBits( desc.options, EPipelinePackOpt::Samplers ) and offsets.samplerOffset < ulong(_file->Size()) )
-			CHECK_ERR( _LoadSamplers( resMngr, Bytes{offsets.samplerOffset}, Bytes{offsets.samplerDataSize} ));				// throw
+		if ( AllBits( desc.options, EPipelinePackOpt::Samplers ) and (base_offset + offsets.samplerOffset < _file->Size()) )
+			CHECK_ERR( _LoadSamplers( resMngr, base_offset + offsets.samplerOffset, offsets.samplerDataSize ));				// throw
 
-		if ( AllBits( desc.options, EPipelinePackOpt::RenderPasses ) and offsets.renderPassOffset < ulong(_file->Size()) )
-			CHECK_ERR( _LoadRenderPasses( resMngr, Bytes{offsets.renderPassOffset}, Bytes{offsets.renderPassDataSize} ));	// throw
+		if ( AllBits( desc.options, EPipelinePackOpt::RenderPasses ) and (base_offset + offsets.renderPassOffset < _file->Size()) )
+			CHECK_ERR( _LoadRenderPasses( resMngr, base_offset + offsets.renderPassOffset, offsets.renderPassDataSize ));	// throw
 
-		if ( AllBits( desc.options, EPipelinePackOpt::Pipelines ) and offsets.pipelineOffset < ulong(_file->Size()) )
-			CHECK_ERR( _LoadPipelineBlock( resMngr, Bytes{offsets.pipelineOffset}, Bytes{offsets.pipelineDataSize} ));		// throw
+		if ( AllBits( desc.options, EPipelinePackOpt::Pipelines ) and (base_offset + offsets.pipelineOffset < _file->Size()) )
+			CHECK_ERR( _LoadPipelineBlock( resMngr, base_offset + offsets.pipelineOffset, offsets.pipelineDataSize ));		// throw
 
-		DEBUG_ONLY( _debugName = desc.dbgName; )
+		GFX_DBG_ONLY( _debugName = desc.dbgName; )
 		return true;
 	}
 
@@ -221,7 +206,7 @@ namespace AE::Graphics
 	GetRenderPass
 =================================================
 */
-	RenderPassID  PPLNPACK::GetRenderPass (const ResMngr_t &resMngr, RenderPassName::Ref name) C_NE___
+	RenderPassID  PPLNPACK::GetRenderPass (RenderPassName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -231,9 +216,8 @@ namespace AE::Graphics
 			return it->second;
 
 		// search in parent pack
-		auto*	parent_pack	= resMngr.GetResource( _parentPackId );
-		if_likely( parent_pack != null )
-			return parent_pack->GetRenderPass( resMngr, name );
+		if_likely( _parentPack != null )
+			return _parentPack->GetRenderPass( name );
 
 		return Default;
 	}
@@ -243,7 +227,7 @@ namespace AE::Graphics
 	GetRenderPass
 =================================================
 */
-	RenderPassID  PPLNPACK::GetRenderPass (const ResMngr_t &resMngr, CompatRenderPassName::Ref name) C_NE___
+	RenderPassID  PPLNPACK::GetRenderPass (CompatRenderPassName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -253,9 +237,8 @@ namespace AE::Graphics
 			return it->second;
 
 		// search in parent pack
-		auto*	parent_pack	= resMngr.GetResource( _parentPackId );
-		if_likely( parent_pack != null )
-			return parent_pack->GetRenderPass( resMngr, name );
+		if_likely( _parentPack != null )
+			return _parentPack->GetRenderPass( name );
 
 		return Default;
 	}
@@ -271,8 +254,12 @@ namespace AE::Graphics
 
 		auto	it = _samplerRefs->find( SamplerName::Optimized_t{name} );
 
-		if ( it != _samplerRefs->end() )
+		if_likely( it != _samplerRefs->end() )
 			return it->second;
+
+		// search in parent pack
+		if_likely( _parentPack != null )
+			return _parentPack->GetSampler( name );
 
 		return Default;
 	}
@@ -319,12 +306,12 @@ namespace AE::Graphics
 	const typename TemplType::value_type*
 		PPLNPACK::_Extract (ResMngr_t &resMngr, PipelineTmplName::Ref name, const TemplType &templArr) C_NE___
 	{
-		auto	iter = _pplnTemplMap->find( name );
-		CHECK_ERR( iter != _pplnTemplMap->end() );
+		auto	it = _pplnTemplMap->find( name );
+		CHECK_ERR( it != _pplnTemplMap->end() );
 
-		CHECK_ERR( AllBits( iter->second, TemplMask ));
+		CHECK_ERR( AllBits( it->second, TemplMask ));
 
-		const uint	idx = uint(iter->second) & ~uint(PipelineTemplUID::_Mask);
+		const uint	idx = uint(it->second) & ~uint(PipelineTemplUID::_Mask);
 		CHECK_ERR( idx < templArr.size() );
 
 		auto&	ppln		= templArr[ idx ];
@@ -333,15 +320,15 @@ namespace AE::Graphics
 		for (auto& fs_name : ppln.features)
 		{
 			supported &= (not _unsupportedFS->contains( fs_name ));
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				if ( not _allFeatureSets->contains( fs_name ))
-					AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
+					AE_LOGW( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
 			)
 		}
 
 		if_unlikely( not supported )
 		{
-			DEBUG_ONLY( AE_LOG_SE( "Pipeline template '"s << resMngr.HashToName( name ) << "' is NOT supported" ));
+			GFX_DBG_ONLY( AE_LOGW( "Pipeline template '"s << resMngr.HashToName( name ) << "' is NOT supported" ));
 			return null;
 		}
 		Unused( resMngr );
@@ -486,10 +473,10 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _dsLayoutMap->find( name );
+		auto	it = _dsLayoutMap->find( name );
 
-		if_likely( iter != _dsLayoutMap->end() )
-			return iter->second;
+		if_likely( it != _dsLayoutMap->end() )
+			return it->second;
 
 		return Default;
 	}
@@ -504,13 +491,13 @@ namespace AE::Graphics
 		DRC_SHAREDLOCK( _drCheck );
 		ASSERT( not _renTechMap->empty() );
 
-		auto	iter = _renTechMap->find( RenderTechName::Optimized_t{name} );
-		if_unlikely( iter == _renTechMap->end() )
+		auto	it = _renTechMap->find( RenderTechName::Optimized_t{name} );
+		if_unlikely( it == _renTechMap->end() )
 			return Default;
 
-		CHECK_ERR( usize(iter->second) < _renTechs.size() );
+		CHECK_ERR( usize(it->second) < _renTechs.size() );
 
-		auto&	rt = ConstCast(*_renTechs[ usize(iter->second) ]);
+		auto&	rt = ConstCast(*_renTechs[ usize(it->second) ]);
 		return rt.LoadAsync( resMngr, cacheId );
 	}
 
@@ -524,13 +511,13 @@ namespace AE::Graphics
 		DRC_SHAREDLOCK( _drCheck );
 		ASSERT( not _renTechMap->empty() );
 
-		auto	iter = _renTechMap->find( RenderTechName::Optimized_t{name} );
-		if_unlikely( iter == _renTechMap->end() )
+		auto	it = _renTechMap->find( RenderTechName::Optimized_t{name} );
+		if_unlikely( it == _renTechMap->end() )
 			return Default;
 
-		CHECK_ERR( usize(iter->second) < _renTechs.size() );
+		CHECK_ERR( usize(it->second) < _renTechs.size() );
 
-		auto&	rt = ConstCast(*_renTechs[ usize(iter->second) ]);
+		auto&	rt = ConstCast(*_renTechs[ usize(it->second) ]);
 		CHECK_ERR( rt.Load( resMngr, cacheId ));
 
 		return rt.GetRC();
@@ -543,11 +530,11 @@ namespace AE::Graphics
 */
 	bool  PPLNPACK::_LoadNameMapping (ResMngr_t &resMngr, Bytes offset, Bytes size) __Th___
 	{
-	#ifdef AE_DEBUG
+	#if AE_DBG_GRAPHICS
 		CHECK_ERR( _file->SeekSet( offset ));
 
-		auto	mem_stream = MakeRC<MemRStream>();
-		CHECK_ERR( mem_stream->LoadRemaining( *_file, size ));
+		auto	mem_stream = MakeRC<ArrayRStream>();
+		CHECK_ERR( mem_stream->LoadRemainingFrom( *_file, size ));
 
 		Serializing::Deserializer	des{ RVRef(mem_stream) };
 		CHECK_ERR( not des.stream.Empty() );
@@ -577,8 +564,8 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
-		auto	mem_stream = MakeRC<MemRStream>();
-		CHECK_ERR( mem_stream->LoadRemaining( *_file, size ));
+		auto	mem_stream = MakeRC<ArrayRStream>();
+		CHECK_ERR( mem_stream->LoadRemainingFrom( *_file, size ));
 
 		Serializing::Deserializer	des{ RVRef(mem_stream) };
 		CHECK_ERR( not des.stream.Empty() );
@@ -599,21 +586,20 @@ namespace AE::Graphics
 		CHECK_ERR( IsMultipleOf( size, count ));
 		CHECK_ERR( size == (SizeOf<FeatureSet> + 4_b) * count );
 
-		auto*	parent_pack	= resMngr.GetResource( _parentPackId, False{"don't inc ref"}, True{"quiet"} );
-		if_likely( parent_pack != null )
+		if_likely( _parentPack != null )
 		{
-			*_unsupportedFS = parent_pack->GetUnsupportedFS();			// throw
+			*_unsupportedFS = _parentPack->_GetUnsupportedFS();			// throw
 			_unsupportedFS->reserve( _unsupportedFS->size() + count );	// throw
 
-			DEBUG_ONLY(
-				*_allFeatureSets = parent_pack->GetAllFS();						// throw
+			GFX_DBG_ONLY(
+				*_allFeatureSets = _parentPack->_GetAllFS();					// throw
 				_allFeatureSets->reserve( _allFeatureSets->size() + count );	// throw
 			)
 		}
 		else
 		{
 			_unsupportedFS->reserve( count );					// throw
-			DEBUG_ONLY( _allFeatureSets->reserve( count ));		// throw
+			GFX_DBG_ONLY( _allFeatureSets->reserve( count ));	// throw
 		}
 
 		const auto&	current_fs = resMngr.GetFeatureSet();
@@ -629,18 +615,16 @@ namespace AE::Graphics
 
 			if ( not current_fs.IsCompatible( fs ))
 			{
-				DEBUG_ONLY( AE_LOG_SE( "Feature set '"s << resMngr.HashToName( fs_name ) << "' is NOT supported" ));
+				GFX_DBG_ONLY( AE_LOGW( "Feature set '"s << resMngr.HashToName( fs_name ) << "' is NOT supported" ));
 
 				CHECK( _unsupportedFS->insert( fs_name ).second );	// throw
 			}
 			else
 			{
-				DEBUG_ONLY( AE_LOGI( "Feature set '"s << resMngr.HashToName( fs_name ) << "' is supported" ));
+				GFX_DBG_ONLY( AE_LOGI( "Feature set '"s << resMngr.HashToName( fs_name ) << "' is supported" ));
 			}
 
-			DEBUG_ONLY(
-				CHECK( _allFeatureSets->insert( fs_name ).second );	// throw
-			)
+			GFX_DBG_ONLY( CHECK( _allFeatureSets->insert( fs_name ).second );)	// throw
 		}
 
 		CHECK( des.IsEnd() );
@@ -652,13 +636,12 @@ namespace AE::Graphics
 	_CopyFeatureSets
 =================================================
 */
-	bool  PPLNPACK::_CopyFeatureSets (ResMngr_t &resMngr) __Th___
+	bool  PPLNPACK::_CopyFeatureSets () __Th___
 	{
-		auto*	parent_pack	= resMngr.GetResource( _parentPackId, False{"don't inc ref"}, True{"quiet"} );
-		if ( parent_pack != null )
+		if ( _parentPack != null )
 		{
-			*_unsupportedFS = parent_pack->GetUnsupportedFS();			// throw
-			DEBUG_ONLY( *_allFeatureSets = parent_pack->GetAllFS();)	// throw
+			*_unsupportedFS = _parentPack->_GetUnsupportedFS();			// throw
+			GFX_DBG_ONLY( *_allFeatureSets = _parentPack->_GetAllFS();)	// throw
 		}
 		return true;
 	}
@@ -672,8 +655,8 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
-		auto	mem_stream = MakeRC<MemRStream>();
-		CHECK_ERR( mem_stream->LoadRemaining( *_file, size ));
+		auto	mem_stream = MakeRC<ArrayRStream>();
+		CHECK_ERR( mem_stream->LoadRemainingFrom( *_file, size ));
 
 		Serializing::Deserializer	des{ RVRef(mem_stream) };
 		CHECK_ERR( not des.stream.Empty() );
@@ -712,9 +695,9 @@ namespace AE::Graphics
 			for (auto fs_name : samp.GetFeatures())
 			{
 				supported &= (not _unsupportedFS->contains( fs_name ));
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					if ( not _allFeatureSets->contains( fs_name ))
-						AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
+						AE_LOGW( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
 				)
 			}
 
@@ -736,23 +719,23 @@ namespace AE::Graphics
 				if_unlikely( samplers[i] == Default )
 				{
 					String	samp_name;
-					DEBUG_ONLY( samp_name = resMngr.HashToName( name ));
+					GFX_DBG_ONLY( samp_name = resMngr.HashToName( name ));
 
 					samplers[i] = _CreateSampler( resMngr, samp_desc[i], ycbcr_conv[i], samp_name );
 					if ( samplers[i] == Default )
 					{
+						AE_LOG_DBG( "Failed to create sampler '"s << samp_name << "'" );
 						samp_supported[i] = false;
-						AE_LOG_DBG( "Failed to create sampler '"s << resMngr.HashToName( name ) << "'" );
 						continue;
 					}
 				}
 
 				if ( not _samplerRefs->insert_or_assign( name, Strong<SamplerID>{samplers[i]} ).second )  // throw
 				{
-					DEBUG_ONLY( AE_LOG_SE( "Sampler '"s << resMngr.HashToName( name ) << "' is already assigned" ));
+					GFX_DBG_ONLY( AE_LOGW( "Sampler '"s << resMngr.HashToName( name ) << "' is already assigned" ));
 				}
 			}else{
-				DEBUG_ONLY( AE_LOG_SE( "Sampler '"s << resMngr.HashToName( name ) << "' is NOT supported" ));
+				GFX_DBG_ONLY( AE_LOGW( "Sampler '"s << resMngr.HashToName( name ) << "' is NOT supported" ));
 			}
 		}
 
@@ -769,32 +752,32 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
-		auto	mem_stream = MakeRC<MemRStream>();
-		CHECK_ERR( mem_stream->LoadRemaining( *_file, size ));
+		auto	mem_stream = MakeRC<ArrayRStream>();
+		CHECK_ERR( mem_stream->LoadRemainingFrom( *_file, size ));
 
-		Serializing::Deserializer	des{ RVRef(mem_stream) };
-		CHECK_ERR( not des.stream.Empty() );
-
-		// for feature set array
-		des.allocator = _allocator.get();
-
-		uint	hdr_name	= 0;
-		uint	version		= 0;
-		CHECK_ERR( des( OUT hdr_name, OUT version ));
-		CHECK_ERR( hdr_name == PipelinePack_Name and version == PipelinePack_Version );
-
-		StackAllocator_t	stack_alloc;
-
-		EnumSet< EMarker >	unique_marker;
-		unique_marker.insert( EMarker::Unknown );
-
-		for (EMarker marker = Default;;)
+		// check header & version
 		{
-			if_unlikely( not des( OUT marker ))
-				break;
+			uint	name_version [2] = {};
+			CHECK_ERR( mem_stream->Read( OUT name_version ));
+			CHECK_ERR( name_version[0] == PipelinePack_Name and name_version[1] == PipelinePack_Version );
+		}
 
-			CHECK_ERR( uint(marker) < unique_marker.size() and not unique_marker.contains( marker ));
-			unique_marker.insert( marker );
+		StackAllocator_t					stack_alloc;
+		PipelineStorage::BlockOffsets_t		block_offsets;
+
+		CHECK_ERR( mem_stream->Read( OUT block_offsets ));
+
+		for (usize i = 0; i < block_offsets.size(); ++i)
+		{
+			const auto	base_off = block_offsets[i];
+			if ( base_off == UMax )
+				continue;
+
+			Serializing::Deserializer	des{ mem_stream->ToSubStream( base_off ), _allocator.get() };
+			EMarker						marker;
+
+			CHECK_ERR( des( OUT marker ));
+			CHECK_ERR( usize(marker) == i );
 
 			switch_enum( marker )
 			{
@@ -846,8 +829,6 @@ namespace AE::Graphics
 			}
 			switch_end
 		}
-
-		CHECK( des.IsEnd() );
 		return true;
 	}
 
@@ -934,18 +915,16 @@ namespace AE::Graphics
 		_dsLayouts = MutableArrayView{ _allocator->Allocate< Strong<DescriptorSetLayoutID> >( count ), count };
 		CHECK_ERR( _dsLayouts.data() != null );
 
-		auto*	parent_pack	= resMngr.GetResource( _parentPackId, False{"don't inc ref"}, True{"quiet"} );	// TODO: shared lock
-
 		for (uint i = 0; i < count; ++i)
 		{
 			const auto					bm				= stackAlloc.PushAuto();
-			SamplerID *					samplers		= null;
-			uint						sampler_count	= 0;
 			DSLayoutName::Optimized_t	dsl_name;
 			EDescSetUsage				usage			= Default;
 			EShaderStages				stages			= Default;
 			FSNameArr_t					features;
 			UniformOffsets_t			desc_offsets	= {};
+			uint						sampler_count	= 0;
+			SamplerID *					samplers		= null;
 
 			CHECK_ERR( des( OUT dsl_name, OUT usage, OUT stages, OUT features, OUT desc_offsets, OUT sampler_count ));
 
@@ -957,9 +936,9 @@ namespace AE::Graphics
 			for (auto fs_name : features)
 			{
 				supported &= (not _unsupportedFS->contains( fs_name ));
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					if ( not _allFeatureSets->contains( fs_name ))
-						AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
+						AE_LOGW( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
 				)
 			}
 
@@ -973,26 +952,26 @@ namespace AE::Graphics
 					SamplerName::Optimized_t	samp_name;
 					CHECK_ERR( des( OUT samp_name ));
 
-					SamplerID	samp_id;
-
 					if ( not supported )
+					{
+						samplers[j] = Default;
 						continue;
-
-					// search in current pack
-					if ( auto samp_it = _samplerRefs->find( samp_name );  samp_it != _samplerRefs->end() )
-					{
-						CHECK_ERR( samp_it->second );
-						samp_id = samp_it->second;
 					}
 
-					// search in parent pack
-					if ( not samp_id and parent_pack != null )
+					samplers[j] = GetSampler( SamplerName{samp_name} );
+					if_unlikely( not samplers[j] )
 					{
-						samp_id = parent_pack->GetSampler( SamplerName{samp_name} );
+						GFX_DBG_ONLY(
+							AE_LOGW( "Sampler '"s << resMngr.HashToName( samp_name ) << "' is used by DescriptorSetLayout '" <<
+									 resMngr.HashToName( dsl_name ) << "' but not created (not supported?)" );
+						)
+						if ( AllBits( usage, EDescSetUsage::MaybeUnsupported ))
+						{
+							supported = false;
+							continue;
+						}
+						return false;
 					}
-					CHECK_ERR( samp_id );
-
-					samplers[j] = samp_id;
 				}
 			}
 
@@ -1003,12 +982,12 @@ namespace AE::Graphics
 			bool		result		= true;
 			CHECK_ERR( un_names != null and un_data != null );
 
-			for (uint j = 0; result & (j < uniform_count); ++j) {
+			for (uint j = 0; result and (j < uniform_count); ++j) {
 				result = des( OUT un_names[j] );
 			}
 			CHECK_ERR( result );
 
-			for (uint j = 0; result & (j < uniform_count); ++j)
+			for (uint j = 0; result and (j < uniform_count); ++j)
 			{
 				PlacementNew<Uniform_t>( OUT un_data + j );
 				result = Deserialize_Uniform( des, sampler_count, OUT un_data[j] );
@@ -1019,15 +998,17 @@ namespace AE::Graphics
 			{
 				PlacementNew< Strong<DescriptorSetLayoutID> >( OUT _dsLayouts.data() + i );
 
-				DEBUG_ONLY( AE_LOG_SE( "DescriptorSetLayout '"s << resMngr.HashToName( dsl_name ) << "' is NOT supported" ));
+				GFX_DBG_ONLY( AE_LOGW( "DescriptorSetLayout '"s << resMngr.HashToName( dsl_name ) << "' is NOT supported" ));
 				continue;
 			}
+
+			const auto	usage_mask = ~EDescSetUsage::_PrivateMask;
 
 			Strong<DescriptorSetLayoutID>	item = _CreateDescriptorSetLayout( resMngr,
 																			   Uniforms_t{ uniform_count, un_names, un_data, un_offsets },
 																			   ArrayView{ samplers, sampler_count },
 																			   desc_offsets,
-																			   usage, stages, stackAlloc );
+																			   (usage & usage_mask), stages, stackAlloc );
 			CHECK_ERR( item );
 
 			layoutMap.emplace( dsl_name, DescriptorSetLayoutID{item} );  // throw
@@ -1051,6 +1032,9 @@ namespace AE::Graphics
 
 		if ( count == 0 )
 			return true;
+
+		auto*	empty_ds = resMngr.GetResource( resMngr.GetEmptyDescriptorSetLayout() );
+		CHECK_ERR( empty_ds != null );
 
 		_pplnLayouts = MutableArrayView{ _allocator->Allocate< Strong<PipelineLayoutID> >( count ), count };
 		CHECK_ERR( _pplnLayouts.data() != null );
@@ -1077,23 +1061,26 @@ namespace AE::Graphics
 					binding.vkIndex = src.second.vkIndex;
 				#elif defined(AE_ENABLE_METAL)
 					binding.mtlIndex = src.second.mtlIndex;
-				#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-					binding.vkIndex = src.second.vkIndex;
 				#else
 				#	error not implemented
 				#endif
 
-				desc_sets.insert_or_assign( src.first, PipelineLayout_t::DescSetLayout{ id, binding });	// nothrow
+				desc_sets.insert_or_assign( src.first, PipelineLayout_t::DescSetLayout{ id, binding });
 			}
 
 			if ( not supported )
 			{
 				PlacementNew< Strong<PipelineLayoutID> >( OUT _pplnLayouts.data() + i );
-				//DEBUG_ONLY( AE_LOG_SE( "PipelineLayout is NOT supported" ));
+				GFX_DBG_ONLY( AE_LOGW( "PipelineLayout ("s << ToString(i) << ") is NOT supported" ));
 				continue;
 			}
 
-			auto	item = resMngr.CreatePipelineLayout( desc_sets, desc.pushConstants.items  DEBUG_ONLY(, ToString(i)) );
+			auto	item = resMngr.CreatePipelineLayout( PipelineLayout_t::CreateInfo{
+															desc_sets,
+															desc.pushConstants.items,
+															empty_ds->Handle()
+															GFX_DBG_ONLY(, "pl-"s+ToString(i))
+														});
 			CHECK_ERR( item );
 
 			PlacementNew< Strong<PipelineLayoutID> >( OUT _pplnLayouts.data() + i, RVRef(item) );
@@ -1121,13 +1108,13 @@ namespace AE::Graphics
 		nameMap.reserve( count );	// throw
 
 		bool	result = true;
-		for (uint i = 0; result & (i < count); ++i)
+		for (uint i = 0; result and (i < count); ++i)
 		{
 			TName	name;
 			TUID	uid;
 			result = des( OUT name, OUT uid );
 
-			auto [iter, inserted] = nameMap.emplace( name, uid );	// throw
+			auto [it, inserted] = nameMap.emplace( name, uid );	// throw
 			CHECK( inserted );
 		}
 
@@ -1156,7 +1143,7 @@ namespace AE::Graphics
 		arr = ArrayView{ ptr, count };
 
 		bool	result = true;
-		for (uint i = 0; result & (i < count); ++i)
+		for (uint i = 0; result and (i < count); ++i)
 		{
 			auto&	ppln = ptr[i];
 			PlacementNew<T>( OUT &ppln );
@@ -1185,7 +1172,7 @@ namespace AE::Graphics
 		CHECK_ERR( _renTechs.data() != null );
 
 		bool	result = true;
-		for (uint i = 0; result & (i < count); ++i)
+		for (uint i = 0; result and (i < count); ++i)
 		{
 			auto&	rt = _renTechs[i];
 			PlacementNew< StaticRC<RenderTech> >( &rt, *this );
@@ -1217,7 +1204,7 @@ namespace AE::Graphics
 		_serRTSBTs = SerRTSBTs_t{ ptr, count };
 
 		bool	result = true;
-		for (uint i = 0; result & (i < count); ++i)
+		for (uint i = 0; result and (i < count); ++i)
 		{
 			auto&	sbt = ptr[i];
 			PlacementNew< PipelineCompiler::SerializableRTShaderBindingTable >( OUT &sbt );
@@ -1253,18 +1240,17 @@ namespace AE::Graphics
 			auto&	sh = _shaders[i];
 			PlacementNew< ShaderModule >( OUT &sh );
 
-			result  = des( OUT sh.offset, OUT sh.dataSize, OUT sh.shaderTypeIdx );
-			result &= (sh.offset < total_size) and (sh.offset + sh.dataSize <= total_size);
+			result  = des( OUT sh.offset, OUT sh.dataSize, OUT sh.data2Size, OUT sh.shaderTypeIdx );
+			result &= (sh.offset < total_size) and (sh.offset + sh.dataSize + sh.data2Size <= total_size);
 
 			CHECK_ERR( sh.offset < total_size );
-			CHECK_ERR( sh.offset + sh.dataSize <= total_size );
+			CHECK_ERR( sh.offset + sh.dataSize + sh.data2Size <= total_size );
 
 			#if defined(AE_ENABLE_VULKAN)
 				CHECK_ERR(	sh.shaderTypeIdx == Types_t::Index<SpirvBytecode_t> or
 							sh.shaderTypeIdx == Types_t::Index<SpirvWithTrace> );
 			#elif defined(AE_ENABLE_METAL)
 				CHECK_ERR(	sh.shaderTypeIdx == Types_t::Index<MetalBytecode_t> );
-			#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 			#else
 			#	error not implemented
 			#endif
@@ -1283,7 +1269,7 @@ namespace AE::Graphics
 */
 	PPLNPACK::RenderTech::RenderTech (PPLNPACK& pack) __NE___ :
 		_pack{ pack },
-		_isSupported{ false },	_isLoaded{ false },		_wasAttampToLoad{ false },
+		_isSupported{ false },	_isLoaded{ false },		_wasAttemptToLoad{ false },
 		_pipelines{ StdAlloc_t< Pair< const PipelineName::Optimized_t, PipelineInfo >>{ pack._allocator.get() }},
 		_rtSbtMap{ StdAlloc_t< Pair< const RTShaderBindingName::Optimized_t, SBTInfo >>{ pack._allocator.get() }}
 	{}
@@ -1310,18 +1296,18 @@ namespace AE::Graphics
 			bool	result		= true;
 			bool	supported	= true;
 
-			for (uint i = 0; result & (i < fs_count); ++i)
+			for (uint i = 0; result and (i < fs_count); ++i)
 			{
 				FeatureSetName::Optimized_t		fs_name;
 				result = des( OUT fs_name );
 
 				supported &= (not _pack._unsupportedFS->contains( fs_name ));
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					if ( _pack._unsupportedFS->contains( fs_name ))
 						AE_LOG_DBG( "Render technique '"s << resMngr.HashToName( _name ) << "' requires '" << resMngr.HashToName( fs_name ) << "' FeatureSet" );
 
 					if ( not _pack._allFeatureSets->contains( fs_name ))
-						AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
+						AE_LOGW( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
 				)
 			}
 
@@ -1329,7 +1315,7 @@ namespace AE::Graphics
 			_isSupported = supported;
 
 			if ( not _isSupported ) {
-				DEBUG_ONLY( AE_LOG_SE( "Render technique '"s << resMngr.HashToName( _name ) << "' is NOT supported" ))
+				GFX_DBG_ONLY( AE_LOGW( "Render technique '"s << resMngr.HashToName( _name ) << "' is NOT supported" ));
 			}
 		}
 
@@ -1342,7 +1328,7 @@ namespace AE::Graphics
 			_passes = MutableArrayView{ _pack._allocator->Allocate< SerializableRenderTechnique::Pass >( pass_count ), pass_count };
 
 			bool	result = true;
-			for (uint i = 0; result & (i < pass_count); ++i)
+			for (uint i = 0; result and (i < pass_count); ++i)
 			{
 				auto&	pass = _passes[i];
 				PlacementNew< SerializableRenderTechnique::Pass >( OUT &pass );
@@ -1360,7 +1346,7 @@ namespace AE::Graphics
 			_pipelines.reserve( ppln_count );	// throw
 
 			bool	result = true;
-			for (uint i = 0; result & (i < ppln_count); ++i)
+			for (uint i = 0; result and (i < ppln_count); ++i)
 			{
 				PipelineName::Optimized_t	name;
 				PipelineInfo				info;
@@ -1381,7 +1367,7 @@ namespace AE::Graphics
 				_rtSbtMap.reserve( sbt_count );	// throw
 
 				bool	result = true;
-				for (uint i = 0; result & (i < sbt_count); ++i)
+				for (uint i = 0; result and (i < sbt_count); ++i)
 				{
 					RTShaderBindingName::Optimized_t	name;
 					SBTInfo								info;
@@ -1486,7 +1472,9 @@ namespace AE::Graphics
 
 		return MakePromiseFromValue(
 					RenderTechPipelinesPtr{ rt },
-					Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }} );
+					Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }},
+					"RenderTech::LoadAsync",
+					ETaskQueue::Background );
 	}
 
 /*
@@ -1502,17 +1490,16 @@ namespace AE::Graphics
 			if ( _isLoaded )
 				return true;
 
-			if ( _wasAttampToLoad )
+			if ( _wasAttemptToLoad )
 				return false;
 		}
 
 		DRC_EXLOCK( _drCheck );		// TODO
 
-		if ( _wasAttampToLoad )
+		if ( _wasAttemptToLoad )
 			return false;
 
-		_wasAttampToLoad = true;
-
+		_wasAttemptToLoad = true;
 
 		CHECK_ERR( _PreloadShaders( resMngr ));
 		CHECK_ERR( _CompilePipelines( resMngr, cacheid, _pipelines.begin(), _pipelines.end() ));
@@ -1534,11 +1521,11 @@ namespace AE::Graphics
 	{
 		for (auto it = beginIt; it != endIt; ++it)
 		{
-			#ifdef AE_DEBUG
+		  #if AE_DBG_GRAPHICS
 			String		dbg_name = resMngr.HashToName( it->first );
-			#else
+		  #else
 			StringView	dbg_name;
-			#endif
+		  #endif
 			auto&		info	= it->second;
 
 			switch_enum( info.uid & PipelineSpecUID::_Mask )
@@ -1547,7 +1534,7 @@ namespace AE::Graphics
 				{
 					auto [spec, tmpl] = _Extract< PipelineSpecUID::Graphics, PipelineTemplUID::Graphics >(
 												resMngr, info.uid, _pack._serGPplnSpec, _pack._serGPplnTempl,
-												*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets ));
+												*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets ));
 					CHECK_ERR( spec != null and tmpl != null );
 					info.pplnId = _CompileGraphicsPipeline( resMngr, *spec, *tmpl, cacheid, dbg_name );
 					break;
@@ -1557,7 +1544,7 @@ namespace AE::Graphics
 				{
 					auto [spec, tmpl] = _Extract< PipelineSpecUID::Mesh, PipelineTemplUID::Mesh >(
 												resMngr, info.uid, _pack._serMPplnSpec, _pack._serMPplnTempl,
-												*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets ));
+												*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets ));
 					CHECK_ERR( spec != null and tmpl != null );
 					info.pplnId = _CompileMeshPipeline( resMngr, *spec, *tmpl, cacheid, dbg_name );
 					break;
@@ -1567,7 +1554,7 @@ namespace AE::Graphics
 				{
 					auto [spec, tmpl] = _Extract< PipelineSpecUID::Compute, PipelineTemplUID::Compute >(
 												resMngr, info.uid, _pack._serCPplnSpec, _pack._serCPplnTempl,
-												*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets ));
+												*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets ));
 					CHECK_ERR( spec != null and tmpl != null );
 					info.pplnId = _CompileComputePipeline( resMngr, *spec, *tmpl, cacheid, dbg_name );
 					break;
@@ -1577,7 +1564,7 @@ namespace AE::Graphics
 				{
 					auto [spec, tmpl] = _Extract< PipelineSpecUID::RayTracing, PipelineTemplUID::RayTracing >(
 												resMngr, info.uid, _pack._serRTPplnSpec, _pack._serRTPplnTempl,
-												*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets ));
+												*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets ));
 					CHECK_ERR( spec != null and tmpl != null );
 					info.pplnId = _CompileRayTracingPipeline( resMngr, *spec, *tmpl, cacheid, dbg_name );
 					break;
@@ -1587,7 +1574,7 @@ namespace AE::Graphics
 				{
 					auto [spec, tmpl] = _Extract< PipelineSpecUID::Tile, PipelineTemplUID::Tile >(
 												resMngr, info.uid, _pack._serTPplnSpec, _pack._serTPplnTempl,
-												*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets ));
+												*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets ));
 					CHECK_ERR( spec != null and tmpl != null );
 					info.pplnId = _CompileTilePipeline( resMngr, *spec, *tmpl, cacheid, dbg_name );
 					break;
@@ -1616,11 +1603,11 @@ namespace AE::Graphics
 		{
 			CHECK_ERR( info.uid < _pack._serRTSBTs.size() );
 
-			#ifdef AE_DEBUG
+		  #if AE_DBG_GRAPHICS
 			String		dbg_name = resMngr.HashToName( name );
-			#else
+		  #else
 			StringView	dbg_name;
-			#endif
+		  #endif
 
 			info.sbtId = _CreateRTShaderBinding( resMngr, _pack._serRTSBTs[ info.uid ], dbg_name );
 			CHECK_ERR( info.sbtId );
@@ -1635,29 +1622,38 @@ namespace AE::Graphics
 */
 	void  PPLNPACK::RenderTech::Destroy (ResMngr_t &resMngr) __NE___
 	{
-		for (auto& [name, info] : _pipelines)
-		{
-			switch_enum( info.uid & PipelineSpecUID::_Mask )
-			{
-				case PipelineSpecUID::Graphics :	{ Strong<GraphicsPipelineID>	id{ info.pplnId.Index(), info.pplnId.Generation() };	resMngr.ImmediatelyRelease( id );	break; }
-				case PipelineSpecUID::Mesh :		{ Strong<MeshPipelineID>		id{ info.pplnId.Index(), info.pplnId.Generation() };	resMngr.ImmediatelyRelease( id );	break; }
-				case PipelineSpecUID::Compute :		{ Strong<ComputePipelineID>		id{ info.pplnId.Index(), info.pplnId.Generation() };	resMngr.ImmediatelyRelease( id );	break; }
-				case PipelineSpecUID::RayTracing :	{ Strong<RayTracingPipelineID>	id{ info.pplnId.Index(), info.pplnId.Generation() };	resMngr.ImmediatelyRelease( id );	break; }
-				case PipelineSpecUID::Tile :		{ Strong<TilePipelineID>		id{ info.pplnId.Index(), info.pplnId.Generation() };	resMngr.ImmediatelyRelease( id );	break; }
-				case PipelineSpecUID::_Mask :
-				case PipelineSpecUID::Unknown :
-				default_unlikely :					DBG_WARNING( "unknown pipeline type" ); break;
-			}
-			switch_end
-		}
-		_pipelines.clear();
+		DRC_EXLOCK( _drCheck );
 
-		for (auto& [name, sbt] : _rtSbtMap)
+		if ( _isLoaded or _wasAttemptToLoad )
 		{
-			Strong<RTShaderBindingID>	id{ sbt.sbtId };
-			CHECK( resMngr.ImmediatelyRelease( id ) == (id.IsValid() ? 0 : -1) );
+			for (auto& [name, sbt] : _rtSbtMap)
+			{
+				Strong<RTShaderBindingID>	id{ sbt.sbtId };
+				DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));
+			}
+
+			for (auto& [name, info] : _pipelines)
+			{
+				switch_enum( info.uid & PipelineSpecUID::_Mask )
+				{
+					case PipelineSpecUID::Graphics :	{ Strong<GraphicsPipelineID>	id {info.Cast<GraphicsPipelineID>()};	DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
+					case PipelineSpecUID::Mesh :		{ Strong<MeshPipelineID>		id {info.Cast<MeshPipelineID>()};		DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
+					case PipelineSpecUID::Compute :		{ Strong<ComputePipelineID>		id {info.Cast<ComputePipelineID>()};	DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
+					case PipelineSpecUID::RayTracing :	{ Strong<RayTracingPipelineID>	id {info.Cast<RayTracingPipelineID>()};	DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
+					case PipelineSpecUID::Tile :		{ Strong<TilePipelineID>		id {info.Cast<TilePipelineID>()};		DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
+					case PipelineSpecUID::_Mask :
+					case PipelineSpecUID::Unknown :
+					default_unlikely :					DBG_WARNING( "unknown pipeline type" ); break;
+				}
+				switch_end
+			}
 		}
+
 		_rtSbtMap.clear();
+		_pipelines.clear();
+		_passes				= Default;
+		_isLoaded			= false;
+		_wasAttemptToLoad	= false;
 	}
 
 /*
@@ -1669,7 +1665,7 @@ namespace AE::Graphics
 	Pair< const typename SpecType::value_type*, const typename TemplType::value_type* >
 		PPLNPACK::RenderTech::_Extract (const ResMngr_t &resMngr, PipelineSpecUID specUID, SpecType &specArr, TemplType &templArr,
 										const FeatureNames_t &unsupportedFS
-										DEBUG_ONLY(, const FeatureNames_t &allFeatureSets )) __NE___
+										GFX_DBG_ONLY(, const FeatureNames_t &allFeatureSets )) __NE___
 	{
 		Unused( resMngr );
 
@@ -1689,9 +1685,9 @@ namespace AE::Graphics
 		for (auto& fs_name : tmpl.features)
 		{
 			supported &= (not unsupportedFS.contains( fs_name ));
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				if ( not allFeatureSets.contains( fs_name ))
-					AE_LOG_SE( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
+					AE_LOGW( "FeatureSet '"s << resMngr.HashToName( fs_name ) << "' is not exists" );
 			)
 		}
 		CHECK_ERR( supported );
@@ -1726,7 +1722,7 @@ namespace AE::Graphics
 				{
 					auto*	tmpl = _Extract< PipelineSpecUID::Graphics, PipelineTemplUID::Graphics >(
 											resMngr, info.uid, _pack._serGPplnSpec, _pack._serGPplnTempl,
-											*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets )).second;
+											*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets )).second;
 					CHECK_ERR( tmpl != null );
 					for (auto sh : tmpl->shaders)
 						shaders.insert( sh.second );
@@ -1736,7 +1732,7 @@ namespace AE::Graphics
 				{
 					auto*	tmpl = _Extract< PipelineSpecUID::Mesh, PipelineTemplUID::Mesh >(
 											resMngr, info.uid, _pack._serMPplnSpec, _pack._serMPplnTempl,
-											*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets )).second;
+											*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets )).second;
 					CHECK_ERR( tmpl != null );
 					for (auto sh : tmpl->shaders)
 						shaders.insert( sh.second );
@@ -1746,7 +1742,7 @@ namespace AE::Graphics
 				{
 					auto*	tmpl = _Extract< PipelineSpecUID::Compute, PipelineTemplUID::Compute >(
 											resMngr, info.uid, _pack._serCPplnSpec, _pack._serCPplnTempl,
-											*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets )).second;
+											*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets )).second;
 					CHECK_ERR( tmpl != null );
 					shaders.insert( tmpl->shader );
 					break;
@@ -1755,7 +1751,7 @@ namespace AE::Graphics
 				{
 					auto*	tmpl = _Extract< PipelineSpecUID::RayTracing, PipelineTemplUID::RayTracing >(
 											resMngr, info.uid, _pack._serRTPplnSpec, _pack._serRTPplnTempl,
-											*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets )).second;
+											*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets )).second;
 					CHECK_ERR( tmpl != null );
 					for (auto& sh : tmpl->shaderArr)
 						shaders.insert( sh.Get<ShaderUID>() );
@@ -1765,7 +1761,7 @@ namespace AE::Graphics
 				{
 					auto*	tmpl = _Extract< PipelineSpecUID::Tile, PipelineTemplUID::Tile >(
 											resMngr, info.uid, _pack._serTPplnSpec, _pack._serTPplnTempl,
-											*_pack._unsupportedFS DEBUG_ONLY(, *_pack._allFeatureSets )).second;
+											*_pack._unsupportedFS GFX_DBG_ONLY(, *_pack._allFeatureSets )).second;
 					CHECK_ERR( tmpl != null );
 					shaders.insert( tmpl->shader );
 					break;
@@ -1813,7 +1809,7 @@ namespace AE::Graphics
 												shaders, cacheId,
 												_pack._allocator.get()
 											}).Release();
-		return PipelineID{ id.Index(), id.Generation() };
+		return BitCast<PipelineID>( id );
 	}
 
 /*
@@ -1844,7 +1840,7 @@ namespace AE::Graphics
 												shaders, cacheId,
 												_pack._allocator.get()
 											}).Release();
-		return PipelineID{ id.Index(), id.Generation() };
+		return BitCast<PipelineID>( id );
 	}
 
 /*
@@ -1867,7 +1863,7 @@ namespace AE::Graphics
 												_pack._GetPipelineLayout( tmpl.layout ),
 												_pack._GetShader( resMngr, tmpl.shader, EShader::Compute ), cacheId
 											}).Release();
-		return PipelineID{ id.Index(), id.Generation() };
+		return BitCast<PipelineID>( id );
 	}
 
 /*
@@ -1891,7 +1887,7 @@ namespace AE::Graphics
 												_pack._GetPipelineLayout( tmpl.layout ),
 												_pack._GetShader( resMngr, tmpl.shader, EShader::Tile ), cacheId
 											}).Release();
-		return PipelineID{ id.Index(), id.Generation() };
+		return BitCast<PipelineID>( id );
 	}
 
 /*
@@ -1927,7 +1923,7 @@ namespace AE::Graphics
 												_pack._allocator.get(),
 												&allocator
 											}).Release();
-		return PipelineID{ id.Index(), id.Generation() };
+		return BitCast<PipelineID>( id );
 	}
 
 /*
@@ -1937,7 +1933,7 @@ namespace AE::Graphics
 */
 	void  PPLNPACK::RenderTech::_PrintPipelines (PipelineName::Ref reqName, PipelineSpecUID mask) C_NE___
 	{
-	#ifdef AE_DEBUG
+	#if AE_DBG_GRAPHICS
 		const auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		String		str;
 
@@ -1982,16 +1978,16 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _pipelines.find( name );
-		if_unlikely( iter == _pipelines.end() )
+		auto	it = _pipelines.find( name );
+		if_unlikely( it == _pipelines.end() )
 		{
 			_PrintPipelines( name, PipelineSpecUID::Graphics );
 			return Default;
 		}
 
-		CHECK_ERR( AllBits( iter->second.uid, PipelineSpecUID::Graphics ));
+		CHECK_ERR( AllBits( it->second.uid, PipelineSpecUID::Graphics ));
 
-		return iter->second.Cast<GraphicsPipelineID>();
+		return it->second.Cast<GraphicsPipelineID>();
 	}
 
 /*
@@ -2003,16 +1999,16 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _pipelines.find( name );
-		if_unlikely( iter == _pipelines.end() )
+		auto	it = _pipelines.find( name );
+		if_unlikely( it == _pipelines.end() )
 		{
 			_PrintPipelines( name, PipelineSpecUID::Mesh );
 			return Default;
 		}
 
-		CHECK_ERR( AllBits( iter->second.uid, PipelineSpecUID::Mesh ));
+		CHECK_ERR( AllBits( it->second.uid, PipelineSpecUID::Mesh ));
 
-		return iter->second.Cast<MeshPipelineID>();
+		return it->second.Cast<MeshPipelineID>();
 	}
 
 /*
@@ -2024,16 +2020,16 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _pipelines.find( name );
-		if_unlikely( iter == _pipelines.end() )
+		auto	it = _pipelines.find( name );
+		if_unlikely( it == _pipelines.end() )
 		{
 			_PrintPipelines( name, PipelineSpecUID::Tile );
 			return Default;
 		}
 
-		CHECK_ERR( AllBits( iter->second.uid, PipelineSpecUID::Tile ));
+		CHECK_ERR( AllBits( it->second.uid, PipelineSpecUID::Tile ));
 
-		return iter->second.Cast<TilePipelineID>();
+		return it->second.Cast<TilePipelineID>();
 	}
 
 /*
@@ -2045,16 +2041,16 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _pipelines.find( name );
-		if_unlikely( iter == _pipelines.end() )
+		auto	it = _pipelines.find( name );
+		if_unlikely( it == _pipelines.end() )
 		{
 			_PrintPipelines( name, PipelineSpecUID::Compute );
 			return Default;
 		}
 
-		CHECK_ERR( AllBits( iter->second.uid, PipelineSpecUID::Compute ));
+		CHECK_ERR( AllBits( it->second.uid, PipelineSpecUID::Compute ));
 
-		return iter->second.Cast<ComputePipelineID>();
+		return it->second.Cast<ComputePipelineID>();
 	}
 
 /*
@@ -2066,16 +2062,16 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _pipelines.find( name );
-		if_unlikely( iter == _pipelines.end() )
+		auto	it = _pipelines.find( name );
+		if_unlikely( it == _pipelines.end() )
 		{
 			_PrintPipelines( name, PipelineSpecUID::RayTracing );
 			return Default;
 		}
 
-		CHECK_ERR( AllBits( iter->second.uid, PipelineSpecUID::RayTracing ));
+		CHECK_ERR( AllBits( it->second.uid, PipelineSpecUID::RayTracing ));
 
-		return iter->second.Cast<RayTracingPipelineID>();
+		return it->second.Cast<RayTracingPipelineID>();
 	}
 
 /*
@@ -2085,7 +2081,7 @@ namespace AE::Graphics
 */
 	void  PPLNPACK::RenderTech::_PrintSBTs (RTShaderBindingName::Ref reqName) C_NE___
 	{
-	#ifdef AE_DEBUG
+	#if AE_DBG_GRAPHICS
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		String	str;
 
@@ -2113,14 +2109,14 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _rtSbtMap.find( name );
-		if_unlikely( iter == _rtSbtMap.end() )
+		auto	it = _rtSbtMap.find( name );
+		if_unlikely( it == _rtSbtMap.end() )
 		{
 			_PrintSBTs( name );
 			return Default;
 		}
 
-		return iter->second.sbtId;
+		return it->second.sbtId;
 	}
 
 /*
@@ -2149,7 +2145,7 @@ namespace AE::Graphics
 		if ( pass.IsDefined() )
 		{
 			auto&			res_mngr = GraphicsScheduler().GetResourceManager();
-			RenderPassID	rp_id	 = res_mngr.GetRenderPass( pass.packId, RenderPassName{pass.renderPass} );
+			RenderPassID	rp_id	 = _pack.GetRenderPass( RenderPassName{pass.renderPass} );
 
 			if ( rp_id != Default )
 				return res_mngr.GetResource( rp_id )->GetPixelFormat( attName );
@@ -2217,6 +2213,8 @@ namespace AE::Graphics
 */
 	IRenderTechPipelines::PassInfo  PPLNPACK::RenderTech::GetPass (RenderTechPassName::Ref passName) C_NE___
 	{
+		DRC_SHAREDLOCK( _drCheck );
+
 		// TODO: optimize
 		for (usize i = 0, cnt = _passes.size(); i < cnt; ++i)
 		{
@@ -2229,7 +2227,7 @@ namespace AE::Graphics
 				info.type		= pass.IsGraphics() ? EPassType::Graphics : EPassType::Compute;
 				info.renderPass	= pass.renderPass;
 				info.subpass	= pass.subpass;
-				info.packId		= _pack._parentPackId;
+				info.packId		= _pack._parentPackId;	// TODO ?
 
 				if ( usize(pass.dsLayout) < _pack._dsLayouts.size() )
 				{

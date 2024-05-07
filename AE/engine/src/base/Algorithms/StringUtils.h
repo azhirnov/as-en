@@ -18,7 +18,7 @@
 #include "base/Memory/MemUtils.h"
 #include "base/Containers/NtStringView.h"
 #include "base/Math/PhysicalQuantity.h"
-#include "base/Utils/FileSystem.h"
+#include "base/FileSystem/Path.h"
 #include "base/Algorithms/Utf8.h"
 
 namespace AE::Base
@@ -172,7 +172,7 @@ namespace AE::Base
 	template <typename T, typename A>
 	BasicString<T,A>&  operator >> (const T lhs, BasicString<T,A> &rhs) __Th___
 	{
-		rhs.insert( 0u, lhs );
+		rhs.insert( rhs.begin(), lhs );
 		return rhs;
 	}
 //-----------------------------------------------------------------------------
@@ -195,9 +195,9 @@ namespace _hidden_
 		__m256i	q = _mm256_set1_epi8( c );
 		{
 			// unaligned case is allowed for AVX
-			__m256i x = _mm256_lddqu_si256( static_cast<__m256i const *>( static_cast<void const *>( i )));
-			__m256i r = _mm256_cmpeq_epi8( x, q );
-			int     z = _mm256_movemask_epi8( r );
+			__m256i	x = _mm256_lddqu_si256( static_cast<__m256i const *>( static_cast<void const *>( i )));
+			__m256i	r = _mm256_cmpeq_epi8( x, q );
+			int		z = _mm256_movemask_epi8( r );
 
 			if_unlikely( z ) {
 				auto* r2 = i + BitScanForward( z );
@@ -211,9 +211,9 @@ namespace _hidden_
 
 		for_likely (; i < e; i += 32)
 		{
-			__m256i x = _mm256_lddqu_si256( Cast<__m256i>( i ));
-			__m256i r = _mm256_cmpeq_epi8( x, q );
-			int     z = _mm256_movemask_epi8( r );
+			__m256i	x = _mm256_lddqu_si256( Cast<__m256i>( i ));
+			__m256i	r = _mm256_cmpeq_epi8( x, q );
+			int		z = _mm256_movemask_epi8( r );
 
 			if_unlikely( z ) {
 				auto* r2 = i + BitScanForward( z );
@@ -250,7 +250,7 @@ namespace _hidden_
 	#endif
 	}
 
-	ND_ forceinline usize  FindChar (StringView str, const char ch, const usize first = 0)
+	ND_ forceinline usize  FindChar (StringView str, const char ch, const usize first = 0) __NE___
 	{
 	#if 1
 		return FindChar( str.data(), first, str.size(), ch );
@@ -308,6 +308,41 @@ namespace _hidden_
 	ND_ forceinline char  ToUpperCase (const char c) __NE___
 	{
 		return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
+	}
+
+/*
+=================================================
+	SubString
+----
+	same as string_view::substr but without exceptions
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline BasicStringView<T>  SubString (BasicStringView<T> src, usize pos, usize count = UMax) __NE___
+	{
+		pos		= std::min( pos, src.size() );
+		count	= std::min( count, src.size()-pos );
+		return BasicStringView<T>{ src.data() + pos, count };
+	}
+
+	template <typename T>
+	ND_ forceinline BasicStringView<T>  SubString (const BasicString<T> &src, usize pos, usize count = UMax) __NE___
+	{
+		return SubString( BasicStringView<T>{src}, pos, count );
+	}
+
+/*
+=================================================
+	SubString
+----
+	replacement for C++20 string_view ctor
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline BasicStringView<T>  SubString (const T* first, const T* last) __NE___
+	{
+		ASSERT( first <= last );
+		return BasicStringView<T>{ first, usize(last - first) };
 	}
 
 /*
@@ -533,6 +568,19 @@ namespace _hidden_
 		return count;
 	}
 
+	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb) __NE___
+	{
+		uint	count = 0;
+		for (usize pos = 0;
+			 (pos = FindChar( str.data(), pos, str.size(), oldSymb )) < str.size();)
+		{
+			str[pos] = newSymb;
+			++pos;
+			++count;
+		}
+		return count;
+	}
+
 	inline uint  FindAndReplace (INOUT String& str, StringView oldStr, StringView newStr) __Th___
 	{
 		String::size_type	pos		= 0;
@@ -540,7 +588,7 @@ namespace _hidden_
 
 		while ( (pos = StringView{str}.find( oldStr, pos )) != StringView::npos )
 		{
-			str.replace( pos, oldStr.length(), newStr.data() );
+			str.replace( pos, oldStr.length(), newStr.data() );  // throw
 			pos += newStr.length();
 			++count;
 		}
@@ -558,8 +606,8 @@ namespace _hidden_
 	template <typename T>
 	constexpr bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
-		ASSERT( dst != null );
-		ASSERT( src != null );
+		NonNull( dst );
+		NonNull( src );
 
 		bool	res = true;
 		for (usize i = 0; i < len; ++i)
@@ -579,11 +627,10 @@ namespace _hidden_
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
-	template <typename T>
-	constexpr bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	inline constexpr bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
-		ASSERT( dst != null );
-		ASSERT( src != null );
+		NonNull( dst );
+		NonNull( src );
 
 		bool	res = true;
 		usize	i	= 0;
@@ -912,7 +959,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, typename Duration>
-	ND_ String  ToString (const std::chrono::duration<T,Duration> &value, uint precission = 2) __Th___
+	ND_ String  ToString (const std::chrono::duration<T,Duration> &value, uint precision = 2) __Th___
 	{
 		using SecondsD_t  = std::chrono::duration<double>;
 		using MicroSecD_t = std::chrono::duration<double, std::micro>;
@@ -924,21 +971,21 @@ namespace _hidden_
 		if ( not IsFinite( time )) {}
 		else
 		if ( abs_time > 59.0 * 60.0 )
-			str << ToString( time * (1.0/3600.0), precission ) << " h";
+			str << ToString( time * (1.0/3600.0), precision ) << " h";
 		else
 		if ( abs_time > 59.0 )
-			str << ToString( time * (1.0/60.0), precission ) << " m";
+			str << ToString( time * (1.0/60.0), precision ) << " m";
 		else
 		if ( abs_time > 1.0e-1 )
-			str << ToString( time, precission ) << " s";
+			str << ToString( time, precision ) << " s";
 		else
 		if ( abs_time > 1.0e-4 )
-			str << ToString( time * 1.0e+3, precission ) << " ms";
+			str << ToString( time * 1.0e+3, precision ) << " ms";
 		else
 		if ( abs_time > 1.0e-7 )
-			str << ToString( TimeCast<MicroSecD_t>( value ).count(), precission ) << " us";
+			str << ToString( TimeCast<MicroSecD_t>( value ).count(), precision ) << " us";
 		else
-			str << ToString( TimeCast<nanosecondsd>( value ).count(), precission ) << " ns";
+			str << ToString( TimeCast<nanosecondsd>( value ).count(), precision ) << " ns";
 
 		return str;
 	}
@@ -950,9 +997,36 @@ namespace _hidden_
 */
 	ND_ inline String  ToString (const Path &path) __Th___
 	{
-		return ToAnsiString<char>( path.native() );
+		String	str = ToAnsiString<char>( path.lexically_normal().native() );
+		FindAndReplace( INOUT str, '\\', '/' );
+		return str;
 	}
 
+/*
+=================================================
+	ToString (U8String)
+=================================================
+*/
+	ND_ inline String  ToString (const U8String &str) __Th___
+	{
+		return ToAnsiString<char>( str );
+	}
+
+	ND_ inline String  ToString (const U8StringView &str) __Th___
+	{
+		return ToAnsiString<char>( str );
+	}
+
+	ND_ inline String  ToString (const CharUtf8* str) __Th___
+	{
+		return ToAnsiString<char>( U8StringView{str} );
+	}
+
+/*
+=================================================
+	ToString (WString)
+=================================================
+*/
 	ND_ inline String  ToString (const WString &str) __Th___
 	{
 		return ToAnsiString<char>( str );
@@ -1044,10 +1118,10 @@ namespace _hidden_
 		Append( Dim::bits,		"bits"	);
 
 		if ( dim_cnt[1] > 1 )
-			str_nom = '(' + str_nom + ')';
+			('(' >> str_nom) << ')';
 
 		if ( dim_cnt[0] > 1 )
-			str_den = '(' + str_den + ')';
+			('(' >> str_den) << ')';
 
 		if ( str_nom.empty() )
 			str_nom << '1';

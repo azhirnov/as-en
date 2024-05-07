@@ -3,8 +3,8 @@
 #include "PipelinePack.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/DataSource/MemStream.h"
-#include "serializing/Basic/Serializer.h"
-#include "serializing/Basic/ObjectFactory.h"
+#include "serializing/Serializer.h"
+#include "serializing/ObjectFactory.h"
 #include "graphics/Private/EnumUtils.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
@@ -1463,7 +1463,7 @@ namespace {
 	{
 		_CopySpecConst( inSpec );
 		dataSize += ArraySizeOf( *UnionGet<SpirvBytecode_t>( this->code ));
-		CHECK( dataSize <= MaxBytecodeSize );
+		CHECK( GetDataSize() <= MaxBytecodeSize );
 	}
 
 	ShaderBytecode::ShaderBytecode (MetalBytecode_t inCode, const SpecConstants_t &inSpec) :
@@ -1472,7 +1472,7 @@ namespace {
 	{
 		_CopySpecConst( inSpec );
 		dataSize += ArraySizeOf( *UnionGet<MetalBytecode_t>( this->code ));
-		CHECK( dataSize <= MaxBytecodeSize );
+		CHECK( GetDataSize() <= MaxBytecodeSize );
 	}
 
 	ShaderBytecode::ShaderBytecode (SpirvWithTrace inCode, const SpecConstants_t &inSpec) :
@@ -1482,16 +1482,16 @@ namespace {
 		_CopySpecConst( inSpec );
 
 		const auto&	dbg_spv = *UnionGet<SpirvWithTrace>( this->code );
-
-		auto	file = MakeRC<MemWStream>();
-		{
-			Serializing::Serializer	ser{ file };
-			CHECK( dbg_spv.trace->Serialize( ser ));
-		}
-		dataSize += file->Position();
 		dataSize += ArraySizeOf( dbg_spv.bytecode );
 
-		CHECK( dataSize <= MaxBytecodeSize );
+		auto	file = MakeRC<ArrayWStream>();
+		{
+			Serializing::Serializer  ser{ file };
+			CHECK( dbg_spv.trace->Serialize( ser ));
+		}
+		data2Size = file->Position();
+
+		CHECK( GetDataSize() <= MaxBytecodeSize );
 	}
 
 /*
@@ -1514,8 +1514,8 @@ namespace {
 */
 	bool  ShaderBytecode::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		CHECK_ERR( dataSize <= MaxBytecodeSize );
-		return ser( CheckCast<uint>(offset), CheckCast<uint>(dataSize), typeIdx );
+		CHECK_ERR( GetDataSize() <= MaxBytecodeSize );
+		return ser( CheckCast<uint>(offset), dataSize, data2Size, typeIdx );
 	}
 
 /*
@@ -1548,38 +1548,39 @@ namespace {
 		bool		result	= true;
 		const Bytes	start	= stream.Position();
 
-		Visit( code,
-			[&result]			(const NullUnion &)				{ result = false; },
-			[&result, &stream]	(const SpirvBytecode_t &spirv)	{ result = stream.Write( ArrayView<uint>{ spirv }); },
-			[&result, &stream]	(const MetalBytecode_t &mtbc)	{ result = stream.Write( ArrayView<ubyte>{ mtbc }); },
-			[&result, &stream]	(const SpirvWithTrace &dbgSpirv)
+		const auto	WriteSpecConst = [this, &stream] () -> bool
+		{{
+			bool	res = true;
+			for (auto [name, val] : spec)
 			{
+				CHECK_ERR( name.IsDefined() );
+
+				uint	h = uint(name.GetHash32());
+				res &= stream.Write( h );
+				res &= stream.Write( val );
+			}
+			return res and stream.Write( CheckCast<uint>(spec.size()) );
+		}};
+
+		Visit( code,
+			[&] (const NullUnion &)				{ result = false; },
+			[&] (const SpirvBytecode_t &spirv)	{ result = stream.Write( ArrayView<uint>{ spirv }) and WriteSpecConst(); },
+			[&] (const MetalBytecode_t &mtbc)	{ result = stream.Write( ArrayView<ubyte>{ mtbc }) and WriteSpecConst(); },
+			[&] (const SpirvWithTrace &dbgSpirv)
+			{
+				result &= stream.Write( ArrayView<uint>{ dbgSpirv.bytecode }) and WriteSpecConst();
+				auto file = MakeRC<ArrayWStream>();
 				{
-					auto	file = MakeRC<MemWStream>();
-					{
-						Serializing::Serializer	ser{ file };
-						result &= dbgSpirv.trace->Serialize( ser );
-					}
-					result &= file->Store( stream );
+					Serializing::Serializer	ser{ file };
+					result &= dbgSpirv.trace->Serialize( ser );
 				}
-				result &= stream.Write( ArrayView<uint>{ dbgSpirv.bytecode });
+				result &= file->StoreTo( stream );
 			}
 		);
 		CHECK_ERR( result );
 
-		for (auto [name, val] : spec)
-		{
-			CHECK_ERR( name.IsDefined() );
-
-			uint	h = uint(name.GetHash32());
-			result &= stream.Write( h );
-			result &= stream.Write( val );
-		}
-		result &= stream.Write( CheckCast<uint>(spec.size()) );
-		CHECK_ERR( result );
-
 		const Bytes	data_size = stream.Position() - start;
-		CHECK_ERR( data_size == dataSize );
+		CHECK_ERR( data_size == GetDataSize() );
 
 		return true;
 	}
@@ -1673,7 +1674,7 @@ namespace {
 =================================================
 */
 	template <typename UID, typename T, typename ArrType, typename MapType>
-	UID  PipelineStorage::_Add (T desc, ArrType &arr, MapType &map)
+	UID  PipelineStorage::_Add (T desc, ArrType &arr, MapType &map) __NE___
 	{
 		const usize	hash	= usize(desc.CalcHash());
 		auto		iter	= map.find( hash );
@@ -1983,124 +1984,227 @@ namespace {
 	SerializePipelines
 =================================================
 */
-	bool  PipelineStorage::SerializePipelines (Serializing::Serializer& ser) const
+	bool  PipelineStorage::SerializePipelines (WStream &stream) const
+	{
+		BlockOffsets_t	offsets		= {};
+		auto			mem			= MakeRC<ArrayWStream>();
+		Bytes			pos;
+
+		CHECK_ERR( _SerializePipelines( *mem, OUT offsets, OUT pos ));
+
+		// update offsets
+		{
+			MemRefWStream	mem2 {mem->GetData()};
+			CHECK_ERR( mem2.SeekFwd( pos ));
+			CHECK_ERR( mem2.Write( offsets ));
+		}
+
+		CHECK_ERR( mem->StoreTo( stream ));
+		return true;
+	}
+
+/*
+=================================================
+	_SerializePipelines
+=================================================
+*/
+	bool  PipelineStorage::_SerializePipelines (ArrayWStream &stream, OUT BlockOffsets_t &offsets, OUT Bytes &offsetsPosInStream) const
 	{
 		#define LOG( ... )	AE_LOG_DBG( __VA_ARGS__ )
 
-		CHECK_ERR( ser( PipelinePack_Name ));
-		CHECK_ERR( ser( PipelinePack_Version ));
+		offsets.fill( UMax );
+		CHECK_ERR( stream.Position() == 0_b );
+		CHECK_ERR( stream.Write( PipelinePack_Name ));
+		CHECK_ERR( stream.Write( PipelinePack_Version ));
+
+		offsetsPosInStream = stream.Position();
+		CHECK_ERR( stream.Write( offsets ));	// placeholder
 
 		if ( not _rtech.empty() )
 		{
 			CHECK_ERR( _rtech.size() <= MaxRenTechCount );
-			CHECK_ERR( ser( uint(EMarker::RenderTechniques), _rtech ));
+			const auto	marker	= uint(EMarker::RenderTechniques);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _rtech ));
+			}
 			LOG( "Serialized render techniques: "s << ToString(_rtech.size()) );
 		}
 
 		if ( not _renderStates.empty() )
 		{
 			CHECK_ERR( _renderStates.size() <= MaxStateCount );
-			CHECK_ERR( ser( uint(EMarker::RenderStates), _renderStates ));
+			const auto	marker	= uint(EMarker::RenderStates);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _renderStates ));
+			}
 			LOG( "Serialized render states: "s << ToString(_renderStates.size()) );
 		}
 
 		if ( not _dsStates.empty() )
 		{
 			CHECK_ERR( _dsStates.size() <= MaxStateCount );
-			CHECK_ERR( ser( uint(EMarker::DepthStencilStates), _dsStates ));
+			const auto	marker	= uint(EMarker::DepthStencilStates);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _dsStates ));
+			}
 			LOG( "Serialized depth stencil states: "s << ToString(_dsStates.size()) );
 		}
 
 		if ( not _dsLayouts.empty() )
 		{
 			CHECK_ERR( _dsLayouts.size() <= MaxDSLayoutCount );
-			CHECK_ERR( ser( uint(EMarker::DescrSetLayouts), _dsLayouts ));
+			const auto	marker	= uint(EMarker::DescrSetLayouts);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _dsLayouts ));
+			}
 			LOG( "Serialized descriptor set layouts: "s << ToString(_dsLayouts.size()) );
 		}
 
 		if ( not _pplnLayouts.empty() )
 		{
 			CHECK_ERR( _pplnLayouts.size() <= MaxPplnLayoutCount );
-			CHECK_ERR( ser( uint(EMarker::PipelineLayouts), _pplnLayouts ));
+			const auto	marker	= uint(EMarker::PipelineLayouts);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _pplnLayouts ));
+			}
 			LOG( "Serialized pipeline layouts: "s << ToString(_pplnLayouts.size()) );
 		}
 
 		if ( not _gpipelineTempl.empty() )
 		{
 			CHECK_ERR( _gpipelineTempl.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::GraphicsPipelineTempl), _gpipelineTempl ));
+			const auto	marker	= uint(EMarker::GraphicsPipelineTempl);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _gpipelineTempl ));
+			}
 			LOG( "Serialized graphics pipelines: "s << ToString(_gpipelineTempl.size()) );
 		}
 
 		if ( not _mpipelineTempl.empty() )
 		{
 			CHECK_ERR( _mpipelineTempl.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::MeshPipelineTempl), _mpipelineTempl ));
+			const auto	marker	= uint(EMarker::MeshPipelineTempl);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _mpipelineTempl ));
+			}
 			LOG( "Serialized mesh pipelines: "s << ToString(_mpipelineTempl.size()) );
 		}
 
 		if ( not _cpipelineTempl.empty() )
 		{
 			CHECK_ERR( _cpipelineTempl.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::ComputePipelineTempl), _cpipelineTempl ));
+			const auto	marker	= uint(EMarker::ComputePipelineTempl);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _cpipelineTempl ));
+			}
 			LOG( "Serialized compute pipelines: "s << ToString(_cpipelineTempl.size()) );
 		}
 
 		if ( not _rtpipelineTempl.empty() )
 		{
 			CHECK_ERR( _rtpipelineTempl.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::RayTracingPipelineTempl), _rtpipelineTempl ));
+			const auto	marker	= uint(EMarker::RayTracingPipelineTempl);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _rtpipelineTempl ));
+			}
 			LOG( "Serialized ray tracing pipelines: "s << ToString(_rtpipelineTempl.size()) );
 		}
 
 		if ( not _gpipelineSpec.empty() )
 		{
 			CHECK_ERR( _gpipelineSpec.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::GraphicsPipelineSpec), _gpipelineSpec ));
+			const auto	marker	= uint(EMarker::GraphicsPipelineSpec);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _gpipelineSpec ));
+			}
 			LOG( "Serialized graphics pipeline specs: "s << ToString(_gpipelineSpec.size()) );
 		}
 
 		if ( not _mpipelineSpec.empty() )
 		{
 			CHECK_ERR( _mpipelineSpec.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::MeshPipelineSpec), _mpipelineSpec ));
+			const auto	marker	= uint(EMarker::MeshPipelineSpec);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _mpipelineSpec ));
+			}
 			LOG( "Serialized mesh pipeline specs: "s << ToString(_mpipelineSpec.size()) );
 		}
 
 		if ( not _cpipelineSpec.empty() )
 		{
 			CHECK_ERR( _cpipelineSpec.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::ComputePipelineSpec), _cpipelineSpec ));
+			const auto	marker	= uint(EMarker::ComputePipelineSpec);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _cpipelineSpec ));
+			}
 			LOG( "Serialized compute pipeline specs: "s << ToString(_cpipelineSpec.size()) );
 		}
 
 		if ( not _rtpipelineSpec.empty() )
 		{
 			CHECK_ERR( _rtpipelineSpec.size() <= MaxPipelineCount );
-			CHECK_ERR( ser( uint(EMarker::RayTracingPipelineSpec), _rtpipelineSpec ));
+			const auto	marker	= uint(EMarker::RayTracingPipelineSpec);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _rtpipelineSpec ));
+			}
 			LOG( "Serialized ray tracing pipeline specs: "s << ToString(_rtpipelineSpec.size()) );
 		}
 
 		if ( not _pipelineTemplMap.empty() )
 		{
 			CHECK_ERR( _pipelineTemplMap.size() <= MaxPipelineNameCount );
+			const auto	marker	= uint(EMarker::PipelineTemplNames);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				Array<Pair< PipelineTmplName, PipelineTemplUID >>	ppln_names;
+				ppln_names.reserve( _pipelineTemplMap.size() );
 
-			Array<Pair< PipelineTmplName, PipelineTemplUID >>	ppln_names;
-			ppln_names.reserve( _pipelineTemplMap.size() );
+				for (auto& item : _pipelineTemplMap) {
+					ppln_names.push_back( item );
+				}
 
-			for (auto& item : _pipelineTemplMap) {
-				ppln_names.push_back( item );
+				std::sort( ppln_names.begin(), ppln_names.end(), [](auto& lhs, auto& rhs) { return lhs.first < rhs.first; });
+
+				CHECK_ERR( ser( marker, ppln_names ));
 			}
-
-			std::sort( ppln_names.begin(), ppln_names.end(), [](auto& lhs, auto& rhs) { return lhs.first < rhs.first; });
-
-			CHECK_ERR( ser( uint(EMarker::PipelineTemplNames), ppln_names ));
 		}
 
 		if ( not _shaderBindingTables.empty() )
 		{
 			CHECK_ERR( _shaderBindingTables.size() <= MaxSBTCount );
-			CHECK_ERR( ser( uint(EMarker::RTShaderBindingTable), _shaderBindingTables ));
+			const auto	marker	= uint(EMarker::RTShaderBindingTable);
+			offsets[marker] = stream.Position();
+			{
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, _shaderBindingTables ));
+			}
 			LOG( "Serialized shader binding tables: "s << ToString(_shaderBindingTables.size()) );
 		}
 
@@ -2110,54 +2214,69 @@ namespace {
 		if ( not _spirvShaders.empty() )
 		{
 			CHECK_ERR( _spirvShaders.size() <= MaxShaderCount );
-			CHECK_ERR( ser( uint(EMarker::SpirvShaders), uint(_spirvShaders.size()) ));
-
-			Bytes	shader_offset;
-			for (auto& code :_spirvShaders)
+			const auto	marker	= uint(EMarker::SpirvShaders);
+			Bytes		shader_offset;
+			offsets[marker] = stream.Position();
 			{
-				code.offset		= shader_offset + shader_data_size;
-				shader_offset	+= code.GetDataSize();
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, uint(_spirvShaders.size()) ));
 
-				CHECK_ERR( ser( code ));
+				for (auto& code :_spirvShaders)
+				{
+					code.offset		= shader_offset + shader_data_size;
+					shader_offset	+= code.GetDataSize();
+
+					CHECK_ERR( ser( code ));
+				}
+				shader_data_size += shader_offset;
 			}
 			LOG( "Serialized SPIRV shaders: "s << ToString(_spirvShaders.size()) << ", data size: " << ToString(shader_offset) );
-			shader_data_size += shader_offset;
 		}
 
 		// metal ios
 		if ( not _metaliOSShaders.empty() )
 		{
 			CHECK_ERR( _metaliOSShaders.size() <= MaxShaderCount );
-			CHECK_ERR( ser( uint(EMarker::MetaliOSShaders), uint(_metaliOSShaders.size()) ));
-
-			Bytes	shader_offset;
-			for (auto& code :_metaliOSShaders)
+			const auto	marker	= uint(EMarker::MetaliOSShaders);
+			Bytes		shader_offset;
+			offsets[marker] = stream.Position();
 			{
-				code.offset		= shader_offset + shader_data_size;
-				shader_offset	+= code.GetDataSize();
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, uint(_metaliOSShaders.size()) ));
 
-				CHECK_ERR( ser( code ));
+				for (auto& code :_metaliOSShaders)
+				{
+					code.offset		= shader_offset + shader_data_size;
+					shader_offset	+= code.GetDataSize();
+
+					CHECK_ERR( ser( code ));
+				}
+				shader_data_size += shader_offset;
 			}
 			LOG( "Serialized Metal iOS shaders: "s << ToString(_metaliOSShaders.size()) << ", data size: " << ToString(shader_offset) );
-			shader_data_size += shader_offset;
 		}
 
 		// metal mac
 		if ( not _metalMacShaders.empty() )
 		{
 			CHECK_ERR( _metalMacShaders.size() <= MaxShaderCount );
-			CHECK_ERR( ser( uint(EMarker::MetalMacShaders), uint(_metalMacShaders.size()) ));
-
-			Bytes	shader_offset;
-			for (auto& code :_metalMacShaders)
+			const auto	marker	= uint(EMarker::MetalMacShaders);
+			Bytes		shader_offset;
+			offsets[marker] = stream.Position();
 			{
-				code.offset		= shader_offset + shader_data_size;
-				shader_offset	+= code.GetDataSize();
+				Serializing::Serializer		ser{ stream.GetRC<WStream>() };
+				CHECK_ERR( ser( marker, uint(_metalMacShaders.size()) ));
 
-				CHECK_ERR( ser( code ));
+				for (auto& code :_metalMacShaders)
+				{
+					code.offset		= shader_offset + shader_data_size;
+					shader_offset	+= code.GetDataSize();
+
+					CHECK_ERR( ser( code ));
+				}
+				shader_data_size += shader_offset;
 			}
 			LOG( "Serialized Metal Mac shaders: "s << ToString(_metalMacShaders.size()) << ", data size: " << ToString(shader_offset) );
-			shader_data_size += shader_offset;
 		}
 
 		return true;

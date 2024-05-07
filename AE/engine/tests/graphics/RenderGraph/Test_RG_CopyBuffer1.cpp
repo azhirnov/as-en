@@ -42,8 +42,10 @@ namespace
 			ctx.AccumBarriers()
 				.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
-			t.result = AsyncTask{ ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ))
-						.Then( [p = &t] (const BufferMemView &view)
+			auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
+			CHECK( read_res.IsCompleted() );
+
+			t.result = AsyncTask{ read_res.Then( [p = &t] (const BufferMemView &view)
 								{
 									p->isOK = (view == ArrayView<ubyte>{ p->buffer_data });
 								})};

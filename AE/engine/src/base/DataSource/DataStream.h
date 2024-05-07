@@ -36,6 +36,7 @@ namespace AE::Base
 	public:
 		ND_ virtual PosAndSize	PositionAndSize ()										C_NE___ = 0;
 
+		// requires 'SequentialAccess' in 'GetSourceType()'
 			virtual bool		SeekFwd (Bytes offset)									__NE___ = 0;
 
 		// returns size of readn data
@@ -43,6 +44,7 @@ namespace AE::Base
 
 			virtual bool		Prefetch (Bytes offset, Bytes size)						__NE___ { Unused( offset, size );  return false; }
 
+		// requires 'RandomAccess' in 'GetSourceType()'
 			virtual bool		SeekSet (Bytes newPos)									__NE___;
 
 		// api for FastStream
@@ -129,7 +131,7 @@ namespace AE::Base
 		ND_ bool  Write (ArrayView<T> buf)												__NE___;
 
 		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
-		ND_ bool  Write (const BasicString<T,A> str)									__NE___;
+		ND_ bool  Write (const BasicString<T,A> &str)									__NE___;
 
 		template <typename T, ENABLEIF( IsTriviallySerializable<T> )>
 		ND_ bool  Write (BasicStringView<T> str)										__NE___;
@@ -153,6 +155,8 @@ namespace AE::Base
 		const Bytes	pos = Position();
 		if ( newPos >= pos )
 			return SeekFwd( newPos - pos );
+
+		DBG_WARNING( "SeekSet() is not supported" );
 		return false;
 	}
 
@@ -188,7 +192,7 @@ namespace AE::Base
 		return ReadSeq( buffer, size ) == size;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (usize length, OUT BasicString<T,A> &str) __NE___
 	{
 		NOTHROW_ERR( str.resize( length ));
@@ -201,14 +205,14 @@ namespace AE::Base
 		return str.length() == length;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (Bytes size, OUT BasicString<T,A> &str) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT str );
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (usize count, OUT Array<T,A> &arr) __NE___
 	{
 		NOTHROW_ERR( arr.resize( count ));
@@ -221,14 +225,14 @@ namespace AE::Base
 		return arr.size() == count;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (Bytes size, OUT Array<T,A> &arr) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT arr );
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (OUT T &data) __NE___
 	{
 		return ReadSeq( AddressOf(data), Sizeof(data) ) == Sizeof(data);
@@ -292,7 +296,7 @@ namespace AE::Base
 		return WriteSeq( buffer, size ) == size;
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  WStream::Write (ArrayView<T> buf) __NE___
 	{
 		Bytes	size { sizeof(buf[0]) * buf.size() };
@@ -300,13 +304,13 @@ namespace AE::Base
 		return WriteSeq( buf.data(), size ) == size;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
-	bool  WStream::Write (const BasicString<T,A> str) __NE___
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	bool  WStream::Write (const BasicString<T,A> &str) __NE___
 	{
 		return Write( BasicStringView<T>{ str });
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  WStream::Write (BasicStringView<T> str) __NE___
 	{
 		if ( str.empty() )
@@ -317,7 +321,7 @@ namespace AE::Base
 		return WriteSeq( str.data(), size ) == size;
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  WStream::Write (const T &data) __NE___
 	{
 		return WriteSeq( AddressOf(data), Sizeof(data) ) == Sizeof(data);

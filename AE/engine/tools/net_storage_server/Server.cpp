@@ -59,7 +59,6 @@ namespace
 		TaskScheduler::Config	cfg;
 		cfg.maxBackgroundQueues	= 2;
 		cfg.maxIOAccessThreads	= 1;
-		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
 		TaskScheduler::InstanceCtor::Create();
 		CHECK_ERR( Scheduler().Setup( cfg ));
@@ -148,7 +147,7 @@ int main ()
 
 	CHECK_ERR( not dirs.empty(), -1 );
 	CHECK_ERR( Initialize(), -2 );
-	CHECK_ERR( RunVFSServer( 4000, dirs ), -3 );
+	CHECK_ERR( RunVFSServer( 4006, dirs ), -3 );
 	Deinitialize();
 
 	return 0;

@@ -63,7 +63,7 @@
 
 		// render loop
 		{
-			RC<ComputePass>			sim_pass = ComputePass( "", EPassFlags::None );
+			RC<ComputePass>			sim_pass = ComputePass();
 			sim_pass.ArgInOut( "un_Particles", particles );
 			sim_pass.LocalSize( 64 );
 			sim_pass.DispatchThreads( particle_count );

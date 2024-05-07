@@ -21,7 +21,6 @@ namespace
 {
 	static ResEditorAppConfig		s_REConfig;
 	static constexpr auto			c_WindowMode	= EWindowMode::Resizable;
-	static constexpr ushort			c_IAServerPort	= 3000;
 
 /*
 =================================================
@@ -71,7 +70,7 @@ namespace
 		// window
 		{
 			cfg.window.title	= "ResourceEditor";
-			cfg.window.size		= {1600, 900};
+			cfg.window.size		= {1600, 896};
 			cfg.window.mode		= c_WindowMode;
 		}
 
@@ -86,6 +85,17 @@ namespace
 
 		cfg.enableNetwork = true;
 
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		cfg.window.mode						= EWindowMode::NonResizable;
+		cfg.graphics.maxFrames				= 2;
+		cfg.graphics.swapchain.minImageCount= 2;
+		cfg.graphics.graphicsLibPath		= s_REConfig.graphicsLibPath;
+		cfg.graphics.enableSyncLog			= false;
+
+		cfg.graphics.deviceAddr	= Networking::IpAddress::FromInt( s_REConfig.ipAddress[0], s_REConfig.ipAddress[1], s_REConfig.ipAddress[2], s_REConfig.ipAddress[3], 0 );
+	  #endif
+
+		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
 		return cfg;
 	}
 
@@ -291,9 +301,70 @@ namespace
 	static void  ResEditorAppConfig_AddScriptIncludeDir (ResEditorAppConfig &self, const String &path)
 	{
 		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"ScriptIncludeDir '"s << ToString(path) << "' must be existed folder" );
+			"ScriptIncludeDir '"s << path << "' must be existed folder" );
 
 		self.scriptIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_SetRemoteDeviceIpAddress
+=================================================
+*/
+	static void  ResEditorAppConfig_SetRemoteDeviceIpAddress (ResEditorAppConfig &self, uint p0, uint p1, uint p2, uint p3)
+	{
+		self.ipAddress[0] = ubyte(p0);
+		self.ipAddress[1] = ubyte(p1);
+		self.ipAddress[2] = ubyte(p2);
+		self.ipAddress[3] = ubyte(p3);
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_SetGraphicsLibPath
+=================================================
+*/
+	static void  ResEditorAppConfig_SetGraphicsLibPath (ResEditorAppConfig &self, const String &path)
+	{
+		CHECK_THROW_MSG( FileSystem::IsFile( path ),
+			"GraphicsLibPath '"s << path << "' is not exists" );
+
+		self.graphicsLibPath = path;
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_AddTestFolder
+=================================================
+*/
+	static void  ResEditorAppConfig_AddTestFolder (ResEditorAppConfig &self, const String &inPath)
+	{
+		const auto	path = Path{self.scriptFolder} / inPath;
+
+		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+			"TestFolder '"s << ToString(path) << "' must be existed folder" );
+
+		self.testFolders.push_back( FileSystem::ToAbsolute( path ));
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_AddTestOutput
+=================================================
+*/
+	static void  ResEditorAppConfig_AddTestOutput (ResEditorAppConfig &self, const String &path)
+	{
+		self.testOutput = FileSystem::ToAbsolute( Path{path} );
+	}
+
+/*
+=================================================
+	ResEditorAppConfig_SetRemoteInputServerPort
+=================================================
+*/
+	static void  ResEditorAppConfig_SetRemoteInputServerPort (ResEditorAppConfig &self, uint port)
+	{
+		self.remoteIAPort = ushort(port);
 	}
 
 /*
@@ -313,23 +384,28 @@ namespace
 		{
 			ClassBinder<ResEditorAppConfig>		binder{ se };
 			binder.CreateClassValue();
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,				"VFSPath",				{"path", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_MakeVFSPath,			"MakeVFSPath",			{"path", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_NetVFS,					"NetVFS",				{"host", "service", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,				"UIDataDir",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,		"PipelineSearchDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineIncludeDir,		"PipelineIncludeDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,		"ShaderSearchDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,		"ShaderIncludeDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,				"ScriptDir",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_CallableScriptDir,		"CallableScriptDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddScriptIncludeDir,	"ScriptIncludeDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,			"ShaderTraceDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,			"ScreenshotDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,				"VideoDir",				{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ExportDir,				"ExportDir",			{} );
-			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,				"setStableGPUClock"		);
-			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,				"enableRenderDoc"		);
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,					"VFSPath",				{"path", "prefixInVFS"} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_MakeVFSPath,				"MakeVFSPath",			{"path", "prefixInVFS"} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_NetVFS,						"NetVFS",				{"host", "service", "prefixInVFS"} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,					"UIDataDir",			{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,			"PipelineSearchDir",	{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineIncludeDir,			"PipelineIncludeDir",	{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,			"ShaderSearchDir",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,			"ShaderIncludeDir",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,					"ScriptDir",			{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_CallableScriptDir,			"CallableScriptDir",	{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddScriptIncludeDir,		"ScriptIncludeDir",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,				"ShaderTraceDir",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,				"ScreenshotDir",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,					"VideoDir",				{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_ExportDir,					"ExportDir",			{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetRemoteDeviceIpAddress,	"RemoteDeviceIpAddress",{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetGraphicsLibPath,			"GraphicsLibPath",		{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddTestFolder,				"TestFolder",			{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddTestOutput,				"TestOutput",			{} );
+			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
+			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,					"setStableGPUClock"		);
+			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,					"enableRenderDoc"		);
 		}
 
 		ScriptEngine::ModuleSource	src;
@@ -387,9 +463,7 @@ void main (Config &out cfg)
 				engine_path = engine_path.parent_path().parent_path().parent_path();
 			}
 
-			String	path = engine_path.string();
-			FindAndReplace( INOUT path, '\\', '/' );
-
+			String	path = ToString( engine_path );
 			if ( not path.empty() and path.back() != '/' )
 				path << '/';
 
@@ -408,7 +482,9 @@ void main (Config &out cfg)
 	//	attach path on disk to VFS
 	cfg.VFSPath( vfs_path + "shadertoy_data",	"shadertoy/" );
 	cfg.VFSPath( vfs_path + "res_editor_data",	"res/" );
+	//	create directory and add as mutable file system
 	cfg.MakeVFSPath( local_path + "../_export",	"export/" );
+	//	connect to network file system
 	//cfg.NetVFS( "localhost", "4000", "net/" );
 
 	// pipeline dirs //
@@ -448,6 +524,22 @@ void main (Config &out cfg)
 
 	//	on start attach RenderDoc to the app, this will disable some new extensions including ray tracing.
 	cfg.enableRenderDoc = false;
+
+	// remote input //
+	//cfg.RemoteInputServerPort( 0 );
+
+	// remote graphics device //
+	//cfg.GraphicsLibPath( "" );
+
+	// tests //
+	//cfg.TestOutput( vfs_path + "/samples/res_editor/ref" );
+	//cfg.TestFolder( "callable" );
+	//cfg.TestFolder( "games" );
+	//cfg.TestFolder( "samples-2d" );
+	//cfg.TestFolder( "samples-3d" );
+	//cfg.TestFolder( "samples-rt" );
+	//cfg.TestFolder( "sphere" );
+	//cfg.TestFolder( "tests" );
 }
 )";
 
@@ -513,14 +605,16 @@ void main (Config &out cfg)
 	ResEditorApplication::ResEditorApplication () __NE___ :
 		AppCoreV1{ GetAppConfig(), MakeRCTh<ResEditorCore>() }
 	{
+		auto&	re_cfg = ResEditorAppConfig::Get();
+
 		// for imgui
 		{
-			const auto&		ui_path = s_REConfig.uiDataFolder;
+			const auto&		ui_path = re_cfg.uiDataFolder;
 
 			CHECK_FATAL( FileSystem::IsDirectory( ui_path ));
 			CHECK_FATAL( FileSystem::SetCurrentPath( ui_path ));	// TODO: use VFS ?
 		}
-		CHECK_FATAL( FileSystem::IsDirectory( s_REConfig.scriptFolder ));
+		CHECK_FATAL( FileSystem::IsDirectory( re_cfg.scriptFolder ));
 		CHECK_FATAL( _InitVFS() );
 	}
 
@@ -538,11 +632,14 @@ void main (Config &out cfg)
 	_InitVFS
 =================================================
 */
-	bool  ResEditorApplication::_InitVFS ()
+	bool  ResEditorApplication::_InitVFS () __NE___
 	{
-		for (auto& [path, prefix] : s_REConfig.vfsPaths)
+		auto&	re_cfg = ResEditorAppConfig::Get();
+
+		for (auto& [path, in_prefix] : re_cfg.vfsPaths)
 		{
-			ASSERT( not prefix.empty() );
+			ASSERT( not in_prefix.empty() );
+			String	prefix = in_prefix;
 
 			if ( prefix.empty() )			continue;
 			if ( prefix.back() != '/' )		prefix << '/';
@@ -550,11 +647,12 @@ void main (Config &out cfg)
 			CHECK_ERR( GetVFS().AddStorage( VFS::VirtualFileStorageFactory::CreateStaticFolder( path, prefix )));
 		}
 
-		for (auto& [host, service, prefix] : s_REConfig.netVFS)
+		for (auto& [host, service, in_prefix] : re_cfg.netVFS)
 		{
 			Networking::IpAddress	addr = Networking::IpAddress::FromServiceTCP( host, service );
 
-			ASSERT( not prefix.empty() );
+			ASSERT( not in_prefix.empty() );
+			String	prefix = in_prefix;
 
 			if ( prefix.empty() )			continue;
 			if ( prefix.back() != '/' )		prefix << '/';
@@ -563,12 +661,11 @@ void main (Config &out cfg)
 			CHECK_ERR( client->Init( addr, prefix ));
 			CHECK_ERR( GetVFS().AddStorage( client->Storage() ));
 		}
-		s_REConfig.netVFS.clear();
 
-		if ( not s_REConfig.exportFolder.empty() )
+		if ( not re_cfg.exportFolder.empty() )
 		{
 			CHECK_ERR( GetVFS().AddStorage( VFS::StorageName{"export"},
-										    VFS::VirtualFileStorageFactory::CreateDynamicFolder( s_REConfig.exportFolder, "export/" )));
+										    VFS::VirtualFileStorageFactory::CreateDynamicFolder( re_cfg.exportFolder, "export/" )));
 		}
 
 		GetVFS().MakeImmutable();
@@ -634,7 +731,7 @@ void main (Config &out cfg)
 	{
 		return	Scheduler().Run(
 					ETaskQueue::Background,
-					[](RC<VFSClient> client) -> CoroTask
+					[] (RC<VFSClient> client) -> CoroTask
 					{
 						auto	stat = client->Update( client->_frameId );
 						if ( stat )
@@ -686,7 +783,7 @@ void main (Config &out cfg)
 
 		return	Scheduler().Run(
 					ETaskQueue::Background,
-					[](RC<RemoteInputServer> server) -> CoroTask
+					[] (RC<RemoteInputServer> server) -> CoroTask
 					{
 						auto	stat = server->Update( server->_frameId );
 						if ( stat )
@@ -707,7 +804,7 @@ void main (Config &out cfg)
 =================================================
 */
 	ResEditorCore::ResEditorCore () :
-		_ui{ *this, s_REConfig.scriptFolder }
+		_ui{ *this, ResEditorAppConfig::Get().scriptFolder }
 	{}
 
 /*
@@ -734,13 +831,33 @@ void main (Config &out cfg)
 		NOTHROW_ERR(
 			_rg.reset( new RenderGraphImpl{} );
 
+			auto&				re_cfg = ResEditorAppConfig::Get();
 			ScriptExe::Config	cfg;
-			cfg.cppTypesFolder			= s_REConfig.cppTypesFolder;
-			cfg.scriptHeaderOutFolder	= s_REConfig.scriptHeaderOutFolder;
-			cfg.vfsPaths				= s_REConfig.vfsPaths;
-			cfg.scriptIncludeDirs		= s_REConfig.scriptIncludeDirs;
+			cfg.cppTypesFolder			= re_cfg.cppTypesFolder;
+			cfg.scriptHeaderOutFolder	= re_cfg.scriptHeaderOutFolder;
+			cfg.vfsPaths				= re_cfg.vfsPaths;
+			cfg.scriptIncludeDirs		= re_cfg.scriptIncludeDirs;
 
 			_script.reset( new ScriptExe{ RVRef(cfg) });	// throw
+
+			_test.scripts.clear();
+			for (auto& folder : re_cfg.testFolders)
+			{
+				for (auto& entry : FileSystem::EnumRecursive( folder ))
+				{
+					if ( entry.IsFile() and entry.Get().extension() == ".as" )
+						_test.scripts.push_back( entry.Get() );
+				}
+			}
+
+			if ( not _test.scripts.empty() )
+			{
+				CHECK_ERR( not re_cfg.testOutput.empty() );
+				s_REConfig.testOutput /= GraphicsScheduler().GetDevice().GetDeviceName();
+				FileSystem::CreateDirectories( re_cfg.testOutput );
+
+				_test.isActive.store( true );
+			}
 		)
 		return	_LoadInputActions();
 	}
@@ -753,11 +870,11 @@ void main (Config &out cfg)
 	bool  ResEditorCore::_LoadInputActions ()
 	{
 		// load input actions
-		_inputActionsData = MakeRC<MemRStream>();
+		_inputActionsData = MakeRC<ArrayRStream>();
 
 		FileRStream		file {Path{"controls.bin"}};		// TODO: use VFS
 		CHECK_ERR( file.IsOpen() );
-		CHECK_ERR( _inputActionsData->LoadRemaining( file ));
+		CHECK_ERR( _inputActionsData->LoadRemainingFrom( file ));
 
 		return true;
 	}
@@ -786,8 +903,11 @@ void main (Config &out cfg)
 
 		CHECK( ia.SetMode( InputModeName{"Main.UI"} ));
 
-		_remoteIA = MakeRC<RemoteInputServer>();
-		CHECK( _remoteIA->Init( c_IAServerPort, ia ));
+		if ( auto port = ResEditorAppConfig::Get().remoteIAPort;  port != 0 )
+		{
+			_remoteIAServer = MakeRC<RemoteInputServer>();
+			CHECK( _remoteIAServer->Init( port, ia ));
+		}
 	}
 
 /*
@@ -803,8 +923,7 @@ void main (Config &out cfg)
 		bool		ia_changed;
 
 		{
-			auto	main_loop = _mainLoop.WriteNoLock();
-			EXLOCK( main_loop );
+			auto	main_loop = _mainLoop.WriteLock();
 
 			if ( not focused and main_loop->output != null )
 				return;
@@ -826,8 +945,7 @@ void main (Config &out cfg)
 */
 	void  ResEditorCore::StopRendering (Ptr<IOutputSurface> output) __NE___
 	{
-		auto	main_loop	= _mainLoop.WriteNoLock();
-		EXLOCK( main_loop );
+		auto	main_loop	= _mainLoop.WriteLock();
 
 		if ( output == null or main_loop->output == output )
 			main_loop->output = null;
@@ -842,13 +960,16 @@ void main (Config &out cfg)
 */
 	bool  ResEditorCore::RunRenderScriptAsync (const Path &scriptPath)
 	{
+		auto&	re_cfg = ResEditorAppConfig::Get();
+
 		ScriptExe::ScriptConfig	cfg;
 		cfg.dynSize			= UIInteraction::Instance().GetDynamicSize();
-		cfg.shaderDirs		= s_REConfig.shaderSearchDirs;
-		cfg.includeDirs		= s_REConfig.shaderIncludeDirs;
-		cfg.pipelineDirs	= s_REConfig.pipelineSearchDirs;
-		cfg.scriptDir		= s_REConfig.scriptCallableFolder;
+		cfg.shaderDirs		= re_cfg.shaderSearchDirs;
+		cfg.includeDirs		= re_cfg.shaderIncludeDirs;
+		cfg.pipelineDirs	= re_cfg.pipelineSearchDirs;
+		cfg.scriptDir		= re_cfg.scriptCallableFolder;
 		cfg.monitor			= _monitor.Read();
+		cfg.enableRandomizer= not _test.isActive.load();
 
 		auto	output	= _mainLoop.ConstPtr()->output;
 		if ( output )
@@ -861,6 +982,9 @@ void main (Config &out cfg)
 		auto	renderer = _script->Run( scriptPath, cfg );
 		if ( not renderer )
 			return false;
+
+		if ( _test.isActive.load() )
+			renderer->SetFreezeTime( true );
 
 		MakeTask( [this, renderer] ()
 				{
@@ -943,8 +1067,7 @@ void main (Config &out cfg)
 		Ptr<IOutputSurface>		output;
 		RC<Renderer>			renderer;
 		{
-			auto	main_loop = _mainLoop.ReadNoLock();
-			SHAREDLOCK( main_loop );
+			auto	main_loop = _mainLoop.ReadLock();
 
 			input		= main_loop->input;
 			output		= main_loop->output;
@@ -975,8 +1098,8 @@ void main (Config &out cfg)
 		// rendering depends on input processing
 		if ( (renderer or ui) and rg.BeginFrame( output ))
 		{
-			if ( _remoteIA )
-				GraphicsScheduler().AddNextFrameDeps( _remoteIA->Tick() );
+			if ( _remoteIAServer )
+				GraphicsScheduler().AddNextFrameDeps( _remoteIAServer->Tick() );
 
 			AsyncTask	draw_task	= renderer	? renderer->Execute({ proc_input })	: null;
 			AsyncTask	ui_task		= ui		? ui->Draw({ proc_input })			: null;
@@ -990,6 +1113,92 @@ void main (Config &out cfg)
 		{
 			ThreadUtils::Sleep_15ms();
 		}
+
+		_UpdateTests( renderer );
+	}
+
+/*
+=================================================
+	_UpdateTests
+=================================================
+*/
+	void  ResEditorCore::_UpdateTests (RC<Renderer> renderer)
+	{
+		const auto	LoadNextScript = [this] ()
+		{{
+			_mainLoop->renderer = null;
+
+			if_unlikely( _test.scripts.empty() )
+			{
+				_test.isActive.store( false );
+				ResEditorAppConfig::Get().screenshotPrefix.Write( Default );
+				AE_LOGW( "---- All tests are completed ----" );
+			}
+			else
+			{
+				auto	path = _test.scripts.ExtractFront();
+				ResEditorAppConfig::Get().screenshotPrefix.Write( ToString(path.parent_path().filename()) << '-' << ToString(path.filename()) );
+				_test.status.store( ETestStatus::Load );
+
+				Scheduler().Run(
+					ETaskQueue::Background,
+					[] (RC<ResEditorCore> core, Path path) -> CoroTask
+					{
+						if ( not core->RunRenderScriptAsync( path ))
+							core->_test.status.store( ETestStatus::Complete );
+						co_return;
+					}
+					( GetRC<ResEditorCore>(), RVRef(path) ),
+					Tuple{},
+					"Tests::LoadScript"
+				);
+			}
+		}};
+
+		if_likely( not _test.isActive.load() )
+			return;
+
+		switch_enum( _test.status.load() )
+		{
+			case ETestStatus::Load :
+				if ( renderer )
+				{
+					_test.status.store( ETestStatus::Upload );
+					_test.framesToCapture.store( 1000 );
+				}
+				return;
+
+			case ETestStatus::Upload :
+			{
+				if ( not renderer )
+				{
+					_test.status.store( ETestStatus::Complete );
+					return;
+				}
+
+				if ( renderer->IsUploadComplete() or _test.framesToCapture.Dec() < 0 )
+				{
+					// make screenshot
+					auto	capture = UIInteraction::Instance().capture.WriteLock();
+
+					capture->testScreenshot = true;
+					capture->imageFormat	= EImageFormat::PNG;
+
+					_test.framesToSwitch.store( GraphicsConfig::MaxFrames );
+					_test.status.store( ETestStatus::Screenshot );
+				}
+				return;
+			}
+
+			case ETestStatus::Screenshot :
+				if ( _test.framesToSwitch.Dec() < 0 )
+					_test.status.store( ETestStatus::Complete );
+				return;
+
+			case ETestStatus::Complete :
+				return LoadNextScript();
+		}
+		switch_end
 	}
 
 /*
@@ -1001,7 +1210,17 @@ void main (Config &out cfg)
 									Ptr<IWindow>					window,
 									Ptr<IVRDevice>					) __NE___
 	{
-		CHECK( GraphicsScheduler().WaitNextFrame( threadMask, AE::DefaultTimeout ));
+		milliseconds	timeout = AE::DefaultTimeout;
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		timeout = seconds{2};
+	  #endif
+	  #ifndef AE_CFG_RELEASE
+		if ( PlatformUtils::IsUnderDebugger() )
+			timeout = minutes{60};
+	  #endif
+
+		CHECK( GraphicsScheduler().WaitNextFrame( threadMask, timeout ));
 
 		if ( window )
 		{
@@ -1042,7 +1261,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 
 #  ifdef AE_DEBUG
 	StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
-	StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
+	StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log" ));
 #  endif
 #else
 	StaticLogger::InitDefault();

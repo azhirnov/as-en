@@ -450,8 +450,8 @@ namespace AE::Graphics
 	GetEGraphicsDevice***
 =================================================
 */
-	ND_ EVendorID			GetVendorTypeByID (uint id)						__NE___;
-	ND_ EVendorID			GetVendorTypeByDevice (EGraphicsDeviceID id)	__NE___;
+	ND_ EGPUVendor			GetVendorTypeByID (uint id)						__NE___;
+	ND_ EGPUVendor			GetVendorTypeByDevice (EGraphicsDeviceID id)	__NE___;
 	ND_ EGraphicsDeviceID	GetEGraphicsDeviceByID (uint id)				__NE___;
 	ND_ EGraphicsDeviceID	GetEGraphicsDeviceByName (StringView name)		__NE___;
 //-----------------------------------------------------------------------------
@@ -491,7 +491,8 @@ namespace AE::Graphics
 
 
 
-	ND_ EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount = 0) __NE___;
+	ND_ EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount = 0)	__NE___;
+	ND_ EVideoFormat  PixelFormatToVideoFormat (EPixelFormat fmt)						__NE___;
 
 
 } // AE::Graphics

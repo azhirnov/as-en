@@ -3,8 +3,8 @@
 #pragma once
 
 #include "base/DataSource/DataStream.h"
-#include "base/DataSource/DataSourceAsStream.h"
 #include "base/Algorithms/ArrayUtils.h"
+#include "base/Memory/SharedMem.h"
 
 namespace AE::Base
 {
@@ -31,6 +31,16 @@ namespace AE::Base
 		explicit MemRefRDataSource (ArrayView<T> data)							__NE___ : MemRefRDataSource{ data.data(), ArraySizeOf(data) } {}
 
 
+		// Utils //
+		ND_ bool  LoadRemainingFrom (RStream &srcStream, Bytes size = UMax)		__NE___;
+
+		ND_ bool  LoadFrom (RStream &srcStream, Bytes offset, Bytes size)		__NE___;
+		ND_ bool  LoadFrom (RDataSource &srcDS, Bytes offset, Bytes size)		__NE___;
+
+		ND_ bool  LoadAllFrom (RStream &srcStream)								__NE___	{ return LoadFrom( srcStream, 0_b, UMax ); }
+		ND_ bool  LoadAllFrom (RDataSource &srcDS)								__NE___	{ return LoadFrom( srcDS, 0_b, UMax ); }
+
+
 		// RDataSource //
 		bool		IsOpen ()													C_NE_OF	{ return _dataPtr != null; }
 		ESourceType	GetSourceType ()											C_NE_OF;
@@ -39,21 +49,24 @@ namespace AE::Base
 		Bytes		ReadBlock (Bytes pos, OUT void* buffer, Bytes size)			__NE_OF;
 
 
-		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
+		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize{_size} }; }
 
 
 	protected:
 		MemRefRDataSource ()													__NE___ {}
 		void  _Set (const void* ptr, Bytes size)								__NE___;
+		void  _Reset ()															__NE___;
+
+		ND_ virtual bool  _Resize (Bytes newSize)								__NE___ { Unused( newSize );  return false; }
 	};
 
 
 
 	//
-	// Memory read-only Data Source
+	// Array as Read-only Data Source
 	//
 
-	class MemRDataSource final : public MemRefRDataSource
+	class ArrayRDataSource final : public MemRefRDataSource
 	{
 	// variables
 	private:
@@ -62,58 +75,135 @@ namespace AE::Base
 
 	// methods
 	public:
-		MemRDataSource ()														__NE___ {}
-		explicit MemRDataSource (Array<ubyte> data)								__NE___;
-		MemRDataSource (const void* ptr, Bytes size)							__NE___;
+		ArrayRDataSource ()														__NE___ {}
+		explicit ArrayRDataSource (Array<ubyte> data)							__NE___;
+		ArrayRDataSource (const void* ptr, Bytes size)							__NE___;
 
-		ND_ bool  Decompress (RStream &srcFile)									__NE___;
+		ND_ Array<ubyte>  ReleaseData ()										__NE___;
 
-		ND_ bool  Load (RStream &srcStream, Bytes offset, Bytes size)			__NE___;
-		ND_ bool  Load (RDataSource &srcDS, Bytes offset, Bytes size)			__NE___;
+		ND_ bool  DecompressFrom (RStream &srcFile)								__NE___;
 
-		ND_ bool  LoadAll (RStream &srcStream)									__NE___	{ return Load( srcStream, 0_b, UMax ); }
-		ND_ bool  LoadAll (RDataSource &srcDS)									__NE___	{ return Load( srcDS, 0_b, UMax ); }
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
 	};
 
 
 
 	//
-	// Write-only In Memory Data Source
+	// Shared Memory as Read-only Data Source
 	//
 
-	class MemWDataSource final : public WDataSource
+	class SharedMemRDataSource final : public MemRefRDataSource
 	{
 	// variables
 	private:
-		Array<ubyte>	_data;
-		Bytes			_maxSize	= UMax;
+		RC<SharedMem>	_data;
 
 
 	// methods
 	public:
-		MemWDataSource ()														__NE___;
+		SharedMemRDataSource ()													__NE___ {}
+		explicit SharedMemRDataSource (RC<SharedMem> data)						__NE___;
+		SharedMemRDataSource (const void* ptr, Bytes size)						__NE___;
 
-		explicit MemWDataSource (Array<ubyte> data, Bytes maxSize = 0_b)		__NE___;
-		explicit MemWDataSource (Bytes bufferSize, Bytes maxSize = UMax)		__NE___;
+		ND_ RC<SharedMem>	ReleaseData ()										__NE___;
 
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
+	};
+
+
+
+	//
+	// Memory Reference Write-only Data Source
+	//
+
+	class MemRefWDataSource : public WDataSource
+	{
+	// variables
+	protected:
+		void*			_dataPtr	= null;
+		Bytes			_size;
+		const Bytes		_maxSize;
+
+
+	// methods
+	public:
+		explicit MemRefWDataSource (MutableArrayView<ubyte> data)				__NE___	{ _Set( data.data(), ArraySizeOf(data) ); }
+		MemRefWDataSource (void* ptr, Bytes size)								__NE___	{ _Set( ptr, size ); }
+
+		ND_ bool	StoreTo (WStream &dstFile)									C_NE___;
 
 		// WDataSource //
-		bool		IsOpen ()													C_NE_OV	{ return true; }
-		ESourceType	GetSourceType ()											C_NE_OV;
-		Bytes		Capacity ()													C_NE_OV	{ return Bytes{_data.size()}; }
+		bool		IsOpen ()													C_NE_OF	{ return true; }
+		ESourceType	GetSourceType ()											C_NE_OF;
+		Bytes		Capacity ()													C_NE_OF	{ return _maxSize; }
 
-		Bytes		Reserve (Bytes capacity)									__NE_OV;
-		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)		__NE_OV;
+		Bytes		WriteBlock (Bytes pos, const void* buffer, Bytes size)		__NE_OF;
+		void		Flush ()													__NE_OF	{}
 
-		void		Flush ()													__NE_OV	{}
+	protected:
+		explicit MemRefWDataSource (Bytes maxSize)								__NE___ : _maxSize{maxSize} {}
 
+		void  _Set (void* ptr, Bytes size)										__NE___;
+		void  _Reset ()															__NE___;
 
-			void	Clear ()													__NE___;
-		ND_ bool	Store (WStream &dstFile)									C_NE___;
-
-		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize(_data.size()) }; }
-		ND_ Array<ubyte>		ReleaseData ()									__NE___	{ auto temp = RVRef(_data);  return temp; }
+		ND_ virtual bool  _Resize (Bytes newSize)								__NE___ { Unused( newSize );  return false; }
 	};
+
+
+
+	//
+	// Array as Write-only Data Source
+	//
+
+	class ArrayWDataSource final : public MemRefWDataSource
+	{
+	// variables
+	private:
+		Array<ubyte>	_data;
+
+	// methods
+	public:
+		ArrayWDataSource ()														__NE___;
+		explicit ArrayWDataSource (Bytes bufferSize, Bytes maxSize = UMax)		__NE___;
+		explicit ArrayWDataSource (Array<ubyte> data, Bytes maxSize = 0_b)		__NE___;
+
+		void   Clear ()															__NE___;
+
+		ND_ ArrayView<ubyte>		GetData ()									C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize(_size) }; }
+		ND_ MutableArrayView<ubyte>	GetData ()									__NE___	{ return MutableArrayView<ubyte>{ _data.data(), usize(_size) }; }
+		ND_ Array<ubyte>			ReleaseData ()								__NE___;
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
+	};
+
+
+
+	//
+	// Shared Memory as Write-only Data Source
+	//
+	/*
+	class SharedMemWDataSource final : public MemRefWDataSource
+	{
+	// variables
+	private:
+		RC<SharedMem>	_data;
+
+	// methods
+	public:
+		SharedMemWDataSource ()													__NE___ {}
+		explicit SharedMemWDataSource (Bytes bufferSize)						__NE___;
+		explicit SharedMemWDataSource (RC<SharedMem> data)						__NE___;
+
+		void   Clear ()															__NE___;
+
+		ND_ RC<SharedMem>  ReleaseData ()										__NE___;
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
+	};*/
 
 
 } // AE::Base

@@ -4,10 +4,8 @@
 		10'000 AM calls in ~2ms on Ryzen 9 / M1, ~4.5ms on Android
 */
 
+#include "Perf_Common.h"
 #include "threading/TaskSystem/AsyncMutex.h"
-#include "../tests/threading/UnitTest_Common.h"
-#include "../base/Perf_Common.h"
-using namespace AE::Threading;
 
 namespace
 {

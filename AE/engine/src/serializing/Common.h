@@ -3,6 +3,7 @@
 #pragma once
 
 #include "serializing/Serializing.pch.h"
+#include "serializing/PackedBits.h"
 
 // for NamedID
 #define AE_SERIALIZE_HASH_ONLY	1
@@ -14,15 +15,9 @@ namespace AE::Serializing
 
 	using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
 
-	// Basic
 	struct Serializer;
 	struct Deserializer;
 	class ObjectFactory;
-
-
-	// BitPacking
-	struct BitSerializer;
-	struct BitDeserializer;
 
 
 	// IsTriviallySerializable<> defined in 'base/CompileTime/TypeTraits.h'

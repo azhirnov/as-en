@@ -112,7 +112,7 @@ namespace _hidden_
 namespace _hidden_
 {
 	template <typename T>
-	ND_ constexpr uint  NumberOfSetBits (T i)
+	ND_ constexpr uint  NumberOfSetBits (T i) __NE___
 	{
 		if constexpr (sizeof(T) <= 4)
 		{

@@ -194,7 +194,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef	{ uint		indices	[]; 
 		Ray		ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		HWRay	hwray	= HWRay_Create( ray, un_PerPass.camera.clipPlanes.y, PRIMARY_RAY );
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + hwray.rayIndex
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + hwray.rayIndex
 
 		HWTraceRay( un_RtScene, hwray, /*payload*/PRIMARY_RAY );
 
@@ -253,7 +253,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef	{ uint		indices	[]; 
 
 		ShadowRay.shading = 0.0f;
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + hwray.rayIndex
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + hwray.rayIndex
 		HWTraceRay( un_RtScene, hwray, /*payload*/SHADOW_RAY );
 
 		return Saturate( ShadowRay.shading );

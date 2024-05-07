@@ -157,8 +157,8 @@ namespace AE::VFS
 			auto	iter = _globalMap.find( FileName::Optimized_t{name} );
 			if_likely( iter != _globalMap.end() )
 			{
-				ASSERT( iter->second.storage != null );
-				ASSERT( iter->second.ref != null );
+				NonNull( iter->second.storage );
+				NonNull( iter->second.ref );
 
 				DEBUG_ONLY(
 					bool	found = false;
@@ -200,8 +200,8 @@ namespace AE::VFS
 			auto	iter = _globalMap.find( FileName::Optimized_t{name} );
 			if_likely( iter != _globalMap.end() )
 			{
-				ASSERT( iter->second.storage != null );
-				ASSERT( iter->second.ref != null );
+				NonNull( iter->second.storage );
+				NonNull( iter->second.ref );
 
 				DEBUG_ONLY(
 					bool	found = false;

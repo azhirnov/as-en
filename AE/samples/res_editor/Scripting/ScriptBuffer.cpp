@@ -70,6 +70,10 @@ namespace
 	{
 		CHECK_THROW_MSG( GetVFS().Exists( _filename ),
 			"File '"s << filename << "' is not exists" );
+
+		AddUsage( EResourceUsage::UploadedData );
+
+		_outDynCount = ScriptDynamicUIntPtr{ new ScriptDynamicUInt{ MakeRC<DynamicUInt>() }};
 	}
 
 /*
@@ -80,7 +84,7 @@ namespace
 	ScriptBuffer::~ScriptBuffer ()
 	{
 		if ( not _resource )
-			AE_LOG_SE( "Unused buffer '"s << _dbgName << "'" );
+			AE_LOGW( "Unused buffer '"s << _dbgName << "'" );
 	}
 
 /*
@@ -102,7 +106,7 @@ namespace
 */
 	bool  ScriptBuffer::_IsArray () C_NE___
 	{
-		return	_dynCount or
+		return	_inDynCount or
 				(_staticCount > 0 and _staticCount != UMax);
 	}
 
@@ -113,7 +117,8 @@ namespace
 */
 	ulong  ScriptBuffer::GetDeviceAddress () __Th___
 	{
-		CHECK_THROW_MSG( not IsDynamicSize() );
+		CHECK_THROW_MSG( not IsDynamicSize(),
+			"Can not get DeviceAddress from buffer with dynamic size" );
 
 		AddUsage( EResourceUsage::ShaderAddress );
 
@@ -135,7 +140,7 @@ namespace
 	void  ScriptBuffer::_SetType (EBufferType type) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change buffer type" );
+			"Resource is already created, can not change buffer type" );
 
 		if ( _type == type )
 			return;
@@ -155,7 +160,12 @@ namespace
 		if ( type == EBufferType::ConstDataFromScript and _type == EBufferType::MutableDataFromScript )
 			return;	// ignore
 
-		CHECK_THROW_MSG( false, "Can not change buffer layout type" );
+		if ( type == EBufferType::MutableData_NonInitialized and
+			 (_type == EBufferType::ConstDataFromFile or _type == EBufferType::ConstDataFromScript) )
+			return;	// ignore
+
+		CHECK_THROW_MSG( false,
+			"Can not change buffer layout type" );
 	}
 
 /*
@@ -168,7 +178,7 @@ namespace
 		if ( not AllBits( _resUsage, usage ))
 		{
 			CHECK_THROW_MSG( not _resource,
-				"resource is already created, can not change usage or content" );
+				"Resource is already created, can not change usage or content" );
 		}
 
 		_resUsage |= usage;
@@ -198,12 +208,12 @@ namespace
 
 		if ( AnyBits( usage, EResourceUsage::ASBuild ))
 		{
-			CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
+			CHECK_THROW_MSG( fs.accelerationStructure() == FeatureSet::EFeature::RequireTrue,
 				"AccelerationStructures are not supported" );
 		}
 		if ( AnyBits( usage, EResourceUsage::ShaderAddress ))
 		{
-			CHECK_THROW_MSG( fs.bufferDeviceAddress == EFeature::RequireTrue,
+			CHECK_THROW_MSG( fs.bufferDeviceAddress == FeatureSet::EFeature::RequireTrue,
 				"ShaderAddress is not supported" );
 		}
 	}
@@ -216,9 +226,9 @@ namespace
 	void  ScriptBuffer::SetSize (Bytes size, const String &typeName) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change size" );
+			"Resource is already created, can not change size" );
 		CHECK_THROW_MSG( _layout.Empty(),
-			"buffer has const data which will be lost" );
+			"Buffer has const data which will be lost" );
 
 		_desc.size	= size;
 		_layout		= BufferLayout{typeName};
@@ -232,8 +242,9 @@ namespace
 	void  ScriptBuffer::SetLayoutName (const String &typeName) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change size" );
-		CHECK_THROW_MSG( StartsWith( _layout.typeName, "ConstLayout-" ));
+			"Resource is already created, can not change size" );
+		CHECK_THROW_MSG( StartsWith( _layout.typeName, "ConstLayout-" ),
+			"Buffer layout is already defined" );
 
 		_layout.typeName = typeName;
 	}
@@ -245,9 +256,9 @@ namespace
 */
 	void  ScriptBuffer::SetLayout1 (const String &typeName) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
 
 		_layout.typeName = typeName;
@@ -256,9 +267,9 @@ namespace
 
 	void  ScriptBuffer::SetLayout2 (const String &typeName, const String &source) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
 
 		_layout.typeName = typeName;
@@ -273,10 +284,10 @@ namespace
 */
 	void  ScriptBuffer::SetArrayLayout1 (const String &typeName, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
-		CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "array size is already defined" );
 		CHECK_THROW_MSG( count > 0 );
 
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
@@ -287,23 +298,23 @@ namespace
 
 	void  ScriptBuffer::SetArrayLayout2 (const String &typeName, const ScriptDynamicUIntPtr &count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
-		CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
 
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
 
 		_layout.typeName = typeName;
-		_dynCount		 = count;
+		_inDynCount		 = count;
 	}
 
 	void  ScriptBuffer::SetArrayLayout3 (const String &typeName, const String &source, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
-		CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
 		CHECK_THROW_MSG( count > 0 );
 
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
@@ -315,16 +326,16 @@ namespace
 
 	void  ScriptBuffer::SetArrayLayout4 (const String &typeName, const String &source, const ScriptDynamicUIntPtr &count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
-		CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
 
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
 
 		_layout.typeName = typeName;
 		_layout.source	 = source;
-		_dynCount		 = count;
+		_inDynCount		 = count;
 	}
 
 /*
@@ -334,10 +345,10 @@ namespace
 */
 	void  ScriptBuffer::SetArrayLayout5 (const String &typeName, const String &source, const String &staticSrc, uint count) __Th___
 	{
-		CHECK_THROW_MSG( _layout.typeName.empty() );
-		CHECK_THROW_MSG( _layout.source.empty() );
-		CHECK_THROW_MSG( _layout.staticSrc.empty() );
-		CHECK_THROW_MSG( (not _dynCount) and (_staticCount == 0), "array size is already defined" );
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
 		CHECK_THROW_MSG( count > 0 );
 
 		_SetType( EBufferType::MutableData_NonInitialized );  // throw
@@ -348,6 +359,21 @@ namespace
 		_staticCount		= count;
 	}
 
+	void  ScriptBuffer::SetArrayLayout6 (const String &typeName, const String &source, const String &staticSrc, const ScriptDynamicUIntPtr &count) __Th___
+	{
+		CHECK_THROW_MSG( _layout.typeName.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.source.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( _layout.staticSrc.empty(), "Buffer layout is already defined" );
+		CHECK_THROW_MSG( (not _inDynCount) and (_staticCount == 0), "Array size is already defined" );
+
+		_SetType( EBufferType::MutableData_NonInitialized );  // throw
+
+		_layout.typeName	= typeName;
+		_layout.source		= source;
+		_layout.staticSrc	= staticSrc;
+		_inDynCount			= count;
+	}
+
 /*
 =================================================
 	Name
@@ -356,7 +382,7 @@ namespace
 	void  ScriptBuffer::Name (const String &name) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change debug name" );
+			"Resource is already created, can not change debug name" );
 
 		_dbgName = name.substr( 0, ResNameMaxLen );
 	}
@@ -368,9 +394,10 @@ namespace
 */
 	void  ScriptBuffer::AddReference (const ScriptBufferPtr &buf) __Th___
 	{
-		CHECK_THROW_MSG( buf );
+		CHECK_THROW_MSG( buf,
+			"Argument is null" );
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not add buffer reference" );
+			"Resource is already created, can not add buffer reference" );
 
 		RC<Buffer>	buf2 = buf->ToResource();
 		CHECK_THROW_MSG( buf2 );
@@ -883,6 +910,10 @@ namespace
 		binder.Comment( "Set resource name. It is used for debugging." );
 		binder.AddMethod( &ScriptBuffer::Name,					"Name",				{} );
 
+		binder.Comment( "Get buffer type name. Result is valid only after 'Layout*()' methods.\n"
+						"Can be used for debugging: 'LogInfo( buf.TypeName() );'" );
+		binder.AddMethod( &ScriptBuffer::GetTypeName,			"TypeName",			{} );
+
 		binder.Comment( "Set explicit name of the 'ShaderStructType' which will be created for buffer data layout.\n"
 						"It is used when buffer is passed to the pipeline which is explicitly declared (in 'pipelines' folder)\n"
 						"so typename must match in 'Layout()' and in 'ds.StorageBuffer()' call in pipeline script." );
@@ -904,6 +935,7 @@ namespace
 		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"typeName", "source", "count"} );
 
 		binder.AddMethod( &ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
 
 		binder.Comment( "Allow to declare single structure as a buffer layout.\n"
 						"'typeName' must be previously declared or one of built-in type (see 'ArrayLayout')." );
@@ -924,6 +956,9 @@ namespace
 
 		binder.Comment( "Call this method if 'DeviceAddress()' of another buffer is used in current buffer to avoid missed synchronizations." );
 		binder.AddMethod( &ScriptBuffer::AddReference,			"AddReference",		{} );
+
+		binder.Comment( "Dynamic array size, can be used for draw call." );
+		binder.AddMethod( &ScriptBuffer::ArraySize,				"ArraySize",		{} );
 
 		binder.Comment( "Build buffer data layout with initial content.\n"
 						"Returns offset in bytes where data is begin." );
@@ -1032,7 +1067,7 @@ namespace
 
 		Buffer::EBufferFlags	flags = Default;
 
-		CHECK_ERR_MSG( _resUsage != Default, "failed to create buffer '"s << _dbgName << "'" );
+		CHECK_THROW_MSG( _resUsage != Default, "failed to create buffer '"s << _dbgName << "'" );
 		for (auto usage : BitfieldIterate( _resUsage ))
 		{
 			switch_enum( usage )
@@ -1068,7 +1103,7 @@ namespace
 		{
 			case EBufferType::ConstDataFromScript :
 			{
-				CHECK_THROW( HasLayout() );
+				CHECK_THROW_MSG( HasLayout() );
 				_desc.size = Bytes{_layout._data.size()};
 				break;
 			}
@@ -1079,18 +1114,7 @@ namespace
 		}
 		switch_end
 
-		// allow 'FillBuffer' on init
-		_desc.usage |= EBufferUsage::TransferDst;
-
-		auto&				res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&			renderer	= ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-		GfxMemAllocatorPtr	gfx_alloc	= _dynCount ? renderer.GetDynamicAllocator() : renderer.GetAllocator();
-
-		Buffer::LoadOp		load_op;
-		load_op.clear		= (not _filename.IsDefined()) and _layout._data.empty();
-		load_op.filename	= _filename;
-		load_op.data		= RVRef(_layout._data);
-
+		Bytes	static_size;
 		Bytes	elem_size;
 
 		if ( HasLayout() )
@@ -1105,14 +1129,14 @@ namespace
 				CHECK_THROW_MSG( it != st_types.end(),
 					"Can't find ShaderStructType '"s << GetTypeName() << "'" );
 
-				if ( _dynCount )
+				if ( _inDynCount )
 				{
-					UNTESTED;
 					CHECK_THROW_MSG( it->second->HasDynamicArray() );
 					CHECK_THROW_MSG( _desc.size == 0 );
 
-					elem_size = it->second->ArrayStride();
-					_desc.size = elem_size;
+					elem_size	= it->second->ArrayStride();
+					static_size	= it->second->StaticSize();
+					_desc.size	= static_size + elem_size;
 				}
 
 				if ( _staticCount > 0 )
@@ -1121,11 +1145,35 @@ namespace
 					CHECK_THROW_MSG( is_array == it->second->HasDynamicArray() );
 					CHECK_THROW_MSG( _desc.size == 0 );
 
-					_desc.size = it->second->TotalSize( is_array ? _staticCount : 0 );
+					elem_size	= it->second->ArrayStride();
+					static_size	= it->second->StaticSize();
+					_desc.size	= static_size + (is_array ? elem_size * _staticCount : 0_b);
 				}
 			}
-			ASSERT( not (_dynCount or _staticCount > 0) or storage );
+			ASSERT( not (_inDynCount or _staticCount > 0) or storage );
 		}
+
+		Buffer::LoadOp		load_op;
+		load_op.clear		= (not _filename.IsDefined()) and _layout._data.empty();
+		load_op.data		= RVRef(_layout._data);
+
+		_desc.usage |= EBufferUsage::TransferDst;
+
+		if ( _filename.IsDefined() )
+		{
+			CHECK_THROW_MSG( GetVFS().Open( OUT load_op.file, _filename ));
+			_desc.size = load_op.file->Size();
+
+			if ( HasLayout() )
+			{
+				CHECK_THROW_MSG( _desc.size >= static_size );
+				CHECK_THROW_MSG( elem_size == 0 or IsMultipleOf( _desc.size - static_size, elem_size ));
+			}
+		}
+
+		auto&				res_mngr	= GraphicsScheduler().GetResourceManager();
+		Renderer&			renderer	= ScriptExe::ScriptResourceApi::GetRenderer(); // throw
+		GfxMemAllocatorPtr	gfx_alloc	= renderer.ChooseAllocator( Bool{_inDynCount}, _desc.size );
 
 		CHECK_THROW_MSG( _desc.size > 0,
 			"Buffer '"s << _dbgName << "' size is 0" );
@@ -1139,21 +1187,22 @@ namespace
 		{
 			for (auto& id : buf_ids) {
 				id = res_mngr.CreateBuffer( _desc, _dbgName, gfx_alloc );
-				CHECK_ERR( id );
+				CHECK_THROW_MSG( id );
 			}
 		}
 		else
 		{
 			buf_ids[0] = res_mngr.CreateBuffer( _desc, _dbgName, gfx_alloc );
-			CHECK_ERR( buf_ids[0] );
+			CHECK_THROW_MSG( buf_ids[0] );
 
 			for (usize i = 1; i < buf_ids.size(); ++i) {
-				buf_ids[i] = res_mngr.AcquireResource( buf_ids[0] );
+				buf_ids[i] = res_mngr.AcquireResource( buf_ids[0].Get() );
 			}
 		}
 
-		_resource = MakeRCTh<Buffer>( RVRef(buf_ids), _desc, elem_size, RVRef(load_op), struct_type,
-									  renderer, (_dynCount ? _dynCount->Get() : null), _dbgName, flags, RVRef(_refBuffers) );  // throw
+		_resource = MakeRCTh<Buffer>( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
+									  renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
+									  _dbgName, flags, RVRef(_refBuffers) );  // throw
 		return _resource;
 	}
 
@@ -1228,7 +1277,8 @@ namespace
 	Bytes  ScriptBuffer::GetFieldOffset (const String &name) __Th___
 	{
 		auto*	field = GetField( name ).GetIf< PipelineCompiler::ShaderStructType::Field >();	// throw
-		CHECK_THROW_MSG( field != null );
+		CHECK_THROW_MSG( field != null,
+			"field '"s << name << "' is not exists in '" << GetTypeName() << "'" );
 		return field->offset;
 	}
 
@@ -1240,7 +1290,8 @@ namespace
 	StringView  ScriptBuffer::GetFieldStructName (const String &name) __Th___
 	{
 		auto*	field = GetField( name ).GetIf< PipelineCompiler::ShaderStructType::Field >();	// throw
-		CHECK_THROW_MSG( field != null );
+		CHECK_THROW_MSG( field != null,
+			"field '"s << name << "' is not exists in '" << GetTypeName() << "'" );
 		return	field->stType ? field->stType->Typename() : Default;
 	}
 
@@ -1252,9 +1303,12 @@ namespace
 	uint  ScriptBuffer::GetFieldType (const String &name) __Th___
 	{
 		auto*	field = GetField( name ).GetIf< PipelineCompiler::ShaderStructType::Field >();	// throw
-		CHECK_THROW_MSG( field != null );
-		CHECK_THROW_MSG( field->IsScalar() );
-		CHECK_THROW_MSG( not field->stType );
+		CHECK_THROW_MSG( field != null,
+			"field '"s << name << "' is not exists in '" << GetTypeName() << "'" );
+		CHECK_THROW_MSG( field->IsScalar(),
+			"field '"s << name << "' is not scalar" );
+		CHECK_THROW_MSG( not field->stType,
+			"field '"s << name << "' must not be structure" );
 		return uint(field->type);
 	}
 
@@ -1267,12 +1321,14 @@ namespace
 	{
 		using namespace AE::PipelineCompiler;
 
-		CHECK_THROW_MSG( HasLayout() );
+		CHECK_THROW_MSG( HasLayout(),
+			"Buffer layout is not defined" );
 
 		auto&	st_types	= ObjectStorage::Instance()->structTypes;
 		auto	it			= st_types.find( GetTypeName() );
 
-		CHECK_THROW_MSG( it != st_types.end() )
+		CHECK_THROW_MSG( it != st_types.end(),
+			"Can't find buffer layout type '"s << GetTypeName() << "'" )
 
 		for (auto& field : it->second->Fields())
 		{
@@ -1282,6 +1338,24 @@ namespace
 
 		CHECK_THROW_MSG( false,
 			"Failed to find field '"s << name << "' for type '" << GetTypeName() << "'" );
+	}
+
+/*
+=================================================
+	ArraySize*
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptBuffer::ArraySize () C_Th___
+	{
+		return ArraySizeRC().Detach();
+	}
+
+	ScriptDynamicUIntPtr  ScriptBuffer::ArraySizeRC () C_Th___
+	{
+		ScriptDynamicUIntPtr	result;
+		if ( _inDynCount )		result = _inDynCount;
+		if ( _outDynCount )		result = _outDynCount;
+		return result;
 	}
 
 

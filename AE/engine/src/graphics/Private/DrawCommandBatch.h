@@ -35,21 +35,39 @@ namespace AE::Graphics
 
 	// types
 	private:
-		using CmdBufPool_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch )::CmdBufPool;
 		using PrimaryCmdBufState_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, PrimaryCmdBufState );
 
 	  #if defined(AE_ENABLE_VULKAN)
-		using Viewport_t			= VkViewport;
-		using Scissor_t				= VkRect2D;
+		using CmdBufPool	= VCommandBatch::CmdBufPool;
+		using Viewport_t	= VkViewport;
+		using Scissor_t		= VkRect2D;
 
 	  #elif defined(AE_ENABLE_METAL)
-		using Encoder_t				= MetalParallelRenderCommandEncoderRC;
-		using Viewport_t			= RenderPassDesc::Viewport;
-		using Scissor_t				= RectI;
+		using CmdBufPool	= MCommandBatch::CmdBufPool;
+		using Encoder_t		= MetalParallelRenderCommandEncoderRC;
+		using Viewport_t	= Viewport;
+		using Scissor_t		= RectI;
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using Viewport_t			= RenderPassDesc::Viewport;
-		using Scissor_t				= RectI;
+
+		struct RBakedDrawCommands
+		{
+			uint	_value	= 0;
+
+			RBakedDrawCommands ()							__NE___ {}
+			RBakedDrawCommands (RmDrawCommandBufferID id)	__NE___ : _value{BitCast<uint>(id) + 1} {}
+			ND_ bool  IsValid ()							C_NE___	{ return _value != 0; }
+			ND_ auto  Release ()							__NE___	{ auto  id = BitCast<RmDrawCommandBufferID>(_value - 1);  _value = 0;  return id; }
+		};
+
+		struct CmdBufPool : LfCmdBufferPool< void*, RBakedDrawCommands >
+		{
+		public:
+			void  GetCommands (OUT RmDrawCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
+		};
+
+		using Viewport_t	= Viewport;
+		using Scissor_t		= RectI;
 
 	  #else
 	  #	error not implemented
@@ -68,21 +86,24 @@ namespace AE::Graphics
 	  #endif
 
 	public:
-		using Viewports_t			= FixedArray< Viewport_t, GraphicsConfig::MaxViewports >;
-		using Scissors_t			= FixedArray< Scissor_t,  GraphicsConfig::MaxViewports >;
+		using Viewports_t	= FixedArray< Viewport_t, GraphicsConfig::MaxViewports >;
+		using Scissors_t	= FixedArray< Scissor_t,  GraphicsConfig::MaxViewports >;
 
 
 	// variables
 	private:
 		// for draw tasks
 		alignas(AE_CACHE_LINE)
-		  CmdBufPool_t			_cmdPool;
+		  CmdBufPool			_cmdPool;
 
 		alignas(AE_CACHE_LINE)
-		  Atomic<EStatus>		_status			{EStatus::Destroyed};
+		  AtomicState<EStatus>	_status			{EStatus::Destroyed};
 
 	  #ifdef AE_ENABLE_METAL
 		Encoder_t				_encoder;
+	  #endif
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		RmDrawCommandBatchID	_batchId;
 	  #endif
 
 		PrimaryCmdBufState_t	_primaryState;
@@ -90,7 +111,7 @@ namespace AE::Graphics
 		Viewports_t				_viewports;
 		Scissors_t				_scissors;
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			RGBA8u					_dbgColor;
 			String					_dbgName;
 			RC<IGraphicsProfiler>	_profiler;
@@ -102,15 +123,21 @@ namespace AE::Graphics
 		DRAWCMDBATCH ()											__NE___ {}
 
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
-		AsyncTask	Run (Tuple<Ctor...>	&&		ctor	= Default,
-						 const Tuple<Deps...>&	deps	= Default,
-						 DebugLabel				dbg		= Default) __NE___;
+		AsyncTask	Run (Tuple<Ctor...>	&&		ctor = Default,
+						 const Tuple<Deps...>&	deps = Default,
+						 DebugLabel				dbg  = Default)	__NE___;
 
 	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
 		AsyncTask	Run (DrawTaskCoro_t			coro,
-						 const Tuple<Deps...>&	deps	= Default,
-						 DebugLabel				dbg		= Default) __NE___;
+						 const Tuple<Deps...>&	deps,
+						 CmdBufExeIndex			drawIndex,
+						 DebugLabel				dbg = Default)	__NE___;
+
+		template <typename ...Deps>
+		AsyncTask	Run (DrawTaskCoro_t			coro,
+						 const Tuple<Deps...>&	deps = Default,
+						 DebugLabel				dbg  = Default)	__NE___;
 	  #endif
 
 		void  EndRecording ()									__NE___;
@@ -124,12 +151,16 @@ namespace AE::Graphics
 		ND_ bool						IsRecording ()			C_NE___	{ return _status.load() == EStatus::Recording; }
 		ND_ bool						IsSubmitted ()			C_NE___	{ return _status.load() == EStatus::Submitted; }
 
-		DBG_GRAPHICS_ONLY(
-			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()			C_NE___	{ return _profiler.get(); }
-			ND_ DebugLabel				DbgLabel ()				C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
-			ND_ StringView				DbgName ()				C_NE___	{ return _dbgName; }
-			ND_ RGBA8u					DbgColor ()				C_NE___	{ return _dbgColor; }
-		)
+	  #if AE_DBG_GRAPHICS
+		ND_ Ptr<IGraphicsProfiler>		GetProfiler ()			C_NE___	{ return _profiler.get(); }
+		ND_ DebugLabel					DbgLabel ()				C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
+		ND_ StringView					DbgName ()				C_NE___	{ return _dbgName; }
+		ND_ RGBA8u						DbgColor ()				C_NE___	{ return _dbgColor; }
+	  #endif
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		ND_ RmDrawCommandBatchID		Handle ()				C_NE___	{ return _batchId; }
+	  #endif
 
 
 	// render task scheduler api
@@ -171,7 +202,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		bool  GetCmdBuffers (OUT uint &count, INOUT StaticArray< RBakedCommands, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___;
+		bool  GetCmdBuffers (OUT uint &count, INOUT StaticArray< RmDrawCommandBufferID, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___;
 
 
 	//-----------------------------------------------------
@@ -201,19 +232,21 @@ namespace AE::Graphics
 								  DebugLabel			dbg) __NE___
 	{
 		StaticAssert( IsBaseOf< DrawTask, TaskType >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
+		ASSERT( IsRecording() );
 
-		DBG_GRAPHICS_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable::Undefined )
-				dbg.color = _dbgColor;
-		)
-
-		auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
-									  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
-
-		if_likely( task and task->IsValid() )
+		if_likely( IsRecording() )
 		{
-			if_likely( Scheduler().Run( task, deps ))
+			GFX_DBG_ONLY(
+				if ( dbg.color == DebugLabel::ColorTable::Undefined )
+					dbg.color = _dbgColor;
+			)
+
+			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
+										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
+
+			if_likely(	task						and
+						task->IsValid()				and
+						Scheduler().Run( task, deps ))
 				return task;
 		}
 		return Scheduler().GetCanceledTask();
@@ -228,23 +261,34 @@ namespace AE::Graphics
 	template <typename ...Deps>
 	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
 								  const Tuple<Deps...>&	deps,
+								  CmdBufExeIndex		drawIndex,
 								  DebugLabel			dbg) __NE___
 	{
-		CHECK_ERR( IsRecording(),	Scheduler().GetCanceledTask() );
-		CHECK_ERR( coro,			Scheduler().GetCanceledTask() );
+		ASSERT( IsRecording() );
+		ASSERT( coro );
 
-		DBG_GRAPHICS_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable::Undefined )
-				dbg.color = _dbgColor;
-		)
+		if_likely( IsRecording() and coro )
+		{
+			GFX_DBG_ONLY(
+				if ( dbg.color == DebugLabel::ColorTable::Undefined )
+					dbg.color = _dbgColor;
+			)
 
-		auto&	task = coro.AsDrawTask();
-		CHECK_ERR( task._Init( GetRC<DRAWCMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
+			auto&	task = coro.AsDrawTask();
 
-		if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
-			return coro;
-
+			if_likely(	task._Init( GetRC<DRAWCMDBATCH>(), drawIndex, dbg ) and
+						Scheduler().Run( AsyncTask{coro}, deps ))
+				return coro;
+		}
 		return Scheduler().GetCanceledTask();
+	}
+
+	template <typename ...Deps>
+	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
+								  const Tuple<Deps...>&	deps,
+								  DebugLabel			dbg) __NE___
+	{
+		return Run( RVRef(coro), deps, Default, dbg );
 	}
 # endif
 
@@ -257,9 +301,7 @@ namespace AE::Graphics
 */
 	inline void  DRAWCMDBATCH::EndRecording () __NE___
 	{
-		EStatus	exp	= EStatus::Recording;
-		bool	res	= _status.CAS_Loop( INOUT exp, EStatus::Pending );
-
+		bool	res	= _status.Set( EStatus::Recording, EStatus::Pending );
 		Unused( res );
 		ASSERT( res );
 	}

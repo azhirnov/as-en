@@ -17,8 +17,9 @@
 		// render loop
 		{
 			RC<Postprocess>		pass = Postprocess();
+			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			pass.Output( "out_Color",	rt );
-			pass.Slider( "iMode",		0, 3 );
+			pass.Slider( "iMode",		0, 3,	1 );
 		}
 		Present( rt );
 	}
@@ -46,6 +47,22 @@
 		return Rainbow( float(gl.subgroup.Index) / float(gl.subgroup.Size-1) );
 	}
 
+#ifdef AE_NV_shader_sm_builtins
+	float4  SMID ()
+	{
+		return Rainbow( float(gl.NV.SMID) / gl.NV.SMCount );
+	}
+
+	float4  WarpID ()
+	{
+		return Rainbow( float(gl.NV.WarpID) / gl.NV.WarpsPerSM );
+	}
+
+#else
+	float4  SMID ()		{ return float4(0.0); }
+	float4  WarpID ()	{ return float4(0.0); }
+#endif
+
 
 	void  Main ()
 	{
@@ -54,7 +71,8 @@
 		{
 			case 0 :	out_Color = QuadGroupId();		break;
 			case 1 :	out_Color = SubgroupId();		break;
-		//	case 2 :	out_Color = SubgroupGroupId();	break;
+			case 2 :	out_Color = SMID();				break;
+			case 3 :	out_Color = WarpID();			break;
 		}
 	}
 

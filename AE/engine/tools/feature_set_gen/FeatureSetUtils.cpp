@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
 #include "base/Utils/Version.h"
@@ -16,6 +16,7 @@ namespace AE::Graphics
 {
 namespace
 {
+	using EFeature = FeatureSet::EFeature;
 
 /*
 =================================================
@@ -1126,7 +1127,6 @@ namespace
 			outFeatureSet.constantAlphaColorBlendFactors = EFeature::RequireTrue;
 			outFeatureSet.shaderSampleRateInterpolationFunctions = EFeature::RequireTrue;
 			outFeatureSet.pointPolygons				= EFeature::RequireTrue;
-			outFeatureSet.separateStencilMaskRef	= EFeature::RequireTrue;
 			outFeatureSet.tessellationIsolines		= EFeature::RequireTrue;
 			outFeatureSet.tessellationPointMode		= EFeature::RequireTrue;
 			outFeatureSet.multisampleArrayImage		= EFeature::RequireTrue;
@@ -1139,6 +1139,15 @@ namespace
 
 		if ( HasSubString( json, "VK_EXT_vertex_attribute_divisor" ))
 			outFeatureSet.vertexDivisor = EFeature::RequireTrue;
+
+		if ( HasSubString( json, "VK_KHR_image_format_list" ))
+			outFeatureSet.imageViewFormatList = EFeature::RequireTrue;
+
+		if ( HasSubString( json, "VK_KHR_maintenance2" ))
+			outFeatureSet.imageViewExtendedUsage = EFeature::RequireTrue;
+
+		if ( HasSubString( json, "VK_EXT_shader_stencil_export" ))
+			outFeatureSet.shaderStencilExport = EFeature::RequireTrue;
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	outFeatureSet._name_ = FS_ParseJSON( outFeatureSet._name_, json, ReplaceName(AE_TOSTRING(_name_)) );
 		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
@@ -1231,9 +1240,19 @@ namespace
 			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{ aspect }.GetPOT();
 		}
 
+		// deviceID, vendorID
+		{
+			uint		vendor_id	= FS_ParseJSON( 0u, json, "vendorID" );
+			EGPUVendor	vendor		= GetVendorTypeByID( vendor_id );
+
+			if ( vendor != Default )
+				outFeatureSet.vendorIds.include.insert( vendor );
+		}
+
 		FS_ParseJSON_Queues( json, INOUT outFeatureSet.queues );
 		FS_ParseJSON_Formats( json, INOUT outFeatureSet );
 
+		CHECK_MSG( outFeatureSet.vendorIds.include.Any(), "unknown vendor" );
 		CHECK( outFeatureSet.perDescrSet_maxUniformBuffersDynamic > 0 );
 
 		return true;
@@ -1285,7 +1304,12 @@ namespace
 
 		if ( pot10 > 0 and IsPowerOfTwo( value ))
 		{
-			str << ToString( 1u << (pot - pot10) ) << " << " << ToString( pot10 );
+			if ( value > uint(MaxValue<int>()) )
+				str << "uint(" << ToString( 1u << (pot - pot10) ) << ")";
+			else
+				str << ToString( 1u << (pot - pot10) );
+
+			str << " << " << ToString( pot10 );
 		}
 		else
 		if ( value >= (1u << 10) and value == (1u << pot)-1 )
@@ -1665,8 +1689,8 @@ namespace
 */
 	static void  FS_ToString (INOUT String &str, const FeatureSet::ShaderVersion &val, StringView)
 	{
-		if ( val.spirv != 0 )	str << "\tfset.minSpirvVersion (" << ToString( val.spirv ) << ");\n";
-		if ( val.metal != 0 )	str << "\tfset.minMetalVersion (" << ToString( val.metal ) << ");\n";
+		if ( val.spirv != 0 )	str << "\tfset.maxSpirvVersion (" << ToString( val.spirv ) << ");\n";
+		if ( val.metal != 0 )	str << "\tfset.maxMetalVersion (" << ToString( val.metal ) << ");\n";
 	}
 
 /*
@@ -1757,10 +1781,6 @@ namespace
 		#undef AE_FEATURE_SET_VISIT
 
 		str << "}\n";
-
-	  #if not AE_PRIVATE_USE_TABS
-		str = Parser::TabsToSpaces( str );
-	  #endif
 
 		FileWStream		file{ outFile };
 		CHECK_ERR( file.IsOpen() );

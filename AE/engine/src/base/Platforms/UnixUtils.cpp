@@ -185,6 +185,27 @@ namespace AE::Base
 	{
 		return ::sched_yield() == 0;
 	}
+
+/*
+=================================================
+	GetDefaultStackSize
+=================================================
+*/
+	Bytes  UnixUtils::GetDefaultStackSize () __NE___
+	{
+		Bytes			result {PTHREAD_STACK_MIN};
+		pthread_attr_t	attr;
+
+		if ( ::pthread_attr_init( OUT &attr ) == 0 )
+		{
+			usize	stack_size;
+			if ( ::pthread_attr_getstacksize( &attr, OUT &stack_size ) == 0 )
+				result = Bytes{stack_size};
+
+			::pthread_attr_destroy( &attr );
+		}
+		return result;
+	}
 //-----------------------------------------------------------------------------
 
 

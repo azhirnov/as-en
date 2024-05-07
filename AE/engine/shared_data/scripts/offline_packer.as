@@ -1,4 +1,4 @@
-//5fce0d8c
+//0895729a
 #include <vector>
 #include <string>
 
@@ -23,33 +23,33 @@ using array = std::vector<T>;
 struct float2;
 struct float3;
 struct PipelineCompiler;
-struct uint3;
 struct uint2;
+struct uint3;
 struct float4;
 struct uint4;
-struct short2;
-struct ushort4;
-struct short3;
 struct sbyte4;
+struct ushort4;
 struct sbyte3;
-struct AssetPacker;
+struct short3;
+struct short2;
 struct EReflectionFlags;
-struct int3;
-struct bool2;
+struct AssetPacker;
+struct int4;
 struct int2;
 struct bool3;
-struct int4;
-struct bool4;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
+struct bool2;
+struct int3;
 struct short4;
+struct bool4;
+struct ushort2;
+struct sbyte2;
 struct Archive;
+struct ushort3;
 struct ubyte4;
 struct InputActions;
-struct ubyte3;
 struct EFileType;
 struct ubyte2;
+struct ubyte3;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1012,6 +1012,11 @@ float  Length (const float4 & x);
 float  LengthSq (const float4 & x);
 float  Distance (const float4 & x, const float4 & y);
 float  DistanceSq (const float4 & x, const float4 & y);
+string  FindAndReplace (const string &, const string &, const string &);
+bool  StartsWith (const string &, const string &);
+bool  StartsWithIC (const string &, const string &);
+bool  EndsWith (const string &, const string &);
+bool  EndsWithIC (const string &, const string &);
 void  LogError (const string & msg);
 void  LogInfo (const string & msg);
 void  LogDebug (const string & msg);

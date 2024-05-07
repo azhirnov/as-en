@@ -135,15 +135,15 @@ namespace AE::Vulkan
 			"VkDebugReportCallbackEXT",
 		};
 
-		const auto	ParseArgs	= [&mode, &is_voidfunc, &curr_func, &curr_ext, this] (ArrayView<StringView> tokens, usize j)
+		const auto	ParseArgs	= [&mode, &is_voidfunc, &curr_func, &curr_ext, this] (ArrayView<StringView> in_tokens, usize j)
 		{{
 			FuncArg		curr_arg;
 
-			for (; j < tokens.size(); ++j)
+			for (; j < in_tokens.size(); ++j)
 			{
 				if ( not is_voidfunc )
 				{
-					if ( tokens[j] == "," or tokens[j] == ")" )
+					if ( in_tokens[j] == "," or in_tokens[j] == ")" )
 					{
 						// skip array type
 						if ( curr_arg.type.back() == "]" )
@@ -166,12 +166,12 @@ namespace AE::Vulkan
 					}
 					else
 					{
-						CHECK( _IsTypeOrQual( tokens[j] ));
-						curr_arg.type.push_back( tokens[j] );
+						CHECK( _IsTypeOrQual( in_tokens[j] ));
+						curr_arg.type.push_back( in_tokens[j] );
 					}
 				}
 
-				if ( tokens[j] == ")" )
+				if ( in_tokens[j] == ")" )
 				{
 					mode = EMode::None;
 					break;
@@ -188,47 +188,47 @@ namespace AE::Vulkan
 			}
 		}};
 
-		const auto	ParseEnumField	= [] (ArrayView<StringView> tokens, usize i, OUT EnumField &outValue)
+		const auto	ParseEnumField	= [] (ArrayView<StringView> in_tokens, usize i, OUT EnumField &outValue)
 		{{
 			// find name
-			if ( i < tokens.size() )
+			if ( i < in_tokens.size() )
 			{
-				CHECK( StartsWith( tokens[i], "VK_" ));
-				CHECK( _IsWord( tokens[i] ));
+				CHECK( StartsWith( in_tokens[i], "VK_" ));
+				CHECK( _IsWord( in_tokens[i] ));
 
-				outValue.name = tokens[i];
+				outValue.name = in_tokens[i];
 				++i;
 			}
 
 			// find value
-			for (; i < tokens.size(); ++i)
+			for (; i < in_tokens.size(); ++i)
 			{
-				if ( tokens[i] == "=" )
+				if ( in_tokens[i] == "=" )
 					continue;
 
 				//CHECK( _IsNumber( tokens[i] ));
 
-				outValue.value = tokens[i];
+				outValue.value = in_tokens[i];
 				break;
 			}
 
-			CHECK( not outValue.name.empty()  and
+			CHECK( 	not outValue.name.empty()  and
 					not outValue.value.empty() );
 		}};
 
-		const auto	ParseStructField = [] (ArrayView<StringView> tokens, usize i, OUT FuncArg &outField)
+		const auto	ParseStructField = [] (ArrayView<StringView> in_tokens, usize i, OUT FuncArg &outField)
 		{{
-			for (; i < tokens.size(); ++i)
+			for (; i < in_tokens.size(); ++i)
 			{
-				if ( tokens[i] == "[" )
+				if ( in_tokens[i] == "[" )
 				{
 					// skip array
-					CHECK( tokens.size() >= i+2 );
-					CHECK( tokens[i+2] == "]" );
+					CHECK( in_tokens.size() >= i+2 );
+					CHECK( in_tokens[i+2] == "]" );
 					i += 2;
 				}
 				else
-				if ( tokens[i] == ";" or tokens[i] == ":" )
+				if ( in_tokens[i] == ";" or in_tokens[i] == ":" )
 				{
 					outField.name = outField.type.back();
 					outField.type.pop_back();
@@ -239,8 +239,8 @@ namespace AE::Vulkan
 				}
 				else
 				{
-					CHECK( _IsTypeOrQual( tokens[i] ));
-					outField.type.push_back( tokens[i] );
+					CHECK( _IsTypeOrQual( in_tokens[i] ));
+					outField.type.push_back( in_tokens[i] );
 				}
 			}
 		}};
@@ -423,7 +423,7 @@ namespace AE::Vulkan
 			}
 
 
-			// function
+			// function or type
 			if ( tokens.size() > 1		and
 				 tokens[0] == "typedef" )
 			{
@@ -445,6 +445,7 @@ namespace AE::Vulkan
 					}
 				}
 
+				// function
 				if ( name_pos > 0 )
 				{
 					mode = EMode::Func;
@@ -485,6 +486,18 @@ namespace AE::Vulkan
 					ParseArgs( tokens, ++j );
 					continue;
 				}
+
+				// typedef
+				if ( tokens.size() == 4 and tokens[3] == ";" )
+				{
+					TypedefInfo		info;
+					info.dstType	= tokens[1];
+					info.extension	= curr_ext;
+					info.fileIndex	= fileIndex;
+
+					CHECK( _typedefs.emplace( tokens[2], info ).second );
+					continue;
+				}
 			}
 
 
@@ -502,11 +515,11 @@ namespace AE::Vulkan
 					enum_name << "Bits";
 				}
 
-				auto	iter = _enums.find( SearchableEnum{enum_name} );
+				auto	it = _enums.find( SearchableEnum{enum_name} );
 
 				VkBitfieldInfo	bitfield;
 				bitfield.name		= tokens[2];
-				bitfield.enumName	= iter != _enums.end() ? iter->data.name : "";
+				bitfield.enumName	= it != _enums.end() ? it->data.name : "";
 				bitfield.fileIndex	= fileIndex;
 				bitfield.extension	= curr_ext;
 
@@ -582,9 +595,9 @@ namespace AE::Vulkan
 				for (; *end != ';' and *end != '\0'; ++end) {}
 				ci.value = StringView{ ci.value.data(), end };
 
-				auto	iter = _constants.emplace( ci.type, ConstSet_t{} ).first;
+				auto	it = _constants.emplace( ci.type, ConstSet_t{} ).first;
 
-				iter->second.push_back( RVRef(ci) );
+				it->second.push_back( RVRef(ci) );
 				continue;
 			}
 
@@ -607,10 +620,10 @@ namespace AE::Vulkan
 
 		struct VkHeaderFile
 		{
-			StringView				filename;
-			ArrayView<StringView>	enableIfdef;
-			ArrayView<StringView>	disableIfdef;
-			bool					defaultSkip;
+			StringView			filename;
+			Array<StringView>	enableIfdef;
+			Array<StringView>	disableIfdef;
+			bool				defaultSkip;
 		};
 
 		const VkHeaderFile  file_names[] = {
@@ -943,9 +956,9 @@ namespace AE::Vulkan
 			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
 		};
 
-		for (auto iter = _structs.begin(); iter != _structs.end(); ++iter)
+		for (auto it = _structs.begin(); it != _structs.end(); ++it)
 		{
-			auto&	ext = iter->data.extension;
+			auto&	ext = it->data.extension;
 
 			if ( ext.empty() )
 				continue;
@@ -953,44 +966,87 @@ namespace AE::Vulkan
 			if ( skip_ext.contains( ext ))
 				continue;
 
-			auto&	info = _extInfo[ ext ];
-			info.structs.push_back( iter );
+			if ( not StartsWith( it->data.name, "VkPhysicalDevice" ))
+				continue;
 
-			if ( StartsWith( iter->data.name, "VkPhysicalDevice" ))
+			auto&	info = _extInfo[ ext ];
+			info.structs.push_back( it );
+
+			if ( HasSubStringIC( it->data.name, ExtToStruct( ext, "Features" )))
 			{
-				if ( HasSubStringIC( iter->data.name, ExtToStruct( ext, "Features" )))
-				{
-					CHECK( not info.feats.has_value() );
-					info.feats		= iter;
-					info.featsSType	= FindSType( iter->data.name );
-				}
-				else
-				if ( HasSubStringIC( iter->data.name, ExtToStruct( ext, "Properties" )))
-				{
-					CHECK( not info.props.has_value() );
-					info.props		= iter;
-					info.propsSType	= FindSType( iter->data.name );
-				}
-				else
-				if ( EndsWithIC( ext, "Properties" ) and HasSubStringIC( iter->data.name, ExtToStruct( ext, "" )))
-				{
-					CHECK( not info.props.has_value() );
-					info.props		= iter;
-					info.propsSType	= FindSType( iter->data.name );
-				}
+				CHECK( not info.feats.has_value() );
+				info.feats		= it;
+				info.featsSType	= FindSType( it->data.name );
+			}
+			else
+			if ( HasSubStringIC( it->data.name, ExtToStruct( ext, "Properties" )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= it;
+				info.propsSType	= FindSType( it->data.name );
+			}
+			else
+			// some extensions don't duplicate 'Properties' in properties struct,
+			// example: VK_AMD_shader_core_properties and VkPhysicalDeviceShaderCorePropertiesAMD
+			if ( EndsWithIC( ext, "Properties" ) and HasSubStringIC( it->data.name, ExtToStruct( ext, "" )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= it;
+				info.propsSType	= FindSType( it->data.name );
 			}
 		}
 
-		for (auto iter = _enums.begin(); iter != _enums.end(); ++iter)
+		for (auto it = _typedefs.begin(); it != _typedefs.end(); ++it)
 		{
-			if ( not iter->data.extension.empty() )
-				_extInfo[ iter->data.extension ].enums.push_back( iter );
+			auto&	ext = it->second.extension;
+
+			if ( ext.empty() )
+				continue;
+
+			if ( skip_ext.contains( ext ))
+				continue;
+
+			if ( not StartsWith( it->second.dstType, "VkPhysicalDevice" ))
+				continue;
+
+			auto&	info	= _extInfo[ ext ];
+			auto	st_it	= _structs.find( SearchableStruct{it->second.dstType} );
+
+			if ( st_it == _structs.end() )
+				continue;
+
+			if ( not info.feats and HasSubStringIC( it->first, ExtToStruct( ext, "Features" )))
+			{
+				info.feats		= st_it;
+				info.featsSType	= FindSType( st_it->data.name );
+				info.structs.push_back( st_it );
+			}
+			else
+			if ( not info.props and HasSubStringIC( it->first, ExtToStruct( ext, "Properties" )))
+			{
+				info.props		= st_it;
+				info.propsSType	= FindSType( st_it->data.name );
+				info.structs.push_back( st_it );
+			}
+			else
+			if ( not info.props and EndsWithIC( ext, "Properties" ) and HasSubStringIC( it->first, ExtToStruct( ext, "" )))
+			{
+				info.props		= st_it;
+				info.propsSType	= FindSType( st_it->data.name );
+				info.structs.push_back( st_it );
+			}
 		}
 
-		for (auto iter = _bitfields.begin(); iter != _bitfields.end(); ++iter)
+		for (auto it = _enums.begin(); it != _enums.end(); ++it)
 		{
-			if ( not iter->data.extension.empty() )
-				_extInfo[ iter->data.extension ].bitfields.push_back( iter );
+			if ( not it->data.extension.empty() )
+				_extInfo[ it->data.extension ].enums.push_back( it );
+		}
+
+		for (auto it = _bitfields.begin(); it != _bitfields.end(); ++it)
+		{
+			if ( not it->data.extension.empty() )
+				_extInfo[ it->data.extension ].bitfields.push_back( it );
 		}
 	}
 

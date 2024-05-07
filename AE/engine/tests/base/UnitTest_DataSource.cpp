@@ -34,7 +34,7 @@ namespace
 			cfg.quality		= 1.0f;
 			cfg.windowBits	= 1.0f;
 
-			auto			stream = MakeRC<MemWStream>();
+			auto			stream = MakeRC<ArrayWStream>();
 			BrotliWStream	encoder{ stream, cfg };
 
 			TEST( encoder.IsOpen() );
@@ -49,7 +49,7 @@ namespace
 
 		// uncompress
 		{
-			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			BrotliRStream	decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			Array<ubyte>	data2, data3;
 
 			TEST( decoder.IsOpen() );
@@ -77,7 +77,7 @@ namespace
 			cfg.quality		= 0.5f;
 			cfg.windowBits	= 0.2f;
 
-			auto			stream = MakeRC<MemWStream>();
+			auto			stream = MakeRC<ArrayWStream>();
 			BrotliWStream	encoder{ stream, cfg };
 
 			TEST( encoder.IsOpen() );
@@ -99,7 +99,7 @@ namespace
 
 		// uncompress
 		{
-			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			BrotliRStream	decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			Array<ubyte>	data2, data3;
 
 			TEST( decoder.IsOpen() );
@@ -126,7 +126,7 @@ namespace
 			cfg.quality		= 1.0f;
 			cfg.windowBits	= 1.0f;
 
-			auto			stream = MakeRC<MemWStream>();
+			auto			stream = MakeRC<ArrayWStream>();
 			BrotliWStream	encoder{ stream, cfg };
 
 			TEST( encoder.IsOpen() );
@@ -140,10 +140,10 @@ namespace
 
 		// uncompress
 		{
-			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			BrotliRStream	decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			TEST( decoder.IsOpen() );
 
-			MemWStream		dst_mem;
+			ArrayWStream	dst_mem;
 			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
 
 			TEST_Eq( size, ArraySizeOf(uncompressed) );
@@ -161,7 +161,7 @@ namespace
 
 		// compress
 		{
-			auto	stream = MakeRC<MemWStream>();
+			auto	stream = MakeRC<ArrayWStream>();
 			{
 				ZStdWStream::Config	cfg;
 				ZStdWStream			encoder{ stream, cfg };
@@ -178,7 +178,7 @@ namespace
 
 		// uncompress
 		{
-			ZStdRStream		decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			ZStdRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			Array<ubyte>	data2, data3;
 
 			TEST( decoder.IsOpen() );
@@ -203,7 +203,7 @@ namespace
 		{
 			ZStdWStream::Config	cfg;
 
-			auto			stream = MakeRC<MemWStream>();
+			auto			stream = MakeRC<ArrayWStream>();
 			ZStdWStream		encoder{ stream, cfg };
 
 			TEST( encoder.IsOpen() );
@@ -225,7 +225,7 @@ namespace
 
 		// uncompress
 		{
-			ZStdRStream		decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			ZStdRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			Array<ubyte>	data2, data3;
 
 			TEST( decoder.IsOpen() );
@@ -247,7 +247,7 @@ namespace
 
 		// compress
 		{
-			auto	stream = MakeRC<MemWStream>();
+			auto	stream = MakeRC<ArrayWStream>();
 			{
 				ZStdWStream		encoder{ stream };
 
@@ -262,10 +262,10 @@ namespace
 
 		// uncompress
 		{
-			ZStdRStream		decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			ZStdRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			TEST( decoder.IsOpen() );
 
-			MemWStream		dst_mem;
+			ArrayWStream	dst_mem;
 			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
 
 			TEST_Eq( size, ArraySizeOf(uncompressed) );
@@ -293,10 +293,10 @@ namespace
 
 		// uncompress
 		{
-			ZStdRStream		decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			ZStdRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			TEST( decoder.IsOpen() );
 
-			MemWStream		dst_mem;
+			ArrayWStream	dst_mem;
 			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
 
 			TEST_Eq( size, ArraySizeOf(uncompressed) );
@@ -332,9 +332,9 @@ namespace
 
 	static void  BufferedStream_Test1 ()
 	{
-		const uint		count	= 10'000;
-		RC<MemWStream>	stream1	= MakeRC<MemWStream>();
-		RC<WStream>		stream2	= MakeRC<BufferedWStream>( stream1, 128_b );
+		const uint	count	= 10'000;
+		auto		stream1	= MakeRC<ArrayWStream>();
+		auto		stream2	= MakeRC<BufferedWStream>( stream1, 128_b );
 
 		for (uint i = 0; i < count; ++i)
 			TEST( stream2->Write( i ));
@@ -359,13 +359,13 @@ namespace
 
 	static void  FastStream_Test1 ()
 	{
-		const uint		count	= 10'000;
-		RC<MemWStream>	stream1	= MakeRC<MemWStream>();
+		const uint	count	= 10'000;
+		auto		stream1	= MakeRC<ArrayWStream>();
 
 		for (uint i = 0; i < count; ++i)
 			TEST( stream1->Write( i ));
 
-		RC<MemRefRStream>	stream2	= stream1->ToRStream();
+		auto		stream2	= MakeRC<MemRefRStream>( stream1->GetData() );
 
 		const void*	begin1	= null;
 		const void*	end1	= null;
@@ -391,14 +391,14 @@ namespace
 
 	static void  FastStream_Test2 ()
 	{
-		const uint		count	= 10'000;
-		RC<MemWStream>	stream1	= MakeRC<MemWStream>();
+		const uint	count	= 10'000;
+		auto		stream1	= MakeRC<ArrayWStream>();
 
 		for (uint i = 0; i < count; ++i)
 			TEST( stream1->Write( i ));
 
-		RC<MemRefRStream>	stream2	= stream1->ToRStream();
-		RC<BufferedRStream>	stream3 = MakeRC<BufferedRStream>( stream2, 128_b );
+		auto		stream2	= MakeRC<MemRefRStream>( stream1->GetData() );
+		auto		stream3 = MakeRC<BufferedRStream>( stream2, 128_b );
 
 		const void*	begin1	= null;
 		const void*	end1	= null;
@@ -424,7 +424,7 @@ namespace
 
 	static void  FastStream_Test3 ()
 	{
-		RC<MemWStream>	stream1	= MakeRC<MemWStream>();
+		auto		stream1	= MakeRC<ArrayWStream>();
 
 		void*		begin1	= null;
 		const void*	end1	= null;
@@ -457,8 +457,8 @@ namespace
 
 	static void  FastStream_Test4 ()
 	{
-		RC<MemWStream>		stream1	= MakeRC<MemWStream>();
-		RC<BufferedWStream>	stream2 = MakeRC<BufferedWStream>( stream1, 256_b );
+		auto		stream1	= MakeRC<ArrayWStream>();
+		auto		stream2 = MakeRC<BufferedWStream>( stream1, 256_b );
 
 		void*		begin1	= null;
 		const void*	end1	= null;
@@ -604,7 +604,7 @@ namespace
 }
 
 
-extern void UnitTest_DataSource ()
+extern void UnitTest_DataSource (const Path &curr)
 {
 	#ifdef AE_ENABLE_BROTLI
 	BrotliStream_Test1();
@@ -628,47 +628,37 @@ extern void UnitTest_DataSource ()
 	FastStream_Test4();
 
 
-	// minimize disk usage for debug build
-  #ifdef AE_RELEASE
+	const Path	folder = curr / "ds_test";
 
-  # ifdef AE_PLATFORM_ANDROID
-	const Path	curr	{"/storage/emulated/0/Android/data/AE.Test/cache"};
-	const Path	folder	= curr / "ds_test";
-  # else
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/ds_test"};
-  # endif
-
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
-	Stream_Test1< FileRStream,		FileWStream >();
-	File_Test1<   FileRDataSource,	FileWDataSource >( false );
+	Stream_Test1< StdFileRStream,		StdFileWStream		>();
+	File_Test1<   StdFileRDataSource,	StdFileWDataSource	>( false );
 
 	#ifdef AE_PLATFORM_WINDOWS
 		Stream_Test1< WinFileRStream,		WinFileWStream		>();
-		Stream_Test1< FileRStream,			WinFileWStream		>();
-		Stream_Test1< WinFileRStream,		FileWStream			>();
+		Stream_Test1< StdFileRStream,		WinFileWStream		>();
+		Stream_Test1< WinFileRStream,		StdFileWStream		>();
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( false );
-		File_Test1<   WinFileRDataSource,	FileWDataSource		>( false );
-		File_Test1<   FileRDataSource,		WinFileWDataSource	>( false );
+		File_Test1<   WinFileRDataSource,	StdFileWDataSource	>( false );
+		File_Test1<   StdFileRDataSource,	WinFileWDataSource	>( false );
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( true );
 	#else
 		Stream_Test1< UnixFileRStream,		UnixFileWStream		>();
-		Stream_Test1< FileRStream,			UnixFileWStream		>();
-		Stream_Test1< UnixFileRStream,		FileWStream			>();
+		Stream_Test1< StdFileRStream,		UnixFileWStream		>();
+		Stream_Test1< UnixFileRStream,		StdFileWStream		>();
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( false );
-		File_Test1<   UnixFileRDataSource,	FileWDataSource		>( false );
-		File_Test1<   FileRDataSource,		UnixFileWDataSource	>( false );
+		File_Test1<   UnixFileRDataSource,	StdFileWDataSource	>( false );
+		File_Test1<   StdFileRDataSource,	UnixFileWDataSource	>( false );
 	# ifndef AE_PLATFORM_ANDROID
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( true );
 	# endif
 	#endif
 
 	FileSystem::SetCurrentPath( curr );
-	FileSystem::RemoveAll( folder );
-  #endif // AE_RELEASE
+	FileSystem::DeleteDirectory( folder );
 
 	TEST_PASSED();
 }

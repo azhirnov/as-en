@@ -85,7 +85,7 @@ namespace AE::Graphics::_hidden_
 										  uint		maxDrawCount,
 										  Bytes		stride)															__Th___;
 
-		void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)			__Th___	{ _mngr.AttachmentBarrier( name, srcState, dstState ); }
+		void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)		__Th___	{ _mngr.AttachmentBarrier( name, srcState, dstState ); }
 
 		void  SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)									__Th___;
 		void  SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)									__Th___;
@@ -101,36 +101,36 @@ namespace AE::Graphics::_hidden_
 		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___;
 		_VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)									__Th___;
 
-		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
-		void  _PushGraphicsConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
+		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline, VkPipelineLayout, EPipelineDynamicState)	__Th___;
+		void  _PushGraphicsConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)			__Th___;
 
-		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
-		void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds);
-		void  _SetBlendConstants (const RGBA32f &color);
+		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)		__Th___;
+		void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds)											__Th___;
+		void  _SetBlendConstants (const RGBA32f &color)																__Th___;
 
 		void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
-									   VkFragmentShadingRateCombinerOpKHR textureOp);
+									   VkFragmentShadingRateCombinerOpKHR textureOp)								__Th___;
 
-		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets);
+		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)	__Th___;
 
 		void  _Draw (uint vertexCount,
 					 uint instanceCount,
 					 uint firstVertex,
-					 uint firstInstance);
+					 uint firstInstance)																			__Th___;
 
 		void  _DrawIndexed (uint indexCount,
 							uint instanceCount,
 							uint firstIndex,
 							int  vertexOffset,
-							uint firstInstance);
+							uint firstInstance)																		__Th___;
 
-		void  _DrawMeshTasks (const uint3 &taskCount);
+		void  _DrawMeshTasks (const uint3 &taskCount)																__Th___;
 
 		void  _DispatchTile ()																						__Th___;
 
-		void  _CommitBarriers ();
+		void  _CommitBarriers ()																					__Th___;
 
-		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
+		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect)							__Th___;
 
 		ND_ bool	_NoPendingBarriers ()	C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto	_GetDynamicStates ()	C_NE___	{ return _states.dynStates; }
@@ -249,9 +249,9 @@ namespace AE::Graphics::_hidden_
 
 		void  _DispatchTile ()																						__Th___;
 
-		void  _CommitBarriers ();
+		void  _CommitBarriers ()																					__Th___;
 
-		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
+		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect)							__Th___;
 
 		ND_ bool	_NoPendingBarriers ()	C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto	_GetDynamicStates ()	C_NE___	{ return _states.dynStates; }
@@ -268,7 +268,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VDrawContextImpl : public CtxImpl, public IDrawContext
+	class _VDrawContextImpl final : public CtxImpl, public IDrawContext
 	{
 	// types
 	public:
@@ -300,20 +300,20 @@ namespace AE::Graphics::_hidden_
 		using IDrawContext::PushConstant;
 
 		// dynamic states
-		void  SetViewport (const Viewport_t &viewport)																		__Th_OV;
-		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV;
+		void  SetViewport (const Viewport &viewport)																		__Th_OV;
+		void  SetViewports (ArrayView<Viewport> viewports)																	__Th_OV;
 		void  SetScissor (const RectI &scissors)																			__Th_OV;
 		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV;
 		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV;
-		void  SetStencilCompareMask (uint compareMask)																		__Th___;
-		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___;
-		void  SetStencilWriteMask (uint writeMask)																			__Th___;
-		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___;
+		void  SetStencilCompareMask (uint compareMask)																		__Th_OV;
+		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th_OV;
+		void  SetStencilWriteMask (uint writeMask)																			__Th_OV;
+		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV;
 		void  SetStencilReference (uint reference)																			__Th_OV;
 		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV;
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ RawCtx::_SetBlendConstants( color ); }
-		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___;
-		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___;
+		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th_OV;
+		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th_OV;
 
 		using RawCtx::SetViewport;
 		using RawCtx::SetScissor;
@@ -330,15 +330,23 @@ namespace AE::Graphics::_hidden_
 		void  BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)					__Th___;
 		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)					__Th_OV;
 		bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset)		__Th_OV;
+		bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, VkBuffer buffer, Bytes offset)		__Th___;
 
 		using RawCtx::DrawIndirect;
 		using RawCtx::DrawIndexedIndirect;
+		using RawCtx::DrawMeshTasksIndirect;
+		using RawCtx::DrawIndirectCount;
+		using RawCtx::DrawIndexedIndirectCount;
+		using RawCtx::DrawMeshTasksIndirectCount;
 
 		using IDrawContext::Draw;
 		using IDrawContext::DrawIndexed;
 		using IDrawContext::DrawIndirect;
 		using IDrawContext::DrawIndexedIndirect;
 		using IDrawContext::DrawMeshTasksIndirect;
+		using IDrawContext::DrawIndirectCount;
+		using IDrawContext::DrawIndexedIndirectCount;
+		using IDrawContext::DrawMeshTasksIndirectCount;
 
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
@@ -370,35 +378,26 @@ namespace AE::Graphics::_hidden_
 									 Bytes		stride)																		__Th_OV;
 
 		// extension
-		using RawCtx::DrawIndirectCount;
-		using RawCtx::DrawIndexedIndirectCount;
-
-		void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		void  DrawIndirectCount (BufferID	indirectBuffer,
 								 Bytes		indirectBufferOffset,
 								 BufferID	countBuffer,
 								 Bytes		countBufferOffset,
 								 uint		maxDrawCount,
-								 Bytes		stride)																			__Th___;
+								 Bytes		stride)																			__Th_OV;
 
-		void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___	{ DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
 										Bytes		indirectBufferOffset,
 										BufferID	countBuffer,
 										Bytes		countBufferOffset,
 										uint		maxDrawCount,
-										Bytes		stride)																	__Th___;
+										Bytes		stride)																	__Th_OV;
 
-		using RawCtx::DrawMeshTasksIndirect;
-		using RawCtx::DrawMeshTasksIndirectCount;
-
-		void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___	{ DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
 										  Bytes		indirectBufferOffset,
 										  BufferID	countBuffer,
 										  Bytes		countBufferOffset,
 										  uint		maxDrawCount,
-										  Bytes		stride)																	__Th___;
+										  Bytes		stride)																	__Th_OV;
 
 		// tile shader
 		void  DispatchTile ()																								__Th_OV	{ RawCtx::_DispatchTile(); }
@@ -406,6 +405,8 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
 		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
 		void  PopDebugGroup ()																								__Th_OV	{ RawCtx::_PopDebugGroup(); }
+
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ RawCtx::_WriteTimestamp( static_cast<VQueryManager::Query const&>(q), index, srcScope, this->_mngr.GetSupportedStages() ); }
 
 		void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)				__Th_OV	{ RawCtx::AttachmentBarrier( name, srcState, dstState ); }
 
@@ -415,8 +416,8 @@ namespace AE::Graphics::_hidden_
 		bool  ClearAttachment (AttachmentName::Ref, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 		bool  ClearAttachment (AttachmentName::Ref, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 		bool  ClearAttachment (AttachmentName::Ref, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName::Ref, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 		bool  ClearAttachment (AttachmentName::Ref, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		using IDrawContext::ClearAttachment;
 
 		// vertex stream
 		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)														__Th_OV;
@@ -540,13 +541,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VDrawContextImpl<C>::SetViewport (const Viewport_t &viewport) __Th___
+	void  _VDrawContextImpl<C>::SetViewport (const Viewport &viewport) __Th___
 	{
-		return SetViewports( ArrayView<Viewport_t>{ &viewport, 1u });
+		return SetViewports( ArrayView<Viewport>{ &viewport, 1u });
 	}
 
 	template <typename C>
-	void  _VDrawContextImpl<C>::SetViewports (ArrayView<Viewport_t> viewports) __Th___
+	void  _VDrawContextImpl<C>::SetViewports (ArrayView<Viewport> viewports) __Th___
 	{
 		GCTX_CHECK( viewports.size() <= GraphicsConfig::MaxViewports );
 
@@ -718,8 +719,8 @@ namespace AE::Graphics::_hidden_
 	{
 		VALIDATE_GCTX( BindVertexBuffers( index, {buffer}, {offset} ));
 
-		const VkDeviceSize	off	= VkDeviceSize(offset);
-		RawCtx::_BindVertexBuffers( index, ArrayView<VkBuffer>{&buffer, 1}, ArrayView<VkDeviceSize>{&off, 1} );
+		VkDeviceSize	off	= VkDeviceSize(offset);
+		RawCtx::_BindVertexBuffers( index, {buffer}, {off} );
 	}
 
 	template <typename C>
@@ -731,6 +732,18 @@ namespace AE::Graphics::_hidden_
 		CHECK_ERR( idx != UMax );
 
 		BindVertexBuffer( idx, buf.Handle(), offset );
+		return true;
+	}
+
+	template <typename C>
+	bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, VkBuffer buffer, Bytes offset) __Th___
+	{
+		auto&	ppln = _GetResourcesOrThrow( pplnId );
+
+		uint	idx = ppln.GetVertexBufferIndex( name );
+		CHECK_ERR( idx != UMax );
+
+		BindVertexBuffer( idx, buffer, offset );
 		return true;
 	}
 
@@ -747,13 +760,13 @@ namespace AE::Graphics::_hidden_
 
 		StaticArray< VkBuffer, GraphicsConfig::MaxVertexBuffers >	dst_buffers;
 
-		for (uint i = 0; i < buffers.size(); ++i)
+		for (usize i = 0; i < buffers.size(); ++i)
 		{
 			auto&	buffer	= _GetResourcesOrThrow( buffers[i] );
 			dst_buffers[i]	= buffer.Handle();
 		}
 
-		RawCtx::_BindVertexBuffers( firstBinding, dst_buffers, offsets.Cast<VkDeviceSize>() );
+		RawCtx::_BindVertexBuffers( firstBinding, ArrayView<VkBuffer>{ dst_buffers.data(), buffers.size() }, offsets.Cast<VkDeviceSize>() );
 	}
 
 	template <typename C>
@@ -950,12 +963,6 @@ namespace AE::Graphics::_hidden_
 		MemCopy( OUT clear_att.clearValue.color.int32, color );
 
 		return _ClearAttachment( name, clear_att, rect, baseLayer, layerCount );
-	}
-
-	template <typename C>
-	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName::Ref name, const RGBA8u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
-	{
-		return ClearAttachment( name, RGBA32f{color}, rect, baseLayer, layerCount );
 	}
 
 	template <typename C>
@@ -1329,10 +1336,10 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::_CommitBarriers ()
 	{
-	    auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
+		auto	bar = _mngr.GetBarriers();
+		if_unlikely( bar )
 		{
-			vkCmdPipelineBarrier2KHR( _cmdbuf.Get(), bar );
+			vkCmdPipelineBarrier2KHR( _cmdbuf.Get(), bar.get() );
 			_mngr.ClearBarriers();
 		}
 	}

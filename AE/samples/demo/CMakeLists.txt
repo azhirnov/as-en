@@ -3,7 +3,7 @@
 if (TARGET "GraphicsHL")
 	file( GLOB_RECURSE CPP_SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" "*.md" )
 
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		set( APP_NAME "SampleDemo" )
 		add_library( ${APP_NAME} SHARED ${CPP_SOURCES} )
 
@@ -24,12 +24,15 @@ if (TARGET "GraphicsHL")
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CPP_SOURCES} )
 	set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
-	target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "Profiler" "GeometryTools" "ResourceLoaders" )
+	target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "GeometryTools" "ResourceLoaders" )
+	if (TARGET "Profiler")
+		target_link_libraries( ${APP_NAME} PUBLIC "Profiler" )
+	endif()
 	target_include_directories( ${APP_NAME} PUBLIC ".." )
 	target_include_directories( ${APP_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
 	set( AE_TEMP_FOLDER_DEMO "${AE_TEMP_FOLDER}/samples/demo" )
-	set( AE_DATA_FOLDER_DEMO "${AE_EXTERNAL_REP_PATH}/samples/demo" )
+	set( AE_DATA_FOLDER_DEMO "${AE_DATA_FOLDER}/samples/demo" )
 	target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="${AE_TEMP_FOLDER_DEMO}" )
 
 	EnablePCH2( ${APP_NAME} "Demo" )

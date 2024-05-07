@@ -62,7 +62,7 @@ namespace AE::Math
 
 		template <typename T, typename S>
 		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> &other) __NE___ :
-			_value{T( other.template ToScale<Scale_t>().GetNonScaled() )}
+			_value{Value_t( other.template ToScale<Scale_t>().GetNonScaled() )}
 		{}
 
 		constexpr PhysicalQuantity (const Self &)					__NE___	= default;

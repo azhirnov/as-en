@@ -17,7 +17,8 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
-		using VideImage_t = Union< NullUnion, RC<VideoImage>, RC<VideoImage2> >;
+		using VideImage_t		= Union< NullUnion, RC<VideoImage>, RC<VideoImage2> >;
+		using VideoStreamInfo	= Video::IVideoDecoder::VideoStreamInfo;
 
 
 	// variables
@@ -25,6 +26,7 @@ namespace AE::ResEditor
 		EResourceUsage				_resUsage		= Default;
 		EPixelFormat				_format			= Default;
 		uint						_imageType		= 0;		// PipelineCompiler::EImageType
+		uint2						_dim;
 		VFS::FileName				_videoFile;
 		String						_dbgName;
 
@@ -36,6 +38,8 @@ namespace AE::ResEditor
 		ScriptDynamicDimPtr			_outDynSize;	// image dimension will change this value
 
 		VideImage_t					_resource;
+
+		Promise<VideoStreamInfo>	_videoInfo;
 
 
 	// methods

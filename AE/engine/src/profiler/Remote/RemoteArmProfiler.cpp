@@ -37,7 +37,7 @@ namespace AE::Profiler
 
 		_msgProducer = RVRef(mp);
 
-		_armProf.initialized.store( false );
+		_prof.status.store( EStatus::NotInitialized );
 		return true;
 	}
 
@@ -48,8 +48,8 @@ namespace AE::Profiler
 */
 	void  ArmProfilerServer::Deinitialize () __NE___
 	{
-		_armProf.profiler.Deinitialize();
-		_armProf.initialized.store( false );
+		_prof.profiler.Deinitialize();
+		_prof.status.store( EStatus::NotInitialized );
 
 		_msgProducer = null;
 	}
@@ -61,28 +61,28 @@ namespace AE::Profiler
 */
 	void  ArmProfilerServer::_ArmProf_InitReq (CSMsg_ArmProf_InitReq const &inMsg) __NE___
 	{
-		if ( _armProf.initialized.load() )
+		if ( _prof.status.load() != EStatus::NotInitialized )
 			return;
 
-		_armProf.timer.Start( inMsg.updateInterval );
-		_armProf.index = 0;
+		_prof.timer.Start( inMsg.updateInterval );
+		_prof.index = 0;
 
-		_armProf.profiler.Deinitialize();
+		_prof.profiler.Deinitialize();
 
-		bool	ok = _armProf.profiler.Initialize( inMsg.enable );
-		ASSERT( ok );
+		bool	ok = _prof.profiler.Initialize( inMsg.enable );
 
 		auto	msg = _msgProducer->CreateMsg< CSMsg_ArmProf_InitRes >();
 		if ( msg )
 		{
-			msg->ok			= ok;
-			msg->enabled	= _armProf.profiler.EnabledCounterSet();
-			msg->supported	= _armProf.profiler.SupportedCounterSet();
-
+			msg->ok = ok;
+			if ( ok ) {
+				msg->enabled	= _prof.profiler.EnabledCounterSet();
+				msg->supported	= _prof.profiler.SupportedCounterSet();
+			}
 			CHECK( _msgProducer->AddMessage( msg ));
 		}
 
-		_armProf.initialized.store( ok, EMemoryOrder::Release );
+		_prof.status.store( (ok ? EStatus::Initialized : EStatus::NotSupported), EMemoryOrder::Release );
 	}
 
 /*
@@ -102,19 +102,19 @@ namespace AE::Profiler
 */
 	void  ArmProfilerServer::_UpdateArmProfiler () __NE___
 	{
-		if ( not _armProf.initialized.load() )
+		if ( _prof.status.load() != EStatus::Initialized )
 			return;
 
 		MemoryBarrier( EMemoryOrder::Acquire );
 
-		const auto	dt	= _armProf.timer.Tick();
+		const auto	dt	= _prof.timer.Tick();
 
-		if ( not dt )
+		if_likely( not dt )
 			return;
 
-		_armProf.profiler.Sample( OUT _armProf.counters );
+		_prof.profiler.Sample( OUT _prof.counters );
 
-		if ( _armProf.counters.empty() )
+		if ( _prof.counters.empty() )
 			return;
 
 		// send first message
@@ -123,7 +123,7 @@ namespace AE::Profiler
 			auto	msg = _msgProducer->CreateMsg< CSMsg_ArmProf_NextSample >();
 			if ( msg )
 			{
-				msg->index	= _armProf.index;
+				msg->index	= _prof.index;
 				msg->dtInMs	= ushort(dt.As<milliseconds>().count());
 
 				is_sent = _msgProducer->AddMessage( msg );
@@ -137,15 +137,15 @@ namespace AE::Profiler
 			constexpr usize	step	= usize((NetConfig::TCP_MaxMsgSize - SizeOf<CSMsg_ArmProf_Sample>) / SizeOf<KeyVal>);
 			usize			sent	= 0;
 
-			for (auto it = _armProf.counters.begin(); it != _armProf.counters.end();)
+			for (auto it = _prof.counters.begin(); it != _prof.counters.end();)
 			{
 				auto	msg = _msgProducer->CreateMsg< CSMsg_ArmProf_Sample >( SizeOf<KeyVal> * step );
 				if ( not msg )
 					break;
 
-				const usize	count = Min( _armProf.counters.size() - sent, step+1 );
+				const usize	count = Min( _prof.counters.size() - sent, step+1 );
 
-				msg->index	= _armProf.index;
+				msg->index	= _prof.index;
 				msg->count	= ubyte(count);
 
 				auto	it2 = it;
@@ -160,9 +160,9 @@ namespace AE::Profiler
 				it	 = it2;
 				sent += count;
 			}
-			ASSERT( sent == _armProf.counters.size() );
+			ASSERT( sent == _prof.counters.size() );
 
-			_armProf.index ++;
+			_prof.index ++;
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -241,9 +241,10 @@ namespace AE::Profiler
 */
 	void  ArmProfilerClient::Sample (OUT Counters_t &result) __NE___
 	{
+		result.clear();
 		EXLOCK( _guard );
 
-		if ( not _initialized )
+		if ( _IsNotInitialized() )
 		{
 			if_unlikely( _connectionLostTimer.Tick() )
 				Unused( _Initialize( _requiredCS ));
@@ -265,9 +266,9 @@ namespace AE::Profiler
 	{
 		EXLOCK( _guard );
 
-		_initialized	= msg.ok;
-		_enabled		= msg.enabled;
-		_supported		= msg.supported;
+		_status		= msg.ok ? EStatus::Initialized : EStatus::NotSupported;
+		_enabled	= msg.enabled;
+		_supported	= msg.supported;
 
 		_connectionLostTimer.Restart();
 	}
@@ -281,7 +282,7 @@ namespace AE::Profiler
 	{
 		EXLOCK( _guard );
 
-		if ( _initialized )
+		if ( _IsInitialized() )
 		{
 			_pendingIdx	= msg.index;
 			_interval	= milliseconds{ msg.dtInMs };
@@ -299,7 +300,7 @@ namespace AE::Profiler
 	{
 		EXLOCK( _guard );
 
-		if ( _initialized and _pendingIdx == msg.index )
+		if ( _IsInitialized() and _pendingIdx == msg.index )
 		{
 			auto&	curr = _counters[ _pendingIdx & 1 ];
 

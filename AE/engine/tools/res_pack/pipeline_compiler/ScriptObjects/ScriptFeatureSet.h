@@ -41,7 +41,7 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)		__Th___;
 
-		void  Build ();
+		void  Build ()										__NE___;
 
 		static ScriptFeatureSet*  Find (const String &name)	__Th___;
 
@@ -90,14 +90,14 @@ namespace AE::PipelineCompiler
 */
 #	define TEST_FEATURE( _featArr_, _feature_, /*msg*/... )																\
 	{																													\
-		CHECK( not _featArr_.empty() );																					\
+		CHECK_THROW_MSG( not _featArr_.empty(), "empty FeatureSet array" );												\
 																														\
 		bool	has_feat = false;																						\
 		for (auto& feat : _featArr_)																					\
 		{																												\
-			has_feat |= (feat->fs._feature_ == EFeature::RequireTrue);													\
-			CHECK_THROW_MSG( feat->fs._feature_ != EFeature::RequireFalse,												\
-				"Feature '" # _feature_ "' required to be unsupported in FS '"s << feat->Name() << "'" __VA_ARGS__ );	\
+			has_feat |= (feat->fs._feature_ == FeatureSet::EFeature::RequireTrue);										\
+			CHECK_THROW_MSG( feat->fs._feature_ != FeatureSet::EFeature::RequireFalse,									\
+				"Feature '" # _feature_ "' is not supported in FS '"s << feat->Name() << "'" __VA_ARGS__ );				\
 		}																												\
 		CHECK_THROW_MSG( has_feat,																						\
 			"Feature '" # _feature_ "' is not marked as RequireTrue in at least one feature set" __VA_ARGS__ ""s <<		\
@@ -112,7 +112,7 @@ namespace AE::PipelineCompiler
 	template <typename A>
 	void  TestFeature_Min (ArrayView<ScriptFeatureSetPtr> features, A FeatureSet::*member, A value, StringView memberName, StringView valueName) __Th___
 	{
-		CHECK( not features.empty() );
+		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
 		A	max_value = 0;
 		for (auto& feat : features) {

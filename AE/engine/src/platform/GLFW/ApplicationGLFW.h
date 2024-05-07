@@ -47,6 +47,7 @@ namespace AE::App
 
 		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV { return null; }
+		Path					GetStoragePath (EAppStorage)							__NE_OV	{ return {}; }
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 
 

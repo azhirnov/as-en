@@ -83,6 +83,7 @@ namespace AE::Graphics
 		}						staging;
 
 
+		IGfxMemAllocator *		largeGfxAllocator		= null;
 		IGfxMemAllocator *		defaultGfxAllocator		= null;
 		IDescriptorAllocator *	defaultDescAllocator	= null;
 
@@ -99,6 +100,12 @@ namespace AE::Graphics
 		bool					useRenderGraph	= false;
 
 		SwapchainDesc			swapchain;
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		Networking::IpAddress	deviceAddr;
+		StringView				graphicsLibPath;
+		bool					enableSyncLog	= false;
+	  #endif
 	};
 
 } // AE::Graphics

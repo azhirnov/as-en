@@ -1,4 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	RGCommandBatchPtr
+		thread-safe:  no (only single thread)
+
+	Warning: CmdBufExeIndex is not compatible with RenderGraph !
+*/
 
 #pragma once
 
@@ -47,22 +53,25 @@ namespace AE::RG::_hidden_
 
 		ND_ bool				IsRecording ()							C_NE___	{ return _cmdBatch and _cmdBatch->IsRecording(); }
 		ND_ bool				IsSubmitted ()							C_NE___	{ return _cmdBatch and _cmdBatch->IsSubmitted(); }
-		ND_ uint				CurrentCmdBufIndex ()					C_NE___	{ return _cmdBatch ? _cmdBatch->CurrentCmdBufIndex() : UMax; }
+
+		ND_ uint				CmdPool_IsEmpty ()						C_NE___	{ return not _cmdBatch or _cmdBatch->CmdPool_IsEmpty(); }
+		ND_ bool				CmdPool_IsFirst (uint exeIndex)			C_NE___	{ return _cmdBatch and _cmdBatch->CmdPool_IsFirst( exeIndex ); }
+		ND_ bool				CmdPool_IsLast (uint exeIndex)			C_NE___	{ return _cmdBatch and _cmdBatch->CmdPool_IsLast( exeIndex ); }
 
 
 	// render task api //
 
 		template <typename TaskType, typename ...Ctor>
-		ND_ RenderTaskBuilder	Task (Tuple<Ctor...>&&	ctor	= Default,
-									  DebugLabel		dbg		= Default)	C_NE___;
+		ND_ RenderTaskBuilder	Task (Tuple<Ctor...>&&	ctor,
+									  DebugLabel		dbg = Default)	C_NE___;
 
 	  #ifdef AE_HAS_COROUTINE
 		ND_ RenderTaskBuilder	Task (RenderTaskCoro	coro,
-									  DebugLabel		dbg		= Default)	C_NE___;
+									  DebugLabel		dbg	= Default)	C_NE___;
 	  #endif
 
 		template <typename ...Deps>
-		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps = Default)		__NE___;
+		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps = Default)	__NE___;
 	};
 
 
@@ -149,7 +158,7 @@ namespace AE::RG::_hidden_
 			template <typename Ctx>
 			void  ReadbackMemoryBarrier (uint taskIdx, Ctx &ctx, EResourceState srcState)		__NE___;
 
-			void  AddSurfaceTargets (uint taskIdx, const App::IOutputSurface::RenderTargets_t &)__NE___;
+			void  AddSurfaceTargets (uint taskIdx, ArrayView<App::IOutputSurface_RenderTarget>)	__NE___;
 
 			template <typename ID>
 		ND_ bool  CheckResourceState (uint taskIdx, ID id, EResourceState state)				C_Th___;
@@ -233,14 +242,14 @@ namespace AE::RG::_hidden_
 		ND_ RenderTaskBuilder &&	UseResource (ImageViewID  id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
 		ND_ RenderTaskBuilder &&	UseResource (BufferViewID id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
 
-		template <typename ID>
-		ND_ RenderTaskBuilder &&	UseResources (ArrayView<ID>, EResourceState initial, EResourceState final)	rvNE___;
+		template <typename ArrayType>
+		ND_ RenderTaskBuilder &&	UseResources (const ArrayType&, EResourceState initial, EResourceState final) rvNE___;
 
-		template <typename ID>
-		ND_ RenderTaskBuilder &&	UseResources (ArrayView<ID> ids, EResourceState initialOrFinal)				rvNE___;
+		template <typename ArrayType>
+		ND_ RenderTaskBuilder &&	UseResources (const ArrayType &, EResourceState initialOrFinal)				rvNE___;
 
-		template <typename ID>
-		ND_ RenderTaskBuilder &&	UseResources (ArrayView<ID> ids)											rvNE___;
+		template <typename ArrayType>
+		ND_ RenderTaskBuilder &&	UseResources (const ArrayType &ids)											rvNE___;
 
 		// last render task may submit command batch to the GPU
 		ND_ RenderTaskBuilder &&	SubmitBatch ()																rvNE___	{ _last = true;  return RVRef(*this); }
@@ -269,6 +278,15 @@ namespace AE::RG::_hidden_
 
 		if ( EResourceState_IsUnnecessaryBarrier( old_state, newState ))
 			return;  // skip barrier
+
+	  #if AE_GRAPHICS_DBG_SYNC
+		{
+			auto	msg = _globalStates.BarrierToString( ResourceKey{id}, old_state, newState );
+			ctx.DebugMarker({ StringView{msg} });
+		}
+		if ( old_state == Default )
+			AE_LOGW( _globalStates.KeyToString(ResourceKey{id}) << " previous state is General or not known" );
+	  #endif
 
 		if constexpr( IsSameTypes< ID, ImageID >){
 			if ( EResourceState_RequireImageBarrier( old_state, newState, False{"strict"} ))
@@ -313,6 +331,8 @@ namespace AE::RG::_hidden_
 	{
 		auto&	rs = _perTask[ taskIdx ];
 		DRC_EXLOCK( rs.drCheck );
+
+		GRAPHICS_DBG_SYNC( ctx.DebugMarker({"RG.FinalBarriers"});)
 
 		for (auto& [id, state] : rs.map)
 		{
@@ -411,7 +431,7 @@ namespace AE::RG::_hidden_
 	template <typename TaskType, typename ...Ctor>
 	RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (Tuple<Ctor...>&& ctorArgs, DebugLabel dbg) C_NE___
 	{
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = AsBatch()->DbgColor();
 		)
@@ -422,16 +442,21 @@ namespace AE::RG::_hidden_
 		return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
 	}
 
+/*
+=================================================
+	Task
+=================================================
+*/
 #ifdef AE_HAS_COROUTINE
 	inline RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (RenderTaskCoro coro, DebugLabel dbg) C_NE___
 	{
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = AsBatch()->DbgColor();
 		)
 
 		RC<RenderTask>	task;
-		if_likely( coro and coro.Promise()._Init( AsBatchRC(), dbg ))
+		if_likely( coro and coro.Promise()._Init( AsBatchRC(), Default, dbg ))
 			task = RC<RenderTask>{coro};
 
 		return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
@@ -451,7 +476,7 @@ namespace AE::RG::_hidden_
 		auto&	rg_batch = *AsRG();
 		DRC_EXLOCK( rg_batch._drCheck );
 
-		auto*	barriers = rg_batch._finalBarriers->Get();
+		auto	barriers = rg_batch._finalBarriers->Get();
 		CHECK_ERR( barriers == null );
 
 		return _cmdBatch->SubmitAsTask( TupleConcat( deps, Tuple{ArrayView<AsyncTask>{rg_batch._renderTasks}} ));
@@ -489,28 +514,34 @@ namespace AE::RG::_hidden_
 	UseResources
 =================================================
 */
-	template <typename ID>
-	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (ArrayView<ID> ids, EResourceState initial, EResourceState final) rvNE___
+	template <typename ArrayType>
+	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (const ArrayType &ids, EResourceState initial, EResourceState final) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, initial, final );
 		}
 		return RVRef(*this);
 	}
 
-	template <typename ID>
-	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (ArrayView<ID> ids, EResourceState initialOrFinal) rvNE___
+	template <typename ArrayType>
+	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (const ArrayType &ids, EResourceState initialOrFinal) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );
 		}
 		return RVRef(*this);
 	}
 
-	template <typename ID>
-	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (ArrayView<ID> ids) rvNE___
+	template <typename ArrayType>
+	RGCommandBatchPtr::RenderTaskBuilder&&  RGCommandBatchPtr::RenderTaskBuilder::UseResources (const ArrayType &ids) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, Default, Default );
 		}
 		return RVRef(*this);

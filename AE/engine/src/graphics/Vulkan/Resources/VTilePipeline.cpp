@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/Resources/VTilePipeline.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "VPipelineHelper.inl.h"
+# include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
 {
@@ -43,7 +43,7 @@ namespace AE::Graphics
 
 		AutoreleasePplnCache	cache_ptr	{ resMngr, ci.cacheId };
 		VkPipelineCache			ppln_cache	= cache_ptr ? cache_ptr->Handle() : Default;
-		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( resMngr, CompatRenderPassName{ ci.specCI.renderPass });
+		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( CompatRenderPassName{ ci.specCI.renderPass });
 		auto*					render_pass	= resMngr.GetResource( rp_id );
 		CHECK_ERR( render_pass != null );
 
@@ -93,7 +93,7 @@ namespace AE::Graphics
 		pipeline_info.basePipelineHandle= Default;
 		pipeline_info.basePipelineIndex	= -1;
 
-		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count)
+		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{
 			count = Sum<uint>( ci.templCI.localSizeSpec != UMax );
 
@@ -129,7 +129,7 @@ namespace AE::Graphics
 									  ci.specCI.specialization, *ci.shader.shaderConstants, allocator,
 									  VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI, AddCustomSpec ));
 
-		VK_CHECK_ERR( dev.vkCreateComputePipelines( dev.GetVkDevice(), ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
+		VK_CHECK_ERR( CreateComputePipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 
 		dev.SetObjectName( _handle, ci.specCI.dbgName, VK_OBJECT_TYPE_PIPELINE );
 
@@ -137,7 +137,7 @@ namespace AE::Graphics
 		_subpassIndex	= CheckCast<ubyte>(subpass_idx);
 		_dbgTrace		= ci.shader.dbgTrace;
 
-		DEBUG_ONLY( _debugName = ci.specCI.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )
 		return true;
 	}
 
@@ -165,7 +165,7 @@ namespace AE::Graphics
 		_subpassIndex	= UMax;
 		_dbgTrace		= null;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

@@ -6,7 +6,7 @@
 
 #include "base/Common.h"
 #include "base/Containers/NtStringView.h"
-#include "base/Utils/FileSystem.h"
+#include "base/FileSystem/Path.h"
 
 namespace AE::NS
 {
@@ -36,7 +36,7 @@ namespace AE::NS
 
 		ND_ explicit	operator bool ()			C_NE___	{ return _ptr != null; }
 
-		ND_ const void* Ptr ()						C_NE___	{ ASSERT( _ptr != null ); return _ptr; }
+		ND_ const void* Ptr ()						C_NE___	{ NonNull( _ptr );  return _ptr; }
 		ND_ const void* PtrOrNull ()				C_NE___	{ return _ptr; }
 
 		ND_ UInteger	RetainCount ()				__NE___;
@@ -75,7 +75,7 @@ namespace AE::NS
 
 		ND_ explicit		operator bool ()			C_NE___	{ return _ptr != null; }
 
-		ND_ const void *	Ptr ()						C_NE___	{ ASSERT( _ptr != null );  return _ptr; }
+		ND_ const void *	Ptr ()						C_NE___	{ NonNull( _ptr );  return _ptr; }
 		ND_ const void *	PtrOrNull ()				C_NE___	{ return _ptr; }
 
 			void			Attach (const void* ptr)	__NE___	{ ASSERT( _ptr == null );  _ptr = ptr; }

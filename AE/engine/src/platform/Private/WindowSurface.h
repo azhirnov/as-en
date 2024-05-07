@@ -64,38 +64,38 @@ namespace AE::App
 
 	// methods
 	public:
-		WindowSurface ()																							__NE___;
-		~WindowSurface ()																							__NE___;
+		WindowSurface ()																	__NE___;
+		~WindowSurface ()																	__NE___;
 
-		ND_ bool  Init (IWindow &wnd, const Graphics::SwapchainDesc &desc)											__NE___;
+		ND_ bool  Init (IWindow &wnd, const Graphics::SwapchainDesc &desc)					__NE___;
 
 
 	// IOutputSurface //
-		bool				IsInitialized ()																		C_NE_OV	{ return _initialized.load(); }
-		RenderPassInfo		GetRenderPassInfo ()																	C_NE_OV;
-		bool				SetSurfaceMode (const SurfaceInfo &)													__NE_OV;
+		bool				IsInitialized ()												C_NE_OV	{ return _initialized.load(); }
+		RenderPassInfo		GetRenderPassInfo ()											C_NE_OV;
+		bool				SetSurfaceMode (const SurfaceInfo &)							__NE_OV;
 
-		AsyncTask			Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask>)__NE_OV;
-		bool				GetTargets (OUT RenderTargets_t &targets)												C_NE_OV;
-		AsyncTask			End (ArrayView<AsyncTask> deps)															__NE_OV;
+		AsyncTask			Begin (CommandBatchPtr, CommandBatchPtr, ArrayView<AsyncTask>)	__NE_OV;
+		bool				GetTargets (OUT RenderTargets_t &targets)						C_NE_OV;
+		AsyncTask			End (ArrayView<AsyncTask> deps)									__NE_OV;
 
-		TargetInfos_t		GetTargetInfo ()																		C_NE_OV;
-		SurfaceFormats_t	GetSurfaceFormats ()																	C_NE_OV;
-		PresentModes_t		GetPresentModes ()																		C_NE_OV;
-		SurfaceInfo			GetSurfaceInfo ()																		C_NE_OV;
+		TargetInfos_t		GetTargetInfo ()												C_NE_OV;
+		SurfaceFormats_t	GetSurfaceFormats ()											C_NE_OV;
+		PresentModes_t		GetPresentModes ()												C_NE_OV;
+		SurfaceInfo			GetSurfaceInfo ()												C_NE_OV;
 
 
 	// IWindow private api
 	public:
-		void  CreateSwapchain ()																					__NE___;
-		void  ResizeSwapchain ()																					__NE___;
-		void  DestroySwapchain ()																					__NE___;
+		void  CreateSwapchain ()															__NE___;
+		void  ResizeSwapchain ()															__NE___;
+		void  DestroySwapchain ()															__NE___;
 
 
 	private:
-		void  _UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &)														__NE___;
+		void  _UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &)								__NE___;
 
-		bool  _CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &)													__NE___;
+		bool  _CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &)							__NE___;
 	};
 
 

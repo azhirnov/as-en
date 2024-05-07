@@ -21,7 +21,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_ray_tracing_pipeline
 - [x] VK_KHR_ray_query
 - [x] VK_KHR_ray_tracing_maintenance1
-- [x] VK_EXT_vertex_attribute_divisor
+- [x] VK_EXT_vertex_attribute_divisor, VK_KHR_vertex_attribute_divisor
 - [x] VK_EXT_memory_budget
 - [x] VK_KHR_fragment_shading_rate
 - [x] VK_KHR_get_surface_capabilities2

@@ -42,7 +42,7 @@ namespace AE::Networking
 		ND_ bool	Decode (OUT T* arr, const usize count)				__NE___
 		{
 			bool	ok = true;
-			for (usize i = 0; (i < count) & ok; ++i) { ok = _des( OUT arr[i] ); }
+			for (usize i = 0; (i < count) and ok; ++i) { ok = _des( OUT arr[i] ); }
 			return ok;
 		}
 	};

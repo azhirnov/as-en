@@ -4,24 +4,27 @@
 
 
 // debug break
-#ifdef AE_DEBUG
+#if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)
+# define AE_PRIVATE_BREAK_POINT()		{}
+
+#elif defined(AE_DEBUG)
 # if defined(AE_COMPILER_MSVC)
-#	define AE_PRIVATE_BREAK_POINT()		__debugbreak()
+#	define AE_PRIVATE_BREAK_POINT()		{__debugbreak();}
 
 # elif defined(AE_PLATFORM_ANDROID)
 #	include <csignal>
-#	define AE_PRIVATE_BREAK_POINT()		std::raise( SIGINT )
+#	define AE_PRIVATE_BREAK_POINT()		{std::raise( SIGINT );}
 
 # elif defined(AE_PLATFORM_APPLE)
-#	define AE_PRIVATE_BREAK_POINT()		__builtin_debugtrap()
+#	define AE_PRIVATE_BREAK_POINT()		{__builtin_debugtrap();}
 
 # elif defined(AE_PLATFORM_EMSCRIPTEN)
 	namespace AE { void _ems_debugbreak (); }
-#	define AE_PRIVATE_BREAK_POINT()		AE::_ems_debugbreak()
+#	define AE_PRIVATE_BREAK_POINT()		{AE::_ems_debugbreak();}
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 #	include <csignal>
-#	define AE_PRIVATE_BREAK_POINT()		std::raise( SIGTRAP )
+#	define AE_PRIVATE_BREAK_POINT()		{std::raise( SIGTRAP );}
 # endif
 
 #else
@@ -32,25 +35,27 @@
 // exit
 #ifndef AE_PRIVATE_EXIT
 # if defined(AE_PLATFORM_ANDROID)
-#	define AE_PRIVATE_EXIT()	std::terminate()
+#	define AE_PRIVATE_EXIT()			{std::terminate();}
 # else
-#	define AE_PRIVATE_EXIT()	::exit( EXIT_FAILURE )
+#	define AE_PRIVATE_EXIT()			{::exit( EXIT_FAILURE );}
 # endif
 #endif
 
 
 // debug only check
-# ifdef AE_CFG_DEBUG
+#ifdef AE_CFG_DEBUG
 #	define DBG_CHECK								CHECK
 #	define DBG_CHECK_MSG							CHECK_MSG
-# else
+#	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
+#else
 #	define DBG_CHECK( /* expr */... )				{}
 #	define DBG_CHECK_MSG( /* expr, message */... )	{}
-# endif
+#	define DBG_WARNING( /* message */... )			{}
+#endif
 
 
 // debug/dev only check
-# ifdef AE_DEBUG
+#ifdef AE_DEBUG
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
 #	define ASSERT_Eq								CHECK_Eq	// ==
 #	define ASSERT_NE								CHECK_NE	// !=
@@ -71,15 +76,19 @@
 # endif
 
 
-// development check
-#ifdef AE_DEBUG
+// debug/dev/ci check
+#if defined(AE_DEBUG) or defined(AE_CI_BUILD_TEST)
 #	define DEV_CHECK								CHECK
-#	define DEV_CHECK_MSG							CHECK_MSG
-#	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
 #else
-#	define DEV_CHECK( /* expr */... )				{}
-#	define DEV_CHECK_MSG( /* expr, message */... )	{}
-#	define DBG_WARNING( /* message */... )			{}
+#	define DEV_CHECK( /* expr */... )				{Unused(__VA_ARGS__);}
+#endif
+
+
+// debug/dev/ci check
+#if defined(AE_DEBUG) or defined(AE_CI_BUILD_TEST)
+#	define NonNull( /* expr */... )					CHECK( (__VA_ARGS__) != null )
+#else
+#	define NonNull( /* expr */... )					ASSUME( (__VA_ARGS__) != null )
 #endif
 
 
@@ -108,12 +117,12 @@
 							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
 #endif
 
-// log silent error
-#ifndef AE_LOG_SE
-#	define AE_LOG_SE( /* msg, file, line */... )									\
-			AE_PRIVATE_LOG_SE( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),				\
-							   AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ),		\
-							   AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
+// log warning (silent)
+#ifndef AE_LOGW
+#	define AE_LOGW( /* msg, file, line */... )										\
+			AE_PRIVATE_LOG_W( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),				\
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ),			\
+							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
 #endif
 
 
@@ -306,7 +315,7 @@
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )													\
 		{if_likely(( _expr_ )) {}																		\
 		 else_unlikely {																				\
-			AE_LOG_SE( _text_ );																		\
+			AE_LOGW( _text_ );																			\
 			throw AE::Exception{ _text_ };																\
 		}}
 
@@ -318,13 +327,14 @@
 #	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )												\
 		{if_likely(( _expr_ )) {}																		\
 		 else_unlikely {																				\
-			AE_LOG_SE( AE_TOSTRING( _expr_ ));															\
+			AE_LOGW( AE_TOSTRING( _expr_ ));															\
 			throw (_exception_);																		\
 		}}
 
 #	define CHECK_THROW( /*expr, exception*/... )														\
 		AE_PRIVATE_CHECK_THROW(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ),										\
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+								AE_PRIVATE_GETARG_1( __VA_ARGS__,										\
+									AE::Exception{AE_TOSTRING( __VA_ARGS__ )} ))
 
 #	define AE_PRIVATE_CHECK_THROW_OP( _lhs_, _op_, _rhs_ )												\
 	{																									\
@@ -405,8 +415,22 @@
 
 
 // mark branches of the new code until someone will enter to this brunch
-#ifdef AE_DEBUG
+#if defined(AE_CI_BUILD_TEST)
+#	define UNTESTED							CHECK_MSG( false, "UNTESTED" )
+
+#elif defined(AE_CI_BUILD_PERF)
+#	define UNTESTED							{}
+
+#elif defined(AE_DEBUG)
 #	define UNTESTED							AE_PRIVATE_BREAK_POINT()
 #else
 #	define UNTESTED							{}
+#endif
+
+
+// mark TODO
+#if defined(AE_CI_BUILD_TEST) or defined(AE_DEBUG)
+#	define TODO( ... )						CHECK_MSG( false, "TODO: "s << __VA_ARGS__ )
+#else
+#	define TODO( ... )						{}
 #endif

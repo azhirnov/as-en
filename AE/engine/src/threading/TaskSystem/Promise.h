@@ -186,7 +186,7 @@ namespace _hidden_
 		friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, StringView, ETaskQueue)		__NE___;
 
 		template <typename ...Args>
-		friend auto  MakePromiseFrom (Args&& ...)												__NE___;
+		friend auto  MakePromiseFrom (Promise<Args> ...)										__NE___;
 
 		template <typename A>
 		friend auto  MakePromiseFromArray (Array<Promise<A>>, StringView, ETaskQueue)			__NE___;
@@ -513,7 +513,7 @@ namespace _hidden_
 		{
 			StaticAssert( FI::args::Count == 0 );
 
-			return Result{	[fn = FwdArg<Fn>(fn)] () {
+			return Result{	[fn = FwdArg<Fn>(fn)] () __Th___ {
 								fn();
 								return PromiseResult<void>{};
 							},
@@ -540,7 +540,7 @@ namespace _hidden_
 			StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >,
 						   "argument type must be 'const T&'" );
 
-			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () {
+			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () __Th___ {
 								fn( in->Result() );
 								return PromiseResult<void>{};
 							},
@@ -554,7 +554,7 @@ namespace _hidden_
 			StaticAssert( FI::args::Count == 1 );
 			StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >);
 
-			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () {
+			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () __Th___ {
 								return fn( in->Result() );
 							},
 							false,
@@ -622,7 +622,7 @@ namespace _hidden_
 
 		if constexpr( IsVoid< typename FI::result > )
 		{
-			return Result{	[fn = FwdArg<Fn>(fn)] () {
+			return Result{	[fn = FwdArg<Fn>(fn)] () __Th___ {
 								fn();
 								return PromiseResult<void>{};
 							},
@@ -902,7 +902,7 @@ namespace _hidden_
 
 		if constexpr( IsVoid< Value_t >)
 		{
-			return Result{	[fn = FwdArg<Fn>(fn)] () {
+			return Result{	[fn = FwdArg<Fn>(fn)] () __NE___ {
 								fn();
 								return PromiseResult<void>{};
 							},
@@ -942,24 +942,22 @@ namespace _hidden_
 =================================================
 */
 	template <typename ...Args>
-	ND_ auto  MakePromiseFrom (Args&& ...args) __NE___
+	ND_ auto  MakePromiseFrom (Promise<Args> ...args) __NE___
 	{
 		return	MakePromise(
-					[args...] () {
+					[args...] () __NE___ {
 						return Tuple{ args._Result() ... };
 					},
-					Tuple{ AsyncTask{args} ... });
+					Tuple{ AsyncTask{FwdArg<Promise<Args>>(args)} ... });
 	}
 
 /*
 =================================================
 	MakePromiseFromArray
-----
-	TODO: optimize
 =================================================
 */
 	template <typename T>
-	ND_ auto  MakePromiseFromArray (Array<Promise<T>>	args,
+	ND_ auto  MakePromiseFromArray (Array< Promise<T> >	args,
 									StringView			dbgName		= Default,
 									ETaskQueue			queueType	= ETaskQueue::PerFrame) __NE___
 	{
@@ -981,7 +979,7 @@ namespace _hidden_
 						}
 						return Tuple{ temp };
 					},
-					Tuple{ deps },
+					Tuple{ ArrayView<AsyncTask>{ deps }},
 					dbgName,
 					queueType );
 	}
@@ -1013,7 +1011,7 @@ namespace _hidden_
 						}
 						return temp;
 					},
-					Tuple{ deps },
+					Tuple{ ArrayView<AsyncTask>{ deps }},
 					dbgName,
 					queueType );
 	}

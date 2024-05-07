@@ -124,8 +124,7 @@ struct ShadowRayPayload
 		Ray		ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		HWRay	hwray	= HWRay_Create( ray, un_PerPass.camera.clipPlanes.y, PRIMARY_RAY );
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + hwray.rayIndex
-
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + hwray.rayIndex
 		HWTraceRay( un_RtScene, hwray, /*payload*/PRIMARY_RAY );
 
 		gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(PrimaryRay.color, 1.f) );
@@ -227,7 +226,7 @@ struct ShadowRayPayload
 
 		ShadowRay.shading = 0.0f;
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + hwray.rayIndex
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + hwray.rayIndex
 		HWTraceRay( un_RtScene, hwray, /*payload*/SHADOW_RAY );
 
 		return Saturate( ShadowRay.shading );

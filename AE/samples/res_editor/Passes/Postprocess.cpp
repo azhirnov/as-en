@@ -45,7 +45,6 @@ namespace AE::ResEditor
 		DirectCtx::Graphics		ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
 		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
 		ctx.CommitBarriers();
 
 		// render pass

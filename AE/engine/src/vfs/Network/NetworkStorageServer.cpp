@@ -228,8 +228,8 @@ namespace AE::VFS
 			auto	iter = _globalMap.find( FileName::Optimized_t{name} );
 			if_likely( iter != _globalMap.end() )
 			{
-				ASSERT( iter->second.storage != null );
-				ASSERT( iter->second.ref != null );
+				NonNull( iter->second.storage );
+				NonNull( iter->second.ref );
 
 				DEBUG_ONLY(
 					bool	found = false;
@@ -270,8 +270,8 @@ namespace AE::VFS
 			auto	iter = _globalMap.find( FileName::Optimized_t{name} );
 			if_likely( iter != _globalMap.end() )
 			{
-				ASSERT( iter->second.storage != null );
-				ASSERT( iter->second.ref != null );
+				NonNull( iter->second.storage );
+				NonNull( iter->second.ref );
 
 				DEBUG_ONLY(
 					bool	found = false;
@@ -561,7 +561,7 @@ namespace AE::VFS
 
 		if_unlikely( req == null							or
 					 ushort(req->partIdx) != inMsg.index	or	// invalid order
-					 not req->dst							or
+					 req->dst == null						or
 					 req->recv + inMsg.size > req->dst->Size() )
 		{
 			_WriteRequestFailed( inMsg.reqId, inMsg.ClientId() );

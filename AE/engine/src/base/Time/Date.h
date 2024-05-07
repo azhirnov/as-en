@@ -68,6 +68,7 @@ namespace AE::Base
 
 		ND_ uint			Year ()						C_NE___	{ return _year; }
 		ND_ EMonth			Month ()					C_NE___	{ return EMonth( _month ); }
+		ND_ uint			MonthIndex ()				C_NE___	{ return _month+1; }
 		ND_ uint			WeekOfYear ()				C_NE___	{ return (_dayOfYear / 7) + 1; }
 		ND_ uint			DayOfYear ()				C_NE___	{ return _dayOfYear + 1; }
 		ND_ uint			DayOfMonth ()				C_NE___	{ return _dayOfMonth + 1; }

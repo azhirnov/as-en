@@ -35,21 +35,24 @@ namespace AE::Graphics::_hidden_
 	public:
 		virtual ~_VBaseDirectContext ()													__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
 
-		void  PipelineBarrier (const VkDependencyInfo &info);
+		void  PipelineBarrier (const VkDependencyInfo &info)							__NE___;
 
 	protected:
 		explicit _VBaseDirectContext (VCommandBuffer cmdbuf)							__Th___;
 
 		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
 
-		void  _DebugMarker (DebugLabel dbg)														{ _cmdbuf.DebugMarker( *this, dbg.label, dbg.color ); }
-		void  _PushDebugGroup (DebugLabel dbg)													{ _cmdbuf.PushDebugGroup( *this, dbg.label, dbg.color ); }
-		void  _PopDebugGroup ()																	{ _cmdbuf.PopDebugGroup( *this ); }
+		void  _DebugMarker (DebugLabel dbg)												__Th___	{ _cmdbuf.DebugMarker( *this, dbg.label, dbg.color ); }
+		void  _PushDebugGroup (DebugLabel dbg)											__Th___	{ _cmdbuf.PushDebugGroup( *this, dbg.label, dbg.color ); }
+		void  _PopDebugGroup ()															__Th___	{ _cmdbuf.PopDebugGroup( *this ); }
 
-		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
+		void  _WriteTimestamp (const VQueryManager::Query &, uint index,
+								EPipelineScope, VkPipelineStageFlagBits2 mask)			__Th___;
+
+		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)		__Th___;
 
 		ND_ VkCommandBuffer	_EndCommandBuffer ()										__Th___;
-		ND_ VCommandBuffer  _ReleaseCommandBuffer ();
+		ND_ VCommandBuffer  _ReleaseCommandBuffer ()									__Th___;
 
 		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)						__NE___;
 		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task, DebugLabel dbg)	__NE___;
@@ -77,19 +80,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		VBaseDirectContext (const RenderTask &, VCommandBuffer, DebugLabel, ECtxType)	__Th___;
-		~VBaseDirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		VBaseDirectContext (const RenderTask &, VCommandBuffer, DebugLabel, ECtxType)		__Th___;
+		~VBaseDirectContext ()																__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-		void  _CommitBarriers ();
+			void  _CommitBarriers ()														__NE___;
 
-		void  _DebugMarker (DebugLabel dbg)														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)													{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()																	{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
+		ND_ bool  _NoPendingBarriers ()														C_NE___	{ return _mngr.NoPendingBarriers(); }
 
-		ND_ VkCommandBuffer	_EndCommandBuffer ()										__Th___;
-
-		ND_ bool	_NoPendingBarriers ()												C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ VkCommandBuffer	_EndCommandBuffer ()											__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -113,7 +112,7 @@ namespace AE::Graphics::_hidden_
 	_DbgFillBuffer
 =================================================
 */
-	inline void  _VBaseDirectContext::_DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)
+	inline void  _VBaseDirectContext::_DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data) __Th___
 	{
 		GCTX_CHECK( buffer != Default );
 
@@ -125,7 +124,7 @@ namespace AE::Graphics::_hidden_
 	PipelineBarrier
 =================================================
 */
-	inline void  _VBaseDirectContext::PipelineBarrier (const VkDependencyInfo &info)
+	inline void  _VBaseDirectContext::PipelineBarrier (const VkDependencyInfo &info) __NE___
 	{
 		vkCmdPipelineBarrier2KHR( _cmdbuf.Get(), &info );
 	}
@@ -144,15 +143,18 @@ namespace AE::Graphics::_hidden_
 	{
 		GCTX_CHECK( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			_mngr.ProfilerBeginContext( _cmdbuf.Get(), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
 
 			GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
 		)
 		Unused( ctxType );
 
-		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		{
 			PipelineBarrier( *bar );
+			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.InitialBarriers"});)
+		}
 	}
 
 /*
@@ -160,10 +162,10 @@ namespace AE::Graphics::_hidden_
 	_CommitBarriers
 =================================================
 */
-	inline void  VBaseDirectContext::_CommitBarriers ()
+	inline void  VBaseDirectContext::_CommitBarriers () __NE___
 	{
-		auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
+		auto	bar = _mngr.GetBarriers();
+		if_unlikely( bar )
 		{
 			PipelineBarrier( *bar );
 			_mngr.ClearBarriers();
@@ -177,8 +179,11 @@ namespace AE::Graphics::_hidden_
 */
 	inline VkCommandBuffer  VBaseDirectContext::_EndCommandBuffer () __Th___
 	{
-		if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		{
+			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.FinalBarriers"});)
 			PipelineBarrier( *bar );
+		}
 
 		return _VBaseDirectContext::_EndCommandBuffer();  // throw
 	}

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "Perf_Common.h"
 
 extern void PerfTest_HashSet ();
 extern void PerfTest_HashMap ();
@@ -9,23 +9,23 @@ extern void PerfTest_Utf8 ();
 extern void PerfTest_FindSubString ();
 
 #ifdef AE_PLATFORM_ANDROID
-extern int PerformanceTests_Base ()
+extern "C" AE_DLL_EXPORT int Perf_Base (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	#ifndef AE_RELEASE
-	//	return 0; // skip
-	#endif
-
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+  #ifdef AE_RELEASE
+	BEGIN_TEST();
 
 	PerfTest_HashSet();
 	PerfTest_HashMap();
-	PerfTest_MinSleepTime();
-	PerfTest_Utf8();
-	PerfTest_FindSubString();
+
+	//PerfTest_MinSleepTime();
+	//PerfTest_Utf8();
+	//PerfTest_FindSubString();
+	//PerfTest_LogicOp();
 
 	AE_LOGI( "PerformanceTests.Base finished" );
+  #endif
 	return 0;
 }

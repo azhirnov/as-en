@@ -6,12 +6,12 @@ extern void UnitTest_Serialization ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Serializing ()
+extern "C" AE_DLL_EXPORT int Tests_Serializing (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	UnitTest_Serialization();
 

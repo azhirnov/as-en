@@ -15,7 +15,9 @@
 
 #include "threading/Threading.pch.h"
 
-#if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DEBUG) or defined(AE_CI_BUILD))
+#ifdef AE_CI_BUILD_PERF
+#	define AE_ENABLE_DATA_RACE_CHECK	0
+#elif defined(AE_DEBUG) or defined(AE_CI_BUILD_TEST)
 #	define AE_ENABLE_DATA_RACE_CHECK	1
 #else
 #	define AE_ENABLE_DATA_RACE_CHECK	0
@@ -46,6 +48,12 @@ namespace AE::Threading
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "1" )
 #  else
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "0" )
+#  endif
+
+#  if AE_USE_THREAD_WAKEUP
+#	pragma detect_mismatch( "AE_USE_THREAD_WAKEUP", "1" )
+#  else
+#	pragma detect_mismatch( "AE_USE_THREAD_WAKEUP", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

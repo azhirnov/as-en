@@ -1,65 +1,106 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Public/RayTracingDesc.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "graphics/GraphicsImpl.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/VEnumCast.h"
 #endif
-#ifdef AE_ENABLE_METAL
-# include "graphics/Metal/MEnumCast.h"
-#endif
+#include "graphics/Metal/MEnumCast.h"
 
 namespace AE::Graphics
 {
+namespace
+{
+#ifndef AE_ENABLE_VULKAN
+/*
+=================================================
+	VEnumCast (ERTInstanceOpt)
+=================================================
+*/
+	enum VkGeometryInstanceFlagBitsKHR {
+		VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR = 0x00000001,
+		VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR = 0x00000002,
+		VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR = 0x00000004,
+		VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR = 0x00000008,
+		VK_GEOMETRY_INSTANCE_FORCE_OPACITY_MICROMAP_2_STATE_EXT = 0x00000010,
+		VK_GEOMETRY_INSTANCE_DISABLE_OPACITY_MICROMAPS_EXT = 0x00000020,
+		VK_GEOMETRY_INSTANCE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+	};
+
+	VkGeometryInstanceFlagBitsKHR  operator |= (VkGeometryInstanceFlagBitsKHR &lhs, VkGeometryInstanceFlagBitsKHR rhs) __NE___
+	{
+		return lhs = VkGeometryInstanceFlagBitsKHR(Math::ToNearUInt(lhs) | Math::ToNearUInt(rhs));
+	}
+
+	ND_ inline VkGeometryInstanceFlagBitsKHR  VEnumCast (ERTInstanceOpt values) __NE___
+	{
+		VkGeometryInstanceFlagBitsKHR	result = Zero;
+
+		for (auto t : BitfieldIterate( values ))
+		{
+			switch_enum( t )
+			{
+				case ERTInstanceOpt::TriangleCullDisable :	result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;	break;
+				case ERTInstanceOpt::TriangleFrontCCW :		result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;			break;
+				case ERTInstanceOpt::ForceOpaque :			result |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;					break;
+				case ERTInstanceOpt::ForceNonOpaque :		result |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;					break;
+
+				case ERTInstanceOpt::_Last :
+				case ERTInstanceOpt::All :
+				case ERTInstanceOpt::Unknown :
+				default_unlikely :							RETURN_ERR( "unknown RT instance options", Zero );
+			}
+			switch_end
+		}
+		return result;
+	}
+
+#endif // AE_ENABLE_VULKAN
+}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
-	RTSceneBuild::Instance::ctor
+	RTSceneBuild::Instance::Init
 =================================================
 */
-#ifdef AE_ENABLE_VULKAN
-	RTSceneBuild::Instance::Instance () __NE___ :
-		transform			{ RTMatrixStorage::Identity() },
-		instanceCustomIndex	{ 0 },
-		mask				{ 0xFF },
-		instanceSBTOffset	{ 0 },
-		flags				{ 0 },
-		rtas				{ Default }
-	{}
+	RTSceneBuild::InstanceVk&  RTSceneBuild::InstanceVk::Init () __NE___
+	{
+		transform			= RTMatrixStorage::Identity();
+		instanceCustomIndex	= 0;
+		mask				= 0xFF;
+		instanceSBTOffset	= 0;
+		flags				= 0;
+		rtas				= Default;
+		return *this;
+	}
 
-#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-	RTSceneBuild::Instance::Instance () __NE___ :
-		transform			{ RTMatrixStorage::Identity() },
-		options				{ 0 },
-		mask				{ UMax },
-		instanceSBTOffset	{ 0 },
-		rtasIndex			{ UMax }
-	{}
-
-#else
-#	error not implemented
-#endif
+	RTSceneBuild::InstanceMtl&  RTSceneBuild::InstanceMtl::Init () __NE___
+	{
+		transform			= RTMatrixStorage::Identity();
+		options				= 0;
+		mask				= UMax;
+		instanceSBTOffset	= 0;
+		rtasIndex			= UMax;
+		return *this;
+	}
 
 /*
 =================================================
 	RTSceneBuild::Instance::SetFlags
 =================================================
 */
-	RTSceneBuild::Instance&  RTSceneBuild::Instance::SetFlags (ERTInstanceOpt value) __NE___
+	RTSceneBuild::InstanceVk&  RTSceneBuild::InstanceVk::SetFlags (ERTInstanceOpt value) __NE___
 	{
-		#ifdef AE_ENABLE_VULKAN
-			this->flags = VEnumCast( value );
+		this->flags = VEnumCast( value );
+		return *this;
+	}
 
-		#elif defined(AE_ENABLE_METAL)
-			this->options = uint(MEnumCast( value ));
-
-		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			this->options = uint(value);
-
-		#else
-		#	error not implemented
-		#endif
+	RTSceneBuild::InstanceMtl&  RTSceneBuild::InstanceMtl::SetFlags (ERTInstanceOpt value) __NE___
+	{
+		this->options = uint(MEnumCast( value ));
 		return *this;
 	}
 
@@ -68,11 +109,10 @@ namespace AE::Graphics
 	RTSceneBuild::SetGeometry
 =================================================
 */
-#ifdef AE_ENABLE_VULKAN
-	bool  RTSceneBuild::SetGeometry (RTGeometryID id, INOUT Instance &inst) __NE___
+	bool  RTSceneBuild::SetGeometry (RTGeometryID id, INOUT InstanceVk &inst) __NE___
 	{
 		ASSERT( id );
-		ASSERT( inst.rtas == Default );
+		//ASSERT( inst.rtas == Default );
 
 		auto*	geom = GraphicsScheduler().GetResourceManager().GetResource( id, False{"don't inc ref"}, True{"quiet"} );
 		if_likely( geom != null )
@@ -85,11 +125,10 @@ namespace AE::Graphics
 		return false;
 	}
 
-#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-	bool  RTSceneBuild::SetGeometry (RTGeometryID id, INOUT Instance &inst) __NE___
+	bool  RTSceneBuild::SetGeometry (RTGeometryID id, INOUT InstanceMtl &inst) __NE___
 	{
 		ASSERT( id );
-		ASSERT( inst.rtasIndex == UMax );
+		//ASSERT( inst.rtasIndex == UMax );
 
 		if_likely( auto it = uniqueGeoms.insert( id ).first;  it != null )
 		{
@@ -99,8 +138,5 @@ namespace AE::Graphics
 		return false;
 	}
 
-#else
-#	error not implemented
-#endif
 
 } // AE::Graphics

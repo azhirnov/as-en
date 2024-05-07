@@ -68,7 +68,7 @@ namespace AE::Graphics
 
 
 		template <typename ...Args>
-		ND_ bool  Create (Args&& ...args)				__NE___
+		ND_ forceinline bool  Create (Args&& ...args)	__NE___
 		{
 			ASSERT( IsDestroyed() );
 			ASSERT( GetRefCount() == 0 );
@@ -76,13 +76,13 @@ namespace AE::Graphics
 			bool	result = _data.Create( FwdArg<Args &&>( args )... );
 
 			// set state and flush cache
-			_state.store( result ? EState::Created : EState::Failed, EMemoryOrder::Release );
+			_state.store( (result ? EState::Created : EState::Failed), EMemoryOrder::Release );
 
 			return result;
 		}
 
 		template <typename ...Args>
-		void  Destroy (Args&& ...args)					__NE___
+		forceinline void  Destroy (Args&& ...args)		__NE___
 		{
 			ASSERT( AnyEqual( _GetState(), EState::Created, EState::Failed ));
 			//ASSERT( GetRefCount() == 0 );

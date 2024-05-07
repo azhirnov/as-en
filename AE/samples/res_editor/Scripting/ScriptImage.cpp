@@ -8,7 +8,7 @@ namespace AE::ResEditor
 namespace
 {
 	static ScriptImage*  ScriptImage_Ctor1 (PipelineCompiler::EImageType imageType, const String &filename) {
-		return ScriptImagePtr{ new ScriptImage{ uint(imageType), filename }}.Detach();
+		return ScriptImagePtr{ new ScriptImage{ uint(imageType), filename, Default }}.Detach();
 	}
 
 	static ScriptImage*  ScriptImage_Ctor2 (EPixelFormat format, const packed_uint2 &dim) {
@@ -51,6 +51,10 @@ namespace
 		return ScriptImagePtr{ new ScriptImage{ format, ds, layers, mipmaps }}.Detach();
 	}
 
+	static ScriptImage*  ScriptImage_Ctor12 (PipelineCompiler::EImageType imageType, const String &filename, ScriptImage::ELoadOpFlags flags) {
+		return ScriptImagePtr{ new ScriptImage{ uint(imageType), filename, flags }}.Detach();
+	}
+
 } // namespace
 
 
@@ -59,7 +63,7 @@ namespace
 	constructor
 =================================================
 */
-	ScriptImage::ScriptImage (uint imageType, const String &filename) __Th___ :
+	ScriptImage::ScriptImage (uint imageType, const String &filename, ELoadOpFlags flags) __Th___ :
 		_imageType{imageType}
 	{
 		using PipelineCompiler::EImageType;
@@ -95,9 +99,9 @@ namespace
 			default :							CHECK_THROW_MSG( false, "unsupported image type" );
 		}
 
-		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ new DynamicDim{ uint3{}, _desc.imageDim } }};
+		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint3{}, _desc.imageDim )}};
 
-		_Load( filename, 0_mipmap, 0_layer, Default );
+		_Load( filename, 0_mipmap, 0_layer, flags );
 	}
 
 	ScriptImage::ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds) __Th___ :
@@ -155,7 +159,7 @@ namespace
 	ScriptImage::~ScriptImage ()
 	{
 		if ( not _resource )
-			AE_LOG_SE( "Unused image '"s << _dbgName << "'" );
+			AE_LOGW( "Unused image '"s << _dbgName << "'" );
 	}
 
 /*
@@ -211,7 +215,7 @@ namespace
 	void  ScriptImage::Name (const String &name) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change debug name" );
+			"Resource is already created, can not change debug name" );
 
 		_dbgName = name.substr( 0, ResNameMaxLen );
 	}
@@ -224,10 +228,14 @@ namespace
 	void  ScriptImage::AddUsage (EResourceUsage usage) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change usage or content" );
+			"Resource is already created, can not change usage or content" );
 
-		if ( _base )
+		if ( _base and
+			 (_base->Description().format == _viewDesc.format or
+			  GraphicsScheduler().GetFeatureSet().imageViewExtendedUsage != FeatureSet::EFeature::RequireTrue) )
+		{
 			return _base->AddUsage( usage );
+		}
 
 		_resUsage |= usage;
 
@@ -252,6 +260,9 @@ namespace
 		{
 			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::UploadedData ));
 		}
+
+		CHECK_THROW_MSG( not AllBits( usage, EResourceUsage::ColorAttachment | EResourceUsage::DepthStencil ),
+			"Can not combine ColorAttachment and DepthStencil usage" );
 
 		// TODO
 	}
@@ -383,7 +394,7 @@ namespace
 	void  ScriptImage::SetSwizzle (const String &value) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change swizzle" );
+			"Resource is already created, can not change swizzle" );
 
 		_viewDesc.swizzle = ImageSwizzle::FromString( value );
 	}
@@ -396,7 +407,7 @@ namespace
 	void  ScriptImage::SetAspectMask (EImageAspect value) __Th___
 	{
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change aspect" );
+			"Resource is already created, can not change aspect" );
 
 		_viewDesc.aspectMask = value;
 	}
@@ -407,48 +418,66 @@ namespace
 =================================================
 */
 	ScriptImage*  ScriptImage::CreateView1 (EImage				viewType,
+											EPixelFormat		format,
 											const MipmapLevel&	baseMipmap,
 											uint				mipmapCount,
 											const ImageLayer&	baseLayer,
 											uint				layerCount) __Th___
 	{
 		CHECK_THROW_MSG( not _base,
-			"can not create view of view" );
+			"Can not create view of view" );
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not create view" );
+			"Resource is already created, can not create view" );
 
 		if ( viewType == EImage::Cube or viewType == EImage::CubeArray )
 			_desc.options |= EImageOpt::CubeCompatible;
 
+		if ( format != Default and format != _desc.format )
+			_desc.options |= EImageOpt::MutableFormat;	// TODO: use format list
+
 		ScriptImagePtr	result {new ScriptImage{0}};
 
 		result->_base		= ScriptImagePtr{this};
-		result->_viewDesc	= ImageViewDesc{ viewType, Default, baseMipmap, mipmapCount, baseLayer, layerCount };
+		result->_viewDesc	= ImageViewDesc{ viewType, format, baseMipmap, mipmapCount, baseLayer, layerCount };
 		result->_viewDesc.Validate( _desc );
 
-		result->_imageType	= uint(PipelineCompiler::EImageType_FromImage( result->_viewDesc.viewType, _desc.samples.IsEnabled() )) |
-							  (_imageType & uint(PipelineCompiler::EImageType::_ValMask));
+		result->_imageType	= uint(GetDescriptorImageType( _desc, result->_viewDesc ));
 
 		return result.Detach();
 	}
 
-	ScriptImage*  ScriptImage::CreateView2 (EImage				viewType) __Th___
+	ScriptImage*  ScriptImage::CreateView2 (EImage				viewType,
+											const MipmapLevel&	baseMipmap,
+											uint				mipmapCount,
+											const ImageLayer&	baseLayer,
+											uint				layerCount) __Th___
 	{
-		return CreateView1( viewType, 0_mipmap, UMax, 0_layer, UMax );
+		return CreateView1( viewType, Default, baseMipmap, mipmapCount, baseLayer, layerCount );
 	}
 
 	ScriptImage*  ScriptImage::CreateView3 (EImage				viewType,
 											const MipmapLevel&	baseMipmap,
 											uint				mipmapCount) __Th___
 	{
-		return CreateView1( viewType, baseMipmap, mipmapCount, 0_layer, UMax );
+		return CreateView2( viewType, baseMipmap, mipmapCount, 0_layer, UMax );
 	}
 
 	ScriptImage*  ScriptImage::CreateView4 (EImage				viewType,
 											const ImageLayer&	baseLayer,
 											uint				layerCount) __Th___
 	{
-		return CreateView1( viewType, 0_mipmap, UMax, baseLayer, layerCount );
+		return CreateView2( viewType, 0_mipmap, UMax, baseLayer, layerCount );
+	}
+
+	ScriptImage*  ScriptImage::CreateView5 (EImage viewType) __Th___
+	{
+		return CreateView2( viewType, 0_mipmap, UMax, 0_layer, UMax );
+	}
+
+	ScriptImage*  ScriptImage::CreateView6 (EImage			viewType,
+											EPixelFormat	format) __Th___
+	{
+		return CreateView1( viewType, format, 0_mipmap, UMax, 0_layer, UMax );
 	}
 
 /*
@@ -504,6 +533,7 @@ namespace
 			binder.Comment( "Create image from file.\n"
 							"File will be searched in VFS." );
 			binder.AddFactoryCtor( &ScriptImage_Ctor1,	{"imageType", "filenameInVFS"} );
+			binder.AddFactoryCtor( &ScriptImage_Ctor12,	{"imageType", "filenameInVFS", "flags"} );
 
 			binder.Comment( "Create image with constant dimension" );
 			binder.AddFactoryCtor( &ScriptImage_Ctor2,	{"format", "dimension"} );
@@ -563,11 +593,13 @@ namespace
 
 			binder.Comment( "Create image as view for current image."
 							"Can be used to create CubeMap from 2DArray or set different swizzle." );
-			binder.AddMethod( &ScriptImage::CreateView1,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
-			binder.AddMethod( &ScriptImage::CreateView2,		"CreateView",			{"viewType"} );
+			binder.AddMethod( &ScriptImage::CreateView1,		"CreateView",			{"viewType", "format", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
+			binder.AddMethod( &ScriptImage::CreateView2,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
 			binder.AddMethod( &ScriptImage::CreateView3,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount"} );
 			binder.AddMethod( &ScriptImage::CreateView4,		"CreateView",			{"viewType", "baseLayer", "layerCount"} );
-			binder.AddMethod( &ScriptImage::CreateView5,		"CreateView",			{} );
+			binder.AddMethod( &ScriptImage::CreateView5,		"CreateView",			{"viewType"} );
+			binder.AddMethod( &ScriptImage::CreateView6,		"CreateView",			{"viewType", "format"} );
+			binder.AddMethod( &ScriptImage::CreateView7,		"CreateView",			{} );
 		}
 	}
 
@@ -579,12 +611,16 @@ namespace
 	void  ScriptImage::_Load (const String &filename, MipmapLevel mipmap, ImageLayer layer, ELoadOpFlags flags) __Th___
 	{
 		CHECK_THROW_MSG( not _base,
-			"can not load image for image view" );
+			"Can not load image for image view" );
 		CHECK_THROW_MSG( not _resource,
-			"resource is already created, can not change usage or content" );
+			"Resource is already created, can not change usage or content" );
+		CHECK_THROW_MSG( layer < _desc.arrayLayers,
+			"Image array layer ("s << ToString(layer.Get()) << ") is out of bounds [0," << ToString(_desc.arrayLayers.Get()) << ")" );
+		CHECK_THROW_MSG( mipmap < _desc.maxLevel,
+			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.maxLevel.Get()) << ")" )
 
 		if ( _dbgName.empty() )
-			_dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
+			_dbgName = Path{filename}.stem().string().substr( 0, ResNameMaxLen );
 
 		VFS::FileName	fname{ filename };
 
@@ -616,13 +652,9 @@ namespace
 		if ( _resource )
 			return _resource;
 
-		if ( _base )
-		{
-			_resource = _base->ToResource()->CreateView( _viewDesc, _dbgName );
-			return _resource;
-		}
+		if ( not _base )
+			CHECK_THROW_MSG( _resUsage != Default, "failed to create image '"s << _dbgName << "'" );
 
-		CHECK_ERR_MSG( _resUsage != Default, "failed to create image '"s << _dbgName << "'" );
 		for (auto usage : BitfieldIterate( _resUsage ))
 		{
 			switch_enum( usage )
@@ -653,6 +685,13 @@ namespace
 			switch_end
 		}
 
+		if ( _base )
+		{
+			_viewDesc.extUsage = _desc.usage & ~_base->_desc.usage;
+			_resource = _base->ToResource()->CreateView( _viewDesc, _dbgName );
+			return _resource;
+		}
+
 		if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and not AnyBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
 			_desc.options |= EImageOpt::BlitSrc;
 
@@ -660,34 +699,34 @@ namespace
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
 		const auto	mutable_res_usage =	EImageUsage::Storage | EImageUsage::ColorAttachment |
-										EImageUsage::TransferSrc | EImageUsage::DepthStencilAttachment;
+										EImageUsage::TransferDst | EImageUsage::DepthStencilAttachment;
 
 		StrongImageAndViewID	id;
 		const bool				is_mutable	= AnyBits( _desc.usage, mutable_res_usage );
 		const bool				is_dummy	= not (_descDefined and is_mutable);
-		GfxMemAllocatorPtr		gfx_alloc	= _inDynSize ? renderer.GetDynamicAllocator() : renderer.GetAllocator();
+		GfxMemAllocatorPtr		gfx_alloc	= renderer.ChooseAllocator( Bool{_inDynSize}, _desc );
 
 		if ( is_dummy )
 		{
 			id = renderer.GetDummyImage( _desc );
-			CHECK_ERR_MSG( id.view, "Can't get dummy image" );
+			CHECK_THROW_MSG( id.view, "Can't get dummy image" );
 		}
 		else
 		{
 			if ( _inDynSize ) {
 				_desc.dimension = _inDynSize->Get()->Dimension3_NonZero();
 			}else{
-				CHECK_ERR_MSG( All( _desc.dimension > uint3{0} ), "failed to create image '"s << _dbgName << "'" );
+				CHECK_THROW_MSG( All( _desc.dimension > uint3{0} ), "failed to create image '"s << _dbgName << "'" );
 			}
 
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 
 			id.image = res_mngr.CreateImage( _desc, _dbgName, gfx_alloc );
-			CHECK_ERR_MSG( id.image, "failed to create image '"s << _dbgName << "'" );
+			CHECK_THROW_MSG( id.image, "failed to create image '"s << _dbgName << "'" );
 
 			id.view = res_mngr.CreateImageView( _viewDesc, id.image, _dbgName );
-			CHECK_ERR_MSG( id.view, "failed to create image '"s << _dbgName << "'" );
+			CHECK_THROW_MSG( id.view, "failed to create image '"s << _dbgName << "'" );
 
 			renderer.GetDataTransferQueue().EnqueueImageTransition( id.image );
 		}

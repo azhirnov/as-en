@@ -12,7 +12,7 @@
 #pragma once
 
 #include "platform/Public/Projection.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "pch/Graphics.h"
 
 namespace AE::App
 {
@@ -30,9 +30,43 @@ namespace AE::App
 
 
 	//
+	// Render Target
+	//
+	struct IOutputSurface_RenderTarget
+	{
+	// variables
+		ImageID					imageId;
+		ImageViewID				viewId;			// 2D with single mipmap, shared 2D array with specified 'layer'
+
+		RectI					region;			// for texture atlas
+		ImageLayer				layer;
+
+		float					pixToMm;		// pixels to millimeters, used for touch screen, should not be used for VR
+
+		EResourceState			initialState	= Default;
+		EResourceState			finalState		= Default;
+
+		EColorSpace				colorSpace		= Default;
+		EPixelFormat			format			= Default;
+
+		// Projection can be null.
+		// Access is thread-safe only between 'Begin()' / 'End()'.
+		Ptr<const IProjection>	projection;
+
+
+	// methods
+		ND_ uint2	RegionSize ()			C_NE___	{ return RegionSizePxu(); }
+		ND_ uint2	RegionSizePxu ()		C_NE___	{ return uint2(region.Size()); }
+		ND_ int2	RegionSizePxi ()		C_NE___	{ return region.Size(); }
+		ND_ float2	RegionSizePxf ()		C_NE___	{ return float2(region.Size()); }
+		ND_ float2	RegionSizeMm ()			C_NE___	{ return float2(region.Size()) * pixToMm; }
+	};
+
+
+
+	//
 	// Output Surface interface
 	//
-
 	class IOutputSurface
 	{
 	// types
@@ -58,40 +92,8 @@ namespace AE::App
 			RenderTargetInfo (uint2 dim, float pixToMm)	__NE___ : dimension{dim}, pixToMm{pixToMm} {}
 		};
 
-
-		//
-		// Render Target
-		//
-		struct RenderTarget
-		{
-		// variables
-			ImageID					imageId;
-			ImageViewID				viewId;			// 2D with single mipmap, shared 2D array with specified 'layer'
-
-			RectI					region;			// for texture atlas
-			ImageLayer				layer;
-
-			float					pixToMm;		// pixels to millimeters, used for touch screen, should not be used for VR
-
-			EResourceState			initialState	= Default;
-			EResourceState			finalState		= Default;
-
-			EColorSpace				colorSpace		= Default;
-			EPixelFormat			format			= Default;
-
-			// Projection can be null.
-			// Access is thread-safe only between 'Begin()' / 'End()'.
-			Ptr<const IProjection>	projection;
-
-
-		// methods
-			ND_ uint2	RegionSize ()			C_NE___	{ return RegionSizePxu(); }
-			ND_ uint2	RegionSizePxu ()		C_NE___	{ return uint2(region.Size()); }
-			ND_ int2	RegionSizePxi ()		C_NE___	{ return region.Size(); }
-			ND_ float2	RegionSizePxf ()		C_NE___	{ return float2(region.Size()); }
-			ND_ float2	RegionSizeMm ()			C_NE___	{ return float2(region.Size()) * pixToMm; }
-		};
-		using RenderTargets_t = FixedArray< RenderTarget, MaxOutputTargets >;
+		using RenderTarget		= IOutputSurface_RenderTarget;
+		using RenderTargets_t	= FixedArray< RenderTarget, MaxOutputTargets >;
 
 
 		//

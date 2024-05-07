@@ -51,12 +51,14 @@ namespace AE::App
 
 
 	protected:
-			void  _SetState (EState newState);
-			void  _SetStateV2 (EState newState);
+			void  _SetState (EState newState)								__NE___;
+			void  _SetStateV2 (EState newState)								__NE___;
 
-			void  _DestroyListener ();
+			void  _DestroyListener ()										__NE___;
 
-		ND_ bool  _HasFocus () const	{ DRC_SHAREDLOCK( _drCheck );  return _wndState == EState::Focused; }
+			void  _ResizeWindowToSurface ()									__NE___;
+
+		ND_ bool  _HasFocus ()												C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _wndState == EState::Focused; }
 	};
 
 

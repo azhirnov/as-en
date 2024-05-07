@@ -4,10 +4,12 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 # External dependencies
 set( AE_ENABLE_FILESYSTEM  		ON  CACHE BOOL "enable alternative std::filesystem" )
-set( AE_ENABLE_ARM_HWCPIPE 		OFF CACHE BOOL "enable ARM (Mali) performance counters" )
-set( AE_ENABLE_HWPERCOUNTER		OFF CACHE BOOL "enable Google performance counters for Adreno/Mali" )
+set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
+set( AE_ENABLE_HWPERCOUNTER		ON  CACHE BOOL "enable Google performance counters for Adreno/Mali" )	# TODO: remove
+set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
 
 set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_BASS 			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_CDT				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_GLSLANG			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_SPIRV_CROSS 		OFF CACHE INTERNAL "" FORCE )
@@ -20,8 +22,9 @@ set( AE_ENABLE_TINYGLTF			OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 
-set( AE_DST_PATH 		"${AE_EXTERNAL_REP_PATH}/external/android-clang" CACHE INTERNAL "" FORCE )
-set( AE_DST_SHARED_PATH "${AE_EXTERNAL_REP_PATH}/external/android-clang" CACHE INTERNAL "" FORCE )
+set( AE_DST_PATH			"${AE_EXTERNAL_BIN_PATH}/external/android-clang"		CACHE INTERNAL "" FORCE )
+set( AE_DST_SHARED_PATH		"${AE_EXTERNAL_BIN_PATH}/external/android-clang"		CACHE INTERNAL "" FORCE )
+set( AE_ANDROID_JNILIB_PATH	"${MAIN_SOURCE_DIR}/android/engine/src/main/jniLibs"	CACHE INTERNAL "" FORCE )
 
 if (NOT EXISTS "${ANDROID_NDK}")
 	message( FATAL_ERROR "NDK path '${ANDROID_NDK}' is not exists" )
@@ -36,12 +39,16 @@ endif()
 
 if (${AE_ENABLE_FILESYSTEM})
 	add_subdirectory( "FileSystem" )
-endif ()
+endif()
 
 if (${AE_ENABLE_ARM_HWCPIPE})
 	add_subdirectory( "HWCPipe" )
-endif ()
+endif()
 
 if (${AE_ENABLE_HWPERCOUNTER})
 	add_subdirectory( "HWPerfCounter" )
-endif ()
+endif()
+
+if (${AE_ENABLE_PVRCOUNTER})
+	add_subdirectory( "PowerVRScopeStats" )
+endif()

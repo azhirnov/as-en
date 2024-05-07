@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "serializing/Basic/ObjectFactory.h"
+#include "serializing/ObjectFactory.h"
 #include "base/Algorithms/StringUtils.h"
 
 namespace AE::Base
@@ -34,7 +34,7 @@ namespace AE::Base
 
 	// variables
 	private:
-		HashMap< NameHash, String, NameHashHash >		_map;
+		FlatHashMap< NameHash, String, NameHashHash >		_map;
 
 
 	// methods

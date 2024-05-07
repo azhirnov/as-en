@@ -5,6 +5,7 @@
 namespace AE::App
 {
 	using namespace AE::Graphics;
+	using AE::Threading::WeakDep;
 
 namespace {
 
@@ -56,8 +57,7 @@ namespace {
 */
 	void  WindowSurface::CreateSwapchain () __NE___
 	{
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		if ( data->desc.colorFormat == Default )
 			return;	// wait for 'Init()'
@@ -100,8 +100,7 @@ namespace {
 	void  WindowSurface::DestroySwapchain () __NE___
 	{
 		// Begin() / End() must not run in the another thread, so lock the '_surfData'
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		if_unlikely( not _initialized.exchange( false ))
 			return;
@@ -119,8 +118,7 @@ namespace {
 */
 	bool  WindowSurface::Init (IWindow &wnd, const SwapchainDesc &desc) __NE___
 	{
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		data->desc = desc;
 
@@ -157,8 +155,7 @@ namespace {
 */
 	bool  WindowSurface::SetSurfaceMode (const SurfaceInfo &info) __NE___
 	{
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		CHECK_ERR( _initialized.load() );
 
@@ -291,11 +288,7 @@ namespace {
 
 		_pixToMm.store( px_to_mm );
 	}
-//-----------------------------------------------------------------------------
 
-
-
-#ifdef AE_ENABLE_VULKAN
 /*
 =================================================
 	RecreateSwapchainTask
@@ -314,8 +307,7 @@ namespace {
 
 		void  Run () __Th_OV
 		{
-			auto	data = _surface._surfData.WriteNoLock();
-			EXLOCK( data );
+			auto	data = _surface._surfData.WriteLock();
 
 			auto&			swapchain	= _surface._swapchain;
 			SwapchainDesc	new_desc	= data->desc;
@@ -336,7 +328,11 @@ namespace {
 
 		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::RecreateSwapchain"; }
 	};
+//-----------------------------------------------------------------------------
 
+
+
+#ifdef AE_ENABLE_VULKAN
 /*
 =================================================
 	AcquireNextImageTask
@@ -363,7 +359,7 @@ namespace {
 			{
 				auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
 
-				return Continue( Tuple{task} );
+				return Continue( Tuple{RVRef(task)} );
 			}
 
 			auto&		swapchain	= _surface._swapchain;
@@ -383,7 +379,8 @@ namespace {
 					_surface._recreate.store( true );
 
 					auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-					return Continue( Tuple{task} );
+
+					return Continue( Tuple{RVRef(task)} );
 				}
 
 				case VK_TIMEOUT :				// should never happens
@@ -547,17 +544,42 @@ namespace {
 
 		void  Run () __Th_OV
 		{
-			auto&	swapchain = _surface._swapchain;
-
 			if_unlikely( _surface._recreate.load() )
 			{
-				// TODO
+				auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
+
+				return Continue( Tuple{RVRef(task)} );
 			}
 
-			//CHECK_TE( swapchain.AcquireNextImage() );
+			auto&	swapchain	= _surface._swapchain;
+			auto	err			= swapchain.AcquireNextImage();
 
-			//CHECK_TE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore() ));
-			//CHECK_TE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore() ));
+			switch_enum( err )
+			{
+				case_likely RSwapchain::EAcquireResult::OK :
+					break;
+
+				case RSwapchain::EAcquireResult::OK_RecreateLater :
+					_surface._recreate.store( true );
+					break;
+
+				case RSwapchain::EAcquireResult::Error_RecreateImmediately :
+				{
+					_surface._recreate.store( true );
+
+					auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
+
+					return Continue( Tuple{RVRef(task)} );
+				}
+
+				case RSwapchain::EAcquireResult::Error :
+				default :
+					CHECK_TE( false, "Failed to acquire next swapchain image" );
+			}
+			switch_end
+
+			CHECK_TE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
+			CHECK_TE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::AcquireNextImage"; }
@@ -585,8 +607,23 @@ namespace {
 		{
 			auto&	rts	= GraphicsScheduler();
 			auto	q	= rts.GetDevice().GetQueue( _presentQueue );
+			auto	err	= _surface._swapchain.Present( q );
 
-			//CHECK_TE( _surface._swapchain.Present( q ));
+			switch_enum( err )
+			{
+				case_likely RSwapchain::EPresentResult::OK :
+					break;
+
+				case RSwapchain::EPresentResult::OK_RecreateLater :
+				case RSwapchain::EPresentResult::Error_RecreateImmediately :
+					_surface._recreate.store( true );
+					break;
+
+				case RSwapchain::EPresentResult::Error :
+				default :
+					CHECK_TE( false, "Presentation failed" );
+			}
+			switch_end
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::PresentImage"; }
@@ -615,18 +652,19 @@ namespace {
 		ASSERT( beginCmdBatch->IsRecording() );
 		ASSERT( endCmdBatch->IsRecording() );
 
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		CHECK_ERR( _initialized.load() );
 
 		AsyncTask	present = RVRef(data->prevTask);	// can be null
 		ASSERT( present == null or CastAllowed<PresentImageTask>( present.get() ));
 
-		AsyncTask	task = Scheduler().Run<AcquireNextImageTask>( Tuple{ this, beginCmdBatch, endCmdBatch }, Tuple{ present, deps });
+		AsyncTask	task = Scheduler().Run<AcquireNextImageTask>(
+								Tuple{ this, RVRef(beginCmdBatch), endCmdBatch },
+								Tuple{ WeakDep{RVRef(present)}, deps });	// don't use strong dependency from 'present' !
 
 		data->prevTask		= task;
-		data->endCmdBatch	= endCmdBatch;
+		data->endCmdBatch	= RVRef(endCmdBatch);
 
 		return task;
 	}
@@ -638,8 +676,7 @@ namespace {
 */
 	AsyncTask  WindowSurface::End (ArrayView<AsyncTask> deps) __NE___
 	{
-		auto	data = _surfData.WriteNoLock();
-		EXLOCK( data );
+		auto	data = _surfData.WriteLock();
 
 		CHECK_ERR( _initialized.load() );
 		CHECK_ERR( data->endCmdBatch );
@@ -647,8 +684,10 @@ namespace {
 		AsyncTask	acquire = RVRef(data->prevTask);	// can be null
 		ASSERT( acquire == null or CastAllowed<AcquireNextImageTask>( acquire.get() ));
 
-		AsyncTask	task = Scheduler().Run<PresentImageTask>( Tuple{ this, data->endCmdBatch->GetQueueType() },
-															  Tuple{ acquire, CmdBatchOnSubmit{data->endCmdBatch}, deps });
+		auto		queue	= data->endCmdBatch->GetQueueType();
+		AsyncTask	task	= Scheduler().Run<PresentImageTask>(
+									Tuple{ this, queue },
+									Tuple{ RVRef(acquire), CmdBatchOnSubmit{RVRef(data->endCmdBatch)}, deps });
 
 		data->prevTask		= task;
 		data->endCmdBatch	= null;

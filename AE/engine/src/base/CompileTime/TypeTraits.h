@@ -127,32 +127,38 @@ namespace _hidden_
 	template <typename T>
 	static constexpr bool	IsMoveAssignable		= std::is_move_assignable_v<T>;
 
+	template <typename T>
+	static constexpr bool	IsMoveConstructible		= std::is_move_constructible_v<T>;
+
+	template <typename T, typename ...Args>
+	static constexpr bool	IsConstructible			= std::is_constructible_v< T, Args... >;
+
 
 #ifdef AE_ENABLE_EXCEPTIONS
 	template <typename T>
 	struct TNothrowCopyCtor {
-		StaticAssert( std::is_copy_constructible_v<T> );
+		StaticAssert( IsCopyConstructible<T> );
 		static constexpr bool	value = std::is_nothrow_copy_constructible_v<T>		or
 										std::is_trivially_copy_constructible_v<T>;
 	};
 
 	template <typename T>
 	struct TNothrowMoveCtor {
-		StaticAssert( std::is_move_constructible_v<T> );
+		StaticAssert( IsMoveConstructible<T> );
 		static constexpr bool	value = std::is_nothrow_move_constructible_v<T>		or
 										std::is_trivially_move_constructible_v<T>;
 	};
 
 	template <typename T>
 	struct TNothrowDefaultCtor {
-		StaticAssert( std::is_default_constructible_v<T> );
+		StaticAssert( IsDefaultConstructible<T> );
 		static constexpr bool	value = std::is_nothrow_default_constructible_v<T>	or
 										std::is_trivially_default_constructible_v<T>;
 	};
 
 	template <typename T, typename ...Args>
 	struct TNothrowCtor {
-		StaticAssert( std::is_constructible_v< T, Args... >);
+		StaticAssert( IsConstructible< T, Args... >);
 		static constexpr bool	value = std::is_nothrow_constructible_v< T, Args... >	or
 										std::is_trivially_constructible_v< T, Args... >;
 	};
@@ -190,7 +196,7 @@ namespace _hidden_
 
 	template <typename T>
 	struct TNothrowCopyCtor {
-		StaticAssert( std::is_copy_constructible_v<T> );
+		StaticAssert( IsCopyConstructible<T> );
 		static constexpr bool	value = true;
 	};
 
@@ -202,13 +208,13 @@ namespace _hidden_
 
 	template <typename T>
 	struct TNothrowDefaultCtor {
-		StaticAssert( std::is_default_constructible_v<T> );
+		StaticAssert( IsDefaultConstructible<T> );
 		static constexpr bool	value = true;
 	};
 
 	template <typename T, typename ...Args>
 	struct TNothrowCtor {
-		StaticAssert( std::is_constructible_v< T, Args... >);
+		StaticAssert( IsConstructible< T, Args... >);
 		static constexpr bool	value = true;
 	};
 
@@ -478,13 +484,17 @@ namespace _hidden_
 	template <typename T>
 	ND_ constexpr auto  MaxValue ()
 	{
-		return std::numeric_limits< RemoveAllQualifiers<T> >::max();
+		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
+		StaticAssert( NL::is_specialized );
+		return NL::max();
 	}
 
 	template <typename T>
 	ND_ constexpr auto  MinValue ()
 	{
-		return std::numeric_limits< RemoveAllQualifiers<T> >::min();
+		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
+		StaticAssert( NL::is_specialized );
+		return NL::min();
 	}
 
 /*
@@ -496,7 +506,9 @@ namespace _hidden_
 	ND_ constexpr auto  Infinity ()
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
-		return std::numeric_limits< RemoveAllQualifiers<T> >::infinity();
+		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
+		StaticAssert( NL::is_specialized );
+		return NL::infinity();
 	}
 
 /*
@@ -508,7 +520,9 @@ namespace _hidden_
 	ND_ constexpr auto  NaN ()
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
-		return std::numeric_limits< RemoveAllQualifiers<T> >::quiet_NaN();
+		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
+		StaticAssert( NL::is_specialized );
+		return NL::quiet_NaN();
 	}
 
 /*
@@ -571,12 +585,10 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	struct TTriviallySerializable
-	{
-		using A = RemoveCV<T>;
-		static constexpr bool	value =	IsTrivial<A>		and
-										not IsPointer<A>	and
-										not IsReference<A>;
+	struct TTriviallySerializable {
+		static constexpr bool	value =	IsTrivial<T>		and
+										not IsPointer<T>	and
+										not IsReference<T>;
 	};
 
 	template <typename T, usize I>

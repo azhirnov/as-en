@@ -10,7 +10,7 @@ namespace
 =================================================
 */
 	template <typename T>
-	static void  DbgValidateBarrier (EResourceState srcState, EResourceState dstState, const T &barrier)
+	static void  DbgValidateBarrier (EResourceState srcState, EResourceState dstState, const T &barrier) __NE___
 	{
 		Unused( srcState, dstState, barrier );
 

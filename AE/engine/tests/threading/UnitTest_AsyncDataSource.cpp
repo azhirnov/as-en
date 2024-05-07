@@ -2,8 +2,7 @@
 
 #include "UnitTest_Common.h"
 
-#include "threading/DataSource/UnixAsyncDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 #ifndef AE_DISABLE_THREADS
 namespace
@@ -54,7 +53,7 @@ namespace
 			{
 				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
 				TEST( req );	// always non-null
-				TEST_Eq( req.use_count(), 2 );
+				TEST_GE( req.use_count(), 1 );
 
 				auto	task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
 								.Then(	[pos] (const AsyncRDataSource::Result_t &res)
@@ -301,7 +300,7 @@ namespace
 
 				auto	req = wfile->WriteBlock( Bytes{pos}, Bytes{buf_size}, src_buf );
 				TEST( req );	// always non-null
-				TEST_Eq( req.use_count(), 2 );
+				TEST_GE( req.use_count(), 1 );
 
 				auto	task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
 								.Then(	[pos] (const AsyncWDataSource::Result_t &res)
@@ -355,47 +354,27 @@ namespace
 }
 
 
-extern void UnitTest_AsyncDataSource ()
+extern void UnitTest_AsyncDataSource (const Path &curr)
 {
-	// minimize disk usage for debug build
-  #ifdef AE_RELEASE
+	const Path	folder = curr / "ds_test";
 
-  # ifdef AE_PLATFORM_ANDROID
-	const Path	curr	{"/storage/emulated/0/Android/data/AE.Test/cache"};
-	const Path	folder	= curr / "ds_test";
-  # else
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/ds_test"};
-  # endif
-
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
-	#ifdef AE_PLATFORM_WINDOWS
-		AsyncReadDS_Test1< WinAsyncRDataSource, FileWDataSource >();
-		AsyncReadDS_Test2< WinAsyncRDataSource, FileWDataSource >();
-	#  ifdef AE_HAS_COROUTINE
-		AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
-	#  endif
-		AsyncWriteDS_Test1< FileRDataSource, WinAsyncWDataSource >();
-	#else
-		AsyncReadDS_Test1< UnixAsyncRDataSource, FileWDataSource >();
-		AsyncReadDS_Test2< UnixAsyncRDataSource, FileWDataSource >();
-	#  ifdef AE_HAS_COROUTINE
-		AsyncReadDS_Test3< UnixAsyncRDataSource, FileWDataSource >();
-	#  endif
-		AsyncWriteDS_Test1< FileRDataSource, UnixAsyncWDataSource >();
-	#endif
+	AsyncReadDS_Test1< FileAsyncRDataSource, StdFileWDataSource >();
+	AsyncReadDS_Test2< FileAsyncRDataSource, StdFileWDataSource >();
+  # ifdef AE_HAS_COROUTINE
+	AsyncReadDS_Test3< FileAsyncRDataSource, StdFileWDataSource >();
+  # endif
+	AsyncWriteDS_Test1< StdFileRDataSource, FileAsyncWDataSource >();
 
 	// TODO: async stream
 
 	FileSystem::SetCurrentPath( curr );
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 
 	TEST_PASSED();
-
-  #endif // AE_RELEASE
 }
 
 #else

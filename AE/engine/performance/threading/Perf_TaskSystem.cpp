@@ -16,6 +16,7 @@
 		 - stage2: overhead 45%
 */
 
+#include "Perf_Common.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/ThreadManager.h"
 
@@ -23,10 +24,6 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/Platforms/Platform.h"
 #include "PerlinNoise.hpp"
-
-#include "../../tests/threading/UnitTest_Common.h"
-
-using namespace AE::Threading;
 
 namespace
 {

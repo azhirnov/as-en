@@ -64,6 +64,11 @@
 #	define AE_PLATFORM_APPLE
 #endif
 
+#if defined(AE_CPU_ARCH_X86)		or \
+	defined(AE_CPU_ARCH_X64)
+#	define AE_CPU_ARCH_X86_64
+#endif
+
 #if defined(AE_CPU_ARCH_ARM64)		or \
 	defined(AE_CPU_ARCH_ARM32)
 #	define AE_CPU_ARCH_ARM_BASED
@@ -90,7 +95,3 @@
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
 #endif
-
-
-// tabs or spaces
-#define AE_PRIVATE_USE_TABS			1

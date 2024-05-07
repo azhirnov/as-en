@@ -41,6 +41,7 @@ namespace AE::Profiler
 		{
 			const bool	adaptive	= (_style.mode == EMode::Line_Adaptive);
 			float		min_y		= 1.e+38f;
+			float		max_y		= 0.f;
 
 			for (usize l = 0; l < _lines.size(); ++l)
 			{
@@ -57,7 +58,9 @@ namespace AE::Profiler
 				{
 					dst[j].x = line_region.left + float(j) * x_step;
 					dst[j].y = Clamp( line_region.bottom - (src[i] - _range.x) * y_scale, line_region.top, line_region.bottom );
+
 					min_y = Min( min_y, src[i] );
+					max_y = Max( max_y, src[i] );
 				}
 				draw_list->AddPolyline( dst.data(), int(dst.size()), BitCast<uint>(_style.lines[l]), 0, line_thickness );
 			}
@@ -79,7 +82,10 @@ namespace AE::Profiler
 			}
 
 			if ( adaptive )
+			{
 				_range.x = Min( _range.y * 0.99f, min_y * 0.9f );
+				_range.y = Max( _range.y * 0.99f, max_y * 1.1f );
+			}
 		}
 		else
 		if ( _style.mode == EMode::Column )
@@ -120,6 +126,7 @@ namespace AE::Profiler
 		ASSERT( dim > 0 and dim <= MaxGraphs );
 
 		EXLOCK( _guard );
+		ASSERT( _lines.empty() );
 
 		_lines.resize( Clamp( dim, 1u, MaxGraphs ));
 		_capacity = value;
@@ -131,7 +138,7 @@ namespace AE::Profiler
 			if ( line.points.size() > _capacity )
 			{
 				line.points.EraseFront( line.points.size() - _capacity );
-				ASSERT( line.points.size() == _capacity );
+				ASSERT_Eq( line.points.size(), _capacity );
 			}
 		}
 	}
@@ -144,9 +151,9 @@ namespace AE::Profiler
 	void  ImLineGraph::Add (std::initializer_list<float> values)
 	{
 		EXLOCK( _guard );
-		ASSERT( _lines.size() == values.size() );
+		ASSERT_Eq( _lines.size(), values.size() );
 
-		for (usize i = 0; i < _lines.size(); ++i)
+		for (usize i = 0, cnt = Min( _lines.size(), values.size() ); i < cnt; ++i)
 		{
 			if ( _lines[i].points.size()+1 > _capacity )
 				_lines[i].points.pop_front();
@@ -163,10 +170,12 @@ namespace AE::Profiler
 	void  ImLineGraph::AddOpt (std::initializer_list<float> values)
 	{
 		EXLOCK( _guard );
-		ASSERT( _lines.size() == values.size() );
+		ASSERT_Eq( _lines.size(), values.size() );
 
-		bool	is_valid = true;
-		for (usize i = 0; i < _lines.size(); ++i)
+		bool		is_valid = true;
+		const usize	count	 = Min( _lines.size(), values.size() );
+
+		for (usize i = 0; i < count; ++i)
 		{
 			if ( _lines[0].points.empty() and values.begin()[i] <= _range.x )
 				is_valid = false;
@@ -175,7 +184,7 @@ namespace AE::Profiler
 		if ( not is_valid )
 			return;
 
-		for (usize i = 0; i < _lines.size(); ++i)
+		for (usize i = 0; i < count; ++i)
 		{
 			if ( _lines[i].points.size()+1 > _capacity )
 				_lines[i].points.pop_front();
@@ -192,9 +201,9 @@ namespace AE::Profiler
 	void  ImLineGraph::AddAndUpdateRange (std::initializer_list<float> values)
 	{
 		EXLOCK( _guard );
-		ASSERT( _lines.size() == values.size() );
+		ASSERT_Eq( _lines.size(), values.size() );
 
-		for (usize i = 0; i < _lines.size(); ++i)
+		for (usize i = 0, cnt = Min( _lines.size(), values.size() ); i < cnt; ++i)
 		{
 			_range.y = Max( _range.y, values.begin()[i] * 1.05f );
 
@@ -212,7 +221,7 @@ namespace AE::Profiler
 */
 	void  ImLineGraph::SetRange (float min, float max)
 	{
-		ASSERT( max >= min );
+		ASSERT_GE( max, min );
 		EXLOCK( _guard );
 
 		_range = float2{min, max};
@@ -225,7 +234,7 @@ namespace AE::Profiler
 */
 	bool  ImLineGraph::Empty (uint dim) const
 	{
-		ASSERT( dim < MaxGraphs );
+		ASSERT_Lt( dim, MaxGraphs );
 		SHAREDLOCK( _guard );
 
 		return dim < _lines.size() ? _lines[dim].points.empty() : true;
@@ -238,7 +247,7 @@ namespace AE::Profiler
 */
 	float  ImLineGraph::LastPoint (uint dim) const
 	{
-		ASSERT( dim < MaxGraphs );
+		ASSERT_Lt( dim, MaxGraphs );
 		SHAREDLOCK( _guard );
 
 		return (dim < _lines.size() and not _lines[dim].points.empty()) ?
@@ -260,7 +269,7 @@ namespace AE::Profiler
 	void  ImLineGraph::SetLabel (StringView label, uint dim)
 	{
 		EXLOCK( _guard );
-		ASSERT( dim < _lines.size() );
+		CHECK_ERRV( dim < _lines.size() );
 
 		_lines[dim].label = String{label};
 	}

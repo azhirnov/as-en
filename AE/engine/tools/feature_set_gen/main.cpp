@@ -13,10 +13,11 @@
 #include "FeatureSetUtils.h"
 #include "base/Algorithms/StringUtils.h"
 
+#include "graphics/Private/ImageDesc.cpp"
 #include "graphics/Private/FeatureSet.cpp"
 #include "graphics/Private/RenderState.cpp"
 #include "graphics/Private/EnumUtils.cpp"
-//#include "graphics/Metal/MFeatureSet.cpp"
+#include "graphics/Metal/MFeatureSet.cpp"
 
 using namespace AE;
 using namespace AE::Base;
@@ -558,8 +559,7 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Mobile or
-			 not HasSubStringIC( info.name, "mali" ))
+		if ( info.type != EType::Mobile or not fs.vendorIds.include.contains( EGPUVendor::ARM ))
 			continue;
 
 		if ( init )
@@ -616,8 +616,7 @@ static bool  GenMinMobileAdreno (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Mobile or
-			 not HasSubStringIC( info.name, "adreno" ))
+		if ( info.type != EType::Mobile or not fs.vendorIds.include.contains( EGPUVendor::Qualcomm ))
 			continue;
 
 		if ( init )
@@ -667,8 +666,7 @@ static bool  GenMinMobilePowerVR (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Mobile or
-			 not HasSubStringIC( info.name, "powervr" ))
+		if ( info.type != EType::Mobile or not fs.vendorIds.include.contains( EGPUVendor::ImgTech ))
 			continue;
 
 		if ( init )
@@ -770,8 +768,7 @@ static bool  GenMinDesktopAMD (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Desktop or
-			 not HasSubString( info.name, "AMD" ))
+		if ( info.type != EType::Desktop or not fs.vendorIds.include.contains( EGPUVendor::AMD ))
 			continue;
 
 		if ( init )
@@ -821,8 +818,7 @@ static bool  GenMinDesktopNV (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Desktop or
-			 not HasSubStringIC( info.name, "nvidia" ))
+		if ( info.type != EType::Desktop or not fs.vendorIds.include.contains( EGPUVendor::NVidia ))
 			continue;
 
 		if ( init )
@@ -872,8 +868,7 @@ static bool  GenMinDesktopIntel (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( info.type != EType::Desktop or
-			 not HasSubStringIC( info.name, "intel" ))
+		if ( not fs.vendorIds.include.contains( EGPUVendor::Intel ))
 			continue;
 
 		if ( init )
@@ -909,6 +904,8 @@ static bool  GenMinDesktopIntel (ArrayView<FeatureSetInfo> fsInfo)
 /*
 =================================================
 	GenMinApple
+----
+	vulkan features only, additionally use 'apple_metal' features
 =================================================
 */
 static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
@@ -923,7 +920,7 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( not HasSubStringIC( info.name, "apple" ))
+		if ( not fs.vendorIds.include.contains( EGPUVendor::Apple ))
 			continue;
 
 		if ( init )
@@ -963,12 +960,65 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 =================================================
 	GenAppleFamily
 =================================================
-*
+*/
 static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 {
+	const auto	FixAndValidate = [] (INOUT FeatureSet &fs)
+	{{
+		const auto	True	= FeatureSet::EFeature::RequireTrue;
+
+		fs.shaderSampleRateInterpolationFunctions	= True;
+		fs.vertexDivisor							= True;
+		fs.maxVertexAttribDivisor					= 1u << 30;
+		fs.textureCompressionASTC_LDR				= True;
+		fs.textureCompressionETC2					= True;
+		fs.framebufferColorSampleCounts				= FeatureSet::SampleCountBits( 1 | 2 | 4 );
+		fs.framebufferDepthSampleCounts				= FeatureSet::SampleCountBits( 1 | 2 | 4 );
+
+		fs.storageTexBufferAtomicFormats.insert( EPixelFormat::R32I );
+		fs.storageTexBufferAtomicFormats.insert( EPixelFormat::R32U );
+
+		fs.vendorIds.include.insert( EGPUVendor::Apple );
+
+		ValidateFS( INOUT fs );
+
+		CHECK( fs.IsValid() );
+		fs.Validate();
+	}};
+
+	const auto	InitFeatureSet = [&FixAndValidate] (const MFeatureSet &mfs, const MGPUFamilies &f, OUT FeatureSet &fs)
+	{{
+		fs.vendorIds.include.insert( EGPUVendor::Apple );
+		mfs.InitFeatureSet( f, OUT fs );
+		FixAndValidate( INOUT fs );
+	}};
+
+
+	// Apple9
+	{
+		MGPUFamilies	f;
+		f.apple	= 9;
+		f.metal	= 3;
+
+		MFeatureSet		mfs;
+		MFeatureSet::InitFromFSTable( f, Version2{3,0}, OUT mfs.features, OUT mfs.properties );
+
+		auto&	fs = fsInfo.emplace_back();
+		fs.name = "Apple9";
+		fs.type	= EType::Unknown;	// both
+		fs.fs.maxShaderVersion.metal = 300;
+		fs.fs.maxShaderVersion.spirv = 140;
+
+		InitFeatureSet( mfs, f, OUT fs.fs );
+
+		Path	dst_path = FEATURE_SET_FOLDER;
+		dst_path.append( "apple_metal/apple9.as" );
+		CHECK_ERR( FeatureSetToScript( dst_path, "Apple9", fs.fs, "" ));
+	}
+
 	// Apple8
 	{
-		// Apple8 (A15, M2)
+		// Apple8 (A15, A16, M2)
 		{
 			MGPUFamilies	f;
 			f.apple	= 8;
@@ -982,17 +1032,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Mobile;
 			fs.fs.maxShaderVersion.metal = 300;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple8.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple8", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple8.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple8", fs.fs, "" ));
 		}
 
 		// Apple8 Mac (M2)
@@ -1010,17 +1055,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Desktop;
 			fs.fs.maxShaderVersion.metal = 300;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple8_mac.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple8_Mac", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple8_mac.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple8_Mac", fs.fs, "" ));
 		}
 	}
 
@@ -1040,17 +1080,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Mobile;
 			fs.fs.maxShaderVersion.metal = 300;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple7_metal3.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple7_Metal3", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple7_metal3.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple7_Metal3", fs.fs, "" ));
 		}
 
 		// Apple7 Mac (M1)
@@ -1068,17 +1103,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Desktop;
 			fs.fs.maxShaderVersion.metal = 300;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple7_mac_metal3.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple7_Mac_Metal3", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple7_mac_metal3.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple7_Mac_Metal3", fs.fs, "" ));
 		}
 
 		// Apple7 (A14, M1), metal2.4
@@ -1095,17 +1125,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Mobile;
 			fs.fs.maxShaderVersion.metal = 240;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple7.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple7", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple7.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple7", fs.fs, "" ));
 		}
 	}
 
@@ -1125,17 +1150,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Mobile;
 			fs.fs.maxShaderVersion.metal = 300;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple6_metal3.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple6_Metal3", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple6_metal3.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple6_Metal3", fs.fs, "" ));
 		}
 
 		// Apple6 (A13) metal2
@@ -1152,22 +1172,17 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 			fs.type	= EType::Mobile;
 			fs.fs.maxShaderVersion.metal = 240;
 			fs.fs.maxShaderVersion.spirv = 140;
-			fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-			mfs.InitFeatureSet( f, OUT fs.fs );
-			ValidateFS( INOUT fs.fs );
-
-			CHECK( fs.fs.IsValid() );
-			fs.fs.Validate();
+			InitFeatureSet( mfs, f, OUT fs.fs );
 
 			Path	dst_path = FEATURE_SET_FOLDER;
-			dst_path.append( "parts/apple6.as" );
-			CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple6", fs.fs, "" ));
+			dst_path.append( "apple_metal/apple6.as" );
+			CHECK_ERR( FeatureSetToScript( dst_path, "Apple6", fs.fs, "" ));
 		}
 	}
 
 	// Apple5 (A12)
-	/ *{
+	/*{
 		MGPUFamilies	f;
 		f.apple	= 5;
 		f.metal	= 2;
@@ -1180,17 +1195,12 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 		fs.type	= EType::Mobile;
 		fs.fs.maxShaderVersion.metal = 240;
 		fs.fs.maxShaderVersion.spirv = 100;
-		fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-		mfs.InitFeatureSet( f, OUT fs.fs );
-		ValidateFS( INOUT fs.fs );
-
-		CHECK( fs.fs.IsValid() );
-		fs.fs.Validate();
+		InitFeatureSet( mfs, f, OUT fs.fs );
 
 		Path	dst_path = FEATURE_SET_FOLDER;
-		dst_path.append( "parts/apple5.as" );
-		CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple5", fs.fs, "" ));
+		dst_path.append( "apple_metal/apple5.as" );
+		CHECK_ERR( FeatureSetToScript( dst_path, "Apple5", fs.fs, "" ));
 	}
 
 	// Apple4 (A11)
@@ -1207,18 +1217,13 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 		fs.type	= EType::Mobile;
 		fs.fs.maxShaderVersion.metal = 240;
 		fs.fs.maxShaderVersion.spirv = 100;
-		fs.fs.vendorIds.include.insert( EVendorID::Apple );
 
-		mfs.InitFeatureSet( f, OUT fs.fs );
-		ValidateFS( INOUT fs.fs );
-
-		CHECK( fs.fs.IsValid() );
-		fs.fs.Validate();
+		InitFeatureSet( mfs, f, OUT fs.fs );
 
 		Path	dst_path = FEATURE_SET_FOLDER;
-		dst_path.append( "parts/apple4.as" );
-		CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple4", fs.fs, "" ));
-	}* /
+		dst_path.append( "apple_metal/apple4.as" );
+		CHECK_ERR( FeatureSetToScript( dst_path, "Apple4", fs.fs, "" ));
+	}*/
 
 	// Mac2
 	{
@@ -1230,36 +1235,33 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 		MFeatureSet::InitFromFSTable( f, Version2{2,4}, OUT mfs.features, OUT mfs.properties );
 
 		auto&	fs = fsInfo.emplace_back();
-		fs.name = "Mac2";
+		fs.name = "Apple_Mac2";
 		fs.type	= EType::Desktop;
 
-		FeatureSet	min_fs;
-		min_fs.maxShaderVersion.metal = 240;
-		min_fs.maxShaderVersion.spirv = 140;
-		min_fs.vendorIds.include.insert( EVendorID::AMD );
-		min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
+		{
+			FeatureSet	min_fs;
+			min_fs.maxShaderVersion.metal = 240;
+			min_fs.maxShaderVersion.spirv = 140;
+			min_fs.vendorIds.include.insert( EGPUVendor::AMD );
+			min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
 
-		mfs.InitFeatureSet( f, OUT min_fs );
-		fs.fs = min_fs;
+			mfs.InitFeatureSet( f, OUT min_fs );
+			fs.fs = min_fs;
+		}{
+			FeatureSet	min_fs;
+			min_fs.maxShaderVersion.metal = 240;
+			min_fs.maxShaderVersion.spirv = 140;
+			min_fs.vendorIds.include.insert( EGPUVendor::Intel );
 
-		min_fs.vendorIds.include.clear();
-		min_fs.devicesIds.include.clear();
-		min_fs.vendorIds.include.insert( EVendorID::Intel );
+			mfs.InitFeatureSet( f, OUT min_fs );
+			fs.fs.MergeMin( min_fs );
+		}
 
-		mfs.InitFeatureSet( f, OUT min_fs );
-		fs.fs.MergeMin( min_fs );
-
-		ValidateFS( INOUT fs.fs );
-		CHECK( fs.fs.IsValid() );
-		fs.fs.Validate();
-
-		fs.fs.vendorIds.include.insert( EVendorID::AMD );
-		fs.fs.vendorIds.include.insert( EVendorID::Intel );
-		fs.fs.devicesIds.include.clear();
+		FixAndValidate( INOUT fs.fs );
 
 		Path	dst_path = FEATURE_SET_FOLDER;
-		dst_path.append( "parts/mac2.as" );
-		CHECK_ERR( FeatureSetToScript( dst_path, "part.Mac2", fs.fs, "" ));
+		dst_path.append( "apple_metal/mac2.as" );
+		CHECK_ERR( FeatureSetToScript( dst_path, "Apple_Mac2", fs.fs, "" ));
 	}
 
 	// Mac Metal 3
@@ -1272,47 +1274,41 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 		MFeatureSet::InitFromFSTable( f, Version2{3,0}, OUT mfs.features, OUT mfs.properties );
 
 		auto&	fs = fsInfo.emplace_back();
-		fs.name = "Mac_Metal3";
+		fs.name = "Apple_Mac_Metal3";
 		fs.type	= EType::Desktop;
 
-		FeatureSet	min_fs;
-		min_fs.maxShaderVersion.metal = 300;
-		min_fs.maxShaderVersion.spirv = 140;
-		min_fs.vendorIds.include.insert( EVendorID::AMD );
-		min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
+		{
+			FeatureSet	min_fs;
+			min_fs.maxShaderVersion.metal = 300;
+			min_fs.maxShaderVersion.spirv = 140;
+			min_fs.vendorIds.include.insert( EGPUVendor::AMD );
+			min_fs.devicesIds.include.insert( EGraphicsDeviceID::AMD_RDNA2 );
 
-		mfs.InitFeatureSet( f, OUT min_fs );
-		CHECK( min_fs.IsValid() );
-		fs.fs = min_fs;
+			mfs.InitFeatureSet( f, OUT min_fs );
+			fs.fs = min_fs;
+		}{
+			FeatureSet	min_fs;
+			min_fs.maxShaderVersion.metal = 300;
+			min_fs.maxShaderVersion.spirv = 140;
+			min_fs.vendorIds.include.insert( EGPUVendor::Intel );
 
-		min_fs.vendorIds.include.clear();
-		min_fs.devicesIds.include.clear();
-		min_fs.vendorIds.include.insert( EVendorID::Intel );
+			mfs.InitFeatureSet( f, OUT min_fs );
+			fs.fs.MergeMin( min_fs );
+		}{
+			FeatureSet	min_fs;
+			min_fs.maxShaderVersion.metal = 300;
+			min_fs.maxShaderVersion.spirv = 140;
+			min_fs.vendorIds.include.insert( EGPUVendor::Apple );
 
-		mfs.InitFeatureSet( f, OUT min_fs );
-		CHECK( min_fs.IsValid() );
-		fs.fs.MergeMin( min_fs );
+			mfs.InitFeatureSet( f, OUT min_fs );
+			fs.fs.MergeMin( min_fs );
+		}
 
-		min_fs.vendorIds.include.clear();
-		min_fs.devicesIds.include.clear();
-		min_fs.vendorIds.include.insert( EVendorID::Apple );
-
-		mfs.InitFeatureSet( f, OUT min_fs );
-		CHECK( min_fs.IsValid() );
-		fs.fs.MergeMin( min_fs );
-
-		ValidateFS( INOUT fs.fs );
-		CHECK( fs.fs.IsValid() );
-		fs.fs.Validate();
-
-		fs.fs.vendorIds.include.insert( EVendorID::AMD );
-		fs.fs.vendorIds.include.insert( EVendorID::Intel );
-		fs.fs.vendorIds.include.insert( EVendorID::Apple );
-		fs.fs.devicesIds.include.clear();
+		FixAndValidate( INOUT fs.fs );
 
 		Path	dst_path = FEATURE_SET_FOLDER;
-		dst_path.append( "parts/mac_metal3.as" );
-		CHECK_ERR( FeatureSetToScript( dst_path, "part.Mac_Metal3", fs.fs, "" ));
+		dst_path.append( "apple_metal/mac_metal3.as" );
+		CHECK_ERR( FeatureSetToScript( dst_path, "Apple_Mac_Metal3", fs.fs, "" ));
 	}
 
 	const auto	GreaterThan = [&fsInfo] (StringView lhs, StringView rhs) -> bool
@@ -1336,7 +1332,7 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 		return false;
 	}};
 
-	CHECK_ERR( GreaterThan( "Mac_Metal3",			"Mac2"			));
+	CHECK_ERR( GreaterThan( "Apple_Mac_Metal3",		"Apple_Mac2"	));
 	CHECK_ERR( GreaterThan( "Apple8_Mac",			"Apple8"		));
 	CHECK_ERR( GreaterThan( "Apple8",				"Apple7"		));
 	CHECK_ERR( GreaterThan( "Apple7",				"Apple6"		));
@@ -1395,7 +1391,7 @@ int main ()
 
 	for (auto& info : fs_infos)
 	{
-		AE_LOGI( "Process: "s << info.path.string() );
+		AE_LOGI( "Process: "s << ToString( info.path ));
 		CHECK_ERR( FeatureSetFromJSON( info.path, OUT info.fs, OUT info.name ), -1 );
 
 		info.fs.Validate();
@@ -1407,7 +1403,6 @@ int main ()
 			if ( info.fs.accelerationStructure() == EFeature::RequireTrue )	msl_ver = 240;
 			if ( info.fs.meshShader == EFeature::RequireTrue )				msl_ver = 300;
 
-		//	info.fs.maxUniformBufferSize	= Min( info.fs.maxUniformBufferSize, DeviceLimits.res.maxUniformBufferRange );
 			info.fs.maxShaderVersion.metal	= ushort(Max( info.fs.maxShaderVersion.metal, msl_ver ));
 		}
 
@@ -1438,10 +1433,13 @@ int main ()
 			}
 		}
 
+		// not supported
+		info.fs.shaderSubgroupUniformControlFlow = EFeature::Ignore;
+
 		CHECK( info.fs.IsValid() );
 	}
 
-    //CHECK_ERR( GenAppleFamily( INOUT fs_infos ), -9 );
+	CHECK_ERR( GenAppleFamily( INOUT fs_infos ), -9 );
 
 	CHECK_ERR( GenMinimalFS					( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDescriptorIndexing		( fs_infos ),	-10 );
@@ -1458,6 +1456,7 @@ int main ()
 	CHECK_ERR( GenMinMobileAdreno			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMobilePowerVR			( fs_infos ),	-10 );
 	CHECK_ERR( GenMinApple					( fs_infos ),	-10 );
+
 	// TODO:
 	//	HightPerfDesktop
 	//	HightPerfMobile

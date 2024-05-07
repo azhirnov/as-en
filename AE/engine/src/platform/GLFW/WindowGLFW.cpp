@@ -346,7 +346,7 @@ namespace AE::App
 	_Create
 =================================================
 */
-	bool  WindowGLFW::_Create (const WindowDesc &desc)
+	bool  WindowGLFW::_Create (const WindowDesc &desc) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
@@ -468,7 +468,7 @@ namespace AE::App
 	_Destroy
 =================================================
 */
-	void  WindowGLFW::_Destroy ()
+	void  WindowGLFW::_Destroy () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
@@ -489,7 +489,7 @@ namespace AE::App
 	_ProcessMessages
 =================================================
 */
-	bool  WindowGLFW::_ProcessMessages ()
+	bool  WindowGLFW::_ProcessMessages () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -505,6 +505,11 @@ namespace AE::App
 		_input.Update( _app.GetTimeSinceStart() );
 
 		_LockAndHideCursor( _input.RequiresLockAndHideCursor() and _HasFocus() );
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		_ResizeWindowToSurface();
+	  #endif
+
 		return true;
 	}
 
@@ -513,7 +518,7 @@ namespace AE::App
 	_LockAndHideCursor
 =================================================
 */
-	void  WindowGLFW::_LockAndHideCursor (bool value)
+	void  WindowGLFW::_LockAndHideCursor (bool value) __NE___
 	{
 		if_unlikely( _lockAndHideCursor != value )
 		{
@@ -538,7 +543,7 @@ namespace AE::App
 	_GLFW_ResizeCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h)
+	void  WindowGLFW::_GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
@@ -556,7 +561,7 @@ namespace AE::App
 	_GLFW_KeyCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int action, int)
+	void  WindowGLFW::_GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int action, int) __NE___
 	{
 		if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
 		{
@@ -575,7 +580,7 @@ namespace AE::App
 	_GLFW_MouseButtonCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int)
+	void  WindowGLFW::_GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int) __NE___
 	{
 		if_likely( (action == GLFW_PRESS) or (action == GLFW_RELEASE) )
 		{
@@ -594,7 +599,7 @@ namespace AE::App
 	_GLFW_CursorPosCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos)
+	void  WindowGLFW::_GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
@@ -608,7 +613,7 @@ namespace AE::App
 	_GLFW_MouseWheelCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy)
+	void  WindowGLFW::_GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
@@ -622,7 +627,7 @@ namespace AE::App
 	_GLFW_IconifyCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_IconifyCallback (GLFWwindow* wnd, int iconified)
+	void  WindowGLFW::_GLFW_IconifyCallback (GLFWwindow* wnd, int iconified) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
@@ -635,7 +640,7 @@ namespace AE::App
 	_GLFW_WindowContentScaleCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale)
+	void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
@@ -648,7 +653,7 @@ namespace AE::App
 	_GLFW_WindowFocusCallback
 =================================================
 */
-	void  WindowGLFW::_GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused)
+	void  WindowGLFW::_GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused) __NE___
 	{
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );

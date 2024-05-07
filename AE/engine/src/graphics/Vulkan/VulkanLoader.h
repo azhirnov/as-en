@@ -14,6 +14,7 @@
 
 # include "base/Defines/StdInclude.h"
 # define VK_ENABLE_BETA_EXTENSIONS
+
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)
 #	include <vulkan/vulkan.h>
@@ -39,7 +40,7 @@ namespace AE::Graphics
 #	undef  VKLOADER_STAGE_INLINEFN
 
 	extern PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr;
-	ND_ VKAPI_ATTR inline PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) { return _var_vkGetInstanceProcAddr( instance, pName ); }
+	ND_ VKAPI_ATTR inline PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) __NE___ { return _var_vkGetInstanceProcAddr( instance, pName ); }
 
 
 

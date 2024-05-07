@@ -21,7 +21,7 @@ namespace AE::PipelineCompiler
 		ND_ Unique<ShaderTrace>  Clone ()					const	{ RETURN_ERR( "not supported" ); }
 
 		ND_ bool  Serialize (Serializing::Serializer &)		C_NE___	{ RETURN_ERR( "not supported" ); }
-		ND_ bool  Deserialize (Serializing::Deserializer &) __NE___	{ RETURN_ERR( "not supported" ); }
+		ND_ bool  Deserialize (Serializing::Deserializer &) __NE___	{ return false; }
 
 		ND_ bool  ParseShaderTrace (const void*, Bytes, ELogFormat, OUT Array<String> &) const	{ RETURN_ERR( "not supported" ); }
 	};

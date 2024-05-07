@@ -55,6 +55,53 @@ namespace AE::Graphics
 	};
 
 
+	//
+	// Command Batch Description
+	//
+	struct CmdBatchDesc
+	{
+	// types
+		enum class EFlags : ubyte
+		{
+			Unknown		= 0,
+			ResetQuery	= 1 << 0,
+		};
+
+	// variables
+		EQueueType		queue		= Default;
+		EFlags			flags		= Default;
+		uint			submitIdx	= UMax;
+		DebugLabel		dbg			= Default;
+		void *			userData	= null;
+
+	// methods
+		CmdBatchDesc ()										__NE___	{}
+		CmdBatchDesc (EQueueType	queue,
+					  uint			submitIdx,
+					  DebugLabel	dbg			= Default,
+					  void *		userData	= null,
+					  EFlags		flags		= Default)	__NE___ :
+			queue{queue}, flags{flags},
+			submitIdx{submitIdx},
+			dbg{dbg}, userData{userData}
+		{}
+
+		CmdBatchDesc&	ResetQuery ()						__NE___;
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	AE_BIT_OPERATORS( CmdBatchDesc::EFlags );
+
+
+	inline CmdBatchDesc&  CmdBatchDesc::ResetQuery () __NE___
+	{
+		flags |= EFlags::ResetQuery;
+		return *this;
+	}
+
+
 	constexpr EQueueMask&  operator |= (EQueueMask &lhs, EQueueType rhs) __NE___
 	{
 		ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );

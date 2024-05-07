@@ -36,8 +36,8 @@ namespace AE::Graphics
 
 		RTShaderBindingDesc				_desc;
 
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -54,7 +54,7 @@ namespace AE::Graphics
 
 		ND_ RTShaderBindingDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

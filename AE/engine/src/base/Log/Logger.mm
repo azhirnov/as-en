@@ -6,9 +6,10 @@
 #import <Cocoa/Cocoa.h>
 #define null	nullptr
 
+#include "base/Defines/Undef.h"
 #include "base/Log/Logger.h"
 
-#if defined(AE_PLATFORM_APPLE) and not defined(AE_CI_BUILD)
+#ifdef AE_PLATFORM_APPLE
 
 namespace AE::Base
 {

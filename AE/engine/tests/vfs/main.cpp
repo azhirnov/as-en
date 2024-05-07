@@ -1,21 +1,21 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "UnitTest_Common.h"
 
-extern void UnitTest_ArchiveStorage ();
-extern void UnitTest_NetworkStorage ();
+extern void UnitTest_ArchiveStorage (const Path &curr);
+extern void UnitTest_NetworkStorage (const Path &curr);
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_VFS ()
+extern "C" AE_DLL_EXPORT int Tests_VFS (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
-	UnitTest_ArchiveStorage();
-	UnitTest_NetworkStorage();
+	UnitTest_ArchiveStorage( curr );
+	UnitTest_NetworkStorage( curr );
 
 	AE_LOGI( "Tests.VFS finished" );
 	return 0;

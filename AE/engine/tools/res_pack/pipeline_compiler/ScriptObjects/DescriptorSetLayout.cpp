@@ -129,12 +129,12 @@ namespace
 
 	ND_ static String  SamplerDescToMSL (const SamplerDesc &desc) __Th___
 	{
-		CHECK_THROW_MSG( desc.usage == Default );
+		CHECK_THROW_MSG( desc.options == Default );
 		CHECK_THROW_MSG( desc.reductionMode == EReductionMode::Average );
 		CHECK_THROW_MSG( IsZero( desc.mipLodBias ));
 
 		String	str;
-		str << "  coord::" << (desc.unnormalizedCoordinates ? "pixel" : "normalized") << ",\n"
+		str << "  coord::" << (desc.UnnormalizedCoordinates() ? "pixel" : "normalized") << ",\n"
 			<< "  s_address::" << AddressMSL( desc.addressMode.x ) << ",\n"
 			<< "  t_address::" << AddressMSL( desc.addressMode.y ) << ",\n"
 			<< "  r_address::" << AddressMSL( desc.addressMode.z ) << ",\n"
@@ -147,8 +147,8 @@ namespace
 		if ( desc.compareOp.has_value() )
 			str << ",\n  compare_func::" << CompareOpMSL( *desc.compareOp );
 
-		if ( desc.maxAnisotropy.has_value() )
-			str << ",\n  max_anisotropy(" << ToString( int(*desc.maxAnisotropy) ) << ")";
+		if ( desc.HasAnisotropy() )
+			str << ",\n  max_anisotropy(" << ToString( int(desc.maxAnisotropy) ) << ")";
 
 		return str;
 	}
@@ -868,7 +868,7 @@ namespace
 	Build
 =================================================
 */
-	bool  DescriptorSetLayout::Build ()
+	bool  DescriptorSetLayout::Build () __NE___
 	{
 		if ( _uid.has_value() )
 			return true;
@@ -1118,7 +1118,7 @@ namespace
 
 		binder.Comment( "Set descriptor set usage (EDescSetUsage)." );
 		binder.AddMethod( &DescriptorSetLayout::SetUsage,						"SetUsage",			{} );
-		binder.AddMethod( &DescriptorSetLayout::_SetUsage,						"SetUsage",			{} );
+		binder.AddMethod( &DescriptorSetLayout::SetUsage2,						"SetUsage",			{} );
 
 		binder.Comment( "Add input attachment from render technique graphics pass." );
 		binder.AddMethod( &DescriptorSetLayout::AddSubpassInputFromRenderTech,	"SubpassInputFromRenderTech", {"rtech", "gpass"} );
@@ -1344,10 +1344,11 @@ namespace
 	void  DescriptorSetLayout::SetUsage (EDescSetUsage value) __Th___
 	{
 		// TODO: validate
-		_dsLayout.usage = EDescSetUsage(value);
+
+		_dsLayout.usage = EDescSetUsage(value) | (_dsLayout.usage & ~EDescSetUsage::_PrivateMask);
 	}
 
-	void  DescriptorSetLayout::_SetUsage (uint value) __Th___
+	void  DescriptorSetLayout::SetUsage2 (uint value) __Th___
 	{
 		SetUsage( EDescSetUsage(value) );
 	}
@@ -2302,7 +2303,7 @@ namespace
 */
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, const String &samplerName) __Th___
 	{
-		AddCombinedImage_ImmutableSampler( stages, name, type, state, ArrayView<String>{samplerName} );
+		AddCombinedImage_ImmutableSampler( stages, name, type, state, ArrayView<String>{&samplerName, 1} );
 	}
 
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, ArrayView<String> samplerNames) __Th___
@@ -2498,7 +2499,7 @@ namespace
 */
 	void  DescriptorSetLayout::AddImmutableSampler (EShaderStages stages, const String &name, const String &samplerName) __Th___
 	{
-		AddImmutableSampler( stages, name, ArrayView<String>{samplerName} );
+		AddImmutableSampler( stages, name, ArrayView<String>{ &samplerName, 1 });
 	}
 
 	void  DescriptorSetLayout::AddImmutableSampler (EShaderStages stages, const String &name, ArrayView<String> samplerNames) __Th___

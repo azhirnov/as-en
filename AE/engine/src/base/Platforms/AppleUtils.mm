@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #define null	nullptr
 
+#include "base/Defines/Undef.h"
 #include "base/Platforms/AppleUtils.h"
 
 namespace AE::Base

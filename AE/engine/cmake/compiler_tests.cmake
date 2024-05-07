@@ -172,6 +172,7 @@ set( CPP_COROUTINE_SUPPORTED_SRC
 		return 0;
 	}"
 )
+
 if (${CMAKE_VERSION} VERSION_LESS "3.25.0")
 	check_cxx_source_compiles(
 		"${CPP_COROUTINE_SUPPORTED_SRC}"
@@ -194,6 +195,19 @@ else()
 			message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Failed" )
 		endif()
 	endif()
+endif()
+
+# disable coroutines for MSVC + Clang
+if (${AE_HAS_CXX_COROUTINE})
+	string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
+	if ( MSVC AND (outPos GREATER -1) )
+		set( AE_HAS_CXX_COROUTINE OFF CACHE INTERNAL "" FORCE )
+		message( STATUS "Disable Coroutines for MSVC Clang" )
+	endif()
+endif()
+
+if (${AE_HAS_CXX_COROUTINE})
+	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_COROUTINE" )
 endif()
 
 #------------------------------------------------------------------------------

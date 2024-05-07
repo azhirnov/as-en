@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/DataSource/UnixAsyncDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 #include "vfs/Disk/DiskDynamicStorage.h"
 #include "vfs/Disk/Utils.cpp.h"
@@ -17,21 +16,20 @@ namespace AE::VFS
 	bool  DiskDynamicStorage::_Create (const Path &folder, StringView prefix, bool createFolder) __NE___
 	{
 		TRY{
-			auto	file_map = _fileMap.WriteNoLock();
-			EXLOCK( file_map );
-
 			CHECK_ERR( _folder.empty() );
 
+			_folder = FileSystem::ToAbsolute( folder );
+
 			if ( createFolder )
-				FileSystem::CreateDirectories( folder );
+				FileSystem::CreateDirectories( _folder );
 
-			CHECK_ERR( FileSystem::IsDirectory( folder ));
+			CHECK_ERR( FileSystem::IsDirectory( _folder ));
 
+			auto	file_map = _fileMap.WriteLock();
 			file_map->map.clear();
 			file_map->map.reserve( 128 );	// throw
 			file_map->lastUpdate = Default;
 
-			_folder	= FileSystem::ToAbsolute( folder );
 			_prefix	= String{prefix};
 		}
 		CATCH_ALL(
@@ -75,7 +73,7 @@ namespace AE::VFS
 					{
 						auto	file = FileSystem::ToRelative( entry.Get(), _folder );
 
-						CHECK_ERR( Convert<Path::value_type>( OUT str, file.native() ));
+						CHECK_ERR( Convert( OUT str, file ));
 
 						name.clear();
 						name << _prefix << str;
@@ -109,10 +107,9 @@ namespace AE::VFS
 	{
 		Path	path;
 		{
-			auto	file_map = _fileMap.ReadNoLock();
-			SHAREDLOCK( file_map );
+			auto	file_map = _fileMap.ReadLock();
+			auto	iter	 = file_map->map.find( FileName::Optimized_t{name} );
 
-			auto	iter = file_map->map.find( FileName::Optimized_t{name} );
 			if_unlikely( iter == file_map->map.end() )
 				return false;
 
@@ -159,16 +156,7 @@ namespace AE::VFS
 
 	bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
 	{
-	#if defined(AE_PLATFORM_WINDOWS)
-		return _Open< Threading::WinAsyncRDataSource >( OUT ds, name );
-
-	#elif defined(AE_PLATFORM_UNIX_BASED)
-		return _Open< Threading::UnixAsyncRDataSource >( OUT ds, name );
-
-	#else
-		Unused( ds, name );
-		return false;
-	#endif
+		return _Open< Threading::FileAsyncRDataSource >( OUT ds, name );
 	}
 
 /*
@@ -188,16 +176,7 @@ namespace AE::VFS
 
 	bool  DiskDynamicStorage::Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name) C_NE___
 	{
-	#if defined(AE_PLATFORM_WINDOWS)
-		return _Open< Threading::WinAsyncWDataSource >( OUT ds, name );
-
-	#elif defined(AE_PLATFORM_UNIX_BASED)
-		return _Open< Threading::UnixAsyncWDataSource >( OUT ds, name );
-
-	#else
-		Unused( ds, name );
-		return false;
-	#endif
+		return _Open< Threading::FileAsyncWDataSource >( OUT ds, name );
 	}
 
 /*
@@ -207,20 +186,25 @@ namespace AE::VFS
 */
 	bool  DiskDynamicStorage::CreateFile (OUT FileName &name, const Path &inPath) C_NE___
 	{
-		const Path	abs_path = (_folder / inPath).lexically_normal();	// path without '..'
-		const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
+		TRY{
+			const Path	abs_path = (_folder / inPath).lexically_normal();	// path without '..'
+			const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
 
-		CHECK_ERR( *rel_path.begin() != ".." );
-		FileSystem::CreateDirectories( abs_path.parent_path() );
+			CHECK_ERR( *rel_path.begin() != ".." );
+			FileSystem::CreateDirectories( abs_path.parent_path() );
 
-		String	str;
-		CHECK_ERR( Convert<Path::value_type>( OUT str, rel_path.native() ));
+			String	str;
+			CHECK_ERR( Convert( OUT str, rel_path ));
 
-		name = FileName{_prefix + str};
-		DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
+			name = FileName{_prefix + str};
+			DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
 
-		_fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
-		return true;
+			_fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
+			return true;
+		}
+		CATCH_ALL(
+			return false;
+		)
 	}
 
 /*
@@ -231,41 +215,46 @@ namespace AE::VFS
 #if 1
 	bool  DiskDynamicStorage::CreateUniqueFile (OUT FileName &name, INOUT Path &inoutPath) C_NE___
 	{
-		const Path		abs_path	= (_folder / inoutPath).lexically_normal();	// path without '..'
-		String			fname		= ToString( abs_path.filename().replace_extension("") );
-		const String	ext			= ToString( abs_path.extension() );
-		const usize		len			= fname.length();
-		Path			path		= abs_path.parent_path();
+		TRY{
+			const Path		abs_path	= (_folder / inoutPath).lexically_normal();	// path without '..'
+			String			fname		= ToString( abs_path.filename().replace_extension("") );
+			const String	ext			= ToString( abs_path.extension() );
+			const usize		len			= fname.length();
+			Path			path		= abs_path.parent_path();
 
-		{
-			const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
-			CHECK_ERR( *rel_path.begin() != ".." );
-			FileSystem::CreateDirectories( abs_path.parent_path() );
+			{
+				const Path	rel_path = FileSystem::ToRelative( abs_path, _folder );
+				CHECK_ERR( *rel_path.begin() != ".." );
+				FileSystem::CreateDirectories( abs_path.parent_path() );
+			}
+
+			const auto	BuildName = [&] (OUT Path &p, usize idx) __Th___
+			{{
+				fname.resize( len );
+				fname << ToString(idx) << ext;
+				p = path / fname;
+			}};
+
+			const auto	Consume = [this, &inoutPath, &name] (const Path &p) __Th___ -> bool
+			{{
+				inoutPath = FileSystem::ToRelative( p, _folder );
+
+				String	str;
+				CHECK_ERR( Convert( OUT str, inoutPath ));
+
+				name = FileName{_prefix + str};
+				DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
+
+				_fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
+				return true;
+			}};
+
+			FileSystem::FindUnusedFilename( BuildName, Consume );
+			return name.IsDefined();
 		}
-
-		const auto	BuildName = [&] (OUT Path &p, usize idx)
-		{{
-			fname.resize( len );
-			fname << ToString(idx) << ext;
-			p = path / fname;
-		}};
-
-		const auto	Consume = [this, &inoutPath, &name] (const Path &p) -> bool
-		{{
-			inoutPath = FileSystem::ToRelative( p, _folder );
-
-			String	str;
-			CHECK_ERR( Convert<Path::value_type>( OUT str, inoutPath.native() ));
-
-			name = FileName{_prefix + str};
-			DEBUG_ONLY( _fileMap->hashCollisionCheck.Add( name ));
-
-			_fileMap->map.emplace( FileName::Optimized_t{name}, RVRef(str) );
-			return true;
-		}};
-
-		FileSystem::FindUnusedFilename( BuildName, Consume );
-		return name.IsDefined();
+		CATCH_ALL(
+			return false;
+		)
 	}
 #else
 

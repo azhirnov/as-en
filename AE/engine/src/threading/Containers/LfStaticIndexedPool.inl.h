@@ -33,7 +33,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _arr == null )
+		if_unlikely( _arr == null )
 			return;
 
 		for (usize i = 0; i < ChunksCount; ++i)
@@ -52,7 +52,8 @@ namespace AE::Threading
 =================================================
 	Release
 ----
-	Must be externally synchronized
+	Must be externally synchronized.
+	Can not use after release!
 =================================================
 */
 	template <typename V, typename I, usize C, typename A>
@@ -60,7 +61,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _arr == null )
+		if_unlikely( _arr == null )
 			return;
 
 		if_unlikely( checkForAssigned )
@@ -91,7 +92,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _arr == null )
+		if_unlikely( _arr == null )
 			return;
 
 		for (usize i = 0; i < ChunksCount; ++i)
@@ -126,7 +127,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _arr == null )
+		if_unlikely( _arr == null )
 			return;
 
 		for (usize i = 0; i < ChunksCount; ++i)
@@ -202,7 +203,9 @@ namespace AE::Threading
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		ASSERT( _arr != null );
+		if_unlikely( _arr == null )
+			return false;
+
 		ASSERT( index < capacity() );
 
 		const uint	chunk_idx	= index / ChunkSize;
@@ -247,7 +250,7 @@ namespace AE::Threading
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		ASSERT( _arr != null );
+		NonNull( _arr );
 		ASSERT( index < capacity() );
 		ASSERT( IsAssigned( index ));
 
@@ -311,7 +314,7 @@ namespace AE::Threading
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		if_unlikely( not _arr )
+		if_unlikely( _arr == null )
 			return UMax;
 
 		if ( IsIntersects<const void*>( ptr, ptr, _arr->data(), _arr->data() + _arr->size() ))

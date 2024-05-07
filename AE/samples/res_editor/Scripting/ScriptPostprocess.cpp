@@ -10,50 +10,28 @@ namespace AE::ResEditor
 namespace
 {
 	static ScriptPostprocess*  ScriptPostprocess_Ctor0 () {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ "", Default, Default, Default }}.Detach();
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ "", Default, Default }}.Detach();
 	}
 
 	static ScriptPostprocess*  ScriptPostprocess_Ctor1 (const String &name) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, Default, Default}}.Detach();
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, Default }}.Detach();
 	}
 
 	static ScriptPostprocess*  ScriptPostprocess_Ctor2 (const String &name, ScriptPostprocess::EPostprocess ppFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, Default, Default }}.Detach();
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, Default }}.Detach();
 	}
 
 	static ScriptPostprocess*  ScriptPostprocess_Ctor3 (ScriptPostprocess::EPostprocess ppFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, Default, Default }}.Detach();
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, Default }}.Detach();
 	}
 
 	static ScriptPostprocess*  ScriptPostprocess_Ctor4 (ScriptPostprocess::EPostprocess ppFlags, const String &defines) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, defines, Default }}.Detach();
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, defines }}.Detach();
 	}
 
-	static ScriptPostprocess*  ScriptPostprocess_Ctor5 (ScriptPostprocess::EPostprocess ppFlags, ScriptBasePass::EFlags baseFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, Default, baseFlags }}.Detach();
+	static ScriptPostprocess*  ScriptPostprocess_Ctor5 (const String &name, const String &defines) {
+		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines }}.Detach();
 	}
-
-	static ScriptPostprocess*  ScriptPostprocess_Ctor6 (ScriptPostprocess::EPostprocess ppFlags, const String &defines, ScriptBasePass::EFlags baseFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ Default, ppFlags, defines, baseFlags }}.Detach();
-	}
-
-	static ScriptPostprocess*  ScriptPostprocess_Ctor7 (const String &name, ScriptPostprocess::EPostprocess ppFlags, ScriptBasePass::EFlags baseFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, Default, baseFlags }}.Detach();
-	}
-
-	static ScriptPostprocess*  ScriptPostprocess_Ctor8 (const String &name, ScriptPostprocess::EPostprocess ppFlags, const String &defines, ScriptBasePass::EFlags baseFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, defines, baseFlags }}.Detach();
-	}
-
-	static ScriptPostprocess*  ScriptPostprocess_Ctor9 (const String &name, const String &defines) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines, Default }}.Detach();
-	}
-
-	static ScriptPostprocess*  ScriptPostprocess_Ctor10 (const String &name, const String &defines, ScriptBasePass::EFlags baseFlags) {
-		return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines, baseFlags }}.Detach();
-	}
-
-	//static constexpr float	DefaultIPD	= 64.0e-3f;
 
 } // namespace
 
@@ -63,8 +41,7 @@ namespace
 	constructor
 =================================================
 */
-	ScriptPostprocess::ScriptPostprocess (const String &name, EPostprocess ppFlags, const String &defines, EFlags baseFlags) __Th___ :
-		ScriptBaseRenderPass{ baseFlags },
+	ScriptPostprocess::ScriptPostprocess (const String &name, EPostprocess ppFlags, const String &defines) __Th___ :
 		_pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
 		_ppFlags{ ppFlags }
 	{
@@ -131,12 +108,7 @@ namespace
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor2,	{"shaderPath", "postprocessFlags"} );
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor3,	{"postprocessFlags"} );
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor4,	{"postprocessFlags", "defines"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,	{"postprocessFlags", "passFlags"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor6,	{"postprocessFlags", "defines", "passFlags"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor7,	{"shaderPath", "postprocessFlags", "passFlags"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor8,	{"shaderPath", "postprocessFlags", "defines", "passFlags"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor9,	{"shaderPath", "defines"} );
-			binder.AddFactoryCtor( &ScriptPostprocess_Ctor10,	{"shaderPath", "defines", "passFlags"} );
+			binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,	{"shaderPath", "defines"} );
 		}
 	}
 
@@ -162,7 +134,6 @@ namespace
 	{
 		auto		result		= MakeRC<Postprocess>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&	renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 		Bytes		ub_size;
 
@@ -197,15 +168,12 @@ namespace
 		}
 		#endif
 
-		result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-												  "ShadertoyUB", renderer.GetAllocator() );
-		CHECK_ERR( result->_ubuffer );
-
+		result->_ubuffer = _CreateUBuffer( ub_size, "ShadertoyUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
 
 		// create descriptor set
 		{
-			CHECK_ERR( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
-													  ppln, DescriptorSetName{"ds0"} ));
+			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
+														ppln, DescriptorSetName{"ds0"} ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 		}
 
@@ -215,12 +183,12 @@ namespace
 			const uint	layers	= src.rt->Description().arrayLayers.Get();
 			const uint	count	= (src.layerCount == UMax ? (layers - src.layer.Get()) : src.layerCount);
 
-			CHECK_ERR( src.layer.Get() < layers );
-			CHECK_ERR( src.layer.Get() + count <= layers );
+			CHECK_THROW( src.layer.Get() < layers );
+			CHECK_THROW( src.layer.Get() + count <= layers );
 
 			AssignMin( INOUT min_layer_count, count );
 		}
-		CHECK_ERR( min_layer_count > 0 );
+		CHECK_THROW( min_layer_count > 0 );
 
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
@@ -231,13 +199,13 @@ namespace
 		{
 			auto&	src	= _output[i];
 			auto	rt	= src.rt->ToResource();
-			CHECK_ERR( rt );
+			CHECK_THROW( rt );
 
 			// validate
 			for (auto& [name, res, state] : result->_resources.Get())
 			{
 				if ( auto* tex = UnionGet< RC<Image> >( res ))
-					CHECK_ERR_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output" );
+					CHECK_THROW_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output" );
 			}
 
 			ImageViewDesc	view;
@@ -248,14 +216,14 @@ namespace
 			view.mipmapCount	= 1;
 
 			rt = rt->CreateView( view, rt->GetName() );
-			CHECK_ERR( rt );
+			CHECK_THROW( rt );
 
 			auto&	dst = result->_renderTargets.emplace_back();
 			dst.name	= AttachmentName{src.name};
 			dst.image	= rt;
 			dst.clear	= src.clear;
 		}
-		CHECK_ERR( not result->_renderTargets.empty() );
+		CHECK_THROW( not result->_renderTargets.empty() );
 
 		_Init( *result, null );
 		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
@@ -335,7 +303,7 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CompilePipeline
+	_CompilePipeline2
 =================================================
 */
 	void  ScriptPostprocess::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
@@ -358,14 +326,17 @@ namespace AE::ResEditor
 			for (usize i = 0; i < _output.size(); ++i)
 			{
 				RPAttachmentPtr		att		= compat_rp->AddAttachment2( _output[i].name );
-				const auto			desc	= _output[i].rt->ToResource()->GetImageDesc();
+				auto				rt		= _output[i].rt;
+				const auto			desc	= rt->ToResource()->GetImageDesc();
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
-				att->AddUsage( subpass, EAttachment::Color );
+
+				att->AddUsage( subpass, (rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color) );
 			}
 		}{
-			RenderPassSpecPtr	rp_spec = compat_rp->AddSpecialization2( "rp" );
+			RenderPassSpecPtr	rp_spec		= compat_rp->AddSpecialization2( "rp" );
+			const auto			ds_state	= EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestAfterFS;
 
 			for (usize i = 0; i < _output.size(); ++i)
 			{
@@ -379,7 +350,7 @@ namespace AE::ResEditor
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate );
 				}
 
-				att->AddLayout( subpass, EResourceState::ColorAttachment );
+				att->AddLayout( subpass, (_output[i].rt->IsDepthOrStencil() ? ds_state : EResourceState::ColorAttachment) );
 			}
 		}
 
@@ -524,13 +495,13 @@ void Main ()
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
-			_CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
+			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderFnProf ))
-			_CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default );
+			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
-			_CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+			NOTHROW( _CompilePipeline3( subpass,	vs, fs, fs_line, "postprocess.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
 	  #endif
 	}
 
@@ -549,6 +520,7 @@ void Main ()
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Fragment) );
 
 		GraphicsPipelinePtr		ppln_templ{ new GraphicsPipelineScriptBinding{ pplnName }};
+		ppln_templ->Disable();
 		ppln_templ->SetFragmentOutputFromRenderPass( "compat.rp", subpass );
 		ppln_templ->SetLayout2( ppln_layout );
 
@@ -561,11 +533,11 @@ void Main ()
 			ScriptShaderPtr	sh{ new ScriptShader{}};
 			sh->SetSource2( EShader::Fragment, fs, PathAndLine{_pplnPath, fsLine} );
 			sh->options = EShaderOpt(shaderOpts);
-
 			ppln_templ->SetFragmentShader( sh );
 		}
 		{
 			GraphicsPipelineSpecPtr	ppln_spec = ppln_templ->AddSpecialization2( pplnName );
+			ppln_spec->Disable();
 			ppln_spec->AddToRenderTech( "rtech", subpass );
 			ppln_spec->SetViewportCount( 1 );
 			ppln_spec->SetOptions( pplnOpt );
@@ -573,11 +545,18 @@ void Main ()
 			RenderState		rs;
 			rs.inputAssembly.topology = EPrimitive::TriangleList;
 
-			for (usize i = 0; i < _output.size(); ++i)
+			for (usize i = 0, c = 0; i < _output.size(); ++i)
 			{
 				const auto&	src	= _output[i];
-				auto&		dst = rs.color.buffers[i];
+				auto&		dst = rs.color.buffers[c];
 
+				if ( src.rt->IsDepthOrStencil() )
+				{
+					rs.depth.write = true;
+					continue;
+				}
+
+				++c;
 				dst.blend = src.enableBlend;
 
 				if ( src.enableBlend )
@@ -593,6 +572,9 @@ void Main ()
 			}
 
 			ppln_spec->SetRenderState( rs );
+
+			// if successfully compiled
+			ppln_spec->Enable();
 		}
 	}
 

@@ -168,7 +168,7 @@ namespace AE::Threading
 
 		for (uint attempt = 0; attempt < _MaxAttempts; ++attempt)
 		{
-			ASSERT( chunk != null );
+			NonNull( chunk );
 
 			if_likely( Count_t idx = chunk->count.fetch_add( 1 );  idx < _ChunkCapacity )	// TODO: CAS ?
 			{
@@ -246,7 +246,7 @@ namespace AE::Threading
 	forceinline void  LfChunkList<T,S>::_UpdateLast () __NE___
 	{
 		Chunk*	curr = _last.load();
-		ASSERT( curr != null );
+		NonNull( curr );
 
 		Chunk*	chunk = curr;
 

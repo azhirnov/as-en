@@ -4,29 +4,28 @@ if (TARGET "Graphics")
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" )
 	file( GLOB_RECURSE SHARED_DATA "${AE_ENGINE_SHARED_DATA}/*.*" )
 
-	if (DEFINED ANDROID)
-		add_library( "Tests.Graphics" STATIC ${SOURCES} ${SHARED_DATA} )
+	if (ANDROID)
+		set( TEST_NAME "TestsGraphics" )
+		add_library( ${TEST_NAME} SHARED ${SOURCES} ${SHARED_DATA} )
 	elseif (APPLE)
-		add_executable( "Tests.Graphics" MACOSX_BUNDLE ${SOURCES} ${SHARED_DATA} )
+		set( TEST_NAME "Tests.Graphics" )
+		add_executable( ${TEST_NAME} MACOSX_BUNDLE ${SOURCES} ${SHARED_DATA} )
 	else()
-		add_executable( "Tests.Graphics" ${SOURCES} ${SHARED_DATA} )
+		set( TEST_NAME "Tests.Graphics" )
+		add_executable( ${TEST_NAME} ${SOURCES} ${SHARED_DATA} )
+		set_target_properties( ${TEST_NAME} PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )
 	endif()
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	source_group( TREE "${AE_ENGINE_SHARED_DATA}/.." FILES ${SHARED_DATA} )
 
-	set_property( TARGET "Tests.Graphics" PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( "Tests.Graphics" PUBLIC "Graphics" "Platform" "GraphicsTestUtils" )
+	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
+	target_link_libraries( ${TEST_NAME} PUBLIC "Platform" "GraphicsTestUtils" )
 
-	target_include_directories( "Tests.Graphics" PUBLIC "." )
-	target_include_directories( "Tests.Graphics" PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
+	target_include_directories( ${TEST_NAME} PUBLIC "." )
+	target_include_directories( ${TEST_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
+	target_compile_definitions( ${TEST_NAME} PRIVATE AE_TEST_SHADER_DEBUGGER )
 
-	target_compile_definitions( "Tests.Graphics" PUBLIC AE_TEST_GRAPHICS )
-
-	if (TARGET "ShaderTrace")
-		target_compile_definitions( "Tests.Graphics" PRIVATE AE_TEST_SHADER_DEBUGGER )
-	endif()
-
-	target_compile_definitions( "Tests.Graphics" PRIVATE
+	target_compile_definitions( ${TEST_NAME} PRIVATE
 		AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 	)
@@ -44,25 +43,17 @@ if (TARGET "Graphics")
 		add_dependencies( "PACK_RES" "Tests.Graphics.PackRes" )
 	endif()
 
-	if (DEFINED ANDROID AND ${AE_ENABLE_VULKAN})
-		target_compile_definitions( "Tests.Graphics" PRIVATE
-			AE_REFDUMP_PATH="tests_graphics_vulkan_refdump"
-			AE_REF_IMG_PATH="tests_graphics_vulkan_refimg"
-			AE_RES_PACK="pipelines.bin" )
-
-	elseif (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
-		target_compile_definitions( "Tests.Graphics" PRIVATE
-			AE_REFDUMP_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
-			AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
-			AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/vk/pipelines.bin" )
-
-	elseif (${AE_ENABLE_METAL})
-		target_compile_definitions( "Tests.Graphics" PRIVATE
-			AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/metal"
-			AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/mac/pipelines.bin" )
+	if (${AE_CI_BUILD_TEST})
+		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_ref" )
+	elseif (ANDROID)
+		target_compile_definitions( ${TEST_NAME} PRIVATE AE_REF_IMG_PATH="tests_graphics_ref_" )
+	else()
+		target_compile_definitions( ${TEST_NAME} PRIVATE
+			AE_REF_IMG_PATH="${AE_DATA_FOLDER}/tests/graphics/"
+			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics/" )
 	endif()
 
-	if (NOT ${AE_CI_BUILD_NO_GRAPHICS})
-		add_test( NAME "Tests.Graphics" COMMAND "Tests.Graphics" )
-	endif()
+	EnablePCH2( ${TEST_NAME} "TestsGraphics" )
+
+	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

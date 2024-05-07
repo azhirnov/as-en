@@ -77,6 +77,9 @@ namespace AE::Graphics
 	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
 
 
+	using PipelineIDTypes		= TypeList< GraphicsPipelineID, MeshPipelineID, ComputePipelineID, RayTracingPipelineID, TilePipelineID >;
+
+
 	static constexpr AttachmentName		Attachment_Depth		{"Depth"};
 	static constexpr AttachmentName		Attachment_DepthStencil	{"DepthStencil"};
 	static constexpr AttachmentName		Attachment_ShadingRate	{"ShadingRate"};
@@ -93,10 +96,10 @@ namespace AE::Graphics
 		ImageID			image;
 		ImageViewID		view;
 
-		constexpr ImageAndViewID () __NE___ {}
-		constexpr ImageAndViewID (ImageID image, ImageViewID view) __NE___ : image{image}, view{view} {}
+		constexpr ImageAndViewID ()									__NE___ {}
+		constexpr ImageAndViewID (ImageID image, ImageViewID view)	__NE___ : image{image}, view{view} {}
 
-		ND_ explicit operator bool ()	C_NE___	{ return image and view; }
+		ND_ explicit operator bool ()								C_NE___	{ return image and view; }
 	};
 
 
@@ -108,15 +111,15 @@ namespace AE::Graphics
 		Strong<ImageID>			image;
 		Strong<ImageViewID>		view;
 
-		constexpr StrongImageAndViewID () __NE___ {}
-		constexpr StrongImageAndViewID (Strong<ImageID> image, Strong<ImageViewID> view) __NE___ : image{RVRef(image)}, view{RVRef(view)} {}
+		constexpr StrongImageAndViewID ()													__NE___ {}
+		constexpr StrongImageAndViewID (Strong<ImageID> image, Strong<ImageViewID> view)	__NE___ : image{RVRef(image)}, view{RVRef(view)} {}
 
-		constexpr StrongImageAndViewID (StrongImageAndViewID &&) __NE___ = default;
+		constexpr StrongImageAndViewID (StrongImageAndViewID &&)							__NE___ = default;
 
-		StrongImageAndViewID&  operator = (StrongImageAndViewID &&) __NE___ = default;
+		StrongImageAndViewID&  operator = (StrongImageAndViewID &&)							__NE___ = default;
 
-		operator ImageAndViewID ()		C_NE___	{ return { image, view }; }
-		ND_ explicit operator bool ()	C_NE___	{ return image and view; }
+		ND_ operator ImageAndViewID ()														C_NE___	{ return { image, view }; }
+		ND_ explicit operator bool ()														C_NE___	{ return image and view; }
 	};
 
 

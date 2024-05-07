@@ -1,9 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_STB
-
-#include "../shared/UnitTest_Shared.h"
-#include "atlas_tools/RectPackerSTB.h"
+# include "UnitTest_Common.h"
+# include "atlas_tools/RectPackerSTB.h"
 using namespace AE::AtlasTools;
 
 namespace

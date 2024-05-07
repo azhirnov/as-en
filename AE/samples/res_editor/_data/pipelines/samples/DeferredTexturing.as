@@ -19,7 +19,7 @@
 		}
 		{
 			RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+"t" );
-			ppln.SetLayout( "model.pl" );
+			ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/include/Model.as)
 			ppln.SetVertexInput( "VB{Posf3, Normf3, UVf2}" );
 			ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
 			ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, prefix+"io.vs-fs" );

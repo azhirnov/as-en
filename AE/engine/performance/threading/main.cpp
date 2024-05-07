@@ -1,27 +1,35 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "Perf_Common.h"
 
 extern void  PerfTest_AsyncMutex ();
-extern void  PerfTest_AsyncFile ();
+extern void  PerfTest_AsyncFile (const AE::Base::Path &curr);
 extern void  PerfTest_TaskSystem ();
+extern void  PerfTest_MtAllocator ();
+
+extern void  PerfTest_Raw_Atomic ();
+extern void  PerfTest_Raw_ThreadWakeUp ();
+
 
 #ifdef AE_PLATFORM_ANDROID
-extern int PerformanceTests_Threading ()
+extern "C" AE_DLL_EXPORT int Perf_Threading (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	#ifndef AE_RELEASE
-	//	return 0; // skip
-	#endif
+  #ifdef AE_RELEASE
+	BEGIN_TEST();
 
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	PerfTest_AsyncFile( curr );
+	PerfTest_AsyncMutex();
+	PerfTest_TaskSystem();
 
-	PerfTest_AsyncFile();
-	//PerfTest_AsyncMutex();
-	//PerfTest_TaskSystem();
+	//PerfTest_MtAllocator();
+
+	//PerfTest_Raw_ThreadWakeUp();
+	//PerfTest_Raw_Atomic();
 
 	AE_LOGI( "PerformanceTests.Threading finished" );
+  #endif
 	return 0;
 }

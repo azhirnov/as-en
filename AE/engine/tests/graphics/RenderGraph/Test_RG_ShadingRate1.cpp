@@ -145,7 +145,7 @@ namespace
 				MemCopy( OUT vstream.mappedPtr, vertices, vstream.size );
 
 				dctx.BindPipeline( t.ppln[i] );
-				dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
+				dctx.BindVertexBuffer( 0, vstream.bufferHandle, vstream.offset );
 
 				dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Replace, EShadingRateCombinerOp::Keep );
 
@@ -216,6 +216,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -294,7 +296,10 @@ namespace
 bool RGTest::Test_ShadingRate1 ()
 {
 	if ( _vrsPipelines == null )
-		return true; // skip
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp1	= _LoadReference( TEST_NAME + "-1" );
 	auto	img_cmp2	= _LoadReference( TEST_NAME + "-2" );

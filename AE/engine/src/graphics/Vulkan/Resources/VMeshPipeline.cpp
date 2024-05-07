@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/Resources/VMeshPipeline.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "VPipelineHelper.inl.h"
+# include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
 {
@@ -32,7 +32,7 @@ namespace AE::Graphics
 		CHECK_ERR( (ci.specCI.dynamicState & ~EPipelineDynamicState::GraphicsPipelineMask) == Zero );
 		CHECK_ERR( not _handle and not _layout );
 		CHECK_ERR( ci.specCI.renderStatePtr );
-		CHECK_ERR( resMngr.GetFeatureSet().meshShader == EFeature::RequireTrue );
+		CHECK_ERR( resMngr.GetFeatureSet().meshShader == FeatureSet::EFeature::RequireTrue );
 
 		const auto&	render_state	= *ci.specCI.renderStatePtr;
 		auto*		ppln_layout		= resMngr.GetResource( ci.layoutId, True{"incRef"} );
@@ -43,7 +43,7 @@ namespace AE::Graphics
 
 		AutoreleasePplnCache	cache_ptr	{ resMngr, ci.cacheId };
 		VkPipelineCache			ppln_cache	= cache_ptr ? cache_ptr->Handle() : Default;
-		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( resMngr, CompatRenderPassName{ ci.specCI.renderPass });
+		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( CompatRenderPassName{ ci.specCI.renderPass });
 		auto*					render_pass	= resMngr.GetResource( rp_id );
 		CHECK_ERR( render_pass != null );
 
@@ -87,7 +87,7 @@ namespace AE::Graphics
 
 		input_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 
-		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits stage, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count)
+		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits stage, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{
 			if ( stage == VK_SHADER_STAGE_MESH_BIT_EXT and Any( ci.templCI.meshLocalSizeSpec != UMax ))
 			{
@@ -201,7 +201,7 @@ namespace AE::Graphics
 		}
 
 		auto&	dev	= resMngr.GetDevice();
-		VK_CHECK_ERR( dev.vkCreateGraphicsPipelines( dev.GetVkDevice(), ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
+		VK_CHECK_ERR( CreateGraphicsPipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 
 		dev.SetObjectName( _handle, ci.specCI.dbgName, VK_OBJECT_TYPE_PIPELINE );
 
@@ -211,7 +211,7 @@ namespace AE::Graphics
 
 		CopyShaderTrace( ci.shaders, ci.allocator, OUT _dbgTrace );
 
-		DEBUG_ONLY( _debugName = ci.specCI.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )
 		return true;
 	}
 
@@ -241,7 +241,7 @@ namespace AE::Graphics
 		_subpassIndex	= UMax;
 		_dbgTrace		= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-	
+
 	<!-- min Vulkan API version: 1.0.82 -->
 	<uses-feature android:name="android.hardware.vulkan.version" android:version="0x400052" android:required="true" />
 
@@ -9,7 +9,7 @@
 	<uses-feature android:name="android.hardware.audio.output" android:required="false" />
 	<uses-feature android:name="android.hardware.gamepad" android:required="false" />
 	<uses-feature android:name="android.hardware.location" android:required="false" />
-	
+
 	<uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
 	<uses-feature android:name="android.hardware.sensor.ambient_temperature" android:required="false" />
 	<uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
@@ -18,13 +18,16 @@
 	<uses-feature android:name="android.hardware.sensor.light" android:required="false" />
 	<uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
 
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="true" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:required="true" />
+
 	<!--<uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />-->
 	<!--<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />-->
 
 	<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />	<!-- API 31 -->
-	
+
 	<uses-feature android:name="android.hardware.faketouch" android:required="false" />
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	
+
 </manifest>

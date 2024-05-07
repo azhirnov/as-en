@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	thread-safe:  no
+*/
 
 #pragma once
 
@@ -26,13 +29,6 @@ namespace AE::RG::_hidden_
 			uint				submitIdx	= 0;
 		};
 		using Queues_t = StaticArray< PerQueue, uint(EQueueType::_Count) >;
-
-
-		struct PerFrame
-		{
-			Queues_t			queues;
-		};
-		using Frames_t	= StaticArray< PerFrame, GraphicsConfig::MaxFrames >;
 
 
 		struct OutSurfaceInfo
@@ -82,17 +78,14 @@ namespace AE::RG::_hidden_
 			ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
 			ND_ CmdBatchBuilder &&	UseResource (BufferViewID id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
 
-			template <typename ID>
-			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID>, EResourceState initial, EResourceState final)	rvNE___;
+			template <typename ArrayType>
+			ND_ CmdBatchBuilder &&	UseResources (const ArrayType &, EResourceState initial, EResourceState final) rvNE___;
 
-			template <typename ID>
-			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID> ids, EResourceState initialOrFinal)				rvNE___;
+			template <typename ArrayType>
+			ND_ CmdBatchBuilder &&	UseResources (const ArrayType &ids, EResourceState initialOrFinal)			rvNE___;
 
-			template <typename ID>
-			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID> ids)											rvNE___;
-
-			template <typename ID0, typename ...IDs>
-			ND_ CmdBatchBuilder &&	UseResources (const ID0 &id0, const IDs& ...ids)							rvNE___;
+			template <typename ArrayType>
+			ND_ CmdBatchBuilder &&	UseResources (const ArrayType &ids)											rvNE___;
 
 			// CPU <-> GPU syncs
 			// Batch is submitted as single command and can be synchronized with host (CPU)
@@ -113,12 +106,17 @@ namespace AE::RG::_hidden_
 	private:
 		RenderTaskScheduler&		_rts;
 		FrameUID					_prevFrameId;
-		Frames_t					_frames;
+		Queues_t					_queues;
+
+		bool						_resetQuery		: 1;
+		const bool					_hostQueryReset	: 1;
 
 		// data for current frame
 		SemToBatch_t				_semToBatch;
-		RGBatchDataPool_t			_rgDataPool;
 		OutputSurfaces_t			_outSurfaces;
+
+		alignas(AE_CACHE_LINE)
+		  RGBatchDataPool_t			_rgDataPool;
 
 		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 
@@ -159,10 +157,11 @@ namespace AE::RG::_hidden_
 
 
 	private:
-		ND_ PerFrame &			_CurrentFrame ()								__NE___	{ return _frames[ _prevFrameId.Index() ]; }
 		ND_ RGCommandBatchPtr	_CmdBatch (EQueueType queue, DebugLabel dbg)	__NE___;
 
 			void				_ClearCurrentFrame ()							__NE___;
+
+		ND_ FixedArray<AsyncTask, MaxOutSurfaces>  _PresentSurfaces ()			C_NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -189,9 +188,11 @@ namespace AE::RG::_hidden_
 		_prevFrameId = prevFrameId;
 		ASSERT( prevFrameId.Next() == _rts.GetFrameId() );
 
-		for (auto& q : _CurrentFrame().queues) {
+		for (auto& q : _queues) {
 			q.submitIdx = 0;
 		}
+		_resetQuery = not _hostQueryReset;
+
 		_ClearCurrentFrame();
 	}
 
@@ -206,22 +207,13 @@ namespace AE::RG::_hidden_
 		DRC_EXLOCK( _drCheck );
 
 		// present output surfaces
-		FixedArray< AsyncTask, MaxOutSurfaces >		present_tasks;
-
-		for (auto [surface, info] : _outSurfaces)
-		{
-			ASSERT( info.acquireImageTask );
-
-			if_likely( auto task = surface->End( Default ))	// will present after batch submission
-				present_tasks.push_back( task );
-		}
+		const auto	present_tasks = _PresentSurfaces();
 
 		AsyncTask	end_frame	= _rts.EndFrame( deps );
-		auto&		f			= _CurrentFrame();
 
-		for (usize i = 0; i < f.queues.size(); ++i)
+		for (usize i = 0; i < _queues.size(); ++i)
 		{
-			if ( f.queues[i].submitIdx > 0 )
+			if ( _queues[i].submitIdx > 0 )
 				_rts.SkipCmdBatches( EQueueType(i), UMax );
 		}
 
@@ -236,20 +228,11 @@ namespace AE::RG::_hidden_
 		DRC_EXLOCK( _drCheck );
 
 		// present output surfaces
-		FixedArray< AsyncTask, MaxOutSurfaces >		present_tasks;
+		const auto	present_tasks = _PresentSurfaces();
 
-		for (auto [surface, info] : _outSurfaces)
+		for (usize i = 0; i < _queues.size(); ++i)
 		{
-			ASSERT( info.acquireImageTask );
-
-			if_likely( auto task = surface->End( Default ))	// will present after batch submission
-				present_tasks.push_back( task );
-		}
-
-		auto&	f = _CurrentFrame();
-		for (usize i = 0; i < f.queues.size(); ++i)
-		{
-			if ( f.queues[i].submitIdx > 0 )
+			if ( _queues[i].submitIdx > 0 )
 				_rts.SkipCmdBatches( EQueueType(i), UMax );
 		}
 
@@ -265,47 +248,37 @@ namespace AE::RG::_hidden_
 	UseResources
 =================================================
 */
-	template <typename ID>
-	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids, EResourceState initial, EResourceState final) rvNE___
+	template <typename ArrayType>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (const ArrayType &ids, EResourceState initial, EResourceState final) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, initial, final );
 		}
 		return RVRef(*this);
 	}
 
-	template <typename ID>
-	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids, EResourceState initialOrFinal) rvNE___
+	template <typename ArrayType>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (const ArrayType &ids, EResourceState initialOrFinal) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );
 		}
 		return RVRef(*this);
 	}
 
-	template <typename ID>
-	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids) rvNE___
+	template <typename ArrayType>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (const ArrayType &ids) rvNE___
 	{
-		for (auto id : ids) {
+		for (auto& id : ArrayView{ids})
+		{
+			StaticAssert( IsHandleTmpl< decltype(id) >);
 			_UseResource( ResourceKey{id}, Default, Default );
 		}
 		return RVRef(*this);
-	}
-
-/*
-=================================================
-	UseResources
-=================================================
-*/
-	template <typename ID0, typename ...IDs>
-	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (const ID0 &id0,const IDs& ...ids) rvNE___
-	{
-		_UseResource( ResourceKey{id0}, Default, Default );
-
-		if constexpr( sizeof...(IDs) > 0 )
-			return RVRef(*this).UseResources( ids... );
-		else
-			return RVRef(*this);
 	}
 
 

@@ -9,70 +9,71 @@ namespace AE::RG::_hidden_
 
 #define RG_INHERIT_BARRIERS \
 	private: \
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									 __Th_OV { return _ctx.BufferBarrier( buffer, srcState, dstState ); } \
+		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV { return _ctx.BufferBarrier( buffer, srcState, dstState ); } \
 		\
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							 __Th_OV { return _ctx.BufferViewBarrier( view, srcState, dstState ); } \
+		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							__Th_OV { return _ctx.BufferViewBarrier( view, srcState, dstState ); } \
 		\
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)									 __Th_OV { return _ctx.ImageBarrier( image, srcState, dstState ); } \
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OV { return _ctx.ImageBarrier( image, srcState, dstState, subRes ); } \
+		void  ImageBarrier (ImageID img, EResourceState srcState, EResourceState dstState)										__Th_OV { return _ctx.ImageBarrier( img, srcState, dstState ); } \
+		void  ImageBarrier (ImageID img, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)	__Th_OV { return _ctx.ImageBarrier( img, srcState, dstState, subRes ); } \
 		\
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								 __Th_OV { return _ctx.ImageViewBarrier( view, srcState, dstState ); } \
+		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								__Th_OV { return _ctx.ImageViewBarrier( view, srcState, dstState ); } \
 		\
-		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	 __Th_OV { return _ctx.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
-		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	 __Th_OV { return _ctx.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
+		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__Th_OV { return _ctx.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
+		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__Th_OV { return _ctx.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
 		\
-		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		 __Th_OV { return _ctx.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
-		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		 __Th_OV { return _ctx.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
+		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		__Th_OV { return _ctx.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
+		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		__Th_OV { return _ctx.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
 		\
-		ND_ CommandBatch &					_Batch ()																			 __NE___ { return _ctx._GetBarrierMngr().GetBatch(); } \
-		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			 __NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
-		ND_ uint							_ExeIdx ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
-		ND_ auto&							_ResMngr ()																			 C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
+		ND_ CommandBatch &					_Batch ()																			__NE___ { return _ctx._GetBarrierMngr().GetBatch(); } \
+		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
+		ND_ uint							_ExeIdx ()																			__NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
+		ND_ auto&							_ResMngr ()																			C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
 		\
-		ND_ auto  _SetResourceState (ImageID      id, EResourceState state)														 __NE___ { return _RGBatch().ResetResourceState( _ExeIdx(), id, state ); } \
-		ND_ auto  _SetResourceState (ImageViewID  id, EResourceState state)														 __NE___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  return _RGBatch().ResetResourceState( _ExeIdx(), v.ImageId(),  state ); } \
+		ND_ auto  _SetResourceState (ImageID      id, EResourceState state)														__NE___ { return _RGBatch().ResetResourceState( _ExeIdx(), id, state ); } \
+		ND_ auto  _SetResourceState (ImageViewID  id, EResourceState state)														__NE___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  return _RGBatch().ResetResourceState( _ExeIdx(), v.ImageId(),  state ); } \
 		\
 	public: \
-		void  CommitBarriers ()																									 __Th_OV { return _ctx.CommitBarriers(); } \
+		void  CommitBarriers ()																									__Th_OV { return _ctx.CommitBarriers(); } \
 		\
-		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													 __NE_OV { return _ctx.MemoryBarrier( srcState, dstState ); } \
-		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													 __NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
-		void  MemoryBarrier ()																									 __NE_OV { return _ctx.MemoryBarrier(); } \
+		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													__NE_OV { return _ctx.MemoryBarrier( srcState, dstState ); } \
+		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
+		void  MemoryBarrier ()																									__NE_OV { return _ctx.MemoryBarrier(); } \
 		\
-		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												 __NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
-		void  ExecutionBarrier ()																								 __NE_OV { return _ctx.ExecutionBarrier(); } \
+		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												__NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
+		void  ExecutionBarrier ()																								__NE_OV { return _ctx.ExecutionBarrier(); } \
 		\
-		void  DebugMarker (DebugLabel dbg)																						 __Th_OV { return _ctx.DebugMarker( dbg ); } \
-		void  PushDebugGroup (DebugLabel dbg)																					 __Th_OV { return _ctx.PushDebugGroup( dbg ); } \
-		void  PopDebugGroup ()																									 __Th_OV { return _ctx.PopDebugGroup(); } \
+		void  DebugMarker (DebugLabel dbg)																						__Th_OV { return _ctx.DebugMarker( dbg ); } \
+		void  PushDebugGroup (DebugLabel dbg)																					__Th_OV { return _ctx.PushDebugGroup( dbg ); } \
+		void  PopDebugGroup ()																									__Th_OV { return _ctx.PopDebugGroup(); } \
 		\
-		ND_ FrameUID								GetFrameId ()																 C_NE_OF { return _ctx.GetFrameId(); } \
+		ND_ FrameUID								GetFrameId ()																C_NE_OF { return _ctx.GetFrameId(); } \
 		\
-		ND_ CommandBatch const&						GetCommandBatch ()															 C_NE___ { return _ctx.GetCommandBatch(); } \
-		ND_ CommandBatchPtr							GetCommandBatchRC ()														 C_NE___ { return _ctx.GetCommandBatchRC(); } \
-		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															 C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
-		ND_ auto&									GetResourceManager ()														 C_NE___ { return _ResMngr(); } \
-		ND_ RenderTask const&						GetRenderTask ()															 C_NE___ { return _ctx.GetRenderTask(); } \
+		ND_ CommandBatch const&						GetCommandBatch ()															C_NE___ { return _ctx.GetCommandBatch(); } \
+		ND_ CommandBatchPtr							GetCommandBatchRC ()														C_NE___ { return _ctx.GetCommandBatchRC(); } \
+		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
+		ND_ auto&									GetResourceManager ()														C_NE___ { return _ResMngr(); } \
+		ND_ auto&									GetDevice ()																C_NE___ { return _ctx.GetDevice(); } \
+		ND_ RenderTask const&						GetRenderTask ()															C_NE___ { return _ctx.GetRenderTask(); } \
 		\
-		void  ResourceState (BufferID      id, EResourceState state)															 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-		void  ResourceState (ImageID       id, EResourceState state)															 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-		void  ResourceState (ImageViewID   id, EResourceState state)															 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.ImageId(),  state ); } \
-		void  ResourceState (BufferViewID  id, EResourceState state)															 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
-		void  ResourceState (RTSceneID     id, EResourceState state)															 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-		void  ResourceState (RTGeometryID  id, EResourceState state)															 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-		void  ResourceState (VideoBufferID id, EResourceState state)															 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetBufferID(), state ); } \
-		void  ResourceState (VideoImageID  id, EResourceState state)															 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetImageID(), state ); } \
+		void  ResourceState (BufferID      id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+		void  ResourceState (ImageID       id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+		void  ResourceState (ImageViewID   id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.ImageId(),  state ); } \
+		void  ResourceState (BufferViewID  id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.BufferId(), state ); } \
+		void  ResourceState (RTSceneID     id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+		void  ResourceState (RTGeometryID  id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
+		void  ResourceState (VideoBufferID id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetBufferID(), state ); } \
+		void  ResourceState (VideoImageID  id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetImageID(), state ); } \
 		\
-		ND_ auto  ReleaseCommandBuffer ()																						 __Th___ { return _ctx.ReleaseCommandBuffer(); } \
-		ND_ auto  EndCommandBuffer ()																							 __Th___ { _RGBatch().FinalBarriers( _ExeIdx(), _ctx );  return _ctx.EndCommandBuffer(); } \
+		ND_ auto  ReleaseCommandBuffer ()																						__Th___ { return _ctx.ReleaseCommandBuffer(); } \
+		ND_ auto  EndCommandBuffer ()																							__Th___ { _RGBatch().FinalBarriers( _ExeIdx(), _ctx );  return _ctx.EndCommandBuffer(); } \
 		\
-		void  AddSurfaceTargets (const App::IOutputSurface::RenderTargets_t &targets)											 __NE___ { _RGBatch().AddSurfaceTargets( _ExeIdx(), targets ); } \
+		void  AddSurfaceTargets (ArrayView<App::IOutputSurface_RenderTarget> targets)											__NE___ { _RGBatch().AddSurfaceTargets( _ExeIdx(), targets ); } \
 		\
-		void  UploadMemoryBarrier (EResourceState dstState)																		 __NE___ { _RGBatch().UploadMemoryBarrier( _ExeIdx(), _ctx, dstState ); } \
-		void  ReadbackMemoryBarrier (EResourceState srcState)																	 __NE___ { _RGBatch().ReadbackMemoryBarrier( _ExeIdx(), _ctx, srcState ); } \
+		void  UploadMemoryBarrier (EResourceState dstState)																		__NE___ { _RGBatch().UploadMemoryBarrier( _ExeIdx(), _ctx, dstState ); } \
+		void  ReadbackMemoryBarrier (EResourceState srcState)																	__NE___ { _RGBatch().ReadbackMemoryBarrier( _ExeIdx(), _ctx, srcState ); } \
 		\
-		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)																 __NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
-		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)															 __NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
+		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)																__NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
+		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)															__NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
 
 
 
@@ -124,9 +125,9 @@ namespace AE::RG::_hidden_
 		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)								__Th_OV;
 		void  UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView)							__Th_OV;
 
-		Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)				__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)					__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)				__Th_OV;
+		ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)					__Th_OV;
+		ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)						__Th_OV;
+		ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)					__Th_OV;
 
 		Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)										__Th_OV;
 		Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)										__Th_OV;
@@ -140,20 +141,24 @@ namespace AE::RG::_hidden_
 
 		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)	__Th_OV;
 
-		void  GenerateMipmaps (ImageID image, EResourceState state = Default)													__Th_OV;
-		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state = Default)			__Th_OV;
+		void  GenerateMipmaps (ImageID image, EResourceState state = Default)											__Th_OV;
+		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state = Default)	__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
 
-	  #ifdef AE_ENABLE_VULKAN
-		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
-		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
-		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)	__Th_OV;
+		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	__Th_OV;
+		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	__Th_OV;
 
-		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges)	__Th___;
-		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)								__Th___;
+		void  ClearDepthStencilImage (ImageID image, const DepthStencil &, ArrayView<ImageSubresourceRange>)	__Th_OV;
+		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)				__Th_OV;
+
+		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)				__Th_OV;
+
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)				__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -202,6 +207,10 @@ namespace AE::RG::_hidden_
 		void  Dispatch (const uint3 &groupCount)																			__Th_OV	{ return _ctx.Dispatch( groupCount ); }
 		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
+
 		RG_INHERIT_BARRIERS
 	};
 
@@ -248,8 +257,8 @@ namespace AE::RG::_hidden_
 		using IDrawContext::PushConstant;
 
 	// dynamic states //
-		void  SetViewport (const Viewport_t &viewport)																		__Th_OV	{ return _ctx.SetViewport( viewport ); }
-		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV	{ return _ctx.SetViewports( viewports ); }
+		void  SetViewport (const Viewport &viewport)																		__Th_OV	{ return _ctx.SetViewport( viewport ); }
+		void  SetViewports (ArrayView<Viewport> viewports)																	__Th_OV	{ return _ctx.SetViewports( viewports ); }
 		void  SetScissor (const RectI &scissor)																				__Th_OV	{ return _ctx.SetScissor( scissor ); }
 		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV	{ return _ctx.SetScissors( scissors ); }
 		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV	{ return _ctx.SetDepthBias( depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor ); }
@@ -257,12 +266,13 @@ namespace AE::RG::_hidden_
 		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV	{ return _ctx.SetStencilReference( frontReference, backReference ); }
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ return _ctx.SetBlendConstants( color ); }
 
-	  #ifdef AE_ENABLE_VULKAN
-		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___	{ return _ctx.SetDepthBounds( minDepthBounds, maxDepthBounds ); }
-		void  SetStencilCompareMask (uint compareMask)																		__Th___	{ return _ctx.SetStencilCompareMask( compareMask ); }
-		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___	{ return _ctx.SetStencilCompareMask( frontCompareMask, backCompareMask ); }
-		void  SetStencilWriteMask (uint writeMask)																			__Th___	{ return _ctx.SetStencilWriteMask( writeMask ); }
-		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___	{ return _ctx.SetStencilWriteMask( frontWriteMask, backWriteMask ); }
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th_OV	{ return _ctx.SetDepthBounds( minDepthBounds, maxDepthBounds ); }
+		void  SetStencilCompareMask (uint compareMask)																		__Th_OV	{ return _ctx.SetStencilCompareMask( compareMask ); }
+		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th_OV	{ return _ctx.SetStencilCompareMask( frontCompareMask, backCompareMask ); }
+		void  SetStencilWriteMask (uint writeMask)																			__Th_OV	{ return _ctx.SetStencilWriteMask( writeMask ); }
+		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV	{ return _ctx.SetStencilWriteMask( frontWriteMask, backWriteMask ); }
+		void  SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)__Th_OV { return _ctx.SetFragmentShadingRate( rate, primitiveOp, textureOp ); }
 	  #endif
 
 	// draw commands //
@@ -277,6 +287,9 @@ namespace AE::RG::_hidden_
 		using IDrawContext::DrawIndirect;
 		using IDrawContext::DrawIndexedIndirect;
 		using IDrawContext::DrawMeshTasksIndirect;
+		using IDrawContext::DrawIndirectCount;
+		using IDrawContext::DrawIndexedIndirectCount;
+		using IDrawContext::DrawMeshTasksIndirectCount;
 
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
@@ -311,36 +324,37 @@ namespace AE::RG::_hidden_
 									 Bytes		stride)																		__Th_OV;
 
 		// extension
-	  #ifdef AE_ENABLE_VULKAN
-		void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  DrawIndirectCount (BufferID	indirectBuffer,
 								 Bytes		indirectBufferOffset,
 								 BufferID	countBuffer,
 								 Bytes		countBufferOffset,
 								 uint		maxDrawCount,
-								 Bytes		stride)																			__Th___;
+								 Bytes		stride)																			__Th_OV;
 
-		void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___	{ DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
 										Bytes		indirectBufferOffset,
 										BufferID	countBuffer,
 										Bytes		countBufferOffset,
 										uint		maxDrawCount,
-										Bytes		stride)																	__Th___;
+										Bytes		stride)																	__Th_OV;
 
-		void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___	{ DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
 										  Bytes		indirectBufferOffset,
 										  BufferID	countBuffer,
 										  Bytes		countBufferOffset,
 										  uint		maxDrawCount,
-										  Bytes		stride)																	__Th___;
+										  Bytes		stride)																	__Th_OV;
 	  #endif
 
 		// for debugging //
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ return _ctx.DebugMarker( dbg ); }
 		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ return _ctx.PushDebugGroup( dbg ); }
 		void  PopDebugGroup ()																								__Th_OV	{ return _ctx.PopDebugGroup(); }
+
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
 
 		// only for RW attachments //
 		void  AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState)				__Th_OV	{ return _ctx.AttachmentBarrier( name, srcState, dstState ); }
@@ -353,8 +367,8 @@ namespace AE::RG::_hidden_
 		bool  ClearAttachment (AttachmentName::Ref name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
 		bool  ClearAttachment (AttachmentName::Ref name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
 		bool  ClearAttachment (AttachmentName::Ref name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-		bool  ClearAttachment (AttachmentName::Ref name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
 		bool  ClearAttachment (AttachmentName::Ref name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
+		using IDrawContext::ClearAttachment;
 
 		// check state //
 		ND_ bool  CheckResourceState (ImageID      id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
@@ -370,7 +384,7 @@ namespace AE::RG::_hidden_
 	private:
 		ND_ uint							_ExeIdx ()																		__NE___ { return _RTask().GetExecutionIndex(); }
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																		__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _RTask().GetBatchPtr()->GetUserData() ); }
-		ND_ RenderTask const&				_RTask ()																		__NE___	{ ASSERT( _ctx.GetPrimaryCtxState().userData != null );  return *Cast<RenderTask>( _ctx.GetPrimaryCtxState().userData ); }
+		ND_ RenderTask const&				_RTask ()																		__NE___	{ NonNull( _ctx.GetPrimaryCtxState().userData );  return *Cast<RenderTask>( _ctx.GetPrimaryCtxState().userData ); }
 	};
 
 
@@ -422,6 +436,10 @@ namespace AE::RG::_hidden_
 		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)				__Th___;
 			void	EndMtRenderPass ()																			__Th___;
 			void	ExecuteSecondary (DrawCommandBatch &batch)													__Th___	{ return _ctx.ExecuteSecondary( batch ); }
+
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+			void	WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)		__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
 
 		RG_INHERIT_BARRIERS
 	};
@@ -477,6 +495,14 @@ namespace AE::RG::_hidden_
 
 		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;
 
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		// warning: state tracking is not supported for 'DeviceAddress'
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)									__Th_OV	{ _ctx.TraceRaysIndirect( sbt, address ); }
+		void  TraceRaysIndirect2 (DeviceAddress address)																	__Th_OV	{ _ctx.TraceRaysIndirect2( address ); }
+
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
+
 		RG_INHERIT_BARRIERS
 	};
 
@@ -527,18 +553,30 @@ namespace AE::RG::_hidden_
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)												__Th_OV;
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)													__Th_OV;
 
-	  #ifdef AE_ENABLE_VULKAN
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
 							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b,
-							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)											__Th___;
+							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)											__Th_OV;
 		void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
-							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)										__Th___;
+							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)										__Th_OV;
 
-		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th___;
-		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th___;
+		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th_OV;
+		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th_OV;
 
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th___;
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th___;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th_OV;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th_OV;
+
+		// warning: state tracking is not supported for 'DeviceAddress'
+		void  BuildIndirect (const RTGeometryBuild &, RTGeometryID dst, DeviceAddress indirectBuffer, Bytes indirectStride)	__Th_OV;
+		void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)							__Th_OV;
+
+		void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)														__Th_OV;
+		void  SerializeToMemory (RTSceneID src, DeviceAddress dst)															__Th_OV;
+
+		void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)													__Th_OV;
+		void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)														__Th_OV;
+
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -573,12 +611,16 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		VideoDecodeContext ()																								= delete;
-		VideoDecodeContext (const VideoDecodeContext &)																		= delete;
+		VideoDecodeContext ()																						= delete;
+		VideoDecodeContext (const VideoDecodeContext &)																= delete;
 
-		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																				__NE___	{ return _ctx; }
+
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)					__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
 
 		RG_INHERIT_BARRIERS
 	};
@@ -608,12 +650,16 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		VideoEncodeContext ()																								= delete;
-		VideoEncodeContext (const VideoEncodeContext &)																		= delete;
+		VideoEncodeContext ()																						= delete;
+		VideoEncodeContext (const VideoEncodeContext &)																= delete;
 
-		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																				__NE___	{ return _ctx; }
+
+	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)					__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+	  #endif
 
 		RG_INHERIT_BARRIERS
 	};
@@ -722,7 +768,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
+	ITransferContext::ReadbackBufferResult  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
 	{
 		ResourceState( buffer, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -742,7 +788,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<ImageMemView>  TransferContext<C>::ReadbackImage (ImageID image, const ReadbackImageDesc &desc) __Th___
+	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (ImageID image, const ReadbackImageDesc &desc) __Th___
 	{
 		ResourceState( image, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -752,7 +798,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<ImageMemView>  TransferContext<C>::ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc) __Th___
+	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc) __Th___
 	{
 		ResourceState( image, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -815,6 +861,7 @@ namespace AE::RG::_hidden_
 	bool  TransferContext<C>::UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) __Th___
 	{
 		ResourceState( buffer, EResourceState::Host_Write );
+		_ctx.CommitBarriers();
 		return _ctx.UpdateHostBuffer( buffer, offset, size, data );
 	}
 
@@ -857,7 +904,7 @@ namespace AE::RG::_hidden_
 		_ctx.BlitImage( srcImage, dstImage, filter, regions );
 	}
 
-#ifdef AE_ENABLE_VULKAN
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 	template <typename C>
 	void  TransferContext<C>::ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges) __Th___
 	{
@@ -897,6 +944,14 @@ namespace AE::RG::_hidden_
 		ResourceState( dstImage, EResourceState::BlitDst );
 		_ctx.CommitBarriers();
 		_ctx.ResolveImage( srcImage, dstImage, regions );
+	}
+
+	template <typename C>
+	bool  TransferContext<C>::MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped) __Th___
+	{
+		ResourceState( buffer, EResourceState::Host_Write );
+		_ctx.CommitBarriers();
+		return _ctx.MapHostBuffer( buffer, offset, INOUT size, OUT mapped );
 	}
 #endif
 //-----------------------------------------------------------------------------
@@ -974,7 +1029,7 @@ namespace AE::RG::_hidden_
 		_ctx.DrawMeshTasksIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
 	}
 
-#ifdef AE_ENABLE_VULKAN
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 	template <typename C>
 	void  DrawContext<C>::DrawIndirectCount (BufferID	indirectBuffer,
 											 Bytes		indirectBufferOffset,
@@ -1030,13 +1085,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast< void *>(&GetRenderTask()) )};
+		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast<void*>(&GetRenderTask()) )};
 	}
 
 	template <typename C>
 	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg) __Th___
 	{
-		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast< void *>(&GetRenderTask()) )};
+		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast<void*>(&GetRenderTask()) )};
 	}
 
 	template <typename C>
@@ -1051,13 +1106,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return _ctx.BeginMtRenderPass( desc, dbg, BitCast< void *>(&GetRenderTask()) );
+		return _ctx.BeginMtRenderPass( desc, dbg, BitCast<void*>(&GetRenderTask()) );
 	}
 
 	template <typename C>
 	auto  GraphicsContext<C>::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg) __Th___
 	{
-		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast< void *>(&GetRenderTask()) );
+		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast<void*>(&GetRenderTask()) );
 	}
 
 	template <typename C>
@@ -1246,7 +1301,7 @@ namespace AE::RG::_hidden_
 		return _ctx.ReadProperty( property, as );
 	}
 
-#ifdef AE_ENABLE_VULKAN
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 	template <typename C>
 	void  ASBuildContext<C>::BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, BufferID indirectBuffer,
 											Bytes indirectBufferOffset, Bytes indirectStride) __Th___
@@ -1269,6 +1324,24 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
+	void  ASBuildContext<C>::BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer, Bytes indirectStride) __Th___
+	{
+		_RTGeometryBuildBarriers( cmd );
+		ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
+		_ctx.CommitBarriers();
+		_ctx.BuildIndirect( cmd, dst, indirectBuffer, indirectStride );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer) __Th___
+	{
+		_RTSceneBuildBarriers( cmd );
+		ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
+		_ctx.CommitBarriers();
+		_ctx.BuildIndirect( cmd, dst, indirectBuffer );
+	}
+
+	template <typename C>
 	void  ASBuildContext<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset) __Th___
 	{
 		ResourceState( src, EResourceState::CopyRTAS_Read );
@@ -1287,6 +1360,22 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTGeometryID src, DeviceAddress dst) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		_ctx.CommitBarriers();
+		_ctx.SerializeToMemory( src, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTSceneID src, DeviceAddress dst) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		_ctx.CommitBarriers();
+		_ctx.SerializeToMemory( src, dst );
+	}
+
+	template <typename C>
 	void  ASBuildContext<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst) __Th___
 	{
 		ResourceState( src, EResourceState::CopyRTAS_Read );
@@ -1302,6 +1391,22 @@ namespace AE::RG::_hidden_
 		ResourceState( dst, EResourceState::CopyRTAS_Write );
 		_ctx.CommitBarriers();
 		_ctx.DeserializeFromMemory( src, srcOffset, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (DeviceAddress src, RTGeometryID dst) __Th___
+	{
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		_ctx.DeserializeFromMemory( src, dst );
+	}
+
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (DeviceAddress src, RTSceneID dst) __Th___
+	{
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		_ctx.DeserializeFromMemory( src, dst );
 	}
 #endif
 //-----------------------------------------------------------------------------

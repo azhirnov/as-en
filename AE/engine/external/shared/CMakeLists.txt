@@ -31,7 +31,6 @@ set( AE_ENABLE_METAL 			OFF CACHE BOOL "enable Metal API" )
 set( AE_ENABLE_MESH_OPTIMIZER	ON  CACHE BOOL "use MeshOptimizer" )
 
 set( AE_ENABLE_REMOTE_GRAPHICS	OFF CACHE BOOL "enable Remote Graphics" )
-set( AE_ENABLE_RGRAPHICS_SERVER	ON  CACHE BOOL "enable Remote Graphics server" )
 
 set( AE_ENABLE_SPIRV_CROSS 		ON  CACHE BOOL "use SPIRV-Cross" )
 set( AE_ENABLE_STB 				ON  CACHE BOOL "use STB" )
@@ -46,20 +45,6 @@ set( AE_ENABLE_UTF8PROC 		ON  CACHE BOOL "use Utf8Proc" )
 set( AE_ENABLE_XXHASH	 		ON  CACHE BOOL "use xxHash" )
 
 set( AE_ENABLE_ZSTD	 			ON  CACHE BOOL "use zstd" )
-
-if (${AE_ENABLE_REMOTE_GRAPHICS} AND ${AE_ENABLE_RGRAPHICS_SERVER})
-	message( FATAL_ERROR "AE_ENABLE_REMOTE_GRAPHICS and AE_ENABLE_RGRAPHICS_SERVER are not compatible" )
-endif()
-#----------------------------------------------------------
-
-
-if (${AE_CI_BUILD_NO_GRAPHICS})
-	set( AE_ENABLE_BASS 		OFF CACHE INTERNAL "" FORCE )
-	set( AE_ENABLE_GLSLANG 		OFF CACHE INTERNAL "" FORCE )
-	set( AE_ENABLE_FREETYPE 	OFF CACHE INTERNAL "" FORCE )
-	set( AE_ENABLE_MSDFGEN 		OFF CACHE INTERNAL "" FORCE )
-	set( AE_ENABLE_SPIRV_CROSS 	OFF CACHE INTERNAL "" FORCE )
-endif()
 #----------------------------------------------------------
 
 

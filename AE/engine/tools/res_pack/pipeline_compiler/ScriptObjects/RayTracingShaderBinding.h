@@ -73,7 +73,7 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)														__Th___;
 
-		ND_ bool  Build ();
+		ND_ bool  Build ()																					__NE___;
 
 		ND_ StringView			Name ()																		const	{ return _name; }
 		ND_ RTShaderBindingUID	UID ()																		const	{ return _uid.value_or( Default ); }

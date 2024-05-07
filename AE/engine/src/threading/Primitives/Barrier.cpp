@@ -11,6 +11,9 @@
 #if (AE_BARRIER_MODE == 0)
 namespace AE::Threading
 {
+	#if not (AE_PLATFORM_TARGET_VERSION_MAJOR >= 8)
+	#	error Required Win8+
+	#endif
 
 /*
 =================================================
@@ -104,7 +107,7 @@ namespace AE::Threading
 
 				ThreadUtils::Pause();
 			}
-			ThreadUtils::ProgressiveSleep( p );
+			ThreadUtils::ProgressiveSleepInf( p );
 		}
 	}
 

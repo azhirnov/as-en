@@ -23,7 +23,7 @@ namespace AE::Graphics
 	// types
 	public:
 		using ShaderIOArr_t			= PipelineCompiler::SubpassShaderIO::ShaderIOArr_t;
-		using AttachmentStates_t	= SerializableVkRenderPass::AttachmentStates_t;
+		using AttachmentStates_t	= PipelineCompiler::SerializableRenderPass::AttachmentStates_t;
 
 		struct SubpassInfo
 		{
@@ -59,7 +59,7 @@ namespace AE::Graphics
 		Subpasses_t					_subpasses;
 		AttachmentPixFormat_t		_pixFormats;
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			SubpassName::Optimized_t _firstSPName;
 			DebugName_t				 _debugName;
 		)
@@ -90,7 +90,7 @@ namespace AE::Graphics
 		ND_ EPixelFormat				GetPixelFormat (AttachmentName::Ref)				C_NE___;
 		ND_ EPixelFormat				GetPixelFormat (uint attachmentIdx)					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pixFormats[attachmentIdx]; }
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			ND_ StringView					GetDebugName ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; }
 			ND_ SubpassName::Optimized_t	GetFirstSubpassName ()							C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; }
 		)

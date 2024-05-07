@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	define AE_RAY_QUERY
+#	define AE_ray_query
 #	define SH_RAY_GEN
 #	define AE_HAS_ATOMICS
 #	include <aestyle.glsl.h>

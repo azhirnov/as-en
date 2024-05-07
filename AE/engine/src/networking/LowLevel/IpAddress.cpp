@@ -216,6 +216,22 @@ namespace
 
 /*
 =================================================
+	FromInt
+=================================================
+*/
+	IpAddress  IpAddress::FromInt (uint p0, uint p1, uint p2, uint p3, uint port) __NE___
+	{
+		IpAddress	res;
+		res._addressBits.p0 = p0;
+		res._addressBits.p1 = p1;
+		res._addressBits.p2 = p2;
+		res._addressBits.p3 = p3;
+		res._port			= ushort(port);
+		return res;
+	}
+
+/*
+=================================================
 	CalcHash / CalcHashOfAddress
 =================================================
 */

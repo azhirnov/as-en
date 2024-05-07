@@ -121,54 +121,6 @@ namespace
 
 /*
 =================================================
-	Bind_EAttachmentLoadOp
-=================================================
-*/
-	static void  Bind_EAttachmentLoadOp (const ScriptEnginePtr &se) __Th___
-	{
-		EnumBinder<EAttachmentLoadOp>	binder{ se };
-		binder.Create();
-		switch_enum( EAttachmentLoadOp::Unknown )
-		{
-			case EAttachmentLoadOp::Unknown :
-			case EAttachmentLoadOp::_Count :
-			#define BIND( _name_ )	case EAttachmentLoadOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAttachmentLoadOp::_name_ );
-			BIND( Invalidate )
-			BIND( Load )
-			BIND( Clear )
-			BIND( None )
-			#undef BIND
-			default : break;
-		}
-		switch_end
-	}
-
-/*
-=================================================
-	Bind_EAttachmentStoreOp
-=================================================
-*/
-	static void  Bind_EAttachmentStoreOp (const ScriptEnginePtr &se) __Th___
-	{
-		EnumBinder<EAttachmentStoreOp>	binder{ se };
-		binder.Create();
-		switch_enum( EAttachmentStoreOp::Unknown )
-		{
-			case EAttachmentStoreOp::Unknown :
-			case EAttachmentStoreOp::_Count :
-			#define BIND( _name_ )	case EAttachmentStoreOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAttachmentStoreOp::_name_ );
-			BIND( Invalidate )
-			BIND( Store )
-			BIND( None )
-			BIND( StoreCustomSamplePositions )
-			#undef BIND
-			default : break;
-		}
-		switch_end
-	}
-
-/*
-=================================================
 	Bind_ECompareOp
 =================================================
 */
@@ -625,7 +577,8 @@ namespace
 */
 	static void  Bind_EFeature (const ScriptEnginePtr &se) __Th___
 	{
-		EnumBinder<EFeature>		binder{ se };
+		using EFeature = FeatureSet::EFeature;
+		EnumBinder<EFeature>	binder{ se };
 		binder.Create();
 		switch_enum( EFeature::_Count )
 		{
@@ -724,12 +677,12 @@ namespace
 */
 	static void  Bind_EVendorID (const ScriptEnginePtr &se) __Th___
 	{
-		EnumBinder<EVendorID>		binder{ se };
+		EnumBinder<EGPUVendor>		binder{ se };
 		binder.Create();
-		switch_enum( EVendorID::Unknown )
+		switch_enum( EGPUVendor::Unknown )
 		{
-			case EVendorID::Unknown :
-			#define BIND( _name_ )		case EVendorID::_name_ : binder.AddValue( AE_TOSTRING(_name_), EVendorID::_name_ );
+			case EGPUVendor::Unknown :
+			#define BIND( _name_ )		case EGPUVendor::_name_ : binder.AddValue( AE_TOSTRING(_name_), EGPUVendor::_name_ );
 			BIND( AMD )
 			BIND( NVidia )
 			BIND( Intel )
@@ -742,6 +695,7 @@ namespace
 			BIND( Broadcom )
 			BIND( Samsung )
 			BIND( VeriSilicon )
+			BIND( Huawei )
 			#undef BIND
 			default : break;
 		}
@@ -908,17 +862,20 @@ namespace
 */
 	static void  Bind_ESamplerUsage (const ScriptEnginePtr &se) __Th___
 	{
-		EnumBinder<ESamplerUsage>		binder{ se };
+		EnumBinder<ESamplerOpt>		binder{ se };
 		binder.Create();
-		switch_enum( ESamplerUsage::_Count )
+		switch_enum( ESamplerOpt::Unknown )
 		{
-			case ESamplerUsage::_Count :
-			#define BIND( _name_ )		case ESamplerUsage::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerUsage::_name_ );
-			BIND( Default )
+			case ESamplerOpt::Unknown :
+			#define BIND( _name_ )		case ESamplerOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerOpt::_name_ );
+			BIND( ArgumentBuffer )
+			BIND( UnnormalizedCoordinates )
+			BIND( NonSeamlessCubeMap )
 		//	BIND( Subsampled )
 		//	BIND( SubsampledCoarseReconstruction )
-			BIND( NonSeamlessCubeMap )
 			#undef BIND
+			case ESamplerOpt::_Last :
+			case ESamplerOpt::All :
 			default : break;
 		}
 		switch_end
@@ -965,6 +922,7 @@ namespace
 			BIND( UpdateTemplate )
 			BIND( ArgumentBuffer )
 			BIND( MutableArgBuffer )
+			BIND( MaybeUnsupported )
 			#undef BIND
 			default : break;
 		}
@@ -1598,8 +1556,6 @@ namespace
 		Bind_EIndex( se );
 		Bind_EPixelFormat( se );
 		Bind_EPixelFormatExternal( se );
-		Bind_EAttachmentLoadOp( se );
-		Bind_EAttachmentStoreOp( se );
 		Bind_ECompareOp( se );
 		Bind_EBlendFactor( se );
 		Bind_EBlendOp( se );

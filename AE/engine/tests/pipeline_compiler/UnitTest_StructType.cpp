@@ -1492,7 +1492,7 @@ extern void  UnitTest_StructType ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		StructType_Test1();

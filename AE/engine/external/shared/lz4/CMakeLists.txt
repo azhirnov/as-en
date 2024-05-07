@@ -9,7 +9,7 @@ target_include_directories( "lz4-lib" INTERFACE "${LZ4_PATH}/include" )
 target_compile_definitions( "lz4-lib" INTERFACE "AE_ENABLE_LZ4" "AE_LICENSE_BSD_2" )
 install( FILES "${LZ4_PATH}/LICENSE" DESTINATION "3party_license" RENAME "lz4-LICENSE" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "lz4-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${LZ4_PATH}/lib/${ANDROID_ABI}/liblz4.a")
 else()

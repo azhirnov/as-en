@@ -15,6 +15,8 @@ namespace AE::Base
 	template <typename T>
 	struct MutableArrayView
 	{
+		StaticAssert( not IsConst<T> );
+
 	// types
 	public:
 		using value_type		= T;
@@ -49,6 +51,8 @@ namespace AE::Base
 		template <usize S, typename CP>
 		constexpr MutableArrayView (FixedArray<T,S,CP> &arr)			__NE___ : _array{arr.data()}, _count{arr.size()} {}
 
+		constexpr MutableArrayView (T &singleElement)					__NE___ : _array{&singleElement}, _count{1} {}
+
 		ND_ explicit constexpr operator Array<T> ()						C_NE___	{ return Array<T>{ begin(), end() }; }
 		ND_ constexpr operator ArrayView<T> ()							C_NE___	{ return _AV(); }
 
@@ -56,6 +60,8 @@ namespace AE::Base
 		ND_ constexpr bool				empty ()						C_NE___	{ return _count == 0; }
 		ND_ constexpr T const *			data ()							C_NE___	{ return _array; }
 		ND_ constexpr T *				data ()							__NE___	{ return _array; }
+
+			constexpr void				resize (usize newSize)			__NE___	{ _count = Min( _count, newSize ); }
 
 		ND_ constexpr T const &			operator [] (usize i)			C_NE___	{ ASSERT( i < _count );  return _array[i]; }
 		ND_ constexpr T &				operator [] (usize i)			__NE___	{ ASSERT( i < _count );  return _array[i]; }

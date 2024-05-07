@@ -90,7 +90,7 @@ namespace
 		for (auto& path : includeDirs)
 		{
 			CHECK( path.is_absolute() );
-			_directories.push_back( path.string() );
+			_directories.push_back( ToString( path ));
 		}
 	}
 
@@ -179,15 +179,23 @@ namespace
 		bytecode.clear();
 		log.clear();
 
-	#ifdef AE_METAL_TOOLS
-		FileSystem::SetCurrentPath( Path{AE_METAL_TOOLS} );
+	#if defined(AE_PLATFORM_WINDOWS) and defined(AE_METAL_TOOLS)
 
-		const String	tmp_shader_name	= "temp-"s << ToString<16>( usize(this) ) << ".metal";
-		const String	out_name		= "bytecode-"s << ToString<16>( usize(this) ) << ".metallib";
+		String	exe_path = "MetalTools/bin/metal.exe";
+
+		if ( FileSystem::IsFile( exe_path ))
+		{}else
+		if ( FileSystem::IsFile( Path{AE_METAL_TOOLS} / "metal.exe" )) {
+			exe_path = ToString( Path{AE_METAL_TOOLS} / "metal.exe" );
+		}else
+			return false;
+
+		FileSystem::DeleteDirectory( "mtl_temp" );
+		FileSystem::CreateDirectory( "mtl_temp" );
+
+		const String	tmp_shader_name	= "mtl_temp/temp-"s << ToString<16>( usize(this) ) << ".metal";
+		const String	out_name		= "mtl_temp/bytecode-"s << ToString<16>( usize(this) ) << ".metallib";
 		const Version2	msl_ver			= EShaderVersion_Ver2( in.version );
-
-		FileSystem::Remove( Path{out_name} );
-		FileSystem::Remove( Path{tmp_shader_name} );
 
 		// file to temp file
 		{
@@ -206,7 +214,7 @@ namespace
 		}
 
 		String	cmd;
-		cmd << "metal.exe";
+		cmd << '"' << exe_path << '"';
 
 		for (auto& dir : _directories)
 		{
@@ -257,10 +265,12 @@ namespace
 
 		// compile shader
 		{
+			using EFlags = WindowsProcess::EFlags;
+
 			String			output;
 			WindowsProcess	proc;
-			CHECK_ERR( proc.ExecuteAsync( cmd, WindowsProcess::EFlags::ReadOutput | WindowsProcess::EFlags::NoWindow ));
-			CHECK_ERR( proc.WaitAndClose( OUT output, null, seconds{60*10} ));
+			CHECK_ERR( proc.ExecuteAsync( cmd, EFlags::ReadOutput | EFlags::NoWindow ));
+			CHECK_ERR( proc.WaitAndClose( OUT output, seconds{60*10} ));
 
 			if ( not output.empty() )
 			{
@@ -276,9 +286,7 @@ namespace
 			CHECK_ERR( file.Read( file.RemainingSize(), OUT bytecode ));
 		}
 
-		FileSystem::Remove( Path{tmp_shader_name} );
-		FileSystem::Remove( Path{out_name} );
-
+		FileSystem::DeleteDirectory( "mtl_temp" );
 		return true;
 	#else
 
@@ -302,7 +310,7 @@ namespace
 		usize				pos			= 0;
 		Array<StringView>	tokens;
 		bool				has_errors	= false;
-		const String		path_str	= in.fileLoc.path.string();
+		const String		path_str	= ToString( in.fileLoc.path );
 
 		const auto	Tokenize = [](StringView str , OUT Array<StringView> &outTokens)
 		{{

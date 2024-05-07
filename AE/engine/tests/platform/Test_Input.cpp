@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Containers/InPlace.h"
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "../shared/UnitTest_Shared.h"
 
@@ -47,7 +47,6 @@ namespace
 			TaskScheduler::InstanceCtor::Create();
 
 			TaskScheduler::Config	cfg;
-			cfg.mainThreadCoreId	= ECpuCoreId(0);
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 

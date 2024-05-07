@@ -106,7 +106,7 @@ namespace AE::Graphics::_hidden_
 		auto	att_iter = rp_attach.find( name );
 		CHECK_ERR( att_iter != rp_attach.end(), UMax );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			const auto	fb_attach = GetPrimaryCtxState().framebuffer->Attachments();
 			CHECK( att_iter->second.Index() < fb_attach.size() );
 		)

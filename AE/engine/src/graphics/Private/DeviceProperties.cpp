@@ -303,10 +303,11 @@ namespace
 			if ( vk_ext.shaderCorePropsAMD )
 			{
 				const auto&	props		= vk_props.shaderCorePropsAMDProps;
-				shaderHW.cores			= props.shaderEngineCount			* props.shaderArraysPerEngineCount	*
-										  props.computeUnitsPerShaderArray	* props.simdPerComputeUnit;
-				shaderHW.warpsPerCore	= props.wavefrontsPerSimd;
+				shaderHW.cores			= props.shaderEngineCount * props.shaderArraysPerEngineCount * props.computeUnitsPerShaderArray;
+				shaderHW.warpsPerCore	= props.simdPerComputeUnit * props.wavefrontsPerSimd;
 				shaderHW.threadsPerWarp	= props.wavefrontSize;
+				//shadingUnits = wavefrontsPerSimd * wavefrontSize	// from specs
+				ASSERT( not vk_ext.subgroup or props.wavefrontSize == vk_props.subgroupProperties.subgroupSize );
 			}
 			else
 			// ARM
@@ -316,6 +317,7 @@ namespace
 				shaderHW.cores			= props.shaderCoreCount;
 				shaderHW.warpsPerCore	= props.shaderWarpsPerCore;
 				shaderHW.threadsPerWarp	= 16;
+				//shadingUnits = shaderCoreCount * shaderWarpsPerCore	// from specs
 			}
 			else
 			// NV
@@ -324,7 +326,8 @@ namespace
 				const auto&	props		= vk_props.shaderSMBuiltinsNVProps;
 				shaderHW.cores			= props.shaderSMCount;
 				shaderHW.warpsPerCore	= props.shaderWarpsPerSM;
-				shaderHW.threadsPerWarp	= 32;	// TODO
+				shaderHW.threadsPerWarp	= vk_ext.subgroup ? vk_props.subgroupProperties.subgroupSize : 32;
+				//shadingUnits = shaderSMCount * shaderWarpsPerSM * 2	// from specs
 			}
 			else
 			// Apple
@@ -464,6 +467,7 @@ namespace
 			}
 
 			// ray tracing
+			if ( rayTracing.maxGeometries > 0 and rayTracing.maxInstances > 0 )
 			{
 				StaticAssert( sizeof(rayTracing) == 48 );
 				str << "\n  RayTracingProperties:"
@@ -485,6 +489,7 @@ namespace
 			}
 
 			// shader HW
+			if ( shaderHW.cores > 0 )
 			{
 				StaticAssert( sizeof(shaderHW) == sizeof(uint)*3 );
 				str << "\n  ShaderHWProperties:"

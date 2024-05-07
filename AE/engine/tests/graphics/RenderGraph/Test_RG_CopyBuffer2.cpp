@@ -38,7 +38,7 @@ namespace
 
 			ctx.AccumBarriers().BufferBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
 
-			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
+			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }} );
 
 			t.result = AsyncTask{ ctx.ReadHostBuffer( t.buf_2, 0_b, t.buf_size )
 						.Then( [p = &t] (const ArrayView<ubyte> &view)

@@ -15,6 +15,7 @@
 #include "graphics/Public/VertexEnums.h"
 #include "graphics/Public/BufferMemView.h"
 #include "graphics/Public/ImageMemView.h"
+#include "graphics/Public/RemoteGraphicsTypes.h"
 
 namespace AE::Graphics
 {
@@ -28,6 +29,7 @@ namespace AE::Graphics
 		ushort			layerCount		= 1;
 
 		ImageSubresourceRange ()												__NE___ = default;
+		ImageSubresourceRange (EImageAspect aspectMask)							__NE___ : aspectMask{aspectMask} {}
 
 		ImageSubresourceRange (EImageAspect aspectMask,
 							   MipmapLevel baseMipLevel, ImageLayer baseLayer)	__NE___ :
@@ -50,6 +52,7 @@ namespace AE::Graphics
 		ushort			layerCount		= 1;
 
 		ImageSubresourceLayers ()												__NE___ = default;
+		ImageSubresourceLayers (EImageAspect aspectMask)						__NE___ : aspectMask{aspectMask} {}
 
 		ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
 								ImageLayer baseLayer, uint layerCount = 1)		__NE___ :
@@ -70,7 +73,7 @@ namespace AE::Graphics
 			srcOffset{srcOffset}, dstOffset{dstOffset}, size{size} {}
 	};
 
-	// TODO: ImageCopyRegion, ImageCopySlices
+
 	struct ImageCopy
 	{
 		ImageSubresourceLayers	srcSubres;
@@ -147,7 +150,7 @@ namespace AE::Graphics
 			MetalVisibleFnTable					visibleTable;
 
 		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			// TODO
+			RmRTShaderBindingID					id;
 
 		#else
 		#	error not implemented
@@ -373,18 +376,17 @@ namespace AE::Graphics
 		EStagingHeapType	heapType		= EStagingHeapType::Static;
 
 		UploadBufferDesc ()										__NE___ = default;
-
-		UploadBufferDesc (Bytes offset, Bytes size, Bytes blockSize = 0_b,
-						  EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
-			offset{offset}, size{size}, blockSize{blockSize}, heapType{heapType} {}
+		UploadBufferDesc (Bytes offset, Bytes size)				__NE___ : offset{offset}, size{size} {}
 
 		UploadBufferDesc&	Offset (Bytes value)				__NE___	{ offset	= value;						return *this; }
 		UploadBufferDesc&	DataSize (Bytes value)				__NE___	{ size		= value;						return *this; }
 		UploadBufferDesc&	HeapType (EStagingHeapType value)	__NE___	{ heapType	= value;						return *this; }
-		UploadBufferDesc&	StaticHeap ()						__NE___	{ heapType	= EStagingHeapType::Static;		return *this; }
-		UploadBufferDesc&	DynamicHeap ()						__NE___	{ heapType	= EStagingHeapType::Dynamic;	return *this; }
 		UploadBufferDesc&	BlockSize (Bytes value)				__NE___	{ blockSize	= value;						return *this; }
 		UploadBufferDesc&	MaxBlockSize ()						__NE___	{ ASSERT( size != UMax );  blockSize = DivCeil( size, GraphicsConfig::MaxStagingBufferParts );  return *this; }
+
+		UploadBufferDesc&	StaticHeap ()						__NE___	{ heapType	= EStagingHeapType::Static;		return *this; }
+		UploadBufferDesc&	DynamicHeap ()						__NE___	{ heapType	= EStagingHeapType::Dynamic;	return *this; }
+		UploadBufferDesc&	AnyHeap ()							__NE___	{ heapType	= EStagingHeapType::Any;		return *this; }
 	};
 	using ReadbackBufferDesc = UploadBufferDesc;
 
@@ -395,7 +397,7 @@ namespace AE::Graphics
 	struct UploadImageDesc
 	{
 		uint3				imageOffset		{0};
-		uint3				imageDim		{~0u};	// UMax - remaining size
+		uint3				imageDim		{~0u};
 		ImageLayer			arrayLayer;
 		MipmapLevel			mipLevel;
 		Bytes				dataRowPitch;			// 0 - auto
@@ -427,12 +429,7 @@ namespace AE::Graphics
 	// methods
 	public:
 		BufferStream ()											__NE___ {}
-		BufferStream (BufferID id, const UploadBufferDesc &desc)__NE___ : _bufferId{id}, _desc{desc} {}
-
-		BufferStream (BufferID id,
-					  Bytes offset, Bytes size, Bytes blockSize = 0_b,
-					  EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
-			_bufferId{id}, _desc{ offset, size, blockSize, heapType} {}
+		BufferStream (BufferID id, const UploadBufferDesc &desc)__NE___ : _bufferId{id}, _desc{desc} { ASSERT( _desc.size != UMax ); }
 
 		BufferStream (const BufferStream &)						__NE___ = default;
 		BufferStream&  operator = (const BufferStream &)		__NE___ = default;
@@ -454,7 +451,7 @@ namespace AE::Graphics
 		ND_ auto const&			ToReadbackDesc ()				C_NE___ { return _desc; }
 
 		ND_ bool				IsInitialized ()				C_NE___	{ return _bufferId != Default; }
-		ND_ bool				IsCompleted ()					C_NE___	{ return pos >= _desc.size; }
+		ND_ bool				IsCompleted ()					C_NE___	{ return IsInitialized() and pos >= _desc.size; }
 	};
 
 
@@ -473,7 +470,7 @@ namespace AE::Graphics
 	// methods
 	public:
 		ImageStream ()											__NE___ {}
-		ImageStream (ImageID id, const UploadImageDesc &desc)	__NE___ : _imageId{id}, _desc{desc} {}
+		ImageStream (ImageID id, const UploadImageDesc &desc)	__NE___ : _imageId{id}, _desc{desc} { ASSERT( All( _desc.imageDim != UMax )); }
 
 		ImageStream (const ImageStream &)						__NE___ = default;
 		ImageStream&  operator = (const ImageStream &)			__NE___ = default;
@@ -539,11 +536,28 @@ namespace AE::Graphics
 	//
 	struct VertexStream
 	{
-		void*		mappedPtr	= null;		// mapped memory for host visible memory
-		BufferID	id;						// single buffer for all, bind it once
-		Bytes		offset;					// offset in buffer
-		Bytes		size;					// same as in request
+	// variables
+		void*			mappedPtr	= null;		// mapped memory for host visible memory
+		Bytes			offset;					// offset in buffer
+		Bytes			size;					// same as in request
+		BufferID		id;						// single buffer for all vertex streams, bind it once
 
+	  #if defined(AE_ENABLE_VULKAN)
+		VkBuffer		bufferHandle;
+
+	  #elif defined(AE_ENABLE_METAL)
+		MetalBuffer		bufferHandle;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		RmBufferID		bufferHandle;
+		RmDevicePtr		devicePtr	= Default;
+
+	  #else
+	  #	error not implemented
+	  #endif
+
+
+	// methods
 		VertexStream () __NE___ = default;
 	};
 //-----------------------------------------------------------------------------

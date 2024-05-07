@@ -11,7 +11,7 @@
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pCreateInfo != null );
+		NonNull( pCreateInfo );
 		ASSERT( pCreateInfo->sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2 );
 
 		VkRenderPassCreateInfo2	rp_ci = *pCreateInfo;
@@ -24,16 +24,16 @@
 			auto&	dst = attachments[i];
 			dst = pCreateInfo->pAttachments[i];
 
-			if ( dst.loadOp == VK_ATTACHMENT_LOAD_OP_NONE_EXT )
+			if ( dst.loadOp == VK_ATTACHMENT_LOAD_OP_NONE_KHR )
 				dst.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			if ( dst.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_NONE_EXT )
+			if ( dst.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_NONE_KHR )
 				dst.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			if ( dst.storeOp == VK_ATTACHMENT_STORE_OP_NONE_EXT )
+			if ( dst.storeOp == VK_ATTACHMENT_STORE_OP_NONE_KHR )
 				dst.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-			if ( dst.stencilStoreOp == VK_ATTACHMENT_STORE_OP_NONE_EXT )
+			if ( dst.stencilStoreOp == VK_ATTACHMENT_STORE_OP_NONE_KHR )
 				dst.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		}
 
@@ -54,7 +54,7 @@
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pCreateInfo != null );
+		NonNull( pCreateInfo );
 		ASSERT( pCreateInfo->sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO );
 
 		VkRenderPassCreateInfo	rp_ci = *pCreateInfo;
@@ -67,16 +67,16 @@
 			auto&	dst = attachments[i];
 			dst = pCreateInfo->pAttachments[i];
 
-			if ( dst.loadOp == VK_ATTACHMENT_LOAD_OP_NONE_EXT )
+			if ( dst.loadOp == VK_ATTACHMENT_LOAD_OP_NONE_KHR )
 				dst.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			if ( dst.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_NONE_EXT )
+			if ( dst.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_NONE_KHR )
 				dst.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			if ( dst.storeOp == VK_ATTACHMENT_STORE_OP_NONE_EXT )
+			if ( dst.storeOp == VK_ATTACHMENT_STORE_OP_NONE_KHR )
 				dst.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-			if ( dst.stencilStoreOp == VK_ATTACHMENT_STORE_OP_NONE_EXT )
+			if ( dst.stencilStoreOp == VK_ATTACHMENT_STORE_OP_NONE_KHR )
 				dst.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		}
 

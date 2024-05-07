@@ -190,6 +190,11 @@ namespace AE::Graphics
 		ArrayView<VertexInput>				vertexInput;
 		ArrayView<VertexBuffer>				vertexBuffers;
 		ubyte								viewportCount	= 1;
+
+	// methods
+		GraphicsPipelineDesc () __NE___ {}
+
+		void  SetRenderPass (CompatRenderPassName::Ref rpName, SubpassName::Ref spName) __NE___	{ renderPass = rpName;  subpass = spName; }
 	};
 
 
@@ -199,12 +204,16 @@ namespace AE::Graphics
 	//
 	struct MeshPipelineDesc : BasePipelineDesc
 	{
+	// variables
 		Ptr<const RenderState>				renderStatePtr;
 		CompatRenderPassName::Optimized_t	renderPass;
 		SubpassName::Optimized_t			subpass;
 		ubyte								viewportCount	= 1;
 		packed_ushort3						taskLocalSize	{UndefinedLocalSize};
 		packed_ushort3						meshLocalSize	{UndefinedLocalSize};
+
+	// methods
+		MeshPipelineDesc () __NE___ {}
 	};
 
 
@@ -214,7 +223,11 @@ namespace AE::Graphics
 	//
 	struct ComputePipelineDesc : BasePipelineDesc
 	{
+	// variables
 		packed_ushort3		localSize	{UndefinedLocalSize};
+
+	// methods
+		ComputePipelineDesc () __NE___ {}
 	};
 
 
@@ -224,9 +237,13 @@ namespace AE::Graphics
 	//
 	struct RayTracingPipelineDesc : BasePipelineDesc
 	{
+	// variables
 		uint		maxRecursionDepth			= 1;
 		Bytes32u	maxPipelineRayPayloadSize;
 		Bytes32u	maxPipelineRayHitAttributeSize;
+
+	// methods
+		RayTracingPipelineDesc () __NE___ {}
 	};
 
 
@@ -236,9 +253,13 @@ namespace AE::Graphics
 	//
 	struct TilePipelineDesc : BasePipelineDesc
 	{
+	// variables
 		CompatRenderPassName::Optimized_t	renderPass;
 		SubpassName::Optimized_t			subpass;
 		packed_ushort2						localSize	{UndefinedLocalSize};
+
+	// methods
+		TilePipelineDesc () __NE___ {}
 	};
 
 

@@ -278,8 +278,8 @@ namespace AE::Math
 
 				if ( m & 0x00800000 )
 				{
-					m =  0;     // overflow in significand,
-					e += 1;     // adjust exponent
+					m =  0;		// overflow in significand,
+					e += 1;		// adjust exponent
 				}
 			}
 

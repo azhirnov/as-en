@@ -1,13 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Input:
-	 * REQUIRE_MIT		- MIT license				// https://en.wikipedia.org/wiki/MIT_License
-	 * REQUIRE_BSD_3	- BSD 3 license				// https://en.wikipedia.org/wiki/BSD_licenses
-	 * REQUIRE_APACHE_2	- Apache 2 license			// https://en.wikipedia.org/wiki/Apache_License
-	 * REQUIRE_LGPLv2	- GNU LGPL 2 license		// https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License
-	 * REQUIRE_LGPLv3	- GNU LGPL 3 license
-	 * REQUIRE_GPLv2	- GNU GPL 2 license			// https://en.wikipedia.org/wiki/GNU_General_Public_License
-	 * REQUIRE_GPLv3	- GNU GPL 3 license
+	 * REQUIRE_MIT			- MIT license				// https://en.wikipedia.org/wiki/MIT_License
+	 * REQUIRE_BSD_3		- BSD 3 license				// https://en.wikipedia.org/wiki/BSD_licenses
+	 * REQUIRE_APACHE_2		- Apache 2 license			// https://en.wikipedia.org/wiki/Apache_License
+	 * REQUIRE_LGPLv2		- GNU LGPL 2 license		// https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License
+	 * REQUIRE_LGPLv3		- GNU LGPL 3 license
+	 * REQUIRE_GPLv2		- GNU GPL 2 license			// https://en.wikipedia.org/wiki/GNU_General_Public_License
+	 * REQUIRE_GPLv3		- GNU GPL 3 license
+	 * REQUIRE_COMMERCIAL	- commercial license
 
 	Output:
 		AE_LICENSE	"<name>"
@@ -29,16 +30,11 @@
 	 * AE_LICENSE_ZLIB									// https://en.wikipedia.org/wiki/Zlib_License
 	 * AE_LICENSE_UNLICENSE
 
-	TODO:
-	 * Don't Ask Me About Anything License
-	 * Evil License
-	 * Do What the Fuck You Want to Public License
-
 	reference:
 	https://en.wikipedia.org/wiki/Comparison_of_free_and_open-source_software_licenses
 */
 
-#if defined(AE_LICENSE_FREE_NON_COMMERCIAL) and defined(AE_RELEASE)
+#if defined(AE_LICENSE_FREE_NON_COMMERCIAL) and defined(REQUIRE_COMMERCIAL)
 #  error only for non-commercial use!
 #endif
 

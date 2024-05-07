@@ -55,22 +55,22 @@ namespace AE::App
 
 
 	private:
-		WindowGLFW (ApplicationGLFW &app, Unique<IWndListener>, IInputActions*) __NE___;
+		WindowGLFW (ApplicationGLFW &, Unique<IWndListener>, IInputActions*) __NE___;
 
-		ND_ bool  _Create (const WindowDesc &desc);
-			void  _Destroy ();
-		ND_ bool  _ProcessMessages ();
-			void  _LockAndHideCursor (bool value);
+		ND_ bool  _Create (const WindowDesc &desc)					__NE___;
+			void  _Destroy ()										__NE___;
+		ND_ bool  _ProcessMessages ()								__NE___;
+			void  _LockAndHideCursor (bool value)					__NE___;
 
-		static void  _GLFW_RefreshCallback (GLFWwindow* wnd);
-		static void  _GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h);
-		static void  _GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int, int);
-		static void  _GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int mods);
-		static void  _GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos);
-		static void  _GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy);
-		static void  _GLFW_IconifyCallback (GLFWwindow* wnd, int iconified);
-		static void  _GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float, float);
-		static void  _GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused);
+		static void  _GLFW_RefreshCallback (GLFWwindow* wnd)										__NE___;
+		static void  _GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h)							__NE___;
+		static void  _GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int, int)					__NE___;
+		static void  _GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int mods)	__NE___;
+		static void  _GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos)			__NE___;
+		static void  _GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy)				__NE___;
+		static void  _GLFW_IconifyCallback (GLFWwindow* wnd, int iconified)							__NE___;
+		static void  _GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float, float)				__NE___;
+		static void  _GLFW_WindowFocusCallback (GLFWwindow* wnd, int focused)						__NE___;
 	};
 
 

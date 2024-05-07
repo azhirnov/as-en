@@ -45,17 +45,19 @@ namespace AE::ResEditor
 		const auto	sizes			= res_mngr.GetRTGeometrySizes( build );
 		const auto	CreateGeometry	= [&res_mngr, &sizes, this] ()
 		{{
-			return res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, _options }, _dbgName, _GfxAllocator() );
+			return res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, _options }, _dbgName,
+											  _Renderer().ChooseAllocator( False{"static"}, sizes.rtasSize ));
 		}};
 
 		_scratchBuffer = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-												_dbgName + "-Scratch", _isMutable ? _GfxDynamicAllocator() : _GfxAllocator() );
+												_dbgName + "-Scratch",
+												_Renderer().ChooseAllocator( Bool{_isMutable}, sizes.buildScratchSize ));
 		Unused( _geomId.Attach( CreateGeometry() ));
 
 		CHECK_THROW( _scratchBuffer and _geomId );
 
 		if ( _indirectBuffer and
-			 res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+			 res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 		{
 			CHECK_THROW( _indirectBuffer->HasHistory() );
 
@@ -71,10 +73,11 @@ namespace AE::ResEditor
 			_indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * count,
 																		EBufferUsage::TransferDst }
 																.SetMemory( EMemoryType::HostCached ),
-															_dbgName + "-InstHost", renderer.GetAllocator() );
+															_dbgName + "-InstHost",
+															_Renderer().ChooseAllocator( False{"static"}, SizeOf<ASBuildIndirectCommand> * count ));
 			CHECK_THROW( _indirectBufferHostVis );
 
-			IResourceManager::NativeMemObjInfo_t	mem_obj;
+			ResourceManager::NativeMemObjInfo_t	mem_obj;
 			CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
 
 			_indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
@@ -378,17 +381,19 @@ namespace AE::ResEditor
 		const auto	sizes			= res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
 		const auto	CreateRTScene	= [&res_mngr, &sizes, this] ()
 		{{
-			return res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName, _GfxAllocator() );
+			return res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName,
+										   _Renderer().ChooseAllocator( False{"static"}, sizes.rtasSize ));
 		}};
 
 		_sceneId		= CreateRTScene();
 		_scratchBuffer	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-												 _dbgName + "-Scratch", _isMutable ? _GfxDynamicAllocator() : _GfxAllocator() );
+												 _dbgName + "-Scratch",
+												 _Renderer().ChooseAllocator( Bool{_isMutable}, sizes.buildScratchSize ));
 
 		CHECK_THROW( _scratchBuffer and _sceneId );
 
 		if ( _indirectBuffer and
-			 res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+			 res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 		{
 			CHECK_THROW( _indirectBuffer->HasHistory() );
 			CHECK_THROW( _instanceBuffer->HasHistory() );
@@ -396,10 +401,10 @@ namespace AE::ResEditor
 			_indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * GraphicsConfig::MaxFrames,
 																		EBufferUsage::TransferDst }
 																.SetMemory( EMemoryType::HostCached ),
-															_dbgName + "-InstHost", renderer.GetAllocator() );
+															_dbgName + "-InstHost", _Renderer().GetStaticAllocator() );
 			CHECK_THROW( _indirectBufferHostVis );
 
-			IResourceManager::NativeMemObjInfo_t	mem_obj;
+			ResourceManager::NativeMemObjInfo_t	mem_obj;
 			CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
 
 			_indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
@@ -469,7 +474,7 @@ namespace AE::ResEditor
 */
 	bool  RTScene::_UploadInstances (TransferCtx_t &ctx)
 	{
-		const Bytes		size	= SizeOf<RTSceneBuild::Instance> * _instances.size();
+		const Bytes		size	= RTSceneBuild::InstanceSize * _instances.size();
 
 		BufferMemView	mem_view;
 		ctx.UploadBuffer( _instanceBuffer->GetBufferId(0), UploadBufferDesc{ 0_b, size }.DynamicHeap().MaxBlockSize(), OUT mem_view );
@@ -479,18 +484,39 @@ namespace AE::ResEditor
 
 		// copy instance data
 		{
-			Array<RTSceneBuild::Instance>	instances;
 			RTSceneBuild					build;
+			Array<RTSceneBuild::Instance>	instances;
 
-			for (const auto& src : _instances)
+			switch_enum( GraphicsScheduler().GetDevice().GetGraphicsAPI() )
 			{
-				auto&	dst = instances.emplace_back();
-				dst.transform			= src.transform;
-				dst.instanceCustomIndex	= src.instanceCustomIndex;
-				dst.instanceSBTOffset	= src.instanceSBTOffset;
-				dst.SetMask( src.mask );
-				dst.SetFlags( src.flags );
-				CHECK_ERR( build.SetGeometry( src.geometry->GetGeometryId( ctx.GetFrameId() ), INOUT dst ));
+				case EGraphicsAPI::Vulkan :
+				{
+					for (const auto& src : _instances)
+					{
+						auto&	dst = instances.emplace_back().vk;
+						dst.SetTransform( src.transform );
+						dst.SetInstanceCustomIndex( src.instanceCustomIndex );
+						dst.SetInstanceOffset( src.instanceSBTOffset );
+						dst.SetMask( src.mask );
+						dst.SetFlags( src.flags );
+						CHECK_ERR( build.SetGeometry( src.geometry->GetGeometryId( ctx.GetFrameId() ), INOUT dst ));
+					}
+					break;
+				}
+				case EGraphicsAPI::Metal :
+				{
+					for (const auto& src : _instances)
+					{
+						auto&	dst = instances.emplace_back().mtl;
+						dst.SetTransform( src.transform );
+						//dst.SetInstanceCustomIndex( src.instanceCustomIndex );
+						dst.SetInstanceOffset( src.instanceSBTOffset );
+						dst.SetMask( src.mask );
+						dst.SetFlags( src.flags );
+						CHECK_ERR( build.SetGeometry( src.geometry->GetGeometryId( ctx.GetFrameId() ), INOUT dst ));
+					}
+					break;
+				}
 			}
 			CHECK_ERR( mem_view.CopyFrom( instances ) == size );
 		}

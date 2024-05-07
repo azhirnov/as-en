@@ -17,7 +17,7 @@ namespace AE::Graphics::_hidden_
 		{
 			cmdbuf.reset( new VSoftwareCmdBuf{} );	// throw
 
-			DBG_GRAPHICS_ONLY( cmdbuf->PushDebugGroup( dbg );)
+			GFX_DBG_ONLY( cmdbuf->PushDebugGroup( dbg );)
 		}
 		Unused( dbg );
 
@@ -33,7 +33,7 @@ namespace AE::Graphics::_hidden_
 	{
 		GCTX_CHECK( _IsValid() );
 
-		DBG_GRAPHICS_ONLY( _PopDebugGroup();)
+		GFX_DBG_ONLY( _PopDebugGroup();)
 
 		VSoftwareCmdBufPtr	tmp = RVRef(_cmdbuf);
 
@@ -50,6 +50,20 @@ namespace AE::Graphics::_hidden_
 		GCTX_CHECK( _IsValid() );
 
 		return RVRef(_cmdbuf);
+	}
+
+/*
+=================================================
+	_WriteTimestamp
+=================================================
+*/
+	void  _VBaseIndirectContext::_WriteTimestamp (const VQueryManager::Query &q, uint index, EPipelineScope srcScope, VkPipelineStageFlagBits2 mask) __Th___
+	{
+		VkPipelineStageFlagBits2	stage = VPipelineScope::GetStages( srcScope ) & mask;
+		GCTX_CHECK( stage != 0 );
+		GCTX_CHECK( index < q.count );
+
+		_cmdbuf->WriteTimestamp( stage, q.pool, q.first );
 	}
 //-----------------------------------------------------------------------------
 
@@ -140,7 +154,7 @@ namespace AE::Graphics::_hidden_
 		auto*	str	= Cast<char>( &cmd + 1 );
 
 		cmd.batch	= batch;
-		cmd.prof	= prof;
+		cmd.prof	= prof;		// warning: required delayed destruction
 		cmd.type	= type;
 		cmd.color	= color;
 
@@ -245,7 +259,7 @@ namespace AE::Graphics::_hidden_
 		auto*	cmd = Cast<PipelineBarrierCmd>( _Allocate( size ));
 		void*	ptr = AlignUp( static_cast< void *>(cmd + 1), align );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			cmd->_magicNumber = BaseCmd::MAGIC;
 		)
 		cmd->_commandID = CheckCast<ushort>( Commands_t::template Index< PipelineBarrierCmd >);
@@ -264,6 +278,19 @@ namespace AE::Graphics::_hidden_
 
 		MemCopy( OUT ptr, barrier.pImageMemoryBarriers, SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount, align );
+	}
+
+/*
+=================================================
+	WriteTimestamp
+=================================================
+*/
+	void  VSoftwareCmdBuf::WriteTimestamp (VkPipelineStageFlags2 stage, VkQueryPool pool, uint query) __Th___
+	{
+		auto&	cmd = CreateCmd< WriteTimestampCmd >();
+		cmd.pool	= pool;
+		cmd.query	= query;
+		cmd.stage	= stage;
 	}
 
 /*
@@ -351,6 +378,11 @@ namespace AE::Graphics::_hidden_
 		static void  Fn_ProfilerEndContextCmd (VulkanDeviceFn, VkCommandBuffer cmdbuf, const ProfilerEndContextCmd &cmd) __NE___
 		{
 			cmd.prof->EndContext( cmd.batch, cmdbuf, cmd.type );
+		}
+
+		static void  Fn_WriteTimestampCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const WriteTimestampCmd &cmd) __NE___
+		{
+			fn.vkCmdWriteTimestamp2KHR( cmdbuf, cmd.stage, cmd.pool, cmd.query );
 		}
 
 

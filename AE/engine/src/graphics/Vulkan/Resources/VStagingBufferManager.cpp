@@ -45,7 +45,7 @@ namespace AE::Graphics
 	_CreateStaticBuffers
 =================================================
 */
-	bool  VStagingBufferManager::_CreateStaticBuffers (const GraphicsCreateInfo &info)
+	bool  VStagingBufferManager::_CreateStaticBuffers (const GraphicsCreateInfo &info) __NE___
 	{
 		auto&		dev			= _resMngr.GetDevice();
 		auto&		mem_types	= dev.GetResourceFlags().memTypes;
@@ -109,13 +109,13 @@ namespace AE::Graphics
 			desc.memType	= mem_type;
 
 			String	dbg_name;
-			DEBUG_ONLY( dbg_name = String{name} << " {f:" << ToString(idx / _QueueCount) << "} {q:" << ToString(EQueueType(q_idx)) << "}";)
+			GFX_DBG_ONLY( dbg_name = String{name} << " {f:" << ToString(idx / _QueueCount) << "} {q:" << ToString(EQueueType(q_idx)) << "}";)
 			Unused( name );
 
-			sb.buffer = _resMngr.CreateBuffer( desc, dbg_name, RVRef(alloc) );
-			CHECK_ERR( sb.buffer );
+			sb.bufferId = _resMngr.CreateBuffer( desc, dbg_name, RVRef(alloc) );
+			CHECK_ERR( sb.bufferId );
 
-			auto*	buf = _resMngr.GetResource( sb.buffer );
+			auto*	buf = _resMngr.GetResource( sb.bufferId );
 
 			VulkanMemoryObjInfo	mem_info;
 			CHECK_ERR( _resMngr.GetMemoryInfo( buf->MemoryId(), OUT mem_info ));
@@ -169,7 +169,7 @@ namespace AE::Graphics
 	_InitVertexStream
 =================================================
 */
-	bool  VStagingBufferManager::_InitVertexStream (const GraphicsCreateInfo &info)
+	bool  VStagingBufferManager::_InitVertexStream (const GraphicsCreateInfo &info) __NE___
 	{
 		if ( info.staging.vstreamSize == 0 )
 			return true;
@@ -205,10 +205,10 @@ namespace AE::Graphics
 		{
 			auto&	vb  = _vstream.buffers[i];
 
-			vb.buffer = _resMngr.CreateBuffer( desc, "vstream", allocator );
-			CHECK_ERR( vb.buffer );
+			vb.bufferId = _resMngr.CreateBuffer( desc, "vstream", allocator );
+			CHECK_ERR( vb.bufferId );
 
-			auto*	buf = _resMngr.GetResource( vb.buffer );
+			auto*	buf = _resMngr.GetResource( vb.bufferId );
 
 			VulkanMemoryObjInfo	mem_info;
 			CHECK_ERR( _resMngr.GetMemoryInfo( buf->MemoryId(), OUT mem_info ));

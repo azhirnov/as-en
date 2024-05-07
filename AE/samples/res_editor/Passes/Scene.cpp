@@ -21,16 +21,19 @@ namespace AE::ResEditor
 		CHECK_ERR( _scene );
 
 		const auto&						instances	= _scene->_geomInstances;
-		Array<ShaderDebugger::Result>	dbg_result;
+		Array<ShaderDebugger::Result*>	dbg_result;
+		LinearAllocator<>				allocator;
 		EDebugMode						dbg_mode	= Default;
 
-		if ( pd.dbg.IsEnabled( this ))
+		if_unlikely( pd.dbg.IsEnabled( this ))
 		{
 			DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
 			dbg_result.resize( instances.size() );
-			for (usize i = 0; i < instances.size(); ++i) {
-				instances[i].geometry->PrepareForDebugging( *_materials[i], tctx, pd.dbg, OUT dbg_result[i] );
+			for (usize i = 0; i < instances.size(); ++i)
+			{
+				IGeomSource::DebugPrepareData	dd{ *_materials[i], tctx, pd.dbg, allocator, _tempPplnToObjID, dbg_result[i] };
+				instances[i].geometry->PrepareForDebugging( INOUT dd );
 			}
 			pd.cmdbuf	= tctx.ReleaseCommandBuffer();
 			dbg_mode	= pd.dbg.mode;
@@ -45,7 +48,6 @@ namespace AE::ResEditor
 				instances[i].geometry->StateTransition( *_materials[i], ctx );
 			}
 			_resources.SetStates( ctx, Default );
-			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
 			ctx.CommitBarriers();
 		}
 
@@ -70,9 +72,12 @@ namespace AE::ResEditor
 				case ERenderLayer::Translucent :
 					for (usize i = 0; i < instances.size(); ++i)
 					{
+						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
+
 						CHECK_ERR( instances[i].geometry->Draw( IGeomSource::DrawData{
 										*_materials[i], dctx, ds,
-										(dbg_result.empty() ? null : &dbg_result[i]), dbg_mode
+										(has_dbg_result ? dbg_result[i] : null),
+										(has_dbg_result ? dbg_mode : Default)
 									}));
 					}
 					break;
@@ -80,9 +85,12 @@ namespace AE::ResEditor
 				case ERenderLayer::PostProcess :
 					for (usize i = 0; i < instances.size(); ++i)
 					{
+						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
+
 						CHECK_ERR( instances[i].geometry->PostProcess( IGeomSource::DrawData{
 										*_materials[i], dctx, ds,
-										(dbg_result.empty() ? null : &dbg_result[i]), dbg_mode
+										(has_dbg_result ? dbg_result[i] : null),
+										(has_dbg_result ? dbg_mode : Default)
 									}));
 					}
 					break;
@@ -220,7 +228,6 @@ namespace AE::ResEditor
 				inst.geometry->StateTransition( ctx );
 			}
 			_resources.SetStates( ctx, Default );
-			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
 			ctx.CommitBarriers();
 		}
 

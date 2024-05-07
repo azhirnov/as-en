@@ -111,7 +111,7 @@ namespace
 	_RecognizeTaps
 =================================================
 */
-	void  GestureRecognizer::_RecognizeTaps (const uint activeCount, const Duration_t timestamp, InputActionsBase &ia)
+	void  GestureRecognizer::_RecognizeTaps (const uint activeCount, const Duration_t timestamp, InputActionsBase &ia) __NE___
 	{
 		if ( activeCount == 0 )
 		{
@@ -224,7 +224,7 @@ namespace
 	_RecognizeDragging
 =================================================
 */
-	void  GestureRecognizer::_RecognizeDragging (const uint activeCount, const Duration_t, InputActionsBase &ia)
+	void  GestureRecognizer::_RecognizeDragging (const uint activeCount, const Duration_t, InputActionsBase &ia) __NE___
 	{
 		if ( activeCount == 0 )
 		{
@@ -266,7 +266,7 @@ namespace
 	_Recognize2Touch
 =================================================
 */
-	void  GestureRecognizer::_Recognize2Touch (const uint activeCount, const Duration_t, InputActionsBase &ia)
+	void  GestureRecognizer::_Recognize2Touch (const uint activeCount, const Duration_t, InputActionsBase &ia) __NE___
 	{
 		const int		idx0		= BitScanForward( _activeTouches );
 		const int		idx1		= BitScanForward( _activeTouches & ~SafeLeftBitShift( 1u, idx0 ));

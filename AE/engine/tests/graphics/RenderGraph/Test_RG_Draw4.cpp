@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_RenderGraph.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -153,6 +152,8 @@ namespace
 								})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

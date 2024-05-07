@@ -81,7 +81,7 @@ namespace
 			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
 			CHECK_TE( t.batch );
 
-		#ifdef AE_HAS_COROUTINE
+		  #ifdef AE_HAS_COROUTINE
 			AsyncTask	test = t.batch->Run(
 				[] (US2_TestData &t) -> RenderTaskCoro
 				{
@@ -112,14 +112,14 @@ namespace
 					co_await RenderTask_Execute( ctx );
 
 					const auto	stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
-					ASSERT( stat.dynamicWrite <= upload_limit );
+					CHECK( stat.dynamicWrite <= upload_limit );
 
 					co_return;
 				}( t ),
 				Tuple{}, True{"Last"}, {"test task"} );
-		#else
+		  #else
 			AsyncTask	test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
-		#endif
+		  #endif
 
 			AsyncTask	end = rts.EndFrame( Tuple{test} );
 

@@ -10,21 +10,15 @@
 
 #pragma once
 
-#ifdef AE_ASYNCIO_USE_DISPATCH_IO
-# include "base/ObjC/NS.h"
-#endif
-
 #include "threading/DataSource/AsyncDataSource.h"
 #include "threading/Containers/LfIndexedPool.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 # if not defined(AE_ASYNCIO_USE_LINUX_AIO)	and \
 	 not defined(AE_ASYNCIO_USE_IO_URING)	and \
-	 not defined(AE_ASYNCIO_USE_SYNCIO)		and \
 	 not defined(AE_ASYNCIO_USE_POSIX_AIO)	and \
-	 not defined(AE_ASYNCIO_USE_BSD_AIO)	and \
-	 not defined(AE_ASYNCIO_USE_DISPATCH_IO)
-#	error Unix AsyncFile requires one of: Linux AIO, Posix AIO, io_uring, Apple Dispatch I/O
+	 not defined(AE_ASYNCIO_USE_BSD_AIO)
+#	error Unix AsyncFile requires one of: Linux AIO, Posix AIO, io_uring
 # endif
 
 namespace AE::Threading
@@ -71,8 +65,11 @@ namespace AE::Threading
 		using IOURing_Array_t	= StaticArray< IOURing_PerThread, 8 >;
 	  #endif
 
-	  #ifdef AE_ASYNCIO_USE_POSIX_AIO
+	  #if defined(AE_ASYNCIO_USE_POSIX_AIO) and defined(AE_PLATFORM_APPLE)
 		using PosixAIO_aiocb		= UntypedStorage< sizeof(ulong)*10, alignof(ulong) >;	// aiocb
+	  #endif
+	  #if defined(AE_ASYNCIO_USE_POSIX_AIO) and defined(AE_PLATFORM_LINUX)
+		using PosixAIO_aiocb		= UntypedStorage< sizeof(ulong)*21, alignof(ulong) >;	// aiocb
 	  #endif
 	  #ifdef AE_ASYNCIO_USE_BSD_AIO
 		using PosixAIO_aiocb		= UntypedStorage< sizeof(ulong)*10, alignof(ulong) >;	// aiocb
@@ -124,9 +121,7 @@ namespace AE::Threading
 		{
 		// variables
 		private:
-		  #if defined(AE_ASYNCIO_USE_IO_URING)		or \
-			  defined(AE_ASYNCIO_USE_DISPATCH_IO)	or \
-			  defined(AE_ASYNCIO_USE_SYNCIO)
+		  #ifdef AE_ASYNCIO_USE_IO_URING
 			Bytes						_offset;
 			void*						_data		= null;
 		  #endif
@@ -160,14 +155,8 @@ namespace AE::Threading
 		{
 		// variables
 		private:
-		  #if defined(AE_ASYNCIO_USE_IO_URING)	or \
-			  defined(AE_ASYNCIO_USE_SYNCIO)
+		  #ifdef AE_ASYNCIO_USE_IO_URING
 			Bytes						_offset;
-		  #endif
-
-		  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-			Bytes						_offset;
-			Bytes						_dataSize;
 		  #endif
 
 			// read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
@@ -216,10 +205,6 @@ namespace AE::Threading
 		IOURing_Array_t			_iouringArray			= {};
 	  #endif
 
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		void*					_ioQueue				= null;		// dispatch_queue_t
-	  #endif
-
 	  #ifdef AE_ASYNCIO_USE_BSD_AIO
 		int						_kQueue					= -1;
 	  #endif
@@ -243,9 +228,6 @@ namespace AE::Threading
 		EIOServiceType  GetIOServiceType ()							C_NE_OV	{ return EIOServiceType::File; }
 
 
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		ND_ void*		_GetIOQueue ()								__NE___	{ ASSERT( IsInitialized() );  return _ioQueue; }
-	  #endif
 	  #ifdef AE_ASYNCIO_USE_BSD_AIO
 		ND_ int			_GetKQueue ()								__NE___	{ ASSERT( IsInitialized() );  return _kQueue; }
 	  #endif
@@ -277,41 +259,34 @@ namespace AE::Threading
 	{
 	// types
 	public:
-		using EFlags	= UnixFileRStream::EFlags;
+		using EMode	= UnixFileRStream::EMode;
 	private:
 		using Handle_t	= UnixIOService::File_t;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::RandomAccess;
+		static constexpr EMode	c_DefaultMode = EMode::RandomAccess;
 
 
 	// variables
 	private:
 		Handle_t		_file		= -1;
 		const Bytes		_fileSize;
-		const EFlags	_flags;
-
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		void*			_ioChannel	= null;		// dispatch_io_t
-	  #endif
+		const EMode		_mode;
 
 		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	private:
-		UnixAsyncRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixAsyncRDataSource (Handle_t file, EMode mode DEBUG_ONLY(, Path filename))		__NE___;
 
 	public:
-		explicit UnixAsyncRDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncRDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncRDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncRDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixAsyncRDataSource (const char* filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncRDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncRDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncRDataSource (const Path &path, EMode mode = c_DefaultMode)		__NE___;
 
 		~UnixAsyncRDataSource ()															__NE_OV;
 
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		ND_ void*		GetIOChannel ()														__NE___	{ return _ioChannel; }
-	  #endif
 		ND_ Handle_t	Handle ()															__NE___	{ return _file; }
 
 
@@ -339,39 +314,32 @@ namespace AE::Threading
 	{
 	// types
 	public:
-		using EFlags	= UnixFileWStream::EFlags;
+		using EMode	= UnixFileWStream::EMode;
 	private:
 		using Handle_t	= UnixIOService::File_t;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+		static constexpr EMode	c_DefaultMode = EMode::Unknown;
 
 
 	// variables
 	private:
 		Handle_t		_file		= -1;
 
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		void*			_ioChannel	= null;		// dispatch_io_t
-	  #endif
-
 		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	private:
-		UnixAsyncWDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixAsyncWDataSource (Handle_t file, EMode mode DEBUG_ONLY(, Path filename))		__NE___;
 
 	public:
-		explicit UnixAsyncWDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncWDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncWDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixAsyncWDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixAsyncWDataSource (const char* filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncWDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncWDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixAsyncWDataSource (const Path &path, EMode mode = c_DefaultMode)		__NE___;
 
 		~UnixAsyncWDataSource ()															__NE_OV;
 
-	  #ifdef AE_ASYNCIO_USE_DISPATCH_IO
-		ND_ void*		GetIOChannel ()														__NE___	{ return _ioChannel; }
-	  #endif
 		ND_ Handle_t	Handle ()															__NE___	{ return _file; }
 
 

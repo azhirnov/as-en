@@ -9,7 +9,7 @@ target_include_directories( "AngelScript-lib" INTERFACE "${ANGELSCRIPT_PATH}/inc
 target_compile_definitions( "AngelScript-lib" INTERFACE "AE_ENABLE_ANGELSCRIPT" "AS_USE_NAMESPACE=1" "AS_USE_STLNAMES=1" "AE_LICENSE_ZLIB" )
 install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/patch/LICENSE" DESTINATION "3party_license" RENAME "AngelScript-LICENSE" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "AngelScript-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${ANGELSCRIPT_PATH}/lib/${ANDROID_ABI}/libangelscript.a"
 		"${ANGELSCRIPT_PATH}/lib/${ANDROID_ABI}/libangelscript_stdstring.a"
@@ -35,7 +35,7 @@ else()
 endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		add_library( "Tests.AngelScript" STATIC "tests/main.cpp" )
 		target_compile_definitions( "Tests.AngelScript" PUBLIC "ANDROID" )
 		target_include_directories( "Tests.AngelScript" PRIVATE "${AE_TEST_DIR}" )

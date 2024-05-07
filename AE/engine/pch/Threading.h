@@ -9,7 +9,6 @@
 #include "threading/Containers/LfIndexedPool.h"
 #include "threading/Containers/LfStaticIndexedPool.h"
 #include "threading/Containers/LfStaticPool.h"
-#include "threading/Containers/LfStaticQueue.h"
 
 // DataSource
 #include "threading/DataSource/AsyncDataSource.h"

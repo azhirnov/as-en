@@ -36,7 +36,7 @@ namespace AE::Base
 	https://github.com/walbourn/directx-sdk-samples/blob/main/CoreDetection/CpuTopology.cpp
 =================================================
 */
-	CpuArchInfo::CpuArchInfo ()
+	CpuArchInfo::CpuArchInfo () __NE___
 	{
 		// read CPU architecture
 		{
@@ -109,14 +109,7 @@ namespace AE::Base
 			// TODO: _may_i_use_cpu_feature
 		}
 
-		if ( HasSubString( StringView{cpu_name}, "AMD" ))
-			cpu.vendor = ECPUVendor::AMD;
-		else
-		if ( HasSubString( StringView{cpu_name}, "ARM" ))
-			cpu.vendor = ECPUVendor::ARM;
-		else
-		if ( HasSubString( StringView{cpu_name}, "Intel" ))
-			cpu.vendor = ECPUVendor::Intel;
+		cpu.vendor = _NameToVendor( StringView{cpu_name} );
 
 		if ( cpu.arch == ECPUArch::ARM_32 )
 		{

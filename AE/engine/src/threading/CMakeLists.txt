@@ -21,12 +21,6 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 if (APPLE)
-	# dispatch IO uses thread pool (it is slow and will be removed)
-	#target_compile_definitions( "Threading" PUBLIC AE_ASYNCIO_USE_DISPATCH_IO )
-
-	# fake async
-	#target_compile_definitions( "Threading" PUBLIC AE_ASYNCIO_USE_SYNCIO )
-
 	# true async
 	target_compile_definitions( "Threading" PUBLIC AE_ASYNCIO_USE_POSIX_AIO )
 

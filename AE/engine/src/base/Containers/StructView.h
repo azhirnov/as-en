@@ -73,7 +73,7 @@ namespace AE::Base
 		{
 			virtual ~_IViewer () __NE___ {}
 
-			ND_ virtual Unique<_IViewer>  Clone () = 0;
+			ND_ virtual Unique<_IViewer>  Clone () __NE___ = 0;
 		};
 
 
@@ -97,7 +97,7 @@ namespace AE::Base
 				StaticAssert( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone ()						__NE_OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
 		};
 
 
@@ -115,11 +115,11 @@ namespace AE::Base
 			ElementsPtr_t const		elements;
 
 		// methods
-			explicit _ViewerWithPadding (const void* ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
+			explicit _ViewerWithPadding (const void* ptr)	__NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
 				StaticAssert( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone ()						__NE_OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
 		};
 
 
@@ -133,9 +133,9 @@ namespace AE::Base
 			ElementsPtr_t const		elements;
 
 		// methods
-			explicit _ViewerImpl (const void* ptr)	__NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
+			explicit _ViewerImpl (const void* ptr)			__NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
 
-			Unique<_IViewer>  Clone ()				__Th_OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
+			Unique<_IViewer>  Clone ()						__NE_OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
 		};
 
 
@@ -185,9 +185,6 @@ namespace AE::Base
 			_array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
 		{}
 
-			Self&	operator = (const Self &rhs)		__NE___;
-			Self&	operator = (Self &&rhs)				__NE___;
-
 
 		ND_ usize			size ()						C_NE___	{ return _count; }
 		ND_ bool			empty ()					C_NE___	{ return _count == 0; }
@@ -208,6 +205,9 @@ namespace AE::Base
 		ND_ Bytes			Stride ()					C_NE___	{ return Bytes{_stride}; }
 		ND_ Bytes			DataSize ()					C_NE___	{ return SizeOf<T> * size(); }
 
+			Self&	operator = (const Self &rhs)		__NE___;
+			Self&	operator = (Self &&rhs)				__NE___;
+
 		ND_ bool	operator == (const Self &rhs)		C_NE___;
 
 		ND_ Self	section (usize first, usize count)	C_NE___;
@@ -217,7 +217,7 @@ namespace AE::Base
 		ND_ explicit operator Array<T> ()				C_NE___
 		{
 			Array<T>	result;
-			result.resize( size() );
+			NOTHROW_ERR( result.resize( size() ));
 
 			for (usize i = 0; i < result.size(); ++i) {
 				result[i] = (*this)[i];
@@ -228,7 +228,7 @@ namespace AE::Base
 
 	private:
 		template <typename Class, usize Stride>
-		ND_ static Unique<_IViewer>  _CreateView (const void* ptr);
+		ND_ static Unique<_IViewer>  _CreateView (const void* ptr) __NE___;
 	};
 
 
@@ -428,7 +428,7 @@ namespace AE::Base
 */
 	template <typename T>
 	template <typename C, usize S>
-	Unique<typename StructView<T>::_IViewer>  StructView<T>::_CreateView (const void* ptr)
+	Unique<typename StructView<T>::_IViewer>  StructView<T>::_CreateView (const void* ptr) __NE___
 	{
 		StaticAssert( S >= sizeof(T) );
 		const usize	padding = S - sizeof(T);
@@ -453,5 +453,11 @@ namespace AE::Base
 		ASSERT( &it._ref == this );
 		return it._index;
 	}
+//-----------------------------------------------------------------------------
+
+#ifndef AE_DEBUG
+	template <typename T>	struct TMemCopyAvailable< StructView<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TZeroMemAvailable< StructView<T> >	{ static constexpr bool  value = true; };
+#endif
 
 } // AE::Base

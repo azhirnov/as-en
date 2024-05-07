@@ -17,7 +17,6 @@ struct LocalVFS
 	{
 		TaskScheduler::Config	cfg;
 		cfg.maxIOAccessThreads	= 1;
-		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
 		TaskScheduler::InstanceCtor::Create();
 		TEST( Scheduler().Setup( cfg ));

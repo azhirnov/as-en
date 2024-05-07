@@ -73,22 +73,25 @@ namespace AE::Graphics
 	};
 
 
-	enum class ESamplerUsage : ubyte
+	enum class ESamplerOpt : ubyte
 	{
-		Default			= 0,
+		Unknown					= 0,
 
-		// extension: 'fragDensityMap'
-		//Subsampled,
-		//SubsampledCoarseReconstruction,
-
-		//ArgumentBuffer,	// for Metal	// TODO
+		ArgumentBuffer			= 1 << 0,	// for Metal	// TODO
 
 		// extension: 'nonSeamlessCubeMap'
-		NonSeamlessCubeMap,
+		NonSeamlessCubeMap		= 1 << 1,
 
-		_Count,
-		Unknown			= Default,
+		UnnormalizedCoordinates	= 1 << 2,
+
+		// extension: 'fragDensityMap'
+		//Subsampled						= 1 << ,
+		//SubsampledCoarseReconstruction	= 1 << ,
+
+		_Last,
+		All						= ((_Last - 1) << 1) - 1
 	};
+	AE_BIT_OPERATORS( ESamplerOpt );
 
 
 
@@ -105,19 +108,18 @@ namespace AE::Graphics
 
 	// variables
 	public:
-		ESamplerUsage			usage					= Default;
+		ESamplerOpt				options					= Default;
 		EFilter					magFilter				= EFilter::Nearest;
 		EFilter					minFilter				= EFilter::Nearest;
 		EMipmapFilter			mipmapMode				= EMipmapFilter::Nearest;
 		AddressMode3			addressMode				= { EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat };
 		EReductionMode			reductionMode			= EReductionMode::Average;
 		float					mipLodBias				= 0.0f;
-		Optional<float>			maxAnisotropy;			// TODO: remove optional
+		float					maxAnisotropy			= 0.0f;
 		Optional<ECompareOp>	compareOp;				// TODO: remove optional
 		float					minLod					= -1000.0f;
 		float					maxLod					= 1000.0f;
 		EBorderColor			borderColor				= EBorderColor::FloatTransparentBlack;
-		bool					unnormalizedCoordinates	= false;
 
 
 	// methods
@@ -128,6 +130,9 @@ namespace AE::Graphics
 		SamplerDesc&  operator = (const SamplerDesc &)	__NE___	= default;
 
 		ND_ bool  operator == (const SamplerDesc &)		C_NE___;
+
+		ND_ bool  UnnormalizedCoordinates ()			C_NE___	{ return AllBits( options, ESamplerOpt::UnnormalizedCoordinates ); }
+		ND_ bool  HasAnisotropy ()						C_NE___	{ return maxAnisotropy > 0.f; }
 	};
 //-----------------------------------------------------------------------------
 

@@ -18,8 +18,9 @@
 		}
 		else
 		{
-			@height_norm = Image( EPixelFormat::RGBA16F, uint2(1024) );		height_norm.Name( "Height & normal" );
-			@color		 = Image( EPixelFormat::RGBA8_UNorm, uint2(1024) );	color.Name( "Color" );
+			const uint2	dim = uint2(1024);
+			@height_norm = Image( EPixelFormat::RGBA16F, dim, MipmapLevel(~0) );		height_norm.Name( "Height & normal" );
+			@color		 = Image( EPixelFormat::RGBA8_UNorm, dim, MipmapLevel(~0) );	color.Name( "Color" );
 		}
 
 		string	defines;

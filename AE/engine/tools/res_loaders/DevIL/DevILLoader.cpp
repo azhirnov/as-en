@@ -265,8 +265,8 @@ namespace {
 			}
 			else
 			{
-				MemRStream	mem_stream;
-				CHECK_ERR( mem_stream.Decompress( stream ));
+				ArrayRStream	mem_stream;
+				CHECK_ERR( mem_stream.DecompressFrom( stream ));
 				CHECK_ERR( DevILLoad( mem_stream.GetData() ));
 			}
 		}

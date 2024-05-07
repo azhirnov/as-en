@@ -31,11 +31,11 @@ namespace AE::Profiler
 
 		struct Task
 		{
-			String		name;
-			RGBA8u		color;
-			uint		threadIdx;
-			double		begin;		// nanoseconds
-			double		end;		// nanoseconds
+			String			name;
+			RGBA8u			color;
+			uint			threadIdx;
+			nanosecondsd	begin;
+			nanosecondsd	end;
 		};
 
 		struct ThreadInfo
@@ -61,10 +61,9 @@ namespace AE::Profiler
 
 			// used to make thread position stable between frames
 			IdxInTInfoArr_t		sortedThreads;
-			IdxInTInfoArr_t		sortedThreads2;
 
-			double				min		= 0.0;	// nanoseconds
-			double				max		= 0.0;	// nanoseconds
+			nanosecondsd		min		{0.0};
+			nanosecondsd		max		{0.0};
 
 			void  Clear ();
 		};
@@ -91,7 +90,7 @@ namespace AE::Profiler
 		void  EnableTreeView (bool value)		{ EXLOCK( _guard );  _enableTreeView = value; }
 
 		void  Begin ();
-		void  Add (StringView name, RGBA8u color, double begin, double end, usize threadId, StringView threadCaption);
+		void  Add (StringView name, RGBA8u color, nanosecondsd begin, nanosecondsd end, usize threadId, StringView threadCaption);
 		void  End ();
 	};
 

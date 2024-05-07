@@ -13,8 +13,7 @@
 
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
 
-#include "threading/DataSource/UnixAsyncDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 namespace AE::ResEditor
 {
@@ -82,7 +81,9 @@ namespace {
 				auto	req = op.file->ReadRemaining( 0_b );	// TODO: read by blocks
 				CHECK_THROW( req );
 
-				op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
+				op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); },
+													"Image::Load",
+													ETaskQueue::Background );
 			}
 
 			_DtTrQueue().EnqueueForUpload( GetRC() );
@@ -129,7 +130,7 @@ namespace {
 		desc.options	= EImageOpt::BlitSrc | EImageOpt::BlitDst;
 
 		result->_imageDesc.Write( desc );
-		// don't change image view descriptor
+		// don't change image view description
 		result->_isDummy.store( true );
 
 		Unused( result->_id.Attach( RVRef(img_and_view.image) ));
@@ -159,7 +160,7 @@ namespace {
 		CHECK_THROW_MSG( FileSystem::IsFile( path ),
 			"Image file '"s << ToString(path) << "' is not exists" );
 
-		RC<Image>	result = CreateDummy2D( renderer, (dbgName.empty() ? StringView{path.filename().replace_extension().string()} : dbgName) );
+		RC<Image>	result = CreateDummy2D( renderer, (dbgName.empty() ? StringView{path.stem().string()} : dbgName) );
 
 		// load from filesystem instead of VFS
 		{
@@ -168,14 +169,16 @@ namespace {
 			auto&	load_op		= result->_loadOps.emplace_back();
 
 			load_op.flags		= flags;
-			load_op.file		= MakeRC< Threading::WinAsyncRDataSource >( path );
+			load_op.file		= MakeRC< Threading::FileAsyncRDataSource >( path );
 			load_op.imgFormat	= ResLoader::PathToImageFileFormat( path );
 			CHECK_THROW( load_op.file->IsOpen() );
 
 			auto	req			= load_op.file->ReadRemaining( 0_b );	// TODO: read by blocks
 			CHECK_THROW( req );
 
-			load_op.loaded	= req->AsPromise().Then( [fmt = load_op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
+			load_op.loaded	= req->AsPromise().Then( [fmt = load_op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); },
+													 "Image::Load",
+													 ETaskQueue::Background );
 
 			result->_DtTrQueue().EnqueueForUpload( result );
 		}
@@ -267,7 +270,7 @@ namespace {
 			CHECK_ERR_MSG( res_mngr.IsSupported( imageDesc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 
-			auto	image = res_mngr.CreateImage( imageDesc, _dbgName, _GfxDynamicAllocator() );
+			auto	image = res_mngr.CreateImage( imageDesc, _dbgName, _Renderer().ChooseAllocator( True{"dynamic"}, imageDesc ));
 			CHECK_ERR( image );
 
 			RenderGraph().GetStateTracker().AddResource( image.Get(),
@@ -296,8 +299,7 @@ namespace {
 			_outDynSize->Resize( imageDesc.dimension );
 		}
 
-		auto	derived = _derived.ReadNoLock();
-		SHAREDLOCK( derived );
+		auto	derived = _derived.ReadLock();
 
 		for (auto* img : *derived) {
 			CHECK( img->_UpdateView( img->GetViewDesc() ));
@@ -392,7 +394,7 @@ namespace {
 
 		if ( failed )
 		{
-			_loadOps.clear();
+			Reconstruct( _loadOps );
 			_SetUploadStatus( EUploadStatus::Canceled );
 		}
 
@@ -400,7 +402,7 @@ namespace {
 		{
 			_GenMipmaps( ctx );
 
-			_loadOps.clear();
+			Reconstruct( _loadOps );
 			_SetUploadStatus( EUploadStatus::Completed );
 		}
 
@@ -525,7 +527,6 @@ namespace {
 		ASSERT( not _storeOps.empty() );
 
 		bool	all_complete	= true;
-		bool	failed			= false;
 
 		for (auto& op : _storeOps)
 		{
@@ -547,7 +548,7 @@ namespace {
 			}
 
 			ctx.ReadbackImage( INOUT op.stream )
-				.Then(	[self = GetRC<Image>(), layer = op.curLayer, mipmap = op.curMipmap, file = op.file] (const ImageMemView &memView)
+				.Then(	[self = GetRC<Image>(), layer = op.curLayer, mipmap = op.curMipmap, file = op.file] (const ImageMemView &memView) __Th___
 						{
 					   		const auto		img_desc	= self->_imageDesc.Read<ImageDesc>();
 							const auto		view_type	= self->_imageDesc.ConstPtr<1>()->viewType;
@@ -574,10 +575,13 @@ namespace {
 							auto	mem = file->Alloc( memView.ContentSize() );
 							CHECK_THROW( mem );
 
-							CHECK( memView.CopyTo( mem->Data(), memView.ContentSize() ));
+							CHECK( memView.CopyTo( OUT mem->Data(), memView.ContentSize() ));
 
 							Unused( file->WriteBlock( off + SizeOf<AssetPacker::ImagePacker::Header2>, memView.ContentSize(), RVRef(mem) ));
-						});
+						},
+						"Image::Readback",
+						ETaskQueue::Background
+					  );
 
 			if ( op.stream.IsCompleted() )
 			{
@@ -605,15 +609,9 @@ namespace {
 			all_complete &= op.IsCompleted();
 		}
 
-		if ( failed )
-		{
-			_storeOps.clear();
-			_SetUploadStatus( EUploadStatus::Canceled );
-		}
-
 		if ( all_complete )
 		{
-			_storeOps.clear();
+			Reconstruct( _storeOps );
 			_SetUploadStatus( EUploadStatus::Completed );
 		}
 
@@ -634,13 +632,13 @@ namespace {
 			if ( op.file )		op.file->CancelAllRequests();
 			if ( op.loaded )	op.loaded.Cancel();
 		}
-		_loadOps.clear();
+		Reconstruct( _loadOps );
 
 		for (auto& op : _storeOps)
 		{
 			if ( op.file )		CHECK( not op.file->CancelAllRequests() );	// all write requests must complete
 		}
-		_storeOps.clear();
+		Reconstruct( _storeOps );
 	}
 
 /*
@@ -745,7 +743,7 @@ namespace {
 				CHECK_ERR_MSG( res_mngr.IsSupported( desc ),
 					"Image '"s << _dbgName << "' description is not supported by GPU device" );
 
-				auto	image	= res_mngr.CreateImage( desc, _dbgName, _GfxAllocator() );
+				auto	image	= res_mngr.CreateImage( desc, _dbgName, _Renderer().ChooseAllocator( False{"static"}, desc ));
 				CHECK_ERR( image );
 
 				RenderGraph().GetStateTracker().AddResource( image,
@@ -793,8 +791,7 @@ namespace {
 			res_mngr.ImmediatelyReleaseResources( view, id );
 		}
 
-		auto	derived = _derived.ReadNoLock();
-		SHAREDLOCK( derived );
+		auto	derived = _derived.ReadLock();
 
 		for (auto* img : *derived) {
 			CHECK( img->_UpdateView( img->GetViewDesc() ));

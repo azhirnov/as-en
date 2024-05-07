@@ -71,6 +71,7 @@ namespace AE::ResEditor
 			Array<Path>		pipelineDirs;
 			Path			scriptDir;
 			App::Monitor	monitor;
+			bool			enableRandomizer	= true;
 		};
 
 
@@ -191,6 +192,7 @@ namespace AE::ResEditor
 
 		static void  _ExportImage (const ScriptImagePtr &image, const String &prefix)							__Th___;
 		static void  _ExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
+		static void  _DbgExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
 		static void  _ExportGeometry (const ScriptGeomSourcePtr &geom, const String &prefix)					__Th___;
 
 		static void  _BuildRTGeometry (const ScriptRTGeometryPtr &)												__Th___;
@@ -372,6 +374,7 @@ namespace AE::ResEditor
 	//
 	class ScriptExe::ScriptPassApi
 	{
+		friend class ScriptBasePass;
 		friend class ScriptPostprocess;
 		friend class ScriptComputePass;
 		friend class ScriptRayTracingPass;

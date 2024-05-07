@@ -110,7 +110,7 @@ namespace AE::Scripting
 	// types
 	public:
 		using ModuleSource		= ScriptModule::ModuleSource;
-		using ArgNames_t		= ArrayView<StringView>;
+		using ArgNames_t		= List<StringView>;
 	private:
 		using DbgLocationMap_t	= ScriptModule::DbgLocationMap_t;
 		using CppHeaderMap_t	= FlatHashMap< String, Pair<usize, int> >;		// index in '_cppHeaders'

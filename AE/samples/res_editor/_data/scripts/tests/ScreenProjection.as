@@ -27,7 +27,8 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::None, EPassFlags::Enable_ShaderTrace );
+			RC<Postprocess>		pass = Postprocess( EPostprocess::None );
+			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			pass.Set(	 camera );
 			pass.Output( "out_Color", rt );
 			pass.Slider( "iProj",			0,		7 );

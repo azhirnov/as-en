@@ -26,7 +26,8 @@ import java.io.File;
 //
 // Base Application
 //
-public class BaseApplication extends Application
+public class BaseApplication
+			extends Application
 {
 	public static final String	TAG = "<<<< AE >>>>";
 
@@ -53,10 +54,10 @@ public class BaseApplication extends Application
 		File	externalCache	= getExternalCacheDir();
 
 		native_SetDirectories(
-			(internalPath    == null ? "" : internalPath.getAbsolutePath()   ),
-			(internalCache   == null ? "" : internalCache.getAbsolutePath()  ),
-			(externalPath    == null ? "" : externalPath.getAbsolutePath()   ),
-			(externalCache   == null ? "" : externalCache.getAbsolutePath()  ));
+			(internalPath	== null ? "" : internalPath .getAbsolutePath()),
+			(internalCache	== null ? "" : internalCache.getAbsolutePath()),
+			(externalPath	== null ? "" : externalPath .getAbsolutePath()),
+			(externalCache	== null ? "" : externalCache.getAbsolutePath()) );
 	}
 
 	private void  _SendSystemInfo ()

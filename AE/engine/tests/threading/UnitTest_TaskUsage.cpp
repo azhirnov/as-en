@@ -101,7 +101,7 @@ namespace
 
 		AsyncTask	task2 = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List<AsyncTask>{ task1, task2 }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
@@ -175,7 +175,7 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
@@ -279,7 +279,7 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 

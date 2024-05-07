@@ -47,7 +47,7 @@ namespace AE::Graphics
 
 
 	  // Metrics //
-			bool  InitializeMetrics ()													__NE___;
+		//	bool  InitializeMetrics ()													__NE___;
 
 
 	private:

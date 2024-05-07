@@ -7,6 +7,6 @@ public final class TestApplication
 		extends AE.engine.BaseApplication
 {
 	static {
-		System.loadLibrary("TestLauncher" );
+		System.loadLibrary( "TestLauncher" );
 	}
 }

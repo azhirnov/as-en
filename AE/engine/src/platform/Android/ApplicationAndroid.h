@@ -25,7 +25,8 @@ namespace AE::App
 		using WinID			= WindowAndroid::WinID;
 		using AWindows_t	= FixedArray<Pair< WinID, Window >, PlatformConfig::MaxWindows >;
 
-		struct StoragePath {
+		struct StoragePath
+		{
 			AAssetManager *		jniAssetMngr	= null;
 			Path				internalAppData;
 			Path				internalCache;
@@ -37,28 +38,28 @@ namespace AE::App
 
 	// variables
 	private:
-		RecursiveMutex			_windowsGuard;
-		AWindows_t				_windows;
+		RecursiveMutex				_windowsGuard;
+		AWindows_t					_windows;
 
-		Monitor					_displayInfo;
-		WinID					_windowCounter	= 0;
-		bool 					_started		= false;
+		Monitor						_displayInfo;
+		WinID						_windowCounter	= 0;
+		bool 						_started		= false;
 
-		Locales_t				_locales;
-		StoragePathSync_t		_paths;
+		Locales_t					_locales;
+		StoragePathSync_t			_paths;
 
 		struct {
-			JavaObj					application;
-			JavaObj					assetManager;
-		}						_java;
+			JavaObj						application;
+			JavaObj						assetManager;
+		}							_java;
 		struct {
 			JavaMethod< jboolean () >				isNetworkConnected;
 			JavaMethod< void (jstring, jboolean) >	showToast;
 			//JavaMethod< void () >					createWindow;
-		}						_methods;
+		}							_methods;
 
 		DRC_ONLY(
-			RWDataRaceCheck		_drCheck;	// protects: _java, _methods, _displayInfo
+			RWDataRaceCheck			_drCheck;	// protects: _java, _methods, _displayInfo
 		)
 
 
@@ -77,6 +78,7 @@ namespace AE::App
 		void  AfterUpdate ()															__NE___;
 
 		void  SetRotation (int)															__NE___;
+		void  ShowToast (NtStringView msg, bool longTime = false)						__NE___;
 
 		ND_ static ApplicationAndroid*&						_GetAppInstance ()			__NE___;
 		ND_ static SharedPtr<WindowAndroid>					_GetAppWindow (WinID id)	__NE___;
@@ -93,6 +95,7 @@ namespace AE::App
 
 		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage type)							__NE_OV;
+		Path					GetStoragePath (EAppStorage type)						__NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 
 
@@ -105,13 +108,13 @@ namespace AE::App
 													jint maxWidth, jint maxHeight,
 													float dpi, jint orientation,
 													float avrLum, float maxLum, float minLum,
-													jintArray cutoutRects, jint cutoutRectCount)			__NE___;
-		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)						__NE___;
-		static void JNICALL  native_EnableCamera (JNIEnv*, jclass)											__NE___;
+													jintArray cutoutRects, jint cutoutRectCount) __NE___;
+		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)	__NE___;
+		static void JNICALL  native_EnableCamera (JNIEnv*, jclass)						__NE___;
 
 	public:
-		static jint  OnJniLoad (JavaVM* vm)																	__NE___;
-		static void  OnJniUnload (JavaVM* vm)																__NE___;
+		static jint  OnJniLoad (JavaVM* vm)												__NE___;
+		static void  OnJniUnload (JavaVM* vm)											__NE___;
 	};
 
 

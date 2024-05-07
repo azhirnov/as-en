@@ -79,8 +79,8 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
-		auto	mem_stream = MakeRC<MemRStream>();
-		CHECK_ERR( mem_stream->LoadRemaining( *_file, size ));
+		auto	mem_stream = MakeRC<ArrayRStream>();
+		CHECK_ERR( mem_stream->LoadRemainingFrom( *_file, size ));
 
 		Serializing::Deserializer	des{ RVRef(mem_stream) };
 		CHECK_ERR( not des.stream.Empty() );
@@ -119,12 +119,12 @@ namespace AE::Graphics
 			RenderPassID	compat_id;
 			if ( supported )
 			{
-				compat_id = resMngr.CreateRenderPass( rp_info, vk_compat, Default DEBUG_ONLY(, resMngr.HashToName( rp_info.name ))).Release();
+				compat_id = resMngr.CreateRenderPass( rp_info, vk_compat, Default GFX_DBG_ONLY(, resMngr.HashToName( rp_info.name ))).Release();
 				CHECK_ERR( compat_id );
 				CHECK( _renderPassRefs->compatMap.emplace( rp_info.name, compat_id ).second );	// throw
 			}
 			else{
-				AE_LOG_DBG( "Render pass '"s << resMngr.HashToName( rp_info.name ) << "' is NOT supported" );
+				GFX_DBG_ONLY( AE_LOGW( "Render pass '"s << resMngr.HashToName( rp_info.name ) << "' is NOT supported" ));
 			}
 
 			for (uint j = 0; j < spec_count; ++j)
@@ -135,7 +135,7 @@ namespace AE::Graphics
 				if ( supported )
 				{
 					RenderPassID	rp_id = resMngr.CreateRenderPass( rp_info, vk_rp, compat_id
-																	  DEBUG_ONLY(, resMngr.HashToName( vk_rp.Name() ))).Release();
+																	  GFX_DBG_ONLY(, resMngr.HashToName( vk_rp.Name() ))).Release();
 					CHECK_ERR( rp_id );
 					CHECK( _renderPassRefs->specMap.emplace( vk_rp.Name(), rp_id ).second );	// throw
 				}
@@ -155,7 +155,8 @@ namespace AE::Graphics
 	{
 		ShaderBytecode		code;
 		code.offset		= _shaderOffset + Bytes{shader.offset};
-		code.dataSize	= Bytes{shader.dataSize};
+		code.dataSize	= shader.dataSize;
+		code.data2Size	= shader.data2Size;
 		code.typeIdx	= shader.shaderTypeIdx;
 
 		{

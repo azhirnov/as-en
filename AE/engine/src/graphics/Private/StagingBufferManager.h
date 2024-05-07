@@ -15,9 +15,6 @@
 #elif defined(AE_ENABLE_METAL)
 #	define STBUFMNGR		MStagingBufferManager
 
-#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define STBUFMNGR		RStagingBufferManager
-
 #else
 #	error not implemented
 #endif
@@ -37,18 +34,11 @@ namespace AE::Graphics
 
 	  #if defined(AE_ENABLE_VULKAN)
 		using NativeBuffer_t		= VkBuffer;
-		using ResourceManager_t		= VResourceManager;
 		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
 
 	  #elif defined(AE_ENABLE_METAL)
 		using NativeBuffer_t		= MetalBuffer;
-		using ResourceManager_t		= MResourceManager;
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
-
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using NativeBuffer_t		= RmBufferID;
-		using ResourceManager_t		= RResourceManager;
-		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
 
 	  #else
 	  #	error not implemented
@@ -57,10 +47,11 @@ namespace AE::Graphics
 
 		struct StagingBufferResult
 		{
-			NativeBuffer_t	buffer		= Default;
-			Bytes			bufferOffset;
-			Bytes			size;
-			void *			mapped		= null;
+			void *			mapped			= null;
+			NativeBuffer_t	bufferHandle	= Default;
+			BufferID		bufferId;
+			Bytes32u		bufferOffset;
+			Bytes32u		size;
 
 			StagingBufferResult ()	__NE___ {}
 		};
@@ -73,7 +64,7 @@ namespace AE::Graphics
 			uint3			imageDim;
 		  #if defined(AE_ENABLE_VULKAN)
 			uint			bufferImageHeight	= 0;	// in pixels, for BufferImageCopy::bufferImageHeight
-		  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		  #elif defined(AE_ENABLE_METAL)
 			Bytes			bufferSlicePitch;
 		  #else
 		  #	error not implemented
@@ -106,7 +97,7 @@ namespace AE::Graphics
 		  #ifdef AE_ENABLE_VULKAN
 			Bytes32u			memOffset;
 		  #endif
-			Strong<BufferID>	buffer;
+			Strong<BufferID>	bufferId;
 			NativeBuffer_t		bufferHandle	= Default;
 			void*				mapped			= null;
 		};
@@ -130,8 +121,6 @@ namespace AE::Graphics
 		  #elif defined(AE_ENABLE_METAL)
 			MetalMemoryRC				memory;
 
-		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-
 		  #else
 		  #	error not implemented
 		  #endif
@@ -151,7 +140,7 @@ namespace AE::Graphics
 		  #if defined(AE_ENABLE_VULKAN)
 			VkDeviceMemory		memory	= Default;
 
-		  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		  #elif defined(AE_ENABLE_METAL)
 		  #else
 		  #	error not implemented
 		  #endif
@@ -173,9 +162,9 @@ namespace AE::Graphics
 		{
 			// mutable
 			AtomicByte<uint>			maxPerFrame		{0_b};
-			mutable AtomicByte<uint>	usedPerFrame	{0_b};
-			DynamicBuffers				buffers;
+			mutable AtomicByte<uint>	usedPerFrame	[2];
 			mutable AtomicByte<ulong>	allocated		{0_b};
+			DynamicBuffers				buffers;
 
 			// immutable
 			Bytes						maxSize;
@@ -205,8 +194,6 @@ namespace AE::Graphics
 		  #elif defined(AE_ENABLE_METAL)
 			MetalMemoryRC		memory;
 
-		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-
 		  #else
 		  #	error not implemented
 		  #endif
@@ -228,12 +215,6 @@ namespace AE::Graphics
 			// TODO
 		};
 
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		struct alignas(AE_CACHE_LINE) MappedMemRanges
-		{
-			// TODO
-		};
-
 	  #else
 	  #	error not implemented
 	  #endif
@@ -248,16 +229,16 @@ namespace AE::Graphics
 		Bytes16u			_memSizeAlign	{1};
 		MappedMemRanges		_memRanges;
 
-		ResourceManager_t&	_resMngr;
+		ResourceManager&	_resMngr;
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			AtomicFrameUID	_frameId;
 		)
 
 
 	// methods
 	public:
-		explicit STBUFMNGR (ResourceManager_t &resMngr)																			__NE___;
+		explicit STBUFMNGR (ResourceManager &resMngr)																			__NE___;
 		~STBUFMNGR ()																											__NE___;
 
 		ND_ bool  Initialize (const GraphicsCreateInfo &info)																	__NE___;
@@ -279,34 +260,37 @@ namespace AE::Graphics
 
 		ND_ FrameStat_t  GetFrameStat (FrameUID frameId)																		C_NE___;
 
-	  #if defined(AE_ENABLE_VULKAN)
+		  #ifdef AE_ENABLE_VULKAN
 			void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size)						__NE___;
-	  #endif
+		  #endif
 
 
 	private:
-		ND_ bool  _CreateStaticBuffers (const GraphicsCreateInfo &info);
-		ND_ bool  _InitDynamicBuffers (const GraphicsCreateInfo &info);
-		ND_ bool  _InitVertexStream (const GraphicsCreateInfo &info);
+		ND_ bool  _CreateStaticBuffers (const GraphicsCreateInfo &info)															__NE___;
+		ND_ bool  _InitDynamicBuffers (const GraphicsCreateInfo &info)															__NE___;
+		ND_ bool  _InitVertexStream (const GraphicsCreateInfo &info)															__NE___;
 
-		ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) const;
+		ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload)							C_NE___;
 
 		template <typename RangeType, typename BufferType>
-		ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign, INOUT RangeType &result, BufferType& sb);
+		ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign,
+										INOUT RangeType &result, BufferType& sb)												__NE___;
 
 		template <bool SingleAlloc, typename RangeType>
-		ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload, INOUT RangeType& buffers, DynamicBuffers &db) const;
+		ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload,
+								 INOUT RangeType& buffers, DynamicBuffers &db)													C_NE___;
 
 		template <typename RangeType>
-		ND_ bool  _AddToCurrent (INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, Strong<BufferID> id, INOUT RangeType& buffers, DynamicBuffers &db) const;
+		ND_ bool  _AddToCurrent (INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, Strong<BufferID> id,
+								 INOUT RangeType& buffers, DynamicBuffers &db)													C_NE___;
 
-		ND_ static bool  _AllocStaticImage (Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockDim,
-											const uint3 &imageOffset, const uint3 &imageDim,
-											INOUT StagingImageResultRanges &result, StaticBuffer& sb);
+		ND_ static bool  _AllocStaticImage (Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign,
+											const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDim,
+											INOUT StagingImageResultRanges &result, StaticBuffer& sb)							__NE___;
 
-		void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockDim,
-								  const uint3 &imageOffset, const uint3 &imageDataDim, bool upload,
-								  INOUT StagingImageResultRanges &result, DynamicBuffers& db) const;
+		void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign,
+								  const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDataDim, bool upload,
+								  INOUT StagingImageResultRanges &result, DynamicBuffers& db)									C_NE___;
 	};
 
 

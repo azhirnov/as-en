@@ -36,6 +36,7 @@ namespace AE::Graphics
 		VK_CHECK_ERR( dev.vkCreateDescriptorSetLayout( dev.GetVkDevice(), &descriptor_info, null, OUT &_layout ));
 
 		dev.SetObjectName( _layout, dbgName, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT );
+		GFX_DBG_ONLY( _debugName = dbgName; )
 
 		return true;
 	}
@@ -96,7 +97,7 @@ namespace AE::Graphics
 
 		dev.SetObjectName( _layout, ci.dbgName, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT );
 
-		DEBUG_ONLY( _debugName = ci.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.dbgName; )
 		return true;
 	}
 
@@ -125,7 +126,7 @@ namespace AE::Graphics
 		_usage			= Default;
 		_bindCount		= 0;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -227,7 +228,7 @@ namespace AE::Graphics
 		// some descriptors may be not supported
 		if ( binding.allowUpdateTmpl and entry_stride > 0 )
 		{
-			ASSERT( offset != null );
+			NonNull( offset );
 			binding.tmplEntryOffset = AlignUp( binding.tmplEntryOffset, align );
 
 			*offset = binding.tmplEntryOffset;

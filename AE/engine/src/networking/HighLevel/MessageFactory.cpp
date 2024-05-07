@@ -68,7 +68,7 @@ namespace AE::Networking
 			auto&	group = _msgTypes[group_id];
 
 			SHAREDLOCK( group.guard );
-			ASSERT( group.immutable );
+			ASSERT( group.immutable or group.map.empty() );
 
 			auto	it = group.map.find( msg_id );
 			CHECK_ERR( it != group.map.end() );

@@ -105,9 +105,22 @@ namespace AE::Math
 
 
 		// Rounding:
-		// RTS - round to smaller, similar to floor(val * float(frac))
-		// RTN - round to nearest, similar to round(val * float(frac))
-		// RTL - round to larger,  similar to ceil(val * float(frac))
+		// RTS - round to smaller, similar to floor(val * float(fract))
+		// RTN - round to nearest, similar to round(val * float(fract))
+		// RTL - round to larger,  similar to ceil(val * float(fract))
+
+		template <typename R>
+		ND_ constexpr R  Get_RTS ()								C_NE___	{ return R(num) / den; }
+		ND_ constexpr T  Get_RTS ()								C_NE___	{ return Get_RTS<T>(); }
+
+		template <typename R>
+		ND_ constexpr R  Get_RTN ()								C_NE___	{ return (num + R(den/2)) / den; }
+		ND_ constexpr T  Get_RTN ()								C_NE___	{ return Get_RTN<T>(); }
+
+		template <typename R>
+		ND_ constexpr R  Get_RTL ()								C_NE___	{ return (num + R(den-1)) / den; }
+		ND_ constexpr T  Get_RTL ()								C_NE___	{ return Get_RTL<T>(); }
+
 
 		template <typename R>
 		ND_ constexpr R  Mul_RTS (const R &val)					C_NE___	{ return (val * num) / den; }

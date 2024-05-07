@@ -16,7 +16,6 @@ struct LocalSocketMngr
 		TaskScheduler::InstanceCtor::Create();
 
 		TaskScheduler::Config	cfg;
-		cfg.mainThreadCoreId	= ECpuCoreId(0);
 		TEST( Scheduler().Setup( cfg ));
 
 		TEST( SocketService::Instance().Initialize() );

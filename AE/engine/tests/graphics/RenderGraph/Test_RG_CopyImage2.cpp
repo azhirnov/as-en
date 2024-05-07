@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_RenderGraph.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -66,6 +65,8 @@ namespace
 								})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -77,7 +78,6 @@ namespace
 		CI2_TestData	t;
 		const uint2		src_dim			= {64, 64};
 		const uint2		dst_dim			= {128, 128};
-		const int2		img_offset		= {16, 27};
 		const Bytes		bpp				= 4_b;
 		const Bytes		src_row_pitch	= src_dim.x * bpp;
 		const auto		format			= EPixelFormat::RGBA8_UNorm;

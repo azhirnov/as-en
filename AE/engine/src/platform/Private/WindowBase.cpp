@@ -72,7 +72,7 @@ namespace
 	_SetState
 =================================================
 */
-	void  WindowBase::_SetState (EState newState)
+	void  WindowBase::_SetState (EState newState) __NE___
 	{
 		if_unlikely( _wndState == newState )
 			return;
@@ -93,7 +93,7 @@ namespace
 	_SetStateV2
 =================================================
 */
-	void  WindowBase::_SetStateV2 (EState newState)
+	void  WindowBase::_SetStateV2 (EState newState) __NE___
 	{
 		if_unlikely( _wndState == newState )
 			return;
@@ -141,7 +141,7 @@ namespace
 	_DestroyListener
 =================================================
 */
-	void  WindowBase::_DestroyListener ()
+	void  WindowBase::_DestroyListener () __NE___
 	{
 		if ( _wndState == EState::Focused )
 			_SetStateV2( EState::InForeground );
@@ -151,6 +151,26 @@ namespace
 		_SetStateV2( EState::Destroyed );
 
 		_listener.reset();
+	}
+
+/*
+=================================================
+	_ResizeWindowToSurface
+=================================================
+*/
+	void  WindowBase::_ResizeWindowToSurface () __NE___
+	{
+		if ( not _surface.IsInitialized() )
+			return;
+
+		auto	info = _surface.GetTargetInfo();
+		ASSERT( info.size() == 1 );
+
+		if ( info.size() > 0 and
+			 Any( info[0].dimension != GetSurfaceSize() ))
+		{
+			SetSize( info[0].dimension );
+		}
 	}
 
 

@@ -2,9 +2,17 @@
 
 #pragma once
 
-#include "graphics/Public/GraphicsImpl.h"
-#include "platform/Public/InputSurface.h"
-#include "platform/Public/OutputSurface.h"
+#include "graphics/GraphicsImpl.h"
+
+namespace AE::App
+{
+	struct IOutputSurface_RenderTarget;
+	class IOutputSurface;
+
+	class IInputSurface;
+
+} // AE::App
+
 
 namespace AE::RG
 {

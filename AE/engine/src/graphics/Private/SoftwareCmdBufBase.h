@@ -4,6 +4,7 @@
 
 #include "graphics/Public/CommandBuffer.h"
 #include "graphics/Public/GraphicsProfiler.h"
+#include "graphics/Private/Defines.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -29,7 +30,7 @@ namespace AE::Graphics::_hidden_
 
 		struct BaseCmd
 		{
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				static constexpr uint	MAGIC = 0x762a3cf0;
 				uint	_magicNumber	= MAGIC;
 			)
@@ -88,7 +89,7 @@ namespace AE::Graphics::_hidden_
 		Bytes	size	= AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
 		auto*	cmd		= Cast<CmdType>( _Allocate( size ));	// throw
 
-		DEBUG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
+		GFX_DBG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
 		StaticAssert( CommandsList::template HasType< CmdType >);
 
 		cmd->_commandID = CheckCast<ushort>( CommandsList::template Index< CmdType >);

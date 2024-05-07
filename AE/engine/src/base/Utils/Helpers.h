@@ -229,4 +229,22 @@ namespace AE::Base
 	{};
 
 
+
+	//
+	// Scoped Log
+	//
+	struct ScopedLog
+	{
+	private:
+		const char *	_msg;
+
+	public:
+		explicit ScopedLog (const char* msg)	__NE___ : _msg{msg} { AE_LOGI(String{_msg} += " - begin"); }
+		~ScopedLog ()							__NE___	{ AE_LOGI(String{_msg} += " - end"); }
+	};
+
+#	define SCOPED_LOG( _msg_ )	AE::Base::ScopedLog  AE_PRIVATE_UNITE_RAW( __scopedLog, __COUNTER__ ) { _msg_ }
+#	define SCOPED_LOG_FN()		SCOPED_LOG( AE_FUNCTION_NAME )
+
+
 } // AE::Base

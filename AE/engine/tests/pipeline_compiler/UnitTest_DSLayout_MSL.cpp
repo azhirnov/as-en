@@ -37,11 +37,6 @@ namespace
 		PipelineLayout::UniqueTypes_t		unique_types;
 		DescriptorSetLayout::MSLBindings	bindings;
 		dsl->ToMSL( EShaderStages::Fragment, INOUT bindings, INOUT types, INOUT decl, INOUT unique_types );
-
-	  #if not AE_PRIVATE_USE_TABS
-		types = Parser::TabsToSpaces( types );
-		decl  = Parser::TabsToSpaces( decl );
-	  #endif
 	}
 
 
@@ -152,7 +147,7 @@ extern void  UnitTest_DSLayout_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.perDescrSet.maxUniformBuffers = 8;
 	fs->fs.perDescrSet.maxStorageBuffers = 8;

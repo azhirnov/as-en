@@ -5,18 +5,18 @@
 
 # ifdef AE_PLATFORM_WINDOWS
 
-#	define FFMPEG_AVCODEC		"avcodec-59.dll"
-#	define FFMPEG_AVFORMAT		"avformat-59.dll"
-#	define FFMPEG_AVUTIL		"avutil-57.dll"
-#	define FFMPEG_SWSCALE		"swscale-6.dll"
+#	define FFMPEG_AVCODEC		"avcodec-60.dll"
+#	define FFMPEG_AVFORMAT		"avformat-60.dll"
+#	define FFMPEG_AVUTIL		"avutil-58.dll"
+#	define FFMPEG_SWSCALE		"swscale-7.dll"
 
 # else
 //#elif defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_ANDROID)
 
-#	define FFMPEG_AVCODEC		"avcodec-59.so"
-#	define FFMPEG_AVFORMAT		"avformat-59.so"
-#	define FFMPEG_AVUTIL		"avutil-57.so"
-#	define FFMPEG_SWSCALE		"swscale-6.so"
+#	define FFMPEG_AVCODEC		"avcodec-60.so"
+#	define FFMPEG_AVFORMAT		"avformat-60.so"
+#	define FFMPEG_AVUTIL		"avutil-58.so"
+#	define FFMPEG_SWSCALE		"swscale-7.so"
 # endif
 
 
@@ -24,60 +24,67 @@ namespace AE::Video
 {
 /*
 =================================================
-	FFMpegLib
+	FFmpegLoader2
 =================================================
 */
-namespace {
-	struct FFMpegLib
+	class FFmpegLoader2 final : public FFmpegLoader
 	{
-		Mutex		guard;
+	// variables
+	private:
+		Mutex		_guard;
 
-		Library		avcodec;
-		Library		avformat;
-		Library		avutil;
-		Library		swscale;
+		Library		_avcodec;
+		Library		_avformat;
+		Library		_avutil;
+		Library		_swscale;
 
-		bool		loaded		= false;
-		int			refCounter	= 0;
+		int			_refCounter	= 1;	// don't unload
 
-		ND_ static FFMpegLib&  Instance ()
+
+	// methods
+	public:
+
+		bool  Load ()							__NE___;
+		void  Unload ()							__NE___;
+
+		ND_ static FFmpegLoader2&  Instance ()	__NE___
 		{
-			static FFMpegLib	lib;
+			static FFmpegLoader2	lib;
 			return lib;
 		}
 	};
-}
+
 /*
 =================================================
 	Load
 =================================================
 */
-	bool  FFmpegLoader::Load () __NE___
+	bool  FFmpegLoader2::Load () __NE___
 	{
-		FFMpegLib&	lib = FFMpegLib::Instance();
-		EXLOCK( lib.guard );
+		EXLOCK( _guard );
 
-		if ( lib.loaded and lib.refCounter > 0 )
+		if ( _loaded and _refCounter > 0 )
 		{
-			++lib.refCounter;
+			++_refCounter;
 			return true;
 		}
 
-		#define GET_AVCODEC_FN( _name_ )	loaded &= lib.avcodec.GetProcAddr(	AE_TOSTRING(_name_), OUT FFmpegLoader::_name_ );
-		#define GET_AVFORMAT_FN( _name_ )	loaded &= lib.avformat.GetProcAddr(	AE_TOSTRING(_name_), OUT FFmpegLoader::_name_ );
-		#define GET_AVUTIL_FN( _name_ )		loaded &= lib.avutil.GetProcAddr(	AE_TOSTRING(_name_), OUT FFmpegLoader::_name_ );
-		#define GET_SWSCALE_FN( _name_ )	loaded &= lib.swscale.GetProcAddr(	AE_TOSTRING(_name_), OUT FFmpegLoader::_name_ );
+		#define GET_AVCODEC_FN( _name_ )	loaded &= _avcodec.GetProcAddr ( AE_TOSTRING(_name_), OUT _name_ );
+		#define GET_AVFORMAT_FN( _name_ )	loaded &= _avformat.GetProcAddr( AE_TOSTRING(_name_), OUT _name_ );
+		#define GET_AVUTIL_FN( _name_ )		loaded &= _avutil.GetProcAddr  ( AE_TOSTRING(_name_), OUT _name_ );
+		#define GET_SWSCALE_FN( _name_ )	loaded &= _swscale.GetProcAddr ( AE_TOSTRING(_name_), OUT _name_ );
 
-		const auto	CheckLicense = [] (StringView libName, StringView license, int ver) -> bool
+		const auto	CheckLicense = [] (StringView libName, StringView license, int ver, StringView config) -> bool
 		{{
 			const int	major	= AV_VERSION_MAJOR( ver );
 			const int	minor	= AV_VERSION_MINOR( ver );
 			const int	micro	= AV_VERSION_MICRO( ver );
 
-			Unused( libName, major, minor, micro );
+			Unused( libName, major, minor, micro, config );
 			AE_LOG_DBG( "ffmpeg "s << libName << " license: " << license <<
-					    ", version: " << ToString(major) << '.' << ToString(minor) << '.' << ToString(micro));
-
+						", version: " << ToString(major) << '.' << ToString(minor) << '.' << ToString(micro)
+						//<< ", config: " << config
+					  );
 			#ifdef AE_LICENSE_LGPLv3_SHAREDLIB
 				if ( license == "LGPL version 3 or later" ) return true;
 			#endif
@@ -90,41 +97,41 @@ namespace {
 		// avcodec
 		{
 			bool	loaded = true;
-			CHECK_ERR( lib.avcodec.Load( FFMPEG_AVCODEC ));
+			CHECK_ERR( _avcodec.Load( FFMPEG_AVCODEC ));
 			AE_FFMPEG_AVCODEC_FUNCS( GET_AVCODEC_FN );
 			CHECK_ERR( loaded );
 
-			CHECK_ERR( CheckLicense( "avcodec", avcodec_license(), avcodec_version() ));
+			CHECK_ERR( CheckLicense( "avcodec", avcodec_license(), avcodec_version(), avcodec_configuration() ));
 		}
 
 		// avformat
 		{
 			bool	loaded = true;
-			CHECK_ERR( lib.avformat.Load( FFMPEG_AVFORMAT ));
+			CHECK_ERR( _avformat.Load( FFMPEG_AVFORMAT ));
 			AE_FFMPEG_AVFORMAT_FUNCS( GET_AVFORMAT_FN );
 			CHECK_ERR( loaded );
 
-			CHECK_ERR( CheckLicense( "avformat", avcodec_license(), avformat_version() ));
+			CHECK_ERR( CheckLicense( "avformat", avcodec_license(), avformat_version(), avformat_configuration() ));
 		}
 
 		// avutil
 		{
 			bool	loaded = true;
-			CHECK_ERR( lib.avutil.Load( FFMPEG_AVUTIL ));
+			CHECK_ERR( _avutil.Load( FFMPEG_AVUTIL ));
 			AE_FFMPEG_AVUTIL_FUNCS( GET_AVUTIL_FN );
 			CHECK_ERR( loaded );
 
-			CHECK_ERR( CheckLicense( "avutil", avutil_license(), avutil_version() ));
+			CHECK_ERR( CheckLicense( "avutil", avutil_license(), avutil_version(), avutil_configuration() ));
 		}
 
 		// swscale
 		{
 			bool	loaded = true;
-			CHECK_ERR( lib.swscale.Load( FFMPEG_SWSCALE ));
+			CHECK_ERR( _swscale.Load( FFMPEG_SWSCALE ));
 			AE_FFMPEG_SWSCALE_FUNCS( GET_SWSCALE_FN );
 			CHECK_ERR( loaded );
 
-			CHECK_ERR( CheckLicense( "swscale", avcodec_license(), swscale_version() ));
+			CHECK_ERR( CheckLicense( "swscale", avcodec_license(), swscale_version(), swscale_configuration() ));
 		}
 
 		#ifdef AE_CFG_RELEASE
@@ -133,8 +140,8 @@ namespace {
 			//av_log_set_callback();
 		#endif
 
-		lib.refCounter	= 1;
-		lib.loaded		= true;
+		_refCounter++;
+		_loaded = true;
 		return true;
 	}
 
@@ -143,35 +150,58 @@ namespace {
 	Unload
 =================================================
 */
-	void  FFmpegLoader::Unload () __NE___
+	void  FFmpegLoader2::Unload () __NE___
 	{
-		FFMpegLib&	lib = FFMpegLib::Instance();
-		EXLOCK( lib.guard );
+		EXLOCK( _guard );
 
-		ASSERT( lib.refCounter > 0 );
+		ASSERT( _refCounter > 0 );
 
-		if ( (--lib.refCounter) != 0 )
+		if ( (--_refCounter) != 0 )
 			return;
 
-		lib.avcodec.Unload();
-		lib.avformat.Unload();
-		lib.avutil.Unload();
-		lib.swscale.Unload();
+		_loaded = false;
+		_avcodec.Unload();
+		_avformat.Unload();
+		_avutil.Unload();
+		_swscale.Unload();
 
-		#define ZERO_FN( _name_ )	FFmpegLoader::_name_ = null;
+		#define ZERO_FN( _name_ )	_name_ = null;
 
 		AE_FFMPEG_AVCODEC_FUNCS( ZERO_FN );
 		AE_FFMPEG_AVFORMAT_FUNCS( ZERO_FN );
 		AE_FFMPEG_AVUTIL_FUNCS( ZERO_FN );
 		AE_FFMPEG_SWSCALE_FUNCS( ZERO_FN );
 	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor / destructor
+=================================================
+*/
+	FFmpegFnTable::FFmpegFnTable () __NE___ :
+		_fnTable{ &FFmpegLoader2::Instance() }
+	{
+		Cast<FFmpegLoader2>(_fnTable)->Load();
+	}
+
+	FFmpegFnTable::~FFmpegFnTable () __NE___
+	{
+		if ( _fnTable != null )
+			Cast<FFmpegLoader2>(_fnTable)->Unload();
+	}
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
 	_ffmpeg_CheckError
 =================================================
 */
-	bool  _ffmpeg_CheckError (int err, const char* ffcall, const char* func, const SourceLoc &loc)
+	bool  _ffmpeg_CheckError (decltype(&::av_strerror) av_strerror, int err, const char* ffcall, const char* func, const SourceLoc &loc) __NE___
 	{
 		if_likely( err == 0 )
 			return true;
@@ -179,11 +209,11 @@ namespace {
 		String	msg{ "FFmpeg error: " };
 		char	buf [AV_ERROR_MAX_STRING_SIZE] = "";
 
-		FFmpegLoader::av_strerror( err, OUT buf, sizeof(buf) );
+		av_strerror( err, OUT buf, sizeof(buf) );
 
 		msg = msg + buf + ", in " + ffcall + ", function: " + func;
 
-		AE_LOG_SE( msg, loc.file, loc.line );
+		AE_LOGW( msg, loc.file, loc.line );
 		return false;
 	}
 

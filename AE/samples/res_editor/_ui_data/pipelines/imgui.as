@@ -4,7 +4,6 @@
 void  CreateRenderPass (EPixelFormat fmt, string name)
 {
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( name );
-	compat.AddFeatureSet( "MinDesktop" );
 
 	const string	pass = "Main";
 	compat.AddSubpass( pass );
@@ -35,7 +34,6 @@ void  CreateRenderTech (array<string> &out passNames)
 	CreateRenderPass( EPixelFormat::RGBA16F,		"UI.RPass.RGBA16F" );	passNames.push_back( "RGBA16F" );
 
 	RC<RenderTechnique> rtech = RenderTechnique( "UI.RTech" );
-	rtech.AddFeatureSet( "MinDesktop" );
 
 	for (uint i = 0; i < passNames.size(); ++i)
 	{

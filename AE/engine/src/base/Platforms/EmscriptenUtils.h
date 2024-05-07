@@ -16,20 +16,26 @@ namespace AE::Base
 	struct EmscriptenUtils final : UnixUtils
 	{
 		// Thread //
-			static void		SetCurrentThreadName (NtStringView name)								__NE___;
-		ND_ static String	GetCurrentThreadName ()													__Th___;
+			static void		SetCurrentThreadName (NtStringView name)						__NE___;
+		ND_ static String	GetCurrentThreadName ()											__Th___;
 
-		ND_ static ThreadHandle  GetCurrentThreadHandle ()											__NE___;
+		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
 
-			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)			__NE___;
-			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)			__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
 
-			static bool		SetCurrentThreadAffinity (uint coreIdx)									__NE___;
-			static bool		SetCurrentThreadPriority (float priority)								__NE___;
+			static bool		SetCurrentThreadAffinity (uint coreIdx)							__NE___;
+			static bool		SetCurrentThreadPriority (float priority)						__NE___;
 
-		ND_	static uint		GetProcessorCoreIndex ()												__NE___;	// current logical CPU core
+		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
 
-			static void		ThreadPause ()															__NE___;
+			static void		ThreadPause ()													__NE___;
+
+		// OS //
+		ND_ static bool				IsUnderDebugger ()										__NE___;
+		ND_ static Version3			GetOSVersion ()											__NE___;
+		ND_ static StringView		GetOSName ()											__NE___ { return "Emscripten"; }
+		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::Emscripten; }
 	};
 
 

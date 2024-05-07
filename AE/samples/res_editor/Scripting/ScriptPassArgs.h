@@ -57,7 +57,11 @@ namespace AE::ResEditor
 		void  ArgImageOut (const String &name, const ScriptImagePtr &img)									__Th___;
 		void  ArgImageInOut (const String &name, const ScriptImagePtr &img)									__Th___;
 
-		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)		__Th___;
+		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex)									__Th___;
+		void  ArgTextureIn2 (const String &name, const ScriptImagePtr &tex, const String &samplerName)		__Th___;
+		void  ArgTextureArrIn (const String &name, Array<ScriptImagePtr> arr)								__Th___;
+		void  ArgTextureArrIn2 (const String &name, Array<ScriptImagePtr> arr, const String &samplerName)	__Th___;
+
 		void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)	__Th___;
 
 		void  ArgImageArrIn (const String &name, Array<ScriptImagePtr> arr)									__Th___;
@@ -76,6 +80,9 @@ namespace AE::ResEditor
 		void  _AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage)				__Th___;
 		void  _AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage)					__Th___;
 		void  _AddArg (const String &name, Array<ScriptImagePtr> arr, EResourceUsage usage)					__Th___;
+
+		void  _AddTexture (const String &name, const ScriptImagePtr &tex, const String &)					__Th___;
+		void  _AddTexture (const String &name, Array<ScriptImagePtr> arr, const String &)					__Th___;
 	};
 
 
@@ -104,10 +111,13 @@ namespace AE::ResEditor
 				},
 				[&] (ScriptImagePtr tex) {
 					const auto	type = PipelineCompiler::EImageType(tex->ImageType());
-					if ( arg.samplerName.empty() )
-						dsLayout->AddStorageImage( stages, arg.name, array_size, type, tex->Description().format, accessType, arg.state );
-					else
+					if ( not arg.samplerName.empty() )
 						dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, arg.samplerName );
+					else
+					if ( AllBits( arg.state, EResourceState::ShaderSample ))
+						dsLayout->AddSampledImage( stages, arg.name, array_size, type, arg.state );
+					else
+						dsLayout->AddStorageImage( stages, arg.name, array_size, type, tex->Description().format, accessType, arg.state );
 				},
 				[&] (ScriptVideoImagePtr video) {
 					String	sampler = (video->HasYcbcrSampler() ? video->GetSamplerName() : arg.samplerName);
@@ -116,10 +126,19 @@ namespace AE::ResEditor
 				[&] (ScriptRTScenePtr) {
 					dsLayout->AddRayTracingScene( stages, arg.name, array_size );
 				},
-				[&] (const Array<ScriptImagePtr> &arr) {
-					dsLayout->AddStorageImage(	stages, arg.name, AS{uint(arr.size())},
-												PipelineCompiler::EImageType(arr[0]->ImageType()),
-												arr[0]->Description().format, accessType, arg.state );
+				[&] (const Array<ScriptImagePtr> &arr)
+				{
+					const auto	type = PipelineCompiler::EImageType(arr[0]->ImageType());
+					if ( not arg.samplerName.empty() )
+					{
+						Array<String>	samplers;  samplers.resize( arr.size(), arg.samplerName );
+						dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, samplers );
+					}else
+					if ( AllBits( arg.state, EResourceState::ShaderSample )) {
+						dsLayout->AddSampledImage( stages, arg.name, AS{uint(arr.size())}, type, arg.state );
+					}else{
+						dsLayout->AddStorageImage( stages, arg.name, AS{uint(arr.size())}, type, arr[0]->Description().format, accessType, arg.state );
+					}
 				},
 				[] (NullUnion) {
 					CHECK_THROW_MSG( false, "unsupported argument type" );

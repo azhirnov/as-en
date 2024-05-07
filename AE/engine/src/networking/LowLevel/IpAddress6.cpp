@@ -240,12 +240,12 @@ namespace
 */
 	IpAddress6  IpAddress6::FromString (StringView addr) __NE___
 	{
-		const auto	ParseUShortHex = [] (INOUT usize &pos, StringView addr) -> ushort
+		const auto	ParseUShortHex = [] (INOUT usize &pos, StringView addr2) -> ushort
 		{{
 			uint	x = 0;
-			for (uint j = 0; (j < 4) and (pos < addr.size()); ++j, ++pos)
+			for (uint j = 0; (j < 4) and (pos < addr2.size()); ++j, ++pos)
 			{
-				const char	c = addr[pos];
+				const char	c = addr2[pos];
 
 				if ( (c >= '0') and (c <= '9') )	(x <<= 4) |= uint(c - '0');			else
 				if ( (c >= 'a') and (c <= 'f') )	(x <<= 4) |= uint(c - 'a' + 0xA);	else
@@ -255,12 +255,12 @@ namespace
 			return ushort(x);
 		}};
 
-		const auto	ParseUShort = [] (INOUT usize &pos, StringView addr) -> ushort
+		const auto	ParseUShort = [] (INOUT usize &pos, StringView addr2) -> ushort
 		{{
 			uint	x = 0;
-			for (uint j = 0; (j < 4) and (pos < addr.size()); ++j, ++pos)
+			for (uint j = 0; (j < 4) and (pos < addr2.size()); ++j, ++pos)
 			{
-				const char	c = addr[pos];
+				const char	c = addr2[pos];
 				if ( (c >= '0') and (c <= '9') )	(x *= 10) += uint(c - '0');	else
 													break;
 			}

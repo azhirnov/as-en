@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/Resources/VGraphicsPipeline.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "VPipelineHelper.inl.h"
+# include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
 {
@@ -45,7 +45,7 @@ namespace AE::Graphics
 		auto&					dev			= resMngr.GetDevice();
 		AutoreleasePplnCache	cache_ptr	{ resMngr, ci.cacheId };
 		VkPipelineCache			ppln_cache	= cache_ptr ? cache_ptr->Handle() : Default;
-		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( resMngr, CompatRenderPassName{ ci.specCI.renderPass });
+		RenderPassID			rp_id		= ci.pplnPack.GetRenderPass( CompatRenderPassName{ ci.specCI.renderPass });
 		auto*					render_pass	= resMngr.GetResource( rp_id );
 		CHECK_ERR( render_pass != null );
 
@@ -73,7 +73,7 @@ namespace AE::Graphics
 
 		// TODO: VkPipelineCreateFlags2CreateInfoKHR (VK_KHR_maintenance5)
 
-		const bool	vertex_divisor_supported = (resMngr.GetFeatureSet().vertexDivisor == EFeature::RequireTrue);
+		const bool	vertex_divisor_supported = (resMngr.GetFeatureSet().vertexDivisor == FeatureSet::EFeature::RequireTrue);
 
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, allocator ));
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, true, allocator ));
@@ -112,7 +112,7 @@ namespace AE::Graphics
 			pipeline_info.pColorBlendState		= null;
 		}
 
-		VK_CHECK_ERR( dev.vkCreateGraphicsPipelines( dev.GetVkDevice(), ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
+		VK_CHECK_ERR( CreateGraphicsPipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 
 		dev.SetObjectName( _handle, ci.specCI.dbgName, VK_OBJECT_TYPE_PIPELINE );
 
@@ -127,7 +127,7 @@ namespace AE::Graphics
 
 		CopyShaderTrace( ci.shaders, ci.allocator, OUT _dbgTrace );
 
-		DEBUG_ONLY( _debugName = ci.specCI.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )
 		return true;
 	}
 
@@ -158,7 +158,7 @@ namespace AE::Graphics
 		_subpassIndex	= UMax;
 		_dbgTrace		= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

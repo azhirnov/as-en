@@ -33,14 +33,16 @@ namespace AE::Graphics
 	using AE::Threading::Synchronized;
 
 	class VDevice;
-	class VResourceManager;
 	class VRenderPass;
 	class VFramebuffer;
 	class VCommandPoolManager;
 	class VCommandBatch;
-	class RenderTaskScheduler;
 
-	DEBUG_ONLY(
+	class ResourceManager;
+	class RenderTaskScheduler;
+	using VResourceManager = ResourceManager;
+
+	GFX_DBG_ONLY(
 		using DebugName_t = FixedString<64>;
 	)
 
@@ -71,12 +73,12 @@ namespace AE::Graphics
 
 
 	// debugger can't show enum names for VkFlags, so use enum instead
-#define VULKAN_ENUM_BIT_OPERATORS( _type_ )																																	\
-			inline constexpr _type_&  operator |= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( AE::Math::ToNearUInt( lhs ) | AE::Math::ToNearUInt( rhs )); }	\
-		ND_ inline constexpr _type_   operator |  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( AE::Math::ToNearUInt( lhs ) | AE::Math::ToNearUInt( rhs )); }			\
-			inline constexpr _type_&  operator &= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( AE::Math::ToNearUInt( lhs ) & AE::Math::ToNearUInt( rhs )); }	\
-		ND_ inline constexpr _type_   operator &  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( AE::Math::ToNearUInt( lhs ) & AE::Math::ToNearUInt( rhs )); }			\
-		ND_ inline constexpr _type_   operator ~  (_type_ value)			__NE___	{ return _type_( ~AE::Math::ToNearUInt( value )); }										\
+#define VULKAN_ENUM_BIT_OPERATORS( _type_ )																															\
+			inline constexpr _type_&  operator |= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( Math::ToNearUInt( lhs ) | Math::ToNearUInt( rhs )); }	\
+		ND_ inline constexpr _type_   operator |  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( Math::ToNearUInt( lhs ) | Math::ToNearUInt( rhs )); }			\
+			inline constexpr _type_&  operator &= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( Math::ToNearUInt( lhs ) & Math::ToNearUInt( rhs )); }	\
+		ND_ inline constexpr _type_   operator &  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( Math::ToNearUInt( lhs ) & Math::ToNearUInt( rhs )); }			\
+		ND_ inline constexpr _type_   operator ~  (_type_ value)			__NE___	{ return _type_( ~Math::ToNearUInt( value )); }									\
 
 	VULKAN_ENUM_BIT_OPERATORS( VkDependencyFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkImageAspectFlagBits );

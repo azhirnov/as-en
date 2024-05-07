@@ -2,15 +2,12 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX		V
-#	define RESMNGR		VResourceManager
 
 #elif defined(AE_ENABLE_METAL)
 #	define SUFFIX		M
-#	define RESMNGR		MResourceManager
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 #	define SUFFIX		R
-#	define RESMNGR		RResourceManager
 
 #else
 #	error not implemented
@@ -25,7 +22,7 @@ namespace AE::Graphics
 	// Resource Manager
 	//
 
-	class RESMNGR final : public IResourceManager
+	class ResourceManager final : public IResourceManager
 	{
 		friend class RenderTaskScheduler;
 
@@ -110,48 +107,55 @@ namespace AE::Graphics
 											>;
 
 		//---- Expired resources ----//
-	#ifdef AE_ENABLE_VULKAN
 	public:
-		class VReleaseExpiredResourcesTask;
+		class ReleaseExpiredResourcesTask;
 
 	private:
-		using AllVkResources_t		= TypeListUtils::Merge<
+	  #ifdef AE_ENABLE_VULKAN
+		using ExpResourceTypes_t	= TypeListUtils::Merge<
 											AllResourceIDs_t,
 											TypeList<	// native handles
 												VkSwapchainKHR
 											>>;
-		struct VExpiredResource
+	  #else
+		using ExpResourceTypes_t	= AllResourceIDs_t;
+	  #endif
+
+		struct ExpiredResource
 		{
-			static constexpr usize	IDSize = AllVkResources_t::ForEach_Max< TypeListUtils::GetTypeSize >();
+			static constexpr usize	IDSize = ExpResourceTypes_t::ForEach_Max< TypeListUtils::GetTypeSize >();
 
 			using IDValue_t = ByteSizeToUInt< IDSize >;
 
-			IDValue_t	id		= UMax;		// type of AllVkResources_t [type]
-			uint		type	= UMax;		// index in AllVkResources_t
+			IDValue_t	id		= UMax;		// type of ExpResourceTypes_t [type]
+			uint		type	= UMax;		// index in ExpResourceTypes_t
 		};
 
-		struct alignas(AE_CACHE_LINE) VExpiredResArray
+		using ReleaseResourceByID_t		= void (*) (ResourceManager &, ExpiredResource::IDValue_t) __NE___;
+		using ReleaseResourceByIDFns_t	= StaticArray< ReleaseResourceByID_t, ExpResourceTypes_t::Count >;
+		struct _InitReleaseResourceByID;
+
+		struct alignas(AE_CACHE_LINE) ExpiredResArray
 		{
 			SpinLock					guard;
 			FrameUID					frameId;
-			Array< VExpiredResource >	resources;	// TODO: lock-free ?
+			Array< ExpiredResource >	resources;	// TODO: lock-free ?
 		};
 		static constexpr uint		ExpiredResFrameOffset = 2;
-		using VExpiredResources_t	= StaticArray< VExpiredResArray, GraphicsConfig::MaxFrames + ExpiredResFrameOffset >;
+		using ExpiredResources_t	= StaticArray< ExpiredResArray, GraphicsConfig::MaxFrames + ExpiredResFrameOffset >;
 
-		struct VExpiredResources
+		struct ExpiredResources
 		{
 			AtomicFrameUID			_currentFrameId;
-			VExpiredResources_t		_list;
+			ExpiredResources_t		_list;
 
-			VExpiredResources ()							__Th___;
+			ExpiredResources ()								__Th___;
 
-			ND_ VExpiredResArray&		Get (FrameUID id)	__NE___	{ return _list[ id.Remap( _list.size() )]; }
-			ND_ VExpiredResArray&		GetCurrent ()		__NE___	{ return Get( GetFrameId() ); }
+			ND_ ExpiredResArray&		Get (FrameUID id)	__NE___	{ return _list[ id.Remap( _list.size() )]; }
+			ND_ ExpiredResArray&		GetCurrent ()		__NE___	{ return Get( GetFrameId() ); }
 			ND_ FrameUID				GetFrameId ()		C_NE___	{ return _currentFrameId.load(); }
-			ND_ VExpiredResources_t&	All ()				__NE___	{ return _list; }
+			ND_ ExpiredResources_t&		All ()				__NE___	{ return _list; }
 		};
-	#endif
 
 
 	// variables
@@ -199,6 +203,7 @@ namespace AE::Graphics
 			MemObjPool_t			memObjs;
 		}						_resPool;
 
+		GfxMemAllocatorPtr		_largeMemAlloc;
 		GfxMemAllocatorPtr		_defaultMemAlloc;
 		DescriptorAllocatorPtr	_defaultDescAlloc;
 
@@ -207,15 +212,14 @@ namespace AE::Graphics
 
 		FeatureSet				_featureSet;
 
-	  #ifdef AE_ENABLE_VULKAN
-		VExpiredResources		_expiredResources;
-	  #endif
+		ExpiredResources				_expiredResources;
+		ReleaseResourceByIDFns_t		_releaseResIDs	{};
 
 		StrongAtom<PipelinePackID>		_defaultPack;
 		Strong<SamplerID>				_defaultSampler;
 		Strong<DescriptorSetLayoutID>	_emptyDSLayout;
 
-	  #ifdef AE_DEBUG
+	  #if AE_DBG_GRAPHICS
 		mutable SharedMutex				_hashToNameGuard;
 		PipelineCompiler::HashToName	_hashToName;		// for debugging
 	  #endif
@@ -223,18 +227,18 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		explicit RESMNGR (const Device_t &)																											__NE___;
+		explicit ResourceManager (const Device_t &)																									__NE___;
 
 		ND_ bool  Initialize (const GraphicsCreateInfo &)																							__NE___;
 			void  Deinitialize ()																													__NE___;
 
 
 	public:
-		~RESMNGR ()																																	__NE___;
+		~ResourceManager ()																															__NE___;
 
 		ND_ bool					OnSurfaceCreated (const Swapchain_t &sw)																		__NE___;
 
-			bool					InitializeResources (const PipelinePackDesc &desc)																__NE_OV;
+			bool					InitializeResources (Strong<PipelinePackID> defaultPackId)														__NE_OV;
 		ND_ Strong<PipelinePackID>	LoadPipelinePack (const PipelinePackDesc &desc)																	__NE_OV;
 		ND_ Array<RenderTechName>	GetSupportedRenderTechs (PipelinePackID id)																		C_NE_OV;
 
@@ -247,7 +251,9 @@ namespace AE::Graphics
 		ND_ bool					IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE_OV;
 		ND_ bool					IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE_OV;
 		ND_ bool					IsSupported (const RTGeometryDesc &desc)																		C_NE_OV;
+		ND_ bool					IsSupported (const RTGeometryBuild &build)																		C_NE_OV;
 		ND_ bool					IsSupported (const RTSceneDesc &desc)																			C_NE_OV;
+		ND_ bool					IsSupported (const RTSceneBuild &build)																			C_NE_OV;
 
 		ND_ Strong<ComputePipelineID>	CreatePipeline (const ComputePipeline_t::CreateInfo    &ci)													__NE___;
 		ND_ Strong<GraphicsPipelineID>	CreatePipeline (const GraphicsPipeline_t::CreateInfo   &ci)													__NE___;
@@ -259,8 +265,7 @@ namespace AE::Graphics
 
 		ND_ Strong<DescriptorSetLayoutID>	CreateDescriptorSetLayout (const DescriptorSetLayout_t::CreateInfo &ci)									__NE___;
 
-		ND_ Strong<PipelineLayoutID>	CreatePipelineLayout (const PipelineLayout_t::DescriptorSets_t &descSetLayouts,
-															  const PipelineLayout_t::PushConstants_t &pushConstants, StringView dbgName = Default)	__NE___;
+		ND_ Strong<PipelineLayoutID>	CreatePipelineLayout (const PipelineLayout_t::CreateInfo &ci)												__NE___;
 
 		ND_ Strong<ImageID>			CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE_OV;
 		ND_ Strong<BufferID>		CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE_OV;
@@ -277,6 +282,7 @@ namespace AE::Graphics
 		ND_ Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		ND_ Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE_OV;
 
+		ND_ Bytes					GetShaderGroupStackSize (RayTracingPipelineID ppln, ArrayView<RayTracingGroupName> names, ERTShaderGroup type)	__NE_OV;
 		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE_OV;
 		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																		__NE_OV;
 
@@ -305,11 +311,11 @@ namespace AE::Graphics
 		ND_ bool					CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId,
 														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
 
-		ND_ PushConstantIndex		GetPushConstantIndex (GraphicsPipelineID   ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)	__NE_OV;
-		ND_ PushConstantIndex		GetPushConstantIndex (MeshPipelineID       ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)	__NE_OV;
-		ND_ PushConstantIndex		GetPushConstantIndex (ComputePipelineID    ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)	__NE_OV;
-		ND_ PushConstantIndex		GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)	__NE_OV;
-		ND_ PushConstantIndex		GetPushConstantIndex (TilePipelineID       ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (GraphicsPipelineID   ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (MeshPipelineID       ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (ComputePipelineID    ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (TilePipelineID       ppln, PushConstantName::Ref, ShaderStructName::Ref, Bytes dataSize)	__NE_OV;
 
 		using IResourceManager::GetPushConstantIndex;
 
@@ -343,23 +349,8 @@ namespace AE::Graphics
 			bool	GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)							C_NE_OV;
 			bool	GetMemoryInfo (MemoryID id, OUT NativeMemObjInfo_t &info)							C_NE___;
 
-			bool	ReleaseResource (INOUT Strong<ImageID>				&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<BufferID>				&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<ImageViewID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<BufferViewID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<PipelineCacheID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<PipelinePackID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<GraphicsPipelineID>	&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<MeshPipelineID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<ComputePipelineID>	&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<RayTracingPipelineID>	&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<TilePipelineID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<DescriptorSetID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<RTGeometryID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<RTSceneID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<VideoSessionID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<VideoBufferID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
-			bool	ReleaseResource (INOUT Strong<VideoImageID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
+		template <typename ID>
+			bool	ReleaseResource (INOUT Strong<ID> &id)												__NE___	{ return DelayedRelease( INOUT id ) == 0; }
 
 			template <typename ArrayType>
 			void	ReleaseResourceArray (INOUT ArrayType &arr)											__NE___	{ for (auto& id : arr) {DelayedRelease( INOUT id );} }
@@ -378,6 +369,9 @@ namespace AE::Graphics
 
 			template <usize IS, usize GS, uint UID>
 			int		ImmediatelyRelease (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)__NE___	{ return _ImmediatelyReleaseResource( id.Release(), refCount ); }
+
+			template <usize IS, usize GS, uint UID>
+		ND_ bool	ImmediatelyRelease2 (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)__NE___;
 
 			template <typename Arg0, typename ...Args>
 			void	ImmediatelyReleaseResources (Arg0 &arg0, Args& ...args)								__NE___;
@@ -401,29 +395,7 @@ namespace AE::Graphics
 		ND_ PipelinePackID			GetDefaultPack ()													C_NE___	{ return _defaultPack; }
 
 		template <usize IS, usize GS, uint UID>
-		ND_ bool					IsAlive (HandleTmpl<IS,GS,UID> id)									C_NE___;
-	//	ND_ bool					IsAlive (SamplerName::Ref name)										C_NE___;
-
-		ND_ bool					IsResourceAlive (BufferID			id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (ImageID			id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (BufferViewID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (ImageViewID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (DescriptorSetID	id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (PipelineCacheID	id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (PipelinePackID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (RTGeometryID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (RTSceneID			id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (VideoSessionID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (VideoBufferID		id)								C_NE_OV	{ return IsAlive( id ); }
-		ND_ bool					IsResourceAlive (VideoImageID		id)								C_NE_OV	{ return IsAlive( id ); }
-
-		ND_ Strong<ImageID>			AcquireResource (ImageID			id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<BufferID>		AcquireResource (BufferID			id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<ImageViewID>		AcquireResource (ImageViewID		id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<BufferViewID>	AcquireResource (BufferViewID		id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<DescriptorSetID>	AcquireResource (DescriptorSetID	id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<RTGeometryID>	AcquireResource (RTGeometryID		id)								__NE_OV	{ return _AcquireResource( id ); }
-		ND_ Strong<RTSceneID>		AcquireResource (RTSceneID			id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ bool			IsAlive (HandleTmpl<IS,GS,UID> id)											C_NE___;
 
 		template <usize IS, usize GS, uint UID>
 		ND_ auto			AcquireResource (HandleTmpl<IS, GS, UID> id)								__NE___	{ return _AcquireResource( id ); }
@@ -446,13 +418,10 @@ namespace AE::Graphics
 		template <typename ID0, typename ID1, typename ...IDs>
 		ND_ auto			GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids)							C_Th___;
 
-			void  OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg)							__NE___;
-			void  OnEndFrame (FrameUID frameId)															__NE___;
-
 		template <usize Size, uint UID, bool Opt, uint Seed>
 		ND_ String  HashToName (const NamedID< Size, UID, Opt, Seed > &name)							C_NE___;
 
-		#ifdef AE_DEBUG
+		#if AE_DBG_GRAPHICS
 			void  AddHashToName (const PipelineCompiler::HashToName &value)								__NE___;
 		#endif
 
@@ -466,10 +435,15 @@ namespace AE::Graphics
 		ND_ GfxMemAllocatorPtr		CreateLinearGfxMemAllocator (Bytes pageSize = 0_b)					C_NE_OV;
 		ND_ GfxMemAllocatorPtr		CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize)		C_NE_OV;
 		ND_ GfxMemAllocatorPtr		CreateUnifiedGfxMemAllocator (Bytes pageSize = 0_b)					C_NE_OV;
+		ND_ GfxMemAllocatorPtr		CreateLargeSizeGfxMemAllocator ()									C_NE_OV	{ return _largeMemAlloc; }
 		ND_ GfxMemAllocatorPtr		GetDefaultGfxMemAllocator ()										C_NE_OV	{ return _defaultMemAlloc; }
 
 		// descriptor allocators
 		ND_ DescriptorAllocatorPtr	GetDefaultDescriptorAllocator ()									C_NE_OV	{ return _defaultDescAlloc; }
+
+		// default resources
+		ND_ DescriptorSetLayoutID	GetEmptyDescriptorSetLayout ()										C_NE___	{ return _emptyDSLayout; }
+		ND_ SamplerID				GetDefaultSampler ()												C_NE___	{ return _defaultSampler; }
 
 		AE_GLOBALLY_ALLOC
 
@@ -485,6 +459,10 @@ namespace AE::Graphics
 			template <typename ID>
 			void  _DestroyResource (ID id)										__NE___;
 
+			void  _DestroyExpiredResource (const ExpiredResource &res)			__NE___;
+
+			void  _InitReleaseResourceByIDFns ()								__NE___;
+
 			template <typename ID>
 		ND_ int  _ImmediatelyReleaseResource (ID id, uint refCount = 1)			__NE___;
 
@@ -492,16 +470,17 @@ namespace AE::Graphics
 		ND_ auto  _AcquireResource (HandleTmpl<IS, GS, UID> id)					__NE___ -> Strong< HandleTmpl<IS, GS, UID>>;
 
 		template <typename ID, typename ...Args>
-		ND_ Strong<ID>  _CreateResource (const char* msg, Args&& ...args)		__NE___;
+		ND_ auto  _CreateResource (const char* msg, Args&& ...args)				__NE___ -> Strong<ID>;
 
 		template <typename PplnID>
 		ND_ bool  _CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 const PplnID &pplnId, DescriptorSetName::Ref dsName,
+										 PplnID pplnId, DescriptorSetName::Ref dsName,
 										 DescriptorAllocatorPtr allocator, StringView dbgName) __NE___;
 
 		template <typename PplnID>
-		ND_ PushConstantIndex  _GetPushConstantIndex (PplnID ppln, PushConstantName::Ref pcName,
-													  ShaderStructName::Ref typeName, Bytes dataSize) __NE___;
+		ND_ auto  _GetPushConstantIndex (PplnID ppln, PushConstantName::Ref pcName,
+										 ShaderStructName::Ref typeName, Bytes dataSize) __NE___ -> PushConstantIndex;
+
 
 	// resource pool
 		ND_ auto&		_GetResourcePool (const BufferID &)						__NE___	{ return _resPool.buffers; }
@@ -555,16 +534,9 @@ namespace AE::Graphics
 		ND_ StringView	_GetResourcePoolName (const VideoImageID &)				__NE___	{ return "videoImages"; }
 		ND_ StringView	_GetResourcePoolName (const VideoSessionID &)			__NE___	{ return "videoSessions"; }
 
-	  #ifdef AE_ENABLE_VULKAN
-		ND_ auto&		_GetResourcePool (const VFramebufferID &)				__NE___	{ return _resPool.framebuffers; }
-		ND_ StringView	_GetResourcePoolName (const VFramebufferID &)			__NE___	{ return "framebuffers"; }
-	  #endif
-
-	//
 		template <typename ID>	ND_ bool   _Assign (OUT ID &id)					__NE___;
 		template <typename ID>		void   _Unassign (ID id)					__NE___;
 
-	//
 		template <typename ID>
 		ND_ auto const&			_GetDescription (ID id)							C_NE___;
 
@@ -577,20 +549,14 @@ namespace AE::Graphics
 
 	// empty descriptor set layout
 		ND_ bool  _CreateEmptyDescriptorSetLayout ()							__NE___;
-		ND_ auto  _GetEmptyDescriptorSetLayout ()								__NE___	{ return *_emptyDSLayout; }
 
+
+	// render task scheduler api
+			void  _OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg)	__NE___;
+			void  _OnEndFrame (FrameUID frameId)								__NE___;
 
 	//-----------------------------------------------------
 	#if defined(AE_ENABLE_VULKAN)
-
-	// variables
-	private:
-		using ReleaseResourceByID_t		= void (*) (RESMNGR &, VExpiredResource::IDValue_t) __NE___;
-		using ReleaseResourceByIDFns_t	= StaticArray< ReleaseResourceByID_t, AllVkResources_t::Count >;
-		struct _InitReleaseResourceByID;
-
-		ReleaseResourceByIDFns_t	_releaseResIDs	{};
-
 
 	// methods
 	public:
@@ -612,10 +578,8 @@ namespace AE::Graphics
 
 	private:
 
-		void  _InitReleaseResourceByIDFns ()																				__NE___;
-
-		// resource api
-		void  _DestroyVkResource (const VExpiredResource &res)																__NE___;
+		ND_ auto&		_GetResourcePool (const VFramebufferID &)				__NE___	{ return _resPool.framebuffers; }
+		ND_ StringView	_GetResourcePoolName (const VFramebufferID &)			__NE___	{ return "framebuffers"; }
 
 
 	//-----------------------------------------------------
@@ -623,8 +587,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ND_ bool	CreateBufferAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
-		ND_ bool	CreateImageAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
+		ND_ bool	CreateBufferAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
+		ND_ bool	CreateImageAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)					__NE___;
 		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
 		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
 
@@ -639,7 +603,14 @@ namespace AE::Graphics
 
 	//-----------------------------------------------------
 	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		// TODO
+
+	// methods
+	public:
+		ND_ Strong<SamplerID>		CreateSampler (RmSamplerID)																__NE___;
+		ND_ Strong<RenderPassID>	CreateRenderPass (const RRenderPass::CreateInfo &)										__NE___;
+
+	private:
+		ND_ bool					_ForceReleaseResources ()																__NE___;
 
 	//-----------------------------------------------------
 	#else
@@ -651,6 +622,20 @@ namespace AE::Graphics
 
 
 #ifdef AE_ENABLE_VULKAN
+/*
+=================================================
+	RemoveFramebufferCache
+=================================================
+*/
+	inline void  ResourceManager::RemoveFramebufferCache (VFramebuffer::CachePtr_t iter) __NE___
+	{
+		EXLOCK( _resPool.fbCacheGuard );
+		_resPool.fbCache.erase( iter );
+	}
+
+#endif // AE_ENABLE_VULKAN
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -658,7 +643,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ID>
-	int  RESMNGR::_DelayedReleaseResource (ID id, uint refCount) __NE___
+	int  ResourceManager::_DelayedReleaseResource (ID id, uint refCount) __NE___
 	{
 		ASSERT( refCount > 0 );
 
@@ -684,14 +669,15 @@ namespace AE::Graphics
 	}
 
 	template <typename ID>
-	void  RESMNGR::_DelayedReleaseResource2 (ID id) __NE___
+	void  ResourceManager::_DelayedReleaseResource2 (ID id) __NE___
 	{
-		StaticAssert( AllVkResources_t::HasType<ID> );
+		StaticAssert( ExpResourceTypes_t::HasType<ID> );
+		StaticAssert( sizeof(ExpiredResource::IDValue_t) >= sizeof(id) );
 		ASSERT( id != Default );
 
-		VExpiredResource	expired;
-		expired.id		= UnsafeBitCast< VExpiredResource::IDValue_t >( id );
-		expired.type	= uint( AllVkResources_t::Index<ID> );
+		ExpiredResource	expired;
+		expired.id		= BitCastRlx< ExpiredResource::IDValue_t >( id );
+		expired.type	= uint( ExpResourceTypes_t::Index<ID> );
 
 		auto&	dst = _expiredResources.GetCurrent();
 		EXLOCK( dst.guard );
@@ -702,27 +688,16 @@ namespace AE::Graphics
 
 /*
 =================================================
-	RemoveFramebufferCache
-=================================================
-*/
-	inline void  VResourceManager::RemoveFramebufferCache (VFramebuffer::CachePtr_t iter) __NE___
-	{
-		EXLOCK( _resPool.fbCacheGuard );
-		_resPool.fbCache.erase( iter );
-	}
-
-/*
-=================================================
 	Release Expired Resources Task
 =================================================
 */
-	class VResourceManager::VReleaseExpiredResourcesTask final : public Threading::IAsyncTask
+	class ResourceManager::ReleaseExpiredResourcesTask final : public Threading::IAsyncTask
 	{
 	private:
 		const FrameUID	_frameId;
 
 	public:
-		explicit VReleaseExpiredResourcesTask (FrameUID frameId) __NE___ :
+		explicit ReleaseExpiredResourcesTask (FrameUID frameId) __NE___ :
 			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
 		{}
 
@@ -730,58 +705,13 @@ namespace AE::Graphics
 		StringView	DbgName ()	C_NE_OV { return "ReleaseExpiredResources"; }
 	};
 
-#endif // AE_ENABLE_VULKAN
-//-----------------------------------------------------------------------------
-
-
-
-#ifdef AE_ENABLE_METAL
-/*
-=================================================
-	_DelayedReleaseResource
-=================================================
-*/
-	template <typename ID>
-	int  RESMNGR::_DelayedReleaseResource (ID id, uint refCount) __NE___
-	{
-		// TODO: delayed destruction required for untracked resources
-		// TODO: different behaviour in Vulkan and Metal, in Metal it may cause data race, see 'GetResource()'
-
-		return _ImmediatelyReleaseResource( id, refCount );
-	}
-
-#endif // AE_ENABLE_METAL
-//-----------------------------------------------------------------------------
-
-
-
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-/*
-=================================================
-	_DelayedReleaseResource
-=================================================
-*/
-	template <typename ID>
-	int  RESMNGR::_DelayedReleaseResource (ID id, uint refCount) __NE___
-	{
-		// TODO: delayed destruction required for untracked resources
-		// TODO: different behaviour in Vulkan and Metal, in Metal it may cause data race, see 'GetResource()'
-
-		return _ImmediatelyReleaseResource( id, refCount );
-	}
-
-#endif // AE_ENABLE_REMOTE_GRAPHICS
-//-----------------------------------------------------------------------------
-
-
-
 /*
 =================================================
 	GetResource
 =================================================
 */
 	template <typename ID>
-	auto const*  RESMNGR::GetResource (ID id, Bool incRef, Bool quiet) C_NE___
+	auto const*  ResourceManager::GetResource (ID id, Bool incRef, Bool quiet) C_NE___
 	{
 		auto&	pool = _GetResourceCPool( id );
 
@@ -813,7 +743,7 @@ namespace AE::Graphics
 	}
 
 	template <typename ID>
-	auto const*  RESMNGR::GetResource (const Strong<ID> &id, Bool incRef, Bool quiet) C_NE___
+	auto const*  ResourceManager::GetResource (const Strong<ID> &id, Bool incRef, Bool quiet) C_NE___
 	{
 		return GetResource( *id, incRef, quiet );
 	}
@@ -824,7 +754,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ID>
-	auto const&  RESMNGR::_GetDescription (ID id) C_NE___
+	auto const&  ResourceManager::_GetDescription (ID id) C_NE___
 	{
 		auto*	res = GetResource( id );
 
@@ -834,16 +764,16 @@ namespace AE::Graphics
 		return res ? res->Description() : defaultDesc;
 	}
 
-	inline BufferDesc const&			RESMNGR::GetDescription (BufferID			id) C_NE___ { return _GetDescription( id ); }
-	inline ImageDesc const&				RESMNGR::GetDescription (ImageID			id)	C_NE___ { return _GetDescription( id ); }
-	inline BufferViewDesc const&		RESMNGR::GetDescription (BufferViewID		id)	C_NE___ { return _GetDescription( id ); }
-	inline ImageViewDesc const&			RESMNGR::GetDescription (ImageViewID		id)	C_NE___ { return _GetDescription( id ); }
-	inline RTShaderBindingDesc const&	RESMNGR::GetDescription (RTShaderBindingID	id) C_NE___ { return _GetDescription( id ); }
-	inline RTGeometryDesc const&		RESMNGR::GetDescription (RTGeometryID		id) C_NE___ { return _GetDescription( id ); }
-	inline RTSceneDesc const&			RESMNGR::GetDescription (RTSceneID			id) C_NE___ { return _GetDescription( id ); }
-	inline VideoImageDesc const&		RESMNGR::GetDescription (VideoImageID		id) C_NE___ { return _GetDescription( id ); }
-	inline VideoBufferDesc const&		RESMNGR::GetDescription (VideoBufferID		id) C_NE___ { return _GetDescription( id ); }
-	inline VideoSessionDesc const&		RESMNGR::GetDescription (VideoSessionID		id) C_NE___ { return _GetDescription( id ); }
+	inline BufferDesc const&			ResourceManager::GetDescription (BufferID			id) C_NE___ { return _GetDescription( id ); }
+	inline ImageDesc const&				ResourceManager::GetDescription (ImageID			id)	C_NE___ { return _GetDescription( id ); }
+	inline BufferViewDesc const&		ResourceManager::GetDescription (BufferViewID		id)	C_NE___ { return _GetDescription( id ); }
+	inline ImageViewDesc const&			ResourceManager::GetDescription (ImageViewID		id)	C_NE___ { return _GetDescription( id ); }
+	inline RTShaderBindingDesc const&	ResourceManager::GetDescription (RTShaderBindingID	id) C_NE___ { return _GetDescription( id ); }
+	inline RTGeometryDesc const&		ResourceManager::GetDescription (RTGeometryID		id) C_NE___ { return _GetDescription( id ); }
+	inline RTSceneDesc const&			ResourceManager::GetDescription (RTSceneID			id) C_NE___ { return _GetDescription( id ); }
+	inline VideoImageDesc const&		ResourceManager::GetDescription (VideoImageID		id) C_NE___ { return _GetDescription( id ); }
+	inline VideoBufferDesc const&		ResourceManager::GetDescription (VideoBufferID		id) C_NE___ { return _GetDescription( id ); }
+	inline VideoSessionDesc const&		ResourceManager::GetDescription (VideoSessionID		id) C_NE___ { return _GetDescription( id ); }
 
 /*
 =================================================
@@ -851,7 +781,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <usize IS, usize GS, uint UID>
-	bool  RESMNGR::IsAlive (HandleTmpl<IS,GS,UID> id) C_NE___
+	bool  ResourceManager::IsAlive (HandleTmpl<IS,GS,UID> id) C_NE___
 	{
 		auto&	pool = _GetResourceCPool( id );
 
@@ -867,7 +797,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <usize IS, usize GS, uint UID>
-	auto  RESMNGR::_AcquireResource (HandleTmpl<IS, GS, UID> id) __NE___ -> Strong< HandleTmpl<IS, GS, UID>>
+	auto  ResourceManager::_AcquireResource (HandleTmpl<IS, GS, UID> id) __NE___ -> Strong< HandleTmpl<IS, GS, UID>>
 	{
 		using Unique_t = Strong< HandleTmpl< IS, GS, UID >>;
 
@@ -897,7 +827,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ID>
-	bool  RESMNGR::_Assign (OUT ID &id) __NE___
+	bool  ResourceManager::_Assign (OUT ID &id) __NE___
 	{
 		auto&	pool	= _GetResourcePool( id );
 		auto	index	= pool.Assign();
@@ -913,7 +843,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ID>
-	void  RESMNGR::_Unassign (ID id) __NE___
+	void  ResourceManager::_Unassign (ID id) __NE___
 	{
 		ASSERT( id );
 		auto&	pool = _GetResourcePool( id );
@@ -923,11 +853,24 @@ namespace AE::Graphics
 
 /*
 =================================================
+	ImmediatelyRelease2
+=================================================
+*/
+	template <usize IS, usize GS, uint UID>
+	bool  ResourceManager::ImmediatelyRelease2 (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount) __NE___
+	{
+		const int	expected = (id ? 0 : -1);
+		const int	count	 =  _ImmediatelyReleaseResource( id.Release(), refCount );
+		return count == expected;
+	}
+
+/*
+=================================================
 	_ImmediatelyReleaseResource
 =================================================
 */
 	template <typename ID>
-	int  RESMNGR::_ImmediatelyReleaseResource (ID id, uint refCount) __NE___
+	int  ResourceManager::_ImmediatelyReleaseResource (ID id, uint refCount) __NE___
 	{
 		ASSERT( refCount > 0 );
 
@@ -959,7 +902,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename Arg0, typename ...Args>
-	void  RESMNGR::ImmediatelyReleaseResources (Arg0 &arg0, Args& ...args) __NE___
+	void  ResourceManager::ImmediatelyReleaseResources (Arg0 &arg0, Args& ...args) __NE___
 	{
 		ImmediatelyRelease( INOUT arg0 );
 
@@ -973,7 +916,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename Arg0, typename ...Args>
-	void  RESMNGR::DelayedReleaseResources (Arg0 &arg0, Args& ...args) __NE___
+	void  ResourceManager::DelayedReleaseResources (Arg0 &arg0, Args& ...args) __NE___
 	{
 		DelayedRelease( INOUT FwdArg<Arg0&>( arg0 ));
 
@@ -987,27 +930,27 @@ namespace AE::Graphics
 =================================================
 */
 	template <usize Size, uint UID, bool Opt, uint Seed>
-	String  RESMNGR::HashToName (const NamedID< Size, UID, Opt, Seed > &name) C_NE___
+	String  ResourceManager::HashToName (const NamedID< Size, UID, Opt, Seed > &name) C_NE___
 	{
-		#ifdef AE_DEBUG
-			if constexpr( Opt )
+	  #if AE_DBG_GRAPHICS
+		if constexpr( Opt )
+		{
+			SHAREDLOCK( _hashToNameGuard );
+			return _hashToName( name );
+		}
+		else
+		{
+			if_unlikely( name.GetName().empty() )
 			{
 				SHAREDLOCK( _hashToNameGuard );
 				return _hashToName( name );
 			}
-			else
-			{
-				if_unlikely( name.GetName().empty() )
-				{
-					SHAREDLOCK( _hashToNameGuard );
-					return _hashToName( name );
-				}
-				return String{name.GetName()};
-			}
-		#else
-			Unused( name );
-			return {};
-		#endif
+			return String{name.GetName()};
+		}
+	  #else
+		Unused( name );
+		return {};
+	  #endif
 	}
 
 /*
@@ -1015,7 +958,7 @@ namespace AE::Graphics
 	Get***Handle
 =================================================
 */
-	inline RESMNGR::NativeBuffer_t  RESMNGR::GetBufferHandle (BufferID id) C_NE___
+	inline ResourceManager::NativeBuffer_t  ResourceManager::GetBufferHandle (BufferID id) C_NE___
 	{
 		auto*	buf = GetResource( id );
 		CHECK_ERR( buf );
@@ -1023,7 +966,7 @@ namespace AE::Graphics
 		return buf->Handle();
 	}
 
-	inline RESMNGR::NativeImage_t  RESMNGR::GetImageHandle (ImageID id) C_NE___
+	inline ResourceManager::NativeImage_t  ResourceManager::GetImageHandle (ImageID id) C_NE___
 	{
 		auto*	img = GetResource( id );
 		CHECK_ERR( img );
@@ -1031,7 +974,7 @@ namespace AE::Graphics
 		return img->Handle();
 	}
 
-	inline RESMNGR::NativeBufferView_t  RESMNGR::GetBufferViewHandle (BufferViewID id) C_NE___
+	inline ResourceManager::NativeBufferView_t  ResourceManager::GetBufferViewHandle (BufferViewID id) C_NE___
 	{
 		auto*	view = GetResource( id );
 		CHECK_ERR( view );
@@ -1039,7 +982,7 @@ namespace AE::Graphics
 		return view->Handle();
 	}
 
-	inline RESMNGR::NativeImageView_t  RESMNGR::GetImageViewHandle (ImageViewID id) C_NE___
+	inline ResourceManager::NativeImageView_t  ResourceManager::GetImageViewHandle (ImageViewID id) C_NE___
 	{
 		auto*	view = GetResource( id );
 		CHECK_ERR( view );
@@ -1053,19 +996,19 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ID>
-	auto*  RESMNGR::GetResources (ID id) C_NE___
+	auto*  ResourceManager::GetResources (ID id) C_NE___
 	{
 		return GetResource( id );
 	}
 
 	template <typename ID0, typename ID1, typename ...IDs>
-	auto  RESMNGR::GetResources (ID0 id0, ID1 id1, IDs ...ids) C_NE___
+	auto  ResourceManager::GetResources (ID0 id0, ID1 id1, IDs ...ids) C_NE___
 	{
 		return Tuple{ GetResource( id0 ), GetResource( id1 ), GetResource( ids ) ... };
 	}
 
 	template <typename ID>
-	auto&  RESMNGR::GetResourcesOrThrow (ID id) C_Th___
+	auto&  ResourceManager::GetResourcesOrThrow (ID id) C_Th___
 	{
 		auto*	result = GetResource( id );
 		CHECK_THROW( result != null );
@@ -1073,7 +1016,7 @@ namespace AE::Graphics
 	}
 
 	template <typename ID0, typename ID1, typename ...IDs>
-	auto  RESMNGR::GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids) C_Th___
+	auto  ResourceManager::GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids) C_Th___
 	{
 		auto	result = TupleRef{ GetResource( id0 ), GetResource( id1 ), GetResource( ids ) ... };
 		CHECK_THROW( result.AllNonNull() );
@@ -1083,5 +1026,4 @@ namespace AE::Graphics
 } // AE::Graphics
 //-----------------------------------------------------------------------------
 
-#undef RESMNGR
 #undef SUFFIX

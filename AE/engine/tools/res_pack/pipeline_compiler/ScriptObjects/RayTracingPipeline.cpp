@@ -158,8 +158,11 @@ namespace
 	Build
 =================================================
 */
-	bool  RayTracingPipelineScriptBinding::Build ()
+	bool  RayTracingPipelineScriptBinding::Build () __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		try {
 			_Prepare();
 		}
@@ -455,7 +458,7 @@ namespace
 	constructor
 =================================================
 */
-	RayTracingPipelineSpecScriptBinding::RayTracingPipelineSpecScriptBinding (const RayTracingPipelineScriptBinding* base, const String &name) __Th___ :
+	RayTracingPipelineSpecScriptBinding::RayTracingPipelineSpecScriptBinding (RayTracingPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
 
@@ -478,8 +481,11 @@ namespace
 	Build
 =================================================
 */
-	bool  RayTracingPipelineSpecScriptBinding::Build (PipelineTemplUID templUID)
+	bool  RayTracingPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		if ( IsBuilded() )
 			return true;
 

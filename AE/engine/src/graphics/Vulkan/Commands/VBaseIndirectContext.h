@@ -89,6 +89,13 @@ namespace AE::Graphics::_hidden_
 			bool								end;	// to make unique type
 		};
 
+		struct WriteTimestampCmd : BaseCmd
+		{
+			VkQueryPool				pool;
+			uint					query;
+			VkPipelineStageFlags2	stage;
+		};
+
 		//-------------------------------------------------
 		// transfer commands
 
@@ -505,6 +512,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( PushConstantCmd )\
 			_visitor_( ProfilerBeginContextCmd )\
 			_visitor_( ProfilerEndContextCmd )\
+			_visitor_( WriteTimestampCmd )\
 			/* transfer commands */\
 			_visitor_( ClearColorImageCmd )\
 			_visitor_( ClearDepthStencilImageCmd )\
@@ -603,6 +611,8 @@ namespace AE::Graphics::_hidden_
 		void  PopDebugGroup ()															__Th___;
 		void  PipelineBarrier (const VkDependencyInfo &)								__Th___;
 
+		void  WriteTimestamp (VkPipelineStageFlags2 stage, VkQueryPool pool, uint query)__Th___;
+
 		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout,
 								 uint index, VkDescriptorSet ds,
 								 ArrayView<uint> dynamicOffsets = Default)				__Th___;
@@ -654,25 +664,28 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseIndirectContext ()												__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
+		virtual ~_VBaseIndirectContext ()											__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
 
-		void  PipelineBarrier (const VkDependencyInfo &info)							__Th___	{ _cmdbuf->PipelineBarrier( info ); }
+		void  PipelineBarrier (const VkDependencyInfo &info)						__Th___	{ _cmdbuf->PipelineBarrier( info ); }
 
 	protected:
-		explicit _VBaseIndirectContext (DebugLabel dbg)									__Th___ : _VBaseIndirectContext{ dbg, Default } {}
-		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)						__Th___	: _cmdbuf{RVRef(cmdbuf)} { CHECK_THROW( _IsValid() ); }
-		_VBaseIndirectContext (DebugLabel dbg, VSoftwareCmdBufPtr cmdbuf)				__Th___;
+		explicit _VBaseIndirectContext (DebugLabel dbg)								__Th___ : _VBaseIndirectContext{ dbg, Default } {}
+		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)					__Th___	: _cmdbuf{RVRef(cmdbuf)} { CHECK_THROW( _IsValid() ); }
+		_VBaseIndirectContext (DebugLabel dbg, VSoftwareCmdBufPtr cmdbuf)			__Th___;
 
-		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
+		ND_ bool	_IsValid ()														C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		void  _DebugMarker (DebugLabel dbg)												__Th___	{ _cmdbuf->DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)											__Th___	{ _cmdbuf->PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()															__Th___	{ _cmdbuf->PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)											__Th___	{ _cmdbuf->DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)										__Th___	{ _cmdbuf->PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()														__Th___	{ _cmdbuf->PopDebugGroup(); }
 
-		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)		__Th___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+		void  _WriteTimestamp (const VQueryManager::Query &, uint index,
+								EPipelineScope, VkPipelineStageFlagBits2 mask)		__Th___;
 
-		ND_ VBakedCommands		_EndCommandBuffer ()									__Th___;
-		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()								__Th___;
+		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)	__Th___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+
+		ND_ VBakedCommands		_EndCommandBuffer ()								__Th___;
+		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()							__Th___;
 
 		ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___;
 	};
@@ -701,9 +714,9 @@ namespace AE::Graphics::_hidden_
 		~VBaseIndirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-			void	_CommitBarriers ()														__Th___;
+			void  _CommitBarriers ()														__Th___;
 
-		ND_ bool	_NoPendingBarriers ()													C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ bool  _NoPendingBarriers ()														C_NE___	{ return _mngr.NoPendingBarriers(); }
 
 		ND_ VBakedCommands		_EndCommandBuffer ()										__Th___;
 	};
@@ -737,15 +750,18 @@ namespace AE::Graphics::_hidden_
 		},
 		_mngr{ task }
 	{
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			_mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
 
 			GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
 		)
 		Unused( ctxType );
 
-		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		{
 			PipelineBarrier( *bar );  // throw
+			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.InitialBarriers"});)
+		}
 	}
 
 /*
@@ -755,8 +771,8 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  VBaseIndirectContext::_CommitBarriers () __Th___
 	{
-		auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
+		auto	bar = _mngr.GetBarriers();
+		if_unlikely( bar )
 		{
 			_cmdbuf->PipelineBarrier( *bar );  // throw
 			_mngr.ClearBarriers();
@@ -770,9 +786,11 @@ namespace AE::Graphics::_hidden_
 */
 	inline VBakedCommands  VBaseIndirectContext::_EndCommandBuffer () __Th___
 	{
-		if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		{
+			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.FinalBarriers"});)
 			PipelineBarrier( *bar );  // throw
-
+		}
 		return _VBaseIndirectContext::_EndCommandBuffer();
 	}
 

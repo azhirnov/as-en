@@ -151,12 +151,12 @@ namespace
 		{
 			offset_arr.push_back( uint(file->Position()) );
 
-			auto	mem = MakeRC<MemWStream>();
+			auto	mem = MakeRC<ArrayWStream>();
 			{
 				Serializer	ser{ mem };
 				CHECK_ERR( ia->Serialize( ser ));
 			}
-			CHECK_ERR( mem->Store( *file ));
+			CHECK_ERR( mem->StoreTo( *file ));
 		}
 
 		CHECK_ERR( hash_arr.size() == offset_arr.size() );
@@ -168,7 +168,7 @@ namespace
 
 		// update offsets
 		{
-			file = MakeRC<FileWStream>( filename, FileWStream::EMode::Update );
+			file = MakeRC<FileWStream>( filename, FileWStream::EMode::OpenUpdate );
 			CHECK_ERR( file->IsOpen() );
 
 			CHECK_ERR( file->Write( InputActions_Name ));
@@ -242,7 +242,7 @@ namespace
 
 		const auto	AddActions = [&all_bits, &ValidateName] (const ShModeInfo &mode, const IABits reqBits, StringView indent)
 		{{
-			String			str;
+			String			src;
 			Array<String>	act_arr;
 
 			for (auto& [act_name, cnt] : mode.actions)
@@ -257,23 +257,23 @@ namespace
 				}
 			}
 			if ( act_arr.empty() )
-				return str;
+				return src;
 
 			std::sort( act_arr.begin(), act_arr.end() );
-			str << indent << "static constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n";
-			str << indent << "enum Bindings : uint {\n";
+			src << indent << "static constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n";
+			src << indent << "enum Bindings : uint {\n";
 
 			for (const auto& act_name : act_arr) {
-				str << indent << '\t' << ValidateName(act_name) << "  = 0x"
+				src << indent << '\t' << ValidateName(act_name) << "  = 0x"
 					<< ToString<16>( uint{InputActionName{act_name}} ) << "u,  // InputActionName{\"" << act_name << "\"}\n";
 			}
-			str << indent << "};\n";
-			return str;
+			src << indent << "};\n";
+			return src;
 		}};
 
 		const auto	AddPlatformSpecificActions = [&] (const ShModeInfo &mode)
 		{{
-			String			str;
+			String			src;
 			Array<String>	act_arr_arr [MaxIA];
 
 			for (auto& [act_name, cnt] : mode.actions)
@@ -296,18 +296,18 @@ namespace
 
 				std::sort( act_arr.begin(), act_arr.end() );
 
-				str << "\t\tstatic constexpr struct _" << ia->GetApiName() << " {\n"
+				src << "\t\tstatic constexpr struct _" << ia->GetApiName() << " {\n"
 					<< "\t\t\tstatic constexpr uint  actionCount = " << ToString(act_arr.size()) << ";\n"
 					<< "\t\t\tenum Bindings : uint {\n";
 
 				for (const auto& act_name : act_arr) {
-					str << "\t\t\t\t" << ValidateName(act_name) << "  = 0x"
+					src << "\t\t\t\t" << ValidateName(act_name) << "  = 0x"
 						<< ToString<16>( uint{InputActionName{act_name}} ) << "u,  // InputActionName{\"" << act_name << "\"}\n";
 				}
-				str << "\t\t\t};\n"
-					<< "\t\t} " << ia->GetApiName() << ";\n";
+				src << "\t\t\t};\n"
+					<< "\t\t} " << ia->GetApiName() << " = {};\n";
 			}
-			return str;
+			return src;
 		}};
 
 		// shared modes
@@ -338,7 +338,7 @@ namespace
 					if ( not tmp.empty() ) {
 						str << "\t\tstatic constexpr struct _Desktop {\n"
 							<< tmp
-							<< "\t\t} Desktop;\n";
+							<< "\t\t} Desktop = {};\n";
 					}
 				}
 
@@ -349,7 +349,7 @@ namespace
 					if ( not tmp.empty() ) {
 						str << "\t\tstatic constexpr struct _Mobile {\n"
 							<< tmp
-							<< "\t\t} Mobile;\n";
+							<< "\t\t} Mobile = {};\n";
 					}
 				}
 
@@ -360,20 +360,16 @@ namespace
 					if ( not tmp.empty() ) {
 						str << "\t\tstatic constexpr struct _VR {\n"
 							<< tmp
-							<< "\t\t} VR;\n";
+							<< "\t\t} VR = {};\n";
 					}
 				}
 
 				str << AddPlatformSpecificActions( mode );
 
-				str << "\t} " << ValidateName(mode_name) << ";\n\n";
+				str << "\t} " << ValidateName(mode_name) << " = {};\n\n";
 			}
 		}
 		str << "}\n";
-
-	  #if not AE_PRIVATE_USE_TABS
-		str = Parser::TabsToSpaces( str );
-	  #endif
 
 		auto	file = MakeRC<FileWStream>( filename );
 		CHECK_ERR( file->IsOpen() );

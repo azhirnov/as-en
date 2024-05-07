@@ -66,21 +66,24 @@ namespace AE::Networking
 		ND_ HashVal	CalcHashOfAddress ()				C_NE___;
 
 
+		// only for client
 		ND_ static IpAddress  FromServiceUDP (NtStringView hostName, NtStringView serviceName)	__NE___;
 		ND_ static IpAddress  FromServiceTCP (NtStringView hostName, NtStringView serviceName)	__NE___;
 
+		// only for client
 		ND_ static IpAddress  FromHostPortUDP (NtStringView hostName, ushort port)				__NE___;
 		ND_ static IpAddress  FromHostPortTCP (NtStringView hostName, ushort port)				__NE___;
 
-		// allow external connection
+		// allow external connection, only for server
 		ND_ static IpAddress  FromLocalPortUDP (ushort port)									__NE___;
 		ND_ static IpAddress  FromLocalPortTCP (ushort port)									__NE___;
 
-		// only local connection
+		// only local connection, for client and server
 		ND_ static IpAddress  FromLocalhostUDP (ushort port)									__NE___;
 		ND_ static IpAddress  FromLocalhostTCP (ushort port)									__NE___;
 
 		ND_ static IpAddress  FromNative (AnyTypeCRef addr)										__NE___;
+		ND_ static IpAddress  FromInt (uint p0, uint p1, uint p2, uint p3, uint port)			__NE___;
 	};
 
 

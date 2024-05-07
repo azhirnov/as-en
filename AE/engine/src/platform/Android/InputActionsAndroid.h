@@ -72,7 +72,7 @@ namespace AE::App
 
 
 	private:
-		ND_ static EInputType	_SensorTypeToInputType (ESensorType type)	__NE___	{ return SerializableInputActionsAndroid::SensorTypeToInputType( type ); }
+		ND_ static EInputType	_SensorTypeToInputType (ESensorType type)							__NE___	{ return SerializableInputActionsAndroid::SensorTypeToInputType( type ); }
 	};
 
 

@@ -4,12 +4,13 @@
 
 #include "base/DataSource/DataStream.h"
 #include "base/Algorithms/ArrayUtils.h"
+#include "base/Memory/SharedMem.h"
 
 namespace AE::Base
 {
 
 	//
-	// Memory Reference read-only Stream
+	// Memory Reference Read-only Stream
 	//
 
 	class MemRefRStream : public RStream
@@ -34,6 +35,16 @@ namespace AE::Base
 		explicit MemRefRStream (MutableArrayView<T> data)						__NE___ : MemRefRStream{data.data(), ArraySizeOf(data)} {}
 
 
+		// Utils //
+		ND_ bool  LoadRemainingFrom (RStream &srcStream, Bytes size = UMax)		__NE___;
+
+		ND_ bool  LoadFrom (RStream &srcStream, Bytes offset, Bytes size)		__NE___;
+		ND_ bool  LoadFrom (RDataSource &srcDS, Bytes offset, Bytes size)		__NE___;
+
+		ND_ bool  LoadAllFrom (RStream &srcStream)								__NE___	{ return LoadFrom( srcStream, 0_b, UMax ); }
+		ND_ bool  LoadAllFrom (RDataSource &srcDS)								__NE___	{ return LoadFrom( srcDS, 0_b, UMax ); }
+
+
 		// RStream //
 		bool		IsOpen ()													C_NE_OF	{ return true; }
 		PosAndSize	PositionAndSize ()											C_NE_OF	{ return { _pos, _size }; }
@@ -50,7 +61,7 @@ namespace AE::Base
 		Bytes	GetFastStreamPosition (const void* ptr)							__NE_OF;
 
 
-		ND_ RC<MemRefRStream>	ToSubStream (Bytes offset, Bytes size)			C_Th___;
+		ND_ RC<MemRefRStream>	ToSubStream (Bytes offset, Bytes size = UMax)	C_Th___;
 
 		ND_ ArrayView<ubyte>	GetData ()										C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
 		ND_ ArrayView<ubyte>	GetRemainData ()								C_NE___	{ return GetData().section( usize(_pos), UMax ); }
@@ -58,15 +69,18 @@ namespace AE::Base
 	protected:
 		MemRefRStream ()														__NE___ {}
 		void  _Set (const void* ptr, Bytes size)								__NE___;
+		void  _Reset ()															__NE___;
+
+		ND_ virtual bool  _Resize (Bytes newSize)								__NE___ { Unused( newSize );  return false; }
 	};
 
 
 
 	//
-	// Memory read-only Stream
+	// Array as Read-only Stream
 	//
 
-	class MemRStream final : public MemRefRStream
+	class ArrayRStream final : public MemRefRStream
 	{
 	// variables
 	private:
@@ -74,67 +88,140 @@ namespace AE::Base
 
 	// methods
 	public:
-		MemRStream ()															__NE___ {}
-		explicit MemRStream (Array<ubyte> data)									__NE___;
-		MemRStream (const void* ptr, Bytes size)								__NE___;
-
-		ND_ bool  Decompress (RStream &srcStream)								__NE___;
-
-		ND_ bool  LoadRemaining (RStream &srcStream, Bytes size = UMax)			__NE___;
-
-		ND_ bool  Load (RStream &srcStream, Bytes offset, Bytes size)			__NE___;
-		ND_ bool  Load (RDataSource &srcDS, Bytes offset, Bytes size)			__NE___;
-
-		ND_ bool  LoadAll (RStream &srcStream)									__NE___	{ return Load( srcStream, 0_b, UMax ); }
-		ND_ bool  LoadAll (RDataSource &srcDS)									__NE___	{ return Load( srcDS, 0_b, UMax ); }
+		ArrayRStream ()															__NE___ {}
+		explicit ArrayRStream (Array<ubyte> data)								__NE___;
+		ArrayRStream (const void* ptr, Bytes size)								__NE___;
 
 		ND_ Array<ubyte>  ReleaseData ()										__NE___;
+
+		ND_ bool  DecompressFrom (RStream &srcStream)							__NE___;
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
 	};
 
 
 
 	//
-	// Memory Write-only Stream
+	// Shared Memory as Read-only Stream
 	//
 
-	class MemWStream final : public WStream
+	class SharedMemRStream final : public MemRefRStream
 	{
 	// variables
 	private:
-		Array<ubyte>	_data;
-		Bytes			_pos;
+		RC<SharedMem>	_data;
+
+	// methods
+	public:
+		SharedMemRStream ()														__NE___ {}
+		explicit SharedMemRStream (RC<SharedMem> data)							__NE___;
+		SharedMemRStream (const void* ptr, Bytes size)							__NE___;
+
+		ND_ RC<SharedMem>	ReleaseData ()										__NE___;
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
+	};
+
+
+
+	//
+	// Memory Reference Write-only Stream
+	//
+
+	class MemRefWStream : public WStream
+	{
+	// variables
+	protected:
+		void*		_dataPtr	= null;
+		Bytes		_pos;
+		Bytes		_capacity;
 
 
 	// methods
 	public:
-		MemWStream ()															__NE___;
-		explicit MemWStream (Bytes bufferSize)									__NE___;
+		explicit MemRefWStream (MutableArrayView<ubyte> data)					__NE___	{ _Set( data.data(), ArraySizeOf(data) ); }
+		MemRefWStream (void* ptr, Bytes size)									__NE___	{ _Set( ptr, size ); }
 
+		ND_ bool	StoreTo (WStream &dstFile)									C_NE___;
 
 		// WStream //
-		bool		IsOpen ()													C_NE_OV	{ return true; }
-		Bytes		Position ()													C_NE_OV	{ return _pos; }
-		ESourceType	GetSourceType ()											C_NE_OV;
+		bool		IsOpen ()													C_NE_OF	{ return true; }
+		Bytes		Position ()													C_NE_OF	{ return _pos; }
+		ESourceType	GetSourceType ()											C_NE_OF;
 
-		bool		SeekFwd (Bytes offset)										__NE_OV;
-		Bytes		Reserve (Bytes additionalSize)								__NE_OV;
-		Bytes		WriteSeq (const void*, Bytes)								__NE_OV;
-		void		Flush ()													__NE_OV	{}
+		bool		SeekFwd (Bytes offset)										__NE_OF;
+		Bytes		WriteSeq (const void*, Bytes)								__NE_OF;
+		void		Flush ()													__NE_OF	{}
 
 		void		UpdateFastStream (OUT void* &begin, OUT const void* &end,
-									  Bytes reserve = DefaultAllocationSize)	__NE_OV;
+									  Bytes reserve = DefaultAllocationSize)	__NE_OF;
 
-		void		EndFastStream (const void* ptr)								__NE_OV;
+		void		EndFastStream (const void* ptr)								__NE_OF;
 		Bytes		GetFastStreamPosition (const void* ptr)						__NE_OF;
 
+	protected:
+		MemRefWStream ()														__NE___ {}
+		void  _Set (void* ptr, Bytes size)										__NE___;
+		void  _Reset ()															__NE___;
 
-			void	Clear ()													__NE___;
-		ND_ bool	Store (WStream &dstFile)									C_NE___;
+		ND_ virtual bool  _Resize (Bytes newSize)								__NE___ { Unused( newSize );  return false; }
+	};
 
-		ND_ ArrayView<ubyte>		GetData ()									C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
-		ND_ MutableArrayView<ubyte>	GetData ()									__NE___	{ return MutableArrayView<ubyte>{ _data.data(), usize(_pos) }; }
+
+
+	//
+	// Array as Write-only Stream
+	//
+
+	class ArrayWStream final : public MemRefWStream
+	{
+	// variables
+	private:
+		Array<ubyte>	_data;
+
+	// methods
+	public:
+		ArrayWStream ()															__NE___;
+		explicit ArrayWStream (Bytes bufferSize)								__NE___;
+		explicit ArrayWStream (Array<ubyte> data)								__NE___;
+
+		Bytes  Reserve (Bytes additionalSize)									__NE_OV;
+		void   Clear ()															__NE___;
+
+		ND_ ArrayView<ubyte>		GetData ()									C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize{_pos} }; }
+		ND_ MutableArrayView<ubyte>	GetData ()									__NE___	{ return MutableArrayView<ubyte>{ _data.data(), usize{_pos} }; }
 		ND_ Array<ubyte>			ReleaseData ()								__NE___;
-		ND_ RC<MemRefRStream>		ToRStream ()								C_NE___	{ return MakeRC<MemRefRStream>( GetData() ); }
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
+	};
+
+
+
+	//
+	// Shared Memory as Write-only Stream
+	//
+
+	class SharedMemWStream final : public MemRefWStream
+	{
+	// variables
+	private:
+		RC<SharedMem>	_data;
+
+	// methods
+	public:
+		SharedMemWStream ()														__NE___ {}
+		explicit SharedMemWStream (Bytes bufferSize)							__NE___;
+		explicit SharedMemWStream (RC<SharedMem> data)							__NE___;
+
+		void   Clear ()															__NE___;
+
+		ND_ RC<SharedMem>  ReleaseData ()										__NE___;
+
+	private:
+		bool  _Resize (Bytes newSize)											__NE_OV;
 	};
 
 

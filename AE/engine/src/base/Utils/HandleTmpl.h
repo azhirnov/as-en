@@ -136,7 +136,7 @@ namespace AE::Base
 		constexpr Strong (Self &&other)								__NE___ : _id{other._id}	{ other._id = Default; }
 		constexpr explicit Strong (const ID_t &id)					__NE___ : _id{id}			{}
 		constexpr Strong (Value_t index, Value_t gen)				__NE___ : _id{index, gen}	{}
-		constexpr ~Strong ()										__NE___	{ DEV_CHECK_MSG( not IsValid(), "handle must be released" ); }
+		constexpr ~Strong ()										__NE___	{ ASSERT_MSG( not IsValid(), "handle must be released" ); }
 
 		constexpr Self				Attach (ID_t id)				__NE___	{ ID_t  temp{_id};  _id = id;  return Self{temp}; }
 
@@ -158,9 +158,6 @@ namespace AE::Base
 
 		ND_ constexpr				operator ID_t ()				C_NE___	{ return _id; }
 	};
-
-
-	template <usize IdxSz, usize Gen, uint UID>	struct TMemCopyAvailable< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
 
 
 
@@ -201,6 +198,8 @@ namespace AE::Base
 		ND_ StrongID_t	Attach (ID_t id)				__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( id.Data() ))}; }
 		ND_ StrongID_t	Attach (StrongID_t id)			__NE___	{ return Attach( id.Release() ); }
 
+		ND_ bool		SetIfEmpty (ID_t id)			__NE___	{ Value_t  exp = ID_t{}.Data();  return _id.CAS_Loop( INOUT exp, id.Data() ); }
+
 		ND_ StrongID_t	Release ()						__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data() ))}; }
 
 		ND_ ID_t		Get ()							C_NE___	{ return ID_t::FromData( _id.load() ); }
@@ -212,14 +211,34 @@ namespace AE::Base
 		ND_ bool		operator == (const ID_t &rhs)	C_NE___	{ return Get() == rhs; }
 		ND_ bool		operator != (const ID_t &rhs)	C_NE___	{ return Get() != rhs; }
 	};
+//-----------------------------------------------------------------------------
 
 
+	template <usize IdxSz, usize Gen, uint UID>	struct TMemCopyAvailable     < HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
+	template <usize IdxSz, usize Gen, uint UID> struct TTriviallySerializable< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
+	template <usize IdxSz, usize Gen, uint UID> struct TZeroMemAvailable     < HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = false; };
+	template <usize IdxSz, usize Gen, uint UID> struct TTriviallyDestructible< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
+
+/*
+=================================================
+	IsHandleTmpl
+=================================================
+*/
+namespace _hidden_
+{
+	template <typename T>
+	struct _IsHandleTmpl {
+		static constexpr bool	value = false;
+	};
 
 	template <usize IndexSize, usize GenerationSize, uint UID>
-	struct TTriviallySerializable< HandleTmpl<IndexSize, GenerationSize, UID> >
-	{
+	struct _IsHandleTmpl< HandleTmpl< IndexSize, GenerationSize, UID >> {
 		static constexpr bool	value = true;
 	};
+};
+
+	template <typename T>
+	static constexpr bool	IsHandleTmpl = Base::_hidden_::_IsHandleTmpl< RemoveAllQualifiers< T >>::value;
 
 /*
 =================================================

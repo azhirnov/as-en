@@ -1,8 +1,28 @@
+## 24.05.xxx
+
+- Profiling: added Adreno GPU performance counters
+
+
+## 24.04.243
+
+- Graphics: remote graphics device v2
+- Graphics: added CmdBufExeIndex to start render tasks in different order
+- Profiling: added PowerVR performance counters
+- Graphics: allow to skip unsupported descriptor set layout
+- Android: update to NDK 26.3
+
+
+## 24.03.236
+
+- Video: improved decoding/encoding using ffmpeg
+- Custom CI/CD
+
 
 ## 24.02.228
 
 - UI Editor
 - Threading: Unix Async file (Android/Linux/MacOS)
+- Audio: BASS playback
 
 
 ## 24.01.222

@@ -225,10 +225,6 @@ namespace {
 
 		_toSend.encoded	= encoded;
 		lastSendMsg		= Default;
-
-		//usize	count = _toSend.queue.Count();
-		//if ( count )
-		//	AE_LOG_DBG( String{socket.GetDebugName()} << ": sent " << ToString( count ));
 	}
 
 /*
@@ -354,6 +350,7 @@ namespace {
 
 				case SocketReceiveError::ConnectionResetByPeer :
 				case SocketReceiveError::ConnectionRefused :
+				case SocketReceiveError::ConnectionAborted :
 				case SocketReceiveError::NotConnected :
 				case SocketReceiveError::NoSocket :
 				case SocketReceiveError::UnknownError :
@@ -366,13 +363,6 @@ namespace {
 
 		CHECK_MSG( decoded == 0, "Received data is not complete" );
 		_received.received = received;
-
-		//usize	count = 0;
-		//for (auto [key, val] : _received.queue) {
-		//	count += val.first.Count();
-		//}
-		//if ( count > 0 )
-		//	AE_LOG_DBG( String{socket.GetDebugName()} << ": received " << ToString( count ));
 	}
 
 /*
@@ -452,7 +442,7 @@ namespace {
 
 			if_unlikely( _lastSentMsg != Default and _reliable )
 			{
-				AE_LOG_DBG( "Reliability is broken: some messages are no sent and will be discarded, client will be disconnected" );
+				AE_LOG_DBG( "Reliability is broken: some messages are not sent and will be discarded, client will be disconnected" );
 				_Reconnect();
 			}
 			_lastSentMsg = _toSend.queue.begin();
@@ -531,7 +521,7 @@ namespace {
 */
 	void  TcpClientChannel::_Reconnect () __NE___
 	{
-		_socket.Close();
+		_socket.FastClose();
 
 		_status				= EStatus::Disconnected;
 		_toSend.encoded		= 0_b;
@@ -902,7 +892,7 @@ namespace {
 
 		client.id		= Default;
 		client.received	= 0_b;
-		client.socket.Close();
+		client.socket.FastClose();
 
 		_poolBits.reset( idx );
 

@@ -84,7 +84,7 @@ namespace AE::ResEditor
 
 	// variables
 	protected:
-		const EFlags			_baseFlags;
+		EFlags					_baseFlags	= Default;
 
 		String					_defines;
 
@@ -114,6 +114,7 @@ namespace AE::ResEditor
 
 	// interface
 	public:
+		// Returns non-null pass or throw exception.
 		ND_ virtual RC<IPass>	ToPass ()																					C_Th___ = 0;
 
 
@@ -121,6 +122,8 @@ namespace AE::ResEditor
 	public:
 		void  SetDebugLabel1 (const String &name)																			__Th___;
 		void  SetDebugLabel2 (const String &name, const RGBA8u &color)														__Th___;
+
+		void  AddFlag (EFlags value)																						__Th___;
 
 
 		void  SliderI0 (const String &name)																					__Th___;
@@ -184,7 +187,11 @@ namespace AE::ResEditor
 		void  ArgImageArrOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)				__Th___	{ _args.ArgImageArrOut( name, Array<ScriptImagePtr>{arr} ); }
 		void  ArgImageArrInOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)				__Th___	{ _args.ArgImageArrInOut( name, Array<ScriptImagePtr>{arr} ); }
 
-		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)	__Th___	{ _args.ArgTextureIn( name, tex, samplerName ); }
+		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex)								__Th___	{ _args.ArgTextureIn( name, tex ); }
+		void  ArgTextureIn2 (const String &name, const ScriptImagePtr &tex, const String &samplerName)	__Th___	{ _args.ArgTextureIn2( name, tex, samplerName ); }
+		void  ArgTextureArrIn (const String &name, const ScriptArray<ScriptImagePtr> &arr)				__Th___	{ _args.ArgTextureArrIn( name, Array<ScriptImagePtr>{arr} ); }
+		void  ArgTextureArrIn2 (const String &name, const ScriptArray<ScriptImagePtr> &arr, const String &s)__Th___	{ _args.ArgTextureArrIn2( name, Array<ScriptImagePtr>{arr}, s ); }
+
 		void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___	{ _args.ArgVideoIn( name, tex, samplerName ); }
 		void  ArgController (const ScriptBaseControllerPtr &)											__Th___;
 
@@ -203,7 +210,7 @@ namespace AE::ResEditor
 
 
 	protected:
-		explicit ScriptBasePass (EFlags flags)															__Th___;
+		ScriptBasePass ()																				__Th___;
 
 		void  _Init (IPass &dst, const ScriptBaseControllerPtr &defaultController)						C_Th___;
 
@@ -220,6 +227,8 @@ namespace AE::ResEditor
 
 		void  _AddSliders (INOUT String &header)														C_Th___;
 		void  _AddSlidersAsMacros (OUT String &macros)													C_Th___;
+
+		ND_ Strong<BufferID>  _CreateUBuffer (Bytes size, StringView dbgName, EResourceState defaultState)	C_Th___;
 	};
 
 	AE_BIT_OPERATORS( ScriptBasePass::EFlags );

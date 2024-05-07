@@ -1,19 +1,24 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_ENABLE_VULKAN)
-#	define SUFFIX			V
-#	define CMDBATCH			VCommandBatch
-#	if not AE_VK_TIMELINE_SEMAPHORE
-#	  define ENABLE_VK_TIMELINE_SEMAPHORE
+#	define SUFFIX					V
+#	define CMDBATCH					VCommandBatch
+#	if AE_VK_TIMELINE_SEMAPHORE
+#	  define AE_TIMELINE_SEMAPHORE	1
+#	else
+#	  define AE_TIMELINE_SEMAPHORE	0
+#	  define ENABLE_VK_VIRTUAL_FENCE
 #	endif
 
 #elif defined(AE_ENABLE_METAL)
-#	define SUFFIX			M
-#	define CMDBATCH			MCommandBatch
+#	define SUFFIX					M
+#	define CMDBATCH					MCommandBatch
+#	define AE_TIMELINE_SEMAPHORE	1
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define SUFFIX			R
-#	define CMDBATCH			RCommandBatch
+#	define SUFFIX					R
+#	define CMDBATCH					RCommandBatch
+#	define AE_TIMELINE_SEMAPHORE	1
 
 #else
 #	error not implemented
@@ -56,6 +61,7 @@
 	_ReleaseObject
 =================================================
 */
+#ifndef AE_ENABLE_REMOTE_GRAPHICS
 	void  CMDBATCH::_ReleaseObject () __NE___
 	{
 		MemoryBarrier( EMemoryOrder::Acquire );
@@ -71,17 +77,28 @@
 		// delete anyway
 		_status.store( EStatus::Destroyed );
 
-		DEBUG_ONLY({
+		GFX_DBG_ONLY({
 			EXLOCK( _onCompleteDepsGuard );
-			ASSERT( _onCompleteDeps.empty() );
+			CHECK( _onCompleteDeps.empty() );
 		})
-		DEBUG_ONLY({
+		GFX_DBG_ONLY({
 			EXLOCK( _onSubmitDepsGuard );
-			ASSERT( _onSubmitDeps.empty() );
+			CHECK( _onSubmitDeps.empty() );
 		})
 
 		MemoryBarrier( EMemoryOrder::Release );
 		RenderTaskScheduler::CommandBatchApi::Recycle( this );
+	}
+#endif
+/*
+=================================================
+	EndRecordingAndSubmit
+=================================================
+*/
+	bool  CMDBATCH::EndRecordingAndSubmit () __NE___
+	{
+		CHECK_ERR( _EndRecording() );
+		return _Submit();
 	}
 
 /*
@@ -91,7 +108,7 @@
 */
 	bool  CMDBATCH::_Submit () __NE___
 	{
-		CHECK_ERR( _status.exchange( EStatus::Pending ) == EStatus::Recorded );
+		CHECK_ERR( _status.Set( EStatus::Recorded, EStatus::Pending ));
 
 		_cmdPool.Lock();
 		CHECK_ERR( _cmdPool.IsReady() );
@@ -101,7 +118,7 @@
 	  #elif defined(AE_ENABLE_METAL)
 		CHECK_ERR( _cmdPool.CommitIndirectBuffers( GetQueueType(), GetCmdBufType() ));
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		CHECK_ERR( _cmdPool.CommitIndirectBuffers( GetQueueType(), GetCmdBufType() ));
+		// do nothing
 	  #else
 	  #	error not implemented
 	  #endif
@@ -159,7 +176,7 @@
 */
 	void  CMDBATCH::_OnSubmit2 () __NE___
 	{
-		CHECK( _status.exchange( EStatus::Submitted ) == EStatus::Pending );
+		CHECK( _status.Set( EStatus::Pending, EStatus::Submitted ));
 		_cmdPool.Reset();
 
 		// allow to run tasks which waits when batch is submitted
@@ -179,21 +196,20 @@
 */
 	void  CMDBATCH::_OnComplete () __NE___
 	{
-	  #ifdef AE_ENABLE_VULKAN
-		#if AE_VK_TIMELINE_SEMAPHORE
+		#if AE_TIMELINE_SEMAPHORE
 			++_tlSemaphoreVal;
-		#else
+		#endif
+		#ifdef ENABLE_VK_VIRTUAL_FENCE
 			_fence = null;
 		#endif
-	  #endif
 
-		DEBUG_ONLY({
+		GFX_DBG_ONLY({
 			EXLOCK( _gpuInDepsGuard );
-			ASSERT( _gpuInDeps.empty() );	// 'AddInputSemaphore()' used after submission
+			CHECK( _gpuInDeps.empty() );	// 'AddInputSemaphore()' used after submission
 		})
-		DEBUG_ONLY({
+		GFX_DBG_ONLY({
 			EXLOCK( _gpuOutDepsGuard );
-			ASSERT( _gpuOutDeps.empty() );	// 'AddOutputSemaphore()' used after submission
+			CHECK( _gpuOutDeps.empty() );	// 'AddOutputSemaphore()' used after submission
 		})
 
 		// allow to run tasks which waits when batch is complete
@@ -205,13 +221,13 @@
 			_onCompleteDeps.clear();
 		}
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			if ( _profiler )
 				_profiler->BatchComplete( this );
 			_profiler = null;
 		)
 
-		CHECK( _status.exchange( EStatus::Completed ) == EStatus::Submitted );
+		CHECK( _status.Set( EStatus::Submitted, EStatus::Completed ));
 	}
 
 /*
@@ -219,7 +235,7 @@
 	_SetTaskBarriers
 =================================================
 */
-	void  CMDBATCH::_SetTaskBarriers (const TaskBarriers_t* pBarriers, uint index) __NE___
+	void  CMDBATCH::_SetTaskBarriers (const TaskBarriersPtr_t pBarriers, uint index) __NE___
 	{
 		if ( pBarriers == null )
 			return;
@@ -227,9 +243,108 @@
 		ASSERT( _perTaskBarriers[ index ] == null );
 		ASSERT( IsRecording() );
 		ASSERT( index < _perTaskBarriers.size() );
-		ASSERT_Lt( index, CurrentCmdBufIndex()*2+2 );
+	//	ASSERT_Lt( index, CurrentCmdBufIndex()*2+2 );	// TODO ?
 
-		_perTaskBarriers[ index ] = pBarriers;
+		_perTaskBarriers[ index ] = pBarriers.get();
+	}
+
+/*
+=================================================
+	AddInputSemaphore
+=================================================
+*/
+	bool  CMDBATCH::AddInputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
+	{
+	  #if not AE_TIMELINE_SEMAPHORE
+		ASSERT( value == 0 );
+	  #endif
+
+	  #if defined(AE_ENABLE_VULKAN)
+		CHECK_ERR( sem != Default );
+	  #elif defined(AE_ENABLE_METAL) and defined(AE_ENABLE_REMOTE_GRAPHICS)
+		CHECK_ERR( sem );
+	  #endif
+
+		CHECK_ERR( not IsSubmitted() );
+
+		EXLOCK( _gpuInDepsGuard );
+		CHECK_ERR( _gpuInDeps.size() < _gpuInDeps.capacity() );	// check for overflow
+
+		auto&	val = _gpuInDeps.emplace( sem, value ).first->second;
+		val = Min( val, value );
+
+		return true;
+	}
+
+	bool  CMDBATCH::AddInputSemaphore (const CmdBatchDependency_t &dep) __NE___
+	{
+		return AddInputSemaphore( dep.semaphore, dep.value );
+	}
+
+/*
+=================================================
+	AddInputDependency
+----
+	GPU to GPU dependency.
+	returns 'false' on overflow or if batch is already completed.
+=================================================
+*/
+	bool  CMDBATCH::AddInputDependency (RC<CMDBATCH> batch) __NE___
+	{
+		if_unlikely( not batch )
+			return true;
+
+		return AddInputDependency( *batch );
+	}
+
+	bool  CMDBATCH::AddInputDependency (const CMDBATCH &batch) __NE___
+	{
+		CHECK_ERR( not IsSubmitted() );
+
+		// different queues
+	  #if AE_TIMELINE_SEMAPHORE
+		if_likely( batch.GetQueueType() != GetQueueType() )
+			return AddInputSemaphore( batch.GetSemaphore() );
+	  #endif
+
+		// same queue
+		CHECK_ERR( batch.GetQueueType() == GetQueueType() );
+		CHECK_ERR( batch.GetSubmitIndex() < GetSubmitIndex() );
+
+		return true;
+	}
+
+/*
+=================================================
+	AddOutputSemaphore
+=================================================
+*/
+	bool  CMDBATCH::AddOutputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
+	{
+	  #if not AE_TIMELINE_SEMAPHORE
+		ASSERT( value == 0 );
+	  #endif
+
+	  #if defined(AE_ENABLE_VULKAN)
+		CHECK_ERR( sem != Default );
+	  #elif defined(AE_ENABLE_METAL) and defined(AE_ENABLE_REMOTE_GRAPHICS)
+		CHECK_ERR( sem );
+	  #endif
+
+		CHECK_ERR( not IsSubmitted() );
+
+		EXLOCK( _gpuOutDepsGuard );
+		CHECK_ERR( _gpuOutDeps.size() < _gpuOutDeps.capacity() );	// check for overflow
+
+		auto&	val = _gpuOutDeps.emplace( sem, value ).first->second;
+		val = Min( val, value );
+
+		return true;
+	}
+
+	bool  CMDBATCH::AddOutputSemaphore (const CmdBatchDependency_t &dep) __NE___
+	{
+		return AddOutputSemaphore( dep.semaphore, dep.value );
 	}
 //-----------------------------------------------------------------------------
 

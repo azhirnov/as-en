@@ -25,7 +25,8 @@ namespace AE::App
 	enum class EAppStorage
 	{
 		Builtin,		// read-only
-		Cache,			// read / write
+		Cache,			// read / write / execute
+		ExternalCache,	// read / write
 		//AppData
 	};
 
@@ -94,6 +95,12 @@ namespace AE::App
 		//   Thread safe: yes
 		//
 		ND_ virtual RC<IVirtualFileStorage>  OpenStorage (EAppStorage type)					__NE___	= 0;
+
+
+		// Retuns OS-specific absolute path or empty is not supported.
+		//   Thread safe: yes
+		//
+		ND_ virtual Path  GetStoragePath (EAppStorage type)									__NE___	= 0;
 
 
 		// Returns array of monitors.

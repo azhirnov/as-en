@@ -45,7 +45,7 @@ endif()
 
 target_link_libraries( "Base" PUBLIC "FametaCounter-lib" )
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (WIN32)
 	# for sockets
 	target_link_libraries( "Base" PUBLIC "ws2_32" )
 endif()
@@ -59,7 +59,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	target_compile_definitions( "Base" PUBLIC _LARGEFILE_SOURCE _LARGE_FILES _FILE_OFFSET_BITS=64 _LARGEFILE64_SOURCE )
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+if (ANDROID)
 	target_link_libraries( "Base" PUBLIC "log" )
 endif()
 

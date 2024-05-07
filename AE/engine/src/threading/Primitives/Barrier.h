@@ -186,7 +186,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit Barrier (ssize numThreads)		__NE___ : _barrier{ptrdiff_t(numThreads)}
+		explicit Barrier (usize numThreads)		__NE___ : _barrier{ptrdiff_t(numThreads)}
 		{
 			ASSERT( numThreads > 0 );
 		}

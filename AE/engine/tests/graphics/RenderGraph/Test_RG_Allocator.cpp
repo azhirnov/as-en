@@ -34,31 +34,39 @@ namespace
 	}
 
 
-#ifdef AE_ENABLE_VULKAN
+	ND_ static bool  TestAllocators ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		{
+			auto	alloc = res_mngr.CreateLinearGfxMemAllocator( 64_Kb );
+			CHECK_ERR( alloc );
+			CHECK_ERR( TestAllocators( alloc ));
+		}{
+			auto	alloc = res_mngr.CreateBlockGfxMemAllocator( 4_Kb, 64_Kb );
+			CHECK_ERR( alloc );
+			CHECK_ERR( TestAllocators( alloc ));
+		}{
+			auto	alloc = res_mngr.CreateUnifiedGfxMemAllocator( 64_Kb );
+			CHECK_ERR( alloc );
+			CHECK_ERR( TestAllocators( alloc ));
+		}{
+			auto	alloc = res_mngr.GetDefaultGfxMemAllocator();
+			CHECK_ERR( alloc );
+			CHECK_ERR( TestAllocators( alloc ));
+		}
+		return true;
+	}
+
+
 	ND_ static bool  TestCustomAllocators ()
 	{
+	#ifdef AE_ENABLE_VULKAN
 		CHECK_ERR( TestAllocators( MakeRC<VDedicatedMemAllocator>() ));
-		CHECK_ERR( TestAllocators( MakeRC<VBlockMemAllocator>( 2_Kb, 64_Kb )));
-		CHECK_ERR( TestAllocators( MakeRC<VLinearMemAllocator>( 64_Kb )));
 		return true;
-	}
-#endif
-
-#ifdef AE_ENABLE_METAL
-	ND_ static bool  TestCustomAllocators ()
-	{
-		// TODO
+	#else
 		return true;
+	#endif
 	}
-#endif
-
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-	ND_ static bool  TestCustomAllocators ()
-	{
-		// TODO
-		return true;
-	}
-#endif
 
 } // namespace
 
@@ -67,6 +75,7 @@ bool RGTest::Test_Allocator ()
 {
 	bool	result = true;
 
+	RG_CHECK( TestAllocators() );
 	RG_CHECK( TestCustomAllocators() );
 
 	AE_LOGI( TEST_NAME << " - passed" );

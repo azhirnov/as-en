@@ -6,7 +6,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	define AE_RAY_QUERY
+#	define AE_ray_query
 #	include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -16,7 +16,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt				= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT-Color" );
+		RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 		RC<FPVCamera>	camera			= FPVCamera();
 		RC<Buffer>		sphere			= Buffer();
 		RC<Buffer>		color_per_inst	= Buffer();

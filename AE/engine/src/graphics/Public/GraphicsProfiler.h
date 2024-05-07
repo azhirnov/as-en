@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	thread-safe: yes
+
+	Warning: delay destruction on 1 frame, because software command buffer hold raw pointer.
 */
 
 #pragma once
@@ -62,8 +64,8 @@ namespace AE::Graphics
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		// context
-		virtual void  BeginContext (const void* batch, StringView taskName, RGBA8u color, EContextType type)							__NE___	= 0;
-		virtual void  EndContext (const void* batch, EContextType type)																	__NE___	= 0;
+		virtual void  BeginContext (const void* batch, void* cmdbuf, StringView taskName, RGBA8u color, EContextType type)				__Th___	= 0;
+		virtual void  EndContext (const void* batch, void* cmdbuf, EContextType type)													__Th___	= 0;
 
 	  #else
 	  #	error not implemented

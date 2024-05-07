@@ -62,7 +62,7 @@ namespace AE::Base
 */
 	void  BufferedRStream::_ReadNext () __NE___
 	{
-		ASSERT( _pos == _data.size() );
+		ASSERT( _pos == ArraySizeOf(_data) );
 		_pos = 0_b;
 
 		_data.resize( _data.capacity() );	// should not throw
@@ -101,7 +101,7 @@ namespace AE::Base
 		Bytes	readn;
 		for (;;)
 		{
-			if_unlikely( _pos == _data.size() )
+			if_unlikely( _pos == ArraySizeOf(_data) )
 				_ReadNext();
 
 			Bytes	part_size = Min( offset - readn, ArraySizeOf(_data) - _pos );
@@ -126,7 +126,7 @@ namespace AE::Base
 		Bytes	readn;
 		for (;;)
 		{
-			if_unlikely( _pos == _data.size() )
+			if_unlikely( _pos == ArraySizeOf(_data) )
 				_ReadNext();
 
 			Bytes	part_size = Min( size - readn, ArraySizeOf(_data) - _pos );
@@ -254,7 +254,7 @@ namespace AE::Base
 		Bytes	written;
 		for (; written < size;)
 		{
-			if ( _pos == _data.size() )
+			if ( _pos == ArraySizeOf(_data) )
 				_Flush();
 
 			Bytes	part_size = Min( size - written, ArraySizeOf(_data) - _pos );
@@ -301,7 +301,7 @@ namespace AE::Base
 		_pos = ( (begin >= _data.data()) and (begin <= _data.data() + _data.size()) ) ?
 				Bytes{begin} - Bytes{_data.data()} :
 				_pos;
-		ASSERT( _pos <= _data.size() );
+		ASSERT( _pos <= ArraySizeOf(_data) );
 
 		_Flush();
 		_pos = Min( ArraySizeOf(_data), reserve );

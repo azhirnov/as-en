@@ -45,8 +45,8 @@ namespace AE::Graphics
 
 		ShaderTracePtr				_dbgTrace;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -71,7 +71,9 @@ namespace AE::Graphics
 		ND_ uint					RenderPassSubpassIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
 		ND_ EPipelineOpt			Options ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		ND_ ShaderTracePtr			GetShaderTrace ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dbgTrace; }
+
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

@@ -156,6 +156,13 @@ namespace
 		StaticAssert( sizeof(uint32bits) == 4 );
 		StaticAssert( alignof(decltype(uint32bits)) == 4 );
 
+		enum class Uint64Enum : ubyte {
+			_Count = 64
+		};
+		EnumSet< Uint64Enum >	uint64bits;
+		StaticAssert( sizeof(uint64bits) == 8 );
+		StaticAssert( alignof(decltype(uint64bits)) == 8 );
+
 		enum class Uint32x3Enum : ubyte {
 			_Count = 64 + 31
 		};

@@ -9,10 +9,10 @@ target_include_directories( "Utf8Proc-lib" INTERFACE "${U8P_PATH}/include" )
 target_compile_definitions( "Utf8Proc-lib" INTERFACE "AE_ENABLE_UTF8PROC" "UTF8PROC_STATIC" "AE_LICENSE_MIT" )
 install( FILES "${U8P_PATH}/LICENSE.md" DESTINATION "3party_license" RENAME "Utf8Proc-LICENSE.md" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "Utf8Proc-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${U8P_PATH}/lib/${ANDROID_ABI}/libutf8proc.a" )
-elseif(DEFINED WIN32)
+elseif (WIN32)
 	set_property( TARGET "Utf8Proc-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${U8P_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}utf8proc_static${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 else()
@@ -21,7 +21,7 @@ else()
 endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		add_library( "Tests.Utf8Proc" STATIC "tests/main.cpp" )
 		target_compile_definitions( "Tests.Utf8Proc" PUBLIC "ANDROID" )
 		target_include_directories( "Tests.Utf8Proc" PRIVATE "${AE_TEST_DIR}" )

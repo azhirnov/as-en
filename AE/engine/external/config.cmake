@@ -3,7 +3,7 @@
 include( "${AE_EXTERNAL_PATH}/../cmake/config.cmake" )
 include( "${AE_EXTERNAL_PATH}/../cmake/compilers.cmake" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set( CMAKE_DEBUG_POSTFIX   	"" 	CACHE INTERNAL "" FORCE )
 	set( CMAKE_PROFILE_POSTFIX 	""	CACHE INTERNAL "" FORCE )
 	set( CMAKE_DEVELOP_POSTFIX 	"" 	CACHE INTERNAL "" FORCE )

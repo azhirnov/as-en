@@ -13,7 +13,8 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::None, EPassFlags::Enable_ShaderTrace );
+			RC<Postprocess>		pass = Postprocess( EPostprocess::None );
+			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			pass.Output( "out_Color",	rt );
 			pass.Slider( "iType",	0,				2,				0 );
 			pass.Slider( "iScale",	1.0,			1000.0,			1.0 );

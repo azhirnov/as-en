@@ -29,7 +29,7 @@ namespace AE::Graphics
 		DRC_EXLOCK( _drCheck );
 
 		CHECK_ERR( _bufferId == Default and _pipelineId == Default );
-		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue );
+		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == FeatureSet::EFeature::RequireTrue );
 
 		_sbt			= ci.sbt;
 		_bufferId		= resMngr.AcquireResource( ci.bufferId );
@@ -38,7 +38,7 @@ namespace AE::Graphics
 
 		CHECK_ERR( _bufferId != Default and _pipelineId != Default );
 
-		DEBUG_ONLY( _debugName = ci.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.dbgName; )
 		return true;
 	}
 
@@ -56,7 +56,7 @@ namespace AE::Graphics
 
 		_sbt = Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 

@@ -22,7 +22,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		template <typename ...Args>
+		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
 		explicit TsRDataSource (Args&& ...args)		__NE___	: _dataSource{ FwdArg<Args>(args)...} {}
 		~TsRDataSource ()							__NE_OV	{}
 
@@ -57,7 +57,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		template <typename ...Args>
+		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
 		explicit TsWDataSource (Args&& ...args)		__NE___	: _dataSource{ FwdArg<Args>(args)...} {}
 		~TsWDataSource ()							__NE_OV {}
 

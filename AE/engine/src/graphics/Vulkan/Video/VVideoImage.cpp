@@ -44,7 +44,7 @@ namespace AE::Graphics
 	_CreateForVideo
 =================================================
 */
-	bool  VVideoImage::_CreateForVideo (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)
+	bool  VVideoImage::_CreateForVideo (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		ASSERT( desc.profile.IsDefined() );
 		CHECK_ERR( desc.videoUsage != Default );
@@ -185,7 +185,7 @@ namespace AE::Graphics
 			CHECK_ERR( _viewId );
 		}
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -194,7 +194,7 @@ namespace AE::Graphics
 	_CreateForYcbcr
 =================================================
 */
-	bool  VVideoImage::_CreateForYcbcr (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)
+	bool  VVideoImage::_CreateForYcbcr (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		ASSERT( not desc.profile.IsDefined() );
 		CHECK_ERR( desc.videoUsage == Default );
@@ -216,7 +216,7 @@ namespace AE::Graphics
 			const bool	opt_tiling	= AnyBits( _desc.memType, EMemoryType::DeviceLocal );
 
 			image_ci.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			image_ci.flags			= VEnumCast( _desc.options ) | (is_multiplane ? VK_IMAGE_CREATE_DISJOINT_BIT : Zero);
+			image_ci.flags			= VEnumCast( _desc.options ) | (is_multiplane ? VK_IMAGE_CREATE_DISJOINT_BIT : Zero);	// TODO: check VK_FORMAT_FEATURE_DISJOINT_BIT
 			image_ci.imageType		= VK_IMAGE_TYPE_2D;
 			image_ci.format			= VEnumCast( _desc.format );
 			image_ci.extent.width	= _desc.dimension.x;
@@ -332,7 +332,7 @@ namespace AE::Graphics
 			CHECK_ERR( _viewId );
 		}
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -372,7 +372,7 @@ namespace AE::Graphics
 		_memAllocator	= null;
 		_memStorages.clear();
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

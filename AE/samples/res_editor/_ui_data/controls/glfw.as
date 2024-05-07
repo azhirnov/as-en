@@ -31,6 +31,9 @@ void ASmain (GLFW_ActionBindings& bindings)
 		bind.Add( GLFW_Input::Escape,
 				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
 
+		bind.Add( GLFW_Input::P,
+				  ActionInfo( "Freeze", EGestureType::Down ));
+
 		bind.Add( GLFW_Input::1,
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(1.f) ));
 		bind.Add( GLFW_Input::2,

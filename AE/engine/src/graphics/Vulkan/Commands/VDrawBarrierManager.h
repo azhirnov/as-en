@@ -34,32 +34,34 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)				__Th___;
-		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)	__Th___;
+		explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)					__Th___;
+		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)		__Th___;
 
 		template <typename ...IDs>
-		ND_ decltype(auto)			Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
+		ND_ decltype(auto)				Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
 
-		ND_ VDevice const&			GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
-		ND_ VResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }
-		ND_ FrameUID				GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
-		ND_ EQueueType				GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
-		ND_ auto const&				GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
+		ND_ VDevice const&				GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
+		ND_ VResourceManager&			GetResourceManager ()						C_NE___	{ return _resMngr; }
+		ND_ FrameUID					GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
+		ND_ EQueueType					GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
+		ND_ auto const&					GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
 
-		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
-		ND_ Ptr<VDrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
+		ND_ bool						IsSecondary ()								C_NE___	{ return _batch != null; }
+		ND_ Ptr<VDrawCommandBatch>		GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 
-		ND_ const VkDependencyInfo*	GetBarriers ()								__NE___;
-		ND_ bool					NoPendingBarriers ()						C_NE___	{ return _imageBarriers.empty(); }
-		ND_ bool					HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
+		ND_ VkPipelineStageFlagBits2	GetSupportedStages ()						C_NE___	{ return GetDevice().GetQueue( GetQueueType() )->supportedStages; }
 
-		ND_ uint					GetAttachmentIndex (AttachmentName::Ref)	C_NE___;
+		ND_ Ptr<const VkDependencyInfo>	GetBarriers ()								__NE___;
+		ND_ bool						NoPendingBarriers ()						C_NE___	{ return _imageBarriers.empty(); }
+		ND_ bool						HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
 
-		void  ClearBarriers ()													__NE___;
+		ND_ uint						GetAttachmentIndex (AttachmentName::Ref)	C_NE___;
+
+		void  ClearBarriers ()														__NE___;
 		void  AttachmentBarrier (AttachmentName::Ref, EResourceState srcState, EResourceState dstState) __NE___;
 
 	private:
-		void  _Init ()															__NE___;
+		void  _Init ()																__NE___;
 	};
 
 
@@ -69,7 +71,7 @@ namespace AE::Graphics::_hidden_
 	GetBarriers
 =================================================
 */
-	inline const VkDependencyInfo*  VDrawBarrierManager::GetBarriers () __NE___
+	inline Ptr<const VkDependencyInfo>  VDrawBarrierManager::GetBarriers () __NE___
 	{
 		if_unlikely( HasPendingBarriers() )
 		{

@@ -68,7 +68,7 @@ namespace AE::App
 
 
 	private:
-		bool  _ValidateForVREmulation ();
+		bool  _ValidateForVREmulation ()											__NE___;
 	};
 
 

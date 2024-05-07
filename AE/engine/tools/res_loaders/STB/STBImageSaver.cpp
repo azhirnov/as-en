@@ -12,6 +12,7 @@
 #	pragma clang diagnostic ignored "-Wcast-align"
 #	pragma clang diagnostic ignored "-Wdouble-promotion"
 #	pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#	pragma clang diagnostic ignored "-Wdeprecated-declarations"
 # endif
 # ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic push

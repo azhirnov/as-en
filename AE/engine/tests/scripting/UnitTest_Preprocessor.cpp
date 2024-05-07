@@ -29,7 +29,7 @@ ssdgadds
 	sdfs dfhd sq wfd
 	#	ifdef PART2
 		rgg qeafa
-qfw edgedfg					
+qfw edgedfg
 efedhrsd fzsdsfdg		asdasd
 "  #  endif PART2 "
 sgszf dgd

@@ -11,35 +11,11 @@
 #pragma once
 
 #include "ScriptObjects/ScriptFeatureSet.h"
+#include "Packer/Enums.h"
 
 namespace AE::PipelineCompiler
 {
 	struct CompatibleRenderPassDesc;
-
-
-	//
-	// Attachment Usage
-	//
-
-	enum class EAttachment : uint
-	{
-		Invalidate,
-		Color,
-		ColorResolve,
-		ReadWrite,		// read from input attachment, write to color/depth attachment	// TODO: self dependency
-		Input,
-		Depth,
-		Preserve,
-		ShadingRate,
-		// TODO
-		//	FragmentDensity,
-		//	DepthStencilResolve,
-		//	Depth_ShaderRead,
-		_Count,
-		DepthStencil	= Depth,
-		Unknown			= ~0u,
-	};
-
 
 
 	//
@@ -54,6 +30,9 @@ namespace AE::PipelineCompiler
 			ShaderIOName	name;
 			EShaderIO		type	= Default;
 			uint			index	= UMax;		// color/input attachment index
+
+			ShaderIO () {}
+			ShaderIO (ShaderIOName::Ref name, EShaderIO type, uint idx) : name{name}, type{type}, index{idx} {}
 
 			ND_ bool  IsDefined () const	{ return name.IsDefined(); }
 		};

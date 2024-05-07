@@ -121,3 +121,41 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
+
+
+namespace AE::Base
+{
+
+	ND_ inline StringView  ToString (Threading::ETaskQueue type)
+	{
+		using Threading::ETaskQueue;
+		switch_enum( type )
+		{
+			case ETaskQueue::Main :			return "Main";
+			case ETaskQueue::PerFrame :		return "PerFrame";
+			case ETaskQueue::Renderer :		return "Renderer";
+			case ETaskQueue::Background :	return "Background";
+			case ETaskQueue::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown task queue type" );
+	}
+
+	ND_ inline StringView  ToString (Threading::EThread type)
+	{
+		using Threading::EThread;
+		switch_enum( type )
+		{
+			case EThread::Main :			return "Main";
+			case EThread::PerFrame :		return "PerFrame";
+			case EThread::Renderer :		return "Renderer";
+			case EThread::Background :		return "Background";
+			case EThread::FileIO :			return "FileIO";
+			case EThread::_Last :
+			case EThread::_Count :			break;
+		}
+		switch_end
+		RETURN_ERR( "unknown thread type" );
+	}
+
+} // AE::Base

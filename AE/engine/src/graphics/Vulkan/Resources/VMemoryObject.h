@@ -20,8 +20,8 @@ namespace AE::Graphics
 		GfxMemAllocatorPtr				_memAllocator;
 		IGfxMemAllocator::Storage_t		_storage;
 
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -29,13 +29,13 @@ namespace AE::Graphics
 		VMemoryObject ()									__NE___	{}
 		~VMemoryObject ()									__NE___;
 
-		ND_ bool  Create (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___;
-		ND_ bool  Create (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																		__NE___;
+		ND_ bool  Create (VkBuffer, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+		ND_ bool  Create (VkImage, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)													__NE___;
 
 		ND_ bool  GetMemoryInfo (OUT VulkanMemoryObjInfo &) C_NE___;
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

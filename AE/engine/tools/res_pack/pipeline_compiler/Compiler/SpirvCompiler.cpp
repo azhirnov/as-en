@@ -43,7 +43,7 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 0 or GLSLANG_VERSION_PATCH != 0
+#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 1 or GLSLANG_VERSION_PATCH != 0
 #	error invalid glslang version
 #endif
 
@@ -317,7 +317,7 @@ namespace AE::PipelineCompiler
 		for (auto& path : includeDirs)
 		{
 			CHECK( path.is_absolute() );
-			_directories.push_back( path.string() );
+			_directories.push_back( ToString( path ));
 		}
 
 		glslang::InitializeProcess();
@@ -972,7 +972,7 @@ namespace AE::PipelineCompiler
 				{
 					for (auto& [path, src_ptr] : includer.GetIncludedFiles())
 					{
-						if ( HasSubString( path.string(), error_info.fileName ))
+						if ( HasSubString( ToString( path ), error_info.fileName ))
 						{
 							StringView		src			= src_ptr->GetSource();
 							const usize		lines_count = Parser::CalculateNumberOfLines( src ) + 1;
@@ -985,7 +985,7 @@ namespace AE::PipelineCompiler
 
 							Parser::ReadLineToEnd( src, INOUT line_pos, OUT line_str );
 
-							str << path.string() << '(' << ToString(local_line) << "):\n\"" << line_str << "\"\n" << line << "\n";
+							str << ToString(path) << '(' << ToString(local_line) << "):\n\"" << line_str << "\"\n" << line << "\n";
 							added = true;
 							break;
 						}
@@ -1748,7 +1748,7 @@ namespace AE::PipelineCompiler
 			if ( samp.isBuffer() )
 			{
 				COMP_CHECK_ERR( qual.storage == TStorageQualifier::EvqUniform or qual.storage == TStorageQualifier::EvqBuffer,
-							    "buffer type for '"s << node_name << "' is not valid" );
+					"buffer type for '"s << node_name << "' is not valid" );
 
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );

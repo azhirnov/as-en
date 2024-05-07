@@ -8,6 +8,7 @@
 #undef Status
 #undef Always
 #undef None
+#undef BSD
 
 
 // for Windows
@@ -32,3 +33,4 @@
 #undef near
 #undef far
 #undef CreateFile
+#undef CopyFile

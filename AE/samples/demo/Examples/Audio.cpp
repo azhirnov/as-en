@@ -83,13 +83,13 @@ namespace AE::Samples::Demo
 	{
 	// variables
 	private:
-		RC<MemWStream>		stream;
+		RC<ArrayWStream>	stream;
 		AudioDataDesc		desc;
 
 
 	// methods
 	public:
-		SaveSoundTask (RC<MemWStream> s, AudioDataDesc d) __NE___ :
+		SaveSoundTask (RC<ArrayWStream> s, AudioDataDesc d) __NE___ :
 			IAsyncTask{ ETaskQueue::Background },
 			stream{ RVRef(s) }, desc{ d }
 		{}
@@ -110,7 +110,7 @@ namespace AE::Samples::Demo
 		CHECK_TE( interm.SetData( desc, stream->GetData().data() ));
 
 		ResLoader::WaveSoundSaver	saver;
-        CHECK_TE( saver.SaveSound( R"(sound.wav)", interm ));
+		CHECK_TE( saver.SaveSound( R"(C:\Projects\sound.wav)", interm ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ namespace AE::Samples::Demo
 		#endif
 
 		RC<RStream>		stream;
-        CHECK_ERR( GetVFS().Open( OUT stream, VFS::FileName{"Sound.ogg"} ));
+		CHECK_ERR( GetVFS().Open( OUT stream, VFS::FileName{"Timewarp.mp3"} ));
 
 		RC<IAudioData>	sound_data = AudioSystem().CreateData( stream, ESoundFlags::Enable3D );
 		CHECK_ERR( sound_data );
@@ -243,7 +243,7 @@ namespace AE::Samples::Demo
 		recorder = AudioSystem().CreateInput( Default );
 		CHECK_ERR( recorder );
 
-		inStream = MakeRC<MemWStream>();
+		inStream = MakeRC<ArrayWStream>();
 
 		return true;
 	}

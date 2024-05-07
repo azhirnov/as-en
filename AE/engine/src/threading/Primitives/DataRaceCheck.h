@@ -6,7 +6,7 @@
 
 #if AE_ENABLE_DATA_RACE_CHECK
 
-# if defined(AE_PLATFORM_ANDROID) or defined(AE_CI_BUILD)
+# if defined(AE_PLATFORM_ANDROID) or defined(AE_CI_BUILD_TEST)
 #	define DRC_CHECK( /* expr */... )			CHECK_FATAL( __VA_ARGS__ )
 # else
 #	define DRC_CHECK( /* expr */... )			CHECK_ERR( __VA_ARGS__ )

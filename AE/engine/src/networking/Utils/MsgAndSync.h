@@ -37,7 +37,7 @@ namespace AE::Networking::_hidden_
 
 		MsgWithExtra&  operator = (MsgWithExtra &&rhs)				__NE___;
 
-		ND_ T*  operator -> ()										__NE___	{ ASSERT( _msg != null );  return _msg; }
+		ND_ T*  operator -> ()										__NE___	{ NonNull( _msg );  return _msg; }
 
 		ND_ explicit operator bool ()								C_NE___	{ return _msg != null; }
 		ND_ explicit operator CSMessagePtr ()						C_NE___	{ return CSMessagePtr{ _msg }; }
@@ -129,7 +129,7 @@ namespace AE::Networking::_hidden_
 	template <typename E>
 	E*  MsgWithExtra<T>::Extra () __NE___
 	{
-		ASSERT( _msg != null );
+		NonNull( _msg );
 
 		if constexpr( alignof(E) <= alignof(T) )
 			return Cast<E>( _msg + SizeOf<T> );
@@ -146,14 +146,14 @@ namespace AE::Networking::_hidden_
 	template <typename E>
 	E*  MsgWithExtra<T>::PutExtra (const E* data, const usize count) __NE___
 	{
-		ASSERT( _msg != null );
+		NonNull( _msg );
 
 		const Bytes  data_size = SizeOf<E> * count;
 		ASSERT( data_size <= _extraSize );
 
 		E*	dst = Extra<E>();
 		ASSERT_MSG( dst + data_size <= (Cast<void>(_msg) + SizeOf<T> + _extraSize),
-				    "'extraSize' must include alignment to dst type" );
+			"'extraSize' must include alignment to dst type" );
 
 		MemCopy( OUT dst, data, data_size );
 		return dst;
@@ -162,7 +162,7 @@ namespace AE::Networking::_hidden_
 	template <typename T>
 	void*  MsgWithExtra<T>::PutExtra (const void* data, const Bytes dataSize) __NE___
 	{
-		ASSERT( _msg != null );
+		NonNull( _msg );
 		ASSERT( dataSize <= _extraSize );
 
 		void*	dst = Extra<char>();
@@ -185,7 +185,7 @@ namespace AE::Networking::_hidden_
 	template <typename M>
 	void  MsgWithExtra<T>::Put (M T::*member, const void* srcData, const Bytes srcDataSize) __NE___
 	{
-		ASSERT( _msg != null );
+		NonNull( _msg );
 
 		void*	dst = &(_msg->*member);
 		ASSERT( dst + srcDataSize <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );
@@ -220,7 +220,7 @@ namespace AE::Networking::_hidden_
 	template <typename M>
 	void  MsgWithExtra<T>::Extract (M T::*member, OUT void* dst, const Bytes dstDataSize) C_NE___
 	{
-		ASSERT( _msg != null );
+		NonNull( _msg );
 
 		void*	src = &(_msg->*member);
 		ASSERT( src + dstDataSize <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );

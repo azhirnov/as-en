@@ -1,11 +1,89 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
 #include "profiler/Utils/ArmProfiler.h"
-#include "networking/Utils/AsyncCSMessageProducer.h"
 
-#ifdef AE_ENABLE_ARM_HWCPIPE
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+
+namespace AE::Profiler
+{
+	using namespace AE::RemoteGraphics;
+
+	struct ArmProfiler::Impl
+	{
+		ECounterSet		supported;
+		ECounterSet		enabled;
+
+		RDevice const&	dev;
+
+		Impl (RDevice const& dev) __NE___ : dev{dev} {}
+	};
+
+	ArmProfiler::ArmProfiler ()										__NE___	{}
+	ArmProfiler::~ArmProfiler ()									__NE___	{}
+
+	bool  ArmProfiler::IsInitialized ()								C_NE___	{ return bool{_impl}; }
+	void  ArmProfiler::Deinitialize ()								__NE___	{ _impl.reset( null ); }
+
+	ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet ()	C_NE___	{ return _impl ? _impl->supported : Default; }
+	ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->enabled : Default; }
+
+/*
+=================================================
+	Initialize
+=================================================
+*/
+	bool  ArmProfiler::Initialize (const ECounterSet &cs) __NE___
+	{
+		CHECK_ERR( not IsInitialized() );
+
+		Msg::ProfArm_Initialize					msg;
+		RC<Msg::ProfArm_Initialize_Response>	res;
+
+		msg.required = cs;
+
+		auto&	dev = GraphicsScheduler().GetDevice();
+		CHECK_ERR( dev.SendAndWait( msg, OUT res ));
+
+		if ( res->ok )
+		{
+			_impl = MakeUnique<Impl>( dev );
+			_impl->supported	= res->supported;
+			_impl->enabled		= res->enabled;
+		}
+		return res->ok;
+	}
+
+/*
+=================================================
+	Sample
+=================================================
+*/
+	void  ArmProfiler::Sample (OUT Counters_t &result) C_NE___
+	{
+		result.clear();
+
+		if ( not IsInitialized() ) return;
+
+		Msg::ProfArm_Sample					msg;
+		RC<Msg::ProfArm_Sample_Response>	res;
+
+		CHECK_ERRV( _impl->dev.SendAndWait( msg, OUT res ));
+
+		result = RVRef(res->counters);
+	}
+
+} // AE::Profiler
+//-----------------------------------------------------------------------------
+
+#elif defined(AE_ENABLE_ARM_HWCPIPE)
+
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wdouble-promotion"
+
 # include "hwcpipe.h"
+
+# pragma clang diagnostic pop
+
 
 namespace AE::Profiler
 {
@@ -298,7 +376,7 @@ namespace
 
 /*
 =================================================
-	SupportedCounterSet
+	SupportedCounterSet / EnabledCounterSet
 =================================================
 */
 	ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet () C_NE___
@@ -323,7 +401,7 @@ namespace
 		outCounters.clear();
 
 		if ( not _impl )
-			return;
+			return;  // not initialized
 
 		ECounterSet				counter_set = _impl->enabled;
 		hwcpipe::Measurements	m			= _impl->pipe.sample();
@@ -352,7 +430,7 @@ namespace
 } // AE::Profiler
 //-----------------------------------------------------------------------------
 
-# else
+#else // not AE_ENABLE_ARM_HWCPIPE and not AE_ENABLE_REMOTE_GRAPHICS
 
 # include "profiler/Remote/RemoteArmProfiler.h"
 
@@ -402,7 +480,7 @@ namespace AE::Profiler
 =================================================
 	CounterToString
 =================================================
-*/
+*
 	StringView  ArmProfiler::CounterToString (ArmProfiler::ECounter value) __NE___
 	{
 		switch_enum( value )
@@ -470,5 +548,5 @@ namespace AE::Profiler
 		switch_end
 		return "";
 	}
-
+*/
 } // AE::Profiler

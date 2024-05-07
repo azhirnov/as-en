@@ -17,7 +17,7 @@ namespace AE::Graphics
 */
 	bool  DRAWCMDBATCH::GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
 	{
-		EStatus	old_status = _status.exchange( EStatus::Submitted );
+		EStatus	old_status = _status.Set( EStatus::Submitted );
 		CHECK_ERR( AnyEqual( old_status, EStatus::Recording, EStatus::Submitted, EStatus::Pending ));
 
 		_cmdPool.Lock();
@@ -26,7 +26,7 @@ namespace AE::Graphics
 		auto&	rts	= GraphicsScheduler();
 		CHECK_ERR( _cmdPool.CommitIndirectBuffers( rts.GetCommandPoolManager(), GetQueueType(), GetCmdBufType(), &GetPrimaryCtxState() ));
 
-		_cmdPool.GetCommands( cmdbufs.data(), OUT count, uint(cmdbufs.size()) );
+		_cmdPool.GetCommands( OUT cmdbufs.data(), OUT count, uint(cmdbufs.size()) );
 		return true;
 	}
 

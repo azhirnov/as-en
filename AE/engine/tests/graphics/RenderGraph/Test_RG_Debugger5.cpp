@@ -72,12 +72,28 @@ namespace
 			scene_build.SetScratchBuffer( t.scratch );
 			scene_build.SetInstanceData( t.instances );
 
-			RTSceneBuild::Instance	inst;
-			CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
-
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
-			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+
+			switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
+			{
+				case EGraphicsAPI::Vulkan :
+				{
+					RTSceneBuild::InstanceVk	inst;
+					inst.Init();
+					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+					break;
+				}
+				case EGraphicsAPI::Metal :
+				{
+					RTSceneBuild::InstanceMtl	inst;
+					inst.Init();
+					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+					break;
+				}
+			}
 
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
@@ -167,7 +183,7 @@ namespace
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
 
-			t.result = AsyncTask{ MakePromiseFrom( task1, task2 )
+			t.result = AsyncTask{ MakePromiseFrom( task1.readOp, task2 )
 				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
 				{
 					bool	ok = p->imgCmp->Compare( view_and_str.Get<ImageMemView>() );
@@ -246,6 +262,8 @@ no source
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -280,7 +298,7 @@ no source
 									  "RTAS index buffer", t.gfxAlloc );
 		CHECK_ERR( t.ib );
 
-		t.instances = res_mngr.CreateBuffer( BufferDesc{ SizeOf<RTSceneBuild::Instance>, EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.instances = res_mngr.CreateBuffer( BufferDesc{ RTSceneBuild::InstanceSize, EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 											 "RTAS instance buffer", t.gfxAlloc );
 		CHECK_ERR( t.instances );
 
@@ -354,13 +372,16 @@ no source
 
 bool RGTest::Test_Debugger5 ()
 {
-	if ( _rqPipelines == null )
-		return true; // skip
+	if ( _dbgPipelines == null or _rqPipelines == null )
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
 
-	RG_CHECK( Debugger5Test< DirectCtx,   DirectCtx::Transfer   >( _rqPipelines, img_cmp.get() ));
+	RG_CHECK( Debugger5Test< DirectCtx, DirectCtx::Transfer >( _rqPipelines, img_cmp.get() ));
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 

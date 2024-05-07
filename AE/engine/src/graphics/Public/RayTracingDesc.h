@@ -48,8 +48,8 @@ namespace AE::Graphics
 		struct TrianglesData
 		{
 			BufferID		vertexData;			// requires EBufferUsage::ASBuild_ReadOnly,	content: 'vertexFormat',	access: EResourceState::BuildRTAS_Read
-			BufferID		indexData;			// requires EBufferUsage::ASBuild_ReadOnly,	content: 'indexType',		access: EResourceState::BuildRTAS_Read
-			BufferID		transformData;		// requires EBufferUsage::ASBuild_ReadOnly,	content: RTMatrixStorage,	access: EResourceState::BuildRTAS_Read
+			BufferID		indexData;			// requires EBufferUsage::ASBuild_ReadOnly,	content: 'indexType',		access: EResourceState::BuildRTAS_Read,  optional?
+			BufferID		transformData;		// requires EBufferUsage::ASBuild_ReadOnly,	content: RTMatrixStorage,	access: EResourceState::BuildRTAS_Read,  optional
 			Bytes32u		vertexStride;
 			Bytes			vertexDataOffset;
 			Bytes			indexDataOffset;
@@ -132,49 +132,61 @@ namespace AE::Graphics
 	struct RTSceneBuild
 	{
 	// types
-		#if defined(AE_ENABLE_VULKAN)
-			// VkAccelerationStructureInstanceKHR
-			struct Instance
-			{
-				RTMatrixStorage		transform;
-				uint				instanceCustomIndex	: 24;
-				uint				mask				:  8;
-				uint				instanceSBTOffset	: 24;
-				uint				flags				:  8;	// ERTInstanceOpt | VkGeometryInstanceFlags
-				DeviceAddress		rtas;
+		// VkAccelerationStructureInstanceKHR
+		struct InstanceVk
+		{
+			RTMatrixStorage		transform;
+			uint				instanceCustomIndex	: 24;
+			uint				mask				:  8;
+			uint				instanceSBTOffset	: 24;
+			uint				flags				:  8;	// ERTInstanceOpt | VkGeometryInstanceFlags
+			DeviceAddress		rtas;
 
-				Instance ()												__NE___;
-				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
-				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
-				Instance&  SetTransform (const float4x3 &value)			__NE___	{ transform			= value;		return *this; }
-				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
-				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				__NE___;
-			};
+			InstanceVk ()												__NE___ = default;
+			InstanceVk&  Init ()										__NE___;
+			InstanceVk&  SetIdentity ()									__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
+			InstanceVk&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
+			InstanceVk&  SetTransform (const float4x3 &value)			__NE___	{ transform			= value;		return *this; }
+			InstanceVk&  SetMask (uint value)							__NE___	{ mask				= value;		ASSERT( mask == value or value == UMax );	return *this; }
+			InstanceVk&  SetInstanceOffset (uint value)					__NE___	{ instanceSBTOffset	= value;		ASSERT( instanceSBTOffset == value );		return *this; }
+			InstanceVk&  SetInstanceCustomIndex (uint value)			__NE___	{ instanceCustomIndex = value;		ASSERT( instanceCustomIndex == value );		return *this; }
+			InstanceVk&  SetFlags (ERTInstanceOpt value)				__NE___;
+		};
 
-		#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-			// MTLAccelerationStructureInstanceDescriptor
-			struct Instance
-			{
-				RTMatrixStorage		transform;
-				uint				options;					// ERTInstanceOpt | MTLAccelerationStructureInstanceOptions
-				uint				mask;
-				uint				instanceSBTOffset;
-				uint				rtasIndex;
+		// MTLAccelerationStructureInstanceDescriptor
+		struct InstanceMtl
+		{
+			RTMatrixStorage		transform;
+			uint				options;					// ERTInstanceOpt | MTLAccelerationStructureInstanceOptions
+			uint				mask;
+			uint				instanceSBTOffset;
+			uint				rtasIndex;
 
-				Instance ()												__NE___;
-				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
-				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
-				Instance&  SetTransform (const float4x3 &value)			__NE___	{ transform			= value;		return *this; }
-				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
-				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				__NE___;
-			};
+			InstanceMtl ()												__NE___ = default;
+			InstanceMtl&  Init ()										__NE___;
+			InstanceMtl&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
+			InstanceMtl&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
+			InstanceMtl&  SetTransform (const float4x3 &value)			__NE___	{ transform			= value;		return *this; }
+			InstanceMtl&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
+			InstanceMtl&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
+			InstanceMtl&  SetInstanceCustomIndex (uint)					__NE___	{ DBG_WARNING( "not supported" );	return *this; }
+			InstanceMtl&  SetFlags (ERTInstanceOpt value)				__NE___;
+		};
 
-		#else
-		#	error not implemented
-		#endif
-		StaticAssert( sizeof(Instance) == 64 );
+		union Instance
+		{
+			InstanceVk	vk;
+			InstanceMtl	mtl;
+			char		_unused [64];
+
+			Instance () __NE___ {}
+		};
+
+		static constexpr Bytes	InstanceSize {64};
+		StaticAssert( sizeof(InstanceVk)	== InstanceSize );
+		StaticAssert( sizeof(InstanceMtl)	== InstanceSize );
+		StaticAssert( sizeof(Instance)		== InstanceSize );
+		StaticAssert( sizeof(ERTInstanceOpt) == 1 );
 
 		// TODO: MTLAccelerationStructureUserIDInstanceDescriptor, MTLAccelerationStructureMotionInstanceDescriptor
 
@@ -202,7 +214,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b, Bytes stride = SizeOf<Instance>) __NE___
+		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b, Bytes stride = InstanceSize) __NE___
 		{
 			instanceData.id		= id;
 			instanceData.offset	= offset;
@@ -211,7 +223,8 @@ namespace AE::Graphics
 		}
 
 		// access: EResourceState::BuildRTAS_Read
-		ND_ bool  SetGeometry (RTGeometryID id, INOUT Instance &inst) __NE___;
+		ND_ bool  SetGeometry (RTGeometryID id, INOUT InstanceVk &inst)		__NE___;
+		ND_ bool  SetGeometry (RTGeometryID id, INOUT InstanceMtl &inst)	__NE___;
 	};
 
 
@@ -263,3 +276,15 @@ namespace AE::Graphics
 
 
 } // AE::Graphics
+
+
+namespace AE::Base
+{
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesInfo > { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesData > { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsInfo		> { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsData		> { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::ScratchBuffer	> { static constexpr bool  value = true; };
+
+	template <> struct TTriviallySerializable< Graphics::RTSceneBuild::InstanceBuffer	> { static constexpr bool  value = true; };
+}

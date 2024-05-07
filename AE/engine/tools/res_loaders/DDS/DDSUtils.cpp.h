@@ -66,21 +66,21 @@ namespace AE::ResLoader
 
 	struct DDS_HEADER
 	{
-		uint            dwMagic;
-		uint            dwSize;
-		DDS_FLAGS       dwFlags;
-		uint            dwHeight;
-		uint            dwWidth;
-		uint            dwPitchOrLinearSize;
-		uint            dwDepth;
-		uint            dwMipMapCount;
-		uint            dwReserved1[11];
-		DDS_PIXELFORMAT ddspf;
-		DDS_CAPS        dwCaps;
-		DDS_CAPS2       dwCaps2;
-		uint            dwCaps3;
-		uint            dwCaps4;
-		uint            dwReserved2;
+		uint			dwMagic;
+		uint			dwSize;
+		DDS_FLAGS		dwFlags;
+		uint			dwHeight;
+		uint			dwWidth;
+		uint			dwPitchOrLinearSize;
+		uint			dwDepth;
+		uint			dwMipMapCount;
+		uint			dwReserved1[11];
+		DDS_PIXELFORMAT	ddspf;
+		DDS_CAPS		dwCaps;
+		DDS_CAPS2		dwCaps2;
+		uint			dwCaps3;
+		uint			dwCaps4;
+		uint			dwReserved2;
 	};
 
 	enum DXGI_FORMAT : uint
@@ -314,11 +314,11 @@ namespace AE::ResLoader
 
 	struct DDS_HEADER_DXT10
 	{
-		DXGI_FORMAT               dxgiFormat;
-		D3D11_RESOURCE_DIMENSION  resourceDimension;
-		D3D11_RESOURCE_MISC_FLAG  miscFlag;
-		uint                      arraySize;
-		DDS_MISC_FLAGS2           miscFlags2;
+		DXGI_FORMAT					dxgiFormat;
+		D3D11_RESOURCE_DIMENSION	resourceDimension;
+		D3D11_RESOURCE_MISC_FLAG	miscFlag;
+		uint						arraySize;
+		DDS_MISC_FLAGS2				miscFlags2;
 	};
 
 	StaticAssert( sizeof(DDS_PIXELFORMAT)  == 32 );

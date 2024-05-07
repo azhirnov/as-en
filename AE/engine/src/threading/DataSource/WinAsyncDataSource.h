@@ -170,36 +170,36 @@ namespace AE::Threading
 	{
 	// types
 	public:
-		using EFlags	= WinFileRStream::EFlags;
+		using EMode	= WinFileRStream::EMode;
 	private:
 		using File_t	= WindowsIOService::File_t;
 
-		static constexpr EFlags	DefaultFlags	= EFlags::RandomAccess;
+		static constexpr EMode	c_DefaultMode = EMode::RandomAccess;
 
 
 	// variables
 	private:
 		File_t			_file;
 		const Bytes		_fileSize;
-		const EFlags	_flags;
+		const EMode		_mode;
 
 		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	private:
-		WinAsyncRDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
+		WinAsyncRDataSource (const File_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
-		explicit WinAsyncRDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncRDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncRDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
+		explicit WinAsyncRDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
+		explicit WinAsyncRDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncRDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
 
-		explicit WinAsyncRDataSource (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncRDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncRDataSource (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
+		explicit WinAsyncRDataSource (NtWStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncRDataSource (const wchar_t* filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncRDataSource (const WString &filename, EMode mode = c_DefaultMode)	__NE___;
 
-		explicit WinAsyncRDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit WinAsyncRDataSource (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~WinAsyncRDataSource ()																__NE_OV;
 
@@ -230,11 +230,11 @@ namespace AE::Threading
 	{
 	// types
 	public:
-		using EFlags	= WinFileWStream::EFlags;
+		using EMode	= WinFileWStream::EMode;
 	private:
 		using File_t	= WindowsIOService::File_t;
 
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+		static constexpr EMode	c_DefaultMode = EMode::SharedRead;
 
 
 	// variables
@@ -246,18 +246,18 @@ namespace AE::Threading
 
 	// methods
 	private:
-		WinAsyncWDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
+		WinAsyncWDataSource (const File_t &file, EMode mode DEBUG_ONLY(, Path filename))	__NE___;
 
 	public:
-		explicit WinAsyncWDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncWDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncWDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
+		explicit WinAsyncWDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
+		explicit WinAsyncWDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncWDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
 
-		explicit WinAsyncWDataSource (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncWDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinAsyncWDataSource (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
+		explicit WinAsyncWDataSource (NtWStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncWDataSource (const wchar_t* filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit WinAsyncWDataSource (const WString &filename, EMode mode = c_DefaultMode)	__NE___;
 
-		explicit WinAsyncWDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit WinAsyncWDataSource (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~WinAsyncWDataSource ()																__NE_OV;
 

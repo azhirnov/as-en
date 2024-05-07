@@ -387,7 +387,7 @@ namespace _hidden_ {
 				if ( info->GetSize() != sizeof(B) )
 				{
 					AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
-							    "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
+								"), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
 					signature.clear();
 					ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
 				}
@@ -426,7 +426,7 @@ namespace _hidden_ {
 				if ( info->GetSize() != sizeof(B) )
 				{
 					AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
-							    "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
+								"), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
 					signature.clear();
 					ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
 				}
@@ -469,7 +469,7 @@ namespace _hidden_ {
 				if ( info->GetSize() != sizeof(B) )
 				{
 					AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
-							    "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
+								"), but in AS it has size (" << ToString(info->GetSize()) << "), will be used 'uint" << ToString(sizeof(B)*8) << "' type instead." );
 					signature.clear();
 					ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
 				}

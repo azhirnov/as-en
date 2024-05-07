@@ -15,7 +15,7 @@ namespace
 											{TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder} };
 		Path				output		= TXT("_output");
 
-		FileSystem::RemoveAll( output );
+		FileSystem::DeleteDirectory( output );
 		TEST( FileSystem::CreateDirectories( output ));
 
 		output.append( "features.bin" );
@@ -31,7 +31,7 @@ namespace
 		auto	file = MakeRC<FileRStream>( output );
 		TEST( file->IsOpen() );
 
-		auto	mem_stream = MakeRC<MemRStream>();
+		auto	mem_stream = MakeRC<ArrayRStream>();
 		{
 			uint	name;
 			TEST( file->Read( OUT name ));
@@ -42,7 +42,7 @@ namespace
 			TEST_Lt( offsets.featureSetOffset, ulong(file->Size()) );
 
 			TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
-			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
+			TEST( mem_stream->LoadRemainingFrom( *file, Bytes{offsets.featureSetDataSize} ));
 		}
 
 		AE::Serializing::Deserializer	des{ mem_stream };
@@ -60,7 +60,7 @@ namespace
 
 		uint	count = 0;
 		TEST( des( OUT count ));
-		TEST_Eq( count, 44 );
+		TEST_Eq( count, 47 );
 
 		for (uint i = 0; i < count; ++i)
 		{
@@ -86,7 +86,7 @@ extern void Test_FeatureSetPack ()
 		TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
 		TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/featset_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "featset_test" ));
 
 		FeatureSetPack_Test1();
 	}

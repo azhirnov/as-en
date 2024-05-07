@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Core/RenderGraph.h"
+#include "res_editor/Resources/VideoImage.h"
 #include "res_editor/Resources/VideoImage2.h"
 #include "res_editor/Resources/Buffer.h"
 #include "res_editor/Resources/Image.h"
@@ -20,9 +21,11 @@ namespace AE::ResEditor
 							  const VFS::FileName	&filename,
 							  RC<DynamicDim>		outDynSize,
 							  const SamplerName		&ycbcrConversion,
+							  const Video::IVideoDecoder::VideoStreamInfo &info,
 							  PipelinePackID		packId,
 							  StringView			dbgName) __Th___ :
 		IResource{ renderer },
+		_frameDuration{ 0.5 / info.minFrameRate.ToFloat<double>() },
 		_outDynSize{ RVRef(outDynSize) },
 		_dbgName{ dbgName }
 	{
@@ -34,27 +37,29 @@ namespace AE::ResEditor
 		auto	rstream = GetVFS().Open<RStream>( filename );
 		CHECK_THROW( rstream );
 
-		Video::IVideoDecoder::Config	in_cfg;
-		in_cfg.filter		= Video::EFilter::Bilinear;
-		in_cfg.threadCount	= 4;
+		Video::IVideoDecoder::Config	in_cfg {VideoImage::GetHwConfig()};
+	//	in_cfg.dstFormat	= inDesc.format;	// don't convert format
+		in_cfg.filter		= Video::EFilter::Fast;
+		in_cfg.threadCount	= 8;
 
-		CHECK_THROW( _decoder->Begin( in_cfg, rstream ));
+		CHECK_THROW( _decoder->Begin( in_cfg, RVRef(rstream) ));
 
 		const auto	config	= _decoder->GetConfig();
 		const auto	props	= _decoder->GetProperties();
-		const auto*	vstream	= props.GetStream( config.videoStreamIdx );
-		CHECK_THROW( vstream != null );
+
+		CHECK_THROW( config.videoStreamIdx == props.videoStream.index );
+		CHECK_THROW( inDesc.format == config.dstFormat );	// ycbcr sampler created for format 'inDesc.format'
 
 		VideoImageDesc	desc;
-		desc.dimension		= vstream->dimension;
+		desc.dimension		= uint2{inDesc.dimension};
 		desc.arrayLayers	= 1_layer;
-		desc.format			= vstream->pixFormat;
+		desc.format			= config.dstFormat;
 		desc.options		= inDesc.options;
 		desc.usage			= inDesc.usage;
 		desc.memType		= inDesc.memType;
 		desc.ycbcrConversion= ycbcrConversion;
 		desc.ycbcrConvPack	= packId;
-		_dimension			= vstream->dimension;
+		_dimension			= desc.dimension;
 
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 		auto&	rstate		= RenderGraph().GetStateTracker();
@@ -64,7 +69,7 @@ namespace AE::ResEditor
 
 		for (usize i = 0; i < _ids.size(); ++i)
 		{
-			_ids[i] = res_mngr.CreateVideoImage( desc, _dbgName + ToString(i), _GfxAllocator() );
+			_ids[i] = res_mngr.CreateVideoImage( desc, _dbgName + ToString(i), _Renderer().ChooseAllocator( False{"static"}, desc ));
 			CHECK_THROW( _ids[i] );
 
 			rstate.AddResource( _ids[i].Get(),
@@ -86,7 +91,7 @@ namespace AE::ResEditor
 
 		_DtTrQueue().EnqueueForUpload( GetRC() );
 
-		_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage2>() ), Tuple{}, "Video decoding" );
+		_StartDecoding();
 	}
 
 /*
@@ -98,6 +103,30 @@ namespace AE::ResEditor
 	{
 		auto&	rstate = RenderGraph().GetStateTracker();
 		rstate.ReleaseResourceArray( _ids );
+	}
+
+/*
+=================================================
+	RequireResize
+=================================================
+*/
+	bool  VideoImage2::RequireResize () C_Th___
+	{
+		// Hack: Upload() and GetImageId() may be executed at any order,
+		// here are the one place which executed before uploading and rendering.
+
+		_imageIdx = _nextImageIdx;
+		return false;
+	}
+
+/*
+=================================================
+	RequireResize
+=================================================
+*/
+	void  VideoImage2::_StartDecoding () __NE___
+	{
+		_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage2>() ), Tuple{_lastDecoding}, "Video decoding" );
 	}
 
 /*
@@ -114,10 +143,6 @@ namespace AE::ResEditor
 		States	states = _states.load( EMemoryOrder::Acquire );
 		_Validate( states );
 
-		if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
-			_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage2>() ), Tuple{_lastDecoding}, "Video decoding" );
-
-
 		// variants:
 		//	- decoding in progress	-> skip
 		//	- frame ready			-> begin uploading
@@ -125,14 +150,20 @@ namespace AE::ResEditor
 		const uint	mem_idx	= states.pos;
 
 		if ( not HasBit( states.decodedBits, mem_idx ))
-			return _uploadStatus.load();  // decoding in progress
+		{
+			if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
+				_StartDecoding();
 
-		const auto	cur_time = Seconds_t{_curTime.Add( GraphicsScheduler().GetFrameTimeDelta().count() )};
+			return _uploadStatus.load();  // decoding in progress
+		}
+
+		const float	min_dt   = 1.f / 30.f;
+		const auto	cur_time = Seconds_t{_curTime.Add( Min( GraphicsScheduler().GetFrameTimeDelta().count(), min_dt ))} + _frameDuration;
 
 		if ( cur_time < _frameTimes[mem_idx] )
 			return _uploadStatus.load();  // skip
 
-		const uint	idx = (_imageIdx.load()+1) % _ids.size();
+		const uint	idx = (_nextImageIdx+1) % _ids.size();
 
 		// init image stream
 		for (usize i = 0; i < _streamArr.size(); ++i)
@@ -178,7 +209,7 @@ namespace AE::ResEditor
 				stream = VideoImageStream{};
 			}
 
-			_imageIdx.store( idx );
+			_nextImageIdx = idx;
 
 			// update 'pos', 'decodedBits'
 			for (States exp = states;;)
@@ -193,6 +224,9 @@ namespace AE::ResEditor
 				states = exp;
 				ThreadUtils::Pause();
 			}
+
+			if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
+				_StartDecoding();
 		}
 
 		return _uploadStatus.load();
@@ -237,7 +271,8 @@ namespace AE::ResEditor
 */
 	uint  VideoImage2::_DecodeFrame () __NE___
 	{
-		using FrameInfo = Video::IVideoDecoder::FrameInfo;
+		using FrameInfo			= Video::IVideoDecoder::FrameInfo;
+		using ImageMemViewArr	= Video::IVideoDecoder::ImageMemViewArr;
 
 		// find empty image
 		States		states	= _states.load();
@@ -257,13 +292,10 @@ namespace AE::ResEditor
 		}
 		ASSERT( not HasBit( states.decodedBits, idx ));
 
-		if_unlikely( not _decoder )
-			return 0;
-
 		uint	result = 0;
 
 		// get next video frame
-		if ( FrameInfo info;  _decoder->GetNextFrame( INOUT _imageMemView[idx], OUT info ))
+		if ( FrameInfo info;  _decoder->GetVideoFrame( INOUT _imageMemView[idx], OUT info ))
 		{
 			_frameTimes[idx] = info.timestamp;
 

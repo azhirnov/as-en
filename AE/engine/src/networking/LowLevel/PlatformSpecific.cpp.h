@@ -126,9 +126,10 @@ namespace AE::Networking
 			CASE( WSAECONNRESET,	ECONNRESET,		ConnectionResetByPeer );
 			CASE( WSAECONNREFUSED,	ECONNREFUSED,	ConnectionRefused );
 			CASE( WSAENOTCONN,		ENOTCONN,		NotConnected );
+			CASE( WSAECONNABORTED,	ECONNABORTED,	ConnectionAborted );
 		}
 		#undef CASE
-		StaticAssert( uint(SocketReceiveError::UnknownError) == 8 );
+		StaticAssert( uint(SocketReceiveError::UnknownError) == 9 );
 		return SocketReceiveError::UnknownError;
 	}
 

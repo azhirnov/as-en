@@ -57,7 +57,8 @@ namespace AE::ResEditor
 		uint					_texbufType		= 0;		// PipelineCompiler::EImageType
 		String					_dbgName;
 
-		ScriptDynamicUIntPtr	_dynCount;
+		ScriptDynamicUIntPtr	_inDynCount;	// array size depends on this dynamic variable
+		ScriptDynamicUIntPtr	_outDynCount;	// dynamic variable updated to the actual size of array
 		uint					_staticCount	= 0;
 
 		RC<Buffer>				_resource;
@@ -87,15 +88,20 @@ namespace AE::ResEditor
 							   const ScriptDynamicUIntPtr &count)								__Th___;
 		void  SetArrayLayout5 (const String &typeName, const String &source,
 							   const String &staticSrc, uint count)								__Th___;
+		void  SetArrayLayout6 (const String &typeName, const String &source,
+							   const String &staticSrc, const ScriptDynamicUIntPtr &count)		__Th___;
 
 		ND_ StringView		GetName ()															C_NE___	{ return _dbgName; }
 		ND_ bool			HasLayout ()														C_NE___	{ return not _layout.typeName.empty(); }
 		ND_ String			GetTypeName ()														C_NE___;
 		ND_ uint			TexelBufferType ()													C_NE___	{ ASSERT( not HasLayout() );  return _texbufType; }
-		ND_ bool			IsDynamicSize ()													C_NE___	{ return _dynCount != null; }
+		ND_ bool			IsDynamicSize ()													C_NE___	{ return _inDynCount != null; }
 		ND_ ulong			GetDeviceAddress ()													__Th___;
 		ND_ EPixelFormat	GetViewFormat ()													C_Th___;	// TODO
 		ND_ bool			WithHistory ()														C_NE___	{ return AllBits( _resUsage, EResourceUsage::WithHistory ); }
+
+		ND_ ScriptDynamicUInt*		ArraySize ()												C_Th___;
+		ND_ ScriptDynamicUIntPtr	ArraySizeRC ()												C_Th___;
 
 		ND_ Bytes			GetFieldOffset (const String &name)									__Th___;
 		ND_ uint			GetFieldType (const String &name)									__Th___;	// PipelineCompiler::EValueType
@@ -177,6 +183,7 @@ namespace AE::ResEditor
 
 			void		AddLayoutReflection ()													C_Th___;
 
+		// Returns non-null resource or throw exception.
 		ND_ RC<Buffer>  ToResource ()															__Th___;
 
 

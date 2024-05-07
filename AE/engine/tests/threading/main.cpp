@@ -15,7 +15,6 @@ extern void UnitTest_LfIndexedPool ();
 extern void UnitTest_LfStaticPool ();
 extern void UnitTest_LfStaticIndexedPool ();
 extern void UnitTest_LfTaskQueue ();
-extern void UnitTest_LfStaticQueue ();
 
 extern void UnitTest_LfFixedBlockAllocator3 ();
 extern void UnitTest_LfLinearAllocator ();
@@ -24,19 +23,19 @@ extern void UnitTest_LfStaticBlockAllocator ();
 extern void UnitTest_SpinLock ();
 extern void UnitTest_Synchronized ();
 
-extern void UnitTest_AsyncDataSource ();
+extern void UnitTest_AsyncDataSource (const Path &curr);
 extern void UnitTest_TsSharedMem ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Threading ()
+extern "C" AE_DLL_EXPORT int Tests_Threading (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
-	UnitTest_AsyncDataSource();
+	UnitTest_AsyncDataSource( curr );
 
 	UnitTest_TsSharedMem();
 
@@ -45,7 +44,6 @@ int main ()
 	UnitTest_LfStaticPool();
 	UnitTest_LfStaticIndexedPool();
 	UnitTest_LfTaskQueue();
-	UnitTest_LfStaticQueue();
 
 	UnitTest_LfFixedBlockAllocator3();
 	UnitTest_LfLinearAllocator();

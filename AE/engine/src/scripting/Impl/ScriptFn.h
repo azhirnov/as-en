@@ -128,7 +128,7 @@ namespace AE::Scripting
 			#if AE_DBG_SCRIPTS
 			if ( not _module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() ))
 			#endif
-				AE_LOG_SE( err );
+				AE_LOGW( err );
 
 			return false;
 		}

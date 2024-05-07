@@ -117,7 +117,7 @@ namespace
 		Seconds			a4 {milliseconds{3}};		TEST( BitEqual( a4.GetScaled(), 3.0e-3 ));
 		Seconds			a5 {nanoseconds{14}};		TEST( BitEqual( a5.GetScaled(), 14.0e-9 ));
 
-		nanoseconds		b0 {Seconds{1.0}};			TEST( Equal( b0.count(), 1'000'000'000ll ));
+		nanoseconds		b0 {Seconds{1.0}};			TEST( Equal( slong(b0.count()), slong{1'000'000'000} ));
 
 		FBytes			c0 {Bytes{1u << 20}};		TEST( BitEqual( c0.GetScaled(), double(1u<<20) ));
 

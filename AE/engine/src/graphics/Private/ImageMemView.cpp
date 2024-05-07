@@ -832,7 +832,7 @@ namespace
 
 				for (uint i = 0, cnt = uint(row_size); i < cnt; ++i)	// TODO: optimize
 				{
-					diff += (lhs_row[i] == rhs_row[i] ? 0 : 1);
+					diff += uint(lhs_row[i] != rhs_row[i]);
 				}
 			}
 		}

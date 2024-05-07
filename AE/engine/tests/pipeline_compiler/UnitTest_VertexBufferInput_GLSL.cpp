@@ -13,11 +13,7 @@ namespace
 		VertexBufferInputPtr vb{ new ScriptVertexBufferInput{} };
 		vb->Add4( "All", st );
 
-		String	src = vb->ToGLSL();
-	  #if not AE_PRIVATE_USE_TABS
-		src = Parser::TabsToSpaces( src );
-	  #endif
-
+		const String	src = vb->ToGLSL();
 		const String	ref = R"#(  // All
 layout(location=0) in lowp vec4  in_a;
 
@@ -43,7 +39,7 @@ extern void  UnitTest_VertexBufferInput_GLSL ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		VertexBufferInput_Test1();

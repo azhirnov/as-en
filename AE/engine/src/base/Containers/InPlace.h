@@ -154,8 +154,8 @@ namespace AE::Base
 	};
 
 
-	template <typename T>	struct TMemCopyAvailable< InPlace<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T>	struct TTriviallyDestructible< InPlace<T> >	{ static constexpr bool  value = IsTriviallyDestructible<T>; };
+	template <typename T>	struct TMemCopyAvailable< InPlace<T> >		{ static constexpr bool  value = false; };
+	template <typename T>	struct TTriviallyDestructible< InPlace<T> >	{ static constexpr bool  value = false; };
 
 
 } // AE::Base

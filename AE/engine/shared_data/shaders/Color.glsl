@@ -51,12 +51,12 @@ ND_ float3  RGBLerpOklab (const float3 a, const float3 b, const float factor);
 
 float4  Rainbow (const float factor)
 {
-	return float4( HSVtoRGB( float3( Saturate( factor * 0.74f ), 1.f, 1.f )), 1.f );
+	return float4( HSVtoRGB( float3( Saturate( factor * 0.8f ), 1.f, 1.f )), 1.f );
 }
 
 float4  RainbowWrap (const float factor)
 {
-	return float4( HSVtoRGB( float3( Wrap( factor * 0.74f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );
+	return float4( HSVtoRGB( float3( Wrap( factor * 0.8f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );
 }
 //-----------------------------------------------------------------------------
 

@@ -2,55 +2,7 @@
 
 #pragma once
 
-#include "profiler/Utils/ArmProfiler.h"
-#include "pch/Networking.h"
-
-namespace AE::Networking
-{
-	DECL_CSMSG( ArmProf_InitReq,  Debug,
-		Profiler::ArmProfiler::ECounterSet	enable;
-		secondsf							updateInterval;
-	);
-
-	DECL_CSMSG( ArmProf_InitRes,  Debug,
-		bool								ok;
-		Profiler::ArmProfiler::ECounterSet	enabled;
-		Profiler::ArmProfiler::ECounterSet	supported;
-	);
-
-	DECL_CSMSG( ArmProf_NextSample,  Debug,
-		ubyte		index;
-		ushort		dtInMs;
-	);
-
-	DECL_CSMSG( ArmProf_Sample,  Debug,
-		using KeyVal = Pair< Profiler::ArmProfiler::ECounter, double >;
-		ubyte		index;
-		ubyte		count;
-		KeyVal		arr [1];
-	);
-	//--------------------------------------------------------
-
-
-	CSMSG_ENC_DEC( ArmProf_InitReq,			enable, updateInterval );
-	CSMSG_ENC_DEC( ArmProf_InitRes,			ok, enabled, supported );
-	CSMSG_ENC_DEC( ArmProf_NextSample,		index, dtInMs );
-	CSMSG_ENC_DEC_EXARRAY( ArmProf_Sample,	count, arr,  AE_ARGS( index, count ));
-	//--------------------------------------------------------
-
-
-	ND_ inline bool  Register_ArmProfiler (MessageFactory &mf) __NE___
-	{
-		return	mf.Register<
-					CSMsg_ArmProf_InitReq,
-					CSMsg_ArmProf_InitRes,
-					CSMsg_ArmProf_NextSample,
-					CSMsg_ArmProf_Sample
-				>( False{} );
-	}
-
-} // AE::Networking
-
+#include "profiler/Remote/Messages.h"
 
 namespace AE::Profiler
 {
@@ -63,9 +15,9 @@ namespace AE::Profiler
 	{
 	// types
 	public:
-		using ECounter		= ArmProfiler::ECounter;
-		using ECounterSet	= ArmProfiler::ECounterSet;
-		using Counters_t	= ArmProfiler::Counters_t;
+		using ECounter			= ArmProfiler::ECounter;
+		using ECounterSet		= ArmProfiler::ECounterSet;
+		using Counters_t		= ArmProfiler::Counters_t;
 	private:
 		using ClientServer_t	= Networking::ClientServerBase;
 		using MsgProducer		= Networking::IAsyncCSMessageProducer;
@@ -80,16 +32,24 @@ namespace AE::Profiler
 			void  Consume (ChunkList<const Networking::CSMessagePtr>)	__NE_OV;
 		};
 
+		friend class ArmProfilerClient;
+		enum class EStatus : uint
+		{
+			NotInitialized,
+			NotSupported,
+			Initialized,
+		};
+
 
 	// variables
 	private:
 		struct {
-			Atomic<bool>				initialized	{false};
+			Atomic<EStatus>				status		{EStatus::NotInitialized};
 			ubyte						index		= 0;
 			ArmProfiler					profiler;
 			ArmProfiler::Counters_t		counters;
 			Timer						timer;
-		}							_armProf;
+		}							_prof;
 
 		StaticRC<MsgConsumer>		_msgConsumer;
 		RC<MsgProducer>				_msgProducer;
@@ -126,6 +86,7 @@ namespace AE::Profiler
 	private:
 		using MsgProducer	= Networking::IAsyncCSMessageProducer;
 		using MsgConsumer	= Networking::ICSMessageConsumer;
+		using EStatus		= ArmProfilerServer::EStatus;
 
 
 	// variables
@@ -143,7 +104,7 @@ namespace AE::Profiler
 		Counters_t						_counters [2];
 		ECounterSet						_enabled;
 		ECounterSet						_supported;
-		bool							_initialized		= false;
+		EStatus							_status			= EStatus::NotInitialized;
 
 
 	// methods
@@ -152,7 +113,7 @@ namespace AE::Profiler
 
 		ND_ bool  Initialize (const ECounterSet &counterSet)			__NE___;
 			void  Deinitialize ()										__NE___;
-		ND_ bool  IsInitialized ()										C_NE___	{ SHAREDLOCK( _guard );  return _initialized; }
+		ND_ bool  IsInitialized ()										C_NE___	{ SHAREDLOCK( _guard );  return _IsInitialized(); }
 
 			void  Sample (OUT Counters_t &result)						__NE___;
 
@@ -165,6 +126,9 @@ namespace AE::Profiler
 	private:
 		ND_ bool  _Initialize (const ECounterSet &counterSet)			__NE___;
 			void  _Consume (ChunkList<const Networking::CSMessagePtr>)	__NE___;
+
+		ND_ bool  _IsInitialized ()										C_NE___	{ return _status == EStatus::Initialized; }
+		ND_ bool  _IsNotInitialized ()									C_NE___	{ return _status == EStatus::NotInitialized; }
 
 	private:
 		void  _InitRes (Networking::CSMsg_ArmProf_InitRes const&)		__NE___;

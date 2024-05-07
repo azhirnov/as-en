@@ -137,49 +137,53 @@ namespace AE::Base
 	// On Stack Allocator
 	//
 
-# ifdef AE_COMPILER_MSVC
+#ifdef AE_COMPILER_MSVC
+# if 0 //def AE_ENABLE_EXCEPTIONS
 #	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
 		{																							\
-			StaticAssert( IsBytes< decltype(_sizeInBytes_) >);										\
+			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
+			_outPtr_ = null;																		\
+			__try {																					\
+				ASSERT( _sizeInBytes_ <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */				\
+				_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(_alloca( usize(_sizeInBytes_) ));\
+				AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );	\
+			}																						\
+			__except( GetExceptionCode() == AE_SEH_STACK_OVERFLOW ?									\
+						EXCEPTION_EXECUTE_HANDLER :													\
+						EXCEPTION_CONTINUE_SEARCH )													\
+			{																						\
+				_resetstkoflw();																	\
+			}																						\
+		}
+# else
+#	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
+		{																							\
+			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
 			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
 			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(_alloca( usize(_sizeInBytes_) ));	\
 			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );		\
 		}
+# endif // AE_ENABLE_EXCEPTIONS
 
-# elif 0
+#else
 #	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
 		{																							\
-			StaticAssert( IsBytes< decltype(_sizeInBytes_) >);										\
-			_outPtr_ = null;																		\
-			__try {																					\
-				ASSERT( _sizeInBytes_ <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */				\
-				_outPtr_ = Cast< decltype(*_outPtr_) >(_alloca( usize(_sizeInBytes_) ));			\
-				AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );	\
-			}																						\
-			__except( GetExceptionCode() == 0xC00000FDl ) {	/* STATUS_STACK_OVERFLOW */				\
-				_resetstkoflw();																	\
-			}																						\
-		}
-
-# else
-#	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
-		{																							\
-			StaticAssert( IsBytes< decltype(_sizeInBytes_) >);										\
+			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
 			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
 			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(alloca( usize(_sizeInBytes_) ));	\
 			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );		\
 		}
 
-# endif
+#endif
 
 
 #	define AllocateOnStack( _outPtr_, _count_ )														\
-		StaticAssert( IsInteger< decltype(_count_) >);												\
+		StaticAssert( IsInteger< RemoveCV< decltype(_count_) >>);									\
 		AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );
 
 #	define AllocateOnStack_WithCtor( _outPtr_, _count_ )											\
 		{																							\
-			StaticAssert( IsInteger< decltype(_count_) >);											\
+			StaticAssert( IsInteger< RemoveCV< decltype(_count_) >>);								\
 			AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );	\
 			for (usize i = 0, cnt = _count_; i < cnt; ++i) {										\
 				PlacementNew< RemovePointer<decltype(_outPtr_)> >( OUT _outPtr_ + i );				\
@@ -188,7 +192,7 @@ namespace AE::Base
 
 #	define AllocateOnStack_ZeroMem( _outPtr_, _count_ )												\
 		{																							\
-			StaticAssert( IsInteger< decltype(_count_) >);											\
+			StaticAssert( IsInteger< RemoveCV< decltype(_count_) >>);								\
 			AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );	\
 			ZeroMem( OUT _outPtr_, _count_ );														\
 		}

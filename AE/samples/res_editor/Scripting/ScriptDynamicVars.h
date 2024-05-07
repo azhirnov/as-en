@@ -10,6 +10,8 @@
 
 namespace AE::ResEditor
 {
+	class ScriptDynamicUInt;
+
 
 	//
 	// Script Dynamic Dimension
@@ -42,6 +44,9 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicDim*	Div3 (const packed_int3 &value)			C_Th___;
 		ND_ ScriptDynamicDim*	DivRound3 (const packed_int3 &value)	C_Th___;
 		ND_ ScriptDynamicDim*	DivCeil3 (const packed_int3 &value)		C_Th___;
+
+		ND_ ScriptDynamicUInt*  Area ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -87,7 +92,9 @@ namespace AE::ResEditor
 		explicit ScriptDynamicUInt ()									__Th___ : _value{ MakeRC<DynamicUInt>() } {}
 		explicit ScriptDynamicUInt (RC<DynamicUInt> dv)					__NE___ : _value{RVRef(dv)} {}
 
-		ND_ RC<DynamicUInt>  Get ()										C_NE___	{ return _value; }
+		ND_ RC<DynamicUInt>		Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicUInt*	Mul (uint value)						__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};

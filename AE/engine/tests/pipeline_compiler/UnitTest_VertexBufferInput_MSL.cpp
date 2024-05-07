@@ -13,11 +13,7 @@ namespace
 		VertexBufferInputPtr vb{ new ScriptVertexBufferInput{} };
 		vb->Add4( "All", st );
 
-		String	src = vb->ToMSL();
-	  #if not AE_PRIVATE_USE_TABS
-		src = Parser::TabsToSpaces( src );
-	  #endif
-
+		const String	src = vb->ToMSL();
 		const String	ref = R"#(struct VertexInput
 {
   // All
@@ -44,7 +40,7 @@ extern void  UnitTest_VertexBufferInput_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		VertexBufferInput_Test1();

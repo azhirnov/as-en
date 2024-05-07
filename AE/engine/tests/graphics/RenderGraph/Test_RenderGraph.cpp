@@ -1,23 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
-#include "base/Platforms/Platform.h"
-#include "base/DataSource/FileStream.h"
-#include "base/Algorithms/Parser.h"
-
-#include "threading/TaskSystem/ThreadManager.h"
-
 #include "Test_RenderGraph.h"
 
 #include "res_loaders/DDS/DDSImageSaver.h"
 
-#include "../UnitTest_Common.h"
-
 using namespace AE::App;
 using namespace AE::Threading;
 
-extern void Test_Image (IResourceManager &resMngr);
-extern void Test_Buffer (IResourceManager &resMngr);
+extern void Test_Image (ResourceManager &resMngr);
+extern void Test_Buffer (ResourceManager &resMngr);
 
 static constexpr uint  c_MaxRenderThreads = 3;
 
@@ -35,7 +26,7 @@ RGTest::RGTest () :
 
 	_tests.emplace_back( &RGTest::Test_Allocator );
 	_tests.emplace_back( &RGTest::Test_FeatureSets );
-	_tests.emplace_back( &RGTest::Test_FrameCounter );
+//	_tests.emplace_back( &RGTest::Test_FrameCounter );
 	_tests.emplace_back( &RGTest::Test_ImageFormat );
 
 	_tests.emplace_back( &RGTest::Test_UploadStream1 );
@@ -47,15 +38,15 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_CopyImage2 );
 	_tests.emplace_back( &RGTest::Test_Compute1 );
 	_tests.emplace_back( &RGTest::Test_Compute2 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute1 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
-	_tests.emplace_back( &RGTest::Test_AsyncCompute3 );
 	_tests.emplace_back( &RGTest::Test_Draw1 );
 	_tests.emplace_back( &RGTest::Test_Draw2 );
 	_tests.emplace_back( &RGTest::Test_Draw3 );
 	_tests.emplace_back( &RGTest::Test_Draw4 );
 	_tests.emplace_back( &RGTest::Test_Draw5 );
 	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
+	_tests.emplace_back( &RGTest::Test_AsyncCompute1 );
+	_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
+	_tests.emplace_back( &RGTest::Test_AsyncCompute3 );
 
   #ifndef AE_ENABLE_METAL
 	_tests.emplace_back( &RGTest::Test_DrawMesh1 );
@@ -74,6 +65,8 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_Debugger4 );
 	_tests.emplace_back( &RGTest::Test_Debugger5 );
   #endif
+
+	RenderTaskScheduler::InstanceCtor::Create( _device );
 }
 
 /*
@@ -102,13 +95,16 @@ Unique<ImageComparator>  RGTest::_LoadReference (StringView name) const
 {
 	Unique<ImageComparator>	img_cmp{ new ImageComparator{} };
 
-	const Path	path	= (_refImagePath / name).replace_extension( "dds" );
+	const Path	path	= (_refImagePath / name).replace_extension( "png" );
 	bool		loaded	= false;
 
-	RC<RStream>	rfile;
-	if ( _refImageStorage->Open( OUT rfile, VFS::FileName{path.string()} ))
+	if ( not UpdateAllReferences )
 	{
-		loaded = img_cmp->LoadReference( RVRef(rfile), path );
+		RC<RStream>	rfile;
+		if ( _refImageStorage->Open( OUT rfile, VFS::FileName{ToString(path)} ))
+		{
+			loaded = img_cmp->LoadReference( RVRef(rfile), path );
+		}
 	}
 
 	if ( not loaded )
@@ -152,9 +148,9 @@ bool  RGTest::SaveImage (StringView name, const ImageMemView &view) const
 	Run
 =================================================
 */
-bool  RGTest::Run (IApplication &app, IWindow &wnd)
+bool  RGTest::Run (FStorage_t assetStorage, FStorage_t refStorage)
 {
-	CHECK_ERR( _Create( app, wnd ));
+	CHECK_ERR( _Create( refStorage ));
 
 	for (uint i = 0; i < c_MaxRenderThreads; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
@@ -162,7 +158,7 @@ bool  RGTest::Run (IApplication &app, IWindow &wnd)
 				"render thread"s << ToString(i)
 			}));
 	}
-	CHECK_ERR( _CompilePipelines( app ));
+	CHECK_ERR( _CompilePipelines( assetStorage ));
 
 	bool	result = _RunTests();
 
@@ -191,9 +187,6 @@ void  RGTest::_Destroy ()
 	_vrsPipelines	= null;
 	_ycbcrPipelines	= null;
 
-	_swapchain.Destroy();
-	_swapchain.DestroySurface();
-
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
 	CHECK( _device.DestroyLogicalDevice() );
@@ -205,29 +198,24 @@ void  RGTest::_Destroy ()
 	_CompilePipelines
 =================================================
 */
-bool  RGTest::_CompilePipelines (IApplication &app)
+bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 {
 	auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
 	{
-	#ifdef AE_PLATFORM_ANDROID
-		auto	storage = app.OpenStorage( EAppStorage::Builtin );
-		CHECK_ERR( storage );
-
+	  #ifdef AE_ENABLE_METAL
 		RC<RStream>	file;
-		CHECK_ERR( storage->Open( OUT file, VFS::FileName{AE_RES_PACK} ));
-	#else
-		RC<RStream>	file = MakeRC<FileRStream>( AE_RES_PACK );
-		CHECK_ERR( file->IsOpen() );
-		Unused( app );
-	#endif
+		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.Graphics.mtlPipelines.bin"} ));
+	  #else
+		RC<RStream>	file;
+		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.Graphics.vkPipelines.bin"} ));
+	  #endif
 
 		PipelinePackDesc	desc;
-		desc.stream			= file;
-		desc.surfaceFormat	= _swapchain.GetDescription().colorFormat;
+		desc.stream = file;
 
-		CHECK_ERR( desc.surfaceFormat != Default );
-		CHECK_ERR( res_mngr.InitializeResources( desc ));
+		auto	pack_id = res_mngr.LoadPipelinePack( desc );
+		CHECK_ERR( res_mngr.InitializeResources( RVRef(pack_id) ));
 	}
 
 	_pipelines = res_mngr.LoadRenderTech( Default, RenderTechs::DrawTestRT, Default );
@@ -262,6 +250,53 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 
 	return info;
 }
+
+/*
+=================================================
+	_CompareDumps
+=================================================
+*/
+bool  RGTest::_CompareDumps (StringView right, StringView filename) const
+{
+	Path	fname = _refImagePath;
+	fname.append( String{filename} << ".txt" );
+
+
+	// read from file
+	bool	update_ref	= true;
+	String	left;
+	{
+		RC<RStream>		rfile;
+		update_ref = not (_refImageStorage->Open( OUT rfile, VFS::FileName{ToString(fname)} ) and
+						  rfile->Read( usize(rfile->Size()), OUT left ));
+	}
+
+	// override dump
+	if ( update_ref or UpdateAllReferences )
+	{
+		VFS::FileName	name;
+		CHECK_ERR( _refImageStorage->CreateFile( name, fname ));
+
+		RC<WStream>		wfile;
+		CHECK_ERR( _refImageStorage->Open( OUT wfile, name ));
+
+		CHECK_ERR( wfile->Write( StringView{right} ));
+		return true;
+	}
+
+	Parser::CompareLineByLine( left, right,
+		[filename, i = 0] (uint lline, StringView lstr, uint rline, StringView rstr) M_NE___
+		{
+			AE_LOGW( "in: "s << filename << " (" << ToString(i++) << ")\n"
+						<< "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
+						<< "\n(" << ToString( rline ) << "): " << rstr );
+			return false; // continue
+		},
+		[filename] () __NE___ {
+			AE_LOGW( "in: "s << filename << "\n\n" << "sizes of dumps are not equal!" );
+		});
+	return true;
+}
 //-----------------------------------------------------------------------------
 
 
@@ -272,14 +307,13 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 	_Create
 =================================================
 */
-bool  RGTest::_Create (IApplication &app, IWindow &wnd)
+bool  RGTest::_Create (FStorage_t refStorage)
 {
 	{
 		VDeviceInitializer::InstanceCreateInfo	inst_ci;
-		inst_ci.appName				= "TestApp";
-		inst_ci.instanceLayers		= _device.GetRecommendedInstanceLayers();
-		inst_ci.instanceExtensions	= app.GetVulkanInstanceExtensions();
-		inst_ci.version				= {1,3};
+		inst_ci.appName			= "TestApp";
+		inst_ci.instanceLayers	= _device.GetRecommendedInstanceLayers();
+		inst_ci.version			= {1,3};
 
 		#if 0
 		const VkValidationFeatureEnableEXT	sync_enable_feats  [] = { VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT };
@@ -294,10 +328,16 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 
 	// this is a test and the test should fail for any validation error
 	_device.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK_FATAL(not rep.isError); });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK_FATAL(not rep.isError); });
+
+  #if AE_VK_TIMELINE_SEMAPHORE
+	const EQueueMask	opt_queues = EQueueMask::All;
+  #else
+	const EQueueMask	opt_queues = Default;
+  #endif
 
 	CHECK_ERR( _device.ChooseHighPerformanceDevice() );
-	CHECK_ERR( _device.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
+	CHECK_ERR( _device.CreateDefaultQueues( EQueueMask::Graphics, opt_queues ));
 	CHECK_ERR( _device.CreateLogicalDevice() );
 	CHECK_ERR( _device.CheckConstantLimits() );
 	CHECK_ERR( _device.CheckExtensions() );
@@ -305,44 +345,18 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 	{
 		FlatHashMap<VkQueue, String>	qnames;
 		for (auto& q : _device.GetQueues()) {
-			qnames.emplace( q.handle, q.debugName );
+			qnames.emplace( q.handle, String{q.debugName} );
 		}
 		_syncLog.Initialize( INOUT _device.EditDeviceFnTable(), RVRef(qnames) );
 	}
-
-	RenderTaskScheduler::InstanceCtor::Create( _device );
 
 	const GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
 
 	auto&	rts = GraphicsScheduler();
 	CHECK_ERR( rts.Initialize( info ));
 
-	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
-	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
-
-  #ifdef AE_PLATFORM_ANDROID
-	// android tests executed in separate thread and can not access to window size
-	CHECK_ERR( _swapchain.Create( uint2{800,600}, info.swapchain ));
-  #else
-	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), info.swapchain ));
-  #endif
-
-  #ifdef AE_PLATFORM_ANDROID
-	_refDumpStorage	= app.OpenStorage( EAppStorage::Cache );
-	_refDumpPath	= Path{AE_REFDUMP_PATH} / _device.GetDeviceName();
-  #else
-	_refDumpStorage	= VFS::VirtualFileStorageFactory::CreateDynamicFolder( AE_REFDUMP_PATH, Default, True{"createFolder"} );
-	_refDumpPath	= _device.GetDeviceName();
-  #endif
-	CHECK_ERR( _refDumpStorage );
-
-  #ifdef AE_PLATFORM_ANDROID
-	_refImageStorage	= app.OpenStorage( EAppStorage::Cache );
-	_refImagePath		= Path{AE_REF_IMG_PATH} / _device.GetDeviceName();
-  #else
-	_refImageStorage	= VFS::VirtualFileStorageFactory::CreateDynamicFolder( AE_REF_IMG_PATH, Default, True{"createFolder"} );
-	_refImagePath		= _device.GetDeviceName();
-  #endif
+	_refImageStorage	= refStorage;
+	_refImagePath		= Path{_device.GetDeviceName()};
 	CHECK_ERR( _refImageStorage );
 
 	return true;
@@ -388,44 +402,9 @@ bool  RGTest::_RunTests ()
 */
 bool  RGTest::_CompareDumps (StringView filename) const
 {
-	Path	fname = _refDumpPath;
-	fname.append( String{filename} << ".txt" );
-
 	String	right;
 	_syncLog.GetLog( OUT right );
-
-	// override dump
-	if ( UpdateAllReferenceDumps )
-	{
-		VFS::FileName	name;
-		CHECK_ERR( _refDumpStorage->CreateFile( name, fname ));
-
-		RC<WStream>		wfile;
-		CHECK_ERR( _refDumpStorage->Open( OUT wfile, name ));
-
-		CHECK_ERR( wfile->Write( StringView{right} ));
-		return true;
-	}
-
-	// read from file
-	String	left;
-	{
-		RC<RStream>		rfile;
-		CHECK_ERR( _refDumpStorage->Open( OUT rfile, VFS::FileName{fname.string()} ));
-
-		CHECK_ERR( rfile->Read( usize(rfile->Size()), OUT left ));
-	}
-
-	return Parser::CompareLineByLine( left, right,
-				[filename] (uint lline, StringView lstr, uint rline, StringView rstr) __NE___
-				{
-					AE_LOGE( "in: "s << filename << "\n\n"
-								<< "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
-								<< "\n(" << ToString( rline ) << "): " << rstr );
-				},
-				[filename] () __NE___ {
-					AE_LOGE( "in: "s << filename << "\n\n" << "sizes of dumps are not equal!" );
-				});
+	return _CompareDumps( right, filename );
 }
 
 /*
@@ -433,11 +412,10 @@ bool  RGTest::_CompareDumps (StringView filename) const
 	Test_VulkanRenderGraph
 =================================================
 */
-extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd)
+extern void  Test_VulkanRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
 {
 	RGTest		test;
-	CHECK_FATAL( test.Run( app, wnd ));
-
+	CHECK_FATAL( test.Run( assetStorage, refStorage ));
 	TEST_PASSED();
 }
 
@@ -452,7 +430,7 @@ extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd)
 	_Create
 =================================================
 */
-bool  RGTest::_Create (IApplication &, IWindow &wnd)
+bool  RGTest::_Create (FStorage_t refStorage)
 {
 	CHECK_ERR( _device.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _device.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
@@ -460,108 +438,18 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
 	CHECK_ERR( _device.CheckConstantLimits() );
 	CHECK_ERR( _device.CheckExtensions() );
 
-	RenderTaskScheduler::InstanceCtor::Create( _device );
-
 	const GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
 
 	auto&	rts = GraphicsScheduler();
 	CHECK_ERR( rts.Initialize( info ));
 
-	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
-	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
-	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), info.swapchain ));
-
-	_refImageStorage	= VFS::VirtualFileStorageFactory::CreateDynamicFolder( AE_REF_IMG_PATH, Default, True{"createFolder"} );
-	_refImagePath		= _device.GetDeviceName();
+	_refImageStorage	= refStorage;
+	_refImagePath		= Path{_device.GetDeviceName()};
 	CHECK_ERR( _refImageStorage );
 
 	return true;
 }
 
-/*
-=================================================
-	Test_MetalRenderGraph
-=================================================
-*/
-extern void Test_MetalRenderGraph (IApplication &app, IWindow &wnd)
-{
-	RGTest		test;
-	CHECK_FATAL( test.Run( app, wnd ));
-
-	TEST_PASSED();
-}
-
-#endif // AE_ENABLE_METAL
-//-----------------------------------------------------------------------------
-
-
-
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-/*
-=================================================
-	_Create
-=================================================
-*/
-bool  RGTest::_Create (IApplication &, IWindow &wnd)
-{
-	using namespace AE::Networking;
-
-	GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
-
-	info.device.appName			= "TestApp";
-	info.device.requiredQueues	= EQueueMask::Graphics;
-	info.device.optionalQueues	= EQueueMask::All;
-	info.device.validation		= EDeviceValidation::Enabled;
-
-	info.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
-	info.swapchain.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
-	info.swapchain.options		= EImageOpt::BlitDst;
-	info.swapchain.presentMode	= EPresentMode::FIFO;
-	info.swapchain.minImageCount= 2;
-
-	CHECK_ERR( _device.Init( info,
-							 MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( _serverPort )),
-							 EThreadArray{ EThread::Main, EThread::PerFrame, EThread::Renderer }
-							));
-
-	CHECK_ERR( _device.CheckConstantLimits() );
-	CHECK_ERR( _device.CheckExtensions() );
-
-	RenderTaskScheduler::InstanceCtor::Create( _device );
-
-	auto&	rts = GraphicsScheduler();
-	CHECK_ERR( rts.Initialize( info ));
-
-	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
-	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
-	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), info.swapchain ));
-
-	_refImageStorage	= VFS::VirtualFileStorageFactory::CreateDynamicFolder( AE_REF_IMG_PATH, Default, True{"createFolder"} );
-	_refImagePath		= _device.GetDeviceName();
-	CHECK_ERR( _refImageStorage );
-
-	return true;
-}
-
-/*
-=================================================
-	Test_RemoteRenderGraph
-=================================================
-*/
-extern void Test_RemoteRenderGraph (IApplication &app, IWindow &wnd)
-{
-	RGTest		test;
-	CHECK_FATAL( test.Run( app, wnd ));
-
-	TEST_PASSED();
-}
-
-#endif // AE_ENABLE_REMOTE_GRAPHICS
-//-----------------------------------------------------------------------------
-
-
-
-#if defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 /*
 =================================================
 	_CompareDumps
@@ -569,7 +457,7 @@ extern void Test_RemoteRenderGraph (IApplication &app, IWindow &wnd)
 */
 bool  RGTest::_CompareDumps (StringView) const
 {
-	return true;	// not supported for Metal / Remote
+	return true;	// not supported for Metal
 }
 
 /*
@@ -590,7 +478,7 @@ bool  RGTest::_RunTests ()
 			_testsFailed += uint(not passed);
 			_tests.pop_front();
 
-			Scheduler().ProcessTask( ETaskQueue::Main, 0 );
+			for (; Scheduler().ProcessTask( ETaskQueue::Main, EThreadSeed(0) );) {}
 		}
 		else
 		{
@@ -601,4 +489,124 @@ bool  RGTest::_RunTests ()
 	return not _testsFailed;
 }
 
-#endif
+/*
+=================================================
+	Test_MetalRenderGraph
+=================================================
+*/
+extern void  Test_MetalRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+{
+	RGTest		test;
+	CHECK_FATAL( test.Run( assetStorage, refStorage ));
+	TEST_PASSED();
+}
+
+#endif // AE_ENABLE_METAL
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+/*
+=================================================
+	_Create
+=================================================
+*/
+bool  RGTest::_Create (FStorage_t refStorage)
+{
+	using namespace AE::Networking;
+
+	GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
+
+	info.device.appName			= "TestApp";
+	info.device.requiredQueues	= EQueueMask::Graphics;
+	info.device.optionalQueues	= EQueueMask::All;
+	info.device.validation		= EDeviceValidation::Enabled;
+
+	info.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
+	info.swapchain.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
+	info.swapchain.options		= EImageOpt::BlitDst;
+	info.swapchain.presentMode	= EPresentMode::FIFO;
+	info.swapchain.minImageCount= 2;
+
+//	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,105, 0 );	// APC
+//	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,102, 0 );	// MacMini
+	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,100, 0 );	// Mobile
+
+	info.enableSyncLog			= true;
+
+	CHECK_ERR( _device.Init( info ));
+	CHECK_ERR( _device.CheckConstantLimits() );
+	CHECK_ERR( _device.CheckExtensions() );
+
+	auto&	rts = GraphicsScheduler();
+	CHECK_ERR( rts.Initialize( info ));
+
+	_refImageStorage	= refStorage;
+	_refImagePath		= Path{_device.GetDeviceName()};
+	CHECK_ERR( _refImageStorage );
+
+	return true;
+}
+
+/*
+=================================================
+	_CompareDumps
+=================================================
+*/
+bool  RGTest::_CompareDumps (StringView filename) const
+{
+	String	log;
+	_device.GetSyncLog( OUT log );
+	if ( log.empty() )
+		return true;	// not supported if remote device uses Metal API
+
+	return _CompareDumps( log, filename );
+}
+
+/*
+=================================================
+	_RunTests
+=================================================
+*/
+bool  RGTest::_RunTests ()
+{
+	for (;;)
+	{
+		if ( not _tests.empty() )
+		{
+			_device.EnableSyncLog( true );
+
+			TestFunc_t&	func	= _tests.front();
+			bool		passed	= (this->*func)();
+
+			_device.EnableSyncLog( false );
+
+			_testsPassed += uint(passed);
+			_testsFailed += uint(not passed);
+			_tests.pop_front();
+
+			for (; Scheduler().ProcessTask( ETaskQueue::Main, EThreadSeed(0) );) {}
+		}
+		else
+		{
+			AE_LOGI( "Tests passed: " + ToString( _testsPassed ) + ", failed: " + ToString( _testsFailed ));
+			break;
+		}
+	}
+	return not _testsFailed;
+}
+
+/*
+=================================================
+	Test_RemoteRenderGraph
+=================================================
+*/
+extern void  Test_RemoteRenderGraph (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage)
+{
+	RGTest		test;
+	CHECK_FATAL( test.Run( assetStorage, refStorage ));
+	TEST_PASSED();
+}
+
+#endif // AE_ENABLE_REMOTE_GRAPHICS

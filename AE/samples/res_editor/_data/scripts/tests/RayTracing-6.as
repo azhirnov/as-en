@@ -87,7 +87,7 @@
 
 		payload = float4(0.0);
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + hwray.rayIndex
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + hwray.rayIndex
 
 		HWTraceRay( un_RtScene, hwray, /*payload*/RAY_INDEX );
 

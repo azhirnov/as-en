@@ -15,13 +15,25 @@ namespace AE::ResEditor
 
 	class Present final : public IPass
 	{
+	// types
+	private:
+		struct VideoInfo
+		{
+			const float		frameRate	= 60.f;
+			const float		frameTime	= 1.f / frameRate;
+			secondsd		duration;
+			uint			frameCount	= 0;
+		};
+
+
 	// variables
 	private:
-		Array<RC<Image>>			_src;
-		RC<DynamicDim>				_dynSize;		// mutable
-		RC<DynamicUInt>				_filterMode;	// mutable
+		const Array<RC<Image>>		_src;
+		const RC<DynamicDim>		_dynSize;
+		const RC<DynamicUInt>		_filterMode;
 
-		mutable RC<IVideoEncoder>	_videoEncoder;
+		VideoInfo					_videoInfo;
+		AtomicRC<IVideoEncoder>		_videoEncoder;
 
 
 	// methods
@@ -37,7 +49,7 @@ namespace AE::ResEditor
 	private:
 		ND_ static RenderTaskCoro  _Blit (RC<Present> self, IOutputSurface &);
 
-		static void  _SaveScreenshot (const ImageMemView &, EImageFormat fmt);
+		static void  _SaveScreenshot (const ImageMemView &, EImageFormat fmt, bool);
 
 		RC<IVideoEncoder>  _CreateEncoder (float bitrate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
 	};

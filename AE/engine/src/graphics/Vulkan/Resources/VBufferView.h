@@ -22,8 +22,8 @@ namespace AE::Graphics
 
 		Strong<BufferID>			_bufferId;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -39,7 +39,7 @@ namespace AE::Graphics
 		ND_ BufferViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ BufferID				BufferId ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

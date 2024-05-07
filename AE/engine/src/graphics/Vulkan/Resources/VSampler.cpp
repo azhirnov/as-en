@@ -40,7 +40,7 @@ namespace AE::Graphics
 
 		sampler_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		sampler_ci.pNext			= null;
-		sampler_ci.flags			= VEnumCast( desc.usage );
+		sampler_ci.flags			= VEnumCast( desc.options );
 		sampler_ci.magFilter		= VEnumCast( desc.magFilter );
 		sampler_ci.minFilter		= VEnumCast( desc.minFilter );
 		sampler_ci.mipmapMode		= VEnumCast( desc.mipmapMode );
@@ -48,14 +48,14 @@ namespace AE::Graphics
 		sampler_ci.addressModeV		= VEnumCast( desc.addressMode.y );
 		sampler_ci.addressModeW		= VEnumCast( desc.addressMode.z );
 		sampler_ci.mipLodBias		= desc.mipLodBias;
-		sampler_ci.anisotropyEnable	= desc.maxAnisotropy.has_value() ? VK_TRUE : VK_FALSE;
-		sampler_ci.maxAnisotropy	= desc.maxAnisotropy.value_or( 0.0f );
+		sampler_ci.anisotropyEnable	= (desc.HasAnisotropy() ? VK_TRUE : VK_FALSE);
+		sampler_ci.maxAnisotropy	= desc.maxAnisotropy;
 		sampler_ci.compareEnable	= desc.compareOp.has_value() ? VK_TRUE : VK_FALSE;
 		sampler_ci.compareOp		= VEnumCast( desc.compareOp.value_or( ECompareOp::Always ));
 		sampler_ci.minLod			= desc.minLod;
 		sampler_ci.maxLod			= desc.maxLod;
 		sampler_ci.borderColor		= VEnumCast( desc.borderColor );
-		sampler_ci.unnormalizedCoordinates= desc.unnormalizedCoordinates ? VK_TRUE : VK_FALSE;
+		sampler_ci.unnormalizedCoordinates= desc.UnnormalizedCoordinates() ? VK_TRUE : VK_FALSE;
 
 		auto&	dev = resMngr.GetDevice();
 		//GRES_CHECK( IsSupported( dev, sampler_ci ));
@@ -165,7 +165,9 @@ namespace AE::Graphics
 			CHECK_ERR( desc.format == Default );
 			CHECK_ERR( dev.GetVExtensions().androidExternalMemoryHwBuf );
 
-			auto&					api26		= AndroidApi26::Instance();
+			auto&   api26 = AndroidApi26::Instance();
+            CHECK_ERR( api26.hwbuf.allocate != null and api26.hwbuf.release != null );
+
 			AHardwareBuffer_Desc	hwbuf_desc	= {};
 			AHardwareBuffer*		hwbuf		= null;
 
@@ -192,6 +194,9 @@ namespace AE::Graphics
 
 			if ( format_info.format == VK_FORMAT_UNDEFINED )
 			{
+                if ( format_info.externalFormat == 0 )
+                    return false;
+
 				auto&	ext_format = *allocator.Allocate< VkExternalFormatANDROID >();
 				ext_format					= {};
 				ext_format.sType			= VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID;

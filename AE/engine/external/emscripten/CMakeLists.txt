@@ -42,5 +42,5 @@ set( AE_ENABLE_WEBGL2 			ON  CACHE BOOL "use WebGL2" )
 #----------------------------------------------------------
 
 set( CMAKE_INSTALL_PREFIX 	"${CMAKE_BINARY_DIR}/install" 					CACHE INTERNAL "installation directory"	FORCE )
-set( AE_DST_PATH 			"${AE_EXTERNAL_REP_PATH}/external/emscripten" 	CACHE INTERNAL "" 						FORCE )
-set( AE_DST_SHARED_PATH 	"${AE_EXTERNAL_REP_PATH}/external/emscripten" 	CACHE INTERNAL "" 						FORCE )
+set( AE_DST_PATH			"${AE_EXTERNAL_BIN_PATH}/external/emscripten"	CACHE INTERNAL ""						FORCE )
+set( AE_DST_SHARED_PATH		"${AE_EXTERNAL_BIN_PATH}/external/emscripten"	CACHE INTERNAL ""						FORCE )

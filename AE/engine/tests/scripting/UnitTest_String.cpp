@@ -16,7 +16,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 8 );
+		TEST_Eq( res, 8 );
 	}
 
 
@@ -33,7 +33,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 12 );
+		TEST_Eq( res, 12 );
 	}
 
 
@@ -50,7 +50,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 8 );
+		TEST_Eq( res, 8 );
 	}
 
 
@@ -67,7 +67,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 1 );
+		TEST_Eq( res, 1 );
 	}
 
 
@@ -84,7 +84,7 @@ namespace
 		String	arg = "a";
 		int		res = 0;
 		TEST( Run< int(String) >( se, script, "ASmain", OUT res, arg ));
-		TEST( res == 1 );
+		TEST_Eq( res, 1 );
 	}
 
 
@@ -99,7 +99,7 @@ namespace
 
 		String	res;
 		TEST( Run< String() >( se, script, "ASmain", OUT res ));
-		TEST( res == "a0b1c2" );
+		TEST_Eq( res, "a0b1c2" );
 	}
 
 	static void  ScriptString_Test7 (const ScriptEnginePtr &se)
@@ -116,7 +116,7 @@ namespace
 
 		String	res;
 		TEST( Run< String() >( se, script, "ASmain", OUT res ));
-		TEST( res == prop );
+		TEST_Eq( res, prop );
 	}
 
 	static void  ScriptString_Test8 (const ScriptEnginePtr &se)
@@ -131,7 +131,7 @@ namespace
 
 		U8String	res;
 		TEST( Run< U8String() >( se, Cast<char>(script), "ASmain", OUT res ));
-		TEST( res == ref );
+		TEST_Eq( res, ref );
 	}
 }
 

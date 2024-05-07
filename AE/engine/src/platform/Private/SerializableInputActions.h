@@ -180,7 +180,8 @@ namespace AE::App
 
 		ND_ ModeMap_t const&	GetModes ()								C_NE___	{ return _modeMap; }
 
-		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version, uint nameHash, MemRefRStream &stream);
+		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version,
+								uint nameHash, MemRefRStream &stream)	__NE___;
 
 
 	// ISerializable //
@@ -195,10 +196,10 @@ namespace AE::App
 		template <typename T>
 		ND_ static constexpr InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
 
-		ND_ static constexpr auto		_Unpack (InputKey key) __NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
+		ND_ static constexpr auto		_Unpack (InputKey key)	__NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
 
-		ND_ static Array<Pair<InputKey,		 const ActionInfo *>>	_ToArray (const ActionMap_t &actions);
-		ND_ static Array<Pair<InputModeName, const InputMode *>>	_ToArray (const ModeMap_t &modes);
+		ND_ static auto  _ToArray (const ActionMap_t &actions)	__Th___ -> Array<Pair<InputKey,		 const ActionInfo *>>;
+		ND_ static auto  _ToArray (const ModeMap_t &modes)		__Th___ -> Array<Pair<InputModeName, const InputMode *>>;
 	};
 
 /*

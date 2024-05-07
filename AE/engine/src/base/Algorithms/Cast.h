@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "base/Containers/Ptr.h"
+#include "base/Pointers/Ptr.h"
 
 namespace AE::Base
 {
@@ -21,7 +20,7 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ bool  CheckPointerAlignment (T const* ptr) __NE___
+	ND_ constexpr bool  CheckPointerAlignment (T const* ptr) __NE___
 	{
 		constexpr usize	align = alignof(R);
 
@@ -65,7 +64,11 @@ namespace AE::Base
 	{
 		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
-		return static_cast< R const *>( static_cast< void const *>(value) );
+
+		if constexpr( std::is_convertible_v< T const*, R const* > or IsBaseOf< T, R >)
+			return static_cast< R const *>(value);
+		else
+			return static_cast< R const *>( static_cast< void const *>(value) );
 	}
 
 	template <typename R, typename T>
@@ -73,7 +76,11 @@ namespace AE::Base
 	{
 		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
-		return static_cast< R *>( static_cast< void *>(value) );
+
+		if constexpr( std::is_convertible_v< T const*, R const* > or IsBaseOf< T, R >)
+			return static_cast< R *>(value);
+		else
+			return static_cast< R *>( static_cast< void *>(value) );
 	}
 
 	template <typename R, typename T>
@@ -141,13 +148,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename Rep, typename Period, ENABLEIF( IsDuration<To> )>
-	ND_ constexpr To  TimeCast (const std::chrono::duration<Rep, Period> &value) __NE___
+	ND_ constexpr To  TimeCast (const std::chrono::duration<Rep, Period> value) __NE___
 	{
 		return std::chrono::duration_cast<To>( value );
 	}
 
 	template <typename ToDuration, typename Clock, typename Duration, ENABLEIF( IsDuration<ToDuration> )>
-	ND_ constexpr std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> &value) __NE___
+	ND_ constexpr std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> value) __NE___
 	{
 		return std::chrono::time_point_cast<ToDuration>( value );
 	}
@@ -223,35 +230,42 @@ namespace AE::Base
 		//StaticAssert( not IsSameTypes< To, From >);	// to find unnecessary cast
 
 	  #ifdef __cpp_lib_bit_cast
-		if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> ){
+		if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> )
 			return std::bit_cast<To>( src );
-		}else{
+		else
+	  #endif
+		{
 			To	dst;
 			std::memcpy( OUT &dst, &src, sizeof(To) );
 			return dst;
 		}
-	  #else
-		To	dst;
-		std::memcpy( OUT &dst, &src, sizeof(To) );
-		return dst;
-	  #endif
 	}
 
 /*
 =================================================
-	UnsafeBitCast
+	BitCastRlx
+----
+	bit cast with relaxed checks, allow cast between different sizes.
+	example: void* -> ulong
 =================================================
 */
 	template <typename To, typename From>
-	ND_ constexpr To  UnsafeBitCast (const From& src) __NE___
+	ND_ constexpr To  BitCastRlx (const From& src) __NE___
 	{
-		//StaticAssert( sizeof(From) <= sizeof(To), "cast will lost data!" );
+		//StaticAssert( sizeof(From) <= sizeof(To), "cast will loose data!" );
 		StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
 		//StaticAssert( not IsSameTypes< To, From >);	// to find unnecessary cast
 
-		To	dst = {};
-		std::memcpy( OUT &dst, &src, std::min( sizeof(From), sizeof(To) ));
-		return dst;
+	  #ifdef __cpp_lib_bit_cast
+		if constexpr( sizeof(To) == sizeof(From) and std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> )
+			return std::bit_cast<To>( src );
+		else
+	  #endif
+		{
+			To	dst = {};
+			std::memcpy( OUT &dst, &src, std::min( sizeof(From), sizeof(To) ));
+			return dst;
+		}
 	}
 
 /*

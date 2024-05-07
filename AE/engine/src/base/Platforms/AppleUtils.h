@@ -51,14 +51,17 @@ namespace AE::Base
 
 
 		// OS //
+		ND_ static bool				IsUnderDebugger ()										__NE___;
 		ND_ static Version3			GetOSVersion ()											__NE___;
 
 		#ifdef AE_PLATFORM_MACOS
+		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::MacOS; }
 		ND_ static StringView		GetOSName ()											__NE___ { return "MacOS"; }
 			static constexpr bool	Is_MacOS	= true;
 			static constexpr bool	Is_iOS		= false;
 		#endif
 		#ifdef AE_PLATFORM_IOS
+		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::iOS; }
 		ND_ static StringView		GetOSName ()											__NE___ { return "iOS"; }
 			static constexpr bool	Is_MacOS	= false;
 			static constexpr bool	Is_iOS		= true;
@@ -70,6 +73,17 @@ namespace AE::Base
 			if constexpr( Is_iOS )		return ver >= ios;
 		}
 	};
+
+
+
+	inline bool  AppleUtils::IsUnderDebugger () __NE___
+	{
+	#ifdef AE_DEBUG
+		return true;
+	#else
+		return false;
+	#endif
+	}
 
 } // AE::Base
 

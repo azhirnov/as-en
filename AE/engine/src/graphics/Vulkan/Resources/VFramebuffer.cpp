@@ -82,10 +82,10 @@ namespace AE::Graphics
 
 		for (auto [name, att] : rpDesc.attachments)
 		{
-			auto	iter = rp_attach.find( name );
-			if_unlikely( iter == rp_attach.end() )
+			auto	it = rp_attach.find( name );
+			if_unlikely( it == rp_attach.end() )
 			{
-			#ifdef AE_DEBUG
+			#if AE_DBG_GRAPHICS
 				String	str {"Attachment '"};
 				str << resMngr.HashToName( name ) << "' is not exists in render pass '"
 					<< ren_pass->GetDebugName() << "'.\nRequired attachments: ";
@@ -104,7 +104,7 @@ namespace AE::Graphics
 			auto*	view = resMngr.GetResource( att.imageView );
 			CHECK_ERR( view != null );
 
-			const uint	idx = iter->second.Index();
+			const uint	idx = it->second.Index();
 
 			CHECK_ERR( not assigned.test( idx ));	// already assigned
 			assigned.set( idx );
@@ -113,7 +113,7 @@ namespace AE::Graphics
 			_attachments[ idx ]	= att.imageView;
 			_images[ idx ]		= view->ImageId();
 
-			#ifdef AE_DEBUG
+			#if AE_DBG_GRAPHICS
 			{
 				const auto	att_fmt	= resMngr.GetDescription( view->ImageId() ).format;
 				const auto	rp_fmt	= ren_pass->GetPixelFormat( idx );
@@ -146,7 +146,7 @@ namespace AE::Graphics
 		VK_CHECK_ERR( dev.vkCreateFramebuffer( dev.GetVkDevice(), &fb_info, null, OUT &_framebuffer ));
 
 		dev.SetObjectName( _framebuffer, dbgName, VK_OBJECT_TYPE_FRAMEBUFFER );
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 
 		return true;
 	}
@@ -194,7 +194,7 @@ namespace AE::Graphics
 		_images.clear();
 		_attachments.clear();
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 

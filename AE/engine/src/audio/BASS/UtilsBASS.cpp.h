@@ -20,7 +20,7 @@
 #include "base/Defines/Undef.h"
 #include "audio/Public/IAudioData.h"
 
-#define BASS_CHECK( __VA_ARGS__ )									\
+#define BASS_CHECK( ... )											\
 	{																\
 		BOOL	ok = (__VA_ARGS__);									\
 		DEBUG_ONLY( if ( not ok ) {									\
@@ -30,7 +30,7 @@
 		Unused( ok );												\
 	}
 
-#define BASS_CHECK_ERR( __VA_ARGS__ )								\
+#define BASS_CHECK_ERR( ... )										\
 	{																\
 		BOOL	ok = (__VA_ARGS__);									\
 		DEBUG_ONLY( if ( not ok )  AE::Audio::BASS_CheckError() );	\

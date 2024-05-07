@@ -1,22 +1,28 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( CMAKE_FOLDER "${MAIN_SOURCE_DIR}/engine/cmake" )
-set( EXTERNAL_FOLDER "${MAIN_SOURCE_DIR}/engine/external" )
+set( ENGINE_CMAKE_FOLDER		"${MAIN_SOURCE_DIR}/engine/cmake"	)
+set( AE_ENGINE_EXTERNAL_CMAKE	"${MAIN_SOURCE_DIR}/engine/external" CACHE INTERNAL "" FORCE )
 
-include( "${CMAKE_FOLDER}/compilers.cmake" )
-include( "${CMAKE_FOLDER}/compiler_tests.cmake" )
+include( "${ENGINE_CMAKE_FOLDER}/compilers.cmake" )
+include( "${ENGINE_CMAKE_FOLDER}/compiler_tests.cmake" )
 
 #----------------------------------------------------------
 
 file( GLOB_RECURSE SOURCES "*.*" )
-file( GLOB_RECURSE CMAKE_SOURCES "${CMAKE_FOLDER}/*.*" )
-file( GLOB_RECURSE EXERNAL_CMAKE "${EXTERNAL_FOLDER}/*/CMakeLists.txt" )
+file( GLOB_RECURSE CMAKE_SOURCES "${ENGINE_CMAKE_FOLDER}/*.*" )
+file( GLOB_RECURSE EXERNAL_CMAKE "${AE_ENGINE_EXTERNAL_CMAKE}/*/CMakeLists.txt" )
+set( OTHER_CMAKE
+	"${AE_ENGINE_EXTERNAL_CMAKE}/AddFolder.cmake"
+	"${AE_ENGINE_EXTERNAL_CMAKE}/config.cmake"
+	"${AE_ENGINE_EXTERNAL_CMAKE}/External.cmake"
+)
 
-add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${EXERNAL_CMAKE} )
+add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${EXERNAL_CMAKE} ${OTHER_CMAKE} )
 set_property( TARGET "ProjectTemplate" PROPERTY FOLDER "Engine/Tools" )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-source_group( TREE "${CMAKE_FOLDER}/.." FILES ${CMAKE_SOURCES} )
-source_group( TREE "${EXTERNAL_FOLDER}/.." FILES ${EXERNAL_CMAKE} )
+source_group( TREE "${ENGINE_CMAKE_FOLDER}/.." FILES ${CMAKE_SOURCES} )
+source_group( TREE "${AE_ENGINE_EXTERNAL_CMAKE}/.." FILES ${EXERNAL_CMAKE} )
+source_group( "external" FILES ${OTHER_CMAKE} )
 
 target_compile_definitions( "ProjectTemplate" PUBLIC ${AE_COMPILER_DEFINITIONS} )
 
@@ -94,11 +100,11 @@ if (TRUE)
 	endif()
 endif()
 
-if (${AE_CI_BUILD_NO_GRAPHICS})
-	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CI_BUILD" "AE_CI_BUILD_NO_GRAPHICS"  )
+if (${AE_CI_BUILD_TEST})
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CI_BUILD_TEST"  )
 endif()
-if (${AE_CI_BUILD})
-	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CI_BUILD"  )
+if (${AE_CI_BUILD_PERF})
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CI_BUILD_PERF"  )
 endif()
 
 if (${AE_ENABLE_MEMLEAK_CHECKS})
@@ -116,7 +122,7 @@ endif()
 
 target_compile_definitions( "ProjectTemplate" PUBLIC
 	"AE_ENGINE_NAME=\"AsEn\""
-	"AE_VERSION=AE::Base::Tuple{ ${PROJECT_VERSION_MAJOR}, ${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, \"${AE_COMMIT_HASH}\" }"
+	"AE_VERSION=(AE::Base::Tuple{ ${PROJECT_VERSION_MAJOR}, ${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, \"${AE_COMMIT_HASH}\" })"
 )
 
 target_include_directories( "ProjectTemplate" PUBLIC "${MAIN_SOURCE_DIR}/engine" )

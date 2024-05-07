@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Public/BufferMemView.h"
+#include "graphics/Private/Defines.h"
 
 namespace AE::Graphics
 {
@@ -55,7 +56,7 @@ namespace AE::Graphics
 		auto*	rhs_ptr			= Cast<ubyte>(rhs_part_iter->ptr);
 		auto*	rhs_end			= Cast<ubyte>(rhs_part_iter->End());
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			Bytes	counter;
 		)
 		for (;;)
@@ -78,13 +79,13 @@ namespace AE::Graphics
 			}
 
 			diff += (*lhs_ptr == *rhs_ptr ? 0 : 1);		// TODO: optimize
-			DEBUG_ONLY( ++counter; )
+			GFX_DBG_ONLY( ++counter; )
 
 			++lhs_ptr;
 			++rhs_ptr;
 		}
 
-		ASSERT( counter == DataSize() );
+		GFX_DBG_ONLY( CHECK( counter == DataSize() );)
 		return diff;
 	}
 

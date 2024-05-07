@@ -25,11 +25,21 @@ namespace AE::Base
 */
 	void  MemRefRDataSource::_Set (const void* ptr, Bytes size) __NE___
 	{
-		ASSERT( ptr != null );
-		ASSERT( size > 0 );
+		ASSERT( (ptr != null) == (size > 0) );
 
 		_dataPtr	= ptr;
 		_size		= size;
+	}
+
+/*
+=================================================
+	_Reset
+=================================================
+*/
+	void  MemRefRDataSource::_Reset () __NE___
+	{
+		_dataPtr	= null;
+		_size		= 0_b;
 	}
 
 /*
@@ -39,7 +49,7 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  MemRefRDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|
+		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|	// allow SeekFwd() & SeekSet()
 				ESourceType::Buffered			| ESourceType::FixedSize	|
 				ESourceType::ReadAccess;
 	}
@@ -57,6 +67,65 @@ namespace AE::Base
 
 		return size;
 	}
+
+/*
+=================================================
+	LoadFrom
+=================================================
+*/
+	bool  MemRefRDataSource::LoadRemainingFrom (RStream &srcStream, Bytes dataSize) __NE___
+	{
+		CHECK_ERR( srcStream.IsOpen() );
+
+		dataSize = Min( dataSize, srcStream.RemainingSize() );
+		CHECK_ERR( _Resize( dataSize ));
+
+		Bytes	total;
+		void*	dst = ConstCast( _dataPtr );
+
+		for (; total < dataSize;)
+		{
+			Bytes	readn = srcStream.ReadSeq( OUT dst + total, dataSize - total );
+			total += readn;
+
+			if_unlikely( readn == 0 )
+				break;
+		}
+
+		_size = total;
+		return _size > 0_b;
+	}
+
+	bool  MemRefRDataSource::LoadFrom (RStream &srcStream, Bytes offset, Bytes dataSize) __NE___
+	{
+		CHECK_ERR( srcStream.SeekSet( offset ));
+
+		return LoadRemainingFrom( srcStream, dataSize );
+	}
+
+	bool  MemRefRDataSource::LoadFrom (RDataSource &srcDS, Bytes offset, Bytes dataSize) __NE___
+	{
+		CHECK_ERR( srcDS.IsOpen() );
+		CHECK_ERR( offset < srcDS.Size() );
+
+		dataSize = Min( dataSize, srcDS.Size() - offset );
+		CHECK_ERR( _Resize( dataSize ));
+
+		Bytes	total;
+		void*	dst = ConstCast( _dataPtr );
+
+		for (; total < dataSize;)
+		{
+			Bytes	readn = srcDS.ReadBlock( offset + total, OUT dst + total, dataSize - total );
+			total += readn;
+
+			if_unlikely( readn == 0 )
+				break;
+		}
+
+		_size = total;
+		return _size > 0_b;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -66,12 +135,13 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	MemRDataSource::MemRDataSource (Array<ubyte> data) __NE___ : _data{RVRef(data)}
+	ArrayRDataSource::ArrayRDataSource (Array<ubyte> data) __NE___ :
+		_data{ RVRef(data) }
 	{
 		_Set( _data.data(), ArraySizeOf(_data) );
 	}
 
-	MemRDataSource::MemRDataSource (const void* ptr, Bytes size) __NE___
+	ArrayRDataSource::ArrayRDataSource (const void* ptr, Bytes size) __NE___
 	{
 		NOTHROW( _data.assign( Cast<ubyte>(ptr), Cast<ubyte>(ptr + size) ));
 
@@ -80,46 +150,43 @@ namespace AE::Base
 
 /*
 =================================================
-	Decompress
+	ReleaseData
 =================================================
 */
-	bool  MemRDataSource::Decompress (RStream &srcStream) __NE___
+	Array<ubyte>  ArrayRDataSource::ReleaseData () __NE___
 	{
-		MemWStream	dst;
-		Bytes		size = DataSourceUtils::BufferedCopy( dst, srcStream );
-
-		_data = dst.ReleaseData();
-		_Set( _data.data(), size );
-
-		return size > 0_b;
+		Array<ubyte>	tmp;
+		std::swap( tmp, _data );
+		_Reset();
+		return tmp;
 	}
 
 /*
 =================================================
-	Load
+	_Resize
 =================================================
 */
-	bool  MemRDataSource::Load (RStream &srcStream, Bytes offset, Bytes dataSize) __NE___
+	bool  ArrayRDataSource::_Resize (Bytes newSize) __NE___
 	{
-		CHECK_ERR( srcStream.SeekSet( offset ));
-
-		MemWStream	dst;
-		Bytes		size = DataSourceUtils::BufferedCopy( dst, srcStream, dataSize );
-
-		_data = dst.ReleaseData();
-		_Set( _data.data(), size );
-
-		return size > 0_b;
+		NOTHROW_ERR( _data.resize( usize{newSize} ));
+		_Set( _data.data(), ArraySizeOf(_data) );
+		return true;
 	}
 
-	bool  MemRDataSource::Load (RDataSource &srcDS, Bytes offset, Bytes dataSize) __NE___
+/*
+=================================================
+	DecompressFrom
+=================================================
+*/
+	bool  ArrayRDataSource::DecompressFrom (RStream &srcStream) __NE___
 	{
-		MemWStream	dst;
-		Bytes		size = DataSourceUtils::BufferedCopy( dst, srcDS, offset, dataSize );
+		ArrayWStream	dst	{0_b};
+		Bytes			size = DataSourceUtils::BufferedCopy( dst, srcStream );
 
 		_data = dst.ReleaseData();
-		_Set( _data.data(), size );
+		CHECK_ERR( size <= ArraySizeOf(_data) );
 
+		_Set( _data.data(), size );
 		return size > 0_b;
 	}
 //-----------------------------------------------------------------------------
@@ -131,20 +198,77 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	MemWDataSource::MemWDataSource () __NE___
+	SharedMemRDataSource::SharedMemRDataSource (RC<SharedMem> data) __NE___ :
+		_data{ RVRef(data) }
 	{
-		NOTHROW( _data.reserve( usize(DefaultAllocationSize) ));
+		if ( _data )
+			_Set( _data->Data(), _data->Size() );
 	}
 
-	MemWDataSource::MemWDataSource (Array<ubyte> data, Bytes maxSize) __NE___ :
-		_data{ RVRef(data) },
-		_maxSize{ Max( maxSize, _data.size() )}
-	{}
-
-	MemWDataSource::MemWDataSource (Bytes bufferSize, Bytes maxSize) __NE___ :
-		_maxSize{ maxSize }
+	SharedMemRDataSource::SharedMemRDataSource (const void* ptr, Bytes size) __NE___ :
+		_data{ SharedMem::Create( AE::GetDefaultAllocator(), size )}
 	{
-		NOTHROW( _data.reserve( usize(bufferSize) ));
+		if ( _data )
+		{
+			MemCopy( OUT _data->Data(), ptr, size );
+			_Set( _data->Data(), _data->Size() );
+		}
+	}
+
+/*
+=================================================
+	ReleaseData
+=================================================
+*/
+	RC<SharedMem>  SharedMemRDataSource::ReleaseData () __NE___
+	{
+		RC<SharedMem>	tmp = RVRef(_data);
+		_Reset();
+		return tmp;
+	}
+
+/*
+=================================================
+	_Resize
+=================================================
+*/
+	bool  SharedMemRDataSource::_Resize (Bytes newSize) __NE___
+	{
+		CHECK_ERR( not _data );
+
+		_data = SharedMem::Create( AE::GetDefaultAllocator(), newSize );
+		CHECK_ERR( _data );
+
+		_Set( _data->Data(), _data->Size() );
+		return true;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	_Set
+=================================================
+*/
+	void  MemRefWDataSource::_Set (void* ptr, Bytes size) __NE___
+	{
+		ASSERT( (ptr != null) == (size > 0) );
+		ASSERT( size <= _maxSize );
+
+		_dataPtr	= ptr;
+		_size		= size;
+	}
+
+/*
+=================================================
+	_Reset
+=================================================
+*/
+	void  MemRefWDataSource::_Reset () __NE___
+	{
+		_dataPtr	= null;
+		_size		= 0_b;
 	}
 
 /*
@@ -152,7 +276,7 @@ namespace AE::Base
 	GetSourceType
 =================================================
 */
-	IDataSource::ESourceType  MemWDataSource::GetSourceType () C_NE___
+	IDataSource::ESourceType  MemRefWDataSource::GetSourceType () C_NE___
 	{
 		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|
 				ESourceType::Buffered			| ESourceType::WriteAccess;
@@ -160,52 +284,90 @@ namespace AE::Base
 
 /*
 =================================================
-	Reserve
-=================================================
-*/
-	Bytes  MemWDataSource::Reserve (Bytes capacity) __NE___
-	{
-		NOTHROW( _data.reserve( Min( Max( _data.capacity(), usize(capacity) ), usize(_maxSize) )));
-
-		return Bytes{ _data.capacity() };
-	}
-
-/*
-=================================================
 	WriteBlock
 =================================================
 */
-	Bytes  MemWDataSource::WriteBlock (const Bytes pos, const void* buffer, Bytes size) __NE___
+	Bytes  MemRefWDataSource::WriteBlock (const Bytes pos, const void* buffer, Bytes size) __NE___
 	{
-		size = Min( pos + size, _maxSize ) - pos;
+		CHECK_ERR( pos <= _maxSize );
 
-		NOTHROW_ERR( _data.resize( Max( _data.size(), usize(pos + size) )));
+		if_unlikely( pos + size > _size )
+			CHECK_ERR( _Resize( pos + size ));
 
-		MemCopy( OUT _data.data() + pos, buffer, size );
+		size = Min( size, _size - pos );
+
+		MemCopy( OUT _dataPtr + pos, buffer, size );
 		return size;
 	}
 
 /*
 =================================================
-	Clear
+	StoreTo
 =================================================
 */
-	void  MemWDataSource::Clear () __NE___
+	bool  MemRefWDataSource::StoreTo (WStream &dstFile) C_NE___
 	{
-		_data.clear();
+		CHECK_ERR( dstFile.IsOpen() );
+		ASSERT( _size > 0 );
+		return dstFile.Write( _dataPtr, _size );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	ArrayWDataSource::ArrayWDataSource () __NE___ :
+		MemRefWDataSource{ Bytes{UMax} }
+	{
+		NOTHROW( _data.reserve( usize(DefaultAllocationSize) ));
+	}
+
+	ArrayWDataSource::ArrayWDataSource (Bytes bufferSize, Bytes maxSize) __NE___ :
+		MemRefWDataSource{ maxSize }
+	{
+		NOTHROW( _data.reserve( usize(bufferSize) ));
+		_Set( _data.data(), ArraySizeOf(_data) );
+	}
+
+	ArrayWDataSource::ArrayWDataSource (Array<ubyte> data, Bytes maxSize) __NE___ :
+		MemRefWDataSource{ Max( maxSize, data.size() )},
+		_data{ RVRef(data) }
+	{
+		_Set( _data.data(), ArraySizeOf(_data) );
 	}
 
 /*
 =================================================
-	Store
+	ReleaseData
 =================================================
 */
-	bool  MemWDataSource::Store (WStream &dstFile) C_NE___
+	Array<ubyte>  ArrayWDataSource::ReleaseData () __NE___
 	{
-		MemRefRDataSource	src{ GetData() };
-
-		return DataSourceUtils::BufferedCopy( dstFile, src ) == Bytes{_data.size()};
+		Array<ubyte>	tmp;
+		_data.resize( usize{_size} );
+		std::swap( tmp, _data );
+		_Reset();
+		return tmp;
 	}
+
+/*
+=================================================
+	_Resize
+=================================================
+*/
+	bool  ArrayWDataSource::_Resize (Bytes newSize) __NE___
+	{
+		newSize = Min( newSize, _maxSize );
+		NOTHROW_ERR( _data.resize( usize{newSize} ));
+		_Set( _data.data(), ArraySizeOf(_data) );
+		return true;
+	}
+//-----------------------------------------------------------------------------
+
 
 
 } // AE::Base

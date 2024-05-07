@@ -55,7 +55,7 @@ namespace AE::Scripting
 		auto	iter = _dbgLocation.find( String{section} );
 		if ( iter != _dbgLocation.end() )
 		{
-			AE_LOG_SE( str, iter->second.file, iter->second.line + line );
+			AE_LOGW( str, iter->second.file, iter->second.line + line );
 			return true;
 		}
 		return false;
@@ -749,9 +749,9 @@ namespace
 			}
 		}
 
-	  #if not AE_PRIVATE_USE_TABS
-		str = Parser::TabsToSpaces( str );
-	  #endif
+		// free memory
+		Reconstruct( _cppHeaders );
+		Reconstruct( _cppHeaderMap );
 	#endif
 	}
 
@@ -831,7 +831,7 @@ namespace
 
 		if ( usize pos = msg_str.find( code_mark ); pos != StringView::npos )
 		{
-			const usize	begin	= pos + code_mark.length();
+			const usize		begin	= pos + code_mark.length();
 			StringView		code	= msg_str.substr( begin );
 
 			//if ( code.Find( ')', OUT pos ))

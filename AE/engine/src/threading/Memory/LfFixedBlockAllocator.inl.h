@@ -240,7 +240,7 @@ namespace AE::Threading
 			else
 			{
 				// TODO: memleak in linear allocator
-				ASSERT( ptr != null );
+				NonNull( ptr );
 				_blockAlloc.Deallocate( new_block, SizeAndAlign{ LargeBlockSize(), BlockAlign() });
 
 				// wait for debug info
@@ -249,7 +249,7 @@ namespace AE::Threading
 					chunk.dbgInfoEvent.Wait();
 
 					dbg_info = chunk.dbgInfo.load();
-					ASSERT( dbg_info != null );
+					NonNull( dbg_info );
 				}
 				#endif
 			}

@@ -1,9 +1,21 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/RenderGraph/ResStateTracker.h"
+#include "graphics/Private/EnumToString.h"
 
 namespace AE::RG::_hidden_
 {
+/*
+=================================================
+	constructor
+=================================================
+*/
+	ResStateTracker::ResourceMap::ResourceMap () __NE___
+	{
+		for (auto& chunk_ptr : _idToStateIdx)
+			chunk_ptr.store( null );
+	}
+
 /*
 =================================================
 	destructor
@@ -11,7 +23,7 @@ namespace AE::RG::_hidden_
 */
 	ResStateTracker::ResourceMap::~ResourceMap () __NE___
 	{
-	#ifdef AE_DEBUG
+	  #if AE_DBG_GRAPHICS
 		for (auto& chunk_ptr : _idToStateIdx)
 		{
 			auto*	chunk = chunk_ptr.exchange( null );
@@ -25,7 +37,7 @@ namespace AE::RG::_hidden_
 				}
 			}
 		}
-	#endif
+	  #endif
 
 		_statePool.Release( False{"don't check for assigned"} );
 	}
@@ -115,7 +127,7 @@ namespace AE::RG::_hidden_
 
 		if_unlikely( elem_idx != old_idx and _statePool.IsAssigned( old_idx ))
 		{
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				auto&	elem = _statePool[ old_idx ];
 				EXLOCK( elem.guard );
 				CHECK( elem.id == key.id );
@@ -224,7 +236,7 @@ namespace AE::RG::_hidden_
 	_ResMngr
 =================================================
 */
-	IResourceManager&  ResStateTracker::_ResMngr () C_NE___
+	ResourceManager&  ResStateTracker::_ResMngr () C_NE___
 	{
 		return GraphicsScheduler().GetResourceManager();
 	}
@@ -498,6 +510,46 @@ namespace AE::RG::_hidden_
 		auto&	map = _globalStates[ key.type ];
 		return map.Contains( key );
 	}
+
+/*
+=================================================
+	KeyToString
+=================================================
+*/
+#if AE_GRAPHICS_DBG_SYNC
+	String  ResStateTracker::KeyToString (ResourceKey key) C_Th___
+	{
+		using TL = ResourceKey::TypeList_t;
+
+		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
+		StringView	name;
+
+		switch ( key.type )
+		{
+			case TL::Index<ImageID> :		if ( auto* res = res_mngr.GetResource( key.AsImage() ))			name = res->GetDebugName();		break;
+			case TL::Index<BufferID> :		if ( auto* res = res_mngr.GetResource( key.AsBuffer() ))		name = res->GetDebugName();		break;
+			case TL::Index<RTGeometryID> :	if ( auto* res = res_mngr.GetResource( key.AsRTGeometry() ))	name = res->GetDebugName();		break;
+			case TL::Index<RTSceneID> :		if ( auto* res = res_mngr.GetResource( key.AsRTScene() ))		name = res->GetDebugName();		break;
+		}
+
+		String	str = "Resource{type:"s << ToString(key.type) << " id:" << ToString<16>(key.id);
+		if ( not name.empty() )
+			str << " name:" << name;
+		str << "}";
+		return str;
+	}
+#endif
+/*
+=================================================
+	BarrierToString
+=================================================
+*/
+#if AE_GRAPHICS_DBG_SYNC
+	String  ResStateTracker::BarrierToString (ResourceKey key, EResourceState oldState, EResourceState newState) C_Th___
+	{
+		return KeyToString(key) << " barrier: " << ToString(oldState) << " --> " << ToString(newState);
+	}
+#endif
 
 
 } // AE::RG::_hidden_

@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "base/DataSource/DataStream.h"
 #include "base/Math/Random.h"
+#include "base/DataSource/DataStream.h"
+#include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -171,11 +172,12 @@ namespace AE::Base
 		Random				_random;
 
 		ThreadInfoMap_t		_threadInfos;
+		const bool			_enableThreadNames;
 
 
 	// methods
 	public:
-		explicit HtmlLogOutput (RC<WStream> file)						__NE___;
+		HtmlLogOutput (RC<WStream> file, bool tnames)					__NE___;
 		~HtmlLogOutput ()												__NE___;
 
 		EResult	Process (const MessageInfo &info)						__Th_OV;
@@ -184,6 +186,44 @@ namespace AE::Base
 	private:
 		void	_SetColor (EColor col, EColor bg, INOUT String &str);
 		void	_Flush (StringView str)									C_NE___;
+	};
+
+
+
+	//
+	// per thread HTML Log output
+	//
+	class HtmlLogOutputPerThread final : public ILogger, public NothrowAllocatable
+	{
+	// types
+	private:
+		using ThreadMap_t = FlatHashMap< usize, Unique<HtmlLogOutput> >;
+
+
+	// variables
+	private:
+		SharedMutex		_guard;
+		ThreadMap_t		_perThread;
+		const Path		_filenamePrefix;
+
+
+	// methods
+	public:
+		HtmlLogOutputPerThread (StringView prefix)						__NE___;
+		~HtmlLogOutputPerThread ()										__NE___;
+
+		EResult	Process (const MessageInfo &info)						__Th_OV;
+	};
+
+
+
+	//
+	// Break on error Logger
+	//
+	class BreakOnErrorLogger final : public ILogger
+	{
+	public:
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 

@@ -295,6 +295,11 @@ namespace AE::App
 		_input.Update( _app.GetTimeSinceStart() );
 
 		_LockAndHideCursor( _input.RequiresLockAndHideCursor() );
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		_ResizeWindowToSurface();
+	  #endif
+
 		return true;
 	}
 

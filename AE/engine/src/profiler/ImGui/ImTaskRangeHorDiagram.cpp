@@ -19,10 +19,9 @@ namespace AE::Profiler
 		threads.clear();
 		threadInfos.clear();
 		sortedThreads.clear();
-		sortedThreads2.clear();
 
-		min = MaxValue<double>();
-		max = 0.0;
+		min = nanosecondsd{MaxValue<double>()};
+		max = nanosecondsd{0.0};
 	}
 
 /*
@@ -58,7 +57,7 @@ namespace AE::Profiler
 		{
 			for (auto [t_id, t_idx] : f.threads)
 			{
-				const uint		idx		= f.sortedThreads2[ t_idx ];
+				const uint		idx		= f.sortedThreads[ t_idx ];
 				const float		row_y	= diag_region_pad.top + row_height * idx;
 				const auto&		info	= f.threadInfos[ t_idx ];
 				const uint		color	= BitCast<uint>( info.color );
@@ -76,7 +75,7 @@ namespace AE::Profiler
 
 		// draw tasks
 		{
-			const double	scale_x		= double(diag_region_pad.Width()) / (f.max - f.min);
+			const double	scale_x		= double(diag_region_pad.Width()) / (f.max - f.min).count();
 			const float		base_x		= diag_region_pad.left;
 
 			for (auto& t : f.tasks)
@@ -84,12 +83,12 @@ namespace AE::Profiler
 				if ( IsNaN( t.begin ) or IsNaN( t.end ))
 					continue;
 
-				uint	t_idx	= f.sortedThreads2[ t.threadIdx ];
-				double	begin	= IsNaN( t.begin ) ? (f.min) : t.begin;
-				double	end		= IsNaN( t.end )   ? (f.max) : t.end;
+				uint	t_idx	= f.sortedThreads[ t.threadIdx ];
+				double	begin	= (IsNaN( t.begin ) ? (f.min) : t.begin).count();
+				double	end		= (IsNaN( t.end )   ? (f.max) : t.end).count();
 
-				float	x0		= base_x + float((begin - f.min) * scale_x);
-				float	x1		= base_x + float((end - f.min) * scale_x);
+				float	x0		= base_x + float((begin - f.min.count()) * scale_x);
+				float	x1		= base_x + float((end - f.min.count()) * scale_x);
 
 				float	y0		= diag_region_pad.top + row_height * t_idx + rect_thickness;
 				float	y1		= y0 + row_height - rect_thickness * 2.0f;
@@ -99,32 +98,33 @@ namespace AE::Profiler
 		}
 
 		ImGui::SetCursorScreenPos( ImVec2{ diag_region.left, diag_region.bottom + padding * 2.f });
-		ImGui::Text( "time range: %s", ToString(nanosecondsd{ f.max - f.min }).c_str() );
+		ImGui::Text( "time range: %s", ToString( f.max - f.min ).c_str() );
 
 		// draw tree
 		if ( _enableTreeView )
 		{
 			String	str;
 
-			for (usize i = 0, cnt = f.threads.size(); i < cnt; ++i)
+			for (usize i = 0, cnt = f.sortedThreads.size(); i < cnt; ++i)
 			{
-				const uint	t_idx	= f.sortedThreads[i];
-				const auto&	info	= f.threadInfos[ t_idx ];
+				const uint	info_idx	= f.sortedThreads[i];
+				const auto&	info		= f.threadInfos[ info_idx ];
+				const void*	id			= BitCast<void*>( f.threads.GetKeyArray()[ info_idx ]);
 
-				if ( ImGui::TreeNodeEx( info.name.data(), ImGuiTreeNodeFlags_DefaultOpen ))
+				if ( ImGui::TreeNodeEx( id, ImGuiTreeNodeFlags_DefaultOpen, "%s", info.name.data() ))
 				{
 					for (usize j = 0, k = 0; (j < f.tasks.size() and k < 20); ++j)
 					{
 						auto&	task = f.tasks[j];
 
-						if ( task.threadIdx != t_idx )
+						if ( task.threadIdx != info_idx )
 							continue;
 
 						if ( IsNaN( task.begin ) or IsNaN( task.end ))
 							continue;
 
 						str.clear();
-						str << task.name << " (" << ToString( secondsd{nanosecondsd{ task.end - task.begin }}) << ")";
+						str << task.name << " (" << ToString( secondsd{ task.end - task.begin }) << ")";
 
 						RGBA32f	c {task.color};
 						ImGui::TextColored( ImVec4{c.r, c.g, c.b, c.a}, str.c_str(), "" );
@@ -159,9 +159,9 @@ namespace AE::Profiler
 	Add
 =================================================
 */
-	void  ImTaskRangeHorDiagram::Add (StringView name, RGBA8u color, double begin, double end, usize threadId, StringView threadCaption)
+	void  ImTaskRangeHorDiagram::Add (StringView name, RGBA8u color, nanosecondsd begin, nanosecondsd end, usize threadId, StringView threadCaption)
 	{
-		CHECK( not _guard.try_lock() );
+		CHECK_ERRV( not _guard.try_lock() );
 
 		auto&	f = _frames[ _frameIdx ];
 
@@ -195,7 +195,7 @@ namespace AE::Profiler
 */
 	void  ImTaskRangeHorDiagram::End ()
 	{
-		CHECK( not _guard.try_lock() );
+		CHECK_ERRV( not _guard.try_lock() );
 
 		auto&	f = _frames[ _frameIdx ];
 
@@ -209,13 +209,6 @@ namespace AE::Profiler
 						auto&	r = f.threadInfos[ rhs ];
 						return BitCast<uint>(l.color) < BitCast<uint>(r.color);
 					});
-
-		f.sortedThreads2.resize( f.sortedThreads.size() );
-
-		for (usize i = 0; i < f.sortedThreads.size(); ++i)
-		{
-			f.sortedThreads2[ f.sortedThreads[i] ] = InfoIndex(i);
-		}
 
 		_guard.unlock();
 	}

@@ -178,6 +178,22 @@
 #endif
 
 
+// CI
+#ifdef AE_CI_BUILD_TEST
+# ifdef AE_CI_BUILD_PERF
+#	error Can not define both AE_CI_BUILD_TEST and AE_CI_BUILD_PERF
+# endif
+#endif
+#ifdef AE_CI_BUILD_PERF
+# ifdef AE_CI_BUILD_TEST
+#	error Can not define both AE_CI_BUILD_TEST and AE_CI_BUILD_PERF
+# endif
+# ifndef AE_RELEASE
+#	error CI performance tests requires Release build
+# endif
+#endif
+
+
 // check definitions
 #ifdef AE_CPP_DETECT_MISMATCH
 
@@ -211,10 +227,16 @@
 #	pragma detect_mismatch( "AE_FAST_HASH", "0" )
 #  endif
 
-#  ifdef AE_CI_BUILD
-#	pragma detect_mismatch( "AE_CI_BUILD", "1" )
+#  ifdef AE_CI_BUILD_TEST
+#	pragma detect_mismatch( "AE_CI_BUILD_TEST", "1" )
 #  else
-#	pragma detect_mismatch( "AE_CI_BUILD", "0" )
+#	pragma detect_mismatch( "AE_CI_BUILD_TEST", "0" )
+#  endif
+
+#  ifdef AE_CI_BUILD_PERF
+#	pragma detect_mismatch( "AE_CI_BUILD_PERF", "1" )
+#  else
+#	pragma detect_mismatch( "AE_CI_BUILD_PERF", "0" )
 #  endif
 
 #  ifdef AE_ENABLE_MEMLEAK_CHECKS

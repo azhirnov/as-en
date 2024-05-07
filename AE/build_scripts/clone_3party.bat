@@ -117,12 +117,12 @@ robocopy "AngelScript/sdk/.git" "../3party/AngelScript" /S
 :: if failed then go to https://github.com/BtbN/FFmpeg-Builds/releases and get link to new versions
 git init ffmpeg
 cd ffmpeg
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n5.1-latest-win64-lgpl-shared-5.1.zip', 'win64_lgpl.zip')"
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n5.1-latest-win64-gpl-shared-5.1.zip', 'win64_gpl.zip')"
+powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2023-12-31-12-55/ffmpeg-n6.1.1-win64-lgpl-shared-6.1.zip', 'win64_lgpl.zip')"
+powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2023-12-31-12-55/ffmpeg-n6.1.1-win64-gpl-shared-6.1.zip', 'win64_gpl.zip')"
 powershell Expand-Archive "win64_lgpl.zip" -DestinationPath "temp_win64_lgpl"
 powershell Expand-Archive "win64_gpl.zip" -DestinationPath "temp_win64_gpl"
-move "temp_win64_lgpl/ffmpeg-n5.1-latest-win64-lgpl-shared-5.1" "win64-lgpl"
-move "temp_win64_gpl/ffmpeg-n5.1-latest-win64-gpl-shared-5.1" "win64-gpl"
+move "temp_win64_lgpl/ffmpeg-n6.1.1-win64-lgpl-shared-6.1" "win64-lgpl"
+move "temp_win64_gpl/ffmpeg-n6.1.1-win64-gpl-shared-6.1" "win64-gpl"
 del "win64_lgpl.zip"
 del "win64_gpl.zip"
 git add "*.dll"
@@ -183,6 +183,22 @@ git commit -m "v4.2.1"
 cd ..
 rmdir /Q /S "../3party/KTX-Software"
 robocopy "KTX-Software/.git" "../3party/KTX-Software" /S
+
+
+:: download PowerVR-SDK
+git clone --bare "https://github.com/powervr-graphics/Native_SDK.git" "PowerVR-SDK"
+cd "PowerVR-SDK"
+git init
+git add "include/PVRScopeComms.h"
+git add "include/PVRScopeStats.h"
+git add "lib/Android_arm64-v8a"
+git add "lib/Android_armeabi-v7a"
+git add "lib/Android_x86"
+git add "lib/Android_x86_64"
+git commit -m "init"
+cd ..
+rmdir /Q /S "../3party/PowerVR-SDK"
+robocopy "PowerVR-SDK/.git" "../3party/PowerVR-SDK" /S
 
 
 :: delete 'temp'

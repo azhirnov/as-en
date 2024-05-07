@@ -40,7 +40,7 @@ namespace {
 */
 	RenderGraphImpl&  RenderGraph ()
 	{
-		ASSERT( _rgInstance != null );
+		NonNull( _rgInstance );
 		return *_rgInstance;
 	}
 

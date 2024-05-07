@@ -1,6 +1,6 @@
 name:  'NearestClamp'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -9,13 +9,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'NearestClamp|ycbcr|AndroidNV16'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -24,7 +23,6 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   ycbcr.extFormat:     Android_NV16
   ycbcr.model:         suggested
@@ -38,7 +36,7 @@ Sampler{
 --------------
 name:  'LinearMipmapRepeat'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -47,13 +45,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'AnisotropyRepeat'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -63,13 +60,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS', 'MinDesktop' }
 --------------
 name:  'NearestClamp|ycbcr|AndroidYUY2'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -78,7 +74,6 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   ycbcr.extFormat:     Android_YUY2
   ycbcr.model:         suggested
@@ -92,7 +87,7 @@ Sampler{
 --------------
 name:  'LinearMipmapClamp'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -101,13 +96,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'LinearClamp'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Nearest
@@ -116,13 +110,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'NearestRepeat'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -131,13 +124,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'LinearRepeat'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Nearest
@@ -146,13 +138,12 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   features:      { 'MinimalFS' }
 --------------
 name:  'NearestClamp|ycbcr|G8_B8R8_420_UNorm'
 Sampler{
-  usage:         Default
+  options:       
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -161,7 +152,6 @@ Sampler{
   minLod:        -1000.00
   maxLod:        1000.00
   borderColor:   FloatTransparentBlack
-  unnormCoord:   false
   reductionMode: Average
   ycbcr.format:        G8_B8R8_420_UNorm
   ycbcr.model:         Ycbcr_709

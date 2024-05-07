@@ -3,6 +3,7 @@
 #include "RenderPassPack.h"
 #include "graphics/Private/EnumUtils.h"
 #include "graphics/Private/EnumToString.h"
+#include "Packer/VulkanEnums.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/VEnumCast.h"
@@ -908,9 +909,9 @@ namespace
 
 			for (uint j = 0; j < max_deps; ++j)
 			{
-				const auto&	src_dep	= rp->pDependencies[j];
+				const auto&	src_dep	= compat_rp->pDependencies[j];
 				const auto&	src_bar	= *Cast<VkMemoryBarrier2>(src_dep.pNext);
-				auto&		dst_dep	= const_cast<VkSubpassDependency2 &>(compat_rp->pDependencies[j]);
+				auto&		dst_dep	= const_cast<VkSubpassDependency2 &>(rp->pDependencies[j]);
 				auto&		dst_bar	= const_cast<VkMemoryBarrier2 &>(*Cast<VkMemoryBarrier2>(dst_dep.pNext));
 
 				dst_dep.dependencyFlags	|= src_dep.dependencyFlags;
@@ -1442,6 +1443,7 @@ namespace
 
 		result &= des( OUT _ci.dependencyCount );
 		CHECK_ERR( result and _ci.dependencyCount <= GraphicsConfig::MaxSubpassDeps );
+
 		if ( _ci.dependencyCount > 0 )
 		{
 			auto*	dependencies = _allocator.Allocate<VkSubpassDependency2>( _ci.dependencyCount );
@@ -1770,7 +1772,7 @@ namespace
 
 			switch_enum( storage.target )
 			{
-				#ifdef AE_ENABLE_VULKAN
+			  #ifdef AE_ENABLE_VULKAN
 				case ECompilationTarget::Vulkan :
 				{
 					CHECK_ERR( not compat->_specializations.empty() );
@@ -1797,7 +1799,7 @@ namespace
 					}
 					break;
 				}
-				#endif
+			  #endif
 
 				case ECompilationTarget::Metal_iOS :
 				case ECompilationTarget::Metal_Mac :
@@ -1822,15 +1824,16 @@ namespace
 
 				case ECompilationTarget::Unknown :
 				case ECompilationTarget::_Count :
-				#ifndef AE_ENABLE_VULKAN
+			  #ifndef AE_ENABLE_VULKAN
 				case ECompilationTarget::Vulkan :
-				#endif
+			  #endif
 				default :
 					RETURN_ERR( "unknown compilation target" );
 			}
 			switch_end
 		}
 
+		Unused( rp_spec_count );
 		AE_LOG_DBG( "Serialized compatible render passes: "s << ToString(compatible_rp.size()) <<
 					", unique render passes: " << ToString(rp_spec_count) );
 		return true;

@@ -10,6 +10,7 @@
 
 # include "base/Algorithms/StringUtils.h"
 # include "base/DataSource/UnixFile.h"
+# include "base/FileSystem/FileSystem.h"
 
 namespace AE::Base
 {
@@ -20,23 +21,22 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	UnixFileRStream::UnixFileRStream (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixFileRStream::UnixFileRStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_fileSize{ GetFileSize( _file )},
-		_flags{ flags }
+		_fileSize{ GetFileSize( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
-	UnixFileRStream::UnixFileRStream (const char* filename, EFlags flags)	__NE___ :
-		UnixFileRStream{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
+	UnixFileRStream::UnixFileRStream (const char* filename, EMode mode)		__NE___ :
+		UnixFileRStream{ Handle_t{OpenFileForRead( filename, mode )} DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixFileRStream::UnixFileRStream (NtStringView filename, EFlags flags)	__NE___ : UnixFileRStream{ filename.c_str(), flags } {}
-	UnixFileRStream::UnixFileRStream (const String &filename, EFlags flags)	__NE___ : UnixFileRStream{ filename.c_str(), flags } {}
-	UnixFileRStream::UnixFileRStream (const Path &path, EFlags flags)		__NE___ : UnixFileRStream{ path.c_str(), flags } {}
+	UnixFileRStream::UnixFileRStream (NtStringView filename, EMode mode)	__NE___ : UnixFileRStream{ filename.c_str(), mode } {}
+	UnixFileRStream::UnixFileRStream (const String &filename, EMode mode)	__NE___ : UnixFileRStream{ filename.c_str(), mode } {}
+	UnixFileRStream::UnixFileRStream (const Path &path, EMode mode)			__NE___ : UnixFileRStream{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -56,9 +56,9 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileRStream::GetSourceType () C_NE___
 	{
-		return	(AllBits( _flags, EFlags::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
-				(AllBits( _flags, EFlags::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
-				ESourceType::FixedSize | ESourceType::ReadAccess
+		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
+				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::ThreadSafe
 			#ifndef AE_PLATFORM_APPLE
 				| ESourceType::Prefetch
 			#endif
@@ -142,21 +142,21 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	UnixFileWStream::UnixFileWStream (Handle_t file, EFlags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixFileWStream::UnixFileWStream (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
-	UnixFileWStream::UnixFileWStream (const char* filename, EFlags flags)	__NE___ :
-		UnixFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
+	UnixFileWStream::UnixFileWStream (const char* filename, EMode mode)		__NE___ :
+		UnixFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )} DEBUG_ONLY(, Path{filename} )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixFileWStream::UnixFileWStream (NtStringView filename, EFlags flags)	__NE___	: UnixFileWStream{ filename.c_str(), flags } {}
-	UnixFileWStream::UnixFileWStream (const String &filename, EFlags flags)	__NE___	: UnixFileWStream{ filename.c_str(), flags } {}
-	UnixFileWStream::UnixFileWStream (const Path &path, EFlags flags)		__NE___	: UnixFileWStream{ path.c_str(), flags } {}
+	UnixFileWStream::UnixFileWStream (NtStringView filename, EMode mode)	__NE___	: UnixFileWStream{ filename.c_str(), mode } {}
+	UnixFileWStream::UnixFileWStream (const String &filename, EMode mode)	__NE___	: UnixFileWStream{ filename.c_str(), mode } {}
+	UnixFileWStream::UnixFileWStream (const Path &path, EMode mode)			__NE___	: UnixFileWStream{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -176,7 +176,8 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileWStream::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess | ESourceType::WriteAccess;
+		return	ESourceType::SequentialAccess | ESourceType::WriteAccess |
+				ESourceType::ThreadSafe;
 	}
 
 /*
@@ -256,23 +257,22 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	UnixFileRDataSource::UnixFileRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixFileRDataSource::UnixFileRDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
-		_fileSize{ GetFileSize( _file )},
-		_flags{ flags }
+		_fileSize{ GetFileSize( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
-	UnixFileRDataSource::UnixFileRDataSource (NtStringView filename, EFlags flags)	__NE___	: UnixFileRDataSource{ filename.c_str(), flags } {}
-	UnixFileRDataSource::UnixFileRDataSource (const String &filename, EFlags flags)	__NE___	: UnixFileRDataSource{ filename.c_str(), flags } {}
-	UnixFileRDataSource::UnixFileRDataSource (const char* filename, EFlags flags)	__NE___	:
-		UnixFileRDataSource{ Handle_t{OpenFileForRead( filename, flags, 0 )}, flags DEBUG_ONLY(, filename )}
+	UnixFileRDataSource::UnixFileRDataSource (NtStringView filename, EMode mode)	__NE___	: UnixFileRDataSource{ filename.c_str(), mode } {}
+	UnixFileRDataSource::UnixFileRDataSource (const String &filename, EMode mode)	__NE___	: UnixFileRDataSource{ filename.c_str(), mode } {}
+	UnixFileRDataSource::UnixFileRDataSource (const char* filename, EMode mode)		__NE___	:
+		UnixFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, 0 )} DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixFileRDataSource::UnixFileRDataSource (const Path &path, EFlags flags)		__NE___	: UnixFileRDataSource{ path.c_str(), flags } {}
+	UnixFileRDataSource::UnixFileRDataSource (const Path &path, EMode mode)			__NE___	: UnixFileRDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -292,9 +292,9 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileRDataSource::GetSourceType () C_NE___
 	{
-		return	(AllBits( _flags, EFlags::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
-				(AllBits( _flags, EFlags::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
-				ESourceType::FixedSize | ESourceType::ReadAccess | ESourceType::ThreadSafe;
+		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess	|	// allow SeekFwd() & SeekSet()
+				ESourceType::FixedSize			| ESourceType::ReadAccess	|
+				ESourceType::ThreadSafe;
 	}
 
 /*
@@ -322,21 +322,21 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	UnixFileWDataSource::UnixFileWDataSource (Handle_t file, EFlags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixFileWDataSource::UnixFileWDataSource (Handle_t file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
 
-	UnixFileWDataSource::UnixFileWDataSource (NtStringView filename, EFlags flags)	__NE___	: UnixFileWDataSource{ filename.c_str(), flags } {}
-	UnixFileWDataSource::UnixFileWDataSource (const String &filename, EFlags flags)	__NE___	: UnixFileWDataSource{ filename.c_str(), flags } {}
-	UnixFileWDataSource::UnixFileWDataSource (const char* filename, EFlags flags)	__NE___	:
-		UnixFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags, 0 )}, flags DEBUG_ONLY(, Path{filename} )}
+	UnixFileWDataSource::UnixFileWDataSource (NtStringView filename, EMode mode)	__NE___	: UnixFileWDataSource{ filename.c_str(), mode } {}
+	UnixFileWDataSource::UnixFileWDataSource (const String &filename, EMode mode)	__NE___	: UnixFileWDataSource{ filename.c_str(), mode } {}
+	UnixFileWDataSource::UnixFileWDataSource (const char* filename, EMode mode)		__NE___	:
+		UnixFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, 0 )} DEBUG_ONLY(, Path{filename} )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixFileWDataSource::UnixFileWDataSource (const Path &path, EFlags flags)		__NE___	: UnixFileWDataSource{ path.c_str(), flags } {}
+	UnixFileWDataSource::UnixFileWDataSource (const Path &path, EMode mode)			__NE___ : UnixFileWDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -356,7 +356,8 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  UnixFileWDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::ThreadSafe;
+		return	ESourceType::RandomAccess | ESourceType::WriteAccess |
+				ESourceType::ThreadSafe;
 	}
 
 /*

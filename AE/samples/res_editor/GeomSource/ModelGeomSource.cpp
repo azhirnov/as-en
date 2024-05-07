@@ -70,21 +70,21 @@ namespace AE::ResEditor
 		_temp->meshInfoArr.resize( mesh_cnt );
 
 		_meshData = res_mngr.CreateBuffer( BufferDesc{ mesh_data_size, usage | EBufferUsage::Vertex | EBufferUsage::Index },
-											"Vertices & Indices", r.GetAllocator() );
+											"Vertices & Indices", r.ChooseAllocator( False{"static"}, mesh_data_size ));
 		CHECK_THROW( _meshData );
 
 		_temp->nodeDataSize	= SizeOf<ShaderTypes::ModelNode> * _temp->nodeCount;
 		_nodeBuffer			= res_mngr.CreateBuffer( BufferDesc{ _temp->nodeDataSize, usage },
-													 "ModelNodes", r.GetAllocator() );
+													 "ModelNodes", r.ChooseAllocator( False{"static"}, _temp->nodeDataSize ));
 		CHECK_THROW( _nodeBuffer );
 
 		_temp->materialDataSize	= SizeOf<ShaderTypes::ModelMaterial> * _intermScene->Materials().size();
 		_materials				= res_mngr.CreateBuffer( BufferDesc{ _temp->materialDataSize, usage },
-														 "ModelMaterials", r.GetAllocator() );
+														 "ModelMaterials", r.ChooseAllocator( False{"static"}, _temp->materialDataSize ));
 		CHECK_THROW( _materials );
 
 		_lights = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneLights>, EBufferUsage::Storage | EBufferUsage::TransferDst },
-										 "SceneLights", r.GetAllocator() );
+										 "SceneLights", r.GetStaticAllocator() );
 		CHECK_THROW( _lights );
 
 		if ( use_rtas )
@@ -98,7 +98,8 @@ namespace AE::ResEditor
 					size += SizeOf<float3x3> * _temp->nodeCount;					// normalMatPerInstance
 
 			_temp->rtInstancesDataSize	= size;
-			_rtInstances				= res_mngr.CreateBuffer( BufferDesc{ size, usage }, "ModelRTInstances", r.GetAllocator() );
+			_rtInstances				= res_mngr.CreateBuffer( BufferDesc{ size, usage }, "ModelRTInstances",
+																 r.ChooseAllocator( False{"static"}, size ));
 			CHECK_THROW( _rtInstances );
 		}
 	}
@@ -432,7 +433,7 @@ namespace AE::ResEditor
 		auto&					res_mngr		= RenderGraph().GetStateTracker();
 		const Bytes				rtmat_size		= SizeOf<RTMatrixStorage> * node_count;
 		GAutorelease<BufferID>	transform_buf	= res_mngr.CreateBuffer( BufferDesc{ rtmat_size, EBufferUsage::TransferDst | EBufferUsage::ASBuild_ReadOnly },
-																		 Default, _GfxDynamicAllocator() );
+																		 Default, _Renderer().ChooseAllocator( True{"dynamic"}, rtmat_size ));
 		CHECK_THROW( transform_buf );
 
 		BufferMemView	mem_view;
@@ -499,8 +500,10 @@ namespace AE::ResEditor
 
 		RTGeometryBuild				geom_build	{ tri_infos, tri_data, Default, Default, ERTASOptions::PreferFastTrace };
 		const auto					sizes		= res_mngr.GetRTGeometrySizes( geom_build );
-		GAutorelease<BufferID>		scratch_buf	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch }, Default, _GfxDynamicAllocator() );
-		GAutorelease<RTGeometryID>	geom_id		= res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, geom_build.options }, Default, _GfxAllocator() );
+		GAutorelease<BufferID>		scratch_buf	= res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
+																		 Default, _Renderer().ChooseAllocator( True{"dynamic"}, sizes.buildScratchSize ));
+		GAutorelease<RTGeometryID>	geom_id		= res_mngr.CreateRTGeometry( RTGeometryDesc{ sizes.rtasSize, geom_build.options }, Default,
+																			 _Renderer().ChooseAllocator( False{"static"}, sizes.rtasSize ));
 
 		CHECK_THROW( geom_id and scratch_buf );
 		CHECK_THROW( mem_view.CopyFrom( mat_arr ) == ArraySizeOf(mat_arr) );

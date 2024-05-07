@@ -3,12 +3,14 @@
 #include "Test_RenderGraph.h"
 #include "graphics/Private/EnumUtils.h"
 
+#undef  TEST
 #define TEST	CHECK_ERR
 
 
 bool RGTest::Test_FeatureSets ()
 {
 	// test swapchain feature set parts
+	#if 0
 	{
 		FeatureSet::SurfaceFormatSet_t	formats;
 		TEST( _swapchain.GetSurfaceFormats( OUT formats ));
@@ -37,21 +39,34 @@ bool RGTest::Test_FeatureSets ()
 			switch_end
 		}
 	}
+	#endif
 
 	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinimalFS"} ));
 
-	#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
+	#ifdef AE_ENABLE_REMOTE_GRAPHICS
+		if ( AnyEqual( _device.GetOSType(), EOperationSystem::Windows, EOperationSystem::Linux, EOperationSystem::MacOS, EOperationSystem::BSD ))
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktop"} ));
+
+		if ( AnyEqual( _device.GetOSType(), EOperationSystem::Android, EOperationSystem::iOS ))
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobile"} ));
+
+		if ( AnyEqual( _device.GetOSType(), EOperationSystem::MacOS, EOperationSystem::iOS ))
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinApple"} ));
+
+	#else
+	# if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_MACOS)
 		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktop"} ));
-	#endif
-	#if defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_IOS)
+	# endif
+	# if defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_IOS)
 		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobile"} ));
-	#endif
-	#ifdef AE_PLATFORM_APPLE
+	# endif
+	# ifdef AE_PLATFORM_APPLE
 		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinApple"} ));
+	# endif
 	#endif
 
 	#if defined(AE_ENABLE_VULKAN)
-		const EVendorID			vendor	= GetVendorTypeByID( _device.GetVProperties().properties.vendorID );
+		const EGPUVendor		vendor	= GetVendorTypeByID( _device.GetVProperties().properties.vendorID );
 		const EGraphicsDeviceID	dev		= GetEGraphicsDeviceByName( _device.GetDeviceName() );
 		const bool				sra		= _device.GetVProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
 
@@ -60,27 +75,27 @@ bool RGTest::Test_FeatureSets ()
 
 		switch ( vendor )
 		{
-			case EVendorID::AMD :
+			case EGPUVendor::AMD :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopAMD"} ));
 				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.AMD"} ));
 				break;
-			case EVendorID::NVidia :
+			case EGPUVendor::NVidia :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopNV"} ));
 				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.NV"} ));
 				break;
-			case EVendorID::Intel :
+			case EGPUVendor::Intel :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));
 				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelArc"} ))
 				else		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelXe"} ));
 				break;
-			case EVendorID::ARM :
+			case EGPUVendor::ARM :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));
 				break;
-			case EVendorID::Qualcomm :
+			case EGPUVendor::Qualcomm :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileAdreno"} ));
 				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.Adreno7xx"} ));
 				break;
-			case EVendorID::ImgTech :
+			case EGPUVendor::ImgTech :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));
 				break;
 		}
@@ -88,7 +103,7 @@ bool RGTest::Test_FeatureSets ()
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or
 			 (dev >= EGraphicsDeviceID::AMD_GCN4			and dev <= EGraphicsDeviceID::_AMD_End)		or
 			 (dev >= EGraphicsDeviceID::Apple_A12			and dev <= EGraphicsDeviceID::_Apple_End)	or
-			 (dev >= EGraphicsDeviceID::Intel_Gen9			and dev <= EGraphicsDeviceID::_Intel_End)	or
+			 (dev >= EGraphicsDeviceID::Intel_Gen9_HD500	and dev <= EGraphicsDeviceID::_Intel_End)	or
 			 (dev >= EGraphicsDeviceID::NV_Maxwell			and dev <= EGraphicsDeviceID::_NV_End)		or
 			 (dev >= EGraphicsDeviceID::PowerVR_Series8XE	and dev <= EGraphicsDeviceID::_PowerVR_End)	or
 			 (dev >= EGraphicsDeviceID::Mali_Midgard_Gen4	and dev <= EGraphicsDeviceID::_Mali_End) )

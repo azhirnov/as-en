@@ -94,7 +94,7 @@ namespace AE::Math
 	public:
 		SimdHalf4 ()										__NE___	: _value{}						{}
 		explicit SimdHalf4 (Value_t val)					__NE___	: _value{ vdup_n_f16( val )}	{}
-		explicit SimdHalf4 (const Value_t* ptr)				__NE___	: _value{ vld1_f16( ptr )}		{ ASSERT( ptr != null ); }
+		explicit SimdHalf4 (const Value_t* ptr)				__NE___	: _value{ vld1_f16( ptr )}		{ NonNull( ptr ); }
 		explicit SimdHalf4 (const Native_t &val)			__NE___	: _value{ val }					{}
 
 		ND_ Self  operator - ()								C_NE___	{ return Negative(); }
@@ -191,7 +191,7 @@ namespace AE::Math
 	public:
 		SimdTInt64 ()									__NE___	: _value{} {}
 
-		explicit SimdTInt64 (Base::_hidden_::_UMax)		__NE___	: SimdTInt64{ ~IntType{0} } {}
+		explicit SimdTInt64 (UMax_t)					__NE___	: SimdTInt64{ ~IntType{0} } {}
 		explicit SimdTInt64 (const Native_t &val)		__NE___	: _value{ val } {}
 
 		template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
@@ -208,7 +208,7 @@ namespace AE::Math
 		template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
 		explicit SimdTInt64 (const T* ptr)				__NE___
 		{
-			ASSERT( ptr != null );
+			NonNull( ptr );
 			if constexpr( isU8 )	_value = vld1_u8(  ptr );
 			if constexpr( isI8 )	_value = vld1_s8(  ptr );
 			if constexpr( isU16 )	_value = vld1_u16( ptr );
@@ -431,9 +431,9 @@ namespace AE::Math
 
 	// methods
 	public:
-		SimdTInt128 () : _value{} {}
+		SimdTInt128 ()									__NE___	: _value{} {}
 
-		explicit SimdTInt128 (Base::_hidden_::_UMax)	__NE___	: SimdTInt128{ ~IntType{0} } {}
+		explicit SimdTInt128 (UMax_t)					__NE___	: SimdTInt128{ ~IntType{0} } {}
 		explicit SimdTInt128 (const Native_t &val)		__NE___	: _value{ val } {}
 
 		template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
@@ -452,7 +452,7 @@ namespace AE::Math
 		template <typename T, ENABLEIF( IsSameTypes< T, IntType >)>
 		explicit SimdTInt128 (const T* ptr)				__NE___
 		{
-			ASSERT( ptr != null );
+			NonNull( ptr );
 			if constexpr( isU8 )	_value = vld1q_u8(  ptr );
 			if constexpr( isI8 )	_value = vld1q_s8(  ptr );
 			if constexpr( isU16 )	_value = vld1q_u16( ptr );
@@ -755,7 +755,7 @@ namespace AE::Math
 		SimdHalf8 (float16x4_t a, float16x4_t b)			__NE___	: _value{ vcombine_f16( a, b )}		{}
 		SimdHalf8 (const SimdHalf4 &a, const SimdHalf4 &b)	__NE___	: SimdHalf8{ a._value, b._value }	{}
 		explicit SimdHalf8 (Value_t val)					__NE___	: _value{ vdupq_n_f16( val )}		{}
-		explicit SimdHalf8 (const Value_t* ptr)				__NE___	: _value{ vld1q_f16( ptr )}			{ ASSERT( ptr != null ); }
+		explicit SimdHalf8 (const Value_t* ptr)				__NE___	: _value{ vld1q_f16( ptr )}			{ NonNull( ptr ); }
 		explicit SimdHalf8 (const Native_t &val)			__NE___	: _value{ val }						{}
 
 		ND_ Self  operator - ()								C_NE___	{ return Negative(); }
@@ -847,7 +847,7 @@ namespace AE::Math
 	public:
 		SimdFloat4 ()									__NE___	: _value{}						{}
 		explicit SimdFloat4 (Value_t val)				__NE___	: _value{ vdupq_n_f32( val )}	{}
-		explicit SimdFloat4 (const Value_t* ptr)		__NE___	: _value{ vld1q_f32( ptr )}		{ ASSERT( ptr != null ); }
+		explicit SimdFloat4 (const Value_t* ptr)		__NE___	: _value{ vld1q_f32( ptr )}		{ NonNull( ptr ); }
 		explicit SimdFloat4 (const Native_t &val)		__NE___	: _value{ val }					{}
 
 		ND_ Self  operator - ()							C_NE___	{ return Negative(); }
@@ -953,7 +953,7 @@ namespace AE::Math
 	public:
 		SimdDouble2 ()									__NE___	: _value{}						{}
 		explicit SimdDouble2 (Value_t val)				__NE___	: _value{ vdupq_n_f64( val )}	{}
-		explicit SimdDouble2 (const Value_t* ptr)		__NE___	: _value{ vld1q_f64( ptr )}		{ ASSERT( ptr != null ); }
+		explicit SimdDouble2 (const Value_t* ptr)		__NE___	: _value{ vld1q_f64( ptr )}		{ NonNull( ptr ); }
 		explicit SimdDouble2 (const Native_t &val)		__NE___	: _value{ val }					{}
 
 		ND_ Self  operator +  (const Self &rhs)			C_NE___	{ return Add( rhs ); }
@@ -1007,7 +1007,7 @@ namespace AE::Math
 	// methods
 	public:
 		Int128b ()								__NE___	: _value{ vdupq_n_u8( 0 )}	{}
-		explicit Int128b (const ubyte* ptr)		__NE___	: _value{ vld1q_u8( ptr )}	{ ASSERT( ptr != null ); }
+		explicit Int128b (const ubyte* ptr)		__NE___	: _value{ vld1q_u8( ptr )}	{ NonNull( ptr ); }
 		explicit Int128b (const uint8x16_t &val)__NE___	: _value{ val }		{}
 
 		ND_ Self  operator ~ ()					C_NE___	{ return Not(); }

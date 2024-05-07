@@ -2,7 +2,6 @@
 
 #include "VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
-#include "base/Containers/FixedMap.h"
 #include "graphics/Public/ImageUtils.h"
 
 using namespace AE;
@@ -12,7 +11,7 @@ using namespace AE::Threading;
 #define PRINT_ALL_DS		1
 
 // Print debug marker and debug groups.
-#define ENABLE_DBG_LABEL	0
+#define ENABLE_DBG_LABEL	0	// 0, 1, 2
 
 // Vulkan validation writes 'seq_no' - the zero based index of command within the command buffer.
 // Enable 'seq_no' field in the sync commands.
@@ -293,6 +292,7 @@ namespace
 		void  Deinitialize (OUT VulkanDeviceFnTable& fnTable);
 
 		void  _PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint);
+		void  _SetDebugUtilsObjectName (VkObjectType type, ulong id, StringView name);
 
 		ND_ CommandBufferData*  _WithCmdBuf (VkCommandBuffer commandBuffer, Bool incCmdIndex = False{});
 
@@ -1036,7 +1036,7 @@ namespace
 				case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
 				case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
 				{
-					ASSERT( write.pImageInfo != null );
+					NonNull( write.pImageInfo );
 					dst.images.resize( Max( dst.images.size(), write.dstArrayElement + write.descriptorCount ));
 					for (uint i = 0; i < write.descriptorCount; ++i)
 						dst.images[i] = write.pImageInfo[i];
@@ -1045,7 +1045,7 @@ namespace
 				case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER :
 				case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER :
 				{
-					ASSERT( write.pTexelBufferView != null );
+					NonNull( write.pTexelBufferView );
 					dst.texelBuffers.resize( Max( dst.texelBuffers.size(), write.dstArrayElement + write.descriptorCount ));
 					for (uint i = 0; i < write.descriptorCount; ++i)
 						dst.texelBuffers[i] = write.pTexelBufferView[i];
@@ -1056,7 +1056,7 @@ namespace
 				case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :
 				case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC :
 				{
-					ASSERT( write.pBufferInfo != null );
+					NonNull( write.pBufferInfo );
 					dst.buffers.resize( Max( dst.buffers.size(), write.dstArrayElement + write.descriptorCount ));
 					for (uint i = 0; i < write.descriptorCount; ++i)
 						dst.buffers[i] = write.pBufferInfo[i];
@@ -1065,9 +1065,9 @@ namespace
 				case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR :
 				{
 					auto*	write_as = Cast<VkWriteDescriptorSetAccelerationStructureKHR>(write.pNext);
-					ASSERT( write_as != null );
+					NonNull( write_as );
 					ASSERT( write_as->sType == VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR );
-					ASSERT( write_as->pAccelerationStructures != null );
+					NonNull( write_as->pAccelerationStructures );
 					ASSERT( write_as->accelerationStructureCount == write.descriptorCount );
 
 					dst.accelStructs.resize( Max( dst.accelStructs.size(), write.dstArrayElement + write_as->accelerationStructureCount ));
@@ -1309,6 +1309,9 @@ namespace
 
 					auto&	cmdbuf = cmd_it->second;
 					cmdbuf.state = VulkanLogger::CommandBufferData::EState::Initial;
+
+					if ( cmdbuf.log.empty() )
+						continue;
 
 					log << "--------------------------------------------------\n";
 					log << "name: '" << cmdbuf.name << "'\n{\n";
@@ -1553,7 +1556,7 @@ namespace
 
 /*
 =================================================
-	Wrap_vkSetDebugUtilsObjectNameEXT
+	VBitCast
 =================================================
 */
 	template <typename To, typename From>
@@ -1562,156 +1565,52 @@ namespace
 	#	if AE_PLATFORM_BITS == 64
 			return BitCast<To>( src );
 	#	else
-			return UnsafeBitCast<To>( src );
+			return BitCastRlx<To>( src );
 	#	endif
 	}
 
+/*
+=================================================
+	Wrap_vkDebugMarkerSetObjectNameEXT
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkDebugMarkerSetObjectNameEXT (VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
+	{
+		VkObjectType	type = VK_OBJECT_TYPE_MAX_ENUM;
+		switch ( pNameInfo->objectType )
+		{
+			case VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT :				type = VK_OBJECT_TYPE_COMMAND_BUFFER;				break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT :						type = VK_OBJECT_TYPE_BUFFER;						break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT :					type = VK_OBJECT_TYPE_BUFFER_VIEW;					break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT :						type = VK_OBJECT_TYPE_IMAGE;						break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT :					type = VK_OBJECT_TYPE_IMAGE_VIEW;					break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT :					type = VK_OBJECT_TYPE_RENDER_PASS;					break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT :					type = VK_OBJECT_TYPE_FRAMEBUFFER;					break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT :						type = VK_OBJECT_TYPE_PIPELINE;						break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT :		type = VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT;		break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR_EXT :	type = VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR;	break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT :					type = VK_OBJECT_TYPE_SEMAPHORE;					break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT :						type = VK_OBJECT_TYPE_FENCE;						break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT :						type = VK_OBJECT_TYPE_QUEUE;						break;
+			case VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT :				type = VK_OBJECT_TYPE_PIPELINE_LAYOUT;				break;
+		}
+
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
+		logger._SetDebugUtilsObjectName( type, pNameInfo->object, pNameInfo->pObjectName );
+		return logger.vkDebugMarkerSetObjectNameEXT( device, pNameInfo );
+	}
+
+/*
+=================================================
+	Wrap_vkSetDebugUtilsObjectNameEXT
+=================================================
+*/
 	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkSetDebugUtilsObjectNameEXT (VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
-
-		switch_enum( pNameInfo->objectType )
-		{
-			case VK_OBJECT_TYPE_COMMAND_BUFFER :
-			{
-				auto	iter = logger.commandBuffers.find( VBitCast<VkCommandBuffer>(pNameInfo->objectHandle) );
-				if ( iter != logger.commandBuffers.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_BUFFER :
-			{
-				auto	iter = logger.bufferMap.find( VBitCast<VkBuffer>(pNameInfo->objectHandle) );
-				if ( iter != logger.bufferMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_BUFFER_VIEW :
-			{
-				auto	iter = logger.bufferViewMap.find( VBitCast<VkBufferView>(pNameInfo->objectHandle) );
-				if ( iter != logger.bufferViewMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_IMAGE :
-			{
-				auto	iter = logger.imageMap.find( VBitCast<VkImage>(pNameInfo->objectHandle) );
-				if ( iter != logger.imageMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_IMAGE_VIEW :
-			{
-				auto	iter = logger.imageViewMap.find( VBitCast<VkImageView>(pNameInfo->objectHandle) );
-				if ( iter != logger.imageViewMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_RENDER_PASS :
-			{
-				auto	iter = logger.renderPassMap.find( VBitCast<VkRenderPass>(pNameInfo->objectHandle) );
-				if ( iter != logger.renderPassMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_FRAMEBUFFER :
-			{
-				auto	iter = logger.framebufferMap.find( VBitCast<VkFramebuffer>(pNameInfo->objectHandle) );
-				if ( iter != logger.framebufferMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_PIPELINE :
-			{
-				auto	iter = logger.pipelineMap.find( VBitCast<VkPipeline>(pNameInfo->objectHandle) );
-				if ( iter != logger.pipelineMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT :
-			{
-				auto	iter = logger.descSetLayoutMap.find( VBitCast<VkDescriptorSetLayout>(pNameInfo->objectHandle) );
-				if ( iter != logger.descSetLayoutMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR :
-			{
-				auto	iter = logger.accelStructMap.find( VBitCast<VkAccelerationStructureKHR>(pNameInfo->objectHandle) );
-				if ( iter != logger.accelStructMap.end() )
-					iter->second.name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_SEMAPHORE : {
-				logger.semaphoreMap[ VBitCast<VkSemaphore>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
-				break;
-			}
-			case VK_OBJECT_TYPE_FENCE : {
-				logger.fenceMap[ VBitCast<VkFence>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
-				break;
-			}
-			case VK_OBJECT_TYPE_QUEUE : {
-				logger.queueMap[ VBitCast<VkQueue>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
-				break;
-			}
-			case VK_OBJECT_TYPE_PIPELINE_LAYOUT : {
-				logger.pplnLayoutMap[ VBitCast<VkPipelineLayout>(pNameInfo->objectHandle) ].name = pNameInfo->pObjectName;
-				break;
-			}
-
-			case VK_OBJECT_TYPE_UNKNOWN :
-			case VK_OBJECT_TYPE_DEVICE :
-			case VK_OBJECT_TYPE_INSTANCE :
-			case VK_OBJECT_TYPE_PHYSICAL_DEVICE :
-			case VK_OBJECT_TYPE_DEVICE_MEMORY :
-			case VK_OBJECT_TYPE_EVENT :
-			case VK_OBJECT_TYPE_QUERY_POOL :
-			case VK_OBJECT_TYPE_SAMPLER :
-			case VK_OBJECT_TYPE_DESCRIPTOR_POOL :
-			case VK_OBJECT_TYPE_DESCRIPTOR_SET :
-			case VK_OBJECT_TYPE_SHADER_MODULE :
-			case VK_OBJECT_TYPE_PIPELINE_CACHE :
-			case VK_OBJECT_TYPE_COMMAND_POOL :
-			case VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION :
-			case VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE :
-			case VK_OBJECT_TYPE_SURFACE_KHR :
-			case VK_OBJECT_TYPE_SWAPCHAIN_KHR :
-			case VK_OBJECT_TYPE_DISPLAY_KHR :
-			case VK_OBJECT_TYPE_DISPLAY_MODE_KHR :
-			case VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT :
-			case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV :
-			case VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT :
-			case VK_OBJECT_TYPE_VALIDATION_CACHE_EXT :
-			case VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL :
-			case VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV :
-			case VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT :
-			case VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR :
-			case VK_OBJECT_TYPE_VIDEO_SESSION_KHR :
-			case VK_OBJECT_TYPE_VIDEO_SESSION_PARAMETERS_KHR :
-			case VK_OBJECT_TYPE_CU_MODULE_NVX :
-			case VK_OBJECT_TYPE_CU_FUNCTION_NVX :
-			case VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA :
-			case VK_OBJECT_TYPE_MICROMAP_EXT :
-			case VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV :
-			case VK_OBJECT_TYPE_SHADER_EXT :
-			case VK_OBJECT_TYPE_CUDA_MODULE_NV :
-			case VK_OBJECT_TYPE_CUDA_FUNCTION_NV :
-			case VK_OBJECT_TYPE_MAX_ENUM :
-				break;
-		}
-		switch_end
-
+		logger._SetDebugUtilsObjectName( pNameInfo->objectType, pNameInfo->objectHandle, pNameInfo->pObjectName );
 		return logger.vkSetDebugUtilsObjectNameEXT( device, pNameInfo );
 	}
 
@@ -2419,7 +2318,7 @@ namespace
 
 		cmdbuf->currentRP	 = Default;
 		cmdbuf->currentFB	 = Default;
-		cmdbuf->subpassIndex = VK_SUBPASS_EXTERNAL;
+		cmdbuf->subpassIndex = UMax;
 	}
 
 /*
@@ -2447,6 +2346,13 @@ namespace
 
 		if ( not logger.enableLog )
 			return;
+		auto	rp_it = logger.renderPassMap.find( old_rp );
+		if ( rp_it == logger.renderPassMap.end() )
+			return;
+
+		auto	fb_it = logger.framebufferMap.find( old_fb );
+		if ( fb_it == logger.framebufferMap.end() )
+			return;
 
 		auto&	log = cmdbuf->log;
 
@@ -2455,13 +2361,6 @@ namespace
 
 		log << "  EndRenderPass2\n";
 
-		auto	rp_it = logger.renderPassMap.find( old_rp );
-		if ( rp_it == logger.renderPassMap.end() )
-			return;
-
-		auto	fb_it = logger.framebufferMap.find( old_fb );
-		if ( fb_it == logger.framebufferMap.end() )
-			return;
 
 		auto&	rp = rp_it->second;
 		auto&	fb = fb_it->second;
@@ -4143,7 +4042,7 @@ namespace
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdBeginDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
 
-	  #if ENABLE_DBG_LABEL
+	  #if ENABLE_DBG_LABEL > 1
 		EXLOCK( logger.guard );
 
 		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
@@ -4176,7 +4075,7 @@ namespace
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdEndDebugUtilsLabelEXT( commandBuffer );
 
-	  #if ENABLE_DBG_LABEL
+	  #if ENABLE_DBG_LABEL > 1
 		EXLOCK( logger.guard );
 
 		auto* cmdbuf = logger._WithCmdBuf( commandBuffer );
@@ -4699,6 +4598,94 @@ namespace
 
 /*
 =================================================
+	_SetDebugUtilsObjectName
+=================================================
+*/
+	void  VulkanLogger::_SetDebugUtilsObjectName (VkObjectType type, ulong id, StringView name)
+	{
+		switch ( type )
+		{
+			case VK_OBJECT_TYPE_COMMAND_BUFFER : {
+				auto	iter = commandBuffers.find( VBitCast<VkCommandBuffer>(id) );
+				if ( iter != commandBuffers.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_BUFFER : {
+				auto	iter = bufferMap.find( VBitCast<VkBuffer>(id) );
+				if ( iter != bufferMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_BUFFER_VIEW : {
+				auto	iter = bufferViewMap.find( VBitCast<VkBufferView>(id) );
+				if ( iter != bufferViewMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_IMAGE : {
+				auto	iter = imageMap.find( VBitCast<VkImage>(id) );
+				if ( iter != imageMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_IMAGE_VIEW : {
+				auto	iter = imageViewMap.find( VBitCast<VkImageView>(id) );
+				if ( iter != imageViewMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_RENDER_PASS : {
+				auto	iter = renderPassMap.find( VBitCast<VkRenderPass>(id) );
+				if ( iter != renderPassMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_FRAMEBUFFER : {
+				auto	iter = framebufferMap.find( VBitCast<VkFramebuffer>(id) );
+				if ( iter != framebufferMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_PIPELINE : {
+				auto	iter = pipelineMap.find( VBitCast<VkPipeline>(id) );
+				if ( iter != pipelineMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT : {
+				auto	iter = descSetLayoutMap.find( VBitCast<VkDescriptorSetLayout>(id) );
+				if ( iter != descSetLayoutMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR : {
+				auto	iter = accelStructMap.find( VBitCast<VkAccelerationStructureKHR>(id) );
+				if ( iter != accelStructMap.end() )
+					iter->second.name = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_SEMAPHORE : {
+				semaphoreMap[ VBitCast<VkSemaphore>(id) ] = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_FENCE : {
+				fenceMap[ VBitCast<VkFence>(id) ] = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_QUEUE : {
+				queueMap[ VBitCast<VkQueue>(id) ] = name;
+				break;
+			}
+			case VK_OBJECT_TYPE_PIPELINE_LAYOUT : {
+				pplnLayoutMap[ VBitCast<VkPipelineLayout>(id) ].name = name;
+				break;
+			}
+		}
+	}
+
+/*
+=================================================
 	_PrintResourceUsage
 =================================================
 */
@@ -4881,7 +4868,7 @@ namespace
 		EXLOCK( guard );
 
 		#ifdef AE_CFG_RELEASE
-		AE_LOG_SE( "VulkanSyncLog is used in Release" );
+		AE_LOGW( "VulkanSyncLog is used in Release" );
 		#endif
 
 		queueMap = RVRef(queueNames);
@@ -4932,6 +4919,7 @@ namespace
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
 		table._var_vkSetDebugUtilsObjectNameEXT		= &Wrap_vkSetDebugUtilsObjectNameEXT;
+		table._var_vkDebugMarkerSetObjectNameEXT	= &Wrap_vkDebugMarkerSetObjectNameEXT;
 		table._var_vkAcquireNextImageKHR			= &Wrap_vkAcquireNextImageKHR;
 		table._var_vkQueuePresentKHR				= &Wrap_vkQueuePresentKHR;
 		// TODO: bind sparse
@@ -5121,6 +5109,8 @@ namespace
 
 } // namespace
 
+INTERNAL_LINKAGE( bool  s_Initialized = false; )
+
 
 /*
 =================================================
@@ -5129,6 +5119,9 @@ namespace
 */
 void  VulkanSyncLog::Initialize (INOUT VulkanDeviceFnTable& table, FlatHashMap<VkQueue, String> queueNames)
 {
+	CHECK_ERRV( not s_Initialized );
+	s_Initialized = true;
+
 	auto&	logger = VulkanLogger::Get();
 	PlacementNew<VulkanLogger>( OUT &logger );
 
@@ -5142,10 +5135,14 @@ void  VulkanSyncLog::Initialize (INOUT VulkanDeviceFnTable& table, FlatHashMap<V
 */
 void  VulkanSyncLog::Deinitialize (INOUT VulkanDeviceFnTable& table)
 {
-	auto&	logger = VulkanLogger::Get();
+	if ( s_Initialized )
+	{
+		auto&	logger = VulkanLogger::Get();
 
-	logger.Deinitialize( INOUT table );
-	logger.~VulkanLogger();
+		logger.Deinitialize( INOUT table );
+		logger.~VulkanLogger();
+		s_Initialized = false;
+	}
 }
 
 /*
@@ -5155,11 +5152,14 @@ void  VulkanSyncLog::Deinitialize (INOUT VulkanDeviceFnTable& table)
 */
 void  VulkanSyncLog::Enable ()
 {
-	auto&	logger = VulkanLogger::Get();
-	EXLOCK( logger.guard );
+	if_likely( s_Initialized )
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
 
-	logger.enableLog = true;
-	logger.ResetSyncNames();
+		logger.enableLog = true;
+		logger.ResetSyncNames();
+	}
 }
 
 /*
@@ -5169,10 +5169,13 @@ void  VulkanSyncLog::Enable ()
 */
 void  VulkanSyncLog::Disable ()
 {
-	auto&	logger = VulkanLogger::Get();
-	EXLOCK( logger.guard );
+	if_likely( s_Initialized )
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
 
-	logger.enableLog = false;
+		logger.enableLog = false;
+	}
 }
 
 /*
@@ -5182,9 +5185,12 @@ void  VulkanSyncLog::Disable ()
 */
 void  VulkanSyncLog::GetLog (OUT String &log)
 {
-	auto&	logger = VulkanLogger::Get();
-	EXLOCK( logger.guard );
+	if_likely( s_Initialized )
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
 
-	log.clear();
-	std::swap( log, logger.log );
+		log.clear();
+		std::swap( log, logger.log );
+	}
 }

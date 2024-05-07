@@ -88,7 +88,7 @@ namespace AE::Base
 	template <typename T, typename ...Args>
 	T*  PlacementNew (OUT void* ptr, Args&&... args)  NoExcept(IsNothrowCtor< T, Args... >)
 	{
-		ASSERT( ptr != null );
+		NonNull( ptr );
 		CheckPointerCast<T>( ptr );
 
 		return ( new(ptr) T{ FwdArg<Args>(args)... });
@@ -119,6 +119,7 @@ namespace AE::Base
 		CheckPointerCast<T>( &value );
 
 		StaticAssert( std::is_nothrow_destructible_v<T> );
+		StaticAssert( IsConstructible< T, Args... >);
 
 		if constexpr( IsNothrowCtor< T, Args... >)
 		{
@@ -163,38 +164,69 @@ namespace AE::Base
 
 	inline void  MemCopy (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
-		if_likely( size > 0 )
-		{
-			ASSERT( (dst != null) and (src != null) );
-			ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+		ASSERT( size == 0 or ((dst != null) and (src != null)) );
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
 
-			std::memcpy( OUT dst, src, usize(size) );
-		}
+		std::memcpy( OUT dst, src, usize(size) );
 	}
 
 	inline void  MemCopy (OUT void* dst, Bytes dstSize, const void* src, const Bytes srcSize) __NE___
 	{
-		if_likely( srcSize > 0 )
-		{
-			ASSERT( srcSize <= dstSize );
-			ASSERT( (dst != null) and (src != null) );
-			ASSERT( not IsIntersects<const void *>( dst, dst + dstSize, src, src + srcSize ));
+		ASSERT( srcSize <= dstSize );
 
-			std::memcpy( OUT dst, src, usize(std::min(srcSize, dstSize)) );
-		}
+		MemCopy( OUT dst, src, std::min(srcSize, dstSize) );
 	}
 
 	template <typename T>
 	inline void  MemCopy (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
-		if_likely( count > 0 )
-		{
-			ASSERT( (dst != null) and (src != null) );
-			ASSERT( not IsIntersects<const void *>( dst, dst + count, src, src + count ));
 
-			std::memcpy( OUT dst, src, sizeof(T)*count );
-		}
+		ASSERT( count == 0 or ((dst != null) and (src != null)) );
+		ASSERT( not IsIntersects<const void *>( dst, dst + count, src, src + count ));
+
+		std::memcpy( OUT dst, src, sizeof(T)*count );
+	}
+
+/*
+=================================================
+	MemCopy16 / MemCopy32 / MemCopy64
+----
+	memory must not intersects
+	memory must be aligned to 16/32/64 bytes
+=================================================
+*/
+	inline void  MemCopy16 (OUT void* dst, const void* src, const Bytes size) __NE___
+	{
+		ASSERT( size == 0 or ((dst != null) and (src != null)) );
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+		ASSERT( CheckPointerAlignment( dst, 16 ));
+		ASSERT( CheckPointerAlignment( src, 16 ));
+
+		// TODO: SSE/Neon
+		std::memcpy( OUT dst, src, usize(size) );
+	}
+
+	inline void  MemCopy32 (OUT void* dst, const void* src, const Bytes size) __NE___
+	{
+		ASSERT( size == 0 or ((dst != null) and (src != null)) );
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+		ASSERT( CheckPointerAlignment( dst, 32 ));
+		ASSERT( CheckPointerAlignment( src, 32 ));
+
+		// TODO: SSE/Neon
+		std::memcpy( OUT dst, src, usize(size) );
+	}
+
+	inline void  MemCopy64 (OUT void* dst, const void* src, const Bytes size) __NE___
+	{
+		ASSERT( size == 0 or ((dst != null) and (src != null)) );
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+		ASSERT( CheckPointerAlignment( dst, 64 ));
+		ASSERT( CheckPointerAlignment( src, 64 ));
+
+		// TODO: SSE/Neon
+		std::memcpy( OUT dst, src, usize(size) );
 	}
 
 /*
@@ -206,35 +238,25 @@ namespace AE::Base
 */
 	inline void  MemMove (OUT void* dst, const void* src, Bytes size) __NE___
 	{
-		if_likely( size > 0 )
-		{
-			ASSERT( (dst != null) and (src != null) );
+		ASSERT( (size == 0) or ((dst != null) and (src != null)) );
 
-			std::memmove( OUT dst, src, usize(size) );
-		}
+		std::memmove( OUT dst, src, usize(size) );
 	}
 
 	inline void  MemMove (OUT void* dst, Bytes dstSize, const void* src, Bytes srcSize) __NE___
 	{
-		if_likely( srcSize > 0 )
-		{
-			ASSERT( srcSize <= dstSize );
-			ASSERT( (dst != null) and (src != null) );
+		ASSERT( srcSize <= dstSize );
 
-			std::memmove( OUT dst, src, usize(std::min(srcSize, dstSize)) );
-		}
+		MemMove( OUT dst, src, std::min(srcSize, dstSize) );
 	}
 
 	template <typename T>
 	inline void  MemMove (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
-		if_likely( count > 0 )
-		{
-			ASSERT( (dst != null) and (src != null) );
+		ASSERT( (count == 0) or ((dst != null) and (src != null)) );
 
-			std::memmove( OUT dst, src, sizeof(T)*count );
-		}
+		std::memmove( OUT dst, src, sizeof(T)*count );
 	}
 
 /*
@@ -243,12 +265,18 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
+	void  UnsafeZeroMem (OUT T& value) __NE___
+	{
+		std::memset( OUT &value, 0, sizeof(value) );
+	}
+
+	template <typename T>
 	void  ZeroMem (OUT T& value) __NE___
 	{
 		StaticAssert( IsZeroMemAvailable<T> );
 		StaticAssert( not IsPointer<T> );
 
-		std::memset( OUT &value, 0, sizeof(value) );
+		UnsafeZeroMem( OUT value );
 	}
 
 	inline void  ZeroMem (OUT void* ptr, Bytes size) __NE___
@@ -292,14 +320,14 @@ namespace AE::Base
 =================================================
 */
 	template <usize S1, usize S2>
-	void  CopyCString (OUT char (&dst)[S1], const char (&src)[S2])
+	void  CopyCString (OUT char (&dst)[S1], const char (&src)[S2]) __NE___
 	{
 		StaticAssert( S1 >= S2 );
-		#ifdef AE_COMPILER_MSVC
-			Unused( ::strcpy_s( OUT dst, src ));
-		#else
-			::strcpy( OUT dst, src );
-		#endif
+	  #ifdef AE_COMPILER_MSVC
+		Unused( ::strcpy_s( OUT dst, src ));
+	  #else
+		::strcpy( OUT dst, src );
+	  #endif
 	}
 
 /*

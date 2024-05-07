@@ -8,7 +8,7 @@
 # include "base/Utils/Helpers.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Containers/NtStringView.h"
-# include "base/Utils/FileSystem.h"
+# include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {

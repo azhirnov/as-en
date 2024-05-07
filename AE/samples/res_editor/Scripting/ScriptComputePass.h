@@ -42,8 +42,8 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		ScriptComputePass () = delete;
-		ScriptComputePass (const String &name, const String &defines, EFlags baseFlags)					__Th___;
+		ScriptComputePass ()																			= delete;
+		ScriptComputePass (const String &name, const String &defines)									__Th___;
 
 		void  LocalSize1  (uint x)																		__Th___	{ return LocalSize3v({ x, 1u, 1u }); }
 		void  LocalSize2  (uint x, uint y)																__Th___	{ return LocalSize3v({ x, y, 1u }); }
@@ -79,6 +79,8 @@ namespace AE::ResEditor
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)										__Th___;
 
 	// ScriptBasePass //
+
+		// Returns non-null pass or throw exception.
 		RC<IPass>  ToPass ()																			C_Th_OV;
 
 

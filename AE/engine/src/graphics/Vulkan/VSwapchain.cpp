@@ -164,17 +164,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-	GetSurfaceSize
-=================================================
-*/
-	uint2  VSwapchain::GetSurfaceSize () C_NE___
-	{
-		uint	tmp = _surfaceSize.load();
-		return uint2{ tmp & 0xFFFF, tmp >> 16 };
-	}
-
-/*
-=================================================
 	GetImageAndViewID
 =================================================
 */
@@ -225,10 +214,9 @@ namespace AE::Graphics
 		uint		index = UMax;
 		VkResult	res	  = _device->vkAcquireNextImageKHR( _device->GetVkDevice(), _vkSwapchain, UMax, _imageAvailableSem[cur_idx.semaphoreId], Default, OUT &index );
 
-		if_likely( res == VK_SUCCESS )
+		if_likely( AnyEqual( res, VK_SUCCESS, VK_SUBOPTIMAL_KHR ) and index < _vkImages.size() )
 		{
-			ASSERT( index < _vkImages.size() );
-			cur_idx.imageIdx = index & _MaxImageIndex;
+			cur_idx.imageIdx = index;
 		}
 
 		_indices.store( cur_idx );
@@ -249,7 +237,7 @@ namespace AE::Graphics
 		CHECK_ERR( queue, VK_RESULT_MAX_ENUM );
 
 		MutableIdxBits	cur_idx = _indices.load();
-		CHECK_ERR( cur_idx.imageIdx < _MaxImageIndex, VK_RESULT_MAX_ENUM );
+		CHECK_ERR( cur_idx.imageIdx < _MaxSwapchainLength, VK_RESULT_MAX_ENUM );
 
 		const VkSwapchainKHR	swap_chains[]	= { _vkSwapchain };
 		const uint				image_indices[]	= { cur_idx.imageIdx };
@@ -259,14 +247,14 @@ namespace AE::Graphics
 			renderFinished = ArrayView<VkSemaphore>{ &_renderFinishedSem[cur_idx.semaphoreId], 1 };
 
 		// 'renderFinished' should contains semaphore which is returned by AcquireNextImage()
-		DEBUG_ONLY({
+		GFX_DBG_ONLY({
 			auto	req_sem	= _renderFinishedSem[cur_idx.semaphoreId];
 			bool	found	= false;
 
 			for (auto sem : renderFinished) {
 				found = (req_sem == sem);
 			}
-			ASSERT( found );
+			CHECK( found );
 		})
 
 		VkPresentInfoKHR	present_info = {};
@@ -283,6 +271,40 @@ namespace AE::Graphics
 
 		EXLOCK( queue->guard );
 		return _device->vkQueuePresentKHR( queue->handle, &present_info );
+	}
+
+/*
+=================================================
+	GetSemaphores
+=================================================
+*/
+	void  VSwapchain::GetSemaphores (OUT Semaphores_t &imageAvailable, OUT Semaphores_t &renderFinished) C_NE___
+	{
+		SHAREDLOCK( _guard );
+
+		imageAvailable	= _imageAvailableSem;
+		renderFinished	= _renderFinishedSem;
+	}
+
+/*
+=================================================
+	GetImages
+=================================================
+*/
+	void  VSwapchain::GetImages (OUT WeakImageIDs_t &imageIds, OUT WeakViewIDs_t &viewIds, OUT uint &count) C_NE___
+	{
+		SHAREDLOCK( _guard );
+
+		count = 0;
+		CHECK_ERRV( _vkSwapchain != Default );
+
+		for (uint i = 0; i < _MaxSwapchainLength; ++i)
+		{
+			imageIds[i]	= _imageIDs[i];
+			viewIds[i]	= _imageViewIDs[i];
+		}
+
+		VK_CHECK( _device->vkGetSwapchainImagesKHR( _device->GetVkDevice(), _vkSwapchain, OUT &count, null ));
 	}
 
 /*
@@ -691,8 +713,7 @@ namespace AE::Graphics
 		}
 
 		_vkImages.fill( Default );
-
-		_surfaceSize.store( (swapchain_info.imageExtent.width & 0xFFFF) | ((swapchain_info.imageExtent.height & 0xFFFF) << 16) );
+		_surfaceSize.store( ushort2{uint2{ swapchain_info.imageExtent.width, swapchain_info.imageExtent.height }});
 
 		_device->SetObjectName( _vkSwapchain, dbgName, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
 
@@ -756,12 +777,12 @@ namespace AE::Graphics
 		for (auto& id : _imageViewIDs)
 		{
 			if ( auto tmp = id.Release() )
-				CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 0 );
+				DEV_CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 0 );
 		}
 		for (auto& id : _imageIDs)
 		{
 			if ( auto tmp = id.Release() )
-				CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 1 );
+				DEV_CHECK( res_mngr.DelayedRelease( INOUT tmp ) == 1 );
 		}
 
 		_vkImages.fill( Default );
@@ -801,10 +822,12 @@ namespace AE::Graphics
 		{
 			desc.image = _vkImages[i];
 
-			Unused( _imageIDs[i].Attach( resMngr.CreateImage( desc, "SwapchainImage_"s + ToString(i) )));
+			MaybeUnused auto	old_img = _imageIDs[i].Attach( resMngr.CreateImage( desc, "SwapchainImage_"s + ToString(i) ));
+			ASSERT( not old_img );
 			CHECK_ERR( _imageIDs[i] );
 
-			Unused( _imageViewIDs[i].Attach( resMngr.CreateImageView( view_desc, _imageIDs[i], "SwapchainImageView_"s + ToString(i) )));
+			MaybeUnused auto	old_view = _imageViewIDs[i].Attach( resMngr.CreateImageView( view_desc, _imageIDs[i], "SwapchainImageView_"s + ToString(i) ));
+			ASSERT( not old_view );
 			CHECK_ERR( _imageViewIDs[i] );
 		}
 		return true;

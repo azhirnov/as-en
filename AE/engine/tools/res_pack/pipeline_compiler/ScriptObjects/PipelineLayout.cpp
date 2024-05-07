@@ -188,6 +188,33 @@ namespace
 
 /*
 =================================================
+	TryAddDebugDSLayout
+=================================================
+*/
+	bool  PipelineLayout::TryAddDebugDSLayout1 (const EShaderOpt dbgMode, const uint stages) __NE___
+	{
+		try {
+			AddDebugDSLayout1( dbgMode, stages );
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
+	}
+
+	bool  PipelineLayout::TryAddDebugDSLayout2 (const uint index, const EShaderOpt dbgMode, const uint stages) __NE___
+	{
+		try {
+			AddDebugDSLayout2( index, dbgMode, stages );
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
+	}
+
+/*
+=================================================
 	AddDebugDSLayout
 =================================================
 */
@@ -207,6 +234,39 @@ namespace
 
 		CHECK_THROW_MSG( not _dbgInfo.IsDefined(), "debug descriptor set is already defined" );
 		CHECK_THROW_MSG( (dbgMode & ~EShaderOpt::_ShaderTrace_Mask) == Default, "only 'ShaderTrace_Mask' flags are supported" );
+
+		// validate
+		{
+			const ShaderDebuggerFeatures	dbg_feats = ObjectStorage::GetShaderDebuggerFeatures( _features );
+
+			for (auto t : BitfieldIterate( EShaderStages( inStages )))
+			{
+				switch ( t )
+				{
+					case EShaderStages::Vertex :
+					case EShaderStages::TessControl :
+					case EShaderStages::TessEvaluation :
+					case EShaderStages::Geometry :
+						CHECK_THROW_MSG( dbg_feats.vertexPipelineStoresAndAtomics,
+							"Shader debugger requires 'vertexPipelineStoresAndAtomics' feature for "s << ToString(t) << " shader." );
+						break;
+
+					case EShaderStages::Fragment :
+						CHECK_THROW_MSG( dbg_feats.fragmentStoresAndAtomics,
+							"Shader debugger requires 'fragmentStoresAndAtomics' feature for "s << ToString(t) << " shader." );
+						break;
+				}
+			}
+
+			switch ( dbgMode & EShaderOpt::_ShaderTrace_Mask )
+			{
+				case EShaderOpt::FnProfiling :
+				case EShaderOpt::TimeHeatMap :
+					CHECK_THROW_MSG( dbg_feats.shaderDeviceClock or dbg_feats.shaderSubgroupClock,
+						"Shader profiler requires 'shaderDeviceClock' or 'shaderSubgroupClock' feature." );
+					break;
+			}
+		}
 
 		switch ( dbgMode & EShaderOpt::_ShaderTrace_Mask )
 		{
@@ -252,8 +312,6 @@ namespace
 			}
 			switch_end
 		}
-
-		// TODO
 
 		auto&	storage		= *ObjectStorage::Instance();
 		auto&	ds_layouts	= storage.dsLayouts;
@@ -401,6 +459,10 @@ namespace
 		binder.AddMethod( &PipelineLayout::AddDebugDSLayout1,	"AddDebugDSLayout",	{"dbgMode", "shaderStages"} );
 		binder.AddMethod( &PipelineLayout::AddDebugDSLayout2,	"AddDebugDSLayout", {"index", "dbgMode", "shaderStages"} );
 
+		binder.Comment( "Add descriptor set layout for shader debugging, returns 'false' if failed." );
+		binder.AddMethod( &PipelineLayout::TryAddDebugDSLayout1,	"TryAddDebugDSLayout",	{"dbgMode", "shaderStages"} );
+		binder.AddMethod( &PipelineLayout::TryAddDebugDSLayout2,	"TryAddDebugDSLayout",	{"index", "dbgMode", "shaderStages"} );
+
 		binder.Comment( "Set push constant layout for specific shader stage.\n"
 						"Push constants are native in Vulkan and emulated in Metal." );
 		binder.AddMethod( &PipelineLayout::AddPushConst1,		"PushConst",		{"pcName", "structName", "stage"} );
@@ -416,7 +478,7 @@ namespace
 	Build
 =================================================
 */
-	bool  PipelineLayout::Build ()
+	bool  PipelineLayout::Build () __NE___
 	{
 		using MSLBindingsPerState_t = FixedMap< EShaderStages, MSLBindings, uint(EShader::_Count) >;
 
@@ -502,9 +564,9 @@ namespace
 		{
 			for (auto [stage, bindings] : msl_per_stage)
 			{
-				CHECK_THROW_MSG( bindings.BufferCount()  <= MetalLimits::maxBuffers );
-				CHECK_THROW_MSG( bindings.SamplerCount() <= MetalLimits::maxSamplers );
-				CHECK_THROW_MSG( bindings.textureIdx	 <= MetalLimits::maxImages );
+				CHECK_ERR( bindings.BufferCount()  <= MetalLimits::maxBuffers );
+				CHECK_ERR( bindings.SamplerCount() <= MetalLimits::maxSamplers );
+				CHECK_ERR( bindings.textureIdx     <= MetalLimits::maxImages );
 			}
 		}
 

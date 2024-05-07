@@ -26,8 +26,8 @@ namespace AE::Graphics
 	private:
 		VkPipelineCache				_cache	= Default;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -43,10 +43,10 @@ namespace AE::Graphics
 
 		ND_ VkPipelineCache			Handle ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _cache; }
 
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()													C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()												C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 	private:
-		bool  _Create (const VResourceManager& resMngr, StringView dbgName, ArrayView<char> initialData) __NE___;
+		bool  _Create (const VResourceManager&, StringView dbgName, ArrayView<char> initialData)	__NE___;
 	};
 
 

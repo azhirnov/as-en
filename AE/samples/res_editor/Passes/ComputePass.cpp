@@ -108,7 +108,6 @@ namespace AE::ResEditor
 		DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
 
 		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
 		ctx.CommitBarriers();
 
 		ctx.BindPipeline( ppln );

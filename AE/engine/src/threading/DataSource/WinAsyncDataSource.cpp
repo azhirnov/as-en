@@ -145,7 +145,7 @@ namespace
 
 		// async request will be added to IO queue, so increase ref counter
 		int	cnt = RefCounterUtils::IncRef( *this );
-		ASSERT( cnt == 1 );
+		ASSERT( cnt == 1 ); Unused( cnt );
 	}
 
 /*
@@ -438,10 +438,10 @@ namespace
 	constructor
 =================================================
 */
-	WinAsyncRDataSource::WinAsyncRDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+	WinAsyncRDataSource::WinAsyncRDataSource (const File_t &file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() },
 		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )},
-		_flags{ flags }
+		_mode{ mode }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
 		if ( not IsOpen()	or
@@ -452,25 +452,25 @@ namespace
 		}
 	}
 
-	WinAsyncRDataSource::WinAsyncRDataSource (NtStringView filename, EFlags flags)	__NE___ : WinAsyncRDataSource{ filename.c_str(), flags } {}
-	WinAsyncRDataSource::WinAsyncRDataSource (const String &filename, EFlags flags)	__NE___ : WinAsyncRDataSource{ filename.c_str(), flags } {}
-	WinAsyncRDataSource::WinAsyncRDataSource (const char* filename, EFlags flags)	__NE___ :
-		WinAsyncRDataSource{ File_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+	WinAsyncRDataSource::WinAsyncRDataSource (NtStringView filename, EMode mode)	__NE___ : WinAsyncRDataSource{ filename.c_str(), mode } {}
+	WinAsyncRDataSource::WinAsyncRDataSource (const String &filename, EMode mode)	__NE___ : WinAsyncRDataSource{ filename.c_str(), mode } {}
+	WinAsyncRDataSource::WinAsyncRDataSource (const char* filename, EMode mode)	__NE___ :
+		WinAsyncRDataSource{ File_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	WinAsyncRDataSource::WinAsyncRDataSource (NtWStringView filename, EFlags flags)	__NE___ : WinAsyncRDataSource{ filename.c_str(), flags } {}
-	WinAsyncRDataSource::WinAsyncRDataSource (const WString &filename, EFlags flags)__NE___ : WinAsyncRDataSource{ filename.c_str(), flags } {}
-	WinAsyncRDataSource::WinAsyncRDataSource (const wchar_t* filename, EFlags flags)__NE___ :
-		WinAsyncRDataSource{ File_t{OpenFileForRead( filename, flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+	WinAsyncRDataSource::WinAsyncRDataSource (NtWStringView filename, EMode mode)	__NE___ : WinAsyncRDataSource{ filename.c_str(), mode } {}
+	WinAsyncRDataSource::WinAsyncRDataSource (const WString &filename, EMode mode)__NE___ : WinAsyncRDataSource{ filename.c_str(), mode } {}
+	WinAsyncRDataSource::WinAsyncRDataSource (const wchar_t* filename, EMode mode)__NE___ :
+		WinAsyncRDataSource{ File_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
 	}
 
-	WinAsyncRDataSource::WinAsyncRDataSource (const Path &path, EFlags flags)		__NE___ : WinAsyncRDataSource{ path.c_str(), flags } {}
+	WinAsyncRDataSource::WinAsyncRDataSource (const Path &path, EMode mode)		__NE___ : WinAsyncRDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
@@ -490,8 +490,8 @@ namespace
 */
 	IDataSource::ESourceType  WinAsyncRDataSource::GetSourceType () C_NE___
 	{
-		return	(AllBits( _flags, EFlags::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
-				(AllBits( _flags, EFlags::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
+		return	(AllBits( _mode, EMode::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
+				(AllBits( _mode, EMode::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
 				ESourceType::Async		| ESourceType::FixedSize |
 				ESourceType::ThreadSafe	| ESourceType::ReadAccess;
 	}
@@ -557,7 +557,7 @@ namespace
 	constructor
 =================================================
 */
-	WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EFlags DEBUG_ONLY(, Path filename))	__NE___ :
+	WinAsyncWDataSource::WinAsyncWDataSource (const File_t &file, EMode DEBUG_ONLY(, Path filename))	__NE___ :
 		_file{ file.Ref<HANDLE>() }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{
@@ -569,25 +569,25 @@ namespace
 		}
 	}
 
-	WinAsyncWDataSource::WinAsyncWDataSource (NtStringView filename, EFlags flags)	__NE___ : WinAsyncWDataSource{ filename.c_str(), flags } {}
-	WinAsyncWDataSource::WinAsyncWDataSource (const String &filename, EFlags flags)	__NE___ : WinAsyncWDataSource{ filename.c_str(), flags } {}
-	WinAsyncWDataSource::WinAsyncWDataSource (const char* filename, EFlags flags)	__NE___ :
-		WinAsyncWDataSource{ File_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+	WinAsyncWDataSource::WinAsyncWDataSource (NtStringView filename, EMode mode)	__NE___ : WinAsyncWDataSource{ filename.c_str(), mode } {}
+	WinAsyncWDataSource::WinAsyncWDataSource (const String &filename, EMode mode)	__NE___ : WinAsyncWDataSource{ filename.c_str(), mode } {}
+	WinAsyncWDataSource::WinAsyncWDataSource (const char* filename, EMode mode)	__NE___ :
+		WinAsyncWDataSource{ File_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	WinAsyncWDataSource::WinAsyncWDataSource (NtWStringView filename, EFlags flags)	__NE___ : WinAsyncWDataSource{ filename.c_str(), flags } {}
-	WinAsyncWDataSource::WinAsyncWDataSource (const WString &filename, EFlags flags)__NE___ : WinAsyncWDataSource{ filename.c_str(), flags } {}
-	WinAsyncWDataSource::WinAsyncWDataSource (const wchar_t* filename, EFlags flags)__NE___ :
-		WinAsyncWDataSource{ File_t{OpenFileForWrite( filename, INOUT flags, FILE_FLAG_OVERLAPPED )}, flags DEBUG_ONLY(, filename )}
+	WinAsyncWDataSource::WinAsyncWDataSource (NtWStringView filename, EMode mode)	__NE___ : WinAsyncWDataSource{ filename.c_str(), mode } {}
+	WinAsyncWDataSource::WinAsyncWDataSource (const WString &filename, EMode mode)__NE___ : WinAsyncWDataSource{ filename.c_str(), mode } {}
+	WinAsyncWDataSource::WinAsyncWDataSource (const wchar_t* filename, EMode mode)__NE___ :
+		WinAsyncWDataSource{ File_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )}, mode DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
 	}
 
-	WinAsyncWDataSource::WinAsyncWDataSource (const Path &path, EFlags flags)		__NE___ : WinAsyncWDataSource{ path.c_str(), flags } {}
+	WinAsyncWDataSource::WinAsyncWDataSource (const Path &path, EMode mode)		__NE___ : WinAsyncWDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================

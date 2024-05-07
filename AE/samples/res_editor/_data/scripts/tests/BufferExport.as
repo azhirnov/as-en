@@ -32,7 +32,8 @@
 			ClearBuffer( buf, 0x12345678 );
 		}
 
-		Export( buf, "buffer-.hpp" );
+		Export( buf, "buffer-.bin" );
+		DbgExport( buf, "buffer-.hpp" );
 
 		Present( rt );
 	}

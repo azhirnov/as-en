@@ -89,19 +89,19 @@ namespace AE::Graphics
 
 
 	private:
-		ND_ static Data &		_CastStorage (Storage_t &data)			__NE___	{ return *data.Ptr<Data>(); }
-		ND_ static Data const&	_CastStorage (const Storage_t &data)	__NE___	{ return *data.Ptr<Data>(); }
+		ND_ static Data &		_CastStorage (Storage_t &data)									__NE___	{ return *data.Ptr<Data>(); }
+		ND_ static Data const&	_CastStorage (const Storage_t &data)							__NE___	{ return *data.Ptr<Data>(); }
 
-		ND_ Bytes				_PageSize ()							C_NE___	{ return _blockSize * _bitsPerPage; }
+		ND_ Bytes				_PageSize ()													C_NE___	{ return _blockSize * _bitsPerPage; }
 
-		ND_ Bytes				_GetOffset (const Data &data)			C_NE___	{ return data.blockIndex * _blockSize; }
-		ND_ VkDeviceMemory		_GetMemory (const Data &data)			C_NE___	{ return data.page->pages[data.pageIndex].memory; }
+		ND_ Bytes				_GetOffset (const Data &data)									C_NE___	{ return data.blockIndex * _blockSize; }
+		ND_ VkDeviceMemory		_GetMemory (const Data &data)									C_NE___	{ return data.page->pages[data.pageIndex].memory; }
 
-		ND_ bool  _IsValidPage (const PageArr* page)					const;
-		ND_ bool  _AllocInPage (PageArr &pageArr, OUT Data &outData)	const;
+		ND_ bool  _IsValidPage (const PageArr* page)											C_NE___;
+		ND_ bool  _AllocInPage (PageArr &pageArr, OUT Data &outData)							C_NE___;
 
 		ND_ bool  _Allocate (VDevice const&, Bytes memSize, Bytes memAlign, uint memBits,
-							 Bool shaderAddress, Bool isImage, Bool mapMem, OUT Data &);
+							 Bool shaderAddress, Bool isImage, Bool mapMem, OUT Data &)			__NE___;
 	};
 
 

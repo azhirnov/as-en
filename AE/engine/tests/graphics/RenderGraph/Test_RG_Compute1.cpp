@@ -148,6 +148,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result0, t.result1, t.result2 });
 		}
 	};
 
@@ -235,7 +237,7 @@ namespace
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
-		CHECK_ERR( Scheduler().Wait( {t.result0, t.result1, t.result2}, c_MaxTimeout ));
+		CHECK_ERR( Scheduler().Wait( List{ t.result0, t.result1, t.result2 }, c_MaxTimeout ));
 		CHECK_ERR( t.result0->Status() == EStatus::Completed );
 		CHECK_ERR( t.result1->Status() == EStatus::Completed );
 		CHECK_ERR( t.result2->Status() == EStatus::Completed );

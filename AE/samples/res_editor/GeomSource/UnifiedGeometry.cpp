@@ -55,27 +55,41 @@ namespace AE::ResEditor
 	PrepareForDebugging
 =================================================
 */
-	void  UnifiedGeometry::PrepareForDebugging (IGSMaterials &inMtr, DirectCtx::Transfer &ctx,
-												const Debugger &dbg, OUT ShaderDebugger::Result &dbgStorage) __Th___
+	void  UnifiedGeometry::PrepareForDebugging (INOUT DebugPrepareData &dd) __Th___
 	{
 		// TODO: array of dbgStorage
-		ASSERT( dbg.IsEnabled() );
+		ASSERT( dd.dbg.IsEnabled() );
 
-		if ( _drawCommands.size() > 1 )
+		/*if ( _drawCommands.size() > 1 )
+		{
+			AE_LOGW( "shader debugging is not supported for multiple draw calls" );
 			return;	// not supported yet
+		}*/
 
-		auto&	mtr	= RefCast<Material>(inMtr);
+		dd.outDbgStorage = dd.allocator.Allocate< ShaderDebugger::Result >( _drawCommands.size() );
+		CHECK_ERRV( dd.outDbgStorage != null );
+
+		dd.pplnToObjId.clear();
+
+		auto&	mtr	= RefCast<Material>(dd.mtr);
 
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
-			auto	it = mtr.pipelineMap.find( MakePair( i, dbg.mode ));
+			auto	it = mtr.pipelineMap.find( MakePair( i, dd.dbg.mode ));
 			if ( it != mtr.pipelineMap.end() )
 			{
-				Visit( it->second,
-					[&] (GraphicsPipelineID ppln)	{ CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
-					[&] (MeshPipelineID ppln)		{ CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
-					[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
-				);
+				auto	[it2, inserted]	= dd.pplnToObjId.emplace( it->second, i );
+				auto&	dbg_storage		= dd.outDbgStorage[i];
+
+				if ( inserted ) {
+					Visit( it->second,
+						[&] (GraphicsPipelineID ppln)	{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln )); },
+						[&] (MeshPipelineID ppln)		{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln )); },
+						[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
+					);
+				}else{
+					dbg_storage = dd.outDbgStorage[ it2->second ];
+				}
 			}
 		}
 	}
@@ -136,12 +150,11 @@ namespace AE::ResEditor
 		auto&				ctx			= in.ctx;
 		auto&				mtr			= RefCast<Material>(in.mtr);
 		DescriptorSetID		mtr_ds		= mtr.descSets[ ctx.GetFrameId().Index() ];
-		Material::PplnID_t	prev_ppln;
-		const EDebugMode	dbg_mode	= in.IsDebuggerEnabled() ? in.dbgMode : Default;
+		PplnID_t			prev_ppln;
 
 		CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
 
-		auto	BindPipeline = [&, first = true] (const auto &pplnId) M_Th___
+		auto	BindPipeline = [&, first = true] (const auto &pplnId, usize i) M_Th___
 		{{
 			if ( prev_ppln == pplnId )
 				return;
@@ -160,17 +173,19 @@ namespace AE::ResEditor
 				ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 			}
 
-			if ( in.IsDebuggerEnabled() )
-				ctx.BindDescriptorSet( in.dbgStorage->DSIndex(), in.dbgStorage->DescSet() );
+			if ( in.IsDebuggerEnabled( i ))
+				ctx.BindDescriptorSet( in.dbgStorage[i].DSIndex(), in.dbgStorage[i].DescSet() );
 		}};
 
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
-			auto	ppln_it = mtr.pipelineMap.find( MakePair( i, dbg_mode ));
+			const EDebugMode	dbg_mode	= in.IsDebuggerEnabled( i ) ? in.dbgMode : Default;
+			auto				ppln_it		= mtr.pipelineMap.find( MakePair( i, dbg_mode ));
+
 			if ( ppln_it == mtr.pipelineMap.end() )
 				continue;
 
-			BindPipeline( ppln_it->second );
+			BindPipeline( ppln_it->second, i );
 
 			Visit( _drawCommands[i],
 

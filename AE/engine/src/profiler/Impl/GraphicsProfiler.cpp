@@ -70,25 +70,26 @@ namespace AE::Profiler
 			{
 				str.clear();
 				str << "FPS: " << ToString( _fps.result, 1 );
-				str << ", dt: " << ToString( nanosecondsd{ _fps.dt });
+				str << ", dt: " << ToString( _fps.dt );
+				str << ", extern: " << ToString( _fps.ext );
 				ImGui::TextUnformatted( str.c_str() );
 			}
 
 			// memory usage
-			if ( _memInfo.has_value() )
+			if ( _memUsage.has_value() )
 			{
-				const double	dev_usage_pct	= Max( 100.0 * double(ulong(_memInfo->deviceUsage))  / double(ulong(_memInfo->deviceAvailable  + _memInfo->deviceUsage)),  0.0 );
-				const double	host_usage_pct	= Max( 100.0 * double(ulong(_memInfo->hostUsage))    / double(ulong(_memInfo->hostAvailable    + _memInfo->hostUsage)),    0.0 );
-				const double	uni_usage_pct	= Max( 100.0 * double(ulong{_memInfo->unifiedUsage}) / double(ulong{_memInfo->unifiedAvailable + _memInfo->unifiedUsage}), 0.0 );
+				const double	dev_usage_pct	= Max( 100.0 * double(ulong(_memUsage->deviceUsage))  / double(ulong(_memUsage->deviceAvailable  + _memUsage->deviceUsage)),  0.0 );
+				const double	host_usage_pct	= Max( 100.0 * double(ulong(_memUsage->hostUsage))    / double(ulong(_memUsage->hostAvailable    + _memUsage->hostUsage)),    0.0 );
+				const double	uni_usage_pct	= Max( 100.0 * double(ulong{_memUsage->unifiedUsage}) / double(ulong{_memUsage->unifiedAvailable + _memUsage->unifiedUsage}), 0.0 );
 
 				str.clear();
-				str << "mem:  dev(" << ToString( _memInfo->deviceUsage ) << ' ' << ToString( dev_usage_pct, 1 ) << "%)";
+				str << "mem:  dev(" << ToString( _memUsage->deviceUsage ) << ' ' << ToString( dev_usage_pct, 1 ) << "%)";
 
-				if ( _memInfo->hostAvailable > 0 )
-					str << "  host("  << ToString( _memInfo->hostUsage ) << ' ' << ToString( host_usage_pct, 1 ) << "%)";
+				if ( _memUsage->hostAvailable > 0 )
+					str << "  host("  << ToString( _memUsage->hostUsage ) << ' ' << ToString( host_usage_pct, 1 ) << "%)";
 
-				if ( _memInfo->unifiedAvailable > 0 )
-					str << "  unified(" << ToString( _memInfo->unifiedUsage ) << ' ' << ToString( uni_usage_pct, 1 ) << "%)";
+				if ( _memUsage->unifiedAvailable > 0 )
+					str << "  unified(" << ToString( _memUsage->unifiedUsage ) << ' ' << ToString( uni_usage_pct, 1 ) << "%)";
 
 				ImGui::TextUnformatted( str.c_str() );
 			}
@@ -108,9 +109,8 @@ namespace AE::Profiler
 			_imHistory.Draw( INOUT region1 );
 
 			// TODO: batch graph
-
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 #endif
 
@@ -139,10 +139,11 @@ namespace AE::Profiler
 			double	accum_time	= _fps.accumframeTime.exchange( 0.0 );
 
 			_fps.result	= float(frame_count) / dt.count();
-			_fps.dt		= float(accum_time / frame_count);
+			_fps.dt		= nanosecondsf{ float( accum_time / frame_count )};
+			_fps.ext	= Max( nanosecondsf{0.f}, (TimeCast<nanosecondsf>(dt) - nanosecondsf{accum_time}) / frame_count );
 		}
 
-		_memInfo = rts.GetDevice().GetMemoryUsage();
+		_memUsage = rts.GetDevice().GetMemoryUsage();
 
 		// mem traffic
 		{
@@ -244,15 +245,15 @@ namespace AE::Profiler
 		auto&	f = _perFrame[_readIndex];
 		EXLOCK( f.guard );
 
-		_gpuTime.min	= 0.0;
-		_gpuTime.max	= 0.0;
+		_gpuTime.min	= nanosecondsd{0.0};
+		_gpuTime.max	= nanosecondsd{0.0};
 
 		if ( f.activeCmdbufs.empty() )
 			return;
 
-		_gpuTime.min = MaxValue<double>();
+		_gpuTime.min	= nanosecondsd{MaxValue<double>()};
 
-		auto&	qm	= GraphicsScheduler().GetResourceManager().GetQueryManager();
+		auto&	qm		= GraphicsScheduler().GetResourceManager().GetQueryManager();
 
 		_imHistory.Begin();
 
@@ -264,7 +265,7 @@ namespace AE::Profiler
 
 				if ( pass.timestamp )
 				{
-					double	time[2] = {};
+					nanosecondsd	time[2] = {};
 					Unused( qm.GetTimestamp( pass.timestamp, OUT time, Sizeof(time) ));
 
 					ASSERT( time[0] <= time[1] );
@@ -284,7 +285,7 @@ namespace AE::Profiler
 
 		_imHistory.End( _gpuTime.min, _gpuTime.max );
 
-		_fps.accumframeTime.fetch_add( _gpuTime.max - _gpuTime.min );
+		_fps.accumframeTime.fetch_add( (_gpuTime.max - _gpuTime.min).count() );
 	}
 //-----------------------------------------------------------------------------
 
@@ -296,7 +297,7 @@ namespace AE::Profiler
 	BatchCmdbufKey::operator ==
 =================================================
 */
-	bool  GraphicsProfiler::BatchCmdbufKey::operator == (const BatchCmdbufKey &rhs) const
+	bool  GraphicsProfiler::BatchCmdbufKey::operator == (const BatchCmdbufKey &rhs) C_NE___
 	{
 		return	batch	== rhs.batch	and
 				cmdbuf	== rhs.cmdbuf	and
@@ -308,7 +309,7 @@ namespace AE::Profiler
 	BatchCmdbufKey::CalcHash
 =================================================
 */
-	HashVal  GraphicsProfiler::BatchCmdbufKey::CalcHash () const
+	HashVal  GraphicsProfiler::BatchCmdbufKey::CalcHash () C_NE___
 	{
 		return HashOf(batch) + HashOf(cmdbuf) + HashOf(type);
 	}
@@ -318,7 +319,7 @@ namespace AE::Profiler
 	BeginContextTypeToStage
 =================================================
 */
-	ND_ static VkPipelineStageFlagBits2  BeginContextTypeToStage (EContextType type)
+	ND_ static VkPipelineStageFlagBits2  BeginContextTypeToStage (EContextType type) __NE___
 	{
 	#if 1
 		Unused( type );
@@ -346,7 +347,7 @@ namespace AE::Profiler
 	EndContextTypeToStage
 =================================================
 */
-	ND_ static VkPipelineStageFlagBits2  EndContextTypeToStage (EContextType type)
+	ND_ static VkPipelineStageFlagBits2  EndContextTypeToStage (EContextType type) __NE___
 	{
 	#if 1
 		Unused( type );
@@ -374,7 +375,7 @@ namespace AE::Profiler
 	BeginContext
 =================================================
 */
-	void  GraphicsProfiler::BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) __NE___
+	void  GraphicsProfiler::BeginContext (const void* batchPtr, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) __NE___
 	{
 		// not compatible with Metal, only single render pass can be measured.
 		if ( type == EContextType::Graphics )
@@ -385,8 +386,8 @@ namespace AE::Profiler
 		auto&		rts		= GraphicsScheduler();
 		auto&		dev		= rts.GetDevice();
 		auto&		qm		= rts.GetResourceManager().GetQueryManager();
-		auto*		vbatch	= Cast<VCommandBatch>(batch);
-		const auto	queue	= vbatch->GetQueueType();
+		auto*		batch	= Cast<VCommandBatch>(batchPtr);
+		const auto	queue	= batch->GetQueueType();
 		Pass		pass;
 
 		/*if ( type == EContextType::RenderPass )
@@ -398,7 +399,7 @@ namespace AE::Profiler
 			}
 		}*/
 
-		if (auto q_time = qm.AllocQuery( queue, EQueryType::Timestamp, 2 ))
+		if (auto q_time = qm.AllocQuery( batch->GetFrameId(), queue, EQueryType::Timestamp, 2 ))
 		{
 			dev.vkCmdWriteTimestamp2KHR( cmdbuf, BeginContextTypeToStage( type ), q_time.pool, q_time.first );
 			pass.timestamp = q_time;
@@ -414,9 +415,9 @@ namespace AE::Profiler
 		auto&	f = _perFrame[ _writeIndex ];
 		EXLOCK( f.guard );
 
-		auto&	dst = f.activeCmdbufs[ BatchCmdbufKey{ batch, cmdbuf, type }];
+		auto&	dst = f.activeCmdbufs[ BatchCmdbufKey{ batchPtr, cmdbuf, type }];
 
-		dst.queue	= vbatch->GetQueueType();
+		dst.queue	= batch->GetQueueType();
 		dst.ctxType	= type;
 		dst.passes.push_back( RVRef(pass) );
 	}
@@ -491,5 +492,130 @@ namespace AE::Profiler
 	}
 
 #endif // AE_ENABLE_METAL
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+/*
+=================================================
+	BatchCmdbufKey::operator ==
+=================================================
+*/
+	bool  GraphicsProfiler::BatchCmdbufKey::operator == (const BatchCmdbufKey &rhs) C_NE___
+	{
+		return	batch	== rhs.batch	and
+				cmdbuf	== rhs.cmdbuf	and
+				type	== rhs.type;
+	}
+
+/*
+=================================================
+	BatchCmdbufKey::CalcHash
+=================================================
+*/
+	HashVal  GraphicsProfiler::BatchCmdbufKey::CalcHash () C_NE___
+	{
+		return HashOf(batch) + HashOf(cmdbuf) + HashOf(type);
+	}
+
+/*
+=================================================
+	BeginContextTypeToStage
+=================================================
+*/
+	ND_ static EPipelineScope  BeginContextTypeToStage (EContextType type) __NE___
+	{
+		Unused( type );
+		return EPipelineScope::All;
+	}
+
+/*
+=================================================
+	EndContextTypeToStage
+=================================================
+*/
+	ND_ static EPipelineScope  EndContextTypeToStage (EContextType type) __NE___
+	{
+		Unused( type );
+		return EPipelineScope::All;
+	}
+
+/*
+=================================================
+	BeginContext
+=================================================
+*/
+	void  GraphicsProfiler::BeginContext (const void* batchPtr, void* cmdbuf, StringView taskName, RGBA8u color, EContextType type) __Th___
+	{
+		// not compatible with Metal, only single render pass can be measured.
+		if ( type == EContextType::Graphics )
+			return;
+
+		ASSERT( not taskName.empty() );
+
+		auto&		qm		= GraphicsScheduler().GetResourceManager().GetQueryManager();
+		auto*		batch	= Cast<RCommandBatch>(batchPtr);
+		const auto	queue	= batch->GetQueueType();
+		Pass		pass;
+
+		if (auto q_time = qm.AllocQuery( queue, EQueryType::Timestamp, 2 ))
+		{
+			Cast<CmdBuf>(cmdbuf)->WriteTimestamp( q_time, 0, BeginContextTypeToStage( type ));
+			pass.timestamp = q_time;
+		}
+
+		if ( //not pass.pplnStat	or
+			 not pass.timestamp )
+			return;	// failed to allocate
+
+		pass.name	= String{taskName};
+		pass.color	= color;
+
+		auto&	f = _perFrame[ _writeIndex ];
+		EXLOCK( f.guard );
+
+		auto&	dst = f.activeCmdbufs[ BatchCmdbufKey{ batchPtr, Cast<CmdBuf>(cmdbuf), type }];
+
+		dst.queue	= batch->GetQueueType();
+		dst.ctxType	= type;
+		dst.passes.push_back( RVRef(pass) );
+	}
+
+/*
+=================================================
+	EndContext
+=================================================
+*/
+	void  GraphicsProfiler::EndContext (const void* batch, void* cmdbuf, EContextType type) __Th___
+	{
+		if ( type == EContextType::Graphics )
+			return;
+
+		Pass	pass;
+		{
+			auto&	f	= _perFrame[ _writeIndex ];
+			SHAREDLOCK( f.guard );
+
+			auto	it	= f.activeCmdbufs.find( BatchCmdbufKey{ batch, Cast<CmdBuf>(cmdbuf), type });
+			if ( it != f.activeCmdbufs.end() )
+			{
+				ASSERT( it->second.ctxType == type );
+
+				auto&	last = it->second.passes.back();
+				CHECK( not last.recorded );
+
+				last.recorded	= true;
+				pass.timestamp	= last.timestamp;
+			}
+		}
+
+		if ( pass.timestamp )
+		{
+			Cast<CmdBuf>(cmdbuf)->WriteTimestamp( pass.timestamp, 1, EndContextTypeToStage( type ));
+		}
+	}
+
+#endif // AE_ENABLE_REMOTE_GRAPHICS
 
 } // AE::Profiler

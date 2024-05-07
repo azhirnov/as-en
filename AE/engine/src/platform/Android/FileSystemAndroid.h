@@ -63,15 +63,15 @@ namespace AE::App
 
 	// methods
 	public:
-		AndroidRDataSource (AAsset*, const char*)		__NE___;
-		~AndroidRDataSource ()							__NE___	{ AAsset_close( _asset ); }
+		AndroidRDataSource (AAsset*, const char*)			__NE___;
+		~AndroidRDataSource ()								__NE___	{ AAsset_close( _asset ); }
 
 		// RDataSource //
-		bool		IsOpen ()							C_NE_OV	{ return _asset != null; }
-		Bytes		Size ()								C_NE_OV	{ return _size; }
-		ESourceType	GetSourceType ()					C_NE_OV;
+		bool		IsOpen ()								C_NE_OV	{ return _asset != null; }
+		Bytes		Size ()									C_NE_OV	{ return _size; }
+		ESourceType	GetSourceType ()						C_NE_OV;
 
-		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
+		Bytes		ReadBlock (Bytes, OUT void *, Bytes)	__NE_OV;
 	};
 
 

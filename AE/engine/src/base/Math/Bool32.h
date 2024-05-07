@@ -44,6 +44,8 @@ namespace AE::Math
 			constexpr Bool32&	operator ^= (Bool32 rhs)		__NE___	{ _value ^= rhs._value;  return *this; }
 
 		ND_ constexpr operator bool ()							C_NE___	{ return _value != 0; }
+
+		ND_ constexpr uint  ToBit ()							C_NE___	{ return _value & 1; }
 	};
 
 } // AE::Math

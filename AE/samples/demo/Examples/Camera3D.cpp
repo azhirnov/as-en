@@ -224,23 +224,20 @@ namespace AE::Samples::Demo
 			constexpr auto&	rtech_pass = RTech.Main;
 			StaticAssert( rtech_pass.attachmentsCount == 2 );
 
-			const auto		rp_desc =
-				RenderPassDesc{ *t->rtech, rtech_pass, view_size }
-					.AddViewport( view_size )
-					.AddTarget( rtech_pass.att_Color, rt.viewId,		RGBA32f{HtmlColor::Black},	rt.initialState | EResourceState::Invalidate,	rt.finalState )
-					.AddTarget( rtech_pass.att_Depth, t->depthBuf.view,	DepthStencil{1.0f},			EResourceState::Invalidate,						EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
-
-			auto	dctx = gfx_ctx.BeginRenderPass( rp_desc );
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t->rtech, rtech_pass, view_size }
+								.AddViewport( view_size )
+								.AddTarget( rtech_pass.att_Color, rt.viewId,		RGBA32f{HtmlColor::Black},	rt.initialState | EResourceState::Invalidate,	rt.finalState )
+								.AddTarget( rtech_pass.att_Depth, t->depthBuf.view,	DepthStencil{1.0f},			EResourceState::Invalidate,						EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS ));
 
 			dctx.BindPipeline( t->ppln );
-			dctx.BindDescriptorSet( t->dsIndex, t->descSet, {off} );
+			dctx.BindDescriptorSet( t->dsIndex, t->descSet, {&off,1} );
 
 			if ( t->use_cube1 )
 				t->cube1.Draw( dctx );
 			else
 				t->cube2.Draw( dctx, t->lod );
 
-			gfx_ctx.EndRenderPass( dctx, rp_desc );
+			gfx_ctx.EndRenderPass( dctx );
 		}
 
 		Execute( gfx_ctx );
@@ -267,7 +264,7 @@ namespace AE::Samples::Demo
 
 		uniformBuf = res_mngr.CreateBuffer( BufferDesc{ AlignUp( SizeOf<ShaderTypes::camera3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * 2,
 														EBufferUsage::Uniform | EBufferUsage::TransferDst },
-										    "Sample3D uniforms" );
+											"Sample3D uniforms" );
 		CHECK_ERR( uniformBuf );
 
 		// update descriptors

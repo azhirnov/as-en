@@ -18,7 +18,7 @@ namespace AE::Graphics
 */
 	bool  SamplerDesc::operator == (const SamplerDesc &rhs) C_NE___
 	{
-		return	this->usage					==	rhs.usage				and
+		return	this->options				==	rhs.options				and
 				this->magFilter				==	rhs.magFilter			and
 				this->minFilter				==	rhs.minFilter			and
 				this->mipmapMode			==	rhs.mipmapMode			and
@@ -29,8 +29,7 @@ namespace AE::Graphics
 				Equal( this->maxAnisotropy,		rhs.maxAnisotropy )		and
 				Equal( this->compareOp,			rhs.compareOp )			and
 				this->borderColor			==	rhs.borderColor			and
-				this->reductionMode			==	rhs.reductionMode		and
-				this->unnormalizedCoordinates == rhs.unnormalizedCoordinates;
+				this->reductionMode			==	rhs.reductionMode;
 	}
 
 /*
@@ -99,7 +98,7 @@ namespace AE::PipelineCompiler
 	{
 		String	str;
 		str << "Sampler{"
-			<< "\n  usage:         " << Base::ToString( _desc.usage )
+			<< "\n  options:       " << Base::ToString( _desc.options )
 			<< "\n  magFilter:     " << Base::ToString( _desc.magFilter )
 			<< "\n  minFilter:     " << Base::ToString( _desc.minFilter )
 			<< "\n  mipmapMode:    " << Base::ToString( _desc.mipmapMode )
@@ -107,8 +106,8 @@ namespace AE::PipelineCompiler
 				<< Base::ToString( _desc.addressMode.y ) << ", " << Base::ToString( _desc.addressMode.z ) << " )"
 			<< "\n  mipLodBias:    " << Base::ToString( _desc.mipLodBias );
 
-		if ( _desc.maxAnisotropy.has_value() )
-			str << "\n  maxAnisotropy: " << Base::ToString( *_desc.maxAnisotropy );
+		if ( _desc.HasAnisotropy() )
+			str << "\n  maxAnisotropy: " << Base::ToString( _desc.maxAnisotropy );
 
 		if ( _desc.compareOp.has_value() )
 			str << "\n  compareOp:     " << Base::ToString( *_desc.compareOp );
@@ -116,7 +115,6 @@ namespace AE::PipelineCompiler
 		str << "\n  minLod:        " << Base::ToString( _desc.minLod )
 			<< "\n  maxLod:        " << Base::ToString( _desc.maxLod )
 			<< "\n  borderColor:   " << Base::ToString( _desc.borderColor )
-			<< "\n  unnormCoord:   " << Base::ToString( _desc.unnormalizedCoordinates )
 			<< "\n  reductionMode: " << Base::ToString( _desc.reductionMode );
 
 		if ( HasYcbcr() )
@@ -167,8 +165,8 @@ namespace AE::PipelineCompiler
 		result &= ser( _desc.addressMode );
 		result &= ser( _desc.mipLodBias, _desc.maxAnisotropy, _desc.compareOp );
 		result &= ser( _desc.minLod, _desc.maxLod );
-		result &= ser( _desc.borderColor, _desc.unnormalizedCoordinates );
-		result &= ser( _desc.usage, _desc.reductionMode );
+		result &= ser( _desc.borderColor );
+		result &= ser( _desc.options, _desc.reductionMode );
 		// sampler ycbcr desc
 		result &= ser( HasYcbcr() );
 		if ( HasYcbcr() )
@@ -193,8 +191,8 @@ namespace AE::PipelineCompiler
 		result &= des( OUT _desc.addressMode );
 		result &= des( OUT _desc.mipLodBias, OUT _desc.maxAnisotropy, OUT _desc.compareOp );
 		result &= des( OUT _desc.minLod, OUT _desc.maxLod );
-		result &= des( OUT _desc.borderColor, OUT _desc.unnormalizedCoordinates	);
-		result &= des( OUT _desc.usage, OUT _desc.reductionMode );
+		result &= des( OUT _desc.borderColor	);
+		result &= des( OUT _desc.options, OUT _desc.reductionMode );
 		// sampler ycbcr desc
 		bool	has_ycbcr = false;
 		result &= des( OUT has_ycbcr );

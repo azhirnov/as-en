@@ -30,8 +30,9 @@ namespace AE::Profiler
 	// variables
 	private:
 	  #ifndef AE_CFG_RELEASE
-		Atomic<bool>			_enabled	{true};
+		Atomic<bool>			_enabled	{false};
 		Timer					_timer;
+		uint					_frameCount	= 0;
 
 		RC<TaskProfiler>		_task;
 		RC<GraphicsProfiler>	_graphics;

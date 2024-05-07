@@ -14,19 +14,11 @@ namespace AE::ResEditor
 namespace
 {
 	static ScriptRayTracingPass*  ScriptRayTracingPass_Ctor1 () {
-		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ Default, Default }}.Detach();
+		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ String{} }}.Detach();
 	}
 
 	static ScriptRayTracingPass*  ScriptRayTracingPass_Ctor2 (const String &defines) {
-		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ defines, Default }}.Detach();
-	}
-
-	static ScriptRayTracingPass*  ScriptRayTracingPass_Ctor3 (ScriptBasePass::EFlags baseFlags) {
-		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ Default, baseFlags }}.Detach();
-	}
-
-	static ScriptRayTracingPass*  ScriptRayTracingPass_Ctor4 (const String &defines, ScriptBasePass::EFlags baseFlags) {
-		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ defines, baseFlags }}.Detach();
+		return ScriptRayTracingPassPtr{ new ScriptRayTracingPass{ defines }}.Detach();
 	}
 
 	static void  RTInstanceIndex_Ctor (OUT void* mem, uint value) {
@@ -105,8 +97,7 @@ namespace
 	constructor
 =================================================
 */
-	ScriptRayTracingPass::ScriptRayTracingPass (const String &defines, EFlags baseFlags) __Th___ :
-		ScriptBasePass{ baseFlags }
+	ScriptRayTracingPass::ScriptRayTracingPass (const String &defines) __Th___
 	{
 		_defines = defines;
 		StringToColor( OUT _dbgColor, StringView{_dbgName} );
@@ -391,8 +382,6 @@ namespace
 
 			binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor1,		{} );
 			binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor2,		{"defines"} );
-			binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor3,		{"passFlags"} );
-			binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor4,		{"defines", "passFlags"} );
 
 			binder.Comment( "Run RayGen shader with specified number of threads." );
 			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1,			"Dispatch",			{"threadsX"} );
@@ -450,7 +439,6 @@ namespace
 
 		auto		result		= MakeRC<RayTracingPass>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&	renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 		Bytes		ub_size;
 
@@ -514,9 +502,7 @@ namespace
 		result->_maxRayRecursion	= this->_maxRayRecursion  ? this->_maxRayRecursion->Get()  : null;
 		result->_maxCallRecursion	= this->_maxCallRecursion ? this->_maxCallRecursion->Get() : null;
 
-		result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-												  "RayTracingPassUB", renderer.GetAllocator() );
-		CHECK_THROW( result->_ubuffer );
+		result->_ubuffer = _CreateUBuffer( ub_size, "RayTracingPassUB", EResourceState::UniformRead | EResourceState::RayTracingShaders );  // throw
 
 		// create descriptor set
 		{
@@ -525,7 +511,6 @@ namespace
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 		}
 
-	  #ifdef AE_ENABLE_VULKAN
 		{
 			Bytes	ray_gen_stack_max;
 			Bytes	closest_hit_stack_max;
@@ -534,32 +519,50 @@ namespace
 			Bytes	any_hit_stack_max;
 			Bytes	callable_stack_max;
 
+			Array<RayTracingGroupName>	names;
+			Array<RayTracingGroupName>	names1;
+			Array<RayTracingGroupName>	names2;
+
 			for (auto [mode, ppln_sbt] : result->_pipelines)
 			{
 				auto*	res = res_mngr.GetResource( ppln_sbt.Get<0>() );
 
-				AssignMax( INOUT ray_gen_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{_rayGen.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+				AssignMax( INOUT ray_gen_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), {RayTracingGroupName{_rayGen.name}}, ERTShaderGroup::General ));
 
+				names.clear();
 				for (auto& miss : _missShaders) {
-					AssignMax( INOUT miss_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{miss.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+					names.push_back( RayTracingGroupName{ miss.name });
 				}
+				AssignMax( INOUT miss_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), names, ERTShaderGroup::General ));
+
+				names.clear();
 				for (auto& call : _callableShaders) {
-					AssignMax( INOUT callable_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{call.name}, VK_SHADER_GROUP_SHADER_GENERAL_KHR ));
+					names.push_back( RayTracingGroupName{ call.name });
 				}
+				AssignMax( INOUT callable_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), names, ERTShaderGroup::General ));
+
+				names.clear();
+				names1.clear();
+				names2.clear();
+
 				for (auto& per_inst : _hitGroups)
 				{
 					for (auto& hit : per_inst)
 					{
 						if ( hit.closestHit.isDefined )
-							AssignMax( INOUT closest_hit_stack_max,	res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_CLOSEST_HIT_KHR ));
+							names.push_back( RayTracingGroupName{ hit.name });
 
 						if ( hit.anyHit.isDefined )
-							AssignMax( INOUT any_hit_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_ANY_HIT_KHR ));
+							names1.push_back( RayTracingGroupName{ hit.name });
 
 						if ( hit.intersection.isDefined )
-							AssignMax( INOUT intersection_stack_max, res->GetShaderGroupStackSize( res_mngr.GetDevice(), RayTracingGroupName{hit.name}, VK_SHADER_GROUP_SHADER_INTERSECTION_KHR ));
+							names2.push_back( RayTracingGroupName{ hit.name });
 					}
 				}
+
+				AssignMax( INOUT closest_hit_stack_max,		res->GetShaderGroupStackSize( res_mngr.GetDevice(), names, ERTShaderGroup::ClosestHit ));
+				AssignMax( INOUT any_hit_stack_max,			res->GetShaderGroupStackSize( res_mngr.GetDevice(), names1, ERTShaderGroup::AnyHit ));
+				AssignMax( INOUT intersection_stack_max,	res->GetShaderGroupStackSize( res_mngr.GetDevice(), names2, ERTShaderGroup::Intersection ));
 			}
 
 			result->_rayGenStackMax			= ray_gen_stack_max;
@@ -569,7 +572,6 @@ namespace
 			result->_anyHitStackMax			= any_hit_stack_max;
 			result->_callableStackMax		= callable_stack_max;
 		}
-	  #endif
 
 		_Init( *result, null );
 		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllRayTracing );
@@ -583,7 +585,7 @@ namespace
 
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/Algorithms/Parser.h"
 
 #include "res_editor/Scripting/ScriptImage.h"
@@ -648,7 +650,7 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CompilePipeline3
+	_CompilePipeline2
 =================================================
 */
 	void  ScriptRayTracingPass::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
@@ -689,13 +691,13 @@ namespace AE::ResEditor
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
-			_CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
+			NOTHROW( _CompilePipeline3( header, "raytrace.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderFnProf ))
-			_CompilePipeline3( header, "raytrace.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default );
+			NOTHROW( _CompilePipeline3( header, "raytrace.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
-			_CompilePipeline3( header, "raytrace.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+			NOTHROW( _CompilePipeline3( header, "raytrace.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
 	  #endif
 	}
 
@@ -713,6 +715,7 @@ namespace AE::ResEditor
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::AllRayTracing) );
 
 		RayTracingPipelinePtr	ppln_templ{ new RayTracingPipelineScriptBinding{ pplnName }};
+		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 
 		const auto	CreateShader = [shaderOpts, &header] (const _Shader &sh, EShader type) -> ScriptShaderPtr
@@ -782,6 +785,7 @@ namespace AE::ResEditor
 			const uint	max_recursion = GraphicsScheduler().GetDevice().GetDeviceProperties().rayTracing.maxRecursion;
 
 			RayTracingPipelineSpecPtr	ppln_spec = ppln_templ->AddSpecialization2( pplnName );
+			ppln_spec->Disable();
 			ppln_spec->AddToRenderTech( "rtech", "Compute" );
 			ppln_spec->SetOptions( pplnOpt );
 			ppln_spec->MaxRecursionDepth( max_recursion );
@@ -811,6 +815,9 @@ namespace AE::ResEditor
 						sbt->BindHitGroup( group.name, InstanceIndex(uint(inst)), RayIndex(uint(ray)) );
 				}
 			}
+
+			// if successfully compiled
+			ppln_spec->Enable();
 		}
 	}
 

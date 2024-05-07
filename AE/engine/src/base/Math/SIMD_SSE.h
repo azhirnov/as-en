@@ -15,7 +15,6 @@
 #include "base/Math/GLM.h"
 #include "base/Math/Float16.h"
 
-
 namespace AE::Math
 {
 # if (AE_SIMD_SSE > 0) or (AE_SIMD_AVX > 0)
@@ -65,6 +64,15 @@ namespace AE::Math
 
 } // AE::Math
 
+# ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wignored-attributes"
+# endif
+
 #include "base/Math/SIMD_SSE128.h"
 #include "base/Math/SIMD_SSE256.h"	// AVX
 #include "base/Math/SIMD_SSE512.h"	// AVX512
+
+#ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic pop
+#endif

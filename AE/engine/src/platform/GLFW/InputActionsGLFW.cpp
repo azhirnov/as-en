@@ -197,7 +197,7 @@ namespace AE::App
 	_ValidateForVREmulation
 =================================================
 */
-	bool  InputActionsGLFW::_ValidateForVREmulation ()
+	bool  InputActionsGLFW::_ValidateForVREmulation () __NE___
 	{
 		CHECK_ERR( not _modeMap.empty() );
 

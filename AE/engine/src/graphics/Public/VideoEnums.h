@@ -19,15 +19,14 @@ namespace AE::Graphics
 
 	enum class EVideoCodec : ubyte
 	{
-		GIF,
 		MPEG4,
 		H264,
 		H265,	// HEVC
+		H266,	// VVC
 		WEBP,
 		VP8,
 		VP9,
 		AV1,
-		// VVC,
 
 		_Count,
 		Unknown		= 0xFF,
@@ -95,28 +94,59 @@ namespace AE::Graphics
 		YUV422P,		// 16bpp
 		YUV444P,		// 24bpp
 
-		YUV420P10LE,	// 15bpp
-		YUV422P10LE,	// 20bpp
-		YUV444P10LE,	// 30bpp
+		YUV420P10,		// 15bpp
+		YUV422P10,		// 20bpp
+		YUV444P10,		// 30bpp
 
-		YUV420P12LE,	// 18bpp
-		YUV422P12LE,	// 24bpp
-		YUV444P12LE,	// 36bpp
+		YUV420P12,		// 18bpp
+		YUV422P12,		// 24bpp
+		YUV444P12,		// 36bpp
 
-		YUV420P16LE,	// 24bpp
-		YUV422P16LE,	// 32bpp
-		YUV444P16LE,	// 48bpp
+		YUV420P16,		// 24bpp
+		YUV422P16,		// 32bpp
+		YUV444P16,		// 48bpp
 
-		YUVA444P16LE,	// 64bpp
+		YUVA420P,		// 12+8bpp
+		YUVA422P,		// 16+8bpp
+		YUVA444P,		// 24+8bpp
+		YUVA420P10,		// 25bpp
+		YUVA422P10,		// 30bpp
+		YUVA444P10,		// 40bpp
+		YUVA420P16,		// 40bpp
+		YUVA422P16,		// 48bpp
+		YUVA444P16,		// 64bpp
 
 		NV12,			// 12bpp
-		NV21,			// 12bpp
-		NV16,			// 16bpp
-		NV24,			// 24bpp
-		NV42,			// 24bpp
-		NV20LE,			// 20bpp
+		P010,			// 10bpp
+		P012,			// 12bpp
+		P016,			// 16bpp
 
-		P010LE,			// 10bpp
+		NV16,			// 16bpp
+		P210,			// 20bpp
+		P212,			// 24bpp
+		P216,			// 32bpp
+
+		NV24,			// 24bpp
+		P410,			// 30bpp
+		P412,			// 36bpp
+		P416,			// 48bpp
+
+		NV21,			// 12bpp
+		NV42,			// 24bpp
+		NV20,			// 20bpp
+
+		YUYV422,		// 16bpp
+		UYVY422,		// 16bpp
+		Y210,			// 20bpp
+		Y212,			// 24bpp
+		XV30,			// 32bpp
+		XV36,			// 48bpp
+
+		BGR0,			// 32bpp
+		BGRA,			// 32bpp
+		RGB0,			// 32bpp
+		RGBA,			// 32bpp
+
 		_Count,
 		Unknown			= 0xFF,
 	};

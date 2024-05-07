@@ -7,7 +7,7 @@ namespace
 {
 	static void  LfLinearAllocator_Test1 ()
 	{
-		static constexpr uint	MaxThreads	= 8;
+		static constexpr uint	MaxThreads	= 4;
 		static constexpr uint	ElemSize	= 8;
 
 		StaticArray< StdThread, MaxThreads >	worker_thread;
@@ -23,7 +23,7 @@ namespace
 				{
 					for (;;)
 					{
-						ThreadUtils::Sleep_1us();
+						//ThreadUtils::Sleep_1us();
 
 						void*	ptr = alloc.Allocate( SizeAndAlign{ Bytes{ElemSize}, 8_b });
 						if ( ptr == null )

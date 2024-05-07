@@ -13,11 +13,22 @@
 void ASmain ()
 {
 	// include:
+	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
+	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
 	//	Mali-T830 driver 28.0.0 on Android 9.0
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
+	//	OPPO PDYT20 driver 32.1.0 on Android 12.0
+	//	OPPO PFFM20 driver 32.1.0 on Android 12.0
 	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
+	//	rockchip BlueBerry driver 13.0.0 on Android 12.0
+	//	rockchip orangepi5plus driver 13.0.0 on Android 12.0
+	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
+	//	Rockchip rk3399 driver 1012.218.955 on Android 10.0
+	//	samsung SM-A346E driver 32.1.0 on Android 14.0
 	//	Mali-G72 driver 26.0.0 on Android 11.0
+	//	samsung SM-G780F driver 38.1.0 on Android 13.0
 	//	Mali-G76 driver 32.1.0 on Android 12.0
+	//	vivo V2324A driver 44.1.0 on Android 14.0
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -28,7 +39,6 @@ void ASmain ()
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
-	fset.separateStencilMaskRef (True);
 	fset.triangleFans (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
@@ -36,7 +46,7 @@ void ASmain ()
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
-	fset.minSpirvVersion (100);
+	fset.maxSpirvVersion (100);
 	fset.drawIndirectFirstInstance (True);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);

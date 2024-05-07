@@ -8,6 +8,7 @@
 # include "graphics/Vulkan/Allocators/VUniMemAllocator.h"
 # include "graphics/Vulkan/Allocators/VLinearMemAllocator.h"
 # include "graphics/Vulkan/Allocators/VBlockMemAllocator.h"
+# include "graphics/Vulkan/Allocators/VDedicatedMemAllocator.h"
 
 # include "graphics/Vulkan/Descriptors/VDefaultDescriptorAllocator.h"
 
@@ -111,7 +112,7 @@ namespace AE::Graphics
 		usize	i		= 0;
 		bool	created	= true;
 
-		for (; created & (i < count); ++i)
+		for (; created and (i < count); ++i)
 		{
 			dst[i]  = _CreateResource<DescriptorSetID>( "failed when creating descriptor set", *this, layoutId, allocator, dbgName );
 			created = (dst[i].IsValid());
@@ -193,7 +194,7 @@ namespace AE::Graphics
 		auto&	data = _GetResourcePool( raw_id )[ raw_id.Index() ];
 		Replace( data );
 
-		if_unlikely( not data.Create( *this, desc, rp_id  DEBUG_ONLY(, HashToName( desc.renderPassName )) ))
+		if_unlikely( not data.Create( *this, desc, rp_id  GFX_DBG_ONLY(, HashToName( desc.renderPassName )) ))
 		{
 			data.Destroy( *this );
 			_Unassign( raw_id );
@@ -263,69 +264,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-	_InitReleaseResourceByID
-=================================================
-*/
-	struct VResourceManager::_InitReleaseResourceByID
-	{
-		VResourceManager&	resMngr;
-
-		template <typename ID>
-		static void  _Release (VResourceManager &resMngr, VExpiredResource::IDValue_t id) __NE___
-		{
-			resMngr._DestroyResource( UnsafeBitCast<ID>( id ));
-		}
-
-		template <typename ID, uint I>
-		void operator () () __NE___
-		{
-			resMngr._releaseResIDs[I] = &_Release<ID>;
-		}
-	};
-
-/*
-=================================================
-	_InitReleaseResourceByIDFns
-=================================================
-*/
-	void  VResourceManager::_InitReleaseResourceByIDFns () __NE___
-	{
-		AllVkResources_t::Visit( _InitReleaseResourceByID{*this} );
-	}
-
-/*
-=================================================
-	ForceReleaseResources
-=================================================
-*/
-	bool  VResourceManager::ForceReleaseResources () __NE___
-	{
-		bool	non_empty = false;
-
-		for (auto& list : _expiredResources.All())
-		{
-			EXLOCK( list.guard );
-			list.frameId = Default;
-
-			non_empty |= not list.resources.empty();
-
-			for (auto& res : list.resources)
-			{
-				_releaseResIDs[ res.type ]( *this, res.id );
-			}
-			list.resources.clear();
-
-			// TODO: trim memory
-		}
-
-		return non_empty;
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
 	Create***Allocator
 =================================================
 */
@@ -343,42 +281,6 @@ namespace AE::Graphics
 	{
 		return MakeRC<VUniMemAllocator>( pageSize );
 	}
-//-----------------------------------------------------------------------------
-
-
-/*
-=================================================
-	ExpiredResources ctor
-=================================================
-*/
-	VResourceManager::VExpiredResources::VExpiredResources () __Th___
-	{
-		for (auto& item : _list) {
-			item.resources.reserve( 1u << 10 );
-		}
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	VReleaseExpiredResourcesTask::Run
-=================================================
-*/
-	void  VResourceManager::VReleaseExpiredResourcesTask::Run ()
-	{
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
-		auto&	list	 = res_mngr._expiredResources.Get( _frameId );
-		EXLOCK( list.guard );
-
-		for (auto& res : list.resources)
-		{
-			res_mngr._releaseResIDs[ res.type ]( res_mngr, res.id );
-		}
-		list.resources.clear();
-	}
-
 
 
 } // AE::Graphics

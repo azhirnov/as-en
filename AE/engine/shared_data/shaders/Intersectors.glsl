@@ -25,7 +25,7 @@ ND_ bool  Line_Line_Intersect (const float2 line0begin, const float2 line0end,
 							   const float2 line1begin, const float2 line1end,
 							   out float2 outPoint);
 ND_ bool  Line_Line_Intersects (const float2 line0begin, const float2 line0end,
-							    const float2 line1begin, const float2 line1end);
+								const float2 line1begin, const float2 line1end);
 //-----------------------------------------------------------------------------
 
 #include "../3party_shaders/Intersectors-1.glsl"
@@ -64,7 +64,7 @@ bool  Line_Line_Intersect (const float2 line0begin, const float2 line0end,
 }
 
 bool  Line_Line_Intersects (const float2 line0begin, const float2 line0end,
-						    const float2 line1begin, const float2 line1end)
+							const float2 line1begin, const float2 line1end)
 {
 	float2	point;
 	return Line_Line_Intersect( line0begin, line0end, line1begin, line1end, point );

@@ -101,6 +101,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -162,7 +164,10 @@ namespace
 bool RGTest::Test_DrawMesh2 ()
 {
 	if ( _msPipelines == null )
-		return true; // skip
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

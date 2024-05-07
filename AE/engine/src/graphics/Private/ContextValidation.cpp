@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Private/ContextValidation.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "graphics/GraphicsImpl.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/VDevice.h"
@@ -15,6 +15,9 @@ namespace AE::Graphics::_hidden_
 {
 namespace
 {
+	static constexpr FeatureSet::EFeature	True = FeatureSet::EFeature::RequireTrue;
+
+
 	ND_ static FeatureSet const&  _GetFeatureSet () __NE___ {
 		return GraphicsScheduler().GetFeatureSet();
 	}
@@ -25,11 +28,11 @@ namespace
 =================================================
 */
 	ND_ static bool  AccelerationStructureSupported ()	__NE___ {
-		return _GetFeatureSet().accelerationStructure() == EFeature::RequireTrue;
+		return _GetFeatureSet().accelerationStructure() == True;
 	}
 
 	ND_ static bool  RayTracingCtxSupported ()			__NE___ {
-		return _GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue;
+		return _GetFeatureSet().rayTracingPipeline == True;
 	}
 
 	ND_ static bool  VideoDecodeSupported ()			__NE___	{ return false; }
@@ -115,23 +118,23 @@ namespace
 		GCTX_CHECK( subres.aspectMask != Default );
 	}
 
-	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == EFeature::RequireTrue; }
+	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == True; }
 
-	ND_ static bool  MultiViewportSupported ()				__NE___	{ return _GetFeatureSet().multiViewport == EFeature::RequireTrue; }
-	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == EFeature::RequireTrue; }
-	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == EFeature::RequireTrue; }
+	ND_ inline bool  MultiViewportSupported ()				__NE___	{ return _GetFeatureSet().multiViewport == True; }
+	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == True; }
+	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == True; }
 
-	//ND_ static bool  DrawIndirectFirstInstanceSupported ()	__NE___	{ return _GetFeatureSet().drawIndirectFirstInstance == EFeature::RequireTrue; }	// TODO
-	ND_ static bool  DrawIndirectCountSupported ()			__NE___	{ return _GetFeatureSet().drawIndirectCount == EFeature::RequireTrue; }
-	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == EFeature::RequireTrue; }
-	ND_ static bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == EFeature::RequireTrue; }
+	//ND_ inline bool  DrawIndirectFirstInstanceSupported ()	__NE___	{ return _GetFeatureSet().drawIndirectFirstInstance == True; }	// TODO
+	ND_ static bool  DrawIndirectCountSupported ()			__NE___	{ return _GetFeatureSet().drawIndirectCount == True; }
+	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == True; }
+	ND_ inline bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == True; }
 
 	ND_ static bool  FragmentShadingRateSupported ()		__NE___
 	{
 		auto&	fs = _GetFeatureSet();
-		return	fs.pipelineFragmentShadingRate		== EFeature::RequireTrue	or
-				fs.primitiveFragmentShadingRate		== EFeature::RequireTrue	or
-				fs.attachmentFragmentShadingRate	== EFeature::RequireTrue;
+		return	fs.pipelineFragmentShadingRate		== True	or
+				fs.primitiveFragmentShadingRate		== True	or
+				fs.attachmentFragmentShadingRate	== True;
 	}
 
 #ifdef AE_ENABLE_VULKAN
@@ -638,6 +641,7 @@ namespace
 			GCTX_CHECK( range.layerCount + range.baseLayer.Get() <= imgDesc.arrayLayers.Get() );
 			GCTX_CHECK( range.baseMipLevel.Get() < imgDesc.maxLevel.Get() );
 			GCTX_CHECK( range.baseMipLevel.Get() + range.mipmapCount <= imgDesc.maxLevel.Get() );
+			GCTX_CHECK( range.mipmapCount > 1 );
 		}
 	}
 
@@ -1399,6 +1403,14 @@ namespace
 	void  ASBuildContextValidation::SerializeToMemory (const BufferDesc &dstBufferDesc, Bytes dstOffset) __Th___
 	{
 		GCTX_CHECK( dstOffset < dstBufferDesc.size );
+		GCTX_CHECK( IsMultipleOf( dstOffset, 256 ));
+		GCTX_CHECK( AllBits( dstBufferDesc.usage, EBufferUsage::ShaderAddress ));
+	}
+
+	void  ASBuildContextValidation::SerializeToMemory (DeviceAddress dst) __Th___
+	{
+		GCTX_CHECK( dst != Default );
+		GCTX_CHECK( IsMultipleOf( BitCast<ulong>(dst), 256 ));
 	}
 
 /*
@@ -1409,6 +1421,14 @@ namespace
 	void  ASBuildContextValidation::DeserializeFromMemory (const BufferDesc &srcBufferDesc, Bytes srcOffset) __Th___
 	{
 		GCTX_CHECK( srcOffset < srcBufferDesc.size );
+		GCTX_CHECK( IsMultipleOf( srcOffset, 256 ));
+		GCTX_CHECK( AllBits( srcBufferDesc.usage, EBufferUsage::ShaderAddress ));
+	}
+
+	void  ASBuildContextValidation::DeserializeFromMemory (DeviceAddress src) __Th___
+	{
+		GCTX_CHECK( src != Default );
+		GCTX_CHECK( IsMultipleOf( BitCast<ulong>(src), 256 ));
 	}
 
 /*
@@ -1474,6 +1494,38 @@ namespace
 		GCTX_CHECK( instanceBufferOffset < instanceBufDesc.size );
 	}
 
+# ifdef AE_ENABLE_VULKAN
+/*
+=================================================
+	BuildIndirect
+=================================================
+*/
+	void  ASBuildContextValidation::BuildIndirect (const RTGeometryDesc &geometryDesc,
+													const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+													VkDeviceAddress indirectMem, Bytes indirectStride) __Th___
+	{
+		GCTX_CHECK( indirectMem != Default );
+		GCTX_CHECK( IsMultipleOf( indirectMem, 4 ));
+		BuildIndirect( geometryDesc, scratchBufDesc, scratchBufferOffset, indirectStride );
+	}
+
+/*
+=================================================
+	BuildIndirect
+=================================================
+*/
+	void  ASBuildContextValidation::BuildIndirect (const RTSceneDesc &sceneDesc,
+													const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+													const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset,
+													VkDeviceAddress indirectMem) __Th___
+	{
+		GCTX_CHECK( indirectMem != Default );
+		GCTX_CHECK( IsMultipleOf( indirectMem, 4 ));
+		BuildIndirect( sceneDesc, scratchBufDesc, scratchBufferOffset, instanceBufDesc, instanceBufferOffset );
+	}
+
+# endif
+
 /*
 =================================================
 	ReadProperty / WriteProperty
@@ -1517,7 +1569,7 @@ namespace
 		GCTX_CHECK( dstOffset < dstBufferDesc.size );
 		GCTX_CHECK( (dstOffset + size) <= dstBufferDesc.size );
 
-		GCTX_CHECK( IsDeviceMemory( dstBufferDesc ));
+	//	GCTX_CHECK( IsDeviceMemory( dstBufferDesc ));	// TODO: ???
 		GCTX_CHECK( AllBits( dstBufferDesc.usage, EBufferUsage::TransferDst ));
 	}
 # endif
@@ -1626,6 +1678,7 @@ namespace
 	{
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( indirectDeviceAddress != Default );
+		GCTX_CHECK( _GetVkDeviceProperties().rayTracingPipelineFeats.rayTracingPipelineTraceRaysIndirect );
 	}
 # endif
 
@@ -1640,10 +1693,6 @@ namespace
 		GCTX_CHECK( AllBits( indirectBufferDesc.usage, EBufferUsage::Indirect ));
 		GCTX_CHECK( IsMultipleOf( indirectBufferOffset, 4 ));
 		GCTX_CHECK( indirectBufferDesc.size >= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
-
-	  #ifdef AE_ENABLE_VULKAN
-		GCTX_CHECK( _GetVkDeviceProperties().rayTracingMaintenance1Feats.rayTracingPipelineTraceRaysIndirect2 );
-	  #endif
 	}
 
 # ifdef AE_ENABLE_VULKAN
@@ -1651,6 +1700,7 @@ namespace
 	{
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( indirectDeviceAddress != Default );
+		GCTX_CHECK( IsMultipleOf( indirectDeviceAddress, 4 ));
 		GCTX_CHECK( _GetVkDeviceProperties().rayTracingMaintenance1Feats.rayTracingPipelineTraceRaysIndirect2 );
 	}
 # endif

@@ -26,7 +26,7 @@ namespace
 	{
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
-		LfTaskQueue		q		{ Default, "" };
+		LfTaskQueue		q		{ Default, "", ETaskQueue::Main };
 		const uint		count	= 1'000;
 		const auto		seed	= scheduler->GetDefaultSeed();
 
@@ -41,7 +41,7 @@ namespace
 	static void  LfTaskQueue_Test2 ()
 	{
 		LocalTaskScheduler	scheduler	{WorkerQueueCount(1)};
-		LfTaskQueue			q			{ Default, "" };
+		LfTaskQueue			q			{ Default, "", ETaskQueue::Main };
 
 		const uint	thread_count = Max( 2u, ThreadUtils::MaxThreadCount() );
 

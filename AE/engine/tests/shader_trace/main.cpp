@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "TestDevice.h"
-#include <iostream>
 
 extern bool ShaderTrace_Test1 (TestDevice& vulkan);
 extern bool ShaderTrace_Test2 (TestDevice& vulkan);
@@ -25,9 +24,9 @@ extern bool ClockMap_Test1 (TestDevice& vulkan);
 extern bool ClockMap_Test2 (TestDevice& vulkan);
 
 
-int main ()
+int main (const int argc, char* argv[])
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	TestDevice	vulkan;
 	CHECK_ERR( vulkan.Create(), 1 );
@@ -59,9 +58,10 @@ int main ()
 		passed &= ClockMap_Test2( vulkan );			// ray tracing
 	}
 
-	CHECK_ERR( passed );
+	CHECK( passed );
 
 	vulkan.Destroy();
 
+	AE_LOGI( "Tests.ShaderTrace finished" );
 	return 0;
 }

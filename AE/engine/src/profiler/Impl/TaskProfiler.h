@@ -32,7 +32,7 @@ namespace AE::Profiler
 		struct TaskBeginCmd : BaseCmd
 		{
 			const void*		task;
-			double			time;		// nanoseconds
+			nanosecondsd	time;
 			ThreadID		threadId;
 			uint			frameIdx;
 			//char			name []
@@ -41,7 +41,7 @@ namespace AE::Profiler
 		struct TaskEndCmd : BaseCmd
 		{
 			const void*		task;
-			double			time;		// nanoseconds
+			nanosecondsd	time;
 			ThreadID		threadId;
 			uint			frameIdx;
 			//char			name []
@@ -116,7 +116,7 @@ namespace AE::Profiler
 		struct TaskInfo
 		{
 			StringView		name;
-			double			begin;
+			nanosecondsd	begin;
 			ThreadID		threadId;
 			uint			frameIdx;
 		};

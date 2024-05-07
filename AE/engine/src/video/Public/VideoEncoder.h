@@ -18,10 +18,7 @@ namespace AE::Video
 	{
 	// types
 	public:
-		using Bitrate_t		= DefaultPhysicalQuantity<ulong>::BitPerSecond;
-		using BitrateKb_t	= DefaultPhysicalQuantity<ulong>::KibiBitPerSecond;
-		using BitrateMb_t	= DefaultPhysicalQuantity<ulong>::MebiBitPerSecond;
-		using FrameRate_t	= FractionalI;
+		using ImageMemViewArr	= FixedArray< ImageMemView, 3 >;
 
 		struct Config
 		{
@@ -31,13 +28,14 @@ namespace AE::Video
 			EColorPreset		colorPreset		= EColorPreset::Unspecified;
 			EFilter				filter			= Default;
 			float				quality			= -1.f;						// valid: 0..1,  1.0 - high quality
-			FrameRate_t			framerate		{30, 1};
+			FrameRate			framerate		{30, 1};
 			uint2				srcDim			= {1920, 1080};
 			uint2				dstDim			= {0, 0};					// can be used for scaling
-			Bitrate_t			bitrate			= BitrateMb_t{50};
-			bool				hwAccelerated	= false;					// use hardware acceleration on GPU or CPU
+			Bitrate				bitrate			= BitrateMb{50};
+			EHwAcceleration		hwAccelerated	= Default;					// use hardware acceleration on GPU or CPU
 			EGraphicsDeviceID	targetGPU		= Default;					// hint for hardware acceleration on GPU
 			ECPUVendor			targetCPU		= Default;					// hint for hardware acceleration on CPU (intrinsics)
+			uint				threadCount		= 0;
 		};
 
 
@@ -49,9 +47,7 @@ namespace AE::Video
 		ND_ virtual bool  Begin (const Config &cfg, RC<WStream> temp, RC<WStream> dst)	__NE___	= 0;
 
 		ND_ virtual bool  AddFrame (const ImageMemView &view, Bool endOnError)			__NE___	= 0;
-	//	ND_ virtual bool  AddFrame (VideoImageID id, Bool endOnError)					__NE___	= 0;
-
-		// TODO: AddFrameAsync()
+		ND_ virtual bool  AddFrame (const ImageMemViewArr &view, Bool endOnError)		__NE___ = 0;
 
 		ND_ virtual bool  End ()														__NE___	= 0;
 
@@ -61,7 +57,7 @@ namespace AE::Video
 
 		// stateless
 		ND_ virtual StringView	GetFileExtension (EVideoCodec codec)					C_NE___ = 0;
-		// TODO: get codecs
+		ND_ virtual String		PrintCodecs (EVideoCodec codec)							C_Th___ = 0;
 	};
 
 

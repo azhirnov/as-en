@@ -6,9 +6,6 @@
 #elif defined(AE_ENABLE_METAL)
 #	define STBUFMNGR		MStagingBufferManager
 
-#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define STBUFMNGR		RStagingBufferManager
-
 #else
 #	error not implemented
 #endif
@@ -20,7 +17,7 @@
 	constructor
 =================================================
 */
-	STBUFMNGR::STBUFMNGR (ResourceManager_t &resMngr) __NE___ :
+	STBUFMNGR::STBUFMNGR (ResourceManager &resMngr) __NE___ :
 		_resMngr{ resMngr }
 	{
 		StaticAssert( SizePerQueue_t{}.max_size() == _QueueCount );
@@ -42,8 +39,6 @@
 
 	  #elif defined(AE_ENABLE_METAL)
 		ASSERT( not _static.memory );
-
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
 	  #else
 	  #	error not implemented
@@ -99,17 +94,15 @@
 		_static.memory = null;
 		_vstream.memory = null;
 
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-
 	  #else
 	  #	error not implemented
 	  #endif
 
 		for (auto& sb : _static.buffersForWrite) {
-			_resMngr.ImmediatelyRelease( sb.buffer );
+			DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT sb.bufferId ));
 		}
 		for (auto& sb : _static.buffersForRead) {
-			_resMngr.ImmediatelyRelease( sb.buffer );
+			DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT sb.bufferId ));
 		}
 		_static.buffersForWrite.clear();
 		_static.buffersForRead.clear();
@@ -121,12 +114,12 @@
 		const auto	ReleaseDynBuffers = [this] (DynamicPerType &dyn)
 		{{
 			for (auto& sb : dyn.buffers.current) {
-				_resMngr.ImmediatelyRelease( sb.buffer );
+				DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT sb.bufferId ));
 			}
 			dyn.buffers.current.clear();
 
 			for (auto& db : dyn.buffers.available) {
-				_resMngr.ImmediatelyRelease( db.id );
+				DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT db.id ));
 			}
 			dyn.buffers.available.clear();
 
@@ -140,7 +133,7 @@
 		_dynamic.blockSize		= 0_b;
 
 		for (auto& sb : _vstream.buffers) {
-			_resMngr.ImmediatelyRelease( sb.buffer );
+			DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT sb.bufferId ));
 		}
 	}
 
@@ -151,33 +144,36 @@
 */
 	void  STBUFMNGR::OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg) __NE___
 	{
-		DEBUG_ONLY( _frameId.store( frameId ); )
+		GFX_DBG_ONLY( _frameId.store( frameId );)
+
+		const uint	fid		= frameId.Index();
+		const uint	fid2	= frameId.Remap2();
 
 		// reset static buffers
 		for (uint q = 0; q < _QueueCount; ++q)
 		{
-			const uint	i = frameId.Index() * _QueueCount + q;
+			const uint	i = fid * _QueueCount + q;
 
 			_static.buffersForWrite[i].size.store( 0_b );
 			_static.buffersForRead[i].size.store( 0_b );
 		}
 
-		_vstream.buffers[frameId.Index()].size.store( 0_b );
+		_vstream.buffers[fid].size.store( 0_b );
 
 
 		// reset dynamic buffers
 		_dynamic.write.maxPerFrame.store( cfg.stagingBufferPerFrameLimits.write );
-		_dynamic.write.usedPerFrame.store( 0_b );
+		_dynamic.write.usedPerFrame[fid2].store( 0_b );
 
 		_dynamic.read.maxPerFrame.store( cfg.stagingBufferPerFrameLimits.read );
-		_dynamic.read.usedPerFrame.store( 0_b );
+		_dynamic.read.usedPerFrame[fid2].store( 0_b );
 
 
 		// invalidate mapped memory
 	  #ifdef AE_ENABLE_VULKAN
 		{
 			EXLOCK( _memRanges.guard );
-			auto&	ranges = _memRanges.ranges[ frameId.Index() ];
+			auto&	ranges = _memRanges.ranges[fid];
 
 			if ( not ranges.empty() )
 			{
@@ -231,7 +227,7 @@
 				EXLOCK( dyn.buffers.currentGuard );
 
 				for (auto& sb : dyn.buffers.current) {
-					dyn.buffers.available.push_back( AvailableBuffer{ RVRef(sb.buffer), frameId });
+					dyn.buffers.available.push_back( AvailableBuffer{ RVRef(sb.bufferId), frameId });
 				}
 				dyn.buffers.current.clear();
 			}
@@ -250,7 +246,7 @@
 					if_likely( frameId.Diff( av_buf.lastUsage ) < max_diff )
 						break;
 
-					_resMngr.ImmediatelyRelease( av_buf.id );
+					DEV_CHECK( _resMngr.ImmediatelyRelease2( INOUT av_buf.id ));
 					dyn.buffers.available.pop_front();
 					++num_released;
 				}
@@ -267,7 +263,7 @@
 	_CalcBlockSize
 =================================================
 */
-	Bytes  STBUFMNGR::_CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) const
+	Bytes  STBUFMNGR::_CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload) C_NE___
 	{
 		ASSERT( uint(queue) < _QueueCount );
 
@@ -303,7 +299,7 @@
 */
 	template <typename RangeType, typename BufferType>
 	bool  STBUFMNGR::_AllocStatic (const Bytes32u reqSize, const Bytes32u blockSize, const Bytes32u memOffsetAlign,
-								   INOUT RangeType &result, BufferType& sb)
+								   INOUT RangeType &result, BufferType& sb) __NE___
 	{
 		Bytes32u	expected	= 0_b;
 		Bytes32u	new_size	= 0_b;
@@ -328,10 +324,11 @@
 		}
 
 		auto&	res			= result.emplace_back();
-		res.buffer			= sb.bufferHandle;
+		res.mapped			= sb.mapped + offset;
+		res.bufferHandle	= sb.bufferHandle;
+		res.bufferId		= sb.bufferId;
 		res.bufferOffset	= offset;
 		res.size			= new_size;
-		res.mapped			= sb.mapped + res.bufferOffset;
 
 		ASSERT( IsMultipleOf( res.mapped, memOffsetAlign ));
 
@@ -347,7 +344,7 @@
 */
 	bool  STBUFMNGR::_AllocStaticImage (const Bytes reqSize, const Bytes rowPitch, const Bytes slicePitch, const Bytes memOffsetAlign,
 										const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDim,
-										INOUT StagingImageResultRanges &result, StaticBuffer& sb)
+										INOUT StagingImageResultRanges &result, StaticBuffer& sb) __NE___
 	{
 		ASSERT( rowPitch > 0 );
 		ASSERT( slicePitch > 0 );
@@ -362,7 +359,7 @@
 		  #if defined(AE_ENABLE_VULKAN)
 			res.bufferImageHeight	= Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
 
-		  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		  #elif defined(AE_ENABLE_METAL)
 			res.bufferSlicePitch	= slicePitch;
 
 		  #else
@@ -389,7 +386,7 @@
 		  #if defined(AE_ENABLE_VULKAN)
 			res.bufferImageHeight	= y_size;
 
-		  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+		  #elif defined(AE_ENABLE_METAL)
 			res.bufferSlicePitch	= slicePitch;
 
 		  #else
@@ -414,7 +411,7 @@
 */
 	template <typename RangeType>
 	bool  STBUFMNGR::_AddToCurrent (INOUT Bytes &reqSize, const Bytes blockSize, const Bytes memOffsetAlign,
-									Strong<BufferID> id, INOUT RangeType& buffers, DynamicBuffers &db) const
+									Strong<BufferID> id, INOUT RangeType& buffers, DynamicBuffers &db) C_NE___
 	{
 		auto*		buf			= _resMngr.GetResource( id );
 		auto*		mem			= _resMngr.GetResource( buf->MemoryId() );
@@ -430,7 +427,7 @@
 
 		sb.size.store( 0_b );
 		sb.capacity		= buf_desc.size;
-		sb.buffer		= RVRef(id);
+		sb.bufferId		= RVRef(id);
 		sb.bufferHandle	= buf->Handle();
 		sb.mapped		= mem_desc.mappedPtr;
 
@@ -460,15 +457,16 @@
 */
 	template <bool SingleAlloc, typename RangeType>
 	bool  STBUFMNGR::_AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, const Bytes blockSize, const Bytes memOffsetAlign, const bool upload,
-									INOUT RangeType& buffers, DynamicBuffers &db) const
+									INOUT RangeType& buffers, DynamicBuffers &db) C_NE___
 	{
 		if_unlikely( blockSize > _dynamic.blockSize )
 			return false;
 
-		auto&		allocated_size	= upload ? _dynamic.write.allocated		: _dynamic.read.allocated;
-		const auto	max_size		= upload ? _dynamic.write.maxSize		: _dynamic.read.maxSize;
-		const auto	max_per_frame	= (upload ? _dynamic.write.maxPerFrame	: _dynamic.read.maxPerFrame).load();
-		auto&		used_per_frame	= upload ? _dynamic.write.usedPerFrame	: _dynamic.read.usedPerFrame;
+		const uint	fid				= frameId.Remap2();
+		auto&		allocated_size	= upload ? _dynamic.write.allocated			: _dynamic.read.allocated;
+		const auto	max_size		= upload ? _dynamic.write.maxSize			: _dynamic.read.maxSize;
+		const auto	max_per_frame	= (upload ? _dynamic.write.maxPerFrame		: _dynamic.read.maxPerFrame).load();
+		auto&		used_per_frame	= upload ? _dynamic.write.usedPerFrame[fid]	: _dynamic.read.usedPerFrame[fid];
 		const auto	used_mem		= used_per_frame.load();
 		uint		num_allocs		= 0;
 
@@ -536,14 +534,13 @@
 		}
 
 		// create new dynamic buffer
-		if_unlikely( reqSize > 0 and allocated_size.load() < max_size )
+		for (; reqSize != 0 and allocated_size.load() < max_size; )
 		{
-			Strong<BufferID>	buf_id =
-				_resMngr.CreateBuffer( BufferDesc{	_dynamic.blockSize,
-													upload ? EBufferUsage::TransferSrc : EBufferUsage::TransferDst,
-													EBufferOpt::Unknown,
-													EQueueMask::Unknown,
-													upload ? _dynamic.write.memType : _dynamic.read.memType },
+			auto	buf_id = _resMngr.CreateBuffer( BufferDesc{	_dynamic.blockSize,
+											upload ? EBufferUsage::TransferSrc : EBufferUsage::TransferDst,
+											EBufferOpt::Unknown,
+											EQueueMask::Unknown,
+											upload ? _dynamic.write.memType : _dynamic.read.memType },
 										"dynamic staging buffer",
 										_dynamic.gfxAllocator );
 			CHECK_ERR( buf_id );
@@ -572,7 +569,7 @@
 */
 	void  STBUFMNGR::_AllocDynamicImage (FrameUID frameId, Bytes reqSize, const Bytes rowPitch, const Bytes slicePitch, const Bytes memOffsetAlign,
 										 const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &regionDim, bool upload,
-										 INOUT StagingImageResultRanges &result, DynamicBuffers& db) const
+										 INOUT StagingImageResultRanges &result, DynamicBuffers& db) C_NE___
 	{
 		ASSERT( rowPitch > 0 );
 		ASSERT( slicePitch > 0 );
@@ -595,7 +592,7 @@
 			  #if defined(AE_ENABLE_VULKAN)
 				res.bufferImageHeight	= Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
 
-			  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+			  #elif defined(AE_ENABLE_METAL)
 				res.bufferSlicePitch	= slicePitch;
 
 			  #else
@@ -631,7 +628,7 @@
 			  #if defined(AE_ENABLE_VULKAN)
 				res.bufferImageHeight	= y_size;
 
-			  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+			  #elif defined(AE_ENABLE_METAL)
 				res.bufferSlicePitch	= slicePitch;
 
 			  #else
@@ -662,40 +659,40 @@
 =================================================
 */
 	void  STBUFMNGR::GetBufferRanges (OUT BufferRanges_t &buffers, const Bytes reqSize, const Bytes blockSize, const Bytes memOffsetAlign,
-									  const FrameUID frameId, const EStagingHeapType heap, const EQueueType queue, const Bool upload) __NE___
+									  const FrameUID frameId, EStagingHeapType heap, const EQueueType queue, const Bool upload) __NE___
 	{
 		ASSERT( buffers.empty() );
 		ASSERT( _frameId.load() == frameId );
 
-		const Bytes	block_size = (blockSize == 0_b ? _CalcBlockSize( reqSize, heap, queue, upload ) : Min( reqSize, blockSize ));
-
-		switch_enum( heap )
+		if_unlikely( AnyEqual( heap, EStagingHeapType::Dynamic, EStagingHeapType::Any ))
 		{
-			// static heap has only one staging buffer so loop is not needed
-			case EStagingHeapType::Static :
-			{
-				const uint	i	= frameId.Index() * _QueueCount + uint(queue);
-				auto&		sb	= upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
+			const Bytes	block_size = (blockSize == 0_b ? _CalcBlockSize( reqSize, EStagingHeapType::Dynamic, queue, upload ) : Min( reqSize, blockSize ));
+			CHECK_ERRV( block_size != 0 );	// should never happens
 
-				Unused( _AllocStatic( reqSize, block_size, memOffsetAlign, OUT buffers, sb ));
-				ASSERT( buffers.size() <= 1 );
+			Bytes	req_size = reqSize;
+			auto&	db		 = upload ? _dynamic.write.buffers : _dynamic.read.buffers;
+
+			Unused( _AllocDynamic<false>( frameId, req_size, block_size, memOffsetAlign, upload, INOUT buffers, db ));
+
+			if_likely( heap == EStagingHeapType::Dynamic or not buffers.empty() )
 				return;
-			}
-
-			case EStagingHeapType::Dynamic :
-			case EStagingHeapType::Any :		// TODO: try static & dynamic
-			{
-				Bytes	req_size = reqSize;
-				auto&	db		 = upload ? _dynamic.write.buffers : _dynamic.read.buffers;
-
-				Unused( _AllocDynamic<false>( frameId, req_size, block_size, memOffsetAlign, upload, INOUT buffers, db ));
-				return;
-			}
-
-			default_unlikely:
-				AE_LOGE( "unknown staging heap type" );
 		}
-		switch_end
+
+		// static heap has only one staging buffer so loop is not needed
+		if_likely( AnyEqual( heap, EStagingHeapType::Static, EStagingHeapType::Any ))
+		{
+			const Bytes	block_size = (blockSize == 0_b ? _CalcBlockSize( reqSize, EStagingHeapType::Static, queue, upload ) : Min( reqSize, blockSize ));
+			CHECK_ERRV( block_size != 0 );	// should never happens
+
+			const uint	i	= frameId.Index() * _QueueCount + uint(queue);
+			auto&		sb	= upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
+
+			Unused( _AllocStatic( reqSize, block_size, memOffsetAlign, OUT buffers, sb ));
+			ASSERT( buffers.size() <= 1 );
+			return;
+		}
+
+		AE_LOGE( "unknown staging heap type" );
 	}
 
 /*
@@ -705,6 +702,7 @@
 */
 	bool  STBUFMNGR::AllocVStream (FrameUID frameId, const Bytes reqSize, OUT VertexStream &result) __NE___
 	{
+		ASSERT( result.mappedPtr == null );
 		ASSERT( _frameId.load() == frameId );
 
 		auto&			vb				= _vstream.buffers[ frameId.Index() ];
@@ -726,10 +724,11 @@
 			ThreadUtils::Pause();
 		}
 
-		result.id			= vb.buffer;
+		result.mappedPtr	= vb.mapped + offset;
+		result.id			= vb.bufferId;
+		result.bufferHandle	= vb.bufferHandle;
 		result.offset		= offset;
 		result.size			= new_size;
-		result.mappedPtr	= vb.mapped + offset;
 
 		return true;
 	}
@@ -756,7 +755,7 @@
 		const auto&		fmt_info			= EPixelFormat_GetInfo( imgDesc.format );
 		const uint2		texblock_dim		= fmt_info.TexBlockDim();	// TODO: use imageGranularity
 		const uint3		mip_dim				= ImageUtils::MipmapDimension( imgDesc.dimension, uploadDesc.mipLevel.Get(), texblock_dim );
-		const uint3		region_dim			= Min( mip_dim, Max( uploadDesc.imageDim, 1u ));
+		const uint3		region_dim			= Min( mip_dim - uploadDesc.imageOffset, Max( uploadDesc.imageDim, 1u ));
 		const uint		texblock_bits		= uploadDesc.aspectMask != EImageAspect::Stencil ? fmt_info.bitsPerBlock : fmt_info.bitsPerBlock2;
 		const Bytes		row_pitch			= Max( uploadDesc.dataRowPitch, Bytes{region_dim.x * texblock_bits + texblock_dim.x-1} / (texblock_dim.x * 8) );
 		const Bytes		min_slice_pitch		= (region_dim.y * row_pitch + texblock_dim.y-1) / texblock_dim.y;
@@ -780,34 +779,29 @@
 		result.format			= imgDesc.format;
 		result.planeScaleY		= 1;
 
-		switch_enum( uploadDesc.heapType )
+		if ( AnyEqual( uploadDesc.heapType, EStagingHeapType::Dynamic, EStagingHeapType::Any ))
 		{
-			// static heap has only one staging buffer so loop is not needed
-			case EStagingHeapType::Static :
-			{
-				const uint	i	= frameId.Index() * _QueueCount + uint(queue);
-				auto&		sb	= upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
+			auto&	db	= upload ? _dynamic.write.buffers : _dynamic.read.buffers;
 
-				Unused( _AllocStaticImage( total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
-										   uploadDesc.imageOffset, region_dim, INOUT result, sb ));
-				ASSERT( result.buffers.size() <= 1 );
+			_AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
+								uploadDesc.imageOffset, region_dim, upload, INOUT result, db );
+
+			if_likely( uploadDesc.heapType == EStagingHeapType::Dynamic or not result.buffers.empty() )
 				return;
-			}
-
-			case EStagingHeapType::Dynamic :
-			case EStagingHeapType::Any :		// TODO: try static & dynamic
-			{
-				auto&	db	= upload ? _dynamic.write.buffers : _dynamic.read.buffers;
-
-				_AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
-								    uploadDesc.imageOffset, region_dim, upload, INOUT result, db );
-				return;
-			}
-
-			default_unlikely:
-				AE_LOGE( "unknown staging heap type" );
 		}
-		switch_end
+
+		// static heap has only one staging buffer so loop is not needed
+		if ( AnyEqual( uploadDesc.heapType, EStagingHeapType::Static, EStagingHeapType::Any ))
+		{
+			const uint	i	= frameId.Index() * _QueueCount + uint(queue);
+			auto&		sb	= upload ? _static.buffersForWrite[i] : _static.buffersForRead[i];
+
+			Unused( _AllocStaticImage( total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
+										uploadDesc.imageOffset, region_dim, INOUT result, sb ));
+			return;
+		}
+
+		AE_LOGE( "unknown staging heap type" );
 	}
 
 /*
@@ -879,7 +873,7 @@
 				auto&	db	= upload ? _dynamic.write.buffers : _dynamic.read.buffers;
 
 				_AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, uint2{1},
-								    uploadDesc.imageOffset, uint3{region_dim,1}, upload, INOUT result, db );
+									uploadDesc.imageOffset, uint3{region_dim,1}, upload, INOUT result, db );
 				return;
 			}
 
@@ -894,7 +888,7 @@
 	_InitDynamicBuffers
 =================================================
 */
-	bool  STBUFMNGR::_InitDynamicBuffers (const GraphicsCreateInfo &info)
+	bool  STBUFMNGR::_InitDynamicBuffers (const GraphicsCreateInfo &info) __NE___
 	{
 		_dynamic.maxFramesToRelease	= Max( info.staging.maxFramesToRelease, GraphicsConfig::MaxFrames );
 		_dynamic.blockSize			= Max( CeilPOT( info.staging.dynamicBlockSize ), 4_Kb );
@@ -902,26 +896,23 @@
 		_dynamic.read.maxSize		= AlignUp( info.staging.maxReadDynamicSize,  _dynamic.blockSize );
 
 		_dynamic.write.maxPerFrame.store( UMax );
-		_dynamic.read.maxPerFrame.store( UMax );
+		_dynamic.read .maxPerFrame.store( UMax );
 
 		_dynamic.write.buffers.available.reserve( 16 );
-		_dynamic.read.buffers.available.reserve( 16 );
+		_dynamic.read .buffers.available.reserve( 16 );
 
-	  #if defined(AE_ENABLE_VULKAN)
 		{
 			Bytes	page_size = _dynamic.blockSize * 8;
 			if ( info.staging.maxWriteDynamicSize > 0 )	page_size = Min( page_size, info.staging.maxWriteDynamicSize );
 			if ( info.staging.maxReadDynamicSize > 0 )	page_size = Min( page_size, info.staging.maxReadDynamicSize );
 			page_size = Max( page_size, _dynamic.blockSize );
 
-			_dynamic.gfxAllocator = MakeRC<VBlockMemAllocator>( _dynamic.blockSize, page_size );
-			_memRanges.ranges.resize( info.maxFrames );
+			_dynamic.gfxAllocator = _resMngr.CreateBlockGfxMemAllocator( _dynamic.blockSize, page_size );
+			CHECK_ERR( _dynamic.gfxAllocator );
 		}
-	  #elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-		// TODO: _dynamic.gfxAllocator = MakeRC<MBlockMemAllocator>();
 
-	  #else
-	  #	error not implemented
+	  #ifdef AE_ENABLE_VULKAN
+		_memRanges.ranges.resize( info.maxFrames );
 	  #endif
 
 		if ( _resMngr.IsSupported( EMemoryType::HostCoherent ))
@@ -935,13 +926,12 @@
 		else
 		if ( _resMngr.IsSupported( EMemoryType::HostCached ))
 		{
-			_dynamic.read.memType = EMemoryType::HostCached;
-
-		  #if defined(AE_ENABLE_VULKAN)
+		  #ifdef AE_ENABLE_VULKAN
 			for (auto& ranges : _memRanges.ranges) {
 				ranges.reserve( 64 );
 			}
 		  #endif
+			_dynamic.read.memType = EMemoryType::HostCached;
 		}
 		else
 		if ( _resMngr.IsSupported( EMemoryType::UnifiedCached ))
@@ -963,14 +953,19 @@
 */
 	STBUFMNGR::FrameStat_t  STBUFMNGR::GetFrameStat (FrameUID frameId) C_NE___
 	{
+		ASSERT( frameId <= _frameId.load() );
+
+		const uint	fid		= frameId.Index();
+		const uint	fid2	= frameId.Remap2();
+
 		FrameStat_t		res;
-		res.dynamicWrite	= _dynamic.write.usedPerFrame.load();
-		res.dynamicRead		= _dynamic.read.usedPerFrame.load();
-		res.staticWrite		= _vstream.buffers[ frameId.Index() ].size.load();
+		res.dynamicWrite	= _dynamic.write.usedPerFrame[fid2].load();
+		res.dynamicRead		= _dynamic.read.usedPerFrame[fid2].load();
+		res.staticWrite		= _vstream.buffers[fid].size.load();
 
 		for (uint q = 0; q < _QueueCount; ++q)
 		{
-			const uint	i = frameId.Index() * _QueueCount + q;
+			const uint	i = fid * _QueueCount + q;
 
 			res.staticWrite += _static.buffersForWrite[i].size.load();
 			res.staticRead  += _static.buffersForRead[i].size.load();

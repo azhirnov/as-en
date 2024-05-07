@@ -6,7 +6,9 @@ namespace
 {
 	static void  Test_CpuArchInfo ()
 	{
-		// TODO
+		const auto&		cpu_arch = CpuArchInfo::Get();
+
+		AE_LOGI( cpu_arch.Print() );
 	}
 
 

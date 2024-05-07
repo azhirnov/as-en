@@ -17,7 +17,9 @@ namespace AE::Networking
 	public:
 		struct Config : BaseSocket::_Config
 		{
-			uint	maxConnections = UMax;		// only for 'Listen()'
+			bool	noDelay			= true;
+			bool	reuseAddress	= false;	// only for 'Listen()'
+			uint	maxConnections	= UMax;		// only for 'Listen()'
 
 			Config () __NE___ :
 				_Config{ NetConfig::TCP_SendBufferSize, NetConfig::TCP_ReceiveBufferSize }

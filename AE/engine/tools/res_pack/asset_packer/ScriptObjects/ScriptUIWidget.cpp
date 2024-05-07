@@ -76,7 +76,7 @@ namespace AE::AssetPacker
 		ScriptBaseLayout::Convert( *widget, *_root, OUT action_map );  // throw
 
 		{
-			auto	wmem = MakeRC<MemWStream>();
+			auto	wmem = MakeRC<ArrayWStream>();
 			{
 				Serializing::ObjectFactory	factory;
 				CHECK_THROW( UI::ILayout::RegisterLayouts( factory ));
@@ -89,8 +89,8 @@ namespace AE::AssetPacker
 				CHECK_THROW( widget->Serialize( ser ));
 				CHECK_THROW( action_map.Serialize( ser ));
 			}
-			auto	rmem = wmem->ToRStream();
-			ObjectStorage::Instance()->AddToArchive( nameInArchive, *rmem, EArchivePackerFileType::InMemory );  // throw
+			MemRefRStream	rmem {wmem->GetData()};
+			ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::InMemory );  // throw
 		}
 		_root = null;
 	}

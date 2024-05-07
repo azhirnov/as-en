@@ -18,7 +18,7 @@ if (${AE_ENABLE_AUDIO})
 	target_link_libraries( "Audio" PUBLIC "Threading" "Serializing" )
 	target_compile_definitions( "Audio" PUBLIC AE_ENABLE_AUDIO )
 
-	if (NOT ANDROID)
+	if (WIN32)
 		set( ANDROID_SDK_ROOT "$ENV{ANDROID_SDK_ROOT}" )
 		set( ANDROID_NDK_INCLUDE "${ANDROID_SDK_ROOT}/ndk/24.0.8215888/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/SLES" )
 		target_include_directories( "Audio" PRIVATE "${ANDROID_NDK_INCLUDE}" )
@@ -27,7 +27,7 @@ if (${AE_ENABLE_AUDIO})
 	if (TARGET "BASS-lib")
 		target_link_libraries( "Audio" PUBLIC "BASS-lib" )
 
-	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+	elseif (ANDROID)
 		target_compile_definitions( "Audio" PUBLIC AE_ENABLE_OPENSLES )
 
 	endif()

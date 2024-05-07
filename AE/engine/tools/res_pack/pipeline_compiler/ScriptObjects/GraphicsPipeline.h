@@ -24,7 +24,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		GraphicsPipelineSpecScriptBinding () {}
-		GraphicsPipelineSpecScriptBinding (const GraphicsPipelineScriptBinding* base, const String &name) __Th___;
+		GraphicsPipelineSpecScriptBinding (GraphicsPipelineScriptBinding* base, const String &name) __Th___;
 
 		// called from RTGraphicsPass
 		void  SetRenderPass (RenderPassName::Ref, SubpassName::Ref subpass) __Th___;
@@ -48,7 +48,7 @@ namespace AE::PipelineCompiler
 		ND_ const GraphicsPipelineScriptBinding*	GetBase ()				const	{ return Cast<GraphicsPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 		ND_ ScriptVertexBufferInput*				GetVertexBuffers ()		const	{ return _vertexBuffers.Get(); }
 
-		ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid)								__NE___;
 
 		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 
@@ -119,8 +119,8 @@ namespace AE::PipelineCompiler
 		GraphicsPipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 		GraphicsPipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
 
-		ND_ bool	Build ();
-		ND_ usize	SpecCount ()	const	{ return _pplnSpec.size(); }
+		ND_ bool	Build ()														__NE___;
+		ND_ usize	SpecCount ()													C_NE___	{ return _pplnSpec.size(); }
 
 		static void  Bind (const ScriptEnginePtr &se)								__Th___;
 

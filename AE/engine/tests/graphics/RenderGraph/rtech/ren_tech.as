@@ -9,7 +9,7 @@ void DeclRenderPass1 ()
 
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
-		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.format	= EPixelFormat::RGBA8_UNorm;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}
 
@@ -46,7 +46,7 @@ void DeclRenderPass2 ()
 
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
-		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.format	= EPixelFormat::RGBA8_UNorm;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}
 
@@ -81,11 +81,11 @@ void DeclVRSRenderPass ()
 
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
-		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.format	= EPixelFormat::RGBA8_UNorm;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}{
 		RC<Attachment>	rt	= compat.AddAttachment( "ShadingRate" );
-		rt.format		= EPixelFormat::R8U;
+		rt.format	= EPixelFormat::R8U;
 		rt.Usage( pass, EAttachment::ShadingRate, uint2(16,16) );
 	}
 

@@ -12,7 +12,37 @@
 namespace AE::PipelineCompiler
 {
 	using namespace AE::Graphics;
-}
+
+	//
+	// Serializable Render Pass
+	//
+
+	class SerializableRenderPass : public Serializing::ISerializable
+	{
+	// types
+	public:
+		struct AttachmentState
+		{
+			EResourceState	initial	= Default;
+			EResourceState	final	= Default;
+		};
+		using AttachmentStates_t = StaticArray< AttachmentState, GraphicsConfig::MaxAttachments >;
+
+
+	// variables
+	protected:
+		RenderPassName			_name;
+		AttachmentStates_t		_states			= {};
+
+
+	// methods
+	public:
+		ND_ RenderPassName const&			Name ()				const	{ return _name; }
+		ND_ AttachmentStates_t const&		AttachmentStates ()	const	{ return _states; }
+	};
+
+
+} // AE::PipelineCompiler
 
 #ifdef AE_ENABLE_VULKAN
 # if not defined(VK_NO_PROTOTYPES) and defined(VULKAN_CORE_H_)
@@ -38,24 +68,12 @@ namespace AE::PipelineCompiler
 	// Serializable Vulkan Render Pass
 	//
 
-	class SerializableVkRenderPass final : public Serializing::ISerializable
+	class SerializableVkRenderPass final : public SerializableRenderPass
 	{
-	// types
-	public:
-		struct AttachmentState
-		{
-			EResourceState	initial	= Default;
-			EResourceState	final	= Default;
-		};
-		using AttachmentStates_t = StaticArray< AttachmentState, GraphicsConfig::MaxAttachments >;
-
-
 	// variables
 	private:
 		LinearAllocator<>		_allocator;
 		VkRenderPassCreateInfo2	_ci				= {};
-		RenderPassName			_name;
-		AttachmentStates_t		_states			= {};
 		bool					_isCompatible	= false;	// 'true' after 'MakeCompatible()'
 
 
@@ -74,10 +92,6 @@ namespace AE::PipelineCompiler
 
 		ND_ VkRenderPassCreateInfo2 *		operator -> ()				{ return &_ci; }
 		ND_ VkRenderPassCreateInfo2 const*	operator -> ()		const	{ return &_ci; }
-
-		ND_ RenderPassName const&			Name ()				const	{ return _name; }
-		ND_ AttachmentStates_t const&		AttachmentStates ()	const	{ return _states; }
-
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -108,7 +122,7 @@ namespace AE::PipelineCompiler
 	// Serializable Metal Render Pass
 	//
 
-	class SerializableMtlRenderPass final : public Serializing::ISerializable
+	class SerializableMtlRenderPass final : public SerializableRenderPass
 	{
 	// types
 	public:
@@ -124,19 +138,10 @@ namespace AE::PipelineCompiler
 		};
 		using MtlAttachments_t = StaticArray< MtlAttachment, GraphicsConfig::MaxAttachments >;
 
-		struct AttachmentState
-		{
-			EResourceState		initial	= Default;
-			EResourceState		final	= Default;
-		};
-		using AttachmentStates_t = StaticArray< AttachmentState, GraphicsConfig::MaxAttachments >;
-
 
 	// variables
 	private:
-		RenderPassName						_name;
 		MtlAttachments_t					_mtlAtt;
-		AttachmentStates_t					_states			= {};	// TODO: remove ?
 		//ubyte								_attCount		= 0;
 		MtlMultisampleDepthResolveFilter	_depthResolve	= MtlMultisampleDepthResolveFilter::Sample0;
 		MtlMultisampleStencilResolveFilter	_stencilResolve	= MtlMultisampleStencilResolveFilter::Sample0;
@@ -154,9 +159,7 @@ namespace AE::PipelineCompiler
 		ND_ String  ToString (const HashToName &) const;
 		#endif
 
-		ND_ RenderPassName const&		Name ()				const	{ return _name; }
 		ND_ MtlAttachments_t const&		MtlAttachments ()	const	{ return _mtlAtt; }
-		//ND_ AttachmentStates_t const&	AttachmentStates ()	const	{ return _states; }
 
 		ND_ MtlMultisampleDepthResolveFilter	DepthResolveFilter ()	const	{ return _depthResolve; }
 		ND_ MtlMultisampleStencilResolveFilter	StencilResolveFilter ()	const	{ return _stencilResolve; }
@@ -292,3 +295,15 @@ template <>
 struct std::hash< AE::PipelineCompiler::SubpassShaderIO > final :
 	AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::SubpassShaderIO >
 {};
+
+
+// check definitions
+#ifdef AE_CPP_DETECT_MISMATCH
+
+#  ifdef AE_HAS_VULKAN_HEADERS
+#	pragma detect_mismatch( "AE_HAS_VULKAN_HEADERS", "1" )
+#  else
+#	pragma detect_mismatch( "AE_HAS_VULKAN_HEADERS", "0" )
+#  endif
+
+#endif // AE_CPP_DETECT_MISMATCH

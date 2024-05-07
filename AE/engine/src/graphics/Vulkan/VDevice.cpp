@@ -32,9 +32,9 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 275 );
+	StaticAssert( VK_HEADER_VERSION == 280 );
 
-	static constexpr usize	c_MaxMemTypes = std::initializer_list<EMemoryType>{
+	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
 												EMemoryType::HostCached,	EMemoryType::Dedicated,		EMemoryType::HostCachedCoherent,
 												EMemoryType::Unified,		EMemoryType::UnifiedCached }.size();
@@ -302,7 +302,7 @@ namespace
 			info.objectHandle	= id;
 			info.pObjectName	= name.c_str();
 
-			VK_CHECK( vkSetDebugUtilsObjectNameEXT( _vkLogicalDevice, &info ));
+			Unused( vkSetDebugUtilsObjectNameEXT( _vkLogicalDevice, &info ));
 			return true;
 		}
 
@@ -314,7 +314,7 @@ namespace
 			info.object			= id;
 			info.pObjectName	= name.c_str();
 
-			VK_CHECK( vkDebugMarkerSetObjectNameEXT( _vkLogicalDevice, &info ));
+			Unused( vkDebugMarkerSetObjectNameEXT( _vkLogicalDevice, &info ));
 			return true;
 		}
 
@@ -495,11 +495,15 @@ namespace
 	{
 		auto	err = vkAllocateMemory( GetVkDevice(), &allocateInfo, null, OUT &memory );
 
-		#ifdef AE_DEBUG
-		if_unlikely( err == VK_ERROR_OUT_OF_HOST_MEMORY or err == VK_ERROR_OUT_OF_DEVICE_MEMORY )
+	  #if AE_DBG_GRAPHICS
+		if_unlikely( (err == VK_ERROR_OUT_OF_HOST_MEMORY or err == VK_ERROR_OUT_OF_DEVICE_MEMORY) and IsInitialized() )
 		{
 			DRC_SHAREDLOCK( _drCheck );
-			if ( IsInitialized() and GetVExtensions().memoryBudget )
+
+			const auto&		type	= _properties.memoryProperties.memoryTypes[ allocateInfo.memoryTypeIndex ];
+			const auto&		heap	= _properties.memoryProperties.memoryHeaps[ type.heapIndex ];
+
+			if ( GetVExtensions().memoryBudget )
 			{
 				VkPhysicalDeviceMemoryBudgetPropertiesEXT	budget = {};
 				VkPhysicalDeviceMemoryProperties2			props  = {};
@@ -509,16 +513,19 @@ namespace
 
 				vkGetPhysicalDeviceMemoryProperties2KHR( _vkPhysicalDevice, OUT &props );
 
-				const auto&		type	= props.memoryProperties.memoryTypes[ allocateInfo.memoryTypeIndex ];
-				const auto&		heap	= props.memoryProperties.memoryHeaps[ type.heapIndex ];
-
 				AE_LOGI( "Out of memory error, can't allocate memType("s << ToString(allocateInfo.memoryTypeIndex) << ") size(" <<
 						 ToString(Bytes{allocateInfo.allocationSize}) << ") heap(" << ToString(type.heapIndex) << ") heapSize(" <<
 						 ToString(Bytes{heap.size}) << ") heapUsage(" << ToString(Bytes{budget.heapUsage[ type.heapIndex ]}) <<
 						 ") heapAvailable(" << ToString(Bytes{budget.heapBudget[ type.heapIndex ]}) << ")" );
 			}
+			else
+			{
+				AE_LOGI( "Out of memory error, can't allocate memType("s << ToString(allocateInfo.memoryTypeIndex) << ") size(" <<
+						 ToString(Bytes{allocateInfo.allocationSize}) << ") heap(" << ToString(type.heapIndex) << ") heapSize(" <<
+						 ToString(Bytes{heap.size}) << ")" );
+			}
 		}
-		#endif
+	  #endif
 
 		return err;
 	}
@@ -569,13 +576,13 @@ namespace
 
 		bool	result	= true;
 		result &= CheckExt( _extensions.renderPass2,		VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME );	// native or emulated
-		result &= CheckExt( _extensions.loadOpNone,			VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME );		// native or emulated
+		result &= CheckExt( _extensions.loadOpNone,			VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME );		// native or emulated
 		result &= CheckExt( _extensions.synchronization2,	VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME );		// native or emulated
 		result &= CheckExt( _extensions.swapchain,			VK_KHR_SWAPCHAIN_EXTENSION_NAME );
 
 	  #if AE_VK_TIMELINE_SEMAPHORE
 		result &= CheckExt( _extensions.timelineSemaphore,	VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME );
-		result &= CheckExt( _extensions.hostQueryReset,		VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME );
+		//result &= CheckExt( _extensions.hostQueryReset,	VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME );		// optional
 	  #endif
 
 		if ( _extensions.rayTracingPipeline )
@@ -586,18 +593,40 @@ namespace
 
 /*
 =================================================
+	GetMemoryInfo
+=================================================
+*/
+	DeviceMemoryInfo  VDevice::GetMemoryInfo () C_NE___
+	{
+		DeviceMemoryInfo	result;
+
+		if_unlikely( not IsInitialized() )
+			return result;
+
+		Bytes*	total [] = { &result.deviceTotal, &result.hostTotal, &result.unifiedTotal };
+		auto&	props	 = _properties.memoryProperties;
+
+		for (uint i = 0; i < props.memoryHeapCount; ++i) {
+			*total[ _memHeapToType[i] ] += props.memoryHeaps[i].size;
+		}
+
+		return result;
+	}
+
+/*
+=================================================
 	GetMemoryUsage
 =================================================
 */
-	VDevice::DevMemoryInfoOpt  VDevice::GetMemoryUsage () C_NE___
+	VDevice::DevMemoryUsageOpt  VDevice::GetMemoryUsage () C_NE___
 	{
-		DevMemoryInfoOpt	result;
+		DevMemoryUsageOpt	result;
 
 		DRC_SHAREDLOCK( _drCheck );
 		if ( not IsInitialized() or not GetVExtensions().memoryBudget )
 			return result;
 
-		result = DeviceMemoryInfo{};
+		result = DeviceMemoryUsage{};
 
 		VkPhysicalDeviceMemoryBudgetPropertiesEXT	budget = {};
 		VkPhysicalDeviceMemoryProperties2			props  = {};
@@ -607,15 +636,13 @@ namespace
 
 		vkGetPhysicalDeviceMemoryProperties2KHR( _vkPhysicalDevice, OUT &props );
 
-		Bytes*	usage [] = { &result->deviceUsage, &result->hostUsage, &result->unifiedUsage };
-		Bytes*	avail [] = { &result->deviceAvailable, &result->hostAvailable, &result->unifiedAvailable };
-		Bytes*	total [] = { &result->deviceTotal, &result->hostTotal, &result->unifiedTotal };
+		Bytes*	usage [] = { &result->deviceUsage,		&result->hostUsage,		&result->unifiedUsage };
+		Bytes*	avail [] = { &result->deviceAvailable,	&result->hostAvailable,	&result->unifiedAvailable };
 
 		for (uint i = 0; i < props.memoryProperties.memoryHeapCount; ++i)
 		{
 			*usage[ _memHeapToType[i] ] += budget.heapUsage[i];
 			*avail[ _memHeapToType[i] ] += budget.heapBudget[i];
-			*total[ _memHeapToType[i] ] += props.memoryProperties.memoryHeaps[i].size;
 		}
 
 		// driver bug: memory_budget extension enabled but not active
@@ -926,9 +953,7 @@ namespace
 	VDeviceInitializer::VDeviceInitializer (Bool enableInfoLog) __NE___ :
 		_enableInfoLog{ enableInfoLog }
 	{
-		auto	dbg_report = _dbgReport.WriteNoLock();
-		EXLOCK( dbg_report );
-
+		auto	dbg_report = _dbgReport.WriteLock();
 		NOTHROW( dbg_report->tempObjectDbgInfos.reserve( 16 ));
 		dbg_report->tempString.reserve( 1024 );
 	}
@@ -1744,7 +1769,7 @@ namespace {
 		QueueCreateInfo	queue_ci;
 		queue_ci.includeFlags	= VK_QUEUE_GRAPHICS_BIT;
 
-		return CreateQueues( {&queue_ci, 1} );
+		return CreateQueues( {queue_ci} );
 	}
 
 /*
@@ -1781,8 +1806,13 @@ namespace {
 					break;
 
 				case EQueueType::AsyncCompute :
+				  #ifdef AE_PLATFORM_APPLE
+					include_flags	= VK_QUEUE_COMPUTE_BIT;
+					exclude_flags	= VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR;
+				  #else
 					include_flags	= VK_QUEUE_COMPUTE_BIT;
 					exclude_flags	= VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR;
+				  #endif
 					break;
 
 				case EQueueType::AsyncTransfer :
@@ -2012,8 +2042,14 @@ namespace {
 
 		// setup features
 		{
+			// disable extensions here, only for tests!
+			//_extensions.hostQueryReset = false;
+
 			void*	dev_info_pnext = null;
 			_InitFeaturesAndProperties( INOUT &dev_info_pnext );
+
+			if ( fsToDeviceFeatures != null )
+				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *fsToDeviceFeatures ));
 
 			// disable some features
 			{
@@ -2030,9 +2066,6 @@ namespace {
 
 				_properties.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
 			}
-
-			if ( fsToDeviceFeatures != null )
-				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *fsToDeviceFeatures ));
 
 			device_info.pEnabledFeatures	= &_properties.features;
 			device_info.pNext				= dev_info_pnext;
@@ -2201,7 +2234,8 @@ namespace {
 			str << "\n  [" << ToString(i) << "] "
 				<< q.debugName.c_str()
 				<< ", family: " << ToString( uint(q.familyIndex) )
-				<< ", familyFlags: " << VkQueueFlagsToString( q.familyFlags );
+				<< ", familyFlags: " << VkQueueFlagsToString( q.familyFlags )
+				<< ' ' << ToString( q.minImageTransferGranularity );
 		}
 		str << "\n----";
 		AE_LOGI( str );
@@ -2521,17 +2555,18 @@ namespace {
 			}
 			else
 			{
-				#ifdef AE_DEBUG
+			  #if AE_DBG_GRAPHICS
 				if ( spec_ver < VK_HEADER_VERSION_COMPLETE and not silent )
 				{
 					// this may cause a crash or false-positive in validation layer, you should update vulkan SDK.
-					AE_LOG_SE( "Instance layer '"s << *iter << "' version (" << ToString(VK_API_VERSION_MAJOR(spec_ver))
+					AE_LOGW( "Instance layer '"s << *iter << "' version (" << ToString(VK_API_VERSION_MAJOR(spec_ver))
 								<< '.' << ToString(VK_API_VERSION_MINOR(spec_ver)) << '.' << ToString(VK_API_VERSION_PATCH(spec_ver))
 								<< ") is less than header version (" << ToString(VK_API_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE))
 								<< '.' << ToString(VK_API_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE)) << '.' << ToString(VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE))
 								<< ")" );
 				}
-				#endif
+			  #endif
+				Unused( spec_ver );
 
 				++iter;
 			}
@@ -2700,11 +2735,10 @@ namespace {
 		CHECK_ERR( GetVkInstance() );
 
 		#ifdef AE_CFG_RELEASE
-		AE_LOG_SE( "Vulkan debug utils should not be used in release build" );
+		AE_LOGW( "Vulkan debug utils should not be used in release build" );
 		#endif
 
-		auto	dbg_report = _dbgReport.WriteNoLock();
-		EXLOCK( dbg_report );
+		auto	dbg_report = _dbgReport.WriteLock();
 
 		if ( _extensions.debugUtils )
 		{
@@ -2753,8 +2787,7 @@ namespace {
 	{
 		DRC_EXLOCK( _drCheck );
 
-		auto	dbg_report = _dbgReport.WriteNoLock();
-		EXLOCK( dbg_report );
+		auto	dbg_report = _dbgReport.WriteLock();
 
 		if ( GetVkInstance() and dbg_report->debugUtilsMessenger != Default ) {
 			vkDestroyDebugUtilsMessengerEXT( GetVkInstance(), dbg_report->debugUtilsMessenger, null );
@@ -2770,6 +2803,31 @@ namespace {
 
 /*
 =================================================
+	CheckFalsePositive
+=================================================
+*/
+namespace {
+	ND_ static bool  CheckFalsePositive (StringView msgIdName) __NE___
+	{
+		using VErrorName = NamedID< 128, 0x1834'1292, false >;
+
+		// false-positive: image format list allows to create image view with different format without VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT
+		// from VK_KHR_image_format_list: "pViewFormats is a pointer to an array of VkFormat values specifying all formats which can be used when creating views of this image."
+		static constexpr VErrorName	img_fmt_list	{"VUID-VkImageViewCreateInfo-image-01762"};
+
+		static constexpr VErrorName	iface_mismatch	{"UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch"};
+
+
+		const VErrorName	msg_id {msgIdName};
+
+		if ( (msg_id == img_fmt_list) or (msg_id == iface_mismatch) )
+			return true;
+
+		return false;
+	}
+}
+/*
+=================================================
 	_DebugUtilsCallback
 =================================================
 */
@@ -2779,24 +2837,12 @@ namespace {
 												 const VkDebugUtilsMessengerCallbackDataEXT*	pCallbackData,
 												 void*											pUserData) __NE___
 	{
-		using VErrorName = NamedID< 128, 0x1834'1292, false >;
-
-		static constexpr VErrorName	stage_mask1		{"VUID-vkCmdPipelineBarrier2-srcStageMask-03849"};	// __ false-positive on queue ownership transfer
-		static constexpr VErrorName	stage_mask2		{"VUID-vkCmdPipelineBarrier2-dstStageMask-03850"};	// /
-		static constexpr VErrorName	img_fmt_list	{"VUID-VkImageViewCreateInfo-image-01762"};			// - false-positive: image format list allows to create image view with different format without VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT
-		static constexpr VErrorName	iface_mismatch	{"UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch"};
-		static constexpr VErrorName	access_mask1	{"VUID-VkMemoryBarrier2-srcAccessMask-07454"};		// \ https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/6628
-		static constexpr VErrorName	access_mask2	{"VUID-VkMemoryBarrier2-dstAccessMask-07454"};		// / (for sdk 1.3.261.1)
-
-		auto*				self	= static_cast<VDeviceInitializer *>(pUserData);
-		const VErrorName	msg_id	{pCallbackData->pMessageIdName};
-
-		if ( (msg_id == stage_mask1)	or (msg_id == stage_mask2)	or (msg_id == img_fmt_list)	or
-			 (msg_id == iface_mismatch)	or (msg_id == access_mask1)	or (msg_id == access_mask2) )
+		if ( pCallbackData->pMessageIdName != null				and
+			 CheckFalsePositive( pCallbackData->pMessageIdName ))
 			return VK_FALSE;
 
-		auto	dbg_report = self->_dbgReport.WriteNoLock();
-		EXLOCK( dbg_report );
+		auto*	self		= static_cast<VDeviceInitializer *>(pUserData);
+		auto	dbg_report	= self->_dbgReport.WriteLock();
 
 		TRY{
 			dbg_report->tempObjectDbgInfos.resize( pCallbackData->objectCount );	// throw
@@ -2838,9 +2884,18 @@ namespace {
 												  const char*				 pMessage,
 												  void*						 pUserData) __NE___
 	{
+		StringView	message {pMessage};
+		{
+			usize	begin	= message.find( "[ " );
+			usize	end		= message.find( " ]" );
+
+			if ( begin != StringView::npos and begin < end and
+				 CheckFalsePositive( SubString( &message[begin+2], &message[end] )))
+				return VK_FALSE;
+		}
+
 		auto*	self		= static_cast<VDeviceInitializer *>(pUserData);
-		auto	dbg_report	= self->_dbgReport.WriteNoLock();
-		EXLOCK( dbg_report );
+		auto	dbg_report	= self->_dbgReport.WriteLock();
 
 		TRY{
 			dbg_report->tempObjectDbgInfos.resize( 1 );	// throw
@@ -2879,7 +2934,7 @@ namespace {
 		if ( breakOnError and msg.isError ){
 			AE_LOGE( str );
 		}else{
-			AE_LOG_SE( str );
+			AE_LOGW( str );
 		}
 	  #endif
 	}
@@ -2895,9 +2950,13 @@ namespace {
 		{
 			"VK_LAYER_KHRONOS_validation"
 
-		#if defined(AE_PLATFORM_WINDOWS) and defined(AE_DEBUG)
+		  #if defined(AE_PLATFORM_WINDOWS) and defined(AE_DEBUG)
 		//	, "VK_LAYER_LUNARG_device_simulation"
-		#endif
+		  #endif
+
+		  #if defined(AE_PLATFORM_ANDROID) and defined(AE_DEBUG)
+			, "VK_LAYER_POWERVR_gpu_timestamps"
+		  #endif
 		};
 		return instance_layers;
 	}
@@ -3074,7 +3133,7 @@ namespace {
 			if ( enable_validation )
 			{
 				CreateDebugCallback( DefaultDebugMessageSeverity,
-									 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK(not rep.isError); });
+									 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 			}
 
 			if ( AnyBits( dev_flags, EDeviceFlags::EnableRenderDoc ))

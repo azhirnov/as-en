@@ -19,7 +19,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 3 );
+		TEST_Eq( res, 3 );
 	}
 
 
@@ -28,15 +28,15 @@ namespace
 		struct Utils {
 			static void CheckArray (ScriptArray<int> &arr)
 			{
-				TEST( arr.size() == 2 );
-				TEST( arr[0] == 1 );
-				TEST( arr[1] == 2 );
+				TEST_Eq( arr.size(), 2 );
+				TEST_Eq( arr[0], 1 );
+				TEST_Eq( arr[1], 2 );
 
 				usize i = 0;
 				for (auto& e : arr) {
 					switch ( i ) {
-						case 0 :	TEST( e == 1 );	break;
-						case 1 :	TEST( e == 2 );	break;
+						case 0 :	TEST_Eq( e, 1 );	break;
+						case 1 :	TEST_Eq( e, 2 );	break;
 					}
 					++i;
 				}
@@ -64,22 +64,22 @@ namespace
 		struct Utils {
 			static void CheckArray (ScriptArray<String> &arr)
 			{
-				TEST( arr.size() == 2 );
-				TEST( arr[0] == "1" );
-				TEST( arr[1] == "2" );
+				TEST_Eq( arr.size(), 2 );
+				TEST_Eq( arr[0], "1" );
+				TEST_Eq( arr[1], "2" );
 				arr.push_back( "3" );
 
-				TEST( arr.size() == 3 );
-				TEST( arr[0] == "1" );
-				TEST( arr[1] == "2" );
-				TEST( arr[2] == "3" );
+				TEST_Eq( arr.size(), 3 );
+				TEST_Eq( arr[0], "1" );
+				TEST_Eq( arr[1], "2" );
+				TEST_Eq( arr[2], "3" );
 
 				usize i = 0;
 				for (auto& e : arr) {
 					switch ( i ) {
-						case 0 :	TEST( e == "1" );	break;
-						case 1 :	TEST( e == "2" );	break;
-						case 2 :	TEST( e == "3" );	break;
+						case 0 :	TEST_Eq( e, "1" );	break;
+						case 1 :	TEST_Eq( e, "2" );	break;
+						case 2 :	TEST_Eq( e, "3" );	break;
 					}
 					++i;
 				}
@@ -104,7 +104,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 3 );
+		TEST_Eq( res, 3 );
 	}
 
 
@@ -113,15 +113,15 @@ namespace
 		struct Utils {
 			static void CheckArray (ScriptArray<packed_int4> &arr)
 			{
-				TEST( arr.size() == 2 );
-				TEST( All( arr[0] == packed_int4( 0, 1, 2, 3 ) ));
-				TEST( All( arr[1] == packed_int4( 10, 11, 22, 33 ) ));
+				TEST_Eq( arr.size(), 2 );
+				TEST_Eq( arr[0], packed_int4(0, 1, 2, 3) );
+				TEST_Eq( arr[1], packed_int4(10, 11, 22, 33) );
 
 				usize i = 0;
 				for (auto& e : arr) {
 					switch ( i ) {
-						case 0 :	TEST( All( e == packed_int4( 0, 1, 2, 3 ) ));		break;
-						case 1 :	TEST( All( e == packed_int4( 10, 11, 22, 33 ) ));	break;
+						case 0 :	TEST_Eq( e, packed_int4(0, 1, 2, 3) );		break;
+						case 1 :	TEST_Eq( e, packed_int4(10, 11, 22, 33) );	break;
 					}
 					++i;
 				}
@@ -148,23 +148,23 @@ namespace
 		struct Utils {
 			static void CheckArray (const ScriptArray<packed_float2x2> &arr)
 			{
-				TEST( arr.size() == 2 );
-				TEST( All( arr[0][0] == packed_float2{1.1f, 2.2f} ));
-				TEST( All( arr[0][1] == packed_float2{3.3f, 4.4f} ));
+				TEST_Eq( arr.size(), 2 );
+				TEST_Eq( arr[0][0], packed_float2(1.1f, 2.2f) );
+				TEST_Eq( arr[0][1], packed_float2(3.3f, 4.4f) );
 
-				TEST( All( arr[1][0] == packed_float2{5.5f, 6.6f} ));
-				TEST( All( arr[1][1] == packed_float2{7.7f, 8.8f} ));
+				TEST_Eq( arr[1][0], packed_float2(5.5f, 6.6f) );
+				TEST_Eq( arr[1][1], packed_float2(7.7f, 8.8f) );
 
 				usize i = 0;
 				for (auto& e : arr) {
 					switch ( i ) {
 						case 0 :
-							TEST( All( e[0] == packed_float2{1.1f, 2.2f} ));
-							TEST( All( e[1] == packed_float2{3.3f, 4.4f} ));
+							TEST_Eq( e[0], packed_float2(1.1f, 2.2f) );
+							TEST_Eq( e[1], packed_float2(3.3f, 4.4f) );
 							break;
 						case 1 :
-							TEST( All( e[0] == packed_float2{5.5f, 6.6f} ));
-							TEST( All( e[1] == packed_float2{7.7f, 8.8f} ));
+							TEST_Eq( e[0], packed_float2(5.5f, 6.6f) );
+							TEST_Eq( e[1], packed_float2(7.7f, 8.8f) );
 							break;
 					}
 					++i;

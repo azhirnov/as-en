@@ -47,7 +47,7 @@ extern void UnitTest_TypeList ()
 		StaticAssert( TL::Index<float> == 1 );
 		StaticAssert( TL::Index<bool> == 2 );
 		StaticAssert( TL::Index<double> == 3 );
-		StaticAssert( TL::Index<slong> == UMax );
+		StaticAssert( TL::IndexOrMax<slong> == UMax );
 	}
 	{
 		using TL = TypeList< int, bool, int, float >;

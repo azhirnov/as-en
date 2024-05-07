@@ -31,8 +31,12 @@ namespace AE::Graphics
 		CHECK_ERR( res_mngr.GetStagingManager().AllocVStream( _frameId, range.BufferSize(), OUT vstream ));
 
 		range.ptr		= vstream.mappedPtr;
-		range.handle	= res_mngr.GetResource( vstream.id )->Handle();
+		range.handle	= vstream.bufferHandle;
 		range.offset	= vstream.offset;
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		range.devicePtr	= vstream.devicePtr;
+	  #endif
 
 		_buffers.push_back( range );
 		return true;
@@ -157,7 +161,7 @@ namespace AE::Graphics
 			if_unlikely( glyph == null )
 				continue;
 
-			ASSERT( num_chars < max_chars );
+			ASSERT( num_chars < max_chars );  Unused( num_chars );
 			++num_chars;
 
 			const float  width_px = glyph->advance * font_scale_px;	// pixels
@@ -181,7 +185,7 @@ namespace AE::Graphics
 			{
 				auto*		indices		= buf.CurrIndices() + idx_count;
 				const auto	first_idx	= BatchIndex_t(dc.vertexOffset + vert_count);
-				ASSERT( buf.ptr != null );
+				NonNull( buf.ptr );
 
 				indices[0] = 0 + first_idx;
 				indices[1] = 1 + first_idx;
@@ -213,8 +217,8 @@ namespace AE::Graphics
 		dc.indexCount	+= idx_count;
 		dc.vertexOffset	+= vert_count;
 
-		buf.posSize		+= SizeOf<FontPosition_t>	* vert_count;
-		buf.attribsSize	+= SizeOf<FontAttribs_t>	* vert_count;
+		buf.posSize		+= SizeOf<FontPosition_t>   * vert_count;
+		buf.attribsSize	+= SizeOf<FontAttribs_t>    * vert_count;
 		buf.indexSize	+= SizeOf<BatchIndex_t>		* idx_count;
 	}
 
@@ -255,7 +259,7 @@ namespace AE::Graphics
 			auto&		buf			= _buffers[ dc.rangeIdx ];
 			auto*		indices		= buf.CurrIndices() + idx_count;
 			const auto	first_idx	= BatchIndex_t(dc.vertexOffset + vert_count);
-			ASSERT( buf.ptr != null );
+			NonNull( buf.ptr );
 
 			indices[0] = 0 + first_idx;
 			indices[1] = 1 + first_idx;
@@ -303,7 +307,7 @@ namespace AE::Graphics
 				if_unlikely( glyph == null )
 					continue;
 
-				ASSERT( num_chars < max_chars );
+				ASSERT( num_chars < max_chars );  Unused( num_chars );
 				++num_chars;
 
 				const float  width_px = glyph->advance * font_scale_px;	// pixels

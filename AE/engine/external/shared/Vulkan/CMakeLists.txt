@@ -9,6 +9,14 @@ target_include_directories( "Vulkan-lib" INTERFACE "${VULKAN_PATH}" )
 target_compile_definitions( "Vulkan-lib" INTERFACE "AE_LICENSE_APACHE_2" )
 install( FILES "${VULKAN_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME "VulkanHeader-LICENSE" )
 
+if (ANDROID)
+	add_custom_target( "Android-Vulkan-copy-so"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${AE_DST_SHARED_PATH}/Vulkan/${ANDROID_ABI}" "${AE_ANDROID_JNILIB_PATH}/${ANDROID_ABI}"
+		COMMENT "Copying Android Vulkan shared libs..." )
+	set_property( TARGET "Android-Vulkan-copy-so" PROPERTY FOLDER "Engine/External" )
+	add_dependencies( "Vulkan-lib" "Android-Vulkan-copy-so" )
+endif()
+
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)
 		add_library( "Tests.Vulkan" STATIC "tests/main.cpp" )

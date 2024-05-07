@@ -29,22 +29,23 @@ namespace AE::Graphics
 		uint				_exeIndex	= UMax;		// execution order index
 		bool				_submit		= false;
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			String			_dbgName;
-			 RGBA8u			_dbgColor;
+			RGBA8u			_dbgColor;
 		)
 
 
 	// methods
 	protected:
 		RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __NE___;
+		RenderTask (RC<CMDBATCH> batch, CmdBufExeIndex exeIndex, DebugLabel dbg) __NE___;
 
 		enum class _DelayedInit {};
-		explicit RenderTask (_DelayedInit)				__NE___ :
+		explicit RenderTask (_DelayedInit)			__NE___ :
 			IAsyncTask{ ETaskQueue::Renderer }
 		{}
 
-		ND_ bool  _Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___;
+		ND_ bool  _Init (RC<CMDBATCH> batch, CmdBufExeIndex exeIndex, DebugLabel dbg) __NE___;
 
 	public:
 		~RenderTask ()								__NE___	{ _CancelTaskInBatch(); }
@@ -56,8 +57,7 @@ namespace AE::Graphics
 		ND_ bool			IsValid ()				C_NE___	{ return _exeIndex != UMax; }
 		ND_ EQueueType		GetQueueType ()			C_NE___	{ return _batch->GetQueueType(); }
 		ND_ EQueueMask		GetQueueMask ()			C_NE___	{ return EQueueMask(0) | GetQueueType(); }
-		ND_ bool			IsFirstInBatch ()		C_NE___	{ return _exeIndex == 0; }
-		ND_ bool			IsLastInBatch ()		C_NE___;
+		ND_ bool			IsFirstInBatch ()		C_NE___	{ return _batch->CmdPool_IsFirst( _exeIndex ); }
 
 		template <typename CmdBufType>
 		void  Execute (CmdBufType &cmdbuf)			__Th___;
@@ -90,7 +90,7 @@ namespace AE::Graphics
 	  #if AE_DBG_GRAPHICS
 			void  _DbgCheckFrameId ()				C_NE___;
 
-		ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color);
+		ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color) __NE___;
 	  #endif
 	};
 
@@ -138,6 +138,12 @@ namespace AE::Graphics
 	// methods
 	public:
 		template <typename Fn>
+		RenderTaskFn (Fn &&fn, RC<CMDBATCH> batch, CmdBufExeIndex exeIndex, DebugLabel dbg) __Th___ :
+			RenderTask{ RVRef(batch), exeIndex, dbg },
+			_fn{ FwdArg<Fn>(fn) }
+		{}
+
+		template <typename Fn>
 		RenderTaskFn (Fn &&fn, RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
 			RenderTask{ RVRef(batch), dbg },
 			_fn{ FwdArg<Fn>(fn) }
@@ -165,10 +171,14 @@ namespace AE::Graphics
 =================================================
 */
 	inline RenderTask::RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __NE___ :
+		RenderTask{ RVRef(batch), Default, dbg }
+	{}
+
+	inline RenderTask::RenderTask (RC<CMDBATCH> batch, CmdBufExeIndex exeIndex, DebugLabel dbg) __NE___ :
 		IAsyncTask{ ETaskQueue::Renderer },
 		_batch{ RVRef(batch) },
-		_exeIndex{ _GetPool().Acquire() }
-		DBG_GRAPHICS_ONLY(,
+		_exeIndex{ _GetPool().Acquire( exeIndex )}
+		GFX_DBG_ONLY(,
 			_dbgName{ dbg.label },
 			_dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
 	{
@@ -184,7 +194,7 @@ namespace AE::Graphics
 	template <typename CmdBufType>
 	void  RenderTask::Execute (CmdBufType &cmdbuf) __Th___
 	{
-		ASSERT( IAsyncTask::DbgIsRunning() );		// must be inside 'Run()'
+	//	ASSERT( IAsyncTask::DbgIsRunning() );		// must be inside 'Run()'
 		CHECK_ERRV( IsValid() );
 
 		#if defined(AE_ENABLE_VULKAN)
@@ -215,7 +225,7 @@ namespace AE::Graphics
 			}
 		}
 
-		DBG_GRAPHICS_ONLY( _DbgCheckFrameId();)
+		GFX_DBG_ONLY( _DbgCheckFrameId();)
 	}
 
 /*
@@ -240,27 +250,15 @@ namespace AE::Graphics
 
 /*
 =================================================
-	IsLastInBatch
+	_Init
 =================================================
 */
-	inline bool  RenderTask::IsLastInBatch () C_NE___
-	{
-		const uint	count = _batch->PendingCmdBufs();
-		ASSERT( _exeIndex < count );
-		return _exeIndex+1 == count;
-	}
-
-/*
-=================================================
-	IsLastInBatch
-=================================================
-*/
-	inline bool  RenderTask::_Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___
+	inline bool  RenderTask::_Init (RC<CMDBATCH> batch, CmdBufExeIndex exeIndex, DebugLabel dbg) __NE___
 	{
 		_batch		= RVRef(batch);
-		_exeIndex	= _GetPool().Acquire();
+		_exeIndex	= _GetPool().Acquire( exeIndex );
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			_dbgName	= dbg.label;
 			_dbgColor	= _ValidateDbgColor( GetQueueType(), dbg.color );
 		)
@@ -274,7 +272,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_DBG_GRAPHICS
-	inline RGBA8u  RenderTask::_ValidateDbgColor (EQueueType queue, RGBA8u color)
+	inline RGBA8u  RenderTask::_ValidateDbgColor (EQueueType queue, RGBA8u color) __NE___
 	{
 		if ( color == DebugLabel::ColorTable::Undefined )
 		{
@@ -321,36 +319,40 @@ namespace AE::Threading::_hidden_
 
 		// methods
 		public:
-			promise_type ()										__NE___ : RenderTask{ _DelayedInit{0} } {}
+			promise_type ()														__NE___ : RenderTask{ _DelayedInit{0} } {}
 
-			ND_ RenderTaskCoro		get_return_object ()		__NE___	{ return RenderTaskCoro{ *this }; }
+			ND_ RenderTaskCoro		get_return_object ()						__NE___	{ return RenderTaskCoro{ *this }; }
+			ND_ static auto			get_return_object_on_allocation_failure ()	__NE___ { return RenderTaskCoro{}; }
 
-			ND_ std::suspend_always	initial_suspend ()			C_NE___	{ return {}; }	// delayed start
-			ND_ std::suspend_always	final_suspend ()			C_NE___	{ return {}; }	// must not be 'suspend_never'
+			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }	// delayed start
+			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }	// must not be 'suspend_never'
 
-				void				return_void ()				C_NE___	{}
+				void				return_void ()								C_NE___	{}
 
-				void				unhandled_exception ()		C_Th___	{ throw; }		// rethrow exceptions
+				void				unhandled_exception ()						C_Th___	{ throw; }		// rethrow exceptions
+
+			ND_ static void*		operator new   (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
 
 		public:
-				void  Cancel ()									__NE___	{ Unused( RenderTask::_SetCancellationState() ); }
-				void  Fail ()									__NE___	{ RenderTask::OnFailure(); }
-			ND_ bool  IsCanceled ()								__NE___	{ return RenderTask::IsCanceled(); }
+				void  Cancel ()													__NE___	{ Unused( RenderTask::_SetCancellationState() ); }
+				void  Fail ()													__NE___	{ RenderTask::OnFailure(); }
+			ND_ bool  IsCanceled ()												__NE___	{ return RenderTask::IsCanceled(); }
 
 			template <typename ...Deps>
-			void  Continue (const Tuple<Deps...> &deps)			__NE___	{ return RenderTask::Continue( deps ); }
+			void  Continue (const Tuple<Deps...> &deps)							__NE___	{ return RenderTask::Continue( deps ); }
 
 			template <typename CmdBufType>
-			void  Execute (CmdBufType &cmdbuf)					__Th___	{ return RenderTask::Execute( cmdbuf ); }
+			void  Execute (CmdBufType &cmdbuf)									__Th___	{ return RenderTask::Execute( cmdbuf ); }
 
-			ND_ bool  _Init (RC<AE::Graphics::CMDBATCH>	batch,
-							 AE::Graphics::DebugLabel	dbg)	__NE___
+			ND_ bool  _Init (RC<Graphics::CMDBATCH>		batch,
+							 Graphics::CmdBufExeIndex	exeIndex,
+							 Graphics::DebugLabel		dbg)					__NE___
 			{
-				return RenderTask::_Init( RVRef(batch), dbg );
+				return RenderTask::_Init( RVRef(batch), exeIndex, dbg );
 			}
 
 		private:
-			void  Run ()										__Th_OV
+			void  Run ()														__Th_OV
 			{
 				auto	coro_handle = Handle_t::from_promise( *this );
 				coro_handle.resume();	// throw
@@ -359,7 +361,7 @@ namespace AE::Threading::_hidden_
 					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
 			}
 
-			void  _ReleaseObject ()								__NE_OV
+			void  _ReleaseObject ()												__NE_OV
 			{
 				MemoryBarrier( EMemoryOrder::Acquire );
 				ASSERT( IsFinished() );
@@ -451,7 +453,7 @@ namespace AE::Threading::_hidden_
 
 			public:
 				ND_ bool			await_ready ()	C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				ND_ RenderTask &	await_resume ()	__NE___	{ ASSERT( _rtask != null );  return *_rtask; }
+				ND_ RenderTask &	await_resume ()	__NE___	{ NonNull( _rtask );  return *_rtask; }
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -506,7 +508,7 @@ namespace AE::Graphics
 				{
 					auto&	rtask = curCoro.promise();
 
-					ASSERT( _ptr != null );		// because of 'await_ready()'
+					NonNull( _ptr );		// because of 'await_ready()'
 					CHECK( rtask.GetBatchPtr()->AddInputDependency( *_ptr ));
 
 					return false;	// resume coroutine

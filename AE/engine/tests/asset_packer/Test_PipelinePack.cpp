@@ -12,7 +12,7 @@ namespace
 
 	static void  PipelinePack_Test (bool isVk, StringView refName)
 	{
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/pipeline_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "pipeline_test" ));
 
 		const PathParams	pipelines[]			= { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 1},
 													{TXT("../sampler_test/samplers.as"), 2},
@@ -27,7 +27,7 @@ namespace
 		const Path			output_script		= TXT( AE_SHARED_DATA "/scripts/pipeline_compiler.as" );
 		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName );
 
-		FileSystem::RemoveAll( output_folder );
+		FileSystem::DeleteDirectory( output_folder );
 		TEST( FileSystem::CreateDirectories( output_folder ));
 
 		const Path	output			= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
@@ -53,7 +53,7 @@ namespace
 		auto	file = MakeRC<FileRStream>( output );
 		TEST( file->IsOpen() );
 
-		auto					mem_stream = MakeRC<MemRStream>();
+		auto					mem_stream = MakeRC<ArrayRStream>();
 		PipelinePackOffsets		offsets;
 		{
 			uint	name;
@@ -64,14 +64,14 @@ namespace
 			TEST( offsets.pipelineOffset < ulong(file->Size()) );
 
 			TEST( file->SeekSet( Bytes{offsets.pipelineOffset} ));
-			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.pipelineDataSize} ));
+			TEST( mem_stream->LoadRemainingFrom( *file, Bytes{offsets.pipelineDataSize} ));
 		}
 
 		HashToName	hash_to_name;
 		{
-			auto	mem_stream2 = MakeRC<MemRStream>();
+			auto	mem_stream2 = MakeRC<ArrayRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
-			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
+			TEST( mem_stream2->LoadRemainingFrom( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
 
@@ -81,25 +81,31 @@ namespace
 			TEST( hash_to_name.Deserialize( des ));
 		}
 
-		RC<IAllocator>					alloc = MakeRC<LinearAlloc_t>();
-		AE::Serializing::Deserializer	des{ mem_stream, alloc.get() };
+		PipelineStorage::BlockOffsets_t		block_offsets;
 		{
 			uint	version = 0;
 			uint	name	= 0;
-			TEST( des( OUT name, OUT version ));
+			TEST( mem_stream->Read( OUT name ));
+			TEST( mem_stream->Read( OUT version ));
 			TEST_Eq( name, PipelinePack_Name );
 			TEST_Eq( version, PipelinePack_Version );
+			TEST( mem_stream->Read( OUT block_offsets ));
 		}
 
+		RC<IAllocator>		alloc = MakeRC<LinearAlloc_t>();
 		String				ser_str;
 		EnumSet< EMarker >	unique;
 		unique.insert( EMarker::Unknown );
 
-		for (EMarker marker;;)
+		for (auto off : block_offsets)
 		{
-			if_unlikely( not des( OUT marker ))
-				break;
+			if ( off == UMax )
+				continue;
 
+			EMarker						marker;
+			Serializing::Deserializer	des{ mem_stream->ToSubStream( off ), alloc.get() };
+
+			TEST( des( OUT marker ));
 			TEST_Lt( uint(marker), unique.size() );
 			TEST( not unique.contains( marker ));
 			unique.insert( marker );
@@ -362,7 +368,6 @@ namespace
 			switch_end
 		}
 
-		TEST( des.IsEnd() );
 		TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
 	}
 

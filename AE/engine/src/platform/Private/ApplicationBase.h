@@ -39,20 +39,20 @@ namespace AE::App
 
 	// methods
 	protected:
-		explicit ApplicationBase (Unique<IAppListener>)													__NE___;
+		explicit ApplicationBase (Unique<IAppListener>)											__NE___;
 
-		void  _BeforeUpdate ()																			__NE___;
-		void  _AfterUpdate ()																			__NE___;
-		void  _Destroy ()																				__NE___;
+		void  _BeforeUpdate ()																	__NE___;
+		void  _AfterUpdate ()																	__NE___;
+		void  _Destroy ()																		__NE___;
 
 	public:
-		VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst, IVRDevice::EDeviceType type) __NE_OV;
+		VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions*, IVRDevice::EDeviceType)	__NE_OV;
 
-		Duration_t  GetTimeSinceStart ()																C_NE_OF	{ return Duration_t{_timeSinceStart.load()}; }
+		Duration_t  GetTimeSinceStart ()														C_NE_OF	{ return Duration_t{_timeSinceStart.load()}; }
 
-		void  Terminate ()																				__NE_OV;
+		void  Terminate ()																		__NE_OV;
 
-		DRC_ONLY( ND_ SingleThreadCheck&	GetSingleThreadCheck ()										__NE___	{ return _stCheck; })
+		DRC_ONLY( ND_ SingleThreadCheck&	GetSingleThreadCheck ()								__NE___	{ return _stCheck; })
 	};
 
 

@@ -316,8 +316,8 @@ namespace AE::Scripting
 			ND_ bool  operator >  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr >  rhs._ptr; }
 			ND_ bool  operator <  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr <  rhs._ptr; }
 
-			ND_ T*  operator -> ()								C_NE___	{ ASSERT( _ptr );  return _ptr; }
-			ND_ T&  operator *  ()								C_NE___	{ ASSERT( _ptr );  return *_ptr; }
+			ND_ T*  operator -> ()								C_NE___	{ NonNull( _ptr );  return _ptr; }
+			ND_ T&  operator *  ()								C_NE___	{ NonNull( _ptr );  return *_ptr; }
 			ND_ T*  Get ()										C_NE___	{ return _ptr; }
 
 			ND_ explicit operator bool ()						C_NE___	{ return _ptr != null; }

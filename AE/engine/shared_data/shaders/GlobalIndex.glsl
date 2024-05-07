@@ -129,7 +129,11 @@ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSize
 // global coordinate in 3D
 int3  GetGlobalCoord ()
 {
+  #ifdef AE_GEOMETRY_SHADER
 	return int3( gl.FragCoord.xy, gl.Layer );
+  #else
+	return int3( gl.FragCoord.xy, 0 );
+  #endif
 }
 
 // implement GetGlobalSize() with 'un_PerPass.screenSize'

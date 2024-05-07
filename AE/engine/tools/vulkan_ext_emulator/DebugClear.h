@@ -431,10 +431,12 @@
 		auto&	self		= *emulator.dbgClear;
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pCreateInfo != null );
+		NonNull( pCreateInfo );
 		ASSERT( pCreateInfo->sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2 );
+		CHECK_ERR( pCreateInfo->attachmentCount <= GraphicsConfig::MaxAttachments, VK_ERROR_UNKNOWN );
+		CHECK_ERR( pCreateInfo->subpassCount <= GraphicsConfig::MaxSubpasses, VK_ERROR_UNKNOWN );
 
-		StaticArray< VkAttachmentDescription2, GraphicsConfig::MaxAttachments >	attachments;
+		StaticArray< VkAttachmentDescription2, GraphicsConfig::MaxAttachments >		attachments;
 
 		VkRenderPassCreateInfo2					rp_ci = *pCreateInfo;
 		VulkanEmulation::DebugClear::RPInfo		rp_info;
@@ -470,7 +472,7 @@
 
 			if_unlikely( is_stencil )
 			{
-				if ( AnyEqual( dst.stencilLoadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_EXT ))
+				if ( AnyEqual( dst.stencilLoadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_KHR ))
 				{
 					dst.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 					rp_info.loadOps.stencil.set( i );
@@ -483,7 +485,7 @@
 				}
 			}
 
-			if ( AnyEqual( dst.loadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_EXT ))
+			if ( AnyEqual( dst.loadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_KHR ))
 			{
 				dst.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				(is_depth ? rp_info.loadOps.depth : rp_info.loadOps.color).set( i );
@@ -552,18 +554,44 @@
 
 			dst.clear		= color_atts & pending_clear;
 			pending_clear	= dst.unused;
+
+			// Fix for validation error:
+			// "If any element of pAttachments is used as a fragment shading rate attachment, the loadOp for that attachment must not be VK_ATTACHMENT_LOAD_OP_CLEAR".
+			// FSR attachment can be LOAD_OP_DONT_CARE in compatible render pass, DebugClear tool replace it to LOAD_OP_CLEAR which triggers error, so replace it by LOAD_OP_DONT_CARE.
+
+			for (auto* next = Cast<VkBaseInStructure>(sp.pNext); next != null; next = next->pNext)
+			{
+				if ( next->sType == VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR )
+				{
+					const auto&		fsr	= *Cast<VkFragmentShadingRateAttachmentInfoKHR>(next);
+					if ( fsr.pFragmentShadingRateAttachment != null and fsr.pFragmentShadingRateAttachment->attachment < rp_ci.attachmentCount )
+					{
+						auto&	fsr_att = attachments[ fsr.pFragmentShadingRateAttachment->attachment ];
+						if ( fsr_att.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR )
+							fsr_att.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+					}
+					break;
+				}
+			}
 		}
 
 		for (uint i = 0; i < rp_ci.dependencyCount; ++i)
 		{
-			const auto&		dep	= rp_ci.pDependencies[i];
-			const auto&		bar	= *Cast<VkMemoryBarrier2>(dep.pNext);
+			const auto&		dep = rp_ci.pDependencies[i];
 
-			if ( dep.pNext == null or dep.dstSubpass != VK_SUBPASS_EXTERNAL )
+			if ( dep.dstSubpass != VK_SUBPASS_EXTERNAL )
 				continue;
 
-			rp_info.dstStageMask	|= bar.dstStageMask;
-			rp_info.dstAccessMask	|= bar.dstAccessMask;
+			for (auto* next = Cast<VkBaseInStructure>(dep.pNext); next != null; next = next->pNext)
+			{
+				if ( next->sType == VK_STRUCTURE_TYPE_MEMORY_BARRIER_2 )
+				{
+					const auto&		bar	= *Cast<VkMemoryBarrier2>(next);
+					rp_info.dstStageMask	|= bar.dstStageMask;
+					rp_info.dstAccessMask	|= bar.dstAccessMask;
+					break;
+				}
+			}
 		}
 
 		// if there is no subpass dependency from the last subpass that uses an attachment to VK_SUBPASS_EXTERNAL,
@@ -575,6 +603,9 @@
 
 
 		VkResult	res;
+		if ( AllBits( emulator.devEnabledExt, Extension::Synchronization2 ))
+			res = Wrap_vkCreateRenderPass2_Sync2( device, &rp_ci, pAllocator, OUT pRenderPass );
+		else
 		if ( AllBits( emulator.devEnabledExt, Extension::LoadStoreOpNone ))
 			res = Wrap_vkCreateRenderPass2_OpNone( device, &rp_ci, pAllocator, OUT pRenderPass );
 		else
@@ -634,7 +665,7 @@
 		}
 
 		ASSERT( pRenderPassBegin->pClearValues == null or
-			    rp_info.attachmentCount == pRenderPassBegin->clearValueCount );
+				rp_info.attachmentCount == pRenderPassBegin->clearValueCount );
 
 		const auto	clear_ids	 = rp_info.loadOps.color | rp_info.loadOps.depth | rp_info.loadOps.stencil;
 

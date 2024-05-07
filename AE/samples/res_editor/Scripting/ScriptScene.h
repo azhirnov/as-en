@@ -109,6 +109,8 @@ namespace AE::ResEditor
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)							__Th___;
 
 	// ScriptBasePass //
+
+		// Returns non-null pass or throw exception.
 		RC<IPass>  ToPass ()																C_Th_OV;
 
 
@@ -172,6 +174,8 @@ namespace AE::ResEditor
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)							__Th___;
 
 	// ScriptBasePass //
+
+		// Returns non-null pass or throw exception.
 		RC<IPass>  ToPass ()																C_Th_OV;
 
 

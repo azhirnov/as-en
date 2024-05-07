@@ -84,6 +84,7 @@ namespace AE::Threading
 
 			template <typename FN>
 			void  UnassignAll (FN &&fn)						__NE___;
+			void  UnassignAll ()							__NE___	{ UnassignAll( [](auto&) __NE___ {} ); }
 
 			template <typename FN>
 			void  ForEach (FN &&fn)							__NE___;

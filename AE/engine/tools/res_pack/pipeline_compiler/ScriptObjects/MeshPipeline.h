@@ -21,7 +21,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		MeshPipelineSpecScriptBinding () {}
-		MeshPipelineSpecScriptBinding (const MeshPipelineScriptBinding* base, const String &name) __Th___;
+		MeshPipelineSpecScriptBinding (MeshPipelineScriptBinding* base, const String &name) __Th___;
 
 		// called from RTGraphicsPass
 		void  SetRenderPass (RenderPassName::Ref, SubpassName::Ref)		__Th___;
@@ -48,7 +48,7 @@ namespace AE::PipelineCompiler
 
 		ND_ const MeshPipelineScriptBinding*	GetBase ()				const	{ return Cast<MeshPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 
-		ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -102,10 +102,10 @@ namespace AE::PipelineCompiler
 
 		ND_ MeshPipelineSpecPtr				AddSpecialization2 (const String &name)		__Th___;
 		ND_ MeshPipelineSpecScriptBinding*	AddSpecialization (const String &name)		__Th___;
-		ND_ Specializations_t const&		GetSpecializations ()						const	{ return _pplnSpec; }
+		ND_ Specializations_t const&		GetSpecializations ()						C_NE___	{ return _pplnSpec; }
 
-		ND_ bool	Build ();
-		ND_ usize	SpecCount ()														const	{ return _pplnSpec.size(); }
+		ND_ bool	Build ()															__NE___;
+		ND_ usize	SpecCount ()														C_NE___	{ return _pplnSpec.size(); }
 
 		static void  Bind (const ScriptEnginePtr &se)									__Th___;
 

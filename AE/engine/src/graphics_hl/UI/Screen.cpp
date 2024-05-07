@@ -157,9 +157,9 @@ namespace AE::UI
 
 		const uint	off = _GlobalUBufOffset();
 
-		ctx.BindDescriptorSet( IDrawable::GlobalMaterial::dsIndex, _descSet, {off} );	// throw
-		ctx.BindPipeline( _fillStencilPpln );											// throw
-		canvas.Flush( ctx, IDrawable::GlobalMaterial::topology );						// throw
+		ctx.BindDescriptorSet( IDrawable::GlobalMaterial::dsIndex, _descSet, {&off,1} );	// throw
+		ctx.BindPipeline( _fillStencilPpln );												// throw
+		canvas.Flush( ctx, IDrawable::GlobalMaterial::topology );							// throw
 	}
 
 /*
@@ -186,7 +186,7 @@ namespace AE::UI
 		if_unlikely( params.mtr.IsDefined() )
 		{
 			ctx.BindPipeline( params.mtr->ppln );																				// throw
-			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {params.mtr.globalDynOffset/*, params.mtr->mtrDynOffset*/} );	// throw
+			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {&params.mtr.globalDynOffset, 1/*, params.mtr->mtrDynOffset*/} );	// throw
 		//	ctx.SetStencilReference( params.mtr->stencilRef );																	// throw
 
 			canvas.Flush( ctx, params.mtr.topology );																			// throw
@@ -207,9 +207,9 @@ namespace AE::UI
 
 		const uint	off = _GlobalUBufOffset();
 
-		ctx.BindPipeline( UIStyleCollection().GetDebugDrawPipeline() );					// throw
-		ctx.BindDescriptorSet( IDrawable::GlobalMaterial::dsIndex, _descSet, {off} );	// throw
-		canvas.Flush( ctx, IDrawable::GlobalMaterial::topology );						// throw
+		ctx.BindPipeline( UIStyleCollection().GetDebugDrawPipeline() );						// throw
+		ctx.BindDescriptorSet( IDrawable::GlobalMaterial::dsIndex, _descSet, {&off,1} );	// throw
+		canvas.Flush( ctx, IDrawable::GlobalMaterial::topology );							// throw
 	}
 
 /*

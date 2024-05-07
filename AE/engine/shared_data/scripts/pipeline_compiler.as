@@ -1,4 +1,4 @@
-//d5c8b046
+//47029888
 #include <vector>
 #include <string>
 
@@ -20,26 +20,77 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct ImageLayer;
-struct int4;
-struct int3;
-struct ArraySize;
-struct int2;
-struct PipelineLayout;
-struct GraphicsPipelineSpec;
-struct short4;
-struct EPixelFormat;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct RenderState_ColorBuffer;
-struct RenderPass;
-struct EValueType;
-struct ETessSpacing;
-struct TilePipeline;
-struct TilePipelineSpec;
-struct EAttachmentLoadOp;
-struct EPolygonMode;
+struct EAttachmentStoreOp;
+struct ubyte4;
+struct ESamplerYcbcrRange;
+struct CompatibleRenderPass;
+struct GlobalConfig;
+struct ComputePipelineSpec;
+struct EPrimitive;
+struct ESubgroupOperation;
+struct RenderState_InputAssemblyState;
+struct ubyte2;
+struct ubyte3;
+struct EGraphicsDeviceID;
+struct EFormatFeature;
+struct RenderState_RasterizationState;
+struct EImage;
+struct bool3;
+struct bool2;
+struct EVertexType;
+struct RGBA32i;
+struct bool4;
+struct EBlendOp;
+struct ELogicOp;
+struct ECullMode;
+struct ETessPatch;
+struct ShaderStructTypeUsage;
+struct HSVColor;
+struct RGBA32f;
+struct RenderState_ColorBuffer_ColorMask;
+struct EQueueMask;
+struct EShaderPreprocessor;
+struct EBlendFactor;
+struct Shader;
+struct ShaderStructType;
+struct ERTInstanceOpt;
+struct EStencilOp;
+struct EAddressMode;
+struct ECompilationTarget;
+struct RayIndex;
+struct RenderState_MultisampleState;
+struct ComputePipeline;
+struct EIndex;
+struct EAccessType;
+struct float4;
+struct EAttachment;
+struct ESamplerYcbcrModelConversion;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct GraphicsPass;
+struct short2;
+struct ushort4;
+struct ESubgroupTypes;
+struct ESamplerOpt;
+struct Align;
+struct ESamplerChromaLocation;
+struct DescriptorSetLayout;
+struct RenderState_StencilBufferState;
+struct EPipelineDynamicState;
+struct EFilter;
+struct MultiSamples;
+struct RenderTechnique;
+struct RayTracingShaderBinding;
+struct RayTracingPipeline;
+struct EShaderIO;
+struct EImageAspect;
+struct EPipelineOpt;
+struct InstanceIndex;
+struct float3;
+struct float2;
+struct EDescSetUsage;
+struct EVertexInputRate;
 struct EReductionMode;
 struct ESurfaceFormat;
 struct MipmapLevel;
@@ -47,111 +98,60 @@ struct EShaderVersion;
 struct AttachmentSpec;
 struct RenderState;
 struct DepthStencil;
-struct EPixelFormatExternal;
 struct RenderState_ColorBuffersState;
+struct EPixelFormatExternal;
 struct RayTracingPipelineSpec;
-struct Sampler;
-struct MeshPipelineSpec;
-struct GraphicsPipeline;
-struct CallableIndex;
-struct EShaderOpt;
-struct EFeature;
-struct MeshPipeline;
-struct EVendorID;
-struct EResourceState;
-struct ComputePass;
-struct NamedRenderState;
-struct FeatureSet;
-struct VertexDivisor;
-struct EAttachmentStoreOp;
-struct EBorderColor;
-struct EImageType;
-struct uint2;
-struct ShaderIO;
+struct int4;
+struct ImageLayer;
+struct int2;
+struct int3;
+struct ArraySize;
+struct PipelineLayout;
+struct GraphicsPipelineSpec;
+struct EPixelFormat;
+struct short4;
+struct ushort2;
+struct sbyte2;
+struct ushort3;
+struct RenderState_ColorBuffer;
+struct RenderPass;
+struct EValueType;
+struct ETessSpacing;
+struct TilePipelineSpec;
+struct TilePipeline;
+struct EPolygonMode;
+struct EAttachmentLoadOp;
 struct uint3;
-struct EShaderStages;
+struct uint2;
 struct EMutableRenderState;
+struct ShaderIO;
 struct RenderState_DepthBufferState;
+struct EShaderStages;
 struct EShader;
-struct RenderState_StencilFaceState;
+struct EGPUVendor;
 struct ECompareOp;
+struct RenderState_StencilFaceState;
 struct uint4;
 struct EMipmapFilter;
-struct VertexBufferInput;
 struct RGBA8u;
+struct VertexBufferInput;
 struct EStructLayout;
 struct RGBA32u;
 struct Attachment;
-struct EImage;
-struct bool2;
-struct bool3;
-struct RGBA32i;
-struct EVertexType;
-struct bool4;
-struct EBlendOp;
-struct ELogicOp;
-struct ETessPatch;
-struct ECullMode;
-struct EQueueMask;
-struct RGBA32f;
-struct HSVColor;
-struct RenderState_ColorBuffer_ColorMask;
-struct ShaderStructTypeUsage;
-struct EBlendFactor;
-struct EShaderPreprocessor;
-struct ERTInstanceOpt;
-struct Shader;
-struct ShaderStructType;
-struct EStencilOp;
-struct EAddressMode;
-struct ECompilationTarget;
-struct RayIndex;
-struct RenderState_MultisampleState;
-struct ESamplerYcbcrRange;
-struct ESamplerUsage;
-struct ubyte4;
-struct CompatibleRenderPass;
-struct GlobalConfig;
-struct ComputePipelineSpec;
-struct EPrimitive;
-struct ESubgroupOperation;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct ubyte2;
-struct RenderState_InputAssemblyState;
-struct RenderState_RasterizationState;
-struct EFormatFeature;
-struct ESamplerChromaLocation;
-struct DescriptorSetLayout;
-struct EPipelineDynamicState;
-struct RenderState_StencilBufferState;
-struct EFilter;
-struct MultiSamples;
-struct RayTracingPipeline;
-struct RayTracingShaderBinding;
-struct RenderTechnique;
-struct EShaderIO;
-struct EImageAspect;
-struct InstanceIndex;
-struct EPipelineOpt;
-struct float2;
-struct float3;
-struct EDescSetUsage;
-struct EVertexInputRate;
-struct EIndex;
-struct ComputePipeline;
-struct EAccessType;
-struct float4;
-struct EAttachment;
-struct ESamplerYcbcrModelConversion;
-struct sbyte4;
-struct sbyte3;
-struct ushort4;
-struct short2;
-struct short3;
-struct ESubgroupTypes;
-struct GraphicsPass;
-struct Align;
+struct Sampler;
+struct CallableIndex;
+struct GraphicsPipeline;
+struct MeshPipelineSpec;
+struct EShaderOpt;
+struct EFeature;
+struct MeshPipeline;
+struct NamedRenderState;
+struct EResourceState;
+struct ComputePass;
+struct FeatureSet;
+struct EBorderColor;
+struct VertexDivisor;
+struct EImageType;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1212,6 +1212,11 @@ struct DepthStencil
 
 RGBA8u  asARGB (uint);
 RGBA8u  asRGBA (uint);
+string  FindAndReplace (const string &, const string &, const string &);
+bool  StartsWith (const string &, const string &);
+bool  StartsWithIC (const string &, const string &);
+bool  EndsWith (const string &, const string &);
+bool  EndsWithIC (const string &, const string &);
 string  ToString (int value);
 string  ToString (uint value);
 string  ToString (int64 value);
@@ -1482,28 +1487,6 @@ struct EPixelFormatExternal
 	static constexpr uint8 Android_YV12 = 16;
 	static constexpr uint8 Android_Y8 = 17;
 	static constexpr uint8 Android_HEIC = 18;
-};
-
-struct EAttachmentLoadOp
-{
-	EAttachmentLoadOp () {}
-	EAttachmentLoadOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Invalidate = 0;
-	static constexpr uint8 Load = 1;
-	static constexpr uint8 Clear = 2;
-	static constexpr uint8 None = 3;
-};
-
-struct EAttachmentStoreOp
-{
-	EAttachmentStoreOp () {}
-	EAttachmentStoreOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Invalidate = 0;
-	static constexpr uint8 Store = 1;
-	static constexpr uint8 None = 2;
-	static constexpr uint8 StoreCustomSamplePositions = 3;
 };
 
 struct ECompareOp
@@ -1901,10 +1884,10 @@ struct EShaderStages
 	static constexpr uint16 AllRayTracing = 32256;
 };
 
-struct EVendorID
+struct EGPUVendor
 {
-	EVendorID () {}
-	EVendorID (uint32) {}
+	EGPUVendor () {}
+	EGPUVendor (uint32) {}
 	operator uint32 () const;
 	static constexpr uint32 AMD = 0;
 	static constexpr uint32 NVidia = 1;
@@ -1918,6 +1901,7 @@ struct EVendorID
 	static constexpr uint32 Broadcom = 9;
 	static constexpr uint32 Samsung = 10;
 	static constexpr uint32 VeriSilicon = 11;
+	static constexpr uint32 Huawei = 12;
 };
 
 struct EVertexType
@@ -2062,16 +2046,19 @@ struct EGraphicsDeviceID
 	static constexpr uint32 NV_Ampere = 48;
 	static constexpr uint32 NV_Ampere_Orin = 49;
 	static constexpr uint32 NV_Ada = 50;
-	static constexpr uint32 Intel_Gen9 = 51;
-	static constexpr uint32 Intel_Gen11 = 52;
-	static constexpr uint32 Intel_Gen12 = 53;
-	static constexpr uint32 Intel_Gen12_7 = 54;
-	static constexpr uint32 PowerVR_Series8XE = 55;
-	static constexpr uint32 PowerVR_Series8XEP = 56;
-	static constexpr uint32 PowerVR_Series8XT = 57;
-	static constexpr uint32 PowerVR_Series9XE = 58;
-	static constexpr uint32 VeriSilicon = 59;
-	static constexpr uint32 SwiftShader = 60;
+	static constexpr uint32 Intel_Gen9_HD500 = 51;
+	static constexpr uint32 Intel_Gen9_HD600 = 52;
+	static constexpr uint32 Intel_Gen9_UHD600 = 53;
+	static constexpr uint32 Intel_Gen11 = 54;
+	static constexpr uint32 Intel_Gen12 = 55;
+	static constexpr uint32 Intel_Gen12_7 = 56;
+	static constexpr uint32 PowerVR_Series8XE = 57;
+	static constexpr uint32 PowerVR_Series8XEP = 58;
+	static constexpr uint32 PowerVR_Series8XT = 59;
+	static constexpr uint32 PowerVR_Series9XE = 60;
+	static constexpr uint32 PowerVR_BSeries = 61;
+	static constexpr uint32 VeriSilicon = 62;
+	static constexpr uint32 SwiftShader = 63;
 };
 
 struct EFilter
@@ -2130,13 +2117,14 @@ struct EReductionMode
 	static constexpr uint8 Max = 2;
 };
 
-struct ESamplerUsage
+struct ESamplerOpt
 {
-	ESamplerUsage () {}
-	ESamplerUsage (uint8) {}
+	ESamplerOpt () {}
+	ESamplerOpt (uint8) {}
 	operator uint8 () const;
-	static constexpr uint8 Default = 0;
-	static constexpr uint8 NonSeamlessCubeMap = 1;
+	static constexpr uint8 ArgumentBuffer = 1;
+	static constexpr uint8 UnnormalizedCoordinates = 4;
+	static constexpr uint8 NonSeamlessCubeMap = 2;
 };
 
 struct EVertexInputRate
@@ -2157,6 +2145,7 @@ struct EDescSetUsage
 	static constexpr uint8 UpdateTemplate = 2;
 	static constexpr uint8 ArgumentBuffer = 4;
 	static constexpr uint8 MutableArgBuffer = 8;
+	static constexpr uint8 MaybeUnsupported = 16;
 };
 
 struct EPipelineOpt
@@ -2729,10 +2718,10 @@ struct FeatureSet
 	void  AddSubgroupOperationRange (ESubgroupOperation, ESubgroupOperation);
 	void  AddVertexFormats (const array<EVertexType> &);
 	void  AddAccelStructVertexFormats (const array<EVertexType> &);
-	void  IncludeVendor (EVendorID);
-	void  ExcludeVendor (EVendorID);
-	void  IncludeVendors (const array<EVendorID> &);
-	void  ExcludeVendors (const array<EVendorID> &);
+	void  IncludeVendor (EGPUVendor);
+	void  ExcludeVendor (EGPUVendor);
+	void  IncludeVendors (const array<EGPUVendor> &);
+	void  ExcludeVendors (const array<EGPUVendor> &);
 	void  IncludeDevice (EGraphicsDeviceID);
 	void  ExcludeDevice (EGraphicsDeviceID);
 	void  MergeMin (RC<FeatureSet>);
@@ -2740,8 +2729,8 @@ struct FeatureSet
 	void  Copy (RC<FeatureSet>);
 	void  framebufferColorSampleCounts (const array<uint> &);
 	void  framebufferDepthSampleCounts (const array<uint> &);
-	void  minSpirvVersion (uint);
-	void  minMetalVersion (uint);
+	void  maxSpirvVersion (uint);
+	void  maxMetalVersion (uint);
 	void  supportedQueues (EQueueMask);
 	void  requiredQueues (EQueueMask);
 	void  AddShadingRate (const array<uint> &, const array<uint> &);
@@ -2757,18 +2746,17 @@ struct FeatureSet
 	void  sampleRateShading (EFeature);
 	void  constantAlphaColorBlendFactors (EFeature);
 	void  pointPolygons (EFeature);
-	void  separateStencilMaskRef (EFeature);
 	void  triangleFans (EFeature);
 	void  subgroupTypes (uint);
 	void  subgroupStages (uint);
 	void  subgroupQuadStages (uint);
 	void  requiredSubgroupSizeStages (uint);
+	void  minSubgroupSize (uint);
+	void  maxSubgroupSize (uint);
 	void  subgroup (EFeature);
 	void  subgroupBroadcastDynamicId (EFeature);
 	void  subgroupSizeControl (EFeature);
 	void  shaderSubgroupUniformControlFlow (EFeature);
-	void  minSubgroupSize (uint);
-	void  maxSubgroupSize (uint);
 	void  shaderInt8 (EFeature);
 	void  shaderInt16 (EFeature);
 	void  shaderInt64 (EFeature);
@@ -2825,6 +2813,7 @@ struct FeatureSet
 	void  shaderSMBuiltinsNV (EFeature);
 	void  shaderCoreBuiltinsARM (EFeature);
 	void  shaderSampleRateInterpolationFunctions (EFeature);
+	void  shaderStencilExport (EFeature);
 	void  shaderSampledImageArrayDynamicIndexing (EFeature);
 	void  shaderStorageBufferArrayDynamicIndexing (EFeature);
 	void  shaderStorageImageArrayDynamicIndexing (EFeature);
@@ -2935,6 +2924,8 @@ struct FeatureSet
 	void  textureCompressionETC2 (EFeature);
 	void  imageViewMinLod (EFeature);
 	void  multisampleArrayImage (EFeature);
+	void  imageViewFormatList (EFeature);
+	void  imageViewExtendedUsage (EFeature);
 	void  maxImageArrayLayers (uint);
 	void  samplerAnisotropy (EFeature);
 	void  samplerMirrorClampToEdge (EFeature);
@@ -3430,6 +3421,10 @@ struct PipelineLayout
 	void  AddDebugDSLayout (EShaderOpt dbgMode, uint shaderStages);
 	void  AddDebugDSLayout (uint index, EShaderOpt dbgMode, uint shaderStages);
 
+	// Add descriptor set layout for shader debugging, returns 'false' if failed.
+	bool  TryAddDebugDSLayout (EShaderOpt dbgMode, uint shaderStages);
+	bool  TryAddDebugDSLayout (uint index, EShaderOpt dbgMode, uint shaderStages);
+
 	// Set push constant layout for specific shader stage.
 	// Push constants are native in Vulkan and emulated in Metal.
 	void  PushConst (const string & pcName, const string & structName, EShader stage);
@@ -3923,6 +3918,47 @@ struct EAttachment
 	static constexpr uint32 ShadingRate = 7;
 };
 
+struct EAttachmentLoadOp
+{
+	EAttachmentLoadOp () {}
+	EAttachmentLoadOp (uint8) {}
+	operator uint8 () const;
+
+	// Previous content will not be preserved.
+	// In TBDR is allow to avoid transfer from global memory to cache.
+	static constexpr uint8 Invalidate = 0;
+
+	// Preserve attachment content.
+	// In TBDR contents in global memory will be copied to cache.
+	static constexpr uint8 Load = 1;
+
+	// Clear attachment before first pass.
+	// In TBDR is allow to avoid transfer from global memory to cache.
+	static constexpr uint8 Clear = 2;
+
+	// Attachment is not used at all.
+	// Can be used to keep one compatible render pass and avoid unnecessary synchronizations for unused attachment.
+	static constexpr uint8 None = 3;
+};
+
+struct EAttachmentStoreOp
+{
+	EAttachmentStoreOp () {}
+	EAttachmentStoreOp (uint8) {}
+	operator uint8 () const;
+
+	// Attachment content will not needed after rendering.
+	// In TBDR it allow to avoid transfer from cache to global memory.
+	static constexpr uint8 Invalidate = 0;
+
+	// Attachment content will be written to global memory.
+	static constexpr uint8 Store = 1;
+
+	// Attachment is read-only. Content may not be written to memory, but if changed then content in memory will be undefined.
+	// In TBDR it allow to avoid transfer from cache to global memory.
+	static constexpr uint8 None = 2;
+};
+
 struct ShaderIO
 {
 	ShaderIO ();
@@ -4049,6 +4085,7 @@ struct Sampler
 
 	// Set anisotropy level.
 	void  Anisotropy (float level);
+	bool  TrySetAnisotropy (float level);
 
 	// Set compare operator.
 	void  CompareOp (ECompareOp op);
@@ -4056,16 +4093,13 @@ struct Sampler
 	// Set border color.
 	void  BorderColor (EBorderColor color);
 
-	// Use normalized coordinates.
-	// Default is 'true'. Set 'false' to use pixel coordinates.
-	void  NormCoordinates (bool norm);
-
 	// Set reduction mode.
 	// Requires 'samplerFilterMinmax' feature. Default value is 'Average'.
 	void  ReductionMode (EReductionMode mode);
 
-	// Set sampler usage.
-	void  Usage (ESamplerUsage);
+	// Set sampler options.
+	void  Options (ESamplerOpt);
+	void  Options (uint);
 
 	// ----
 	// Requires 'samplerYcbcrConversion' feature
@@ -4169,12 +4203,85 @@ const string Sampler_LinearMirrorRepeat;
 const string Sampler_LinearMipmapClamp;
 const string Sampler_LinearMipmapRepeat;
 const string Sampler_LinearMipmapMirrorRepeat;
+const string Sampler_LinearMipmapMirrorClamp;
 const string Sampler_Anisotropy8Repeat;
 const string Sampler_Anisotropy8MirrorRepeat;
 const string Sampler_Anisotropy8Clamp;
 const string Sampler_Anisotropy16Repeat;
 const string Sampler_Anisotropy16MirrorRepeat;
 const string Sampler_Anisotropy16Clamp;
+template <>
+struct RC<CompatibleRenderPass> : CompatibleRenderPass
+{
+	RC (const CompatibleRenderPass &);
+};
+
+template <>
+struct RC<ComputePipelineSpec> : ComputePipelineSpec
+{
+	RC (const ComputePipelineSpec &);
+};
+
+template <>
+struct RC<Shader> : Shader
+{
+	RC (const Shader &);
+};
+
+template <>
+struct RC<ShaderStructType> : ShaderStructType
+{
+	RC (const ShaderStructType &);
+};
+
+template <>
+struct RC<ComputePipeline> : ComputePipeline
+{
+	RC (const ComputePipeline &);
+};
+
+template <>
+struct RC<GraphicsPass> : GraphicsPass
+{
+	RC (const GraphicsPass &);
+};
+
+template <>
+struct RC<DescriptorSetLayout> : DescriptorSetLayout
+{
+	RC (const DescriptorSetLayout &);
+};
+
+template <>
+struct RC<RenderTechnique> : RenderTechnique
+{
+	RC (const RenderTechnique &);
+};
+
+template <>
+struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
+{
+	RC (const RayTracingShaderBinding &);
+};
+
+template <>
+struct RC<RayTracingPipeline> : RayTracingPipeline
+{
+	RC (const RayTracingPipeline &);
+};
+
+template <>
+struct RC<AttachmentSpec> : AttachmentSpec
+{
+	RC (const AttachmentSpec &);
+};
+
+template <>
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+{
+	RC (const RayTracingPipelineSpec &);
+};
+
 template <>
 struct RC<PipelineLayout> : PipelineLayout
 {
@@ -4194,69 +4301,15 @@ struct RC<RenderPass> : RenderPass
 };
 
 template <>
-struct RC<TilePipeline> : TilePipeline
-{
-	RC (const TilePipeline &);
-};
-
-template <>
 struct RC<TilePipelineSpec> : TilePipelineSpec
 {
 	RC (const TilePipelineSpec &);
 };
 
 template <>
-struct RC<AttachmentSpec> : AttachmentSpec
+struct RC<TilePipeline> : TilePipeline
 {
-	RC (const AttachmentSpec &);
-};
-
-template <>
-struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
-{
-	RC (const RayTracingPipelineSpec &);
-};
-
-template <>
-struct RC<Sampler> : Sampler
-{
-	RC (const Sampler &);
-};
-
-template <>
-struct RC<MeshPipelineSpec> : MeshPipelineSpec
-{
-	RC (const MeshPipelineSpec &);
-};
-
-template <>
-struct RC<GraphicsPipeline> : GraphicsPipeline
-{
-	RC (const GraphicsPipeline &);
-};
-
-template <>
-struct RC<MeshPipeline> : MeshPipeline
-{
-	RC (const MeshPipeline &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<NamedRenderState> : NamedRenderState
-{
-	RC (const NamedRenderState &);
-};
-
-template <>
-struct RC<FeatureSet> : FeatureSet
-{
-	RC (const FeatureSet &);
+	RC (const TilePipeline &);
 };
 
 template <>
@@ -4272,62 +4325,44 @@ struct RC<Attachment> : Attachment
 };
 
 template <>
-struct RC<Shader> : Shader
+struct RC<Sampler> : Sampler
 {
-	RC (const Shader &);
+	RC (const Sampler &);
 };
 
 template <>
-struct RC<ShaderStructType> : ShaderStructType
+struct RC<GraphicsPipeline> : GraphicsPipeline
 {
-	RC (const ShaderStructType &);
+	RC (const GraphicsPipeline &);
 };
 
 template <>
-struct RC<CompatibleRenderPass> : CompatibleRenderPass
+struct RC<MeshPipelineSpec> : MeshPipelineSpec
 {
-	RC (const CompatibleRenderPass &);
+	RC (const MeshPipelineSpec &);
 };
 
 template <>
-struct RC<ComputePipelineSpec> : ComputePipelineSpec
+struct RC<MeshPipeline> : MeshPipeline
 {
-	RC (const ComputePipelineSpec &);
+	RC (const MeshPipeline &);
 };
 
 template <>
-struct RC<DescriptorSetLayout> : DescriptorSetLayout
+struct RC<NamedRenderState> : NamedRenderState
 {
-	RC (const DescriptorSetLayout &);
+	RC (const NamedRenderState &);
 };
 
 template <>
-struct RC<RayTracingPipeline> : RayTracingPipeline
+struct RC<ComputePass> : ComputePass
 {
-	RC (const RayTracingPipeline &);
+	RC (const ComputePass &);
 };
 
 template <>
-struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
+struct RC<FeatureSet> : FeatureSet
 {
-	RC (const RayTracingShaderBinding &);
-};
-
-template <>
-struct RC<RenderTechnique> : RenderTechnique
-{
-	RC (const RenderTechnique &);
-};
-
-template <>
-struct RC<ComputePipeline> : ComputePipeline
-{
-	RC (const ComputePipeline &);
-};
-
-template <>
-struct RC<GraphicsPass> : GraphicsPass
-{
-	RC (const GraphicsPass &);
+	RC (const FeatureSet &);
 };
 

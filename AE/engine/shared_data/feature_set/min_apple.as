@@ -9,6 +9,7 @@ void ASmain ()
 	//	Apple A15 GPU driver 0.2.1914 on Ios 15.3
 	//	Apple A17 Pro GPU driver 0.2.2014 on Ios 17.1
 	//	Apple M3 Max driver 0.2.2014 on Osx 14.2
+	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
 	//	Apple7_Metal3
@@ -16,6 +17,8 @@ void ASmain ()
 	//	Apple7
 	//	Apple6_Metal3
 	//	Apple6
+	//	Apple_Mac2
+	//	Apple_Mac_Metal3
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -23,12 +26,12 @@ void ASmain ()
 
 	fset.alphaToOne (True);
 	fset.depthBiasClamp (True);
+	fset.depthClamp (True);
 	fset.dualSrcBlend (True);
 	fset.fillModeNonSolid (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
@@ -54,10 +57,10 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroup (True);
-	fset.subgroupSizeControl (True);
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (4);
+	fset.subgroup (True);
+	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderFloat16 (True);
@@ -68,6 +71,7 @@ void ASmain ()
 	fset.storagePushConstant8 (True);
 	fset.shaderClipDistance (True);
 	fset.runtimeDescriptorArray (True);
+	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
@@ -81,10 +85,8 @@ void ASmain ()
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.fragmentShaderSampleInterlock (True);
-	fset.fragmentShaderPixelInterlock (True);
-	fset.minSpirvVersion (130);
-	fset.minMetalVersion (220);
+	fset.maxSpirvVersion (130);
+	fset.maxMetalVersion (220);
 	fset.drawIndirectFirstInstance (True);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
@@ -120,6 +122,8 @@ void ASmain ()
 	fset.maxComputeWorkGroupSizeY (1 << 10);
 	fset.maxComputeWorkGroupSizeZ (1 << 10);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.maxVertexAttribDivisor (1 << 30);
 	fset.maxVertexAttributes (31);
 	fset.maxVertexBuffers (31);
 	fset.AddVertexFormats({
@@ -219,6 +223,8 @@ void ASmain ()
 	fset.samplerAnisotropy (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (4.00);
+	fset.framebufferColorSampleCounts({ 1, 2, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
 	fset.maxFramebufferLayers (2 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

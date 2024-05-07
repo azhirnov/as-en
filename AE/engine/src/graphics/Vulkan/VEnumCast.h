@@ -288,46 +288,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-	VEnumCast (EAttachmentLoadOp)
-=================================================
-*/
-	ND_ inline VkAttachmentLoadOp  VEnumCast (EAttachmentLoadOp value) __NE___
-	{
-		switch_enum( value )
-		{
-			case EAttachmentLoadOp::Invalidate :	return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			case EAttachmentLoadOp::Load :			return VK_ATTACHMENT_LOAD_OP_LOAD;
-			case EAttachmentLoadOp::Clear :			return VK_ATTACHMENT_LOAD_OP_CLEAR;
-			case EAttachmentLoadOp::None :			return VK_ATTACHMENT_LOAD_OP_NONE_EXT;	// emulated if not supported
-			case EAttachmentLoadOp::_Count :
-			case EAttachmentLoadOp::Unknown :		break;
-		}
-		switch_end
-		RETURN_ERR( "invalid load op type", VK_ATTACHMENT_LOAD_OP_MAX_ENUM );
-	}
-
-/*
-=================================================
-	VEnumCast (EAttachmentStoreOp)
-=================================================
-*/
-	ND_ inline VkAttachmentStoreOp  VEnumCast (EAttachmentStoreOp value) __NE___
-	{
-		switch_enum( value )
-		{
-			case EAttachmentStoreOp::Invalidate :	return VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			case EAttachmentStoreOp::StoreCustomSamplePositions :
-			case EAttachmentStoreOp::Store :		return VK_ATTACHMENT_STORE_OP_STORE;
-			case EAttachmentStoreOp::None :			return VK_ATTACHMENT_STORE_OP_NONE_EXT;	// emulated if not supported
-			case EAttachmentStoreOp::_Count :
-			case EAttachmentStoreOp::Unknown :		break;
-		}
-		switch_end
-		RETURN_ERR( "invalid store op type", VK_ATTACHMENT_STORE_OP_MAX_ENUM );
-	}
-
-/*
-=================================================
 	VEnumCast (ECompareOp)
 =================================================
 */
@@ -1419,7 +1379,7 @@ namespace AE::Graphics
 					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR;
 					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR;
 
-					case EVideoCodec::GIF :
+					case EVideoCodec::H266 :
 					case EVideoCodec::MPEG4 :
 					case EVideoCodec::WEBP :
 					case EVideoCodec::VP8 :
@@ -1438,7 +1398,7 @@ namespace AE::Graphics
 					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR;
 					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR;
 
-					case EVideoCodec::GIF :
+					case EVideoCodec::H266 :
 					case EVideoCodec::MPEG4 :
 					case EVideoCodec::WEBP :
 					case EVideoCodec::VP8 :
@@ -1700,26 +1660,35 @@ namespace AE::Graphics
 
 /*
 =================================================
-	VEnumCast (ESamplerUsage)
+	VEnumCast (ESamplerOpt)
 =================================================
 */
-	ND_ inline VkSamplerCreateFlagBits  VEnumCast (ESamplerUsage value) __NE___
+	ND_ inline VkSamplerCreateFlagBits  VEnumCast (ESamplerOpt value) __NE___
 	{
-		switch_enum( value )
+		VkSamplerCreateFlagBits	flags	= Zero;
+		const ESamplerOpt		mask	= ~(ESamplerOpt::ArgumentBuffer | ESamplerOpt::UnnormalizedCoordinates);
+
+		for (auto t : BitfieldIterate( value & mask ))
 		{
-			case ESamplerUsage::Default :							return Zero;
+			switch_enum( t )
+			{
+				// VK_EXT_fragment_density_map
+				//case ESamplerOpt::Subsampled :						flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
+				//case ESamplerOpt::SubsampledCoarseReconstruction :	flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
 
-			// VK_EXT_fragment_density_map
-			//case ESamplerUsage::Subsampled :						return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
-			//case ESamplerUsage::SubsampledCoarseReconstruction :	return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
+				// VK_EXT_non_seamless_cube_map
+				case ESamplerOpt::NonSeamlessCubeMap :					flags |= VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;
 
-			// VK_EXT_non_seamless_cube_map
-			case ESamplerUsage::NonSeamlessCubeMap :				return VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;
-
-			case ESamplerUsage::_Count :							break;
+				case ESamplerOpt::UnnormalizedCoordinates :
+				case ESamplerOpt::ArgumentBuffer :
+				case ESamplerOpt::Unknown :
+				case ESamplerOpt::_Last :
+				case ESamplerOpt::All :
+				default :												RETURN_ERR( "unknown sampler flags", VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM );
+			}
+			switch_end
 		}
-		switch_end
-		RETURN_ERR( "unknown sampler flags", VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM );
+		return flags;
 	}
 
 /*
@@ -1789,7 +1758,7 @@ namespace AE::Graphics
 */
 	ND_ inline VkComponentMapping  VEnumCast (const ImageSwizzle &value) __NE___
 	{
-		constexpr StaticArray< VkComponentSwizzle, 8 >	components = {{
+		constexpr StaticArray< VkComponentSwizzle, 8 >	components = {
 			VK_COMPONENT_SWIZZLE_IDENTITY,	// unknown
 			VK_COMPONENT_SWIZZLE_R,
 			VK_COMPONENT_SWIZZLE_G,
@@ -1798,7 +1767,7 @@ namespace AE::Graphics
 			VK_COMPONENT_SWIZZLE_ZERO,
 			VK_COMPONENT_SWIZZLE_ONE,
 			VK_COMPONENT_SWIZZLE_IDENTITY,	// unknown
-		}};
+		};
 		const uint4			swizzle	= value.ToVec();
 		VkComponentMapping	result	= { components[swizzle.x], components[swizzle.y], components[swizzle.z], components[swizzle.w] };
 		return result;
@@ -1825,6 +1794,27 @@ namespace AE::Graphics
 		}
 		switch_end
 		RETURN_ERR( "unknown shading rate combiner op", VkFragmentShadingRateCombinerOpKHR(~0u) );
+	}
+
+/*
+=================================================
+	VEnumCast (ERTShaderGroup)
+=================================================
+*/
+	ND_ inline  VkShaderGroupShaderKHR  VEnumCast (ERTShaderGroup value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ERTShaderGroup::General :		return VK_SHADER_GROUP_SHADER_GENERAL_KHR;
+			case ERTShaderGroup::ClosestHit :	return VK_SHADER_GROUP_SHADER_CLOSEST_HIT_KHR;
+			case ERTShaderGroup::AnyHit :		return VK_SHADER_GROUP_SHADER_ANY_HIT_KHR;
+			case ERTShaderGroup::Intersection :	return VK_SHADER_GROUP_SHADER_INTERSECTION_KHR;
+
+			case ERTShaderGroup::_Count :
+			case ERTShaderGroup::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown ray tracing shader group", VK_SHADER_GROUP_SHADER_MAX_ENUM_KHR );
 	}
 
 

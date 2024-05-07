@@ -125,6 +125,7 @@ namespace
 
 
 
+#if AE_SIMD_AVX >= 2
 	ND_ inline size_t  FindSubString4 (StringView str, StringView substr)
 	{
 		const usize	cnt	= str.length() - substr.length() + 1;
@@ -148,6 +149,7 @@ namespace
 		}
 		return 0;
 	}
+#endif
 
 
 	static void FindSubString_Test ()
@@ -188,6 +190,7 @@ namespace
 		profiler.EndIteration();
 		profiler.EndTest();
 
+	  #if AE_SIMD_AVX >= 2
 		profiler.BeginTest( "256bit" );
 		profiler.BeginIteration();
 		{
@@ -196,6 +199,7 @@ namespace
 		}
 		profiler.EndIteration();
 		profiler.EndTest();
+	  #endif
 
 		CHECK( sum1 == sum2 );
 		CHECK( sum1 == sum3 );

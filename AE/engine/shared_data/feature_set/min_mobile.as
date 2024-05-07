@@ -11,13 +11,15 @@ void ASmain ()
 	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
 	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
 	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
-	//	Intel(R) Haswell Desktop driver 19.0.0 on Android 9.0
+	//	HUAWEI BRA-AL00 driver 472.436.143 on Android 12.0
 	//	Mali-T830 driver 28.0.0 on Android 9.0
 	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
 	//	NINTENDO Switch v2 driver 495.0.0.0 on Android 11.0
 	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
 	//	nubia NX729J driver 512.746.0 on Android 13.0
 	//	NVIDIA Tegra X1 (rev B) (nvgpu) driver 495.0.0.0 on Android 11.0
+	//	NVIDIA Tegra X2 (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
+	//	NVIDIA Tegra Xavier (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
 	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
 	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
@@ -30,7 +32,10 @@ void ASmain ()
 	//	Raspberry Raspberry Pi 5 driver 23.3.2 on Android 14.0
 	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
+	//	rockchip BlueBerry driver 13.0.0 on Android 12.0
+	//	rockchip orangepi5plus driver 13.0.0 on Android 12.0
 	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
+	//	Rockchip rk3399 driver 1012.218.955 on Android 10.0
 	//	samsung SM-A346E driver 32.1.0 on Android 14.0
 	//	Mali-G72 driver 26.0.0 on Android 11.0
 	//	samsung SM-G780F driver 38.1.0 on Android 13.0
@@ -60,9 +65,9 @@ void ASmain ()
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
-	fset.minSpirvVersion (100);
-	fset.minMetalVersion (220);
+	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.maxSpirvVersion (100);
+	fset.maxMetalVersion (220);
 	fset.maxViewports (1);
 	fset.maxTexelBufferElements (64 << 10);
 	fset.maxUniformBufferSize (16 << 10);
@@ -129,6 +134,7 @@ void ASmain ()
 		EPixelFormat::R32I, EPixelFormat::R32U
 	});
 	fset.imageCubeArray (True);
+	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
 	fset.maxImageArrayLayers (256);
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
@@ -157,10 +163,15 @@ void ASmain ()
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
 		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
-		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5
+		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5, 
+		EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ECT2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, EPixelFormat::ETC2_sRGB8_A1, 
+		EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_R11_UNorm, 
+		EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm
 	});
 	fset.maxSamplerAnisotropy (1.00);
 	fset.maxSamplerLodBias (2.00);
+	fset.framebufferColorSampleCounts({ 1, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (256);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

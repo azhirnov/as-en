@@ -2,7 +2,6 @@
 
 #ifndef AE_ENABLE_METAL
 # include "Test_RenderGraph.h"
-# include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -69,12 +68,28 @@ namespace
 			scene_build.SetScratchBuffer( t.scratch );
 			scene_build.SetInstanceData( t.instances );
 
-			RTSceneBuild::Instance	inst;
-			CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
-
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
-			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+
+			switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
+			{
+				case EGraphicsAPI::Vulkan :
+				{
+					RTSceneBuild::InstanceVk	inst;
+					inst.Init();
+					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+					break;
+				}
+				case EGraphicsAPI::Metal :
+				{
+					RTSceneBuild::InstanceMtl	inst;
+					inst.Init();
+					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+					break;
+				}
+			}
 
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
@@ -146,6 +161,8 @@ namespace
 								})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -180,7 +197,7 @@ namespace
 									  "RTAS index buffer", t.gfxAlloc );
 		CHECK_ERR( t.ib );
 
-		t.instances = rg.CreateBuffer( BufferDesc{ SizeOf<RTSceneBuild::Instance>, EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.instances = rg.CreateBuffer( BufferDesc{ RTSceneBuild::InstanceSize, EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 											 "RTAS instance buffer", t.gfxAlloc );
 		CHECK_ERR( t.instances );
 
@@ -230,7 +247,7 @@ namespace
 		CHECK_ERR( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
 		CHECK_ERR( rg.BeginFrame() );
 
-		t.batch	= rg.CmdBatch( EQueueType::Graphics, {"RayTracing1"} )
+		t.batch	= rg.CmdBatch( EQueueType::Graphics, {"RayTracing3"} )
 					.UseResource( t.img )
 					.Begin();
 		CHECK_ERR( t.batch );
@@ -266,7 +283,10 @@ namespace
 bool RGTest::Test_RayTracing3 ()
 {
 	if ( _rtPipelines == null )
-		return true; // skip
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

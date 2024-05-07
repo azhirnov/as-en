@@ -240,19 +240,17 @@ namespace AE::Graphics
 			.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer )
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::FragmentShader | EResourceState::PreRasterizationShaders );
 
-		const auto	rp_desc = RenderPassDesc{ *_rtech, RenderTechPassName{ps.pass}, rt.RegionSize() }
-								.AddViewport( rt.RegionSize() )
-								.AddTarget( AttachmentName{"Color"}, rt.viewId, clearValue, rt.initialState, rt.finalState );
-
-		auto	dctx = gfx_ctx.BeginRenderPass( rp_desc, DebugLabel{"ImGui", HtmlColor::Yellow} );
-
+		auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RenderTechPassName{ps.pass}, rt.RegionSize() }
+													.AddViewport( rt.RegionSize() )
+													.AddTarget( AttachmentName{"Color"}, rt.viewId, clearValue, rt.initialState, rt.finalState ),
+												DebugLabel{"ImGui", HtmlColor::Yellow} );
 		if ( drawBefore )
 			drawBefore( dctx );
 
 		if_likely( viewport->DrawDataP.Valid )
 			_DrawUI( dctx, viewport->DrawDataP, ps.ppln );
 
-		gfx_ctx.EndRenderPass( dctx, rp_desc );
+		gfx_ctx.EndRenderPass( dctx );
 
 		rtask.Execute( gfx_ctx );
 		return true;
@@ -331,8 +329,8 @@ namespace AE::Graphics
 		{
 			ImDrawList const&	cmd_list = *drawData.CmdLists[i];
 
-			std::memcpy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * sizeof(ImDrawVert) );
-			std::memcpy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * sizeof(ImDrawIdx) );
+			MemCopy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert> );
+			MemCopy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx> );
 
 			vtx_offset += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
 			idx_offset += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
@@ -343,8 +341,8 @@ namespace AE::Graphics
 
 
 		// bind
-		dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
-		dctx.BindIndexBuffer( istream.id, istream.offset, IndexDesc<ImDrawIdx>::value );
+		dctx.BindVertexBuffer( 0, vstream.bufferHandle, vstream.offset );
+		dctx.BindIndexBuffer( istream.bufferHandle, istream.offset, IndexDesc<ImDrawIdx>::value );
 
 		return true;
 	}

@@ -44,7 +44,7 @@ namespace AE::Base
 */
 	Date::Date () __NE___
 	{
-		ZeroMem( OUT this, Sizeof(*this) );
+		UnsafeZeroMem( *this );
 	}
 
 /*
@@ -167,7 +167,7 @@ namespace AE::Base
 					str << FormatAlignedI<10>( Year(), 4, '0' );
 				else
 				if ( t == "mm" )
-					str << (_month < 10 ? "0"s : ""s) << Base::ToString( _month+1 );
+					str << FormatAlignedI<10>( _month+1, 2, '0' );
 				else
 				if ( t == "mmm" )
 					str << MonthName().substr( 0, 3 );
@@ -344,33 +344,23 @@ namespace AE::Base
 	Now
 =================================================
 */
+#if 0 //not defined(DATE_NOW_MODE) and (defined(__cpp_lib_chrono) and (__cpp_lib_chrono >= 201907L))
+#	define DATE_NOW_MODE	1	// C++20	// TODO: mem leak
+#endif
+
+#if not defined(DATE_NOW_MODE) and defined(AE_PLATFORM_WINDOWS)
+#	define DATE_NOW_MODE	2	// WinAPI
+#endif
+
+#ifndef DATE_NOW_MODE
+#	define DATE_NOW_MODE	0	// cross-platform
+#endif
+
 	Date  Date::Now () __NE___
 	{
 		Date	res;
 
-		#if 0 //defined(__cpp_lib_chrono) and (__cpp_lib_chrono >= 201907L)
-		{
-			//AE_LOGI( std::chrono::get_tzdb().current_zone()->name() );
-
-			const auto							tp			= std::chrono::utc_clock::now();
-			const std::chrono::year_month_day	yy_mm_dd	{Cast< std::chrono::days >(tp)};
-			const std::chrono::hh_mm_ss			hh_mm_ss	{tp.time_since_epoch()};
-			const std::chrono::weekday			wd			{Cast< std::chrono::days >(tp)};
-
-			res._year		= int{yy_mm_dd.year()};
-			res._month		= uint{yy_mm_dd.month()}-1;			// 1..12 convert to 0..11
-			res._dayOfWeek	= wd.iso_encoding()-1;
-			res._dayOfMonth	= uint{yy_mm_dd.day()};
-			res._dayOfYear	= _CalcDayOfYear( res._year, res._month, res._dayOfMonth );
-
-			res._hour		= hh_mm_ss.hours().count();
-			res._minute		= hh_mm_ss.minutes().count();
-			res._second		= hh_mm_ss.seconds().count();
-			res._millis		= 0;
-		}
-		#endif
-
-		#if 1
+		#if DATE_NOW_MODE == 0
 		{
 			std::time_t	t	= std::time(0);
 			std::tm		now	= {};
@@ -386,11 +376,28 @@ namespace AE::Base
 			res._second		= now.tm_sec;
 			res._millis		= 0;
 		}
-		#endif
-
-		#if 0
+		#elif DATE_NOW_MODE == 1
 		{
-			SYSTEMTIME	 time = {0};
+			using namespace std::chrono;
+
+			const auto				tp			= get_tzdb().current_zone()->to_local( system_clock::now() );
+			const year_month_day	yy_mm_dd	{ floor< std::chrono::days >( tp )};
+			const hh_mm_ss			hh_mm_ss	{tp.time_since_epoch()};
+
+			res._year		= int{yy_mm_dd.year()};
+			res._month		= uint{yy_mm_dd.month()}-1;			// 1..12 convert to 0..11
+			res._dayOfMonth	= uint{yy_mm_dd.day()};
+			res._dayOfYear	= _CalcDayOfYear( res._year, res._month, res._dayOfMonth );
+			res._dayOfWeek	= _CalcDayOfWeek( res._year, res._month, res._dayOfMonth );
+
+			res._hour		= hh_mm_ss.hours().count() % 24;
+			res._minute		= hh_mm_ss.minutes().count();
+			res._second		= hh_mm_ss.seconds().count();
+			res._millis		= hh_mm_ss.subseconds().count();
+		}
+		#elif DATE_NOW_MODE == 2
+		{
+			SYSTEMTIME	 time = {};
 			::GetLocalTime( &time );
 
 			res._year		= time.wYear;
@@ -417,6 +424,8 @@ namespace AE::Base
 		})
 		return res;
 	}
+
+#undef DATE_NOW_MODE
 //-----------------------------------------------------------------------------
 
 

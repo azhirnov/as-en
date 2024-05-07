@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "base/Utils/RefCounter.h"
+#include "base/Pointers/RefCounter.h"
 #include "base/Memory/IAllocator.h"
 #include "base/Containers/ArrayView.h"
 #include "base/Math/Vec.h"

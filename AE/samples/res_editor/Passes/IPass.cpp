@@ -79,8 +79,7 @@ namespace
 	{
 		if ( auto p_sliders = UIInteraction::Instance().GetSliders( this ))
 		{
-			auto	sliders = p_sliders->ReadNoLock();
-			SHAREDLOCK( sliders );
+			auto	sliders = p_sliders->ReadLock();
 
 			StaticAssert( sizeof(dstFloats)	== sizeof(sliders->floatSliders) );
 			StaticAssert( sizeof(dstInts)		== sizeof(sliders->intSliders) );

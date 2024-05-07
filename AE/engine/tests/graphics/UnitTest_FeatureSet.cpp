@@ -1,10 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/Public/FeatureSet.h"
-#include "UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 namespace
 {
+	using EFeature = FeatureSet::EFeature;
+
+
 	static void  FeatureSet_Test1 ()
 	{
 		FeatureSet	a;

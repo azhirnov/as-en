@@ -109,7 +109,7 @@ namespace
 		_dbgName{ "RTGeometry" }
 	{
 		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
-		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue, "RTGeometry is not supported" );
+		CHECK_THROW_MSG( fs.accelerationStructure() == FeatureSet::EFeature::RequireTrue, "RTGeometry is not supported" );
 	}
 
 	ScriptRTGeometry::ScriptRTGeometry (Bool isDummy) __Th___ :
@@ -126,7 +126,7 @@ namespace
 	ScriptRTGeometry::~ScriptRTGeometry ()
 	{
 		if ( not _resource )
-			AE_LOG_SE( "Unused RTGeometry '"s << _dbgName << "'" );
+			AE_LOGW( "Unused RTGeometry '"s << _dbgName << "'" );
 	}
 
 /*
@@ -393,7 +393,7 @@ namespace
 			_indirectBuffer->SetArrayLayout1( "ASBuildIndirectCommand", uint(_triangleMeshes.size()) );
 
 			if ( auto& fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
-				 fs.accelerationStructureIndirectBuild != EFeature::RequireTrue )
+				 fs.accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 			{
 				EnableHistory();
 			}
@@ -742,7 +742,8 @@ namespace
 		_dbgName{ "RTScene" }
 	{
 		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
-		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue, "RTScene is not supported" );
+		CHECK_THROW_MSG( fs.accelerationStructure() == FeatureSet::EFeature::RequireTrue,
+			"RTScene is not supported" );
 
 		_instanceBuffer->Name( "RTScene-Instances" );
 		_instanceBuffer->AddUsage( EResourceUsage::ASBuild );
@@ -756,7 +757,7 @@ namespace
 	ScriptRTScene::~ScriptRTScene ()
 	{
 		if ( not _resource )
-			AE_LOG_SE( "Unused RTScene '"s << _dbgName << "'" );
+			AE_LOGW( "Unused RTScene '"s << _dbgName << "'" );
 	}
 
 /*
@@ -890,7 +891,7 @@ namespace
 			_indirectBuffer->SetLayout1( "ASBuildIndirectCommand" );
 
 			if ( auto& fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
-				 fs.accelerationStructureIndirectBuild != EFeature::RequireTrue )
+				 fs.accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 			{
 				EnableHistory();
 			}

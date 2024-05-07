@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Core/RenderGraph.h"
+#include "res_editor/Common.h"
 
 namespace AE::ResEditor
 {
@@ -29,8 +29,8 @@ namespace AE::ResEditor
 		TDynamicVec ()									__NE___	{}
 		explicit TDynamicVec (const Vec_t &v)			__NE___	: _vec{v} {}
 
-			void	Set (const Vec_t &v)				__NE___	{ EXLOCK( _guard );  _vec = v; }
-		ND_ Vec_t	Get ()								C_NE___	{ SHAREDLOCK( _guard );  return _vec; }
+			void	Set (const Vec_t &v)				__NE___	{ EXLOCK( _guard );		_vec = v; }
+		ND_ Vec_t	Get ()								C_NE___	{ SHAREDLOCK( _guard );	return _vec; }
 
 		ND_ bool	IsChanged (INOUT Vec_t &oldVal)		C_NE___;
 	};

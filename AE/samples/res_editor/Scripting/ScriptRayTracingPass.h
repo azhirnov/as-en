@@ -113,8 +113,8 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		ScriptRayTracingPass () = delete;
-		ScriptRayTracingPass (const String &defines, EFlags baseFlags)							__Th___;
+		ScriptRayTracingPass ()																	= delete;
+		explicit ScriptRayTracingPass (const String &defines)									__Th___;
 
 		void  DispatchThreads1  (uint threadsX)													__Th___	{ return DispatchThreads3v({ threadsX, 1u, 1u }); }
 		void  DispatchThreads2  (uint threadsX, uint threadsY)									__Th___	{ return DispatchThreads3v({ threadsX, threadsY, 1u }); }
@@ -153,6 +153,8 @@ namespace AE::ResEditor
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)								__Th___;
 
 	// ScriptBasePass //
+
+		// Returns non-null pass or throw exception.
 		RC<IPass>  ToPass ()																	C_Th_OV;
 
 

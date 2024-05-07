@@ -26,8 +26,8 @@ namespace AE::Graphics
 
 		Strong<BufferID>	_bufferId;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -45,7 +45,7 @@ namespace AE::Graphics
 		ND_ POTBytes				MinBitstreamBufferOffsetAlign ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _minOffsetAlign; }
 		ND_ POTBytes				MinBitstreamBufferSizeAlign ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _minSizeAlign; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 		ND_ static bool  IsSupported (const VResourceManager &, const VideoBufferDesc &desc) __NE___;
 	};

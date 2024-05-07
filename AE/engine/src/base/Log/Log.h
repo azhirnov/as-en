@@ -25,7 +25,6 @@ namespace AE::Base
 		{
 			Debug,
 			Info,
-			SilentError,
 			Warning,
 			Error,
 			Fatal,
@@ -79,8 +78,10 @@ namespace AE::Base
 		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = {})					__NE___;	// cross platform
 		ND_ static LoggerPtr	CreateFileOutput (std::string_view fileName)					__NE___;
 		ND_ static LoggerPtr	CreateHtmlOutput (std::string_view fileName)					__NE___;
+		ND_ static LoggerPtr	CreateHtmlOutputPerThread (std::string_view prefix)				__NE___;
 		ND_ static LoggerPtr	CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(),
 													ScopeBits scopeBits = GetDialogScopeBits())	__NE___;
+		ND_ static LoggerPtr	CreateBreakOnError ()											__NE___;
 	};
 
 
@@ -98,7 +99,6 @@ namespace AE::Base
 
 
 	// methods
-		ND_ static EResult  Process (const char* msg, const char* func, const char* file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)					__Th___;
 		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)	__Th___;
 
 			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
@@ -115,6 +115,7 @@ namespace AE::Base
 		template <bool checkMemLeaks>
 		struct _LoggerScope
 		{
+			_LoggerScope (int)	__NE___ { Initialize(); }
 			_LoggerScope ()		__NE___ { InitDefault(); }
 			~_LoggerScope ()	__NE___ { Deinitialize( checkMemLeaks ); }
 		};
@@ -132,15 +133,16 @@ namespace AE
 } // AE
 
 #ifdef AE_ENABLE_LOGS
-# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
-	TRY{ \
-		{switch_enum( AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
-		{ \
-			case_likely	AE::Base::StaticLogger::EResult::Continue :		break; \
-			case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break; \
-			case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break; \
-		}} \
-		switch_end \
+# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ )						\
+	TRY{																											\
+		{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (AE_FUNCTION_NAME),				\
+														std::string_view{_file_}, (_line_), (_level_), (_scope_) ))	\
+		{																											\
+			case_likely	AE::Base::StaticLogger::EResult::Continue :		break;										\
+			case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;			\
+			case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break;			\
+		}}																											\
+		switch_end																									\
 	}CATCH_ALL();	// to catch exceptions in string formatting
 
 #else
@@ -148,6 +150,6 @@ namespace AE
 #endif
 
 
-#define AE_PRIVATE_LOG_I(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Info,		 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
-#define AE_PRIVATE_LOG_E(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Error,		 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
-#define AE_PRIVATE_LOG_SE( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::SilentError, AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_I(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Info,	 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_E(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Error,	 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_W( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Warning, AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )

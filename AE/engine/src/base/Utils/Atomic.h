@@ -70,8 +70,9 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomic ()												__NE___ {}
+		TAtomic ()												__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
 		explicit TAtomic (T value)								__NE___ : _value{ IT{value} } {}
+		explicit TAtomic (Default_t)							__NE___ : _value{ IT{Default} } {}
 
 		TAtomic (const Self &)									= delete;
 		TAtomic (Self &&)										= delete;
@@ -190,8 +191,9 @@ namespace AE::Base
 
 	// methods
 	public:
-		TStructAtomic ()												__NE___ {}
-		explicit TStructAtomic (T value)								__NE___ : _value{ _Cast(value) } {}
+		TStructAtomic ()												__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
+		explicit TStructAtomic (T value)								__NE___ : _value{ _Cast( value ) } {}
+		explicit TStructAtomic (Default_t)								__NE___ : _value{ _Cast( IT{Default} ) } {}
 
 		TStructAtomic (const Self &)									= delete;
 		TStructAtomic (Self &&)											= delete;
@@ -271,7 +273,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		TBitfieldAtomic ()													__NE___ {}
+		TBitfieldAtomic ()													__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
 		explicit TBitfieldAtomic (BF value)									__NE___ : _value{ value.Get() } {}
 
 		TBitfieldAtomic (const Self &)										= delete;
@@ -300,6 +302,8 @@ namespace AE::Base
 		ND_ bool	Any ()													C_NE___	{ return Load().Any(); }
 		ND_ bool	All ()													C_NE___	{ return Load().All(); }
 
+		ND_ usize	BitCount ()												C_NE___	{ return Load().BitCount(); }
+
 			BF		Set (usize bit)											__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit )}; }
 			BF		Set (usize bit, MO_t memOrder)							__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit, memOrder )}; }
 
@@ -315,6 +319,40 @@ namespace AE::Base
 			BF		ResetRange (usize first, usize count, MO_t memOrder)	__NE___	{ return _value.fetch_or( ~_Range( first, count ), memOrder ); }
 
 		ND_ bool	HasRange (usize first, usize count)						C_NE___	{ return Load().HasRange( first, count ); }
+
+			BF		fetch_and (BF arg)										__NE___ { return BF{ _value.fetch_and( arg.Get(), OnSuccess )}; }
+			BF		fetch_or (BF arg)										__NE___ { return BF{ _value.fetch_or(  arg.Get(), OnSuccess )}; }
+			BF		fetch_xor (BF arg)										__NE___ { return BF{ _value.fetch_xor( arg.Get(), OnSuccess )}; }
+
+			BF		fetch_and (BF arg, MO_t memOrder)						__NE___ { return BF{ _value.fetch_and( arg.Get(), memOrder )}; }
+			BF		fetch_or  (BF arg, MO_t memOrder)						__NE___ { return BF{ _value.fetch_or(  arg.Get(), memOrder )}; }
+			BF		fetch_xor (BF arg, MO_t memOrder)						__NE___ { return BF{ _value.fetch_xor( arg.Get(), memOrder )}; }
+
+		ND_ int		ExtractBitIndex ()										__NE___	{ return IntLog2( ExtractBit() ); }
+		ND_ T		ExtractBit ()											__NE___
+		{
+			for (T bits = _value.load( EMemoryOrder::Relaxed );;)
+			{
+				T	result = bits & ~(bits - T{1});
+				if ( _value.compare_exchange_weak( INOUT bits, bits & ~result, OnSuccess, OnFailure )) return result;
+				ThreadUtils::Pause();
+			}
+		}
+
+		ND_ int		SetFirstZeroBitIndex ()									__NE___	{ return IntLog2( SetFirstZeroBit() ); }
+		ND_ T		SetFirstZeroBit ()										__NE___
+		{
+			for (T bits = _value.load( EMemoryOrder::Relaxed );;)
+			{
+				T	inv		= ~bits;
+				T	result	= inv & ~(inv - T{1});
+				if ( _value.compare_exchange_weak( INOUT bits, bits | result, OnSuccess, OnFailure )) return result;
+				ThreadUtils::Pause();
+			}
+		}
+
+		ND_ int		GetFirstZeroBitIndex ()									C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
+		ND_ T		GetFirstZeroBit ()										C_NE___	{ return Load().GetFirstZeroBit(); }
 
 	private:
 		ND_ static forceinline T  _Range (usize first, usize count)			__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ((T{1} << count)-1) << first; }
@@ -354,7 +392,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomicFloat ()										__NE___ {}
+		TAtomicFloat ()										__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
 		explicit TAtomicFloat (T value)						__NE___ : _value{ _Cast(value) } {}
 
 		TAtomicFloat (const Self &)							= delete;
@@ -457,7 +495,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomic ()												__NE___ {}
+		TAtomic ()												__NE___ DEBUG_ONLY(: _value{ BitCast<value_type>(&_value) }) {}
 		explicit TAtomic (T* value)								__NE___ : _value{ value } {}
 
 		TAtomic (const Self &)									= delete;
@@ -505,6 +543,48 @@ namespace AE::Base
 			for (; (exp > arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
 			return exp;
 		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
+	// Atomic State
+	//
+
+	template <typename T>
+	struct AtomicState
+	{
+	// types
+	public:
+		using value_type	= T;
+
+	private:
+		using Self	= AtomicState< T >;
+		using MO_t	= std::memory_order;
+
+		StaticAssert( IsEnum<T> );
+		StaticAssert( StdAtomic<value_type>::is_always_lock_free );
+
+		static constexpr MO_t	OnSuccess	= EMemoryOrder::Relaxed;
+		static constexpr MO_t	OnFailure	= EMemoryOrder::Relaxed;
+
+
+	// variables
+	private:
+		StdAtomic< T >		_value;
+
+
+	// methods
+	public:
+		AtomicState ()								__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
+		explicit AtomicState (T state)				__NE___ : _value{ state } {}
+
+			void	store (T desired)				__NE___ { _value.store( desired, OnSuccess ); }
+		ND_ T		load ()							C_NE___ { return _value.load( OnSuccess ); }
+
+		ND_ bool	Set (T expected, T newState)	__NE___	{ return _value.compare_exchange_strong( INOUT expected, newState, OnSuccess, OnFailure ); }
+		ND_	T		Set (T newState)				__NE___	{ return _value.exchange( newState, OnSuccess ); }
 	};
 //-----------------------------------------------------------------------------
 

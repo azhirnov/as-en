@@ -26,7 +26,7 @@ Content:
 	- Models/Scenes (loaded using Assimp).
 * Compatible with shadertoy.
 * Supports modern features like a hardware ray tracing and mesh shading.
-* Supports async streaming (async file and partially upload in single graphics queue, async transfer queue is not used).
+* Supports async streaming (async file and partially uploading in single graphics queue, async transfer queue is not used).
 * Video encoder and decoder (using [ffmpeg](https://ffmpeg.org/)).
 * Screenshot capture (dds, png, jpeg and other).
 * Supports HDR display.

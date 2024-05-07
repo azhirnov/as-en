@@ -98,7 +98,7 @@
 
 		// render loop
 		{
-			RC<RayTracingPass>		pass = RayTracingPass( EPassFlags::None );
+			RC<RayTracingPass>		pass = RayTracingPass();
 			pass.Set(	 camera );
 			pass.ArgOut( "un_OutImage",		rt );
 			pass.ArgIn(  "un_RtScene",		scene );
@@ -173,8 +173,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[];
 			return;
 		}
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + ray.rayIndex
-
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + ray.rayIndex
 		HWTraceRay( un_RtScene, ray, /*payload*/PRIMARY_RAY_INDEX );
 	}
 

@@ -25,7 +25,7 @@ namespace AE::GeometryTools
 		ASSERT( All(Equal( normal,		normal2,	1_pct )));
 		ASSERT( All(Equal( tangent,		tangent2,	1_pct )));
 		ASSERT( All(Equal( bitangent,	bitangent2,	1_pct )));
-        Unused( normal2, tangent2, bitangent2 );
+		Unused( normal2, tangent2, bitangent2 );
 	}
 
 /*

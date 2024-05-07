@@ -20,7 +20,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		RayTracingPipelineSpecScriptBinding () {}
-		RayTracingPipelineSpecScriptBinding (const RayTracingPipelineScriptBinding* base, const String &name) __Th___;
+		RayTracingPipelineSpecScriptBinding (RayTracingPipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
 		void  SetSpecValueI (const String &name, int   value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
@@ -38,7 +38,7 @@ namespace AE::PipelineCompiler
 
 		ND_ const RayTracingPipelineScriptBinding*	GetBase ()			const	{ return Cast<RayTracingPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 
-		ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -106,7 +106,7 @@ namespace AE::PipelineCompiler
 		ND_ RayTracingPipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
 		ND_ RayTracingPipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 
-		ND_ bool	Build ();
+		ND_ bool	Build ()																__NE___;
 		ND_ usize	SpecCount ()															const	{ return _pplnSpec.size(); }
 
 		ND_ Specializations_t const&	GetSpecializations ()								const	{ return _pplnSpec; }

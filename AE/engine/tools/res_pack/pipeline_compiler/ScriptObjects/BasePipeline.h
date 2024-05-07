@@ -49,6 +49,8 @@ namespace AE::PipelineCompiler
 		Array<ScriptFeatureSetPtr>	_features;
 		EShaderStages				_stages		= Default;
 
+		bool						_enabled	= true;
+
 	private:
 		PipelineLayoutPtr			_layoutPtr;
 		Optional<PipelineLayoutUID>	_layoutUID;
@@ -69,6 +71,8 @@ namespace AE::PipelineCompiler
 
 		ND_ StringView						GetName ()		const	{ return _nameStr; }
 
+		void  Disable ();
+		void  Enable ();
 
 	protected:
 		void  _CompileShader (INOUT CompiledShaderPtr &outShader, const ScriptShaderPtr &inShader,
@@ -109,10 +113,13 @@ namespace AE::PipelineCompiler
 	// variables
 	private:
 		const PipelineName			_name;
-		const BasePipelineTmpl*		_tmpl		= null;
+		const String				_nameStr;
+
+		BasePipelineTmpl*			_tmpl		= null;
 		Optional<PipelineSpecUID>	_uid;
 	protected:
 		EPipelineOpt				_options	= Default;
+		bool						_enabled	= true;
 
 		Array<RenderTechniquePtr>	_linkedRTechs;
 
@@ -120,14 +127,18 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		BasePipelineSpec () {}
-		BasePipelineSpec (const BasePipelineTmpl* tmpl, const String &name) __Th___;
+		BasePipelineSpec (BasePipelineTmpl* tmpl, const String &name) __Th___;
 
 		ND_ const BasePipelineTmpl*			GetBase ()		const	{ return _tmpl; }
 		ND_ PipelineName const&				Name ()			const	{ return _name; }
+		ND_ StringView						NameStr ()		const	{ return _nameStr; }
 		ND_ PipelineSpecUID					UID ()			const	{ return _uid.value_or( Default ); }
 		ND_ bool							IsBuilded ()	const	{ return _uid.has_value(); }
 		ND_ ArrayView<RenderTechniquePtr>	GetRTechs ()	const	{ return _linkedRTechs; }
 		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()	const	{ return _tmpl->GetFeatures(); }
+
+		void  Disable ();
+		void  Enable ();
 
 
 	protected:
@@ -135,9 +146,9 @@ namespace AE::PipelineCompiler
 
 		void  _SetOptions (EPipelineOpt value)																			__Th___;
 
-		void  _OnBuild (PipelineSpecUID uid);
+		void  _OnBuild (PipelineSpecUID uid)																			__NE___;
 
-		static void  _ValidateRenderState (EPipelineDynamicState dynamicState, const RenderState &state,
+		static void  _ValidateRenderState (EPipelineDynamicState dynamicState, INOUT RenderState &state,
 										   ArrayView<ScriptFeatureSetPtr> features)										__Th___;
 		static void  _ValidateRenderPass (const RenderState &state, CompatRenderPassName::Optimized_t renderPass,
 										  SubpassName::Optimized_t subpass, ArrayView<ScriptFeatureSetPtr> features)	__Th___;

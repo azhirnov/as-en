@@ -24,9 +24,16 @@ namespace AE::ResEditor
 
 		struct LoadOp
 		{
-			VFS::FileName	filename;
-			Array<ubyte>	data;
-			bool			clear	= false;
+			RC<AsyncRDataSource>	file;
+			Array<ubyte>			data;
+			bool					clear	= false;
+		};
+
+		struct StoreOp
+		{
+			RC<AsyncWDataSource>	file;
+
+			StoreOp () {}
 		};
 
 		using IDs_t	= StaticArray< Strong<BufferID>, GraphicsConfig::MaxFrames >;
@@ -34,7 +41,6 @@ namespace AE::ResEditor
 	private:
 		struct LoadOp2 : LoadOp
 		{
-			RC<AsyncRDataSource>	file;
 			AsyncDSRequest			request;
 			BufferStream			stream;
 
@@ -42,6 +48,19 @@ namespace AE::ResEditor
 			LoadOp2 (LoadOp &&op) : LoadOp{RVRef(op)} {}
 
 			ND_ bool  IsDefined ()	C_NE___;
+		};
+
+		struct StoreOp2 : StoreOp
+		{
+			// mutable
+			BufferStream			stream;
+			bool					complete	= false;
+
+			StoreOp2 () {}
+			StoreOp2 (const StoreOp &other) : StoreOp{other} {}
+
+			ND_ bool  IsDefined ()		C_NE___	{ return bool{file}; }
+			ND_ bool  IsCompleted ()	C_NE___	{ return complete; }
 		};
 
 		using _IDs_t		= StaticArray< StrongAtom<BufferID>, GraphicsConfig::MaxFrames >;
@@ -55,13 +74,16 @@ namespace AE::ResEditor
 		_Address_t					_address;
 
 		const ShaderStructName		_typeName;
+		const Bytes					_staticSize;
 		const Bytes					_elemSize;
 
 		Synchronized< RWSpinLock,
 			BufferDesc >			_bufDesc;
-		RC<DynamicUInt>				_dynCount;
+		RC<DynamicUInt>				_inDynCount;
+		RC<DynamicUInt>				_outDynCount;
 
 		LoadOp2						_loadOp;
+		StoreOp2					_storeOp;
 
 		const EBufferFlags			_flags;
 		const String				_dbgName;
@@ -70,14 +92,20 @@ namespace AE::ResEditor
 
 
 	// methods
+	private:
+		Buffer (Renderer&	renderer,
+			    StringView	dbgName);
+
 	public:
 		Buffer (IDs_t				ids,
 				const BufferDesc &	desc,
+				Bytes				staticSize,
 				Bytes				elemSize,
 				LoadOp				loadOp,
 				ShaderStructName	typeName,
 				Renderer &			renderer,
-				RC<DynamicUInt>		dynCount,
+				RC<DynamicUInt>		inDynCount,
+				RC<DynamicUInt>		outDynCount,
 				StringView			dbgName,
 				EBufferFlags		flags,
 				Array<RC<Buffer>>	refBuffers)						__Th___;
@@ -94,19 +122,24 @@ namespace AE::ResEditor
 		ND_ ulong					GetDeviceAddress (FrameUID fid)	const	{ return _address[ fid.Index() ]; }
 
 		ND_ Bytes					ElementSize ()					const	{ return _elemSize; }
-		ND_ ulong					ArraySize ()					const	{ return ulong(_bufDesc->size / _elemSize); }
+		ND_ ulong					ArraySize ()					const	{ return ulong((_bufDesc->size - _staticSize) / _elemSize); }
 
 		ND_ StringView				Name ()							const	{ return _dbgName; }
 		ND_ bool					HasHistory ()					const	{ return AllBits( _flags, EBufferFlags::WithHistory ); }
 
 		ND_ ArrayView<RC<Buffer>>	GetRefBuffers ()				const	{ return _refBuffers; }
 
-
 	// IResource //
 		bool			Resize (TransferCtx_t &ctx)					__Th_OV;
 		bool			RequireResize ()							C_Th_OV;
 		EUploadStatus	Upload (TransferCtx_t &)					__Th_OV;
 		EUploadStatus	Readback (TransferCtx_t &)					__Th_OV;
+		void			Cancel ()									__NE_OV;
+
+
+		ND_ static RC<Buffer>  CreateAndStore (const Buffer  &src,
+											   const StoreOp &storeOp,
+											   StringView    dbgName) __Th___;
 	};
 
 	AE_BIT_OPERATORS( Buffer::EBufferFlags );

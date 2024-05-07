@@ -4,8 +4,8 @@
 
 namespace
 {
-	using RFileFlags	= UnixFileRStream::EFlags;
-	using WFileFlags	= UnixFileWStream::EFlags;
+	using RFileFlags	= UnixFileRStream::EMode;
+	using WFileFlags	= UnixFileWStream::EMode;
 
 /*
 =================================================
@@ -37,7 +37,7 @@ namespace
 				case RFileFlags::RandomAccess :		advise = POSIX_FADV_RANDOM;			break;
 				case RFileFlags::SequentialScan :	advise = POSIX_FADV_SEQUENTIAL;		break;
 				case RFileFlags::Direct :			flags |= O_DIRECT;					break;
-				case RFileFlags::Large :			flags |= O_LARGEFILE;				break;
+				case RFileFlags::Unix_LargeFile :	flags |= O_LARGEFILE;				break;
 				case RFileFlags::Unknown :
 				default :							RETURN_ERR( "unknown rfile open flag!", -1 );
 			}
@@ -61,7 +61,10 @@ namespace
 #ifdef AE_PLATFORM_APPLE
 	ND_ static int  OpenFileForWrite2 (const char* filename, WFileFlags inFlags, int addFlags) __NE___
 	{
-		int	flags	= (AllBits( inFlags, WFileFlags::OpenUpdate ) ? 0 : O_CREAT | O_TRUNC) | O_WRONLY | addFlags;
+		int	flags	= (AllBits( inFlags, WFileFlags::OpenUpdate ) ? 0 : O_CREAT | O_TRUNC) |
+					  (AllBits( inFlags, WFileFlags::OpenAppend ) ? O_APPEND : 0) |
+					  O_WRONLY | addFlags;
+
 		int mode	= S_IRUSR | S_IWUSR;
 		int	file	= ::open( filename, flags, mode );
 
@@ -82,8 +85,10 @@ namespace
 			switch_enum( t )
 			{
 				case WFileFlags::Direct :			flags |= O_DIRECT ;				break;
-				case WFileFlags::Large :			flags |= O_LARGEFILE;			break;
+				case WFileFlags::Unix_LargeFile :	flags |= O_LARGEFILE;			break;
 				case WFileFlags::OpenUpdate :		flags &= ~(O_TRUNC | O_CREAT);	break;
+				case WFileFlags::OpenAppend :		flags |= O_APPEND;				break;
+				case WFileFlags::SharedRead :		break;
 				case WFileFlags::Unknown :
 				default :							RETURN_ERR( "unknown wfile open flag!", -1 );
 			}

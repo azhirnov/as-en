@@ -37,7 +37,7 @@ namespace AE::Graphics
 		ND_ VkSamplerYcbcrConversion	YcbcrConversion ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }
 		ND_ VkFormat					YcbcrFormat ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _ycbcrFormat; }
 
-		DEBUG_ONLY( ND_ StringView		GetDebugName ()										C_NE___	{ return Default; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()										C_NE___	{ return Default; })
 
 		ND_ static bool  IsSupported (const VDevice &dev,
 									  const SamplerDesc &desc,

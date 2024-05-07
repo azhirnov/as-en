@@ -20,7 +20,7 @@ void dbg_EnableTraceRecording (bool b) {}
 
 		payload = vec4(0.0);
 
-		// hitShader = RTSceneBuild::Instance::instanceSBTOffset + rayIndex
+		// hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + rayIndex
 
 		traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
 					 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/0, /*missIndex*/1,

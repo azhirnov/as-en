@@ -15,6 +15,11 @@ namespace AE::PipelineCompiler
 
 	struct FeatureSetCounter
 	{
+	// types
+	private:
+		using EFeature = FeatureSet::EFeature;
+
+
 	// variables
 	private:
 		StaticArray< uint, uint(EFeature::_Count) >		_count = {};

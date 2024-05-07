@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Thread-safe:  no
+	Thread-safe:  yes
 
 	Exceptions only in fatal error:
 		- transfer context exceptions (failed to allocate space for command).
@@ -35,7 +35,7 @@ namespace AE::Graphics
 			_Count
 		};
 
-		using ParseTraceFn_t = bool (*) (const void* ppln, const void* ptr, Bytes maxSize, ELogFormat, OUT Array<String> &result);
+		using ParseTraceFn_t = bool (*) (const void* ppln, const void* ptr, Bytes maxSize, ELogFormat, OUT Array<String> &result) __NE___;
 
 		struct Result
 		{
@@ -98,8 +98,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit ShaderDebugger (Bytes blockSize = 8_Mb) : _blockSize{blockSize} {}
-		~ShaderDebugger ();
+		explicit ShaderDebugger (Bytes blockSize = 8_Mb)																		__NE___ : _blockSize{blockSize} {}
+		~ShaderDebugger ()																										__NE___;
 
 		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID,
 								   DescriptorSetName::Ref dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)				__Th___;

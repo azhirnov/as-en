@@ -12,7 +12,7 @@ namespace AE::GeometryTools
 	Create
 =================================================
 */
-	bool  CubeRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, Bool cubeMap, GfxMemAllocatorPtr gfxAlloc) __NE___
+	bool  CubeRenderer::Create (ResourceManager &resMngr, ITransferContext &ctx, Bool cubeMap, GfxMemAllocatorPtr gfxAlloc) __NE___
 	{
 		Destroy( resMngr );
 
@@ -39,7 +39,7 @@ namespace AE::GeometryTools
 	Destroy
 =================================================
 */
-	void  CubeRenderer::Destroy (IResourceManager &resMngr) __NE___
+	void  CubeRenderer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		resMngr.ReleaseResource( INOUT _vertexBuffer );
 		resMngr.ReleaseResource( INOUT _indexBuffer );

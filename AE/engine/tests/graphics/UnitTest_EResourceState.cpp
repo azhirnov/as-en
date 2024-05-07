@@ -1,10 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/Private/EnumUtils.h"
-#ifdef AE_ENABLE_VULKAN
-# include "graphics/Vulkan/VEnumCast.h"
-#endif
-#include "UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 namespace
 {

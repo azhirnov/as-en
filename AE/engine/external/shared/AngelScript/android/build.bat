@@ -1,4 +1,4 @@
-rmdir /Q /S "..\..\..\..\..\AE-Data\external\android-clang\AngelScript"
+rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript"
 rmdir /Q /S "temp"
 git clone "..\..\..\..\..\3party\AngelScript" "temp"
 copy /Y "patch\angelscript_CMakeLists.txt" "temp\CMakeLists.txt"

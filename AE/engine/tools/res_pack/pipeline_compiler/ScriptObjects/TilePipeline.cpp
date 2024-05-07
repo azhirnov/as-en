@@ -73,8 +73,11 @@ namespace
 	Build
 =================================================
 */
-	bool  TilePipelineScriptBinding::Build ()
+	bool  TilePipelineScriptBinding::Build () __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		try {
 			_Prepare();
 		}
@@ -168,7 +171,7 @@ namespace
 	constructor
 =================================================
 */
-	TilePipelineSpecScriptBinding::TilePipelineSpecScriptBinding (const TilePipelineScriptBinding* base, const String &name) __Th___ :
+	TilePipelineSpecScriptBinding::TilePipelineSpecScriptBinding (TilePipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
 
@@ -212,8 +215,11 @@ namespace
 	Build
 =================================================
 */
-	bool  TilePipelineSpecScriptBinding::Build (PipelineTemplUID templUID)
+	bool  TilePipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		if ( IsBuilded() )
 			return true;
 

@@ -31,6 +31,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 		bind.Add( WinAPI_Input::Escape,
 				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
 
+		bind.Add( WinAPI_Input::P,
+				  ActionInfo( "Freeze", EGestureType::Down ));
+
 		bind.Add( WinAPI_Input::1,
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(1.f) ));
 		bind.Add( WinAPI_Input::2,

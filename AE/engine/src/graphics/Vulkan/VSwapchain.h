@@ -21,6 +21,23 @@ namespace AE::Graphics
 	class VSwapchain : public Noncopyable
 	{
 	// types
+	protected:
+		static constexpr uint	_MaxSwapchainLength = GraphicsConfig::MaxSwapchainLength;
+		static constexpr uint	_ImageIndexBits		= 16;
+		static constexpr uint	_MaxImageIndex		= (1u << _ImageIndexBits) - 1;
+
+		using Images_t			= StaticArray< VkImage,					_MaxSwapchainLength >;
+		using ImageIDs_t		= StaticArray< StrongAtom<ImageID>,		_MaxSwapchainLength >;
+		using ImageViewIDs_t	= StaticArray< StrongAtom<ImageViewID>,	_MaxSwapchainLength >;
+
+		struct MutableIdxBits
+		{
+			uint	semaphoreId		: 3;
+			uint	imageIdx		: _ImageIndexBits;
+
+			MutableIdxBits () __NE___ : semaphoreId{0}, imageIdx{_MaxImageIndex} {}
+		};
+
 	public:
 		static constexpr VkImageUsageFlagBits	DefaultImageUsage	=
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -39,23 +56,9 @@ namespace AE::Graphics
 			EImageOpt						colorImageOptions	= Default;
 		};
 
-	protected:
-		static constexpr uint	_MaxSwapchainLength = 8;
-		static constexpr uint	_ImageIndexBits		= 16;
-		static constexpr uint	_MaxImageIndex		= (1u << _ImageIndexBits) - 1;
-
-		using Images_t			= StaticArray< VkImage,					_MaxSwapchainLength >;
-		using ImageIDs_t		= StaticArray< StrongAtom<ImageID>,		_MaxSwapchainLength >;
-		using ImageViewIDs_t	= StaticArray< StrongAtom<ImageViewID>,	_MaxSwapchainLength >;
-		using Semaphores_t		= StaticArray< VkSemaphore,				_MaxSwapchainLength >;
-
-		struct MutableIdxBits
-		{
-			uint	semaphoreId		: 3;
-			uint	imageIdx		: _ImageIndexBits;
-
-			MutableIdxBits () __NE___ : semaphoreId{0}, imageIdx{_MaxImageIndex} {}
-		};
+		using Semaphores_t		= StaticArray< VkSemaphore, _MaxSwapchainLength >;
+		using WeakImageIDs_t	= StaticArray< ImageID,		_MaxSwapchainLength >;
+		using WeakViewIDs_t		= StaticArray< ImageViewID,	_MaxSwapchainLength >;
 
 
 	// variables
@@ -66,7 +69,7 @@ namespace AE::Graphics
 		VkSwapchainKHR					_vkSwapchain		= Default;	// protected by '_guard'
 		VkSurfaceKHR					_vkSurface			= Default;	// protected by '_guard'
 
-		Atomic< uint >					_surfaceSize;
+		StructAtomic< ushort2 >			_surfaceSize;
 		StructAtomic< MutableIdxBits >	_indices;
 
 		Images_t						_vkImages			{};			// protected by '_guard'
@@ -86,17 +89,25 @@ namespace AE::Graphics
 	public:
 		~VSwapchain ()															__NE___;
 
-		ND_ bool   IsSupported (VQueuePtr queue)								C_NE___;
+		ND_ bool	IsSupported (VQueuePtr queue)								C_NE___;
 
-			bool   GetSurfaceFormats (OUT FeatureSet::SurfaceFormatSet_t &)		C_NE___;
-		ND_ usize  GetSurfaceFormats (OUT SurfaceFormat*, usize count)			C_NE___;
-		ND_ usize  GetPresentModes (OUT EPresentMode*, usize count)				C_NE___;
+			bool	GetSurfaceFormats (OUT FeatureSet::SurfaceFormatSet_t &)	C_NE___;
+		ND_ usize	GetSurfaceFormats (OUT SurfaceFormat*, usize count)			C_NE___;
+		ND_ usize	GetPresentModes (OUT EPresentMode*, usize count)			C_NE___;
+
+			void	GetSemaphores (OUT Semaphores_t &imageAvailable,
+								   OUT Semaphores_t &renderFinished)			C_NE___;
+
+			void	GetImages (OUT WeakImageIDs_t &imageIds,
+							   OUT WeakViewIDs_t &viewIds,
+							   OUT uint &count)									C_NE___;
 
 		ND_ VkResult  AcquireNextImage ()										__NE___;
 		ND_ VkResult  Present (VQueuePtr queue,
 							   ArrayView<VkSemaphore> renderFinished = Default)	__NE___;
 
 		ND_ bool				IsInitialized ()								C_NE___	{ return GetVkSwapchain() != Default; }
+		ND_ bool				IsSurfaceInitialized ()							C_NE___	{ return GetVkSurface() != Default; }
 
 		ND_ VkSurfaceKHR		GetVkSurface ()									C_NE___	{ SHAREDLOCK( _guard );  return _vkSurface; }
 		ND_ VkSwapchainKHR		GetVkSwapchain ()								C_NE___	{ SHAREDLOCK( _guard );  return _vkSwapchain; }
@@ -104,19 +115,19 @@ namespace AE::Graphics
 		ND_ VSwapchainDesc		GetVDescription ()								C_NE___;
 		ND_ SwapchainDesc		GetDescription ()								C_NE___	{ SHAREDLOCK( _guard );  return _desc; }
 
-		// same as output params in 'AcquireNextImage()'
-		ND_ VkSemaphore			GetImageAvailableSemaphore ()					C_NE___	{ return _imageAvailableSem[ _indices.load().semaphoreId ]; }
-		ND_ VkSemaphore			GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ _indices.load().semaphoreId ]; }
+		ND_ VkSemaphore			GetImageAvailableSemaphore ()					C_NE___	{ return _imageAvailableSem[ GetCurrentSemaphoreIndex() ]; }
+		ND_ VkSemaphore			GetRenderFinishedSemaphore ()					C_NE___	{ return _renderFinishedSem[ GetCurrentSemaphoreIndex() ]; }
 
-		ND_ uint2				GetSurfaceSize ()								C_NE___;
+		ND_ uint2				GetSurfaceSize ()								C_NE___	{ return uint2{_surfaceSize.load()}; }
 
 		ND_ uint				GetCurrentImageIndex ()							C_NE___	{ return _indices.load().imageIdx; }
-		ND_ bool				IsImageAcquired ()								C_NE___	{ return GetCurrentImageIndex() < _MaxImageIndex; }
+		ND_ uint				GetCurrentSemaphoreIndex ()						C_NE___	{ return _indices.load().semaphoreId; }
+		ND_ bool				IsImageAcquired ()								C_NE___	{ return GetCurrentImageIndex() < _MaxSwapchainLength; }
 
 		ND_ ImageAndViewID		GetCurrentImageAndViewID ()						C_NE___	{ return GetImageAndViewID( GetCurrentImageIndex() ); }
 		ND_ ImageAndViewID		GetImageAndViewID (uint i)						C_NE___;
 
-		ND_ static ArrayView<const char*>  GetInstanceExtensions ()				__NE___;
+		ND_ static ArrayView<const char*>	GetInstanceExtensions ()			__NE___;
 	};
 
 

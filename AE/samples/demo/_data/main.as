@@ -7,8 +7,12 @@ void ASmain ()
 	const string	output_temp	= output + "temp/";
 
 	array<string>	suffix;
-	suffix.push_back( "vk" );
-	suffix.push_back( "mac" );
+
+	if ( IsGLSLCompilerSupported() )
+		suffix.push_back( "vk" );
+
+	if ( IsMetalCompilerSupported() )
+		suffix.push_back( "mac" );
 
 	Archive		archive;
 	archive.SetTempFile( output_temp + "archive-1.tmp" );
@@ -81,7 +85,7 @@ void ASmain ()
 
 	// VFS
 	{
-        archive.Add( "Sound.ogg", "audio/Sound.ogg" );
+       // archive.Add( "Sound.ogg", "audio/Sound.ogg" );
 	}
 
 	archive.Store( output + "resources.bin" );

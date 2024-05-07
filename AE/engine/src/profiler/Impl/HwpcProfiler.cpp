@@ -4,7 +4,9 @@
 #include "base/Algorithms/StringUtils.h"
 #include "profiler/Impl/HwpcProfiler.h"
 #include "profiler/Remote/RemoteArmProfiler.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "profiler/Remote/RemoteAdrenoProfiler.h"
+#include "profiler/Remote/RemotePowerVRProfiler.h"
+#include "graphics/GraphicsImpl.h"
 
 namespace AE::Profiler
 {
@@ -28,88 +30,6 @@ namespace AE::Profiler
 
 /*
 =================================================
-	Draw
-=================================================
-*/
-	void  HwpcProfiler::Draw (Canvas &)
-	{
-		if ( not _initialized )
-			return;
-	}
-
-/*
-=================================================
-	Update
-=================================================
-*/
-	void  HwpcProfiler::Update (secondsf dt)
-	{
-		Unused( dt );
-
-		if ( not _initialized )
-			return;
-
-		_UpdateCpuUsage();
-
-	  #ifdef AE_ENABLE_IMGUI
-		_UpdateArmCountersImGui( 1.0 / double(dt.count()) );
-		_UpdateAndroidGpuCountersImGui( dt );
-	  #endif
-
-		// TODO: remove
-	  #if 0
-		static Random	rnd;
-
-		_armProf.globalMemStalls .AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-		_armProf.globalMemTraffic.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-		_armProf.globalMemAccess .AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-		_armProf.cacheLookups    .AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-
-		_armProf.gpuCycles		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.shaderCycles	.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-		_armProf.shaderJobs		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-
-		_armProf.primitives		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-		_armProf.zTest			.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f ), rnd.Uniform( 0.f, 100.f ) });
-
-		_armProf.textureCycles	.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.tiles			.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.loadStoreCycles.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-
-		_armProf.cpuCycles		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.cacheMisses	.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.branchMisses	.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.cacheRefs		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-		_armProf.branchInst		.AddAndUpdateRange({ rnd.Uniform( 0.f, 100.f )});
-
-	  #endif
-	}
-
-/*
-=================================================
-	_UpdateCpuUsage
-=================================================
-*/
-	void  HwpcProfiler::_UpdateCpuUsage ()
-	{
-		StaticArray< float, 64 >	user, kernel;
-
-		CpuPerformance::GetUsage( OUT user.data(), OUT kernel.data(), uint(user.size()) );
-
-		const auto&		cpu_info = CpuArchInfo::Get();
-		for (auto& core : cpu_info.cpu.coreTypes)
-		{
-			for (uint core_id : BitIndexIterate( core.logicalBits.to_ullong() ))
-			{
-				auto&	graph = _cpuUsage.coreUsage[core_id];
-
-				graph.Add({ user[core_id] + kernel[core_id], kernel[core_id] });
-			}
-		}
-	}
-
-/*
-=================================================
 	Initialize
 =================================================
 */
@@ -119,17 +39,68 @@ namespace AE::Profiler
 
 		_initialized |= _InitNvProf();
 		_initialized |= _InitArmProf( client, msgProducer );
+		_initialized |= _InitAdrenoProf( client, msgProducer );
+		_initialized |= _InitPowerVRProf( client, msgProducer );
 
 		// CPU usage
-		#ifdef AE_PLATFORM_WINDOWS
-		_initialized |= true;
-		#endif
+		{
+			#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_cpuUsage.enabled = true;
+			#endif
+			_initialized |= _cpuUsage.enabled;
+		}
 
 		#ifdef AE_ENABLE_IMGUI
 		_InitImGui();
 		#endif
 
 		return true;
+	}
+
+/*
+=================================================
+	Draw
+=================================================
+*/
+	void  HwpcProfiler::Draw (Canvas &)
+	{
+		if ( not _initialized )
+			return;
+
+		// TODO
+	}
+
+/*
+=================================================
+	Update
+=================================================
+*/
+	void  HwpcProfiler::Update (secondsf, uint frameCount)
+	{
+		if ( not _initialized )
+			return;
+
+
+	  #ifdef AE_ENABLE_IMGUI
+		const float	inv_fc = 1.f / float(frameCount);
+
+		_UpdateCpuUsageImGui();
+		_UpdateArmCountersImGui( double(inv_fc) );
+		_UpdateAdrenoCountersImGui( inv_fc );
+		_UpdatePowerVRCountersImGui( inv_fc );
+	  #else
+		Unused( frameCount );
+	  #endif
+	}
+
+/*
+=================================================
+	Tick
+=================================================
+*/
+	void  HwpcProfiler::Tick ()
+	{
+		_pvrProf.profiler.Tick();
 	}
 
 /*
@@ -161,7 +132,10 @@ namespace AE::Profiler
 	{
 		using ECounter = ArmProfiler::ECounter;
 
-		#ifndef AE_PLATFORM_ANDROID
+	  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_ARM_HWCPIPE)
+		Unused( client, msgProducer );
+	  #else
+		// initialize remote profiling
 		if ( client )
 		{
 			CHECK( msgProducer->GetChannels() == EnumSet<EChannel>{EChannel::Reliable} );
@@ -172,9 +146,7 @@ namespace AE::Profiler
 
 			CHECK( _armProf.profiler.InitClient( arm_prof_client ));
 		}
-		#else
-			Unused( client, msgProducer );
-		#endif
+	  #endif
 
 		return _armProf.profiler.Initialize( ArmProfiler::ECounterSet{
 					// processor
@@ -193,8 +165,75 @@ namespace AE::Profiler
 						ECounter::GPU_CacheReadLookups,				ECounter::GPU_CacheWriteLookups,
 						ECounter::GPU_VertexCycles,					ECounter::GPU_FragmentCycles,		ECounter::GPU_ComputeCycles,	ECounter::GPU_VertexComputeCycles,
 						ECounter::GPU_VertexJobs,					ECounter::GPU_FragmentJobs,			ECounter::GPU_ComputeJobs,		ECounter::GPU_VertexComputeJobs,
-						ECounter::GPU_ShaderTextureCycles,			ECounter::GPU_Tiles,				ECounter::GPU_ShaderLoadStoreCycles
+						ECounter::GPU_ShaderTextureCycles,			ECounter::GPU_Tiles,				ECounter::GPU_ShaderLoadStoreCycles,
+						ECounter::GPU_TransactionEliminations,		ECounter::GPU_ShaderArithmeticCycles,	ECounter::GPU_ShaderInterpolatorCycles
 					});
+	}
+
+/*
+=================================================
+	_InitPowerVRProf
+=================================================
+*/
+	bool  HwpcProfiler::_InitPowerVRProf (ClientServer_t client, MsgProducer_t msgProducer)
+	{
+		using ECounter = PowerVRProfiler::ECounter;
+
+	  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
+		Unused( client, msgProducer );
+	  #else
+		// initialize remote profiling
+		if ( client )
+		{
+			CHECK( msgProducer->GetChannels() == EnumSet<EChannel>{EChannel::Reliable} );
+
+			auto	pvr_prof_client = MakeRC<PowerVRProfilerClient>( RVRef(msgProducer) );
+
+			CHECK( client->Add( pvr_prof_client->GetMsgConsumer() ));
+
+			CHECK( _pvrProf.profiler.InitClient( pvr_prof_client ));
+		}
+	  #endif
+
+		return _pvrProf.profiler.Initialize( PowerVRProfiler::ECounterSet{
+						ECounter::GPU_MemoryInterfaceLoad,		ECounter::GPU_ClockSpeed,					ECounter::Tiler_TriangleRatio,
+						ECounter::Texture_ReadStall,			ECounter::Shader_ShaderProcessingLoad,		ECounter::GPU_MemoryRead,
+						ECounter::GPU_MemoryWrite,				ECounter::VertexShader_RegisterOverload,	ECounter::PixelShader_RegisterOverload,
+						ECounter::Tiler_TrianglesInputPerFrame,	ECounter::Tiler_TrianglesOutputPerFrame,	ECounter::Renderer_HSR_Efficiency,
+						ECounter::Renderer_ISP_PixelLoad,		ECounter::RendererTimePerFrame,				ECounter::GeometryTimePerFrame,
+						ECounter::TDM_TimePerFrame,				ECounter::Shader_CyclesPerComputeKernel,	ECounter::Shader_CyclesPerVertex,
+						ECounter::Shader_CyclesPerPixel,		ECounter::ComputeShader_ProcessingLoad,		ECounter::VertexShader_ProcessingLoad,
+						ECounter::PixelShader_ProcessingLoad,	ECounter::RendererActive,					ECounter::GeometryActive,
+						ECounter::TDM_Active,					ECounter::SPM_Active
+					});
+	}
+
+/*
+=================================================
+	_InitAdrenoProf
+=================================================
+*/
+	bool  HwpcProfiler::_InitAdrenoProf (ClientServer_t client, MsgProducer_t msgProducer)
+	{
+		using ECounter = AdrenoProfiler::ECounter;
+
+	  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_ADRENO_PERFCOUNTER)
+		Unused( client, msgProducer );
+	  #else
+		// initialize remote profiling
+		if ( client )
+		{
+			CHECK( msgProducer->GetChannels() == EnumSet<EChannel>{EChannel::Reliable} );
+
+			auto	adreno_prof_client = MakeRC<AdrenoProfilerClient>( RVRef(msgProducer) );
+
+			CHECK( client->Add( adreno_prof_client->GetMsgConsumer() ));
+
+			CHECK( _adrenoProf.profiler.InitClient( adreno_prof_client ));
+		}
+	  #endif
+
+		return _adrenoProf.profiler.Initialize( AdrenoProfiler::ECounterSet{}.SetAll() );
 	}
 
 /*
@@ -209,6 +248,12 @@ namespace AE::Profiler
 		#endif
 
 		_armProf.profiler.Deinitialize();
+		_pvrProf.profiler.Deinitialize();
+		_adrenoProf.profiler.Deinitialize();
+
+		Reconstruct( _armProf.counters );
+		Reconstruct( _pvrProf.counters );
+		Reconstruct( _adrenoProf.counters );
 
 		_initialized = false;
 	}

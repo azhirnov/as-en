@@ -35,7 +35,7 @@ namespace AE::VFS
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _archive );
 
-		_archive = MakeRC<FileWStream>( tempFile, FileWStream::EMode::Rewrite );
+		_archive = MakeRC<FileWStream>( tempFile, FileWStream::EMode::OpenRewrite );
 		CHECK_ERR( _archive->IsOpen() );
 
 		_map.clear();
@@ -74,7 +74,9 @@ namespace AE::VFS
 
 	bool  ArchivePacker::Store (const Path &filename)
 	{
-		FileSystem::CreateDirectories( filename.parent_path() );
+		Path	folder = filename.parent_path();
+		if ( not folder.empty() )
+			FileSystem::CreateDirectories( folder );
 
 		FileWStream		file{ filename };
 		return Store( file );
@@ -268,7 +270,7 @@ namespace AE::VFS
 	uint  ArchivePacker::_Compression (RStream &stream, const FileName::WithString_t &name, FileInfo &info,
 										Bytes startPos, Bytes size, const CfgType &cfg)
 	{
-		auto	mem = MakeRC<MemWStream>();
+		auto	mem = MakeRC<ArrayWStream>();
 		Bytes	uncompressed_size;
 		{
 			StreamType	compressed { mem, cfg };
@@ -288,7 +290,7 @@ namespace AE::VFS
 		{
 			info.size = uint(compressed_size);
 
-			auto	rmem = mem->ToRStream();
+			auto	rmem = MakeRC<MemRefRStream>( mem->GetData() );
 			CHECK_ERR( DataSourceUtils::BufferedCopy( *_archive, *rmem ) == compressed_size );
 
 			CHECK_ERR( _AddFile( FileName::Optimized_t{name}, info ));

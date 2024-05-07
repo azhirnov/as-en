@@ -4,6 +4,7 @@ if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
 
 	file( GLOB_RECURSE SOURCES "*.*" )
 	add_executable( "Tests.ShaderTrace" ${SOURCES} )
+	set_target_properties( "Tests.ShaderTrace" PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 	set_property( TARGET "Tests.ShaderTrace" PROPERTY FOLDER "Engine/Tests" )

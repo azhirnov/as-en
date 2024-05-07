@@ -23,7 +23,7 @@ endfunction()
 
 function( EnablePrebuild projName )
 if (DEFINED ENGINE_LIBS_PATH)
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		target_link_libraries( "${projName}" PUBLIC "${ENGINE_LIBS_PATH}/${ANDROID_ABI}/lib${projName}.a" )
 	else()
 		target_link_libraries( "${projName}" PUBLIC

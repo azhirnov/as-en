@@ -77,6 +77,10 @@ namespace AE::Graphics
 			Bytes			offset;
 			NativeBuffer_t	handle;
 
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			RmDevicePtr		devicePtr;
+		  #endif
+
 
 		// methods
 			ND_ Bytes32u	_PositionOffset ()						C_NE___	{ return 0_b; }
@@ -98,7 +102,7 @@ namespace AE::Graphics
 
 			ND_ bool  HasSpace (Bytes pos, Bytes attr, Bytes idx)	C_NE___
 			{
-				return	(posSize	 + pos  <= posCapacity)		and
+				return	(posSize     + pos  <= posCapacity)		and
 						(attribsSize + attr <= attribsCapacity)	and
 						(indexSize   + idx  <= indexCapacity);
 			}
@@ -227,6 +231,12 @@ namespace AE::Graphics
 			ctx.DrawIndexed( cmd );
 		}
 		_drawCalls.clear();
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		for (auto& buf : _buffers) {
+			ctx.CopyHostToDev( buf.devicePtr, buf.ptr, buf.offset, buf.BufferSize() );
+		}
+	  #endif
 	}
 
 /*
@@ -293,7 +303,7 @@ namespace AE::Graphics
 		auto&		buf		= _buffers[ dc.rangeIdx ];
 		auto*		indices	= buf.CurrIndices();
 		const uint	off		= dc.indexCount ? 2 : 0;
-		ASSERT( buf.ptr != null );
+		NonNull( buf.ptr );
 
 		primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
 
@@ -318,7 +328,7 @@ namespace AE::Graphics
 	{
 		auto&	dc	= _drawCalls.back();
 		auto&	buf	= _buffers[ dc.rangeIdx ];
-		ASSERT( buf.ptr != null );
+		NonNull( buf.ptr );
 
 		primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
 

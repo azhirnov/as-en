@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "GraphicsTest.h"
-#include "res_loaders/DDS/DDSImageLoader.h"
-#include "res_loaders/DDS/DDSImageSaver.h"
+#include "res_loaders/STB/STBImageLoader.h"
+#include "res_loaders/STB/STBImageSaver.h"
 
 namespace AE::GraphicsTest
 {
@@ -23,8 +23,8 @@ namespace AE::GraphicsTest
 			ASSERT( _dstFile );
 			if ( _dstFile )
 			{
-				DDSImageSaver	saver;
-				saver.SaveImage( *_dstFile, _image );
+				STBImageSaver	saver;
+				saver.SaveImage( *_dstFile, _image, EImageFormat::PNG );
 			}
 		}
 	}
@@ -43,7 +43,7 @@ namespace AE::GraphicsTest
 
 		if ( imgFile and imgFile->IsOpen() )
 		{
-			DDSImageLoader	loader;
+			STBImageLoader	loader;
 			_loaded = loader.LoadImage( OUT _image, *imgFile, False{"don't flipY"}, null, Default );
 
 			if ( _loaded )

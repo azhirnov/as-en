@@ -115,7 +115,7 @@ namespace
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
 
-			t.result = AsyncTask{ MakePromiseFrom( task1, task2 )
+			t.result = AsyncTask{ MakePromiseFrom( task1.readOp, task2 )
 				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
 				{
 					bool	ok = Db1_CheckImageData( view_and_str.Get<ImageMemView>(), 8 );
@@ -154,6 +154,8 @@ no source
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -225,9 +227,6 @@ no source
 
 bool RGTest::Test_Debugger1 ()
 {
-	if ( not _dbgPipelines )
-		return true;
-
 	bool	result = true;
 
 	RG_CHECK( Debugger1Test< DirectCtx, DirectCtx::Transfer >());

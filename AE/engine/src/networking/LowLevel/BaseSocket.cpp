@@ -59,6 +59,69 @@ namespace AE::Networking
 
 /*
 =================================================
+	FastClose
+=================================================
+*/
+	void  BaseSocket::FastClose () __NE___
+	{
+		if ( _handle != Default )
+		{
+			struct linger		so_linger;
+			so_linger.l_onoff	= 1;
+			so_linger.l_linger	= 0;
+			::setsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_LINGER, Cast<NativeSocketOptPtr_t>(&so_linger), sizeof(so_linger) );
+
+			Close();
+		}
+	}
+
+/*
+=================================================
+	BlockingClose
+=================================================
+*/
+	void  BaseSocket::BlockingClose () __NE___
+	{
+		if ( _handle != Default )
+		{
+			Unused( _SetBlocking() );
+			Close();
+		}
+	}
+
+/*
+=================================================
+	_SetBlocking
+=================================================
+*/
+	bool  BaseSocket::_SetBlocking () __NE___
+	{
+		ASSERT( IsOpen() );
+
+	#if defined(AE_WINDOWS_SOCKET)
+		DWORD	non_blocking = 0;
+		if_unlikely( ::ioctlsocket( BitCast<NativeSocket_t>(_handle), FIONBIO, &non_blocking ) != 0 )	// win8.1
+		{
+			NET_CHECK2( "Failed to set socket blocking mode: " );
+			return false;
+		}
+
+	#elif defined(AE_UNIX_SOCKET)
+		int		non_blocking = 0;
+		if_unlikely( ::fcntl( BitCast<NativeSocket_t>(_handle), F_SETFL, O_NONBLOCK, non_blocking ) < 0 )
+		{
+			NET_CHECK2( "Failed to set socket non-blocking mode: " );
+			return false;
+		}
+
+	#else
+		#error Unsupported platform!
+	#endif
+		return true;
+	}
+
+/*
+=================================================
 	_SetNonBlocking
 =================================================
 */
@@ -68,7 +131,7 @@ namespace AE::Networking
 
 	#if defined(AE_WINDOWS_SOCKET)
 		DWORD	non_blocking = 1;
-		if_unlikely( ::ioctlsocket( BitCast<NativeSocket_t>(_handle), FIONBIO, &non_blocking ) != 0 )
+		if_unlikely( ::ioctlsocket( BitCast<NativeSocket_t>(_handle), FIONBIO, &non_blocking ) != 0 )	// win8.1
 		{
 			NET_CHECK2( "Failed to set socket non-blocking mode: " );
 			return false;
@@ -86,6 +149,30 @@ namespace AE::Networking
 		#error Unsupported platform!
 	#endif
 		return true;
+	}
+
+/*
+=================================================
+	IsNonBlocking
+=================================================
+*/
+	bool  BaseSocket::IsNonBlocking () C_NE___
+	{
+	#if defined(AE_WINDOWS_SOCKET)
+		// TODO
+		return true;
+
+	#elif defined(AE_UNIX_SOCKET)
+		int		non_blocking = ::fcntl( BitCast<NativeSocket_t>(_handle), F_GETFL, 0 );
+
+		if_unlikely( non_blocking < 0 )
+			NET_CHECK2( "Failed to set socket non-blocking mode: " );
+
+		return (non_blocking & O_NONBLOCK) == O_NONBLOCK;
+
+	#else
+	//	#error Unsupported platform!
+	#endif
 	}
 
 /*

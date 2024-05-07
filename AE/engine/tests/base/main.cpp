@@ -9,9 +9,10 @@ extern void UnitTest_Color ();
 extern void UnitTest_Cast ();
 extern void UnitTest_CPUInfo ();
 extern void UnitTest_Date ();
+extern void UnitTest_DataSource (const Path &curr);
 extern void UnitTest_EnumSet ();
 extern void UnitTest_Iterators ();
-extern void UnitTest_FileSystem ();
+extern void UnitTest_FileSystem (const Path &curr);
 extern void UnitTest_FixedArray ();
 extern void UnitTest_FixedMap ();
 extern void UnitTest_FixedSet ();
@@ -39,7 +40,6 @@ extern void UnitTest_NtStringView ();
 extern void UnitTest_RingBuffer ();
 extern void UnitTest_RC ();
 extern void UnitTest_StackAllocator ();
-extern void UnitTest_DataSource ();
 extern void UnitTest_Parser ();
 extern void UnitTest_StructView ();
 extern void UnitTest_StringUtils ();
@@ -49,23 +49,24 @@ extern void UnitTest_TypeTraits ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Base ()
+extern "C" AE_DLL_EXPORT int Tests_Base (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	StaticLogger::LoggerDbgScope log{};
-
-	AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
-			 "\nCPU arch: " << AE_CPU_ARCH_NAME <<
-			 "\nCompiler: " << AE_COMPILER_NAME <<
-			 "\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
-			 "\nOS name: " << PlatformUtils::GetOSName() <<
-			 "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
-
-	AE_LOGI( "\nMemory page size: "s << ToString( PlatformUtils::GetMemoryPageInfo().pageSize ));
+	BEGIN_TEST();
 
 	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
+	AE_LOGI(
+		"\nPlatform name: "s << AE_PLATFORM_NAME << //" (" << ToString(AE_PLATFORM_TARGET_VERSION_MAJOR) << '.' << ToString(AE_PLATFORM_TARGET_VERSION_MINOR) << ")" <<
+		"\nCPU arch: " << AE_CPU_ARCH_NAME <<
+		"\nCompiler: " << AE_COMPILER_NAME <<
+		"\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
+		"\nOS name: " << PlatformUtils::GetOSName() <<
+		"\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
+		"\nStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
+		"\nMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
+	);
 
 	UnitTest_Array();
 	UnitTest_Atomic();
@@ -73,10 +74,10 @@ int main ()
 	UnitTest_Color();
 	UnitTest_Cast();
 	UnitTest_Date();
-	UnitTest_DataSource();
+	UnitTest_DataSource( curr );
 	UnitTest_EnumSet();
 	UnitTest_Iterators();
-	UnitTest_FileSystem();
+	UnitTest_FileSystem( curr );
 	UnitTest_FixedArray();
 	UnitTest_FixedMap();
 	UnitTest_FixedSet();

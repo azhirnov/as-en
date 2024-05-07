@@ -68,7 +68,7 @@ namespace
 				CHECK( All( plane0_dim == uint2{1,1} ));
 				CHECK( All( plane1_dim == uint2{2,2} ));
 
-				const ubyte3	yuv		= RGBtoYCbCr( RGBA32f{ 1.f, 1.f, 0.f, 1.f });
+				const ubyte3	yuv		{178, 43, 129};  //= RGBtoYCbCr( RGBA32f{ 1.f, 1.f, 0.f, 1.f });
 				ubyte			g_pixels  [ imgDim[0] * imgDim[1] ];
 				ubyte			rb_pixels [ (imgDim[0] * imgDim[1] * 2) / 4 ];
 
@@ -107,18 +107,16 @@ namespace
 			constexpr auto&	rtech_pass = RTech.Main;
 			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			const auto	rp_desc = RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+			auto	dctx = gctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
 									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} );
-
-			auto	dctx = gctx.BeginRenderPass( rp_desc );
+									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 			{
 				dctx.BindPipeline( t.ppln );
 				dctx.BindDescriptorSet( t.dsIndex, t.descSet );
 
 				dctx.Draw( 3 );
 
-				gctx.EndRenderPass( dctx, rp_desc );
+				gctx.EndRenderPass( dctx );
 			}
 
 			gctx.AccumBarriers()
@@ -153,6 +151,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -231,7 +231,10 @@ namespace
 bool RGTest::Test_Ycbcr1 ()
 {
 	if ( not _ycbcrPipelines )
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
 		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

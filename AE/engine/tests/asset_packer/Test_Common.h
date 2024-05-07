@@ -44,12 +44,13 @@ ND_ inline bool  CompareWithDump (StringView serializedStr, const Path &refFilen
 			is_ok = Parser::CompareLineByLine( serializedStr, ref_str,
 						[refFilename] (uint lline, StringView lstr, uint rline, StringView rstr) __NE___
 						{
-							AE_LOGE( "in: "s << refFilename.string() << "\n\n"
-										<< "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
-										<< "\n(" << ToString( rline ) << "): " << rstr );
+							AE_LOGE( "in: "s << ToString( refFilename ) << "\n\n"
+									<< "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
+									<< "\n(" << ToString( rline ) << "): " << rstr );
+							return true;
 						},
 						[refFilename] () __NE___ {
-							AE_LOGE( "in: "s << refFilename.string() << "\n\n" << "sizes of dumps are not equal!" );
+							AE_LOGE( "in: "s << ToString( refFilename ) << "\n\n" << "sizes of dumps are not equal!" );
 						});
 		}
 		else

@@ -29,7 +29,6 @@ void ASmain ()
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
-	fset.separateStencilMaskRef (True);
 	fset.triangleFans (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );
@@ -62,10 +61,10 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroup (True);
-	fset.subgroupBroadcastDynamicId (True);
 	fset.minSubgroupSize (32);
 	fset.maxSubgroupSize (32);
+	fset.subgroup (True);
+	fset.subgroupBroadcastDynamicId (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -117,7 +116,7 @@ void ASmain ()
 	fset.vulkanMemoryModel (True);
 	fset.vulkanMemoryModelDeviceScope (True);
 	fset.vulkanMemoryModelAvailabilityVisibilityChains (True);
-	fset.minSpirvVersion (150);
+	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
 	fset.multiview (True);
@@ -221,6 +220,8 @@ void ASmain ()
 	fset.imageCubeArray (True);
 	fset.textureCompressionBC (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R64I, EPixelFormat::R32U, EPixelFormat::R64U, 

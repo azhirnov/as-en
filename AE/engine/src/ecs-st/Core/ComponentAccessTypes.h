@@ -45,7 +45,7 @@ namespace AE::ECS
 	public:
 		explicit OptionalWriteAccess (T* elems)	__NE___	: _elements{ elems } {}
 
-		ND_ T&  operator [] (usize i)			C_NE___	{ ASSERT( _elements != null ); return _elements[i]; }
+		ND_ T&  operator [] (usize i)			C_NE___	{ NonNull( _elements );  return _elements[i]; }
 		ND_ explicit operator bool ()			C_NE___	{ return _elements != null; }
 	};
 
@@ -60,7 +60,7 @@ namespace AE::ECS
 	public:
 		explicit OptionalReadAccess (T const* elems)	__NE___	: _elements{ elems } {}
 
-		ND_ T const&  operator [] (usize i)				C_NE___	{ ASSERT( _elements != null ); return _elements[i]; }
+		ND_ T const&  operator [] (usize i)				C_NE___	{ NonNull( _elements );  return _elements[i]; }
 		ND_ explicit operator bool ()					C_NE___	{ return _elements != null; }
 	};
 

@@ -83,7 +83,31 @@ namespace
 		auto	ds = MakeRC<DynamicDim>( _dynSize );
 		ds->SetScale( -value, DynamicDim::ERounding::Ceil );
 
-		ScriptDynamicDimPtr	result{new ScriptDynamicDim{ ds }};
+		ScriptDynamicDimPtr	result{ new ScriptDynamicDim{ RVRef(ds) }};
+
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Area
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicDim::Area () C_Th___
+	{
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ _dynSize->GetDynamicArea() }};
+
+		return result.Detach();
+	}
+
+/*
+=================================================
+	Volume
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicDim::Volume () C_Th___
+	{
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ _dynSize->GetDynamicVolume() }};
 
 		return result.Detach();
 	}
@@ -118,6 +142,9 @@ namespace
 		binder.AddMethod( &ScriptDynamicDim::Div3,		"Div",			{} );
 		binder.AddMethod( &ScriptDynamicDim::DivRound3,	"DivRound",		{} );
 		binder.AddMethod( &ScriptDynamicDim::DivCeil3,	"DivCeil",		{} );
+
+		binder.AddMethod( &ScriptDynamicDim::Area,		"Area",			{} );
+		binder.AddMethod( &ScriptDynamicDim::Volume,	"Volume",		{} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -140,6 +167,20 @@ namespace
 
 /*
 =================================================
+	ScriptDynamicUInt::Mul
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicUInt::Mul (uint value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Mul );
+
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt::Bind
 =================================================
 */
@@ -148,6 +189,7 @@ namespace
 		ClassBinder<ScriptDynamicUInt>		binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt, DynamicUInt, uint >, {} );
+		binder.AddMethod( &ScriptDynamicUInt::Mul,	"Mul",	{} );
 	}
 
 /*

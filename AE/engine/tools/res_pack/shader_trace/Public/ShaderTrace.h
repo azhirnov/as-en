@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "base/Utils/FileSystem.h"
-#include "serializing/Basic/ISerializable.h"
+#include "base/FileSystem/Path.h"
+#include "serializing/ISerializable.h"
 
 namespace glslang {
 	class TIntermediate;
@@ -55,7 +55,7 @@ namespace AE::PipelineCompiler
 			ulong	_ul			= UMax;
 
 			SourcePoint ()											__NE___	{}
-			SourcePoint (uint line, uint column)					__NE___	: _ul{(ulong(line) << 32) | column } {}
+			SourcePoint (uint line, uint column)					__NE___	: _packed{ column, line } {}
 			explicit SourcePoint (const glslang::TSourceLoc &)		__NE___;
 
 			ND_ bool  operator == (const SourcePoint &rhs)			C_NE___	{ return _ul == rhs._ul; }
@@ -64,8 +64,8 @@ namespace AE::PipelineCompiler
 				void  SetMin (const SourcePoint &rhs)				__NE___	{ _ul = Min( _ul, rhs._ul ); }
 				void  SetMax (const SourcePoint &rhs)				__NE___	{ _ul = Max( _ul, rhs._ul ); }
 
-			ND_ uint  Line ()										C_NE___	{ return uint(_ul >> 32); }
-			ND_ uint  Column ()										C_NE___	{ return uint(_ul & 0xFFFFFFFF); }
+			ND_ uint  Line ()										C_NE___	{ return _packed.line; }
+			ND_ uint  Column ()										C_NE___	{ return _packed.column; }
 		};
 
 		struct SourceLocation
@@ -97,7 +97,7 @@ namespace AE::PipelineCompiler
 
 		struct SourceInfo
 		{
-			using LineRange = Pair< usize, usize >;
+			using LineRange = Pair< uint, uint >;
 
 			String				filename;
 			String				code;

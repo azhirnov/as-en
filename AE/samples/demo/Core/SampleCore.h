@@ -48,7 +48,7 @@ namespace AE::Samples::Demo
 		MainLoopSync_t				_mainLoop;
 		RC<ISample>					_sample;
 
-		RC<MemRStream>				_inputActionsData;
+		RC<ArrayRStream>			_inputActionsData;
 
 		Atomic<bool>				_initialized {false};
 

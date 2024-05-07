@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "UnitTest_Common.h"
 
 extern void UnitTest_UDP ();
 extern void UnitTest_TCP ();
@@ -10,12 +10,12 @@ extern void UnitTest_AsyncCSMessageProducer ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Networking ()
+extern "C" AE_DLL_EXPORT int Tests_Networking (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	UnitTest_UDP();
 	UnitTest_TCP();

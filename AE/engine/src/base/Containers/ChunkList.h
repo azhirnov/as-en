@@ -111,9 +111,9 @@ namespace _hidden_
 			ND_ auto		GetChunk ()									C_NE___	{ return _chunk; }
 			ND_ Count_t		GetIndexInChunk ()							C_NE___	{ return _index; }
 
-			ND_ T const& operator * ()									C_NE___	{ ASSERT( _chunk != null );  return (*_chunk)[_index]; }
+			ND_ T const&	operator * ()								C_NE___	{ NonNull( _chunk );  return (*_chunk)[_index]; }
 
-			ND_ explicit operator ArrayView<T> ()						C_NE___	{ ASSERT( _chunk != null );  return ArrayView<T>{ *_chunk }; }
+			ND_ explicit operator ArrayView<T> ()						C_NE___	{ NonNull( _chunk );  return ArrayView<T>{ *_chunk }; }
 
 		private:
 			void  _Validate ()											__NE___
@@ -219,8 +219,8 @@ namespace _hidden_
 		ND_ auto*	FirstChunk ()									__NE___	{ return _first; }
 		ND_ auto*	FirstChunk ()									C_NE___	{ return _first; }
 
-		ND_ auto*	operator -> ()									__NE___	{ ASSERT( _first != null );  return _first; }
-		ND_ auto*	operator -> ()									C_NE___	{ ASSERT( _first != null );  return _first; }
+		ND_ auto*	operator -> ()									__NE___	{ NonNull( _first );  return _first; }
+		ND_ auto*	operator -> ()									C_NE___	{ NonNull( _first );  return _first; }
 
 		ND_ Self	LastChunk ()									__NE___	{ Self res {_first};  res.MoveToLast();  return res; }
 		ND_ Const_t	LastChunk ()									C_NE___;
@@ -300,7 +300,7 @@ namespace _hidden_
 		ND_ auto	end ()										C_NE___	{ return const_iterator{ null, 0 }; }
 
 		ND_ auto*	FirstChunk ()								C_NE___	{ return _first; }
-		ND_ auto*	operator -> ()								C_NE___	{ ASSERT( _first != null );  return _first; }
+		ND_ auto*	operator -> ()								C_NE___	{ NonNull( _first );  return _first; }
 
 		ND_ Self	LastChunk ()								C_NE___	{ Self res {_first};  res.MoveToLast();  return res; }
 		ND_ Self	NextChunk ()								C_NE___;
@@ -323,7 +323,9 @@ namespace _hidden_
 	template <typename T>
 	ChunkList<T>  ChunkList<T>::AddChunk (void* ptr, Bytes size) __NE___
 	{
-		ASSERT( ptr != null and size > 0 );
+		NonNull( ptr );
+		ASSERT( size > 0 );
+
 		auto*	chunk = Cast<Chunk>(ptr);
 		chunk->next		= null;
 		chunk->count	= 0;

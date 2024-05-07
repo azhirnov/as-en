@@ -165,7 +165,7 @@ namespace AE::PipelineCompiler
 			ND_ bool  IsVkDefined  ()	const	{ return vkIndex != UMax; }
 			ND_ bool  IsMetalDefined ()	const	{ return mtlIndex != UMax; }
 
-			ND_ bool  operator == (const Binding &rhs) const	{ return (vkIndex == rhs.vkIndex) & All( mtlIndex == rhs.mtlIndex ); }
+			ND_ bool  operator == (const Binding &rhs) const	{ return (vkIndex == rhs.vkIndex) and All( mtlIndex == rhs.mtlIndex ); }
 			ND_ bool  operator != (const Binding &rhs) const	{ return not (*this == rhs); }
 		};
 		StaticAssert( sizeof(Binding) == 8 );
@@ -937,7 +937,8 @@ namespace AE::PipelineCompiler
 	public:
 		// header
 		mutable Bytes		offset;
-		Bytes				dataSize;
+		Bytes32u			dataSize;
+		Bytes32u			data2Size;
 
 		// data
 		Bytecode_t			code;
@@ -960,7 +961,7 @@ namespace AE::PipelineCompiler
 		ND_ String  ToString2 (const HashToName &)			const;
 		#endif
 
-		ND_ Bytes	GetDataSize ()							C_NE___	{ return dataSize; }
+		ND_ Bytes	GetDataSize ()							C_NE___	{ return dataSize + data2Size; }
 		ND_ bool	WriteData (WStream &)					C_NE___;
 		ND_ bool	ReadData (RStream &stream)				__NE___;
 
@@ -1079,6 +1080,8 @@ namespace AE::PipelineCompiler
 
 			_Count
 		};
+
+		using BlockOffsets_t = StaticArray< Bytes32u, uint(EMarker::_Count) >;
 
 		static constexpr uint	MaxDSLayoutCount		= 1 << 16;
 		static constexpr uint	MaxPplnLayoutCount		= 1 << 16;
@@ -1209,13 +1212,15 @@ namespace AE::PipelineCompiler
 		ND_ bool	Empty () const;
 		ND_ Bytes	CalcAllocationSize (Bytes align) const;
 
-		ND_ bool  SerializePipelines (Serializing::Serializer &) const;
-		ND_ bool  WriteShaders (WStream &) const;
+		ND_ bool	SerializePipelines (WStream &) const;
+		ND_ bool	WriteShaders (WStream &) const;
 
 
 	private:
+		ND_ bool	_SerializePipelines (ArrayWStream &, OUT BlockOffsets_t &, OUT Bytes &pos) const;
+
 		template <typename UID, typename T, typename ArrType, typename MapType>
-		ND_ UID  _Add (T desc, ArrType &arr, MapType &map);
+		ND_ UID  _Add (T desc, ArrType &arr, MapType &map) __NE___;
 
 		template <typename T>
 		ND_ ShaderUID  _AddSpvShader (T spirv, const SpecConstants_t &spec);
@@ -1236,11 +1241,13 @@ namespace AE::PipelineCompiler
 
 namespace AE::Base
 {
-	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >		{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
 
-	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
+
+	template <> struct TTriviallyDestructible< PipelineCompiler::SerializableRenderTechnique::Pass >					{ static constexpr bool  value = true; };
 
 } // AE::Base
 

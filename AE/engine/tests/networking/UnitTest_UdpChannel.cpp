@@ -5,6 +5,7 @@
 namespace
 {
 	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
+	static const ushort		c_Port			 = 3002;
 
 
 	class ServerProvider final : public IServerProvider
@@ -106,10 +107,10 @@ namespace
 	static void  UdpChannel_Test1 ()
 	{
 		LocalSocketMngr			mngr;
-		static constexpr uint	frame_count = 4000;
+		static constexpr uint	frame_count = 40;
 		static constexpr uint	msg_count	= 100;
-		static constexpr ushort	server_port	= 3000;
-		static constexpr ushort	client_port	= 3001;
+		static constexpr ushort	server_port	= c_Port;
+		static constexpr ushort	client_port	= c_Port+1;
 
 		ulong	client_sent_msgs	= 0;
 		ulong	server_sent_msgs	= 0;

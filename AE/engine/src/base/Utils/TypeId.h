@@ -129,9 +129,9 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	ND_ TypeId  TypeIdOf (const T&) __NE___
+	ND_ TypeId  TypeIdOf (const T &value) __NE___
 	{
-		return TypeIdOf<T>();
+		return Base::_hidden_::StdTypeID( typeid(value) );
 	}
 
 } // AE::Base

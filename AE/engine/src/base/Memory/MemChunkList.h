@@ -117,7 +117,7 @@ namespace AE::Base
 
 		template <typename T, typename A,
 				  ENABLEIF( IsTriviallySerializable<T> )>
-		ND_ bool  Write (Bytes pos, const BasicString<T,A> str)				__NE___;
+		ND_ bool  Write (Bytes pos, const BasicString<T,A> &str)			__NE___;
 
 		template <typename T,
 				  ENABLEIF( IsTriviallySerializable<T> )>
@@ -245,7 +245,7 @@ namespace AE::Base
 			chunk	= chunk->next;
 		}
 
-		ASSERT( chunk != null );
+		NonNull( chunk );
 		{
 			Bytes	size = Min( dstSize, chunk_size - pos );
 			MemCopy( OUT dst, chunk->Data() + pos, size );
@@ -266,7 +266,7 @@ namespace AE::Base
 		return dst_offset;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Read (const Bytes pos, const usize length, OUT BasicString<T,A> &str) C_NE___
 	{
 		NOTHROW_ERR( str.resize( length ));
@@ -279,14 +279,14 @@ namespace AE::Base
 		return str.length() == length;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Read (const Bytes pos, const Bytes size, OUT BasicString<T,A> &str) C_NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( pos, usize(size) / sizeof(T), OUT str );
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Read (const Bytes pos, const usize count, OUT Array<T,A> &arr) C_NE___
 	{
 		NOTHROW_ERR( arr.resize( count ));
@@ -299,14 +299,14 @@ namespace AE::Base
 		return arr.size() == count;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Read (const Bytes pos, const Bytes size, OUT Array<T,A> &arr) C_NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( pos, usize(size) / sizeof(T), OUT arr );
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Read (const Bytes pos, OUT T &data) C_NE___
 	{
 		return Read( pos, OUT AddressOf(data), Sizeof(data) );
@@ -333,7 +333,7 @@ namespace AE::Base
 			chunk	= chunk->next;
 		}
 
-		ASSERT( chunk != null );
+		NonNull( chunk );
 		{
 			Bytes	size = Min( srcSize, chunk_size - pos );
 			MemCopy( OUT chunk->Data() + pos, src, size );
@@ -354,7 +354,7 @@ namespace AE::Base
 		return src_offset;
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Write (const Bytes pos, ArrayView<T> arr) __NE___
 	{
 		if_unlikely( arr.empty() )
@@ -365,13 +365,13 @@ namespace AE::Base
 		return Write( pos, arr.data(), size ) == size;
 	}
 
-	template <typename T, typename A, ENABLEIF2( IsTriviallySerializable<T> )>
-	bool  MemChunkList::Write (const Bytes pos, const BasicString<T,A> str) __NE___
+	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	bool  MemChunkList::Write (const Bytes pos, const BasicString<T,A> &str) __NE___
 	{
 		return Write( pos, BasicStringView<T>{ str });
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Write (const Bytes pos, BasicStringView<T> str) __NE___
 	{
 		if_unlikely( str.empty() )
@@ -382,7 +382,7 @@ namespace AE::Base
 		return Write( pos, str.data(), size ) == size;
 	}
 
-	template <typename T, ENABLEIF2( IsTriviallySerializable<T> )>
+	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  MemChunkList::Write (const Bytes pos, const T &data) __NE___
 	{
 		return Write( pos, AddressOf(data), Sizeof(data) ) == Sizeof(data);

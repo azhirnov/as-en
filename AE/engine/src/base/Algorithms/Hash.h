@@ -126,7 +126,11 @@ namespace AE::Base
 	{
 		ASSERT( ignoreMantissaBits < 23 );
 		uint	dst;
+	  #ifdef __cpp_lib_bit_cast
+		dst = std::bit_cast<uint>( value );
+	  #else
 		std::memcpy( OUT &dst, &value, sizeof(dst) );
+	  #endif
 		dst &= ~((1u << ignoreMantissaBits)-1);
 		return HashVal{ std::hash<uint>{}( dst )};
 	}
@@ -140,7 +144,11 @@ namespace AE::Base
 	{
 		ASSERT( ignoreMantissaBits < 52 );
 		ulong	dst;
+	  #ifdef __cpp_lib_bit_cast
+		dst = std::bit_cast<ulong>( value );
+	  #else
 		std::memcpy( OUT &dst, &value, sizeof(dst) );
+	  #endif
 		dst &= ~((1ull << ignoreMantissaBits)-1);
 		return HashVal{ std::hash<ulong>{}( dst )};
 	}

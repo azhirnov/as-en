@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/GraphicsImpl.h"
+#include "graphics/GraphicsImpl.h"
 
 namespace AE::Samples::Demo
 {
@@ -181,7 +181,16 @@ namespace AE::Samples::Demo
 			ThreadUtils::Pause();
 		}
 
-		return  _rts.BeginCmdBatch( EQueueType::Graphics, idx, {name} );
+		CmdBatchDesc	desc;
+		desc.queue		= EQueueType::Graphics;
+		desc.submitIdx	= idx;
+		desc.dbg		= {name};
+
+		// first batch on graphics queue must reset queries
+		if ( idx == _RenderBatch_First )
+			desc.ResetQuery();
+
+		return  _rts.BeginCmdBatch( desc );
 	}
 
 /*

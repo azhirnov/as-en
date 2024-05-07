@@ -118,17 +118,18 @@ namespace
 	}
 }
 
-extern void UnitTest_ArchiveStorage ()
+extern void UnitTest_ArchiveStorage (const Path &curr)
 {
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/vfs_test1"};
+	const Path	folder	= curr / "vfs_test1";
 
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
 	Archive_Test1();
 
 	FileSystem::SetCurrentPath( curr );
+	FileSystem::DeleteDirectory( folder );
+
 	TEST_PASSED();
 }

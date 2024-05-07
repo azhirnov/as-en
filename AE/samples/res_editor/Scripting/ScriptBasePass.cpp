@@ -39,11 +39,20 @@ namespace AE::ResEditor
 	constructor
 =================================================
 */
-	ScriptBasePass::ScriptBasePass (EFlags flags) __Th___ :
-		_baseFlags{flags},
+	ScriptBasePass::ScriptBasePass () __Th___ :
 		_dynamicDim{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint2{1} )}},
 		_args{ [this](ScriptPassArgs::Argument &arg) { _OnAddArg( arg ); }}
 	{}
+
+/*
+=================================================
+	AddFlag
+=================================================
+*/
+	void  ScriptBasePass::AddFlag (EFlags value) __Th___
+	{
+		_baseFlags |= value;
+	}
 
 /*
 =================================================
@@ -586,6 +595,24 @@ namespace AE::ResEditor
 		}
 
 		AE_LOGI( "Compiled: "s << this->_dbgName );
+	}
+
+/*
+=================================================
+	_CreateUBuffer
+=================================================
+*/
+	Strong<BufferID>  ScriptBasePass::_CreateUBuffer (Bytes size, StringView dbgName, EResourceState defaultState) C_Th___
+	{
+		Renderer&	renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
+		auto&		rstate		= GraphicsScheduler().GetRenderGraph();
+
+		auto id = rstate.CreateBuffer( BufferDesc{ size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
+										dbgName, renderer.ChooseAllocator( False{"static"}, size ));
+		CHECK_THROW( id );
+
+		rstate.AddResource( id, EResourceState::Invalidate, defaultState );
+		return id;
 	}
 
 

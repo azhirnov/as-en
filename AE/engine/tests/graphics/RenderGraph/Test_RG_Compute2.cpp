@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_RenderGraph.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -135,6 +134,8 @@ namespace
 								})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result0, t.result1, t.result2 });
 		}
 	};
 
@@ -212,7 +213,7 @@ namespace
 		CHECK_ERR( rg.BeginFrame() );
 
 		auto		batch	= rg.CmdBatch( EQueueType::Graphics, {"Compute1"} )
-									.UseResources( t.img0, t.img1, t.img2 )
+									.UseResources( List<ImageID>{ t.img0, t.img1, t.img2 })
 									.ReadbackMemory()
 									.Begin();
 		CHECK_ERR( batch );
@@ -221,7 +222,7 @@ namespace
 									.Run();
 
 		AsyncTask	task2	= batch.Task< C2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
-									.UseResources( ArrayView<ImageID>{t.img0, t.img1, t.img2}, EResourceState::CopySrc )
+									.UseResources( List<ImageID>{ t.img0, t.img1, t.img2 }, EResourceState::CopySrc )
 									.SubmitBatch()
 									.Run( Tuple{task1} );
 
@@ -233,7 +234,7 @@ namespace
 
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
-		CHECK_ERR( Scheduler().Wait( {t.result0, t.result1, t.result2}, c_MaxTimeout ));
+		CHECK_ERR( Scheduler().Wait( List{ t.result0, t.result1, t.result2 }, c_MaxTimeout ));
 		CHECK_ERR( t.result0->Status() == EStatus::Completed );
 		CHECK_ERR( t.result1->Status() == EStatus::Completed );
 		CHECK_ERR( t.result2->Status() == EStatus::Completed );

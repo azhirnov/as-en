@@ -3,7 +3,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/Commands/VGraphicsContext.h"
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
-# include "graphics/RenderGraph/RenderGraphImpl.h"
+# include "graphics/RenderGraphImpl.h"
 
 namespace AE::Graphics
 {
@@ -63,7 +63,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-	RC<RenderTaskScheduler::VirtualFence>  RenderTaskScheduler::_CreateFence ()
+	RC<RenderTaskScheduler::VirtualFence>  RenderTaskScheduler::_CreateFence () __NE___
 	{
 		uint	idx;
 		CHECK_ERR( _virtFencePool.Assign( OUT idx ));
@@ -81,7 +81,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-	bool  RenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending)
+	bool  RenderTaskScheduler::_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending) __NE___
 	{
 		VTempStackAllocator	allocator;
 
@@ -125,7 +125,7 @@ namespace AE::Graphics
 			EXLOCK( queue->guard );
 			VK_CHECK_ERR( dev.vkQueueSubmit( queue->handle, submits_count, submits, fence->Handle() ));
 
-			DBG_GRAPHICS_ONLY(
+			GFX_DBG_ONLY(
 				if ( auto prof = _profiler.load() )
 				{
 					for (auto& batch : pending)
@@ -146,7 +146,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-	bool  RenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending)
+	bool  RenderTaskScheduler::_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending) __NE___
 	{
 		VTempStackAllocator	allocator;
 
@@ -188,7 +188,7 @@ namespace AE::Graphics
 			EXLOCK( queue->guard );
 			VK_CHECK_ERR( dev.vkQueueSubmit2KHR( queue->handle, submits_count, submits, Default ));
 
-			DBG_GRAPHICS_ONLY(
+			GFX_DBG_ONLY(
 				if ( auto prof = _profiler.load() )
 				{
 					for (auto& batch : pending)
@@ -209,7 +209,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-	bool  RenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId)
+	bool  RenderTaskScheduler::_IsFrameComplete_Fence (FrameUID frameId) __NE___
 	{
 		auto&	dev				= GetDevice();
 		auto&	frame			= _perFrame[ frameId.Index() ];
@@ -248,7 +248,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-	bool  RenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId)
+	bool  RenderTaskScheduler::_IsFrameComplete_Timeline (FrameUID frameId) __NE___
 	{
 		auto&	dev				= GetDevice();
 		auto&	frame			= _perFrame[ frameId.Index() ];
@@ -289,18 +289,13 @@ namespace AE::Graphics
 	_IsFrameCompleted
 =================================================
 */
-	bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId)
+	bool  RenderTaskScheduler::_IsFrameCompleted (FrameUID frameId) __NE___
 	{
-		#if AE_VK_TIMELINE_SEMAPHORE
-			bool res = _IsFrameComplete_Timeline( frameId );
-		#else
-			bool res = _IsFrameComplete_Fence( frameId );
-		#endif
-
-		//if_unlikely( res )
-		//	_depMngr->Update();
-
-		return res;
+	  #if AE_VK_TIMELINE_SEMAPHORE
+		return _IsFrameComplete_Timeline( frameId );
+	  #else
+		return _IsFrameComplete_Fence( frameId );
+	  #endif
 	}
 
 /*
@@ -312,7 +307,7 @@ namespace AE::Graphics
 																   ArrayView<VkRect2D> scissors, DebugLabel dbg) __NE___
 	{
 		ASSERT( primaryState.IsValid() );
-		CHECK_ERR( AnyEqual( _GetState(), EState::Idle, EState::BeginFrame, EState::RecordFrame ));
+		CHECK_ERR( AnyEqual( _status.load(), EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
 
 		uint	index;
 		CHECK_ERR( _drawBatchPool.Assign( OUT index ));

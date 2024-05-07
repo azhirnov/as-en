@@ -44,7 +44,7 @@ namespace
 								g->data.Write( &Data::d, double(g->data.Read( &Data::f )) );
 							});
 
-			vm.RunParallel({ sc1, sc2 }, secondsf{10.0f} );
+			vm.RunParallel( List{ sc1, sc2 }, secondsf{10.0f} );
 
 			vm.ThreadFenceAcquire();
 		}

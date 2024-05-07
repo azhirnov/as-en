@@ -9,81 +9,6 @@
 
 namespace AE::Base
 {
-namespace
-{
-/*
-=================================================
-	ToString (ECPUArch)
-=================================================
-*/
-	ND_ const char*  ToString (ECPUArch value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECPUArch::X86 :	return "x86";
-			case ECPUArch::X64 :	return "x64";
-			case ECPUArch::ARM_32 :	return "ARM-32";
-			case ECPUArch::ARM_64 :	return "ARM-64";
-			case ECPUArch::_Count :
-			case ECPUArch::Unknown:	break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECoreType)
-=================================================
-*/
-	ND_ const char*  ToString (ECoreType value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECoreType::HighPerformance :	return "HighPerformance";
-			case ECoreType::Performance :		return "Performance";
-			case ECoreType::EnergyEfficient :	return "EnergyEfficient";
-			case ECoreType::_Count :
-			case ECoreType::Unknown:			break;
-		}
-		switch_end
-		return "";
-	}
-
-/*
-=================================================
-	ToString (ECPUVendor)
-=================================================
-*/
-	ND_ const char*  ToString (ECPUVendor value) __NE___
-	{
-		switch_enum( value )
-		{
-			case ECPUVendor::AMD :			return "AMD";
-			case ECPUVendor::ARM :			return "ARM";
-			case ECPUVendor::Apple :		return "Apple";
-			case ECPUVendor::Intel :		return "Intel";
-			case ECPUVendor::Qualcomm :		return "Qualcomm";
-			case ECPUVendor::Broadcom :		return "Broadcom";
-			case ECPUVendor::Cavium :		return "Cavium";
-			case ECPUVendor::Fujitsu :		return "Fujitsu";
-			case ECPUVendor::HiSilicon :	return "HiSilicon";
-			case ECPUVendor::NVidia :		return "NVidia";
-			case ECPUVendor::AppliedMicro :	return "AppliedMicro";
-			case ECPUVendor::Samsung :		return "Samsung";
-			case ECPUVendor::Marvell :		return "Marvell";
-			case ECPUVendor::HuaxintongSemiconductor :	return "HuaxintongSemiconductor";
-			case ECPUVendor::Ampere :		return "Ampere";
-			case ECPUVendor::Unknown:		break;
-		}
-		switch_end
-		return "";
-	}
-
-} // namespace
-//-----------------------------------------------------------------------------
-
-
 
 #ifdef AE_PLATFORM_EMSCRIPTEN
 /*
@@ -91,7 +16,7 @@ namespace
 	constructor
 =================================================
 */
-	CpuArchInfo::CpuArchInfo ()
+	CpuArchInfo::CpuArchInfo () __NE___
 	{
 		cpu.arch = ECPUArch::X86;
 
@@ -289,7 +214,7 @@ namespace
 	_Validate
 =================================================
 */
-	void  CpuArchInfo::_Validate ()
+	void  CpuArchInfo::_Validate () __NE___
 	{
 	#ifdef AE_DEBUG
 
@@ -306,5 +231,21 @@ namespace
 
 	#endif
 	}
+
+/*
+=================================================
+	_NameToVendor
+=================================================
+*/
+	ECPUVendor  CpuArchInfo::_NameToVendor (StringView name) __NE___
+	{
+		if ( HasSubString( name, "AMD" ))		return ECPUVendor::AMD;
+		if ( HasSubString( name, "ARM" ))		return ECPUVendor::ARM;
+		if ( HasSubString( name, "Apple" ))		return ECPUVendor::Apple;
+		if ( HasSubString( name, "Intel" ))		return ECPUVendor::Intel;
+
+		return Default;
+	}
+
 
 } // AE::Base

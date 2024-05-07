@@ -31,7 +31,7 @@ namespace {
 
 	public:
 		ScriptPresent (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, RC<DynamicDim> dynSize) :
-			ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
+			rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -52,16 +52,16 @@ namespace {
 		desc.baseMipmap	= mipmap;
 
 		RC<Image>	img = rt->ToResource();
-		CHECK_ERR( img );
+		CHECK_THROW( img );
 
 		img = img->CreateView( desc, "PresentSrc" );
-		CHECK_ERR( img );
+		CHECK_THROW( img );
 
 		src.push_back( img );
 
 		auto	fmode = UIInteraction::Instance().GetFilterMode();
 
-		return MakeRC<ResEditor::Present>( RVRef(src), "Present", dynSize, fmode );
+		return MakeRCTh<ResEditor::Present>( RVRef(src), "Present", dynSize, fmode );
 	}
 //-----------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ namespace {
 
 	public:
 		ScriptDbgView (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags, uint idx) :
-			ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
+			rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -104,13 +104,13 @@ namespace {
 		ScriptImagePtr		rt;
 
 	public:
-		ScriptGenMipmaps (const ScriptImagePtr &rt) : ScriptBasePass{EFlags::Unknown}, rt{rt} {}
+		ScriptGenMipmaps (const ScriptImagePtr &rt) : rt{rt} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () C_Th_OV
 		{
-			return MakeRC<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
+			return MakeRCTh<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ namespace {
 
 	public:
 		ScriptCopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
-			ScriptBasePass{EFlags::Unknown}, src{src}, dst{dst} {}
+			src{src}, dst{dst} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -152,13 +152,13 @@ namespace {
 
 	public:
 		ScriptClearImage (const ScriptImagePtr &image, ClearImagePass::ClearValue_t value) :
-			ScriptBasePass{EFlags::Unknown}, image{image}, value{value} {}
+			image{image}, value{value} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () C_Th_OV
 		{
-			return MakeRC<ResEditor::ClearImagePass>( image->ToResource(), value, "ClearImage" );
+			return MakeRCTh<ResEditor::ClearImagePass>( image->ToResource(), value, "ClearImage" );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -178,10 +178,10 @@ namespace {
 
 	public:
 		ScriptClearBuffer (const ScriptBufferPtr &buffer, uint value) :
-			ScriptBasePass{EFlags::Unknown}, buffer{buffer}, value{value} {}
+			buffer{buffer}, value{value} {}
 
 		ScriptClearBuffer (const ScriptBufferPtr &buffer, Bytes offset, Bytes size, uint value) :
-			ScriptBasePass{EFlags::Unknown}, buffer{buffer}, offset{offset}, size{size}, value{value} {}
+			buffer{buffer}, offset{offset}, size{size}, value{value} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -195,7 +195,7 @@ namespace {
 					CHECK_THROW( buf );
 				});
 
-			return MakeRC<ResEditor::ClearBufferPass>( buf, offset, size, value, "ClearBuffer" );
+			return MakeRCTh<ResEditor::ClearBufferPass>( buf, offset, size, value, "ClearBuffer" );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -213,7 +213,7 @@ namespace {
 
 	public:
 		ScriptExportImage (const ScriptImagePtr &image, const String &prefix) :
-			ScriptBasePass{EFlags::Unknown}, image{image}, prefix{prefix} {}
+			image{image}, prefix{prefix} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -231,13 +231,20 @@ namespace {
 	//
 	class ScriptExe::ScriptExportBuffer final : public ScriptBasePass
 	{
+	public:
+		enum class EMode {
+			Structured,
+			Binary,
+		};
+
 	private:
 		ScriptBufferPtr		buffer;
 		String				prefix;
+		EMode				mode;
 
 	public:
-		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix) :
-			ScriptBasePass{EFlags::Unknown}, buffer{buffer}, prefix{prefix} {}
+		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, EMode mode) :
+			buffer{buffer}, prefix{prefix}, mode{mode} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
@@ -516,10 +523,21 @@ namespace {
 				st_type = it->second;
 			});
 
-		return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix),
-												[st_type] (const BufferMemView &memView, WStream &stream) {
-													_Utils{ *st_type, memView }.Parse( stream );
-												});
+		switch_enum( mode )
+		{
+			case EMode::Structured :
+				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix),
+								[st_type] (const BufferMemView &memView, WStream &stream) {
+									_Utils{ *st_type, memView }.Parse( stream );
+								});
+
+			case EMode::Binary :
+				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix), Default );
+
+			default :
+				CHECK_THROW_MSG( false, "unsupported buffer export mode" );
+		}
+		switch_end
 	}
 //-----------------------------------------------------------------------------
 
@@ -538,7 +556,6 @@ namespace {
 	public:
 		ScriptBuildRTGeometry (ScriptRTGeometryPtr	dstGeometry,
 							   bool					indirect) :
-			ScriptBasePass{EFlags::Unknown},
 			_dstGeometry{ dstGeometry },
 			_indirect{ indirect }
 		{}
@@ -584,7 +601,6 @@ namespace {
 	public:
 		ScriptBuildRTScene (ScriptRTScenePtr	dstScene,
 							bool				indirect) :
-			ScriptBasePass{EFlags::Unknown},
 			_dstScene{ dstScene },
 			_indirect{ indirect }
 		{}
@@ -630,7 +646,7 @@ namespace {
 
 	public:
 		ScriptPassGroup (PassGroup::EFlags flags, RC<Renderer> renderer) :
-			ScriptBasePass{EFlags::Unknown}, _flags{flags}, _renderer{RVRef(renderer)}
+			_flags{flags}, _renderer{RVRef(renderer)}
 		{}
 
 			void  Add (ScriptBasePassPtr pass)							{ _passes.push_back( RVRef(pass) ); }
@@ -676,6 +692,7 @@ namespace {
 		const String	LinearMipmapClamp		{"LinearMipmapClamp"};
 		const String	LinearMipmapRepeat		{"LinearMipmapRepeat"};
 		const String	LinearMipmapMirrorRepeat{"LinearMipmapMirrorRepeat"};
+		const String	LinearMipmapMirrorClamp	{"LinearMipmapMirrorClamp"};
 		const String	Anisotropy8Repeat		{"Anisotropy8Repeat"};
 		const String	Anisotropy8MirrorRepeat	{"Anisotropy8MirrorRepeat"};
 		const String	Anisotropy8Clamp		{"Anisotropy8Clamp"};
@@ -705,17 +722,17 @@ namespace {
 			// init pipeline compiler
 			ObjectStorage	obj_storage;
 			{
+				ObjectStorage::SetInstance( &obj_storage );
+
+				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "InitialFS" }};
+				fs->fs = ScriptResourceApi::GetFeatureSet();
+
 				obj_storage.target				= ECompilationTarget::Vulkan;
-				obj_storage.shaderVersion		= EShaderVersion::SPIRV_1_5;
-				obj_storage.defaultFeatureSet	= "DefaultFS";
+				obj_storage.shaderVersion		= EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV;
+				obj_storage.defaultFeatureSet	= fs->Name();
 
 				obj_storage.spirvCompiler		= MakeUnique<SpirvCompiler>( Array<Path>{} );
 				obj_storage.spirvCompiler->SetDefaultResourceLimits();
-
-				ObjectStorage::SetInstance( &obj_storage );
-
-				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-				fs->fs = ScriptResourceApi::GetFeatureSet();
 			}
 
 			// bind pipeline compiler scripts
@@ -775,7 +792,13 @@ namespace {
 		CHECK_ERR( not _tempData );
 
 		_tempData.reset( new TempData{} );
-		_tempData->renderer = MakeRCTh<Renderer>( _rand.Uniform( 0u, 0xFFFF'FFFFu ));  // throw
+		{
+			uint	seed = _rand.Uniform( 0u, 0xFFFF'FFFFu );
+			if ( not cfg.enableRandomizer )
+				seed = 0;
+
+			_tempData->renderer = MakeRCTh<Renderer>( seed );  // throw
+		}
 		_tempData->currPath.push_back( FileSystem::ToAbsolute( filePath ));
 		_tempData->dependencies.push_back( _tempData->currPath.front() );
 		_tempData->cfg = cfg;
@@ -795,8 +818,10 @@ namespace {
 		}
 
 		// in VS: click in console to open script
+	  #ifdef AE_COMPILER_MSVC
 		if ( result and PlatformUtils::IsUnderDebugger() )
 			AE_LOGI( "<<<<< Loaded script >>>>>", ToString(filePath), 1 );
+	  #endif
 
 		_tempData.reset();
 		return result;
@@ -1191,6 +1216,22 @@ namespace {
 
 /*
 =================================================
+	_DbgExportBuffer
+=================================================
+*/
+	void  ScriptExe::_DbgExportBuffer (const ScriptBufferPtr &buffer, const String &prefix) __Th___
+	{
+		CHECK_THROW_MSG( buffer );
+		buffer->AddUsage( EResourceUsage::Transfer );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix, ScriptExportBuffer::EMode::Structured }});
+	}
+
+/*
+=================================================
 	_ExportBuffer
 =================================================
 */
@@ -1202,7 +1243,7 @@ namespace {
 		auto&	data = _GetTempData();
 		CHECK_THROW_MSG( data.passGroup );
 
-		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix }});
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix, ScriptExportBuffer::EMode::Binary }});
 	}
 
 /*
@@ -1210,7 +1251,7 @@ namespace {
 	_ExportGeometry
 =================================================
 */
-	void  ScriptExe::_ExportGeometry (const ScriptGeomSourcePtr &geom, const String &prefix) __Th___
+	void  ScriptExe::_ExportGeometry (const ScriptGeomSourcePtr &, const String &) __Th___
 	{
 		// TODO
 	}
@@ -1238,7 +1279,7 @@ namespace {
 			"'IndirectBuffer()' is never used, indirect buffer must be initialized before it is used to build RTGeometry" );
 		geom->AllowUpdate();
 
-		if ( ScriptResourceApi::GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+		if ( ScriptResourceApi::GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 		{
 			CHECK_THROW_MSG( geom->WithHistory() );
 		}
@@ -1272,7 +1313,7 @@ namespace {
 			"'IndirectBuffer()' is never used, indirect buffer must be initialized before it is used to build RTScene" );
 		scene->AllowUpdate();
 
-		if ( ScriptResourceApi::GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+		if ( ScriptResourceApi::GetFeatureSet().accelerationStructureIndirectBuild != FeatureSet::EFeature::RequireTrue )
 		{
 			CHECK_THROW_MSG( scene->WithHistory() );
 		}
@@ -1605,6 +1646,46 @@ namespace {
 
 /*
 =================================================
+	_Supported_***
+=================================================
+*/
+namespace {
+	static bool  _Supported_GeometryShader ()
+	{
+		return GraphicsScheduler().GetFeatureSet().geometryShader == FeatureSet::EFeature::RequireTrue;
+	}
+
+	static bool  _Supported_TessellationShader ()
+	{
+		return GraphicsScheduler().GetFeatureSet().tessellationShader == FeatureSet::EFeature::RequireTrue;
+	}
+
+	static bool  _Supported_SamplerAnisotropy ()
+	{
+		return GraphicsScheduler().GetFeatureSet().samplerAnisotropy == FeatureSet::EFeature::RequireTrue;
+	}
+
+	static EPixelFormat  _Supported_DepthFormat ()
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F ))	return EPixelFormat::Depth32F;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24 ))	return EPixelFormat::Depth24;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16 ))	return EPixelFormat::Depth16;
+		return Default;
+	}
+
+	static EPixelFormat  _Supported_DepthStencilFormat ()
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F_Stencil8 ))	return EPixelFormat::Depth32F_Stencil8;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24_Stencil8 ))	return EPixelFormat::Depth24_Stencil8;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16_Stencil8 ))	return EPixelFormat::Depth16_Stencil8;
+		return Default;
+	}
+}
+
+/*
+=================================================
 	_Bind
 =================================================
 */
@@ -1652,7 +1733,6 @@ namespace {
 
 		_Bind_DbgViewFlags( se );
 		_Bind_PassGroupFlags( se );
-		ScriptDynamicDim::Bind( se );
 		ScriptDynamicUInt::Bind( se );
 		ScriptDynamicUInt2::Bind( se );
 		ScriptDynamicUInt3::Bind( se );
@@ -1666,6 +1746,7 @@ namespace {
 		ScriptDynamicFloat3::Bind( se );
 		ScriptDynamicFloat4::Bind( se );
 		ScriptDynamicULong::Bind( se );
+		ScriptDynamicDim::Bind( se );
 		ScriptImage::Bind( se );
 		ScriptVideoImage::Bind( se );
 		ScriptBuffer::Bind( se );
@@ -1721,8 +1802,9 @@ namespace {
 		se->AddFunction( &ScriptExe::_ClearBuffer2,				"ClearBuffer",				{"buffer", "offset", "size", "value"} );
 
 		se->AddFunction( &ScriptExe::_ExportImage,				"Export",					{"image", "prefix"},	"Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed." );
+		se->AddFunction( &ScriptExe::_DbgExportBuffer,			"DbgExport",				{"buffer", "prefix"},	"Readback the buffer and save it to a file in structured format. Rendering will be paused until the readback is completed." );
 		se->AddFunction( &ScriptExe::_ExportBuffer,				"Export",					{"buffer", "prefix"},	"Readback the buffer and save it to a file in binary format. Rendering will be paused until the readback is completed." );
-		se->AddFunction( &ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
+	//	se->AddFunction( &ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
 
 		se->AddFunction( &ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass to build RTGeometry, executed every frame."			);
 		se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,	"BuildRTGeometryIndirect",	{},		"Pass to indirect build RTGeometry, executed every frame."	);
@@ -1799,6 +1881,12 @@ namespace {
 		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{} );
 		se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{} );
 
+		se->AddFunction( &_Supported_GeometryShader,			"Supported_GeometryShader",		{} );
+		se->AddFunction( &_Supported_TessellationShader,		"Supported_TessellationShader",	{} );
+		se->AddFunction( &_Supported_SamplerAnisotropy,			"Supported_SamplerAnisotropy",	{} );
+		se->AddFunction( &_Supported_DepthFormat,				"Supported_DepthFormat",		{} );
+		se->AddFunction( &_Supported_DepthStencilFormat,		"Supported_DepthStencilFormat",	{} );
+
 		// TODO:
 		//	PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
 
@@ -1865,6 +1953,7 @@ namespace {
 		se->AddConstProperty( _sampConsts->LinearMipmapClamp,			"Sampler_" + _sampConsts->LinearMipmapClamp );
 		se->AddConstProperty( _sampConsts->LinearMipmapRepeat,			"Sampler_" + _sampConsts->LinearMipmapRepeat );
 		se->AddConstProperty( _sampConsts->LinearMipmapMirrorRepeat,	"Sampler_" + _sampConsts->LinearMipmapMirrorRepeat );
+		se->AddConstProperty( _sampConsts->LinearMipmapMirrorClamp,		"Sampler_" + _sampConsts->LinearMipmapMirrorClamp );
 		se->AddConstProperty( _sampConsts->Anisotropy8Repeat,			"Sampler_" + _sampConsts->Anisotropy8Repeat );
 		se->AddConstProperty( _sampConsts->Anisotropy8MirrorRepeat,		"Sampler_" + _sampConsts->Anisotropy8MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy8Clamp,			"Sampler_" + _sampConsts->Anisotropy8Clamp );
@@ -1872,7 +1961,7 @@ namespace {
 		se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,	"Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16Clamp,			"Sampler_" + _sampConsts->Anisotropy16Clamp );
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
 	}
 
 /*
@@ -2209,9 +2298,12 @@ namespace {
 
 				ObjectStorage::SetInstance( &obj_storage );
 
+				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ obj_storage.defaultFeatureSet }};
+				fs->fs = ScriptResourceApi::GetFeatureSet();
+
 				PipelineCompiler::ScriptConfig	cfg;
 				cfg.SetTarget( ECompilationTarget::Vulkan );
-				cfg.SetShaderVersion( EShaderVersion::SPIRV_1_5 );
+				cfg.SetShaderVersion( EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV );
 				cfg.SetShaderOptions( EShaderOpt::Optimize );
 				cfg.SetDefaultLayout( EStructLayout::Std140 );
 				cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
@@ -2221,9 +2313,6 @@ namespace {
 			  #else
 				cfg.SetPipelineOptions( EPipelineOpt::Optimize );
 			  #endif
-
-				ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-				fs->fs = ScriptResourceApi::GetFeatureSet();
 			}
 
 			_LoadSamplers();				// throw
@@ -2285,19 +2374,19 @@ namespace {
 		CHECK_THROW( obj_storage->Build() );
 		CHECK_THROW( obj_storage->BuildRenderTechniques() );
 
-		auto	mem = MakeRC<MemWStream>();
+		auto	mem = MakeRC<ArrayWStream>();
 
 		PipelinePackOffsets		offsets	= {};
 		CHECK_THROW( obj_storage->SavePack( *mem, true, OUT offsets ));
 
-		auto	mem2 = MakeRC<MemWDataSource>( mem->ReleaseData() );
+		auto	mem2 = MakeRC<ArrayWDataSource>( mem->ReleaseData() );
 				mem  = null;
 
 		CHECK_THROW( mem2->Write( Sizeof(PackOffsets_Name), offsets ));
 
 		obj_storage->Clear();
 
-		return MakeRC<MemRStream>( mem2->ReleaseData() );
+		return MakeRC<ArrayRStream>( mem2->ReleaseData() );
 	}
 
 /*
@@ -2309,6 +2398,8 @@ namespace {
 	{
 		auto	obj_storage = ObjectStorage::Instance();
 		CHECK_THROW( obj_storage != null );
+
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
 
 		{
 			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClamp}};
@@ -2346,39 +2437,58 @@ namespace {
 			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapMirrorRepeat}};
 			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Repeat}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
-			samp->SetAnisotropy( 8.0f );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8MirrorRepeat}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
-			samp->SetAnisotropy( 8.0f );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Clamp}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
-			samp->SetAnisotropy( 8.0f );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Repeat}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
-			samp->SetAnisotropy( 16.0f );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16MirrorRepeat}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
-			samp->SetAnisotropy( 16.0f );
-		}{
-			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Clamp}};
-			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
-			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
-			samp->SetAnisotropy( 16.0f );
 		}
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
+		if ( fs.samplerMirrorClampToEdge == FeatureSet::EFeature::RequireTrue )
+		{
+			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->LinearMipmapMirrorClamp}};
+			samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+			samp->SetAddressMode( EAddressMode::MirrorClampToEdge, EAddressMode::MirrorClampToEdge, EAddressMode::MirrorClampToEdge );
+		}
+
+		if ( fs.samplerAnisotropy == FeatureSet::EFeature::RequireTrue )
+		{
+			if ( fs.maxSamplerAnisotropy >= 8.0f )
+			{
+				{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Repeat}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
+					samp->SetAnisotropy( 8.0f );
+				}{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8MirrorRepeat}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
+					samp->SetAnisotropy( 8.0f );
+				}{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy8Clamp}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+					samp->SetAnisotropy( 8.0f );
+				}
+			}
+			if ( fs.maxSamplerAnisotropy >= 8.0f )
+			{
+				{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Repeat}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
+					samp->SetAnisotropy( 16.0f );
+				}{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16MirrorRepeat}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
+					samp->SetAnisotropy( 16.0f );
+				}{
+					ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->Anisotropy16Clamp}};
+					samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
+					samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+					samp->SetAnisotropy( 16.0f );
+				}
+			}
+		}
+
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
 		CHECK_THROW( obj_storage->Build() );
 	}
 
@@ -2424,7 +2534,7 @@ namespace {
 					float3x4	transform;							// 3x4 row-major
 					uint		instanceCustomIndex24_mask8;
 					uint		instanceSBTOffset24_flags8;			// flags: gl::GeometryInstanceFlags
-					ulong		accelerationStructureReference;		// gl::DeviceAddress
+					uint2		accelerationStructureReference;		// gl::DeviceAddress
 				)#");
 			CHECK( st->StaticSize() == 64_b );
 		}

@@ -21,10 +21,11 @@ namespace
 	{
 		StaticAssert( sizeof(FeatureSet) == 696 );
 
+		using EFeature = FeatureSet::EFeature;
 		const EFeature	True	= EFeature::RequireTrue;
 		const EFeature	False	= EFeature::RequireFalse;
 
-		outFeatureSet.SetAll( EFeature::Ignore );
+		outFeatureSet.SetAll( False );
 
 		const auto&	feats10	= _properties.features;		// Vulkan 1.0 core features
 		const auto&	limits	= _properties.properties.limits;
@@ -73,12 +74,16 @@ namespace
 					case VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT :	outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_ShuffleRelative_Begin,	ESubgroupOperation::_ShuffleRelative_End );	break;
 					case VK_SUBGROUP_FEATURE_CLUSTERED_BIT :		outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Clustered_Begin,			ESubgroupOperation::_Clustered_End );		break;
 					case VK_SUBGROUP_FEATURE_QUAD_BIT :				outFeatureSet.subgroupOperations.InsertRange( ESubgroupOperation::_Quad_Begin,				ESubgroupOperation::_Quad_End );			break;
-					case VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV :	break;	// TODO
+					case VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV :
+					case VK_SUBGROUP_FEATURE_ROTATE_BIT_KHR :
+					case VK_SUBGROUP_FEATURE_ROTATE_CLUSTERED_BIT_KHR :	break;	// TODO
 					case VK_SUBGROUP_FEATURE_FLAG_BITS_MAX_ENUM :
 					default_unlikely :								DBG_WARNING( "unknown subgroup feature" );	break;
 				}
 				switch_end
 			}
+
+			outFeatureSet.subgroupBroadcastDynamicId = _vkDeviceVersion >= DeviceVersion{1,2} ? True : False;
 		}
 
 		if ( _extensions.subgroupSizeControl )
@@ -94,8 +99,6 @@ namespace
 			outFeatureSet.minSubgroupSize			= CheckCast<ushort>(_properties.subgroupSizeControlProps.minSubgroupSize);
 			outFeatureSet.maxSubgroupSize			= CheckCast<ushort>(_properties.subgroupSizeControlProps.maxSubgroupSize);
 		}
-
-		// TODO: subgroupBroadcastDynamicId
 
 		if ( _extensions.subgroupExtendedTypes )
 		{
@@ -139,6 +142,9 @@ namespace
 			SET_FEAT2( uniformAndStorageBuffer8BitAccess,	_properties.storage8bitsFeats );
 			SET_FEAT2( storagePushConstant8,				_properties.storage8bitsFeats );
 		}
+
+		if ( _extensions.uniformBufferStandardLayout )
+			SET_FEAT2( uniformBufferStandardLayout, _properties.uniformBufferStandardLayoutFeats );
 
 		if ( _extensions.scalarBlockLayout )
 			SET_FEAT2( scalarBlockLayout, _properties.scalarBlockLayoutFeats );
@@ -214,6 +220,7 @@ namespace
 		outFeatureSet.shaderDrawParameters	= _extensions.shaderDrawParams		? True : False;
 		outFeatureSet.shaderSMBuiltinsNV	= _extensions.shaderSMBuiltinsNV	? True : False;
 		outFeatureSet.shaderCoreBuiltinsARM	= _extensions.shaderCoreBuiltinsARM	? True : False;
+		outFeatureSet.shaderStencilExport	= _extensions.shaderStencilExport	? True : False;
 
 		SET_FEAT( shaderUniformBufferArrayDynamicIndexing );
 		SET_FEAT( shaderSampledImageArrayDynamicIndexing );
@@ -261,17 +268,14 @@ namespace
 			SET_FEAT2( vulkanMemoryModelAvailabilityVisibilityChains,	_properties.memoryModelFeats );
 		}
 
-		// TODO: shaderDemoteToHelperInvocation
+		if ( _extensions.shaderDemoteToHelperInvocation )
+			SET_FEAT2( shaderDemoteToHelperInvocation, _properties.shaderDemoteToHelperInvocationFeats );
 
 		if ( _extensions.shaderTerminateInvocation )
-		{
 			SET_FEAT2( shaderTerminateInvocation, _properties.shaderTerminateInvocationFeats );
-		}
 
 		if ( _extensions.zeroInitializeWorkgroupMem )
-		{
 			SET_FEAT2( shaderZeroInitializeWorkgroupMemory, _properties.zeroInitializeWorkgroupMemFeats );
-		}
 
 		// TODO: shaderIntegerDotProduct
 
@@ -283,9 +287,7 @@ namespace
 		}
 
 		if ( _extensions.fragmentBarycentric )
-		{
 			SET_FEAT2( fragmentShaderBarycentric,		_properties.fragmentBarycentricFeats );
-		}
 
 		if ( _extensions.fragShadingRate )
 		{
@@ -409,7 +411,6 @@ namespace
 			SET_FEAT2( constantAlphaColorBlendFactors,			_properties.portabilitySubsetFeats );
 			SET_FEAT2( shaderSampleRateInterpolationFunctions,	_properties.portabilitySubsetFeats );
 			SET_FEAT2( pointPolygons,							_properties.portabilitySubsetFeats );
-			SET_FEAT2( separateStencilMaskRef,					_properties.portabilitySubsetFeats );
 			SET_FEAT2( tessellationIsolines,					_properties.portabilitySubsetFeats );
 			SET_FEAT2( tessellationPointMode,					_properties.portabilitySubsetFeats );
 			SET_FEAT2( multisampleArrayImage,					_properties.portabilitySubsetFeats );
@@ -421,7 +422,6 @@ namespace
 			outFeatureSet.constantAlphaColorBlendFactors		= True;
 			outFeatureSet.shaderSampleRateInterpolationFunctions= outFeatureSet.sampleRateShading;
 			outFeatureSet.pointPolygons							= True;
-			outFeatureSet.separateStencilMaskRef				= True;
 			outFeatureSet.tessellationIsolines					= True;
 			outFeatureSet.tessellationPointMode					= True;
 			outFeatureSet.multisampleArrayImage					= True;
@@ -483,6 +483,12 @@ namespace
 		SET_FEAT( textureCompressionETC2 );
 		SET_FEAT( textureCompressionBC );
 		// skip imageViewMinLod		// VkPhysicalDeviceImageViewMinLodFeaturesEXT
+
+		if ( _extensions.imageFormatList )
+			outFeatureSet.imageViewFormatList = True;
+
+		if ( _extensions.maintenance2 )
+			outFeatureSet.imageViewExtendedUsage = True;
 
 		if ( _extensions.astcHdr )
 		{
@@ -590,7 +596,8 @@ namespace
 				outFeatureSet.accelStructVertexFormats.insert( fmt );
 		}
 
-		outFeatureSet.queues.required = GetAvailableQueues();
+		outFeatureSet.queues.required	= GetAvailableQueues();
+		outFeatureSet.queues.supported	= outFeatureSet.queues.required;
 		{
 			uint	count = 0;
 			vkGetPhysicalDeviceQueueFamilyProperties( _vkPhysicalDevice, OUT &count, null );
@@ -652,6 +659,7 @@ namespace
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 
 		StaticAssert( sizeof(FeatureSet) == 696 );
+		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;
 		auto&			f16i8_feats = _properties.shaderFloat16Int8Feats;
@@ -825,6 +833,11 @@ namespace
 		SET_FEAT( shaderCullDistance );
 		SET_FEAT( shaderResourceMinLod );
 
+		_extensions.shaderDrawParams		= (inFS.shaderDrawParameters == True);
+		_extensions.shaderSMBuiltinsNV		= (inFS.shaderSMBuiltinsNV == True);
+		_extensions.shaderCoreBuiltinsARM	= (inFS.shaderCoreBuiltinsARM == True);
+		_extensions.shaderStencilExport		= (inFS.shaderStencilExport == True);
+
 		SET_FEAT( shaderUniformBufferArrayDynamicIndexing );
 		SET_FEAT( shaderSampledImageArrayDynamicIndexing );
 		SET_FEAT( shaderStorageBufferArrayDynamicIndexing );
@@ -906,7 +919,6 @@ namespace
 		SET_FEAT2( constantAlphaColorBlendFactors,			_properties.portabilitySubsetFeats );
 		SET_FEAT2( shaderSampleRateInterpolationFunctions,	_properties.portabilitySubsetFeats );
 		SET_FEAT2( pointPolygons,							_properties.portabilitySubsetFeats );
-		SET_FEAT2( separateStencilMaskRef,					_properties.portabilitySubsetFeats );
 		SET_FEAT2( tessellationIsolines,					_properties.portabilitySubsetFeats );
 		SET_FEAT2( tessellationPointMode,					_properties.portabilitySubsetFeats );
 		SET_FEAT2( multisampleArrayImage,					_properties.portabilitySubsetFeats );
@@ -925,6 +937,9 @@ namespace
 		SET_FEAT( textureCompressionASTC_LDR );
 		SET_FEAT( textureCompressionETC2 );
 		SET_FEAT( textureCompressionBC );
+
+		_extensions.imageFormatList = (inFS.imageViewFormatList == True);
+		_extensions.maintenance2 |= (inFS.imageViewExtendedUsage == True);
 
 		_extensions.astcHdr = (inFS.textureCompressionASTC_HDR == True);
 		SET_FEAT2( textureCompressionASTC_HDR, _properties.astcHdrFeats );

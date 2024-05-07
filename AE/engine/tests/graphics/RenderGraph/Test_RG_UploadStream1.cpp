@@ -101,7 +101,7 @@ namespace
 			t.buffer_data[i] = ubyte(i);
 		}
 
-		t.stream = BufferStream{ t.buf, 0_b, t.buf_size, 0_b, EStagingHeapType::Dynamic };
+		t.stream = BufferStream{ t.buf, UploadBufferDesc{ 0_b, t.buf_size }.DynamicHeap() };
 
 		auto	task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
 

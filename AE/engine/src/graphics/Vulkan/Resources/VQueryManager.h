@@ -17,7 +17,7 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		struct Query
+		struct Query : IQuery
 		{
 			VkQueryPool		pool		= Default;
 			ushort			first		= UMax;
@@ -29,19 +29,8 @@ namespace AE::Graphics
 			ND_ explicit operator bool ()	C_NE___	{ return pool != Default and count > 0; }
 		};
 
-		struct PipelineStatistic
-		{
-			//ulong	inputAssemblyPrimitives;	// VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT
-			ulong	beforeClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT
-			ulong	afterClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT
-			ulong	fragShaderInvocations;		// VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT
-			// VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT	- meshShaderQueries
-			// VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT	- meshShaderQueries
-			// VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT					- meshShaderQueries
-		};
-
 	private:
-		using PerFrameCount_t = StaticArray< uint, GraphicsConfig::MaxFrames+1 >;
+		using PerFrameCount_t = StaticArray< uint, _FrameHistorySize >;
 
 		struct QueryPool
 		{
@@ -64,7 +53,7 @@ namespace AE::Graphics
 			ND_ bool  IsAvailable ()	C_NE___	{ return available != 0; }
 		};
 
-		struct PipelineStatisticResult : PipelineStatistic
+		struct PipelineStatisticResult : GraphicsPipelineStatistic
 		{
 			ulong	available;
 
@@ -73,15 +62,6 @@ namespace AE::Graphics
 
 		using TimestampBitsPerQueue_t = StaticArray< uint, uint(EQueueType::_Count) >;
 
-		struct PackedIdx
-		{
-			uint	writeIndex	: 8;
-			uint	readIndex	: 8;
-
-			PackedIdx ()				__NE___	: writeIndex{0}, readIndex{0} {}
-			PackedIdx (uint w, uint r)	__NE___	: writeIndex{w}, readIndex{r} {}
-		};
-
 
 	// variables
 	private:
@@ -89,12 +69,9 @@ namespace AE::Graphics
 
 		PoolArr_t					_poolArr			{};
 		EQueueMask					_timestampAllowed	= Default;
-		float						_timestampPeriod	= 1.f;	// nanoseconds
+		nanosecondsf				_timestampPeriod	{1.f};
 
 		TimestampBitsPerQueue_t		_tsBits;
-
-		StructAtomic<PackedIdx>		_packedIdx;
-		uint						_maxFrames		: 8;
 
 		uint						_hostReset		: 1;
 		uint						_perfQuery		: 1;
@@ -102,9 +79,7 @@ namespace AE::Graphics
 
 		Atomic<bool>				_perfLockAcquired	{false};
 
-		DRC_ONLY(
-			RWDataRaceCheck			_drCheck;
-		)
+		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 
 
 	// methods
@@ -116,29 +91,26 @@ namespace AE::Graphics
 			void  Deinitialize ()																					__NE___;
 
 			void  NextFrame (FrameUID frameId)																		__NE___;
-			void  ResetQueries (VkCommandBuffer cmdbuf)																__NE___;
-
-		ND_ uint	WriteIndex ()																					C_NE___	{ return _packedIdx.load().writeIndex; }
-		ND_ uint	ReadIndex ()																					C_NE___	{ return _packedIdx.load().readIndex; }
-		ND_ uint2	ReadAndWriteIndices ()																			C_NE___	{ auto tmp = _packedIdx.load();  return uint2{tmp.readIndex, tmp.writeIndex}; }
+			void  ResetQueries (VkCommandBuffer cmdbuf, FrameUID frameId)											__NE___;
 
 		ND_ bool  AcquireProfilingLock ()																			__NE___;
 			bool  ReleaseProfilingLock ()																			__NE___;
 
 		ND_ Query  AllocQuery (EQueueType queue, EQueryType type, uint count = 1)									C_NE___;
+		ND_ Query  AllocQuery (FrameUID frameId, EQueueType queue, EQueryType type, uint count = 1)					C_NE___;
 
 		ND_ bool  SupportsCalibratedTimestamps ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 
-			bool  GetTimestamp (const Query &q, OUT ulong* result, Bytes size)										C_NE___;	// raw
-			bool  GetTimestamp (const Query &q, OUT double* result, Bytes size)										C_NE___;	// nanoseconds in GPU-space
-			bool  GetTimestamp (const Query &q, OUT nanosecondsd* result, Bytes size)								C_NE___;	// nanoseconds in GPU-space
+			bool  GetTimestamp (const IQuery &, OUT ulong* result, Bytes size)										C_NE_OV;	// raw
+			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes size)										C_NE_OV;	// nanoseconds in GPU-space
+			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes size)								C_NE_OV;	// nanoseconds in GPU-space
 
-			bool  GetTimestampCalibrated (const Query &q, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)				C_NE___;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const Query &q, OUT double* result, OUT double* maxDeviation, Bytes size)				C_NE___;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const Query &q, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE___;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE_OV;	// nanoseconds in CPU-space
 
 		//	bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size)		C_NE___;
-			bool  GetPipelineStatistic (const Query &q, OUT PipelineStatistic* result, Bytes size)					C_NE___;
+			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes size)			C_NE_OV;
 			bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size)								C_NE___;
 
 	private:
@@ -150,6 +122,8 @@ namespace AE::Graphics
 
 		template <typename T>
 		ND_	bool  _GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, Bytes size)			C_NE___;
+
+		ND_ Query  _AllocQuery (uint writeIdx, EQueueType queue, EQueryType type, uint count)						C_NE___;
 	};
 
 

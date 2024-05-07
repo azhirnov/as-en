@@ -74,6 +74,9 @@
 #endif
 
 #ifdef AE_COMPILER_MSVC
+# include <excpt.h>							// GetExceptionCode()
+#define AE_SEH_STACK_OVERFLOW	0xC00000FDL	// EXCEPTION_STACK_OVERFLOW
+
 # include <intrin.h>
 # include <mmintrin.h>		// MMX
 # include <xmmintrin.h>		// SSE

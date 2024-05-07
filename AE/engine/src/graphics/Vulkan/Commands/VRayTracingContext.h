@@ -42,26 +42,26 @@ namespace AE::Graphics::_hidden_
 						 const VkStridedDeviceAddressRegionKHR &raygen,
 						 const VkStridedDeviceAddressRegionKHR &miss,
 						 const VkStridedDeviceAddressRegionKHR &hit,
-						 const VkStridedDeviceAddressRegionKHR &callable)											__Th___;
+						 const VkStridedDeviceAddressRegionKHR &callable)							__Th___;
 
-		ND_ VkCommandBuffer	EndCommandBuffer ()																		__Th___;
-		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
+		ND_ VkCommandBuffer	EndCommandBuffer ()														__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()													__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)						__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
+		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)		__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
-		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
-		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
-		void  _SetStackSize (Bytes size);
+		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout)								__Th___;
+		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)	__Th___;
+		void  _SetStackSize (Bytes size)															__Th___;
 
-		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
+		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress)							__Th___;
 		void  _TraceRaysIndirect (const VkStridedDeviceAddressRegionKHR &raygen,
 								  const VkStridedDeviceAddressRegionKHR &miss,
 								  const VkStridedDeviceAddressRegionKHR &hit,
 								  const VkStridedDeviceAddressRegionKHR &callable,
-								  VkDeviceAddress						indirectDeviceAddress);
+								  VkDeviceAddress						indirectDeviceAddress)		__Th___;
 	};
 
 
@@ -93,26 +93,26 @@ namespace AE::Graphics::_hidden_
 						 const VkStridedDeviceAddressRegionKHR &raygen,
 						 const VkStridedDeviceAddressRegionKHR &miss,
 						 const VkStridedDeviceAddressRegionKHR &hit,
-						 const VkStridedDeviceAddressRegionKHR &callable)											__Th___;
+						 const VkStridedDeviceAddressRegionKHR &callable)							__Th___;
 
-		ND_ VBakedCommands		EndCommandBuffer ()																	__Th___;
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
+		ND_ VBakedCommands		EndCommandBuffer ()													__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()												__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
+		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
-		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
-		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
-		void  _SetStackSize (Bytes size);
+		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout)								__Th___;
+		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)	__Th___;
+		void  _SetStackSize (Bytes size)															__Th___;
 
-		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
+		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress)							__Th___;
 		void  _TraceRaysIndirect (const VkStridedDeviceAddressRegionKHR &raygen,
 								  const VkStridedDeviceAddressRegionKHR &miss,
 								  const VkStridedDeviceAddressRegionKHR &hit,
 								  const VkStridedDeviceAddressRegionKHR &callable,
-								  VkDeviceAddress						indirectDeviceAddress);
+								  VkDeviceAddress						indirectDeviceAddress)		__Th___;
 	};
 
 
@@ -122,7 +122,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VRayTracingContextImpl : public CtxImpl, public IRayTracingContext
+	class _VRayTracingContextImpl final : public CtxImpl, public IRayTracingContext
 	{
 	// types
 	public:
@@ -157,11 +157,11 @@ namespace AE::Graphics::_hidden_
 		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)															__Th_OV;
 		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)															__Th_OV;
 
-		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)									__Th___;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)									__Th_OV;
 		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes)							__Th_OV;
 		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes)										__Th_OV;
 
-		void  TraceRaysIndirect2 (DeviceAddress address)																	__Th___;
+		void  TraceRaysIndirect2 (DeviceAddress address)																	__Th_OV;
 		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
@@ -271,7 +271,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address) __Th___
 	{
-		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, address );
+		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, BitCast<VkDeviceAddress>(address) );
 	}
 
 	template <typename C>
@@ -303,7 +303,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (DeviceAddress address) __Th___
 	{
-		RawCtx::_TraceRaysIndirect2( address );
+		RawCtx::_TraceRaysIndirect2( BitCast<VkDeviceAddress>(address) );
 	}
 
 	template <typename C>

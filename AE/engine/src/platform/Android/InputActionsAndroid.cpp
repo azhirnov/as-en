@@ -26,6 +26,9 @@ namespace AE::App
 */
 	void  InputActionsAndroid::Update (Duration_t timeSinceStart) __NE___
 	{
+		if_unlikely( _curMode == null )
+			return;
+
 		InputActionsBase::Update( timeSinceStart );
 
 		_gestureRecognizer.Update( timeSinceStart, *this );

@@ -10,7 +10,7 @@ target_compile_definitions( "HWPerfCounter-lib" INTERFACE "AE_ENABLE_HWPERCOUNTE
 
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	add_library( "Tests.HWPerfCounter" SHARED "tests/main.c" )
+	add_library( "Tests.HWPerfCounter" STATIC "tests/main.c" )
 	set_property( TARGET "Tests.HWPerfCounter" PROPERTY FOLDER "Engine/External/Tests" )
 	target_include_directories( "Tests.HWPerfCounter" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../AndroidTest" )
 	target_link_libraries( "Tests.HWPerfCounter" PUBLIC "HWPerfCounter-lib" )

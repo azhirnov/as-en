@@ -24,8 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VPipelineLayout::Create (VResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants,
-								   VkDescriptorSetLayout emptyLayout, StringView dbgName) __NE___
+	bool  VPipelineLayout::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		using VkDescriptorSetLayouts_t	= StaticArray< VkDescriptorSetLayout, GraphicsConfig::MaxDescriptorSets >;
 		using VkPushConstantRanges_t	= FixedArray< VkPushConstantRange, GraphicsConfig::MaxPushConstants >;
@@ -33,14 +32,14 @@ namespace AE::Graphics
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _layout == Default );
 
-		_descriptorSets	= descSetLayouts;
-		_pushConstants	= pushConstants;
+		_descriptorSets	= ci.descSetLayouts;
+		_pushConstants	= ci.pushConstants;
 
 		VkDescriptorSetLayouts_t	vk_layouts	= {};
 		VkPushConstantRanges_t		vk_ranges	= {};
 
 		for (auto& layout : vk_layouts) {
-			layout = emptyLayout;
+			layout = ci.emptyLayout;
 		}
 
 		uint	min_set = uint(vk_layouts.size());
@@ -49,7 +48,7 @@ namespace AE::Graphics
 		for (auto [name, ds] : _descriptorSets)
 		{
 			CHECK_ERR( ds.index.vkIndex != UMax );
-			CHECK_ERR( vk_layouts[ ds.index.vkIndex ] == emptyLayout );	// already set
+			CHECK_ERR( vk_layouts[ ds.index.vkIndex ] == ci.emptyLayout );	// already set
 
 			auto*	ds_layout = resMngr.GetResource( ds.layoutId );
 			CHECK_ERR( ds_layout != null );
@@ -81,9 +80,9 @@ namespace AE::Graphics
 
 		_firstDescSet = min_set;
 
-		dev.SetObjectName( _layout, dbgName, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
+		dev.SetObjectName( _layout, ci.dbgName, VK_OBJECT_TYPE_PIPELINE_LAYOUT );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.dbgName; )
 		return true;
 	}
 
@@ -108,7 +107,7 @@ namespace AE::Graphics
 		_layout			= Default;
 		_firstDescSet	= UMax;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -120,12 +119,12 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	iter = _descriptorSets.find( id );
+		auto	it = _descriptorSets.find( id );
 
-		if_likely( iter != _descriptorSets.end() )
+		if_likely( it != _descriptorSets.end() )
 		{
-			layout	= iter->second.layoutId;
-			binding	= iter->second.index;
+			layout	= it->second.layoutId;
+			binding	= it->second.index;
 			return true;
 		}
 

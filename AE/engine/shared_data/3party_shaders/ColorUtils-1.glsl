@@ -94,17 +94,17 @@ float3  HSVtoRGB_v2 (float3 hsv)
 	//      the operation simply amounts to performing a "rotate right" on the RGB components
 	//  . The base value to rotate is either (V, B, R) for even slices or (G, V, R) for odd slices
 	//
-	float   IsOddSlice = Mod( HueSliceInteger, 2.0 );                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
-	float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+	float   IsOddSlice = Mod( HueSliceInteger, 2.0 );							// 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+	float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);			// (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
 
-	float3  ScrollingRGBForEvenSlices = float3( hsv.z, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
-	float3  ScrollingRGBForOddSlices = float3( TempRGB.y, hsv.z, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+	float3  ScrollingRGBForEvenSlices = float3( hsv.z, TempRGB.zx );			// (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+	float3  ScrollingRGBForOddSlices = float3( TempRGB.y, hsv.z, TempRGB.x );	// (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
 	float3  ScrollingRGB = Lerp( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
 
-	float   IsNotFirstSlice = Saturate( ThreeSliceSelector );                   // 1 if NOT the first slice (true for slices 1 and 2)
-	float   IsNotSecondSlice = Saturate( ThreeSliceSelector-1.0 );              // 1 if NOT the first or second slice (true only for slice 2)
+	float   IsNotFirstSlice = Saturate( ThreeSliceSelector );					// 1 if NOT the first slice (true for slices 1 and 2)
+	float   IsNotSecondSlice = Saturate( ThreeSliceSelector-1.0 );				// 1 if NOT the first or second slice (true only for slice 2)
 
-	return  Lerp( ScrollingRGB.xyz, Lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+	return  Lerp( ScrollingRGB.xyz, Lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );	// Make the RGB rotate right depending on final slice index
 }
 
 /*

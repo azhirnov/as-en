@@ -135,8 +135,8 @@ namespace AE::Math
 			if constexpr( CountOf<Arg0, Args...>() == Columns )
 				_CopyColumns<0>( arg0, args... );
 			else
-				StaticAssert(  (CountOf<Arg0, Args...>() == Columns * Rows) or
-								(CountOf<Arg0, Args...>() == Columns) );
+				StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
+							  (CountOf<Arg0, Args...>() == Columns) );
 		}
 
 
@@ -337,8 +337,8 @@ namespace AE::Math
 			if constexpr( CountOf<Arg0, Args...>() == Rows )
 				_CopyRows<0>( arg0, args... );
 			else
-				StaticAssert(  (CountOf<Arg0, Args...>() == Columns * Rows) or
-								(CountOf<Arg0, Args...>() == Rows) );
+				StaticAssert( (CountOf<Arg0, Args...>() == Columns * Rows) or
+							  (CountOf<Arg0, Args...>() == Rows) );
 		}
 
 

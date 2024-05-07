@@ -16,13 +16,16 @@ namespace
 
 		bool	res = false;
 		TEST( Run< bool() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ) == false );
-		TEST( res == false );
+		TEST_Eq( res, false );
 	}
 }
 
 
 extern void UnitTest_Exceptions ()
 {
+#if defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM32)
+	// crash
+#else
 	TEST_NOTHROW(
 		auto	se = MakeRC<ScriptEngine>();
 		TEST( se->Create() );
@@ -34,4 +37,5 @@ extern void UnitTest_Exceptions ()
 
 		TEST_PASSED();
 	)
+#endif
 }

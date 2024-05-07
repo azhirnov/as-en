@@ -306,8 +306,8 @@ namespace
 */
 	uint  CpuPerformance::GetUsage (OUT float* user, OUT float* kernel, const uint maxCount) __NE___
 	{
-		ASSERT( user != null );
-		ASSERT( kernel != null );
+		NonNull( user );
+		NonNull( kernel );
 
 		auto&	ntdll = Ntdll();
 		if ( ntdll.fnQuerySystemInformation == null )
@@ -320,9 +320,10 @@ namespace
 
 		for (uint i = 0, cnt = Min( ntdll.coreCount, maxCount ); i < cnt; ++i)
 		{
-			LONGLONG	idle_time	= next[i].IdleTime   - prev[i].IdleTime;
-			LONGLONG	kernel_time	= next[i].KernelTime - prev[i].KernelTime;
-			LONGLONG	user_time	= next[i].UserTime   - prev[i].UserTime;
+			LONGLONG	idle_time	= next[i].IdleTime		- prev[i].IdleTime;
+			LONGLONG	kernel_time	= next[i].KernelTime	- prev[i].KernelTime;
+						kernel_time	= Max( kernel_time, idle_time ) - idle_time;
+			LONGLONG	user_time	= next[i].UserTime		- prev[i].UserTime;
 			LONGLONG	total_time	= idle_time + kernel_time + user_time;
 
 			user[i]		= float(user_time) / float(total_time);

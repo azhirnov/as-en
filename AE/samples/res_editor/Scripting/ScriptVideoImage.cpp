@@ -18,6 +18,7 @@ namespace
 
 } // namespace
 
+	using namespace AE::Threading;
 
 /*
 =================================================
@@ -33,11 +34,26 @@ namespace
 			"File '"s << filename << "' is not exists" );
 
 		if ( _dbgName.empty() )
-			_dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
+			_dbgName = Path{filename}.stem().string().substr( 0, ResNameMaxLen );
 
 		_resUsage |= EResourceUsage::UploadedData;
 
 		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ new DynamicDim{ uint3{}, EImageDim_2D } }};
+
+		_videoInfo = MakePromise(
+			[fname = _videoFile] () -> PromiseResult< VideoStreamInfo >
+			{
+				auto	rstream = GetVFS().Open<RStream>( fname );
+				CHECK_PE( rstream );
+
+				auto	decoder = Video::VideoFactory::CreateFFmpegDecoder();
+				CHECK_PE( decoder );
+
+				return decoder->GetFileProperties( RVRef(rstream), VideoImage::GetHwConfig() ).videoStream;
+			},
+			Tuple{},
+			"async read video props",
+			ETaskQueue::Background );
 	}
 
 /*
@@ -48,7 +64,7 @@ namespace
 	ScriptVideoImage::~ScriptVideoImage ()
 	{
 		if ( IsNullUnion( _resource ))
-			AE_LOG_SE( "Unused VideoImage '"s << _dbgName << "'" );
+			AE_LOGW( "Unused VideoImage '"s << _dbgName << "'" );
 	}
 
 /*
@@ -195,6 +211,7 @@ namespace
 		ImageDesc	desc;
 		desc.imageDim	= EImageDim_2D;
 		desc.format		= _format;
+		desc.dimension	= uint3{ _dim, 1 };
 
 		CHECK_ERR( _resUsage != Default );
 		for (auto usage : BitfieldIterate( _resUsage ))
@@ -228,13 +245,19 @@ namespace
 
 		Renderer&	renderer = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
+		VideoStreamInfo		video_stream_info;
+		CHECK_ERR( _videoInfo.WithResult( [&video_stream_info] (const VideoStreamInfo &info){ video_stream_info = info; }));
+
+		_outDynSize->Get()->Resize( video_stream_info.dimension );
+
 		if ( HasYcbcrSampler() )
 		{
 			CHECK_THROW_MSG( not _ycbcrSampName.empty() );
-			_resource = MakeRCTh<VideoImage2>( renderer, desc, _videoFile, _outDynSize->Get(), SamplerName{_ycbcrSampName}, packId, _dbgName );
+			_resource = MakeRCTh<VideoImage2>( renderer, desc, _videoFile, _outDynSize->Get(),
+											   SamplerName{_ycbcrSampName}, video_stream_info, packId, _dbgName );
 		}
 		else{
-			_resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), _dbgName );
+			_resource = MakeRCTh<VideoImage>( renderer, desc, _videoFile, _outDynSize->Get(), video_stream_info, _dbgName );
 		}
 		return _resource;
 	}
@@ -246,12 +269,34 @@ namespace
 */
 	void  ScriptVideoImage::Validate (String sampName) __Th___
 	{
+		CHECK_THROW( Scheduler().Wait( {AsyncTask{_videoInfo}}, EThreadArray{EThread::Background}, seconds{1} ));
+
 		if ( HasYcbcrSampler() )
 		{
-			_CreateYcbcrSampler( sampName );
+			_videoInfo.WithResult(
+				[this] (const VideoStreamInfo &info)
+				{
+					CHECK_THROW( info.IsValid() );
+
+					_format	= info.pixFormat;
+					_dim	= info.dimension;
+
+					_ycbcrDesc.format			= info.pixFormat;
+					_ycbcrDesc.xChromaOffset	= (_ycbcrDesc.xChromaOffset != Default ? _ycbcrDesc.xChromaOffset : info.xChromaOffset);
+					_ycbcrDesc.yChromaOffset	= (_ycbcrDesc.yChromaOffset != Default ? _ycbcrDesc.yChromaOffset : info.yChromaOffset);
+					_ycbcrDesc.ycbcrRange		= (_ycbcrDesc.ycbcrRange != Default ? _ycbcrDesc.ycbcrRange : info.ycbcrRange);
+				});
+
+			_CreateYcbcrSampler( RVRef(sampName) );
 		}
 		else
 		{
+			_videoInfo.WithResult(
+				[this] (const VideoStreamInfo &info)
+				{
+					_dim = info.dimension;
+				});
+
 			CHECK_THROW_MSG( not IsNullUnion( ToResource( Default )));
 		}
 	}

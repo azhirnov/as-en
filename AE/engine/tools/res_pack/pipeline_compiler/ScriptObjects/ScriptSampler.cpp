@@ -54,16 +54,15 @@ namespace
 		SetMipLodBias( desc.mipLodBias );
 		SetLodRange( desc.minLod, desc.maxLod );
 
-		if ( desc.maxAnisotropy.has_value() )
-			SetAnisotropy( *desc.maxAnisotropy );
+		if ( desc.HasAnisotropy() )
+			SetAnisotropy( desc.maxAnisotropy );
 
 		if ( desc.compareOp.has_value() )
 			SetCompareOp( *desc.compareOp );
 
 		SetBorderColor( desc.borderColor );
-		SetNormCoordinates( not desc.unnormalizedCoordinates );
 		SetReductionMode( desc.reductionMode );
-		SetUsage( desc.usage );
+		SetOptions( desc.options );
 	}
 
 /*
@@ -202,7 +201,18 @@ namespace
 			_desc.maxAnisotropy = value;
 		}
 		else
-			_desc.maxAnisotropy = NullOptional;
+			_desc.maxAnisotropy = 0.f;
+	}
+
+	bool  ScriptSampler::TrySetAnisotropy (float value) __Th___
+	{
+		try {
+			SetAnisotropy( value );
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
 	}
 
 /*
@@ -231,16 +241,6 @@ namespace
 
 /*
 =================================================
-	SetNormCoordinates
-=================================================
-*/
-	void  ScriptSampler::SetNormCoordinates (bool value) __Th___
-	{
-		_desc.unnormalizedCoordinates = not value;
-	}
-
-/*
-=================================================
 	SetReductionMode
 =================================================
 */
@@ -257,14 +257,19 @@ namespace
 
 /*
 =================================================
-	SetUsage
+	SetOptions
 =================================================
 */
-	void  ScriptSampler::SetUsage (ESamplerUsage value) __Th___
+	void  ScriptSampler::SetOptions (ESamplerOpt value) __Th___
 	{
-		CHECK_THROW_MSG( value < ESamplerUsage::_Count );
+		CHECK_THROW_MSG( value == Default or AnyBits( ESamplerOpt::All, value ));
 
-		_desc.usage = value;
+		_desc.options = value;
+	}
+
+	void  ScriptSampler::SetOptions2 (uint value) __Th___
+	{
+		SetOptions( ESamplerOpt(value) );
 	}
 
 /*
@@ -434,6 +439,7 @@ namespace
 
 			binder.Comment( "Set anisotropy level." );
 			binder.AddMethod( &ScriptSampler::SetAnisotropy,		"Anisotropy",		{"level"} );
+			binder.AddMethod( &ScriptSampler::TrySetAnisotropy,		"TrySetAnisotropy",	{"level"} );
 
 			binder.Comment( "Set compare operator." );
 			binder.AddMethod( &ScriptSampler::SetCompareOp,			"CompareOp",		{"op"} );
@@ -441,16 +447,13 @@ namespace
 			binder.Comment( "Set border color." );
 			binder.AddMethod( &ScriptSampler::SetBorderColor,		"BorderColor",		{"color"} );
 
-			binder.Comment( "Use normalized coordinates.\n"
-							"Default is 'true'. Set 'false' to use pixel coordinates." );
-			binder.AddMethod( &ScriptSampler::SetNormCoordinates,	"NormCoordinates",	{"norm"} );
-
 			binder.Comment( "Set reduction mode.\n"
 							"Requires 'samplerFilterMinmax' feature. Default value is 'Average'." );
 			binder.AddMethod( &ScriptSampler::SetReductionMode,		"ReductionMode",	{"mode"} );
 
-			binder.Comment( "Set sampler usage." );
-			binder.AddMethod( &ScriptSampler::SetUsage,				"Usage",			{} );
+			binder.Comment( "Set sampler options." );
+			binder.AddMethod( &ScriptSampler::SetOptions,			"Options",			{} );
+			binder.AddMethod( &ScriptSampler::SetOptions2,			"Options",			{} );
 
 
 			// samplerYcbcrConversion
@@ -495,7 +498,7 @@ namespace
 
 		bool	result = true;
 
-		if ( _desc.unnormalizedCoordinates )
+		if ( _desc.UnnormalizedCoordinates() )
 		{
 			if ( _desc.minFilter != _desc.magFilter )
 			{
@@ -529,10 +532,10 @@ namespace
 				_desc.addressMode.y = EAddressMode::ClampToEdge;
 			}
 
-			if ( _desc.maxAnisotropy.has_value() )
+			if ( _desc.HasAnisotropy() )
 			{
 				SLOG( "anisotropy filter for unnormalized coordinates is not supported" );
-				_desc.maxAnisotropy = {};
+				_desc.maxAnisotropy = 0.f;
 			}
 
 			if ( _desc.compareOp.has_value() )
@@ -582,13 +585,12 @@ namespace
 	{
 		HashVal	result;
 
-		result << HashOf( _desc.usage );
+		result << HashOf( _desc.options );
 		result << HashOf( _desc.magFilter ) << HashOf( _desc.minFilter ) << HashOf( _desc.mipmapMode );
 		result << HashOf( _desc.addressMode );
 		result << HashOf( _desc.mipLodBias ) << HashOf( _desc.minLod ) << HashOf( _desc.maxLod );
 		result << HashOf( _desc.maxAnisotropy ) << HashOf( _desc.compareOp );
 		result << HashOf( _desc.borderColor );
-		result << HashOf( _desc.unnormalizedCoordinates );
 		result << HashOf( _desc.reductionMode );
 
 		if ( _hasYcbcr )

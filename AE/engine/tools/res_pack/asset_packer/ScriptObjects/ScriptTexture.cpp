@@ -250,11 +250,11 @@ namespace {
 	{
 		CHECK_THROW_MSG( _imgData );
 
-		auto	wmem = MakeRC<MemWStream>();
+		auto	wmem = MakeRC<ArrayWStream>();
 		CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
 
-		auto	rmem = wmem->ToRStream();
-		ObjectStorage::Instance()->AddToArchive( nameInArchive, *rmem, EArchivePackerFileType::Raw ); // throw
+		MemRefRStream	rmem {wmem->GetData()};
+		ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
 
 		ASSERT( not _imgData );
 	}

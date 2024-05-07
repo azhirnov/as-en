@@ -6,22 +6,58 @@
 # include "graphics/Private/EnumUtils.h"
 # include "video/Public/Common.h"
 # include "video/FFmpeg/FFmpegLoader.h"
-# include "video/Impl/EnumToString.cpp.h"
+# include "video/Private/EnumToString.cpp.h"
 
 namespace AE::Video
 {
+	using namespace AE::Graphics;
+
+/*
+=================================================
+	IsVideoCodec / IsAudioCodec
+=================================================
+*/
+	ND_ inline bool  IsVideoCodec (AVCodecID codec) __NE___
+	{
+		return codec < AV_CODEC_ID_FIRST_AUDIO;
+	}
+
+	ND_ inline bool  IsAudioCodec (AVCodecID codec) __NE___
+	{
+		return	codec >= AV_CODEC_ID_FIRST_AUDIO	and
+				codec <  AV_CODEC_ID_FIRST_SUBTITLE;
+	}
+
+/*
+=================================================
+	CorrectPixFormat
+=================================================
+*/
+	ND_ inline AVPixelFormat  CorrectPixFormat (AVPixelFormat src) __NE___
+	{
+		switch ( src )
+		{
+			// Fix swscaler deprecated pixel format warning
+			// (YUVJ has been deprecated, change pixel format to regular YUV)
+			case AV_PIX_FMT_YUVJ420P :	return AV_PIX_FMT_YUV420P;
+			case AV_PIX_FMT_YUVJ422P :	return AV_PIX_FMT_YUV422P;
+			case AV_PIX_FMT_YUVJ444P :	return AV_PIX_FMT_YUV444P;
+			case AV_PIX_FMT_YUVJ440P :	return AV_PIX_FMT_YUV440P;
+			default :					return src;
+		}
+	}
 
 /*
 =================================================
 	ToAVRational
 =================================================
 */
-	ND_ inline AVRational  ToAVRational (FractionalI fact)
+	ND_ inline AVRational  ToAVRational (FractionalI fact) __NE___
 	{
 		return AVRational{ fact.num, fact.den };
 	}
 
-	ND_ inline AVRational  ToAVRationalRec (FractionalI fact)
+	ND_ inline AVRational  ToAVRationalRec (FractionalI fact) __NE___
 	{
 		return AVRational{ fact.den, fact.num };
 	}
@@ -31,9 +67,46 @@ namespace AE::Video
 	ToFractional
 =================================================
 */
-	ND_ inline FractionalI  ToFractional (AVRational rational)
+	ND_ inline FractionalI  ToFractional (AVRational rational) __NE___
 	{
 		return FractionalI{ rational.num, rational.den };
+	}
+
+/*
+=================================================
+	PTStoFrameIndex
+=================================================
+*/
+	ND_ inline ulong  PTStoFrameIndex (const AVStream* stream, slong pts) __NE___
+	{
+		return (pts * stream->r_frame_rate.num * stream->time_base.num) / (stream->r_frame_rate.den * stream->time_base.den);
+	}
+
+/*
+=================================================
+	FrameIndexToPTS
+=================================================
+*/
+	ND_ inline slong  FrameIndexToPTS (const AVStream* stream, ulong frameIdx) __NE___
+	{
+		return (frameIdx * stream->r_frame_rate.den * stream->time_base.den) / (stream->r_frame_rate.num * stream->time_base.num);
+	}
+
+/*
+=================================================
+	TimestampToPTS
+=================================================
+*/
+	using Seconds_t = DefaultPhysicalQuantity<double>::Second;
+
+	ND_ inline slong  TimestampToPTS (const AVStream* stream, int64_t formatCtxDuration, Seconds_t) __NE___
+	{
+		const auto	duration1	= Seconds_t{formatCtxDuration * av_q2d(AVRational{1, AV_TIME_BASE})};
+		const auto	duration	= stream->duration > 0 ? Seconds_t{ stream->duration * av_q2d( stream->time_base )} : duration1;
+
+		//const auto	factor		= timestamp.GetNonScaled() / duration.GetNonScaled();
+
+		return 0;	// TODO
 	}
 
 /*
@@ -41,30 +114,70 @@ namespace AE::Video
 	EnumCast (EVideoFormat)
 =================================================
 */
-	ND_ inline AVPixelFormat  EnumCast (EVideoFormat fmt)
+	#define AE_VIDEO_FORMAT_TO_FFMPEG( _builder_ )\
+		_builder_( YUV420P,		AV_PIX_FMT_YUV420P		)\
+		_builder_( YUV422P,		AV_PIX_FMT_YUV422P		)\
+		_builder_( YUV444P,		AV_PIX_FMT_YUV444P		)\
+		\
+		_builder_( YUYV422,		AV_PIX_FMT_YUYV422		)\
+		_builder_( UYVY422,		AV_PIX_FMT_UYVY422		)\
+		_builder_( Y210,		AV_PIX_FMT_Y210LE		)\
+		_builder_( Y212,		AV_PIX_FMT_Y212LE		)\
+		_builder_( XV30,		AV_PIX_FMT_XV30LE		)\
+		_builder_( XV36,		AV_PIX_FMT_XV36LE		)\
+		\
+		_builder_( YUV420P10,	AV_PIX_FMT_YUV420P10LE	)\
+		_builder_( YUV422P10,	AV_PIX_FMT_YUV422P10LE	)\
+		_builder_( YUV444P10,	AV_PIX_FMT_YUV444P10LE	)\
+		_builder_( YUV420P12,	AV_PIX_FMT_YUV420P12LE	)\
+		_builder_( YUV422P12,	AV_PIX_FMT_YUV422P12LE	)\
+		_builder_( YUV444P12,	AV_PIX_FMT_YUV444P12LE	)\
+		_builder_( YUV420P16,	AV_PIX_FMT_YUV420P16LE	)\
+		_builder_( YUV422P16,	AV_PIX_FMT_YUV422P16LE	)\
+		_builder_( YUV444P16,	AV_PIX_FMT_YUV444P16LE	)\
+		\
+		_builder_( YUVA420P,	AV_PIX_FMT_YUVA420P		)\
+		_builder_( YUVA422P,	AV_PIX_FMT_YUVA422P		)\
+		_builder_( YUVA444P,	AV_PIX_FMT_YUVA444P		)\
+		_builder_( YUVA420P10,	AV_PIX_FMT_YUVA420P10LE	)\
+		_builder_( YUVA422P10,	AV_PIX_FMT_YUVA422P10LE	)\
+		_builder_( YUVA444P10,	AV_PIX_FMT_YUVA444P10LE	)\
+		_builder_( YUVA420P16,	AV_PIX_FMT_YUVA420P16LE	)\
+		_builder_( YUVA422P16,	AV_PIX_FMT_YUVA422P16LE	)\
+		_builder_( YUVA444P16,	AV_PIX_FMT_YUVA444P16LE	)\
+		\
+		_builder_( NV12,		AV_PIX_FMT_NV12			)\
+		_builder_( P010,		AV_PIX_FMT_P010LE		)\
+		_builder_( P012,		AV_PIX_FMT_P012LE		)\
+		_builder_( P016,		AV_PIX_FMT_P016LE		)\
+		\
+		_builder_( NV16,		AV_PIX_FMT_NV16			)\
+		_builder_( P210,		AV_PIX_FMT_P210LE		)\
+		_builder_( P212,		AV_PIX_FMT_P212LE		)\
+		_builder_( P216,		AV_PIX_FMT_P216LE		)\
+		\
+		_builder_( NV24,		AV_PIX_FMT_NV24			)\
+		_builder_( P410,		AV_PIX_FMT_P410LE		)\
+		_builder_( P412,		AV_PIX_FMT_P412LE		)\
+		_builder_( P416,		AV_PIX_FMT_P416LE		)\
+		\
+		_builder_( NV21,		AV_PIX_FMT_NV21			)\
+		_builder_( NV42,		AV_PIX_FMT_NV42			)\
+		_builder_( NV20,		AV_PIX_FMT_NV20LE		)\
+		\
+		_builder_( BGR0,		AV_PIX_FMT_BGR0			)\
+		_builder_( BGRA,		AV_PIX_FMT_BGRA			)\
+		_builder_( RGB0,		AV_PIX_FMT_RGB0			)\
+		_builder_( RGBA,		AV_PIX_FMT_RGBA			)
+
+
+	ND_ inline AVPixelFormat  EnumCast (EVideoFormat fmt) __NE___
 	{
 		switch_enum( fmt )
 		{
-			case EVideoFormat::YUV420P :		return AV_PIX_FMT_YUV420P;
-			case EVideoFormat::YUV422P :		return AV_PIX_FMT_YUV422P;
-			case EVideoFormat::YUV444P :		return AV_PIX_FMT_YUV444P;
-			case EVideoFormat::YUV420P10LE :	return AV_PIX_FMT_YUV420P10LE;
-			case EVideoFormat::YUV422P10LE :	return AV_PIX_FMT_YUV422P10LE;
-			case EVideoFormat::YUV444P10LE :	return AV_PIX_FMT_YUV444P10LE;
-			case EVideoFormat::YUV420P12LE :	return AV_PIX_FMT_YUV420P12LE;
-			case EVideoFormat::YUV422P12LE :	return AV_PIX_FMT_YUV422P12LE;
-			case EVideoFormat::YUV444P12LE :	return AV_PIX_FMT_YUV444P12LE;
-			case EVideoFormat::YUV420P16LE :	return AV_PIX_FMT_YUV420P16LE;
-			case EVideoFormat::YUV422P16LE :	return AV_PIX_FMT_YUV422P16LE;
-			case EVideoFormat::YUV444P16LE :	return AV_PIX_FMT_YUV444P16LE;
-			case EVideoFormat::YUVA444P16LE :	return AV_PIX_FMT_YUVA444P16LE;
-			case EVideoFormat::NV12 :			return AV_PIX_FMT_NV12;
-			case EVideoFormat::NV21 :			return AV_PIX_FMT_NV21;
-			case EVideoFormat::NV16 :			return AV_PIX_FMT_NV16;
-			case EVideoFormat::NV24 :			return AV_PIX_FMT_NV24;
-			case EVideoFormat::NV42 :			return AV_PIX_FMT_NV42;
-			case EVideoFormat::NV20LE :			return AV_PIX_FMT_NV20LE;
-			case EVideoFormat::P010LE :			return AV_PIX_FMT_P010LE;
+			#define ENUM( _name_, _ffmpeg_name_ )	case EVideoFormat::_name_ :  return _ffmpeg_name_;
+			AE_VIDEO_FORMAT_TO_FFMPEG( ENUM )
+			#undef ENUM
 			case EVideoFormat::Unknown :
 			case EVideoFormat::_Count :			break;
 		}
@@ -77,32 +190,17 @@ namespace AE::Video
 	EnumCast (AVPixelFormat)
 =================================================
 */
-	ND_ inline EVideoFormat  EnumCast (AVPixelFormat fmt)
+	ND_ inline EVideoFormat  EnumCast (AVPixelFormat fmt) __NE___
 	{
-		StaticAssert( uint(EVideoFormat::_Count) == 20 );
 		switch ( fmt )
 		{
-			case AV_PIX_FMT_YUV420P :			return EVideoFormat::YUV420P;
-			case AV_PIX_FMT_YUVJ420P :			return EVideoFormat::YUV420P;
-			case AV_PIX_FMT_YUV422P :			return EVideoFormat::YUV422P;
-			case AV_PIX_FMT_YUV444P :			return EVideoFormat::YUV444P;
-			case AV_PIX_FMT_YUV420P10LE :		return EVideoFormat::YUV420P10LE;
-			case AV_PIX_FMT_YUV422P10LE :		return EVideoFormat::YUV422P10LE;
-			case AV_PIX_FMT_YUV444P10LE :		return EVideoFormat::YUV444P10LE;
-			case AV_PIX_FMT_YUV420P12LE :		return EVideoFormat::YUV420P12LE;
-			case AV_PIX_FMT_YUV422P12LE :		return EVideoFormat::YUV422P12LE;
-			case AV_PIX_FMT_YUV444P12LE :		return EVideoFormat::YUV444P12LE;
-			case AV_PIX_FMT_YUV420P16LE :		return EVideoFormat::YUV420P16LE;
-			case AV_PIX_FMT_YUV422P16LE :		return EVideoFormat::YUV422P16LE;
-			case AV_PIX_FMT_YUV444P16LE :		return EVideoFormat::YUV444P16LE;
-			case AV_PIX_FMT_YUVA444P16LE :		return EVideoFormat::YUVA444P16LE;
-			case AV_PIX_FMT_NV12 :				return EVideoFormat::NV12;
-			case AV_PIX_FMT_NV21 :				return EVideoFormat::NV21;
-			case AV_PIX_FMT_NV16 :				return EVideoFormat::NV16;
-			case AV_PIX_FMT_NV24 :				return EVideoFormat::NV24;
-			case AV_PIX_FMT_NV42 :				return EVideoFormat::NV42;
-			case AV_PIX_FMT_NV20LE :			return EVideoFormat::NV20LE;
-			case AV_PIX_FMT_P010LE :			return EVideoFormat::P010LE;
+			case AV_PIX_FMT_YUVJ420P :	return EVideoFormat::YUV420P;
+			case AV_PIX_FMT_YUVJ422P :	return EVideoFormat::YUV422P;
+			case AV_PIX_FMT_YUVJ444P :	return EVideoFormat::YUV444P;
+
+			#define ENUM( _name_, _ffmpeg_name_ )	case _ffmpeg_name_ : return EVideoFormat::_name_;
+			AE_VIDEO_FORMAT_TO_FFMPEG( ENUM )
+			#undef ENUM
 		}
 		return Default;
 	}
@@ -112,45 +210,9 @@ namespace AE::Video
 	PixelFormatCast (EPixelFormat)
 =================================================
 */
-	ND_ inline AVPixelFormat  PixelFormatCast (EPixelFormat fmt)
+	ND_ inline AVPixelFormat  PixelFormatCast (EPixelFormat fmt) __NE___
 	{
-		switch ( fmt )
-		{
-			case EPixelFormat::RGB8_UNorm :
-			case EPixelFormat::sRGB8 :						return AV_PIX_FMT_RGB24;
-
-			case EPixelFormat::RGBA8_UNorm :
-			case EPixelFormat::sRGB8_A8 :					return AV_PIX_FMT_RGB0;		// AV_PIX_FMT_RGBA
-
-			case EPixelFormat::BGR8_UNorm :
-			case EPixelFormat::sBGR8 :						return AV_PIX_FMT_BGR24;
-
-			case EPixelFormat::BGRA8_UNorm :
-			case EPixelFormat::sBGR8_A8 :					return AV_PIX_FMT_BGR0;		// AV_PIX_FMT_BGRA
-
-			case EPixelFormat::RGB16_UNorm :				return AV_PIX_FMT_RGB48BE;
-			case EPixelFormat::RGBA16_UNorm :				return AV_PIX_FMT_RGBA64BE;
-
-			case EPixelFormat::G8_B8_R8_420_UNorm :			return AV_PIX_FMT_YUV420P;
-			case EPixelFormat::G8_B8_R8_422_UNorm :			return AV_PIX_FMT_YUV422P;
-			case EPixelFormat::G8_B8_R8_444_UNorm :			return AV_PIX_FMT_YUV444P;
-
-			case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm:	return AV_PIX_FMT_YUV420P10LE;
-			case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm:	return AV_PIX_FMT_YUV422P10LE;
-			case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm:	return AV_PIX_FMT_YUV444P10LE;
-
-			case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm:	return AV_PIX_FMT_YUV420P12LE;
-			case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm:	return AV_PIX_FMT_YUV422P12LE;
-			case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm:	return AV_PIX_FMT_YUV444P12LE;
-
-			case EPixelFormat::G16_B16_R16_420_UNorm :		return AV_PIX_FMT_YUV420P16LE;
-			case EPixelFormat::G16_B16_R16_422_UNorm :		return AV_PIX_FMT_YUV422P16LE;
-			case EPixelFormat::G16_B16_R16_444_UNorm :		return AV_PIX_FMT_YUV444P16LE;
-
-			case EPixelFormat::G8B8G8R8_422_UNorm :			return AV_PIX_FMT_YUYV422;
-			case EPixelFormat::B8G8R8G8_422_UNorm :			return AV_PIX_FMT_YVYU422;
-		}
-		return AV_PIX_FMT_NONE;
+		return EnumCast( PixelFormatToVideoFormat( fmt ));
 	}
 
 /*
@@ -158,33 +220,9 @@ namespace AE::Video
 	PixelFormatCast (AVPixelFormat)
 =================================================
 */
-	ND_ inline EPixelFormat  PixelFormatCast (AVPixelFormat fmt)
+	ND_ inline EPixelFormat  PixelFormatCast (AVPixelFormat fmt) __NE___
 	{
-		switch ( fmt )
-		{
-			case AV_PIX_FMT_RGB48BE :		return EPixelFormat::RGB16_UNorm;
-			case AV_PIX_FMT_RGBA64BE :		return EPixelFormat::RGBA16_UNorm;
-
-			case AV_PIX_FMT_YUV420P :		return EPixelFormat::G8_B8_R8_420_UNorm;
-			case AV_PIX_FMT_YUV422P :		return EPixelFormat::G8_B8_R8_422_UNorm;
-			case AV_PIX_FMT_YUV444P :		return EPixelFormat::G8_B8_R8_444_UNorm;
-
-			case AV_PIX_FMT_YUV420P10LE :	return EPixelFormat::G10x6_B10x6_R10x6_420_UNorm;
-			case AV_PIX_FMT_YUV422P10LE :	return EPixelFormat::G10x6_B10x6_R10x6_422_UNorm;
-			case AV_PIX_FMT_YUV444P10LE :	return EPixelFormat::G10x6_B10x6_R10x6_444_UNorm;
-
-			case AV_PIX_FMT_YUV420P12LE :	return EPixelFormat::G12x4_B12x4_R12x4_420_UNorm;
-			case AV_PIX_FMT_YUV422P12LE :	return EPixelFormat::G12x4_B12x4_R12x4_422_UNorm;
-			case AV_PIX_FMT_YUV444P12LE :	return EPixelFormat::G12x4_B12x4_R12x4_444_UNorm;
-
-			case AV_PIX_FMT_YUV420P16LE :	return EPixelFormat::G16_B16_R16_420_UNorm;
-			case AV_PIX_FMT_YUV422P16LE :	return EPixelFormat::G16_B16_R16_422_UNorm;
-			case AV_PIX_FMT_YUV444P16LE :	return EPixelFormat::G16_B16_R16_444_UNorm;
-
-			case AV_PIX_FMT_YUYV422 :		return EPixelFormat::G8B8G8R8_422_UNorm;
-			case AV_PIX_FMT_YVYU422 :		return EPixelFormat::B8G8R8G8_422_UNorm;
-		}
-		return Default;
+		return VideoFormatToPixelFormat( EnumCast( fmt ), 3 );
 	}
 
 /*
@@ -192,7 +230,7 @@ namespace AE::Video
 	EnumCast (EFilter)
 =================================================
 */
-	ND_ inline int  EnumCast (EFilter value)
+	ND_ inline int  EnumCast (EFilter value) __NE___
 	{
 		StaticAssert( uint(EFilter::_Count) == 3 );
 		switch ( value )
@@ -211,7 +249,7 @@ namespace AE::Video
 	EnumCast (AVMediaType)
 =================================================
 */
-	ND_ inline EMediaType  EnumCast (AVMediaType value)
+	ND_ inline EMediaType  EnumCast (AVMediaType value) __NE___
 	{
 		StaticAssert( uint(EMediaType::_Count) == 2 );
 		switch ( value )
@@ -227,19 +265,70 @@ namespace AE::Video
 	EnumCast (AVCodecID)
 =================================================
 */
-	ND_ inline EVideoCodec  EnumCast (AVCodecID value)
+	ND_ inline EVideoCodec  EnumCast (AVCodecID value) __NE___
 	{
 		StaticAssert( uint(EVideoCodec::_Count) == 8 );
 		switch ( value )
 		{
-			case AV_CODEC_ID_GIF :		return EVideoCodec::GIF;
 			case AV_CODEC_ID_MPEG4 :	return EVideoCodec::MPEG4;
 			case AV_CODEC_ID_H264 :		return EVideoCodec::H264;
 			case AV_CODEC_ID_H265 :		return EVideoCodec::H265;
+			case AV_CODEC_ID_H266 :		return EVideoCodec::H266;
 			case AV_CODEC_ID_WEBP :		return EVideoCodec::WEBP;
 			case AV_CODEC_ID_VP8 :		return EVideoCodec::VP8;
 			case AV_CODEC_ID_VP9 :		return EVideoCodec::VP9;
 			case AV_CODEC_ID_AV1 :		return EVideoCodec::AV1;
+		}
+		return Default;
+	}
+
+/*
+=================================================
+	EnumCast (EVideoCodec)
+=================================================
+*/
+	ND_ inline AVCodecID  EnumCast (EVideoCodec value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EVideoCodec::MPEG4 :	return AV_CODEC_ID_MPEG4;
+			case EVideoCodec::H264 :	return AV_CODEC_ID_H264;
+			case EVideoCodec::H265 :	return AV_CODEC_ID_H265;
+			case EVideoCodec::H266 :	return AV_CODEC_ID_H266;
+			case EVideoCodec::WEBP :	return AV_CODEC_ID_WEBP;
+			case EVideoCodec::VP8 :		return AV_CODEC_ID_VP8;
+			case EVideoCodec::VP9 :		return AV_CODEC_ID_VP9;
+			case EVideoCodec::AV1 :		return AV_CODEC_ID_AV1;
+
+			case EVideoCodec::_Count :
+			case EVideoCodec::Unknown :
+			default :					break;
+		}
+		switch_end
+		return AV_CODEC_ID_NONE;
+	}
+
+/*
+=================================================
+	PixFmtToString
+=================================================
+*/
+	ND_ inline StringView	PixFmtToString (AVPixelFormat fmt) __NE___
+	{
+		switch ( fmt )
+		{
+			case AV_PIX_FMT_CUDA :			return "CUDA";
+			case AV_PIX_FMT_VIDEOTOOLBOX :	return "VideoToolBox";
+			case AV_PIX_FMT_MEDIACODEC :	return "MediaCodec";
+			case AV_PIX_FMT_VAAPI :			return "VAAPI";
+			case AV_PIX_FMT_D3D11 :			return "D3D11";
+			case AV_PIX_FMT_OPENCL :		return "OpenCL";
+			case AV_PIX_FMT_DRM_PRIME :		return "DRM";
+			case AV_PIX_FMT_VULKAN :		return "Vulkan";
+			case AV_PIX_FMT_DXVA2_VLD :		return "DXVA2_VLD";
+			case AV_PIX_FMT_VDPAU :			return "VDPAU";
+			case AV_PIX_FMT_QSV :			return "QSV";
+			case AV_PIX_FMT_MMAL :			return "MMAL";
 		}
 		return Default;
 	}
@@ -258,7 +347,7 @@ namespace AE::Video
 									   AVColorPrimaries					colorPrimaries,
 									   AVColorTransferCharacteristic	colorTrc,
 									   AVColorSpace						colorSpace,
-									   AVChromaLocation					)
+									   AVChromaLocation					) __NE___
 	{
 		//ASSERT( chromaLocation == AVCHROMA_LOC_UNSPECIFIED	or
 		//		chromaLocation == AVCHROMA_LOC_LEFT			or
@@ -319,7 +408,7 @@ namespace AE::Video
 								OUT AVColorPrimaries				&colorPrimaries,
 								OUT AVColorTransferCharacteristic	&colorTrc,
 								OUT AVColorSpace					&colorSpace,
-								OUT AVChromaLocation				&chromaLocation)
+								OUT AVChromaLocation				&chromaLocation) __NE___
 	{
 		switch_enum( preset )
 		{
@@ -399,7 +488,7 @@ namespace AE::Base
 	ToString (AVMediaType)
 =================================================
 */
-	ND_ inline StringView  ToString (AVMediaType value)
+	ND_ inline StringView  ToString (AVMediaType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -421,14 +510,14 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_CFG_RELEASE
-	ND_ inline StringView  ToString (AVPixelFormat value)
+	ND_ inline StringView  ToString (AVPixelFormat value) __NE___
 	{
 		return ToString( Video::EnumCast( value ));
 	}
 
 #else
 
-	ND_ inline StringView  ToString (AVPixelFormat value)
+	ND_ inline StringView  ToString (AVPixelFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -623,7 +712,7 @@ namespace AE::Base
 			case AV_PIX_FMT_YUVA444P12BE :		return "YUVA444P12BE  - planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), 12b alpha, big-endian";
 			case AV_PIX_FMT_YUVA444P12LE :		return "YUVA444P12LE  - planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), 12b alpha, little-endian";
 			case AV_PIX_FMT_NV24 :				return "NV24  - planar YUV 4:4:4, 24bpp, 1 plane for Y and 1 plane for the UV components, which are interleaved (first byte U and the following byte V)";
-			case AV_PIX_FMT_NV42 :				return "NV42";
+			case AV_PIX_FMT_NV42 :				return "NV42  - as NV24, but U and V bytes are swapped";
 			case AV_PIX_FMT_VULKAN :			return "VULKAN";
 			case AV_PIX_FMT_Y210BE :			return "Y210BE  - packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, big-endian";
 			case AV_PIX_FMT_Y210LE :			return "Y210LE  - packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, little-endian";
@@ -639,6 +728,28 @@ namespace AE::Base
 			case AV_PIX_FMT_P216LE :			return "P216LE  - interleaved chroma YUV 4:2:2, 32bpp, little-endian";
 			case AV_PIX_FMT_P416BE :			return "P416BE  - interleaved chroma YUV 4:4:4, 48bpp, big-endian";
 			case AV_PIX_FMT_P416LE :			return "P416LE  - interleaved chroma YUV 4:4:4, 48bpp, little-endian";
+			case AV_PIX_FMT_VUYA :				return "VUYA  - packed VUYA 4:4:4, 32bpp, VUYAVUYA";
+			case AV_PIX_FMT_RGBAF16BE :			return "RGBAF16BE  - IEEE-754 half precision packed RGBA 16:16:16:16, 64bpp, RGBARGBA..., big-endian";
+			case AV_PIX_FMT_RGBAF16LE :			return "RGBAF16LE  - IEEE-754 half precision packed RGBA 16:16:16:16, 64bpp, RGBARGBA..., little-endian";
+			case AV_PIX_FMT_VUYX :				return "VUYX  - packed VUYX 4:4:4, 32bpp, Variant of VUYA where alpha channel is left undefined";
+			case AV_PIX_FMT_P012LE :			return "P012LE  - like NV12, with 12bpp per component, data in the high bits, zeros in the low bits, little-endian";
+			case AV_PIX_FMT_P012BE :			return "P012BE  - like NV12, with 12bpp per component, data in the high bits, zeros in the low bits, big-endian";
+			case AV_PIX_FMT_Y212BE :			return "Y212BE  - packed YUV 4:2:2 like YUYV422, 24bpp, data in the high bits, zeros in the low bits, big-endian";
+			case AV_PIX_FMT_Y212LE :			return "Y212LE  - packed YUV 4:2:2 like YUYV422, 24bpp, data in the high bits, zeros in the low bits, little-endian";
+			case AV_PIX_FMT_XV30BE :			return "XV30BE  - packed XVYU 4:4:4, 32bpp, (msb)2X 10V 10Y 10U(lsb), big-endian, variant of Y410 where alpha channel is left undefined";
+			case AV_PIX_FMT_XV30LE :			return "XV30LE  - packed XVYU 4:4:4, 32bpp, (msb)2X 10V 10Y 10U(lsb), little-endian, variant of Y410 where alpha channel is left undefined";
+			case AV_PIX_FMT_XV36BE :			return "XV36BE  - packed XVYU 4:4:4, 48bpp, data in the high bits, zeros in the low bits, big-endian, variant of Y412 where alpha channel is left undefined";
+			case AV_PIX_FMT_XV36LE :			return "XV36LE  - packed XVYU 4:4:4, 48bpp, data in the high bits, zeros in the low bits, little-endian, variant of Y412 where alpha channel is left undefined";
+			case AV_PIX_FMT_RGBF32BE :			return "RGBF32BE  - IEEE-754 single precision packed RGB 32:32:32, 96bpp, RGBRGB..., big-endian";
+			case AV_PIX_FMT_RGBF32LE :			return "RGBF32LE  - IEEE-754 single precision packed RGB 32:32:32, 96bpp, RGBRGB..., little-endian";
+			case AV_PIX_FMT_RGBAF32BE :			return "RGBAF32BE  - IEEE-754 single precision packed RGBA 32:32:32:32, 128bpp, RGBARGBA..., big-endian";
+			case AV_PIX_FMT_RGBAF32LE :			return "RGBAF32LE  -IEEE-754 single precision packed RGBA 32:32:32:32, 128bpp, RGBARGBA..., little-endian";
+			case AV_PIX_FMT_P212BE :			return "P212BE  - interleaved chroma YUV 4:2:2, 24bpp, data in the high bits, big-endian";
+			case AV_PIX_FMT_P212LE :			return "P212LE  - interleaved chroma YUV 4:2:2, 24bpp, data in the high bits, little-endian";
+			case AV_PIX_FMT_P412BE :			return "P412BE  - interleaved chroma YUV 4:4:4, 36bpp, data in the high bits, big-endian";
+			case AV_PIX_FMT_P412LE :			return "P412LE  - interleaved chroma YUV 4:4:4, 36bpp, data in the high bits, little-endian";
+			case AV_PIX_FMT_GBRAP14BE :			return "GBRAP14BE  - planar GBR 4:4:4:4 56bpp, big-endian";
+			case AV_PIX_FMT_GBRAP14LE :			return "GBRAP14LE  - planar GBR 4:4:4:4 56bpp, little-endian";
 			case AV_PIX_FMT_NB :				break;
 		}
 		switch_end
@@ -651,7 +762,7 @@ namespace AE::Base
 	ToString (AVSampleFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (AVSampleFormat value)
+	ND_ inline StringView  ToString (AVSampleFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -679,7 +790,7 @@ namespace AE::Base
 	ToString (AVColorSpace)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorSpace value)
+	ND_ inline StringView  ToString (AVColorSpace value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -709,7 +820,7 @@ namespace AE::Base
 	ToString (AVColorRange)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorRange value)
+	ND_ inline StringView  ToString (AVColorRange value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -727,7 +838,7 @@ namespace AE::Base
 	ToString (AVColorPrimaries)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorPrimaries value)
+	ND_ inline StringView  ToString (AVColorPrimaries value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -756,7 +867,7 @@ namespace AE::Base
 	ToString (AVColorTransferCharacteristic)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorTransferCharacteristic value)
+	ND_ inline StringView  ToString (AVColorTransferCharacteristic value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -790,7 +901,7 @@ namespace AE::Base
 	ToString (AVChromaLocation)
 =================================================
 */
-	ND_ inline StringView  ToString (AVChromaLocation value)
+	ND_ inline StringView  ToString (AVChromaLocation value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -805,6 +916,32 @@ namespace AE::Base
 		}
 		switch_end
 		return "Unknown";
+	}
+
+/*
+=================================================
+	ToString (AVHWDeviceType)
+=================================================
+*/
+	ND_ inline StringView  ToString (AVHWDeviceType value) __NE___
+	{
+		switch_enum( value )
+		{
+			case AV_HWDEVICE_TYPE_NONE :			return "None";
+			case AV_HWDEVICE_TYPE_VDPAU :			return "VDPAU";
+			case AV_HWDEVICE_TYPE_CUDA :			return "CUDA";
+			case AV_HWDEVICE_TYPE_VAAPI :			return "VAAPI";
+			case AV_HWDEVICE_TYPE_DXVA2 :			return "DXVA2";
+			case AV_HWDEVICE_TYPE_QSV :				return "QSV";
+			case AV_HWDEVICE_TYPE_VIDEOTOOLBOX :	return "VideoToolBox";
+			case AV_HWDEVICE_TYPE_D3D11VA :			return "D3D11VA";
+			case AV_HWDEVICE_TYPE_DRM :				return "DRM";
+			case AV_HWDEVICE_TYPE_OPENCL :			return "OpenCL";
+			case AV_HWDEVICE_TYPE_MEDIACODEC :		return "MediaCodec";
+			case AV_HWDEVICE_TYPE_VULKAN :			return "Vulkan";
+		}
+		switch_end
+		RETURN_ERR( "unknown device type" );
 	}
 
 

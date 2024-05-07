@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "scripting/Impl/ScriptFn.h"
 #include "scripting/Impl/ScriptEngine.inl.h"
 #include "ScriptObjects/ObjectStorage.h"
@@ -43,7 +43,7 @@ namespace
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
-				AE_LOG_SE( "Can't find folder: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find folder: '"s << ToString(path) << "'" );
 				continue;
 			}
 
@@ -87,7 +87,7 @@ namespace
 
 			if ( not FileSystem::IsFile( path ))
 			{
-				AE_LOG_SE( "Can't find file: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find file: '"s << ToString(path) << "'" );
 				continue;
 			}
 

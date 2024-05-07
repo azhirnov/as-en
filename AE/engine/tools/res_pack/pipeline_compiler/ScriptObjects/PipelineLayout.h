@@ -64,6 +64,9 @@ namespace AE::PipelineCompiler
 		void  AddDebugDSLayout1 (EShaderOpt dbgMode, /*EShaderStages*/uint stages)				__Th___;
 		void  AddDebugDSLayout2 (uint index, EShaderOpt dbgMode, /*EShaderStages*/uint stages)	__Th___;
 
+		bool  TryAddDebugDSLayout1 (EShaderOpt dbgMode, /*EShaderStages*/uint)					__NE___;
+		bool  TryAddDebugDSLayout2 (uint index, EShaderOpt dbgMode, /*EShaderStages*/uint)		__NE___;
+
 		ND_ String  ToGLSL (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes)				C_Th___;
 			void	ToMSL  (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes,
 							INOUT String &typesStr, INOUT String &declStr)						C_Th___;
@@ -83,7 +86,7 @@ namespace AE::PipelineCompiler
 
 		static void  Bind (const ScriptEnginePtr &se)											__Th___;
 
-		ND_ bool  Build ();
+		ND_ bool  Build ()																		__NE___;
 	};
 	using PipelineLayoutPtr = ScriptRC< PipelineLayout >;
 

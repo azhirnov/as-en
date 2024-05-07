@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	thread-safe:  yes
+*/
 
 #pragma once
 
@@ -141,8 +144,8 @@ namespace AE::RG::_hidden_
 
 				ND_ explicit operator bool ()						C_NE___	{ return _result != null; }
 
-				ND_ ResGlobalState*  operator -> ()					C_NE___	{ ASSERT( _result != null );  return &_result->state; }
-				ND_ ResGlobalState&  operator *  ()					C_NE___	{ ASSERT( _result != null );  return _result->state; }
+				ND_ ResGlobalState*  operator -> ()					C_NE___	{ NonNull( _result );  return &_result->state; }
+				ND_ ResGlobalState&  operator *  ()					C_NE___	{ NonNull( _result );  return _result->state; }
 			};
 
 			struct CSearchResult
@@ -157,8 +160,8 @@ namespace AE::RG::_hidden_
 
 				ND_ explicit operator bool ()						C_NE___	{ return _result != null; }
 
-				ND_ ResGlobalState const*  operator -> ()			C_NE___	{ ASSERT( _result != null );  return &_result->state; }
-				ND_ ResGlobalState const&  operator *  ()			C_NE___	{ ASSERT( _result != null );  return _result->state; }
+				ND_ ResGlobalState const*  operator -> ()			C_NE___	{ NonNull( _result );  return &_result->state; }
+				ND_ ResGlobalState const&  operator *  ()			C_NE___	{ NonNull( _result );  return _result->state; }
 			};
 
 
@@ -172,7 +175,7 @@ namespace AE::RG::_hidden_
 
 		// methods
 		public:
-			ResourceMap ()													__NE___	{}
+			ResourceMap ()													__NE___;
 			~ResourceMap ()													__NE___;
 
 			ND_ bool  Contains (ResourceKey key)							C_NE___;
@@ -268,13 +271,19 @@ namespace AE::RG::_hidden_
 		template <typename ID> ND_ auto			GetDeviceAddress (ID id)																				C_NE___ { return _ResMngr().GetDeviceAddress( id ); }
 
 		template <typename ID> ND_ auto const&	GetDescription (ID id)																					C_NE___	{ return _ResMngr().GetDescription( id ); }
-		template <typename ID> ND_ bool			IsResourceAlive (ID id)																					C_NE___	{ return _ResMngr().IsResourceAlive( id ); }
+		template <typename ID> ND_ bool			IsAlive (ID id)																							C_NE___	{ return _ResMngr().IsAlive( id ); }
 
 			bool					GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)															C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
 			bool					GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)															C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
 
 		ND_ FeatureSet const&		GetFeatureSet ()																									C_NE___	{ return _ResMngr().GetFeatureSet(); }
-		ND_ IResourceManager&		GetResourceManager ()																								C_NE___	{ return _ResMngr(); }
+		ND_ ResourceManager&		GetResourceManager ()																								C_NE___	{ return _ResMngr(); }
+
+
+	  #if AE_GRAPHICS_DBG_SYNC
+		ND_ String					KeyToString (ResourceKey key)																						C_Th___;
+		ND_ String					BarrierToString (ResourceKey key, EResourceState oldState, EResourceState newState)									C_Th___;
+	  #endif
 
 	protected:
 		ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)																			__NE___;
@@ -286,7 +295,7 @@ namespace AE::RG::_hidden_
 
 		template <typename ID>	ND_ bool  _ReleaseResource (INOUT ID &id)																				__NE___;
 
-		ND_ IResourceManager&  _ResMngr ()																												C_NE___;
+		ND_ ResourceManager&  _ResMngr ()																												C_NE___;
 	};
 
 

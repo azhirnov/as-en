@@ -1,4 +1,4 @@
-rmdir /Q /S "..\..\..\..\..\AE-Data\external\android-clang\HWPerfCounter"
+rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\HWPerfCounter"
 rmdir /Q /S "temp"
 git clone "..\..\..\..\..\3party\hardware-perfcounter" "temp"
 git clone "..\..\..\..\..\3party\hardware-perfcounter-envytools" "temp/third_party/envytools"

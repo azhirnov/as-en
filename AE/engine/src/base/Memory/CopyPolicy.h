@@ -132,7 +132,7 @@ private:
 			{
 				for (T* t = src; t < src + count; ++t)
 					if ( t < dst or t >= dst + count )
-						DbgInitMem( t );
+						DbgInitMem( t, SizeOf<T> );
 			})
 		}
 
@@ -169,7 +169,7 @@ private:
 			{
 				for (T* t = src; t < src + count; ++t)
 					if ( t < dst or t >= dst + count )
-						DbgInitMem( t );
+						DbgInitMem( t, SizeOf<T> );
 			})
 		}
 	};

@@ -462,8 +462,12 @@ namespace AE::VFS
 
 	AsyncDSRequest  NetworkStorageClient::NetRDataSource::ReadBlock (Bytes pos, Bytes size) __NE___
 	{
-		RC<SharedMem>	mem		= SharedMem::Create( AE::GetDefaultAllocator(), size );	// TODO: optimize, delayed allocation
-		void*			data	= mem ? mem->Data() : null;
+		RC<SharedMem>	mem = SharedMem::Create( AE::GetDefaultAllocator(), size );	// TODO: optimize, delayed allocation
+		NonNull( mem );
+
+		void*	data	= mem ? mem->Data() : null;
+				size	= mem ? size : 0_b;
+
 		return ReadBlock( pos, data, size, RVRef(mem) );
 	}
 
@@ -889,6 +893,7 @@ namespace AE::VFS
 		for (auto& msg : msgList)
 		{
 			ASSERT( msg->GroupId() == CSMessageGroup::NetVFS );
+
 			switch ( msg->UniqueId() )
 			{
 				#define CASE( _name_ )		case CSMsg_VFS_ ## _name_::UID :	_client._ ## _name_( *msg->As< CSMsg_VFS_ ## _name_ >() );	break;

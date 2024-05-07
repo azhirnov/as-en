@@ -68,13 +68,13 @@ namespace
 			cfg.graphics.swapchain.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
 			cfg.graphics.swapchain.options		= EImageOpt::BlitDst;
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;
-			cfg.graphics.swapchain.minImageCount= 2;
+			cfg.graphics.swapchain.minImageCount= ubyte(cfg.graphics.maxFrames);
 		}
 
 		// window
 		{
 			cfg.window.title	= "Demo";
-			cfg.window.size		= {1024, 768};
+			cfg.window.size		= {1600, 896};
 			cfg.window.mode		= EWindowMode::Resizable;
 		}
 
@@ -92,6 +92,13 @@ namespace
 
 		cfg.enableAudio = true;
 
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		cfg.enableNetwork			= true;
+		cfg.window.mode				= EWindowMode::NonResizable;
+		cfg.graphics.enableSyncLog	= false;
+		//cfg.graphics.deviceAddr 	= // set ip address
+	  #endif
+
 		return cfg;
 	}
 
@@ -108,8 +115,10 @@ namespace
 	SampleApplication::SampleApplication () __NE___ :
 		AppCoreV1{ GetAppConfig(), MakeRC<SampleCore>() }
 	{
+	  #ifndef AE_PLATFORM_ANDROID
 		if ( not FileSystem::SetCurrentPath( AE_RES_FOLDER ))
 			FileSystem::FindAndSetCurrent( "samples/demo", 5 );
+	  #endif
 	}
 
 /*
@@ -181,11 +190,11 @@ namespace
 	bool  SampleCore::LoadInputActions ()
 	{
 		// load input actions
-		_inputActionsData = MakeRC<MemRStream>();
+		_inputActionsData = MakeRC<ArrayRStream>();
 
 		auto	file = GetVFS().Open<RStream>( VFS::FileName{"controls"} );
 		CHECK_ERR( file );
-		CHECK_ERR( _inputActionsData->LoadRemaining( *file ));
+		CHECK_ERR( _inputActionsData->LoadRemainingFrom( *file ));
 
 		return true;
 	}
@@ -243,13 +252,13 @@ namespace
 		CHECK_ERR( rp_info.attachments.size() == 1 );
 		CHECK_ERR( rp_info.attachments[0].samples == 1_samples );
 
-		#ifdef AE_ENABLE_VULKAN
-			constexpr auto	fname = VFS::FileName{"vk/render_passes"};
-		#elif defined(AE_ENABLE_METAL)
-			constexpr auto	fname = VFS::FileName{"mac/render_passes"};
-		#else
-		#	error unsupported platform!
-		#endif
+		VFS::FileName	fname;
+		switch_enum( res_mngr.GetDevice().GetGraphicsAPI() )
+		{
+			case EGraphicsAPI::Vulkan :		fname = VFS::FileName{"vk/render_passes"};	break;
+			case EGraphicsAPI::Metal :		fname = VFS::FileName{"mac/render_passes"};	break;
+		}
+		switch_end
 
 		auto	file = GetVFS().Open<RStream>( fname );
 		CHECK_ERR( file );
@@ -261,7 +270,9 @@ namespace
 		desc.dbgName		= "base pack";
 
 		CHECK_ERR( desc.surfaceFormat != Default );
-		CHECK_ERR( res_mngr.InitializeResources( desc ));
+
+		auto	pack_id = res_mngr.LoadPipelinePack( desc );
+		CHECK_ERR( res_mngr.InitializeResources( RVRef(pack_id) ));
 
 		return true;
 	}
@@ -280,20 +291,20 @@ namespace
 		CHECK_ERR( rp_info.attachments.size() == 1 );
 		CHECK_ERR( rp_info.attachments[0].samples == 1_samples );
 
-		#ifdef AE_ENABLE_VULKAN
-			constexpr auto	fname = VFS::FileName{"vk/pipelines"};
-		#elif defined(AE_ENABLE_METAL)
-			constexpr auto	fname = VFS::FileName{"mac/pipelines"};
-		#else
-		#	error unsupported platform!
-		#endif
+		VFS::FileName	fname;
+		switch_enum( res_mngr.GetDevice().GetGraphicsAPI() )
+		{
+			case EGraphicsAPI::Vulkan :		fname = VFS::FileName{"vk/pipelines"};	break;
+			case EGraphicsAPI::Metal :		fname = VFS::FileName{"mac/pipelines"};	break;
+		}
+		switch_end
 
 		auto	file = GetVFS().Open<RStream>( fname );
 		CHECK_ERR( file );
 
 		PipelinePackDesc	desc;
 		desc.stream			= file;
-		desc.options		= EPipelinePackOpt::Samplers | EPipelinePackOpt::Pipelines;
+		desc.options		= EPipelinePackOpt::Pipelines;
 		desc.surfaceFormat	= rp_info.attachments[0].format;
 		desc.dbgName		= "pipelines";
 
@@ -318,8 +329,7 @@ namespace
 		bool		ia_changed;
 
 		{
-			auto	main_loop = _mainLoop.WriteNoLock();
-			EXLOCK( main_loop );
+			auto	main_loop = _mainLoop.WriteLock();
 
 			if ( not focused and main_loop->output != null )
 				return;
@@ -341,8 +351,7 @@ namespace
 */
 	void  SampleCore::StopRendering (Ptr<IOutputSurface> output) __NE___
 	{
-		auto	main_loop = _mainLoop.WriteNoLock();
-		EXLOCK( main_loop );
+		auto	main_loop = _mainLoop.WriteLock();
 
 		if ( output == null or main_loop->output == output )
 			main_loop->output = null;
@@ -372,8 +381,7 @@ namespace
 		RenderGraph				rg;
 
 		{
-			auto	main_loop = _mainLoop.ReadNoLock();
-			SHAREDLOCK( main_loop );
+			auto	main_loop = _mainLoop.ReadLock();
 
 			if ( main_loop->input == null				or
 				 main_loop->output == null				or

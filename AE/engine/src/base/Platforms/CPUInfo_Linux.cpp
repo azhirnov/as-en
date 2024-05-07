@@ -69,8 +69,8 @@ namespace AE::Base
 */
 	uint  CpuPerformance::GetUsage (OUT float* user, OUT float* kernel, const uint maxCount) __NE___
 	{
-		ASSERT( user != null );
-		ASSERT( kernel != null );
+		NonNull( user );
+		NonNull( kernel );
 
 		const auto&		info		= CpuArchInfo::Get();
 		const uint		core_count	= Min( info.cpu.logicalCoreCount, maxCount );
@@ -114,8 +114,8 @@ namespace AE::Base
 		perProcess.voluntaryContextSwitches		= proc_usage.ru_nvcsw;
 		perProcess.involuntaryContextSwitches	= proc_usage.ru_nivcsw;
 
-        perThread.userTime						= milliseconds{ ulong(thread_usage.ru_utime.tv_sec) * 1000'000 + ulong(thread_usage.ru_utime.tv_usec) };
-        perThread.kernelTime					= milliseconds{ ulong(thread_usage.ru_stime.tv_sec) * 1000'000 + ulong(thread_usage.ru_stime.tv_usec) };
+		perThread.userTime						= milliseconds{ ulong(thread_usage.ru_utime.tv_sec) * 1000'000 + ulong(thread_usage.ru_utime.tv_usec) };
+		perThread.kernelTime					= milliseconds{ ulong(thread_usage.ru_stime.tv_sec) * 1000'000 + ulong(thread_usage.ru_stime.tv_usec) };
 		perThread.pageFaults					= thread_usage.ru_majflt;
 		perThread.fsInput						= thread_usage.ru_inblock;
 		perThread.fsOutput						= thread_usage.ru_oublock;

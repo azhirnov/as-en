@@ -180,7 +180,7 @@ namespace AE::PipelineCompiler
 		ND_ PassArray_t const&	GetPasses ()							const	{ return _passes; }
 		ND_ SBTArray_t const&	GetSBTs ()								const	{ return _rtSBTs; }
 
-		ND_ bool				Build ();
+		ND_ bool				Build ()								__NE___;
 		ND_ bool				HasUID ()								const	{ return _uid.has_value(); }
 		ND_ StringView			Name ()									const	{ return _name; }
 

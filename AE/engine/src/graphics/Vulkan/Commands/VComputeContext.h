@@ -50,8 +50,8 @@ namespace AE::Graphics::_hidden_
 
 		void  _Dispatch (const uint3 &groupCount)																	__Th___;
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
-		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
-		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
+		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)										__NE___;
+		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)				__Th___;
 	};
 
 
@@ -91,8 +91,8 @@ namespace AE::Graphics::_hidden_
 
 		void  _Dispatch (const uint3 &groupCount)																	__Th___;
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
-		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
-		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages);
+		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)										__Th___;
+		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)				__Th___;
 	};
 
 
@@ -102,7 +102,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VComputeContextImpl : public CtxImpl, public IComputeContext
+	class _VComputeContextImpl final : public CtxImpl, public IComputeContext
 	{
 	// types
 	public:
@@ -244,7 +244,7 @@ namespace AE::Graphics::_hidden_
 	_BindComputePipeline
 =================================================
 */
-	inline void  _VDirectComputeCtx::_BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)
+	inline void  _VDirectComputeCtx::_BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout) __NE___
 	{
 		_states.pplnLayout = layout;
 		vkCmdBindPipeline( _cmdbuf.Get(), _bindPoint, ppln );

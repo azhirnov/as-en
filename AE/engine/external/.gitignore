@@ -8,6 +8,10 @@
 /android-clang/HWPerfCounter/build
 /android-clang/HWPerfCounter/temp
 
+/android-clang/PowerVRScopeStats/.gradle
+/android-clang/PowerVRScopeStats/build
+/android-clang/PowerVRScopeStats/temp
+
 /shared/Abseil/.gradle
 /shared/Abseil/build
 /shared/Abseil/temp

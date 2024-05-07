@@ -57,7 +57,7 @@ void  InitPipelineLayout ()
 		RC<Sampler>		samp = Sampler( "model.Sampler" );
 		samp.Filter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
 		samp.AddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
-		samp.Anisotropy( 16.0f );
+		samp.TrySetAnisotropy( 16.0f );
 	}
 
 	// descriptor set

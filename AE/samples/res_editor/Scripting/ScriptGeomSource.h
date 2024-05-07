@@ -65,7 +65,15 @@ namespace AE::ResEditor
 		void  ArgImageOut (const String &name, const ScriptImagePtr &img)											__Th___	{ _args.ArgImageOut( name, img ); }
 		void  ArgImageInOut (const String &name, const ScriptImagePtr &img)											__Th___	{ _args.ArgImageInOut( name, img ); }
 
-		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)				__Th___	{ _args.ArgTextureIn( name, tex, samplerName ); }
+		void  ArgImageArrIn (const String &name, const ScriptArray<ScriptImagePtr> &arr)							__Th___	{ _args.ArgImageArrIn( name, Array<ScriptImagePtr>{arr} ); }
+		void  ArgImageArrOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)							__Th___	{ _args.ArgImageArrOut( name, Array<ScriptImagePtr>{arr} ); }
+		void  ArgImageArrInOut (const String &name, const ScriptArray<ScriptImagePtr> &arr)							__Th___	{ _args.ArgImageArrInOut( name, Array<ScriptImagePtr>{arr} ); }
+
+		void  ArgTextureIn (const String &name, const ScriptImagePtr &tex)											__Th___	{ _args.ArgTextureIn( name, tex ); }
+		void  ArgTextureIn2 (const String &name, const ScriptImagePtr &tex, const String &samplerName)				__Th___	{ _args.ArgTextureIn2( name, tex, samplerName ); }
+		void  ArgTextureArrIn (const String &name, const ScriptArray<ScriptImagePtr> &arr)							__Th___	{ _args.ArgTextureArrIn( name, Array<ScriptImagePtr>{arr} ); }
+		void  ArgTextureArrIn2 (const String &name, const ScriptArray<ScriptImagePtr> &arr, const String &sampName)	__Th___	{ _args.ArgTextureArrIn2( name, Array<ScriptImagePtr>{arr}, sampName ); }
+
 		void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)			__Th___	{ _args.ArgVideoIn( name, tex, samplerName ); }
 
 		static void  Bind (const ScriptEnginePtr &se)																__Th___;
@@ -133,6 +141,7 @@ namespace AE::ResEditor
 	public:
 		struct DrawCmd3
 		{
+			String					_pplnHint;
 			ScriptDynamicUIntPtr	dynVertexCount;
 			ScriptDynamicUIntPtr	dynInstanceCount;
 			uint					vertexCount				= 0;
@@ -148,6 +157,7 @@ namespace AE::ResEditor
 
 		struct DrawIndexedCmd3
 		{
+			String					_pplnHint;
 			EIndex					_indexType				= Default;
 			ScriptBufferPtr			_indexBuffer;
 			ulong					_indexBufferOffset		= 0;
@@ -168,6 +178,7 @@ namespace AE::ResEditor
 
 		struct DrawIndirectCmd3
 		{
+			String					_pplnHint;
 			ScriptBufferPtr			_indirectBuffer;
 			ulong					_indirectBufferOffset	= 0;
 			String					_indirectBufferField;
@@ -182,6 +193,7 @@ namespace AE::ResEditor
 
 		struct DrawIndexedIndirectCmd3
 		{
+			String					_pplnHint;
 			EIndex					_indexType				= Default;
 			ScriptBufferPtr			_indexBuffer;
 			ulong					_indexBufferOffset		= 0;
@@ -200,6 +212,7 @@ namespace AE::ResEditor
 
 		struct DrawMeshTasksCmd3
 		{
+			String					_pplnHint;
 			ScriptDynamicUInt3Ptr	dynTaskCount;
 			packed_uint3			taskCount				{1};
 
@@ -210,6 +223,7 @@ namespace AE::ResEditor
 
 		struct DrawMeshTasksIndirectCmd3
 		{
+			String					_pplnHint;
 			ScriptBufferPtr			_indirectBuffer;
 			ulong					_indirectBufferOffset	= 0;
 			String					_indirectBufferField;
@@ -224,6 +238,7 @@ namespace AE::ResEditor
 
 		struct DrawIndirectCountCmd3
 		{
+			String					_pplnHint;
 			ScriptBufferPtr			_indirectBuffer;
 			ulong					_indirectBufferOffset	= 0;
 			String					_indirectBufferField;
@@ -241,6 +256,7 @@ namespace AE::ResEditor
 
 		struct DrawIndexedIndirectCountCmd3
 		{
+			String					_pplnHint;
 			EIndex					_indexType				= Default;
 			ScriptBufferPtr			_indexBuffer;
 			ulong					_indexBufferOffset		= 0;
@@ -262,6 +278,7 @@ namespace AE::ResEditor
 
 		struct DrawMeshTasksIndirectCountCmd3
 		{
+			String					_pplnHint;
 			ScriptBufferPtr			_indirectBuffer;
 			ulong					_indirectBufferOffset	= 0;
 			String					_indirectBufferField;

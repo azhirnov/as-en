@@ -4,8 +4,8 @@
 
 namespace
 {
-	using RFileFlags	= WinFileRStream::EFlags;
-	using WFileFlags	= WinFileWStream::EFlags;
+	using RFileFlags	= WinFileRStream::EMode;
+	using WFileFlags	= WinFileWStream::EMode;
 
 /*
 =================================================
@@ -24,7 +24,7 @@ namespace
 			{
 				case RFileFlags::RandomAccess :		flags |= FILE_FLAG_RANDOM_ACCESS;	break;
 				case RFileFlags::SequentialScan :	flags |= FILE_FLAG_SEQUENTIAL_SCAN;	break;
-				case RFileFlags::NoBuffering :		flags |= FILE_FLAG_NO_BUFFERING;	break;
+				case RFileFlags::Win_NoBuffering :	flags |= FILE_FLAG_NO_BUFFERING;	break;
 				case RFileFlags::Unknown :
 				default :							RETURN_ERR( "unknown rfile open flag!", FILE_ATTRIBUTE_NORMAL );
 			}
@@ -52,11 +52,14 @@ namespace
 		{
 			switch_enum( t )
 			{
-				case WFileFlags::NoBuffering :		flags |= FILE_FLAG_NO_BUFFERING;	break;
-				case WFileFlags::NoCaching :		flags |= FILE_FLAG_WRITE_THROUGH;	break;
+				case WFileFlags::Win_NoBuffering :	flags |= FILE_FLAG_NO_BUFFERING;	break;
+				case WFileFlags::Win_NoCaching :	flags |= FILE_FLAG_WRITE_THROUGH;	break;
 
+				case WFileFlags::Direct :
 			//	case WFileFlags::OpenRewrite :
-				case WFileFlags::OpenUpdate :		break;
+				case WFileFlags::OpenUpdate :
+				case WFileFlags::OpenAppend :
+				case WFileFlags::SharedRead :		break;
 				case WFileFlags::Unknown :
 				default :							RETURN_ERR( "unknown wfile open flag!", FILE_ATTRIBUTE_NORMAL );
 			}
@@ -100,8 +103,8 @@ namespace
 	ND_ static HANDLE  OpenFileForWrite2 (const char* filename, WFileFlags flags, DWORD addFlags) __NE___
 	{
 		return ::CreateFileA( filename,			// winxp
-							  GENERIC_WRITE,
-							  0,		// share mode
+							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
+							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,
 							  null,		// default security
 							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING : CREATE_ALWAYS,
 							  FileFlagCast( flags ) | addFlags,
@@ -111,8 +114,8 @@ namespace
 	ND_ static HANDLE  OpenFileForWrite2 (const wchar_t* filename, WFileFlags flags, DWORD addFlags) __NE___
 	{
 		return ::CreateFileW( filename,			// winxp
-							  GENERIC_WRITE,
-							  0,		// share mode
+							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
+							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,
 							  null,		// default security
 							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING : CREATE_ALWAYS,
 							  FileFlagCast( flags ) | addFlags,

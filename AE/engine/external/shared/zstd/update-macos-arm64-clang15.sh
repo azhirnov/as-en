@@ -1,10 +1,10 @@
 rm -rf "build"
-rm -rf "../../../../../AE-Data/external/macos-arm64-clang15/zstd"
+rm -rf "../../../../../AE-Bin/external/macos-arm64-clang15/zstd"
 rm -rf "temp"
 mkdir "build"
 git clone --branch "v1.5.5-kernel" "../../../../../3party/zstd" "temp"
 cp "zstd_CMakeLists.txt" "temp/CMakeLists.txt"
-cmake -S temp -B build  -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Data/external/macos-arm64-clang15/zstd" 
+cmake -S temp -B build  -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/macos-arm64-clang15/zstd" 
 cmake --build build --config Release --target install -j 6
 rm -rf "temp"
 rm -rf "build"

@@ -3,8 +3,8 @@
 #include "TestDevice.h"
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/MemStream.h"
-#include "base/DataSource/FileStream.h"
-#include "serializing/Basic/ObjectFactory.h"
+#include "base/DataSource/File.h"
+#include "serializing/ObjectFactory.h"
 
 #include "res_loaders/Intermediate/IntermImage.h"
 #include "res_loaders/DDS/DDSImageSaver.h"
@@ -94,7 +94,7 @@ bool  TestDevice::Create ()
 	CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK(not rep.isError); });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueue() );
@@ -338,7 +338,7 @@ bool  TestDevice::Compile  (OUT VkShaderModule &		shaderModule,
 		// test serialization
 		#if 0
 		{
-			auto	wfile = MakeRC<MemWStream>();
+			auto	wfile = MakeRC<ArrayWStream>();
 			{
 				Serializing::Serializer	ser{ wfile };
 				CHECK_ERR( debug_info->Serialize( ser ));
@@ -1691,6 +1691,7 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 						AE_LOGE( "in: "s << referenceFile << "\n\n"
 									<< "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr
 									<< "\n(" << ToString( rline ) << "): " << rstr );
+						return true;  // exit
 					},
 					[referenceFile] () __NE___ {
 						AE_LOGE( "in: "s << referenceFile << "\n\n" << "sizes of dumps are not equal!" );

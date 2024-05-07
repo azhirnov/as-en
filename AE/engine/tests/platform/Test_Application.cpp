@@ -70,7 +70,6 @@ namespace
 			TaskScheduler::InstanceCtor::Create();
 
 			TaskScheduler::Config	cfg;
-			cfg.mainThreadCoreId	= ECpuCoreId(0);
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 

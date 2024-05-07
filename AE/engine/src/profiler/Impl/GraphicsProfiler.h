@@ -24,10 +24,10 @@ namespace AE::Profiler
 	// types
 	private:
 		using BatchNameMap_t	= FlatHashMap< const void*, String >;
+		using PipelineStatistic	= Graphics::IQueryManager::GraphicsPipelineStatistic;
 
 	  #if defined(AE_ENABLE_VULKAN)
-		using Query				= Graphics::VQueryManager::Query;
-		using PipelineStatistic	= Graphics::VQueryManager::PipelineStatistic;
+		using Query = Graphics::VQueryManager::Query;
 
 		struct BatchCmdbufKey
 		{
@@ -35,20 +35,18 @@ namespace AE::Profiler
 			VkCommandBuffer	cmdbuf;
 			EContextType	type;
 
-			BatchCmdbufKey () {}
-
+			BatchCmdbufKey ()									__NE___	{}
 			BatchCmdbufKey (const void*		batch,
 							VkCommandBuffer	cmdbuf,
-							EContextType	type) :
+							EContextType	type)				__NE___ :
 				batch{batch}, cmdbuf{cmdbuf}, type{type} {}
 
-			ND_ bool	operator == (const BatchCmdbufKey &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const BatchCmdbufKey &rhs) C_NE___;
+			ND_ HashVal	CalcHash ()								C_NE___;
 		};
 
 	  #elif defined(AE_ENABLE_METAL)
-		using Query				= Graphics::MQueryManager::Query;
-		using PipelineStatistic	= Graphics::MQueryManager::PipelineStatistic;
+		using Query = Graphics::MQueryManager::Query;
 
 		struct BatchCmdbufKey
 		{
@@ -56,36 +54,34 @@ namespace AE::Profiler
 		//	MetalCommandBuffer	cmdbuf;
 			EContextType		type;
 
-			BatchCmdbufKey () {}
-
+			BatchCmdbufKey ()									__NE___	{}
 			BatchCmdbufKey (const void*			batch,
 						//	MetalCommandBuffer	cmdbuf,
-							EContextType		type) :
+							EContextType		type)			__NE___	:
 				batch{batch}, type{type} {}
 
-			ND_ bool	operator == (const BatchCmdbufKey &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const BatchCmdbufKey &rhs) C_NE___;
+			ND_ HashVal	CalcHash ()								C_NE___;
 		};
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using Query				= Graphics::RQueryManager::Query;
-		using PipelineStatistic	= Graphics::RQueryManager::PipelineStatistic;
+		using Query		= Graphics::RQueryManager::Query;
+		using CmdBuf	= Graphics::_hidden_::RSoftwareCmdBuf;
 
 		struct BatchCmdbufKey
 		{
 			const void*			batch;
-		//	MetalCommandBuffer	cmdbuf;
+			const CmdBuf*		cmdbuf;
 			EContextType		type;
 
-			BatchCmdbufKey () {}
+			BatchCmdbufKey ()									__NE___	{}
+			BatchCmdbufKey (const void*		batch,
+							const CmdBuf*	cmdbuf,
+							EContextType	type)				__NE___	:
+				batch{batch}, cmdbuf{cmdbuf}, type{type} {}
 
-			BatchCmdbufKey (const void*			batch,
-						//	MetalCommandBuffer	cmdbuf,
-							EContextType		type) :
-				batch{batch}, type{type} {}
-
-			ND_ bool	operator == (const BatchCmdbufKey &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const BatchCmdbufKey &rhs) C_NE___;
+			ND_ HashVal	CalcHash ()								C_NE___;
 		};
 
 	  #else
@@ -121,21 +117,22 @@ namespace AE::Profiler
 		};
 		using PerFrame_t = StaticArray< PerFrameData, Graphics::GraphicsConfig::MaxFrames+1 >;
 
-		using MemoryInfo_t = Optional< Graphics::DeviceMemoryInfo >;
+		using MemoryUsage_t = Optional< Graphics::DeviceMemoryUsage >;
 
 
 	// variables
 	private:
 		struct {
 			Atomic<uint>		frameCount		{0};
-			FAtomic<double>		accumframeTime	{0.0};
-			float				result			= 0.f;
-			float				dt				= 0.f;
+			FAtomic<double>		accumframeTime	{0.0};	// nanoseconds
+			float				result			= 0.f;	// fps
+			nanosecondsf		dt				{0.f};
+			nanosecondsf		ext				{0.f};	// external time per frame, may be vsync, video dec/enc or other apps
 		}					_fps;
 
 		struct {
-			double				min	= 0;	// nanoseconds
-			double				max	= 0;
+			nanosecondsd		min		{0.0};
+			nanosecondsd		max		{0.0};
 		}					_gpuTime;
 
 		struct {
@@ -145,7 +142,7 @@ namespace AE::Profiler
 			Bytes				avgRead;
 		}					_memTraffic;
 
-		MemoryInfo_t		_memInfo;
+		MemoryUsage_t		_memUsage;
 
 		PerFrame_t			_perFrame;
 
@@ -192,8 +189,8 @@ namespace AE::Profiler
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		// context
-		void  BeginContext (const void* batch, StringView taskName, RGBA8u color, EContextType type)							__NE_OV;
-		void  EndContext (const void* batch, EContextType type)																	__NE_OV;
+		void  BeginContext (const void* batch, void* cmdbuf, StringView taskName, RGBA8u color, EContextType type)				__Th_OV;
+		void  EndContext (const void* batch, void* cmdbuf, EContextType type)													__Th_OV;
 
 	  #else
 	  #	error not implemented

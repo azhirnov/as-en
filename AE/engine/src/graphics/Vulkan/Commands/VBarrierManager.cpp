@@ -78,13 +78,13 @@ namespace AE::Graphics::_hidden_
 		EResourceState_ToStageAccess( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask );
 		EResourceState_ToStageAccess( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask );
 
-		ASSERT( AnyBits( barrier.srcStageMask, srcSupportedStages ));
-		ASSERT( AnyBits( barrier.dstStageMask, dstSupportedStages ));
-
 		barrier.srcStageMask	&= srcSupportedStages;
 		barrier.dstStageMask	&= dstSupportedStages;
 		barrier.srcAccessMask	&= srcSupportedAccess;
 		barrier.dstAccessMask	&= dstSupportedAccess;
+
+		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 	}
 
 	template <typename B>
@@ -116,13 +116,13 @@ namespace AE::Graphics::_hidden_
 		if ( barrier.newLayout == VK_IMAGE_LAYOUT_UNDEFINED )
 			barrier.newLayout = barrier.oldLayout;
 
-		ASSERT( AnyBits( barrier.srcStageMask, srcSupportedStages ));
-		ASSERT( AnyBits( barrier.dstStageMask, dstSupportedStages ));
-
 		barrier.srcStageMask	&= srcSupportedStages;
 		barrier.dstStageMask	&= dstSupportedStages;
 		barrier.srcAccessMask	&= srcSupportedAccess;
 		barrier.dstAccessMask	&= dstSupportedAccess;
+
+		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 
 		ASSERT( not AnyBits( dstState, EResourceState::Invalidate ));
 		ASSERT( barrier.newLayout != VK_IMAGE_LAYOUT_UNDEFINED );
@@ -401,11 +401,12 @@ namespace AE::Graphics::_hidden_
 		barrier.offset	= 0;
 		barrier.size	= VK_WHOLE_SIZE;
 
-		auto&	dev			= GetDevice();
-		auto	src_queue	= dev.GetQueue( srcQueue );
-		auto	dst_queue	= dev.GetQueue( GetQueueType() );
+		const auto&	dev			= GetDevice();
+		const auto	src_queue	= dev.GetQueue( srcQueue );
+		const auto	dst_queue	= dev.GetQueue( GetQueueType() );
+		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillBufferBarrier2( srcState, dstState, src_queue->supportedStages, src_queue->supportedAccess, dst_queue->supportedStages, dst_queue->supportedAccess, INOUT barrier );
+		_FillBufferBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
@@ -435,11 +436,12 @@ namespace AE::Graphics::_hidden_
 		barrier.offset	= 0;
 		barrier.size	= VK_WHOLE_SIZE;
 
-		auto&	dev			= GetDevice();
-		auto	src_queue	= dev.GetQueue( GetQueueType() );
-		auto	dst_queue	= dev.GetQueue( dstQueue );
+		const auto&	dev			= GetDevice();
+		const auto	src_queue	= dev.GetQueue( GetQueueType() );
+		const auto	dst_queue	= dev.GetQueue( dstQueue );
+		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillBufferBarrier2( srcState, dstState, src_queue->supportedStages, src_queue->supportedAccess, dst_queue->supportedStages, dst_queue->supportedAccess, INOUT barrier );
+		_FillBufferBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
@@ -468,11 +470,12 @@ namespace AE::Graphics::_hidden_
 		barrier.image				= image;
 		barrier.subresourceRange	= { aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
 
-		auto&	dev			= GetDevice();
-		auto	src_queue	= dev.GetQueue( srcQueue );
-		auto	dst_queue	= dev.GetQueue( GetQueueType() );
+		const auto&	dev			= GetDevice();
+		const auto	src_queue	= dev.GetQueue( srcQueue );
+		const auto	dst_queue	= dev.GetQueue( GetQueueType() );
+		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillImageBarrier2( srcState, dstState, src_queue->supportedStages, src_queue->supportedAccess, dst_queue->supportedStages, dst_queue->supportedAccess, INOUT barrier );
+		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
@@ -501,11 +504,12 @@ namespace AE::Graphics::_hidden_
 		barrier.image				= image;
 		barrier.subresourceRange	= { aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
 
-		auto&	dev			= GetDevice();
-		auto	src_queue	= dev.GetQueue( GetQueueType() );
-		auto	dst_queue	= dev.GetQueue( dstQueue );
+		const auto&	dev			= GetDevice();
+		const auto	src_queue	= dev.GetQueue( GetQueueType() );
+		const auto	dst_queue	= dev.GetQueue( dstQueue );
+		const auto	stages		= src_queue->supportedStages & dst_queue->supportedStages;
 
-		_FillImageBarrier2( srcState, dstState, src_queue->supportedStages, src_queue->supportedAccess, dst_queue->supportedStages, dst_queue->supportedAccess, INOUT barrier );
+		_FillImageBarrier2( srcState, dstState, stages, src_queue->supportedAccess, stages, dst_queue->supportedAccess, INOUT barrier );
 		_FillOwnershipTransfer( src_queue, dst_queue, INOUT barrier );
 
 		DbgValidateBarrier( srcState, dstState, barrier );
@@ -517,7 +521,7 @@ namespace AE::Graphics::_hidden_
 	BeforeBeginRenderPass
 =================================================
 */
-	bool  VBarrierManager::BeforeBeginRenderPass (const RenderPassDesc &desc, OUT VPrimaryCmdBufState &primaryState) __NE___
+	bool  VBarrierManager::BeforeBeginRenderPass (const RenderPassDesc &desc, OUT VPrimaryCmdBufState &primaryState, OUT RPassFinalStates_t &finalStates) __NE___
 	{
 		CHECK_ERR( not primaryState.IsValid() );
 
@@ -531,9 +535,9 @@ namespace AE::Graphics::_hidden_
 		primaryState.renderPass		= res_mngr.GetResource( rp_id, False{"don't inc ref"}, True{"quiet"} );
 		CHECK_ERR( primaryState.renderPass );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			if ( desc.subpassName.IsDefined() )
-				ASSERT( primaryState.renderPass->GetFirstSubpassName() == desc.subpassName );
+				CHECK( primaryState.renderPass->GetFirstSubpassName() == desc.subpassName );
 
 			primaryState._rpId		= rp_id;
 			primaryState._fbId		= fb_id;
@@ -542,6 +546,8 @@ namespace AE::Graphics::_hidden_
 		primaryState.frameId		= GetFrameId();
 		primaryState.subpassIndex	= 0;
 		primaryState.userData		= GetBatch().GetUserData();
+
+		ZeroMem( finalStates );
 
 		// state transition
 		{
@@ -558,12 +564,20 @@ namespace AE::Graphics::_hidden_
 
 					if_likely( it != rp_att.end() )
 					{
-						const auto	dst_state	= att_states[ it->second.Index() ].initial;
+						const uint	idx			= it->second.Index();
+						const auto	dst_state	= att_states[ idx ].initial;
 						const bool	req_barrier	= EResourceState_RequireImageBarrier( att.initial, dst_state, Bool{att.relaxedStateTransition} );
 						const bool	is_valid	= not AnyBits( dst_state, EResourceState::Invalidate );
 
 						if ( req_barrier and is_valid )
-							ImageBarrier( fb_images[ it->second.Index() ], att.initial, dst_state );
+							ImageBarrier( fb_images[ idx ], att.initial, dst_state );
+
+						const auto	src_state	 = att_states[ idx ].final;
+						const bool	req_barrier2 = EResourceState_RequireImageBarrier( src_state, att.final, Bool{att.relaxedStateTransition} );
+						const bool	is_valid2	 = not AnyBits( att.final, EResourceState::Invalidate );
+
+						if ( req_barrier2 and is_valid2 )
+							finalStates[ idx ] = att.final;
 					}
 				}
 			}
@@ -577,13 +591,11 @@ namespace AE::Graphics::_hidden_
 	AfterEndRenderPass
 =================================================
 */
-	void  VBarrierManager::AfterEndRenderPass (const RenderPassDesc &desc, const VPrimaryCmdBufState &primaryState) __NE___
+	void  VBarrierManager::AfterEndRenderPass (const VPrimaryCmdBufState &primaryState, const RPassFinalStates_t &finalStates) __NE___
 	{
 		CHECK( primaryState.IsValid() );
 
-		ASSERT( primaryState.userData == GetBatch().GetUserData() );
-
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			auto&	res_mngr = GetResourceManager();
 			CHECK( res_mngr.IsAlive( primaryState._rpId ));
 			CHECK( res_mngr.IsAlive( primaryState._rpId ));
@@ -592,26 +604,12 @@ namespace AE::Graphics::_hidden_
 		// state transition
 		{
 			const auto	fb_images	= primaryState.framebuffer->Images();
-			const auto&	rp_att		= primaryState.renderPass->AttachmentMap();
 			const auto&	att_states	= primaryState.renderPass->AttachmentStates();
 
-			for (auto [name, att] : desc.attachments)
+			for (usize i = 0; i < fb_images.size(); ++i)
 			{
-				if ( att.final != Default )
-				{
-					auto	it = rp_att.find( name );
-					ASSERT( it != rp_att.end() );
-
-					if_likely( it != rp_att.end() )
-					{
-						const auto	src_state	= att_states[ it->second.Index() ].final;
-						const bool	req_barrier	= EResourceState_RequireImageBarrier( src_state, att.final, Bool{att.relaxedStateTransition} );
-						const bool	is_valid	= not AnyBits( att.final, EResourceState::Invalidate );
-
-						if ( req_barrier and is_valid )
-							ImageBarrier( fb_images[ it->second.Index() ], src_state, att.final );
-					}
-				}
+				if ( finalStates[i] != Default )
+					ImageBarrier( fb_images[i], att_states[i].final, finalStates[i] );
 			}
 		}
 	}
@@ -659,12 +657,12 @@ namespace AE::Graphics::_hidden_
 	AllocBarriers
 =================================================
 */
-	const VkDependencyInfo*  VBarrierManager::AllocBarriers () __NE___
+	Ptr<const VkDependencyInfo>  VBarrierManager::AllocBarriers () __NE___
 	{
 		constexpr Bytes	align	= Max( AlignOf<VkDependencyInfo>, AlignOf<VkMemoryBarrier2>,
 									   AlignOf<VkBufferMemoryBarrier2>, AlignOf<VkImageMemoryBarrier2> );
 
-		if ( auto* pbar = GetBarriers() )
+		if ( auto pbar = GetBarriers() )
 		{
 			auto	bar		= *pbar;
 			auto&	alloc	= MemoryManager().GetGraphicsFrameAllocator().Get( GetFrameId() );
@@ -722,7 +720,7 @@ namespace AE::Graphics::_hidden_
 	MergeBarriers
 =================================================
 */
-	void  VBarrierManager::MergeBarriers (const VBarrierManager &mngr) __NE___
+	void  VBarrierManager::MergeBarriers (INOUT VBarrierManager &mngr) __NE___
 	{
 		CHECK_ERRV( &_batch == &mngr._batch );
 
@@ -734,6 +732,8 @@ namespace AE::Graphics::_hidden_
 
 		this->_imageBarriers.insert( this->_imageBarriers.begin(), mngr._imageBarriers.begin(), mngr._imageBarriers.end() );
 		this->_bufferBarriers.insert( this->_bufferBarriers.begin(), mngr._bufferBarriers.begin(), mngr._bufferBarriers.end() );
+
+		mngr.ClearBarriers();
 	}
 
 

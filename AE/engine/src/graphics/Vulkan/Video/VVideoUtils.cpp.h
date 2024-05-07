@@ -11,7 +11,7 @@ namespace
 	ConvertVideoProfile
 =================================================
 */
-	ND_ bool  ConvertVideoProfile (const VideoProfile &src, OUT VkVideoProfileInfoKHR &dst)
+	ND_ bool  ConvertVideoProfile (const VideoProfile &src, OUT VkVideoProfileInfoKHR &dst) __NE___
 	{
 		dst.sType				= VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR;
 		dst.videoCodecOperation	= VEnumCast( src.mode, src.codec );
@@ -32,7 +32,7 @@ namespace
 =================================================
 */
 	template <typename FN>
-	bool  WithVideoProfile (const VDevice &dev, const VideoProfile &profile, FN &&fn)
+	bool  WithVideoProfile (const VDevice &dev, const VideoProfile &profile, FN &&fn) __NE___
 	{
 		VkVideoProfileInfoKHR	profile_info		= {};
 		VkVideoCapabilitiesKHR	out_capabilities	= {};

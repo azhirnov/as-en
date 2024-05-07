@@ -18,7 +18,6 @@ namespace AE::ResEditor
 
 	// types
 	private:
-		using PplnID_t		= Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
 		using PipelineMap_t	= FixedMap< EDebugMode, PplnID_t, uint(EDebugMode::_Count) >;
 
 		class Material final : public IGSMaterials
@@ -56,18 +55,17 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		SphericalCube (Renderer &r, uint minLod, uint maxLod)						__NE___;
+		SphericalCube (Renderer &r, uint minLod, uint maxLod)			__NE___;
 		~SphericalCube ();
 
 
 	// IGeomSource //
-		void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
-								   const Debugger &, OUT ShaderDebugger::Result &)	__Th_OV;
-		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)				__Th_OV;
+		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)	__Th_OV;
 		using IGeomSource::StateTransition;
 
-		bool  Draw (const DrawData &)												__Th_OV;
-		bool  Update (const UpdateData &)											__Th_OV;
+		bool  Draw (const DrawData &)									__Th_OV;
+		bool  Update (const UpdateData &)								__Th_OV;
+		void  PrepareForDebugging (INOUT DebugPrepareData &)			__Th_OV;
 	};
 
 

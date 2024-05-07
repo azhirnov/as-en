@@ -17,7 +17,7 @@ namespace
 		const Path			output_folder	= TXT("_output");
 		const Path			ref_dump_fname	= FileSystem::ToAbsolute( refName );
 
-		FileSystem::RemoveAll( output_folder );
+		FileSystem::DeleteDirectory( output_folder );
 		TEST( FileSystem::CreateDirectories( output_folder ));
 
 		const Path	output = output_folder / "passes.bin";
@@ -34,7 +34,7 @@ namespace
 		TEST( file->IsOpen() );
 
 		HashToName	hash_to_name;
-		auto		mem_stream = MakeRC<MemRStream>();
+		auto		mem_stream = MakeRC<ArrayRStream>();
 		{
 			uint	name;
 			TEST( file->Read( OUT name ));
@@ -44,9 +44,9 @@ namespace
 			TEST( file->Read( OUT offsets ));
 			TEST_Lt( offsets.renderPassOffset, ulong(file->Size()) );
 
-			auto	mem_stream2 = MakeRC<MemRStream>();
+			auto	mem_stream2 = MakeRC<ArrayRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
-			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
+			TEST( mem_stream2->LoadRemainingFrom( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
 			TEST( des( OUT name ))
@@ -54,7 +54,7 @@ namespace
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.renderPassOffset} ));
-			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.renderPassDataSize} ));
+			TEST( mem_stream->LoadRemainingFrom( *file, Bytes{offsets.renderPassDataSize} ));
 		}
 
 		RC<IAllocator>					alloc = MakeRC<LinearAlloc_t>();
@@ -148,7 +148,7 @@ extern void Test_RenderPassPack ()
 		TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
 		TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/rp_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "rp_test" ));
 
 		RenderPassPack_Test1();
 		RenderPassPack_Test2();

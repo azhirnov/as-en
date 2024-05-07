@@ -28,6 +28,7 @@ namespace AE::Threading
 	Release
 ----
 	Must be synchronized with Put() and 'Extract()
+	Can not use after release!
 =================================================
 */
 	template <typename V, usize C, typename A>
@@ -36,7 +37,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _arr == null )
+		if_unlikely( _arr == null )
 			return;
 
 		for (usize i = 0; i < ChunksCount; ++i)

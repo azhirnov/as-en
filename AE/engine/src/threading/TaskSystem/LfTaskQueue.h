@@ -61,6 +61,7 @@ namespace AE::Threading
 		//POTValue		_seedMask;
 
 		DEBUG_ONLY(
+			ETaskQueue		_queueType;
 			String			_name;
 			Atomic<ulong>	_searchTime		{0};	// Nanoseconds	// task search time
 			Atomic<ulong>	_workTime		{0};	// Nanoseconds
@@ -73,7 +74,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfTaskQueue (POTValue seedMask, StringView name)					__Th___;
+		LfTaskQueue (POTValue seedMask, StringView name, ETaskQueue type)	__Th___;
 		~LfTaskQueue ()														__NE___	{ Release(); }
 
 		ND_ AsyncTask	Pull (EThreadSeed seed)								__NE___;

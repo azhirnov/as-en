@@ -28,22 +28,22 @@ namespace
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
-		AsyncTask	task1 = [] (ExeOrder &value) -> CoroTask
+		AsyncTask	task1 = [] (ExeOrder &val) -> CoroTask
 							{
 								TEST( not co_await Coro_IsCanceled );
 								TEST( (co_await Coro_Status) == EStatus::InProgress );
 								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
 
-								TEST( value.guard.try_lock() );
-								value.str += '1';
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += '1';
+								val.guard.unlock();
 								co_return;
 							}( value );
-		AsyncTask	task2 = [] (ExeOrder &value) -> CoroTask
+		AsyncTask	task2 = [] (ExeOrder &val) -> CoroTask
 							{
-								TEST( value.guard.try_lock() );
-								value.str += '2';
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += '2';
+								val.guard.unlock();
 								co_return;
 							}( value );
 
@@ -53,7 +53,7 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
@@ -69,22 +69,22 @@ namespace
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
-		AsyncTask	task1 = [] (ExeOrder &value) -> CoroTask
+		AsyncTask	task1 = [] (ExeOrder &val) -> CoroTask
 							{
-								TEST( value.guard.try_lock() );
-								value.str += '1';
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += '1';
+								val.guard.unlock();
 								co_return;
 							}( value );
-		AsyncTask	task2 = [] (ExeOrder &value, AsyncTask task1) -> CoroTask
+		AsyncTask	task2 = [] (ExeOrder &val, AsyncTask task) -> CoroTask
 							{
 								// add dependency inside coroutine
-								co_await task1;
-								//co_await Tuple{ task1 };		// same as prev line
+								co_await task;
+								//co_await Tuple{ task };		// same as prev line
 
-								TEST( value.guard.try_lock() );
-								value.str += '2';
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += '2';
+								val.guard.unlock();
 								co_return;
 							}
 							( value, task1 );
@@ -94,7 +94,7 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {task1, task2}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ task1, task2 }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
@@ -113,14 +113,14 @@ namespace
 		auto		p2	= MakePromise( [] () { return "-3"s; });
 		ExeOrder	value;
 
-		AsyncTask	task1 = [] (ExeOrder &value, auto p0, auto p1, auto p2) -> CoroTask
+		AsyncTask	task1 = [] (ExeOrder &val, auto t0, auto t1, auto t2) -> CoroTask
 							{
-								String	s0		 = co_await p0;
-								auto	[s1, s2] = co_await Tuple{ p1, p2 };
+								String	s0		 = co_await t0;
+								auto	[s1, s2] = co_await Tuple{ t1, t2 };
 
-								TEST( value.guard.try_lock() );
-								value.str += s0 + s1 + s2;
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += s0 + s1 + s2;
+								val.guard.unlock();
 								co_return;
 							}
 							( value, p0, p1, p2 );
@@ -128,7 +128,7 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( AsyncTask{p0}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
@@ -150,7 +150,7 @@ namespace
 
 		ExeOrder	value;
 		auto		p3 = scheduler->Run(
-							[] (ExeOrder &value, auto p0, auto p1, auto p2) -> Coroutine<String>
+							[] (ExeOrder &val, auto t0, auto t1, auto t2) -> Coroutine<String>
 							{
 								const bool	is_canceled = co_await Coro_IsCanceled;
 								const auto	status		= co_await Coro_Status;
@@ -160,12 +160,12 @@ namespace
 								TEST( status == EStatus::InProgress );
 								TEST( queue == ETaskQueue::PerFrame );
 
-								String	s0		 = co_await p0;
-								auto	[s1, s2] = co_await Tuple{ p1, p2 };
+								String	s0		 = co_await t0;
+								auto	[s1, s2] = co_await Tuple{ t1, t2 };
 
-								TEST( value.guard.try_lock() );
-								value.str += s0 + s1 + ToString(s2);
-								value.guard.unlock();
+								TEST( val.guard.try_lock() );
+								val.str += s0 + s1 + ToString(s2);
+								val.guard.unlock();
 
 								co_return "";
 							}
@@ -173,7 +173,7 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
 		TEST( AsyncTask{p3}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p0}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
@@ -194,27 +194,27 @@ namespace
 
 		ExeOrder	value;
 		auto		p2 = scheduler->Run(
-							[] (ExeOrder &value, auto p0, auto p1) -> Coroutine<String>
+							[] (ExeOrder &val, auto t0, auto t1) -> Coroutine<String>
 							{
-								String	s0 = co_await p0;
+								String	s0 = co_await t0;
 								{
-									TEST( value.guard.try_lock() );
-									value.str += s0;
-									value.guard.unlock();
+									TEST( val.guard.try_lock() );
+									val.str += s0;
+									val.guard.unlock();
 								}
 
-								String	s1 = co_await p1;
+								String	s1 = co_await t1;
 								{
-									TEST( value.guard.try_lock() );
-									value.str += s1;
-									value.guard.unlock();
+									TEST( val.guard.try_lock() );
+									val.str += s1;
+									val.guard.unlock();
 								}
 								co_return "";
 							}( value, p0, p1 ));
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( {AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}}, c_MaxTimeout ));
+		TEST( scheduler->Wait( List{ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
 		TEST( AsyncTask{p0}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p1} == null );
 		TEST( AsyncTask{p2}->Status() == EStatus::Canceled );

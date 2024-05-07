@@ -2188,40 +2188,40 @@ namespace {
 		String	src;
 		String	test;
 
-		const auto	TypeToStr = [&uniqueTypes, &outTypes] (const Field &field, INOUT String &src) -> bool
+		const auto	TypeToStr = [&uniqueTypes, &outTypes] (const Field &field, INOUT String &str) -> bool
 		{{
 			if ( field.stType )
 			{
 				CHECK_ERR( field.stType->ToCPP( INOUT outTypes, INOUT uniqueTypes ));
-				src << field.stType->Typename();
+				str << field.stType->Typename();
 				return true;
 			}
 			else
 			if ( field.IsVec() or field.IsScalar() )
 			{
 				if ( field.IsVec() and field.packed )
-					src << "packed_";
+					str << "packed_";
 
-				CHECK_ERR( ValueTypeToStrCPP( field.type, INOUT src ));
+				CHECK_ERR( ValueTypeToStrCPP( field.type, INOUT str ));
 
 				if ( field.IsVec() )
-					src << ToString( field.rows );
+					str << ToString( field.rows );
 				return true;
 			}
 			else
 			if ( field.IsMat() )
 			{
 				if ( field.packed )
-					src << "packed_";
+					str << "packed_";
 
 				switch ( field.type )
 				{
-					case EValueType::Float16 :	src << "half";		break;
-					case EValueType::Float32 :	src << "float";		break;
-					case EValueType::Float64 :	src << "double";	break;
+					case EValueType::Float16 :	str << "half";		break;
+					case EValueType::Float32 :	str << "float";		break;
+					case EValueType::Float64 :	str << "double";	break;
 					default :					RETURN_ERR( "unsupported value type for matrix" );
 				}
-				src << ToString( field.cols ) << 'x' << ToString( field.rows ) << "_storage";
+				str << ToString( field.cols ) << 'x' << ToString( field.rows ) << "_storage";
 				return true;
 			}
 			else

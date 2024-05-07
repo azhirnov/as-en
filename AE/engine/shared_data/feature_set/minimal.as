@@ -10,9 +10,9 @@ void ASmain ()
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
-	fset.minSpirvVersion (100);
-	fset.minMetalVersion (200);
+	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.maxSpirvVersion (100);
+	fset.maxMetalVersion (200);
 	fset.maxViewports (1);
 	fset.maxTexelBufferElements (64 << 10);
 	fset.maxUniformBufferSize (16 << 10);
@@ -75,6 +75,9 @@ void ASmain ()
 		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
 		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F
 	});
+	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
+	});
 	fset.imageCubeArray (True);
 	fset.multisampleArrayImage (True);
 	fset.maxImageArrayLayers (256);
@@ -108,6 +111,8 @@ void ASmain ()
 	});
 	fset.maxSamplerAnisotropy (1.00);
 	fset.maxSamplerLodBias (2.00);
+	fset.framebufferColorSampleCounts({ 1, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (256);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

@@ -234,10 +234,10 @@ namespace AE::Graphics
 	//
 	struct MetalCmdBatchDependency
 	{
-		MetalEvent		event;			// or MetalSharedEvent
+		MetalEvent		semaphore;			// or MetalSharedEvent
 		ulong			value	= 0;
 
-		ND_ explicit operator bool ()	C_NE___	{ return bool{event}; }
+		ND_ explicit operator bool ()	C_NE___	{ return bool{semaphore}; }
 	};
 
 

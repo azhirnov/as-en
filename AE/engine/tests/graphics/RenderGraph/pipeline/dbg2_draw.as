@@ -14,6 +14,8 @@ void ASmain ()
 
 	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "dbg2_draw" );
 	ppln.SetLayout( "dbg2_draw.pl" );
+	ppln.AddFeatureSet( "part.FragmentShaderTrace" );
+	ppln.AddFeatureSet( "part.VertexShaderTrace" );
 
 	{
 		RC<Shader>	vs	= Shader();

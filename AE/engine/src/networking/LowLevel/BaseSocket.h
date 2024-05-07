@@ -32,6 +32,7 @@ namespace AE::Networking
 		{
 			Bytes	sendBufferSize;
 			Bytes	receiveBufferSize;
+			bool	nonBlocking			= true;
 		};
 
 
@@ -46,18 +47,22 @@ namespace AE::Networking
 	public:
 		BaseSocket ()									__NE___	{}
 		BaseSocket (BaseSocket &&)						__NE___;
-		~BaseSocket ()									__NE___	{ Close(); }
+		~BaseSocket ()									__NE___	{ FastClose(); }
 
 		BaseSocket (const BaseSocket &)					= delete;
 		BaseSocket&  operator = (const BaseSocket &)	= delete;
 		BaseSocket&  operator = (BaseSocket &&)			= delete;
 
 			void  Close ()								__NE___;
+			void  FastClose ()							__NE___;
+			void  BlockingClose ()						__NE___;
 
 		ND_ bool  IsOpen ()								C_NE___	{ return _handle != Default; }
 
 			bool  GetAddress (OUT IpAddress  &outAddr)	C_NE___;
 			bool  GetAddress (OUT IpAddress6 &outAddr)	C_NE___;
+
+		ND_ bool  IsNonBlocking ()						C_NE___;
 
 		ND_ auto  NativeHandle ()						C_NE___	{ return _handle; }
 
@@ -71,6 +76,7 @@ namespace AE::Networking
 
 
 	protected:
+		ND_ bool  _SetBlocking ()						__NE___;
 		ND_ bool  _SetNonBlocking ()					__NE___;
 		ND_ bool  _SetSendBufferSize (Bytes size)		__NE___;
 		ND_ bool  _SetReceiveBufferSize (Bytes size)	__NE___;

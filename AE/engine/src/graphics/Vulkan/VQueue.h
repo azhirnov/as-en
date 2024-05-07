@@ -294,7 +294,7 @@ namespace AE::Graphics
 		ND_ static constexpr auto	GetReadAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & ReadOnlyAccessMask; }
 		ND_ static constexpr auto	GetWriteAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & WriteOnlyAccessMask; }
 
-		ND_ static constexpr auto	GetStages (std::initializer_list<EPipelineScope> scopes) __NE___
+		ND_ static constexpr auto	GetStages (List<EPipelineScope> scopes) __NE___
 		{
 			VkPipelineStageFlagBits2	result = 0;
 			for (auto scope : scopes)
@@ -302,7 +302,7 @@ namespace AE::Graphics
 			return result;
 		}
 
-		ND_ static constexpr auto	GetAccess (std::initializer_list<EPipelineScope> scopes) __NE___
+		ND_ static constexpr auto	GetAccess (List<EPipelineScope> scopes) __NE___
 		{
 			VkAccessFlagBits2	result = 0;
 			for (auto scope : scopes)
@@ -310,7 +310,7 @@ namespace AE::Graphics
 			return result;
 		}
 
-		ND_ static constexpr auto	GetStagesAndAccess (std::initializer_list<EPipelineScope> scopes) __NE___
+		ND_ static constexpr auto	GetStagesAndAccess (List<EPipelineScope> scopes) __NE___
 		{
 			auto	result = Tuple{ VkPipelineStageFlagBits2(0), VkAccessFlagBits2(0) };
 			for (auto scope : scopes) {

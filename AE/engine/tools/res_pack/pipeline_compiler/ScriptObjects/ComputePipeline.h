@@ -20,7 +20,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		ComputePipelineSpecScriptBinding () {}
-		ComputePipelineSpecScriptBinding (const ComputePipelineScriptBinding* base, const String &name) __Th___;
+		ComputePipelineSpecScriptBinding (ComputePipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)	__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
 		void  SetSpecValueI (const String &name, int   value)	__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
@@ -36,7 +36,7 @@ namespace AE::PipelineCompiler
 
 		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
-		ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid)					__NE___;
 
 		ND_ const ComputePipelineScriptBinding*	GetBase ()		const	{ return Cast<ComputePipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 
@@ -78,8 +78,8 @@ namespace AE::PipelineCompiler
 		ComputePipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 		ComputePipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
 
-		ND_ bool	Build ();
-		ND_ usize	SpecCount ()							const	{ return _pplnSpec.size(); }
+		ND_ bool	Build ()								__NE___;
+		ND_ usize	SpecCount ()							C_NE___	{ return _pplnSpec.size(); }
 
 		static void  Bind (const ScriptEnginePtr &se)		__Th___;
 

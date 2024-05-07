@@ -34,17 +34,17 @@ namespace AE::Profiler
 		{
 			UniqueNameIdx	name;
 			RGBA8u			color;		// same as in '_uniqueNameArr'
-			double			begin;		// nanoseconds
-			double			end;
+			nanosecondsd	begin;
+			nanosecondsd	end;
 		};
 
 		struct FrameData
 		{
 			Array<Item>		items;
-			double			min		= 0.0;		// nanoseconds
-			double			max		= 0.0;
+			nanosecondsd	min		{0.0};
+			nanosecondsd	max		{0.0};
 
-			ND_ double  Height ()	const	{ return max - min; }
+			ND_ double  Height ()	const	{ return (max - min).count(); }
 		};
 
 		static constexpr int	_HistorySize	= 100;	// in frames
@@ -70,8 +70,8 @@ namespace AE::Profiler
 		void  Draw (INOUT RectF &region) const;
 
 		void  Begin ();
-		void  Add (const String &name, RGBA8u color, double begin, double end);
-		void  End (double min, double max);
+		void  Add (const String &name, RGBA8u color, nanosecondsd begin, nanosecondsd end);
+		void  End (nanosecondsd min, nanosecondsd max);
 		void  End ();
 	};
 

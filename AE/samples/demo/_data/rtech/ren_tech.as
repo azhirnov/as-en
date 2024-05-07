@@ -34,11 +34,7 @@ void  DeclScene3DRenderTech ()
 
 void  DeclHWCameraRenderTech ()
 {
-	RC<RenderTechnique> rtech = RenderTechnique( "HwCamera.RTech" );
-	{
-		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
-	}
+	// skip
 }
 
 

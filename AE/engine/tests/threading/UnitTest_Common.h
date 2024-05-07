@@ -20,13 +20,12 @@ struct LocalTaskScheduler
 	{
 		TaskScheduler::Config	cfg;
 		cfg.maxPerFrameQueues	= ubyte(Max( 2u, uint(count) ));
-		cfg.mainThreadCoreId	= ECpuCoreId(0);
 
 		TaskScheduler::InstanceCtor::Create();
 		TEST( Scheduler().Setup( cfg ));
 	}
 
-	explicit LocalTaskScheduler (IOThreadCount count, ECpuCoreId mainThreadCoreId = ECpuCoreId(0))
+	explicit LocalTaskScheduler (IOThreadCount count, ECpuCoreId mainThreadCoreId = Default)
 	{
 		TaskScheduler::Config	cfg;
 		cfg.maxPerFrameQueues	= 1;

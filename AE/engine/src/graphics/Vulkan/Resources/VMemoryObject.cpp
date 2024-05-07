@@ -32,7 +32,7 @@ namespace AE::Graphics
 
 		_memAllocator = RVRef(allocator);
 
-		DEBUG_ONLY( _debugName = dbgName );
+		GFX_DBG_ONLY( _debugName = dbgName );
 		Unused( dbgName );
 
 		return true;
@@ -53,7 +53,7 @@ namespace AE::Graphics
 
 		_memAllocator = RVRef(allocator);
 
-		DEBUG_ONLY( _debugName = dbgName );
+		GFX_DBG_ONLY( _debugName = dbgName );
 		Unused( dbgName );
 
 		return true;
@@ -73,7 +73,7 @@ namespace AE::Graphics
 
 		_memAllocator = null;
 
-		DEBUG_ONLY( _debugName.clear() );
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

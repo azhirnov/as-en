@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/Resources/VRayTracingPipeline.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "VPipelineHelper.inl.h"
+# include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
 {
@@ -31,7 +31,7 @@ namespace AE::Graphics
 		CHECK_ERR( not _handle and not _layout );
 		CHECK_ERR( ci.allocator != null );
 		CHECK_ERR( ci.tempAllocator != null );
-		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue );
+		CHECK_ERR( resMngr.GetFeatureSet().rayTracingPipeline == FeatureSet::EFeature::RequireTrue );
 
 		auto*	ppln_layout = resMngr.GetResource( ci.layoutId, True{"incRef"} );
 		CHECK_ERR( ppln_layout != null );
@@ -66,7 +66,7 @@ namespace AE::Graphics
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, *ci.tempAllocator ));
 
 		TRY{
-			const auto	ToGroupIndex = [] (auto* lhs, auto* rhs)
+			const auto	ToGroupIndex = [] (auto* lhs, auto* rhs) __NE___
 			{{
 				ssize	d = Distance( lhs, rhs );
 				return CheckCast<uint>( d );
@@ -135,7 +135,7 @@ namespace AE::Graphics
 		)
 
 		auto&	dev	= resMngr.GetDevice();
-		VK_CHECK_ERR( dev.vkCreateRayTracingPipelinesKHR( dev.GetVkDevice(), Default, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
+		VK_CHECK_ERR( CreateRayTracingPipelines( dev, Default, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 
 		// get shader group handles
 		{
@@ -154,7 +154,7 @@ namespace AE::Graphics
 
 		CopyShaderTrace( ci.shaders, ci.allocator, OUT _dbgTrace );
 
-		DEBUG_ONLY( _debugName = ci.specCI.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )
 		return true;
 	}
 
@@ -184,7 +184,7 @@ namespace AE::Graphics
 		_groupHandles	= Default;
 		_dbgTrace		= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -262,15 +262,25 @@ namespace AE::Graphics
 	GetShaderGroupStackSize
 =================================================
 */
-	Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, RayTracingGroupName::Ref name, VkShaderGroupShaderKHR type) C_NE___
+	Bytes  VRayTracingPipeline::GetShaderGroupStackSize (const VDevice &dev, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) C_NE___
 	{
+		if ( names.empty() )
+			return 0_b;
+
 		DRC_SHAREDLOCK( _drCheck );
 
-		auto	it = _nameToHandle->find( name );
-		CHECK_ERR( it != _nameToHandle->end() );
+		const auto	vk_type = VEnumCast( type );
+		CHECK_ERR( vk_type != VK_SHADER_GROUP_SHADER_MAX_ENUM_KHR );
 
-		// TODO: 'type' is not validated, this is not safe!
-		return Bytes{ dev.vkGetRayTracingShaderGroupStackSizeKHR( dev.GetVkDevice(), _handle, it->second, type )};
+		Bytes	result;
+		for (RayTracingGroupName::Ref name : names)
+		{
+			auto	it = _nameToHandle->find( name );
+			CHECK_ERR( it != _nameToHandle->end() );
+
+			AssignMax( INOUT result, Bytes{ dev.vkGetRayTracingShaderGroupStackSizeKHR( dev.GetVkDevice(), _handle, it->second, vk_type )});
+		}
+		return result;
 	}
 
 

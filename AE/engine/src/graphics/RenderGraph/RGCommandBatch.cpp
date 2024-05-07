@@ -2,6 +2,7 @@
 
 #include "graphics/RenderGraph/RGCommandBatch.h"
 #include "graphics/Private/EnumUtils.h"
+#include "platform/Public/OutputSurface.h"
 
 namespace AE::RG::_hidden_
 {
@@ -59,7 +60,7 @@ namespace AE::RG::_hidden_
 				if_unlikely( def_state == Default )
 				{
 					auto [def_state2, is_undef] = rg_batch._globalStates.GetDefaultState( key );
-					def_state	= def_state2;
+					def_state	= (is_undef ? initial : def_state2);
 					old_state	|= (is_undef and key.IsImage() ? EResourceState::Invalidate : Default); // image may be in 'undefined' layout
 				}
 
@@ -77,6 +78,11 @@ namespace AE::RG::_hidden_
 			bool	inserted = rs.map.insert_or_assign( key, InTaskState{ initial, final }).second;
 			CHECK_ERRV( inserted );	// resource already used in task
 		}
+
+		#if AE_GRAPHICS_DBG_SYNC
+			if ( old_state == Default )
+				AE_LOGW( rg_batch._globalStates.KeyToString(key) << " previous state is General or not known" );
+		#endif
 
 		if_likely( key.IsImage() ){
 			if ( EResourceState_RequireImageBarrier( old_state, initial, True{"relaxed"} ))
@@ -96,7 +102,7 @@ namespace AE::RG::_hidden_
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		auto*	view	 = res_mngr.GetResource( id );
-		CHECK( view != null );
+		ASSERT( view != null );
 
 		if_likely( view != null )
 			return RVRef(*this).UseResource( view->ImageId(), initial, final );
@@ -108,7 +114,7 @@ namespace AE::RG::_hidden_
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		auto*	view	 = res_mngr.GetResource( id );
-		CHECK( view != null );
+		ASSERT( view != null );
 
 		if_likely( view != null )
 			return RVRef(*this).UseResource( view->BufferId(), initial, final );
@@ -214,8 +220,12 @@ namespace AE::RG::_hidden_
 */
 	void  RGCommandBatchPtr::RGBatchData::SetRenderPassFinalStates (uint taskIdx, const PrimaryCmdBufState_t &primaryState) __Th___
 	{
-	#if defined(AE_ENABLE_VULKAN)
+	#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+	# ifdef AE_ENABLE_VULKAN
 		const auto		fb_images	= primaryState.framebuffer->Images();
+	# else
+		const auto&		fb_images	= primaryState.fbImages;
+	# endif
 		const auto&		att_states	= primaryState.renderPass->AttachmentStates();
 		auto&			rs			= _perTask[ taskIdx ];
 
@@ -231,11 +241,7 @@ namespace AE::RG::_hidden_
 		}
 
 	#elif defined(AE_ENABLE_METAL)
-		// TODO
-		Unused( taskIdx, primaryState );
-
-	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		// TODO
+		UNTESTED
 		Unused( taskIdx, primaryState );
 
 	#else
@@ -259,7 +265,7 @@ namespace AE::RG::_hidden_
 		if_unlikely( it == rs.map.end() )
 		{
 			if_unlikely( not key.IsImage() and EResourceState_IsReadOnly( newState ))
-				return false;	// don't track read-only resources
+				return false;	// don't track read-only non-image resources
 
 			// start resource state tracking in task
 			auto [def_state, is_undef]  = _globalStates.GetDefaultState( key );
@@ -270,12 +276,10 @@ namespace AE::RG::_hidden_
 
 		oldState = it->second.current;
 
-		if_unlikely( AllBits( newState, EResourceState::Invalidate )) {
-			// invalidate (discard previous content)
-			it->second.current = oldState | EResourceState::Invalidate;
-		}else{
-			it->second.current = newState;
-		}
+		it->second.current = AllBits( newState, EResourceState::Invalidate ) ?
+			oldState | EResourceState::Invalidate :		// invalidate (discard previous content)
+			newState;
+
 		return true;
 	}
 
@@ -313,7 +317,7 @@ namespace AE::RG::_hidden_
 	AddSurfaceTargets
 =================================================
 */
-	void  RGCommandBatchPtr::RGBatchData::AddSurfaceTargets (uint taskIdx, const App::IOutputSurface::RenderTargets_t &targets) __NE___
+	void  RGCommandBatchPtr::RGBatchData::AddSurfaceTargets (uint taskIdx, ArrayView<App::IOutputSurface_RenderTarget> targets) __NE___
 	{
 		auto&	rs = _perTask[ taskIdx ];
 		DRC_EXLOCK( rs.drCheck );

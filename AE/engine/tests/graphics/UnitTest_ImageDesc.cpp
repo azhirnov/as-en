@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/Public/ImageDesc.h"
-#include "UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 namespace
 {

@@ -303,6 +303,9 @@ namespace {
 } // AE::App
 
 
+using namespace AE;
+using namespace AE::Base;
+
 /*
 =================================================
 	AE_AppEntry
@@ -310,12 +313,17 @@ namespace {
 */
 extern int  AE_AppEntry ()
 {
-	return AE::App::ApplicationGLFW::Run( AE_OnAppCreated() );
+	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
 }
 
-extern int  main ()
+extern int  main (const int, char* argv[])
 {
-	return AE::App::ApplicationGLFW::Run( AE_OnAppCreated() );
+  #ifdef AE_PLATFORM_APPLE
+	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path().parent_path().parent_path().parent_path() );
+  #else
+	FileSystem::SetCurrentPath( Path{argv[0]}.parent_path() );
+  #endif
+	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
 }
 
 # ifdef AE_PLATFORM_WINDOWS
@@ -324,9 +332,9 @@ extern int  WinMain (HINSTANCE	hInstance,
 					 LPSTR		lpCmdLine,
 					 int		nShowCmd)
 {
-	AE::Base::Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
+	Unused( hInstance, hPrevInstance, lpCmdLine, nShowCmd );
 
-	return AE::App::ApplicationGLFW::Run( AE_OnAppCreated() );
+	return App::ApplicationGLFW::Run( AE_OnAppCreated() );
 }
 # endif
 

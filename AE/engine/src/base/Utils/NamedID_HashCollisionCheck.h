@@ -30,7 +30,7 @@ namespace AE::Base
 			Info () {}
 			explicit Info (uint seed) : seed{seed} {}
 		};
-		using IdMap_t	= HashMap< /*UID*/uint, Info >;
+		using IdMap_t	= FlatHashMap< /*UID*/uint, Info >;
 
 
 	// variables

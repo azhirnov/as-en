@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "UnitTest_Common.h"
-
+#include "TestsGraphicsHL.pch.h"
 using namespace AE::UI;
 
 namespace
@@ -18,7 +17,7 @@ namespace
 		CHECK_ERR( IDrawable::RegisterDrawables( factory ));
 		CHECK_ERR( IController::RegisterControllers( factory ));
 
-		auto	wmem = MakeRC<MemWStream>();
+		auto	wmem = MakeRC<ArrayWStream>();
 		{
 			Serializing::Serializer		ser {wmem};
 			ser.factory	= &factory;

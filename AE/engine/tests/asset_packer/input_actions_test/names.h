@@ -16,7 +16,7 @@ namespace InputActions
 				Options  = 0x1f88c31bu,  // InputActionName{"Options"}
 				Push  = 0xff08b95au,  // InputActionName{"Push"}
 			};
-		} Desktop;
-	} UI;
+		} Desktop = {};
+	} UI = {};
 
 }

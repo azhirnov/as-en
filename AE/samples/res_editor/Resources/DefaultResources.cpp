@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Resources/DefaultResources.h"
+#include "res_editor/Core/RenderGraph.h"
 
 namespace AE::ResEditor
 {
@@ -11,15 +12,23 @@ namespace AE::ResEditor
 =================================================
 */
 	DefaultResources::DefaultResources () :
-		_dtQueue{ MakeRC<DataTransferQueue>() },
-		_gfxLinearAlloc{ GraphicsScheduler().GetResourceManager().CreateLinearGfxMemAllocator( 256_Mb )},
-		_gfxDynamicAlloc{}	// TODO
+		_dtQueue{ MakeRC<DataTransferQueue>() }
 	{
+		auto&	rts = GraphicsScheduler();
+
+		{
+			auto	mem_info = rts.GetDevice().GetMemoryInfo();
+			_gpuMemSize = mem_info.deviceTotal + mem_info.unifiedTotal;
+		}
+
+		_gfxLinearAlloc	= rts.GetResourceManager().CreateLinearGfxMemAllocator( _pageSize );
+		_gfxLargeAlloc	= rts.GetResourceManager().CreateLargeSizeGfxMemAllocator();
+
 		_CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );
 		_CreateDummyImage3D( OUT _dummyRes.image3D, _gfxLinearAlloc );
 		_CreateDummyImageCube( OUT _dummyRes.imageCube, _gfxLinearAlloc );
 
-		if ( GraphicsScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue )
+		if ( rts.GetFeatureSet().accelerationStructure() == FeatureSet::EFeature::RequireTrue )
 		{
 			_CreateDummyRTGeometry( OUT _dummyRes.rtGeometry, _gfxLinearAlloc );
 			_CreateDummyRTScene( OUT _dummyRes.rtScene, _gfxLinearAlloc );
@@ -218,6 +227,58 @@ namespace AE::ResEditor
 
 		dst = res_mngr.CreateRTScene( desc, "dummy RTScene", gfxAlloc );
 		CHECK_ERRV( dst );
+	}
+
+/*
+=================================================
+	ChooseAllocator
+=================================================
+*/
+	GfxMemAllocatorPtr  DefaultResources::ChooseAllocator (Bool isDynamic, Bytes size) C_NE___
+	{
+		if ( size > _pageSize )
+			return _gfxLargeAlloc;
+
+		return isDynamic ? _gfxDynamicAlloc : _gfxLinearAlloc;
+	}
+
+	GfxMemAllocatorPtr  DefaultResources::ChooseAllocator (Bool isDynamic, const ImageDesc &desc) C_NE___
+	{
+		auto&	fmt_info = EPixelFormat_GetInfo( desc.format );
+		return ChooseAllocator( isDynamic,
+					ImageUtils::ImageSize( desc.dimension, desc.arrayLayers, desc.maxLevel, desc.samples, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
+	}
+
+	GfxMemAllocatorPtr  DefaultResources::ChooseAllocator (Bool isDynamic, const VideoImageDesc &desc) C_NE___
+	{
+		const auto	CalcSize = [&desc] (OUT Bytes &size)
+		{{
+			auto&		fmt_info	= EPixelFormat_GetInfo( desc.format );
+			const uint	plane_count	= Max( 1u, fmt_info.PlaneCount() );
+			const bool	multiplanar	= fmt_info.IsMultiPlanar();
+
+			for (uint plane = 0; plane < plane_count; ++plane)
+			{
+				const auto		aspect		= multiplanar ? EImageAspect_Plane( plane ) : EImageAspect::Color;
+				EPixelFormat	plane_fmt	= desc.format;
+				uint2			plane_scale	{1,1};
+
+				if ( aspect != EImageAspect::Color )
+				{
+					CHECK_ERRV( EPixelFormat_GetPlaneInfo( desc.format, aspect, OUT plane_fmt, OUT plane_scale ));
+					CHECK_ERRV( All( IsMultipleOf( desc.dimension, plane_scale )));
+				}
+
+				const uint2		dim			= desc.dimension / plane_scale;
+				auto&			plane_info	= EPixelFormat_GetInfo( plane_fmt );
+
+				size += ImageUtils::ImageSize( uint3{dim,1}, plane_info.bitsPerBlock, plane_info.TexBlockDim() );
+			}
+		}};
+
+		Bytes	size;
+		CalcSize( OUT size );
+		return ChooseAllocator( isDynamic, size );
 	}
 
 

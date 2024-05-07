@@ -65,6 +65,8 @@ namespace
 		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel1,		"SetDebugLabel",	{"label"} );
 		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel2,		"SetDebugLabel",	{"label", "color"} );
 
+		classBinder.AddMethod( &ScriptBasePass::AddFlag,			"AddFlag",			{} );
+
 		classBinder.Comment( "Add slider to UI. Data passed to all shaders in the current pass." );
 		classBinder.AddMethod( &ScriptBasePass::SliderI0,			"SliderI",			{"name"} );
 		classBinder.AddMethod( &ScriptBasePass::SliderI1,			"Slider",			{"name", "min", "max"} );
@@ -129,7 +131,11 @@ namespace
 			classBinder.AddMethod( &ScriptBasePass::ArgImageOut,		"ArgOut",			{"uniformName", "resource"} );
 			classBinder.AddMethod( &ScriptBasePass::ArgImageInOut,		"ArgInOut",			{"uniformName", "resource"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgTextureIn,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			classBinder.AddMethod( &ScriptBasePass::ArgTextureIn,		"ArgTex",			{"uniformName", "resource"} );
+			classBinder.AddMethod( &ScriptBasePass::ArgTextureIn2,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			classBinder.AddMethod( &ScriptBasePass::ArgTextureArrIn,	"ArgTex",			{"uniformName", "resources"} );
+			classBinder.AddMethod( &ScriptBasePass::ArgTextureArrIn2,	"ArgIn",			{"uniformName", "resources", "samplerName"} );
+
 			classBinder.AddMethod( &ScriptBasePass::ArgVideoIn,			"ArgIn",			{"uniformName", "resource", "samplerName"} );
 			classBinder.AddMethod( &ScriptBasePass::ArgController,		"Set",				{"camera"} );
 

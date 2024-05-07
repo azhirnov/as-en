@@ -28,6 +28,8 @@ namespace AE::Base
 			static void		NanoSleep (nanoseconds relativeTime)							__NE___	{ return PlatformUtils::ThreadNanoSleep( relativeTime ); }
 
 			static void		ProgressiveSleep (uint)											__NE___;
+			static void		ProgressiveSleepInf (uint)										__NE___;
+			static void		ProgressiveSleep (uint, milliseconds maxWait)					__NE___;
 
 			static void		Pause ()														__NE___	{ return PlatformUtils::ThreadPause(); }		// keep high CPU frequency
 			static void		Sleep_1us ()													__NE___	{ return PlatformUtils::ThreadSleep_1us(); }	// ARM64: low power mode
@@ -50,6 +52,8 @@ namespace AE::Base
 
 			static bool		SetAffinity (uint coreIdx)										__NE___	{ return PlatformUtils::SetCurrentThreadAffinity( coreIdx ); }
 			static bool		SetPriority (float priority)									__NE___	{ return PlatformUtils::SetCurrentThreadPriority( priority ); }
+
+		ND_ static Bytes	GetDefaultStackSize ()											__NE___	{ return PlatformUtils::GetDefaultStackSize(); }
 
 
 		// ID //
@@ -74,14 +78,27 @@ namespace AE::Base
 */
 	inline void  ThreadUtils::ProgressiveSleep (const uint iteration) __NE___
 	{
-		if_likely( iteration < 8 )
+		ProgressiveSleep( iteration, seconds{1} );
+	}
+
+	inline void  ThreadUtils::ProgressiveSleepInf (const uint iteration) __NE___
+	{
+		ProgressiveSleep( iteration, std::chrono::days{30} );
+	}
+
+	inline void  ThreadUtils::ProgressiveSleep (const uint iteration, const milliseconds maxWait) __NE___
+	{
+		constexpr uint	nano_sleep_count	= 8;
+		constexpr uint	micro_sleep_count	= nano_sleep_count + 8;
+
+		if_likely( iteration < nano_sleep_count )
 		{
 			Sleep_1us();
 			return;
 		}
 
 		// power safe mode
-		if_likely( iteration < 16 )
+		if_likely( iteration < micro_sleep_count )
 		{
 			Sleep_500us();
 			return;
@@ -89,7 +106,12 @@ namespace AE::Base
 
 		// multiple threads at the same core is rare case
 		if ( not PlatformUtils::SwitchToPendingThread() )
+		{
+			Unused( maxWait );
+			ASSERT_MSG( (iteration - micro_sleep_count) * milliseconds{15} < maxWait, "deadlock" );
+
 			Sleep_15ms();
+		}
 	}
 
 

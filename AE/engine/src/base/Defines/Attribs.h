@@ -192,6 +192,14 @@
 #endif
 
 
+// variable may be unused (C++17)
+#if __has_cpp_attribute( maybe_unused  )
+#	define MaybeUnused			[[maybe_unused ]]
+#else
+#	define MaybeUnused
+#endif
+
+
 // thiscall, cdecl
 #ifdef AE_COMPILER_MSVC
 #	define AE_CDECL				__cdecl
@@ -206,12 +214,6 @@
 // native source location (C++20) instead of __FILE__, __LINE__
 #ifdef __cpp_lib_source_location
 #	define AE_HAS_SOURCE_LOCATION
-#endif
-
-
-// C++20 coroutines
-#ifdef __cpp_lib_coroutine
-#	define AE_HAS_COROUTINE
 #endif
 
 

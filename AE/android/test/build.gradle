@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+	namespace  'AE.test'
 	compileSdk 34
 
 	defaultConfig {
@@ -29,27 +30,34 @@ android {
 		}
 	}
 
-	ndkVersion "24.0.8215888"
+    ndkVersion "27.0.11718014"
 
 	externalNativeBuild {
 		cmake {
 			version '3.26.4'
-			path '../../CMakeLists.txt'
+			path	'../../CMakeLists.txt'
 		}
 	}
 	sourceSets {
 		main {
-			assets.srcDirs = ['../../../AE-Temp/engine/graphics/vk']
+			assets.srcDirs = ['../../../AE-Temp/engine/graphics', '../../../AE-Temp/engine/graphics_hl']
 		}
 	}
 	packagingOptions {
 		jniLibs {
 			excludes += ['lib/**/*.so']
-			pickFirsts += ['lib/**/libTestLauncher.so']
-			pickFirsts += ['lib/**/libc++_shared.so', 'lib/**/libVkLayer_khronos_validation.so']
+			pickFirsts += ['lib/**/libTestLauncher.so', 'lib/**/libTestsBase.so', 'lib/**/libTestsScripting.so',
+						   'lib/**/libTestsThreading.so', 'lib/**/libTestsNetworking.so', 'lib/**/libTestsSerializing.so',
+						   'lib/**/libTestsPlatform.so', 'lib/**/libTestsGraphics.so', 'lib/**/libTestsGraphicsHL.so',
+						   'lib/**/libTestsECS-st.so', 'lib/**/libTestsVFS.so', 'lib/**/libTestsHuLang.so',
+						   'lib/**/libTestsAtlasTools.so', 'lib/**/libTestsGeometryTools.so',
+						   'lib/**/libPerfBase.so', 'lib/**/libPerfThreading.so']
+			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']
+		}
+		resources  {
+			excludes += '**/*.kotlin_*'
 		}
 	}
-	namespace 'AE.test'
 }
 
 dependencies {

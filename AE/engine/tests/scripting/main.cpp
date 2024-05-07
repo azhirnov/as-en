@@ -12,12 +12,12 @@ extern void UnitTest_Fn ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Scripting ()
+extern "C" AE_DLL_EXPORT int Tests_Scripting (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	UnitTest_Array();
 	UnitTest_Class();
@@ -26,6 +26,8 @@ int main ()
 	UnitTest_Exceptions();
 	UnitTest_Preprocessor();
 	UnitTest_Fn();
+
+	// TODO: multithreading test
 
 	AE_LOGI( "Tests.ScriptBinding finished" );
 	return 0;

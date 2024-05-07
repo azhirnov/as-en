@@ -10,7 +10,7 @@ namespace AE::App
 	_StateChanged
 =================================================
 */
-	bool  VRDeviceBase::_StateChanged (EState newState) const
+	bool  VRDeviceBase::_StateChanged (EState newState) C_NE___
 	{
 		const bool	skip_focused	= ((_hmdState == EState::InForeground) and (newState == EState::InBackground)) or
 									  ((_hmdState == EState::InBackground) and (newState == EState::InForeground));
@@ -24,7 +24,7 @@ namespace AE::App
 	_SetState
 =================================================
 */
-	void  VRDeviceBase::_SetState (EState newState)
+	void  VRDeviceBase::_SetState (EState newState) __NE___
 	{
 		if_unlikely( not _StateChanged( newState ))
 			return;
@@ -40,7 +40,7 @@ namespace AE::App
 	_DestroyListener
 =================================================
 */
-	void  VRDeviceBase::_DestroyListener ()
+	void  VRDeviceBase::_DestroyListener () __NE___
 	{
 		_SetState( EState::InBackground );
 		_SetState( EState::Stopped );

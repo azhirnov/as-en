@@ -18,34 +18,14 @@ namespace AE::Graphics
 */
 	void  VCommandBatch::CmdBufPool::GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
 	{
-		ASSERT( cmdbufs != null );
-		ASSERT( maxCount >= GraphicsConfig::MaxCmdBufPerBatch );
-		Unused( maxCount );
-
-		cmdbufCount = 0;
-
-		DRC_EXLOCK( _drCheck );
-		MemoryBarrier( EMemoryOrder::Acquire );
-
-		ASSERT( _cmdTypes.load() == 0 );	// software command buffers is not supported here
-		ASSERT( IsReady() );
-
-		for (uint i = 0, cnt = _count.load(); i < cnt; ++i)
-		{
-			// command buffer can be null
-			if_likely( _pool[i].native != Default )
+		_GetNativeCommands( OUT cmdbufs, OUT cmdbufCount, maxCount,
+			[](OUT VkCommandBufferSubmitInfoKHR& dst, VkCommandBuffer src)
 			{
-				ASSERT( cmdbufCount < maxCount );
-				auto&	dst = cmdbufs[cmdbufCount++];
-
 				dst.sType			= VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR;
 				dst.pNext			= null;
-				dst.commandBuffer	= _pool[i].native;
+				dst.commandBuffer	= src;
 				dst.deviceMask		= 0;
-			}
-		}
-
-		DEBUG_ONLY( Reset() );
+			});
 	}
 
 /*
@@ -78,7 +58,7 @@ namespace AE::Graphics
 =================================================
 */
 	bool  VCommandBatch::CmdBufPool::_CommitIndirectBuffers_Ordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
-																	 ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState)
+																	 ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
 	{
 		auto&			dev		= cmdPoolMngr.GetDevice();
 		VCommandBuffer	cmdbuf;
@@ -119,9 +99,9 @@ namespace AE::Graphics
 =================================================
 	_CommitIndirectBuffers_Unordered
 =================================================
-*/
+*
 	bool  VCommandBatch::CmdBufPool::_CommitIndirectBuffers_Unordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
-																	 ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState)
+																	   ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
 	{
 		auto&			dev		= cmdPoolMngr.GetDevice();
 		VCommandBuffer	cmdbuf;
@@ -150,6 +130,7 @@ namespace AE::Graphics
 		}
 		return true;
 	}
+*/
 //-----------------------------------------------------------------------------
 
 
@@ -302,7 +283,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 */
-	bool  VCommandBatch::_Create (EQueueType queue, FrameUID frameId, uint submitIdx, DebugLabel dbg, void* userData) __NE___
+	bool  VCommandBatch::_Create (FrameUID frameId, const CmdBatchDesc &desc) __NE___
 	{
 		#if AE_VK_TIMELINE_SEMAPHORE
 			CHECK_ERR( _tlSemaphore != Default );
@@ -311,28 +292,28 @@ namespace AE::Graphics
 		#endif
 
 		_submitMode	= ESubmitMode::Immediately;
-		_queueType	= queue;
+		_queueType	= desc.queue;
 		_frameId	= frameId;
-		_submitIdx	= CheckCast<ubyte>(submitIdx);
-		_userData	= userData;
+		_submitIdx	= CheckCast<ubyte>(desc.submitIdx);
+		_flags		= desc.flags;
+		_userData	= desc.userData;
 
 		_perTaskBarriers.fill( null );
 
-		DBG_GRAPHICS_ONLY(
+		#if AE_DBG_GRAPHICS
 			_profiler = GraphicsScheduler().GetProfiler();
 			if ( _profiler )
-				_profiler->BeginBatch( frameId, this, dbg.label );
+				_profiler->BeginBatch( frameId, this, desc.dbg.label );
 
-			_dbgName	= dbg.label;
-			_dbgColor	= dbg.color;
-		)
-		Unused( dbg );
+			_dbgName	= desc.dbg.label;
+			_dbgColor	= desc.dbg.color;
 
-		#if defined(AE_DEBUG) and AE_VK_TIMELINE_SEMAPHORE
+		# if AE_VK_TIMELINE_SEMAPHORE
 			GraphicsScheduler().GetDevice().SetObjectName( _tlSemaphore, _dbgName, VK_OBJECT_TYPE_SEMAPHORE );
+		# endif
 		#endif
 
-		CHECK_ERR( _status.exchange( EStatus::Initial ) == EStatus::Destroyed );
+		CHECK_ERR( _status.Set( EStatus::Destroyed, EStatus::Initial ));
 		return true;
 	}
 
@@ -371,93 +352,6 @@ namespace AE::Graphics
 
 /*
 =================================================
-	AddInputSemaphore
-=================================================
-*/
-	bool  VCommandBatch::AddInputSemaphore (VkSemaphore sem, ulong value) __NE___
-	{
-		#if not AE_VK_TIMELINE_SEMAPHORE
-		ASSERT( value == 0 );
-		#endif
-		CHECK_ERR( sem != Default );
-		CHECK_ERR( not IsSubmitted() );
-
-		EXLOCK( _gpuInDepsGuard );
-		CHECK_ERR( _gpuInDeps.size() < _gpuInDeps.capacity() );	// check for overflow
-
-		auto&	val = _gpuInDeps.emplace( sem, value ).first->second;
-		val = Min( val, value );
-
-		return true;
-	}
-
-	bool  VCommandBatch::AddInputSemaphore (const VulkanCmdBatchDependency &dep) __NE___
-	{
-		return AddInputSemaphore( dep.semaphore, dep.value );
-	}
-
-/*
-=================================================
-	AddInputDependency
-----
-	GPU to GPU dependency.
-	returns 'false' on overflow or if batch is already completed.
-=================================================
-*/
-	bool  VCommandBatch::AddInputDependency (RC<VCommandBatch> batch) __NE___
-	{
-		if_unlikely( not batch )
-			return true;
-
-		return AddInputDependency( *batch );
-	}
-
-	bool  VCommandBatch::AddInputDependency (const VCommandBatch &batch) __NE___
-	{
-		CHECK_ERR( not IsSubmitted() );
-
-		// different queues
-		#if AE_VK_TIMELINE_SEMAPHORE
-		if_likely( batch.GetQueueType() != GetQueueType() )
-			return AddInputSemaphore( batch.GetSemaphore() );
-		#endif
-
-		// same queue
-		CHECK_ERR( batch.GetQueueType() == GetQueueType() );
-		CHECK_ERR( batch.GetSubmitIndex() < GetSubmitIndex() );
-
-		return true;
-	}
-
-/*
-=================================================
-	AddOutputSemaphore
-=================================================
-*/
-	bool  VCommandBatch::AddOutputSemaphore (VkSemaphore sem, ulong value) __NE___
-	{
-		#if not AE_VK_TIMELINE_SEMAPHORE
-		ASSERT( value == 0 );
-		#endif
-		CHECK_ERR( sem != Default );
-		CHECK_ERR( not IsSubmitted() );
-
-		EXLOCK( _gpuOutDepsGuard );
-		CHECK_ERR( _gpuOutDeps.size() < _gpuOutDeps.capacity() );	// check for overflow
-
-		auto&	val = _gpuOutDeps.emplace( sem, value ).first->second;
-		val = Min( val, value );
-
-		return true;
-	}
-
-	bool  VCommandBatch::AddOutputSemaphore (const VulkanCmdBatchDependency &dep) __NE___
-	{
-		return AddOutputSemaphore( dep.semaphore, dep.value );
-	}
-
-/*
-=================================================
 	GetSemaphore
 =================================================
 */
@@ -469,7 +363,6 @@ namespace AE::Graphics
 		return {};
 	#endif
 	}
-
 /*
 =================================================
 	_OnSubmit

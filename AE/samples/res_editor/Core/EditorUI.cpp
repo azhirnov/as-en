@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "video/Impl/EnumToString.cpp.h"
+#include "video/Private/EnumToString.cpp.h"
 
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Core/EditorCore.h"
@@ -12,6 +12,11 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# define RmG_UI_ON_HOST		1
+#else
+# define RmG_UI_ON_HOST		0
+#endif
 
 namespace ImGui
 {
@@ -105,7 +110,10 @@ namespace
 			default :	return "=";
 			case -1 :	return "1/2";
 			case -2 :	return "1/4";
+			case -3 :	return "1/8";
+			case -4 :	return "1/16";
 			case 1 :	return "x2";
+			case 2 :	return "x4";
 		}
 	}
 
@@ -120,8 +128,11 @@ namespace
 		{
 			default :	return 0;
 			case 2 :	return 1;
+			case 4 :	return 2;
 			case -2 :	return -1;
 			case -4 :	return -2;
+			case -8 :	return -3;
+			case -16 :	return -4;
 		}
 	}
 
@@ -136,7 +147,10 @@ namespace
 		{
 			case -1 :	return -2;
 			case -2 :	return -4;
+			case -3 :	return -8;
+			case -4 :	return -16;
 			case 1 :	return 2;
+			case 2 :	return 4;
 			default :	return 1;
 		}
 	}
@@ -177,8 +191,7 @@ namespace
 	{
 		SliderMap_t::mapped_type	val;
 		{
-			auto	sliders = val.Get<PerPassMutableSliders>().WriteNoLock();
-			EXLOCK( sliders );
+			auto	sliders = val.Get<PerPassMutableSliders>().WriteLock();
 
 			for (uint i = 0; i < MaxSlidersPerType; ++i) {
 				sliders->intSliders[i] = info.intRange[i][2];
@@ -204,10 +217,9 @@ namespace
 */
 	auto  UIInteraction::GetSliders (const void* uid) const -> Ptr<const PerPassMutableSliders>
 	{
-		auto	slider_map = _sliderMap.ReadNoLock();
-		SHAREDLOCK( slider_map );
+		auto	slider_map	= _sliderMap.ReadLock();
+		auto	it			= slider_map->find( uid );
 
-		auto	it = slider_map->find( uid );
 		if ( it != slider_map->end() )
 			return &it->second.Get<PerPassMutableSliders>();
 		else
@@ -223,8 +235,7 @@ namespace
 	{
 		AllSliders_t	result;
 
-		auto	slider_map = _sliderMap.WriteNoLock();
-		EXLOCK( slider_map );
+		auto	slider_map = _sliderMap.WriteLock();
 
 		for (auto& [key, pass_sliders] : *slider_map)
 		{
@@ -241,15 +252,8 @@ namespace
 */
 	void  UIInteraction::RemovePass (const void* uid)
 	{
-		{
-			auto	slider_map = _sliderMap.WriteNoLock();
-			EXLOCK( slider_map );
-			slider_map->erase( uid );
-		}{
-			auto	dbg_map = _passDbgMap.WriteNoLock();
-			EXLOCK( dbg_map );
-			dbg_map->erase( uid );
-		}
+		_sliderMap->erase( uid );
+		_passDbgMap->erase( uid );
 	}
 
 /*
@@ -263,8 +267,7 @@ namespace
 		if ( modes.None() or stages == Default )
 			return;
 
-		auto	dbg_map = _passDbgMap.WriteNoLock();
-		EXLOCK( dbg_map );
+		auto	dbg_map = _passDbgMap.WriteLock();
 
 		PassDebugInfo	info;
 		info.name	= String{uid->GetName()};
@@ -284,8 +287,7 @@ namespace
 	{
 		AllPassDbgInfo_t	result;
 
-		auto	dbg_map = _passDbgMap.ReadNoLock();
-		SHAREDLOCK( dbg_map );
+		auto	dbg_map = _passDbgMap.ReadLock();
 
 		for (auto& [uid, info] : *dbg_map)
 		{
@@ -321,11 +323,56 @@ namespace
 
 
 
+/*
+=================================================
+	GetResMngr
+=================================================
+*/
+namespace
+{
+  #if RmG_UI_ON_HOST
+	ND_ auto  GetGraphicsLib () __NE___
+	{
+		auto	glib	= GraphicsScheduler().GetDevice().GetGraphicsLib();
+		CHECK_FATAL( glib );
+		return glib;
+	}
+  #endif
+
+
+	ND_ auto&  GetResMngr () __NE___
+	{
+	  #if RmG_UI_ON_HOST
+		return *GetGraphicsLib()->GetResourceManager();
+
+	  #else
+		return GraphicsScheduler().GetResourceManager();
+	  #endif
+	}
+}
+//-----------------------------------------------------------------------------
+
+
+
 	//
 	// Draw Task
 	//
 	class EditorUI::DrawTask final : public RenderTask
 	{
+	// types
+	private:
+	  #if RmG_UI_ON_HOST
+		using TransferCtx	= GraphicsLib::ITransferContext2;
+		using GraphicsCtx	= GraphicsLib::IGraphicsContext2;
+		using DrawCtx		= GraphicsLib::DrawContext2;
+	  #else
+		using CommandBuffer	= Graphics::DirectCtx::CommandBuffer;
+		using TransferCtx	= Graphics::DirectCtx::Transfer;
+		using GraphicsCtx	= Graphics::DirectCtx::Graphics;
+		using DrawCtx		= Graphics::DirectCtx::Draw;
+	  #endif
+
+
 	// variables
 	private:
 		EditorUI &						t;
@@ -350,7 +397,7 @@ namespace
 	// methods
 	public:
 		DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"UI::Draw", HtmlColor::Aqua} },
+			RenderTask{ RVRef(batch), {"UI::Draw", HtmlColor::Aqua} },
 			t{ *t }, surface{ surf },
 			imgui{ this->t._imgui.WriteNoLock() },
 			isFirst{ isFirst }
@@ -370,9 +417,9 @@ namespace
 			void  _UpdatePopups ();
 			void  _ShowHelp ();
 
-			bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
-		ND_ bool  _UpdateDS (DirectCtx::Graphics &);
-		ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
+			bool  _DrawUI (DrawCtx &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
+		ND_ bool  _UpdateDS (FrameUID);
+		ND_ bool  _UploadVB (DrawCtx &dctx, const ImDrawData &drawData);
 
 			void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
 			void  _LoadScript (const Path &rootPath);
@@ -385,24 +432,78 @@ namespace
 */
 	void  EditorUI::DrawTask::Run ()
 	{
+		ASSERT( IsFirstInBatch() == isFirst );
+
 		t._CheckScriptDir( t._scriptDir );
 		EXLOCK( imgui );
 
+	  #if RmG_UI_ON_HOST
+		auto			glib = GetGraphicsLib();
+		CHECK_TE( glib->BeginFrame() );
+
+		auto			copy_ctx_rc = glib->BeginTransferContext();
+		TransferCtx&	copy_ctx	= *copy_ctx_rc;
+	  #else
+		CommandBuffer	cmdbuf;
+	  #endif
+
+		// upload font image
+		if_unlikely( not t._uploaded.load() )
+		{
+		  #if not RmG_UI_ON_HOST
+			TransferCtx		copy_ctx{ *this };
+		  #endif
+
+			ubyte*	pixels;
+			int		width, height;
+			imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
+
+			UploadImageDesc		upload;
+			upload.aspectMask	= EImageAspect::Color;
+			upload.heapType		= EStagingHeapType::Dynamic;
+			upload.imageDim		= uint3{width, height, 1};
+			upload.dataRowPitch	= Bytes{width * 4u};
+
+			const Bytes	data_size = width * height * 4 * SizeOf<ubyte>;
+
+			copy_ctx.ImageBarrier( t._res.fontImg, EResourceState::Invalidate, EResourceState::CopyDst );
+			copy_ctx.CommitBarriers();
+
+			CHECK( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, usize{data_size} }) == data_size );
+			t._uploaded.store( true );
+
+			copy_ctx.ImageBarrier( t._res.fontImg, EResourceState::CopyDst, EResourceState::FragmentShader | EResourceState::ShaderSample );
+			copy_ctx.CommitBarriers();
+
+			imgui->ctx->IO.Fonts->ClearTexData();
+
+		  #if not RmG_UI_ON_HOST
+			cmdbuf = copy_ctx.ReleaseCommandBuffer();
+		  #endif
+		}
+
 		IOutputSurface::RenderTargets_t		targets;
+
+	  #if RmG_UI_ON_HOST
+		const bool		clear_surf	= true;		// always clear
+		auto			gfx_ctx_rc	= glib->BeginGraphicsContext( copy_ctx_rc );
+		GraphicsCtx&	gfx_ctx		= *gfx_ctx_rc;
+
+		CHECK_TE( glib->GetTargets( OUT targets ));
+
+	  #else
+		const bool		clear_surf	= isFirst;
+		GraphicsCtx		gfx_ctx		{ *this, RVRef(cmdbuf) };
+
 		CHECK_TE( surface.GetTargets( OUT targets ));
+	  #endif
 
 		const auto&		rt = targets[0];
 		rtSize = rt.RegionSize();
 
 		CHECK_TE( _Update() );
 
-		// same as ImGui::GetDrawData()
-		auto*	viewport = imgui->ctx->Viewports[0];
-
-		DirectCtx::Graphics		gfx_ctx{ *this };
-
-		gfx_ctx.AddSurfaceTargets( targets );
-		CHECK_TE( _UpdateDS( gfx_ctx ));
+		CHECK_TE( _UpdateDS( GetFrameId() ));
 
 		if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
 					 fmt != Default or cs != Default )
@@ -428,17 +529,19 @@ namespace
 			ps = it->second;
 		}
 
-		auto	dctx = gfx_ctx.BeginRenderPass(
-								RenderPassDesc{ *t._res.rtech, ps.pass, rt.RegionSize() }
-									.AddViewport( rt.RegionSize() )
-									.AddTarget( AttachmentName{"Color"}, rt.viewId, (isFirst ? EResourceState::Invalidate : Default), Default ),
-								{DbgName(), DbgColor()} );
+		auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t._res.rtech, ps.pass, rt.RegionSize() }
+										.AddViewport( rt.RegionSize() )
+										.AddTarget( AttachmentName{"Color"}, rt.viewId,
+													(clear_surf ? rt.initialState | EResourceState::Invalidate : rt.finalState),
+													rt.finalState ),
+									DebugLabel{ DbgName(), DbgColor() });
+
+		// same as ImGui::GetDrawData()
+		auto*	viewport = imgui->ctx->Viewports[0];
 
 		if_likely( viewport->DrawDataP.Valid )
 		{
-			CHECK( dctx.CheckResourceState( t._res.fontImg, EResourceState::ShaderSample | EResourceState::FragmentShader ));
-
-			if ( isFirst )
+			if ( clear_surf )
 				dctx.ClearAttachment( AttachmentName{"Color"}, RGBA32f{0.f}, rt.region, rt.layer, 1 );
 
 			_DrawUI( dctx, viewport->DrawDataP, ps );
@@ -446,7 +549,28 @@ namespace
 
 		gfx_ctx.EndRenderPass( dctx );
 
+	  #if RmG_UI_ON_HOST
+		CHECK_TE( glib->EndFrame( gfx_ctx_rc ));
+
+		CHECK_TE( surface.GetTargets( OUT targets ));
+
+		// clear screen on host
+		Graphics::DirectCtx::Transfer	tctx {*this};
+		if ( isFirst )
+		{
+			tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
+			tctx.CommitBarriers();
+
+			tctx.ClearColorImage( rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
+
+			tctx.ImageBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
+			tctx.CommitBarriers();
+		}
+		Execute( tctx );
+
+	  #else
 		Execute( gfx_ctx );
+	  #endif
 	}
 
 /*
@@ -596,10 +720,10 @@ namespace
 					_UpdateGraphicsTab();
 					ImGui::EndTabItem();
 				}
+				ImGui::EndTabBar();
 			}
-
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 /*
@@ -609,10 +733,8 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateGraphicsTab ()
 	{
-		auto	g_mode	= s_UIInteraction.graphics.WriteNoLock();
-		auto	g_data	= t._graphics.ReadNoLock();
-		EXLOCK( g_mode );
-		SHAREDLOCK( g_data );
+		auto	g_mode	= s_UIInteraction.graphics.WriteLock();
+		auto	g_data	= t._graphics.ReadLock();
 
 		if ( s_UIInteraction.capture->video )
 		{
@@ -623,7 +745,7 @@ namespace
 		{
 			int		scale = SurfaceScaleToLog2( g_mode->dynSize->Scale().x );
 			ImGui::Text( "Surface scale" );
-			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -2, 1, SurfaceScaleName( scale )) )
+			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -4, 2, SurfaceScaleName( scale )) )
 				g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
 
 			ImGui::Text( ("Surface size: "s << ToString( g_mode->dynSize->Dimension2() )).c_str() );
@@ -739,7 +861,7 @@ namespace
 	{
 		using EDebugModeBits = UIInteraction::EDebugModeBits;
 
-		const auto	DbgMode_ShaderStages = [this] (const EDebugModeBits &inModes, const EShaderStages inStages)
+		const auto	DbgMode_ShaderStages = [this] (const EDebugModeBits inModes, const EShaderStages inStages)
 		{{
 			const char*	cur_mode	= ToString( IPass::EDebugMode(imgui->dbgModeIdx) ).data();
 			const char*	cur_stage	= imgui->dbgStageIdx < uint(EShader::_Count) ? ToString( EShader(imgui->dbgStageIdx) ).data() : "";
@@ -749,6 +871,9 @@ namespace
 				for (auto modes = inModes; modes.Any();)
 				{
 					const auto	mode = modes.ExtractFirst();
+					if ( mode == Default )
+						continue;
+
 					if ( ImGui::Selectable( ToString( mode ).data(), imgui->dbgModeIdx == uint(mode) ))
 						imgui->dbgModeIdx = uint(mode);
 				}
@@ -798,8 +923,7 @@ namespace
 		ImGui::Separator();
 
 
-		auto	dbg = s_UIInteraction.debugger.WriteNoLock();
-		EXLOCK( dbg );
+		auto	dbg = s_UIInteraction.debugger.WriteLock();
 
 		dbg->target	= null;
 
@@ -831,8 +955,7 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateEditor_Capture ()
 	{
-		auto	capture = s_UIInteraction.capture.WriteNoLock();
-		EXLOCK( capture );
+		auto	capture = s_UIInteraction.capture.WriteLock();
 
 		// image capture
 		if ( ImGui::Button( "Screenshot (I)" ))
@@ -919,8 +1042,7 @@ namespace
 		{
 			if ( ImGui::TreeNodeEx( pass.Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
 			{
-				auto	sliders = pass.Get<0>()->WriteNoLock();
-				EXLOCK( sliders );
+				auto	sliders = pass.Get<0>()->WriteLock();
 
 				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
 				{
@@ -1027,8 +1149,8 @@ namespace
 				}*/
 
 				ImGui::Image( BitCast<ImTextureID>(usize(i+1)), img_size );
-				ImGui::End();
 			}
+			ImGui::End();
 		}
 	}
 
@@ -1101,15 +1223,23 @@ namespace
 */
 	void  EditorUI::DrawTask::_RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &dir)
 	{
-		const ImGuiTreeNodeFlags	base_flags	=	ImGuiTreeNodeFlags_OpenOnArrow		| //ImGuiTreeNodeFlags_OpenOnDoubleClick |
-													ImGuiTreeNodeFlags_SpanAvailWidth	| ImGuiTreeNodeFlags_SpanFullWidth;
+		const ImGuiTreeNodeFlags	base_flags	=	//ImGuiTreeNodeFlags_OpenOnArrow
+													//| ImGuiTreeNodeFlags_OpenOnDoubleClick
+													//| ImGuiTreeNodeFlags_SpanAvailWidth
+													ImGuiTreeNodeFlags_SpanFullWidth;
 
-		auto	node_flags	= base_flags;
-		usize	node_id		= dir.baseId;
+		auto		node_flags	= base_flags;
+		usize		node_id		= dir.firstId;
+		const usize	clicked		= imgui->nodeClicked;
 
 		if ( not dir.name.empty() )
 		{
-			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, dir.name.c_str() );
+			auto	flags = node_flags;
+
+			if ( clicked > dir.firstId and clicked < dir.lastId )
+				flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), flags, dir.name.c_str() );
 			if ( not node_open )
 				return;
 		}
@@ -1126,7 +1256,7 @@ namespace
 
 			++node_id;
 
-			if ( node_id == imgui->nodeClicked )
+			if ( node_id == clicked )
 				node_flags |= ImGuiTreeNodeFlags_Selected;
 
 			ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, script.c_str() );
@@ -1182,7 +1312,7 @@ namespace
 	DrawTask::_UploadVB
 =================================================
 */
-	bool  EditorUI::DrawTask::_UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData)
+	bool  EditorUI::DrawTask::_UploadVB (DrawCtx &dctx, const ImDrawData &drawData)
 	{
 		// allocate
 		Bytes	vtx_size;
@@ -1196,14 +1326,10 @@ namespace
 			idx_size += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
 		}
 
-		auto&		staging_mngr	= GraphicsScheduler().GetResourceManager().GetStagingManager();
-		const auto	frame_id		= GetFrameId();
-
 		VertexStream	vstream;
 		VertexStream	istream;
-		CHECK_ERR( staging_mngr.AllocVStream( frame_id, vtx_size, OUT vstream ));
-		CHECK_ERR( staging_mngr.AllocVStream( frame_id, idx_size, OUT istream ));
-
+		CHECK_ERR( dctx.AllocVStream( vtx_size, OUT vstream ));
+		CHECK_ERR( dctx.AllocVStream( idx_size, OUT istream ));
 
 		// upload
 		Bytes	vtx_offset;
@@ -1213,8 +1339,8 @@ namespace
 		{
 			ImDrawList const&	cmd_list = *drawData.CmdLists[i];
 
-			std::memcpy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * sizeof(ImDrawVert) );
-			std::memcpy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * sizeof(ImDrawIdx) );
+			MemCopy( OUT vstream.mappedPtr + vtx_offset, cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert> );
+			MemCopy( OUT istream.mappedPtr + idx_offset, cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx> );
 
 			vtx_offset += cmd_list.VtxBuffer.Size * SizeOf<ImDrawVert>;
 			idx_offset += cmd_list.IdxBuffer.Size * SizeOf<ImDrawIdx>;
@@ -1236,9 +1362,9 @@ namespace
 	DrawTask::_UpdateDS
 =================================================
 */
-	bool  EditorUI::DrawTask::_UpdateDS (DirectCtx::Graphics &ctx)
+	bool  EditorUI::DrawTask::_UpdateDS (FrameUID fid)
 	{
-		DescriptorSetID	ds = t._res.descSets[ ctx.GetFrameId().Index() ];
+		DescriptorSetID	ds = t._res.descSets[ fid.Index() ];
 
 		StaticArray< ImageViewID, 8 >	textures;
 		textures.fill( t._res.fontView );
@@ -1247,15 +1373,16 @@ namespace
 		{
 			RC<Image>	img = s_UIInteraction.GetDbgView( i );
 			if ( img )
-			{
-				ctx.ResourceState( img->GetImageId(), EResourceState::FragmentShader | EResourceState::ShaderSample );
-
 				textures[i+1] = img->GetViewId();
-			}
 		}
-		ctx.CommitBarriers();
 
+	  #if RmG_UI_ON_HOST
+		auto				du_rc	= GetGraphicsLib()->CreateDescriptorUpdater();
+		IDescriptorUpdater&	updater	= *du_rc;
+	  #else
 		DescriptorUpdater	updater;
+	  #endif
+
 		CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
 		CHECK_ERR( textures.size() == updater.ImageCount( UniformName{"un_Textures"} ));
 		updater.BindImages( UniformName{"un_Textures"}, textures );
@@ -1269,7 +1396,7 @@ namespace
 	DrawTask::_DrawUI
 =================================================
 */
-	bool  EditorUI::DrawTask::_DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, const PipelineSet &ppln)
+	bool  EditorUI::DrawTask::_DrawUI (DrawCtx &dctx, const ImDrawData &drawData, const PipelineSet &ppln)
 	{
 		const bool	is_minimized = (drawData.DisplaySize.x <= 0.0f or drawData.DisplaySize.y <= 0.0f);
 
@@ -1342,49 +1469,6 @@ namespace
 
 
 
-	//
-	// Upload Task
-	//
-	class EditorUI::UploadTask final : public RenderTask
-	{
-	public:
-		EditorUI&	t;
-
-		UploadTask (EditorUI* t, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"UI::Upload"} },
-			t{ *t }
-		{}
-
-		void  Run () __Th_OV;
-	};
-
-/*
-=================================================
-	UploadTask::Run
-=================================================
-*/
-	void  EditorUI::UploadTask::Run ()
-	{
-		ubyte*	pixels;
-		int		width, height;
-		t._imgui->ctx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
-
-		DirectCtx::Transfer	copy_ctx{ *this };
-
-		UploadImageDesc		upload;
-		upload.aspectMask	= EImageAspect::Color;
-		upload.heapType		= EStagingHeapType::Dynamic;
-		upload.imageDim		= uint3{width, height, 1};
-		upload.dataRowPitch	= Bytes{width * 4u};
-
-		Unused( copy_ctx.UploadImage( t._res.fontImg, upload, ArrayView<ubyte>{ pixels, width * height * 4 * sizeof(ubyte) }));
-
-		Execute( copy_ctx );
-	}
-//-----------------------------------------------------------------------------
-
-
-
 /*
 =================================================
 	constructor
@@ -1403,14 +1487,13 @@ namespace
 */
 	EditorUI::~EditorUI ()
 	{
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	res_mngr = GetResMngr();
 
-		res_mngr.ImmediatelyReleaseResources( _res.fontImg, _res.fontView );
 		res_mngr.ReleaseResourceArray( _res.descSets );
+		res_mngr.ReleaseResources( _res.fontImg, _res.fontView );
 
 		{
-			auto	imgui = _imgui.WriteNoLock();
-			EXLOCK( imgui );
+			auto	imgui = _imgui.WriteLock();
 			if ( imgui->ctx != null )
 				ImGui::DestroyContext( imgui->ctx );
 		}
@@ -1451,17 +1534,15 @@ namespace
 */
 	bool  EditorUI::_InitSurface (IOutputSurface &surface)
 	{
-		auto	g_data = _graphics.WriteNoLock();
-		EXLOCK( g_data );
+		auto		g_data	= _graphics.WriteLock();
+		const auto	info	= surface.GetSurfaceInfo();
 
 		g_data->output			= &surface;
 		g_data->surfaceFormats	= surface.GetSurfaceFormats();
 		g_data->presentModes	= surface.GetPresentModes();
 
-		const auto	info		= surface.GetSurfaceInfo();
-		auto		g_mode		= s_UIInteraction.graphics.WriteNoLock();
 		{
-			EXLOCK( g_mode );
+			auto	g_mode			= s_UIInteraction.graphics.WriteLock();
 			g_mode->colorModeIdx	= int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
 			g_mode->presentModeIdx	= int(FindArrayElementIndex( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
 		}
@@ -1477,17 +1558,26 @@ namespace
 */
 	bool  EditorUI::_LoadPipelinePack ()
 	{
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
-
-		#ifdef AE_ENABLE_VULKAN
-			constexpr char	fname[] = "vk/ui_pipelines.bin";
-		#elif defined(AE_ENABLE_METAL)
-			constexpr char	fname[] ="mac/ui_pipelines.bin";
-		#else
-		#	error unsupported platform!
+		#if RmG_UI_ON_HOST
+			CHECK_ERR( _LoadPipelinePack( GetResMngr() ));
 		#endif
 
-		auto	file = MakeRC<FileRStream>( fname );
+		CHECK_ERR( _LoadPipelinePack( GraphicsScheduler().GetResourceManager() ));
+		CHECK_ERR( _InitUI( Default ));
+
+		return true;
+	}
+
+	bool  EditorUI::_LoadPipelinePack (auto& resMngr) const
+	{
+		StringView	fname;
+		switch_enum( resMngr.GetDevice().GetGraphicsAPI() )
+		{
+			case EGraphicsAPI::Vulkan :		fname = "vk/ui_pipelines.bin";	break;
+			case EGraphicsAPI::Metal :		fname = "mac/ui_pipelines.bin";	break;
+		}
+
+		auto	file = MakeRC<FileRStream>( NtStringView{fname} );
 		CHECK_ERR( file->IsOpen() );
 
 		PipelinePackDesc	desc;
@@ -1495,8 +1585,8 @@ namespace
 		desc.options	= EPipelinePackOpt::All;
 		desc.dbgName	= "editor ui pack";
 
-		CHECK_ERR( res_mngr.InitializeResources( desc ));
-		CHECK_ERR( _InitUI( Default ));
+		auto	pack_id = resMngr.LoadPipelinePack( desc );
+		CHECK_ERR( resMngr.InitializeResources( RVRef(pack_id) ));
 
 		return true;
 	}
@@ -1508,8 +1598,7 @@ namespace
 */
 	bool  EditorUI::_InitUI (PipelinePackID pack)
 	{
-		auto	imgui = _imgui.WriteNoLock();
-		EXLOCK( imgui );
+		auto	imgui = _imgui.WriteLock();
 
 		CHECK( _profiler.Initialize( null ));
 
@@ -1522,13 +1611,11 @@ namespace
 			CHECK_ERR( imgui->ctx != null );
 
 			ImGui::StyleColorsDark();
-			//ImGui::StyleColorsClassic();
 		}
 
 
-		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
+		auto&		res_mngr	= GetResMngr();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
-		auto&		rg			= RenderGraph();
 
 		// initialize font atlas
 		{
@@ -1544,8 +1631,6 @@ namespace
 
 			_res.fontView = res_mngr.CreateImageView( ImageViewDesc{}, _res.fontImg, "Imgui font image view" );
 			CHECK_ERR( _res.fontView );
-
-			rg.GetStateTracker().AddResource( _res.fontImg, Default, EResourceState::ShaderSample | EResourceState::FragmentShader );
 		}
 
 		_res.rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"UI.RTech"}, Default );
@@ -1589,7 +1674,7 @@ namespace
 	Draw
 =================================================
 */
-	AsyncTask  EditorUI::Draw (ArrayView<AsyncTask> inDeps)
+	AsyncTask  EditorUI::Draw (ArrayView<AsyncTask> deps)
 	{
 		if_unlikely( not _initialized.load() )
 			return null;
@@ -1598,30 +1683,16 @@ namespace
 			return null;
 
 		auto&	rg		= RenderGraph();
-
 		auto	batch	= rg.UI();
 		CHECK_ERR( batch );
 
 		auto	surf_acquire = rg.BeginOnSurface( batch );
 		CHECK_ERR( surf_acquire );
 
-		ArrayView<AsyncTask>	deps		= inDeps;
-		AsyncTask				upload;
-		const bool				is_first	= batch.CurrentCmdBufIndex() == 0;
-
-		if ( not _uploaded.load() )
-		{
-			_uploaded.store( true );
-
-			upload = batch.Task< UploadTask >( Tuple{this} )
-						.UseResource( _res.fontImg )
-						.Run( Tuple{deps} );
-
-			deps = ArrayView<AsyncTask>{ upload };
-		}
+		AsyncTask	upload;
+		const bool	is_first	= batch.CmdPool_IsEmpty();
 
 		return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first }, {"MainUI pass"} )
-						.UseResource( _res.fontImg )
 						.Run( Tuple{surf_acquire, deps} );
 	}
 
@@ -1637,8 +1708,7 @@ namespace
 		if ( not _initialized.load() )
 			return;
 
-		auto	imgui = _imgui.WriteNoLock();
-		EXLOCK( imgui );
+		auto	imgui = _imgui.WriteLock();
 
 		switchMode					= false;
 		imgui->mouseLBDown			= false;
@@ -1666,9 +1736,10 @@ namespace
 				case IA.UI_ShowHide :
 					imgui->showUI = not imgui->showUI;								break;
 
-				case IA.UI_StartStopRecording :
-					s_UIInteraction.capture->video = not s_UIInteraction.capture->video; break;
-
+				case IA.UI_StartStopRecording : {
+					bool	prev = s_UIInteraction.capture->video;
+					s_UIInteraction.capture->video = not prev;						break;
+				}
 				case IA.UI_Screenshot :
 					s_UIInteraction.capture->screenshot = true;						break;
 
@@ -1729,8 +1800,7 @@ R"(UI controls:
 */
 	void  EditorUI::SetSurfaceFormat (ESurfaceFormat fmt)
 	{
-		auto	imgui = _imgui.WriteNoLock();
-		EXLOCK( imgui );
+		auto	imgui = _imgui.WriteLock();
 
 		imgui->reqSurfFormat = (fmt != Default ? fmt : imgui->defaultSurfFormat);
 	}
@@ -1755,6 +1825,9 @@ R"(UI controls:
 	{
 		ASSERT( depth < maxDepth );
 
+		rootDst.firstId = nodeID;
+		++nodeID;
+
 		// process directories
 		for (auto& dir : FileSystem::Enum( rootDir ))
 		{
@@ -1776,8 +1849,6 @@ R"(UI controls:
 			}
 		}
 
-		rootDst.baseId = nodeID;
-
 		// process files
 		for (auto& dir : FileSystem::Enum( rootDir ))
 		{
@@ -1790,13 +1861,11 @@ R"(UI controls:
 			const String	name = ToString( dir.Get().filename().native() );
 
 			if ( EndsWith( name, ".as" ))
-			{
-				++nodeID;
 				rootDst.scripts.push_back( name.substr( 0, name.length()-3 ));
-			}
-			//else
-			//	AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
 		}
+
+		nodeID += rootDst.scripts.size();
+		rootDst.lastId = nodeID;
 	}
 
 /*

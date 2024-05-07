@@ -94,7 +94,7 @@ namespace
 =================================================
 */
 	inline bool  VLinearMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
-												 const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData)
+												 const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData) __NE___
 	{
 		outData = Default;
 
@@ -226,7 +226,7 @@ namespace
 	_IsValidPage
 =================================================
 */
-	bool  VLinearMemAllocator::_IsValidPage (const Page* pagePtr) const
+	bool  VLinearMemAllocator::_IsValidPage (const Page* pagePtr) C_NE___
 	{
 		//SHAREDLOCK( _pageGuard );	// required before function call
 

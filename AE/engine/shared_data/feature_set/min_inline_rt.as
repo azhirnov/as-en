@@ -20,6 +20,7 @@ void ASmain ()
 	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0
 	//	samsung SM-S926B driver 2.0.0 on Android 14.0
 	//	vivo V2324A driver 44.1.0 on Android 14.0
+	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
 	//	Apple7_Metal3
@@ -27,18 +28,18 @@ void ASmain ()
 	//	Apple7
 	//	Apple6_Metal3
 	//	Apple6
-	//	Mac2
-	//	Mac_Metal3
+	//	Apple_Mac2
+	//	Apple_Mac_Metal3
 
 	const EFeature  True = EFeature::RequireTrue;
 
 	RC<FeatureSet>  fset = FeatureSet( "MinInlineRayTracing" );
 
 	fset.depthBiasClamp (True);
+	fset.depthClamp (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
@@ -64,10 +65,10 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroup (True);
-	fset.subgroupSizeControl (True);
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (16);
+	fset.subgroup (True);
+	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderFloat16 (True);
@@ -78,6 +79,7 @@ void ASmain ()
 	fset.bufferDeviceAddress (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.runtimeDescriptorArray (True);
+	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -92,8 +94,8 @@ void ASmain ()
 	fset.rayQueryStages(EShaderStages(
 		EShaderStages::Compute
 	));
-	fset.minSpirvVersion (140);
-	fset.minMetalVersion (240);
+	fset.maxSpirvVersion (140);
+	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
 	fset.maxViewports (1);
 	fset.maxTexelBufferElements (64 << 20);
@@ -173,6 +175,9 @@ void ASmain ()
 		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
 		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
 	});
+	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
+	});
 	fset.AddAccelStructVertexFormats({
 		EVertexType::Float3
 	});
@@ -224,6 +229,8 @@ void ASmain ()
 	fset.samplerAnisotropy (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (4.00);
+	fset.framebufferColorSampleCounts({ 1, 2, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
 	fset.maxFramebufferLayers (256);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

@@ -6,8 +6,8 @@
 #include "base/Containers/FixedArray.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
-#include "base/DataSource/FileStream.h"
-#include "base/Utils/FileSystem.h"
+#include "base/DataSource/File.h"
+#include "base/FileSystem/FileSystem.h"
 #include "base/Utils/Version.h"
 
 #define VK_NO_PROTOTYPES
@@ -322,12 +322,10 @@ namespace AE::Vulkan
 
 			FeatureInfo () {}
 			FeatureInfo (StringView name, StringView ext, Version2 v1, Version2 v2,
-						 ArrayView<StringView> req, EPropsType type = EPropsType::Device) :
-				shortName{name}, extension{ext}, coreVersion{v1}, requireVersion{v2}, propsType{type}
-			{
-				if ( req.size() )
-					requireExts.assign( req.begin(), req.end() );
-			}
+						 Array<StringView> req, EPropsType type = EPropsType::Device) :
+				shortName{name}, extension{ext}, coreVersion{v1}, requireVersion{v2},
+				requireExts{RVRef(req)}, propsType{type}
+			{}
 		};
 
 		struct FeatureSet
@@ -339,6 +337,14 @@ namespace AE::Vulkan
 			usize					maxNameLen	= 0;
 		};
 
+		struct TypedefInfo
+		{
+			StringView		dstType;
+			StringView		extension;
+			uint			fileIndex	= UMax;
+		};
+		using StructTypedefs_t = HashMap< StringView, TypedefInfo >;
+
 
 	// variables
 	private:
@@ -349,6 +355,7 @@ namespace AE::Vulkan
 		BitfieldMap_t			_bitfields;
 		StructMap_t				_structs;
 		ConstMap_t				_constants;
+		StructTypedefs_t		_typedefs;
 
 		ResourceTypes_t			_resourceTypes;
 		BasicTypeMap_t			_basicTypes;

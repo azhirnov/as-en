@@ -15,8 +15,9 @@ namespace AE::ResEditor
 
 	struct ResEditorAppConfig
 	{
-		using VFSPaths_t	= Array< Pair< Path, String >>;
-		using NetVFS_t		= Array< Tuple< String, String, String >>;
+		using VFSPaths_t			= Array< Pair< Path, String >>;
+		using NetVFS_t				= Array< Tuple< String, String, String >>;
+		using ScreenshotPrefix_t	= Synchronized< RWSpinLock, String >;
 
 		// VFS
 		VFSPaths_t		vfsPaths;
@@ -50,6 +51,20 @@ namespace AE::ResEditor
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 
+		// remote graphics device
+		ubyte4			ipAddress		{0};
+		String			graphicsLibPath;
+
+		// remote input
+		ushort			remoteIAPort	= 0;
+
+		// tests
+		Array<Path>		testFolders;
+		Path			testOutput;
+
+		// other
+		mutable ScreenshotPrefix_t	screenshotPrefix;
+
 
 		ResEditorAppConfig ()									= default;
 		ResEditorAppConfig (ResEditorAppConfig &&)				= default;
@@ -74,18 +89,18 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		ResEditorApplication ()									__NE___;
-		~ResEditorApplication ()								__NE_OV;
+		ResEditorApplication ()				__NE___;
+		~ResEditorApplication ()			__NE_OV;
 
-		void  OnStart (IApplication &)							__NE_OV;
-		void  OnStop  (IApplication &)							__NE_OV;
+		void  OnStart (IApplication &)		__NE_OV;
+		void  OnStop  (IApplication &)		__NE_OV;
 
-		ND_ auto  GetApp ()										C_NE___	{ return _app; }
+		ND_ auto  GetApp ()					C_NE___	{ return _app; }
 
 	private:
-		bool  _InitVFS ();
+		bool  _InitVFS ()					__NE___;
 
-		ND_ ResEditorCore&	_Core ()							__NE___	{ return RefCast<ResEditorCore>( GetBaseApp() ); }
+		ND_ ResEditorCore&	_Core ()		__NE___	{ return RefCast<ResEditorCore>( GetBaseApp() ); }
 	};
 
 
@@ -144,7 +159,7 @@ namespace AE::ResEditor
 			class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_Kb} >>
 			{
 			public:
-				EnumSet<EChannel>  GetChannels ()				C_NE_OV	{ return {EChannel::Reliable}; }
+				EnumSet<EChannel>  GetChannels ()	C_NE_OV	{ return {EChannel::Reliable}; }
 			};
 
 		// variables
@@ -164,6 +179,14 @@ namespace AE::ResEditor
 			ND_ auto&		MsgProducer ()							__NE___	{ return *_msgProducer; }
 		};
 
+		enum class ETestStatus : uint
+		{
+			Load,
+			Upload,
+			Screenshot,
+			Complete,
+		};
+
 
 	// variables
 	private:
@@ -175,12 +198,20 @@ namespace AE::ResEditor
 		Ptr<IWindow>				_window;
 		MonitorSync					_monitor;
 
-		RC<MemRStream>				_inputActionsData;
-		RC<RemoteInputServer>		_remoteIA;
+		RC<ArrayRStream>			_inputActionsData;
+		RC<RemoteInputServer>		_remoteIAServer;
 
 		Unique<RenderGraphImpl>		_rg;
 
 		VFSClients_t				_vfsClients;
+
+		struct {
+			RingBuffer<Path>			scripts;				// main thread only
+			Atomic<bool>				isActive		{false};
+			Atomic<int>					framesToSwitch	{0};
+			Atomic<int>					framesToCapture	{0};	// for video
+			Atomic<ETestStatus>			status			{ETestStatus::Complete};
+		}							_test;
 
 
 	// methods
@@ -205,6 +236,8 @@ namespace AE::ResEditor
 	private:
 		ND_ static CoroTask  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
 		ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+
+		void  _UpdateTests (RC<Renderer> renderer);
 
 
 	// IBaseApp //

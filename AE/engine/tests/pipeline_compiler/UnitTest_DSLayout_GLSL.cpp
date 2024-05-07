@@ -32,10 +32,6 @@ namespace
 		dsl->ToGLSL( EShaderStages::Vertex | EShaderStages::Fragment, 1, INOUT hdr, INOUT src, INOUT unique_types );
 		src = hdr + src;
 
-	  #if not AE_PRIVATE_USE_TABS
-		src = Parser::TabsToSpaces( src );
-	  #endif
-
 		const String	ref = R"(
 #if SH_VERT
   // state: ShaderUniform | VertexProcessingShaders
@@ -85,7 +81,7 @@ extern void  UnitTest_DSLayout_GLSL ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.perDescrSet.maxUniformBuffers = 8;
 	fs->fs.perDescrSet.maxStorageBuffers = 8;

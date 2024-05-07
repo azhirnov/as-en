@@ -82,6 +82,7 @@ namespace AE::PipelineCompiler
 		void  AddDebugStorageBuffer (const String &name, EShaderStages, Bytes staticSize, Bytes arraySize)													__Th___;
 
 		void  SetUsage (EDescSetUsage value)																												__Th___;
+		void  SetUsage2 (uint value)																														__Th___;
 
 		void  ToGLSL (EShaderStages stages, uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)					C_Th___;
 		void  ToMSL (EShaderStages stages, INOUT MSLBindings &bindings, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)		C_Th___;
@@ -104,10 +105,10 @@ namespace AE::PipelineCompiler
 		ND_ bool  IsCompatibleWithVulkan ()						const;
 		ND_ bool  IsCompatibleWithMetal ()						const;
 
+		ND_ bool  Build ()										__NE___;
+
 		ND_ static bool  CheckDescriptorLimits (const DescriptorCount &total, const PerStageDescCount_t &perStage,
 												ArrayView<ScriptFeatureSetPtr> features, StringView name);
-
-		ND_ bool  Build ();
 
 	private:
 		static void  _AddUniformBuffer (Scripting::ScriptArgList args)						__Th___;
@@ -124,8 +125,6 @@ namespace AE::PipelineCompiler
 		static void  _AddSampler (Scripting::ScriptArgList args)							__Th___;
 		static void  _AddImmutableSampler (Scripting::ScriptArgList args)					__Th___;
 		static void  _AddRayTracingScene (Scripting::ScriptArgList args)					__Th___;
-
-		void  _SetUsage (uint value)														__Th___;
 
 		void  _CheckUniformName (const String &name)										__Th___;
 		void  _CheckArraySize (uint size)													C_Th___;

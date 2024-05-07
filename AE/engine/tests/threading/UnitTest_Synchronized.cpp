@@ -55,7 +55,7 @@ namespace
 	};
 
 
-	static void  CmpEvents (ArrayView<Event> ref)
+	static void  CmpEvents (List<Event> ref)
 	{
 		TEST( ref == *s_Events );
 		s_Events->clear();
@@ -77,8 +77,18 @@ namespace
 			CmpEvents({ Event::Lock, Event::Unlock });
 
 			{
+				auto	w = obj.WriteLock();
+			}
+			CmpEvents({ Event::Lock, Event::Unlock });
+
+			{
 				auto	r = obj.ReadNoLock();
 				SHAREDLOCK( r );
+			}
+			CmpEvents({ Event::LockShared, Event::UnlockShared });
+
+			{
+				auto	r = obj.ReadLock();
 			}
 			CmpEvents({ Event::LockShared, Event::UnlockShared });
 

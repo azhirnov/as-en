@@ -18,31 +18,26 @@ namespace AE::Base
 */
 	namespace _hidden_
 	{
-		template <typename Container>
+		template <typename Iterator>
 		class ReverseContainerView
 		{
 		private:
-			Container &		_container;
+			const Iterator	_begin;
+			const Iterator	_end;
 
 		public:
-			explicit constexpr ReverseContainerView (Container& container)	__NE___	: _container{container} {}
+			constexpr ReverseContainerView (Iterator b, Iterator e)	__NE___	: _begin{b}, _end{e} {}
 
-			ND_ constexpr auto  begin ()									__NE___	{ return std::rbegin( _container ); }
-			ND_ constexpr auto  end ()										__NE___	{ return std::rend( _container ); }
+			ND_ constexpr auto  begin ()							__NE___	{ return _begin; }
+			ND_ constexpr auto  end ()								__NE___	{ return _end; }
 		};
 
 	} // _hidden_
 
 	template <typename Container>
-	ND_ constexpr auto  Reverse (Container& container) __NE___
+	ND_ constexpr auto  Reverse (Container&& container) __NE___
 	{
-		return Base::_hidden_::ReverseContainerView<Container>{ container };
-	}
-
-	template <typename Container>
-	ND_ constexpr auto  Reverse (const Container& container) __NE___
-	{
-		return Base::_hidden_::ReverseContainerView<const Container>{ container };
+		return Base::_hidden_::ReverseContainerView{ std::rbegin(container), std::rend(container) };
 	}
 
 /*
@@ -198,51 +193,46 @@ namespace AE::Base
 */
 	namespace _hidden_
 	{
-		template <typename Iter>
+		template <typename Iterator>
 		struct WithIndex_Iter
 		{
-			using Self	= WithIndex_Iter<Iter>;
+			using Self	= WithIndex_Iter< Iterator >;
 
-			Iter	_it;
-			usize	_index;
+			Iterator	_it;
+			usize		_index;
 
-			constexpr WithIndex_Iter (Iter it, usize idx)					__NE___	: _it{it}, _index{idx} {}
+			constexpr WithIndex_Iter (Iterator it, usize idx)			__NE___	: _it{it}, _index{idx} {}
 
-			ND_ constexpr bool	operator != (const Self &rhs)				C_NE___	{ return _it != rhs._it; }
-			ND_ constexpr bool	operator == (const Self &rhs)				C_NE___	{ return _it == rhs._it; }
+			ND_ constexpr bool	operator != (const Self &rhs)			C_NE___	{ return _it != rhs._it; }
+			ND_ constexpr bool	operator == (const Self &rhs)			C_NE___	{ return _it == rhs._it; }
 
-			ND_ constexpr auto	operator * ()								__NE___	{ return TupleRef{ &(*_it), &_index }; }
+			ND_ constexpr auto	operator * ()							__NE___	{ return TupleRef{ &(*_it), &_index }; }
 
-				constexpr Self&	operator ++ ()								__NE___	{ ++_it;  ++_index;  return *this; }
-				constexpr Self	operator ++ (int)							__NE___	{ return Self{ ++_it, ++_index }; }
+				constexpr Self&	operator ++ ()							__NE___	{ ++_it;  ++_index;  return *this; }
+				constexpr Self	operator ++ (int)						__NE___	{ return Self{ ++_it, ++_index }; }
 		};
 
 
-		template <typename Container, typename Iter>
+		template <typename Iterator>
 		class WithIndexContainerView
 		{
 		private:
-			Container &		_container;
+			const Iterator		_begin;
+			const Iterator		_end;
 
 		public:
-			explicit constexpr WithIndexContainerView (Container& container)__NE___	: _container{container} {}
+			constexpr WithIndexContainerView (Iterator b, Iterator e)	__NE___	: _begin{b}, _end{e} {}
 
-			ND_ constexpr auto	begin ()									__NE___	{ return WithIndex_Iter<Iter>{ _container.begin(), 0 }; }
-			ND_ constexpr auto	end ()										__NE___	{ return WithIndex_Iter<Iter>{ _container.end(),   UMax }; }
+			ND_ constexpr auto	begin ()								__NE___	{ return WithIndex_Iter{ _begin, 0 }; }
+			ND_ constexpr auto	end ()									__NE___	{ return WithIndex_Iter{ _end,   UMax }; }
 		};
 
 	} // _hidden_
 
 	template <typename Container>
-	ND_ constexpr auto  WithIndex (Container& container) __NE___
+	ND_ constexpr auto  WithIndex (Container&& container) __NE___
 	{
-		return Base::_hidden_::WithIndexContainerView< Container, typename Container::iterator >{ container };
-	}
-
-	template <typename Container>
-	ND_ constexpr auto  WithIndex (const Container& container) __NE___
-	{
-		return Base::_hidden_::WithIndexContainerView< const Container, typename Container::const_iterator >{ container };
+		return Base::_hidden_::WithIndexContainerView{ std::begin(container), std::end(container) };
 	}
 
 /*

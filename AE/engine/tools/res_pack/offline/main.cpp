@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/Algorithms/StringUtils.h"
 
 #include "scripting/Bindings/CoreBindings.h"
@@ -398,7 +398,7 @@ namespace
 
 			const Path	path {fileName};
 
-			FileSystem::Remove( path );
+			FileSystem::DeleteFile( path );
 			FileSystem::CreateDirectories( path.parent_path() );
 
 			_tempFile = ConvertString( FileSystem::ToAbsolute( path ));
@@ -434,7 +434,7 @@ namespace
 
 			CHECK_THROW_MSG( _fnPackAssets( &info ));
 
-			FileSystem::Remove( _tempFile );
+			FileSystem::DeleteFile( _tempFile );
 
 			_files.clear();
 			_tempFile.clear();
@@ -487,7 +487,7 @@ namespace
 			CHECK_THROW_MSG( _archive.Store( Path{filename} ),
 				"Failed to store archive to '"s << filename << "'" );
 
-			FileSystem::Remove( _tempFile );
+			FileSystem::DeleteFile( _tempFile );
 			_tempFile.clear();
 		}
 
@@ -504,7 +504,7 @@ namespace
 
 			const Path	path = FileSystem::ToAbsolute( fileName );
 
-			FileSystem::Remove( path );
+			FileSystem::DeleteFile( path );
 			FileSystem::CreateDirectories( path.parent_path() );
 
 			CHECK_THROW_MSG( _archive.Create( path ));
@@ -569,7 +569,7 @@ namespace
 */
 	static void  DeleteFolder (const String &folder)
 	{
-		FileSystem::RemoveAll( Path{folder} );
+		FileSystem::DeleteDirectory( Path{folder} );
 	}
 
 /*
@@ -713,7 +713,7 @@ namespace
 		CHECK_ERR( FileSystem::IsDirectory( outputDir ));
 
 		_s_OutputDir = ToString(outputDir);
-		CHECK_ERR( outputDir == Path{_s_OutputDir} );	// if path has unicode
+		CHECK_ERR( FileSystem::Equal( outputDir, Path{_s_OutputDir} ));	// if path has unicode
 		_s_OutputDir << '/';
 
 		const auto	ansi_path = ToString( respackScript );

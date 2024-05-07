@@ -31,8 +31,6 @@ Same as `VkPhysicalDeviceFeatures::sampleRateShading`.
 Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::constantAlphaColorBlendFactors`.
 * __pointPolygons__<br/>
 Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::pointPolygons`.
-* __separateStencilMaskRef__<br/>
-Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::separateStencilMaskRef`.
 * __triangleFans__<br/>
 Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::triangleFans`.
 
@@ -152,6 +150,7 @@ __- GL_EXT_shader_atomic_float2__:
 * shaderSMBuiltinsNV
 * shaderCoreBuiltinsARM
 * shaderSampleRateInterpolationFunctions
+* shaderStencilExport
 * shaderDemoteToHelperInvocation
 * shaderTerminateInvocation
 * shaderZeroInitializeWorkgroupMemory

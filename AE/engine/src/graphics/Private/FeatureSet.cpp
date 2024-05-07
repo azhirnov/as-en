@@ -35,6 +35,8 @@ namespace AE::Base
 {
 	using namespace AE::Graphics;
 
+	using EFeature = FeatureSet::EFeature;
+
 
 	ND_ StringView  ToString (EFeature f)
 	{
@@ -46,9 +48,31 @@ namespace AE::Base
 		return "";
 	}
 
-	ND_ StringView  ToString (ESubgroupTypes)
+	ND_ String  ToString (ESubgroupTypes types)
 	{
-		return "";
+		String	str;
+		for (auto t : BitfieldIterate( types ))
+		{
+			if ( not str.empty() )
+				str << " | ";
+
+			switch_enum( t )
+			{
+				case ESubgroupTypes::Float32 :	str << "Float32";	break;
+				case ESubgroupTypes::Int32 :	str << "Int32";		break;
+
+				case ESubgroupTypes::Int8 :		str << "Int8";		break;
+				case ESubgroupTypes::Int16 :	str << "Int16";		break;
+				case ESubgroupTypes::Int64 :	str << "Int64";		break;
+				case ESubgroupTypes::Float16 :	str << "Float16";	break;
+
+				case ESubgroupTypes::Unknown :
+				case ESubgroupTypes::_Last :
+				case ESubgroupTypes::All :		break;
+			}
+			switch_end
+		}
+		return str;
 	}
 
 	ND_ String  ToString (FeatureSet::SampleCountBits bits)
@@ -208,8 +232,9 @@ namespace
 		return lhs >= rhs;
 	}
 
-	ND_ static bool  FS_GreaterEqual (float lhs, float rhs, const char*) __NE___ {
-		return lhs >= rhs;
+	ND_ static bool  FS_GreaterEqual (float lhs, float rhs, const char*) __NE___
+	{
+		return lhs > rhs or BitEqual( lhs, rhs, EnabledBitCount(18) );
 	}
 
 	ND_ static bool  FS_GreaterEqual (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
@@ -675,7 +700,7 @@ namespace
 */
 	FeatureSet::FeatureSet () __NE___
 	{
-		ZeroMem( OUT this, Sizeof(*this) );
+		UnsafeZeroMem( *this );
 	}
 
 /*
@@ -1072,12 +1097,6 @@ namespace
 		if ( rs.depth.bounds )
 			CHECK_ERR( depthBounds != EFeature::RequireFalse );
 
-		if ( rs.stencil.enabled )
-		{
-			if ( not (rs.stencil.front == rs.stencil.back) )
-				CHECK_ERR( separateStencilMaskRef != EFeature::RequireFalse );
-		}
-
 		const auto	CheckBlend = [dual_src		= dualSrcBlend != EFeature::RequireFalse,
 								  const_alpha	= constantAlphaColorBlendFactors != EFeature::RequireFalse] (EBlendFactor factor) -> bool
 		{{
@@ -1161,8 +1180,8 @@ namespace
 			{
 				case EBufferOpt::SparseResidency :			break;
 				case EBufferOpt::SparseAliased :			break;
-				case EBufferOpt::VertexPplnStore :			result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;
-				case EBufferOpt::FragmentPplnStore :		result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
+				case EBufferOpt::FragmentPplnStore :		result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;
+				case EBufferOpt::VertexPplnStore :			result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
 				case EBufferOpt::StorageTexelAtomic :		break;
 
 				case EBufferOpt::_Last :
@@ -1291,6 +1310,9 @@ namespace
 			switch_end
 		}
 
+		if ( desc.HasViewFormatList() )
+			result &= (imageViewFormatList == EFeature::RequireTrue);
+
 		return result;
 	}
 
@@ -1308,6 +1330,8 @@ namespace
 
 		if ( desc.format != view.format and view.extUsage != Default )
 		{
+			result &= (imageViewExtendedUsage == EFeature::RequireTrue);
+
 			for (auto usage : BitfieldIterate( view.extUsage ))
 			{
 				switch_enum( usage )
@@ -1341,18 +1365,22 @@ namespace
 */
 	bool  FeatureSet::IsCompatible (const FeatureSet &rhs) C_NE___
 	{
-		return
-			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
-			AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
-			#undef AE_FEATURE_SET_VISIT
-			true;
+	#ifdef AE_CI_BUILD_TEST
+		return DbgIsCompatible( rhs );
+	#else
+		bool	res = true;
+		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	res &= FS_IsCompatible( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
+		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+		#undef AE_FEATURE_SET_VISIT
+		return res;
+	#endif
 	}
 
 	bool  FeatureSet::DbgIsCompatible (const FeatureSet &rhs) C_NE___
 	{
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )																			\
-			if ( not FS_IsCompatible( _name_, rhs. _name_, AE_TOSTRING(_name_) )) {														\
-				AE_LOG_SE( String{AE_TOSTRING(_name_)} << "\n  lhs: " << ToString(_name_) << "\n  rhs: " << ToString(rhs. _name_) );	\
+			if ( not FS_IsCompatible( this->_name_, rhs._name_, AE_TOSTRING(_name_) )) {												\
+				AE_LOGW( String{AE_TOSTRING(_name_)} << "\n  lhs: " << ToString(this->_name_) << "\n  rhs: " << ToString(rhs._name_) );	\
 				return false;																											\
 			}
 
@@ -1368,11 +1396,11 @@ namespace
 */
 	bool  FeatureSet::operator == (const FeatureSet &rhs) C_NE___
 	{
-		return
-			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	FS_Equal( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
-			AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
-			#undef AE_FEATURE_SET_VISIT
-			true;
+		bool	res = true;
+		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	res &= FS_Equal( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
+		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+		#undef AE_FEATURE_SET_VISIT
+		return res;
 	}
 
 /*
@@ -1382,11 +1410,11 @@ namespace
 */
 	bool  FeatureSet::operator >= (const FeatureSet &rhs) C_NE___
 	{
-		return
-			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	FS_GreaterEqual( _name_, rhs. _name_, AE_TOSTRING(_name_) ) and
-			AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
-			#undef AE_FEATURE_SET_VISIT
-			true;
+		bool	res = true;
+		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	res &= FS_GreaterEqual( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
+		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+		#undef AE_FEATURE_SET_VISIT
+		return res;
 	}
 
 /*
@@ -1470,7 +1498,7 @@ namespace
 */
 	void  FeatureSet::AddDevice (uint vendorId, uint deviceId, StringView name) __NE___
 	{
-		EVendorID			vendor	= GetVendorTypeByID( vendorId );
+		EGPUVendor			vendor	= GetVendorTypeByID( vendorId );
 		EGraphicsDeviceID	device	= GetEGraphicsDeviceByID( deviceId );
 
 		if ( device == Default )
@@ -1534,7 +1562,7 @@ namespace {
 		result += HashVal64{ sizeof(PerDescriptorSet) };
 		result += HashVal64{ uint(ESubgroupOperation::_Count) };
 		result += HashVal64{ uint(ESurfaceFormat::_Count) };
-		result += HashVal64{ uint(EVendorID::_Count) };
+		result += HashVal64{ uint(EGPUVendor::_Count) };
 		result += HashVal64{ uint(ESubgroupTypes::All) };
 		result += HashVal64{ uint(EShaderStages::All) };
 
@@ -1551,7 +1579,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xeadf8cdc671d3360ull};
+		return HashVal64{0xe0c3d467fec6541eull};
 	}
 
 /*

@@ -21,12 +21,12 @@ namespace AE::ResEditor
 		CHECK_THROW( _dstGeometry );
 
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
-		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
+		CHECK_THROW_MSG( fs.accelerationStructure() == FeatureSet::EFeature::RequireTrue,
 			"AS build is not supported" );
 
 		if ( indirect )
 		{
-			if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
+			if ( fs.accelerationStructureIndirectBuild == FeatureSet::EFeature::RequireTrue )
 				_mode = RTGeometry::EBuildMode::Indirect;
 			else
 				_mode = RTGeometry::EBuildMode::IndirectEmulated;
@@ -81,12 +81,12 @@ namespace AE::ResEditor
 		CHECK_THROW( _dstScene );
 
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
-		CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
+		CHECK_THROW_MSG( fs.accelerationStructure() == FeatureSet::EFeature::RequireTrue,
 			"AS build is not supported" );
 
 		if ( indirect )
 		{
-			if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
+			if ( fs.accelerationStructureIndirectBuild == FeatureSet::EFeature::RequireTrue )
 				_mode = RTGeometry::EBuildMode::Indirect;
 			else
 				_mode = RTGeometry::EBuildMode::IndirectEmulated;

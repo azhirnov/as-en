@@ -9,7 +9,7 @@ target_include_directories( "Abseil-lib" INTERFACE "${ABSEIL_PATH}" )
 target_compile_definitions( "Abseil-lib" INTERFACE "AE_ENABLE_ABSEIL" "AE_LICENSE_APACHE_2" )
 install( FILES "${ABSEIL_PATH}/LICENSE" DESTINATION "3party_license" RENAME "Abseil-LICENSE" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "Abseil-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${ABSEIL_PATH}/lib/${ANDROID_ABI}/libAbseil.a" )
 else()
@@ -21,7 +21,7 @@ else()
 endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		add_library( "Tests.Abseil" STATIC "tests/main.cpp" )
 		target_compile_definitions( "Tests.Abseil" PUBLIC "ANDROID" )
 		target_include_directories( "Tests.Abseil" PRIVATE "${AE_TEST_DIR}" )

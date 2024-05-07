@@ -106,6 +106,92 @@ namespace AE::Base
 
 #endif // AE_ENABLE_ABSEIL
 
+
+/*
+=================================================
+	HashTable_Copy
+=================================================
+*/
+	template <typename T,
+			  typename Hasher1, typename Hasher2,
+			  typename KeyEq1,  typename KeyEq2,
+			  typename Alloc1,  typename Alloc2
+			 >
+	bool  HashTable_Copy (OUT HashSet<T,Hasher1,KeyEq1,Alloc1> &dst, const HashSet<T,Hasher2,KeyEq2,Alloc2> &src) __Th___
+	{
+		dst.clear();
+		dst.reserve( src.size() );	// throw
+
+		for (auto& item : src)
+			dst.emplace( item );	// throw
+
+		return dst.size() == src.size();
+	}
+
+	template <typename T,
+			  typename Hasher1, typename Hasher2,
+			  typename KeyEq1,  typename KeyEq2,
+			  typename Alloc1,  typename Alloc2
+			 >
+	bool  HashTable_Copy (OUT FlatHashSet<T,Hasher1,KeyEq1,Alloc1> &dst, const FlatHashSet<T,Hasher2,KeyEq2,Alloc2> &src) __Th___
+	{
+		dst.clear();
+		dst.reserve( src.size() );	// throw
+
+		for (auto& item : src)
+			dst.emplace( item );	// throw
+
+		return dst.size() == src.size();
+	}
+
+	template <typename K,		typename V,
+			  typename Hasher1,	typename Hasher2,
+			  typename KeyEq1,	typename KeyEq2,
+			  typename Alloc1,	typename Alloc2
+			 >
+	bool  HashTable_Copy (OUT HashMap<K,V,Hasher1,KeyEq1,Alloc1> &dst, const HashMap<K,V,Hasher2,KeyEq2,Alloc2> &src) __Th___
+	{
+		dst.clear();
+		dst.reserve( src.size() );		// throw
+
+		for (auto& [key, val] : src)
+			dst.emplace( key, val );	// throw
+
+		return dst.size() == src.size();
+	}
+
+	template <typename K,		typename V,
+			  typename Hasher1,	typename Hasher2,
+			  typename KeyEq1,	typename KeyEq2,
+			  typename Alloc1,	typename Alloc2
+			 >
+	bool  HashTable_Copy (OUT HashMultiMap<K,V,Hasher1,KeyEq1,Alloc1> &dst, const HashMultiMap<K,V,Hasher2,KeyEq2,Alloc2> &src) __Th___
+	{
+		dst.clear();
+		dst.reserve( src.size() );		// throw
+
+		for (auto& [key, val] : src)
+			dst.emplace( key, val );	// throw
+
+		return dst.size() == src.size();
+	}
+
+	template <typename K,		typename V,
+			  typename Hasher1,	typename Hasher2,
+			  typename KeyEq1,	typename KeyEq2,
+			  typename Alloc1,	typename Alloc2
+			 >
+	bool  HashTable_Copy (OUT FlatHashMap<K,V,Hasher1,KeyEq1,Alloc1> &dst, const FlatHashMap<K,V,Hasher2,KeyEq2,Alloc2> &src) __Th___
+	{
+		dst.clear();
+		dst.reserve( src.size() );		// throw
+
+		for (auto& [key, val] : src)
+			dst.emplace( key, val );	// throw
+
+		return dst.size() == src.size();
+	}
+
 } // AE::Base
 
 

@@ -56,7 +56,7 @@ namespace _hidden_
 		ACCUMDEFERREDBARRIERS (Self &&)					__NE___	= default;
 		~ACCUMDEFERREDBARRIERS ()						__NE___	{ ASSERT( _mngr.NoPendingBarriers() ); }
 
-		Self&  Merge (INOUT ACCUMDEFERREDBARRIERS &src)																										__NE___	{ _mngr.MergeBarriers( src._mngr );  src._mngr.ClearBarriers();	return *this; }
+		Self&  Merge (INOUT ACCUMDEFERREDBARRIERS &src)																										__NE___	{ _mngr.MergeBarriers( INOUT src._mngr );  return *this; }
 
 		Self&  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)															__NE___	{ _mngr.BufferBarrier( buffer, srcState, dstState );			return *this; }
 
@@ -111,8 +111,8 @@ namespace _hidden_
 	public:
 		void  Commit () __Th___
 		{
-			auto*	bar = _mngr.GetBarriers();
-			if_likely( bar != null )
+			auto	bar = _mngr.GetBarriers();
+			if_likely( bar )
 			{
 				_ctx.PipelineBarrier( *bar );
 				_mngr.ClearBarriers();
@@ -133,7 +133,7 @@ namespace _hidden_
 
 		ACCUMBARRIERSFORTASK (ACCUMBARRIERSFORTASK &&)		__NE___	= default;
 
-		ND_ const auto*  Get ()								__NE___	{ return _mngr.AllocBarriers(); }
+		ND_ auto  Get ()									__NE___	{ return _mngr.AllocBarriers(); }
 	};
 
 

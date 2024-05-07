@@ -78,11 +78,12 @@ namespace AE::ResEditor
 			const secondsf			updateInterval {1.f};
 		}						_scriptFile;		// TODO: use Synchronized*/
 
-		bool					_uploadInProgress		= true;
-		bool					_readbackInProgress		= true;
+		Atomic<bool>			_freeze					{false};
+		Atomic<bool>			_uploadInProgress		{true};
+		Atomic<bool>			_readbackInProgress		{true};
 		Atomic<EExportState>	_resExport				{EExportState::Completed};
 
-		static constexpr uint	_minFramesWithoutWork	= 10;
+		static constexpr uint	_minFramesWithoutWork	= 2;
 
 
 	// methods
@@ -91,13 +92,18 @@ namespace AE::ResEditor
 		~Renderer ();
 
 			void			ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
-		ND_ InputModeName	GetInputMode ()	const;
+		ND_ InputModeName	GetInputMode ()										const;
 
 		ND_ AsyncTask		Execute (ArrayView<AsyncTask> deps);
 
 		//ND_ bool			IsFileChanged ();
 
 		ND_ String			GetHelpText ()										C_Th___;
+
+		ND_ bool			IsUploadComplete ()									C_NE___	{ return not _uploadInProgress.load(); }
+
+		ND_ bool			FreezeTime ()										C_NE___	{ return _freeze.load(); }
+			void			SetFreezeTime (bool freeze)							__NE___	{ _freeze.store( freeze ); }
 
 
 	// api for ScriptExe
@@ -129,21 +135,9 @@ namespace AE::ResEditor
 		return _renderer.GetDataTransferQueue();
 	}
 
-	inline GfxMemAllocatorPtr  IResource::_GfxAllocator () const {
-		return _renderer.GetAllocator();
-	}
-
-	inline GfxMemAllocatorPtr  IResource::_GfxDynamicAllocator () const {
-		return _renderer.GetDynamicAllocator();
-	}
-
-
 	inline DataTransferQueue&  IGeomSource::_DtTrQueue () const {
 		return _renderer.GetDataTransferQueue();
 	}
 
-	inline GfxMemAllocatorPtr  IGeomSource::_GfxAllocator () const {
-		return _renderer.GetAllocator();
-	}
 
 } // AE::ResEditor

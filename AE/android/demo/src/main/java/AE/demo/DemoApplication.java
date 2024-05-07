@@ -9,6 +9,6 @@ public final class DemoApplication
 		extends AE.engine.BaseApplication
 {
 	static {
-		System.loadLibrary("SampleDemo" );
+		System.loadLibrary( "SampleDemo" );
 	}
 }

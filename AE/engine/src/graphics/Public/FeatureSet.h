@@ -44,6 +44,14 @@ namespace AE::Graphics
 	struct FeatureSet
 	{
 	// types
+		enum class EFeature : ubyte
+		{
+			Ignore		= 0,
+			RequireFalse,
+			RequireTrue,
+			_Count
+		};
+
 		struct PerDescriptorSet
 		{
 			uint	maxInputAttachments;	// maxDescriptorSetInputAttachments			-	maxPerStageDescriptorInputAttachments
@@ -80,7 +88,7 @@ namespace AE::Graphics
 			ND_ HashVal	CalcHash ()										C_NE___	{ return HashOf(include) + HashOf(exclude); }
 			ND_ bool	None ()											C_NE___	{ return include.None() and exclude.None(); }
 		};
-		using VendorIDs_t		= IncludeExcludeBits< EVendorID >;
+		using VendorIDs_t		= IncludeExcludeBits< EGPUVendor >;
 		using GraphicsDevices_t	= IncludeExcludeBits< EGraphicsDeviceID >;
 
 		struct Queues
@@ -103,7 +111,7 @@ namespace AE::Graphics
 			ushort	spirv	= 0;
 			ushort	metal	= 0;
 
-			ND_ HashVal  CalcHash ()	C_NE___	{ return HashOf(spirv) + HashOf(metal); }
+			ND_ HashVal  CalcHash ()		C_NE___	{ return HashOf(spirv) + HashOf(metal); }
 		};
 
 		struct VRSTexelSize
@@ -139,7 +147,6 @@ namespace AE::Graphics
 		/*_visitor_( EFeature,			depthClipControl,						: 2 )	/* VK_EXT_depth_clip_control - allow depth range in NDC [-1..1] instead of [0..1]	*/\
 		_visitor_( EFeature,			constantAlphaColorBlendFactors,			: 2 )\
 		_visitor_( EFeature,			pointPolygons,							: 2 )\
-		_visitor_( EFeature,			separateStencilMaskRef,					: 2 )\
 		_visitor_( EFeature,			triangleFans,							: 2 )\
 		\
 		\
@@ -150,12 +157,12 @@ namespace AE::Graphics
 		_visitor_( EShaderStages,		subgroupStages,								)\
 		_visitor_( EShaderStages,		subgroupQuadStages,							)\
 		_visitor_( EShaderStages,		requiredSubgroupSizeStages,					)\
+		_visitor_( ushort,				minSubgroupSize,							)\
+		_visitor_( ushort,				maxSubgroupSize,							)\
 		_visitor_( EFeature,			subgroup,								: 2 )\
 		_visitor_( EFeature,			subgroupBroadcastDynamicId,				: 2 )	/* GL_ARB_shader_ballot																*/\
 		_visitor_( EFeature,			subgroupSizeControl,					: 2 )\
 		_visitor_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroupuniform_qualifier													*/\
-		_visitor_( ushort,				minSubgroupSize,							)\
-		_visitor_( ushort,				maxSubgroupSize,							)\
 		/* types */\
 		_visitor_( EFeature,			shaderInt8,								: 2 )	/* GL_EXT_shader_8bit_storage														*/\
 		_visitor_( EFeature,			shaderInt16,							: 2 )	/* GL_EXT_shader_16bit_storage														*/\
@@ -222,6 +229,7 @@ namespace AE::Graphics
 		_visitor_( EFeature,			shaderSMBuiltinsNV,						: 2 )	/* GL_NV_shader_sm_builtins															*/\
 		_visitor_( EFeature,			shaderCoreBuiltinsARM,					: 2 )	/* GL_ARM_shader_core_builtins														*/\
 		_visitor_( EFeature,			shaderSampleRateInterpolationFunctions,	: 2 )\
+		_visitor_( EFeature,			shaderStencilExport,					: 2 )	/* VK_EXT_shader_stencil_export, GL_ARB_shader_stencil_export						*/\
 		/* array dynamic indexing */\
 		_visitor_( EFeature,			shaderSampledImageArrayDynamicIndexing,			: 2 )\
 		_visitor_( EFeature,			shaderStorageBufferArrayDynamicIndexing,		: 2 )\
@@ -374,6 +382,9 @@ namespace AE::Graphics
 		_visitor_( EFeature,			textureCompressionETC2,					: 2 )\
 		_visitor_( EFeature,			imageViewMinLod,						: 2 )	/* VK_EXT_image_view_min_lod, minLod												*/\
 		_visitor_( EFeature,			multisampleArrayImage,					: 2 )\
+		_visitor_( EFeature,			imageViewFormatList,					: 2 )	/* VK_KHR_image_format_list															*/\
+		_visitor_( EFeature,			imageViewExtendedUsage,					: 2 )	/* VK_KHR_maintenance2																*/\
+		_visitor_( SurfaceFormatSet_t,	surfaceFormats,								)\
 		_visitor_( uint,				maxImageArrayLayers,						)\
 		_visitor_( PixelFormatSet_t,	storageImageAtomicFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT										*/\
 		_visitor_( PixelFormatSet_t,	storageImageFormats,						)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT		TODO: R or W							*/\
@@ -381,7 +392,6 @@ namespace AE::Graphics
 		_visitor_( PixelFormatSet_t,	attachmentFormats,							)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
 		_visitor_( PixelFormatSet_t,	linearSampledFormats,						)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT								*/\
 		/*_visitor_( PixelFormatSet_t,	minmaxFilterFormats,						)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
-		_visitor_( SurfaceFormatSet_t,	surfaceFormats,								)\
 		/*_visitor_( PixelFormatSet_t,	sparseImageFormats,							)*/\
 		/*_visitor_( PixelFormatSet_t,	multisampleImageFormats,					)*/\
 		_visitor_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with hardware compression							*/\

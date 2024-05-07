@@ -9,16 +9,9 @@ void DeclRenderPasses ()
 
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
-		rt.format		= EPixelFormat::RGBA8_UNorm;
-		//rt.samples	= 1;
+		rt.format = EPixelFormat::RGBA8_UNorm;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}
-	/*{
-		RC<Attachment>	ds	= compat.AddAttachment( Attachment_Depth );
-		ds.format		= EPixelFormat::Depth32F;
-		//ds.samples	= 1;
-		ds.Usage( pass, EAttachment::Depth );
-	}*/
 
 	// specialization
 	{
@@ -30,12 +23,6 @@ void DeclRenderPasses ()
 		rt.Layout( InitialLayout,	EResourceState::ShaderSample | EResourceState::FragmentShader );
 		rt.Layout( pass,			EResourceState::ColorAttachment );
 		rt.Layout( FinalLayout,		EResourceState::ShaderSample | EResourceState::FragmentShader );
-
-		/*
-		RC<AttachmentSpec>	ds = rp.AddAttachment( Attachment_Depth );
-		ds.loadOp	= EAttachmentLoadOp::Clear;
-		ds.storeOp	= EAttachmentStoreOp::Invalidate;
-		ds.Layout( pass, EResourceState::DepthStencilAttachment );*/
 	}
 }
 
@@ -48,12 +35,12 @@ void DeclRenderTech ()
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
 	}
-	/*{
-		RC<RenderTechnique> rtech = RenderTechnique( "FontDrawTest" );
+	{
+		RC<RenderTechnique> rtech = RenderTechnique( "DesktopCanvasDrawTest" );
 
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
-		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass* /"Main" );
-	}*/
+		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+	}
 }
 
 

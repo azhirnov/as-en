@@ -217,18 +217,18 @@ namespace
 			std::vector<int>	b1 {0,1,2};
 			auto				b2 = ArrayView{b1.data(), b1.size()};
 			StaticAssert( IsSameTypes< decltype(b2), ArrayView<int> >);
-		}/*{
+		}{
 			int		c1[]	= {0,1,2};
 			auto	c2		= ArrayView{c1};
 			StaticAssert( IsSameTypes< decltype(c2), ArrayView<int> >);
-		}*/{
-			auto	d2		= ArrayView{ 0, 1, 2 };
+		}{
+			auto	d2		= ArrayView{List{ 0, 1, 2 }};
 			StaticAssert( IsSameTypes< decltype(d2), ArrayView<int> >);
-		}/*{
+		}{
 			StaticArray< int, 5 >	e1 {0,1,2,3};
 			auto					e2 = ArrayView{e1};
 			StaticAssert( IsSameTypes< decltype(e2), ArrayView<int> >);
-		}*/
+		}
 	}
 
 

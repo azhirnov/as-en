@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #include "graphics/Public/ImageMemView.h"
 #include "res_loaders/Intermediate/IntermImage.h"
 

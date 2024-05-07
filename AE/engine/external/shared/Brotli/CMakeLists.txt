@@ -9,7 +9,7 @@ target_include_directories( "Brotli-lib" INTERFACE "${BROTLI_PATH}/include" )
 target_compile_definitions( "Brotli-lib" INTERFACE "AE_ENABLE_BROTLI" "AE_LICENSE_MIT" )
 install( FILES "${BROTLI_PATH}/LICENSE" DESTINATION "3party_license" RENAME "Brotli-LICENSE" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "Brotli-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${BROTLI_PATH}/lib/${ANDROID_ABI}/libbrotlidec-static.a"
 		"${BROTLI_PATH}/lib/${ANDROID_ABI}/libbrotlienc-static.a"
@@ -22,7 +22,7 @@ else()
 endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		add_library( "Tests.Brotli" STATIC "tests/main.cpp" )
 		target_compile_definitions( "Tests.Brotli" PUBLIC "ANDROID" )
 		target_include_directories( "Tests.Brotli" PRIVATE "${AE_TEST_DIR}" )

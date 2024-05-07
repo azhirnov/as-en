@@ -18,6 +18,7 @@ namespace AE::Graphics
 	using AE::Threading::MemoryBarrier;
 	using AE::Threading::Synchronized;
 	using AE::Threading::EThreadArray;
+	using AE::Threading::ETaskQueue;
 
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
@@ -57,7 +58,8 @@ namespace AE::Graphics
 		static constexpr uint	MaxCmdBuffersPerPool	= 16;
 		static constexpr uint	MaxCmdPoolsPerQueue		= 8;						// == max render threads
 
-		static constexpr uint	MaxCmdBufPerBatch		= 32;
+		static constexpr uint	MaxCmdBufPerBatch		= 31;
+		static constexpr uint	MaxCmdBatchDeps			= 7;
 
 		static constexpr uint	MaxPendingCmdBatches	= 15;
 
@@ -65,6 +67,9 @@ namespace AE::Graphics
 		static constexpr uint	MaxStagingBufferParts	= 4;
 
 		static constexpr Bytes	StagingBufferOffsetAlign	{AE_CACHE_LINE};
+
+		// swapchain
+		static constexpr uint	MaxSwapchainLength		= 8;
 	};
 
 
@@ -99,7 +104,7 @@ namespace AE::Graphics
 
 
 	// methods
-		constexpr DebugLabel (Base::_hidden_::DefaultType)		__NE___								{}
+		constexpr DebugLabel (Default_t)						__NE___								{}
 		constexpr DebugLabel (StringView label)					__NE___	: label{label}				{}
 		constexpr DebugLabel (StringView label, RGBA8u color)	__NE___	: label{label}, color{color}{}
 

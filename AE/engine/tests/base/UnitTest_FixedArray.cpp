@@ -6,13 +6,13 @@ namespace
 {
 	static void  FixedArray_Test1 ()
 	{
-		FixedArray< std::shared_ptr<int>, 16 >	arr = {{
+		FixedArray< std::shared_ptr<int>, 16 >	arr = {
 			std::make_shared<int>(0),
 			std::make_shared<int>(1),
 			std::make_shared<int>(2),
 			std::make_shared<int>(3),
 			std::make_shared<int>(4)
-		}};
+		};
 
 		std::weak_ptr<int>	elem0 = arr[0];
 		std::weak_ptr<int>	elem1 = arr[1];

@@ -16,7 +16,10 @@
 #include "graphics/Public/Common.h"
 #include "graphics/Vulkan/VulkanCheckError.h"
 
-#if not defined(AE_PLATFORM_ANDROID) or not defined(AE_DEBUG)
+#ifdef AE_RELEASE
+#	define ENABLE_DEBUG_CLEAR	0
+
+#elif defined(AE_PLATFORM_ANDROID)
 	// a lot of bugs on Android devices
 #	define ENABLE_DEBUG_CLEAR	0
 #else
@@ -33,11 +36,10 @@ namespace
 	{
 		Multiview			= 1 << 0,	// VK_KHR_multiview				or 1.1
 		RenderPass2			= 1 << 1,	// VK_KHR_create_renderpass2	or 1.2	// requires Multiview
-		TimelineSemaphore	= 1 << 2,	// VK_KHR_timeline_semaphore	or 1.2
-		Synchronization2	= 1 << 3,	// VK_KHR_synchronization2
-		//PerformanceQuery	= 1 << 4,	// VK_KHR_performance_query		// TODO: emulate for ARM
-		LoadStoreOpNone		= 1 << 5,	// VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops
-		DebugClear			= 1 << 6,	// clear if don't care in render pass or if used undefined layout
+		Synchronization2	= 1 << 2,	// VK_KHR_synchronization2
+		LoadStoreOpNone		= 1 << 3,	// VK_KHR_load_store_op_none | VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops
+		DebugClear			= 1 << 4,	// clear if don't care in render pass or if used undefined layout
+		DebugMarker			= 1 << 5,
 		_Last,
 		All					= ((_Last-1) << 1) - 1,
 		Unknown				= 0,
@@ -63,6 +65,8 @@ namespace
 
 	using SemaphoreID	= HandleTmpl< 32, 32, 0x654145 >;
 	StaticAssert( sizeof(SemaphoreID) == sizeof(VkSemaphore) );
+
+	using VkEE_Allocator_t = SmallLinearAllocator<>;
 
 
 
@@ -154,9 +158,9 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-#	include "Synchronization2.h"
 #	include "RenderPass2.h"
 #	include "LoadStoreOpNone.h"
+#	include "Synchronization2.h"
 #	include "DebugClear.h"
 
 
@@ -199,21 +203,21 @@ namespace
 				if ( ext_name == VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME )
 					exist_ext |= Extension::RenderPass2;
 
-				if ( ext_name == VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME )
-					exist_ext |= Extension::TimelineSemaphore;
-
 				if ( ext_name == VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME )
 					exist_ext |= Extension::Synchronization2;
 
-				if ( ext_name == VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME /*or ext_name == VK_QCOM_RENDER_PASS_STORE_OPS_EXTENSION_NAME*/ )
+				if ( ext_name == VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME )
 					exist_ext |= Extension::LoadStoreOpNone;
+
+				if ( ext_name == VK_EXT_DEBUG_MARKER_EXTENSION_NAME )
+					exist_ext |= Extension::DebugMarker;
 			}
 
 			if ( vk_ver >= Version2{1,1} )
 				exist_ext |= Extension::Multiview;
 
 			if ( vk_ver >= Version2{1,2} )
-				exist_ext |= Extension::RenderPass2 | Extension::TimelineSemaphore;
+				exist_ext |= Extension::RenderPass2;
 
 			if ( vk_ver >= Version2{1,3} )
 				exist_ext |= Extension::Synchronization2;
@@ -232,14 +236,14 @@ namespace
 	Wrap_vkEnumerateDeviceExtensionProperties
 =================================================
 */
-	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkEnumerateDeviceExtensionProperties (VkPhysicalDevice physicalDevice, const char* pLayerName, uint* pPropertyCount, VkExtensionProperties* pProperties)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkEnumerateDeviceExtensionProperties (VkPhysicalDevice physicalDevice, const char* pLayerName, INOUT uint* pPropertyCount, OUT VkExtensionProperties* pProperties)
 	{
 		auto&	emulator = VulkanEmulation::Get();
 
 		if ( pLayerName != null )
 		{
 			DRC_SHAREDLOCK( emulator.drCheck );
-			return emulator.origin_vkEnumerateDeviceExtensionProperties( physicalDevice, pLayerName, pPropertyCount, pProperties );
+			return emulator.origin_vkEnumerateDeviceExtensionProperties( physicalDevice, pLayerName, INOUT pPropertyCount, OUT pProperties );
 		}
 
 		Extension	enabled_ext;
@@ -253,14 +257,50 @@ namespace
 			enabled_ext = info.enabledExt;
 		}
 
-		const uint	capacity	= *pPropertyCount;
-		VkResult	result		= emulator.origin_vkEnumerateDeviceExtensionProperties( physicalDevice, pLayerName, pPropertyCount, pProperties );
+		uint&		count		= *pPropertyCount;
+		const uint	capacity	= count;
+		VkResult	result		= emulator.origin_vkEnumerateDeviceExtensionProperties( physicalDevice, pLayerName, INOUT pPropertyCount, OUT pProperties );
 
+		// remove extensions which depends on emulated extensions (only for tests, actually they are not present)
+		#if 1
+		if ( pProperties != null )
+		{
+			FlatHashSet<StringView>		sync2_deps = {
+				VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,
+				VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,
+				VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
+				VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
+				VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME,
+				VK_ARM_RENDER_PASS_STRIPED_EXTENSION_NAME,
+				VK_HUAWEI_INVOCATION_MASK_EXTENSION_NAME,
+				VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,
+				VK_NV_OPTICAL_FLOW_EXTENSION_NAME,
+			//	VK_AMDX_SHADER_ENQUEUE_EXTENSION_NAME,
+				// second level deps:
+				VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,
+				VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
+			//	VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,
+				VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,
+				VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,
+			};
+			for (uint i = 0; i < count; ++i)
+			{
+				if ( sync2_deps.contains( StringView{pProperties[i].extensionName} ))
+				{
+					pProperties[i] = pProperties[count-1];
+					--count;
+					--i;
+				}
+			}
+		}
+		#endif
+
+		// add emulated extensions
 		if ( result == VK_SUCCESS and enabled_ext != Default )
 		{
 			for (auto ext_bit : BitfieldIterate( enabled_ext ))
 			{
-				const uint	idx	= (*pPropertyCount)++;
+				const uint	idx	= count++;
 
 				switch_enum( ext_bit )
 				{
@@ -292,22 +332,6 @@ namespace
 						}
 						break;
 					}
-					case Extension::TimelineSemaphore :
-						//DBG_WARNING( "not supported" );
-						break;
-					/*{
-						if ( pProperties != null )
-						{
-							if ( idx < capacity )
-							{
-								CopyCString( OUT pProperties[idx].extensionName, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME );
-								pProperties[idx].specVersion = VK_KHR_TIMELINE_SEMAPHORE_SPEC_VERSION;
-							}
-							else
-								result = VK_INCOMPLETE;
-						}
-						break;
-					}*/
 					case Extension::Synchronization2 :
 					{
 						if ( pProperties != null )
@@ -328,8 +352,22 @@ namespace
 						{
 							if ( idx < capacity )
 							{
-								CopyCString( OUT pProperties[idx].extensionName, VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME );
-								pProperties[idx].specVersion = VK_EXT_LOAD_STORE_OP_NONE_SPEC_VERSION;
+								CopyCString( OUT pProperties[idx].extensionName, VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME );
+								pProperties[idx].specVersion = VK_KHR_LOAD_STORE_OP_NONE_SPEC_VERSION;
+							}
+							else
+								result = VK_INCOMPLETE;
+						}
+						break;
+					}
+					case Extension::DebugMarker :
+					{
+						if ( pProperties != null )
+						{
+							if ( idx < capacity )
+							{
+								CopyCString( OUT pProperties[idx].extensionName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME );
+								pProperties[idx].specVersion = VK_EXT_DEBUG_MARKER_SPEC_VERSION;
 							}
 							else
 								result = VK_INCOMPLETE;
@@ -352,6 +390,16 @@ namespace
 
 /*
 =================================================
+	Wrap_vkDebugMarkerSetObjectNameEXT
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkDebugMarkerSetObjectNameEXT (VkDevice, const VkDebugMarkerObjectNameInfoEXT *)
+	{
+		return VK_SUCCESS;
+	}
+
+/*
+=================================================
 	Wrap_vkCreateDevice
 =================================================
 */
@@ -360,7 +408,7 @@ namespace
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_EXLOCK( emulator.drCheck );
 
-		ASSERT( pCreateInfo != null );
+		NonNull( pCreateInfo );
 		ASSERT( pCreateInfo->sType == VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO );
 
 		auto	iter = emulator.physDeviceInfo.find( physicalDevice );
@@ -388,22 +436,16 @@ namespace
 				auto&	feats = *Cast<VkPhysicalDeviceMultiviewFeatures>(*next);
 				emulator.devMultiviewFeats = feats;
 				const_cast<const VkBaseInStructure*&>(*next) = (*next)->pNext;
+				AE_LOG_DBG( "Enable Vulkan Multiview (RenderPass2) emulation" );
 				continue;
 			}
-			/*if ( AllBits( emulator.devEnabledExt, Extension::TimelineSemaphore ) and
-				 (*next)->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES )
-			{
-				auto&	feats = *Cast<VkPhysicalDeviceTimelineSemaphoreFeatures>(*next);
-				emulator.devTimelineSemFeats = feats;
-				const_cast<const VkBaseInStructure*&>(*next) = (*next)->pNext;
-				continue;
-			}*/
 			if ( AllBits( emulator.devEnabledExt, Extension::Synchronization2 ) and
 				 (*next)->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES )
 			{
 				auto&	feats = *Cast<VkPhysicalDeviceSynchronization2Features>(*next);
 				emulator.devSync2Feats = feats;
 				const_cast<const VkBaseInStructure*&>(*next) = (*next)->pNext;
+				AE_LOG_DBG( "Enable Vulkan Synchronization2 emulation" );
 				continue;
 			}
 
@@ -440,9 +482,9 @@ namespace
 
 				if ( (AllBits( emulator.devEnabledExt, Extension::Multiview )		  and ext_name == VK_KHR_MULTIVIEW_EXTENSION_NAME)			 or
 					 (AllBits( emulator.devEnabledExt, Extension::RenderPass2 )		  and ext_name == VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME) or
-					 (AllBits( emulator.devEnabledExt, Extension::TimelineSemaphore ) and ext_name == VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME)	 or
 					 (AllBits( emulator.devEnabledExt, Extension::Synchronization2 )  and ext_name == VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME)	 or
-					 (AllBits( emulator.devEnabledExt, Extension::LoadStoreOpNone )	  and ext_name == VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME) )
+					 (AllBits( emulator.devEnabledExt, Extension::LoadStoreOpNone )	  and ext_name == VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME)	 or
+					 (AllBits( emulator.devEnabledExt, Extension::DebugMarker )		  and ext_name == VK_EXT_DEBUG_MARKER_EXTENSION_NAME) )
 				{
 					extensions.erase( extensions.begin() + i );
 					--i;
@@ -452,13 +494,6 @@ namespace
 			dev_ci.enabledExtensionCount	= uint(extensions.size());
 			dev_ci.ppEnabledExtensionNames	= extensions.size() ? extensions.data() : null;
 		}
-
-		/*if ( AllBits( emulator.devEnabledExt, Extension::TimelineSemaphore ) and
-			   pCreateInfo->queueCreateInfoCount != 1 )
-		{
-			AE_LOGE( "Only single queue supported for timeline semaphore emulation" );
-			return VK_ERROR_INITIALIZATION_FAILED;
-		}*/
 
 		VkResult	result = emulator.origin_vkCreateDevice( physicalDevice, &dev_ci, pAllocator, OUT pDevice );
 		if ( result != VK_SUCCESS )
@@ -492,20 +527,14 @@ namespace
 
 		emulator.origin_vkCmdWriteTimestamp		= BitCast<PFN_vkCmdWriteTimestamp>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkCmdWriteTimestamp" ));
 
-		/*if ( AllBits( emulator.devEnabledExt, Extension::TimelineSemaphore ) and
-			 emulator.devTimelineSemFeats.timelineSemaphore )
-		{
-			emulator.tls.reset( new VulkanEmulation::TimelineSemEmulation{} );
-			CHECK_ERR( emulator.tls->Init( emulator ), VK_ERROR_UNKNOWN );
+		emulator.fnNameToPtr.clear();
 
-			emulator.tls->origin_vkCreateSemaphore		= BitCast<PFN_vkCreateSemaphore		>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkCreateSemaphore"	  ));
-			emulator.tls->origin_vkDestroySemaphore		= BitCast<PFN_vkDestroySemaphore	>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkDestroySemaphore"	  ));
-			emulator.tls->origin_vkAcquireNextImageKHR	= BitCast<PFN_vkAcquireNextImageKHR	>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkAcquireNextImageKHR"  ));
-			emulator.tls->origin_vkAcquireNextImage2KHR	= BitCast<PFN_vkAcquireNextImage2KHR>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkAcquireNextImage2KHR" ));
-			emulator.tls->origin_vkQueueSubmit			= BitCast<PFN_vkQueueSubmit			>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkQueueSubmit"		  ));
-			emulator.tls->origin_vkQueueBindSparse		= BitCast<PFN_vkQueueBindSparse		>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkQueueBindSparse"	  ));
-			emulator.tls->origin_vkQueuePresentKHR		= BitCast<PFN_vkQueuePresentKHR		>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkQueuePresentKHR"	  ));
-		}*/
+		// same reverse order as for '#include "feature"'
+
+		if ( AllBits( emulator.devEnabledExt, Extension::DebugMarker ))
+		{
+			emulator.fnNameToPtr.emplace( "vkDebugMarkerSetObjectNameEXT",	BitCast<PFN_vkVoidFunction>( &Wrap_vkDebugMarkerSetObjectNameEXT ));
+		}
 
 		if ( AllBits( emulator.devEnabledExt, Extension::DebugClear ))
 		{
@@ -540,6 +569,25 @@ namespace
 			emulator.fnNameToPtr.emplace( "vkDestroyImageView",			BitCast<PFN_vkVoidFunction>( &Wrap_vkDestroyImageView_DbgClear ));
 		}
 
+		if ( AllBits( emulator.devEnabledExt, Extension::Synchronization2 ))
+		{
+			emulator.fnNameToPtr.emplace( "vkCmdPipelineBarrier2KHR",	BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdPipelineBarrier2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdPipelineBarrier2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdPipelineBarrier2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdResetEvent2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdResetEvent2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdResetEvent2",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdResetEvent2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdSetEvent2KHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdSetEvent2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdSetEvent2",				BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdSetEvent2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdWaitEvents2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWaitEvents2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdWaitEvents2",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWaitEvents2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp ));
+			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp2KHR",	BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp2 ));
+			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp2 ));
+			emulator.fnNameToPtr.emplace( "vkQueueSubmit2KHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueSubmit2 ));
+			emulator.fnNameToPtr.emplace( "vkQueueSubmit2",				BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueSubmit2 ));
+			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2_Sync2 ));
+			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2_Sync2 ));
+		}
+
 		if ( AllBits( emulator.devEnabledExt, Extension::LoadStoreOpNone ))
 		{
 			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2_OpNone ));
@@ -558,40 +606,6 @@ namespace
 			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2 ));
 			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2 ));
 		}
-
-		if ( AllBits( emulator.devEnabledExt, Extension::Synchronization2 ))
-		{
-			emulator.fnNameToPtr.emplace( "vkCmdPipelineBarrier2KHR",	BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdPipelineBarrier2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdPipelineBarrier2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdPipelineBarrier2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdResetEvent2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdResetEvent2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdResetEvent2",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdResetEvent2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdSetEvent2KHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdSetEvent2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdSetEvent2",				BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdSetEvent2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdWaitEvents2KHR",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWaitEvents2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdWaitEvents2",			BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWaitEvents2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp ));
-			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp2KHR",	BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp2 ));
-			emulator.fnNameToPtr.emplace( "vkCmdWriteTimestamp2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCmdWriteTimestamp2 ));
-			emulator.fnNameToPtr.emplace( "vkQueueSubmit2KHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueSubmit2 ));
-			emulator.fnNameToPtr.emplace( "vkQueueSubmit2",				BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueSubmit2 ));
-		}
-		/*
-		if ( AllBits( emulator.devEnabledExt, Extension::TimelineSemaphore ))
-		{
-			emulator.fnNameToPtr.emplace( "vkGetSemaphoreCounterValueKHR",	BitCast<PFN_vkVoidFunction>( &Wrap_vkGetSemaphoreCounterValue ));
-			emulator.fnNameToPtr.emplace( "vkGetSemaphoreCounterValue",		BitCast<PFN_vkVoidFunction>( &Wrap_vkGetSemaphoreCounterValue ));
-			emulator.fnNameToPtr.emplace( "vkSignalSemaphoreKHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkSignalSemaphore ));
-			emulator.fnNameToPtr.emplace( "vkSignalSemaphore",				BitCast<PFN_vkVoidFunction>( &Wrap_vkSignalSemaphore ));
-			emulator.fnNameToPtr.emplace( "vkWaitSemaphoresKHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkWaitSemaphores ));
-			emulator.fnNameToPtr.emplace( "vkWaitSemaphores",				BitCast<PFN_vkVoidFunction>( &Wrap_vkWaitSemaphores ));
-			emulator.fnNameToPtr.emplace( "vkCreateSemaphore",				BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateSemaphore ));
-			emulator.fnNameToPtr.emplace( "vkDestroySemaphore",				BitCast<PFN_vkVoidFunction>( &Wrap_vkDestroySemaphore ));
-			emulator.fnNameToPtr.emplace( "vkAcquireNextImageKHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkAcquireNextImageKHR ));
-			emulator.fnNameToPtr.emplace( "vkAcquireNextImage2KHR",			BitCast<PFN_vkVoidFunction>( &Wrap_vkAcquireNextImage2KHR ));
-			emulator.fnNameToPtr.emplace( "vkQueueSubmit",					BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueSubmit ));
-			emulator.fnNameToPtr.emplace( "vkQueueBindSparse",				BitCast<PFN_vkVoidFunction>( &Wrap_vkQueueBindSparse ));
-			emulator.fnNameToPtr.emplace( "vkQueuePresentKHR",				BitCast<PFN_vkVoidFunction>( &Wrap_vkQueuePresentKHR ));
-		}*/
 
 		return result;
 	}
@@ -618,6 +632,7 @@ namespace
 		emulator.devSync2Feats		= {};
 
 		emulator.fnNameToPtr.clear();
+		emulator.dbgClear.reset();
 
 		//if ( emulator.tls )
 		//	emulator.tls->Release( emulator );
@@ -653,13 +668,6 @@ namespace
 				*next = (*next)->pNext;
 				continue;
 			}
-			/*if ( AllBits( enabled_ext, Extension::TimelineSemaphore ) and (*next)->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES )
-			{
-				auto&	feats = *Cast<VkPhysicalDeviceTimelineSemaphoreFeatures>(*next);
-				feats.timelineSemaphore = VK_TRUE;
-				*next = (*next)->pNext;
-				continue;
-			}*/
 			if ( AllBits( enabled_ext, Extension::Synchronization2 ) and (*next)->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES )
 			{
 				auto&	feats = *Cast<VkPhysicalDeviceSynchronization2Features>(*next);
@@ -702,13 +710,6 @@ namespace
 				*next = (*next)->pNext;
 				continue;
 			}
-			/*if ( AllBits( enabled_ext, Extension::TimelineSemaphore ) and (*next)->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES )
-			{
-				auto&	props = *Cast<VkPhysicalDeviceTimelineSemaphoreProperties>(*next);
-				props.maxTimelineSemaphoreValueDifference = ~0u;
-				*next = (*next)->pNext;
-				continue;
-			}*/
 
 			next = &(*next)->pNext;
 		}
@@ -817,6 +818,9 @@ namespace
 	{
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_EXLOCK( emulator.drCheck );
+
+		emulator.physDeviceInfo.clear();
+		emulator.fnNameToPtr.clear();
 
 		const bool	is11 = instVer >= Version2{1,1};
 

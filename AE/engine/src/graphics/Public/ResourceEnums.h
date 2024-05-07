@@ -197,28 +197,6 @@ namespace AE::Graphics
 	}
 
 
-	enum class EAttachmentLoadOp : ubyte
-	{
-		Invalidate,
-		Load,
-		Clear,
-		None,
-		_Count,
-		Unknown		= 0xFF,
-	};
-
-
-	enum class EAttachmentStoreOp : ubyte
-	{
-		Invalidate,
-		Store,
-		None,
-		StoreCustomSamplePositions,	// MTLStoreActionOptionCustomSamplePositions
-		_Count,
-		Unknown		= 0xFF,
-	};
-
-
 	enum class EColorSpace : ubyte
 	{
 		sRGB_nonlinear,

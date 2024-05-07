@@ -122,7 +122,7 @@ namespace AE::Graphics
 
 
 	// Vector types
-	template <typename T, uint I, glm::qualifier Q>
+	template <typename T, int I, glm::qualifier Q>
 	struct VertexDesc < TVec<T,I,Q> >
 	{
 		using							type	= TVec<T,I,Q>;

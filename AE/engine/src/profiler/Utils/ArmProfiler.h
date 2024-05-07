@@ -9,7 +9,7 @@
 #pragma once
 
 #include "base/Utils/EnumSet.h"
-#include "base/Utils/RefCounter.h"
+#include "base/Pointers/RefCounter.h"
 
 namespace AE::Profiler
 {
@@ -101,8 +101,8 @@ namespace AE::Profiler
 			_Count,
 			Unknown					= 0xFF,
 		};
-		using ECounterSet	= EnumSet< ECounter >;
 
+		using ECounterSet	= EnumSet< ECounter >;
 		using Counters_t	= FlatHashMap< ECounter, double >;
 
 	private:
@@ -119,8 +119,6 @@ namespace AE::Profiler
 		ArmProfiler ()													__NE___;
 		~ArmProfiler ()													__NE___;
 
-		ND_ bool  InitClient (RC<ArmProfilerClient>)					__NE___;
-
 		ND_ bool  Initialize (const ECounterSet &counterSet)			__NE___;
 			void  Deinitialize ()										__NE___;
 		ND_ bool  IsInitialized ()										C_NE___;
@@ -131,6 +129,11 @@ namespace AE::Profiler
 			void  Sample (OUT Counters_t &)								C_NE___;
 
 		ND_ static StringView  CounterToString (ECounter value)			__NE___;
+
+
+	  #ifndef AE_ENABLE_ARM_HWCPIPE
+		ND_ bool  InitClient (RC<ArmProfilerClient>)					__NE___;
+	  #endif
 
 
 	private:

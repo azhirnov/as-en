@@ -28,9 +28,18 @@
 #include "graphics/Public/RenderPassDesc.h"
 #include "graphics/Public/VulkanTypes.h"
 #include "graphics/Public/RayTracingDesc.h"
+#include "graphics/Public/QueryManager.h"
 
-#define VULKAN_ONLY( ... )
-#define METAL_ONLY( ... )
+#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define VULKAN_ONLY( ... )	__VA_ARGS__
+#else
+#	define VULKAN_ONLY( ... )
+#endif
+#if defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define METAL_ONLY( ... )	__VA_ARGS__
+#else
+#	define METAL_ONLY( ... )
+#endif
 #define GAPI_DEPENDENT( ... )
 
 namespace AE::Graphics
@@ -42,11 +51,6 @@ namespace AE::Graphics
 
 	class NO_VTABLE IDrawContext
 	{
-	// types
-	public:
-		using Viewport_t = RenderPassDesc::Viewport;
-
-
 	// interface
 	public:
 
@@ -61,8 +65,8 @@ namespace AE::Graphics
 		template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)										__Th___	{ return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
 	// dynamic states //
-		virtual void  SetViewport (const Viewport_t &viewport)																		__Th___	= 0;
-		virtual void  SetViewports (ArrayView<Viewport_t> viewports)																__Th___	= 0;
+		virtual void  SetViewport (const Viewport &viewport)																		__Th___	= 0;
+		virtual void  SetViewports (ArrayView<Viewport> viewports)																	__Th___	= 0;
 		virtual void  SetScissor (const RectI &scissor)																				__Th___	= 0;
 		virtual void  SetScissors (ArrayView<RectI> scissors)																		__Th___	= 0;
 		//	requires: EPipelineDynamicState::DepthBias
@@ -75,16 +79,16 @@ namespace AE::Graphics
 
 		VULKAN_ONLY(
 		//	requires: EPipelineDynamicState::DepthBounds
-				void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___ = 0;
+		virtual	void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___ = 0;
 		//	requires: EPipelineDynamicState::StencilCompareMask
-				void  SetStencilCompareMask (uint compareMask)																		__Th___ = 0;
-				void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___ = 0;
+		virtual	void  SetStencilCompareMask (uint compareMask)																		__Th___ = 0;
+		virtual	void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___ = 0;
 		//	requires: EPipelineDynamicState::StencilWriteMask
-				void  SetStencilWriteMask (uint writeMask)																			__Th___ = 0;
-				void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___ = 0;
+		virtual	void  SetStencilWriteMask (uint writeMask)																			__Th___ = 0;
+		virtual	void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___ = 0;
 
 		//	requires: EPipelineDynamicState::FragmentShadingRate
-				void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___ = 0;
+		virtual	void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___ = 0;
 		)
 
 	// draw commands //
@@ -96,13 +100,19 @@ namespace AE::Graphics
 		virtual void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)					__Th___	= 0;
 		virtual bool  BindVertexBuffer (GraphicsPipelineID pplnId, VertexBufferName::Ref name, BufferID buffer, Bytes offset)		__Th___ = 0;
 
-		// for Draw(), DrawIndirect(), DrawIndirectCount() :
-		//   'VertexIndex'   range:  [firstVertex,   firstVertex   + vertexCount]
-		//   'InstanceIndex' range:  [firstInstance, firstInstance + instanceCount]
+		// for Draw*() :
+		//   VertexIndex   range:  [firstVertex,   firstVertex   + vertexCount]
+		//   InstanceIndex range:  [firstInstance, firstInstance + instanceCount]
 
-		// for DrawIndexed(), DrawIndexedIndirect(), DrawIndexedIndirectCount() :
-		//   'VertexIndex'   value:  indexBuffer[firstIndex + i] + vertexOffset
-		//   'InstanceIndex' range:  [firstInstance, firstInstance + instanceCount]
+		// for DrawIndexed*() :
+		//   VertexIndex   value:  indexBuffer[firstIndex + i] + vertexOffset
+		//   InstanceIndex range:  [firstInstance, firstInstance + instanceCount]
+
+		// for Draw*Indirect*() :
+		//		indirectBuffer: EResourceState::IndirectBuffer
+
+		// for Draw*Count() :
+		//		countBuffer:	EResourceState::IndirectBuffer
 
 				void  Draw (const DrawCmd &cmd)																						__Th___	{ Draw( cmd.vertexCount, cmd.instanceCount, cmd.firstVertex, cmd.firstInstance ); }
 		virtual void  Draw (uint vertexCount,
@@ -117,14 +127,12 @@ namespace AE::Graphics
 								   int  vertexOffset	= 0,
 								   uint firstInstance	= 0)																		__Th___	= 0;
 
-		//		indirectBuffer: EResourceState::IndirectBuffer
 				void  DrawIndirect (const DrawIndirectCmd &cmd)																		__Th___	{ DrawIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawIndirect (BufferID	indirectBuffer,
 									Bytes		indirectBufferOffset,
 									uint		drawCount,
 									Bytes		stride)																				__Th___	= 0;
 
-		//		indirectBuffer: EResourceState::IndirectBuffer
 				void  DrawIndexedIndirect (const DrawIndexedIndirectCmd &cmd)														__Th___ { DrawIndexedIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawIndexedIndirect (BufferID		indirectBuffer,
 										   Bytes		indirectBufferOffset,
@@ -137,7 +145,6 @@ namespace AE::Graphics
 		// mesh shader //
 		virtual void  DrawMeshTasks (const uint3 &taskCount)																		__Th___	= 0;
 
-		//		indirectBuffer: EResourceState::IndirectBuffer
 				void  DrawMeshTasksIndirect (const DrawMeshTasksIndirectCmd &cmd)													__Th___	{ DrawMeshTasksIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
 											 Bytes		indirectBufferOffset,
@@ -146,26 +153,24 @@ namespace AE::Graphics
 
 		// extension //
 		VULKAN_ONLY(
-		//		indirectBuffer:	EResourceState::IndirectBuffer
-		//		countBuffer:	EResourceState::IndirectBuffer
-				void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___ = 0;
-				void  DrawIndirectCount (BufferID	indirectBuffer,
+				void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		virtual	void  DrawIndirectCount (BufferID	indirectBuffer,
 										 Bytes		indirectBufferOffset,
 										 BufferID	countBuffer,
 										 Bytes		countBufferOffset,
 										 uint		maxDrawCount,
 										 Bytes		stride)																			__Th___ = 0;
 
-				void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___ = 0;
-				void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
+				void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___	{ DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		virtual	void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
 												Bytes		indirectBufferOffset,
 												BufferID	countBuffer,
 												Bytes		countBufferOffset,
 												uint		maxDrawCount,
 												Bytes		stride)																	__Th___ = 0;
 
-				void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___ = 0;
-				void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
+				void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___	{ DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		virtual	void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
 												  Bytes		indirectBufferOffset,
 												  BufferID	countBuffer,
 												  Bytes		countBufferOffset,
@@ -178,15 +183,19 @@ namespace AE::Graphics
 		virtual void  PushDebugGroup (DebugLabel dbg)																				__Th___	= 0;
 		virtual void  PopDebugGroup ()																								__Th___	= 0;
 
+		VULKAN_ONLY(
+		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)							__Th___ = 0;
+		)
+
 		// only for RW attachments //
 		virtual void  AttachmentBarrier (AttachmentName::Ref, EResourceState srcState, EResourceState dstState)						__Th___	= 0;
 		virtual void  CommitBarriers ()																								__Th___ = 0;
 
 		// clear //
+				bool  ClearAttachment (AttachmentName::Ref, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___;
 		virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
 		virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
 		virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
-		virtual bool  ClearAttachment (AttachmentName::Ref, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
 		virtual bool  ClearAttachment (AttachmentName::Ref, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th___ = 0;
 
 		// vertex stream //
@@ -241,6 +250,10 @@ namespace AE::Graphics
 		virtual void  PushDebugGroup (DebugLabel dbg)																						__Th___	= 0;
 		virtual void  PopDebugGroup ()																										__Th___	= 0;
 
+		VULKAN_ONLY(
+		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)									__Th___ = 0;
+		)
+
 		ND_ virtual FrameUID  GetFrameId ()																									C_NE___	= 0;
 
 		GAPI_DEPENDENT(
@@ -249,6 +262,7 @@ namespace AE::Graphics
 			AccumBar				AccumBarriers ()																						__NE___;
 			DeferredBar				DeferredBarriers ()																						__NE___;
 			IResourceManager &		GetResourceManager ()																					C_NE___;
+			IDevice const&			GetDevice ()																							C_NE___;
 			RenderTask const&		GetRenderTask ()																						C_NE___;
 		)
 	};
@@ -261,6 +275,44 @@ namespace AE::Graphics
 
 	class ITransferContext : public IBaseContext
 	{
+	// types
+	public:
+		struct ReadbackBufferResult
+		{
+			Promise<BufferMemView>	readOp;
+			Bytes					remain;		// non-zero if not enough space to read whole buffer
+
+			ReadbackBufferResult ()																	__NE___ = default;
+			ReadbackBufferResult (Promise<BufferMemView> readOp, Bytes remain)						__NE___ : readOp{RVRef(readOp)}, remain{remain} {}
+
+			template <typename Fn>
+			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { return readOp.Then( FwdArg<Fn>(fn), dbgName, queueType ); }
+
+			template <typename Fn>
+			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+
+			ND_ bool  IsCompleted ()																C_NE___	{ return remain == 0; }
+		};
+
+
+		struct ReadbackImageResult
+		{
+			Promise<ImageMemView>	readOp;
+			uint3					remain;		// non-zero if not enough space to read whole image
+
+			ReadbackImageResult ()																	__NE___ = default;
+			ReadbackImageResult (Promise<ImageMemView> readOp, uint3 remain)						__NE___ : readOp{RVRef(readOp)}, remain{remain} {}
+
+			template <typename Fn>
+			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { return readOp.Then( FwdArg<Fn>(fn), dbgName, queueType ); }
+
+			template <typename Fn>
+			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+
+			ND_ bool  IsCompleted ()																C_NE___	{ return All( IsZero( remain )); }
+		};
+
+
 	// interface
 	public:
 		//		buffer: EResourceState::ClearDst
@@ -290,9 +342,9 @@ namespace AE::Graphics
 
 	// read from device local memory using staging buffer //
 		//		buffer, image: EResourceState::CopySrc
-		ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)			__Th___ = 0;
-		ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)				__Th___	= 0;
-		ND_ virtual Promise<ImageMemView>   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)			__Th___ = 0;
+		ND_ virtual ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &)					__Th___ = 0;
+		ND_ virtual ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &)						__Th___ = 0;
+		ND_ virtual ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &)					__Th___ = 0;
 
 	// partially upload //
 		//		stream.buffer, stream.image: EResourceState::CopyDst
@@ -310,7 +362,7 @@ namespace AE::Graphics
 		//		buffer: EResourceState::Host_Write
 		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th___ = 0;
 		VULKAN_ONLY(
-					bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)			__Th___ = 0;
+		ND_	virtual	bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)			__Th___ = 0;
 		)
 
 		//		buffer: EResourceState::Host_Read
@@ -323,9 +375,10 @@ namespace AE::Graphics
 
 		VULKAN_ONLY(
 		//		image: EResourceState::ClearDst
-				void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
-				void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
-				void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
+				void  ClearColorImage (ImageID image, const RGBA8u  &color, ArrayView<ImageSubresourceRange> ranges)	__Th___;
+		virtual	void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
+		virtual	void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
+		virtual	void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	__Th___ = 0;
 		)
 
 
@@ -337,19 +390,20 @@ namespace AE::Graphics
 
 		VULKAN_ONLY(
 		//		image: EResourceState::ClearDst
-				void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil,
+		virtual	void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil,
 											  ArrayView<ImageSubresourceRange> ranges)									__Th___ = 0;
 
 		//		srcImage: EResourceState::BlitSrc
 		//		dstImage: EResourceState::BlitDst
-				void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)				__Th___ = 0;
+		virtual	void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)				__Th___ = 0;
 		)
 
 		//		image:
-		//			in: { src level: EResourceState::BlitSrc, dst levels: EResourceState::Unknown }
+		//			in:  { src level: EResourceState::BlitSrc, dst levels: EResourceState::Unknown }
 		//			out: EResourceState::BlitSrc
-		virtual void  GenerateMipmaps (ImageID image, EResourceState state)												__Th___	= 0;
-		virtual void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)	__Th___	= 0;
+		virtual void  GenerateMipmaps (ImageID image, EResourceState state = Default)									__Th___	= 0;
+		virtual void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges,
+									   EResourceState state = Default)													__Th___	= 0;
 
 
 	public:
@@ -413,18 +467,16 @@ namespace AE::Graphics
 	public:
 	GAPI_DEPENDENT(
 		// Record draw commands into the same command buffer.
-		ND_ virtual IDrawContext		BeginRenderPass (const RenderPassDesc &desc)							__Th___	= 0;
-		ND_ virtual IDrawContext		NextSubpass (IDrawContext &prevPassCtx)									__Th___	= 0;
+		ND_ virtual IDrawContext		BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg)			__Th___	= 0;
+		ND_ virtual IDrawContext		NextSubpass (IDrawContext &prevPassCtx, DebugLabel dbg)					__Th___	= 0;
 			virtual void				EndRenderPass (IDrawContext &)											__Th___	= 0;
-			virtual void				EndRenderPass (IDrawContext &, const RenderPassDesc &desc)				__Th___	= 0;
 
-		// Record draw commands into multiple secondary command buffers asynchroniously.
-		ND_	virtual RC<DrawCommandBatch> BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)			__Th___	= 0;
-		ND_ virtual RC<DrawCommandBatch> NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)	__Th___	= 0;
+		// Record draw commands into multiple secondary command buffers asynchronously.
+		ND_	virtual RC<DrawCommandBatch> BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)			__Th___	= 0;	// non-null result or throw exception
+		ND_ virtual RC<DrawCommandBatch> NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)	__Th___	= 0;	// non-null result or throw exception
 			virtual void				 ExecuteCommands (DrawCommandBatch &)									__Th___	= 0;
 			virtual void				 ExecuteCommands (DrawCommandBatch &)									__Th___	= 0;
 			virtual void				 EndMtRenderPass ()														__Th___	= 0;
-			virtual void				 EndMtRenderPass (const RenderPassDesc &desc)							__Th___	= 0;
 	)
 	};
 
@@ -467,11 +519,11 @@ namespace AE::Graphics
 
 		VULKAN_ONLY(
 		//		address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand)
-				void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)									__Th___ = 0;
+		virtual	void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)									__Th___ = 0;
 
 		//	requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
 		//		address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand2)
-				void  TraceRaysIndirect2 (DeviceAddress address)																	__Th___ = 0;
+		virtual	void  TraceRaysIndirect2 (DeviceAddress address)																	__Th___ = 0;
 		)
 	};
 
@@ -507,15 +559,15 @@ namespace AE::Graphics
 		//		all buffers in cmd:	EResourceState::BuildRTAS_Read
 
 		//		'indirectBuffer' for geometry build: array of 'ASBuildIndirectCommand [TriangleCount + AABBsCount]'
-				void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer,
+		virtual	void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer,
 									 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)											__Th___ = 0;
-				void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
+		virtual	void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
 									 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b,
 									 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)											__Th___ = 0;
 
 		//		'indirectBuffer' for scene build: single 'ASBuildIndirectCommand'
-				void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)							__Th___ = 0;
-				void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
+		virtual	void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)							__Th___ = 0;
+		virtual	void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
 									 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)										__Th___ = 0;
 		)
 
@@ -540,17 +592,17 @@ namespace AE::Graphics
 		VULKAN_ONLY(
 		//		src: EResourceState::CopyRTAS_Read
 		//		dst: EResourceState::CopyRTAS_Write
-				void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)														__Th___ = 0;
-				void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th___ = 0;
+		virtual	void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)														__Th___ = 0;
+		virtual	void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th___ = 0;
 
-				void  SerializeToMemory (RTSceneID src, DeviceAddress dst)															__Th___ = 0;
-				void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th___ = 0;
+		virtual	void  SerializeToMemory (RTSceneID src, DeviceAddress dst)															__Th___ = 0;
+		virtual	void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th___ = 0;
 
-				void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)													__Th___ = 0;
-				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th___ = 0;
+		virtual	void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)													__Th___ = 0;
+		virtual	void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th___ = 0;
 
-				void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)														__Th___ = 0;
-				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th___ = 0;
+		virtual	void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)														__Th___ = 0;
+		virtual	void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th___ = 0;
 		)
 	};
 
@@ -652,6 +704,26 @@ namespace AE::Graphics
 		}
 		ASSERT( written <= desc.size );
 		return written == desc.size;
+	}
+
+/*
+=================================================
+	ClearColorImage
+=================================================
+*/
+	inline void  ITransferContext::ClearColorImage (ImageID image, const RGBA8u &color, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ClearColorImage( image, RGBA32f{color}, ranges );
+	}
+
+/*
+=================================================
+	ClearAttachment
+=================================================
+*/
+	inline bool  IDrawContext::ClearAttachment (AttachmentName::Ref name, const RGBA8u &color, const RectI &region, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		return ClearAttachment( name, RGBA32f{color}, region, baseLayer, layerCount );
 	}
 
 

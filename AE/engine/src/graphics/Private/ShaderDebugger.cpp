@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Public/ShaderDebugger.h"
-#include "graphics/Public/GraphicsImpl.h"
+#include "graphics/GraphicsImpl.h"
 
 namespace AE::Graphics
 {
@@ -25,15 +25,14 @@ namespace AE::Graphics
 	destructor
 =================================================
 */
-	ShaderDebugger::~ShaderDebugger ()
+	ShaderDebugger::~ShaderDebugger () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
 		{
-			auto	buffers = _buffers.WriteNoLock();
-			EXLOCK( buffers );
+			auto	buffers = _buffers.WriteLock();
 
 			for (auto& buf : *buffers) {
 				res_mngr.ImmediatelyReleaseResources( buf.dbgTraceBuffer, buf.readbackBuffer );
@@ -41,11 +40,10 @@ namespace AE::Graphics
 			buffers->clear();
 		}
 		{
-			auto	ds_arr = _dsArray.WriteNoLock();
-			EXLOCK( ds_arr );
+			auto	ds_arr = _dsArray.WriteLock();
 
 			for (auto& ds : *ds_arr) {
-				res_mngr.ImmediatelyRelease( ds );
+				DEV_CHECK( res_mngr.ImmediatelyRelease2( INOUT ds ));
 			}
 			ds_arr->clear();
 		}
@@ -74,17 +72,17 @@ namespace AE::Graphics
 */
 	bool  ShaderDebugger::_AllocStorage (Bytes size, INOUT Result &result)
 	{
-		ASSERT( result._ppln != null );
-		ASSERT( result._fn != null );
+		NonNull( result._ppln );
+		NonNull( result._fn );
 		ASSERT( result._ds and result._dsIndex != UMax );
 		ASSERT( result._state != Default );
 
 		CHECK_ERR( size > _TraceHeaderSize );
 
 		// find in existing
+		bool	found = false;
 		{
-			auto	buffers = _buffers.WriteNoLock();
-			EXLOCK( buffers );
+			auto	buffers = _buffers.WriteLock();
 
 			for (auto& buf : *buffers)
 			{
@@ -97,12 +95,17 @@ namespace AE::Graphics
 					result._offset		= offset;
 					result._size		= size;
 
-					_pending->push_back( result );
-					buf.size = offset + size;
+					buf.size			= offset + size;
 
-					return _InitDS( result );
+					found = true;
+					break;
 				}
 			}
+		}
+		if ( found )
+		{
+			_pending->push_back( result );
+			return _InitDS( result );
 		}
 
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
@@ -126,9 +129,18 @@ namespace AE::Graphics
 				CHECK_ERR( res_mngr.IsSupported( host_mem_type ));
 			}
 
+			auto&		fs	= res_mngr.GetFeatureSet();
+			EBufferOpt	opt	= Default;
+
+			if ( fs.vertexPipelineStoresAndAtomics == FeatureSet::EFeature::RequireTrue )
+				opt |= EBufferOpt::VertexPplnStore;
+
+			if ( fs.fragmentStoresAndAtomics == FeatureSet::EFeature::RequireTrue )
+				opt |= EBufferOpt::FragmentPplnStore;
+
 			buf.dbgTraceBuffer = res_mngr.CreateBuffer( BufferDesc{	_blockSize,
 															EBufferUsage::Transfer | EBufferUsage::Storage,
-															EBufferOpt::VertexPplnStore | EBufferOpt::FragmentPplnStore,
+															opt,
 															Default,
 															EMemoryType::DeviceLocal }, "debug storage buffer", gfx_alloc );
 			buf.readbackBuffer = res_mngr.CreateBuffer( BufferDesc{	_blockSize,
@@ -162,9 +174,9 @@ namespace AE::Graphics
 */
 namespace {
 	template <typename PplnType>
-	static bool  ParseShaderTrace (const void* ppln, const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result)
+	static bool  ParseShaderTrace (const void* ppln, const void* ptr, Bytes maxSize, ShaderDebugger::ELogFormat format, OUT Array<String> &result) __NE___
 	{
-	#ifdef AE_ENABLE_VULKAN
+	#if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		return Cast<PplnType>( ppln )->ParseShaderTrace( ptr, maxSize, format, OUT result );
 	#else
 		Unused( ppln, ptr, maxSize, format, result );
@@ -233,7 +245,7 @@ namespace {
 			result._ds		= ds;
 			result._dsIndex	= CheckCast<ushort>(idx.vkIndex);
 
-			_dsArray->push_back( RVRef(ds) );
+			_dsArray->push_back( RVRef(ds) );  // throw
 			return true;
 		}
 		return false;
@@ -398,8 +410,7 @@ namespace {
 	{
 		DRC_EXLOCK( _drCheck );
 
-		auto	pending = _pending.WriteNoLock();
-		EXLOCK( pending );
+		auto	pending = _pending.WriteLock();
 
 		if ( pending->empty() )
 			return Default;

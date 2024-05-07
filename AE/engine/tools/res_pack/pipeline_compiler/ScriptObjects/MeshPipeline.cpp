@@ -50,7 +50,7 @@ namespace
 			"StructureType with name '"s << typeName << "' is not found" );
 
 		if ( st_it->second->Layout() != EStructLayout::InternalIO )
-			AE_LOG_SE( "StructureType '"s << typeName << "' should use 'InternalIO' layout" );
+			AE_LOGW( "StructureType '"s << typeName << "' should use 'InternalIO' layout" );
 
 		_shaderIO[input].first		= st_it->second;
 		_shaderIO[output].second	= st_it->second;
@@ -169,8 +169,11 @@ namespace
 	Build
 =================================================
 */
-	bool  MeshPipelineScriptBinding::Build ()
+	bool  MeshPipelineScriptBinding::Build () __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		try {
 			_Prepare();
 		}
@@ -356,7 +359,7 @@ namespace
 	constructor
 =================================================
 */
-	MeshPipelineSpecScriptBinding::MeshPipelineSpecScriptBinding (const MeshPipelineScriptBinding* base, const String &name) __Th___ :
+	MeshPipelineSpecScriptBinding::MeshPipelineSpecScriptBinding (MeshPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
 
@@ -413,9 +416,9 @@ namespace
 	void  MeshPipelineSpecScriptBinding::SetRenderState (const RenderState &state) __Th___
 	{
 		CHECK_THROW_MSG( state.inputAssembly.topology == Default );
-		_ValidateRenderState( desc.dynamicState, state, GetFeatures() );
 
 		renderState = state;
+		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetFeatures() );
 
 		SubpassShaderIO		frag_io;
 		GetBase()->GetSubpassShaderIO( OUT frag_io );
@@ -483,8 +486,11 @@ namespace
 	Build
 =================================================
 */
-	bool  MeshPipelineSpecScriptBinding::Build (PipelineTemplUID templUID)
+	bool  MeshPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		if ( IsBuilded() )
 			return true;
 
@@ -498,9 +504,9 @@ namespace
 			const bool	req_spec	= Any( task_spec != uint3{~0u} );
 			if ( req_spec )
 			{
-				CHECK_THROW_MSG( (task_spec.x == UMax) == (desc.taskLocalSize.x == UMax), "use 'SetTaskLocalSize()' to set local size" );
-				CHECK_THROW_MSG( (task_spec.y == UMax) == (desc.taskLocalSize.y == UMax), "use 'SetTaskLocalSize()' to set local size" );
-				CHECK_THROW_MSG( (task_spec.z == UMax) == (desc.taskLocalSize.z == UMax), "use 'SetTaskLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (task_spec.x == UMax) == (desc.taskLocalSize.x == UMax), "use 'SetTaskLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (task_spec.y == UMax) == (desc.taskLocalSize.y == UMax), "use 'SetTaskLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (task_spec.z == UMax) == (desc.taskLocalSize.z == UMax), "use 'SetTaskLocalSize()' to set local size" );
 			}
 		}
 
@@ -510,9 +516,9 @@ namespace
 			const bool	req_spec	= Any( mesh_spec != uint3{~0u} );
 			if ( req_spec )
 			{
-				CHECK_THROW_MSG( (mesh_spec.x == UMax) == (desc.meshLocalSize.x == UMax), "use 'SetMeshLocalSize()' to set local size" );
-				CHECK_THROW_MSG( (mesh_spec.y == UMax) == (desc.meshLocalSize.y == UMax), "use 'SetMeshLocalSize()' to set local size" );
-				CHECK_THROW_MSG( (mesh_spec.z == UMax) == (desc.meshLocalSize.z == UMax), "use 'SetMeshLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (mesh_spec.x == UMax) == (desc.meshLocalSize.x == UMax), "use 'SetMeshLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (mesh_spec.y == UMax) == (desc.meshLocalSize.y == UMax), "use 'SetMeshLocalSize()' to set local size" );
+				CHECK_ERR_MSG( (mesh_spec.z == UMax) == (desc.meshLocalSize.z == UMax), "use 'SetMeshLocalSize()' to set local size" );
 			}
 		}
 

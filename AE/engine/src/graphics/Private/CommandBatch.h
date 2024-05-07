@@ -27,7 +27,7 @@
 #	define SUFFIX			V
 #	define CMDBATCH			VCommandBatch
 #	if not AE_VK_TIMELINE_SEMAPHORE
-#	  define ENABLE_VK_TIMELINE_SEMAPHORE
+#	  define ENABLE_VK_VIRTUAL_FENCE
 #	endif
 
 #elif defined(AE_ENABLE_METAL)
@@ -83,16 +83,14 @@ namespace AE::Graphics
 		{
 		// methods
 		public:
-			CmdBufPool ()																						__NE___ {}
-
-			void  GetCommands (OUT VkCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)				__NE___ { _GetCommands( OUT cmdbufs, OUT cmdbufCount, maxCount ); }
+			void  GetCommands (OUT VkCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)				__NE___ { _GetNativeCommands( OUT cmdbufs, OUT cmdbufCount, maxCount ); }
 			void  GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount)		__NE___;
-			bool  CommitIndirectBuffers (VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType,
+			bool  CommitIndirectBuffers (VCommandPoolManager &cmdPoolMngr, EQueueType, ECommandBufferType,
 										 const VPrimaryCmdBufState* primaryState = null)						__NE___;
 
 		private:
-			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState);
-			ND_ bool  _CommitIndirectBuffers_Unordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState);
+			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___;
+			ND_ bool  _CommitIndirectBuffers_Unordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___;
 		};
 
 
@@ -108,34 +106,38 @@ namespace AE::Graphics
 		{
 		// methods
 		public:
-			CmdBufPool ()																				__NE___ {}
-
 			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
 			bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
 										 const MPrimaryCmdBufState* primaryState = null)				__NE___;
 
 		private:
-			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, EQueueType queue, ECommandBufferType cmdbufType, const MPrimaryCmdBufState* primaryState);
+			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, EQueueType queue, ECommandBufferType cmdbufType, const MPrimaryCmdBufState* primaryState) __NE___;
 		};
 
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using GpuSyncObj_t			= RemoteSemaphore;
+		using GpuSyncObj_t			= RmSemaphoreID;
 		using CmdBatchDependency_t	= RemoteCmdBatchDependency;
 		using _TaskBarriers_t		= RDependencyInfo;
+
+		struct RBakedCommands
+		{
+			uint	_value	= 0;
+
+			RBakedCommands ()						__NE___ {}
+			RBakedCommands (RmCommandBufferID id)	__NE___ : _value{BitCast<uint>(id) + 1} {}
+			ND_ bool  IsValid ()					C_NE___	{ return _value != 0; }
+			ND_ auto  Release ()					__NE___	{ auto  id = BitCast<RmCommandBufferID>(_value - 1);  _value = 0;  return id; }
+		};
+
 
 		//
 		// Command Buffer Pool
 		//
 		struct CmdBufPool : LfCmdBufferPool< void*, RBakedCommands >
 		{
-		// methods
 		public:
-			CmdBufPool ()																			__NE___ {}
-
-			void  GetCommands (OUT RBakedCommands* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
-			bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
-										 const RPrimaryCmdBufState* primaryState = null)			__NE___;
+			void  GetCommands (OUT RmCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
 		};
 
 	  #else
@@ -167,7 +169,7 @@ namespace AE::Graphics
 		};
 
 
-	  #ifdef ENABLE_VK_TIMELINE_SEMAPHORE
+	  #ifdef ENABLE_VK_VIRTUAL_FENCE
 		//
 		// Virtual Fence
 		//
@@ -196,7 +198,7 @@ namespace AE::Graphics
 	  #endif
 
 
-		using GpuDependencies_t	= FixedMap< GpuSyncObj_t, ulong, 7 >;
+		using GpuDependencies_t	= FixedMap< GpuSyncObj_t, ulong, GraphicsConfig::MaxCmdBatchDeps >;
 		using TaskDependency	= Threading::IAsyncTask::TaskDependency;
 		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, TaskDependency >;								// { task, bitIndex }
 		using PerTaskBarriers_t	= StaticArray< const _TaskBarriers_t*, GraphicsConfig::MaxCmdBufPerBatch*2 >;	// data allocated by per-frame allocator
@@ -217,7 +219,7 @@ namespace AE::Graphics
 
 	public:
 		using AccumBarriers_t	= Graphics::_hidden_:: AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
-		using TaskBarriers_t	= _TaskBarriers_t;
+		using TaskBarriersPtr_t	= Ptr<const _TaskBarriers_t>;
 
 
 	// variables
@@ -227,12 +229,13 @@ namespace AE::Graphics
 		  CmdBufPool				_cmdPool;
 
 		alignas(AE_CACHE_LINE)
-		  Atomic<EStatus>			_status			{EStatus::Destroyed};
+		  AtomicState<EStatus>		_status			{EStatus::Destroyed};
 
 		FrameUID					_frameId;
 		EQueueType					_queueType		= Default;
 		ubyte						_submitIdx		= UMax;
 		ESubmitMode					_submitMode		= ESubmitMode::Auto;
+		CmdBatchDesc::EFlags		_flags			= Default;
 
 		void*						_userData		= null;
 
@@ -248,7 +251,9 @@ namespace AE::Graphics
 			Atomic<ulong>			_tlSemaphoreVal	{0};
 
 		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			RemoteSemaphore			_tlSemaphore;
+			RmCommandBatchID		_batchId;
+
+			RmSemaphoreID			_tlSemaphore;
 			Atomic<ulong>			_tlSemaphoreVal	{0};
 		#else
 		#	error not implemented
@@ -276,7 +281,7 @@ namespace AE::Graphics
 
 		PerTaskBarriers_t			_perTaskBarriers	{};
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			String					_dbgName;
 			RGBA8u					_dbgColor;
 			RC<IGraphicsProfiler>	_profiler;
@@ -296,8 +301,8 @@ namespace AE::Graphics
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
 		AsyncTask	Run (Tuple<Ctor...>&&		ctor,
 						 const Tuple<Deps...>&	deps,
-						 const TaskBarriers_t*	initialBarriers,
-						 const TaskBarriers_t*	finalBarriers,
+						 TaskBarriersPtr_t		initialBarriers,
+						 TaskBarriersPtr_t		finalBarriers,
 						 Bool					submitBatchAtTheEnd,
 						 DebugLabel				dbg		= Default)				__NE___;
 
@@ -315,8 +320,8 @@ namespace AE::Graphics
 		template <typename TaskType, typename ...Deps>
 		AsyncTask	RunTask (TaskType				task,
 							 const Tuple<Deps...>&	deps,
-							 const TaskBarriers_t*	initialBarriers,
-							 const TaskBarriers_t*	finalBarriers,
+							 TaskBarriersPtr_t		initialBarriers,
+							 TaskBarriersPtr_t		finalBarriers,
 							 Bool					submitBatchAtTheEnd)		__NE___;
 
 
@@ -324,10 +329,11 @@ namespace AE::Graphics
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps,
-						 const TaskBarriers_t*	initialBarriers,
-						 const TaskBarriers_t*	finalBarriers,
+						 TaskBarriersPtr_t		initialBarriers,
+						 TaskBarriersPtr_t		finalBarriers,
 						 Bool					submitBatchAtTheEnd,
-						 DebugLabel				dbg		= Default)				__NE___;
+						 CmdBufExeIndex			exeIndex = Default,
+						 DebugLabel				dbg		 = Default)				__NE___;
 
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
@@ -347,9 +353,11 @@ namespace AE::Graphics
 
 		void		SetSubmissionMode (ESubmitMode mode)						__NE___;
 
-		ND_ AccumBarriers_t			DeferredBarriers ()							__NE___;
-		ND_ TaskBarriers_t const*	ExtractInitialBarriers (uint exeIndex)		__NE___	{ return Exchange( INOUT _perTaskBarriers[ exeIndex*2+0 ], null ); }
-		ND_ TaskBarriers_t const*	ExtractFinalBarriers (uint exeIndex)		__NE___	{ return Exchange( INOUT _perTaskBarriers[ exeIndex*2+1 ], null ); }
+		ND_ bool	EndRecordingAndSubmit ()									__NE___;
+
+		ND_ AccumBarriers_t		DeferredBarriers ()								__NE___;
+		ND_ TaskBarriersPtr_t	ExtractInitialBarriers (uint exeIndex)			__NE___	{ return Exchange( INOUT _perTaskBarriers[ exeIndex*2+0 ], null ); }
+		ND_ TaskBarriersPtr_t	ExtractFinalBarriers (uint exeIndex)			__NE___	{ return Exchange( INOUT _perTaskBarriers[ exeIndex*2+1 ], null ); }
 
 
 		// GPU to GPU dependency
@@ -364,45 +372,51 @@ namespace AE::Graphics
 
 		ND_ CmdBatchDependency_t		GetSemaphore ()							C_NE___;
 
-
 		ND_ ECommandBufferType			GetCmdBufType ()						C_NE___	{ return ECommandBufferType::Primary_OneTimeSubmit; }
 		ND_ EQueueType					GetQueueType ()							C_NE___	{ return _queueType; }
 		ND_ FrameUID					GetFrameId ()							C_NE___	{ return _frameId; }
-		ND_ uint						GetSubmitIndex ()						C_NE___	{ return _submitIdx; }
 		ND_ bool						IsRecording ()							__NE___	{ return _status.load() == EStatus::Initial; }
 		ND_ bool						IsSubmitted ()							__NE___	{ return _status.load() >= EStatus::Pending; }
-		ND_ uint						PendingCmdBufs ()						__NE___	{ return _cmdPool.Count(); }
-		ND_ uint						CurrentCmdBufIndex ()					C_NE___	{ return _cmdPool.Current(); }	// valid range [0 .. GraphicsConfig::MaxCmdBufPerBatch)
 		ND_ void *						GetUserData ()							C_NE___	{ return _userData; }
 
-		DBG_GRAPHICS_ONLY(
-			ND_ DebugLabel				DbgLabel ()								C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
-			ND_ StringView				DbgName ()								C_NE___	{ return _dbgName; }
-			ND_ RGBA8u					DbgColor ()								C_NE___	{ return _dbgColor; }
-			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()							C_NE___	{ return _profiler.get(); }
-		)
+		ND_ uint						GetSubmitIndex ()						C_NE___	{ return _submitIdx; }
+		ND_ bool						IsResetQueryRequired ()					C_NE___	{ return AllBits( _flags, CmdBatchDesc::EFlags::ResetQuery ); }
+
+		ND_ bool						CmdPool_IsEmpty ()						C_NE___	{ return _cmdPool.IsEmpty(); }
+		ND_ bool						CmdPool_IsFirst (uint exeIndex)			C_NE___	{ return _cmdPool.IsFirst( exeIndex ); }
+		ND_ bool						CmdPool_IsLast (uint exeIndex)			C_NE___	{ return _cmdPool.IsLast( exeIndex ); }
+
+	  #if AE_DBG_GRAPHICS
+		ND_ DebugLabel					DbgLabel ()								C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
+		ND_ StringView					DbgName ()								C_NE___	{ return _dbgName; }
+		ND_ RGBA8u						DbgColor ()								C_NE___	{ return _dbgColor; }
+		ND_ Ptr<IGraphicsProfiler>		GetProfiler ()							C_NE___	{ return _profiler.get(); }
+	  #endif
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		ND_ RmCommandBatchID			Handle ()								C_NE___	{ return _batchId; }
+	  #endif
 
 		ND_ bool  Wait (nanoseconds timeout)									__NE___;
 		ND_ bool  IsCompleted ()												__NE___	{ return _status.load() == EStatus::Completed; }
 
 
+	// render task api
+	private:
+		ND_ bool  _Submit ()													__NE___;
+
+
 	// render task scheduler api
 	private:
-		ND_ bool  _Create (EQueueType queue, FrameUID frameId, uint submitIdx,
-						   DebugLabel dbg, void* userData)						__NE___;
+		ND_ bool  _Create (FrameUID frameId, const CmdBatchDesc &desc)			__NE___;
 			void  _OnSubmit2 ()													__NE___;
 			void  _OnComplete ()												__NE___;
 
 			template <typename Task>
-			void  _InitTask (Task &task,
-							 const TaskBarriers_t*	initialBarriers,
-							 const TaskBarriers_t*	finalBarriers,
-							 Bool					submitBatchAtTheEnd)		__NE___;
-
-
-	// render task api
-	private:
-		ND_ bool  _Submit ()													__NE___;
+			bool  _InitTask (Task &task,
+							 TaskBarriersPtr_t	initialBarriers,
+							 TaskBarriersPtr_t	finalBarriers,
+							 Bool				submitBatchAtTheEnd)			__NE___;
 
 
 	// helper functions
@@ -418,7 +432,7 @@ namespace AE::Graphics
 
 	// render task scheduler api
 	private:
-			void  _SetTaskBarriers (const TaskBarriers_t* pBarriers, uint index)__NE___;
+			void  _SetTaskBarriers (TaskBarriersPtr_t pBarriers, uint index)	__NE___;
 
 	  #if defined(AE_ENABLE_VULKAN)
 
@@ -438,7 +452,8 @@ namespace AE::Graphics
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 
-			void  _Submit (RQueuePtr) __NE___;
+		ND_	bool  _GetInputDependencies (OUT Pair<RmSemaphoreID, ulong>*, OUT uint &count, usize maxCount)	__NE___;
+		ND_	bool  _GetOutputDependencies (OUT Pair<RmSemaphoreID, ulong>*, OUT uint &count, usize maxCount)	__NE___;
 
 	  #else
 	  #	error not implemented
@@ -462,10 +477,9 @@ namespace AE::Graphics
 	{
 		_cmdPool.Lock();
 
-		EStatus	exp = EStatus::Initial;
-		bool	res = _status.CAS_Loop( INOUT exp, EStatus::Recorded );
-
+		bool	res = _status.Set( EStatus::Initial, EStatus::Recorded );
 		ASSERT( res );
+
 		return res;
 	}
 
@@ -477,20 +491,18 @@ namespace AE::Graphics
 	template <typename TaskType, typename ...Deps>
 	AsyncTask  CMDBATCH::RunTask (TaskType				task,
 								  const Tuple<Deps...>&	deps,
-								  const TaskBarriers_t*	initialBarriers,
-								  const TaskBarriers_t*	finalBarriers,
+								  TaskBarriersPtr_t		initialBarriers,
+								  TaskBarriersPtr_t		finalBarriers,
 								  Bool					submitBatchAtTheEnd) __NE___
 	{
 		StaticAssert( IsBaseOf< RenderTask, RemoveRC<TaskType> >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
+		ASSERT( IsRecording() );
 
-		if_likely( task )
-		{
-			_InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
+		if_likely(	IsRecording()															and
+					task																	and
+					_InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd )	and
+					Scheduler().Run( task, deps ))
+			return task;
 
 		return Scheduler().GetCanceledTask();
 	}
@@ -503,27 +515,28 @@ namespace AE::Graphics
 	template <typename TaskType, typename ...Ctor, typename ...Deps>
 	AsyncTask  CMDBATCH::Run (Tuple<Ctor...> &&		ctorArgs,
 							  const Tuple<Deps...>&	deps,
-							  const TaskBarriers_t*	initialBarriers,
-							  const TaskBarriers_t*	finalBarriers,
+							  TaskBarriersPtr_t		initialBarriers,
+							  TaskBarriersPtr_t		finalBarriers,
 							  Bool					submitBatchAtTheEnd,
 							  DebugLabel			dbg) __NE___
 	{
 		StaticAssert( IsBaseOf< RenderTask, TaskType >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
+		ASSERT( IsRecording() );
 
-		DBG_GRAPHICS_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable::Undefined )
-				dbg.color = _dbgColor;
-		)
-
-		auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
-									  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
-
-		if_likely( task and task->IsValid() )
+		if_likely( IsRecording() )
 		{
-			_InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
+			GFX_DBG_ONLY(
+				if ( dbg.color == DebugLabel::ColorTable::Undefined )
+					dbg.color = _dbgColor;
+			)
 
-			if_likely( Scheduler().Run( task, deps ))
+			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
+										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
+
+			if_likely(	task																	and
+						task->IsValid()															and
+						_InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd )	and
+						Scheduler().Run( task, deps ))
 				return task;
 		}
 		return Scheduler().GetCanceledTask();
@@ -555,27 +568,29 @@ namespace AE::Graphics
 	template <typename ...Deps>
 	AsyncTask  CMDBATCH::Run (RenderTaskCoro		coro,
 							  const Tuple<Deps...>&	deps,
-							  const TaskBarriers_t*	initialBarriers,
-							  const TaskBarriers_t*	finalBarriers,
+							  TaskBarriersPtr_t		initialBarriers,
+							  TaskBarriersPtr_t		finalBarriers,
 							  Bool					submitBatchAtTheEnd,
+							  CmdBufExeIndex		exeIndex,
 							  DebugLabel			dbg) __NE___
 	{
-		CHECK_ERR( IsRecording(),	Scheduler().GetCanceledTask() );
-		CHECK_ERR( coro,			Scheduler().GetCanceledTask() );
+		ASSERT( IsRecording() );
+		ASSERT( coro );
 
-		DBG_GRAPHICS_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable::Undefined )
-				dbg.color = _dbgColor;
-		)
+		if_likely( IsRecording() and coro )
+		{
+			GFX_DBG_ONLY(
+				if ( dbg.color == DebugLabel::ColorTable::Undefined )
+					dbg.color = _dbgColor;
+			)
 
-		auto&	task = coro.AsRenderTask();
-		CHECK_ERR( task._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
+			auto&	task = coro.AsRenderTask();
 
-		_InitTask( task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
-
-		if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
-			return coro;
-
+			if_likely(	task._Init( GetRC<CMDBATCH>(), exeIndex, dbg )							and
+						_InitTask( task, initialBarriers, finalBarriers, submitBatchAtTheEnd )	and
+						Scheduler().Run( AsyncTask{coro}, deps ))
+				return coro;
+		}
 		return Scheduler().GetCanceledTask();
 	}
 
@@ -585,7 +600,7 @@ namespace AE::Graphics
 							  Bool					submitBatchAtTheEnd,
 							  DebugLabel			dbg) __NE___
 	{
-		return Run( RVRef(coro), deps, null, null, submitBatchAtTheEnd, dbg );
+		return Run( RVRef(coro), deps, null, null, submitBatchAtTheEnd, Default, dbg );
 	}
 
 	template <typename ...Deps>
@@ -593,7 +608,7 @@ namespace AE::Graphics
 							  const Tuple<Deps...>&	deps,
 							  DebugLabel			dbg) __NE___
 	{
-		return Run( RVRef(coro), deps, null, null, False{}, dbg );
+		return Run( RVRef(coro), deps, null, null, False{}, Default, dbg );
 	}
 # endif
 
@@ -616,10 +631,10 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename Task>
-	void  CMDBATCH::_InitTask (Task						&rtask,
-							   const TaskBarriers_t*	initialBarriers,
-							   const TaskBarriers_t*	finalBarriers,
-							   Bool						submitBatchAtTheEnd) __NE___
+	bool  CMDBATCH::_InitTask (Task					&rtask,
+							   TaskBarriersPtr_t	initialBarriers,
+							   TaskBarriersPtr_t	finalBarriers,
+							   Bool					submitBatchAtTheEnd) __NE___
 	{
 		_SetTaskBarriers( initialBarriers, rtask.GetExecutionIndex()*2+0 );
 		_SetTaskBarriers( finalBarriers,   rtask.GetExecutionIndex()*2+1 );
@@ -629,6 +644,7 @@ namespace AE::Graphics
 			rtask._submit = true;
 			_EndRecording();
 		}
+		return true;
 	}
 
 
@@ -637,3 +653,4 @@ namespace AE::Graphics
 
 #undef SUFFIX
 #undef CMDBATCH
+#undef ENABLE_VK_VIRTUAL_FENCE

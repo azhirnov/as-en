@@ -50,8 +50,8 @@ namespace AE::Graphics
 		ArrayView<ulong>			_groupHandles;		// allocated by pipeline pack linear allocator
 		ArrayView<ShaderTracePtr>	_dbgTrace;			// allocated by pipeline pack linear allocator
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -68,8 +68,8 @@ namespace AE::Graphics
 									OUT Array<String>			&result)	C_NE___;
 
 		ND_ Bytes  GetShaderGroupStackSize (const VDevice			 &dev,
-											RayTracingGroupName::Ref name,
-											VkShaderGroupShaderKHR	 type)	C_NE___;
+											ArrayView<RayTracingGroupName>,
+											ERTShaderGroup			 type)	C_NE___;
 
 			bool  CopyHandle (const VDevice				&,
 							  RayTracingGroupName::Ref	,
@@ -89,7 +89,12 @@ namespace AE::Graphics
 		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		ND_ EPipelineOpt			Options ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		ND_ NameToHandle_t const&	_NameToHandleMap ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return *_nameToHandle; }
+		ND_ ArrayView<ulong>		_GroupHandlesData ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _groupHandles; }
+
+		ND_ ArrayView<ShaderTracePtr> GetShaderTrace ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dbgTrace; }
+
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

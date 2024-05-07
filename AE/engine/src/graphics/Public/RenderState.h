@@ -51,8 +51,8 @@ namespace AE::Graphics
 				ColorMask ()					__NE___	: ColorMask{true} {}
 				explicit ColorMask (bool val)	__NE___	: r{val}, g{val}, b{val}, a{val} {}
 
-				ND_ bool  All ()				C_NE___	{ return r & g & b & a; }
-				ND_ bool  Any ()				C_NE___	{ return r | g | b | a; }
+				ND_ bool  All ()				C_NE___	{ return r and g and b and a; }
+				ND_ bool  Any ()				C_NE___	{ return r or  g or  b or  a; }
 				ND_ bool  None ()				C_NE___	{ return not Any(); }
 			};
 

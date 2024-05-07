@@ -45,8 +45,6 @@ namespace AE::ResEditor
 
 	// methods
 	protected:
-		explicit ScriptBaseRenderPass (EFlags flags)													__Th___ : ScriptBasePass{flags} {}
-
 		template <typename B>
 		static void  _BindBaseRenderPass (B &binder, Bool withBlending)									__Th___;
 

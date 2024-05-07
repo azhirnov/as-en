@@ -32,20 +32,20 @@ void ASmain ()
 	//	Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
 	//	Apple8_Mac
 	//	Apple7_Mac_Metal3
-	//	Mac2
-	//	Mac_Metal3
+	//	Apple_Mac2
+	//	Apple_Mac_Metal3
 
 	const EFeature  True = EFeature::RequireTrue;
 
 	RC<FeatureSet>  fset = FeatureSet( "MinDesktop" );
 
 	fset.depthBiasClamp (True);
+	fset.depthClamp (True);
 	fset.dualSrcBlend (True);
 	fset.fillModeNonSolid (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
@@ -69,9 +69,9 @@ void ASmain ()
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroup (True);
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (4);
+	fset.subgroup (True);
 	fset.shaderInt8 (True);
 	fset.storageBuffer8BitAccess (True);
 	fset.uniformAndStorageBuffer8BitAccess (True);
@@ -80,6 +80,7 @@ void ASmain ()
 	fset.vertexPipelineStoresAndAtomics (True);
 	fset.shaderClipDistance (True);
 	fset.runtimeDescriptorArray (True);
+	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -88,8 +89,8 @@ void ASmain ()
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.minSpirvVersion (130);
-	fset.minMetalVersion (220);
+	fset.maxSpirvVersion (130);
+	fset.maxMetalVersion (220);
 	fset.drawIndirectFirstInstance (True);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
@@ -125,6 +126,7 @@ void ASmain ()
 	fset.maxComputeWorkGroupSizeY (1 << 10);
 	fset.maxComputeWorkGroupSizeZ (64);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
 	fset.maxVertexAttributes (28);
 	fset.maxVertexBuffers (28);
 	fset.AddVertexFormats({
@@ -164,6 +166,9 @@ void ASmain ()
 		EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, 
 		EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, 
 		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F
+	});
+	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
 	});
 	fset.imageCubeArray (True);
 	fset.textureCompressionBC (True);
@@ -219,6 +224,8 @@ void ASmain ()
 	fset.samplerAnisotropy (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (4.00);
+	fset.framebufferColorSampleCounts({ 1, 2, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
 	fset.maxFramebufferLayers (1 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

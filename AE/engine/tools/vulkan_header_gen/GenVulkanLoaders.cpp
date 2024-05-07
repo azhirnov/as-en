@@ -287,7 +287,7 @@ namespace AE::Vulkan
 				else
 					src << "\t";
 
-				src << "VKAPI_ATTR inline ";
+				src << "VKAPI_ATTR forceinline ";
 
 				// add result type
 				for (auto& type : fn.data.result.type) {
@@ -318,7 +318,7 @@ namespace AE::Vulkan
 					src << arg.name << suffix;
 				}
 
-				src << ")" << (is_dev ? " const" : "")
+				src << ")" << (is_dev ? " C_NE___" : " __NE___")
 					<< "\t\t\t\t\t\t\t\t{ ";
 
 				if (false) {
@@ -396,10 +396,6 @@ namespace AE::Vulkan
 			}
 			src << "#endif // VKLOADER_STAGE_GETADDRESS\n\n";
 
-		  #if not AE_PRIVATE_USE_TABS
-			src = Parser::TabsToSpaces( src );
-		  #endif
-
 			FileSystem::CreateDirectory( outputFolder );
 			CHECK_ERR( FileSystem::IsDirectory( outputFolder ));
 
@@ -435,7 +431,6 @@ namespace AE::Vulkan
 
 		// debugging //
 			{ "debugReport",					VK_EXT_DEBUG_REPORT_EXTENSION_NAME,							NoVer,	{1,0},	{} },	// deprecated, but still present on Android
-			{ "debugMarker",					VK_EXT_DEBUG_MARKER_EXTENSION_NAME,							NoVer,	{1,0},	{} },	// deprecated, but still present on Android
 			{ "debugUtils",						VK_EXT_DEBUG_UTILS_EXTENSION_NAME,							NoVer,	{1,0},	{} },
 			{ "validationFlags",				VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 
@@ -514,6 +509,7 @@ namespace AE::Vulkan
 			{ "shaderDemoteToHelperInvocation",	VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME,	NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
 		// extensions //
+			{ "debugMarker",					VK_EXT_DEBUG_MARKER_EXTENSION_NAME,							NoVer,	{1,0},	{VK_EXT_DEBUG_REPORT_EXTENSION_NAME} },	// deprecated, but still present on Android
 			{ "swapchain",						VK_KHR_SWAPCHAIN_EXTENSION_NAME,							NoVer,	{1,0},	{VK_KHR_SURFACE_EXTENSION_NAME} },
 			{ "displaySwapchain",				VK_KHR_DISPLAY_SWAPCHAIN_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DISPLAY_EXTENSION_NAME} },
 			{ "depthRangeUnrestricted",			VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME,				NoVer,	{1,0},	{} },
@@ -523,7 +519,7 @@ namespace AE::Vulkan
 			{ "vertexDivisor",					VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "depthClip",						VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "portabilitySubset",				VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "loadOpNone",						VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME,					NoVer,	{1,0},	{} },
+			{ "loadOpNone",						VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "pagebleDeviceLocalMemory",		VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME,			NoVer,	{1,0},	{VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME} },
 			{ "sampleLocations",				VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "fragmentBarycentric",			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -532,6 +528,7 @@ namespace AE::Vulkan
 		//	{ "maintenance5",					VK_KHR_MAINTENANCE_5_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
 			{ "cooperativeMatrix",				VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "nonSeamlessCubeMap",				VK_EXT_NON_SEAMLESS_CUBE_MAP_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "shaderStencilExport",			VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME,				NoVer,	{1,0},	{} },
 
 		// shaders //
 			{ "fragShaderInterlock",			VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -784,7 +781,7 @@ namespace AE::Vulkan
 			str << " : 1;   // " << feat.extension << " \n";
 		}
 
-		str << "\n\t\tVExtensions () { ZeroMem( OUT this, Sizeof(*this) ); }\n"
+		str << "\n\t\tVExtensions () { UnsafeZeroMem( *this ); }\n"
 			<< "\t};\n";
 		return str;
 	}
@@ -832,7 +829,7 @@ namespace AE::Vulkan
 			}
 		}
 
-		str << "\n\t\tVProperties () { ZeroMem( OUT this, Sizeof(*this) ); }\n"
+		str << "\n\t\tVProperties () { UnsafeZeroMem( *this ); }\n"
 			<< "\t};\n";
 		return str;
 	}
@@ -1249,10 +1246,6 @@ namespace AE::Vulkan
 			<< _GetFeaturesAndPropertiesFunc( feats ) << "\n"
 			<< _GetLogFeaturesFunc( feats )
 			<< "#endif // VKFEATS_FN_IMPL\n\n";
-
-	  #if not AE_PRIVATE_USE_TABS
-		str = Parser::TabsToSpaces( str );
-	  #endif
 
 		const Path		file_name = outputFolder / "vk_features.h";
 		FileWStream		file{ file_name };

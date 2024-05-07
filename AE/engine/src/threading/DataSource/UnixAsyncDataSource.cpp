@@ -4,7 +4,6 @@
 	https://en.wikipedia.org/wiki/Comparison_of_file_systems
 	https://source.android.com/docs/core/architecture/android-kernel-file-system-support
 	https://en.wikipedia.org/wiki/Apple_File_System
-
 */
 
 #include "base/Defines/StdInclude.h"
@@ -27,9 +26,6 @@
 # endif
 # ifdef AE_ASYNCIO_USE_BSD_AIO
 #	include "threading/DataSource/UnixAsyncDataSource_BSDPosixAIO.h"
-# endif
-# ifdef AE_ASYNCIO_USE_SYNCIO
-#	include "threading/DataSource/UnixAsyncDataSource_SyncIO.h"
 # endif
 
 # include "threading/DataSource/UnixAsyncDataSource.h"
@@ -226,38 +222,35 @@ namespace AE::Threading
 	constructor
 =================================================
 */
-#ifndef AE_ASYNCIO_USE_DISPATCH_IO
-	UnixAsyncRDataSource::UnixAsyncRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixAsyncRDataSource::UnixAsyncRDataSource (Handle_t file, EMode mode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file },
 		_fileSize{ GetFileSize( _file )},
-		_flags{ flags }
+		_mode{ mode }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
-#endif
 
-	UnixAsyncRDataSource::UnixAsyncRDataSource (const char* filename, EFlags flags)	__NE___ :
-		UnixAsyncRDataSource{ Handle_t{OpenFileForRead( filename, flags )}, flags DEBUG_ONLY(, filename )}
+	UnixAsyncRDataSource::UnixAsyncRDataSource (const char* filename, EMode mode)	__NE___ :
+		UnixAsyncRDataSource{ Handle_t{OpenFileForRead( filename, mode )}, mode DEBUG_ONLY(, filename )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixAsyncRDataSource::UnixAsyncRDataSource (NtStringView filename, EFlags flags)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), flags } {}
-	UnixAsyncRDataSource::UnixAsyncRDataSource (const String &filename, EFlags flags)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), flags } {}
-	UnixAsyncRDataSource::UnixAsyncRDataSource (const Path &path, EFlags flags)			__NE___ : UnixAsyncRDataSource{ path.c_str(), flags } {}
+	UnixAsyncRDataSource::UnixAsyncRDataSource (NtStringView filename, EMode mode)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), mode } {}
+	UnixAsyncRDataSource::UnixAsyncRDataSource (const String &filename, EMode mode)	__NE___ : UnixAsyncRDataSource{ filename.c_str(), mode } {}
+	UnixAsyncRDataSource::UnixAsyncRDataSource (const Path &path, EMode mode)			__NE___ : UnixAsyncRDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
 	destructor
 =================================================
 */
-#ifndef AE_ASYNCIO_USE_DISPATCH_IO
 	UnixAsyncRDataSource::~UnixAsyncRDataSource () __NE___
 	{
 		if ( IsOpen() )
 			::close( _file );
 	}
-#endif
+
 /*
 =================================================
 	GetSourceType
@@ -265,8 +258,8 @@ namespace AE::Threading
 */
 	IDataSource::ESourceType  UnixAsyncRDataSource::GetSourceType () C_NE___
 	{
-		return	(AllBits( _flags, EFlags::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
-				(AllBits( _flags, EFlags::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
+		return	(AllBits( _mode, EMode::SequentialScan )	? ESourceType::SequentialAccess	: ESourceType::Unknown)	|
+				(AllBits( _mode, EMode::RandomAccess )	? ESourceType::RandomAccess		: ESourceType::Unknown)	|
 				ESourceType::Async		| ESourceType::FixedSize |
 				ESourceType::ThreadSafe	| ESourceType::ReadAccess;
 	}
@@ -300,36 +293,33 @@ namespace AE::Threading
 	constructor
 =================================================
 */
-#ifndef AE_ASYNCIO_USE_DISPATCH_IO
-	UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EFlags DEBUG_ONLY(, Path filename)) __NE___ :
+	UnixAsyncWDataSource::UnixAsyncWDataSource (Handle_t file, EMode DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
 	{}
-#endif
 
-	UnixAsyncWDataSource::UnixAsyncWDataSource (const char* filename, EFlags flags)	__NE___ :
-		UnixAsyncWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT flags )}, flags DEBUG_ONLY(, Path{filename} )}
+	UnixAsyncWDataSource::UnixAsyncWDataSource (const char* filename, EMode mode)	__NE___ :
+		UnixAsyncWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode )}, mode DEBUG_ONLY(, Path{filename} )}
 	{
 		if_unlikely( not IsOpen() )
 			UNIX_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
 	}
 
-	UnixAsyncWDataSource::UnixAsyncWDataSource (NtStringView filename, EFlags flags)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), flags } {}
-	UnixAsyncWDataSource::UnixAsyncWDataSource (const String &filename, EFlags flags)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), flags } {}
-	UnixAsyncWDataSource::UnixAsyncWDataSource (const Path &path, EFlags flags)			__NE___	: UnixAsyncWDataSource{ path.c_str(), flags } {}
+	UnixAsyncWDataSource::UnixAsyncWDataSource (NtStringView filename, EMode mode)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), mode } {}
+	UnixAsyncWDataSource::UnixAsyncWDataSource (const String &filename, EMode mode)	__NE___	: UnixAsyncWDataSource{ filename.c_str(), mode } {}
+	UnixAsyncWDataSource::UnixAsyncWDataSource (const Path &path, EMode mode)			__NE___	: UnixAsyncWDataSource{ path.c_str(), mode } {}
 
 /*
 =================================================
 	destructor
 =================================================
 */
-#ifndef AE_ASYNCIO_USE_DISPATCH_IO
 	UnixAsyncWDataSource::~UnixAsyncWDataSource () __NE___
 	{
 		if ( IsOpen() )
 			::close( _file );
 	}
-#endif
+
 /*
 =================================================
 	GetSourceType

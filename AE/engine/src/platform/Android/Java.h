@@ -164,7 +164,7 @@ namespace AE::Java
 			ND_ jarray_t		Get ()			C_NE___	{ return _jarray; }								\
 																										\
 		private:																						\
-			void  _Release ()																			\
+			void  _Release () __NE___																	\
 			{																							\
 				if ( _fromNative )																		\
 				{																						\
@@ -232,7 +232,7 @@ namespace AE::Java
 		ND_ explicit operator Path ()									C_Th___	{ return Path{StringView{ c_str(), length() }}; }
 
 	private:
-		void  _Release ();
+		void  _Release ()												__NE___;
 	};
 
 
@@ -281,8 +281,8 @@ namespace AE::Java
 		bool  RegisterStaticMethod (NtStringView name, Ret (JNICALL *fn)(JNIEnv*, jclass, Args...))	C_NE___;
 
 	private:
-		void  _Set (const JavaEnv &, jclass);
-		void  _Release ();
+		void  _Set (const JavaEnv &, jclass)														__NE___;
+		void  _Release ()																			__NE___;
 	};
 
 
@@ -329,8 +329,8 @@ namespace AE::Java
 		bool  StaticMethod (NtStringView name, OUT JavaStaticMethod<Fn> &m)		C_NE___;
 
 	private:
-		void  _Set (const JavaEnv &, jobject);
-		void  _Release ();
+		void  _Set (const JavaEnv &, jobject)									__NE___;
+		void  _Release ()														__NE___;
 	};
 
 
@@ -356,13 +356,13 @@ namespace AE::Java
 
 	// methods
 	public:
-		JavaStaticMethod ()																__NE___	= default;
-		JavaStaticMethod (const JavaClass& jc, jmethodID method)						__NE___	: _class{jc}, _method{method} {}
+		JavaStaticMethod ()											__NE___	= default;
+		JavaStaticMethod (const JavaClass& jc, jmethodID method)	__NE___	: _class{jc}, _method{method} {}
 
 		template <typename ...ArgTypes>
-		Java::_hidden_::JavaMethodResult<Ret>  operator () (const ArgTypes&... args)	C_NE___;
+		auto  operator () (const ArgTypes&... args)					C_NE___ -> Java::_hidden_::JavaMethodResult<Ret>;
 
-		ND_ explicit operator bool ()													C_NE___	{ return _method != null; }
+		ND_ explicit operator bool ()								C_NE___	{ return _method != null; }
 	};
 
 
@@ -388,13 +388,13 @@ namespace AE::Java
 
 	// methods
 	public:
-		JavaMethod ()																	__NE___	= default;
-		JavaMethod (const JavaObj& obj, jmethodID method)								__NE___	: _obj{obj}, _method{method} {}
+		JavaMethod ()											__NE___	= default;
+		JavaMethod (const JavaObj& obj, jmethodID method)		__NE___	: _obj{obj}, _method{method} {}
 
 		template <typename ...ArgTypes>
-		Java::_hidden_::JavaMethodResult<Ret>  operator () (const ArgTypes&... args)	C_NE___;
+		auto  operator () (const ArgTypes&... args)				C_NE___	-> Java::_hidden_::JavaMethodResult<Ret>;
 
-		ND_ explicit operator bool ()													C_NE___	{ return _method != null; }
+		ND_ explicit operator bool ()							C_NE___	{ return _method != null; }
 	};
 
 
@@ -446,7 +446,7 @@ namespace AE::Java
 	_Release
 =================================================
 */
-	inline void JavaString::_Release ()
+	inline void JavaString::_Release () __NE___
 	{
 		JavaEnv je;
 		if ( _fromNative )
@@ -480,7 +480,7 @@ namespace AE::Java
 
 		if ( not jc )
 		{
-			CHECK( !"java class is not found" );
+			CHECK_MSG( false, "java class is not found" );
 			return;
 		}
 		_Set( je, jc );
@@ -490,7 +490,7 @@ namespace AE::Java
 	{
 		if ( not obj )
 		{
-			CHECK( !"java object is null" );
+			CHECK_MSG( false, "java object is null" );
 			return;
 		}
 
@@ -499,7 +499,7 @@ namespace AE::Java
 
 		if ( not jc )
 		{
-			CHECK( !"failed to get object class" );
+			CHECK_MSG( false, "failed to get object class" );
 			return;
 		}
 		_Set( je, jc );
@@ -530,7 +530,7 @@ namespace AE::Java
 	_Set
 =================================================
 */
-	inline void JavaClass::_Set (const JavaEnv &je, jclass jc)
+	inline void JavaClass::_Set (const JavaEnv &je, jclass jc) __NE___
 	{
 		if ( jc )
 			_class = static_cast<jclass>( je->NewGlobalRef( jc ));
@@ -541,7 +541,7 @@ namespace AE::Java
 	_Release
 =================================================
 */
-	inline void JavaClass::_Release ()
+	inline void JavaClass::_Release () __NE___
 	{
 		if ( _class )
 		{
@@ -580,7 +580,7 @@ namespace AE::Java
 	_Set
 =================================================
 */
-	inline void JavaObj::_Set (const JavaEnv &je, jobject jo)
+	inline void JavaObj::_Set (const JavaEnv &je, jobject jo) __NE___
 	{
 		if ( jo )
 			_obj = je->NewGlobalRef( jo );
@@ -591,7 +591,7 @@ namespace AE::Java
 	_Release
 =================================================
 */
-	inline void JavaObj::_Release ()
+	inline void JavaObj::_Release () __NE___
 	{
 		if ( _obj )
 		{
@@ -670,7 +670,7 @@ namespace AE::Java
 
 		// methods
 		public:
-			JavaMethodSignature () __NE___
+			JavaMethodSignature ()				__NE___
 			{
 				TRY{
 					_sig += '(';
@@ -690,7 +690,7 @@ namespace AE::Java
 
 		private:
 			template <typename Arg0, typename ...ArgsN>
-			void  _Append ()
+			void  _Append ()					__NE___
 			{
 				JniTypeName<Arg0>::Append( INOUT _sig );
 

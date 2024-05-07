@@ -38,13 +38,14 @@ namespace AE::Math
 		constexpr TPowerOf2Value ()									__NE___	{}
 		constexpr TPowerOf2Value (const Self &other)				__NE___	= default;
 
-		explicit constexpr TPowerOf2Value (Base::_hidden_::_UMax)	__NE___ : _pot{ CT_SizeOfInBits<T>-1 } {}
+		explicit constexpr TPowerOf2Value (UMax_t)					__NE___ : _pot{ CT_SizeOfInBits<T>-1 } {}
 
 		template <typename IT>
 		explicit TPowerOf2Value (IT val)							__NE___	: _pot{POT_t( Math::Max( IntLog2( static_cast<Int_t>(val) ), 0 ))} { ASSERT( val == Cast<IT>() ); }
 		explicit constexpr TPowerOf2Value (PowerOfTwo pot)			__NE___	: _pot{POT_t(pot)} {}
 
 		constexpr Self&  operator = (const Self &)					__NE___ = default;
+		constexpr Self&  operator = (UMax_t)						__NE___ { _pot = CT_SizeOfInBits<T>-1;  return *this; }
 
 		ND_ constexpr operator T ()									C_NE___	{ return Cast<T>(); }
 

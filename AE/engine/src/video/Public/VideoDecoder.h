@@ -17,54 +17,80 @@ namespace AE::Video
 	class IVideoDecoder : public EnableRC<IVideoDecoder>
 	{
 	// types
-	private:
-		static constexpr usize	_PlaneCount = 3; //BitCount( Graphics::EImageAspect::_PlaneMask );
-
 	public:
-		using Bitrate_t			= DefaultPhysicalQuantity<ulong>::BitPerSecond;
-		using Second_t			= DefaultPhysicalQuantity<double>::Second;
-		using FrameRate_t		= FractionalI;
-		using ImageMemViewArr	= FixedArray< ImageMemView, _PlaneCount >;
+		using ImagePlanesMemView	= FixedArray< ImageMemView, 3 >;	// TODO 3 planes + alpha
+		using ImageMemViewArr		= MutableArrayView< ImageMemView >;
+		using AudioSampleArr		= MutableArrayView< AudioSampleView >;
 
+		struct CodecConfig
+		{
+			EHwAcceleration		hwAccelerated	= Default;			// use hardware acceleration on GPU or CPU
+			EGraphicsDeviceID	targetGPU		= Default;
+			ECPUVendor			targetCPU		= Default;
+
+			CodecConfig ()	__NE___ {}
+		};
 
 		struct Config
 		{
 			uint2				dstDim			= {};				// can be used for scaling
 			EPixelFormat		dstFormat		= Default;
 			EFilter				filter			= Default;
-		//	bool				hwAccelerated	= false;			// use hardware acceleration on GPU or CPU
-		//	EGraphicsDeviceID	targetGPU		= Default;
-		//	ECPUVendor			targetCPU		= Default;
+			EHwAcceleration		hwAccelerated	= Default;			// use hardware acceleration on GPU or CPU
+			EGraphicsDeviceID	targetGPU		= Default;
+			ECPUVendor			targetCPU		= Default;
 			int					videoStreamIdx	= -1;				// use 'GetFileProperties()' to enum all streams
-		//	int					audioStreamIdx	= -1;
+			int					audioStreamIdx	= -1;
 			uint				threadCount		= 0;
+
+			Config ()									__NE___	{}
+			explicit Config (const CodecConfig &src)	__NE___ :
+				hwAccelerated{ src.hwAccelerated },
+				targetGPU{ src.targetGPU },
+				targetCPU{ src.targetCPU }
+			{}
 		};
 
 
 		struct StreamInfo
 		{
-			FixedString<32>		codecName;
-			int					index			= -1;
-			EMediaType			type			= Default;
-			EVideoCodec			codec			= Default;
-			EPixelFormat		pixFormat		= Default;
-			EVideoFormat		videoFormat		= Default;
-			EColorPreset		colorPreset		= Default;
-			ulong				frameCount		= 0;		// may be undefined
-			Second_t			duration;
-			FrameRate_t			avgFrameRate;				// average
-			FrameRate_t			minFrameRate;				// minimal
-			Bitrate_t			bitrate;
-			uint2				dimension		= {};		// video only
+			FixedString<32>			codecName;
+			int						index			= -1;
+			EMediaType				type			= Default;
 
-			StreamInfo ()	__NE___	{}
+			ND_ bool  IsValid ()	C_NE___	{ return index >= 0; }
 		};
-		using StreamInfos_t = FixedArray< StreamInfo, 8 >;
+
+		struct VideoStreamInfo : StreamInfo
+		{
+			EVideoCodec				codec			= Default;
+			EPixelFormat			pixFormat		= Default;
+			EVideoFormat			videoFormat		= Default;
+			EColorPreset			colorPreset		= Default;
+			ulong					frameCount		= 0;		// may be undefined
+			Seconds					duration;
+			FrameRate				avgFrameRate;				// average
+			FrameRate				minFrameRate;				// minimal
+			Bitrate					bitrate;
+			uint2					dimension		= {};
+			ESamplerChromaLocation	xChromaOffset	= Default;
+			ESamplerChromaLocation	yChromaOffset	= Default;
+			ESamplerYcbcrRange		ycbcrRange		= Default;
+
+			VideoStreamInfo ()	__NE___	{}
+		};
+
+		struct AudioStreamInfo : StreamInfo
+		{
+			// TODO
+		};
+		using AudioStreamInfos_t = FixedArray< AudioStreamInfo, 8 >;
 
 
 		struct Properties
 		{
-			StreamInfos_t		streams;
+			VideoStreamInfo		videoStream;
+			AudioStreamInfos_t	audioStreams;
 
 			ND_ String				ToString ()			C_Th___;
 			ND_ StreamInfo const*	GetStream (int idx)	C_NE___;
@@ -73,9 +99,9 @@ namespace AE::Video
 
 		struct FrameInfo
 		{
-			Second_t		timestamp;
-			Second_t		duration;			// next frame will be presented in 'timestamp + duration'
-			ulong			frameIdx	= 0;
+			Seconds		timestamp;
+			Seconds		duration;			// next frame will be presented in 'timestamp + duration'
+			ulong		frameIdx	= 0;
 		};
 
 
@@ -85,14 +111,16 @@ namespace AE::Video
 
 		ND_ virtual bool  Begin (const Config &cfg, const Path &filename)		__NE___	= 0;
 		ND_ virtual bool  Begin (const Config &cfg, RC<RStream> stream)			__NE___	= 0;
+
 		ND_ virtual bool  SeekTo (ulong frameIdx)								__NE___ = 0;
-		ND_ virtual bool  SeekTo (Second_t timestamp)							__NE___ = 0;
+		ND_ virtual bool  SeekTo (Seconds timestamp)							__NE___ = 0;
 
-		ND_ virtual bool  GetNextFrame (INOUT ImageMemView &	memView,
-										OUT FrameInfo &			info)			__NE___ = 0;
+		ND_ virtual bool  GetVideoFrame (INOUT ImageMemViewArr& memView,
+										 OUT FrameInfo &		info)			__NE___ = 0;
 
-		ND_ virtual bool  GetNextFrame (INOUT ImageMemViewArr &	memView,
-										OUT FrameInfo &			info)			__NE___ = 0;
+		ND_ virtual bool  GetAudioVideoFrame (INOUT ImageMemViewArr &,
+											  INOUT AudioSampleArr &,
+											  OUT FrameInfo &)					__NE___ = 0;
 
 		ND_ virtual bool  End ()												__NE___	= 0;
 
@@ -100,12 +128,34 @@ namespace AE::Video
 		ND_ virtual Properties	GetProperties ()								C_NE___ = 0;
 
 
+		ND_ bool  GetVideoFrame (INOUT ImageMemView&	memView,
+								 OUT FrameInfo &		info)					__NE___;
+
+		ND_ bool  GetVideoFrame (INOUT ImagePlanesMemView&	memView,
+								 OUT FrameInfo &			info)				__NE___;
+
+		ND_ bool  GetAudioVideoFrame (INOUT ImageMemView &,
+									  INOUT AudioSampleView &,
+									  OUT FrameInfo &)							__NE___;
+
+		ND_ bool  GetAudioVideoFrame (INOUT ImagePlanesMemView &,
+									  INOUT AudioSampleView &,
+									  OUT FrameInfo &)							__NE___;
+
+
 		// stateless
-		ND_ virtual Properties	GetFileProperties (const Path &filename)		C_NE___ = 0;
-		ND_ virtual Properties	GetFileProperties (RC<RStream> stream)			C_NE___ = 0;
-		ND_ virtual String		PrintFileProperties (const Path &filename)		C_Th___ = 0;
-		ND_ virtual String		PrintFileProperties (RC<RStream> stream)		C_Th___ = 0;
-		// TODO: get codecs
+		ND_ virtual Properties	GetFileProperties (const Path        &filename,
+												   const CodecConfig &cfg		= Default)	C_NE___ = 0;
+		ND_ virtual Properties	GetFileProperties (RC<RStream>        stream,
+												   const CodecConfig &cfg		= Default)	C_NE___ = 0;
+
+		ND_			String		PrintFileProperties (const Path        &filename,
+													 const CodecConfig &cfg		= Default)	C_Th___;
+		ND_			String		PrintFileProperties (RC<RStream>        stream,
+													 const CodecConfig &cfg		= Default)	C_Th___;
+
+		ND_ virtual String		PrintCodecs (EVideoCodec codec)								C_Th___ = 0;
+
 
 		// helpers
 		ND_ static bool  AllocMemView (const Config			&cfg,
@@ -113,11 +163,39 @@ namespace AE::Video
 									   IAllocator			&allocator,
 									   Bytes				minAlign = 1_b)		__NE___;
 
-		ND_ static bool  AllocMemView (const Config			&cfg,
-									   OUT ImageMemViewArr	&memView,
-									   IAllocator			&allocator,
-									   Bytes				minAlign = 1_b)		__NE___;
+		ND_ static bool  AllocMemView (const Config				&cfg,
+									   OUT ImagePlanesMemView	&memView,
+									   IAllocator				&allocator,
+									   Bytes					minAlign = 1_b)	__NE___;
 	};
+
+
+
+	inline bool  IVideoDecoder::GetVideoFrame (INOUT ImageMemView &memView, OUT FrameInfo &info) __NE___
+	{
+		ImageMemViewArr		arr {memView};
+		return GetVideoFrame( INOUT arr, OUT info );
+	}
+
+	inline bool  IVideoDecoder::GetVideoFrame (INOUT ImagePlanesMemView &memView, OUT FrameInfo &info) __NE___
+	{
+		ImageMemViewArr		arr {memView};
+		return GetVideoFrame( INOUT arr, OUT info );
+	}
+
+	inline bool  IVideoDecoder::GetAudioVideoFrame (INOUT ImageMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
+	{
+		ImageMemViewArr		img_arr		{memView};
+		AudioSampleArr		samp_arr	{sampleView};
+		return GetAudioVideoFrame( INOUT img_arr, INOUT samp_arr, OUT info );
+	}
+
+	inline bool  IVideoDecoder::GetAudioVideoFrame (INOUT ImagePlanesMemView &memView, INOUT AudioSampleView &sampleView, OUT FrameInfo &info) __NE___
+	{
+		ImageMemViewArr		img_arr		{memView};
+		AudioSampleArr		samp_arr	{sampleView};
+		return GetAudioVideoFrame( INOUT img_arr, INOUT samp_arr, OUT info );
+	}
 
 
 } // AE::Video

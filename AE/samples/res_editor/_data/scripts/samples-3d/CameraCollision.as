@@ -42,19 +42,17 @@
 			collision.LocalSize( 1 );
 			collision.DispatchGroups( 1 );
 		}{
-			RC<ComputePass>		draw		= ComputePass( "", "TRACE_RAYS" );
+			RC<Postprocess>		draw		= Postprocess( "", "TRACE_RAYS" );
 			draw.Set(	 camera );
-			draw.ArgOut( "un_OutImage",			rt );
 			draw.ArgIn(	 "un_CollisionData",	cam_pos );
-			draw.LocalSize( 8, 8 );
-			draw.DispatchThreads( rt.Dimension() );
+			draw.Output( "out_Color",			rt );
 		}
 		Present( rt );
 	}
 
 #endif
 //-----------------------------------------------------------------------------
-#ifdef SH_COMPUTE
+#if defined(SH_COMPUTE) || defined(SH_FRAG)
 	#include "SDF.glsl"
 	#include "DistAndMtr.glsl"
 
@@ -191,7 +189,7 @@
 			default :			color = float3( 0.0f, 1.0f, 1.0f );			break;
 		}
 
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(color, 1.f) );
+		out_Color = float4(color, 1.f);
 	}
 
 #endif

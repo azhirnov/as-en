@@ -4,6 +4,9 @@
 void ASmain ()
 {
 	// include:
+	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
+	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
+	//	OPPO CPH2217 driver 1.386.1368 on Android 13.0
 	//	PowerVR B-Series BXE-4-32 driver 1.492.1330 on Debian unknown
 	//	PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
 	//	PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
@@ -20,30 +23,19 @@ void ASmain ()
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
-	fset.separateStencilMaskRef (True);
 	fset.triangleFans (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Arithmetic_Begin, ESubgroupOperation::_Arithmetic_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Ballot_Begin, ESubgroupOperation::_Ballot_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
 	fset.subgroupTypes(ESubgroupTypes(
 		ESubgroupTypes::Float32 | 
 		ESubgroupTypes::Int32
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Vertex | 
 		EShaderStages::Fragment | 
 		EShaderStages::Compute
 	));
-	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Fragment | 
-		EShaderStages::Compute
-	));
-	fset.subgroup (True);
 	fset.minSubgroupSize (1);
 	fset.maxSubgroupSize (1);
+	fset.subgroup (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -64,7 +56,7 @@ void ASmain ()
 	fset.vulkanMemoryModel (True);
 	fset.vulkanMemoryModelDeviceScope (True);
 	fset.vulkanMemoryModelAvailabilityVisibilityChains (True);
-	fset.minSpirvVersion (130);
+	fset.maxSpirvVersion (130);
 	fset.drawIndirectFirstInstance (True);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
@@ -86,7 +78,7 @@ void ASmain ()
 	fset.perStage_maxSamplers (32);
 	fset.perStage_maxStorageBuffers (36);
 	fset.perStage_maxStorageImages (8);
-	fset.perStage_maxUniformBuffers (64);
+	fset.perStage_maxUniformBuffers (16);
 	fset.perStage_maxTotalResources (128);
 	fset.maxDescriptorSets (4);
 	fset.maxTexelOffset (7);
@@ -147,6 +139,7 @@ void ASmain ()
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

@@ -194,6 +194,30 @@ ND_ bool4  Not (const bool4 value)		{ return not(value); }
 
 /*
 =================================================
+	Diagonal
+----
+	T  Diagonal (T x, T y)
+=================================================
+*/
+#define Gen_DIAGONAL1( _type_ )								\
+	ND_ _type_  Diagonal (const _type_ x, const _type_ y) {	\
+		return Sqrt( x*x + y*y );							\
+	}
+
+#define Gen_DIAGONAL( _type_ )\
+	Gen_DIAGONAL1( _type_ )
+
+Gen_DIAGONAL( float )
+
+#if AE_ENABLE_HALF_TYPE
+	Gen_DIAGONAL( half )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_DIAGONAL( double )
+#endif
+
+/*
+=================================================
 	Saturate
 ----
 	T  Saturate (T x)
@@ -1082,3 +1106,7 @@ Gen_SWAP( float )
 
 #undef Gen_SWAP
 //-----------------------------------------------------------------------------
+
+
+// Used in ShaderTrace
+void dbg_EnableTraceRecording (bool b) {}

@@ -6,6 +6,9 @@
 #elif defined(AE_ENABLE_METAL)
 #	define DRAWCMDBATCH		MDrawCommandBatch
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define DRAWCMDBATCH		RDrawCommandBatch
+
 #else
 #	error not implemented
 #endif
@@ -46,7 +49,7 @@
 		_viewports		= viewports;
 		_scissors		= scissors;
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			_profiler = GraphicsScheduler().GetProfiler();
 			if ( _profiler )
 				_profiler->BeginDrawBatch( this, dbg.label );
@@ -56,7 +59,7 @@
 		)
 		Unused( dbg );
 
-		CHECK_ERR( _status.exchange( EStatus::Recording ) == EStatus::Destroyed );
+		CHECK_ERR( _status.Set( EStatus::Destroyed, EStatus::Recording ));
 		return true;
 	}
 
@@ -88,7 +91,7 @@
 		_encoder = null;
 	  #endif
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			_profiler = null;
 		)
 		MemoryBarrier( EMemoryOrder::Release );

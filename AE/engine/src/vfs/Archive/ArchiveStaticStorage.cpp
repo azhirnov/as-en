@@ -60,8 +60,8 @@ namespace AE::VFS
 			const uint	file_count = hdr.fileHeadersSize / sizeof(FileHeader);
 			_map.reserve( file_count );  // throw
 
-			auto	mem = MakeRC<MemRStream>();
-			CHECK_ERR( mem->Load( inDS, Sizeof(hdr), Bytes{hdr.fileHeadersSize} ));
+			auto	mem = MakeRC<ArrayRStream>();
+			CHECK_ERR( mem->LoadFrom( inDS, Sizeof(hdr), Bytes{hdr.fileHeadersSize} ));
 
 			DEBUG_ONLY( const Bytes  ds_size = inDS.Size();)
 
@@ -112,8 +112,8 @@ namespace AE::VFS
 
 			case EFileType::InMemory :
 			{
-				auto	result = MakeRC<MemRStream>();
-				CHECK_ERR( result->LoadAll( *substream ));
+				auto	result = MakeRC<ArrayRStream>();
+				CHECK_ERR( result->LoadAllFrom( *substream ));
 
 				outStream = RVRef(result);
 				return true;
@@ -130,9 +130,9 @@ namespace AE::VFS
 			case EFileType::BrotliInMemory :
 			{
 				BrotliRStream	brotli	{ substream };
-				auto			result	= MakeRC<MemRStream>();
+				auto			result	= MakeRC<ArrayRStream>();
 
-				CHECK_ERR( result->Decompress( brotli ));
+				CHECK_ERR( result->DecompressFrom( brotli ));
 				outStream = RVRef(result);
 				return true;
 			}
@@ -154,9 +154,9 @@ namespace AE::VFS
 			case EFileType::ZStdInMemory :
 			{
 				ZStdRStream		zstd	{ substream };
-				auto			result	= MakeRC<MemRStream>();
+				auto			result	= MakeRC<ArrayRStream>();
 
-				CHECK_ERR( result->Decompress( zstd ));
+				CHECK_ERR( result->DecompressFrom( zstd ));
 				outStream = RVRef(result);
 				return true;
 			}
@@ -207,8 +207,8 @@ namespace AE::VFS
 
 			case EFileType::InMemory :
 			{
-				auto	result = MakeRC<MemRDataSource>();
-				CHECK_ERR( result->LoadAll( *ds ));
+				auto	result = MakeRC<ArrayRDataSource>();
+				CHECK_ERR( result->LoadAllFrom( *ds ));
 
 				outDS = RVRef(result);
 				return true;
@@ -223,9 +223,9 @@ namespace AE::VFS
 			{
 				auto			stream	= MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
 				BrotliRStream	brotli	{ stream };
-				auto			result	= MakeRC<MemRDataSource>();
+				auto			result	= MakeRC<ArrayRDataSource>();
 
-				CHECK_ERR( result->Decompress( brotli ));
+				CHECK_ERR( result->DecompressFrom( brotli ));
 				outDS = RVRef(result);
 				return true;
 			}
@@ -245,9 +245,9 @@ namespace AE::VFS
 			{
 				auto			stream	= MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
 				ZStdRStream		zstd	{ stream };
-				auto			result	= MakeRC<MemRDataSource>();
+				auto			result	= MakeRC<ArrayRDataSource>();
 
-				CHECK_ERR( result->Decompress( zstd ));
+				CHECK_ERR( result->DecompressFrom( zstd ));
 				outDS = RVRef(result);
 				return true;
 			}

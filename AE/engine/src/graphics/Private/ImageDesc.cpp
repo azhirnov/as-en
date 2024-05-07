@@ -78,9 +78,11 @@ namespace AE::Graphics
 */
 	ImageDesc&  ImageDesc::AddViewFormat (EPixelFormat value) __NE___
 	{
+		ASSERT( value != Default );
+
 		for (auto& dst : viewFormats)
 		{
-			if ( dst == Default )
+			if ( dst == value or dst == Default )
 			{
 				dst = value;
 				return *this;

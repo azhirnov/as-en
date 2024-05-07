@@ -68,7 +68,7 @@ namespace AE::VFS
 			Shared (Shared &&other)					__NE___ : _req{other._req} { other._req = null; }
 			~Shared ()								__NE___	{ if_likely( _req ) _req->Guard().unlock_shared(); }
 
-			ND_ T*  operator -> ()					__NE___	{ ASSERT( _req != null );  return _req; }
+			ND_ T*  operator -> ()					__NE___	{ NonNull( _req );  return _req; }
 			ND_ explicit operator bool ()			C_NE___	{ return _req != null; }
 		};
 
@@ -83,7 +83,7 @@ namespace AE::VFS
 			explicit Exclusive (Shared<T> &&other)	__NE___ : _req{other._req} { other._req = null;  if_likely( _req ) _req->Guard().shared_to_exclusive(); }
 			~Exclusive ()							__NE___	{ if_likely( _req ) _req->Guard().unlock(); }
 
-			ND_ T*  operator -> ()					__NE___	{ ASSERT( _req != null );  return _req; }
+			ND_ T*  operator -> ()					__NE___	{ NonNull( _req );  return _req; }
 			ND_ explicit operator bool ()			C_NE___	{ return _req != null; }
 		};
 

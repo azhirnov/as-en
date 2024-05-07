@@ -68,7 +68,7 @@ namespace
 		auto p3 = p1.Except( [&p3_ok] () __NE___ { p3_ok = true; });
 		auto p4 = p3.Then( [&p4_ok] () __NE___ { p4_ok = true; });
 
-		TEST( Scheduler().Wait( {AsyncTask(p2), AsyncTask(p3), AsyncTask(p4)}, c_MaxTimeout ));
+		TEST( Scheduler().Wait( List{ AsyncTask(p2), AsyncTask(p3), AsyncTask(p4) }, c_MaxTimeout ));
 		TEST( AsyncTask(p0)->Status() == EStatus::Completed );
 		TEST( AsyncTask(p1)->Status() == EStatus::Failed );
 		TEST( AsyncTask(p2)->Status() == EStatus::Completed );
@@ -108,7 +108,7 @@ namespace
 		auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
 		auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });	// canceled promise
 
-		TEST( Scheduler().Wait( {AsyncTask(p0), AsyncTask(p1)}, c_MaxTimeout ));
+		TEST( Scheduler().Wait( List{ AsyncTask(p0), AsyncTask(p1) }, c_MaxTimeout ));
 		TEST( AsyncTask(p0)->Status() == EStatus::Completed );
 		TEST( AsyncTask(p1)->Status() == EStatus::Failed );
 

@@ -95,8 +95,8 @@ namespace AE::Graphics
 			uint		warpsPerCore	= 0;	// Apple: EU,  AMD: SIMD
 			uint		threadsPerWarp	= 0;	// number of ALU
 
-			ND_ uint	TotalWarps ()	C_NE___	{ return cores * warpsPerCore; }	// warning: some warps may be acquired by another process
-			ND_ uint	TotalThreads ()	C_NE___	{ return TotalWarps() * threadsPerWarp; }
+			ND_ uint	TotalWarps ()		C_NE___	{ return cores * warpsPerCore; }	// warning: some warps may be acquired by another process
+			ND_ uint	TotalThreads ()		C_NE___	{ return TotalWarps() * threadsPerWarp; }
 		};
 
 
@@ -125,11 +125,11 @@ namespace AE::Graphics
 	// variables
 		// contains all available resource usage & options and memory types
 
-		EBufferUsage	bufferUsage		= Default;
-		EBufferOpt		bufferOptions	= Default;
+		EBufferUsage				bufferUsage		= Default;
+		EBufferOpt					bufferOptions	= Default;
 
-		EImageUsage		imageUsage		= Default;
-		EImageOpt		imageOptions	= Default;
+		EImageUsage					imageUsage		= Default;
+		EImageOpt					imageOptions	= Default;
 
 		EnumSet<EDescriptorType>	descrTypes;
 
@@ -147,17 +147,25 @@ namespace AE::Graphics
 	//
 	struct DeviceMemoryInfo
 	{
+		Bytes	deviceTotal;		// VRAM heap size
+		Bytes	hostTotal;			// RAM heap size
+		Bytes	unifiedTotal;		// host visible VRAM heap size
+	};
+
+
+	//
+	// Device Memory Usage
+	//
+	struct DeviceMemoryUsage
+	{
 		Bytes	deviceUsage;		// VRAM used by process
 		Bytes	deviceAvailable;	// VRAM available for allocation
-		Bytes	deviceTotal;		// VRAM heap size
 
 		Bytes	hostUsage;			// RAM used by GPU process
 		Bytes	hostAvailable;		// RAM available for allocation
-		Bytes	hostTotal;			// RAM heap size
 
 		Bytes	unifiedUsage;		// host visible VRAM used by process
 		Bytes	unifiedAvailable;	// host visible VRAM available for allocation
-		Bytes	unifiedTotal;		// host visible VRAM heap size
 	};
 
 
@@ -187,8 +195,8 @@ namespace AE::Graphics
 					res.maxBoundDescriptorSets				= 4;						// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
 					res.minMemoryMapAlign					= POTBytes_From< 4<<10 >;	// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?
 					res.minNonCoherentAtomSize				= POTBytes_From< 256 >;		// nvidia - 64,      amd - 128,   intel - 256,   mali -  64,   adreno -   1,   apple - 16/32/256
-					res.minBufferCopyOffsetAlign			= POTBytes_From< 256 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
-					res.minBufferCopyRowPitchAlign			= POTBytes_From< 256 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
+					res.minBufferCopyOffsetAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
+					res.minBufferCopyRowPitchAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
 				}
 				StaticAssert( sizeof(rayTracing) == 48 );
 				{

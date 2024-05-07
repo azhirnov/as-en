@@ -27,12 +27,15 @@ namespace AE::Base
 		inline static constexpr usize	FirstSpecializationOf = Base::_hidden_::TL_GetFirstSpecializationOf< Templ, 0, Types... >::value;
 
 		template <typename T>
-		inline static constexpr usize	Index				= FirstIndex<T>;
+		inline static constexpr usize	IndexOrMax			= FirstIndex<T>;
+
+		template <typename T>
+		inline static constexpr usize	Index				= Base::_hidden_::TL_GetFirstIndex2< T, Types... >::value;
 
 		inline static constexpr usize	Count				= sizeof...(Types);
 
 		template <typename T>
-		inline static constexpr bool	HasType				= (Index<T> != UMax);
+		inline static constexpr bool	HasType				= (FirstIndex<T> != UMax);
 
 		template <typename T>
 		inline static constexpr bool	HasSingle			= HasType<T> and (FirstIndex<T> == LastIndex<T>);

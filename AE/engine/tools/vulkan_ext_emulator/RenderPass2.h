@@ -10,7 +10,7 @@
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pSubpassBeginInfo != null );
+		NonNull( pSubpassBeginInfo );
 		ASSERT( pSubpassBeginInfo->sType == VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO );
 		ASSERT( pSubpassBeginInfo->pNext == null );
 
@@ -27,7 +27,7 @@
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pSubpassEndInfo != null );
+		NonNull( pSubpassEndInfo );
 		ASSERT( pSubpassEndInfo->sType == VK_STRUCTURE_TYPE_SUBPASS_END_INFO );
 		ASSERT( pSubpassEndInfo->pNext == null );
 		Unused( pSubpassEndInfo );
@@ -45,11 +45,11 @@
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pSubpassBeginInfo != null );
+		NonNull( pSubpassBeginInfo );
 		ASSERT( pSubpassBeginInfo->sType == VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO );
 		ASSERT( pSubpassBeginInfo->pNext == null );
 
-		ASSERT( pSubpassEndInfo != null );
+		NonNull( pSubpassEndInfo );
 		ASSERT( pSubpassEndInfo->sType == VK_STRUCTURE_TYPE_SUBPASS_END_INFO );
 		ASSERT( pSubpassEndInfo->pNext == null );
 		Unused( pSubpassEndInfo );
@@ -80,37 +80,36 @@
 	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateRenderPass2 (VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo2,
 															 const VkAllocationCallbacks* pAllocator, OUT VkRenderPass* pRenderPass)
 	{
-		constexpr uint	max_attach_desc	= GraphicsConfig::MaxAttachments;
-		constexpr uint	max_subpasses	= 8;
-		constexpr uint	max_deps		= 32;
-		constexpr uint	max_attach_refs	= max_subpasses * (3 * max_attach_desc);
-
 		auto&	emulator = VulkanEmulation::Get();
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		ASSERT( pCreateInfo2 != null );
+		NonNull( pCreateInfo2 );
 		ASSERT( pCreateInfo2->sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2 );
 
-		FixedArray< VkAttachmentDescription, max_attach_desc >	attachments;
-		FixedArray< VkSubpassDescription, max_subpasses >		subpasses;
-		FixedArray< VkSubpassDependency, max_deps >				dependencies;
-		FixedArray< VkAttachmentReference, max_attach_refs >	attachment_refs;
+		VkEE_Allocator_t	allocator;
+		auto*				attachments		= allocator.Allocate<VkAttachmentDescription>( pCreateInfo2->attachmentCount );
+		auto*				subpasses		= allocator.Allocate<VkSubpassDescription>( pCreateInfo2->subpassCount );
+		auto*				dependencies	= pCreateInfo2->dependencyCount == 0 ? null :
+												allocator.Allocate<VkSubpassDependency>( pCreateInfo2->dependencyCount );
+
+		CHECK_ERR( (attachments != null) and (subpasses != null), VK_ERROR_UNKNOWN );
+		CHECK_ERR( (pCreateInfo2->dependencyCount == 0) == (dependencies == null), VK_ERROR_UNKNOWN );
 
 		VkRenderPassCreateInfo	rp_ci = {};
 		rp_ci.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		rp_ci.pNext				= pCreateInfo2->pNext;
 		rp_ci.flags				= pCreateInfo2->flags;
 		rp_ci.attachmentCount	= pCreateInfo2->attachmentCount;
-		rp_ci.pAttachments		= attachments.data();
+		rp_ci.pAttachments		= attachments;
 		rp_ci.subpassCount		= pCreateInfo2->subpassCount;
-		rp_ci.pSubpasses		= subpasses.data();
+		rp_ci.pSubpasses		= subpasses;
 		rp_ci.dependencyCount	= pCreateInfo2->dependencyCount;
-		rp_ci.pDependencies		= dependencies.data();
+		rp_ci.pDependencies		= dependencies;
 
 		for (uint i = 0; i < rp_ci.attachmentCount; ++i)
 		{
 			auto&	src = pCreateInfo2->pAttachments[i];
-			auto&	dst = attachments.emplace_back();
+			auto&	dst = attachments[i];
 
 			ASSERT( src.sType == VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2 );
 			ASSERT( src.pNext == null );
@@ -129,48 +128,58 @@
 		for (uint s = 0; s < rp_ci.subpassCount; ++s)
 		{
 			auto&	src	= pCreateInfo2->pSubpasses[s];
-			auto&	dst	= subpasses.emplace_back();
+			auto&	dst	= subpasses[s];
 
 			ASSERT( src.sType == VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2 );
 			ASSERT( src.pNext == null );
 			ASSERT( src.viewMask == 0 );	// TODO: use VkRenderPassMultiviewCreateInfo
 
+			auto*	att_refs = allocator.Allocate<VkAttachmentReference>(
+										src.inputAttachmentCount + src.colorAttachmentCount +
+										(src.pResolveAttachments != null ? src.colorAttachmentCount : 0) +
+										uint(src.pDepthStencilAttachment != null) );
+			CHECK_ERR( att_refs != null, VK_ERROR_UNKNOWN );
+
 			dst.flags					= src.flags;
 			dst.pipelineBindPoint		= src.pipelineBindPoint;
 			dst.inputAttachmentCount	= src.inputAttachmentCount;
-			dst.pInputAttachments		= attachment_refs.data() + attachment_refs.size();
+			dst.pInputAttachments		= att_refs;
 
 			for (uint i = 0; i < dst.inputAttachmentCount; ++i)
-				ConvertVkAttachmentReference( OUT attachment_refs.emplace_back(), src.pInputAttachments[i] );
+				ConvertVkAttachmentReference( OUT *(att_refs++), src.pInputAttachments[i] );
 
 			dst.colorAttachmentCount	= src.colorAttachmentCount;
-			dst.pColorAttachments		= attachment_refs.data() + attachment_refs.size();
+			dst.pColorAttachments		= att_refs;
 
 			for (uint i = 0; i < dst.colorAttachmentCount; ++i)
-				ConvertVkAttachmentReference( OUT attachment_refs.emplace_back(), src.pColorAttachments[i] );
+				ConvertVkAttachmentReference( OUT *(att_refs++), src.pColorAttachments[i] );
 
 			if ( src.pResolveAttachments != null )
 			{
-				dst.pResolveAttachments	= attachment_refs.data() + attachment_refs.size();
+				dst.pResolveAttachments	= att_refs;
 
 				for (uint i = 0; i < dst.colorAttachmentCount; ++i)
-					ConvertVkAttachmentReference( OUT attachment_refs.emplace_back(), src.pResolveAttachments[i] );
+					ConvertVkAttachmentReference( OUT *(att_refs++), src.pResolveAttachments[i] );
 			}
+			else
+				dst.pResolveAttachments = null;
 
 			dst.preserveAttachmentCount	= src.preserveAttachmentCount;
 			dst.pPreserveAttachments	= src.pPreserveAttachments;
 
-			if ( dst.pDepthStencilAttachment != null )
+			if ( src.pDepthStencilAttachment != null )
 			{
-				dst.pDepthStencilAttachment = attachment_refs.data() + attachment_refs.size();
-				ConvertVkAttachmentReference( OUT attachment_refs.emplace_back(), *src.pDepthStencilAttachment );
+				dst.pDepthStencilAttachment = att_refs;
+				ConvertVkAttachmentReference( OUT *(att_refs++), *src.pDepthStencilAttachment );
 			}
+			else
+				dst.pDepthStencilAttachment = null;
 		}
 
 		for (uint i = 0; i < rp_ci.dependencyCount; ++i)
 		{
 			auto&	src = pCreateInfo2->pDependencies[i];
-			auto&	dst = dependencies.emplace_back();
+			auto&	dst = dependencies[i];
 
 			ASSERT( src.sType == VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2 );
 			ASSERT( src.viewOffset == 0 );	// TODO: use VkRenderPassMultiviewCreateInfo
@@ -203,10 +212,6 @@
 				}
 			}
 		}
-
-		ASSERT( attachments.size() == rp_ci.attachmentCount );
-		ASSERT( subpasses.size() == rp_ci.subpassCount );
-		ASSERT( dependencies.size() == rp_ci.dependencyCount );
 
 		return emulator.vkCreateRenderPass( device, &rp_ci, pAllocator, OUT pRenderPass );
 	}

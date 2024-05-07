@@ -19,14 +19,14 @@ namespace AE::Graphics::_hidden_
 	{
 		CHECK_THROW( task.IsValid() );
 
-		DBG_GRAPHICS_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );)
+		GFX_DBG_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );)
 	}
 
 	_VDirectDrawCtx::_VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf) __Th___ :
 		_VBaseDirectContext{ RVRef(cmdbuf) },	// throw
 		_mngr{ state }							// throw
 	{
-		DBG_GRAPHICS_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), "DrawTask" );)
+		GFX_DBG_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), "DrawTask" );)
 	}
 
 /*
@@ -75,7 +75,7 @@ namespace AE::Graphics::_hidden_
 		_VBaseIndirectContext{ RVRef(cmdbuf) },	// throw
 		_mngr{ state }							// throw
 	{
-		DBG_GRAPHICS_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), "DrawTask" );)
+		GFX_DBG_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), "DrawTask" );)
 	}
 
 	_VIndirectDrawCtx::_VIndirectDrawCtx (const DrawTask &task) __Th___ :
@@ -84,7 +84,7 @@ namespace AE::Graphics::_hidden_
 	{
 		CHECK_THROW( task.IsValid() );
 
-		DBG_GRAPHICS_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );)
+		GFX_DBG_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );)
 	}
 
 /*
@@ -528,8 +528,8 @@ namespace AE::Graphics::_hidden_
 */
 	void  _VIndirectDrawCtx::_CommitBarriers () __Th___
 	{
-	    auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
+		auto	bar = _mngr.GetBarriers();
+		if_unlikely( bar )
 		{
 			_cmdbuf->PipelineBarrier( *bar );	// throw
 			_mngr.ClearBarriers();

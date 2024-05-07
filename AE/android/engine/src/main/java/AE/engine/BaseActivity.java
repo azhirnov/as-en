@@ -372,10 +372,6 @@ public class BaseActivity
 //-----------------------------------------------------------------------------
 // utils
 
-	private BaseApplication  _GetApp () {
-		return (BaseApplication)getApplication();
-	}
-
 	private static int  _ExtractBitLog2 (int bits)
 	{
 		int bit = bits & ~(bits - 1);

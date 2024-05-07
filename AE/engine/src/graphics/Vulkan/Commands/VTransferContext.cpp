@@ -26,7 +26,7 @@ namespace AE::Graphics::_hidden_
 	VkCommandBuffer  _VDirectTransferCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Transfer ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Transfer ));
 
 		return VBaseDirectContext::_EndCommandBuffer();  // throw
 	}
@@ -39,7 +39,7 @@ namespace AE::Graphics::_hidden_
 	VCommandBuffer  _VDirectTransferCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Transfer ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Transfer ));
 
 		return VBaseDirectContext::_ReleaseCommandBuffer();
 	}
@@ -273,7 +273,7 @@ namespace AE::Graphics::_hidden_
 	VBakedCommands  _VIndirectTransferCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Transfer ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Transfer ));
 
 		return VBaseIndirectContext::_EndCommandBuffer();  // throw
 	}
@@ -286,7 +286,7 @@ namespace AE::Graphics::_hidden_
 	VSoftwareCmdBufPtr  _VIndirectTransferCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Transfer ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Transfer ));
 
 		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}

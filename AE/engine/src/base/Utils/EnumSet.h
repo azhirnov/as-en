@@ -71,18 +71,21 @@ namespace AE::Base
 		// [|||||] [|||||] [||....]
 		//                    ^-- _LastElemMask
 
-		static constexpr Elem_t	_LastElemMask = ~((~Elem_t{0}) << (_BitCount % _ElemSize));
+		static constexpr Elem_t	_LastElemMask = (_BitCount % _ElemSize) == 0 ?
+												Elem_t(~Elem_t{0}) :
+												Elem_t(~((~Elem_t{0}) << (_BitCount % _ElemSize)));
+		StaticAssert( _LastElemMask != 0 );
 
 
 	// methods
 	public:
 		constexpr EnumSet ()												__NE___ {}
 		constexpr EnumSet (const Self &)									__NE___ = default;
-		constexpr EnumSet (Base::_hidden_::DefaultType)						__NE___ {}
+		constexpr EnumSet (Default_t)										__NE___ {}
 		constexpr EnumSet (std::initializer_list<E> list)					__NE___	{ for (auto arg : list) { insert( arg ); }}
 
 			constexpr Self&		operator = (const Self &)					__NE___ = default;
-			constexpr Self&		operator = (Base::_hidden_::DefaultType)	__NE___	{ clear();  return *this; }
+			constexpr Self&		operator = (Default_t)						__NE___	{ clear();  return *this; }
 
 			constexpr Self&		set (E value, bool bit)						__NE___;
 			constexpr Self&		insert (E value)							__NE___;
@@ -91,8 +94,8 @@ namespace AE::Base
 			constexpr Self&		erase (E value)								__NE___;
 			constexpr Self&		EraseRange (E first, E last)				__NE___;
 
-			constexpr Self&		clear ()									__NE___	{ _bits.fill( 0 );		return *this; }
-			constexpr Self&		SetAll ()									__NE___	{ _bits.fill( UMax );	return *this; }
+			constexpr Self&		clear ()									__NE___	{ std::memset( OUT _bits.data(), 0,    sizeof(_bits) );  return *this; }
+			constexpr Self&		SetAll ()									__NE___	{ std::memset( OUT _bits.data(), 0xFF, sizeof(_bits) );	return *this; }
 
 		ND_ constexpr bool		contains (E value)							C_NE___;
 

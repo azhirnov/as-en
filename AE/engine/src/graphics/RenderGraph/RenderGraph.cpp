@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/RenderGraph/RenderGraph.h"
+#include "platform/Public/OutputSurface.h"
 
 namespace AE::RG::_hidden_
 {
@@ -11,7 +12,15 @@ namespace AE::RG::_hidden_
 =================================================
 */
 	RenderGraph::RenderGraph () __NE___ :
-		_rts{ GraphicsScheduler() }
+		_rts{ GraphicsScheduler() },
+		_resetQuery{ false },
+		#ifdef AE_ENABLE_VULKAN
+			_hostQueryReset{ _rts.GetDevice().GetVExtensions().hostQueryReset }
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_hostQueryReset{ _rts.GetDevice().HasFeature( RDevice::EFeature::HostQueryReset )}
+		#else
+			_hostQueryReset{ false }	// TODO
+		#endif
 	{
 		NOTHROW( _semToBatch.reserve( GraphicsConfig::MaxPendingCmdBatches );)
 	}
@@ -34,6 +43,7 @@ namespace AE::RG::_hidden_
 	{
 		if ( _rts.WaitAll( timeout ))
 		{
+			DRC_EXLOCK( _drCheck );
 			_ClearCurrentFrame();
 			return true;
 		}
@@ -62,12 +72,32 @@ namespace AE::RG::_hidden_
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _rgDataPool.size() < _rgDataPool.capacity() );	// overflow
 
-		auto&	f			= _CurrentFrame();
-		uint	idx			= f.queues[ uint(queue) ].submitIdx++;
-		auto*	rg_batch	= &_rgDataPool.emplace_back( *this );
-		auto	cmd_batch	= _rts.BeginCmdBatch( queue, idx, dbg, rg_batch );
+		auto*	rg_batch = &_rgDataPool.emplace_back( *this );
 
-		CHECK_ERR( cmd_batch );
+		Graphics::CommandBatchPtr	cmd_batch;
+		{
+			CmdBatchDesc	desc;
+			desc.queue		= queue;
+			desc.submitIdx	= _queues[ uint(queue) ].submitIdx++;
+			desc.dbg		= dbg;
+			desc.userData	= rg_batch;
+
+			if ( _resetQuery and
+				 AnyEqual( queue, EQueueType::Graphics, EQueueType::AsyncCompute ) and
+				 desc.submitIdx == 0 )
+			{
+				_resetQuery = false;
+				desc.ResetQuery();
+			}
+
+			DEBUG_ONLY(
+				if ( _resetQuery and not AnyEqual( queue, EQueueType::Graphics, EQueueType::AsyncCompute ))
+					DBG_WARNING( "query must be reset in graphics/compute queue" );
+			)
+
+			cmd_batch = _rts.BeginCmdBatch( desc );
+			CHECK_ERR( cmd_batch );
+		}
 
 		// Allow to merge batches into single submit.
 		cmd_batch->SetSubmissionMode( ESubmitMode::Deferred );
@@ -75,18 +105,18 @@ namespace AE::RG::_hidden_
 		rg_batch->_initialBarriers.emplace( cmd_batch->DeferredBarriers() );
 		rg_batch->_finalBarriers  .emplace( cmd_batch->DeferredBarriers() );
 
-		#if defined(AE_ENABLE_VULKAN)
-			_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().semaphore), cmd_batch );
+	  #if defined(AE_ENABLE_VULKAN)
+		_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().semaphore), cmd_batch );
 
-		#elif defined(AE_ENABLE_METAL)
-			_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().event.Ptr()), cmd_batch );
+	  #elif defined(AE_ENABLE_METAL)
+		_semToBatch.insert_or_assign( ulong(cmd_batch->GetSemaphore().event.Ptr()), cmd_batch );
 
-		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			_semToBatch.insert_or_assign( cmd_batch->GetSemaphore().semaphoreId, cmd_batch );
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		_semToBatch.insert_or_assign( BitCastRlx<ulong>(cmd_batch->GetSemaphore().semaphore), cmd_batch );
 
-		#else
-		#	error not implemented
-		#endif
+	  #else
+	  #	error not implemented
+	  #endif
 
 		return RVRef(cmd_batch);
 	}
@@ -107,7 +137,7 @@ namespace AE::RG::_hidden_
 		auto	[it, inserted] = _outSurfaces.emplace( surface, OutSurfaceInfo{} );
 		if ( inserted )
 		{
-			CHECK_ERR_MSG( batch.AsBatch()->CurrentCmdBufIndex() == 0,
+			CHECK_ERR_MSG( batch.AsBatch()->CmdPool_IsEmpty(),
 				"cmd batch must not start rendering until it acquire surface image" );
 
 			batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately );
@@ -126,6 +156,25 @@ namespace AE::RG::_hidden_
 			RETURN_ERR( "failed to acquire surface image" );
 		}
 		return it->second.acquireImageTask;
+	}
+
+/*
+=================================================
+	_PresentSurfaces
+=================================================
+*/
+	FixedArray<AsyncTask, RenderGraph::MaxOutSurfaces>  RenderGraph::_PresentSurfaces () C_NE___
+	{
+		FixedArray< AsyncTask, MaxOutSurfaces >		present_tasks;
+
+		for (auto [surface, info] : _outSurfaces)
+		{
+			ASSERT( info.acquireImageTask );
+
+			if_likely( auto task = surface->End( Default ))	// will present after batch submission
+				present_tasks.push_back( task );
+		}
+		return present_tasks;
 	}
 //-----------------------------------------------------------------------------
 
@@ -171,19 +220,18 @@ namespace AE::RG::_hidden_
 		{
 			cmd_batch.AddInputSemaphore( old_state.lastBatch );
 
-
-			#if defined(AE_ENABLE_VULKAN)
+		  #if defined(AE_ENABLE_VULKAN)
 			auto	batch_it = _rg._semToBatch.find( ulong(old_state.lastBatch.semaphore) );
 
-			#elif defined(AE_ENABLE_METAL)
+		  #elif defined(AE_ENABLE_METAL)
 			auto	batch_it = _rg._semToBatch.find( ulong(old_state.lastBatch.event.Ptr()) );
 
-			#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			auto	batch_it = _rg._semToBatch.find( old_state.lastBatch.semaphoreId );
+		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			auto	batch_it = _rg._semToBatch.find( BitCastRlx<ulong>( old_state.lastBatch.semaphore ));
 
-			#else
-			#	error not implemented
-			#endif
+		  #else
+		  #	error not implemented
+		  #endif
 
 			// queue ownership transfer operation
 			if_likely( batch_it != _rg._semToBatch.end() )
@@ -231,9 +279,16 @@ namespace AE::RG::_hidden_
 
 				prev_state |= EResourceState::Invalidate;
 
-				AE_LOG_DBG( "source batch is not known, resource content will be invalidated" );
+				#if AE_GRAPHICS_DBG_SYNC
+					AE_LOGW( rg_batch._globalStates.KeyToString(key) << " source batch is not known, content will be invalidated" );
+				#endif
 			}
 		}
+
+		#if AE_GRAPHICS_DBG_SYNC
+			if ( prev_state == Default )
+				AE_LOGW( rg_batch._globalStates.KeyToString(key) << " previous state is General or not known" );
+		#endif
 
 		// additional state transition if expected state differs from default state
 		if_likely( key.IsImage() ){
@@ -297,7 +352,7 @@ namespace AE::RG::_hidden_
 	{
 		auto&	res_mngr = _rg._rts.GetResourceManager();
 		auto*	view	 = res_mngr.GetResource( id );
-		CHECK( view != null );
+		ASSERT( view != null );
 
 		if_likely( view != null )
 			return RVRef(*this).UseResource( view->ImageId(), initial, final );
@@ -309,7 +364,7 @@ namespace AE::RG::_hidden_
 	{
 		auto&	res_mngr = _rg._rts.GetResourceManager();
 		auto*	view	 = res_mngr.GetResource( id );
-		CHECK( view != null );
+		ASSERT( view != null );
 
 		if_likely( view != null )
 			return RVRef(*this).UseResource( view->BufferId(), initial, final );

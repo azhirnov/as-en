@@ -22,13 +22,17 @@ namespace AE::Graphics
 		AllowPartialyUpdate	= 1 << 0,
 
 		// vulkan only
-		UpdateTemplate		= 1 << 1,
+		UpdateTemplate		= 1 << 1,	// extension 'descriptorUpdateTemplate'
 
 		// metal only
 		ArgumentBuffer		= 1 << 2,
 		MutableArgBuffer	= 1 << 3,	// use 'device' type instead of 'constant'
 
+		// private
+		MaybeUnsupported	= 1 << 4,	// for PipelinePack
+
 		_Last,
+		_PrivateMask		= MaybeUnsupported,
 		All					= ((_Last - 1) << 1) - 1,
 	};
 	AE_BIT_OPERATORS( EDescSetUsage );
@@ -64,7 +68,7 @@ namespace AE::Graphics
 	enum class EDescUpdateMode : ubyte
 	{
 		Partialy,
-		UpdateTemplate,
+		UpdateTemplate,		// extension 'descriptorUpdateTemplate'
 
 		Unknown			= 0xFF
 	};
@@ -106,7 +110,7 @@ namespace AE::Graphics
 		ND_ constexpr ubyte		BindingIndex ()					C_NE___	{ ASSERT( _data[3] != UMax );  return _data[3]; }
 		ND_ ubyte&				BindingIndex ()					__NE___	{ return _data[3]; }
 
-		ND_ HashVal				CalcHash ()						C_NE___	{ return HashOf( ArrayView{_data} ); }
+		ND_ HashVal				CalcHash ()						C_NE___	{ return HashOf( ArrayView<ubyte>{ _data }); }
 
 
 		ND_ static constexpr int	ShaderToIndex (EShader type) __NE___
@@ -161,7 +165,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit constexpr DescSetBinding ()									__NE___	{}
+		constexpr DescSetBinding ()												__NE___	{}
 		explicit constexpr DescSetBinding (uint vulkanBinding)					__NE___	: vkIndex{vulkanBinding} {}
 		explicit constexpr DescSetBinding (MetalBindingPerStage metalBinding)	__NE___	: mtlIndex{metalBinding} {}
 
@@ -169,6 +173,7 @@ namespace AE::Graphics
 
 		ND_ constexpr operator bool ()											C_NE___	{ return vkIndex != UMax; }
 	};
+	StaticAssert( sizeof(DescSetBinding) == 4 );
 
 
 

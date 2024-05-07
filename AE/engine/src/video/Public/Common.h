@@ -5,6 +5,10 @@
 #include "platform/Public/InputSurface.h"
 #include "platform/Public/OutputSurface.h"
 
+#ifdef AE_ENABLE_AUDIO
+# include "audio/Public/AudioSampleView.h"
+#endif
+
 namespace AE::Video
 {
 	using namespace AE::Base;
@@ -18,9 +22,25 @@ namespace AE::Video
 	using AE::Graphics::EVideoCodec;
 	using AE::Graphics::EVideoFormat;
 	using AE::Graphics::VideoImageID;
+	using AE::Graphics::ESamplerChromaLocation;
+	using AE::Graphics::ESamplerYcbcrRange;
 
 	using AE::Threading::AsyncTask;
 	using AE::Threading::Atomic;
+
+  #ifdef AE_ENABLE_AUDIO
+	using AE::Audio::AudioSampleView;
+  #else
+	struct AudioSampleView {};
+  #endif
+
+
+	using Bitrate		= DefaultPhysicalQuantity<ulong>::BitPerSecond;
+	using Seconds		= DefaultPhysicalQuantity<double>::Second;
+	using FrameRate		= FractionalI;
+
+	using BitrateKb		= DefaultPhysicalQuantity<ulong>::KibiBitPerSecond;
+	using BitrateMb		= DefaultPhysicalQuantity<ulong>::MebiBitPerSecond;
 
 
 	enum class EFilter : ubyte
@@ -53,6 +73,18 @@ namespace AE::Video
 		MPEG_SMPTE170M,		// mpeg - limited range,  color space: SMPTE170M, linearization function: BT709
 		_Count,
 		Unknown		= 0xFF,
+	};
+
+
+	enum class EHwAcceleration : ubyte
+	{
+		Disable,
+		Optional,
+		Require,
+		// TODO:
+		// PrefereCPU
+		// PrefereGPU
+		Unknown		= Optional,
 	};
 
 

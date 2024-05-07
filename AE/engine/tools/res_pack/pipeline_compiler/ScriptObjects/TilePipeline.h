@@ -20,7 +20,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		TilePipelineSpecScriptBinding () {}
-		TilePipelineSpecScriptBinding (const TilePipelineScriptBinding* base, const String &name) __Th___;
+		TilePipelineSpecScriptBinding (TilePipelineScriptBinding* base, const String &name) __Th___;
 
 		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
 		void  SetSpecValueI (const String &name, int   value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
@@ -35,7 +35,7 @@ namespace AE::PipelineCompiler
 
 		void  AddToRenderTech (const String &rtech, const String &pass)	__Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
-		ND_ bool  Build (PipelineTemplUID uid);
+		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
 		ND_ const TilePipelineScriptBinding*	GetBase ()				const	{ return Cast<TilePipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
 
@@ -77,7 +77,7 @@ namespace AE::PipelineCompiler
 		ND_ TilePipelineSpecPtr				AddSpecialization2 (const String &name)	__Th___;
 		ND_ TilePipelineSpecScriptBinding*	AddSpecialization (const String &name)	__Th___;
 
-		ND_ bool	Build ();
+		ND_ bool	Build ()														__NE___;
 		ND_ usize	SpecCount ()													const	{ return _pplnSpec.size(); }
 
 		static void  Bind (const ScriptEnginePtr &se)								__Th___;

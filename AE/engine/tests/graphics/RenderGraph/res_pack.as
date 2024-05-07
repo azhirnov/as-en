@@ -9,7 +9,7 @@ void ASmain ()
 		suffix.push_back( "vk" );
 
 	if ( IsMetalCompilerSupported() )
-		suffix.push_back( "mac" );
+		suffix.push_back( "mtl" );
 
 	Assert( ! suffix.empty() );
 
@@ -24,6 +24,6 @@ void ASmain ()
 		ppln.AddPipelineFolder( "pipeline" );
 		ppln.AddShaderFolder( "shaders" );
 		ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
-		ppln.CompileWithNameMapping( output + suffix[i] + "/pipelines.bin" );
+		ppln.CompileWithNameMapping( output + "Tests.Graphics." + suffix[i] + "Pipelines.bin" );
 	}
 }

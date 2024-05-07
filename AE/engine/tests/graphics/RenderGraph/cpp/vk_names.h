@@ -24,7 +24,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  async_comp1_graphics {Hash_t{0xae150324u}};  // 'async_comp1.graphics'
-		} Draw_1;
+		} Draw_1 = {};
 
 		// compute (1)
 		static constexpr struct _Compute_1
@@ -33,7 +33,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  async_comp1_compute {Hash_t{0x47053fe0u}};  // 'async_comp1.compute'
-		} Compute_1;
+		} Compute_1 = {};
 	} AsyncCompTestRT;
 
 	static constexpr struct _DebugDrawTestRT
@@ -52,7 +52,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  dbg2_draw {Hash_t{0x991e8d04u}};  // 'dbg2_draw'
-		} Draw_1;
+		} Draw_1 = {};
 
 		// graphics (1)
 		static constexpr struct _Test4_1
@@ -63,7 +63,7 @@ namespace RenderTechs
 
 			static constexpr uint  attachmentsCount = 1;
 			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
-		} Test4_1;
+		} Test4_1 = {};
 
 		// graphics (2)
 		static constexpr struct _Test4_2
@@ -74,7 +74,7 @@ namespace RenderTechs
 
 			static constexpr uint  attachmentsCount = 1;
 			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
-		} Test4_2;
+		} Test4_2 = {};
 	} DebugDrawTestRT;
 
 	static constexpr struct _DrawMeshesTestRT
@@ -95,7 +95,7 @@ namespace RenderTechs
 			static constexpr PipelineName_t  dbg3_draw {Hash_t{0x52425ea1u}};  // 'dbg3_draw'
 			static constexpr PipelineName_t  draw_mesh1 {Hash_t{0xea9250dcu}};  // 'draw_mesh1'
 			static constexpr PipelineName_t  draw_mesh2 {Hash_t{0x739b0166u}};  // 'draw_mesh2'
-		} DrawMeshes_1;
+		} DrawMeshes_1 = {};
 	} DrawMeshesTestRT;
 
 	static constexpr struct _DrawTestRT
@@ -116,7 +116,7 @@ namespace RenderTechs
 			static constexpr PipelineName_t  draw1 {Hash_t{0x1313009bu}};  // 'draw1'
 			static constexpr PipelineName_t  draw2 {Hash_t{0x8a1a5121u}};  // 'draw2'
 			static constexpr PipelineName_t  draw3 {Hash_t{0xfd1d61b7u}};  // 'draw3'
-		} Draw_1;
+		} Draw_1 = {};
 
 		// graphics (1)
 		static constexpr struct _Test4_1
@@ -130,7 +130,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  draw4_1 {Hash_t{0xa453ca03u}};  // 'draw4-1'
-		} Test4_1;
+		} Test4_1 = {};
 
 		// graphics (2)
 		static constexpr struct _Test4_2
@@ -144,7 +144,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  draw4_2 {Hash_t{0x3d5a9bb9u}};  // 'draw4-2'
-		} Test4_2;
+		} Test4_2 = {};
 	} DrawTestRT;
 
 	static constexpr struct _RayQueryTestRT
@@ -159,7 +159,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  dbg5_rquery_def {Hash_t{0x4f746c9cu}};  // 'dbg5_rquery.def'
 			static constexpr PipelineName_t  rquery1_def {Hash_t{0x8e8e707eu}};  // 'rquery1.def'
-		} RayTrace_1;
+		} RayTrace_1 = {};
 	} RayQueryTestRT;
 
 	static constexpr struct _RayTracingTestRT
@@ -174,12 +174,12 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  dbg4_rtrace1_def {Hash_t{0xddfa2575u}};  // 'dbg4_rtrace1.def'
 			static constexpr PipelineName_t  rtrace1_def {Hash_t{0x3d318d93u}};  // 'rtrace1.def'
-		} RayTrace_1;
+		} RayTrace_1 = {};
 
 		static constexpr struct _SBT {
 			static constexpr RTShaderBindingName_t  dbg4_rtrace1_sbt0 {Hash_t{0x641ca9c7u}};  // 'dbg4_rtrace1.sbt0'
 			static constexpr RTShaderBindingName_t  rtrace1_sbt0 {Hash_t{0x2d952522u}};  // 'rtrace1.sbt0'
-		} sbt;
+		} sbt = {};
 	} RayTracingTestRT;
 
 	static constexpr struct _VRSTestRT
@@ -199,7 +199,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  per_draw {Hash_t{0xbde3bb78u}};  // 'per_draw'
 			static constexpr PipelineName_t  per_primitive {Hash_t{0x2c76ce9cu}};  // 'per_primitive'
-		} nonVRS;
+		} nonVRS = {};
 
 		// graphics (1)
 		static constexpr struct _VRS
@@ -214,7 +214,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  vrs_attachment {Hash_t{0x3bf983d0u}};  // 'vrs_attachment'
-		} VRS;
+		} VRS = {};
 	} VRSTestRT;
 
 	static constexpr struct _Ycbcr_RTech
@@ -233,6 +233,6 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  ycbcr_draw1 {Hash_t{0x6ba93e51u}};  // 'ycbcr.draw1'
-		} Main;
+		} Main = {};
 	} Ycbcr_RTech;
 }

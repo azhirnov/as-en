@@ -32,23 +32,23 @@ namespace AE::Graphics
 		GfxMemAllocatorPtr				_memAllocator;
 		VideoStorageArr_t				_memStorages;
 
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
 	public:
-		VVideoSession ()								__NE___	{}
-		~VVideoSession ()								__NE___;
+		VVideoSession ()									__NE___	{}
+		~VVideoSession ()									__NE___;
 
 		ND_ bool  Create (VResourceManager &, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
 			void  Destroy (VResourceManager &)																					__NE___;
 
-		ND_ VkVideoSessionKHR			Session ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _session; }
-		ND_ VkVideoSessionParametersKHR	Parameters ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _params; }
-		ND_ VideoSessionDesc const&		Description ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ VkVideoSessionKHR			Session ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _session; }
+		ND_ VkVideoSessionParametersKHR	Parameters ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _params; }
+		ND_ VideoSessionDesc const&		Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoSessionDesc &desc)			__NE___;

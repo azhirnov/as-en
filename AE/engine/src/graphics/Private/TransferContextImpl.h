@@ -25,29 +25,34 @@ namespace AE::Graphics {
 	UploadBuffer
 =================================================
 */
-	TRANSFER_CTX( void, UploadBuffer )(BufferID bufferId, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
+	TRANSFER_CTX( inline void, UploadBuffer )(BufferID bufferId, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
 	{
 		auto&		dst_buf			= _GetResourcesOrThrow( bufferId );
 		const Bytes	dst_buf_size	= dst_buf.Size();
 		Bytes		offset			= Min( uploadDesc.offset,	dst_buf_size );
-		const Bytes	size			= Min( uploadDesc.size,		dst_buf_size - offset );
+		const Bytes	data_size		= Min( uploadDesc.size,		dst_buf_size - offset );
 		const auto	handle			= dst_buf.Handle();
 
-		VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), offset, size, memView ));
+		VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), offset, data_size, memView ));
 
 		STAGINGBUF_MNGR&				sbm	= this->_mngr.GetStagingManager();
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, size, uploadDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
+		sbm.GetBufferRanges( OUT buffers, data_size, uploadDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
 							 GetFrameId(), uploadDesc.heapType, this->_mngr.GetQueueType(), True{"upload"} );
 
 		for (auto& src_buf : buffers)
 		{
-			memView.PushBack( src_buf.mapped, src_buf.size );
-		  #ifdef AE_ENABLE_VULKAN
-			CopyBuffer( src_buf.buffer, handle, {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(offset), VkDeviceSize(src_buf.size) }});
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			memView.PushBack( _Allocate( src_buf.devicePtr, src_buf.size ), src_buf.size );
 		  #else
-			CopyBuffer( src_buf.buffer, handle, {BufferCopy{ src_buf.bufferOffset, offset, src_buf.size }});
+			memView.PushBack( src_buf.mapped, src_buf.size );
+		  #endif
+
+		  #ifdef AE_ENABLE_VULKAN
+			CopyBuffer( src_buf.bufferHandle, handle, {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(offset), VkDeviceSize(src_buf.size) }});
+		  #else
+			CopyBuffer( src_buf.bufferHandle, handle, {BufferCopy{ src_buf.bufferOffset, offset, src_buf.size }});
 		  #endif
 			offset += src_buf.size;
 			GCTX_CHECK( offset <= dst_buf_size );
@@ -60,9 +65,11 @@ namespace AE::Graphics {
 	UploadBuffer
 =================================================
 */
-	TRANSFER_CTX( void, UploadBuffer )(BufferStream &stream, OUT BufferMemView &memView) __Th___
+	TRANSFER_CTX( inline void, UploadBuffer )(BufferStream &stream, OUT BufferMemView &memView) __Th___
 	{
-		ASSERT( not stream.IsCompleted() );
+		GCTX_CHECK_MSG( stream.IsInitialized(), "Buffer stream is not initialized" );
+		GCTX_CHECK_MSG( not stream.IsCompleted(), "Buffer stream is already complete" );
+		GCTX_CHECK_MSG( stream.ToUploadDesc().size != UMax, "'UploadBufferDesc::size' is not defined" );
 
 		const auto&	dst_buf = _GetResourcesOrThrow( stream.BufferId() );
 		const auto	handle	= dst_buf.Handle();
@@ -77,11 +84,16 @@ namespace AE::Graphics {
 
 		for (auto& src_buf : buffers)
 		{
-			memView.PushBack( src_buf.mapped, src_buf.size );
-		  #ifdef AE_ENABLE_VULKAN
-			CopyBuffer( src_buf.buffer, handle, {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(stream.OffsetAndPos()), VkDeviceSize(src_buf.size) }});
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			memView.PushBack( _Allocate( src_buf.devicePtr, src_buf.size ), src_buf.size );
 		  #else
-			CopyBuffer( src_buf.buffer, handle, {BufferCopy{ src_buf.bufferOffset, stream.OffsetAndPos(), src_buf.size }});
+			memView.PushBack( src_buf.mapped, src_buf.size );
+		  #endif
+
+		  #ifdef AE_ENABLE_VULKAN
+			CopyBuffer( src_buf.bufferHandle, handle, {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(stream.OffsetAndPos()), VkDeviceSize(src_buf.size) }});
+		  #else
+			CopyBuffer( src_buf.bufferHandle, handle, {BufferCopy{ src_buf.bufferOffset, stream.OffsetAndPos(), src_buf.size }});
 		  #endif
 			stream.pos += src_buf.size;
 			GCTX_CHECK( stream.pos <= stream.DataSize() );
@@ -138,7 +150,11 @@ namespace AE::Graphics {
 
 		for (auto& src_buf : res.buffers)
 		{
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _Allocate( src_buf.devicePtr, src_buf.size ), src_buf.size );
+		  #else
 			mem_view.PushBack( src_buf.mapped, src_buf.size );
+		  #endif
 
 		  #ifdef AE_ENABLE_VULKAN
 			copy.bufferOffset		= VkDeviceSize(src_buf.bufferOffset);
@@ -155,7 +171,7 @@ namespace AE::Graphics {
 			min = Min( min, src_buf.imageOffset );
 			max = Max( max, src_buf.imageOffset + src_buf.imageDim );
 
-			CopyBufferToImage( src_buf.buffer, handle, {copy} );
+			CopyBufferToImage( src_buf.bufferHandle, handle, {copy} );
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
@@ -172,7 +188,9 @@ namespace AE::Graphics {
 		StaticAssert( IsSameTypes< StreamType, ImageStream > or
 					  IsSameTypes< StreamType, VideoImageStream >);
 
-		ASSERT( not stream.IsCompleted() );
+		GCTX_CHECK_MSG( stream.IsInitialized(), "Image stream is not initialized" );
+		GCTX_CHECK_MSG( not stream.IsCompleted(), "Image stream is already complete" );
+		GCTX_CHECK_MSG( All( stream.ToUploadDesc().imageDim != UMax ), "'UploadImageDesc::imageDim' is not defined" );
 
 		auto&	dst_img = _GetResourcesOrThrow( stream.ImageId() );
 		VALIDATE_GCTX( UploadImage( dst_img.Description() ));
@@ -183,12 +201,6 @@ namespace AE::Graphics {
 												if constexpr( IsSameTypes< StreamType, ImageStream >)		return dst_img.Handle();
 												if constexpr( IsSameTypes< StreamType, VideoImageStream >)	return dst_img.GetImageHandle();
 											}();
-
-		if constexpr( IsSameTypes< StreamType, ImageStream >)
-			GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
-
-		if constexpr( IsSameTypes< StreamType, VideoImageStream >)
-			GCTX_CHECK( All( stream.End() <= uint3{img_desc.dimension,1u} ));
 
 		UploadImageDesc	upload_desc = stream.ToUploadDesc();
 		upload_desc.imageOffset	+= uint3{ 0, stream.posYZ };
@@ -224,7 +236,11 @@ namespace AE::Graphics {
 
 		for (auto& src_buf : res.buffers)
 		{
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _Allocate( src_buf.devicePtr, src_buf.size ), src_buf.size );
+		  #else
 			mem_view.PushBack( src_buf.mapped, src_buf.size );
+		  #endif
 
 		  #ifdef AE_ENABLE_VULKAN
 			copy.bufferOffset		= VkDeviceSize(src_buf.bufferOffset);
@@ -244,7 +260,7 @@ namespace AE::Graphics {
 			GCTX_CHECK( All( min >= stream.Begin() ));
 			GCTX_CHECK( All( max <= stream.End() ));
 
-			CopyBufferToImage( src_buf.buffer, handle, {copy} );
+			CopyBufferToImage( src_buf.bufferHandle, handle, {copy} );
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
@@ -267,7 +283,7 @@ namespace AE::Graphics {
 	ReadbackBuffer
 =================================================
 */
-	TRANSFER_CTX( Promise<BufferMemView>, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
+	TRANSFER_CTX( inline ITransferContext::ReadbackBufferResult, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
 	{
 		auto&		src_buf			= _GetResourcesOrThrow( bufferId );
 		const auto	handle			= src_buf.Handle();
@@ -285,22 +301,31 @@ namespace AE::Graphics {
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
 		{
-			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
-		  #ifdef AE_ENABLE_VULKAN
-			CopyBuffer( handle, dst_buf.buffer, {VkBufferCopy{ VkDeviceSize(offset), VkDeviceSize(dst_buf.bufferOffset), VkDeviceSize(dst_buf.size) }});
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _ReadbackAlloc( dst_buf.devicePtr, dst_buf.size ), dst_buf.size );
 		  #else
-			CopyBuffer( handle, dst_buf.buffer, {BufferCopy{ offset, dst_buf.bufferOffset, dst_buf.size }});
+			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+		  #endif
+
+		  #ifdef AE_ENABLE_VULKAN
+			CopyBuffer( handle, dst_buf.bufferHandle, {VkBufferCopy{ VkDeviceSize(offset), VkDeviceSize(dst_buf.bufferOffset), VkDeviceSize(dst_buf.size) }});
+		  #else
+			CopyBuffer( handle, dst_buf.bufferHandle, {BufferCopy{ offset, dst_buf.bufferOffset, dst_buf.size }});
 		  #endif
 			offset += dst_buf.size;
 			GCTX_CHECK( offset <= dst_buf_size );
 		}
-		ASSERT( buffers.size() == mem_view.Parts().size() );
 
-		return Threading::MakePromiseFromValue(	mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
-												"TransferContext::ReadbackBuffer",
-												ETaskQueue::PerFrame
-											   );
+		ASSERT( buffers.size() == mem_view.Parts().size() );
+		ASSERT( offset == dst_buf_size );
+
+		return	ReadbackBufferResult{
+					Threading::MakePromiseFromValue( mem_view,
+													 Tuple{ this->_mngr.GetBatchRC() },
+													 "TransferContext::ReadbackBuffer",
+													 ETaskQueue::PerFrame ),
+					data_size - mem_view.DataSize()
+				};
 	}
 
 /*
@@ -308,28 +333,38 @@ namespace AE::Graphics {
 	ReadbackBuffer
 =================================================
 */
-	TRANSFER_CTX( Promise<BufferMemView>, ReadbackBuffer )(INOUT BufferStream &stream) __Th___
+	TRANSFER_CTX( inline Promise<BufferMemView>, ReadbackBuffer )(INOUT BufferStream &stream) __Th___
 	{
-		ASSERT( not stream.IsCompleted() );
+		GCTX_CHECK_MSG( stream.IsInitialized(), "Buffer stream is not initialized" );
+		GCTX_CHECK_MSG( not stream.IsCompleted(), "Buffer stream is already complete" );
+		GCTX_CHECK_MSG( stream.ToReadbackDesc().size != UMax, "'ReadbackBufferDesc::size' is not defined" );
 
-		const auto&	src_buf = _GetResourcesOrThrow( stream.BufferId() );
-		const auto	handle	= src_buf.Handle();
+		const auto&	src_buf			= _GetResourcesOrThrow( stream.BufferId() );
+		const auto	handle			= src_buf.Handle();
+		const Bytes	dst_buf_size	= src_buf.Size();
+		Bytes		offset			= Min( stream.OffsetAndPos(), dst_buf_size );
+		const Bytes	remain_size		= Min( stream.End(), dst_buf_size - offset );
 
-		VALIDATE_GCTX( ReadbackBuffer( src_buf.Description(), stream.pos, stream.RemainSize() ));
+		VALIDATE_GCTX( ReadbackBuffer( src_buf.Description(), offset, remain_size ));
 
 		STAGINGBUF_MNGR&				sbm	= this->_mngr.GetStagingManager();
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
+		sbm.GetBufferRanges( OUT buffers, remain_size, stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
 							 GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), False{"readback"} );
 
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
 		{
-			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
-		  #ifdef AE_ENABLE_VULKAN
-			CopyBuffer( handle, dst_buf.buffer, {VkBufferCopy{ VkDeviceSize(stream.pos), VkDeviceSize(dst_buf.bufferOffset), VkDeviceSize(dst_buf.size) }});
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _ReadbackAlloc( dst_buf.devicePtr, dst_buf.size ), dst_buf.size );
 		  #else
-			CopyBuffer( handle, dst_buf.buffer, {BufferCopy{ stream.pos, dst_buf.bufferOffset, dst_buf.size }});
+			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+		  #endif
+
+		  #ifdef AE_ENABLE_VULKAN
+			CopyBuffer( handle, dst_buf.bufferHandle, {VkBufferCopy{ VkDeviceSize(stream.pos), VkDeviceSize(dst_buf.bufferOffset), VkDeviceSize(dst_buf.size) }});
+		  #else
+			CopyBuffer( handle, dst_buf.bufferHandle, {BufferCopy{ stream.pos, dst_buf.bufferOffset, dst_buf.size }});
 		  #endif
 			stream.pos += dst_buf.size;
 			GCTX_CHECK( stream.pos <= stream.DataSize() );
@@ -348,7 +383,7 @@ namespace AE::Graphics {
 	_ReadbackImage
 =================================================
 */
-	TRANSFER_CTX( template <typename ID> Promise<ImageMemView>, _ReadbackImage )(ID imageId, const ReadbackImageDesc &readDesc) __Th___
+	TRANSFER_CTX( template <typename ID> ITransferContext::ReadbackImageResult, _ReadbackImage )(ID imageId, const ReadbackImageDesc &readDesc) __Th___
 	{
 		StaticAssert( IsSameTypes< ID, ImageID > or IsSameTypes< ID, VideoImageID >);
 
@@ -392,7 +427,11 @@ namespace AE::Graphics {
 
 		for (auto& dst_buf : res.buffers)
 		{
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _ReadbackAlloc( dst_buf.devicePtr, dst_buf.size ), dst_buf.size );
+		  #else
 			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+		  #endif
 
 		  #ifdef AE_ENABLE_VULKAN
 			copy.bufferOffset		= VkDeviceSize(dst_buf.bufferOffset);
@@ -409,16 +448,19 @@ namespace AE::Graphics {
 			min = Min( min, dst_buf.imageOffset );
 			max = Max( max, dst_buf.imageOffset + dst_buf.imageDim );
 
-			CopyImageToBuffer( handle, dst_buf.buffer, {copy} );
+			CopyImageToBuffer( handle, dst_buf.bufferHandle, {copy} );
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
-		return Threading::MakePromiseFromValue(
-					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask },
-					Tuple{ this->_mngr.GetBatchRC() },
-					"TransferContext::ReadbackImage",
-					ETaskQueue::PerFrame
-				);
+		return	ReadbackImageResult{
+					Threading::MakePromiseFromValue(
+						ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask },
+						Tuple{ this->_mngr.GetBatchRC() },
+						"TransferContext::ReadbackImage",
+						ETaskQueue::PerFrame
+					),
+					img_desc.Dimension() - (max - min)
+				};
 	}
 
 
@@ -431,7 +473,10 @@ namespace AE::Graphics {
 	{
 		StaticAssert( IsSameTypes< StreamType, ImageStream > or
 					  IsSameTypes< StreamType, VideoImageStream >);
-		ASSERT( not stream.IsCompleted() );
+
+		GCTX_CHECK_MSG( stream.IsInitialized(), "Image stream is not initialized" );
+		GCTX_CHECK_MSG( not stream.IsCompleted(), "Image stream is already complete" );
+		GCTX_CHECK_MSG( All( stream.ToReadbackDesc().imageDim != UMax ), "'ReadbackImageDesc::imageDim' is not defined" );
 
 		auto&	src_img = _GetResourcesOrThrow( stream.ImageId() );
 		VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
@@ -442,12 +487,7 @@ namespace AE::Graphics {
 												if constexpr( IsSameTypes< StreamType, ImageStream >)		return src_img.Handle();
 												if constexpr( IsSameTypes< StreamType, VideoImageStream >)	return src_img.GetImageHandle();
 											}();
-
-		if constexpr( IsSameTypes< StreamType, ImageStream >)
-			GCTX_CHECK( All( stream.End() <= img_desc.dimension ));
-
-		if constexpr( IsSameTypes< StreamType, VideoImageStream >)
-			GCTX_CHECK( All( stream.End() <= uint3{img_desc.dimension,1u} ));
+		GCTX_CHECK( All( stream.End() <= img_desc.Dimension() ));
 
 		ReadbackImageDesc	read_desc = stream.ToReadbackDesc();
 		read_desc.imageOffset	+= uint3{ 0, stream.posYZ };
@@ -483,7 +523,11 @@ namespace AE::Graphics {
 
 		for (auto& dst_buf : res.buffers)
 		{
+		  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+			mem_view.PushBack( _ReadbackAlloc( dst_buf.devicePtr, dst_buf.size ), dst_buf.size );
+		  #else
 			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+		  #endif
 
 		  #ifdef AE_ENABLE_VULKAN
 			copy.bufferOffset		= VkDeviceSize(dst_buf.bufferOffset);
@@ -500,7 +544,7 @@ namespace AE::Graphics {
 			min = Min( min, dst_buf.imageOffset );
 			max = Max( max, dst_buf.imageOffset + dst_buf.imageDim );
 
-			CopyImageToBuffer( handle, dst_buf.buffer, {copy} );
+			CopyImageToBuffer( handle, dst_buf.bufferHandle, {copy} );
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 

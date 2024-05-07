@@ -3,7 +3,8 @@
 #pragma once
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Utils/FileSystem.h"
+# include "base/Math/BitMath.h"
+# include "base/FileSystem/Path.h"
 # include "base/Utils/Threading.h"
 
 namespace AE::Base
@@ -19,26 +20,28 @@ namespace AE::Base
 	public:
 		enum class EFlags
 		{
-			None			= 0,
-			NoWindow		= 1 << 0,
-			ReadOutput		= 1 << 1,	// optional for sync execution, not compatible with 'NoWindow' flag
-			UseCommandPromt	= 1 << 2,
-			Unknown			= None,
+			None				= 0,
+			NoWindow			= 1 << 0,
+			ReadOutput			= 1 << 1,	// optional for sync execution, not compatible with 'NoWindow' flag
+			UseCommandPrompt	= 1 << 2,
+			UsePowerShell		= 1 << 3,
+		//	UseWSL				= 1 << 4,	// windows subsystem for linux	// TODO
+			Unknown				= None,
 		};
-
-	private:
-		using Mutex	= std::mutex;
 
 
 	// variables
 	private:
 		void *		_thread			= null;
 		void *		_process		= null;
-		void *		_streamRead		= null;
-		void *		_streamWrite	= null;
+		void *		_streamOutRead	= null;
+		void *		_streamInWrite	= null;
 		EFlags		_flags			= Default;
 
 		static constexpr auto	_DefTimeout = milliseconds{60'000};
+		static constexpr auto	_Flags1		= EFlags::NoWindow;
+		static constexpr auto	_Flags2		= EFlags(uint(EFlags::NoWindow) | uint(EFlags::ReadOutput));
+		static constexpr usize	_BufSize	= 1 << 12;
 
 
 	// methods
@@ -46,22 +49,24 @@ namespace AE::Base
 		WindowsProcess ()	{}
 		~WindowsProcess ();
 
-		bool  ExecuteAsync (String &commandLine, EFlags flags = EFlags::NoWindow);
-		bool  ExecuteAsync (WString &commandLine, EFlags flags = EFlags::NoWindow);
-		bool  ExecuteAsync (String &commandLine, const Path &currentDir, EFlags flags = EFlags::NoWindow);
-		bool  ExecuteAsync (WString &commandLine, const Path &currentDir, EFlags flags = EFlags::NoWindow);
+		ND_ bool  ExecuteAsync (String &commandLine, EFlags flags = _Flags1);
+		ND_ bool  ExecuteAsync (WString &commandLine, EFlags flags = _Flags1);
+		ND_ bool  ExecuteAsync (String &commandLine, const Path &currentDir, EFlags flags = _Flags1);
+		ND_ bool  ExecuteAsync (WString &commandLine, const Path &currentDir, EFlags flags = _Flags1);
 
 		ND_ bool  IsActive () C_NE___;
 
 		bool  Terminate (milliseconds timeout = _DefTimeout);
 
 		bool  WaitAndClose (milliseconds timeout = _DefTimeout);
-		bool  WaitAndClose (INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
+		bool  WaitAndClose (INOUT String &output, milliseconds timeout = _DefTimeout);
 
-		static bool  Execute (String &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
-		static bool  Execute (WString &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
-		static bool  Execute (String &commandLine, INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
-		static bool  Execute (WString &commandLine, INOUT String &output, Mutex* outputGuard = null, milliseconds timeout = _DefTimeout);
+		bool  ReadOutput (INOUT String &output);
+
+		static bool  Execute (String &commandLine, EFlags flags = _Flags1, milliseconds timeout = _DefTimeout);
+		static bool  Execute (String &commandLine, INOUT String &output, EFlags flags = _Flags2, milliseconds timeout = _DefTimeout);
+		static bool  Execute (String &commandLine, const Path &currentDir, EFlags flags = _Flags1, milliseconds timeout = _DefTimeout);
+		static bool  Execute (String &commandLine, const Path &currentDir, INOUT String &output, EFlags flags = _Flags2, milliseconds timeout = _DefTimeout);
 
 	private:
 		template <typename T>

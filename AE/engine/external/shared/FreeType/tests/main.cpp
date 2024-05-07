@@ -26,5 +26,5 @@ extern int AE_FreeType_Test ()
 int main ()
 #endif
 {
-    return 0;
+	return 0;
 }

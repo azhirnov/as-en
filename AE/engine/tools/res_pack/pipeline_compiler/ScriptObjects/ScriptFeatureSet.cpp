@@ -49,6 +49,7 @@ namespace
 	using SurfaceFormatSet_t	= Graphics::FeatureSet::SurfaceFormatSet_t;
 	using ShadingRateSet_t		= Graphics::FeatureSet::ShadingRateSet_t;
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
+	using EFeature				= Graphics::FeatureSet::EFeature;
 
 	template <typename T>	struct FS_ReplaceType					{ using dst = T;	using src = T;				};
 	template <>				struct FS_ReplaceType< ubyte >			{ using dst = uint;	using src = ubyte;			};
@@ -168,21 +169,21 @@ namespace
 		}
 	}
 
-	static void  FS_IncludeVendorId (ScriptFeatureSet* ptr, EVendorID val) {
+	static void  FS_IncludeVendorId (ScriptFeatureSet* ptr, EGPUVendor val) {
 		ptr->fs.vendorIds.include.insert( val );
 	}
 
-	static void  FS_ExcludeVendorId (ScriptFeatureSet* ptr, EVendorID val) {
+	static void  FS_ExcludeVendorId (ScriptFeatureSet* ptr, EGPUVendor val) {
 		ptr->fs.vendorIds.exclude.insert( val );
 	}
 
-	static void  FS_IncludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EVendorID> &arr) {
+	static void  FS_IncludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EGPUVendor> &arr) {
 		for (auto val : arr) {
 			ptr->fs.vendorIds.include.insert( val );
 		}
 	}
 
-	static void  FS_ExcludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EVendorID> &arr) {
+	static void  FS_ExcludeVendorIds (ScriptFeatureSet* ptr, const ScriptArray<EGPUVendor> &arr) {
 		for (auto val : arr) {
 			ptr->fs.vendorIds.exclude.insert( val );
 		}
@@ -196,11 +197,11 @@ namespace
 		ptr->fs.devicesIds.exclude.insert( val );
 	}
 
-	static void  FS_minSpirvVersion (ScriptFeatureSet* ptr, uint val) {
+	static void  FS_maxSpirvVersion (ScriptFeatureSet* ptr, uint val) {
 		ptr->fs.maxShaderVersion.spirv = CheckCast<ushort>(val);
 	}
 
-	static void  FS_minMetalVersion (ScriptFeatureSet* ptr, uint val) {
+	static void  FS_maxMetalVersion (ScriptFeatureSet* ptr, uint val) {
 		ptr->fs.maxShaderVersion.metal = CheckCast<ushort>(val);
 	}
 
@@ -294,7 +295,7 @@ namespace
 	Build
 =================================================
 */
-	void  ScriptFeatureSet::Build ()
+	void  ScriptFeatureSet::Build () __NE___
 	{
 		// TODO
 		CHECK( fs.IsValid() );
@@ -405,8 +406,8 @@ namespace
 			binder.AddMethodFromGlobalObjFirst( &FS_Copy,							"Copy",							{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_framebufferColorSampleCounts,	"framebufferColorSampleCounts",	{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_framebufferDepthSampleCounts,	"framebufferDepthSampleCounts",	{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_minSpirvVersion,				"minSpirvVersion",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_minMetalVersion,				"minMetalVersion",				{} );
+			binder.AddMethodFromGlobalObjFirst( &FS_maxSpirvVersion,				"maxSpirvVersion",				{} );
+			binder.AddMethodFromGlobalObjFirst( &FS_maxMetalVersion,				"maxMetalVersion",				{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_supportedQueues,				"supportedQueues",				{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_requiredQueues,					"requiredQueues",				{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_AddShadingRate,					"AddShadingRate",				{} );
@@ -442,14 +443,14 @@ namespace
 		se->AddFunction( &ScriptFeatureSet::Find, "FindFeatureSet", {"name"} );
 
 		Unused( &Set_FS_subgroupOperations, &Set_FS_perDescrSet, &Set_FS_perStage,
-			    &Set_FS_storageImageFormats, &Set_FS_storageImageAtomicFormats,
-			    &Set_FS_attachmentBlendFormats, &Set_FS_attachmentFormats,
-			    &Set_FS_vertexFormats, &Set_FS_uniformTexBufferFormats, &Set_FS_storageTexBufferFormats,
-			    &Set_FS_storageTexBufferAtomicFormats, &Set_FS_linearSampledFormats,
-			    &Set_FS_framebufferColorSampleCounts, &Set_FS_framebufferDepthSampleCounts,
+				&Set_FS_storageImageFormats, &Set_FS_storageImageAtomicFormats,
+				&Set_FS_attachmentBlendFormats, &Set_FS_attachmentFormats,
+				&Set_FS_vertexFormats, &Set_FS_uniformTexBufferFormats, &Set_FS_storageTexBufferFormats,
+				&Set_FS_storageTexBufferAtomicFormats, &Set_FS_linearSampledFormats,
+				&Set_FS_framebufferColorSampleCounts, &Set_FS_framebufferDepthSampleCounts,
 				&Set_FS_surfaceFormats, &Set_FS_vendorIds, &Set_FS_devicesIds, &Set_FS_accelStructVertexFormats,
-			    &Set_FS_maxShaderVersion, &Set_FS_queues, &Set_FS_hwCompressedAttachmentFormats,
-			    &Set_FS_lossyCompressedAttachmentFormats, &Set_FS_fragmentShadingRates, &Set_FS_fragmentShadingRateTexelSize );
+				&Set_FS_maxShaderVersion, &Set_FS_queues, &Set_FS_hwCompressedAttachmentFormats,
+				&Set_FS_lossyCompressedAttachmentFormats, &Set_FS_fragmentShadingRates, &Set_FS_fragmentShadingRateTexelSize );
 	}
 
 /*
@@ -460,7 +461,7 @@ namespace
 	void  TestFeature_PixelFormat (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EPixelFormat> FeatureSet::*member,
 								   EPixelFormat fmt, StringView memberName, StringView message) __Th___
 	{
-		CHECK( not features.empty() );
+		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
 		bool	supported = false;
 
@@ -484,7 +485,7 @@ namespace
 	void  TestFeature_VertexType (ArrayView<ScriptFeatureSetPtr> features, EnumSet<EVertexType> FeatureSet::*member,
 								  EVertexType fmt, StringView memberName, StringView message) __Th___
 	{
-		CHECK( not features.empty() );
+		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
 		bool	supported = false;
 

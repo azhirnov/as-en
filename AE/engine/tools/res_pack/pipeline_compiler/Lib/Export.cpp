@@ -1,7 +1,7 @@
 #include "../PipelineCompiler.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
-	extern "C" void* AE_DLL_EXPORT GetCompilePipelines ()
+	extern "C" AE_DLL_EXPORT void* GetCompilePipelines ()
 	{
 		return reinterpret_cast<void*>(&AE::PipelineCompiler::CompilePipelines);
 	}

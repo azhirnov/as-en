@@ -77,17 +77,18 @@ namespace AE::App
 
 		// methods
 		public:
-			TsDoubleBufferedQueue ()																							__NE___;
-			~TsDoubleBufferedQueue ()																							__NE___;
+			TsDoubleBufferedQueue ()														__NE___;
+			~TsDoubleBufferedQueue ()														__NE___;
 
-			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state, const void* data, Bytes dataSize)	__NE___	{ return CurrentQueue().Insert( name, id, state, data, dataSize ); }
-			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state)										__NE___	{ return CurrentQueue().Insert( name, id, state ); }
+			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state,
+						  const void* data, Bytes dataSize)									__NE___	{ return CurrentQueue().Insert( name, id, state, data, dataSize ); }
+			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state)	__NE___	{ return CurrentQueue().Insert( name, id, state ); }
 
-			ND_ TsActionQueue&  CurrentQueue ()																					__NE___	{ return _actionQueues[ _curFrameId.load().Remap2() ]; }
+			ND_ TsActionQueue&  CurrentQueue ()												__NE___	{ return _actionQueues[ _curFrameId.load().Remap2() ]; }
 
-			void  _NextFrame (FrameUID frameId)																					__NE___;
+			void  _NextFrame (FrameUID frameId)												__NE___;
 
-			ND_ ActionQueueReader  _ReadInput (FrameUID frameId)																C_NE___;
+			ND_ ActionQueueReader  _ReadInput (FrameUID frameId)							C_NE___;
 		};
 
 
@@ -99,22 +100,24 @@ namespace AE::App
 
 		// methods
 		public:
-			DoubleBufferedQueueRef (TsDoubleBufferedQueue &q)																	__NE___	: _ref{&q} {}
-			DoubleBufferedQueueRef (DoubleBufferedQueueRef &&other)																__NE___	: _ref{other._ref} { other._ref = null; }
+			DoubleBufferedQueueRef (TsDoubleBufferedQueue &q)								__NE___	: _ref{&q} {}
+			DoubleBufferedQueueRef (DoubleBufferedQueueRef &&other)							__NE___	: _ref{other._ref} { other._ref = null; }
 
-			void  operator = (const DoubleBufferedQueueRef &rhs)																__NE___	{ _ref = rhs._ref; }
+			void  operator = (const DoubleBufferedQueueRef &rhs)							__NE___	{ _ref = rhs._ref; }
 
-			void  NextFrame (FrameUID frameId)																					__NE___	{ _ref->_NextFrame( frameId ); }
+			void  NextFrame (FrameUID frameId)												__NE___	{ _ref->_NextFrame( frameId ); }
 
-			ND_ ActionQueueReader  ReadInput (FrameUID frameId)																	C_NE___	{ return _ref->_ReadInput( frameId ); }
+			ND_ ActionQueueReader  ReadInput (FrameUID frameId)								C_NE___	{ return _ref->_ReadInput( frameId ); }
 
-			ND_ TsDoubleBufferedQueue*			Get ()																			__NE___	{ return _ref.get(); }
-			ND_ TsDoubleBufferedQueue const*	Get ()																			C_NE___	{ return _ref.get(); }
+			ND_ TsDoubleBufferedQueue*			Get ()										__NE___	{ return _ref.get(); }
+			ND_ TsDoubleBufferedQueue const*	Get ()										C_NE___	{ return _ref.get(); }
 
 			template <typename T>
-			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state, const T &data)						__NE___	{ return _ref->Insert( name, id, state, &data, Sizeof(data) ); }
-			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state, const void* data, Bytes dataSize)	__NE___	{ return _ref->Insert( name, id, state, data, dataSize ); }
-			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state)										__NE___	{ return _ref->Insert( name, id, state ); }
+			bool  Insert (InputActionName::Ref name, ControllerID id,
+						  EGestureState state, const T &data)								__NE___	{ return _ref->Insert( name, id, state, &data, Sizeof(data) ); }
+			bool  Insert (InputActionName::Ref name, ControllerID id,
+						  EGestureState state, const void* data, Bytes dataSize)			__NE___	{ return _ref->Insert( name, id, state, data, dataSize ); }
+			bool  Insert (InputActionName::Ref name, ControllerID id, EGestureState state)	__NE___	{ return _ref->Insert( name, id, state ); }
 		};
 
 
@@ -145,79 +148,79 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit InputActionsBase (TsDoubleBufferedQueue* q)													__NE___	: _dbQueueRef{ q != null ? *q : _dbQueue } {}
-		~InputActionsBase ()																					__NE_OV;
+		explicit InputActionsBase (TsDoubleBufferedQueue* q)										__NE___	: _dbQueueRef{ q != null ? *q : _dbQueue } {}
+		~InputActionsBase ()																		__NE_OV;
 
-			void  Update (Duration_t timeSinceStart)															__NE___;
-			void  SetQueue (TsDoubleBufferedQueue *)															__NE___;
+			void  Update (Duration_t timeSinceStart)												__NE___;
+			void  SetQueue (TsDoubleBufferedQueue *)												__NE___;
 
-		ND_ bool  RequiresLockAndHideCursor ()																	C_NE___;
+		ND_ bool  RequiresLockAndHideCursor ()														C_NE___;
 
-		ND_ ESensorBits  RequiredSensorBits ()																	C_NE___	{ DRC_EXLOCK( _drCheck );  return _curMode ? _curMode->enableSensors : Default; }
+		ND_ ESensorBits  RequiredSensorBits ()														C_NE___	{ DRC_EXLOCK( _drCheck );  return _curMode ? _curMode->enableSensors : Default; }
 
-		ND_ static TsDoubleBufferedQueue*  GetQueue (IInputActions* act)										__NE___;
+		ND_ static TsDoubleBufferedQueue*  GetQueue (IInputActions* act)							__NE___;
 
-			void EnableVREmulation ()																			__NE___	{ DRC_EXLOCK( _drCheck );  _vrEmulation = true; }
+			void EnableVREmulation ()																__NE___	{ DRC_EXLOCK( _drCheck );  _vrEmulation = true; }
 
 
 	// IInputActions //
-		void  NextFrame (FrameUID frameId)																		__NE_OV	{ _dbQueueRef.NextFrame( frameId ); }
+		void  NextFrame (FrameUID frameId)															__NE_OV	{ _dbQueueRef.NextFrame( frameId ); }
 
-		ActionQueueReader	ReadInput (FrameUID frameId)														C_NE_OV	{ return _dbQueueRef.ReadInput( frameId ); }
+		ActionQueueReader	ReadInput (FrameUID frameId)											C_NE_OV	{ return _dbQueueRef.ReadInput( frameId ); }
 
-		InputModeName		GetMode ()																			C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _inputMode; }
+		InputModeName		GetMode ()																C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _inputMode; }
 
-		bool  SetMode (InputModeName::Ref value)																__NE_OV;
+		bool  SetMode (InputModeName::Ref value)													__NE_OV;
 
-		bool  GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &)			C_NE_OV;
+		bool  GetReflection (InputModeName::Ref, InputActionName::Ref action, OUT Reflection &)		C_NE_OV;
 
 		bool  BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action,
-							   EValueType type, EGestureType gesture)											__NE_OV;
-		bool  EndBindAction ()																					__NE_OV;
-		bool  IsBindActionActive ()																				C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _bindAction.isActive; }
+							   EValueType type, EGestureType gesture)								__NE_OV;
+		bool  EndBindAction ()																		__NE_OV;
+		bool  IsBindActionActive ()																	C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _bindAction.isActive; }
 
 
 	protected:
-		void  _Reset ()																							__NE___;
+		void  _Reset ()																				__NE___;
 
 		template <typename T>
 		ND_ static constexpr InputKey	_Pack (T key,
 											   EGestureType gesture,
-											   EGestureState state = EGestureState::Update)						__NE___	{ return SerializableInputActions::_Pack( key, gesture, state ); }
+											   EGestureState state = EGestureState::Update)			__NE___	{ return SerializableInputActions::_Pack( key, gesture, state ); }
 
-		ND_ static constexpr auto		_Unpack (InputKey key)													__NE___ -> Tuple< uint, EGestureType, EGestureState > { return SerializableInputActions::_Unpack( key ); }
+		ND_ static constexpr auto		_Unpack (InputKey key)										__NE___ -> Tuple< uint, EGestureType, EGestureState > { return SerializableInputActions::_Unpack( key ); }
 
 
 		template <typename T> void  _Update1F (T type, EGestureType gesture, ControllerID id,
-											   float  value, EGestureState state)								__NE___	{ _Update4F( type, gesture, id, float4{value},           state ); }
+											   float  value, EGestureState state)					__NE___	{ _Update4F( type, gesture, id, float4{value},           state ); }
 		template <typename T> void  _Update2F (T type, EGestureType gesture, ControllerID id,
-											   float2 value, EGestureState state)								__NE___	{ _Update4F( type, gesture, id, float4{value, 0.f, 0.f}, state ); }
+											   float2 value, EGestureState state)					__NE___	{ _Update4F( type, gesture, id, float4{value, 0.f, 0.f}, state ); }
 		template <typename T> void  _Update3F (T type, EGestureType gesture, ControllerID id,
-											   float3 value, EGestureState state)								__NE___	{ _Update4F( type, gesture, id, float4{value, 0.f},      state ); }
+											   float3 value, EGestureState state)					__NE___	{ _Update4F( type, gesture, id, float4{value, 0.f},      state ); }
 		template <typename T> void  _Update4F (T type, EGestureType gesture, ControllerID id,
-											   float4 value, EGestureState state)								__NE___;
+											   float4 value, EGestureState state)					__NE___;
 		template <typename T> void  _UpdateQuatF (T type, EGestureType gesture, ControllerID id,
-												  Quat value, EGestureState state)								__NE___;
+												  Quat value, EGestureState state)					__NE___;
 		template <typename T> void  _UpdateGNS (T type, EGestureType gesture, ControllerID id,
-												const GNSData &value, EGestureState state)						__NE___;
+												const GNSData &value, EGestureState state)			__NE___;
 
 
 		template <typename T>
-		void  _UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp)					__NE___	{ _UpdateKey1( ushort(type), state, id, timestamp ); }
+		void  _UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp)		__NE___	{ _UpdateKey1( ushort(type), state, id, timestamp ); }
 
-		ND_ bool  _IsActiveQueue (const TsDoubleBufferedQueue &q)												C_NE___ { return _dbQueueRef.Get() == &q; }
+		ND_ bool  _IsActiveQueue (const TsDoubleBufferedQueue &q)									C_NE___ { return _dbQueueRef.Get() == &q; }
 
 	private:
 		template <EGestureType GT>
-		void  _Update (INOUT PressedKeys_t::iterator &, Duration_t timeSinceStart)								__NE___;
+		void  _Update (INOUT PressedKeys_t::iterator &, Duration_t timeSinceStart)					__NE___;
 
 		template <EGestureType GT>
-		void  _Skip (INOUT PressedKeys_t::iterator &)															__NE___;
+		void  _Skip (INOUT PressedKeys_t::iterator &)												__NE___;
 
-		void  _UpdateKey1 (ushort type, EGestureState state, ControllerID id, Duration_t timestamp)				__NE___;
+		void  _UpdateKey1 (ushort type, EGestureState state, ControllerID id, Duration_t timestamp)	__NE___;
 
 		template <EGestureType GT>
-		void  _UpdateKey2 (ushort type, EGestureState state, ControllerID id, Duration_t timestamp)				__NE___;
+		void  _UpdateKey2 (ushort type, EGestureState state, ControllerID id, Duration_t timestamp)	__NE___;
 	};
 //-----------------------------------------------------------------------------
 

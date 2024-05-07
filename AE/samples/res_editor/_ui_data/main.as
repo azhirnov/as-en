@@ -7,8 +7,12 @@ void ASmain ()
 	const string	output_temp	= output + "temp";
 
 	array<string>	suffix;
-	suffix.push_back( "vk" );
-	//suffix.push_back( "mac" );
+
+	if ( IsGLSLCompilerSupported() )
+		suffix.push_back( "vk" );
+
+	//if ( IsMetalCompilerSupported() )
+	//	suffix.push_back( "mac" );
 
 	// pipeline compiler
 	for (uint i = 0; i < suffix.size(); ++i)

@@ -96,7 +96,7 @@ namespace {
 					break;
 
 				case EImageUsage::ShadingRate :
-					if ( fs.attachmentFragmentShadingRate != EFeature::RequireTrue )
+					if ( fs.attachmentFragmentShadingRate != FeatureSet::EFeature::RequireTrue )
 						return false;
 
 					required |= VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
@@ -229,7 +229,7 @@ namespace {
 
 		_aspectMask = ChooseAspect( _desc.format );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -282,7 +282,7 @@ namespace {
 		if ( _aspectMask == Zero )
 			_aspectMask = ChooseAspect( _desc.format );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -308,7 +308,7 @@ namespace {
 		_desc			= Default;
 		_aspectMask		= Zero;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

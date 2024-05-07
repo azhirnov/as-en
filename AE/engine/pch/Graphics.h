@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "graphics/Public/GraphicsImpl.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
+#include "graphics/GraphicsImpl.h"
+#include "graphics/RenderGraphImpl.h"
 
 // cleanup defines
 #undef AE_VALIDATE_GCTX

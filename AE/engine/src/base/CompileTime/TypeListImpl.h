@@ -26,6 +26,13 @@ namespace AE::Base::_hidden_
 													TL_GetFirstIndex< RefType, I+1, Tail... >>::value;
 	};
 
+	template <typename RefType, typename ...Types>
+	struct TL_GetFirstIndex2
+	{
+		inline static constexpr usize	value = TL_GetFirstIndex< RefType, 0, Types... >::value;
+		StaticAssert( value != UMax );
+	};
+
 
 	//
 	// TL_GetLastIndex

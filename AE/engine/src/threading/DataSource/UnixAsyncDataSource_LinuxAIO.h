@@ -103,7 +103,7 @@ namespace
 		if constexpr( sizeof(T) == sizeof(R) )
 			return BitCast<R>( u );
 		else
-			return UnsafeBitCast<R>( u );
+			return BitCastRlx<R>( u );
 	}
 
 /*
@@ -121,7 +121,7 @@ namespace
 		if constexpr( sizeof(T*) == sizeof(R) )
 			return BitCast<R>( ptr );
 		else
-			return UnsafeBitCast<R>( ptr );
+			return BitCastRlx<R>( ptr );
 	}
 
 } // namespace
@@ -455,6 +455,9 @@ namespace AE::Threading
 			{
 				auto*			cb	= IntToPtr< iocb *>( events[i].obj );
 				_RequestBase*	res = Cast<_RequestBase>( cb - Bytes{_LinuxAIO_CBOffset});
+
+				if_unlikely( events[i].res < 0 )
+					UNIX_CHECK_DEV2( -events[i].res, "async read/write failed: " );
 
 				res->_Complete( Bytes{ulong(Max( events[i].res, 0 ))}, (events[i].res >= 0) );
 			}

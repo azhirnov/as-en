@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/DataSource/MemStream.h"
 
 #include "graphics/Private/EnumUtils.h"
 
-#include "serializing/Basic/ObjectFactory.h"
+#include "serializing/ObjectFactory.h"
 
 #include "scripting/Impl/ClassBinder.h"
 
@@ -101,11 +101,11 @@ namespace {
 		_LoadImages(); // throw
 
 		{
-			auto	wmem = MakeRC<MemWStream>();
+			auto	wmem = MakeRC<ArrayWStream>();
 			CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
 
-			auto	rmem = wmem->ToRStream();
-			storage.AddToArchive( nameInArchive, *rmem, EArchivePackerFileType::Raw );  // throw
+			MemRefRStream	rmem {wmem->GetData()};
+			storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw );  // throw
 		}
 
 		_info->SetName( nameInArchive );			// throw

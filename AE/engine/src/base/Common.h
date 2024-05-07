@@ -53,12 +53,7 @@ namespace AE::Math
 #include "base/Log/Log.h"
 #include "base/CompileTime/TemplateUtils.h"
 #include "base/CompileTime/TypeTraits.h"
-#include "base/Algorithms/Hash.h"
 #include "base/CompileTime/Constants.h"
-#include "base/CompileTime/DefaultType.h"
-#include "base/Utils/StdFunctions.h"
-#include "base/Containers/Tuple.h"
-#include "base/Containers/HashTable.h"
 
 namespace AE::Base
 {
@@ -124,45 +119,9 @@ namespace AE::Base
 	using nanoseconds	= std::chrono::nanoseconds;
 	using secondsf		= std::chrono::duration<float>;
 	using secondsd		= std::chrono::duration<double>;
+	using nanosecondsf	= std::chrono::duration<float, std::nano>;
 	using nanosecondsd	= std::chrono::duration<double, std::nano>;
 	using minutes		= std::chrono::minutes;
-
-
-/*
-=================================================
-	MakeShared
-=================================================
-*/
-	template <typename T, typename ...Args>
-	ND_ SharedPtr<T>  MakeShared (Args&&... args) __Th___
-	{
-		return std::make_shared<T>( FwdArg<Args>( args )... );
-	}
-
-/*
-=================================================
-	MakeUnique
-=================================================
-*/
-	template <typename T, typename ...Args>
-	ND_ Unique<T>  MakeUnique (Args&&... args) __NE___
-	{
-		CheckNothrow( IsNothrowCtor< T, Args... >);
-		//CheckNothrow( IsNoExcept( new T{ FwdArg<Args>(args)... }));
-
-		return Unique<T>( new T{ FwdArg<Args>( args )... });
-	}
-
-/*
-=================================================
-	MakePair
-=================================================
-*/
-	template <typename A, typename B>
-	ND_ Pair<A,B>  MakePair (A&& first, B&& second) __NE___
-	{
-		return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
-	}
 
 /*
 =================================================
@@ -199,6 +158,92 @@ namespace AE::Base
 	}
 # endif
 #endif
+
+/*
+=================================================
+	Unused
+=================================================
+*/
+	template <typename... Args>
+	constexpr void  Unused (Args&& ...) __NE___ {}
+
+/*
+=================================================
+	ArgRef (same as std::ref)
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr std::reference_wrapper<T>  ArgRef (T &arg) __NE___
+	{
+		return std::reference_wrapper<T>{ arg };
+	}
+
+/*
+=================================================
+	RVRef (same as std::move)
+=================================================
+*/
+	template <typename T>
+	ND_ AE_INTRINSIC constexpr RemoveReference<T>&&  RVRef (T &arg) __NE___
+	{
+		return static_cast< RemoveReference<T>&& >( arg );
+	}
+
+/*
+=================================================
+	FwdArg (same as std::forward)
+=================================================
+*/
+	template <typename T>
+	ND_ AE_INTRINSIC constexpr T&&  FwdArg (RemoveReference<T> &arg) __NE___
+	{
+		return static_cast< T&& >( arg );
+	}
+
+	template <typename T>
+	ND_ AE_INTRINSIC constexpr T&&  FwdArg (RemoveReference<T> &&arg) __NE___
+	{
+		StaticAssert( not IsLValueRef<T> );
+		return static_cast< T&& >( arg );
+	}
+
+/*
+=================================================
+	MakeShared
+=================================================
+*/
+	template <typename T, typename ...Args>
+	ND_ SharedPtr<T>  MakeShared (Args&&... args) __Th___
+	{
+		StaticAssert( IsConstructible< T, Args... >);
+		return std::make_shared<T>( FwdArg<Args>( args )... );
+	}
+
+/*
+=================================================
+	MakeUnique
+=================================================
+*/
+	template <typename T, typename ...Args>
+	ND_ Unique<T>  MakeUnique (Args&&... args) __NE___
+	{
+		StaticAssert( IsConstructible< T, Args... >);
+		CheckNothrow( IsNothrowCtor< T, Args... >);
+		//CheckNothrow( IsNoExcept( new T{ FwdArg<Args>(args)... }));
+
+		return Unique<T>( new T{ FwdArg<Args>( args )... });
+	}
+
+/*
+=================================================
+	MakePair
+=================================================
+*/
+	template <typename A, typename B>
+	ND_ constexpr Pair<A,B>  MakePair (A&& first, B&& second) __NE___
+	{
+		return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -207,10 +252,17 @@ namespace AE::Base
 	template <typename T>	struct TTriviallySerializable< BasicStringView<T> >	{ static constexpr bool  value = false; };
 	template <typename T>	struct TTriviallyDestructible< BasicStringView<T> >	{ static constexpr bool  value = true; };
 
-	template <usize N>		struct TTriviallyDestructible< BitSet<N> >			{ static constexpr bool  value = true; };
+
+	template <usize N>	struct TMemCopyAvailable< BitSet<N> >		{ static constexpr bool  value = true; };
+	template <usize N>	struct TZeroMemAvailable< BitSet<N> >		{ static constexpr bool  value = true; };
+	template <usize N>	struct TTriviallySerializable< BitSet<N> >	{ static constexpr bool  value = false; };
+	template <usize N>	struct TTriviallyDestructible< BitSet<N> >	{ static constexpr bool  value = true; };
 
 } // AE::Base
 
+#include "base/Algorithms/Hash.h"
+#include "base/Containers/Tuple.h"
+#include "base/Containers/HashTable.h"
 
 namespace AE
 {

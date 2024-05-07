@@ -9,7 +9,7 @@ target_include_directories( "zstd-lib" INTERFACE "${ZSTD_PATH}/include" )
 target_compile_definitions( "zstd-lib" INTERFACE "AE_ENABLE_ZSTD" "AE_LICENSE_BSD_3" )
 install( FILES "${ZSTD_PATH}/LICENSE" DESTINATION "3party_license" RENAME "zstd-LICENSE" )
 
-if (DEFINED ANDROID)
+if (ANDROID)
 	set_property( TARGET "zstd-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${ZSTD_PATH}/lib/${ANDROID_ABI}/libzstd.a")
 elseif(WIN32)

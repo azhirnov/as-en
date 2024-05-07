@@ -1,4 +1,13 @@
 
+## CI/CD
+
+Always tested on multiple devices:
+* Android 9/10/13 with Adreno/Mali/PowerVR GPUs
+* Windows10 with AMD/NVidia/Intel GPUs
+* Ubuntu23 with NVidia/Intel GPUs
+* MacOS14 on MacMiniM1
+
+
 ## Base
 
 ### System info

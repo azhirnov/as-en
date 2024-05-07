@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_VULKAN
+# include "graphics/Private/ResourceValidation.h"
 # include "graphics/Vulkan/Resources/VRTScene.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
@@ -40,14 +41,18 @@ namespace AE::Graphics
 		VkBufferCreateInfo	buf_ci = {};
 		buf_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		buf_ci.flags		= 0;
-		buf_ci.usage		= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+		buf_ci.usage		= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 		buf_ci.size			= VkDeviceSize( _desc.size );
 		buf_ci.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
 
 		auto&	dev = resMngr.GetDevice();
 		VK_CHECK_ERR( dev.vkCreateBuffer( dev.GetVkDevice(), &buf_ci, null, OUT &_buffer ));
 
-		_memoryId = resMngr.CreateMemoryObj( _buffer, BufferDesc{}.SetMemory( EMemoryType::DeviceLocal ), RVRef(allocator), dbgName );
+		_memoryId = resMngr.CreateMemoryObj( _buffer,
+											 BufferDesc{}
+												.SetUsage( EBufferUsage::ShaderAddress )
+												.SetMemory( EMemoryType::DeviceLocal ),
+											 RVRef(allocator), dbgName );
 		CHECK_ERR( _memoryId );
 
 		VkAccelerationStructureCreateInfoKHR	blas_ci = {};
@@ -69,7 +74,7 @@ namespace AE::Graphics
 		_address = BitCast<DeviceAddress>( dev.vkGetAccelerationStructureDeviceAddressKHR( dev.GetVkDevice(), &addr_info ));
 		CHECK_ERR( _address != Default );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -98,7 +103,7 @@ namespace AE::Graphics
 		_buffer			= Default;
 		_desc			= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -211,15 +216,7 @@ namespace AE::Graphics
 */
 	bool  VRTScene::IsSupported (const VResourceManager &resMngr, const RTSceneDesc &desc) __NE___
 	{
-		if_unlikely( resMngr.GetFeatureSet().accelerationStructure() != EFeature::RequireTrue )
-			return false;
-
-		if_unlikely( desc.size == 0 )
-			return false;
-
-		// TODO: desc.options
-
-		return true;
+		return RTScene_IsSupported( resMngr, desc );
 	}
 
 /*

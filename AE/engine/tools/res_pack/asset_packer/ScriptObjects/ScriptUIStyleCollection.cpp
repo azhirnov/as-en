@@ -277,7 +277,7 @@ namespace AE::AssetPacker
 	void  ScriptUIStyleCollection::Store (const String &nameInArchive) __Th___
 	{
 		{
-			auto	wmem = MakeRC<MemWStream>();
+			auto	wmem = MakeRC<ArrayWStream>();
 			try{
 				_Pack( wmem );  // throw
 			}catch(...) {
@@ -285,8 +285,8 @@ namespace AE::AssetPacker
 					"failed to serialize UI style collection '"s << nameInArchive << "'" );
 			}
 
-			auto	rmem = wmem->ToRStream();
-			ObjectStorage::Instance()->AddToArchive( nameInArchive, *rmem, EArchivePackerFileType::InMemory );  // throw
+			MemRefRStream	rmem {wmem->GetData()};
+			ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::InMemory );  // throw
 		}
 
 		_styleMap.clear();

@@ -46,6 +46,7 @@ namespace AE::Profiler
 		GraphicsScheduler().SetProfiler( _graphics );
 
 		_timer.Start( start_time, secondsf{1.f} );
+		_enabled.store( true );
 
 		return true;
 	}
@@ -95,12 +96,23 @@ namespace AE::Profiler
 */
 	void  ProfilerUI::_Update ()
 	{
-		if_unlikely( auto dt = _timer.Tick() )
+		const auto	dt = _timer.Tick();
+
+		if_likely( not dt )
+		{
+		//	if ( _task )		_task	 ->Tick();
+		//	if ( _graphics )	_graphics->Tick();
+		//	if ( _memory )		_memory	 ->Tick();
+			if ( _hwpcProf )	_hwpcProf->Tick();
+		}
+		else
 		{
 			if ( _task )		_task	 ->Update( dt );
 			if ( _graphics )	_graphics->Update( dt );
 			if ( _memory )		_memory	 ->Update( dt );
-			if ( _hwpcProf )	_hwpcProf->Update( dt );
+			if ( _hwpcProf )	_hwpcProf->Update( dt, _frameCount );
+
+			_frameCount = 0;
 		}
 	}
 
@@ -112,6 +124,8 @@ namespace AE::Profiler
 #ifdef AE_ENABLE_IMGUI
 	void  ProfilerUI::DrawImGUI ()
 	{
+		++_frameCount;
+
 		if_likely( not _enabled.load() )
 			return;
 
@@ -131,6 +145,8 @@ namespace AE::Profiler
 */
 	void  ProfilerUI::Draw (Graphics::Canvas &canvas)
 	{
+		++_frameCount;
+
 		if_likely( not _enabled.load() )
 			return;
 
@@ -142,10 +158,12 @@ namespace AE::Profiler
 		if ( _hwpcProf )	_hwpcProf->Draw( canvas );
 	}
 
+//-----------------------------------------------------------------------------
 #else
 
 	ProfilerUI::~ProfilerUI ()											{}
 	bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase>)	{ return true; }
+	bool  ProfilerUI::IsInitialized () const							{ return false; }
 	void  ProfilerUI::Deinitialize ()									{}
 	void  ProfilerUI::Enable (bool)										{}
 	void  ProfilerUI::DrawImGUI ()										{}

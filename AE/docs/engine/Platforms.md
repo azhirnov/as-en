@@ -42,19 +42,12 @@ Supported platforms
 ## Linux
 
 - [x] OS: Ubuntu 22, 23
-- [ ] OS: Debian
-- [ ] OS: Fedora
-- [ ] OS: Arch
-- [ ] OS: openSUSE
-- [ ] OS: Orange PI
-- [ ] OS: SteamOS
-- [ ] OS: Alpine
 - [x] Architecture: x64
 - [ ] Architecture: ARM64
 - [ ] Architecture: RISC-V 64
 - [x] Compiler: GCC12
 - [x] Compiler: Clang15
-- [ ] CPU info (not tested)
+- [x] CPU info
 - [ ] Memory info (not tested)
 - [x] Thread affinity
 - [x] Thread priority
@@ -67,7 +60,7 @@ Supported platforms
 - [ ] Writable folder
 - [x] Input: mouse, keyboard
 - Audio:
-	- [x] BASS
+	- [ ] BASS (not tested)
 	- [ ] native
 - [x] Graphics:
 	- Vulkan (by default requires timeline semaphore)
@@ -81,11 +74,8 @@ Supported platforms
 ## Android
 
 - [x] OS: Android 7+ (SDK 24)
-- [ ] OS: LineageOS
-- [ ] OS: GrapheneOS
 - [x] Architecture: ARMv8, ARMv7
 - [ ] Architecture: x86, x64 - supported but not tested
-- [ ] Architecture: RISC-V 64
 - [x] Compiler: Clang
 - [x] CPU info
 - [ ] Memory info
@@ -103,7 +93,7 @@ Supported platforms
 - [ ] Input: external keyboard, gamepad (not tested)
 - [x] Input: sensors
 - Audio:
-	- [x] BASS
+	- [ ] BASS (not tested)
 	- [ ] native
 - [x] Graphics: Vulkan (without timeline semaphore)
 - [x] Display Cutout
@@ -130,7 +120,7 @@ Supported platforms
 - [ ] Writable folder
 - [x] Input: mouse, keyboard
 - Audio:
-	- [x] BASS
+	- [ ] BASS (not tested)
 	- [ ] native
 - Graphics:
 	- [x] Metal API 2.x

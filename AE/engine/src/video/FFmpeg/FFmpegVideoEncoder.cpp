@@ -12,24 +12,15 @@
 
 namespace AE::Video
 {
-namespace {
-	FFmpegLoader	ffmpeg;
-}
-
 /*
 =================================================
 	constructor
 =================================================
 */
-	FFmpegVideoEncoder::FFmpegVideoEncoder () __NE___ :
-		_videoPacket{},
-		_ffmpegLoaded{ ffmpeg.Load() }
+	FFmpegVideoEncoder::FFmpegVideoEncoder () __NE___
 	{
 		EXLOCK( _guard );
-		ASSERT( _ffmpegLoaded );
-
-		if ( _ffmpegLoaded )
-			ffmpeg.av_init_packet( OUT &_videoPacket );
+		ASSERT( _ffmpeg.IsLoaded() );
 	}
 
 /*
@@ -43,8 +34,6 @@ namespace {
 
 		Unused( _End() );
 		_Destroy();
-
-		ffmpeg.Unload();
 	}
 
 /*
@@ -56,7 +45,7 @@ namespace {
 	{
 		EXLOCK( _guard );
 
-		CHECK_ERR( _ffmpegLoaded );
+		CHECK_ERR( _ffmpeg.IsLoaded() );
 		CHECK_ERR( not _encodingStarted );
 
 		ASSERT( _formatCtx == null	and
@@ -75,7 +64,7 @@ namespace {
 		_frameCounter		= 0;
 		_encodingStarted	= true;
 
-		AE_LOG_DBG( "Used codec: "s << _codec->long_name );
+		AE_LOG_DBG( "Used codec: "s << _codec->long_name << " (" << _codec->name << ')' );
 		AE_LOG_DBG( "Begin recording to temporary: '"s << _tempFile << "', resulting: '" << _videoFile << "'" );
 		return true;
 	}
@@ -89,7 +78,7 @@ namespace {
 	{
 		EXLOCK( _guard );
 
-		CHECK_ERR( _ffmpegLoaded );
+		CHECK_ERR( _ffmpeg.IsLoaded() );
 		CHECK_ERR( not _encodingStarted );
 
 		CHECK_ERR( tempStream and tempStream->IsOpen() );
@@ -112,7 +101,7 @@ namespace {
 		_frameCounter		= 0;
 		_encodingStarted	= true;
 
-		AE_LOG_DBG( "Used codec: "s << _codec->long_name );
+		AE_LOG_DBG( "Used codec: "s << _codec->long_name << " (" << _codec->name << ')' );
 		return true;
 	}
 
@@ -121,7 +110,7 @@ namespace {
 	_ValidateResolution
 =================================================
 */
-	void  FFmpegVideoEncoder::_ValidateResolution ()
+	void  FFmpegVideoEncoder::_ValidateResolution () __NE___
 	{
 		// round to multiple of 4
 		_config.dstDim.x = AlignDown( _config.srcDim.x, 2_pot );
@@ -133,19 +122,25 @@ namespace {
 	_CreateCodec
 =================================================
 */
-	bool  FFmpegVideoEncoder::_CreateCodec ()
+	bool  FFmpegVideoEncoder::_CreateCodec () __NE___
 	{
 		bool	scaling = false;
 
 		if ( All( IsZero( _config.dstDim )) )
 			_config.dstDim = _config.srcDim;
 
-		if ( _config.bitrate == Bitrate_t{0} )
+		if ( _config.bitrate == Bitrate{0} )
 			_config.bitrate = _CalcBitrate( _config );
+
+		if ( _config.hwAccelerated == EHwAcceleration::Disable )
+		{
+			_config.targetCPU	= Default;
+			_config.targetGPU	= Default;
+		}
 
 		for (;;)
 		{
-			if ( _CreateCodecImpl() )
+			if ( _CreateCodec2() )
 				break;
 
 			if ( not scaling )
@@ -165,140 +160,189 @@ namespace {
 /*
 =================================================
 	_CreateCodec2
-=================================================
-*/
-	bool  FFmpegVideoEncoder::_CreateCodecImpl ()
-	{
-		const CodecInfo		codec_info	= _GetEncoderInfo( _config );
-		const AVCodec*		codec		= null;
-
-		_remuxRequired	= codec_info.remux;
-		_hasBFrames		= codec_info.hasBFrames;
-
-		for (auto* codec_name : codec_info.codecs)
-		{
-			codec = ffmpeg.avcodec_find_encoder_by_name( codec_name );
-			if ( codec != null and _CreateStream( codec, codec_info.format ))
-				return true;
-		}
-
-		const AVOutputFormat*	format = ffmpeg.av_guess_format( codec_info.format, null, null );
-		if ( format == null )
-			return false;
-
-		AE_LOG_DBG( "Failed to find encoder for format: "s << format->long_name );
-		return false;
-	}
-
-/*
-=================================================
-	_GetEncoderInfo
 ----
 	add list of hardware accelerated encoders
 	https://trac.ffmpeg.org/wiki/HWAccelIntro
+----
+	https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new
 =================================================
 */
-	FFmpegVideoEncoder::CodecInfo  FFmpegVideoEncoder::_GetEncoderInfo (const Config &cfg)
+	bool  FFmpegVideoEncoder::_CreateCodec2 () __NE___
 	{
-		CodecInfo	result;
+		const auto	format			= EnumCast( _config.dstFormat );
+		const char*	format_name		= null;
+		Bool		remux_required	= True{};
 
-		result.remux		= true;
-		result.hasBFrames	= false;
-
-		switch_enum( cfg.codec )
+		switch_enum( _config.codec )
 		{
+			case EVideoCodec::MPEG4 :	format_name = "mpeg4";	break;
+			case EVideoCodec::H264 :	format_name = "h264";	break;
+			case EVideoCodec::H265 :	format_name = "hevc";	break;
+			case EVideoCodec::H266 :	format_name = "vvc";	break;
+			case EVideoCodec::VP8 :
+			case EVideoCodec::VP9 :		format_name = "webm";	break;
+			case EVideoCodec::WEBP :	format_name = "webp";	remux_required = false;	break;
+			case EVideoCodec::AV1 :		format_name = "av1";	break;
+
+			case EVideoCodec::Unknown :
+			case EVideoCodec::_Count :
+			default :					RETURN_ERR( "codec is not supported" );
+		}
+		switch_end
+
+		const auto	CreateCodec = [&] (const char* codecName, bool hasBFrames = false)
+		{{
+			auto*	codec = _ffmpeg->avcodec_find_encoder_by_name( codecName );
+			if ( codec == null )
+				return false;
+
+			ASSERT( _ffmpeg->av_codec_is_encoder( codec ));
+
+			if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Require )
+				return false;
+
+			if ( (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Disable )
+				return false;
+
+			// check format
+			if ( codec->pix_fmts != null )
+			{
+				for (auto* pix_fmts = codec->pix_fmts;  *pix_fmts != -1; ++pix_fmts)
+				{
+					if ( format == CorrectPixFormat( *pix_fmts ))
+						return _CreateStream( codec, format_name, remux_required, Bool{hasBFrames} );
+				}
+				return false;
+			}
+			return _CreateStream( codec, format_name, remux_required, Bool{hasBFrames} );
+		}};
+
+		const bool	is_NV		= (_config.targetGPU >= EGraphicsDeviceID::_NV_Begin and _config.targetGPU <= EGraphicsDeviceID::_NV_End);
+		const bool	is_Intel	= _config.targetCPU == ECPUVendor::Intel or
+								  (_config.targetGPU >= EGraphicsDeviceID::_Intel_Begin and _config.targetGPU <= EGraphicsDeviceID::_Intel_End);
+		const bool	is_AMD		= (_config.targetGPU >= EGraphicsDeviceID::_AMD_Begin and _config.targetGPU <= EGraphicsDeviceID::_AMD_End);
+
+		switch_enum( _config.codec )
+		{
+			case EVideoCodec::MPEG4 :
+			{
+				if ( CreateCodec( "mpeg4" ))
+					return true;
+				break;
+			}
 			case EVideoCodec::H264 :
 			{
-				result.format = "h264";
-
-				if ( cfg.hwAccelerated )
+				if ( _config.hwAccelerated != EHwAcceleration::Disable )
 				{
-					// nvidia gpu
-					// see https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new
-					if ( cfg.targetGPU >= EGraphicsDeviceID::_NV_Begin and cfg.targetGPU <= EGraphicsDeviceID::_NV_End )
-					{
-						result.codecs.push_back( "h264_nvenc" );
-						result.hasBFrames	= (cfg.targetGPU >= EGraphicsDeviceID::NV_Turing);	// requires 7th Gen+
-					}
+					if ( is_NV and CreateCodec( "h264_nvenc", (_config.targetGPU >= EGraphicsDeviceID::NV_Turing) ))
+						return true;
 
-					// amd gpu (windows only)
-					if ( cfg.targetGPU >= EGraphicsDeviceID::_AMD_Begin and cfg.targetGPU <= EGraphicsDeviceID::_AMD_End )
-						result.codecs.push_back( "h264_amf" );
+					if ( is_AMD and CreateCodec( "h264_amf" ))
+						return true;
 
-					// intel cpu
-					if ( cfg.targetCPU == ECPUVendor::Intel )
-						result.codecs.push_back( "h264_qsv" );
+					if ( is_Intel and CreateCodec( "h264_qsv" ))
+						return true;
 
-				//	result.codecs.push_back( "h264_v4l2m2m" );		// linux only	// TODO
-				//	result.codecs.push_back( "h264_vaapi" );		// linux only
-				//	result.codecs.push_back( "h264_videotoolbox" );	// MacOS only
+					// "h264_v4l2m2m"		// linux only	// TODO
+					// "h264_vaapi"			// linux only
+					// "h264_videotoolbox"	// MacOS only
+
+					if ( CreateCodec( "h264_mf" ))		// windows only?
+						return true;
 				}
-				result.codecs.push_back( "libx264" );
+
+				// sorted by priority
+				{
+					if ( CreateCodec( "libx264" ))
+						return true;
+
+					if ( CreateCodec( "libopenh264" ))
+						return true;
+				}
 				break;
 			}
 			case EVideoCodec::H265 :
 			{
-				result.format = "hevc";
-
-				if ( cfg.hwAccelerated )
+				if ( _config.hwAccelerated != EHwAcceleration::Disable )
 				{
-					// nvidia gpu
-					// see https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new
-					if ( cfg.targetGPU >= EGraphicsDeviceID::_NV_Begin and cfg.targetGPU <= EGraphicsDeviceID::_NV_End )
-					{
-						result.codecs.push_back( "hevc_nvenc" );
-						result.hasBFrames	= (cfg.targetGPU >= EGraphicsDeviceID::NV_Turing);	// requires 7th Gen+
-					}
+					if ( is_NV and CreateCodec( "hevc_nvenc", (_config.targetGPU >= EGraphicsDeviceID::NV_Turing) ))
+						return true;
 
-					// amd gpu (windows only)
-					if ( cfg.targetGPU >= EGraphicsDeviceID::_AMD_Begin and cfg.targetGPU <= EGraphicsDeviceID::_AMD_End )
-						result.codecs.push_back( "hevc_amf" );
+					if ( is_AMD and CreateCodec( "hevc_amf" ))
+						return true;
 
-					// intel cpu
-					if ( cfg.targetCPU == ECPUVendor::Intel )
-						result.codecs.push_back( "hevc_qsv" );
+					if ( is_Intel and CreateCodec( "hevc_qsv" ))
+						return true;
+
+					if ( CreateCodec( "hevc_mf" ))	// windows only?
+						return true;
 				}
-				result.codecs.push_back( "libx265" );
+
+				// sorted by priority
+				{
+					if ( CreateCodec( "libx265" ))
+						return true;
+
+					if ( CreateCodec( "libkvazaar" ))
+						return true;
+				}
+				break;
+			}
+			case EVideoCodec::H266 :
+			{
+				// not known codecs
 				break;
 			}
 			case EVideoCodec::VP8 :
 			{
-				result.format = "webm";
-				result.codecs.push_back( "libvpx" );
+				if ( CreateCodec( "libvpx" ))
+					return true;
+
 				break;
 			}
 			case EVideoCodec::VP9 :
 			{
-				result.format = "webm";
-				result.codecs.push_back( "libvpx-vp9" );
+				if ( _config.hwAccelerated != EHwAcceleration::Disable )
+				{
+					if ( is_Intel and CreateCodec( "vp9_qsv" ))
+						return true;
+				}
+				if ( CreateCodec( "libvpx-vp9" ))
+					return true;
+
 				break;
 			}
 			case EVideoCodec::WEBP :
 			{
-				result.remux	= false;
-				result.format	= "webp";
-				result.codecs.push_back( "libwebp_anim" );
+				// "libwebp_anim"
+				// "libwebp"
 				break;
 			}
 			case EVideoCodec::AV1 :
 			{
-				result.format	= "av1";
-				result.codecs.push_back( "libdav1d" );
-				result.codecs.push_back( "libaom-av1" );
-				result.codecs.push_back( "libsvtav1" );
-				result.codecs.push_back( "librav1e" );
+				// "libdav1d"
+				// "libaom-av1"
+				// "libsvtav1"
+				// "librav1e"
 				break;
 			}
 
-			case EVideoCodec::GIF :
-			case EVideoCodec::MPEG4 :		// TODO
 			case EVideoCodec::Unknown :
 			case EVideoCodec::_Count :
 				break;
 		}
 		switch_end
 
-		return result;
+		auto	codec_id = EnumCast( _config.codec );
+		if ( codec_id != AV_CODEC_ID_NONE )
+		{
+			auto*	codec = _ffmpeg->avcodec_find_encoder( codec_id );
+			if ( codec != null and _CreateStream( codec, format_name, remux_required, False{"no b-frames"} ))
+				return true;
+		}
+
+		AE_LOG_DBG( "Failed to find encoder for format: "s << ToString( _config.codec ));
+		return false;
 	}
 
 /*
@@ -306,7 +350,7 @@ namespace {
 	_CalcBitrate
 =================================================
 */
-	IVideoEncoder::Bitrate_t  FFmpegVideoEncoder::_CalcBitrate (const Config &)
+	Bitrate  FFmpegVideoEncoder::_CalcBitrate (const Config &) __NE___
 	{
 		// TODO
 		return {};
@@ -317,117 +361,161 @@ namespace {
 	_CreateStream
 =================================================
 */
-	bool  FFmpegVideoEncoder::_CreateStream (const AVCodec* codec, const char* videoFormat)
+	bool  FFmpegVideoEncoder::_CreateStream (const AVCodec* codec, const char* videoFormat, Bool remuxRequired, Bool hasBFrames) __NE___
 	{
 		_DestroyStream();
 
-		_codec		= codec;
-		_tempFile	= _remuxRequired ? (_videoFile + ".temp") : _videoFile;
+		_remuxRequired	= remuxRequired;
+		_hasBFrames		= hasBFrames;
+		_codec			= codec;
+		_tempFile		= _remuxRequired ? (_videoFile + ".temp") : _videoFile;
 
-		// create codec context
+		// create format context
 		{
-			_format = ffmpeg.av_guess_format( videoFormat, null, null );
+			_format = _ffmpeg->av_guess_format( videoFormat, null, null );
 			CHECK_ERR( _format != null );
 
-			FF_CHECK_ERR( ffmpeg.avformat_alloc_output_context2( OUT &_formatCtx, _format, null, _tempFile.c_str() ));
+			FF_CHECK_ERR( _ffmpeg->avformat_alloc_output_context2( OUT &_formatCtx, _format, null, _tempFile.c_str() ));
 
-			_codecCtx = ffmpeg.avcodec_alloc_context3( _codec );
-			CHECK_ERR( _codecCtx != null );
-		}
+			_formatCtx->max_interleave_delta	= INT64_MAX;
+			_formatCtx->strict_std_compliance	= FF_COMPLIANCE_VERY_STRICT;
 
-		// create video stream
-		{
-			_videoStream = ffmpeg.avformat_new_stream( _formatCtx, _codec );
-			CHECK_ERR( _videoStream != null );
-
-			_videoStream->codecpar->codec_id	= _codec->id;
-			_videoStream->codecpar->codec_type	= _codec->type;
-			_videoStream->codecpar->width		= int(_config.dstDim.x);
-			_videoStream->codecpar->height		= int(_config.dstDim.y);
-			_videoStream->codecpar->format		= EnumCast( _config.dstFormat );
-			_videoStream->codecpar->bit_rate	= slong(_config.bitrate.GetNonScaled());
-			_videoStream->time_base				= ToAVRational( _config.framerate );
-
-			_ValidatePixelFormat( OUT _videoStream->codecpar->format );
-
-			CHECK( EnumCast( _config.colorPreset,
-							 OUT _videoStream->codecpar->color_range,
-							 OUT _videoStream->codecpar->color_primaries,
-							 OUT _videoStream->codecpar->color_trc,
-							 OUT _videoStream->codecpar->color_space,
-							 OUT _videoStream->codecpar->chroma_location ));
-
-			FF_CHECK( ffmpeg.avcodec_parameters_to_context( _codecCtx, _videoStream->codecpar ));
-
-			_codecCtx->time_base		= ToAVRationalRec( _config.framerate );
-			_codecCtx->framerate		= ToAVRational( _config.framerate );
-			_codecCtx->max_b_frames		= _hasBFrames ? 1 : 0;
-			_codecCtx->gop_size			= 10;	// emit one intra frame every X frames
-
-			if ( _formatCtx->oformat->flags & AVFMT_GLOBALHEADER )
-				_codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-
-			FF_CHECK( ffmpeg.avcodec_parameters_from_context( _videoStream->codecpar, _codecCtx ));
+			_ffmpeg->av_dict_set( &_formatCtx->metadata, "encoding_tool", AE_ENGINE_NAME, 0 );
 		}
 
 		// create IO context
 		if ( _tempStream )
 		{
-			_ioCtx = ffmpeg.avio_alloc_context( null, 0, 1, _tempStream.get(), null, &_IOWritePacket, null );
+			_ioCtx = _ffmpeg->avio_alloc_context( null, 0, 1, _tempStream.get(), null, &_IOWritePacket, null );
 			CHECK_ERR( _ioCtx != null );
 
 			_formatCtx->pb		= _ioCtx;
 			_formatCtx->flags	|= AVFMT_FLAG_CUSTOM_IO;
 		}
 
-		// create output file
+		// create codec context
 		{
+			_codecCtx = _ffmpeg->avcodec_alloc_context3( _codec );
+			CHECK_ERR( _codecCtx != null );
+
+			_codecCtx->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
+			_codecCtx->width		= int(_config.dstDim.x);
+			_codecCtx->height		= int(_config.dstDim.y);
+			_codecCtx->time_base	= ToAVRationalRec( _config.framerate );
+			_codecCtx->framerate	= ToAVRational( _config.framerate );
+			_codecCtx->pix_fmt		= EnumCast( _config.dstFormat );
+			_codecCtx->bit_rate		= slong(_config.bitrate.GetNonScaled());
+
+			_ValidatePixelFormat( INOUT _codecCtx->pix_fmt );
+
+			CHECK( EnumCast( _config.colorPreset,
+							 OUT _codecCtx->color_range,
+							 OUT _codecCtx->color_primaries,
+							 OUT _codecCtx->color_trc,
+							 OUT _codecCtx->colorspace,
+							 OUT _codecCtx->chroma_sample_location ));
+
+			if ( _formatCtx->oformat->flags & AVFMT_GLOBALHEADER )
+				_codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+			// override some parameters
+			if ( AllBits( codec->capabilities, AV_CODEC_CAP_FRAME_THREADS ))
+			{
+				_codecCtx->thread_type	= FF_THREAD_FRAME;
+				_codecCtx->thread_count	= Max( _codecCtx->thread_count, int(_config.threadCount) );
+			}
+			else
+			if ( AllBits( codec->capabilities, AV_CODEC_CAP_SLICE_THREADS ))
+			{
+				_codecCtx->thread_type	= FF_THREAD_SLICE;
+				_codecCtx->thread_count	= Max( _codecCtx->thread_count, int(_config.threadCount) );
+			}
+
 			AVDictionary*	codec_options	= null;
 			_SetOptions( INOUT &codec_options );
 
-			int	err = ffmpeg.avcodec_open2( _codecCtx, _codec, INOUT &codec_options );
-			ffmpeg.av_dict_free( &codec_options );
+			int	err = _ffmpeg->avcodec_open2( _codecCtx, _codec, INOUT &codec_options );
+			_ffmpeg->av_dict_free( &codec_options );
 			FF_CHECK( err );
 
 			// try without options
-			if ( err != 0 )
+			if_unlikely( err != 0 )
 			{
-				err = ffmpeg.avcodec_open2( _codecCtx, _codec, null );
+				err = _ffmpeg->avcodec_open2( _codecCtx, _codec, null );
 				FF_CHECK_ERR( err );
 			}
+		}
 
+		// create video stream
+		{
+			_videoStream = _ffmpeg->avformat_new_stream( _formatCtx, _codec );
+			CHECK_ERR( _videoStream != null );
+
+			_videoStream->time_base			= _codecCtx->time_base;
+			_videoStream->avg_frame_rate	= av_inv_q( _codecCtx->time_base );
+			_videoStream->start_time		= 0;
+			_videoStream->id				= _formatCtx->nb_streams - 1;
+
+			FF_CHECK( _ffmpeg->avcodec_parameters_from_context( INOUT _videoStream->codecpar, _codecCtx ));
+		}
+
+		// create output file
+		{
 			if ( _ioCtx == null and not (_format->flags & AVFMT_NOFILE) )
-				FF_CHECK_ERR( ffmpeg.avio_open( OUT &_formatCtx->pb, _tempFile.c_str(), AVIO_FLAG_WRITE ));
+				FF_CHECK_ERR( _ffmpeg->avio_open( OUT &_formatCtx->pb, _tempFile.c_str(), AVIO_FLAG_WRITE ));
 
-			FF_CHECK_ERR( ffmpeg.avformat_write_header( _formatCtx, null ));
+			int err = _ffmpeg->avformat_write_header( _formatCtx, null );
+			if ( not AnyEqual( err, AVSTREAM_INIT_IN_WRITE_HEADER, AVSTREAM_INIT_IN_INIT_OUTPUT ))
+				FF_CHECK_ERR( err );
 
-			ffmpeg.av_dump_format( _formatCtx, 0, _tempFile.c_str(), 1 );
+			DEBUG_ONLY( _ffmpeg->av_dump_format( _formatCtx, 0, _tempFile.c_str(), 1 );)
 
-			_videoFrame						= ffmpeg.av_frame_alloc();
+			_videoFrame = _ffmpeg->av_frame_alloc();
+			CHECK_ERR( _videoFrame != null );
+
 			_videoFrame->format				= _codecCtx->pix_fmt;
 			_videoFrame->width				= int(_config.dstDim.x);
 			_videoFrame->height				= int(_config.dstDim.y);
+			_videoFrame->time_base			= _codecCtx->time_base;
 			_videoFrame->color_range		= _codecCtx->color_range;
 			_videoFrame->color_primaries	= _codecCtx->color_primaries;
 			_videoFrame->color_trc			= _codecCtx->color_trc;
 			_videoFrame->colorspace			= _codecCtx->colorspace;
 			_videoFrame->chroma_location	= _codecCtx->chroma_sample_location;
 
-			FF_CHECK_ERR( ffmpeg.av_frame_get_buffer( _videoFrame, 32 ));
+			FF_CHECK_ERR( _ffmpeg->av_frame_get_buffer( INOUT _videoFrame, 0 ));
 		}
 
 		// create scaler
 		{
-			const AVPixelFormat	src_fmt = PixelFormatCast( _config.srcFormat );
-			const int			filter	= EnumCast( _config.filter );
+			AVPixelFormat		src_fmt		= PixelFormatCast( _config.srcFormat );
+			const AVPixelFormat	dst_fmt		= _codecCtx->pix_fmt;
+			const int			filter		= EnumCast( _config.filter );
 
+			if ( src_fmt == AV_PIX_FMT_NONE )
+			{
+				src_fmt				= dst_fmt;
+				_config.srcFormat	= PixelFormatCast( src_fmt );
+			}
 			CHECK_ERR( src_fmt != AV_PIX_FMT_NONE );
 
-			_swsCtx = ffmpeg.sws_getContext( int(_config.srcDim.x), int(_config.srcDim.y), src_fmt,
-											 _codecCtx->width, _codecCtx->height, _codecCtx->pix_fmt,
-											 filter, null, null, null );
-			CHECK_ERR( _swsCtx != null );
+			if ( src_fmt			 == dst_fmt			and
+				 All( _config.srcDim == _config.dstDim ))
+			{
+				// don't create '_swsCtx'
+			}
+			else
+			{
+				_swsCtx = _ffmpeg->sws_getContext( int(_config.srcDim.x), int(_config.srcDim.y), src_fmt,
+												 _codecCtx->width, _codecCtx->height, dst_fmt,
+												 filter, null, null, null );
+				CHECK_ERR( _swsCtx != null );
+			}
 		}
+
+		_videoPacket = _ffmpeg->av_packet_alloc();
+		CHECK_ERR( _videoPacket != null );
+
 		return true;
 	}
 
@@ -436,7 +524,7 @@ namespace {
 	_ValidatePixelFormat
 =================================================
 */
-	void  FFmpegVideoEncoder::_ValidatePixelFormat (OUT int &outFormat) const
+	void  FFmpegVideoEncoder::_ValidatePixelFormat (OUT AVPixelFormat &outFormat) C_NE___
 	{
 		// check supported pixel format
 		EnumSet<EVideoFormat>	supported_fmts;
@@ -466,14 +554,14 @@ namespace {
 	_SetOptions
 =================================================
 */
-	void  FFmpegVideoEncoder::_SetOptions (INOUT AVDictionary **dict) const
+	void  FFmpegVideoEncoder::_SetOptions (INOUT AVDictionary **dict) C_NE___
 	{
 		if ( _config.quality < 0.f )
 			return;
 
 		const uint			quality		= Clamp( uint(_config.quality * 9.f + 0.5f), 0u, 9u );
 		FixedString<64>		preset;
-		StringView			codec_name {_codec->name};
+		StringView			codec_name	{_codec->name};
 
 		if ( codec_name == "h264_nvec" or
 			 codec_name == "hevc_nvenc" )
@@ -505,7 +593,7 @@ namespace {
 		}
 
 		if ( preset.size() )
-			FF_CHECK( ffmpeg.av_dict_set( INOUT dict, "preset", preset.c_str(), 0 ));
+			FF_CHECK( _ffmpeg->av_dict_set( INOUT dict, "preset", preset.c_str(), 0 ));
 	}
 
 /*
@@ -515,19 +603,32 @@ namespace {
 */
 	bool  FFmpegVideoEncoder::AddFrame (const ImageMemView &view, Bool endOnError) __NE___
 	{
+		return _AddFrame2( view, endOnError );
+	}
+
+	bool  FFmpegVideoEncoder::AddFrame (const ImageMemViewArr &memViewArr, Bool endOnError) __NE___
+	{
+		return _AddFrame2( memViewArr, endOnError );
+	}
+
+/*
+=================================================
+	_AddFrame2
+=================================================
+*/
+	template <typename ViewType>
+	bool  FFmpegVideoEncoder::_AddFrame2 (const ViewType &view, Bool endOnError) __NE___
+	{
 		EXLOCK( _guard );
 
 		if_unlikely( not _encodingStarted )
 			return false;
 
-		ASSERT( _codecCtx != null );
-		CHECK_ERR( view.Parts().size() == 1 );
-		CHECK_ERR( int(view.Dimension().x) == _codecCtx->width );
-		CHECK_ERR( int(view.Dimension().y) == _codecCtx->height );
-		CHECK_ERR( view.Dimension().z == 1 );
-		CHECK_ERR( view.Format() == _config.srcFormat );
+		CHECK_ERR(	_codecCtx != null	and
+					_formatCtx != null	and
+					_videoFrame != null );
 
-		if_likely( _AddFrameImpl( view ))
+		if_likely( _AddFrame3( view ))
 		{
 			++_frameCounter;
 			return true;
@@ -542,9 +643,9 @@ namespace {
 			const AVCodec*	codec		= _codec;
 			String			fmt_name	= _format->name;
 
-			if ( _CreateStream( codec, fmt_name.c_str() ))
+			if ( _CreateStream( codec, fmt_name.c_str(), Bool{_remuxRequired}, Bool{_hasBFrames} ))
 			{
-				if ( _AddFrameImpl( view ))
+				if ( _AddFrame3( view ))
 				{
 					++_frameCounter;
 					return true;
@@ -562,33 +663,26 @@ namespace {
 
 /*
 =================================================
-	AddFrame
-=================================================
-*
-	bool  FFmpegVideoEncoder::AddFrame (VideoImageID, Bool) __NE___
-	{
-		// not supported
-		return false;
-	}
-
-/*
-=================================================
-	_AddFrameImpl
+	_AddFrame3
 =================================================
 */
-	bool  FFmpegVideoEncoder::_AddFrameImpl (const ImageMemView &view)
+	inline bool  FFmpegVideoEncoder::_AddFrame3 (const ImageMemView &view) __NE___
 	{
-		ASSERT( _codecCtx != null	and
-				_formatCtx != null	and
-				_videoFrame != null	and
-				_swsCtx != null );
+		CHECK_ERR( view.Parts().size() == 1 );
+		CHECK_ERR( int(view.Dimension().x) == _codecCtx->width );
+		CHECK_ERR( int(view.Dimension().y) == _codecCtx->height );
+		CHECK_ERR( view.Dimension().z == 1 );
+		CHECK_ERR( view.Format() == _config.srcFormat );
+		CHECK_ERR( _swsCtx != null );
+
+		FF_CHECK_ERR( _ffmpeg->av_frame_make_writable( _videoFrame ));
 
 		const int		src_stride  [AV_NUM_DATA_POINTERS]	= { int(view.RowPitch()) };
 		const ubyte*	src_slice   [AV_NUM_DATA_POINTERS]	= { Cast<ubyte>( view.Parts().front().ptr )};
 		const int		src_slice_y							= 0;
 
-		const int	scaled_h = ffmpeg.sws_scale( _swsCtx, src_slice, src_stride, src_slice_y, int(_config.srcDim.y),
-												 OUT _videoFrame->data, _videoFrame->linesize );
+		const int	scaled_h = _ffmpeg->sws_scale( _swsCtx, src_slice, src_stride, src_slice_y, int(_config.srcDim.y),
+												   OUT _videoFrame->data, _videoFrame->linesize );
 
 		if_unlikely( scaled_h < 0 or scaled_h != _codecCtx->height )
 		{
@@ -596,27 +690,143 @@ namespace {
 			return false;
 		}
 
+		return _AddFrame4();
+	}
+
+/*
+=================================================
+	_AddFrame3
+=================================================
+*/
+	inline bool  FFmpegVideoEncoder::_AddFrame3 (const ImageMemViewArr &memViewArr) __NE___
+	{
+		ASSERT( memViewArr.size() == 3 );
+		ASSERT( EPixelFormat_IsYcbcr( _config.srcFormat ));
+
+		// validate
+	  #ifdef AE_DEBUG
+		for (usize i = 0; i < memViewArr.size(); ++i)
+		{
+			EPixelFormat	plane_fmt;
+			uint2			dim_scale;
+			CHECK( EPixelFormat_GetPlaneInfo( _config.srcFormat, EImageAspect_Plane(i), OUT plane_fmt, OUT dim_scale ));
+
+			auto&	view = memViewArr[i];
+			CHECK( view.Format() == plane_fmt );
+			CHECK( All( IsMultipleOf( _config.dstDim, dim_scale )));
+			CHECK( All( uint2{view.Dimension()} == (_config.dstDim / dim_scale) ));
+		}
+	  #endif
+
+		FF_CHECK_ERR( _ffmpeg->av_frame_make_writable( _videoFrame ));
+
+		// scale frame
+		if ( _swsCtx != null )
+		{
+			const int		src_slice_y							= 0;
+			int				src_stride [AV_NUM_DATA_POINTERS]	= {};
+			const ubyte*	src_slice  [AV_NUM_DATA_POINTERS]	= {};
+
+			for (usize i = 0; i < memViewArr.size(); ++i)
+			{
+				auto&	view = memViewArr[i];
+				ASSERT( view.Parts().size() == 1 );	// TODO: error?
+				ASSERT( view.Format() == _config.srcFormat );
+
+				src_stride[i]	= int(view.RowPitch());
+				src_slice[i]	= Cast<ubyte>( view.Parts().front().ptr );
+			}
+
+			const int	scaled_h = _ffmpeg->sws_scale( _swsCtx, src_slice, src_stride, src_slice_y, int(_config.srcDim.y),
+													   OUT _videoFrame->data, _videoFrame->linesize );
+
+			if_unlikely( scaled_h < 0 or scaled_h != _codecCtx->height )
+			{
+				FF_CHECK( scaled_h );
+				return false;
+			}
+		}
+		else
+		// copy without scaling
+		// memory must be aligned to 16 bytes
+		{
+			for (usize i = 0; i < memViewArr.size(); ++i)
+			{
+				auto&		view = memViewArr[i];
+				ASSERT( view.RowPitch() <= _videoFrame->linesize[i] );
+				ASSERT( view.Format() == _config.srcFormat );
+
+				const auto	src_pitch	= view.RowPitch();
+				const auto	dst_pitch	= Bytes{uint(_videoFrame->linesize[i])};
+				const auto	pitch		= Min( src_pitch, dst_pitch );
+				Bytes		dst_off;
+
+				for (auto& part : view.Parts())
+				{
+					Bytes	src_off;
+					for_likely (; src_off < part.size; )
+					{
+						MemCopy16( OUT _videoFrame->data[i] + dst_off, part.ptr + src_off, pitch );
+						src_off += src_pitch;
+						dst_off += dst_pitch;
+					}
+					ASSERT( src_off == part.size );
+				}
+			}
+		}
+
+		return _AddFrame4();
+	}
+
+/*
+=================================================
+	_AddFrame4
+=================================================
+*/
+	inline bool  FFmpegVideoEncoder::_AddFrame4 () __NE___
+	{
+		const slong		dur	= 1;
+
 		_videoFrame->pts = _frameCounter;
 
-		FF_CHECK_ERR( ffmpeg.avcodec_send_frame( _codecCtx, _videoFrame ));
+		int err = _ffmpeg->avcodec_send_frame( _codecCtx, _videoFrame );
+		if_unlikely( err < 0 )
+		{
+			if ( err == AVERROR(EAGAIN) )
+			{
+				CHECK( _ReceivePackets( dur ));
+				FF_CHECK_ERR( _ffmpeg->avcodec_send_frame( _codecCtx, _videoFrame ));
+			}
+			else
+				FF_CHECK_ERR( err );
+		}
 
+		return _ReceivePackets( dur );
+	}
+
+/*
+=================================================
+	_ReceivePackets
+=================================================
+*/
+	inline bool  FFmpegVideoEncoder::_ReceivePackets (slong dur) __NE___
+	{
 		for (int err = 0; err >= 0;)
 		{
-			err = ffmpeg.avcodec_receive_packet( _codecCtx, &_videoPacket );
+			err = _ffmpeg->avcodec_receive_packet( _codecCtx, OUT _videoPacket );
 
 			if ( err == AVERROR(EAGAIN) or err == AVERROR_EOF )
 				return true;
 
 			FF_CHECK_ERR( err );
 
-			_videoPacket.flags		|= AV_PKT_FLAG_KEY;
-			_videoPacket.pts		= _frameCounter;
-			_videoPacket.dts		= _frameCounter;
-			_videoPacket.duration	= 1;			// TODO
-			_videoPacket.pos		= -1;
+			_videoPacket->duration		= dur;
+			_videoPacket->stream_index	= _videoStream->index;
 
-			err = ffmpeg.av_interleaved_write_frame( _formatCtx, &_videoPacket );
-			ffmpeg.av_packet_unref( &_videoPacket );
+			_ffmpeg->av_packet_rescale_ts( INOUT _videoPacket, _codecCtx->time_base, _videoStream->time_base );
+
+			err = _ffmpeg->av_interleaved_write_frame( _formatCtx, _videoPacket );
+			_ffmpeg->av_packet_unref( _videoPacket );
 
 			FF_CHECK_ERR( err );
 		}
@@ -628,27 +838,16 @@ namespace {
 	_Finish
 =================================================
 */
-	bool  FFmpegVideoEncoder::_Finish ()
+	bool  FFmpegVideoEncoder::_Finish () __NE___
 	{
-		ASSERT( _codecCtx != null	and
-				_formatCtx != null );
+		NonNull( _codecCtx );
+		NonNull( _formatCtx );
 
-		FF_CHECK_ERR( ffmpeg.avcodec_send_frame( _codecCtx, null ));
+		// flush codec
+		FF_CHECK_ERR( _ffmpeg->avcodec_send_frame( _codecCtx, null ));
+		CHECK_ERR( _ReceivePackets( 1 ));
 
-		for (int err = 0; err >= 0;)
-		{
-			err = ffmpeg.avcodec_receive_packet( _codecCtx, &_videoPacket );
-
-			if ( err == AVERROR(EAGAIN) or err == AVERROR_EOF )
-				break;
-
-			FF_CHECK_ERR( err );
-
-			FF_CHECK( ffmpeg.av_interleaved_write_frame( _formatCtx, &_videoPacket ));
-			ffmpeg.av_packet_unref( &_videoPacket );
-		}
-
-		FF_CHECK( ffmpeg.av_write_trailer( _formatCtx ));
+		FF_CHECK( _ffmpeg->av_write_trailer( _formatCtx ));
 		return true;
 	}
 
@@ -663,7 +862,7 @@ namespace {
 		return _End();
 	}
 
-	bool  FFmpegVideoEncoder::_End ()
+	bool  FFmpegVideoEncoder::_End () __NE___
 	{
 		if_unlikely( not _encodingStarted )
 			return false;
@@ -694,9 +893,10 @@ namespace {
 		{
 			case EVideoCodec::H264 :
 			case EVideoCodec::H265 :
+			case EVideoCodec::H266 :
 			case EVideoCodec::AV1 :
 			case EVideoCodec::MPEG4 :
-				return "mp4";
+				return "mp4";	// TODO: .mkv ?
 
 			case EVideoCodec::WEBP :
 				return "webp";
@@ -704,9 +904,6 @@ namespace {
 			case EVideoCodec::VP8 :
 			case EVideoCodec::VP9 :
 				return "webm";
-
-			case EVideoCodec::GIF :
-				return "gif";
 
 			case EVideoCodec::Unknown :
 			case EVideoCodec::_Count :	break;
@@ -720,25 +917,25 @@ namespace {
 	_DestroyStream
 =================================================
 */
-	void  FFmpegVideoEncoder::_DestroyStream ()
+	void  FFmpegVideoEncoder::_DestroyStream () __NE___
 	{
 		if ( (_formatCtx != null) and (_format != null) and not (_format->flags & AVFMT_NOFILE) )
-			FF_CHECK( ffmpeg.avio_closep( &_formatCtx->pb ));
+			FF_CHECK( _ffmpeg->avio_closep( &_formatCtx->pb ));
 
 		if ( _formatCtx != null )
-			ffmpeg.avformat_free_context( _formatCtx );
+			_ffmpeg->avformat_free_context( _formatCtx );
 
 		if ( _codecCtx != null )
-			ffmpeg.avcodec_free_context( &_codecCtx );
+			_ffmpeg->avcodec_free_context( &_codecCtx );
 
 		if ( _videoFrame != null )
-			ffmpeg.av_frame_free( &_videoFrame );
+			_ffmpeg->av_frame_free( &_videoFrame );
 
 		if ( _swsCtx != null )
-			ffmpeg.sws_freeContext( _swsCtx );
+			_ffmpeg->sws_freeContext( _swsCtx );
 
 		if ( _ioCtx != null )
-			ffmpeg.avio_context_free( &_ioCtx );
+			_ffmpeg->avio_context_free( &_ioCtx );
 
 		_format			= null;
 		_formatCtx		= null;
@@ -748,6 +945,7 @@ namespace {
 		_codecCtx		= null;
 		_swsCtx			= null;
 		_ioCtx			= null;
+		_tempStream		= null;
 	}
 
 /*
@@ -755,9 +953,14 @@ namespace {
 	_Destroy
 =================================================
 */
-	void  FFmpegVideoEncoder::_Destroy ()
+	void  FFmpegVideoEncoder::_Destroy () __NE___
 	{
 		_DestroyStream();
+
+		if ( _videoPacket != null )
+			_ffmpeg->av_packet_free( &_videoPacket );
+
+		_videoPacket		= null;
 
 		_remuxRequired		= false;
 		_encodingStarted	= false;
@@ -769,7 +972,6 @@ namespace {
 		_tempFile.clear();
 		_videoFile.clear();
 
-		_tempStream			= null;
 		_dstStream			= null;
 	}
 
@@ -778,7 +980,7 @@ namespace {
 	_Remux
 =================================================
 */
-	bool  FFmpegVideoEncoder::_Remux ()
+	bool  FFmpegVideoEncoder::_Remux () __NE___
 	{
 		CHECK_ERR( not _tempFile.empty() and not _videoFile.empty() );
 
@@ -788,25 +990,25 @@ namespace {
 		bool				remuxed			= _RemuxImpl( ifmt_ctx, ofmt_ctx, stream_mapping );
 
 		if ( ifmt_ctx != null )
-			ffmpeg.avformat_close_input( &ifmt_ctx );
+			_ffmpeg->avformat_close_input( &ifmt_ctx );
 
 		if ( (ofmt_ctx != null) and not (ofmt_ctx->oformat->flags & AVFMT_NOFILE) )
-			ffmpeg.avio_closep( &ofmt_ctx->pb );
+			_ffmpeg->avio_closep( &ofmt_ctx->pb );
 
 		if ( ofmt_ctx != null )
-			ffmpeg.avformat_free_context( ofmt_ctx );
+			_ffmpeg->avformat_free_context( ofmt_ctx );
 
-		ffmpeg.av_freep( &stream_mapping );
+		_ffmpeg->av_free( stream_mapping );
 
 		if ( remuxed )
 		{
-			CHECK( FileSystem::Remove( _tempFile ));
+			CHECK( FileSystem::DeleteFile( _tempFile ));
 		}
 		else
 		{
 			// keep temporary file if remux failed
-			FileSystem::Remove( _videoFile );
-			FileSystem::Rename( _tempFile, _videoFile );
+			FileSystem::DeleteFile( _videoFile );
+			CHECK( FileSystem::Rename( _tempFile, _videoFile ));
 		}
 		AE_LOG_DBG( "End remuxing: '"s << _videoFile << "'" );
 
@@ -818,16 +1020,18 @@ namespace {
 	_RemuxImpl
 =================================================
 */
-	bool  FFmpegVideoEncoder::_RemuxImpl (AVFormatContext* &ifmtCtx, AVFormatContext* &ofmtCtx, int* &streamMapping)
+	bool  FFmpegVideoEncoder::_RemuxImpl (AVFormatContext* &ifmtCtx, AVFormatContext* &ofmtCtx, int* &streamMapping) __NE___
 	{
-		FF_CHECK_ERR( ffmpeg.avformat_open_input( OUT &ifmtCtx, _tempFile.c_str(), 0, 0 ));
-		FF_CHECK_ERR( ffmpeg.avformat_find_stream_info( ifmtCtx, 0 ));
-		ffmpeg.av_dump_format( ifmtCtx, 0, _tempFile.c_str(), 0 );
+		CHECK_ERR( _videoPacket != null );
 
-		FF_CHECK_ERR( ffmpeg.avformat_alloc_output_context2( OUT &ofmtCtx, null, null, _videoFile.c_str() ));
+		FF_CHECK_ERR( _ffmpeg->avformat_open_input( OUT &ifmtCtx, _tempFile.c_str(), 0, 0 ));
+		FF_CHECK_ERR( _ffmpeg->avformat_find_stream_info( ifmtCtx, 0 ));
+		DEBUG_ONLY( _ffmpeg->av_dump_format( ifmtCtx, 0, _tempFile.c_str(), 0 );)
+
+		FF_CHECK_ERR( _ffmpeg->avformat_alloc_output_context2( OUT &ofmtCtx, null, null, _videoFile.c_str() ));
 
 		int stream_mapping_size	= ifmtCtx->nb_streams;
-		streamMapping			= Cast<int>( ffmpeg.av_mallocz_array( stream_mapping_size, sizeof(*streamMapping) ));
+		streamMapping			= Cast<int>( _ffmpeg->av_calloc( stream_mapping_size, sizeof(*streamMapping) ));
 		CHECK_ERR( streamMapping != null );
 
 		int stream_index = 0;
@@ -847,57 +1051,59 @@ namespace {
 
 			streamMapping[i] = stream_index++;
 
-			out_stream = ffmpeg.avformat_new_stream( ofmtCtx, null );
+			out_stream = _ffmpeg->avformat_new_stream( ofmtCtx, null );
 			CHECK_ERR( out_stream != null );
 
-			FF_CHECK_ERR( ffmpeg.avcodec_parameters_copy( out_stream->codecpar, in_codecpar ));
+			FF_CHECK_ERR( _ffmpeg->avcodec_parameters_copy( INOUT out_stream->codecpar, in_codecpar ));
 
 			out_stream->codecpar->codec_tag = 0;
-			out_stream->time_base		= in_stream->time_base;
-			out_stream->r_frame_rate	= in_stream->r_frame_rate;
+			out_stream->time_base		= ToAVRationalRec( _config.framerate );
+			out_stream->avg_frame_rate	= av_inv_q( out_stream->time_base );
 			out_stream->nb_frames		= _frameCounter;
-			out_stream->duration		= (ToFractional( out_stream->time_base ) * _config.framerate).Div_RTS( _frameCounter );
-			out_stream->start_time		= 0;
+		//	out_stream->duration		= _frameCounter;
 		}
 
-		ffmpeg.av_dump_format( ofmtCtx, 0, _videoFile.c_str(), 1 );
+		DEBUG_ONLY( _ffmpeg->av_dump_format( ofmtCtx, 0, _videoFile.c_str(), 1 );)
 
-		if ( not (ofmtCtx->oformat->flags & AVFMT_NOFILE) )
-			FF_CHECK_ERR( ffmpeg.avio_open( &ofmtCtx->pb, _videoFile.c_str(), AVIO_FLAG_WRITE ));
+		if ( (ofmtCtx->oformat->flags & AVFMT_NOFILE) == 0 )
+			FF_CHECK_ERR( _ffmpeg->avio_open( &ofmtCtx->pb, _videoFile.c_str(), AVIO_FLAG_WRITE ));
 
-		FF_CHECK_ERR( ffmpeg.avformat_write_header( ofmtCtx, null ));
+		FF_CHECK_ERR( _ffmpeg->avformat_write_header( ofmtCtx, null ));
 
-		AVPacket	pkt = {};
-		slong		ts	= 0;
+		auto&	pkt = *_videoPacket;
+		slong	pts	= 0;
+		slong	dts	= 0;
 
 		for (;;)
 		{
 			AVStream*	in_stream	= null;
 			AVStream*	out_stream	= null;
 
-			if ( ffmpeg.av_read_frame( ifmtCtx, OUT &pkt ) < 0 )
+			if ( _ffmpeg->av_read_frame( ifmtCtx, OUT &pkt ) < 0 )
 				break;
 
-			in_stream  = ifmtCtx->streams[ pkt.stream_index ];
 			if ( pkt.stream_index >= stream_mapping_size or
 				 streamMapping[ pkt.stream_index ] < 0 )
 			{
-				ffmpeg.av_packet_unref( &pkt );
+				_ffmpeg->av_packet_unref( &pkt );
 				continue;
 			}
 
+			in_stream			= ifmtCtx->streams[ pkt.stream_index ];
 			pkt.stream_index	= streamMapping[ pkt.stream_index ];
 			out_stream			= ofmtCtx->streams[ pkt.stream_index ];
 
-			pkt.pts		= ts;
-			pkt.dts		= ts;
-			pkt.duration= ffmpeg.av_rescale_q( pkt.duration, in_stream->time_base, out_stream->time_base );
-			pkt.pos		= -1;
+			pkt.duration = _ffmpeg->av_rescale_q( pkt.duration, in_stream->time_base, out_stream->time_base );
 
-			ts += pkt.duration;
+			pkt.pts	 = pts;
+			pkt.dts	 = dts;
+			pkt.pos	 = -1;
 
-			int		err = ffmpeg.av_interleaved_write_frame( ofmtCtx, &pkt );
-			ffmpeg.av_packet_unref( &pkt );
+			dts	= pts;
+			pts	+= pkt.duration;
+
+			int		err = _ffmpeg->av_interleaved_write_frame( ofmtCtx, &pkt );
+			_ffmpeg->av_packet_unref( &pkt );
 
 			if_unlikely( err < 0 )
 			{
@@ -906,7 +1112,7 @@ namespace {
 			}
 		}
 
-		FF_CHECK( ffmpeg.av_write_trailer( ofmtCtx ));
+		FF_CHECK( _ffmpeg->av_write_trailer( ofmtCtx ));
 		return true;
 	}
 
@@ -915,7 +1121,7 @@ namespace {
 	_IOWritePacket
 =================================================
 */
-	int  FFmpegVideoEncoder::_IOWritePacket (void* opaque, ubyte* buf, int buf_size)
+	int  FFmpegVideoEncoder::_IOWritePacket (void* opaque, ubyte* buf, int buf_size) __NE___
 	{
 		auto*	stream = Cast<WStream>( opaque );
 
@@ -923,6 +1129,106 @@ namespace {
 			return AVERROR_UNKNOWN;
 
 		return int(stream->WriteSeq( buf, Bytes{ulong(buf_size)} ));
+	}
+
+/*
+=================================================
+	PrintCodecs
+=================================================
+*/
+	String  FFmpegVideoEncoder::PrintCodecs (const EVideoCodec type) C_Th___
+	{
+		const AVCodecID	codec_id	= EnumCast( type );
+		String			str			= "codec id:  "s << ToString(type) << '\n';
+
+		if ( codec_id == AV_CODEC_ID_NONE )
+			return {};
+
+		for (void* opaque = null;;)
+		{
+			auto*	codec = _ffmpeg->av_codec_iterate( &opaque );
+			if ( codec == null )
+				break;
+
+			if ( codec->id != codec_id )
+				continue;
+
+			if ( _ffmpeg->av_codec_is_encoder( codec ) == 0 )
+				continue;
+
+			str << "  name:. . . . . " << codec->name << " (" << codec->long_name << ")\n";
+
+			if ( codec->pix_fmts != null )
+			{
+				str << "  pix_formats:   { ";
+				for (auto* pix_fmts = codec->pix_fmts;  *pix_fmts != -1; ++pix_fmts)
+				{
+					auto	fmt		= EnumCast( *pix_fmts );
+					auto	name	= (fmt != Default ? ToString( fmt ) : PixFmtToString( *pix_fmts ));
+					if ( name.empty() ) {
+						AE_LOGI( "skip format: "s << ToString(*pix_fmts) );
+						continue;
+					}
+					str << name << ", ";
+				}
+				str.pop_back();
+				str.pop_back();
+				str << " }\n";
+			}
+
+			str << "  frame threads: " << ToString((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) != 0) << '\n';
+			str << "  slice threads: " << ToString((codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) != 0) << '\n';
+			str << "  delay:         " << ToString((codec->capabilities & AV_CODEC_CAP_DELAY) != 0) << '\n';
+
+		  #if 0
+			bool	supported = false;
+			{
+				auto	codec_ctx = _ffmpeg->avcodec_alloc_context3( _codec );
+				if ( codec_ctx != null and codec->pix_fmts != null )
+				{
+					codec_ctx->pix_fmt = *codec->pix_fmts;
+
+					if ( _ffmpeg->avcodec_open2( codec_ctx, codec, null ) == 0 )
+					{
+						supported = true;
+						_ffmpeg->avcodec_free_context( &codec_ctx );
+					}
+				}
+			}
+			str << "  supported:     " << ToString( supported ) << '\n';
+		  #endif
+
+			if ( codec->capabilities & AV_CODEC_CAP_HARDWARE )
+			{
+				str << "  hw config:     {\n";
+				for (int i = 0; i < 1000; ++i)
+				{
+					auto*	hw_cfg = _ffmpeg->avcodec_get_hw_config( codec, i );
+					if ( hw_cfg == null )
+						break;
+
+					auto	fmt		= EnumCast( hw_cfg->pix_fmt );
+					auto	name	= (fmt != Default ? ToString( fmt ) : PixFmtToString( hw_cfg->pix_fmt ));
+					if ( name.empty() ) {
+						AE_LOGI( "skip format: "s << ToString(hw_cfg->pix_fmt) );
+						continue;
+					}
+
+					str << "    pix fmt:  " << name << '\n';
+
+					if ( hw_cfg->methods & (AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX | AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) )
+					{
+						str << "    device:   " << ToString( hw_cfg->device_type ) << '\n';
+					}
+					str << "    ----\n";
+				}
+				str << "  }\n";
+			}
+
+			str << "----------\n";
+		}
+
+		return str;
 	}
 
 /*

@@ -6,7 +6,7 @@
 #include "base/Memory/AllocatorHelper.h"
 #include "base/Math/Byte.h"
 #include "base/Math/POTValue.h"
-#include "base/Utils/RefCounter.h"
+#include "base/Pointers/RefCounter.h"
 
 namespace AE::Base
 {
@@ -21,7 +21,7 @@ namespace AE::Base
 
 	public:
 		template <typename T>
-		ND_ T*				Allocate (usize count = 1)								__NE___	{ return Cast<T>( Allocate( SizeAndAlignOf<T> * count )); }
+		ND_ T*				Allocate (usize count = 1)								__NE___	{ ASSERT( count > 0 );  return Cast<T>( Allocate( SizeAndAlignOf<T> * count )); }
 
 		ND_ virtual void*	Allocate (Bytes size)									__NE___	{ return Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
 			virtual void	Deallocate (void* ptr, Bytes size)						__NE___	{ return Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
@@ -254,7 +254,7 @@ namespace AE::Base
 		IAllocatorAdaptor ()											__NE___ {}
 		IAllocatorAdaptor (IAllocatorAdaptor &&other)					__NE___ : _alloc{ RVRef(other._alloc) } {}
 
-		template <typename ...Args>
+		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
 		explicit IAllocatorAdaptor (Args&& ... args)					__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		using IAllocator::Allocate;
@@ -282,7 +282,7 @@ namespace AE::Base
 		IAllocatorAdaptor (IAllocatorAdaptor &&other)					__NE___ : _alloc{ RVRef(other._alloc) } {}
 		explicit IAllocatorAdaptor (const AllocatorRef<T> &ref)			__NE___ : _alloc{ ref.GetAllocatorRef() } {}
 
-		template <typename ...Args>
+		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
 		explicit IAllocatorAdaptor (Args&& ... args)					__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		using IAllocator::Allocate;

@@ -5,8 +5,8 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_COMPUTE
-#	define AE_COOP_MATRIX
-#	define AE_MEM_SCOPE
+#	define AE_cooperative_matrix
+#	define AE_memory_scope_semantics
 #	include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------

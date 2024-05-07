@@ -3,66 +3,15 @@
 #include "platform/Android/ApplicationAndroid.h"
 #include "platform/GLFW/ApplicationGLFW.h"
 #include "platform/WinAPI/ApplicationWinAPI.h"
+#include "vfs/VirtualFileSystem.h"
 
+using namespace AE::VFS;
 using namespace AE::App;
-
-extern int Test_Base ();
-extern int Test_Scripting ();
-extern int Test_Serializing ();
-extern int Test_Threading ();
-extern int Test_Networking ();
-extern int Test_Platform (IApplication &app, IWindow &wnd);
-extern int Test_Graphics (IApplication &app, IWindow &wnd);
-extern int Test_GraphicsHL (IApplication &app, IWindow &wnd);
-extern int Test_ECSst ();
-extern int Test_VFS ();
-extern int Test_AtlasTools ();
-extern int Test_GeometryTools ();
-
-extern int PerformanceTests_Base ();
-extern int PerformanceTests_Threading ();
-
-
-class AppListener;
-
-class WndListener final : public IWindow::IWndListener
-{
-private:
-	IApplication&	_app;
-	AppListener&	_al;
-	IWindow*		_wnd	= null;
-
-public:
-	WndListener (IApplication &app, AppListener &al)	__NE___ : _app{app}, _al{al} {}
-	~WndListener ()										__NE_OV {}
-
-	void  OnStateChanged (IWindow &, EState state)		__NE_OV
-	{
-		switch ( state )
-		{
-			case EState::Created :		AE_LOGI( "State: Created" );		break;
-			case EState::Started :		AE_LOGI( "State: Started" );		break;
-			case EState::InForeground :	AE_LOGI( "State: InForeground" );	break;
-			case EState::Focused :		AE_LOGI( "State: Focused" );		break;
-			case EState::InBackground :	AE_LOGI( "State: InBackground" );	break;
-			case EState::Stopped :		AE_LOGI( "State: Stopped" );		break;
-			case EState::Destroyed :	AE_LOGI( "State: Destroyed" );		break;
-		}
-	}
-
-	void  OnSurfaceCreated (IWindow &wnd) __NE_OV;
-
-	void  OnSurfaceDestroyed (IWindow &) __NE_OV
-	{
-		AE_LOGI( "OnSurfaceDestroyed" );
-	}
-};
 
 
 class AppListener final : public IApplication::IAppListener
 {
 private:
-	WindowPtr		_window;
 	StdThread		_thread;
 	Atomic<bool>	_complete	{false};
 
@@ -72,82 +21,76 @@ public:
 
 	void  OnStart (IApplication &app)			__NE_OV
 	{
-		_window = app.CreateWindow( MakeUnique<WndListener>( app, *this ), Default );
-		CHECK_FATAL( _window );
+		_thread = StdThread{ [this, a = &app]()
+					{
+						ThreadUtils::SetName( "--test--" );
+						_RunTests( *a );
+						_complete.store( true );
+					}};
 	}
 	void  OnStop (IApplication &)				__NE_OV {}
 
-	void  BeforeWndUpdate (IApplication &a)		__NE_OV {}
-	void  AfterWndUpdate (IApplication &a)		__NE_OV
+	void  BeforeWndUpdate (IApplication &)		__NE_OV {}
+	void  AfterWndUpdate (IApplication &app)	__NE_OV
 	{
 		if ( _complete.load() )
+			app.Terminate();
+	}
+
+	template <typename ...Args>
+	void  _LoadAndRun (StringView libName, StringView fnName, Args ...args) const
+	{
+		Library	lib;
+		if ( lib.Load( libName ))
 		{
-			a.Terminate();
+			int (*fn) (Args...);
+			if ( lib.GetProcAddr( fnName, OUT fn ))
+			{
+				AE_LOGI( "-- Begin "s << libName );
+				fn( args... );
+			}
+			else
+				AE_LOGE( "Failed to get fn "s << fnName << " from " << libName );
 		}
+		else
+			AE_LOGE( "Failed to load "s << libName );
 	}
 
-	void  RunTests (IApplication &app, IWindow &wnd)
+	void  _RunTests (IApplication &app) const
 	{
-		_thread = StdThread{ [this, a = &app, w = &wnd]() { _RunTests( *a, *w ); }};
-	}
+		auto			asset_storage	= app.OpenStorage( EAppStorage::Builtin );
+		auto			cache_storage	= app.OpenStorage( EAppStorage::ExternalCache );
+		const String	cache_path		= ToString( app.GetStoragePath( EAppStorage::ExternalCache ));
 
-	void  _RunTests (IApplication &app, IWindow &wnd)
-	{
-		#ifdef AE_TEST_BASE
-			Test_Base();
-		#endif
-		#ifdef AE_TEST_SCRIPTING
-			Test_Scripting();
-		#endif
-		#ifdef AE_TEST_SERIALIZING
-			Test_Serializing();
-		#endif
-		#ifdef AE_TEST_THREADING
-			Test_Threading();
-		#endif
-		#ifdef AE_TEST_NETWORKING
-			Test_Networking();
-		#endif
-		#ifdef AE_TEST_PLATFORM
-			Test_Platform( app, wnd );
-		#endif
-		#ifdef AE_TEST_GRAPHICS
-			Test_Graphics( app, wnd );
-		#endif
-		#ifdef AE_TEST_GRAPHICS_HL
-		//	Test_GraphicsHL( app, wnd );
-		#endif
-		#ifdef AE_TEST_ECS_ST
-			Test_ECSst();
-		#endif
-		#ifdef AE_TEST_VFS
-		//	Test_VFS();
-		#endif
-		#ifdef AE_TEST_ATLAS_TOOLS
-			Test_AtlasTools();
-		#endif
-		#ifdef AE_TEST_GEOMETRY_TOOLS
-			Test_GeometryTools();
-		#endif
+		AE_LOGI( ">> Begin tests" );
+		{
+			_LoadAndRun( "libTestsBase.so",				"Tests_Base",			cache_path.c_str() );
+			_LoadAndRun( "libTestsScripting.so",		"Tests_Scripting",		cache_path.c_str() );
+			_LoadAndRun( "libTestsSerializing.so",		"Tests_Serializing",	cache_path.c_str() );
+			_LoadAndRun( "libTestsThreading.so",		"Tests_Threading",		cache_path.c_str() );
+			_LoadAndRun( "libTestsNetworking.so",		"Tests_Networking",		cache_path.c_str() );
+			_LoadAndRun( "libTestsECS-st.so",			"Tests_ECSst",			cache_path.c_str() );
+			_LoadAndRun( "libTestsVFS.so",				"Tests_VFS",			cache_path.c_str() );
+			_LoadAndRun( "libTestsHuLang.so",			"Tests_HuLang",			cache_path.c_str() );
+			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics2",		asset_storage.get(), cache_storage.get() );
+			_LoadAndRun( "libTestsGraphicsHL.so",		"Tests_GraphicsHL2",	asset_storage.get(), cache_storage.get() );
 
-		#ifdef AE_PERFTEST_BASE
-			PerformanceTests_Base();
-		#endif
-		#ifdef AE_PERFTEST_THREADING
-			PerformanceTests_Threading();
-		#endif
+			_LoadAndRun( "libTestsAtlasTools.so",		"Tests_AtlasTools",		cache_path.c_str() );
+			_LoadAndRun( "libTestsGeometryTools.so",	"Tests_GeometryTools",	cache_path.c_str() );
+		}
+		AE_LOGI( "<< Tests complete" );
 
-		_complete.store( true );
+
+		#ifdef AE_RELEASE
+		AE_LOGI( ">> Begin performance tests" );
+		{
+			_LoadAndRun( "libPerfBase.so",				"Perf_Base",			cache_path.c_str() );
+			_LoadAndRun( "libPerfThreading.so",			"Perf_Threading",		cache_path.c_str() );
+		}
+		AE_LOGI( "<< Performance tests complete" );
+		#endif
 	}
 };
-
-
-void  WndListener::OnSurfaceCreated (IWindow &wnd) __NE___
-{
-	AE_LOGI( "OnSurfaceCreated" );
-
-	_al.RunTests( _app, wnd );
-}
 
 
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()

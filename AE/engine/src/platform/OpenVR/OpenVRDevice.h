@@ -71,18 +71,18 @@ namespace AE::App
 
 		// methods
 		public:
-			explicit VRRenderSurface (OpenVRDevice &vr)																			__NE___: _vrDev{vr} {}
+			explicit VRRenderSurface (OpenVRDevice &vr)											__NE___: _vrDev{vr} {}
 
 			// IOutputSurface //
-			AsyncTask			Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
-			bool				GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
-			AsyncTask			End (ArrayView<AsyncTask> deps)																	__NE_OV;
+			AsyncTask			Begin (CommandBatchPtr, CommandBatchPtr, ArrayView<AsyncTask>)	__NE_OV;
+			bool				GetTargets (OUT RenderTargets_t &targets)						C_NE_OV;
+			AsyncTask			End (ArrayView<AsyncTask> deps)									__NE_OV;
 
-			bool				SetSurfaceMode (const SurfaceInfo &)															__NE_OV	{ return false; }
+			bool				SetSurfaceMode (const SurfaceInfo &)							__NE_OV	{ return false; }
 
-			SurfaceFormats_t	GetSurfaceFormats ()																			C_NE_OV	{ return Default; }
-			PresentModes_t		GetPresentModes ()																				C_NE_OV	{ return Default; }
-			SurfaceInfo			GetSurfaceInfo ()																				C_NE_OV	{ return Default; }
+			SurfaceFormats_t	GetSurfaceFormats ()											C_NE_OV	{ return Default; }
+			PresentModes_t		GetPresentModes ()												C_NE_OV	{ return Default; }
+			SurfaceInfo			GetSurfaceInfo ()												C_NE_OV	{ return Default; }
 		};
 
 
@@ -150,18 +150,20 @@ namespace AE::App
 
 
 	private:
-			void  _Destroy ();
-		ND_ bool  _LoadLib ();
+			void  _Destroy ()													__NE___;
+		ND_ bool  _LoadLib ()													__NE___;
 
-		void  _ProcessHmdEvents (const VREvent_t &);
-		void  _ProcessControllerEvents (INOUT Controller&, const VREvent_t &);
-		void  _UpdateHMDMatrixPose ();
-		void  _InitControllers ();
-		void  _SetupCamera ();
+		void  _ProcessHmdEvents (const VREvent_t &)								__NE___;
+		void  _ProcessControllerEvents (INOUT Controller&, const VREvent_t &)	__NE___;
+		void  _UpdateHMDMatrixPose ()											__NE___;
+		void  _InitControllers ()												__NE___;
+		void  _SetupCamera ()													__NE___;
 
-		ND_ ControllerID  _GetControllerID (uint tdi) const;
+		ND_ ControllerID  _GetControllerID (uint tdi)							C_NE___;
 
-		ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice, TrackedDeviceProperty prop, TrackedPropertyError* peError = null) C_NE___;
+		ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice,
+											 TrackedDeviceProperty prop,
+											 TrackedPropertyError* peError = null) C_NE___;
 	};
 
 

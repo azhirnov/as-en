@@ -85,7 +85,7 @@ namespace _hidden_
 		ulong						useSecondaryCmdbuf	: 1;
 		void*						userData;
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			RenderPassID			_rpId;
 			VFramebufferID			_fbId;
 		)

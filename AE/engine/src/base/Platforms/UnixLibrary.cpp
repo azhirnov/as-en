@@ -75,7 +75,7 @@ namespace AE::Base
 */
 	void*  UnixLibrary::_GetProcAddr (const char* name) C_NE___
 	{
-		ASSERT( _handle != null );
+		NonNull( _handle );
 		return ::dlsym( _handle, name );
 	}
 

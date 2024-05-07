@@ -1,3 +1,5 @@
 include ':test',
-        ':demo',
-        ':engine'
+		':demo',
+		':rg-device',
+		':cicd',
+		':engine'

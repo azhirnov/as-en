@@ -4,9 +4,7 @@
 #include "threading/Memory/GlobalLinearAllocator.h"
 #include "threading/TaskSystem/ThreadManager.h"
 #include "threading/TaskSystem/LfTaskQueue.h"
-
-#include "threading/DataSource/WinAsyncDataSource.h"
-#include "threading/DataSource/UnixAsyncDataSource.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 namespace AE::Threading
 {
@@ -157,7 +155,7 @@ DEBUG_ONLY(
 		}
 
 		EXLOCK( _output );
-		_FreeOutputChunks( true );
+		_FreeOutputChunks( True{"canceled"} );
 	}
 
 /*
@@ -236,7 +234,7 @@ DEBUG_ONLY(
 	_FreeOutputChunks
 =================================================
 */
-	void  IAsyncTask::_FreeOutputChunks (bool isCanceled) __NE___
+	void  IAsyncTask::_FreeOutputChunks (Bool isCanceled) __NE___
 	{
 		ASSERT( _output.is_locked() );
 
@@ -539,8 +537,6 @@ DEBUG_ONLY(
 */
 	bool  TaskScheduler::Setup (const Config &cfg) __NE___
 	{
-		CHECK_ERR( uint(cfg.mainThreadCoreId) < ThreadUtils::MaxThreadCount() );
-
 		// add main thread
 		{
 			EXLOCK( _threadGuard );
@@ -557,10 +553,10 @@ DEBUG_ONLY(
 
 		// setup queues
 		TRY{
-			_queues[uint( ETaskQueue::Main		)].ptr.reset( new LfTaskQueue{ POTValue{ 2 },						"main"		});
-			_queues[uint( ETaskQueue::PerFrame	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxPerFrameQueues },	"perFrame"	});
-			_queues[uint( ETaskQueue::Renderer	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxRenderQueues },		"renderer"	});
-			_queues[uint( ETaskQueue::Background)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxBackgroundQueues },	"background"});
+			_queues[uint( ETaskQueue::Main		)].ptr.reset( new LfTaskQueue{ POTValue{ 2 },						"main",			ETaskQueue::Main		});
+			_queues[uint( ETaskQueue::PerFrame	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxPerFrameQueues },	"perFrame",		ETaskQueue::PerFrame	});
+			_queues[uint( ETaskQueue::Renderer	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxRenderQueues },		"renderer",		ETaskQueue::Renderer	});
+			_queues[uint( ETaskQueue::Background)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxBackgroundQueues },	"background",	ETaskQueue::Background	});
 			StaticAssert( uint(ETaskQueue::_Count) == 4 );
 		}
 		CATCH_ALL(
@@ -818,10 +814,15 @@ DEBUG_ONLY(
 
 	bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, nanoseconds timeout) __NE___
 	{
+		const auto	end_time = TimePoint_t::clock::now() + timeout;
+
+		return Wait( tasks, end_time );
+	}
+
+	bool  TaskScheduler::Wait (ArrayView<AsyncTask> tasks, const TimePoint_t endTime) __NE___
+	{
 		if_unlikely( tasks.empty() )
 			return true;
-
-		const auto	end_time = TimePoint_t::clock::now() + timeout;
 
 		for (;;)
 		{
@@ -829,8 +830,11 @@ DEBUG_ONLY(
 				return true;
 
 			const auto	tp = TimePoint_t::clock::now();
-			if_unlikely( tp >= end_time )
-				return false;	// time is out
+			if_unlikely( tp >= endTime )
+			{
+				// time is out
+				return _IsAllComplete( tasks );
+			}
 
 			DbgDetectDeadlock();
 			ThreadUtils::Sleep_500us();
@@ -867,7 +871,10 @@ DEBUG_ONLY(
 			}
 
 			if_unlikely( TimePoint_t::clock::now() >= endTime )
-				return false;	// time is out
+			{
+				// time is out
+				return _IsAllComplete( tasks );
+			}
 
 			if_unlikely( processed == 0 )
 			{
@@ -1043,7 +1050,7 @@ DEBUG_ONLY(
 	  #else
 
 		Unused( threads, looping );
-		ThreadUtils::ProgressiveSleep( iteration );
+		ThreadUtils::ProgressiveSleepInf( iteration );
 
 	  #endif
 	}
@@ -1082,6 +1089,7 @@ DEBUG_ONLY(
 			}
 			_profiler.store( RVRef(profiler) );
 		)
+		Unused( profiler );
 	}
 
 /*
@@ -1267,7 +1275,7 @@ DEBUG_ONLY(
 		}
 
 		if ( not log.empty() )
-			AE_LOG_SE( log );
+			AE_LOGW( log );
 
 	#endif // AE_DEBUG
 	}

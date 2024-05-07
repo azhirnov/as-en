@@ -10,7 +10,7 @@ namespace AE::Threading
 	constructor
 =================================================
 */
-	LfTaskQueue::LfTaskQueue (POTValue seedMask, StringView name) __Th___
+	LfTaskQueue::LfTaskQueue (POTValue seedMask, StringView name, ETaskQueue type) __Th___
 	{
 		for (auto& chunk : _chunks)
 		{
@@ -21,9 +21,10 @@ namespace AE::Threading
 
 		//_seedMask	= seedMask;
 
-		Unused( seedMask, name );
+		Unused( seedMask, name, type );
 		DEBUG_ONLY(
-			_name	= name;
+			_name		= name;
+			_queueType	= type;
 		)
 	}
 
@@ -97,8 +98,29 @@ namespace AE::Threading
 			task->_OnFinish( OUT rerun );	// TODO
 
 			DEBUG_ONLY(
-				_workTime += (TimePoint_t::clock::now() - start_time).count();
-			)
+			{
+				auto	dt = TimePoint_t::clock::now() - start_time;
+				_workTime += dt.count();
+
+				switch_enum( _queueType )
+				{
+					case ETaskQueue::Main :
+					case ETaskQueue::PerFrame :
+					case ETaskQueue::Renderer :
+						if ( dt > milliseconds{100} )
+							AE_LOGW( "Task '"s << task->DbgName() << "' executed " << ToString(dt) << " in " << ToString(_queueType) << " queue" );
+						break;
+
+					case ETaskQueue::Background :
+						if ( dt > milliseconds{5'000} )
+							AE_LOGW( "Task '"s << task->DbgName() << "' executed " << ToString(dt) << " in " << ToString(_queueType) << " queue" );
+						break;
+
+					case ETaskQueue::_Count :
+						break;
+				}
+				switch_end
+			})
 			//AE_LOG_DBG( "--end: "s << task->DbgName() );
 
 			if_unlikely( rerun )
@@ -266,7 +288,7 @@ namespace AE::Threading
 */
 	void  LfTaskQueue::Add (AsyncTask task, const EThreadSeed seed) __NE___
 	{
-		ASSERT( task != null );
+		NonNull( task );
 
 		DEBUG_ONLY(
 			const auto	start_time = TimePoint_t::clock::now();

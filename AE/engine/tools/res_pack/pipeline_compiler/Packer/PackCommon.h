@@ -3,10 +3,7 @@
 #pragma once
 
 #include "base/Memory/IAllocator.h"
-
-#if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DEBUG)
-# include "HashToName.h"
-#endif
+#include "HashToName.h"
 
 namespace AE::PipelineCompiler
 {
@@ -28,7 +25,7 @@ namespace AE::PipelineCompiler
 	static constexpr uint	SamplerPack_Version			= 1;
 	static constexpr uint	SamplerPack_Name			= "SampPack"_Hash;
 
-	static constexpr uint	PipelinePack_Version		= 2;
+	static constexpr uint	PipelinePack_Version		= 3;
 	static constexpr uint	PipelinePack_Name			= "PplnPack"_Hash;
 
 	static constexpr uint	ShaderPack_Version			= 1;
@@ -68,27 +65,27 @@ namespace AE::PipelineCompiler
 	//
 	struct PipelinePackOffsets
 	{
-		using Offset_t	= ulong;
+		using Offset_t	= Bytes;
 
-		Offset_t	allocSize			= 0;
+		Offset_t	allocSize;
 
-		Offset_t	featureSetOffset	= UMax;		// FeatureSetPack_Name
-		Offset_t	featureSetDataSize	= 0;
+		Offset_t	featureSetOffset	{UMax};		// FeatureSetPack_Name
+		Offset_t	featureSetDataSize;
 
-		Offset_t	samplerOffset		= UMax;		// SamplerPack_Name
-		Offset_t	samplerDataSize		= 0;
+		Offset_t	samplerOffset		{UMax};		// SamplerPack_Name
+		Offset_t	samplerDataSize;
 
-		Offset_t	renderPassOffset	= UMax;		// RenderPassPack_Name
-		Offset_t	renderPassDataSize	= 0;
+		Offset_t	renderPassOffset	{UMax};		// RenderPassPack_Name
+		Offset_t	renderPassDataSize;
 
-		Offset_t	pipelineOffset		= UMax;		// PipelinePack_Name
-		Offset_t	pipelineDataSize	= 0;
+		Offset_t	pipelineOffset		{UMax};		// PipelinePack_Name
+		Offset_t	pipelineDataSize;
 
-		Offset_t	shaderOffset		= UMax;		// ShaderPack_Name
-		Offset_t	shaderDataSize		= 0;
+		Offset_t	shaderOffset		{UMax};		// ShaderPack_Name
+		Offset_t	shaderDataSize;
 
-		Offset_t	nameMappingOffset	= UMax;		// NameMapping_Name
-		Offset_t	nameMappingDataSize	= 0;
+		Offset_t	nameMappingOffset	{UMax};		// NameMapping_Name
+		Offset_t	nameMappingDataSize;
 	};
 
 

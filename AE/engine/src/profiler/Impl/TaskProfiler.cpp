@@ -182,7 +182,7 @@ namespace AE::Profiler
 			return;	// failed to allocate
 
 		cmd->task		= id;
-		cmd->time		= CurrentTimeNano().count();
+		cmd->time		= CurrentTimeNano();
 		cmd->threadId	= ThreadID(this->CurrentThreadID());
 		cmd->frameIdx	= idx;
 
@@ -208,7 +208,7 @@ namespace AE::Profiler
 			return;	// failed to allocate
 
 		cmd->task		= id;
-		cmd->time		= CurrentTimeNano().count();
+		cmd->time		= CurrentTimeNano();
 		cmd->threadId	= ThreadID(this->CurrentThreadID());
 		cmd->frameIdx	= idx;
 
@@ -275,9 +275,8 @@ namespace AE::Profiler
 
 			RectF	region1 = max_region;
 			_imTaskGraph.Draw( INOUT region1 );
-
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 #endif
 
@@ -339,7 +338,7 @@ namespace AE::Profiler
 					else
 					{
 						// init info
-						info.begin		= NaN<double>();	// before capture
+						info.begin		= nanosecondsd{NaN<double>()};	// before capture
 						info.threadId	= end.threadId;
 						info.frameIdx	= end.frameIdx;
 					}
@@ -373,7 +372,7 @@ namespace AE::Profiler
 			StringToColor( OUT color, info.name );
 
 		  #ifdef AE_ENABLE_IMGUI
-			_imTaskGraph.Add( info.name, color, info.begin, NaN<double>(), usize(info.threadId), tname );
+			_imTaskGraph.Add( info.name, color, info.begin, nanosecondsd{NaN<double>()}, usize(info.threadId), tname );
 		  #endif
 		}
 

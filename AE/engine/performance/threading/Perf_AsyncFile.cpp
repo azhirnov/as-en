@@ -1,42 +1,38 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "../../tests/threading/UnitTest_Common.h"
-#include "../base/Perf_Common.h"
+#include "Perf_Common.h"
 
 #include "base/DataSource/UnixFile.h"
 #include "base/DataSource/WindowsFile.h"
-#include "threading/DataSource/UnixAsyncDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
-
-using namespace AE::Threading;
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 namespace
 {
 	using EStatus	= IAsyncTask::EStatus;
 
-  #ifdef AE_PLATFORM_WINDOWS
-	const auto	rflags	= WinFileRDataSource::EFlags::NoBuffering | WinFileRDataSource::EFlags::RandomAccess;
-	const auto	wflags	= WinFileWDataSource::EFlags::NoBuffering | WinFileWDataSource::EFlags::NoCaching;
+  #ifdef AE_PLATFORM_ANDROID
+	const auto	rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
+	const auto	wflags	= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes
+
   #else
-	const auto	rflags	= UnixFileRDataSource::EFlags::Direct;
-	const auto	wflags	= UnixFileWDataSource::EFlags::Direct;
+	const auto	rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
+	const auto	wflags	= FileWDataSource::EMode::Direct;
   #endif
 
-  #ifdef AE_PLATFORM_ANDROID
-	const auto		c_CoreId		= ECpuCoreId(6);
-  #else
-	const auto		c_CoreId		= ECpuCoreId(0);
-  #endif
+	auto			c_CoreId		= ECpuCoreId(0);
 
 	const ulong		c_FileSize		= 128ull << 20;	// Mb
 	const uint		c_BufferSize	= 4u << 10;		// Kb
+
+	const uint		c_WaitIOFreq	= 0xF;	// 1 or 'c_WaitIOFreq' requests will trigger IO event handling
+
 	StaticAssert( IsMultipleOf( c_FileSize, c_BufferSize ));
 
 
 	template <typename RFile, typename WFile>
 	static void  SyncSeqReadDS (IntervalProfiler &profiler)
 	{
-		CHECK( ThreadUtils::SetAffinity( uint(c_CoreId) ));
+		Unused( ThreadUtils::SetAffinity( uint(c_CoreId) ));
 
 		profiler.BeginTest( "Sync Sequential Read" );
 
@@ -53,23 +49,24 @@ namespace
 					buf[i] = pos + i;
 				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf.data(), ArraySizeOf(buf) ) == c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
 			}
 
-			TEST( wfile.Capacity() == c_FileSize );
+			TEST_Eq( wfile.Position(), c_FileSize );
 		}
 		AE_LOGI( "begin sync read test" );
 		{
-			RC<RDataSource>	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rflags );
 			TEST( rfile->IsOpen() );
-			TEST( rfile->Size() == c_FileSize );
+			TEST_Eq( rfile->Size(), c_FileSize );
 
 			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
 
 			profiler.BeginIteration();
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
-				Unused( rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize} ));
+				TEST_Eq( Bytes{pos}, rfile->Position() );
+				TEST_Eq( rfile->ReadSeq( buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
 			}
 			profiler.EndIteration();
 
@@ -82,7 +79,7 @@ namespace
 				{
 					valid = (buf[j] == pos+i);
 				}
-				CHECK( valid );
+				TEST( valid );
 			}
 		}
 		profiler.EndTest();
@@ -110,16 +107,16 @@ namespace
 					buf[i] = pos + i;
 				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf.data(), ArraySizeOf(buf) ) == c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
 			}
 
-			TEST( wfile.Capacity() == c_FileSize );
+			TEST( wfile.Position() == c_FileSize );
 		}
 		AE_LOGI( "begin async read test" );
 		{
-			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rflags );
 			TEST( rfile->IsOpen() );
-			TEST( rfile->Size() == c_FileSize );
+			TEST_Eq( rfile->Size(), c_FileSize );
 
 			Array<AsyncDSRequest>	req_arr;
 			req_arr.reserve( c_FileSize / c_BufferSize );
@@ -140,7 +137,7 @@ namespace
 					}
 					req_arr.push_back( RVRef(req) );
 
-					if ( (req_arr.size() & 0xF) == 0 )
+					if_unlikely( (req_arr.size() & c_WaitIOFreq) == 0 )
 						Unused( scheduler->GetFileIOService()->ProcessEvents() );
 					break;
 				}
@@ -171,11 +168,11 @@ namespace
 				{
 					valid = (buf[j] == pos+i);
 				}
-				CHECK( valid );
+				TEST( valid );
 			}
 
 			req_arr.clear();
-			TEST( rfile.use_count() == 1 );
+			TEST_Eq( rfile.use_count(), 1 );
 		}
 		profiler.EndTest();
 	}
@@ -184,7 +181,7 @@ namespace
 	template <typename RFile, typename WFile>
 	static void  SyncRndReadDS (IntervalProfiler &profiler)
 	{
-		CHECK( ThreadUtils::SetAffinity( uint(c_CoreId) ));
+		Unused( ThreadUtils::SetAffinity( uint(c_CoreId) ));
 
 		profiler.BeginTest( "Sync Random Read" );
 
@@ -204,26 +201,26 @@ namespace
 					buf[i] = pos + i;
 				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf.data(), ArraySizeOf(buf) ) == c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
 				pos_arr.push_back( pos );
 			}
 
-			TEST( wfile.Capacity() == c_FileSize );
+			TEST_Eq( wfile.Position(), c_FileSize );
 		}
 		AE_LOGI( "begin sync read test" );
 		{
 			ShuffleArray( INOUT pos_arr );
 
-			RC<RDataSource>	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rflags );
 			TEST( rfile->IsOpen() );
-			TEST( rfile->Size() == c_FileSize );
+			TEST_Eq( rfile->Size(), c_FileSize );
 
 			Array<ulong>	buf;	buf.resize( c_FileSize / sizeof(ulong) );
 
 			profiler.BeginIteration();
 			for (ulong pos : pos_arr)
 			{
-				Unused( rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize} ));
+				TEST_Eq( rfile->ReadBlock( Bytes{pos}, buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
 			}
 			profiler.EndIteration();
 
@@ -236,7 +233,7 @@ namespace
 				{
 					valid = (buf[j] == pos+i);
 				}
-				CHECK( valid );
+				TEST( valid );
 			}
 		}
 		profiler.EndTest();
@@ -267,19 +264,19 @@ namespace
 					buf[i] = pos + i;
 				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf.data(), ArraySizeOf(buf) ) == c_BufferSize );
+				TEST_Eq( wfile.WriteSeq( buf.data(), ArraySizeOf(buf) ), c_BufferSize );
 				pos_arr.push_back( pos );
 			}
 
-			TEST( wfile.Capacity() == c_FileSize );
+			TEST_Eq( wfile.Position(), c_FileSize );
 		}
 		AE_LOGI( "begin async read test" );
 		{
 			ShuffleArray( INOUT pos_arr );
 
-			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname, rflags );
+			auto	rfile = MakeRC<RFile>( fname, rflags );
 			TEST( rfile->IsOpen() );
-			TEST( rfile->Size() == c_FileSize );
+			TEST_Eq( rfile->Size(), c_FileSize );
 
 			Array<AsyncDSRequest>	req_arr;
 			req_arr.reserve( c_FileSize / c_BufferSize );
@@ -300,7 +297,7 @@ namespace
 					}
 					req_arr.push_back( RVRef(req) );
 
-					if ( (req_arr.size() & 0xF) == 0 )
+					if_unlikely( (req_arr.size() & c_WaitIOFreq) == 0 )
 						Unused( scheduler->GetFileIOService()->ProcessEvents() );
 					break;
 				}
@@ -331,48 +328,40 @@ namespace
 				{
 					valid = (buf[j] == pos+i);
 				}
-				CHECK( valid );
+				TEST( valid );
 			}
 
 			req_arr.clear();
-			TEST( rfile.use_count() == 1 );
+			TEST_Eq( rfile.use_count(), 1 );
 		}
 		profiler.EndTest();
 	}
 }
 
-extern void  PerfTest_AsyncFile ()
+extern void  PerfTest_AsyncFile (const Path &testFolder)
 {
-  # ifdef AE_PLATFORM_ANDROID
-	const Path	curr	{"/storage/emulated/0/Android/data/AE.Test/cache"};
-	const Path	folder	= curr / "ds_test";
-  # else
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/ds_test"};
-  # endif
+	const Path	folder = testFolder / "ds_test";
 
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
+	{
+		auto&	arch = CpuArchInfo::Get();
+		if ( auto* core = arch.GetCore( ECoreType::Performance ))
+			c_CoreId = ECpuCoreId(core->FirstLogicalCore());
+	}
+
 	IntervalProfiler	profiler{ "AsyncFile test" };
 
-	#ifdef AE_PLATFORM_WINDOWS
-		SyncSeqReadDS< WinFileRDataSource, WinFileWDataSource >( profiler );
-		AsyncSeqReadDS< WinAsyncRDataSource, WinFileWDataSource >( profiler );
+	SyncSeqReadDS< FileRStream,				FileWStream >( profiler );
+	AsyncSeqReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
 
-		SyncRndReadDS< WinFileRDataSource, WinFileWDataSource >( profiler );
-		AsyncRndReadDS< WinAsyncRDataSource, WinFileWDataSource >( profiler );
-	#else
-		SyncSeqReadDS< UnixFileRDataSource, UnixFileWDataSource >( profiler );
-		AsyncSeqReadDS< UnixAsyncRDataSource, UnixFileWDataSource >( profiler );
+	SyncRndReadDS< FileRDataSource,			FileWStream >( profiler );
+	AsyncRndReadDS< FileAsyncRDataSource,	FileWStream >( profiler );
 
-		SyncRndReadDS< UnixFileRDataSource, UnixFileWDataSource >( profiler );
-		AsyncRndReadDS< UnixAsyncRDataSource, UnixFileWDataSource >( profiler );
-	#endif
-
-	FileSystem::SetCurrentPath( curr );
-	FileSystem::RemoveAll( folder );
+	FileSystem::SetCurrentPath( testFolder );
+	FileSystem::DeleteDirectory( folder );
 
 	TEST_PASSED();
 }

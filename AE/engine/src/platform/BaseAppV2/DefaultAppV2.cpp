@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/BaseAppV2/DefaultAppV2.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 #include "platform/Android/AndroidCommon.h"
 #include "platform/GLFW/GLFWCommon.h"
@@ -32,6 +31,10 @@ namespace AE::AppV2
 	AppCore::AppCore (const AppConfig &cfg) __NE___ :
 		_config{ cfg }
 	{
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		ConstCast(_config).enableNetwork = true;
+	  #endif
+
 		// TODO: allow to override
 		CHECK_FATAL( ThreadMngr::SetupThreads( cfg.threading,
 											   cfg.threading.mask,
@@ -66,9 +69,7 @@ namespace AE::AppV2
 
 		CurrentState	data;
 		{
-			auto	state = _curState.WriteNoLock();
-			EXLOCK( state );
-
+			auto	state = _curState.WriteLock();
 			data = *state;
 			state->view = new_view;
 		}
@@ -184,8 +185,7 @@ namespace AE::AppV2
 		bool		has_view;
 
 		{
-			auto	state = _curState.WriteNoLock();
-			EXLOCK( state );
+			auto	state = _curState.WriteLock();
 
 			if ( not focused and state->output != null )
 				return;
@@ -214,8 +214,7 @@ namespace AE::AppV2
 */
 	void  AppCore::StopRendering (Ptr<IOutputSurface> output) __NE___
 	{
-		auto	state = _curState.WriteNoLock();
-		EXLOCK( state );
+		auto	state = _curState.WriteLock();
 
 		if ( output == null or state->output == output )
 			state->output = null;
@@ -252,8 +251,7 @@ namespace AE::AppV2
 		const auto				frame_id = rts.GetFrameId();
 
 		{
-			auto	state = _curState.ReadNoLock();
-			SHAREDLOCK( state );
+			auto	state = _curState.ReadLock();
 
 			input	= state->input;
 			output	= state->output;
@@ -328,8 +326,8 @@ namespace AE::AppV2
 */
 	AppMainV2::~AppMainV2 () __NE___
 	{
-		const bool	enable_network	= _core ? _core->Config().enableNetwork : false;
-		const bool	enable_audio	= _core ? _core->Config().enableAudio : false;
+		const bool	enable_network	= _core ? _core->Config().enableNetwork	: false;
+		const bool	enable_audio	= _core ? _core->Config().enableAudio	: false;
 
 		_core = null;
 		_windows.clear();
@@ -382,11 +380,19 @@ namespace AE::AppV2
 		_core->RenderFrame();
 
 		#if ENABLE_SYNC_LOG
+		# ifdef AE_ENABLE_VULKAN
 		{
 			String	log;
 			VulkanSyncLog::GetLog( OUT log );
 			log.clear();
 		}
+		# elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		{
+			String	log;
+			_device.GetSyncLog( OUT log );
+			log.clear();
+		}
+		# endif
 		#endif
 
 		PROFILE_ONLY({
@@ -500,8 +506,17 @@ namespace AE::AppV2
 		}
 		#endif
 
-	  #elif defined(AE_ENABLE_METAL) and defined(AE_ENABLE_REMOTE_GRAPHICS)
+	  #elif defined(AE_ENABLE_METAL)
+		Unused( app );
 		CHECK_ERR( _device.Init( _core->Config().graphics ));
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		Unused( app );
+		CHECK_ERR( _device.Init( _core->Config().graphics ));
+
+		#if ENABLE_SYNC_LOG
+			_device.EnableSyncLog( true );
+		#endif
 
 	  #else
 	  #	error not implemented

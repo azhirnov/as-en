@@ -7,7 +7,7 @@ using namespace AE::App;
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_Platform (IApplication &app, IWindow &wnd)
+extern "C" AE_DLL_EXPORT int Tests_Platform (IApplication &app, IWindow &wnd)
 {
 	AE_LOGI( "Tests.Platform finished" );
 	return 0;

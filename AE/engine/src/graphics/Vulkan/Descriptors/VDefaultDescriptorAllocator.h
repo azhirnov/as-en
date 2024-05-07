@@ -50,7 +50,7 @@ namespace AE::Graphics
 		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
 
 	private:
-		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);
+		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool) __NE___;
 	};
 
 

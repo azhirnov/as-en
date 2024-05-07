@@ -340,7 +340,7 @@ namespace
 	constructor
 =================================================
 */
-	CpuArchInfo::CpuArchInfo ()
+	CpuArchInfo::CpuArchInfo () __NE___
 	{
 		// read features
 		{

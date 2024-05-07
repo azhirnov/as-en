@@ -19,8 +19,10 @@ namespace AE::ResEditor
 							const ImageDesc &	inDesc,
 							const VFS::FileName	&filename,
 							RC<DynamicDim>		outDynSize,
+							const Video::IVideoDecoder::VideoStreamInfo &info,
 							StringView			dbgName) __Th___ :
 		IResource{ renderer },
+		_frameDuration{ 0.5 / info.minFrameRate.ToFloat<double>() },
 		_outDynSize{ RVRef(outDynSize) },
 		_dbgName{ dbgName }
 	{
@@ -32,21 +34,22 @@ namespace AE::ResEditor
 		auto	rstream = GetVFS().Open<RStream>( filename );
 		CHECK_THROW( rstream );
 
-		Video::IVideoDecoder::Config	in_cfg;
+		Video::IVideoDecoder::Config	in_cfg {GetHwConfig()};
 		in_cfg.dstFormat	= inDesc.format;
-		in_cfg.filter		= Video::EFilter::Bilinear;
-		in_cfg.threadCount	= 4;
+		in_cfg.filter		= Video::EFilter::Fast;
+		in_cfg.threadCount	= 8;
 
-		CHECK_THROW( _decoder->Begin( in_cfg, rstream ));
+		CHECK_THROW( _decoder->Begin( in_cfg, RVRef(rstream) ));
 
 		const auto	config	= _decoder->GetConfig();
 		const auto	props	= _decoder->GetProperties();
-		const auto*	vstream	= props.GetStream( config.videoStreamIdx );
-		CHECK_THROW( vstream != null );
+
+		CHECK_THROW( config.videoStreamIdx == props.videoStream.index );
+		CHECK_THROW( inDesc.format == config.dstFormat );
 
 		ImageDesc	desc	= inDesc;
-		desc.dimension	= uint3{ vstream->dimension, 1u };
-		_dimension		= vstream->dimension;
+		desc.dimension	= uint3{ props.videoStream.dimension, 1u };
+		_dimension		= props.videoStream.dimension;
 
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 		auto&	rstate		= RenderGraph().GetStateTracker();
@@ -56,7 +59,7 @@ namespace AE::ResEditor
 
 		for (usize i = 0; i < _ids.size(); ++i)
 		{
-			_ids[i] = res_mngr.CreateImage( desc, _dbgName + ToString(i), _GfxAllocator() );
+			_ids[i] = res_mngr.CreateImage( desc, _dbgName + ToString(i), _Renderer().ChooseAllocator( False{"static"}, desc ));
 			CHECK_THROW( _ids[i] );
 
 			_views[i] = res_mngr.CreateImageView( ImageViewDesc{desc}, _ids[i], _dbgName + ToString(i) );
@@ -80,7 +83,7 @@ namespace AE::ResEditor
 
 		_DtTrQueue().EnqueueForUpload( GetRC() );
 
-		_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{}, "Video decoding" );
+		_StartDecoding();
 	}
 
 /*
@@ -97,6 +100,30 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	RequireResize
+=================================================
+*/
+	bool  VideoImage::RequireResize () C_Th___
+	{
+		// Hack: Upload() and GetImageId() may be executed at any order,
+		// here are the one place which executed before uploading and rendering.
+
+		_imageIdx = _nextImageIdx;
+		return false;
+	}
+
+/*
+=================================================
+	RequireResize
+=================================================
+*/
+	void  VideoImage::_StartDecoding () __NE___
+	{
+		_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{_lastDecoding}, "Video decoding" );
+	}
+
+/*
+=================================================
 	Upload
 =================================================
 */
@@ -109,10 +136,6 @@ namespace AE::ResEditor
 		States	states = _states.load( EMemoryOrder::Acquire );
 		_Validate( states );
 
-		if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
-			_lastDecoding = Scheduler().Run( ETaskQueue::Background, _DecodeFrameTask( GetRC<VideoImage>() ), Tuple{_lastDecoding}, "Video decoding" );
-
-
 		// variants:
 		//	- decoding in progress	-> skip
 		//	- frame ready			-> begin uploading
@@ -120,14 +143,20 @@ namespace AE::ResEditor
 		const uint	mem_idx	= states.pos;
 
 		if ( not HasBit( states.decodedBits, mem_idx ))
-			return _uploadStatus.load();  // decoding in progress
+		{
+			if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
+				_StartDecoding();
 
-		const auto	cur_time = Seconds_t{_curTime.Add( GraphicsScheduler().GetFrameTimeDelta().count() )};
+			return _uploadStatus.load();  // decoding in progress
+		}
+
+		const float	min_dt   = 1.f / 30.f;
+		const auto	cur_time = Seconds_t{_curTime.Add( Min( GraphicsScheduler().GetFrameTimeDelta().count(), min_dt ))} + _frameDuration;
 
 		if ( cur_time < _frameTimes[mem_idx] )
 			return _uploadStatus.load();  // skip
 
-		const uint	idx = (_imageIdx.load()+1) % _ids.size();
+		const uint	idx = (_nextImageIdx+1) % _ids.size();
 
 		// init image stream
 		if ( not _stream.IsInitialized() )
@@ -155,8 +184,8 @@ namespace AE::ResEditor
 
 		if ( _stream.IsCompleted() )
 		{
-			_imageIdx.store( idx );
-			_stream = ImageStream{};
+			_nextImageIdx	= idx;
+			_stream			= ImageStream{};
 
 			// update 'pos', 'decodedBits'
 			for (States exp = states;;)
@@ -171,6 +200,9 @@ namespace AE::ResEditor
 				states = exp;
 				ThreadUtils::Pause();
 			}
+
+			if ( (states.emptyBits != 0) and (not _lastDecoding or not _lastDecoding->IsInQueue()) )
+				_StartDecoding();
 		}
 
 		return _uploadStatus.load();
@@ -215,7 +247,8 @@ namespace AE::ResEditor
 */
 	uint  VideoImage::_DecodeFrame () __NE___
 	{
-		using FrameInfo = Video::IVideoDecoder::FrameInfo;
+		using FrameInfo			= Video::IVideoDecoder::FrameInfo;
+		using ImageMemViewArr	= Video::IVideoDecoder::ImageMemViewArr;
 
 		// find empty image
 		States		states	= _states.load();
@@ -235,13 +268,10 @@ namespace AE::ResEditor
 		}
 		ASSERT( not HasBit( states.decodedBits, idx ));
 
-		if_unlikely( not _decoder )
-			return 0;
-
 		uint	result = 0;
 
 		// get next video frame
-		if ( FrameInfo info;  _decoder->GetNextFrame( INOUT _imageMemView[idx], OUT info ))
+		if ( FrameInfo info;  _decoder->GetVideoFrame( INOUT _imageMemView[idx], OUT info ))
 		{
 			_frameTimes[idx] = info.timestamp;
 
@@ -288,6 +318,22 @@ namespace AE::ResEditor
 		ASSERT( not AnyBits( s.emptyBits, s.decodedBits ));
 		ASSERT( (s.emptyBits | s.decodedBits) == ToBitMask<uint>(_MaxCpuImages) );
 		ASSERT( s.decodedBits == 0 or HasBit( s.decodedBits, s.pos ));
+	}
+
+/*
+=================================================
+	GetHwConfig
+=================================================
+*/
+	Video::IVideoDecoder::CodecConfig  VideoImage::GetHwConfig () __NE___
+	{
+		Video::IVideoDecoder::CodecConfig	cfg;
+
+		cfg.hwAccelerated	= Video::EHwAcceleration::Optional;
+		cfg.targetGPU		= GraphicsScheduler().GetFeatureSet().devicesIds.include.First();
+		cfg.targetCPU		= CpuArchInfo::Get().cpu.vendor;
+
+		return cfg;
 	}
 
 

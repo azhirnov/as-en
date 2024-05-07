@@ -16,7 +16,7 @@ namespace
 											    {TXT("samplers.as"), 2} };
 		const Path			output_folder	= TXT("_output");
 
-		FileSystem::RemoveAll( output_folder );
+		FileSystem::DeleteDirectory( output_folder );
 		TEST( FileSystem::CreateDirectories( output_folder ));
 
 		const Path	output = output_folder / "samplers.bin";
@@ -33,7 +33,7 @@ namespace
 		TEST( file->IsOpen() );
 
 		HashToName	hash_to_name;
-		auto		mem_stream = MakeRC<MemRStream>();
+		auto		mem_stream = MakeRC<ArrayRStream>();
 		{
 			uint	name;
 			TEST( file->Read( OUT name ));
@@ -44,9 +44,9 @@ namespace
 			TEST_Lt( offsets.samplerOffset, ulong(file->Size()) );
 			TEST_Lt( offsets.nameMappingOffset, ulong(file->Size()) );
 
-			auto	mem_stream2 = MakeRC<MemRStream>();
+			auto	mem_stream2 = MakeRC<ArrayRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
-			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
+			TEST( mem_stream2->LoadRemainingFrom( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
 			TEST( des( OUT name ));
@@ -54,7 +54,7 @@ namespace
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.samplerOffset} ));
-			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.samplerDataSize} ));
+			TEST( mem_stream->LoadRemainingFrom( *file, Bytes{offsets.samplerDataSize} ));
 		}
 
 		RC<IAllocator>					alloc = MakeRC<LinearAlloc_t>();
@@ -103,7 +103,7 @@ extern void Test_SamplerPack ()
 		TEST( lib.Load( AE_PIPELINE_COMPILER_LIBRARY ));
 		TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/sampler_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "sampler_test" ));
 
 		SamplerPack_Test1();
 	}

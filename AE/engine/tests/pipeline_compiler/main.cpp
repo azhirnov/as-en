@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
-using namespace AE::Base;
+#include "UnitTest_Common.h"
 
 extern void  UnitTest_StructType ();
 extern void  UnitTest_DSLayout_GLSL ();
@@ -11,9 +10,10 @@ extern void  UnitTest_PipelineLayout_MSL ();
 extern void  UnitTest_VertexBufferInput_GLSL ();
 extern void  UnitTest_VertexBufferInput_MSL ();
 
-int main ()
+
+int main (const int argc, char* argv[])
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	UnitTest_StructType();
 	UnitTest_DSLayout_GLSL();

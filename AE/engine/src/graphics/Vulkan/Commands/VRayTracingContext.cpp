@@ -13,7 +13,7 @@ namespace AE::Graphics::_hidden_
 	VkCommandBuffer  _VDirectRayTracingCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::RayTracing ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::RayTracing ));
 
 		return VBaseDirectContext::_EndCommandBuffer();  // throw
 	}
@@ -26,7 +26,7 @@ namespace AE::Graphics::_hidden_
 	VCommandBuffer  _VDirectRayTracingCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::RayTracing ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::RayTracing ));
 
 		return VBaseDirectContext::_ReleaseCommandBuffer();
 	}
@@ -42,7 +42,7 @@ namespace AE::Graphics::_hidden_
 	VBakedCommands  _VIndirectRayTracingCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::RayTracing ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::RayTracing ));
 
 		return VBaseIndirectContext::_EndCommandBuffer();  // throw
 	}
@@ -55,7 +55,7 @@ namespace AE::Graphics::_hidden_
 	VSoftwareCmdBufPtr  _VIndirectRayTracingCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::RayTracing ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::RayTracing ));
 
 		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}

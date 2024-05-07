@@ -168,7 +168,6 @@ namespace AE::ResEditor
 =================================================
 */
 	ScriptSceneGraphicsPass::ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName) __Th___ :
-		ScriptBaseRenderPass{ EFlags::Unknown },
 		_scene{scene}, _passName{passName}
 	{
 		_dbgName = passName;
@@ -237,7 +236,6 @@ namespace AE::ResEditor
 
 		RC<SceneGraphicsPass>	result		= MakeRC<SceneGraphicsPass>();
 		auto&					res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&				renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
 		auto&					materials	= result->_materials;
 		const auto				max_frames	= GraphicsScheduler().GetMaxFrames();
 		PipelinesPerInstance_t	pplns_per_inst;
@@ -261,9 +259,8 @@ namespace AE::ResEditor
 		result->_depthRange		= this->_depthRange;
 		result->_renderLayer	= this->_renderLayer;
 
-		result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneGraphicsPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-												  "SceneGraphicsPassUB", renderer.GetAllocator() );
-		CHECK_ERR( result->_ubuffer );
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneGraphicsPassUB>, "SceneGraphicsPassUB",
+											EResourceState::UniformRead | EResourceState::AllGraphicsShaders );  // throw
 
 		// create descriptor set
 		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"} ));
@@ -275,12 +272,12 @@ namespace AE::ResEditor
 			const uint	layers	= src.rt->Description().arrayLayers.Get();
 			const uint	count	= (src.layerCount == UMax ? (layers - src.layer.Get()) : src.layerCount);
 
-			CHECK_ERR( src.layer.Get() < layers );
-			CHECK_ERR( src.layer.Get() + count <= layers );
+			CHECK_THROW( src.layer.Get() < layers );
+			CHECK_THROW( src.layer.Get() + count <= layers );
 
 			AssignMin( INOUT min_layer_count, count );
 		}
-		CHECK_ERR( min_layer_count > 0 );
+		CHECK_THROW( min_layer_count > 0 );
 
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
@@ -291,7 +288,7 @@ namespace AE::ResEditor
 		{
 			auto&	src	= _output[i];
 			auto	rt	= src.rt->ToResource();
-			CHECK_ERR( rt );
+			CHECK_THROW( rt );
 
 			ImageViewDesc	view;
 			view.viewType		= (min_layer_count > 1 ? EImage_2DArray : EImage_2D);
@@ -301,14 +298,14 @@ namespace AE::ResEditor
 			view.mipmapCount	= 1;
 
 			rt = rt->CreateView( view, rt->GetName() );
-			CHECK_ERR( rt );
+			CHECK_THROW( rt );
 
 			auto&	dst = result->_renderTargets.emplace_back();
 			dst.name	= AttachmentName{src.name};
 			dst.image	= rt;
 			dst.clear	= src.clear;
 		}
-		CHECK_ERR( not result->_renderTargets.empty() );
+		CHECK_THROW( not result->_renderTargets.empty() );
 
 		_Init( *result, _scene->GetController() );
 		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllGraphics );
@@ -523,7 +520,6 @@ namespace AE::ResEditor
 =================================================
 */
 	ScriptSceneRayTracingPass::ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName) __Th___ :
-		ScriptBasePass{ EFlags::Unknown },
 		_scene{scene}, _passName{passName}
 	{
 		_dbgName = passName;
@@ -624,7 +620,6 @@ namespace AE::ResEditor
 
 		RC<SceneRayTracingPass>	result		= MakeRC<SceneRayTracingPass>();
 		auto&					res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&				renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
 		const auto				max_frames	= GraphicsScheduler().GetMaxFrames();
 		PipelineName			ppln_name;
 		RTShaderBindingName		sbt_name;
@@ -643,12 +638,11 @@ namespace AE::ResEditor
 		}
 		#endif
 
-		result->_sbt		= result->_rtech.rtech->GetRTShaderBinding( sbt_name );
+		result->_sbt = result->_rtech.rtech->GetRTShaderBinding( sbt_name );
 		CHECK_THROW( result->_sbt );
 
-		result->_ubuffer	= res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneRayTracingPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-													 "SceneRayTracingPassUB", renderer.GetAllocator() );
-		CHECK_ERR( result->_ubuffer );
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneRayTracingPassUB>, "SceneRayTracingPassUB",
+											EResourceState::UniformRead | EResourceState::RayTracingShaders );  // throw
 
 		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_passDSIndex, OUT result->_passDescSets.data(), max_frames, result->_pipeline, DescriptorSetName{"pass"} ));
 		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_objDSIndex,  OUT result->_objDescSets.data(),  max_frames, result->_pipeline, DescriptorSetName{"material"} ));

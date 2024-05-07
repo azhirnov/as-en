@@ -30,7 +30,7 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
+			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy );
 			pass.Set(	camera );
 			pass.ArgIn( "un_Object2Tex",	tex1,	Sampler_LinearMipmapRepeat );
 			pass.ArgIn( "un_Object3Tex",	tex2,	Sampler_LinearMipmapRepeat );

@@ -6,5 +6,5 @@ extern int AE_HWCPipe_Test ();
 void android_main (struct android_app* state)
 {
 	AE_HWCPipe_Test();
-    std::abort();
+    std::exit(0);
 }

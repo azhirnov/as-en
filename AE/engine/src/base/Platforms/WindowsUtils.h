@@ -8,6 +8,7 @@
 # include "base/Utils/Version.h"
 # include "base/Utils/Threading.h"
 # include "base/Platforms/CPUInfo.h"
+# include "base/Platforms/PlatformEnums.h"
 
 namespace AE::Base
 {
@@ -83,10 +84,14 @@ namespace AE::Base
 
 		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
 
+		ND_ static Bytes	GetDefaultStackSize ()											__NE___;
+		ND_ static Bytes	GetCurrentThreadStackSize ()									__NE___;
+
 
 		// OS //
 		ND_ static Version3		GetOSVersion ()												__NE___;
 		ND_ static bool			IsUnderDebugger ()											__NE___;
+		ND_ static auto			GetOSType ()												__NE___	{ return EOperationSystem::Windows; }
 
 		#ifdef AE_RELEASE
 		ND_ static StringView	GetOSName ()												__NE___	{ return "Windows"; }

@@ -51,37 +51,38 @@ namespace _hidden_
 
 		// methods
 		public:
-			promise_type ()											__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
+			promise_type ()														__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
 
-			ND_ Coroutine_t			get_return_object ()			__NE___	{ return Coroutine_t{ *this }; }
+			ND_ Coroutine_t			get_return_object ()						__NE___	{ return Coroutine_t{ *this }; }
+			ND_ static auto			get_return_object_on_allocation_failure ()	__NE___ { return Coroutine_t{}; }
 
-			ND_ std::suspend_always	initial_suspend ()				C_NE___	{ return {}; }					// delayed start
-			ND_ std::suspend_always	final_suspend ()				C_NE___	{ return {}; }					// must not be 'suspend_never'
+			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }					// delayed start
+			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }					// must not be 'suspend_never'
 
-				void				return_value (ResultType value)	__NE___	{ _value = RVRef(value); }		// set value by 'co_return'
+				void				return_value (ResultType value)				__NE___	{ _value = RVRef(value); }		// set value by 'co_return'
 
-				void				unhandled_exception ()			C_Th___	{ throw; }						// rethrow exceptions
+				void				unhandled_exception ()						C_Th___	{ throw; }						// rethrow exceptions
 
 			#ifdef AE_DEBUG
-				StringView			DbgName ()						C_NE_OV	{ return _dbgName; }
+				StringView			DbgName ()									C_NE_OV	{ return _dbgName; }
 			#else
-				StringView			DbgName ()						C_NE_OV	{ return "Coroutine<>"; }
+				StringView			DbgName ()									C_NE_OV	{ return "Coroutine<>"; }
 			#endif
 
-			ND_ static void*		operator new   (usize size)		__NE___	{ return NothrowAllocatable::operator new( size ); }
+			ND_ static void*		operator new   (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
 
 
 		public:
-				void  Cancel ()										__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
-				void  Fail ()										__NE___	{ IAsyncTask::OnFailure(); }
-			ND_ bool  IsCanceled ()									__NE___	{ return IAsyncTask::IsCanceled(); }
+				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
+				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }
+			ND_ bool  IsCanceled ()												__NE___	{ return IAsyncTask::IsCanceled(); }
 
 				template <typename ...Deps>
-				void  Continue (const Tuple<Deps...> &deps)			__NE___	{ return IAsyncTask::Continue( deps ); }
+				void  Continue (const Tuple<Deps...> &deps)						__NE___	{ return IAsyncTask::Continue( deps ); }
 
 
 		private:
-			void  Run ()											__Th_OV
+			void  Run ()														__Th_OV
 			{
 				auto	coro_handle = Handle_t::from_promise( *this );
 				coro_handle.resume();	// throw
@@ -90,7 +91,7 @@ namespace _hidden_
 					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
 			}
 
-			void  _ReleaseObject ()									__NE_OV
+			void  _ReleaseObject ()												__NE_OV
 			{
 				MemoryBarrier( EMemoryOrder::Acquire );
 				ASSERT( IsFinished() );

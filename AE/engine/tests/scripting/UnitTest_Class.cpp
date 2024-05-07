@@ -172,7 +172,7 @@ namespace
 		{
 			if ( args.Is< uint (Test10_CL::*)(int) >())
 			{
-				TEST( args.Arg<int>(0) == 1 );
+				TEST_Eq( args.Arg<int>(0), 1 );
 				args.Return( 111u );
 			}
 			else
@@ -216,7 +216,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int (int) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, 1 ));
-		TEST( res == 3+1 );
+		TEST_Eq( res, 3+1 );
 	}
 
 
@@ -246,7 +246,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int (int) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, 2 ));
-		TEST( res == 5 + ((4*10)+2) );
+		TEST_Eq( res, 5 + ((4*10)+2) );
 	}
 
 
@@ -271,7 +271,7 @@ namespace
 
 		uint	res = 0;
 		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
-		TEST( res == uint(EEnum::Value1) + uint(EEnum::Value2) );
+		TEST_Eq( res, uint(EEnum::Value1) + uint(EEnum::Value2) );
 	}
 
 
@@ -319,7 +319,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
-		TEST( res == 11 );
+		TEST_Eq( res, 11 );
 
 		ScriptCl::engine = null;
 	}
@@ -344,8 +344,8 @@ namespace
 		int					res = 0;
 
 		TEST( Run< int(Test5_CL*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, arg ));
-		TEST( res == 11+22 );
-		TEST( arg->__Counter() == 1 );
+		TEST_Eq( res, 11+22 );
+		TEST_Eq( arg->__Counter(), 1 );
 	}
 
 
@@ -369,8 +369,8 @@ namespace
 		Test6_CL*	res = null;
 		TEST( Run< Test6_CL*() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res );
-		TEST( res->__Counter() == 1 );
-		TEST( res->i == 11 );
+		TEST_Eq( res->__Counter(), 1 );
+		TEST_Eq( res->i, 11 );
 		res->__Release();
 	}
 
@@ -395,7 +395,7 @@ namespace
 		Test7_Value	val{3};
 		int			res = 0;
 		TEST( Run< int (Test7_Value*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, &val ));
-		TEST( res == 3+5 );
+		TEST_Eq( res, 3+5 );
 	}
 
 
@@ -424,10 +424,10 @@ namespace
 
 		TEST( Run< Test8_CL* (Test8_CL*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, arg.Get() ));
 		TEST( res );
-		TEST( arg->__Counter() == 1 );
-		TEST( arg->i == 11 );
-		TEST( res->__Counter() == 1 );
-		TEST( res->i == 22 );
+		TEST_Eq( arg->__Counter(), 1 );
+		TEST_Eq( arg->i, 11 );
+		TEST_Eq( res->__Counter(), 1 );
+		TEST_Eq( res->i, 22 );
 	}
 
 
@@ -461,20 +461,20 @@ namespace
 
 		TEST( Run< Test9_2_CL*() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res );
-		TEST( res->__Counter() == 1 );
-		TEST( res->arr.size() == 4 );
+		TEST_Eq( res->__Counter(), 1 );
+		TEST_Eq( res->arr.size(), 4 );
 
 		TEST( res->arr[0] );
-		TEST( res->arr[0]->__Counter() == 1 );
-		TEST( res->arr[0]->i == 1 );
+		TEST_Eq( res->arr[0]->__Counter(), 1 );
+		TEST_Eq( res->arr[0]->i, 1 );
 
 		TEST( res->arr[1] );
-		TEST( res->arr[1]->__Counter() == 1 );
-		TEST( res->arr[1]->i == 2 );
+		TEST_Eq( res->arr[1]->__Counter(), 1 );
+		TEST_Eq( res->arr[1]->i, 2 );
 
 		TEST( res->arr[2] );
-		TEST( res->arr[2]->__Counter() == 2 );
-		TEST( res->arr[2]->i == 8 );
+		TEST_Eq( res->arr[2]->__Counter(), 2 );
+		TEST_Eq( res->arr[2]->i, 8 );
 
 		TEST( res->arr[2] == res->arr[3] );
 	}
@@ -501,7 +501,7 @@ namespace
 
 		uint	res = 0;
 		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
-		TEST( res == uint(EEnumBit::Value1 | EEnumBit::Value3) );
+		TEST_Eq( res, uint(EEnumBit::Value1 | EEnumBit::Value3) );
 	}
 
 
@@ -526,7 +526,7 @@ namespace
 
 		uint	res = 0;
 		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
-		TEST( res == 111u );
+		TEST_Eq( res, 111u );
 	}
 }
 

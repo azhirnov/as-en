@@ -23,7 +23,6 @@ namespace AE::ResEditor
 		{
 		// types
 		public:
-			using PplnID_t		= Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
 			using PipelineMap_t	= FlatHashMap< Pair<usize, EDebugMode>, PplnID_t >;
 
 
@@ -131,18 +130,17 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		UnifiedGeometry (Renderer &r)												__NE___;
+		UnifiedGeometry (Renderer &r)									__NE___;
 		~UnifiedGeometry ();
 
 
 	// IGeomSource //
-		void  PrepareForDebugging (IGSMaterials &, DirectCtx::Transfer &,
-								   const Debugger &, OUT ShaderDebugger::Result &)	__Th_OV;
-		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)				__Th_OV;
+		void  StateTransition (IGSMaterials &, DirectCtx::Graphics &)	__Th_OV;
 		using IGeomSource::StateTransition;
 
-		bool  Draw (const DrawData &)												__Th_OV;
-		bool  Update (const UpdateData &)											__Th_OV;
+		bool  Draw (const DrawData &)									__Th_OV;
+		bool  Update (const UpdateData &)								__Th_OV;
+		void  PrepareForDebugging (INOUT DebugPrepareData &)			__Th_OV;
 	};
 
 

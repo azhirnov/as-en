@@ -78,7 +78,7 @@ There are PipelineSpecializations:
 ```cpp
 // sbtRecordStride - from 'traceRay()'
 // sbtRecordOffset - from 'traceRay()'
-hitShader = RTSceneBuild::Instance::instanceSBTOffset + geometryIndex * sbtRecordStride + sbtRecordOffset;
+hitShader = RTSceneBuild::InstanceVk::instanceSBTOffset + geometryIndex * sbtRecordStride + sbtRecordOffset;
 
 // sbtRecordIndex - from 'executeCallable()'
 callableShader = sbtRecordIndex;

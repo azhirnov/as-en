@@ -22,7 +22,7 @@ namespace AE::App
 	// methods
 	public:
 		RaysGrid ()											__NE___	{}
-		RaysGrid (float4* rays, const uint2 &dim)			__NE___	: _rays{rays}, _dim{dim} { ASSERT( _rays != null ); }
+		RaysGrid (float4* rays, const uint2 &dim)			__NE___	: _rays{rays}, _dim{dim} { NonNull( _rays ); }
 
 		ND_ uint2 const&  Dimension ()						C_NE___	{ return _dim; }
 
@@ -30,7 +30,7 @@ namespace AE::App
 
 		ND_ float4&  operator () (uint x, uint y)			__NE___
 		{
-			ASSERT( _rays != null );
+			NonNull( _rays );
 			ASSERT( x < _dim.x and y < _dim.y );
 			return _rays[ _dim.x * y + x ];
 		}

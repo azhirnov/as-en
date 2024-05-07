@@ -23,7 +23,7 @@ namespace AE::GeometryTools
 	Create
 =================================================
 */
-	bool  GridRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx, GfxMemAllocatorPtr gfxAlloc, uint vertsPerEdge, uint patchSize) __NE___
+	bool  GridRenderer::Create (ResourceManager &resMngr, ITransferContext &ctx, GfxMemAllocatorPtr gfxAlloc, uint vertsPerEdge, uint patchSize) __NE___
 	{
 		Destroy( resMngr );
 
@@ -49,7 +49,7 @@ namespace AE::GeometryTools
 	Destroy
 =================================================
 */
-	void  GridRenderer::Destroy (IResourceManager &resMngr) __NE___
+	void  GridRenderer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		resMngr.ReleaseResource( INOUT _vertexBuffer );
 		resMngr.ReleaseResource( INOUT _indexBuffer );

@@ -56,8 +56,8 @@ namespace AE::Graphics
 		Attachments_t				_attachments;	// weak references
 		CachePtr_t					_cachePtr		= Default;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -65,9 +65,9 @@ namespace AE::Graphics
 		VFramebuffer ()									__NE___	{}
 		~VFramebuffer ()								__NE___;
 
-		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default)	__NE___;
-			void  Destroy (VResourceManager &)																				__NE___;
-		ND_ bool  SetCachePtr (CachePtr_t ptr)																				__NE___;
+		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default) __NE___;
+			void  Destroy (VResourceManager &)			__NE___;
+		ND_ bool  SetCachePtr (CachePtr_t ptr)			__NE___;
 
 		ND_ bool  IsAllResourcesAlive (const VResourceManager &) C_NE___;
 
@@ -78,7 +78,7 @@ namespace AE::Graphics
 		ND_ ArrayView<ImageViewID>	Attachments ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachments; }
 		ND_ ArrayView<ImageID>		Images ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _images; }
 
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

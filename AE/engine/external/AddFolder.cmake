@@ -1,5 +1,12 @@
 
-set( AE_EXTERNAL_SHARED_PATH "${AE_EXTERNAL_REP_PATH}/external/source" CACHE INTERNAL "" FORCE )
+if (NOT DEFINED AE_EXTERNAL_BIN_PATH)
+	message( FATAL_ERROR "AE_EXTERNAL_BIN_PATH is not defined" )
+endif()
+if (NOT EXISTS "${AE_EXTERNAL_BIN_PATH}")
+	message( FATAL_ERROR "AE_EXTERNAL_BIN_PATH: '${AE_EXTERNAL_BIN_PATH}' is not exists" )
+endif()
+
+set( AE_EXTERNAL_SHARED_PATH "${AE_EXTERNAL_BIN_PATH}/external/source" CACHE INTERNAL "" FORCE )
 
 # detect target platform
 if (MSVC)
@@ -98,9 +105,9 @@ if (NOT DEFINED PLATFORM_DEPENDENT)
 	message( FATAL_ERROR "Unsupported platform '${CMAKE_SYSTEM_NAME}' or compiler '${CMAKE_CXX_COMPILER_ID}' with version '${CMAKE_CXX_COMPILER_VERSION}'" )
 endif()
 
-#if (NOT EXISTS "${EXTERNAL_FOLDER}/${PLATFORM_DEPENDENT}")
-#	message( FATAL_ERROR "platform specific folder '${EXTERNAL_FOLDER}/${PLATFORM_DEPENDENT}' is not exists" )
-#endif()
+if (NOT EXISTS "${AE_EXTERNAL_BIN_PATH}/external/${PLATFORM_DEPENDENT}")
+	message( FATAL_ERROR "platform specific folder '${AE_EXTERNAL_BIN_PATH}/external/${PLATFORM_DEPENDENT}' is not exists" )
+endif()
 
-add_subdirectory( "${EXTERNAL_FOLDER}/${PLATFORM_DEPENDENT}" "${PLATFORM_DEPENDENT}" )
-add_subdirectory( "${EXTERNAL_FOLDER}/shared" "shared" )
+add_subdirectory( "${AE_ENGINE_EXTERNAL_CMAKE}/${PLATFORM_DEPENDENT}" "${PLATFORM_DEPENDENT}" )
+add_subdirectory( "${AE_ENGINE_EXTERNAL_CMAKE}/shared" "shared" )

@@ -37,13 +37,15 @@ void ASmain ()
 	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
 	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
 	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
-	//	Intel(R) Haswell Desktop driver 19.0.0 on Android 9.0
+	//	HUAWEI BRA-AL00 driver 472.436.143 on Android 12.0
 	//	Mali-T830 driver 28.0.0 on Android 9.0
 	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
 	//	NINTENDO Switch v2 driver 495.0.0.0 on Android 11.0
 	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
 	//	nubia NX729J driver 512.746.0 on Android 13.0
 	//	NVIDIA Tegra X1 (rev B) (nvgpu) driver 495.0.0.0 on Android 11.0
+	//	NVIDIA Tegra X2 (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
+	//	NVIDIA Tegra Xavier (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
 	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
 	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
@@ -53,7 +55,10 @@ void ASmain ()
 	//	PowerVR B-Series BXE-4-32 driver 1.492.1330 on Debian unknown
 	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
+	//	rockchip BlueBerry driver 13.0.0 on Android 12.0
+	//	rockchip orangepi5plus driver 13.0.0 on Android 12.0
 	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
+	//	Rockchip rk3399 driver 1012.218.955 on Android 10.0
 	//	samsung SM-A346E driver 32.1.0 on Android 14.0
 	//	Mali-G72 driver 26.0.0 on Android 11.0
 	//	samsung SM-G780F driver 38.1.0 on Android 13.0
@@ -69,6 +74,7 @@ void ASmain ()
 	//	vivo V2324A driver 44.1.0 on Android 14.0
 	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
 	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
+	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
 	//	Apple7_Metal3
@@ -76,8 +82,8 @@ void ASmain ()
 	//	Apple7
 	//	Apple6_Metal3
 	//	Apple6
-	//	Mac2
-	//	Mac_Metal3
+	//	Apple_Mac2
+	//	Apple_Mac_Metal3
 
 	const EFeature  True = EFeature::RequireTrue;
 

@@ -49,6 +49,7 @@ namespace AE::ResEditor
 	// types
 	private:
 		using Materials_t	= Array< RC<IGSMaterials> >;
+		using PplnToObjID_t	= IGeomSource::DebugPrepareData::PplnToObjID_t;
 
 
 	// variables
@@ -68,6 +69,8 @@ namespace AE::ResEditor
 		Strong<BufferID>		_ubuffer;
 		PerFrameDescSet_t		_descSets;
 		DescSetBinding			_dsIndex;
+
+		PplnToObjID_t			_tempPplnToObjID;
 
 
 	// methods

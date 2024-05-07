@@ -41,6 +41,14 @@ namespace AE::ResEditor
 		return GetDescriptorImageType( desc.format, view.viewType, desc.samples.IsEnabled() );
 	}
 
+	ND_ inline PipelineCompiler::EImageType  GetDescriptorImageType (const Graphics::ImageDesc &desc, const Graphics::ImageViewDesc &view)
+	{
+		CHECK_ERR( desc.imageDim != Default );
+		CHECK_ERR( view.format != Default );
+
+		return GetDescriptorImageType( view.format, view.viewType, desc.samples.IsEnabled() );
+	}
+
 /*
 =================================================
 	GetDescriptorImageTypeRelaxed

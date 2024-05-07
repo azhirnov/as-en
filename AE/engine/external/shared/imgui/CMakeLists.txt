@@ -9,7 +9,7 @@ target_include_directories( "ImGUI-lib" INTERFACE "${IMGUI_PATH}/include" )
 target_compile_definitions( "ImGUI-lib" INTERFACE "AE_ENABLE_IMGUI" "AE_LICENSE_MIT" )
 install( FILES "${IMGUI_PATH}/LICENSE" DESTINATION "3party_license" RENAME "IMGUI-LICENSE" )
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+if (ANDROID)
 	set_property( TARGET "ImGUI-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${IMGUI_PATH}/lib/${ANDROID_ABI}/${CMAKE_STATIC_LIBRARY_PREFIX}imgui${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 
@@ -24,7 +24,7 @@ else()
 endif()
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
-	if (DEFINED ANDROID)
+	if (ANDROID)
 		add_library( "Tests.ImGUI" STATIC "tests/main.cpp" )
 		target_compile_definitions( "Tests.ImGUI" PUBLIC "ANDROID" )
 		target_include_directories( "Tests.ImGUI" PRIVATE "${AE_TEST_DIR}" )

@@ -127,10 +127,8 @@ namespace
 					.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer )
 					.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
-				drawBatch = ctx.BeginMtRenderPass( rp_desc, {"DrawTest.Draw_1"} );
-				CHECK_TE( drawBatch );
-
-				cmdbuf = ctx.ReleaseCommandBuffer();
+				drawBatch	= ctx.BeginMtRenderPass( rp_desc, {"DrawTest.Draw_1"} );
+				cmdbuf		= ctx.ReleaseCommandBuffer();
 				lock.unlock();
 
 				#ifdef AE_HAS_COROUTINE
@@ -150,8 +148,8 @@ namespace
 						DrawTask&	self = co_await DrawTask_GetRef;
 
 						// same as 'DA1_DrawTask'
-						DeferSharedLock	lock {t.guard};
-						CHECK_CE( lock.try_lock() );
+						DeferSharedLock	lock2 {t.guard};
+						CHECK_CE( lock2.try_lock() );
 
 						typename CtxTypes::Draw		dctx{ self };
 
@@ -167,19 +165,19 @@ namespace
 						co_await DrawTask_Execute( dctx );
 						co_return;
 					}};
-					StaticArray< AsyncTask, 4 >	draw_tasks = {{
+					StaticArray< AsyncTask, 4 >	draw_tasks = {
 						drawBatch->Run( CreateDrawTask( t, 0 ), Tuple{}, {"draw cmd 1"} ),
 						drawBatch->Run( CreateDrawTask( t, 3 ), Tuple{}, {"draw cmd 2"} ),
 						drawBatch->Run( CreateDrawTask( t, 6 ), Tuple{}, {"draw cmd 3"} ),
 						drawBatch->Run( CreateDrawTask( t, 9 ), Tuple{}, {"draw cmd 4"} )
-					}};
+					};
 				#else
-					StaticArray< AsyncTask, 4 >	draw_tasks = {{
+					StaticArray< AsyncTask, 4 >	draw_tasks = {
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 0u }, Tuple{}, {"draw cmd 1"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 3u }, Tuple{}, {"draw cmd 2"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 6u }, Tuple{}, {"draw cmd 3"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 9u }, Tuple{}, {"draw cmd 4"} )
-					}};
+					};
 				#endif
 				drawBatch->EndRecording();	// optional
 
@@ -232,6 +230,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

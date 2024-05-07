@@ -59,7 +59,7 @@ namespace AE::Math
 	public:
 		SimdFloat4 ()											__NE___	: _value{ _mm_setzero_ps() } {}
 		explicit SimdFloat4 (float v)							__NE___	: _value{ _mm_set1_ps( v )} {}
-		explicit SimdFloat4 (const float* ptr)					__NE___	: _value{ _mm_loadu_ps( ptr )} { ASSERT( ptr != null ); }
+		explicit SimdFloat4 (const float* ptr)					__NE___	: _value{ _mm_loadu_ps( ptr )} { NonNull( ptr ); }
 		explicit SimdFloat4 (const __m128 &v)					__NE___	: _value{ v } {}
 		SimdFloat4 (float x, float y, float z, float w)			__NE___	: _value{ _mm_set_ps( x, y, z, w )} {}
 
@@ -456,7 +456,7 @@ namespace AE::Math
 			if constexpr( is64 )	_value = _mm_set1_epi64x( v );
 		}
 
-		explicit SimdTInt128 (Base::_hidden_::_UMax)	__NE___	:
+		explicit SimdTInt128 (UMax_t)					__NE___	:
 			SimdTInt128{ ~IntType{0} }
 		{}
 

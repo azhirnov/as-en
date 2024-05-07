@@ -11,11 +11,23 @@
 
 namespace AE::Graphics
 {
+	struct Viewport
+	{
+		RectF		rect;
+		float		minDepth	= 0.0f;
+		float		maxDepth	= 1.0f;
+	};
+}
+namespace AE::Base {
+	template <> struct TTriviallySerializable< Graphics::Viewport > { static constexpr bool  value = true; };
+	template <> struct TTriviallyDestructible< Graphics::Viewport > { static constexpr bool  value = true; };
+}
+namespace AE::Graphics
+{
 
 	//
 	// Render Pass description
 	//
-
 	struct RenderPassDesc
 	{
 	// types
@@ -35,20 +47,12 @@ namespace AE::Graphics
 			EResourceState	initial		= Default;
 
 			// Allow to transit from render pass state to expected state.
-			// Only available in 'IGraphicsContext::EndRenderPass(... RenderPassDesc)' or 'IGraphicsContext::EndMtRenderPass(... RenderPassDesc)' overload.
 			// Keep 'Default' to disable auto-transition.
 			EResourceState	final		= Default;
 
 			// If 'true' and known state is 'ColorAttachment_RW' and render pass require 'ColorAttachment_RW' state
 			// then no barriers are issued in spite of write -> write hazard.
 			bool			relaxedStateTransition	= true;
-		};
-
-		struct Viewport
-		{
-			RectF		rect;
-			float		minDepth	= 0.0f;
-			float		maxDepth	= 1.0f;
 		};
 
 	private:
@@ -64,7 +68,7 @@ namespace AE::Graphics
 		ImageLayer		layerCount		= 1_layer;
 		RenderPassName	renderPassName;
 		SubpassName		subpassName;		// optional
-		PipelinePackID	packId;
+		PipelinePackID	packId;				// optional, required if 'renderPassName' is not exists in default pipeline pack
 
 		// TODO:
 		//	- tile size	(Metal)
@@ -116,8 +120,6 @@ namespace AE::Graphics
 		Self&  DefaultViewport ()																					__NE___	{ return DefaultViewport( 0.f, 1.f ); }
 		Self&  DefaultViewport (float minDepth, float maxDepth)														__NE___;
 	};
-//-----------------------------------------------------------------------------
-
 
 
 /*

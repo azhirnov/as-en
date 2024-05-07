@@ -59,7 +59,7 @@ namespace AE::Graphics
 
 		dev.SetObjectName( _cache, dbgName, VK_OBJECT_TYPE_PIPELINE_CACHE );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -99,7 +99,7 @@ namespace AE::Graphics
 			_cache = Default;
 		}
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

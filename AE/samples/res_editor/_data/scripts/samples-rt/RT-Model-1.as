@@ -7,8 +7,8 @@
 
 	void ASmain ()
 	{
-		RC<Image>		rt		= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT-Color" );
-		RC<Image>		ds		= Image( EPixelFormat::Depth32F, SurfaceSize() );	ds.Name( "RT-Depth" );
+		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
+		RC<Image>		ds		= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
 		RC<Scene>		scene	= Scene();
 		RC<FPVCamera>	camera	= FPVCamera();

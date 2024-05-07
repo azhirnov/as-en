@@ -12,6 +12,10 @@ source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 set_property( TARGET "Video" PROPERTY FOLDER "Engine" )
 target_link_libraries( "Video" PUBLIC "Platform" )
 
+if (TARGET "Audio")
+	target_link_libraries( "Video" PUBLIC "Audio" )
+endif()
+
 if (${AE_ENABLE_FFMPEG})
 	target_link_libraries( "Video" PUBLIC "FFmpeg-lib" )
 endif()

@@ -56,7 +56,7 @@ namespace AE::ResLoader
 =================================================
 	LoadModel
 =================================================
-*
+*/
 	bool  glTFLoader::LoadModel (OUT IntermScene	&scene,
 								 RStream			&stream,
 								 const Config		&cfg,
@@ -66,7 +66,7 @@ namespace AE::ResLoader
 		tinygltf::Model		gltf_model;
 		String				error, warning;
 
-		CHECK_ERR( gltf_ctx.LoadBinaryFromMemory( OUT &gltf_model, OUT &error, OUT &warning, );
+	//	CHECK_ERR( gltf_ctx.LoadBinaryFromMemory( OUT &gltf_model, OUT &error, OUT &warning, );
 
 		return true;
 	}
@@ -75,18 +75,18 @@ namespace AE::ResLoader
 =================================================
 	LoadModel
 =================================================
-*
+*/
 	bool  glTFLoader::LoadModel (OUT IntermScene	&scene,
 								 const Path			&scenePath,
 								 const Config		&cfg) __NE___
 	{
 
 	//	CHECK_ERR( gltf_ctx.LoadBinaryFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
-		CHECK_ERR( gltf_ctx.LoadASCIIFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
+	//	CHECK_ERR( gltf_ctx.LoadASCIIFromFile( OUT &gltf_model, OUT &error, OUT &warning, filename.c_str() ));
 
 		return true;
 	}
-*/
+
 
 } // AE::ResLoader
 

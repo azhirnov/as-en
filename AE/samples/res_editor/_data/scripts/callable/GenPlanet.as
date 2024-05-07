@@ -25,10 +25,10 @@
 		else
 		{
 			const uint2	dim = uint2(1024);
-			@height_map		= Image( EPixelFormat::RGBA16F, dim );	height_map.Name( "height" );
-			@normal_map		= Image( EPixelFormat::RGBA16F, dim );	normal_map.Name( "normal" );
-			@albedo_map		= Image( EPixelFormat::RGBA16F, dim );	albedo_map.Name( "albedo" );
-			@emission_map	= Image( EPixelFormat::RGBA16F, dim );	emission_map.Name( "emission" );
+			@height_map		= Image( EPixelFormat::RGBA16F, dim, MipmapLevel(~0) );		height_map.Name( "height" );
+			@normal_map		= Image( EPixelFormat::RGBA16F, dim, MipmapLevel(~0) );		normal_map.Name( "normal" );
+			@albedo_map		= Image( EPixelFormat::RGBA16F, dim, MipmapLevel(~0) );		albedo_map.Name( "albedo" );
+			@emission_map	= Image( EPixelFormat::RGBA16F, dim, MipmapLevel(~0) );		emission_map.Name( "emission" );
 		}
 
 		string	defines;
@@ -42,7 +42,7 @@
 
 		// height & normal
 		{
-			RC<ComputePass>		gen_height	= ComputePass( "", "GEN_HEIGHT;"+defines, EPassFlags::None );
+			RC<ComputePass>		gen_height	= ComputePass( "", "GEN_HEIGHT;"+defines );
 			const uint2			group_count	= (face_size + local_size - 3) / (local_size - 2);	// 1 pixel border
 
 			gen_height.ArgOut( "un_OutHeight", height_map );
@@ -54,7 +54,7 @@
 
 		// color
 		{
-			RC<ComputePass>		gen_color = ComputePass( "", "GEN_COLOR;"+defines, EPassFlags::None );
+			RC<ComputePass>		gen_color = ComputePass( "", "GEN_COLOR;"+defines );
 
 			gen_color.ArgIn(  "un_HeightMap",   height_map );
 			gen_color.ArgIn(  "un_NormalMap",   normal_map );
@@ -91,7 +91,7 @@
 	#include "Color.glsl"
 
 	float2	faceDim;
-	
+
 	int  FaceIdx () {
 		return GetGroupCoord().z;
 	}
@@ -146,7 +146,7 @@
 		faceDim = float2(gl.image.GetSize( un_OutHeight ).xy);
 
 		const int2		local		= GetLocalCoord().xy - 1;	// \__ 1 px border
-		const int2		lsize		= GetLocalSize().xy - 2;	// / 
+		const int2		lsize		= GetLocalSize().xy - 2;	// /
 		const int2		group		= GetGroupCoord().xy;
 		const int3		coord		= int3( local + lsize * group, FaceIdx() );
 		const float4	pos_h		= GetPosition( coord.xy );

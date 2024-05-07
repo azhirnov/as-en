@@ -99,7 +99,7 @@ extern void  TcpClientV6 (const IpAddress6 &serverAddr)
 		if ( err == SocketSendError::ConnectionResetByPeer )
 		{
 			// try to reconnect
-			client.Close();
+			client.FastClose();
 			CHECK_ERRV( client.Connect( serverAddr ));
 			CHECK_ERRV( client.IsOpen() );
 			continue;

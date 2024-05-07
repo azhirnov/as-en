@@ -185,7 +185,7 @@ namespace AE::Base
 		ssize	left	= 0;
 		ssize	right	= ssize(arr.size());
 
-		for (; left < right; )
+		for_likely(; left < right; )
 		{
 			ssize	mid = left + ((right - left) >> 1);
 
@@ -260,7 +260,7 @@ namespace AE::Base
 		if ( begin == end )
 			return true;
 
-		for (auto curr = begin, next = begin+1; next != end; ++next)
+		for_likely (auto curr = begin, next = begin+1; next != end; ++next)
 		{
 			if_unlikely( not fn( *curr, *next ))
 				return false;
@@ -287,7 +287,7 @@ namespace AE::Base
 		if ( begin == end )
 			return false;
 
-		for (auto curr = begin, next = begin+1; next != end; ++next)
+		for_likely (auto curr = begin, next = begin+1; next != end; ++next)
 		{
 			if_unlikely( *curr == *next )
 				return true;

@@ -71,7 +71,7 @@ namespace AE::App
 		res = des( OUT mode_count );
 		CHECK_ERR( res and mode_count <= _MaxModes );
 
-		for (uint i = 0; res & (i < mode_count); ++i)
+		for (uint i = 0; res and (i < mode_count); ++i)
 		{
 			InputModeName	mode_name;
 			uint			act_count		= 0;
@@ -87,7 +87,7 @@ namespace AE::App
 			mode.enableSensors		= enable_sensors;
 			mode.actions.reserve( act_count );
 
-			for (uint j = 0; res & (j < act_count); ++j)
+			for (uint j = 0; res and (j < act_count); ++j)
 			{
 				InputKey	key;
 				ActionInfo	info;
@@ -124,7 +124,7 @@ namespace AE::App
 	LoadSerialized
 =================================================
 */
-	bool  SerializableInputActions::LoadSerialized (OUT ModeMap_t &modeMap, const uint version, const uint nameHash, MemRefRStream &stream)
+	bool  SerializableInputActions::LoadSerialized (OUT ModeMap_t &modeMap, const uint version, const uint nameHash, MemRefRStream &stream) __NE___
 	{
 		CHECK_ERR( stream.IsOpen() );
 
@@ -166,8 +166,7 @@ namespace AE::App
 	_ToArray
 =================================================
 */
-	Array<Pair<SerializableInputActions::InputKey, const SerializableInputActions::ActionInfo *>>
-		SerializableInputActions::_ToArray (const ActionMap_t &actions)
+	auto  SerializableInputActions::_ToArray (const ActionMap_t &actions) __Th___ -> Array<Pair<InputKey, const ActionInfo *>>
 	{
 		Array<Pair<InputKey, const ActionInfo *>>	result;
 		result.reserve( actions.size() );
@@ -185,8 +184,7 @@ namespace AE::App
 	_ToArray
 =================================================
 */
-	Array<Pair<InputModeName, const SerializableInputActions::InputMode *>>
-		SerializableInputActions::_ToArray (const ModeMap_t &modeMap)
+	auto  SerializableInputActions::_ToArray (const ModeMap_t &modeMap) __Th___ -> Array<Pair<InputModeName, const InputMode *>>
 	{
 		Array<Pair<InputModeName, const InputMode *>>	result;
 		result.reserve( modeMap.size() );
@@ -537,7 +535,7 @@ namespace AE::App
 			{
 				CHECK_THROW_MSG(
 					info.valueType == EValueType::Quat or info.valueType == EValueType::Float4x4 or
-					info.valueType >= EValueType::Float and info.valueType <= EValueType::Float4,
+					(info.valueType >= EValueType::Float and info.valueType <= EValueType::Float4),
 					GetMsgTemplate() << "has gesture 'Move' which requires 'Float[1..4] / Quat / Float4x4' types. " );
 
 				const packed_uint4	sw		= value.swizzle.ToVec();

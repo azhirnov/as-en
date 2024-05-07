@@ -50,17 +50,23 @@ namespace AE::ResEditor
 	// interface
 	public:
 
+		// Returns 'true' if need to resize.
+		// May be called multiple times, but all in single thread and
+		// before 'Upload()', 'Readback()' and other usage.
+		//
+		ND_ virtual bool			RequireResize ()			C_Th___ = 0;
+
 		// Returns 'false' if failed to resize.
 		// Returns 'true' if resized or if not needed to resize.
+		// Executed only if 'RequireResize()' returns 'true'.
+		// Executed in parallel with 'Upload()', 'Readback()' and other usage.
+		//
 			virtual bool			Resize (TransferCtx_t &ctx)	__Th___	= 0;
-
-		// Returns 'true' if need to resize.
-		ND_ virtual bool			RequireResize ()			C_Th___ = 0;
 
 		// GPU <-> CPU
 		ND_ virtual EUploadStatus	GetStatus ()				C_NE___	{ return _uploadStatus.load(); }
-		ND_ virtual EUploadStatus	Upload (TransferCtx_t &)	__Th___	= 0;	// called once per frame
-		ND_ virtual EUploadStatus	Readback (TransferCtx_t &)	__Th___	= 0;	// called once per frame
+		ND_ virtual EUploadStatus	Upload (TransferCtx_t &)	__Th___	= 0;	// Executed once per frame
+		ND_ virtual EUploadStatus	Readback (TransferCtx_t &)	__Th___	= 0;	// Executed once per frame
 			virtual void			Cancel ()					__NE___;
 
 
@@ -70,8 +76,6 @@ namespace AE::ResEditor
 
 		ND_ Renderer&				_Renderer ()				const	{ return _renderer; }
 		ND_ DataTransferQueue&		_DtTrQueue ()				const;
-		ND_ GfxMemAllocatorPtr		_GfxAllocator ()			const;
-		ND_ GfxMemAllocatorPtr		_GfxDynamicAllocator ()		const;
 
 			void  _SetUploadStatus (EUploadStatus)				__NE___;
 	};

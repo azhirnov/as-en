@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "pch/Networking.h"
+#include "../shared/UnitTest_Shared.h"
 
 using namespace AE;
 using namespace AE::Networking;
@@ -56,9 +57,9 @@ static IpAddress6  GetSelfIPv6AddressFromGoogleDNS ()
 }
 
 
-int main ()
+int main (const int argc, char* argv[])
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	BEGIN_TEST();
 
 	auto&	mngr = SocketService::Instance();
 	CHECK_ERR( mngr.Initialize() );
@@ -80,7 +81,7 @@ int main ()
 	// server TCP/UDP IPv4
 	#if 0
 		StdThread	tcp_thread{ [](){ TcpServerV4( IpAddress::FromLocalPortTCP( 3000 )); }};
-		StdThread	udp_thread{ [](){ UdpServerV4( IpAddress::FromLocalPortUDP( 4000 )); }};
+		StdThread	udp_thread{ [](){ UdpServerV4( IpAddress::FromLocalPortUDP( 3000 )); }};
 
 		tcp_thread.join();
 		udp_thread.join();
@@ -91,7 +92,7 @@ int main ()
 		IpAddress6	addr = GetSelfIPv6AddressFromRouter();
 
 		StdThread	tcp_thread{ [addr]() mutable { addr.SetPort( 3000 );  TcpServerV6( addr ); }};
-		StdThread	udp_thread{ [addr]() mutable { addr.SetPort( 4000 );  UdpServerV6( addr ); }};
+		StdThread	udp_thread{ [addr]() mutable { addr.SetPort( 3000 );  UdpServerV6( addr ); }};
 
 		tcp_thread.join();
 		udp_thread.join();
@@ -145,10 +146,10 @@ int main ()
 
 	// UDP client
 	#if 0
-		UdpClientV4( IpAddress::FromHostPortUDP( "192.168.0.xxx", 4000 ));
+		UdpClientV4( IpAddress::FromHostPortUDP( "192.168.0.xxx", 3000 ));
 	#endif
 	#if 0
-		UdpClientV6( IpAddress6::FromHostPortUDP( "192.168.0.xxx", 4000 ));
+		UdpClientV6( IpAddress6::FromHostPortUDP( "192.168.0.xxx", 3000 ));
 	#endif
 
 	// TCP client
@@ -156,18 +157,16 @@ int main ()
 		TcpClientV4( IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 ));
 	#endif
 	#if 0
-	//	TcpClientV6( IpAddress6{ ..., 3000, 0 });
 		TcpClientV6( IpAddress6::FromString( "[IPv6 addr]:3000" ));
-	//	TcpClientV6( IpAddress6::FromServiceUDP( "IPv6 addr", "" ));	// error
 	#endif
 	//-------------------------------------------
 
 
 	#if 1
 		StdThread	server_thread{ [](){ TcpMsgServerV4( 3000 ); }};
-		StdThread	client_thread{ [](){ TcpMsgClientV4( {	//IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 ),
-															IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 )
-														 }); }};
+		StdThread	client_thread{ [](){ TcpMsgClientV4( List{	IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 ),
+																IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 )
+															  }); }};
 
 		server_thread.join();
 		client_thread.join();

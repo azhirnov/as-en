@@ -27,10 +27,15 @@ namespace AE::Networking
 		if_likely( _handle == Default )
 			return false;	// no clients	// TODO: check errors
 
+	  #ifdef AE_UNIX_SOCKET
 		// On Linux, the new socket returned by accept() does not inherit file status flags such as O_NONBLOCK and O_ASYNC from the listening socket.
 		// This behavior differs from the canonical BSD sockets implementation.
-		CHECK_ERR( _SetNonBlocking() );
-		CHECK_ERR( _SetNoDelay() );
+		if ( other.IsNonBlocking() )
+			CHECK_ERR( _SetNonBlocking() );
+
+		if ( other.IsNoDelay() )
+			CHECK_ERR( _SetNoDelay() );
+	  #endif
 
 		clientAddr = AddressType::FromNative( AnyTypeCRef{ src_addr });
 		ASSERT( clientAddr.IsValid() );
@@ -71,7 +76,7 @@ namespace AE::Networking
 
 		// binding
 		{
-			const int		opt			= 1;
+			const int		opt			= cfg.reuseAddress ? 1 : 0;
 			NativeAddress	sock_addr;
 			addr.ToNative( OUT AnyTypeRef{ sock_addr });
 
@@ -95,8 +100,11 @@ namespace AE::Networking
 			}
 		}
 
-		CHECK_ERR( _SetNonBlocking() );
-		CHECK_ERR( _SetNoDelay() );
+		if ( cfg.nonBlocking )
+			CHECK_ERR( _SetNonBlocking() );
+
+		if ( cfg.noDelay )
+			CHECK_ERR( _SetNoDelay() );
 
 		DEBUG_ONLY(
 			if constexpr( is_ipv6 ){
@@ -146,8 +154,11 @@ namespace AE::Networking
 		}
 
 		// set non-blocking after 'connect()' otherwise 'connect()' will return EAGAIN or EINPROGRESS until 3-way handshake is in progress.
-		CHECK_ERR( _SetNonBlocking() );
-		CHECK_ERR( _SetNoDelay() );
+		if ( cfg.nonBlocking )
+			CHECK_ERR( _SetNonBlocking() );
+
+		if ( cfg.noDelay )
+			CHECK_ERR( _SetNoDelay() );
 
 		DEBUG_ONLY(
 			if constexpr( is_ipv6 ){
@@ -186,8 +197,11 @@ namespace AE::Networking
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
 
-		CHECK_ERR( _SetNonBlocking() );
-		CHECK_ERR( _SetNoDelay() );
+		if ( cfg.nonBlocking )
+			CHECK_ERR( _SetNonBlocking() );
+
+		if ( cfg.noDelay )
+			CHECK_ERR( _SetNoDelay() );
 
 		// connect
 		{
@@ -296,8 +310,7 @@ namespace AE::Networking
 */
 	auto  TcpSocket::Send (const void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketSendError, Bytes >
 	{
-		ASSERT( data != null );
-		ASSERT( dataSize > 0 );
+		ASSERT( data != null or dataSize > 0 );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketSendError::NoSocket, 0_b };
@@ -320,8 +333,7 @@ namespace AE::Networking
 */
 	auto  TcpSocket::Receive (OUT void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketReceiveError, Bytes >
 	{
-		ASSERT( data != null );
-		ASSERT( dataSize > 0 );
+		ASSERT( data != null or dataSize > 0 );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketReceiveError::NoSocket, 0_b };

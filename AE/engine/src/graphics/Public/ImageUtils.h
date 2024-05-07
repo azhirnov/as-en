@@ -3,6 +3,8 @@
 #pragma once
 
 #include "graphics/Public/ImageLayer.h"
+#include "graphics/Public/MipmapLevel.h"
+#include "graphics/Public/MultiSamples.h"
 
 namespace AE::Graphics
 {
@@ -21,7 +23,6 @@ struct ImageUtils final : Noninstanceable
 	{
 		ASSERT( All( texelBlock > 0u ));
 		ASSERT( IsMultipleOf( width, texelBlock.x ));
-
 		return ((Bytes{width + texelBlock.x-1} / texelBlock.x) * bitsPerBlock) / 8;
 	}
 
@@ -85,9 +86,34 @@ struct ImageUtils final : Noninstanceable
 		return SliceSize( Pixels2{dim.x, dim.y}, bitsPerBlock, texelBlock ) * dim.z;
 	}
 
-	ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layer, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+	ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layers, uint bitsPerBlock, const uint2 &texelBlock) __NE___
 	{
-		return ImageSize( dim, bitsPerBlock, texelBlock ) * layer.Get();
+		return ImageSize( dim, bitsPerBlock, texelBlock ) * layers.Get();
+	}
+
+	ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+	{
+		const uint	mip_count = Min( mipmaps.Get(), NumberOfMipmaps( dim ));
+		Bytes		result;
+		for (uint i = 0; i < mip_count; ++i) {
+			result += ImageSize( Max( dim >> i, 1u ), layers, bitsPerBlock, texelBlock );
+		}
+		return result;
+	}
+
+	ND_ static Bytes  ImageSize (const uint3 &dim, MipmapLevel mipmaps, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+	{
+		return ImageSize( dim, 1_layer, mipmaps, bitsPerBlock, texelBlock );
+	}
+
+	ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layers, MultiSamples samples, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+	{
+		return ImageSize( dim, layers, bitsPerBlock, texelBlock ) * samples.Get();
+	}
+
+	ND_ static Bytes  ImageSize (const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps, MultiSamples samples, uint bitsPerBlock, const uint2 &texelBlock) __NE___
+	{
+		return ImageSize( dim, layers, mipmaps, bitsPerBlock, texelBlock ) * samples.Get();
 	}
 
 /*

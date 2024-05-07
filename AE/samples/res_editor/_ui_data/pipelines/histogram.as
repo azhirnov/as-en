@@ -4,7 +4,6 @@
 void  CreateRenderPass ()
 {
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "Histogram.RPass" );
-	compat.AddFeatureSet( "MinDesktop" );
 
 	const string	pass = "Main";
 	compat.AddSubpass( pass );
@@ -30,7 +29,6 @@ void  CreateRenderPass ()
 void  CreateRenderTech ()
 {
 	RC<RenderTechnique>	rtech = RenderTechnique( "Histogram.RTech" );
-	rtech.AddFeatureSet( "MinDesktop" );
 
 	{
 		RC<ComputePass>		pass = rtech.AddComputePass( "Compute" );

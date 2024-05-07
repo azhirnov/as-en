@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Test_RenderGraph.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
 
 namespace
 {
@@ -153,6 +152,8 @@ namespace
 								})};
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -209,7 +210,7 @@ namespace
 									.Begin();
 		CHECK_ERR( batch2 );
 
-		AsyncTask	task3	= batch2.template Task< D5_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, {"Readback task"} )
+		AsyncTask	task3	= batch2.template Task< D5_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
 									.UseResource( t.img, EResourceState::CopySrc )
 									.SubmitBatch().Run();
 

@@ -753,6 +753,26 @@ namespace
 		ASSERT( fragOut.empty() == outFragIO.colorAttachments.empty() );
 		return true;
 	}
+
+/*
+=================================================
+	Disable
+=================================================
+*/
+	void  BasePipelineTmpl::Disable ()
+	{
+		_enabled = false;
+	}
+
+/*
+=================================================
+	Enable
+=================================================
+*/
+	void  BasePipelineTmpl::Enable ()
+	{
+		_enabled = true;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -762,8 +782,8 @@ namespace
 	constructor
 =================================================
 */
-	BasePipelineSpec::BasePipelineSpec (const BasePipelineTmpl* tmpl, const String &name) __Th___ :
-		_name{ PipelineName{name} },
+	BasePipelineSpec::BasePipelineSpec (BasePipelineTmpl* tmpl, const String &name) __Th___ :
+		_name{ PipelineName{name} }, _nameStr{ name },
 		_tmpl{ tmpl },
 		_options{ ObjectStorage::Instance()->defaultPipelineOpt }
 	{
@@ -777,7 +797,7 @@ namespace
 	_OnBuild
 =================================================
 */
-	void  BasePipelineSpec::_OnBuild (PipelineSpecUID uid)
+	void  BasePipelineSpec::_OnBuild (PipelineSpecUID uid) __NE___
 	{
 		_linkedRTechs.clear();
 
@@ -870,7 +890,7 @@ namespace
 	_ValidateRenderState
 =================================================
 */
-	void  BasePipelineSpec::_ValidateRenderState (const EPipelineDynamicState dynamicState, const RenderState &state, ArrayView<ScriptFeatureSetPtr> features) __Th___
+	void  BasePipelineSpec::_ValidateRenderState (const EPipelineDynamicState dynamicState, INOUT RenderState &state, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
 		if ( state.rasterization.rasterizerDiscard )
 		{
@@ -909,6 +929,12 @@ namespace
 
 		if ( state.rasterization.polygonMode != EPolygonMode::Fill )
 			TEST_FEATURE( features, fillModeNonSolid, ", 'rasterization.polygonMode' must be Fill" );
+
+		if ( state.depth.write and not state.depth.test )
+		{
+			state.depth.test		= true;
+			state.depth.compareOp	= ECompareOp::Always;
+		}
 	}
 
 /*
@@ -1017,6 +1043,27 @@ namespace
 		const bool	req_stencil	= rs.stencil.enabled;
 
 		storage.TestRenderPass( rpName, subpass, fragIO, req_depth, req_stencil );  // throw
+	}
+
+/*
+=================================================
+	Disable
+=================================================
+*/
+	void  BasePipelineSpec::Disable ()
+	{
+		_enabled = false;
+	}
+
+/*
+=================================================
+	Enable
+=================================================
+*/
+	void  BasePipelineSpec::Enable ()
+	{
+		_tmpl->Enable();
+		_enabled = true;
 	}
 
 

@@ -50,8 +50,8 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		ScriptImage () = delete;
-		ScriptImage (uint imageType, const String &filename)						__Th___;
+		ScriptImage ()																= delete;
+		ScriptImage (uint imageType, const String &filename, ELoadOpFlags flags)	__Th___;
 		ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds)			__Th___;
 		ScriptImage (EPixelFormat format, const packed_uint3 &dim)					__Th___;
 		ScriptImage (EPixelFormat format, const packed_uint3 &dim,
@@ -93,12 +93,17 @@ namespace AE::ResEditor
 		ND_ bool				IsDepthAndStencil ()								C_NE___	{ return HasDepth() and HasStencil(); }
 
 			ScriptImage*		CreateView1 (EImage				viewType,
+											 EPixelFormat		format,
 											 const MipmapLevel&	baseMipmap,
 											 uint				mipmapCount,
 											 const ImageLayer&	baseLayer,
 											 uint				layerCount)			__Th___;
 
-			ScriptImage*		CreateView2 (EImage				viewType)			__Th___;
+			ScriptImage*		CreateView2 (EImage				viewType,
+											 const MipmapLevel&	baseMipmap,
+											 uint				mipmapCount,
+											 const ImageLayer&	baseLayer,
+											 uint				layerCount)			__Th___;
 
 			ScriptImage*		CreateView3 (EImage				viewType,
 											 const MipmapLevel&	baseMipmap,
@@ -108,11 +113,17 @@ namespace AE::ResEditor
 											 const ImageLayer&	baseLayer,
 											 uint				layerCount)			__Th___;
 
-			ScriptImage*		CreateView5 ()										__Th___	{ return CreateView2( Default ); }
+			ScriptImage*		CreateView5 (EImage				viewType)			__Th___;
+
+			ScriptImage*		CreateView6 (EImage				viewType,
+											 EPixelFormat		format)				__Th___;
+
+			ScriptImage*		CreateView7 ()										__Th___	{ return CreateView5( Default ); }
 
 
 		static void  Bind (const ScriptEnginePtr &se)								__Th___;
 
+		// Returns non-null resource or throw exception.
 		ND_ RC<Image>  ToResource ()												__Th___;
 
 

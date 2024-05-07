@@ -39,6 +39,8 @@ namespace AE::Base
 		ASSERT( name.length() <= 16 );
 		int	res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
 		ASSERT( res == 0 );  Unused( res );
+
+		// TODO: pthread_setname_np ?
 	}
 
 /*

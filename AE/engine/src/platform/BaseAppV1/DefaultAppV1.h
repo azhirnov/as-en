@@ -60,30 +60,30 @@ namespace AE::AppV1
 
 	// methods
 	protected:
-		explicit AppCoreV1 (const AppConfig &, RC<IBaseApp>)	__NE___;
+		explicit AppCoreV1 (const AppConfig &, RC<IBaseApp>)__NE___;
 	public:
-		~AppCoreV1 ()							__NE_OV;
+		~AppCoreV1 ()										__NE_OV;
 
-		ND_ AppConfig const&	GetConfig ()			C_NE___	{ return _config; }
-		ND_ IBaseApp &			GetBaseApp ()			__NE___	{ return *_impl; }
+		ND_ AppConfig const&	GetConfig ()				C_NE___	{ return _config; }
+		ND_ IBaseApp &			GetBaseApp ()				__NE___	{ return *_impl; }
 
-		ND_ auto const&			GetMainThreadMask ()	C_NE___	{ return _allowProcessInMain; }
+		ND_ auto const&			GetMainThreadMask ()		C_NE___	{ return _allowProcessInMain; }
 
 
 	// IAppListener //
-		void  OnStart (IApplication &)					__NE_OV;
-		void  OnStop  (IApplication &)					__NE_OV;
+		void  OnStart (IApplication &)						__NE_OV;
+		void  OnStop  (IApplication &)						__NE_OV;
 
-		void  BeforeWndUpdate (IApplication &)			__NE_OV;
-		void  AfterWndUpdate (IApplication &)			__NE_OV;
+		void  BeforeWndUpdate (IApplication &)				__NE_OV;
+		void  AfterWndUpdate (IApplication &)				__NE_OV;
 
 
 	protected:
-		ND_ bool  _OnStartImpl (IApplication &app)		__NE___;
+		ND_ bool  _OnStartImpl (IApplication &app)			__NE___;
 
 	private:
-		ND_ bool  _InitGraphics (IApplication &);
-			void  _DestroyGraphics ();
+		ND_ bool  _InitGraphics (IApplication &)			__NE___;
+			void  _DestroyGraphics ()						__NE___;
 	};
 
 
@@ -96,8 +96,8 @@ namespace AE::AppV1
 	{
 	// variables
 	private:
-		RC<IBaseApp>			_impl;
-		AppCoreV1 &	_app;
+		RC<IBaseApp>		_impl;
+		AppCoreV1 &			_app;
 
 
 	// methods
@@ -123,19 +123,19 @@ namespace AE::AppV1
 	{
 	// variables
 	private:
-		RC<IBaseApp>			_impl;
-		AppCoreV1 &	_app;
+		RC<IBaseApp>		_impl;
+		AppCoreV1 &			_app;
 
 
 	// methods
 	public:
-		VRDeviceEventListener (RC<IBaseApp> impl, AppCoreV1 &app) __NE___ :
+		VRDeviceEventListener (RC<IBaseApp> impl, AppCoreV1 &app)	__NE___ :
 			_impl{RVRef(impl)}, _app{app}
 		{}
 
 
 	// IVRDeviceEventListener //
-		void  OnStateChanged (IVRDevice &, EState state)	__NE_OV;
+		void  OnStateChanged (IVRDevice &, EState state)			__NE_OV;
 	};
 
 

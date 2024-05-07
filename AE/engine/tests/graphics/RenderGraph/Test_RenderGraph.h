@@ -2,22 +2,7 @@
 
 #pragma once
 
-#include "base/Utils/FileSystem.h"
-#include "base/Algorithms/StringUtils.h"
-
-#include "platform/Public/IWindow.h"
-#include "platform/Public/IApplication.h"
-
-#include "graphics/Public/ResourceManager.h"
-#include "graphics/Public/GraphicsImpl.h"
-#include "graphics/Public/ShaderDebugger.h"
-
-#include "graphics_test/GraphicsTest.h"
-
-#ifdef AE_ENABLE_VULKAN
-# include "VulkanSyncLog.h"
-#endif
-#include "cpp/types.h"
+#include "TestsGraphics.pch.h"
 
 using namespace AE;
 using namespace AE::Threading;
@@ -37,9 +22,9 @@ class RGTest
 protected:
 	using TestFunc_t	= bool (RGTest::*) ();
 	using TestQueue_t	= RingBuffer< TestFunc_t >;
-	using FStorage_t	= RC<AE::VFS::IVirtualFileStorage>;
+	using FStorage_t	= RC<VFS::IVirtualFileStorage>;
 
-	static constexpr bool	UpdateAllReferenceDumps = true;
+	static constexpr bool	UpdateAllReferences = false;
 
 
 // variables
@@ -61,20 +46,14 @@ protected:
 	Path						_refImagePath;
 
   #if defined(AE_ENABLE_VULKAN)
-	FStorage_t					_refDumpStorage;
-	Path						_refDumpPath;
 	VDeviceInitializer			_device;
-	VSwapchainInitializer		_swapchain;
 	VulkanSyncLog				_syncLog;
 
   #elif defined(AE_ENABLE_METAL)
 	MDeviceInitializer			_device;
-	MSwapchainInitializer		_swapchain;
 
   #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 	RDeviceInitializer			_device;
-	RSwapchainInitializer		_swapchain;
-	const ushort				_serverPort		= 3000;
 
   #else
   #	error not implemented
@@ -86,7 +65,7 @@ public:
 	RGTest ();
 	~RGTest () {}
 
-	bool  Run (AE::App::IApplication &app, AE::App::IWindow &wnd);
+	bool  Run (FStorage_t assetStorage, FStorage_t refStorage);
 
 	bool  SaveImage (StringView name, const ImageMemView &view) const;
 
@@ -94,12 +73,13 @@ private:
 	ND_ Unique<ImageComparator>  _LoadReference (StringView filename) const;
 
 	ND_ bool  _CompareDumps (StringView filename) const;
+	ND_ bool  _CompareDumps (StringView syncLog, StringView filename) const;
 
-	ND_ bool  _Create (AE::App::IApplication &app, AE::App::IWindow &wnd);
+	ND_ bool  _Create (FStorage_t refStorage);
 	ND_ bool  _RunTests ();
 		void  _Destroy ();
 
-	ND_ bool  _CompilePipelines (AE::App::IApplication &app);
+	ND_ bool  _CompilePipelines (FStorage_t assetStorage);
 
 	ND_ static GraphicsCreateInfo  _GetGraphicsCreateInfo ();
 
@@ -148,6 +128,9 @@ private:
 	bool  Test_Debugger3 ();		// mesh
 	bool  Test_Debugger4 ();		// ray tracing
 	bool  Test_Debugger5 ();		// ray query
+
+	// TODO:
+	//	MSAA resolve
 };
 
 

@@ -33,6 +33,7 @@ namespace AE::Networking
 		ConnectionResetByPeer,					// WSAECONNRESET	| ECONNRESET
 		ConnectionRefused,						// WSAECONNREFUSED	| ECONNREFUSED
 		NotConnected,							// WSAENOTCONN		| ENOTCONN
+		ConnectionAborted,						// WSAECONNABORTED	| ECONNABORTED
 		NoSocket,
 		UnknownError,
 	};

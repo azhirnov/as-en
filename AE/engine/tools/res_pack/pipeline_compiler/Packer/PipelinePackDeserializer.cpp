@@ -684,13 +684,11 @@ namespace {
 */
 	bool  ShaderBytecode::Deserialize (Serializing::Deserializer& des) __NE___
 	{
-		uint	off		= 0;
-		uint	size	= 0;
+		uint	off = 0;
 
-		if ( des( OUT off, OUT size, OUT typeIdx ))
+		if ( des( OUT off, OUT dataSize, OUT data2Size, OUT typeIdx ))
 		{
-			offset		= Bytes{off};
-			dataSize	= Bytes{size};
+			offset = Bytes{off};
 			return true;
 		}
 		return false;
@@ -713,6 +711,7 @@ namespace {
 			case Types_t::Index< SpirvBytecode_t > :
 			{
 				SpirvBytecode_t		spirv;
+				CHECK_ERR( data2Size == 0 );
 				CHECK_ERR( _ReadSpirvData( dataSize, stream, OUT spirv ));
 				code = RVRef(spirv);
 				break;
@@ -720,6 +719,7 @@ namespace {
 			case Types_t::Index< MetalBytecode_t > :
 			{
 				MetalBytecode_t		mtbc;
+				CHECK_ERR( data2Size == 0 );
 				CHECK_ERR( _ReadMetalData( stream, OUT mtbc ));
 				code = RVRef(mtbc);
 				break;
@@ -727,6 +727,7 @@ namespace {
 			case Types_t::Index< SpirvWithTrace > :
 			{
 				SpirvWithTrace		dbg_spirv;
+				CHECK_ERR( data2Size > 0 );
 				CHECK_ERR( _ReadDbgSpirvData( stream, OUT dbg_spirv ));
 				code = RVRef(dbg_spirv);
 				break;
@@ -769,20 +770,23 @@ namespace {
 	bool  ShaderBytecode::_ReadDbgSpirvData (RStream &stream, OUT SpirvWithTrace &outCode) __NE___
 	{
 		try{
+			CHECK_ERR( _ReadSpirvData( dataSize, stream, OUT outCode.bytecode ));
+
 			const Bytes	start		= stream.Position();
 			auto		buf_stream	= MakeRC<BufferedRStream>( stream.GetRC<RStream>() );
 			{
 				Serializing::Deserializer	des{ buf_stream };
 				outCode.trace = MakeUnique<ShaderTrace>();
 
-				CHECK_ERR( outCode.trace->Deserialize( des ));
-				CHECK_ERR( stream.SeekSet( buf_stream->Position() - des.stream.RemainingSize() ));
+				if_unlikely( not outCode.trace->Deserialize( des ))
+				{
+					outCode.trace.reset();
+					return true;
+				}
+
+				const Bytes	trace_size = (buf_stream->Position() - des.stream.RemainingSize()) - start;
+				CHECK_ERR( Bytes{data2Size} == trace_size );
 			}
-
-			const Bytes	trace_size = stream.Position() - start;
-			CHECK_ERR( dataSize > trace_size );
-
-			CHECK_ERR( _ReadSpirvData( dataSize - trace_size, stream, OUT outCode.bytecode ));
 			return true;
 		}
 		catch(...) {
@@ -804,8 +808,8 @@ namespace {
 		const uint	spec_count	= ucode.back();
 		CHECK_ERR( spec_count <= GraphicsConfig::MaxSpecConstants );
 
-		const usize	spec_size	= /*count*/sizeof(uint) + (sizeof(uint) * spec_count*2);
-		CHECK_ERR( spec_size < dataSize );
+		const Bytes	spec_size	{/*count*/sizeof(uint) + (sizeof(uint) * spec_count*2)};
+		CHECK_ERR( spec_size < Bytes{dataSize} );
 
 		const uint*	ptr			= &ucode[ ucode.size() - spec_count*2 - 1 ];
 
@@ -814,7 +818,7 @@ namespace {
 			spec.emplace( SpecializationName{HashVal32{ptr[0]}}, ptr[1] );
 		}
 
-		NOTHROW_ERR( outCode.resize( outCode.size() - spec_size ));
+		NOTHROW_ERR( outCode.resize( outCode.size() - usize{spec_size} ));
 		return true;
 	}
 //-----------------------------------------------------------------------------

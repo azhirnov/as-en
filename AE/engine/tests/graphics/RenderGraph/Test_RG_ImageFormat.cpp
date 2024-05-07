@@ -21,6 +21,14 @@ namespace
 			desc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage;
 			desc.AddViewFormat( EPixelFormat::sRGB8_A8 );
 
+			#ifdef AE_ENABLE_VULKAN
+			if ( res_mngr.GetDevice().GetVExtensions().imageFormatList )
+				CHECK_ERR( res_mngr.IsSupported( desc ));
+			#endif
+
+			if ( not res_mngr.IsSupported( desc ))
+				return true;  // not supported
+
 			image_id = res_mngr.CreateImage( desc, Default, gfx_alloc );
 			CHECK_ERR( image_id );
 		}{

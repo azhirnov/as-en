@@ -28,22 +28,23 @@ namespace AE::Graphics
 
 		DescriptorAllocatorPtr			_allocator;
 
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
 	public:
-		VDescriptorSet ()							__NE___	{}
-		~VDescriptorSet ()							__NE___;
+		VDescriptorSet ()												__NE___	{}
+		~VDescriptorSet ()												__NE___;
 
-		ND_ bool  Create (VResourceManager &, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																						__NE___;
+		ND_ bool  Create (VResourceManager &, DescriptorSetLayoutID,
+						  DescriptorAllocatorPtr, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)							__NE___;
 
-		ND_ VkDescriptorSet			Handle ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
-		ND_ DescriptorSetLayoutID	LayoutId ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ VkDescriptorSet				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
+		ND_ DescriptorSetLayoutID		LayoutId ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

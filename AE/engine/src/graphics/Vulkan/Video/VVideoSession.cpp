@@ -204,6 +204,9 @@ namespace AE::Graphics
 				break;
 			}
 
+			case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR :
+				// TODO
+
 			case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
 			case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
 			default_unlikely :
@@ -224,7 +227,7 @@ namespace AE::Graphics
 
 		// TODO: vkUpdateVideoSessionParametersKHR
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -259,7 +262,7 @@ namespace AE::Graphics
 		_memAllocator	= null;
 		_memStorages.clear();
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*
@@ -299,7 +302,7 @@ namespace
 					return true;
 			}
 
-			#ifdef AE_DEBUG
+			#if AE_DBG_GRAPHICS
 			{
 				String	str;
 				str << "'" << name << " = " << ToString( fmt ) << "' is not supported, available formats: ";
@@ -466,6 +469,9 @@ namespace
 							// TODO
 							break;
 						}
+
+						case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR :
+							// TODO
 
 						case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
 						case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :

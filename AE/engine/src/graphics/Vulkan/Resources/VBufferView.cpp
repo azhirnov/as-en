@@ -52,7 +52,7 @@ namespace AE::Graphics
 
 		dev.SetObjectName( _bufferView, dbgName, VK_OBJECT_TYPE_BUFFER_VIEW );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -82,7 +82,7 @@ namespace AE::Graphics
 		auto&	dev = resMngr.GetDevice();
 		dev.SetObjectName( _bufferView, dbgName, VK_OBJECT_TYPE_BUFFER_VIEW );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -106,7 +106,7 @@ namespace AE::Graphics
 		_bufferView	= Default;
 		_desc		= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 } // AE::Graphics

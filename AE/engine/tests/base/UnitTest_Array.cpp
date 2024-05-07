@@ -85,6 +85,24 @@ namespace
 		pos = ExponentialSearch( view, -1 );	TEST( pos == UMax );
 		pos = ExponentialSearch( view, 20 );	TEST( pos == UMax );
 	}
+
+
+	static void  ArrayView_Test1 ()
+	{
+		Array<int>		arr = { 0, 1, 2, 3, 4, 4, 4, 5, 6, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12 };
+		ArrayView<int>	view {arr};
+
+		auto	it0 = arr.rbegin();
+		auto	it1 = view.rbegin();
+
+		for (; it0 != arr.rend(); ++it0, ++it1)
+		{
+			TEST( it0 <  arr.rend() );
+			TEST( it1 != view.rend() );
+			TEST( it1 <  view.rend() );
+		}
+		TEST( it1 == view.rend() );
+	}
 }
 
 
@@ -95,6 +113,8 @@ extern void UnitTest_Array ()
 	BinarySearch_Test2();
 	BinarySearch_Test3();
 	ExponentialSearch_Test1();
+
+	ArrayView_Test1();
 
 	TEST_PASSED();
 }

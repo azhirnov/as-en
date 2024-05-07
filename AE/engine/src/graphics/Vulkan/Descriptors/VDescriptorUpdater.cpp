@@ -14,7 +14,7 @@ namespace AE::Base
 	ToString
 =================================================
 */
-	ND_ inline String  ToString (PipelineCompiler::EImageType type)
+	ND_ inline String  ToString (PipelineCompiler::EImageType type) __Th___
 	{
 		return PipelineCompiler::EImageType_ToString( type );
 	}
@@ -29,13 +29,13 @@ namespace
 	GetImageType
 =================================================
 */
-	ND_ inline PipelineCompiler::EImageType  GetImageType (const ImageDesc &desc, const ImageViewDesc &view)
+	ND_ inline PipelineCompiler::EImageType  GetImageType (const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
 		return	PipelineCompiler::EImageType_FromImage( view.viewType, desc.samples.IsEnabled() ) |
 				PipelineCompiler::EImageType_FromPixelFormat( view.format );
 	}
 
-	ND_ inline PipelineCompiler::EImageType  GetImageType (const BufferViewDesc &view)
+	ND_ inline PipelineCompiler::EImageType  GetImageType (const BufferViewDesc &view) __NE___
 	{
 		return	PipelineCompiler::EImageType::Buffer |
 				PipelineCompiler::EImageType_FromPixelFormat( view.format );
@@ -66,7 +66,7 @@ namespace
 	_Reset
 =================================================
 */
-	void  VDescriptorUpdater::_Reset ()
+	void  VDescriptorUpdater::_Reset () __NE___
 	{
 		_resMngr.ImmediatelyRelease( INOUT _descSetId );
 
@@ -98,7 +98,7 @@ namespace
 		return false;
 	}
 
-	bool  VDescriptorUpdater::_Set (DescriptorSetID descrSetId, EDescUpdateMode mode)
+	bool  VDescriptorUpdater::_Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
 	{
 		// flush if:
 		//	- previous mode is 'UpdateTemplate'
@@ -164,7 +164,7 @@ namespace
 		return _Flush();
 	}
 
-	bool  VDescriptorUpdater::_Flush ()
+	bool  VDescriptorUpdater::_Flush () __NE___
 	{
 		if ( _dsLayout == null )
 			return true;
@@ -199,7 +199,7 @@ namespace
 */
 	template <EDescriptorType DescType>
 	Tuple< const VDescriptorUpdater::Uniform_t*, const Bytes16u* >
-		VDescriptorUpdater::_FindUniform (UniformName::Ref name) const
+		VDescriptorUpdater::_FindUniform (UniformName::Ref name) C_NE___
 	{
 		const auto	uniforms	= _dsLayout->GetUniformRange<DescType>();
 		const usize	count		= uniforms.template Get<0>();
@@ -234,7 +234,7 @@ namespace
 =================================================
 */
 	template <EDescriptorType DescType>
-	uint  VDescriptorUpdater::_GetArraySize (UniformName::Ref name) const
+	uint  VDescriptorUpdater::_GetArraySize (UniformName::Ref name) C_NE___
 	{
 		auto [un, off] = _FindUniform< DescType >( name );
 		return un->arraySize;
@@ -296,7 +296,7 @@ namespace
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindImages (UniformName::Ref name, ArrayView<T> images, uint firstIndex)
+	bool  VDescriptorUpdater::_BindImages (UniformName::Ref name, ArrayView<T> images, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -342,7 +342,7 @@ namespace
 				auto*	view = _resMngr.GetResource( images[i] );
 				CHECK_ERR( view != null );
 
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					auto*	img = _resMngr.GetResource( view->ImageId() );
 					CHECK_ERR( img != null );
 
@@ -352,10 +352,12 @@ namespace
 					const bool	is_sp_input	= un->type == DT::SubpassInput;
 					const auto	img_type	= GetImageType( desc, view->Description() );
 
-					ASSERT( not is_sampled  or is_sampled  == AllBits( desc.usage, EImageUsage::Sampled ));
-					ASSERT( not is_storage  or is_storage  == AllBits( desc.usage, EImageUsage::Storage ));
-					ASSERT( not is_sp_input or is_sp_input == AllBits( desc.usage, EImageUsage::InputAttachment ));
-					DEV_CHECK_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
+					CHECK( not is_sampled  or is_sampled  == AllBits( desc.usage, EImageUsage::Sampled ));
+					CHECK( not is_storage  or is_storage  == AllBits( desc.usage, EImageUsage::Storage ));
+					CHECK( not is_sp_input or is_sp_input == AllBits( desc.usage, EImageUsage::InputAttachment ));
+
+					Unused( img_type );
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
 						"image view '"s << view->GetDebugName() << "' with type (" << ToString( img_type ) <<
 						") is not compatible with sampler '" << name.GetName() << "' type (" << ToString( un->image.type ) << ")" );
 				)
@@ -420,7 +422,7 @@ namespace
 	}
 
 	template <typename T1, typename T2>
-	bool  VDescriptorUpdater::_BindTextures (UniformName::Ref name, ArrayView<T1> images, const T2 &sampler, uint firstIndex)
+	bool  VDescriptorUpdater::_BindTextures (UniformName::Ref name, ArrayView<T1> images, const T2 &sampler, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -465,15 +467,17 @@ namespace
 				auto*	view = _resMngr.GetResource( images[i] );
 				CHECK_ERR( view != null );
 
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					auto*	img = _resMngr.GetResource( view->ImageId() );
 					CHECK_ERR( img != null );
 
 					const auto&	desc		= img->Description();
 					const auto	img_type	= GetImageType( desc, view->Description() );
 
-					ASSERT( AllBits( desc.usage, EImageUsage::Sampled ));
-					DEV_CHECK_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
+					CHECK( AllBits( desc.usage, EImageUsage::Sampled ));
+
+					Unused( img_type );
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
 						"image view '"s << view->GetDebugName() << "' with type " << ToString( img_type ) <<
 						" is not compatible with sampler '" << name.GetName() << "' type " << ToString( un->image.type ));
 				)
@@ -508,7 +512,7 @@ namespace
 */
 	bool  VDescriptorUpdater::BindSampler (UniformName::Ref name, SamplerName::Ref sampler, uint elementIndex) __NE___
 	{
-		return _BindSamplers<SamplerName>( name, {sampler}, elementIndex );
+		return _BindSamplers<SamplerName>( name, {&sampler, 1}, elementIndex );
 	}
 
 	bool  VDescriptorUpdater::BindSampler  (UniformName::Ref name, VkSampler sampler, uint elementIndex) __NE___
@@ -527,7 +531,7 @@ namespace
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindSamplers (UniformName::Ref name, ArrayView<T> samplers, uint firstIndex)
+	bool  VDescriptorUpdater::_BindSamplers (UniformName::Ref name, ArrayView<T> samplers, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -615,7 +619,7 @@ namespace
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<T> buffers, uint firstIndex)
+	bool  VDescriptorUpdater::_BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<T> buffers, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -627,7 +631,7 @@ namespace
 		CHECK_ERR( not un->buffer.HasDynamicOffset() );		// set explicit size
 		CHECK_ERR( typeName == Default or typeName == un->buffer.typeName );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			const bool	is_uniform	= un->type == DT::UniformBuffer;
 			const bool	is_storage	= un->type == DT::StorageBuffer;
 			const auto&	props		= _resMngr.GetDevice().GetDeviceProperties().res;
@@ -668,11 +672,11 @@ namespace
 				auto*	buf = _resMngr.GetResource( buffers[i] );
 				CHECK_ERR( buf != null );
 
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					const auto&	desc = buf->Description();
-					ASSERT( desc.size <= max_size );
-					ASSERT( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::Uniform ));
-					ASSERT( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::Storage ));
+					CHECK( desc.size <= max_size );
+					CHECK( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::Uniform ));
+					CHECK( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::Storage ));
 				)
 
 				dst[i].buffer	= buf->Handle();
@@ -702,7 +706,8 @@ namespace
 =================================================
 */
 	template <typename T>
-	bool  VDescriptorUpdater::_BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, T buffer, Bytes bufferOffset, Bytes bufferSize, uint elementIndex)
+	bool  VDescriptorUpdater::_BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, T buffer,
+										   const Bytes bufferOffset, const Bytes bufferSize, const uint elementIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -713,12 +718,15 @@ namespace
 		CHECK_ERR( elementIndex + 1 <= un->arraySize );
 		CHECK_ERR( typeName == Default or typeName == un->buffer.typeName );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			const bool	is_uniform	= un->type == DT::UniformBuffer;
 			const bool	is_storage	= un->type == DT::StorageBuffer;
 			const auto&	props		= _resMngr.GetDevice().GetDeviceProperties().res;
 			const auto	min_align	= Bytes{ is_uniform ? props.minUniformBufferOffsetAlign : props.minStorageBufferOffsetAlign };
 			const auto	max_size	= is_uniform ? Bytes{props.maxUniformBufferRange} : UMax;
+
+			CHECK( IsMultipleOf( bufferOffset, min_align ));
+			CHECK( bufferSize <= max_size );
 		)
 
 		const bool				is_dynamic	= (un->buffer.dynamicOffsetIndex != UMax);
@@ -748,19 +756,16 @@ namespace
 			wds.pBufferInfo		= dst;
 		}
 
-		ASSERT( IsMultipleOf( bufferOffset, min_align ));
-		ASSERT( bufferSize <= max_size );
-
 		if constexpr( IsSameTypes< T, BufferID >)
 		{
 			auto*	buf = _resMngr.GetResource( buffer );
 			CHECK_ERR( buf != null );
 
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				const auto&	desc = buf->Description();
-				ASSERT( bufferOffset + bufferSize <= desc.size );
-				ASSERT( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::Uniform ));
-				ASSERT( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::Storage ));
+				CHECK( bufferOffset + bufferSize <= desc.size );
+				CHECK( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::Uniform ));
+				CHECK( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::Storage ));
 			)
 
 			dst->buffer	= buf->Handle();
@@ -833,7 +838,7 @@ namespace
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindTexelBuffers (UniformName::Ref name, ArrayView<T> views, uint firstIndex)
+	bool  VDescriptorUpdater::_BindTexelBuffers (UniformName::Ref name, ArrayView<T> views, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -876,7 +881,7 @@ namespace
 				auto*	view = _resMngr.GetResource( views[i] );
 				CHECK_ERR( view != null );
 
-				DEBUG_ONLY(
+				GFX_DBG_ONLY(
 					auto*	buf = _resMngr.GetResource( view->BufferId() );
 					CHECK_ERR( buf != null );
 
@@ -885,10 +890,11 @@ namespace
 					const bool	is_storage	= un->type == DT::StorageTexelBuffer;
 					const auto	img_type	= GetImageType( view->Description() );
 
-					ASSERT( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::UniformTexel ));
-					ASSERT( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::StorageTexel ));
+					CHECK( not is_uniform or is_uniform == AllBits( desc.usage, EBufferUsage::UniformTexel ));
+					CHECK( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::StorageTexel ));
 
-					DEV_CHECK_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->texelBuffer.type ),
+					Unused( img_type );
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->texelBuffer.type ),
 						"buffer view '"s << view->GetDebugName() << "' with type " << ToString( img_type ) <<
 						" is not compatible with sampler '" << name.GetName() << "' type " << ToString( un->texelBuffer.type ));
 				)
@@ -936,7 +942,7 @@ namespace
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindRayTracingScenes (UniformName::Ref name, ArrayView<T> scenes, uint firstIndex)
+	bool  VDescriptorUpdater::_BindRayTracingScenes (UniformName::Ref name, ArrayView<T> scenes, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 

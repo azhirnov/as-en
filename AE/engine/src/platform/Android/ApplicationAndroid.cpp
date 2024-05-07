@@ -105,12 +105,37 @@ namespace {
 
 			case EAppStorage::Cache :
 			{
+				Path	dir = _paths->internalCache;
+				CHECK_ERR( not dir.empty() );
+				return VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir );
+			}
+
+			case EAppStorage::ExternalCache :
+			{
 				Path	dir = _paths->externalCache;
 				CHECK_ERR( not dir.empty() );
 				return VFS::VirtualFileStorageFactory::CreateDynamicFolder( dir );
 			}
 		}
 		switch_end
+		return null;
+	}
+
+/*
+=================================================
+	GetStoragePath
+=================================================
+*/
+	Path  ApplicationAndroid::GetStoragePath (EAppStorage type) __NE___
+	{
+		switch_enum( type )
+		{
+			case EAppStorage::Builtin :			return {};	// not supported, use 'OpenStorage()'
+			case EAppStorage::Cache :			return _paths->internalCache;
+			case EAppStorage::ExternalCache :	return _paths->externalCache;
+		}
+		switch_end
+		return {};
 	}
 
 /*
@@ -205,9 +230,9 @@ namespace {
 
 		ApplicationBase::_Destroy();
 
-		_java.application	    = Default;
-		_java.assetManager	    = Default;
-		_paths->jniAssetMngr    = null;
+		_java.application		= Default;
+		_java.assetManager		= Default;
+		_paths->jniAssetMngr	= null;
 
 		//_methods.createWindow	= Default;
 
@@ -272,6 +297,19 @@ namespace {
 
 /*
 =================================================
+	ShowToast
+=================================================
+*/
+	void  ApplicationAndroid::ShowToast (NtStringView msg, bool longTime) __NE___
+	{
+		DRC_EXLOCK( _stCheck );
+		DRC_EXLOCK( _drCheck );
+
+		_methods.showToast( Java::JavaString{ msg }.Get(), longTime );
+	}
+
+/*
+=================================================
 	native_OnCreate
 =================================================
 */
@@ -286,9 +324,9 @@ namespace {
 		app._java.assetManager		= JavaObj{ assetMngr, je };
 		app._paths->jniAssetMngr	= AAssetManager_fromJava( env, app._java.assetManager.Get() );
 
-		app._java.application.Method( "ShowToast", OUT app._methods.showToast );
-		app._java.application.Method( "IsNetworkConnected", OUT app._methods.isNetworkConnected );
-		//app._java.application.Method( "CreateWindow", OUT app._methods.createWindow );
+		app._java.application.Method( "ShowToast",			OUT app._methods.showToast );
+		app._java.application.Method( "IsNetworkConnected",	OUT app._methods.isNetworkConnected );
+		//app._java.application.Method( "CreateWindow",		OUT app._methods.createWindow );
 	}
 
 /*

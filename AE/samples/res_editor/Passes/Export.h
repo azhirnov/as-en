@@ -50,10 +50,13 @@ namespace AE::ResEditor
 	// variables
 	private:
 		RC<Buffer>		_src;
+		RC<Buffer>		_temp;
 		const Path		_filePath;
+		Path			_currPath;
+		VFS::FileName	_fname;
 		uint			_frameId	= UMax;
-		Atomic<bool>	_complete	{false};
 		ParserFn_t		_parser;
+		Atomic<bool>	_complete	{false};
 
 
 	// methods

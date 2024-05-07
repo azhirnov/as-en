@@ -48,6 +48,17 @@ namespace AE::PipelineCompiler
 	};
 
 
+	//
+	// Shader Debugger Features
+	//
+	struct ShaderDebuggerFeatures
+	{
+		bool	shaderDeviceClock				= false;
+		bool	shaderSubgroupClock				= false;
+		bool	fragmentStoresAndAtomics		= false;
+		bool	vertexPipelineStoresAndAtomics	= false;
+	};
+
 
 	//
 	// Objects Storage
@@ -164,7 +175,7 @@ namespace AE::PipelineCompiler
 		ObjectStorage ();
 		~ObjectStorage ();
 
-		ND_ bool  Build ();
+		ND_ bool  Build ()																											__NE___;
 			void  Clear ();
 
 		void  TestRenderPass (const String &compatRP, const String &subpass, const SubpassShaderIO &fragIO,
@@ -210,6 +221,7 @@ namespace AE::PipelineCompiler
 		static void  Bind_EValueType (const ScriptEnginePtr &se)																	__Th___;
 		static void  Bind_EShaderPreprocessor (const ScriptEnginePtr &se)															__Th___;
 
+		ND_ static ShaderDebuggerFeatures  GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features);
 
 		ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath, ArrayView<Path> includeDirs);
 		ND_ bool  CompilePipelineFromSource (const ScriptEnginePtr &se, const Path &pplnPath,

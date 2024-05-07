@@ -88,7 +88,7 @@
 		const float3	norm		= gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
 		const float3	color		= gl.texture.Sample( un_AlbedoMap, In.texcoord ).xyz;
 		const float		light		= Dot( norm, light_dir );
-		
+
 		out_Color = float4( color * light, 1.0 );
 	}
 

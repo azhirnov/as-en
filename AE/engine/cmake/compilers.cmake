@@ -86,7 +86,7 @@ else()
 	string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
 	if (${PLATFORM_NAME} STREQUAL "AMD64")
 		set( TARGET_CPU_ARCH "X64" )
-	elseif (${PLATFORM_NAME} STREQUAL "X86_64")
+	elseif ((${PLATFORM_NAME} STREQUAL "X86_64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64"))
 		set( TARGET_CPU_ARCH "X64" )
 	elseif (${PLATFORM_NAME} STREQUAL "X86")
 		set( TARGET_CPU_ARCH "X86" )
@@ -257,7 +257,7 @@ if ( MSVC )
 	set( CURRENT_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS} CACHE STRING "" FORCE )
 	set( CURRENT_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} CACHE STRING "" FORCE )
 
-	set( CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
 
 	#--------------------------------------------
 	if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
@@ -317,16 +317,17 @@ if ( MSVC )
 			-Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Werror=parentheses -Werror=return-type -Werror=array-bounds
 			-Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Werror=invalid-pch -Werror=defaulted-function-deleted
 			-Werror=ignored-qualifiers -Werror=microsoft-template -Werror=nonportable-include-path -Werror=inconsistent-missing-override
-			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical
+			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses
+			-Werror=backslash-newline-escape
 			# warnings
 			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool -Wc++14-extensions -Wc++17-extensions
 			-Wunused-private-field -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Wincrement-bool
 			-Wunused-lambda-capture -Wundef -Wformat-security
-			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces  -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow
+			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow
 			-Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsizeof-pointer-memaccess
 			# disable warnings
 			-Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline
-			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch
+			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-missing-braces
 		)
 	else()
 		set( COMPILER_FLAGS ${COMPILER_FLAGS} /fp:strict /fp:except- )
@@ -389,8 +390,8 @@ endif()
 #	global - only for external projects
 #	local - only for AE projects
 #==================================================================================================
-set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
+set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC -Wno-missing-braces" )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
 
 if (${AE_ENABLE_EXCEPTIONS})
 	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -frtti -fexceptions" )
@@ -424,7 +425,7 @@ if ( COMPILER_GCC )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_GCC" )
 	#--------------------------------------------
-	set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
 	# -Wno-shadow -Wno-enum-compare -Wno-narrowing -Wno-attributes
 	set( GCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=placement-new -Werror=sign-compare -Werror=literal-suffix -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=subobject-linkage -Werror=multichar -Winvalid-offsetof ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
@@ -490,10 +491,10 @@ if ( COMPILER_CLANG )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_CLANG" )
 	#--------------------------------------------
-	set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
 
-	set( CLANG_SHARED_OPTS       ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} )
+	set( CLANG_SHARED_OPTS       ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
 
 	if (${AE_USE_SANITIZER})
@@ -554,7 +555,7 @@ if ( COMPILER_CLANG_EMSCRIPTEN )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_CLANG_EMSCRIPTEN" )
 	#--------------------------------------------
-	set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
 
 	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -pthread )
@@ -642,7 +643,7 @@ if ( COMPILER_CLANG_APPLE )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_CLANG_APPLE" )
 	#--------------------------------------------
-	set( CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
 	if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 		message( FATAL_ERROR "CMAKE_OSX_DEPLOYMENT_TARGET (${CMAKE_OSX_DEPLOYMENT_TARGET}) is not defined" )
@@ -652,7 +653,9 @@ if ( COMPILER_CLANG_APPLE )
 	string( SUBSTRING "${CMAKE_OSX_DEPLOYMENT_TARGET}" ${outLength} -1 APPLE_VER_MIN )
 	#--------------------------------------------
 
-	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Werror=objc-method-access -Werror=unguarded-availability )
+	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX}
+		-Werror=objc-method-access -Werror=unguarded-availability
+		-Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses )
 
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES}
 		 "AE_COMPILER_CLANG" "AE_PLATFORM_TARGET_VERSION_MAJOR=${APPLE_VER_MAJ}" "AE_PLATFORM_TARGET_VERSION_MINOR=${APPLE_VER_MIN}" )
@@ -715,10 +718,10 @@ if ( COMPILER_CLANG_ANDROID )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_CLANG_ANDROID" )
 	#--------------------------------------------
-	set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
+	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
 
-	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -fstack-protector-strong -fPIC -fcoroutines-ts )
+	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -fstack-protector-strong -fPIC )
 	# -mfloat-abi=hard
 
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
@@ -782,6 +785,23 @@ set( PROJECTS_SHARED_DEFINES_PROFILE	${PROJECTS_SHARED_DEFINES_PROFILE}	CACHE IN
 set( PROJECTS_SHARED_DEFINES_DEVELOP	${PROJECTS_SHARED_DEFINES_DEVELOP}	CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES_DEBUG		${PROJECTS_SHARED_DEFINES_DEBUG}	CACHE INTERNAL "" FORCE )
 
+if (${AE_CONFIGURATION_DEPENDENT_PATH})
+	set( AE_RUNTIME_CONFIG	"/$<CONFIG>" CACHE INTERNAL "" FORCE )
+else()
+	set( AE_RUNTIME_CONFIG	""			 CACHE INTERNAL "" FORCE )
+endif()
+
+if ("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")
+	if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+		set( AE_EXECUTABLE_SUFFIX ".elf" CACHE INTERNAL "" FORCE )
+
+	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+		set( AE_EXECUTABLE_SUFFIX ".app" CACHE INTERNAL "" FORCE )
+	endif()
+else()
+	set( AE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "" FORCE )
+endif()
+message( STATUS "AE_EXECUTABLE_SUFFIX: ${AE_EXECUTABLE_SUFFIX}" )
 
 # print
 if (FALSE)

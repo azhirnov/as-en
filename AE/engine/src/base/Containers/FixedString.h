@@ -68,6 +68,7 @@ namespace AE::Base
 		Self&  operator = (const Self &)					__NE___ = default;
 
 		ND_ constexpr operator View_t ()					C_NE___	{ return View_t{ data(), length() }; }
+		ND_ explicit operator BasicString<CharT> ()			C_NE___	{ return BasicString<CharT>{ data(), length() }; }
 
 		ND_ constexpr usize			size ()					C_NE___	{ return _length; }
 		ND_ constexpr usize			length ()				C_NE___	{ return size(); }

@@ -49,6 +49,7 @@
 #	pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #	pragma GCC diagnostic ignored "-Wunused-variable"
 #	pragma GCC diagnostic ignored "-Wcast-align"
+#	pragma GCC diagnostic ignored "-Wparentheses"
 # endif
 
 # include "vk_mem_alloc.h"
@@ -213,12 +214,12 @@ namespace {
 
 		VK_CHECK_ERR( vmaBindImageMemory( _allocator, mem, image ));
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			VmaAllocationInfo	alloc_info	= {};
 			vmaGetAllocationInfo( _allocator, mem, OUT &alloc_info );
 
 			Bytes	align = VImage::GetMemoryAlignment( _device, desc );
-			ASSERT( IsMultipleOf( alloc_info.offset, align ));
+			CHECK( IsMultipleOf( alloc_info.offset, align ));
 		)
 
 		_CastStorage( data ).allocation = mem;
@@ -263,12 +264,12 @@ namespace {
 
 		VK_CHECK_ERR( vmaBindBufferMemory( _allocator, mem, buffer ));
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 			VmaAllocationInfo	alloc_info	= {};
 			vmaGetAllocationInfo( _allocator, mem, OUT &alloc_info );
 
 			Bytes	align = VBuffer::GetMemoryAlignment( _device, desc );
-			ASSERT( IsMultipleOf( alloc_info.offset, align ));
+			CHECK( IsMultipleOf( alloc_info.offset, align ));
 		)
 
 		_CastStorage( data ).allocation = mem;

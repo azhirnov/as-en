@@ -6,8 +6,12 @@ void ASmain ()
 	// include:
 	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
 	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
+	//	nubia NX729J driver 512.746.0 on Android 13.0
+	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
+	//	samsung SM-S901E driver 512.744.6 on Android 13.0
 	//	Adreno (TM) 610 driver 512.502.0 on Android 11.0
+	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
 	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
 
 	const EFeature  True = EFeature::RequireTrue;
@@ -23,10 +27,8 @@ void ASmain ()
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
-	fset.separateStencilMaskRef (True);
 	fset.triangleFans (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
-	fset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );
 	fset.subgroupTypes(ESubgroupTypes(
 		ESubgroupTypes::Float32 | 
 		ESubgroupTypes::Int32
@@ -34,13 +36,9 @@ void ASmain ()
 	fset.subgroupStages(EShaderStages(
 		EShaderStages::Compute
 	));
-	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Fragment | 
-		EShaderStages::Compute
-	));
-	fset.subgroup (True);
 	fset.minSubgroupSize (32);
 	fset.maxSubgroupSize (32);
+	fset.subgroup (True);
 	fset.shaderInt16 (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.vertexPipelineStoresAndAtomics (True);
@@ -52,7 +50,7 @@ void ASmain ()
 	fset.shaderStorageImageArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.minSpirvVersion (130);
+	fset.maxSpirvVersion (130);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
@@ -126,6 +124,7 @@ void ASmain ()
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

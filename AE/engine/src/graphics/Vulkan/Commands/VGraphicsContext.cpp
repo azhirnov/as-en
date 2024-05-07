@@ -97,7 +97,7 @@ namespace
 	ConvertViewports
 =================================================
 */
-	void  ConvertViewports (ArrayView<RenderPassDesc::Viewport> inViewports, ArrayView<RectI> inScissors,
+	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors,
 							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___
 	{
 		ASSERT( not inViewports.empty() );
@@ -161,7 +161,7 @@ namespace
 */
 	bool  _VDirectGraphicsCtx::_BeginRenderPass (const RenderPassDesc &desc, const VPrimaryCmdBufState &state, VkSubpassContents content, DebugLabel dbg)
 	{
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), _ValidateRenderPassDebugLabel( dbg ), ECtxType::RenderPass ); )
+		GFX_DBG_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), _ValidateRenderPassDebugLabel( dbg ), ECtxType::RenderPass ));
 		Unused( dbg );
 
 		ClearValues_t			clear_values;
@@ -220,7 +220,7 @@ namespace
 
 		vkCmdEndRenderPass2KHR( cmdbuf, &subpass_end );
 
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( cmdbuf, ECtxType::RenderPass ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( cmdbuf, ECtxType::RenderPass ));
 	}
 
 /*
@@ -258,7 +258,7 @@ namespace
 */
 	bool  _VIndirectGraphicsCtx::_BeginRenderPass (const RenderPassDesc &desc, const VPrimaryCmdBufState &state, VkSubpassContents content, DebugLabel dbg)
 	{
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, _ValidateRenderPassDebugLabel( dbg ), ECtxType::RenderPass ); )
+		GFX_DBG_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, _ValidateRenderPassDebugLabel( dbg ), ECtxType::RenderPass ));
 		Unused( dbg );
 
 		ClearValues_t			clear_values;
@@ -335,7 +335,7 @@ namespace
 	{
 		Unused( cmdbuf.CreateCmd< EndRenderPassCmd >() );	// throw
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			if ( auto prof = _mngr.GetBatch().GetProfiler() )
 				cmdbuf.ProfilerEndContext( prof.get(), &_mngr.GetBatch(), ECtxType::RenderPass );
 		)

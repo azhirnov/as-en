@@ -16,6 +16,12 @@
 
 namespace AE::Graphics
 {
+	enum class EGraphicsAPI : ubyte
+	{
+		Vulkan	= 1,
+		Metal	= 2,
+	};
+
 
 	//
 	// Graphics Device interface
@@ -26,18 +32,21 @@ namespace AE::Graphics
 	// types
 	public:
 		using ResourceFlags		= DeviceResourceFlags;
-		using DevMemoryInfoOpt	= Optional< DeviceMemoryInfo >;
+		using DevMemoryUsageOpt	= Optional< DeviceMemoryUsage >;
 
 
 	// interface
 	public:
+		ND_ virtual EGraphicsAPI				GetGraphicsAPI ()					C_NE___ = 0;
+
 		ND_ virtual ResourceFlags const&		GetResourceFlags ()					C_NE___	= 0;
 		ND_ virtual DeviceProperties const&		GetDeviceProperties ()				C_NE___ = 0;
 
 		ND_ virtual EQueueMask					GetAvailableQueues ()				C_NE___	= 0;
 		ND_ virtual StringView					GetDeviceName ()					C_NE___	= 0;
 
-		ND_ virtual DevMemoryInfoOpt			GetMemoryUsage ()					C_NE___ = 0;
+		ND_ virtual DeviceMemoryInfo			GetMemoryInfo ()					C_NE___ = 0;
+		ND_ virtual DevMemoryUsageOpt			GetMemoryUsage ()					C_NE___ = 0;
 
 		ND_ virtual bool						IsInitialized ()					C_NE___	= 0;
 		ND_ virtual bool						IsUnderDebugger ()					C_NE___ = 0;

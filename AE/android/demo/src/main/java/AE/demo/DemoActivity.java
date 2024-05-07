@@ -11,44 +11,49 @@ public final class DemoActivity
 		extends AE.engine.BaseActivity
 {
 	private final int	ReqCode = 0xAE;
+	private boolean		_checkPermissions = true;
 
-	@Override protected void onCreate(Bundle icicle) {
+	@Override protected void  onCreate (Bundle icicle) {
 		super.onCreate(icicle);
 	}
 
-	@Override protected void onDestroy() {
+	@Override protected void  onDestroy () {
 		Log.i(TAG, "onDestroy");
 		super.onDestroy();
 	}
 
-	@Override protected void onPause() {
+	@Override protected void  onPause () {
 		Log.i(TAG, "onPause");
 		super.onPause();
 	}
 
-	@Override protected void onResume() {
+	@Override protected void  onResume () {
 		Log.i(TAG, "onResume");
 		super.onResume();
 
+		if ( !_checkPermissions )
+			return;
+
+		_checkPermissions = false;
 		if ( checkSelfPermission( Manifest.permission.CAMERA ) == PackageManager.PERMISSION_GRANTED ) {
 			AE.engine.BaseApplication.native_EnableCamera();
 		}else{
-			//if ( shouldShowRequestPermissionRationale( Manifest.permission.CAMERA ))
-			requestPermissions( new String[]{ Manifest.permission.CAMERA }, ReqCode );
+			if ( shouldShowRequestPermissionRationale( Manifest.permission.CAMERA ))
+				requestPermissions( new String[]{ Manifest.permission.CAMERA }, ReqCode );
 		}
 	}
 
-	@Override protected void onStart() {
+	@Override protected void  onStart () {
 		Log.i(TAG, "onStart");
 		super.onStart();
 	}
 
-	@Override protected void onStop() {
+	@Override protected void  onStop () {
 		Log.i(TAG, "onStop");
 		super.onStop();
 	}
 
-	@Override public void onBackPressed() {
+	@Override public void  onBackPressed () {
 		super.onBackPressed();
 		this.finish();
 	}

@@ -26,7 +26,7 @@ namespace AE::Samples::Demo
 
 		RC<Audio::IAudioOutput>		sound;
 		RC<Audio::IAudioInput>		recorder;
-		RC<MemWStream>				inStream;
+		RC<ArrayWStream>			inStream;
 
 
 	// methods

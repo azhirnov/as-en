@@ -75,7 +75,7 @@ namespace
 
 		for (uint chunk_idx = 0; chunk_idx < c_MaxChunks; ++chunk_idx)
 		{
-			ASSERT( chunk != null );
+			NonNull( chunk );
 			next = &chunk->next;
 
 			PoolBits_t	bits;
@@ -186,7 +186,7 @@ namespace
 	_CreateDSPool
 =================================================
 */
-	bool  VDefaultDescriptorAllocator::_CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool)
+	bool  VDefaultDescriptorAllocator::_CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool) __NE___
 	{
 		const auto&		desc_types = dev.GetResourceFlags().descrTypes;
 

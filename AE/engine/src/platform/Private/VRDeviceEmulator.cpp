@@ -524,7 +524,7 @@ namespace AE::App
 	_Destroy
 =================================================
 */
-	void  VRDeviceEmulator::_Destroy ()
+	void  VRDeviceEmulator::_Destroy () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

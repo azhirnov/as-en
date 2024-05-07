@@ -51,7 +51,8 @@ namespace AE::Math
 	// methods
 	public:
 		constexpr TByte ()												__NE___ : _value{0} {}
-		constexpr TByte (Base::_hidden_::_UMax)							__NE___	: _value{UMax} {}
+		constexpr TByte (UMax_t)										__NE___	: _value{UMax} {}
+		constexpr TByte (Default_t)										__NE___	: _value{0} {}
 		constexpr TByte (const Self &)									__NE___	= default;
 
 		explicit constexpr TByte (T value)								__NE___ : _value{value} {}
@@ -114,8 +115,8 @@ namespace AE::Math
 		template <typename B>		friend B*&	operator -= (B* &lhs, const Self &rhs)			__NE___	{ return (lhs = lhs + rhs); }
 
 
-			constexpr Self&	operator = (Base::_hidden_::_UMax)			__NE___	{ _value = UMax;	return *this; }
-			constexpr Self&	operator = (Base::_hidden_::DefaultType)	__NE___	{ _value = 0;		return *this; }
+			constexpr Self&	operator = (UMax_t)							__NE___	{ _value = UMax;	return *this; }
+			constexpr Self&	operator = (Default_t)						__NE___	{ _value = 0;		return *this; }
 			constexpr Self&	operator = (const Self &rhs)				__NE___	= default;
 
 		ND_ constexpr Self	operator ~ ()								C_NE___	{ return Self( ~_value ); }
@@ -210,19 +211,19 @@ namespace AE::Math
 	inline static constexpr Bytes  SizeOf = Bytes::SizeOf<T>();
 
 	template <typename T>
-	ND_ constexpr Bytes  Sizeof (const T &x) __NE___	{ return Bytes::SizeOf(x); }
+	ND_ constexpr Bytes  Sizeof (const T &) __NE___ { return Bytes::SizeOf<T>(); }
 
 	template <typename T>
 	inline static constexpr Bytes  AlignOf = Bytes::AlignOf<T>();
 
 	template <typename T>
-	ND_ constexpr Bytes  Alignof (const T &x) __NE___	{ return Bytes::AlignOf(x); }
+	ND_ constexpr Bytes  Alignof (const T &) __NE___ { return Bytes::AlignOf<T>(); }
 
 	template <typename T>
 	inline static constexpr SizeAndAlign  SizeAndAlignOf = Bytes::SizeAndAlignOf<T>();
 
 	template <typename T>
-	ND_ constexpr SizeAndAlign  SizeAndAlignof (const T &x) __NE___	{ return Bytes::SizeAndAlignOf(x); }
+	ND_ constexpr SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
 
 
 	ND_ constexpr Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
@@ -321,6 +322,8 @@ private:
 	using Base	= std::numeric_limits<T>;
 
 public:
+	static constexpr bool is_specialized = Base::is_specialized;
+
 	ND_ static constexpr Bytes  min () __NE___ {
 		return Bytes{Base::min()};
 	}

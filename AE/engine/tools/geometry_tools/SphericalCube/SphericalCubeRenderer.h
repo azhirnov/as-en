@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
-# include "graphics/Public/GraphicsImpl.h"
+# include "graphics/GraphicsImpl.h"
 # include "geometry_tools/SphericalCube/SphericalCubeGen.h"
 
 namespace AE::GeometryTools
@@ -42,9 +42,9 @@ namespace AE::GeometryTools
 		SphericalCubeRenderer ()																							__NE___	{}
 		~SphericalCubeRenderer ()																							__NE___ {}
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod,
+		ND_ bool  Create (ResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod,
 						  Bool quads, Bool cubeMap, EBufferUsage usage, GfxMemAllocatorPtr gfxAlloc)						__NE___;
-			void  Destroy (IResourceManager &)																				__NE___;
+			void  Destroy (ResourceManager &)																				__NE___;
 
 		ND_ bool		IsCreated ()																						C_NE___	{ return _vertexBuffer and _indexBuffer; }
 

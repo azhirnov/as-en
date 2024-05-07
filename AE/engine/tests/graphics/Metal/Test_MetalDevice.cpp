@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_METAL
-# include "graphics/Metal/MDevice.h"
-# include "../UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 
 extern void Test_MetalDevice ()

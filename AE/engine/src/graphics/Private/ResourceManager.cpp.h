@@ -12,8 +12,6 @@
 #else
 #	error not implemented
 #endif
-
-#define RESMNGR		AE_PRIVATE_UNITE_RAW( SUFFIX, ResourceManager )
 //-----------------------------------------------------------------------------
 
 
@@ -37,7 +35,7 @@ namespace {
 =================================================
 */
 	template <typename PoolT>
-	inline void  DestroyResources (RESMNGR* resMngr, INOUT PoolT &pool) __NE___
+	inline void  DestroyResources (ResourceManager* resMngr, INOUT PoolT &pool) __NE___
 	{
 		pool.UnassignAll( [resMngr] (auto& res) __NE___
 			{
@@ -54,7 +52,7 @@ namespace {
 =================================================
 */
 	template <typename PoolT>
-	inline void  LogAssignedResourcesAndDestroy (RESMNGR* resMngr, INOUT PoolT &pool) __NE___
+	inline void  LogAssignedResourcesAndDestroy (ResourceManager* resMngr, INOUT PoolT &pool) __NE___
 	{
 		pool.UnassignAll( [resMngr] (auto& res) __NE___
 			{
@@ -77,9 +75,9 @@ namespace {
 	_ResourceDestructor
 =================================================
 */
-	struct RESMNGR::_ResourceDestructor
+	struct ResourceManager::_ResourceDestructor
 	{
-		RESMNGR&	resMngr;
+		ResourceManager&	resMngr;
 
 		template <typename T, uint I>
 		void operator () () __NE___
@@ -98,7 +96,7 @@ namespace {
 =================================================
 */
 	template <typename ID>
-	void  RESMNGR::_DestroyResource (ID id) __NE___
+	void  ResourceManager::_DestroyResource (ID id) __NE___
 	{
 		auto&	pool = _GetResourcePool( id );
 
@@ -120,8 +118,8 @@ namespace {
 	AddHashToName
 =================================================
 */
-# ifdef AE_DEBUG
-	void  RESMNGR::AddHashToName (const PipelineCompiler::HashToName &value) __NE___
+# if AE_DBG_GRAPHICS
+	void  ResourceManager::AddHashToName (const PipelineCompiler::HashToName &value) __NE___
 	{
 		EXLOCK( _hashToNameGuard );
 		NOTHROW( _hashToName.Merge( value ));
@@ -134,7 +132,7 @@ namespace {
 =================================================
 */
 	template <typename ID, typename ...Args>
-	Strong<ID>  RESMNGR::_CreateResource (const char* msg, Args&& ...args) __NE___
+	forceinline Strong<ID>  ResourceManager::_CreateResource (const char* msg, Args&& ...args) __NE___
 	{
 		ID	id;
 		CHECK_ERR( _Assign( OUT id ));
@@ -153,21 +151,6 @@ namespace {
 
 		return Strong<ID>{ id };
 	}
-
-/*
-=================================================
-	IsAlive
-=================================================
-*
-	bool  RESMNGR::IsAlive (SamplerName::Ref name) const __NE___
-	{
-		auto	id = GetSampler( name );
-
-		if ( id == Default )
-			return false;
-
-		return IsAlive( id );
-	}
 //-----------------------------------------------------------------------------
 
 
@@ -177,7 +160,7 @@ namespace {
 	constructor
 =================================================
 */
-	RESMNGR::RESMNGR (const Device_t &dev) __NE___ :
+	ResourceManager::ResourceManager (const Device_t &dev) __NE___ :
 		_device{ dev },
 		_stagingMngr{ *this },
 		_queryMngr{}
@@ -204,16 +187,16 @@ namespace {
 		StaticAssert( RenderPassID::MaxIndex()			>= RenderPassPool_t::capacity() );
 		StaticAssert( PipelineCacheID::MaxIndex()		>= PipelineCachePool_t::capacity() );
 		StaticAssert( PipelinePackID::MaxIndex()		>= PipelinePackPool_t::capacity() );
+		StaticAssert( VideoBufferID::MaxIndex()			>= VideoBufferPool_t::capacity() );
+		StaticAssert( VideoImageID::MaxIndex()			>= VideoImagePool_t::capacity() );
+		StaticAssert( VideoSessionID::MaxIndex()		>= VideoSessionPool_t::capacity() );
 		StaticAssert( IsSameTypes< AllResourceIDs_t::Back::type, MemoryID >);
 
 		#ifdef AE_ENABLE_VULKAN
-		StaticAssert( VideoBufferID::MaxIndex()		>= VideoBufferPool_t::capacity() );
-		StaticAssert( VideoImageID::MaxIndex()			>= VideoImagePool_t::capacity() );
-		StaticAssert( VideoSessionID::MaxIndex()		>= VideoSessionPool_t::capacity() );
 		StaticAssert( VFramebufferID::MaxIndex()		>= FramebufferPool_t::capacity() );
+		#endif
 
 		_InitReleaseResourceByIDFns();
-		#endif
 	}
 
 /*
@@ -221,8 +204,9 @@ namespace {
 	destructor
 =================================================
 */
-	RESMNGR::~RESMNGR () __NE___
+	ResourceManager::~ResourceManager () __NE___
 	{
+		CHECK( not _largeMemAlloc );
 		CHECK( not _defaultMemAlloc );
 		CHECK( not _defaultDescAlloc );
 	}
@@ -232,7 +216,7 @@ namespace {
 	OnSurfaceCreated
 =================================================
 */
-	bool  RESMNGR::OnSurfaceCreated (const Swapchain_t &sw) __NE___
+	bool  ResourceManager::OnSurfaceCreated (const Swapchain_t &sw) __NE___
 	{
 		FeatureSet::SurfaceFormatSet_t	surface_formats;
 		CHECK_ERR( sw.GetSurfaceFormats( OUT surface_formats ));
@@ -254,20 +238,48 @@ namespace {
 	Initialize
 =================================================
 */
-	bool  RESMNGR::Initialize (const GraphicsCreateInfo &info) __NE___
+	bool  ResourceManager::Initialize (const GraphicsCreateInfo &info) __NE___
 	{
 		CHECK_ERR( _CreateEmptyDescriptorSetLayout() );
 		CHECK_ERR( _CreateDefaultSampler() );
 		CHECK_ERR( _stagingMngr.Initialize( info ));
 		CHECK_ERR( _queryMngr.Initialize( info.maxFrames ));
 
+		_largeMemAlloc		= info.largeGfxAllocator;
 		_defaultMemAlloc	= info.defaultGfxAllocator;
 		_defaultDescAlloc	= info.defaultDescAllocator;
 
-	  #ifdef AE_ENABLE_VULKAN
 		if ( not _defaultMemAlloc )
+		{
+		  #if defined(AE_ENABLE_VULKAN)
 			_defaultMemAlloc = MakeRC< VUniMemAllocator >();
-	  #endif
+
+		  #elif defined(AE_ENABLE_METAL)
+			// keep null
+
+		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_defaultMemAlloc = MakeRC< RGfxMemAllocator >();
+
+		  #else
+		  #	error not implemented
+		  #endif
+		}
+
+		if ( not _largeMemAlloc )
+		{
+		  #if defined(AE_ENABLE_VULKAN)
+			_largeMemAlloc = MakeRC< VDedicatedMemAllocator >();
+
+		  #elif defined(AE_ENABLE_METAL)
+			// keep null
+
+		  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_largeMemAlloc = MakeRC< RGfxMemAllocator >();
+
+		  #else
+		  #	error not implemented
+		  #endif
+		}
 
 		if ( not _defaultDescAlloc )
 			_defaultDescAlloc = MakeRC< AE_PRIVATE_UNITE_RAW( SUFFIX, DefaultDescriptorAllocator )>();
@@ -280,7 +292,7 @@ namespace {
 	Deinitialize
 =================================================
 */
-	void  RESMNGR::Deinitialize () __NE___
+	void  ResourceManager::Deinitialize () __NE___
 	{
 		_stagingMngr.Deinitialize();
 		_queryMngr.Deinitialize();
@@ -288,11 +300,11 @@ namespace {
 	  #ifdef AE_ENABLE_VULKAN
 		DestroyResources( this, INOUT _resPool.framebuffers );
 	  #endif
-		ImmediatelyRelease( _defaultSampler );
-		ImmediatelyRelease( _emptyDSLayout );
+		DEV_CHECK( ImmediatelyRelease2( INOUT _defaultSampler ));
+		DEV_CHECK( ImmediatelyRelease2( INOUT _emptyDSLayout ));
 		ForceReleaseResources();
 
-		{ auto tmp = _defaultPack.Release();  ImmediatelyRelease( tmp ); }
+		{ auto tmp = _defaultPack.Release();  DEV_CHECK( ImmediatelyRelease2( INOUT tmp )); }
 		LogAssignedResourcesAndDestroy( this, INOUT _resPool.pipelinePacks );
 		LogAssignedResourcesAndDestroy( this, INOUT _resPool.descSet );
 
@@ -337,6 +349,12 @@ namespace {
 			_defaultMemAlloc = null;
 		}
 
+		if ( _largeMemAlloc )
+		{
+			CHECK_Eq( _largeMemAlloc.use_count(), 1 );
+			_largeMemAlloc = null;
+		}
+
 		if ( _defaultDescAlloc )
 		{
 			CHECK_Eq( _defaultDescAlloc.use_count(), 1 );
@@ -355,7 +373,7 @@ namespace {
 	_ChooseMemAllocator
 =================================================
 */
-	GfxMemAllocatorPtr  RESMNGR::_ChooseMemAllocator (GfxMemAllocatorPtr userDefined) __NE___
+	GfxMemAllocatorPtr  ResourceManager::_ChooseMemAllocator (GfxMemAllocatorPtr userDefined) __NE___
 	{
 		if ( userDefined )
 			return userDefined;
@@ -368,7 +386,7 @@ namespace {
 	_ChooseDescAllocator
 =================================================
 */
-	DescriptorAllocatorPtr  RESMNGR::_ChooseDescAllocator (DescriptorAllocatorPtr userDefined) __NE___
+	DescriptorAllocatorPtr  ResourceManager::_ChooseDescAllocator (DescriptorAllocatorPtr userDefined) __NE___
 	{
 		if ( userDefined )
 			return userDefined;
@@ -378,12 +396,13 @@ namespace {
 //-----------------------------------------------------------------------------
 
 
+#ifndef AE_ENABLE_REMOTE_GRAPHICS
 /*
 =================================================
 	LoadRenderTech
 =================================================
 */
-	RenderTechPipelinesPtr  RESMNGR::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
+	RenderTechPipelinesPtr  ResourceManager::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -396,7 +415,7 @@ namespace {
 	LoadRenderTechAsync
 =================================================
 */
-	Promise<RenderTechPipelinesPtr>  RESMNGR::LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
+	Promise<RenderTechPipelinesPtr>  ResourceManager::LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -409,7 +428,7 @@ namespace {
 	CreateGraphicsPipeline
 =================================================
 */
-	Strong<GraphicsPipelineID>  RESMNGR::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cache) __NE___
+	Strong<GraphicsPipelineID>  ResourceManager::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -422,7 +441,7 @@ namespace {
 	CreateMeshPipeline
 =================================================
 */
-	Strong<MeshPipelineID>  RESMNGR::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cache) __NE___
+	Strong<MeshPipelineID>  ResourceManager::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -435,7 +454,7 @@ namespace {
 	CreateComputePipeline
 =================================================
 */
-	Strong<ComputePipelineID>  RESMNGR::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cache) __NE___
+	Strong<ComputePipelineID>  ResourceManager::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -448,7 +467,7 @@ namespace {
 	CreateRayTracingPipeline
 =================================================
 */
-	Strong<RayTracingPipelineID>  RESMNGR::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cache) __NE___
+	Strong<RayTracingPipelineID>  ResourceManager::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -461,7 +480,7 @@ namespace {
 	CreateTilePipeline
 =================================================
 */
-	Strong<TilePipelineID>  RESMNGR::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cache) __NE___
+	Strong<TilePipelineID>  ResourceManager::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cache) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -471,63 +490,10 @@ namespace {
 
 /*
 =================================================
-	CreateDescriptorSetLayout
-=================================================
-*/
-	Strong<DescriptorSetLayoutID>  RESMNGR::CreateDescriptorSetLayout (const DescriptorSetLayout_t::CreateInfo &ci) __NE___
-	{
-		DescriptorSetLayoutID	id;
-		CHECK_ERR( _Assign( OUT id ));
-
-		auto&	data = _GetResourcePool( id )[ id.Index() ];
-		Replace( data );
-
-		if_unlikely( not data.Create( GetDevice(), ci ))
-		{
-			data.Destroy( *this );
-			_Unassign( id );
-			RETURN_ERR( "failed when creating descriptor set layout" );
-		}
-
-		data.AddRef();
-		return Strong<DescriptorSetLayoutID>{ id };
-	}
-
-/*
-=================================================
-	CreatePipelineLayout
-=================================================
-*/
-	Strong<PipelineLayoutID>  RESMNGR::CreatePipelineLayout (const PipelineLayout_t::DescriptorSets_t &descSetLayouts,
-															 const PipelineLayout_t::PushConstants_t &pushConstants,
-															 StringView dbgName) __NE___
-	{
-		PipelineLayoutID	id;
-		CHECK_ERR( _Assign( OUT id ));
-
-		auto&	data = _GetResourcePool( id )[ id.Index() ];
-		Replace( data );
-
-		auto*	empty_ds = GetResource( _emptyDSLayout );
-		CHECK_ERR( empty_ds );
-
-		if_unlikely( not data.Create( *this, descSetLayouts, pushConstants, empty_ds->Handle(), dbgName ))
-		{
-			data.Destroy( *this );
-			_Unassign( id );
-			RETURN_ERR( "failed when creating pipeline layout" );
-		}
-
-		data.AddRef();
-		return Strong<PipelineLayoutID>{ id };
-	}
-
-/*
-=================================================
 	GetSupportedRenderTechs
 =================================================
 */
-	Array<RenderTechName>  RESMNGR::GetSupportedRenderTechs (PipelinePackID packId) C_NE___
+	Array<RenderTechName>  ResourceManager::GetSupportedRenderTechs (PipelinePackID packId) C_NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -536,212 +502,35 @@ namespace {
 
 /*
 =================================================
-	LoadPipelinePack
-=================================================
-*/
-	Strong<PipelinePackID>  RESMNGR::LoadPipelinePack (const PipelinePackDesc &desc) __NE___
-	{
-		return _CreateResource<PipelinePackID>( "failed when creating pipeline pack", *this, desc );
-	}
-
-/*
-=================================================
 	InitializeResources
 =================================================
 */
-	bool  RESMNGR::InitializeResources (const PipelinePackDesc &desc) __NE___
+	bool  ResourceManager::InitializeResources (Strong<PipelinePackID> defaultPackId) __NE___
 	{
-		CHECK_ERR( not _defaultPack );
-		CHECK_ERR( not desc.parentPackId.IsValid() );
+		CHECK_ERR( defaultPackId );
 
-		auto	id = _CreateResource<PipelinePackID>( "failed when creating default pipeline pack", *this, desc );
-		CHECK_ERR( id );
+		auto	old = _defaultPack.Attach( RVRef(defaultPackId) );
 
-		auto	old = _defaultPack.Attach( RVRef(id) );
-		CHECK_ERR( not old );
+		CHECK_MSG( not old, "already initialized" );
+		ReleaseResource( old );
 
 		return true;
 	}
 
 /*
 =================================================
-	Create*
-=================================================
-*/
-	Strong<ImageID>  RESMNGR::CreateImage (const ImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<BufferID>  RESMNGR::CreateBuffer (const BufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<ImageID>  RESMNGR::CreateImage (const NativeImageDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<BufferID>  RESMNGR::CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<ImageViewID>  RESMNGR::CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName) __NE___
-	{
-		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
-	}
-
-	Strong<BufferViewID>  RESMNGR::CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName) __NE___
-	{
-		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
-	}
-
-	Strong<ImageViewID>  RESMNGR::CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName) __NE___
-	{
-		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
-	}
-
-	Strong<BufferViewID>  RESMNGR::CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName) __NE___
-	{
-		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
-	}
-
-	Strong<RTGeometryID>  RESMNGR::CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<RTGeometryID>( "failed when creating ray tracing geometry (BLAS)", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<RTSceneID>  RESMNGR::CreateRTScene (const RTSceneDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<RTSceneID>( "failed when creating ray tracing scene (TLAS)", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<VideoSessionID>  RESMNGR::CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<VideoSessionID>( "failed when creating video session", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<VideoBufferID>  RESMNGR::CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<VideoBufferID>( "failed when creating video buffer", *this, desc, RVRef(allocator), dbgName );
-	}
-
-	Strong<VideoImageID>  RESMNGR::CreateVideoImage (const VideoImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
-	{
-		return _CreateResource<VideoImageID>( "failed when creating video image", *this, desc, RVRef(allocator), dbgName );
-	}
-
-/*
-=================================================
-	IsSupported
-=================================================
-*/
-	bool  RESMNGR::IsSupported (EMemoryType memType) C_NE___
-	{
-		return _device.GetResourceFlags().memTypes.contains( memType );
-	}
-
-	bool  RESMNGR::IsSupported (const BufferDesc &desc) C_NE___
-	{
-		return Buffer_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const ImageDesc &desc) C_NE___
-	{
-		return Image_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (BufferID buffer, const BufferViewDesc &desc) C_NE___
-	{
-		auto*	buf = GetResource( buffer );
-		CHECK_ERR( buf != null );
-
-		return buf->IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (ImageID image, const ImageViewDesc &desc) C_NE___
-	{
-		auto*	img = GetResource( image );
-		CHECK_ERR( img != null );
-
-		return img->IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const VideoImageDesc &desc) C_NE___
-	{
-		return VideoImage_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const VideoBufferDesc &desc) C_NE___
-	{
-		return VideoBuffer_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const VideoSessionDesc &desc) C_NE___
-	{
-		return VideoSession_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const RTGeometryDesc &desc) C_NE___
-	{
-		return RTGeometry_t::IsSupported( *this, desc );
-	}
-
-	bool  RESMNGR::IsSupported (const RTSceneDesc &desc) C_NE___
-	{
-		return RTScene_t::IsSupported( *this, desc );
-	}
-
-/*
-=================================================
-	GetRTGeometrySizes / GetRTSceneSizes
-=================================================
-*/
-	RTASBuildSizes  RESMNGR::GetRTGeometrySizes (const RTGeometryBuild &desc) __NE___
-	{
-		return RTGeometry_t::GetBuildSizes( *this, desc );
-	}
-
-	RTASBuildSizes  RESMNGR::GetRTSceneSizes (const RTSceneBuild &desc) __NE___
-	{
-		return RTScene_t::GetBuildSizes( *this, desc );
-	}
-
-/*
-=================================================
-	GetDeviceAddress
-=================================================
-*/
-	DeviceAddress  RESMNGR::GetDeviceAddress (BufferID id) C_NE___
-	{
-		auto*	res = GetResource( id, False{"don't inc ref"}, True{"quiet"} );
-		return res != null ? res->GetDeviceAddress() : Default;
-	}
-
-	DeviceAddress  RESMNGR::GetDeviceAddress (RTGeometryID id) C_NE___
-	{
-		auto*	res = GetResource( id, False{"don't inc ref"}, True{"quiet"} );
-		return res != null ? res->GetDeviceAddress() : Default;
-	}
-//-----------------------------------------------------------------------------
-
-
-/*
-=================================================
 	GetCompatibleRenderPass
 =================================================
 */
-	RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, CompatRenderPassName::Ref name) C_NE___
+	RenderPassID  ResourceManager::GetCompatibleRenderPass (PipelinePackID packId, CompatRenderPassName::Ref name) C_NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
-		return pack->GetRenderPass( *this, name );
+		return pack->GetRenderPass( name );
 	}
 
-	RenderPassID  RESMNGR::GetCompatibleRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
+	RenderPassID  ResourceManager::GetCompatibleRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
 	{
 		RenderPassID	rp_id = GetRenderPass( packId, name );
 		CHECK_ERR( rp_id );
@@ -760,30 +549,280 @@ namespace {
 	  #endif
 	}
 
+#endif // AE_ENABLE_REMOTE_GRAPHICS
+
+/*
+=================================================
+	CreatePipelineLayout
+=================================================
+*/
+	Strong<PipelineLayoutID>  ResourceManager::CreatePipelineLayout (const PipelineLayout_t::CreateInfo &ci) __NE___
+	{
+		PipelineLayoutID	id;
+		CHECK_ERR( _Assign( OUT id ));
+
+		auto&	data = _GetResourcePool( id )[ id.Index() ];
+		Replace( data );
+
+		if_unlikely( not data.Create( *this, ci ))
+		{
+			data.Destroy( *this );
+			_Unassign( id );
+			RETURN_ERR( "failed when creating pipeline layout" );
+		}
+
+		data.AddRef();
+		return Strong<PipelineLayoutID>{ id };
+	}
+
 /*
 =================================================
 	GetRenderPass
 =================================================
 */
-	RenderPassID  RESMNGR::GetRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
+	RenderPassID  ResourceManager::GetRenderPass (PipelinePackID packId, RenderPassName::Ref name) C_NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
 
-		return pack->GetRenderPass( *this, name );
+		return pack->GetRenderPass( name );
+	}
+
+/*
+=================================================
+	CreateDescriptorSetLayout
+=================================================
+*/
+	Strong<DescriptorSetLayoutID>  ResourceManager::CreateDescriptorSetLayout (const DescriptorSetLayout_t::CreateInfo &ci) __NE___
+	{
+		DescriptorSetLayoutID	id;
+		CHECK_ERR( _Assign( OUT id ));
+
+		auto&	data = _GetResourcePool( id )[ id.Index() ];
+		Replace( data );
+
+		if_unlikely( not data.Create( GetDevice(), ci ))
+		{
+			data.Destroy( *this );
+			_Unassign( id );
+			RETURN_ERR( "failed when creating descriptor set layout" );
+		}
+
+		data.AddRef();
+		return Strong<DescriptorSetLayoutID>{ id };
 	}
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	LoadPipelinePack
+=================================================
+*/
+	Strong<PipelinePackID>  ResourceManager::LoadPipelinePack (const PipelinePackDesc &desc) __NE___
+	{
+		return _CreateResource<PipelinePackID>( "failed when creating pipeline pack", *this, desc );
+	}
+
+/*
+=================================================
+	Create*
+=================================================
+*/
+	Strong<ImageID>  ResourceManager::CreateImage (const ImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<BufferID>  ResourceManager::CreateBuffer (const BufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<ImageID>  ResourceManager::CreateImage (const NativeImageDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<BufferID>  ResourceManager::CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<ImageViewID>  ResourceManager::CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName) __NE___
+	{
+		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
+	}
+
+	Strong<BufferViewID>  ResourceManager::CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName) __NE___
+	{
+		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
+	}
+
+	Strong<ImageViewID>  ResourceManager::CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName) __NE___
+	{
+		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
+	}
+
+	Strong<BufferViewID>  ResourceManager::CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName) __NE___
+	{
+		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
+	}
+
+	Strong<RTGeometryID>  ResourceManager::CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<RTGeometryID>( "failed when creating ray tracing geometry (BLAS)", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<RTSceneID>  ResourceManager::CreateRTScene (const RTSceneDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<RTSceneID>( "failed when creating ray tracing scene (TLAS)", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<VideoSessionID>  ResourceManager::CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<VideoSessionID>( "failed when creating video session", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<VideoBufferID>  ResourceManager::CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<VideoBufferID>( "failed when creating video buffer", *this, desc, RVRef(allocator), dbgName );
+	}
+
+	Strong<VideoImageID>  ResourceManager::CreateVideoImage (const VideoImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
+	{
+		return _CreateResource<VideoImageID>( "failed when creating video image", *this, desc, RVRef(allocator), dbgName );
+	}
+
+/*
+=================================================
+	IsSupported
+=================================================
+*/
+	bool  ResourceManager::IsSupported (EMemoryType memType) C_NE___
+	{
+		return _device.GetResourceFlags().memTypes.contains( memType );
+	}
+
+	bool  ResourceManager::IsSupported (const BufferDesc &desc) C_NE___
+	{
+		return Buffer_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const ImageDesc &desc) C_NE___
+	{
+		return Image_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (BufferID buffer, const BufferViewDesc &desc) C_NE___
+	{
+		auto*	buf = GetResource( buffer );
+		CHECK_ERR( buf != null );
+
+		return buf->IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (ImageID image, const ImageViewDesc &desc) C_NE___
+	{
+		auto*	img = GetResource( image );
+		CHECK_ERR( img != null );
+
+		return img->IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const VideoImageDesc &desc) C_NE___
+	{
+		return VideoImage_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const VideoBufferDesc &desc) C_NE___
+	{
+		return VideoBuffer_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const VideoSessionDesc &desc) C_NE___
+	{
+		return VideoSession_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const RTGeometryDesc &desc) C_NE___
+	{
+		return RTGeometry_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const RTGeometryBuild &build) C_NE___
+	{
+		return RTGeometry_t::IsSupported( *this, build );
+	}
+
+	bool  ResourceManager::IsSupported (const RTSceneDesc &desc) C_NE___
+	{
+		return RTScene_t::IsSupported( *this, desc );
+	}
+
+	bool  ResourceManager::IsSupported (const RTSceneBuild &build) C_NE___
+	{
+		return RTScene_t::IsSupported( *this, build );
+	}
+
+/*
+=================================================
+	GetRTGeometrySizes / GetRTSceneSizes
+=================================================
+*/
+	RTASBuildSizes  ResourceManager::GetRTGeometrySizes (const RTGeometryBuild &desc) __NE___
+	{
+		return RTGeometry_t::GetBuildSizes( *this, desc );
+	}
+
+	RTASBuildSizes  ResourceManager::GetRTSceneSizes (const RTSceneBuild &desc) __NE___
+	{
+		return RTScene_t::GetBuildSizes( *this, desc );
+	}
+
+/*
+=================================================
+	GetShaderGroupStackSize
+=================================================
+*/
+	Bytes  ResourceManager::GetShaderGroupStackSize (RayTracingPipelineID pplnId, ArrayView<RayTracingGroupName> names, ERTShaderGroup type) __NE___
+	{
+		auto*	ppln = GetResource( pplnId );
+		CHECK_ERR( ppln != null );
+		return ppln->GetShaderGroupStackSize( _device, names, type );
+	}
+
+/*
+=================================================
+	GetDeviceAddress
+=================================================
+*/
+	DeviceAddress  ResourceManager::GetDeviceAddress (BufferID id) C_NE___
+	{
+		auto*	res = GetResource( id, False{"don't inc ref"}, True{"quiet"} );
+		return res != null ? res->GetDeviceAddress() : Default;
+	}
+
+	DeviceAddress  ResourceManager::GetDeviceAddress (RTGeometryID id) C_NE___
+	{
+		auto*	res = GetResource( id, False{"don't inc ref"}, True{"quiet"} );
+		return res != null ? res->GetDeviceAddress() : Default;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+#ifndef AE_ENABLE_REMOTE_GRAPHICS
 /*
 =================================================
 	_CreateDescriptorSets
 =================================================
 */
 	template <typename PplnID>
-	bool  RESMNGR::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
-										  const PplnID &pplnId, DescriptorSetName::Ref dsName,
-										  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  ResourceManager::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
+												  PplnID pplnId, DescriptorSetName::Ref dsName,
+												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		CHECK_ERR( dst != null and count > 0 );
 
@@ -797,7 +836,7 @@ namespace {
 
 		if_unlikely( not ppln_layout->GetDescriptorSetLayout( dsName, OUT layout_id, OUT binding ))
 		{
-			#ifdef AE_DEBUG
+			#if AE_DBG_GRAPHICS
 				String	str;
 				str << "Failed to find descriptor set '" << HashToName( dsName ) << "' in pipeline layout.\n"
 					<< "Available sets: ";
@@ -813,7 +852,7 @@ namespace {
 			return false;
 		}
 
-	  #if defined(AE_DEBUG) and (not AE_OPTIMIZE_IDS)
+	  #if AE_DBG_GRAPHICS and (not AE_OPTIMIZE_IDS)
 		String	dbg_name;
 		if ( dbgName.empty() )
 		{
@@ -827,7 +866,7 @@ namespace {
 		usize	i		= 0;
 		bool	created	= true;
 
-		for (; created & (i < count); ++i)
+		for (; created and (i < count); ++i)
 		{
 			dst[i]  = _CreateResource<DescriptorSetID>( "failed when creating descriptor set", *this, layout_id, allocator, dbgName );
 			created = (dst[i].IsValid());
@@ -841,41 +880,7 @@ namespace {
 
 		return created;
 	}
-
-/*
-=================================================
-	CreateDescriptorSets
-=================================================
-*/
-	bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 GraphicsPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
-	}
-
-	bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 MeshPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
-	}
-
-	bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 ComputePipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
-	}
-
-	bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 RayTracingPipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
-	}
-
-	bool  RESMNGR::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
-										 TilePipelineID ppln, DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
-	}
+#endif // AE_ENABLE_REMOTE_GRAPHICS
 
 /*
 =================================================
@@ -883,7 +888,7 @@ namespace {
 =================================================
 */
 	template <typename PplnID>
-	PushConstantIndex  RESMNGR::_GetPushConstantIndex (PplnID pplnId, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::_GetPushConstantIndex (PplnID pplnId, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		auto*	ppln = GetResource( pplnId );
 		CHECK_ERR( ppln != null );
@@ -904,7 +909,7 @@ namespace {
 			return PushConstantIndex{ it->second.metalBufferId, it->second.stage, it->second.typeName, it->second.size };
 
 		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			return PushConstantIndex{ it->second.vulkanOffset, it->second.stage, it->second.typeName, it->second.size };	// TODO
+			return it->second.idx;
 
 		#else
 		#	error not implemented
@@ -913,30 +918,65 @@ namespace {
 
 /*
 =================================================
+	CreateDescriptorSets
+=================================================
+*/
+	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID ppln,
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+	}
+
+	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID ppln,
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+	}
+
+	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID ppln,
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+	}
+
+	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln,
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+	}
+
+	bool  ResourceManager::CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID ppln,
+												 DescriptorSetName::Ref dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		return _CreateDescriptorSets( OUT binding, OUT dst, count, ppln, dsName, RVRef(allocator), dbgName );
+	}
+
+/*
+=================================================
 	GetPushConstantIndex
 =================================================
 */
-	PushConstantIndex  RESMNGR::GetPushConstantIndex (GraphicsPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::GetPushConstantIndex (GraphicsPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
 	}
 
-	PushConstantIndex  RESMNGR::GetPushConstantIndex (MeshPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::GetPushConstantIndex (MeshPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
 	}
 
-	PushConstantIndex  RESMNGR::GetPushConstantIndex (ComputePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::GetPushConstantIndex (ComputePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
 	}
 
-	PushConstantIndex  RESMNGR::GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::GetPushConstantIndex (RayTracingPipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
 	}
 
-	PushConstantIndex  RESMNGR::GetPushConstantIndex (TilePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
+	PushConstantIndex  ResourceManager::GetPushConstantIndex (TilePipelineID ppln, PushConstantName::Ref pcName, ShaderStructName::Ref typeName, Bytes dataSize) __NE___
 	{
 		return _GetPushConstantIndex( ppln, pcName, typeName, dataSize );
 	}
@@ -948,7 +988,7 @@ namespace {
 	CreatePipelineCache
 =================================================
 */
-	Strong<PipelineCacheID>  RESMNGR::CreatePipelineCache () __NE___
+	Strong<PipelineCacheID>  ResourceManager::CreatePipelineCache () __NE___
 	{
 		PipelineCacheID		id;
 		CHECK_ERR( _Assign( OUT id ));
@@ -972,7 +1012,7 @@ namespace {
 	_CreateEmptyDescriptorSetLayout
 =================================================
 */
-	bool  RESMNGR::_CreateEmptyDescriptorSetLayout () __NE___
+	bool  ResourceManager::_CreateEmptyDescriptorSetLayout () __NE___
 	{
 		DescriptorSetLayoutID	id;
 		CHECK_ERR( _Assign( OUT id ));
@@ -1000,27 +1040,27 @@ namespace {
 	CreatePipeline
 =================================================
 */
-	Strong<ComputePipelineID>  RESMNGR::CreatePipeline (const ComputePipeline_t::CreateInfo &ci) __NE___
+	Strong<ComputePipelineID>  ResourceManager::CreatePipeline (const ComputePipeline_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<ComputePipelineID>( "failed when creating compute pipeline", *this, ci );
 	}
 
-	Strong<GraphicsPipelineID>  RESMNGR::CreatePipeline (const GraphicsPipeline_t::CreateInfo &ci) __NE___
+	Strong<GraphicsPipelineID>  ResourceManager::CreatePipeline (const GraphicsPipeline_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<GraphicsPipelineID>( "failed when creating graphics pipeline", *this, ci );
 	}
 
-	Strong<MeshPipelineID>  RESMNGR::CreatePipeline (const MeshPipeline_t::CreateInfo &ci) __NE___
+	Strong<MeshPipelineID>  ResourceManager::CreatePipeline (const MeshPipeline_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<MeshPipelineID>( "failed when creating mesh pipeline", *this, ci );
 	}
 
-	Strong<RayTracingPipelineID>  RESMNGR::CreatePipeline (const RayTracingPipeline_t::CreateInfo &ci) __NE___
+	Strong<RayTracingPipelineID>  ResourceManager::CreatePipeline (const RayTracingPipeline_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<RayTracingPipelineID>( "failed when creating ray tracing pipeline", *this, ci );
 	}
 
-	Strong<TilePipelineID>  RESMNGR::CreatePipeline (const TilePipeline_t::CreateInfo &ci) __NE___
+	Strong<TilePipelineID>  ResourceManager::CreatePipeline (const TilePipeline_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<TilePipelineID>( "failed when creating tile pipeline", *this, ci );
 	}
@@ -1030,7 +1070,7 @@ namespace {
 	CreateRTShaderBinding
 =================================================
 */
-	Strong<RTShaderBindingID>  RESMNGR::CreateRTShaderBinding (const ShaderBindingTable_t::CreateInfo &ci) __NE___
+	Strong<RTShaderBindingID>  ResourceManager::CreateRTShaderBinding (const ShaderBindingTable_t::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<RTShaderBindingID>( "failed when creating RT shader binding table", *this, ci );
 	}
@@ -1042,10 +1082,10 @@ namespace {
 	_ResourcePrinter
 =================================================
 */
-#ifdef AE_DEBUG
-	struct RESMNGR::_ResourcePrinter
+#if AE_DBG_GRAPHICS
+	struct ResourceManager::_ResourcePrinter
 	{
-		RESMNGR&	resMngr;
+		ResourceManager&	resMngr;
 		String&		log;
 
 		template <typename T, uint I>
@@ -1065,9 +1105,9 @@ namespace {
 	PrintAllResources
 =================================================
 */
-	void  RESMNGR::PrintAllResources () __NE___
+	void  ResourceManager::PrintAllResources () __NE___
 	{
-	#ifdef AE_DEBUG
+	#if AE_DBG_GRAPHICS
 		TRY{
 			String	log;
 			AllResourceIDs_t::Visit( _ResourcePrinter{ *this, log });
@@ -1084,14 +1124,15 @@ namespace {
 	GetSampler
 =================================================
 */
-	SamplerID  RESMNGR::GetSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
+	SamplerID  ResourceManager::GetSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
 	{
-		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
+		auto*		pack = GetResource( packId ? packId : _defaultPack.Get() );
+		SamplerID	id	 = _defaultSampler;
 
 		if_likely( pack != null )
-			return pack->GetSampler( name );
+			id = pack->GetSampler( name );
 
-		return _defaultSampler;
+		return id;
 	}
 
 /*
@@ -1099,26 +1140,30 @@ namespace {
 	_CreateDefaultSampler
 =================================================
 */
-	bool  RESMNGR::_CreateDefaultSampler () __NE___
+	bool  ResourceManager::_CreateDefaultSampler () __NE___
 	{
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		return true;
+
+	  #else
 		CHECK_ERR( _defaultSampler == Default );
 
 		SamplerDesc		info;
-
 		_defaultSampler = CreateSampler( info, "Default" );
 		CHECK_ERR( _defaultSampler );
 
 		return true;
+	  #endif
 	}
 //-----------------------------------------------------------------------------
 
 
 /*
 =================================================
-	OnBeginFrame
+	_OnBeginFrame
 =================================================
 */
-	void  RESMNGR::OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg) __NE___
+	void  ResourceManager::_OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg) __NE___
 	{
 	  #ifdef AE_ENABLE_VULKAN
 		_expiredResources._currentFrameId.store( frameId );
@@ -1136,14 +1181,107 @@ namespace {
 
 /*
 =================================================
-	OnEndFrame
+	_OnEndFrame
 =================================================
 */
-	void  RESMNGR::OnEndFrame (FrameUID frameId) __NE___
+	void  ResourceManager::_OnEndFrame (FrameUID frameId) __NE___
 	{
 		GetStagingManager().OnEndFrame( frameId );
 	}
 //-----------------------------------------------------------------------------
 
 
-#undef RESMNGR
+/*
+=================================================
+	_InitReleaseResourceByID
+=================================================
+*/
+	struct ResourceManager::_InitReleaseResourceByID
+	{
+		ResourceManager&	resMngr;
+
+		template <typename ID>
+		static void  _Release (ResourceManager &resMngr, ExpiredResource::IDValue_t id) __NE___
+		{
+			resMngr._DestroyResource( BitCastRlx<ID>( id ));
+		}
+
+		template <typename ID, uint I>
+		void operator () () __NE___
+		{
+			resMngr._releaseResIDs[I] = &_Release<ID>;
+		}
+	};
+
+/*
+=================================================
+	_InitReleaseResourceByIDFns
+=================================================
+*/
+	void  ResourceManager::_InitReleaseResourceByIDFns () __NE___
+	{
+		ExpResourceTypes_t::Visit( _InitReleaseResourceByID{*this} );
+	}
+
+/*
+=================================================
+	ForceReleaseResources
+=================================================
+*/
+	bool  ResourceManager::ForceReleaseResources () __NE___
+	{
+		bool	non_empty = false;
+
+		for (auto& list : _expiredResources.All())
+		{
+			EXLOCK( list.guard );
+			list.frameId = Default;
+
+			non_empty |= not list.resources.empty();
+
+			for (auto& res : list.resources)
+			{
+				_releaseResIDs[ res.type ]( *this, res.id );
+			}
+			list.resources.clear();
+
+			// TODO: trim memory
+		}
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		non_empty |= _ForceReleaseResources();
+	  #endif
+
+		return non_empty;
+	}
+
+/*
+=================================================
+	ExpiredResources ctor
+=================================================
+*/
+	ResourceManager::ExpiredResources::ExpiredResources () __Th___
+	{
+		for (auto& item : _list) {
+			item.resources.reserve( 1u << 10 );
+		}
+	}
+
+/*
+=================================================
+	ReleaseExpiredResourcesTask::Run
+=================================================
+*/
+	void  ResourceManager::ReleaseExpiredResourcesTask::Run ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	list	 = res_mngr._expiredResources.Get( _frameId );
+		EXLOCK( list.guard );
+
+		for (auto& res : list.resources)
+		{
+			res_mngr._releaseResIDs[ res.type ]( res_mngr, res.id );
+		}
+		list.resources.clear();
+	}
+//-----------------------------------------------------------------------------

@@ -1,18 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "graphics/Remote/RDevice.h"
-# include "graphics/Remote/RSwapchain.h"
-# include "platform/Public/IWindow.h"
-# include "platform/Public/IApplication.h"
-# include "../UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 using namespace AE::Networking;
 using namespace AE::Threading;
 using namespace AE::App;
 
 
-extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
+extern void Test_RemoteDevice (IApplication*, IWindow* wnd)
 {
 	#if 0
 	{
@@ -21,8 +17,7 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 		RDeviceInitializer	dev;
 
 		RDeviceInitializer::InstanceCreateInfo	inst_ci;
-		inst_ci.appName			= "TestApp";
-        inst_ci.serverProvider  = MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( 3000 ));
+		inst_ci.appName	= "TestApp";
 
 		CHECK_FATAL( dev.CreateInstance( inst_ci ));
 		CHECK_FATAL( dev.CreateDefaultQueue() );
@@ -59,11 +54,9 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 		info.swapchain.presentMode	= EPresentMode::FIFO;
 		info.swapchain.minImageCount= 2;
 
-		CHECK_FATAL( dev.Init( info,
-                               MakeRC<DefaultServerProviderV1>( IpAddress::FromLocalPortTCP( 3000 )),
-							   EThreadArray{ EThread::Main }
-							  ));
+		info.deviceAddr				= Networking::IpAddress::FromHostPortTCP( "set IP address here", 0 );
 
+		CHECK_FATAL( dev.Init( info ));
 		CHECK_FATAL( dev.IsInitialized() );
 		CHECK_FATAL( dev.CheckConstantLimits() );
 		CHECK_FATAL( dev.CheckExtensions() );
@@ -71,11 +64,14 @@ extern void Test_RemoteDevice (IApplication &, IWindow &wnd)
 		RenderTaskScheduler::InstanceCtor::Create( dev );
 		CHECK_FATAL( GraphicsScheduler().Initialize( info ));
 
-		CHECK_FATAL( swapchain.CreateSurface( wnd.GetNative() ));
-		CHECK_FATAL( swapchain.Create( uint2{1024, 768}, info.swapchain ));
+		if ( wnd != null )
+		{
+			CHECK_FATAL( swapchain.CreateSurface( wnd->GetNative() ));
+			CHECK_FATAL( swapchain.Create( uint2{1024, 768}, info.swapchain ));
 
-		swapchain.Destroy();
-		swapchain.DestroySurface();
+			swapchain.Destroy();
+			swapchain.DestroySurface();
+		}
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
 

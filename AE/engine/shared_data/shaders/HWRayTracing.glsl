@@ -120,7 +120,7 @@
 
 
 
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS) || defined(AE_RAY_QUERY)
+#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS) || defined(AE_ray_query)
 
 	#include "Ray.glsl"
 
@@ -206,7 +206,7 @@
 
 
 
-#ifdef AE_RAY_QUERY
+#ifdef AE_ray_query
 /*
 =================================================
 	RayQuery_Init
@@ -261,7 +261,7 @@
 #	define /*float3x4*/	GetCandidateIntersectionWorldToObject3x4(/*gl::RayQuery*/ _rquery_)		MatTranspose(gl.rayQuery.GetIntersectionWorldToObject( _rquery_, false ))
 #	define /*void*/		GetCandidateIntersectionTriangleVertexPositions(/*gl::RayQuery*/ _rquery_, /*float3[3]*/_pos_)	gl.rayQuery.GetIntersectionTriangleVertexPositions( _rquery_, false, _pos_ )
 
-#endif // AE_RAY_QUERY
+#endif // AE_ray_query
 //-----------------------------------------------------------------------------
 
 

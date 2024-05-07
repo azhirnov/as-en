@@ -78,7 +78,7 @@ namespace AE::UI
 		if_unlikely( params.mtr != _data.mtr and not canvas.IsEmpty() )
 		{
 			ctx.BindPipeline( params.mtr->ppln );
-			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {params.mtr.globalDynOffset} );	// TODO
+			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {&params.mtr.globalDynOffset, 1} );	// TODO
 		//	ctx.SetStencilReference( params.mtr->stencilRef );
 			canvas.Flush( ctx, params.mtr.topology );
 		}

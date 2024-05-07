@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "UnitTest_Common.h"
 
 extern void UnitTest_Archetype ();
 extern void UnitTest_EntityPool ();
@@ -8,12 +8,12 @@ extern void UnitTest_Registry ();
 
 
 #ifdef AE_PLATFORM_ANDROID
-extern int Test_ECSst ()
+extern "C" AE_DLL_EXPORT int Tests_ECSst (const char* path)
 #else
-int main ()
+int main (const int argc, char* argv[])
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
 	UnitTest_Archetype();
 	UnitTest_EntityPool();

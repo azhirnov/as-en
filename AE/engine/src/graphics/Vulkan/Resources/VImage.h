@@ -27,8 +27,8 @@ namespace AE::Graphics
 
 		Strong<MemoryID>			_memoryId;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -58,7 +58,7 @@ namespace AE::Graphics
 
 		ND_ bool				IsExclusiveSharing ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
 
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
 		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &desc)		__NE___;

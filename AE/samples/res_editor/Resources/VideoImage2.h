@@ -31,27 +31,30 @@ namespace AE::ResEditor
 		StaticAssert( sizeof(States) == sizeof(uint) );
 		StaticAssert( ToBit<uint>( _PosBits ) == _MaxCpuImages );
 
-		using Seconds_t		= Video::IVideoDecoder::Second_t;
+		using Seconds_t		= Video::Seconds;
 		using ImageArr_t	= StaticArray< Strong<VideoImageID>, _MaxGpuImages >;
 		using FrameTimes_t	= StaticArray< Seconds_t,			_MaxCpuImages >;
-		using MemArr_t		= StaticArray< Video::IVideoDecoder::ImageMemViewArr, _MaxCpuImages >;
+		using MemArr_t		= StaticArray< Video::IVideoDecoder::ImagePlanesMemView, _MaxCpuImages >;
 		using Allocator_t	= LinearAllocator< UntypedAllocator, _MaxCpuImages, false >;	// use as block allocator
 		using StreamArr_t	= FixedArray< VideoImageStream, 3 >;
 
 
 	// variables
 	private:
-		Atomic<uint>				_imageIdx	{0};	// used for '_ids', '_views'
-		StructAtomic<States>		_states;			// used for '_frameTimes', '_imageMemView'
-		FAtomic<double>				_curTime;			// Seconds_t
+		mutable uint				_imageIdx		{0};	// used for '_ids', '_views'
+		uint						_nextImageIdx	{0};
+
+		StructAtomic<States>		_states;				// used for '_frameTimes', '_imageMemView'
+		FAtomic<double>				_curTime;				// Seconds_t
 
 		ImageArr_t					_ids;
 
+		const Seconds_t				_frameDuration;
 		FrameTimes_t				_frameTimes;
 		MemArr_t					_imageMemView;
 		Allocator_t					_allocator;
 
-		RC<DynamicDim>				_outDynSize;		// triggered when current image has been resized
+		RC<DynamicDim>				_outDynSize;			// triggered when current image has been resized
 		RC<Video::IVideoDecoder>	_decoder;
 		uint2						_dimension;
 		StreamArr_t					_streamArr;
@@ -68,13 +71,14 @@ namespace AE::ResEditor
 					 const VFS::FileName	&filename,
 					 RC<DynamicDim>			outDynSize,
 					 const SamplerName		&ycbcrConversion,
+					 const Video::IVideoDecoder::VideoStreamInfo &,
 					 PipelinePackID			packId,
 					 StringView				dbgName)			__Th___;
 
 		~VideoImage2 ()											__NE_OV;
 
 			bool  Resize (TransferCtx_t &)						__Th_OV	{ return true; }
-			bool  RequireResize ()								C_Th_OV	{ return false; }
+			bool  RequireResize ()								C_Th_OV;
 
 		ND_ VideoImageID	GetVideoImageId ()					C_NE___	{ return _ids[ _CurrentIdx() ]; }
 		ND_ StringView		GetName ()							C_NE___	{ return _dbgName; }
@@ -86,10 +90,11 @@ namespace AE::ResEditor
 		void				Cancel ()							__NE_OV;
 
 	private:
-		ND_ uint			_CurrentIdx	()						C_NE___	{ return _imageIdx.load() % _MaxGpuImages; }
+		ND_ uint			_CurrentIdx	()						C_NE___	{ return _imageIdx % _MaxGpuImages; }
 
 			static CoroTask	_DecodeFrameTask (RC<VideoImage2>)	__NE___;
 		ND_	uint			_DecodeFrame ()						__NE___;
+			void			_StartDecoding ()					__NE___;
 
 			static void		_Validate (States)					__NE___;
 	};

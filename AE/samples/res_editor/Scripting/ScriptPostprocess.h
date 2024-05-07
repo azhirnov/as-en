@@ -36,14 +36,15 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		ScriptPostprocess () = delete;
-		ScriptPostprocess (const String &pipelineName, EPostprocess ppFlags,
-						   const String &defines, EFlags baseFlags)										__Th___;
+		ScriptPostprocess ()																			= delete;
+		ScriptPostprocess (const String &pipelineName, EPostprocess ppFlags, const String &defines)		__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)										__Th___;
 
 	// ScriptBasePass //
+
+		// Returns non-null pass or throw exception.
 		ND_ RC<IPass>  ToPass ()																		C_Th_OV;
 
 

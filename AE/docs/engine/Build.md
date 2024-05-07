@@ -13,7 +13,7 @@ Currently script is written only for Windows platform, on other platforms you ca
 
 Open folder `AE/engine/external` and run scripts for required platforms and compiler version.
 
-Libraries and headers will be installed to the `AE/../AE-Data/external` folder.
+Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
 
 
 ### Android
@@ -26,7 +26,7 @@ Libraries and headers will be installed to the `AE/../AE-Data/external` folder.
 `update-all-win.bat` - to load header-only sources.<br/>
 `update-all-win-x64-msvc143.bat` - to compile static (.lib) and dynamic (.dll) libs.
 
-To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Data/external/macos/MetalTools`:
+To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Bin/external/win-x64/MetalTools`:
 ```
 bin
   air-lld.exe

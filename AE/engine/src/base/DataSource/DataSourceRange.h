@@ -20,7 +20,7 @@ namespace AE::Base
 		const Bytes		_offset;
 		const Bytes		_size;
 
-		static constexpr ESourceType	_TypeMask = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadAccess;
+		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::FixedSize | ESourceType::ReadAccess;
 
 
 	// methods
@@ -31,7 +31,7 @@ namespace AE::Base
 			_offset{ 0_b },
 			_size{ _dataSource ? _dataSource->Size() : 0_b }
 		{
-			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _TypeMask ));
+			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _RequiredType ));
 		}
 
 		template <typename B>
@@ -40,7 +40,7 @@ namespace AE::Base
 			_offset{ Min( offset, _dataSource ? _dataSource->Size() : 0_b )},
 			_size{ Min( size, _dataSource ? (_dataSource->Size() - _offset) : 0_b )}
 		{
-			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _TypeMask ));
+			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _RequiredType ));
 		}
 
 
@@ -67,7 +67,7 @@ namespace AE::Base
 		const Bytes		_offset;
 		const Bytes		_capacity;		// TODO
 
-		static constexpr ESourceType	_TypeMask = ESourceType::RandomAccess | ESourceType::WriteAccess;
+		static constexpr ESourceType	_RequiredType = ESourceType::RandomAccess | ESourceType::WriteAccess;
 
 
 	// methods
@@ -78,7 +78,7 @@ namespace AE::Base
 			_offset{ 0_b },
 			_capacity{ _dataSource ? _dataSource->Capacity() : 0_b }
 		{
-			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _TypeMask ));
+			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _RequiredType ));
 		}
 
 		template <typename B>
@@ -87,7 +87,7 @@ namespace AE::Base
 			_offset{ Min( offset, _dataSource ? _dataSource->Capacity() : 0_b )},
 			_capacity{ Min( capacity, _dataSource ? (_dataSource->Capacity() - _offset) : 0_b )}
 		{
-			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _TypeMask ));
+			ASSERT( not IsOpen() or AllBits( _dataSource->GetSourceType(), _RequiredType ));
 		}
 
 
@@ -113,9 +113,11 @@ namespace AE::Base
 	IDataSource::ESourceType  RDataSourceRange<T>::GetSourceType () C_NE___
 	{
 		ASSERT( IsOpen() );
-		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::FixedSize			| ESourceType::ReadAccess	|
-				(_dataSource->GetSourceType() & ESourceType::ThreadSafe);
+		constexpr auto	mask =	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
+								ESourceType::ThreadSafe;
+
+		return	_RequiredType |
+				(_dataSource->GetSourceType() & mask);
 	}
 
 /*
@@ -127,9 +129,7 @@ namespace AE::Base
 	Bytes  RDataSourceRange<T>::ReadBlock (Bytes pos, OUT void* buffer, Bytes size) __NE___
 	{
 		ASSERT( IsOpen() );
-
 		size = Min( pos + size, _size ) - pos;
-
 		return _dataSource->ReadBlock( _offset + pos, OUT buffer, size );
 	}
 //-----------------------------------------------------------------------------
@@ -145,9 +145,10 @@ namespace AE::Base
 	IDataSource::ESourceType  WDataSourceRange<T>::GetSourceType () C_NE___
 	{
 		ASSERT( IsOpen() );
-		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
-				ESourceType::WriteAccess		|
-				(_dataSource->GetSourceType() & ESourceType::ThreadSafe);
+		constexpr auto	mask =	ESourceType::ThreadSafe;
+
+		return	_RequiredType |
+				(_dataSource->GetSourceType() & mask);
 	}
 
 /*

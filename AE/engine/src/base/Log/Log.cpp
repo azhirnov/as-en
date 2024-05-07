@@ -7,6 +7,7 @@
 #include "base/Common.h"
 #include "base/Containers/InPlace.h"
 #include "base/Utils/Atomic.h"
+#include "base/Platforms/Platform.h"
 
 #ifdef AE_ENABLE_LOGS
 
@@ -32,11 +33,13 @@ namespace
 
 		StaticLogger::EResult	result	= StaticLogger::EResult::Unknown;
 
-		if_unlikely( s_levelBits[ usize(info.level) ] and s_scopeBits[ usize(info.scope) ] )
+		if_unlikely( s_levelBits[ usize(info.level) ] and s_scopeBits[ usize(info.scope) ])
 		{
 			if_unlikely( not s_loggers.has_value() )
 			{
-				AE_PRIVATE_BREAK_POINT();
+				if ( PlatformUtils::IsUnderDebugger() )
+					AE_PRIVATE_BREAK_POINT();
+
 				return StaticLogger::EResult::Continue;
 			}
 			if_unlikely( s_loggers->empty() )
@@ -55,16 +58,23 @@ namespace
 
 	ND_ static StaticLogger::EResult  ProcessMessage (const ILogger::MessageInfo &info)
 	{
-		if_unlikely( s_recursion.fetch_add( 1 ) > 0 )
+		StaticLogger::EResult	res;
+
+		if_likely( s_recursion.fetch_add( 1 ) <= 0 )
 		{
-			#ifdef AE_COMPILER_MSVC
-			  ::OutputDebugStringA( "Recursion call for logger." );
-			#endif
-			return StaticLogger::EResult::Break;	// avoid recursion
+			res = ProcessMessage2( info );
 		}
-
-		auto	res = ProcessMessage2( info );
-
+		else
+		{
+		  #ifdef AE_COMPILER_MSVC
+			::OutputDebugStringA( "Recursion call for logger." );
+		  #endif
+		  #if 0 //def AE_DEBUG
+			res = info.level >= ELogLevel::Error ? StaticLogger::EResult::Break : Default;
+		  #else
+			res = Default;	// avoid recursion
+		  #endif
+		}
 		s_recursion.fetch_sub( 1 );
 		return res;
 	}
@@ -114,11 +124,13 @@ namespace
 				info.level		= ILogger::ELevel::Fatal;
 				info.scope		= ILogger::EScope::Engine;
 
-			#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_CI_BUILD)
-				Unused( ILogger::CreateDialogOutput()->Process( info ));
-			#else
+			  #ifdef AE_CI_BUILD_TEST
 				Unused( ILogger::CreateConsoleOutput()->Process( info ));
-			#endif
+			  #elif defined(AE_PLATFORM_WINDOWS)
+				Unused( ILogger::CreateDialogOutput()->Process( info ));
+			  #else
+				Unused( ILogger::CreateConsoleOutput()->Process( info ));
+			  #endif
 			}
 		}
 		#endif
@@ -175,11 +187,15 @@ namespace
 		Initialize();
 
 		TRY{
-			AddLogger( ILogger::CreateIDEOutput() );
 			AddLogger( ILogger::CreateConsoleOutput() );
-			//AddLogger( ILogger::CreateFileOutput( "log.txt" ));
-			//AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
-			AddLogger( ILogger::CreateDialogOutput() );
+
+			#if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)
+				//AddLogger( ILogger::CreateFileOutput( "log" ));
+				AddLogger( ILogger::CreateHtmlOutput( "log" ));
+			#else
+				AddLogger( ILogger::CreateIDEOutput() );
+				AddLogger( ILogger::CreateDialogOutput() );
+			#endif
 		}
 		CATCH_ALL();
 
@@ -193,7 +209,7 @@ namespace
 */
 	StaticLogger::EResult  StaticLogger::Process (StringView msg, StringView func, StringView file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
 	{
-	#ifdef AE_ENABLE_LOGS
+	  #ifdef AE_ENABLE_LOGS
 		ILogger::MessageInfo	info;
 		info.message	= msg;
 		info.func		= func;
@@ -205,15 +221,9 @@ namespace
 
 		return ProcessMessage( info );
 
-	#else
+	  #else
 		Unused( msg, func, file, line, level, scope );
-
-	#endif
-	}
-
-	StaticLogger::EResult  StaticLogger::Process (const char* msg, const char* func, const char* file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
-	{
-		return Process( StringView{msg}, StringView{func}, StringView{file}, line, level, scope );
+	  #endif
 	}
 
 /*
@@ -223,11 +233,14 @@ namespace
 */
 	void  StaticLogger::SetCurrentThreadName (std::string_view name) __NE___
 	{
-		EXLOCK( s_loggersGuard );
+		ASSERT( not name.empty() );
+
+		SHAREDLOCK( s_loggersGuard );
 
 		if_unlikely( not s_loggers.has_value() )
 		{
-			AE_PRIVATE_BREAK_POINT();
+			if ( PlatformUtils::IsUnderDebugger() )
+				AE_PRIVATE_BREAK_POINT();
 			return;
 		}
 

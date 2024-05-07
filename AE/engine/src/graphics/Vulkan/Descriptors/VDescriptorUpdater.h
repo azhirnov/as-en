@@ -130,38 +130,38 @@ namespace AE::Graphics
 
 
 	private:
-		bool  _Set (DescriptorSetID descrSetId, EDescUpdateMode mode);
-		void  _Reset ();
-		bool  _Flush ();
+		bool  _Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																			__NE___;
+		void  _Reset ()																															__NE___;
+		bool  _Flush ()																															__NE___;
 
-		ND_ bool  _UseUpdateTemplate () const	{ return _mode == EDescUpdateMode::UpdateTemplate; }
-
-		template <EDescriptorType DescType>
-		ND_ Tuple< const Uniform_t*, const Bytes16u* >  _FindUniform (UniformName::Ref) const;
+		ND_ bool  _UseUpdateTemplate ()																											C_NE___	{ return _mode == EDescUpdateMode::UpdateTemplate; }
 
 		template <EDescriptorType DescType>
-		ND_ uint  _GetArraySize (UniformName::Ref) const;
+		ND_ Tuple< const Uniform_t*, const Bytes16u* >  _FindUniform (UniformName::Ref)															C_NE___;
+
+		template <EDescriptorType DescType>
+		ND_ uint  _GetArraySize (UniformName::Ref)																								C_NE___;
 
 		template <typename T>
-		bool  _BindImages (UniformName::Ref, ArrayView<T> images, uint firstIndex);
+		bool  _BindImages (UniformName::Ref, ArrayView<T> images, uint firstIndex)																__NE___;
 
 		template <typename T1, typename T2>
-		bool  _BindTextures (UniformName::Ref, ArrayView<T1> images, const T2 &sampler, uint firstIndex);
+		bool  _BindTextures (UniformName::Ref, ArrayView<T1> images, const T2 &sampler, uint firstIndex)										__NE___;
 
 		template <typename T>
-		bool  _BindSamplers (UniformName::Ref, ArrayView<T> samplers, uint firstIndex);
+		bool  _BindSamplers (UniformName::Ref, ArrayView<T> samplers, uint firstIndex)															__NE___;
 
 		template <typename T>
-		bool  _BindBuffers (UniformName::Ref, ShaderStructName::Ref typeName, ArrayView<T> buffers, uint firstIndex);
+		bool  _BindBuffers (UniformName::Ref, ShaderStructName::Ref typeName, ArrayView<T> buffers, uint firstIndex)							__NE___;
 
 		template <typename T>
-		bool  _BindBuffer (UniformName::Ref, ShaderStructName::Ref typeName, T buffer, Bytes offset, Bytes size, uint elementIndex);
+		bool  _BindBuffer (UniformName::Ref, ShaderStructName::Ref typeName, T buffer, Bytes offset, Bytes size, uint elementIndex)				__NE___;
 
 		template <typename T>
-		bool  _BindTexelBuffers (UniformName::Ref, ArrayView<T> views, uint firstIndex);
+		bool  _BindTexelBuffers (UniformName::Ref, ArrayView<T> views, uint firstIndex)															__NE___;
 
 		template <typename T>
-		bool  _BindRayTracingScenes (UniformName::Ref, ArrayView<T> scenes, uint firstIndex);
+		bool  _BindRayTracingScenes (UniformName::Ref, ArrayView<T> scenes, uint firstIndex)													__NE___;
 	};
 
 

@@ -4,6 +4,8 @@
 #include "ScriptObjects/Common.inl.h"
 
 AE_DECL_SCRIPT_TYPE(	AE::PipelineCompiler::EAttachment,				"EAttachment"			);
+AE_DECL_SCRIPT_TYPE(	AE::PipelineCompiler::EAttachmentLoadOp,		"EAttachmentLoadOp"		);
+AE_DECL_SCRIPT_TYPE(	AE::PipelineCompiler::EAttachmentStoreOp,		"EAttachmentStoreOp"	);
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RPAttachment,				"Attachment"			);
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RPAttachmentSpec,			"AttachmentSpec"		);
@@ -14,9 +16,10 @@ AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::RPAttachment::ShaderIO,	"ShaderIO"			
 
 namespace AE::Base
 {
-	ND_ inline String  ToString (PipelineCompiler::EAttachment value)
+	using namespace AE::PipelineCompiler;
+
+	ND_ inline StringView  ToString (EAttachment value)
 	{
-		using PipelineCompiler::EAttachment;
 		switch_enum( value )
 		{
 			case EAttachment::Invalidate :		return "Invalidate";
@@ -32,6 +35,36 @@ namespace AE::Base
 		}
 		switch_end
 		RETURN_ERR( "unknown attachment usage" );
+	}
+
+	ND_ inline StringView  ToString (EAttachmentLoadOp value)
+	{
+		switch_enum( value )
+		{
+			case EAttachmentLoadOp::Invalidate :	return "Invalidate";
+			case EAttachmentLoadOp::Load :			return "Load";
+			case EAttachmentLoadOp::Clear :			return "Clear";
+			case EAttachmentLoadOp::None :			return "None";
+			case EAttachmentLoadOp::_Count :
+			case EAttachmentLoadOp::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown attachment load op" );
+	}
+
+	ND_ inline StringView  ToString (EAttachmentStoreOp value)
+	{
+		switch_enum( value )
+		{
+			case EAttachmentStoreOp::Invalidate :					return "Invalidate";
+			case EAttachmentStoreOp::Store :						return "Store";
+			case EAttachmentStoreOp::None :							return "None";
+			case EAttachmentStoreOp::StoreCustomSamplePositions :	return "StoreCustomSamplePositions";
+			case EAttachmentStoreOp::_Count :
+			case EAttachmentStoreOp::Unknown :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown attachment store op" );
 	}
 
 } // AE::Base
@@ -1181,7 +1214,7 @@ namespace
 						CHECK_THROW_MSG( att->format == EPixelFormat::R8U );
 
 						for (auto& fs : _features) {
-							if ( fs->fs.attachmentFragmentShadingRate == EFeature::RequireTrue )
+							if ( fs->fs.attachmentFragmentShadingRate == FeatureSet::EFeature::RequireTrue )
 							{
 								const uint2		texel_size		= usage_it->second.texelSize;
 								const uint2		min_texel_size	= fs->fs.fragmentShadingRateTexelSize.Min();
@@ -1338,6 +1371,90 @@ namespace
 	Bind
 =================================================
 */
+namespace
+{
+	static void  Bind_EAttachment (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EAttachment>		binder{ se };
+		binder.Create();
+		binder.Comment( "Discard previous content. Used as optimization for TBDR architectures." );
+		binder.AddValue( "Invalidate",		EAttachment::Invalidate		);
+
+		binder.Comment( "Color attachment." );
+		binder.AddValue( "Color",			EAttachment::Color			);
+
+		binder.Comment( "Used as input attachment and color attachment." );
+		binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
+
+		binder.Comment( "Resolve attachment - will get content from multisampled color attachment." );
+		binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
+
+		binder.Comment( "Input attachment." );
+		binder.AddValue( "Input",			EAttachment::Input			);
+
+		binder.Comment( "Depth attachment." );
+		binder.AddValue( "Depth",			EAttachment::Depth			);
+
+		binder.Comment( "Keep attachment content between passes." );
+		binder.AddValue( "Preserve",		EAttachment::Preserve		);
+
+		binder.Comment( "Depth and stencil attachment." );
+		binder.AddValue( "DepthStencil",	EAttachment::DepthStencil	);
+
+		binder.Comment( "Fragment shading rate attachment." );
+		binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
+
+		StaticAssert( uint(EAttachment::_Count) == 8 );
+	}
+
+	static void  Bind_EAttachmentLoadOp (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EAttachmentLoadOp>	binder{ se };
+		binder.Create();
+
+		binder.Comment( "Previous content will not be preserved.\n"
+						"In TBDR is allow to avoid transfer from global memory to cache." );
+		binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
+
+		binder.Comment( "Preserve attachment content.\n"
+						"In TBDR contents in global memory will be copied to cache." );
+		binder.AddValue( "Load",		EAttachmentLoadOp::Load );
+
+		binder.Comment( "Clear attachment before first pass.\n"
+						"In TBDR is allow to avoid transfer from global memory to cache." );
+		binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
+
+		binder.Comment( "Attachment is not used at all.\n"
+						"Can be used to keep one compatible render pass and avoid unnecessary synchronizations for unused attachment." );
+		binder.AddValue( "None",		EAttachmentLoadOp::None );
+
+		StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
+	}
+
+	static void  Bind_EAttachmentStoreOp (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EAttachmentStoreOp>	binder{ se };
+		binder.Create();
+
+		binder.Comment( "Attachment content will not needed after rendering.\n"
+						"In TBDR it allow to avoid transfer from cache to global memory." );
+		binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
+
+		binder.Comment( "Attachment content will be written to global memory." );
+		binder.AddValue( "Store",		EAttachmentStoreOp::Store );
+
+		binder.Comment( "Attachment is read-only. Content may not be written to memory, but if changed then content in memory will be undefined.\n"
+						"In TBDR it allow to avoid transfer from cache to global memory." );
+		binder.AddValue( "None",		EAttachmentStoreOp::None );
+
+		//binder.Comment( "Vulkan: same as 'Store'.\n"
+		//				"Metal: " );
+		//binder.AddValue( "StoreCustomSamplePositions",	EAttachmentStoreOp::StoreCustomSamplePositions );
+
+		StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
+	}
+}
+
 	void  CompatibleRenderPassDesc::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		// constants
@@ -1355,39 +1472,9 @@ namespace
 			se->AddConstProperty( c.attachment_DepthStencil,	"Attachment_DepthStencil" );
 		}
 
-		// attachment usage enum
-		{
-			EnumBinder<EAttachment>		binder{ se };
-			binder.Create();
-			binder.Comment( "Discard previous content. Used as optimization for TBDR architectures." );
-			binder.AddValue( "Invalidate",		EAttachment::Invalidate		);
-
-			binder.Comment( "Color attachment." );
-			binder.AddValue( "Color",			EAttachment::Color			);
-
-			binder.Comment( "Used as input attachment and color attachment." );
-			binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
-
-			binder.Comment( "Resolve attachment - will get content from multisampled color attachment." );
-			binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
-
-			binder.Comment( "Input attachment." );
-			binder.AddValue( "Input",			EAttachment::Input			);
-
-			binder.Comment( "Depth attachment." );
-			binder.AddValue( "Depth",			EAttachment::Depth			);
-
-			binder.Comment( "Keep attachment content between passes." );
-			binder.AddValue( "Preserve",		EAttachment::Preserve		);
-
-			binder.Comment( "Depth and stencil attachment." );
-			binder.AddValue( "DepthStencil",	EAttachment::DepthStencil	);
-
-			binder.Comment( "Fragment shading rate attachment." );
-			binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
-
-			StaticAssert( uint(EAttachment::_Count) == 8 );
-		}
+		Bind_EAttachment( se );
+		Bind_EAttachmentLoadOp( se );
+		Bind_EAttachmentStoreOp( se );
 
 		// shader IO
 		{

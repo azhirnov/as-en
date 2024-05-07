@@ -1,6 +1,8 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if (TARGET "GraphicsHL")
+set( AE_ENABLE_PROFILER  ON  CACHE BOOL "enable engine profiler UI" )
+
+if ( (TARGET "GraphicsHL") AND (${AE_ENABLE_PROFILER}) )
 
 	file( GLOB_RECURSE HPP_SOURCES "*.h" )
 	if (NOT (DEFINED ENGINE_LIBS_PATH))
@@ -15,10 +17,13 @@ if (TARGET "GraphicsHL")
 	target_link_libraries( "Profiler" PUBLIC "GraphicsHL" "Networking" )
 
 	if (TARGET "ARM-HWCPipe-lib")
-		target_link_libraries( "Profiler" PUBLIC "ARM-HWCPipe-lib"  )
+		target_link_libraries( "Profiler" PUBLIC "ARM-HWCPipe-lib" )
 	endif()
-	if (TARGET "HWPerfCounter-lib")
-		target_link_libraries( "Profiler" PUBLIC "HWPerfCounter-lib" )
+	if (TARGET "PowerVRScopeStats-lib")
+		target_link_libraries( "Profiler" PUBLIC "PowerVRScopeStats-lib" )
+	endif()
+	if (ANDROID)
+		target_compile_definitions( "Profiler" PUBLIC "AE_ENABLE_ADRENO_PERFCOUNTER" )
 	endif()
 
 	EnablePCH( "Profiler" )

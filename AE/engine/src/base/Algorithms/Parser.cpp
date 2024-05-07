@@ -229,13 +229,17 @@ namespace AE::Base
 	{
 		result = Default;
 
+		// find first "
 		for (; pos < str.length(); ++pos)
 		{
 			if_unlikely( str[pos] == '"' )
 				break;
 		}
 
-		CHECK_ERR( str[pos] == '"' );
+		if ( pos >= str.length() )
+			return false;
+
+		ASSERT( str[pos] == '"' );
 
 		const usize	begin = ++pos;
 
@@ -245,7 +249,7 @@ namespace AE::Base
 
 			if_unlikely( c == '"' )
 			{
-				result = StringView{ str.data() + begin, pos - begin };
+				result = str.substr( begin, pos - begin );
 				++pos;
 				return true;
 			}
@@ -302,7 +306,8 @@ namespace AE::Base
 			}
 		}
 
-		tokens.push_back( StringView{ str.data() + begin, str.length() - begin });
+		if ( begin < str.length() )
+			tokens.push_back( StringView{ str.data() + begin, str.length() - begin });
 	}
 
 //-----------------------------------------------------------------------------
@@ -841,6 +846,7 @@ namespace
 			++pos;
 		}
 
+		Unused( macro_depth );
 		ASSERT( macro_depth == 0 );
 		ASSERT( begin_block == UMax );
 	}

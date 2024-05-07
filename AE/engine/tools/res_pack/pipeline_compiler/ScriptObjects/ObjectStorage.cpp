@@ -268,7 +268,7 @@ namespace AE::PipelineCompiler
 	Build
 =================================================
 */
-	bool  ObjectStorage::Build ()
+	bool  ObjectStorage::Build () __NE___
 	{
 		for (auto& [name, src_rp] : compatibleRPs)
 		{
@@ -438,7 +438,7 @@ namespace AE::PipelineCompiler
 
 		// update offsets
 		{
-			file = MakeRC<FileWStream>( filename, FileWStream::EMode::Update );
+			file = MakeRC<FileWStream>( filename, FileWStream::EMode::OpenUpdate );
 			CHECK_ERR( file->IsOpen() );
 
 			CHECK_ERR( file->Write( PackOffsets_Name ) and file->Write( offsets ));
@@ -466,16 +466,16 @@ namespace AE::PipelineCompiler
 		// feature sets
 		if ( not this->featureSets.empty() )
 		{
-			offsets.featureSetOffset = ulong(stream.Position());
+			offsets.featureSetOffset = stream.Position();
 
-			auto	mem = MakeRC<MemWStream>();
+			auto	mem = MakeRC<ArrayWStream>();
 			{
 				Serializing::Serializer		ser{ mem };
 				CHECK_ERR( FeatureSetPacker::Serialize( ser ));
 			}
-			CHECK_ERR( mem->Store( stream ));
+			CHECK_ERR( mem->StoreTo( stream ));
 
-			offsets.featureSetDataSize = ulong(stream.Position()) - offsets.featureSetOffset;
+			offsets.featureSetDataSize = stream.Position() - offsets.featureSetOffset;
 			CHECK( offsets.featureSetDataSize > 0 );
 
 			offsets.allocSize = AlignUp( offsets.allocSize + this->featureSets.size() * /*FeatureSetName*/name_size, align );
@@ -484,16 +484,16 @@ namespace AE::PipelineCompiler
 		// samplers
 		if ( not this->samplerRefs.empty() )
 		{
-			offsets.samplerOffset = ulong(stream.Position());
+			offsets.samplerOffset = stream.Position();
 
-			auto	mem = MakeRC<MemWStream>();
+			auto	mem = MakeRC<ArrayWStream>();
 			{
 				Serializing::Serializer		ser{ mem };
 				CHECK_ERR( SamplerPacker::Serialize( ser ));
 			}
-			CHECK_ERR( mem->Store( stream ));
+			CHECK_ERR( mem->StoreTo( stream ));
 
-			offsets.samplerDataSize = ulong(stream.Position()) - offsets.samplerOffset;
+			offsets.samplerDataSize = stream.Position() - offsets.samplerOffset;
 			CHECK( offsets.samplerDataSize > 0 );
 
 			offsets.allocSize = AlignUp( offsets.allocSize + this->samplerRefs.size() * (/*SamplerName*/name_size + /*SamplerID*/id_size), align );
@@ -502,16 +502,16 @@ namespace AE::PipelineCompiler
 		// render passes
 		if ( not this->compatibleRPs.empty() )
 		{
-			offsets.renderPassOffset = ulong(stream.Position());
+			offsets.renderPassOffset = stream.Position();
 
-			auto	mem = MakeRC<MemWStream>();
+			auto	mem = MakeRC<ArrayWStream>();
 			{
 				Serializing::Serializer		ser{ mem };
 				CHECK_ERR( RenderPassPacker::Serialize( ser ));
 			}
-			CHECK_ERR( mem->Store( stream ));
+			CHECK_ERR( mem->StoreTo( stream ));
 
-			offsets.renderPassDataSize = ulong(stream.Position()) - offsets.renderPassOffset;
+			offsets.renderPassDataSize = stream.Position() - offsets.renderPassOffset;
 			CHECK( offsets.renderPassDataSize > 0 );
 
 			//offsets.allocSize = AlignUp( offsets.allocSize +	// TODO
@@ -520,11 +520,11 @@ namespace AE::PipelineCompiler
 		// hash to name
 		if ( addNameMapping )
 		{
-			offsets.nameMappingOffset = ulong(stream.Position());
+			offsets.nameMappingOffset = stream.Position();
 
 			CHECK_ERR( stream.Write( NameMapping_Name ));
 
-			auto	mem = MakeRC<MemWStream>();
+			auto	mem = MakeRC<ArrayWStream>();
 			{
 				Serializing::Serializer		ser{ mem };
 				CHECK_ERR( ser( uint(this->hashToName.size()) ));
@@ -534,32 +534,26 @@ namespace AE::PipelineCompiler
 					CHECK_ERR( ser( info.hash, info.uid, name ));
 				}
 			}
-			CHECK_ERR( mem->Store( stream ));
+			CHECK_ERR( mem->StoreTo( stream ));
 
-			offsets.nameMappingDataSize = ulong(stream.Position()) - offsets.nameMappingOffset;
+			offsets.nameMappingDataSize = stream.Position() - offsets.nameMappingOffset;
 		}
 
 		// pipeline & shaders
 		if ( not this->pplnStorage->Empty() )
 		{
-			offsets.allocSize		= AlignUp( ulong(this->pplnStorage->CalcAllocationSize( Bytes{align} )), align );
-			offsets.pipelineOffset	= ulong(stream.Position());
+			offsets.allocSize		= AlignUp( this->pplnStorage->CalcAllocationSize( Bytes{align} ), align );
+			offsets.pipelineOffset	= stream.Position();
 
-			auto	mem = MakeRC<MemWStream>();
-			{
-				Serializing::Serializer		ser{ mem };
-				CHECK_ERR( this->pplnStorage->SerializePipelines( ser ));
-			}
-			CHECK_ERR( mem->Store( stream ));
+			CHECK_ERR( this->pplnStorage->SerializePipelines( stream ));
 
-			offsets.pipelineDataSize = ulong(stream.Position()) - offsets.pipelineOffset;
+			offsets.pipelineDataSize = stream.Position() - offsets.pipelineOffset;
 			CHECK( offsets.pipelineDataSize > 0 );
 
-
-			offsets.shaderOffset = ulong(stream.Position());
+			offsets.shaderOffset = stream.Position();
 			CHECK_ERR( this->pplnStorage->WriteShaders( stream ));
 
-			offsets.shaderDataSize = ulong(stream.Position()) - offsets.shaderOffset;
+			offsets.shaderDataSize = stream.Position() - offsets.shaderOffset;
 			CHECK( offsets.shaderDataSize > 0 );
 		}
 
@@ -587,10 +581,6 @@ namespace AE::PipelineCompiler
 
 			CHECK_ERR( st->ToCPP( INOUT types, INOUT unique ));
 		}
-
-	  #if not AE_PRIVATE_USE_TABS
-		types = Parser::TabsToSpaces( types );
-	  #endif
 
 		auto	file = MakeRC<FileWStream>( filename );
 		CHECK_ERR( file->IsOpen() );
@@ -692,7 +682,7 @@ namespace AE::PipelineCompiler
 						//tmp << "\t\t\t} ppln;\n";
 					}
 
-					tmp << "\t\t} " << ValidateName(pass->Name()) << ";\n";
+					tmp << "\t\t} " << ValidateName(pass->Name()) << " = {};\n";
 				}
 
 				if ( AllBits( flags, EReflectionFlags::RTech_ShaderBindingTable ) and
@@ -705,7 +695,7 @@ namespace AE::PipelineCompiler
 						tmp << "\t\t\tstatic constexpr RTShaderBindingName_t  " << ValidateName(name) << " {Hash_t{0x"
 							<< ToString<16>( uint{RTShaderBindingName{name}} ) << "u}};  // '" << name << "'\n";
 					}
-					tmp << "\t\t} sbt;\n";
+					tmp << "\t\t} sbt = {};\n";
 				}
 
 				tmp << "\t} " << ValidateName(rtech->Name()) << ";\n";
@@ -724,10 +714,6 @@ namespace AE::PipelineCompiler
 					<< "}\n";
 			}
 		}
-
-	  #if not AE_PRIVATE_USE_TABS
-		str = Parser::TabsToSpaces( str );
-	  #endif
 
 		auto	file = MakeRC<FileWStream>( filename );
 		CHECK_ERR( file->IsOpen() );

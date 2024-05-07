@@ -53,7 +53,7 @@ namespace AE::Graphics
 
 			_subpassMap.emplace( name, sp.subpassIndex );
 
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				if ( sp.subpassIndex == 0 )
 					_firstSPName = name;
 			)
@@ -71,7 +71,7 @@ namespace AE::Graphics
 
 		dev.SetObjectName( _renderPass, dbgName, VK_OBJECT_TYPE_RENDER_PASS );
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -100,7 +100,7 @@ namespace AE::Graphics
 		_renderPass		= Default;
 		_compatibleRP	= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

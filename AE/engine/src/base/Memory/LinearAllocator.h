@@ -28,8 +28,8 @@ namespace AE::Base
 		struct Block
 		{
 			void *		ptr			= null;
-			Bytes		size;		// used memory size
-			Bytes		capacity;	// size of block
+			Bytes32u	size;		// used memory size
+			Bytes32u	capacity;	// size of block
 		};
 		using Blocks_t	= FixedArray< Block, MaxBlocks >;
 
@@ -118,7 +118,7 @@ namespace AE::Base
 
 		for (auto& block : _blocks)
 		{
-			Bytes	offset	= AlignUp( Bytes{block.ptr} + (block.size != 0 ? _Padding + block.size : 0_b), sizeAndAlign.align ) - Bytes{block.ptr};
+			const Bytes	offset	= AlignUp( Bytes{block.ptr} + (block.size != 0 ? _Padding + block.size : 0_b), sizeAndAlign.align ) - Bytes{block.ptr};
 
 			if_likely( offset + sizeAndAlign.size <= block.capacity )
 			{
@@ -187,8 +187,8 @@ namespace AE::Base
 	{
 		for (auto& block : _blocks)
 		{
+			DEBUG_ONLY( DbgInitMem( block.ptr, block.size ));
 			block.size = 0_b;
-			DEBUG_ONLY( DbgInitMem( block.ptr, block.capacity ));
 		}
 	}
 

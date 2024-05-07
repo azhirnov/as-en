@@ -90,6 +90,7 @@ namespace AE::Threading
 		PROFILE_ONLY(
 			_profiler.store( RVRef(profiler) );
 		)
+		Unused( profiler );
 	}
 //-----------------------------------------------------------------------------
 

@@ -4,7 +4,7 @@
 # include "graphics/Vulkan/Resources/VComputePipeline.h"
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/VEnumCast.h"
-# include "VPipelineHelper.inl.h"
+# include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
 {
@@ -65,7 +65,7 @@ namespace AE::Graphics
 		pipeline_info.basePipelineHandle= Default;
 		pipeline_info.basePipelineIndex	= -1;
 
-		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count)
+		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{
 			count = Sum<uint>( ci.templCI.localSizeSpec != UMax );
 
@@ -110,14 +110,14 @@ namespace AE::Graphics
 									  ci.specCI.specialization, *ci.shader.shaderConstants, allocator,
 									  VK_SHADER_STAGE_COMPUTE_BIT, AddCustomSpec ));
 
-		VK_CHECK_ERR( dev.vkCreateComputePipelines( dev.GetVkDevice(), ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
+		VK_CHECK_ERR( CreateComputePipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 
 		dev.SetObjectName( _handle, ci.specCI.dbgName, VK_OBJECT_TYPE_PIPELINE );
 
 		_options	= ci.specCI.options;
 		_dbgTrace	= ci.shader.dbgTrace;
 
-		DEBUG_ONLY( _debugName = ci.specCI.dbgName; )
+		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )
 		return true;
 	}
 
@@ -144,7 +144,7 @@ namespace AE::Graphics
 		_options	= Default;
 		_dbgTrace	= null;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

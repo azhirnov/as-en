@@ -43,7 +43,7 @@ namespace AE::ResEditor
 */
 	InputModeName  Renderer::GetInputMode () const
 	{
-		return _controller ? _controller->GetInputMode() : Default;
+		return _controller ? _controller->GetInputMode() : InputModeName{"SwitchInputMode"};
 	}
 
 /*
@@ -64,8 +64,7 @@ namespace AE::ResEditor
 			_controller->ProcessInput( reader, dt );
 		}
 
-		auto	input = _input.WriteNoLock();
-		EXLOCK( input );
+		auto	input = _input.WriteLock();
 
 		switchMode				= false;
 		input->pressed			= false;
@@ -74,7 +73,7 @@ namespace AE::ResEditor
 		ActionQueueReader::Header	hdr;
 		for (; reader.ReadHeader( OUT hdr );)
 		{
-			StaticAssert( IA.actionCount == 9 );
+			StaticAssert( IA.actionCount == 10 );
 			switch ( uint{hdr.name} )
 			{
 				// compatible with UI
@@ -99,6 +98,9 @@ namespace AE::ResEditor
 
 				case IA.CustomKey1 :
 					input->customKeys[0] = reader.Data<float>( hdr.offset );		break;
+
+				case IA.Freeze :
+					_freeze.store( not _freeze.load() );							break;
 
 				case ui_IA.UI_ResExport :
 					_resExport.store( EExportState::Started );						break;
@@ -152,8 +154,11 @@ namespace AE::ResEditor
 			update_pd.frameId	= _frameCounter;
 			update_pd.seed		= _seed;
 
-			_totalTime		+= TimeCast<microseconds>( dt );
-			_frameCounter	++;
+			if ( not _freeze.load() )
+			{
+				_totalTime		+= TimeCast<microseconds>( dt );
+				_frameCounter	++;
+			}
 
 			int		surf_scale	= UIInteraction::Instance().GetDynamicSize()->Scale().x;
 			float2	surf_size	{1.f};
@@ -166,8 +171,7 @@ namespace AE::ResEditor
 				}
 			}
 
-			auto	input = _input.ReadNoLock();
-			SHAREDLOCK( input );
+			auto	input = _input.ReadLock();
 
 			update_pd.unormCursorPos= input->cursorPos / surf_size;
 			update_pd.pressed		= input->pressed;
@@ -177,8 +181,8 @@ namespace AE::ResEditor
 
 		// setup shader debugger
 		{
-			auto	dbg = UIInteraction::Instance().debugger.WriteNoLock();
-			EXLOCK( dbg );
+			auto	dbg = UIInteraction::Instance().debugger.WriteLock();
+
 			pass_debugger.debugger	= _shaderDebugger.get();
 			pass_debugger.target	= dbg->target;
 			pass_debugger.mode		= dbg->mode;
@@ -211,9 +215,9 @@ namespace AE::ResEditor
 
 			Unused( dtq.Upload( batch, inDeps ));
 
-			if ( _uploadInProgress and dtq.UploadFramesWithoutWork() > _minFramesWithoutWork )
+			if ( _uploadInProgress.load() and dtq.UploadFramesWithoutWork() > _minFramesWithoutWork )
 			{
-				_uploadInProgress = false;
+				_uploadInProgress.store( false );
 				AE_LOGI( "Async loading completed" );
 			}
 		}
@@ -498,10 +502,13 @@ namespace AE::ResEditor
 		DirectCtx::Transfer	ctx		{rtask};
 
 		_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::VS )
-			.Then( [this] (const Array<String> &output)
+			.Then(	[this] (const Array<String> &output)
 					{
 						_PrintDbgTrace( output );
-					});
+					},
+					"Renderer::_ReadShaderTrace",
+					ETaskQueue::Background
+				  );
 
 		co_await RenderTask_Execute( ctx );
 	}
@@ -552,8 +559,7 @@ namespace AE::ResEditor
 
 		if ( auto p_sliders = UIInteraction::Instance().GetSliders( this ))
 		{
-			auto	sliders = p_sliders->ReadNoLock();
-			SHAREDLOCK( sliders );
+			auto	sliders = p_sliders->ReadLock();
 
 			for (auto& slider : _sliders)
 			{
@@ -590,7 +596,9 @@ namespace AE::ResEditor
 			str << _controller->GetHelpText();
 
 		str << R"(
-  '0..9' - set value to customKey[0] which can be used in shader)";
+  '0..9' - set value to customKey[0] which can be used in shader
+  'P'    - stop animation)";
+
 		return str;
 	}
 

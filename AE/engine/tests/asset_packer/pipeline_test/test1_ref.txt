@@ -1,137 +1,4 @@
 
-RenderTechniques {
-  [0]
-    name     = 'MinForward'
-    features = {
-      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinRecursiveRayTracing', 'MinDesktop'
-    }
-    passes = {
-      [0] Pass {
-        name       = 'Graphics1'
-        renderPass = 'Simple.RenderTarget'
-        subpass    = 'Main'
-      }
-      [1] Pass {
-        name       = 'Compute1'
-      }
-    }
-    pipelines = {
-      [0]  'compute_1.def', 30000002
-      [1]  'compute_2.def', 30000000
-      [2]  'compute_3.def', 30000001
-      [3]  'graphics_4 rp:Simple', 10000002
-      [4]  'graphics_1 rp:Simple', 10000000
-    }
-    shader binding tables = {}
-  ----------------------
-  [1]
-    name     = 'MeshForward'
-    features = {
-      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinMeshShader'
-    }
-    passes = {
-      [0] Pass {
-        name       = 'Graphics1'
-        renderPass = 'Simple.Present'
-        subpass    = 'Main'
-      }
-    }
-    pipelines = {
-      [0]  'mesh_2 rp:Simple', 20000001
-      [1]  'mesh_1 rp:Simple', 20000000
-    }
-    shader binding tables = {}
-  ----------------------
-  [2]
-    name     = 'UI.RTech'
-    features = {
-      'MinimalFS'
-    }
-    passes = {
-      [0] Pass {
-        name       = 'Graphics0'
-        renderPass = 'UIRenderPass.def'
-        subpass    = 'Main'
-      }
-    }
-    pipelines = {
-      [0]  'graphics_1 rp:UI', 10000001
-    }
-    shader binding tables = {}
-  ----------------------
-  [3]
-    name     = 'RayTracing'
-    features = {
-      'MinimalFS', 'MinRecursiveRayTracing'
-    }
-    passes = {
-      [0] Pass {
-        name       = 'Trace1'
-      }
-    }
-    pipelines = {
-      [0]  'raytracing_1.def', 40000000
-    }
-    shader binding tables = {
-      [0]  'raytracing_1.sbt0', 0
-    }
-  ----------------------
-}
-
-RenderStates {
-  [0]
-    renderState = {
-      depth = {
-        compareOp = LEqual
-        write     = true
-        test      = true
-      }
-      inputAssembly = {
-        topology         = TriangleList
-        primitiveRestart = false
-      }
-    }
-  [1]
-    renderState = {
-      depth = {
-        compareOp = LEqual
-        write     = false
-        test      = false
-      }
-      inputAssembly = {
-        topology         = TriangleList
-        primitiveRestart = false
-      }
-    }
-  [2]
-    renderState = {
-      depth = {
-        compareOp = LEqual
-        write     = false
-        test      = false
-      }
-    }
-}
-
-DepthStencilStates {
-  [0]
-    depthStencilState = {
-      depth = {
-        compareOp = LEqual
-        write     = true
-        test      = true
-      }
-    }
-  [1]
-    depthStencilState = {
-      depth = {
-        compareOp = LEqual
-        write     = false
-        test      = false
-      }
-    }
-}
-
 DescrSetLayouts {
   [0]
     name   = 'DbgDS_Trace_Cs'
@@ -334,6 +201,73 @@ PipelineLayouts {
   ----------------------
 }
 
+RenderStates {
+  [0]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = true
+        test      = true
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+  [1]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+  [2]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+    }
+}
+
+DepthStencilStates {
+  [0]
+    depthStencilState = {
+      depth = {
+        compareOp = LEqual
+        write     = true
+        test      = true
+      }
+    }
+  [1]
+    depthStencilState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+    }
+}
+
+PipelineTemplNames {
+  [0]  'graphics_2', 10000000
+  [1]  'compute_2', 30000002
+  [2]  'mesh_1', 20000000
+  [3]  'compute_3', 30000001
+  [4]  'graphics_3', 10000001
+  [5]  'compute_1', 30000000
+  [6]  'graphics_1', 10000000
+  [7]  'mesh_2', 20000001
+  [8]  'raytracing_1', 40000000
+  [9]  'graphics_4', 10000002
+}
+
 GraphicsPipelineTempl {
   [0]
     layout  = 1
@@ -356,8 +290,8 @@ GraphicsPipelineTempl {
   [1]
     layout  = 6
     shaders = {
-      Vertex = 10000009
-      Fragment = 1000000a
+      Vertex = 10000004
+      Fragment = 10000005
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
     vertexAttribs = {
@@ -374,7 +308,7 @@ GraphicsPipelineTempl {
   [2]
     layout  = 4
     shaders = {
-      Vertex = 1000000b
+      Vertex = 10000008
       Fragment = 10000003
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
@@ -395,8 +329,8 @@ MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh = 1000000d
-      Fragment = 1000000e
+      Mesh = 10000006
+      Fragment = 10000007
     }
     outputTopology       = TriangleList
     maxVertices          = 3
@@ -408,8 +342,8 @@ MeshPipelineTempl {
   [1]
     layout  = 3
     shaders = {
-      Mesh = 1000000f
-      Fragment = 10000010
+      Mesh = 1000000a
+      Fragment = 1000000b
     }
     outputTopology       = TriangleList
     maxVertices          = 32
@@ -423,11 +357,11 @@ MeshPipelineTempl {
 
 ComputePipelineTempl {
   [0]
-    layout  = 2
+    layout  = 7
     shader  = 10000000
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    features = { 'MinimalFS', 'MinDesktop' }
+    features = { 'MinimalFS' }
   ----------------------
   [1]
     layout  = 5
@@ -437,11 +371,11 @@ ComputePipelineTempl {
     features = { 'MinimalFS', 'MinRecursiveRayTracing' }
   ----------------------
   [2]
-    layout  = 7
-    shader  = 1000000c
+    layout  = 2
+    shader  = 10000009
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    features = { 'MinimalFS' }
+    features = { 'MinimalFS', 'MinDesktop' }
   ----------------------
 }
 
@@ -452,29 +386,29 @@ RayTracingPipelineTempl {
     generalShaders = {
       [0] {
         name   = 'Main'
-        shader = 10000004
+        shader = 1000000c
       }
       [1] {
         name   = 'Miss'
-        shader = 10000005
+        shader = 1000000d
       }
     }
     triangleGroups = {
       [0] {
         name       = 'TriHit1'
-        closestHit = 10000006
+        closestHit = 1000000e
         anyHit     = none
       }
       [1] {
         name       = 'TriHit2'
-        closestHit = 10000006
-        anyHit     = 10000007
+        closestHit = 1000000e
+        anyHit     = 1000000f
       }
     }
     proceduralGroups = {
       [0] {
         name         = 'ProcHit1'
-        intersection = 10000008
+        intersection = 10000010
         closestHit   = none
         anyHit       = none
       }
@@ -625,19 +559,6 @@ RayTracingPipelineSpec {
     maxPipelineRayHitAttributeSize = 0 b
 }
 
-PipelineTemplNames {
-  [0]  'graphics_2', 10000000
-  [1]  'compute_2', 30000000
-  [2]  'mesh_1', 20000000
-  [3]  'compute_3', 30000001
-  [4]  'graphics_3', 10000001
-  [5]  'compute_1', 30000002
-  [6]  'graphics_1', 10000000
-  [7]  'mesh_2', 20000001
-  [8]  'raytracing_1', 40000000
-  [9]  'graphics_4', 10000002
-}
-
 RTShaderBindingTable {
   [0]
     ppln name:        raytracing_1.def
@@ -652,33 +573,112 @@ RTShaderBindingTable {
   ----------------------
 }
 
+RenderTechniques {
+  [0]
+    name     = 'MinForward'
+    features = {
+      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinRecursiveRayTracing', 'MinDesktop'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.RenderTarget'
+        subpass    = 'Main'
+      }
+      [1] Pass {
+        name       = 'Compute1'
+      }
+    }
+    pipelines = {
+      [0]  'compute_1.def', 30000000
+      [1]  'compute_2.def', 30000002
+      [2]  'compute_3.def', 30000001
+      [3]  'graphics_4 rp:Simple', 10000002
+      [4]  'graphics_1 rp:Simple', 10000000
+    }
+    shader binding tables = {}
+  ----------------------
+  [1]
+    name     = 'MeshForward'
+    features = {
+      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinMeshShader'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.Present'
+        subpass    = 'Main'
+      }
+    }
+    pipelines = {
+      [0]  'mesh_2 rp:Simple', 20000001
+      [1]  'mesh_1 rp:Simple', 20000000
+    }
+    shader binding tables = {}
+  ----------------------
+  [2]
+    name     = 'UI.RTech'
+    features = {
+      'MinimalFS'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics0'
+        renderPass = 'UIRenderPass.def'
+        subpass    = 'Main'
+      }
+    }
+    pipelines = {
+      [0]  'graphics_1 rp:UI', 10000001
+    }
+    shader binding tables = {}
+  ----------------------
+  [3]
+    name     = 'RayTracing'
+    features = {
+      'MinimalFS', 'MinRecursiveRayTracing'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Trace1'
+      }
+    }
+    pipelines = {
+      [0]  'raytracing_1.def', 40000000
+    }
+    shader binding tables = {
+      [0]  'raytracing_1.sbt0', 0
+    }
+  ----------------------
+}
+
 SpirvShaders {
   [0]  offset = 0 b
-  [1]  offset = 1648 b
-  [2]  offset = 3720 b
-  [3]  offset = 5 Kb
-  [4]  offset = 6 Kb
-  [5]  offset = 9 Kb
-  [6]  offset = 11 Kb
-  [7]  offset = 13 Kb
-  [8]  offset = 16 Kb
-  [9]  offset = 19 Kb
-  [10]  offset = 21 Kb
-  [11]  offset = 22 Kb
-  [12]  offset = 24 Kb
-  [13]  offset = 32 Kb
-  [14]  offset = 36 Kb
+  [1]  offset = 8 Kb
+  [2]  offset = 10 Kb
+  [3]  offset = 12 Kb
+  [4]  offset = 13 Kb
+  [5]  offset = 14 Kb
+  [6]  offset = 16 Kb
+  [7]  offset = 20 Kb
+  [8]  offset = 24 Kb
+  [9]  offset = 25 Kb
+  [10]  offset = 27 Kb
+  [11]  offset = 31 Kb
+  [12]  offset = 33 Kb
+  [13]  offset = 36 Kb
+  [14]  offset = 38 Kb
   [15]  offset = 40 Kb
-  [16]  offset = 44 Kb
+  [16]  offset = 43 Kb
 }
 
 SpirvShaderData {
   [0]
-    codeSize = 1644 b
-    codeHash = f6b0b7e5264c87f0
+    codeSize = 5 Kb
+    withTrace
   [1]
-    codeSize = 2068 b
-    codeHash = 6786b11e20fd8e28
+    codeSize = 2004 b
+    codeHash = 7c42dff346ee7699
   [2]
     codeSize = 1784 b
     codeHash = b9d8c86147ad6f9f
@@ -686,42 +686,42 @@ SpirvShaderData {
     codeSize = 1196 b
     codeHash = 15adaab0348ad250
   [4]
-    codeSize = 3212 b
-    codeHash = 44ddd76f0cf2b4ac
-  [5]
-    codeSize = 1856 b
-    codeHash = fe1c165d31daa8c4
-  [6]
-    codeSize = 2344 b
-    codeHash = 220c288989b75f3e
-  [7]
-    codeSize = 2624 b
-    codeHash = 7e25bd4bb7b370f0
-  [8]
-    codeSize = 3048 b
-    codeHash = 3d9e73b29c81d28e
-  [9]
     codeSize = 1784 b
     codeHash = 7b3067ff83bdfe68
-  [10]
+  [5]
     codeSize = 1332 b
     codeHash = 1496b1b57654325b
-  [11]
+  [6]
+    codeSize = 3816 b
+    codeHash = a98a6b3c49ab6ae4
+  [7]
+    codeSize = 4 Kb
+    codeHash = 7b24d32886b6d5e2
+  [8]
     codeSize = 1688 b
     codeHash = 2135ee13a9d39fd6
+  [9]
+    codeSize = 1644 b
+    codeHash = f6b0b7e5264c87f0
+  [10]
+    codeSize = 3880 b
+    codeHash = 7ab3a43431a392d2
+  [11]
+    codeSize = 2276 b
+    codeHash = 5865f785f3443feb
   [12]
-    codeSize = 5 Kb
-    withTrace
+    codeSize = 3148 b
+    codeHash = 90805932b568f90
   [13]
-    codeSize = 3856 b
-    codeHash = 24867565a0594119
+    codeSize = 1792 b
+    codeHash = 727fe51fb417f218
   [14]
-    codeSize = 4 Kb
-    codeHash = 4363074fdffc2b59
+    codeSize = 2280 b
+    codeHash = e0b41e48c3be3442
   [15]
-    codeSize = 3920 b
-    codeHash = 984e449be0cb12f
+    codeSize = 2560 b
+    codeHash = f24fcae8d46a962c
   [16]
-    codeSize = 2316 b
-    codeHash = 1b5a727cad74671e
+    codeSize = 2984 b
+    codeHash = d114e7101b777452
 }

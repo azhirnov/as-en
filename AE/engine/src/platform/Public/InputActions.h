@@ -161,15 +161,15 @@ namespace AE::App
 
 			explicit ActionQueueReader (const TsActionQueue &)	__NE___;
 
-			ND_ bool  ReadHeader (OUT Header &)					__NE___;
+			ND_ bool		ReadHeader (OUT Header &)			__NE___;
 
 			template <typename T>
-			ND_ T const&  Data (Bytes offset)					C_NE___;
+			ND_ T const&	Data (Bytes offset)					C_NE___;
 
 			template <typename T>
-			ND_ T  DataCopy (Bytes offset)						C_NE___;
+			ND_ T			DataCopy (Bytes offset)				C_NE___;
 
-				void  Restart ()								__NE___	{ _pos = 0; }
+				void		Restart ()							__NE___	{ _pos = 0; }
 		};
 
 

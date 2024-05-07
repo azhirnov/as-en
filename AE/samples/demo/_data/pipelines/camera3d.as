@@ -24,7 +24,7 @@ void ASmain ()
 		st.Set( EStructLayout::InternalIO,
 				"packed_short_norm4		Position;" +
 				"packed_short_norm4		Texcoord;" +
-			    "packed_short_norm4		Normal;" +
+				"packed_short_norm4		Normal;" +
 				"packed_short_norm4		Tangent;" +
 				"packed_short_norm4		BiTangent;" );
 

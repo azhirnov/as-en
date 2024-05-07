@@ -98,7 +98,7 @@ namespace AE::Base
 */
 	inline void*  MemWriter::Reserve (Bytes size, Bytes align) __NE___
 	{
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 		usize	result = AlignUp( usize(_ptr) + _offset, usize(align) );
 
 		_offset = (result - usize(_ptr)) + usize(size);
@@ -115,6 +115,7 @@ namespace AE::Base
 	template <typename T, typename ...Args>
 	T&  MemWriter::Emplace (Args&& ...args) __NE___
 	{
+		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( IsAllocated() );
 		return *PlacementNew<T>( OUT &Reserve<T>(), FwdArg<Args>( args )... );
 	}
@@ -127,6 +128,7 @@ namespace AE::Base
 	template <typename T, typename ...Args>
 	T&  MemWriter::EmplaceSized (Bytes size, Args&& ...args) __NE___
 	{
+		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( IsAllocated() );
 		ASSERT( size >= SizeOf<T> );
 		return *PlacementNew<T>( OUT Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );
@@ -153,9 +155,10 @@ namespace AE::Base
 	template <typename T, typename ...Args>
 	T*  MemWriter::EmplaceArray (usize count, Args&& ...args) __NE___
 	{
+		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( IsAllocated() );
-		T*	result = ReserveArray<T>( count );
 
+		T*	result = ReserveArray<T>( count );
 		for (usize i = 0; i < count; ++i) {
 			PlacementNew<T>( OUT result + i, FwdArg<Args>( args )... );
 		}

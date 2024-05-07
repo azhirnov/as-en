@@ -123,7 +123,7 @@ namespace
 			for (usize i = 0; i < _surface._images.size(); ++i)
 			{
 				auto*	img = res_mngr.GetResource( _surface._images[i] );
-				ASSERT( img != null );
+				CHECK_TE( img != null );
 
 				vk_data.m_nImage	= BitCast<ulong>( img->Handle() );
 
@@ -281,7 +281,7 @@ namespace
 	_Destroy
 =================================================
 */
-	void  OpenVRDevice::_Destroy ()
+	void  OpenVRDevice::_Destroy () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -316,7 +316,7 @@ namespace
 	_LoadLib
 =================================================
 */
-	bool  OpenVRDevice::_LoadLib ()
+	bool  OpenVRDevice::_LoadLib () __NE___
 	{
 		#ifdef AE_PLATFORM_WINDOWS
 		constexpr char	lib_name[] = "openvr_api.dll";
@@ -359,7 +359,7 @@ namespace
 	_SetupCamera
 =================================================
 */
-	void  OpenVRDevice::_SetupCamera ()
+	void  OpenVRDevice::_SetupCamera () __NE___
 	{
 		const float2	clip_planes;
 
@@ -441,7 +441,7 @@ namespace
 	_ProcessControllerEvents
 =================================================
 */
-	void  OpenVRDevice::_ProcessControllerEvents (INOUT Controller &cont, const VREvent_t &ev)
+	void  OpenVRDevice::_ProcessControllerEvents (INOUT Controller &cont, const VREvent_t &ev) __NE___
 	{
 		switch( ev.eventType )
 		{
@@ -498,7 +498,7 @@ namespace
 	_UpdateHMDMatrixPose
 =================================================
 */
-	void  OpenVRDevice::_UpdateHMDMatrixPose ()
+	void  OpenVRDevice::_UpdateHMDMatrixPose () __NE___
 	{
 		// TODO: game pose?
 		CHECK( _vrCompositor->WaitGetPoses( OUT _trackedDevicePose, uint(CountOf(_trackedDevicePose)), null, 0 ) == EVRCompositorError_VRCompositorError_None );
@@ -544,7 +544,7 @@ namespace
 	_ProcessHmdEvents
 =================================================
 */
-	void  OpenVRDevice::_ProcessHmdEvents (const VREvent_t &ev)
+	void  OpenVRDevice::_ProcessHmdEvents (const VREvent_t &ev) __NE___
 	{
 		switch( ev.eventType )
 		{
@@ -620,7 +620,7 @@ namespace
 	_InitControllers
 =================================================
 */
-	void  OpenVRDevice::_InitControllers ()
+	void  OpenVRDevice::_InitControllers () __NE___
 	{
 		const auto	now = TimePoint_t::clock::now();
 
@@ -648,7 +648,7 @@ namespace
 	_GetControllerID
 =================================================
 */
-	ControllerID  OpenVRDevice::_GetControllerID (uint tdi) const
+	ControllerID  OpenVRDevice::_GetControllerID (uint tdi) C_NE___
 	{
 		ETrackedControllerRole	role = _vrSystem->GetControllerRoleForTrackedDeviceIndex( tdi );
 		switch_enum( role )

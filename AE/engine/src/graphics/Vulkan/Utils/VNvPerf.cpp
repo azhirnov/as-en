@@ -243,8 +243,6 @@ namespace
 			_impl->chipName		= get_names.pChipName;
 		}
 
-		InitializeMetrics();
-
 		return true;
 	}
 
@@ -387,8 +385,6 @@ namespace AE::Graphics
 	bool  VNvPerf::GetDeviceExtensions (const VDevice &, INOUT Array<const char*> &)	__Th___	{ return false; }
 
 	bool  VNvPerf::SetStableClockState (bool stable)									C_NE___	{ return false; }
-
-	bool  VNvPerf::InitializeMetrics ()													__NE___	{ return false; }
 
 } // AE::Graphics
 

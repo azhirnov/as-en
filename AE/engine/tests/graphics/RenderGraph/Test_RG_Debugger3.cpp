@@ -103,7 +103,7 @@ namespace
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
 
-			t.result = AsyncTask{ MakePromiseFrom( task1, task2 )
+			t.result = AsyncTask{ MakePromiseFrom( task1.readOp, task2 )
 				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
 				{
 					bool	ok = p->imgCmp->Compare( view_and_str.Get<ImageMemView>() );
@@ -146,6 +146,8 @@ no source
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -206,8 +208,11 @@ no source
 
 bool RGTest::Test_Debugger3 ()
 {
-	if ( _msPipelines == null )
-		return true; // skip
+	if ( _dbgPipelines == null or _msPipelines == null )
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

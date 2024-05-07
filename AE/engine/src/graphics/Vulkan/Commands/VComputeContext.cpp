@@ -26,7 +26,7 @@ namespace AE::Graphics::_hidden_
 	VkCommandBuffer  _VDirectComputeCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Compute ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Compute ));
 
 		return VBaseDirectContext::_EndCommandBuffer();  // throw
 	}
@@ -39,7 +39,7 @@ namespace AE::Graphics::_hidden_
 	VCommandBuffer  _VDirectComputeCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Compute ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::Compute ));
 
 		return VBaseDirectContext::_ReleaseCommandBuffer();
 	}
@@ -55,7 +55,7 @@ namespace AE::Graphics::_hidden_
 	VBakedCommands  _VIndirectComputeCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Compute ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Compute ));
 
 		return VBaseIndirectContext::_EndCommandBuffer();  // throw
 	}
@@ -68,7 +68,7 @@ namespace AE::Graphics::_hidden_
 	VSoftwareCmdBufPtr  _VIndirectComputeCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Compute ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::Compute ));
 
 		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}

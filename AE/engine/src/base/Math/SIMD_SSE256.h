@@ -56,7 +56,7 @@ namespace AE::Math
 	public:
 		SimdFloat8 ()											__NE___	: _value{ _mm256_setzero_ps() } {}
 		explicit SimdFloat8 (float v)							__NE___	: _value{ _mm256_set1_ps( v )} {}
-		explicit SimdFloat8 (const float* ptr)					__NE___	: _value{ _mm256_loadu_ps( ptr )} { ASSERT( ptr != null ); }
+		explicit SimdFloat8 (const float* ptr)					__NE___	: _value{ _mm256_loadu_ps( ptr )} { NonNull( ptr ); }
 		explicit SimdFloat8 (const __m256 &v)					__NE___	: _value{v} {}
 
 		SimdFloat8 (float v0, float v1, float v2, float v3,
@@ -435,7 +435,7 @@ namespace AE::Math
 									_value = v; // compilation error
 		}
 
-		explicit SimdTInt256 (Base::_hidden_::_UMax) __NE___ :
+		explicit SimdTInt256 (UMax_t)				__NE___ :
 			SimdTInt256{ ~IntType{0} }
 		{}
 
@@ -462,7 +462,7 @@ namespace AE::Math
 					 T v28, T v29, T v30, T v31)		__NE___ :
 			_value{ _mm256_set_epi8( v00, v01, v02, v03, v04, v05, v06, v07,
 									 v08, v09, v10, v11, v12, v13, v14, v15,
-								     v16, v17, v18, v19, v20, v21, v22, v23,
+									 v16, v17, v18, v19, v20, v21, v22, v23,
 									 v24, v25, v26, v27, v28, v29, v30, v31)} {}
 
 		template <typename T,

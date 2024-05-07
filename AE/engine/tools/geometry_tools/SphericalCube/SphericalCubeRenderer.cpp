@@ -11,7 +11,7 @@ namespace AE::GeometryTools
 	Create
 =================================================
 */
-	bool  SphericalCubeRenderer::Create (IResourceManager &resMngr, ITransferContext &ctx,
+	bool  SphericalCubeRenderer::Create (ResourceManager &resMngr, ITransferContext &ctx,
 										 const uint minLod, const uint maxLod, const Bool quads, const Bool cubeMap,
 										 const EBufferUsage usage, GfxMemAllocatorPtr gfxAlloc) __NE___
 	{
@@ -45,7 +45,7 @@ namespace AE::GeometryTools
 	Destroy
 =================================================
 */
-	void  SphericalCubeRenderer::Destroy (IResourceManager &resMngr) __NE___
+	void  SphericalCubeRenderer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		resMngr.ReleaseResource( _vertexBuffer );
 		resMngr.ReleaseResource( _indexBuffer );

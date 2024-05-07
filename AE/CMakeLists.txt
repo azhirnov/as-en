@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 24.02.228  # year, month, version
+		 VERSION 24.04.243	# year, month, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -47,19 +47,19 @@ message( STATUS "Precompiled headers: ${AE_USE_PCH}" )
 
 #----------------------------------------------------------
 
-set( CMAKE_DEBUG_POSTFIX    "" CACHE INTERNAL "" FORCE )
-set( CMAKE_PROFILE_POSTFIX  "" CACHE INTERNAL "" FORCE )
-set( CMAKE_DEVELOP_POSTFIX  "" CACHE INTERNAL "" FORCE )
-set( CMAKE_RELEASE_POSTFIX  "" CACHE INTERNAL "" FORCE )
-set( MAIN_SOURCE_DIR        "${CMAKE_CURRENT_SOURCE_DIR}"   CACHE INTERNAL "" FORCE )
-set( MAIN_BINARY_DIR        "${CMAKE_BINARY_DIR}/bin"       CACHE INTERNAL "" FORCE )
+set( CMAKE_DEBUG_POSTFIX   	"" CACHE INTERNAL "" FORCE )
+set( CMAKE_PROFILE_POSTFIX 	"" CACHE INTERNAL "" FORCE )
+set( CMAKE_DEVELOP_POSTFIX 	"" CACHE INTERNAL "" FORCE )
+set( CMAKE_RELEASE_POSTFIX 	"" CACHE INTERNAL "" FORCE )
+set( MAIN_SOURCE_DIR 		"${CMAKE_CURRENT_SOURCE_DIR}"	CACHE INTERNAL "" FORCE )
+set( MAIN_BINARY_DIR 		"${CMAKE_BINARY_DIR}/bin"		CACHE INTERNAL "" FORCE )
 
 # this settings breaks native debugger on android
-if (NOT DEFINED ANDROID)
-	set( CMAKE_INSTALL_PREFIX           "${CMAKE_BINARY_DIR}/install"   CACHE PATH      "installation directory" FORCE )
-	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"            CACHE INTERNAL  ""                       FORCE )
-	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"            CACHE INTERNAL  ""                       FORCE )
-	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"            CACHE INTERNAL  ""                       FORCE )
+if (NOT ANDROID)
+	set( CMAKE_INSTALL_PREFIX			"${CMAKE_BINARY_DIR}/install"	CACHE PATH		"installation directory" FORCE )
+	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"			CACHE INTERNAL	""						 FORCE )
+	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"			CACHE INTERNAL	""						 FORCE )
+	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${MAIN_BINARY_DIR}"			CACHE INTERNAL	""						 FORCE )
 endif()
 
 enable_testing()

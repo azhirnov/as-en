@@ -37,8 +37,8 @@ namespace AE::Graphics
 		GfxMemAllocatorPtr			_memAllocator;
 		VideoStorageArr_t			_memStorages;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -58,7 +58,7 @@ namespace AE::Graphics
 
 		ND_ VideoImageDesc const&	Description ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
 		ND_ static bool  IsSupported (const VResourceManager &, const VideoImageDesc &desc)	__NE___;
@@ -68,8 +68,8 @@ namespace AE::Graphics
 								   OUT ushort2 &pictureAccessGranularity)					__NE___;
 
 	private:
-		ND_ bool  _CreateForYcbcr (VResourceManager &, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  _CreateForVideo (VResourceManager &, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+		ND_ bool  _CreateForYcbcr (VResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
+		ND_ bool  _CreateForVideo (VResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
 	};
 
 

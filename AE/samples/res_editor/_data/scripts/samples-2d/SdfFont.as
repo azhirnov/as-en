@@ -9,7 +9,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt					= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
+		RC<Image>	rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<Image>	sdf_font_32			= Image( EImageType::FImage2D, "res/font/sdf-32.dds" );
 		RC<Image>	mc_sdf_font_32		= Image( EImageType::FImage2D, "res/font/mc-sdf-32.dds" );
 		RC<Image>	mc_sdf_font_64		= Image( EImageType::FImage2D, "res/font/mc-sdf-64.dds" );

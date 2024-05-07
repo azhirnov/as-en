@@ -40,35 +40,35 @@ namespace AE::Base
 
 	// methods
 	public:
-		NtBasicStringView ()								__NE___;
-		NtBasicStringView (Self &&other)					__NE___;
-		NtBasicStringView (const Self &other)				__NE___;
-		NtBasicStringView (BasicStringView<T> str)			__NE___;
-		NtBasicStringView (const T* str)					__NE___;
-		NtBasicStringView (const T* str, usize length)		__NE___;
+		NtBasicStringView ()												__NE___;
+		NtBasicStringView (Self &&other)									__NE___;
+		NtBasicStringView (const Self &other)								__NE___;
+		NtBasicStringView (BasicStringView<T> str)							__NE___;
+		NtBasicStringView (const T* str)									__NE___;
+		NtBasicStringView (const T* str, usize length)						__NE___;
 		template <typename A> NtBasicStringView (const BasicString<T,A> &str)__NE___;
-		template <usize S> NtBasicStringView (const TFixedString<T,S> &str)	 __NE___;
-		~NtBasicStringView ()								__NE___;
+		template <usize S> NtBasicStringView (const TFixedString<T,S> &str)	__NE___;
+		~NtBasicStringView ()												__NE___;
 
-		Self& operator = (Self &&)							= delete;
-		Self& operator = (const Self &)						= delete;
-		Self& operator = (BasicStringView<T>)				= delete;
-		template <typename A> Self& operator = (const BasicString<T,A> &) = delete;
-		Self& operator = (const T*)							= delete;
+		Self& operator = (Self &&)											= delete;
+		Self& operator = (const Self &)										= delete;
+		Self& operator = (BasicStringView<T>)								= delete;
+		template <typename A> Self& operator = (const BasicString<T,A> &)	= delete;
+		Self& operator = (const T*)											= delete;
 
-		ND_ explicit operator BasicStringView<T> ()			C_NE___	{ return BasicStringView<T>{ _data, _length }; }
-		ND_ explicit operator BasicString<T> ()				C_NE___	{ return BasicString<T>{ _data, _length }; }
+		ND_ explicit operator BasicStringView<T> ()							C_NE___	{ return BasicStringView<T>{ _data, _length }; }
+		ND_ explicit operator BasicString<T> ()								C_NE___	{ return BasicString<T>{ _data, _length }; }
 
-		ND_ T const*	c_str ()							C_NE___	{ return _data; }		// always non-null
-		ND_ usize		size ()								C_NE___	{ return _length; }
-		ND_ usize		length ()							C_NE___	{ return _length; }
-		ND_ bool		empty ()							C_NE___	{ return _length == 0; }
+		ND_ T const*	c_str ()											C_NE___	{ return _data; }		// always non-null
+		ND_ usize		size ()												C_NE___	{ return _length; }
+		ND_ usize		length ()											C_NE___	{ return _length; }
+		ND_ bool		empty ()											C_NE___	{ return _length == 0; }
 
 	private:
-			bool  _Validate ()								__NE___;
-		ND_ bool  _IsStatic ()								C_NE___	{ return _data == &_buffer[0]; }
+			bool  _Validate ()												__NE___;
+		ND_ bool  _IsStatic ()												C_NE___	{ return _data == &_buffer[0]; }
 
-		ND_ static usize  _CalcLength (const T* str)		__NE___;
+		ND_ static usize  _CalcLength (const T* str)						__NE___;
 	};
 
 
@@ -186,7 +186,7 @@ namespace AE::Base
 		{
 			_isAllocated= true;
 			new_data	= Cast<T>( Allocator_t::Allocate( size ));
-			CHECK( new_data != null );
+			NonNull( new_data );
 		}
 		else
 			new_data = _buffer;

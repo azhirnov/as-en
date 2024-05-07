@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/DataSource/MemStream.h"
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/Utils/Helpers.h"
 #include "base/Math/Packing.h"
 #include "base/Algorithms/StringUtils.h"
@@ -162,11 +162,11 @@ namespace {
 
 		auto&	storage = *ObjectStorage::Instance();
 
-		auto	wmem = MakeRC<MemWStream>();
+		auto	wmem = MakeRC<ArrayWStream>();
 		CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
 
-		auto	rmem = wmem->ToRStream();
-		storage.AddToArchive( nameInArchive, *rmem, EArchivePackerFileType::Raw );  // throw
+		MemRefRStream	rmem {wmem->GetData()};
+		storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw );  // throw
 
 		storage.AddFont( nameInArchive );  // throw
 
@@ -487,11 +487,11 @@ namespace AE::AssetPacker
 
 		outFontHeight = 0;
 
-		MemRStream	mem_stream;
+		ArrayRStream	mem_stream;
 		{
 			FileRStream		file {_fontFile};
 			CHECK_ERR( file.IsOpen() );
-			CHECK_ERR( mem_stream.LoadRemaining( file ));
+			CHECK_ERR( mem_stream.LoadRemainingFrom( file ));
 		}
 
 		FT_Library	ft_library;
@@ -700,11 +700,11 @@ namespace AE::AssetPacker
 		switch_end
 
 		Allocator_t		tmp_alloc;		tmp_alloc.SetBlockSize( 16_Mb );
-		MemRStream		mem_stream;
+		ArrayRStream	mem_stream;
 		{
 			FileRStream		file {_fontFile};
 			CHECK_ERR( file.IsOpen() );
-			CHECK_ERR( mem_stream.LoadRemaining( file ));
+			CHECK_ERR( mem_stream.LoadRemainingFrom( file ));
 		}
 
 		FreetypeHandle*	ft = initializeFreetype();

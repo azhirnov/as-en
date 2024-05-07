@@ -165,6 +165,8 @@ namespace AE::Math
 ----
 	returns < 0 if x == 0
 	find high non-zero bit.
+	0b010000100
+	   ^
 =================================================
 */
 	template <typename T>
@@ -207,6 +209,25 @@ namespace AE::Math
 
 /*
 =================================================
+	HighBit / HighZeroBit
+----
+	return 'UMax' if empty
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr EnableIf<IsScalar<T>, uint>  HighBit (const T x) __NE___
+	{
+		return uint(IntLog2( x ));
+	}
+
+	template <typename T>
+	ND_ constexpr EnableIf<IsScalar<T>, uint>  HighZeroBit (const T x) __NE___
+	{
+		return uint(HighBit( ~ToNearUInt( x )));
+	}
+
+/*
+=================================================
 	CeilIntLog2
 ----
 	returns < 0 if x == 0
@@ -244,6 +265,8 @@ namespace AE::Math
 ----
 	returns < 0 if x == 0
 	find low non-zero bit.
+	0b010000100
+	        ^
 =================================================
 */
 	template <typename T>
@@ -275,6 +298,25 @@ namespace AE::Math
 
 /*
 =================================================
+	LowBit / LowZeroBit
+----
+	return 'UMax' if empty
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr EnableIf<IsScalar<T>, uint>  LowBit (const T x) __NE___
+	{
+		return BitScanForward( x );
+	}
+
+	template <typename T>
+	ND_ constexpr EnableIf<IsScalar<T>, uint>  LowZeroBit (const T x) __NE___
+	{
+		return LowBit( ~ToNearUInt( x ));
+	}
+
+/*
+=================================================
 	IntLog10
 ----
 	how many times X can be divided by 10.
@@ -286,9 +328,12 @@ namespace AE::Math
 	{
 		StaticAssert( IsInteger<T> or IsEnum<T> );
 
-		using U = ToUnsignedInteger<T>;
+		using U		= ToUnsignedInteger< T >;
+		using NL	= std::numeric_limits< U >;
+		StaticAssert( NL::is_specialized );
+
 		const U		uval	= U(x);
-		constexpr U	cnt		= U(std::numeric_limits<U>::digits10);
+		constexpr U	cnt		= U(NL::digits10);
 		U			res		= 0;
 
 		for (U i = 1, j = 10; i <= cnt; ++i, j *= 10)
@@ -651,7 +696,7 @@ namespace AE::Math
 	template <typename T>
 	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const T lhs, const T rhs, const EnabledBitCount bitCount) __NE___
 	{
-		ASSERT( uint(bitCount) < sizeof(T)*8 );
+		ASSERT( uint(bitCount) <= sizeof(T)*8 );
 
 		using I = ToSignedInteger<T>;
 		using U = ToUnsignedInteger<T>;

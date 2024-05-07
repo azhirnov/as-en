@@ -59,7 +59,6 @@ namespace AE::ResEditor
 			EShaderStages		stages	= Default;
 		};
 
-	private:
 		using DbgImageView_t	= StaticArray< AtomicRC<Image>, MaxDebugViews >;
 		using SliderMap_t		= HashMap< const void*, Tuple< PerPassMutableSliders, PerPassSlidersInfo >>;
 		using PassDbgMap_t		= HashMap< const void*, PassDebugInfo >;
@@ -96,7 +95,8 @@ namespace AE::ResEditor
 		{
 			bool				video			= false;
 			bool				screenshot		= false;
-			EImageFormat		imageFormat		= EImageFormat::DDS;
+			bool				testScreenshot	= false;	// hidden for user
+			EImageFormat		imageFormat		= EImageFormat::PNG;
 			float				bitrate			= 50.0f;	// Mbit/s
 			EVideoFormat		videoFormat		= EVideoFormat::YUV420P;
 			EVideoCodec			videoCodec		= EVideoCodec::H265;
@@ -150,7 +150,6 @@ namespace AE::ResEditor
 	{
 	// types
 	private:
-		class UploadTask;
 		class DrawTask;
 
 		using PerFrameDescSet_t	= StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
@@ -159,7 +158,8 @@ namespace AE::ResEditor
 		struct ScriptFolder
 		{
 			String							name;
-			usize							baseId	= UMax;		// ID for selection
+			usize							firstId		= UMax;		// ID for selection
+			usize							lastId		= UMax;
 			Array< Unique<ScriptFolder> >	folders;
 			Array< String >					scripts;
 		};
@@ -271,6 +271,7 @@ namespace AE::ResEditor
 
 
 	private:
+		ND_ bool  _LoadPipelinePack (auto& resMngr)	const;
 		ND_ bool  _LoadPipelinePack ();
 		ND_ bool  _InitSurface (IOutputSurface &);
 

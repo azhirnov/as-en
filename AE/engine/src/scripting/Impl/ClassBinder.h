@@ -61,7 +61,7 @@ namespace AE::Scripting
 	public:
 		using Self			= ClassBinder<T>;
 		using Class_t		= T;
-		using ArgNames_t	= ArrayView<StringView>;
+		using ArgNames_t	= List<StringView>;
 
 
 		//

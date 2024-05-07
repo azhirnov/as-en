@@ -8,19 +8,6 @@ namespace AE::Graphics
 {
 
 	//
-	// Feature
-	//
-	enum class EFeature : ubyte
-	{
-		Ignore		= 0,
-		RequireFalse,
-		RequireTrue,
-		_Count
-	};
-
-
-
-	//
 	// Surface Format
 	//
 	enum class ESurfaceFormat : ubyte
@@ -203,9 +190,9 @@ namespace AE::Graphics
 
 
 	//
-	// Vendor ID
+	// GPU Vendor
 	//
-	enum class EVendorID : uint
+	enum class EGPUVendor : uint
 	{
 		AMD,
 		NVidia,
@@ -219,6 +206,7 @@ namespace AE::Graphics
 		Broadcom,
 		Samsung,
 		VeriSilicon,
+		Huawei,
 		_Count,
 		Unknown		= _Count,
 	};
@@ -237,21 +225,21 @@ namespace AE::Graphics
 		_visit_( Adreno_600_OC4 )		/* 680, 685, 690									with octa channel LPDDR4X							*/\
 		_visit_( Adreno_600_QC5 )		/* 643, 650, 660									with quad channel LPDDR5							*/\
 		_visit_( Adreno_700_SC3 )		/* 702												with single channel LPDDR3							*/\
-		_visit_( Adreno_700_DC4_SC5 )	/* 730, 740											with dual channel LPDDR4 or single channel LPDDR5	*/\
+		_visit_( Adreno_700_DC4_SC5 )	/* 725, 730, 740									with dual channel LPDDR4 or single channel LPDDR5	*/\
 		_visit_( Adreno_700_QC5X )		/* 740, 750											with quad channel LPDDR5X							*/\
 		\
 		/*---- AMD ----*/\
-		_visit_( AMD_GCN1 )				/* 520, 610												*/\
-		_visit_( AMD_GCN2 )				/* PS4													*/\
-		_visit_( AMD_GCN3 )				/* 530													*/\
-		_visit_( AMD_GCN4 )				/* PS4 Pro, 540-590, 620-640							*/\
+		_visit_( AMD_GCN1 )				/* R5-R9, RX 520, 610, HD 7970							*/\
+		_visit_( AMD_GCN2 )				/* PS4, XBox One X										*/\
+		_visit_( AMD_GCN3 )				/* RX 530												*/\
+		_visit_( AMD_GCN4 )				/* PS4 Pro, RX 540-590, RX 620-640						*/\
 		_visit_( AMD_GCN5 )				/* RX Vega, Radeon VII									*/\
 		_visit_( AMD_GCN5_APU )			/* Ryzen 2xxx - 5xxx APU, Ryzen 7x30 APU				*/\
-		_visit_( AMD_RDNA1 )			/* 5300 - 5700											*/\
-		_visit_( AMD_RDNA2 )			/* N6: 6400 - 6500, N7: 6600 - 6900						*/\
+		_visit_( AMD_RDNA1 )			/* RX 5300 - 5700										*/\
+		_visit_( AMD_RDNA2 )			/* N6: RX 6400 - 6500, N7: RX 6600 - 6900				*/\
 		_visit_( AMD_RDNA2_APU )		/* PS5, SteamDeck, Ryzen 6xxx / 7x20 / 7x35 / 7x45 APU 	*/\
 		_visit_( AMD_RDNA3 )			/* N5/N6: 7600 - 7900									*/\
-		_visit_( AMD_RDNA3_APU )		/* Ryzen 7x40 APU, Z1									*/\
+		_visit_( AMD_RDNA3_APU )		/* Ryzen 7x40 APU, Z1, Radeon 7xxM						*/\
 		\
 		/*---- Apple ----*/\
 		_visit_( Apple_A8 )				/*											- Apple2 */\
@@ -274,8 +262,8 @@ namespace AE::Graphics
 		_visit_( Mali_Valhall_Gen1 )	/* G57, G77						*/\
 		_visit_( Mali_Valhall_Gen2 )	/* G68, G78						*/\
 		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710		*/\
-		_visit_( Mali_Valhall_Gen4 )	/* G615, G715					*/\
-		_visit_( Mali_Valhall_Gen5 )	/* G620, G720					*/\
+		_visit_( Mali_Valhall_Gen4 )	/* G615, G715		- VRS, HwRT	*/\
+		_visit_( Mali_Valhall_Gen5 )	/* G620, G720		- DVS		*/\
 		\
 		/*---- NVidia ----*/\
 		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx						*/\
@@ -292,16 +280,19 @@ namespace AE::Graphics
 		_visit_( NV_Ada )				/* RTX 40xx												*/\
 		\
 		/*---- Intel ----*/\
-		_visit_( Intel_Gen9 )			/* UHD 620, 630									*/\
-		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx						*/\
-		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx		*/\
-		_visit_( Intel_Gen12_7 )		/* Arc 3/5/7									*/\
+		_visit_( Intel_Gen9_HD500 )		/* HD 510..550								- Skylake	*/\
+		_visit_( Intel_Gen9_HD600 )		/* HD 610..650								- Kaby Lake	*/\
+		_visit_( Intel_Gen9_UHD600 )	/* UHD 610..650											*/\
+		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx								*/\
+		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx				*/\
+		_visit_( Intel_Gen12_7 )		/* Arc 3/5/7											*/\
 		\
 		/*---- PowerVR ----*/\
 		_visit_( PowerVR_Series8XE )	/* GE8100, GE8200, GE8300, GE8310, GE8430			*/\
 		_visit_( PowerVR_Series8XEP )	/* GE8320, GE8325, GE8340							*/\
 		_visit_( PowerVR_Series8XT )	/* GT8525, GT8540									*/\
 		_visit_( PowerVR_Series9XE )	/* GE9000, GE9100, GE9115, GE9210, GE9215, GE9420	*/\
+		_visit_( PowerVR_BSeries )		/* B-Series	BXE										*/\
 		\
 		/*---- Other ----*/\
 		_visit_( VeriSilicon )			/*  */\
@@ -331,11 +322,11 @@ namespace AE::Graphics
 		_NV_Begin		= NV_Maxwell,
 		_NV_End			= NV_Ada,
 
-		_Intel_Begin	= Intel_Gen9,
+		_Intel_Begin	= Intel_Gen9_HD500,
 		_Intel_End		= Intel_Gen12_7,
 
 		_PowerVR_Begin	= PowerVR_Series8XE,
-		_PowerVR_End	= PowerVR_Series9XE,
+		_PowerVR_End	= PowerVR_BSeries,
 
 		_Other_Begin	= VeriSilicon,
 	};
@@ -345,14 +336,14 @@ namespace AE::Graphics
 	StaticAssert( uint(EGraphicsDeviceID::_Adreno_End)+1	== uint(EGraphicsDeviceID::_AMD_Begin) );
 	StaticAssert( uint(EGraphicsDeviceID::_AMD_Begin)		<  uint(EGraphicsDeviceID::_AMD_End) );
 	StaticAssert( uint(EGraphicsDeviceID::_AMD_End)+1		== uint(EGraphicsDeviceID::_Apple_Begin) );
-	StaticAssert( uint(EGraphicsDeviceID::_Apple_Begin)	<  uint(EGraphicsDeviceID::_Apple_End) );
-	StaticAssert( uint(EGraphicsDeviceID::_Apple_End)+1	== uint(EGraphicsDeviceID::_Mali_Begin) );
+	StaticAssert( uint(EGraphicsDeviceID::_Apple_Begin)		<  uint(EGraphicsDeviceID::_Apple_End) );
+	StaticAssert( uint(EGraphicsDeviceID::_Apple_End)+1		== uint(EGraphicsDeviceID::_Mali_Begin) );
 	StaticAssert( uint(EGraphicsDeviceID::_Mali_Begin)		<  uint(EGraphicsDeviceID::_Mali_End) );
 	StaticAssert( uint(EGraphicsDeviceID::_Mali_End)+1		== uint(EGraphicsDeviceID::_NV_Begin) );
 	StaticAssert( uint(EGraphicsDeviceID::_NV_Begin)		<  uint(EGraphicsDeviceID::_NV_End) );
 	StaticAssert( uint(EGraphicsDeviceID::_NV_End)+1		== uint(EGraphicsDeviceID::_Intel_Begin) );
-	StaticAssert( uint(EGraphicsDeviceID::_Intel_Begin)	<  uint(EGraphicsDeviceID::_Intel_End) );
-	StaticAssert( uint(EGraphicsDeviceID::_Intel_End)+1	== uint(EGraphicsDeviceID::_PowerVR_Begin) );
+	StaticAssert( uint(EGraphicsDeviceID::_Intel_Begin)		<  uint(EGraphicsDeviceID::_Intel_End) );
+	StaticAssert( uint(EGraphicsDeviceID::_Intel_End)+1		== uint(EGraphicsDeviceID::_PowerVR_Begin) );
 	StaticAssert( uint(EGraphicsDeviceID::_PowerVR_Begin)	<  uint(EGraphicsDeviceID::_PowerVR_End) );
 	StaticAssert( uint(EGraphicsDeviceID::_PowerVR_End)+1	== uint(EGraphicsDeviceID::_Other_Begin) );
 

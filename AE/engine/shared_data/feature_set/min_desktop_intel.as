@@ -24,7 +24,6 @@ void ASmain ()
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
-	fset.separateStencilMaskRef (True);
 	fset.triangleFans (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );
@@ -61,11 +60,11 @@ void ASmain ()
 	fset.requiredSubgroupSizeStages(EShaderStages(
 		EShaderStages::Compute
 	));
+	fset.minSubgroupSize (8);
+	fset.maxSubgroupSize (32);
 	fset.subgroup (True);
 	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
-	fset.minSubgroupSize (8);
-	fset.maxSubgroupSize (32);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -92,6 +91,7 @@ void ASmain ()
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderStencilExport (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -108,7 +108,7 @@ void ASmain ()
 	fset.shaderZeroInitializeWorkgroupMemory (True);
 	fset.fragmentShaderSampleInterlock (True);
 	fset.fragmentShaderPixelInterlock (True);
-	fset.minSpirvVersion (150);
+	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
 	fset.multiview (True);
@@ -212,6 +212,8 @@ void ASmain ()
 	fset.textureCompressionBC (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U, EPixelFormat::R32F

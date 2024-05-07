@@ -41,10 +41,6 @@ namespace
 		String	src = "\n";
 		ppln_layout->ToMSL( EShaderStages::Fragment, INOUT unique_types, INOUT src, INOUT src );
 
-	  #if not AE_PRIVATE_USE_TABS
-		src = Parser::TabsToSpaces( src );
-	  #endif
-
 		const String	ref = R"#(
 struct ubuf
 {
@@ -98,7 +94,7 @@ extern void  UnitTest_PipelineLayout_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.perDescrSet.maxUniformBuffers = 8;
 	fs->fs.perDescrSet.maxStorageBuffers = 8;

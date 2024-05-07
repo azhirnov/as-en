@@ -14,24 +14,25 @@ void ASmain ()
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Apple9
 	//	Apple8
 	//	Apple8_Mac
 	//	Apple7_Metal3
 	//	Apple7_Mac_Metal3
 	//	Apple6_Metal3
-	//	Mac_Metal3
+	//	Apple_Mac_Metal3
 
 	const EFeature  True = EFeature::RequireTrue;
 
 	RC<FeatureSet>  fset = FeatureSet( "MinMeshShader" );
 
 	fset.depthBiasClamp (True);
+	fset.depthClamp (True);
 	fset.dualSrcBlend (True);
 	fset.fillModeNonSolid (True);
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);
 	fset.constantAlphaColorBlendFactors (True);
-	fset.separateStencilMaskRef (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Shuffle_Begin, ESubgroupOperation::_Shuffle_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_ShuffleRelative_Begin, ESubgroupOperation::_ShuffleRelative_End );
@@ -63,11 +64,11 @@ void ASmain ()
 		EShaderStages::MeshTask | 
 		EShaderStages::Mesh
 	));
+	fset.minSubgroupSize (4);
+	fset.maxSubgroupSize (32);
 	fset.subgroup (True);
 	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
-	fset.minSubgroupSize (4);
-	fset.maxSubgroupSize (32);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderInt64 (True);
@@ -87,6 +88,7 @@ void ASmain ()
 	fset.shaderClipDistance (True);
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
+	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -97,8 +99,8 @@ void ASmain ()
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.minSpirvVersion (140);
-	fset.minMetalVersion (300);
+	fset.maxSpirvVersion (140);
+	fset.maxMetalVersion (300);
 	fset.drawIndirectFirstInstance (True);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
@@ -153,6 +155,8 @@ void ASmain ()
 	fset.maxPreferredTaskWorkGroupInvocations (32);
 	fset.maxPreferredMeshWorkGroupInvocations (32);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.maxVertexAttribDivisor (0xfffffff);
 	fset.maxVertexAttributes (29);
 	fset.maxVertexBuffers (31);
 	fset.AddVertexFormats({
@@ -197,6 +201,9 @@ void ASmain ()
 		EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
 		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
 		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+	});
+	fset.AddTexelFormats( EFormatFeature::StorageTexelBufferAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
 	});
 	fset.imageCubeArray (True);
 	fset.multisampleArrayImage (True);
@@ -249,6 +256,8 @@ void ASmain ()
 	fset.samplerAnisotropy (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (4.00);
+	fset.framebufferColorSampleCounts({ 1, 2, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
 	fset.maxFramebufferLayers (1 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

@@ -88,6 +88,8 @@ namespace AE::Graphics
 		VDevice ()																	__NE___;
 		~VDevice ()																	__NE___;
 
+		ND_ EGraphicsAPI			GetGraphicsAPI ()								C_NE_OF	{ return EGraphicsAPI::Vulkan; }
+
 		ND_ VExtensions const&		GetVExtensions ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
 		ND_ VProperties const&		GetVProperties ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
 		ND_ ResourceFlags const&	GetResourceFlags ()								C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
@@ -113,7 +115,8 @@ namespace AE::Graphics
 		ND_ RenderDocApi const&		GetRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc; }
 		ND_ bool					HasRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }
 
-		ND_ DevMemoryInfoOpt		GetMemoryUsage ()								C_NE_OF;
+		ND_ DeviceMemoryInfo		GetMemoryInfo ()								C_NE_OF;
+		ND_ DevMemoryUsageOpt		GetMemoryUsage ()								C_NE_OF;
 
 		ND_ bool					IsUnderDebugger ()								C_NE_OF;
 
@@ -326,7 +329,7 @@ namespace AE::Graphics
 			_DebugUtilsCallback (VkDebugUtilsMessageSeverityFlagBitsEXT			messageSeverity,
 								 VkDebugUtilsMessageTypeFlagsEXT				messageTypes,
 								 const VkDebugUtilsMessengerCallbackDataEXT*	pCallbackData,
-								 void*											pUserData) __NE___;
+								 void*											pUserData)								__NE___;
 
 		// old debug api for mobile devices
 		VKAPI_ATTR static VkBool32 VKAPI_CALL
@@ -337,9 +340,9 @@ namespace AE::Graphics
 								  int							/*messageCode*/,
 								  const char*					/*pLayerPrefix*/,
 								  const char*					pMessage,
-								  void*							pUserData) __NE___;
+								  void*							pUserData)												__NE___;
 
-		void  _DebugReport (INOUT String &, bool breakOnError, DebugReport_t &cb, const DebugReport &) __Th___;
+		void  _DebugReport (INOUT String &, bool breakOnError, DebugReport_t &cb, const DebugReport &)					__Th___;
 	};
 
 	static constexpr VkDebugUtilsMessageSeverityFlagsEXT	DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |

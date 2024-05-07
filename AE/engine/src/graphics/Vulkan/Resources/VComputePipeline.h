@@ -36,10 +36,10 @@ namespace AE::Graphics
 
 		Strong<PipelineLayoutID>	_layoutId;
 
-		ShaderTracePtr				_dbgTrace;
+		ShaderTracePtr				_dbgTrace;			// allocated by pipeline pack linear allocator
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -59,12 +59,14 @@ namespace AE::Graphics
 		ND_ VkPipelineLayout		Layout ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()							C_NE___	{ return VK_PIPELINE_BIND_POINT_COMPUTE; }
 		ND_ PipelineLayoutID		LayoutId ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3       			LocalSize ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
+		ND_ uint3					LocalSize ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()							C_NE___	{ return Default; }
 		ND_ EPipelineOpt			Options ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _options; }
 		ND_ bool					AllowDispatchBase ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		ND_ ShaderTracePtr			GetShaderTrace ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dbgTrace; }
+
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

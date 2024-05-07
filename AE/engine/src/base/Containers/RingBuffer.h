@@ -60,45 +60,27 @@ namespace AE::Base
 			usize	_index	= UMax;
 
 		public:
-			TIterator ()							__NE___ {}
-			TIterator (const Iter &)				__NE___ = default;
-			TIterator (Iter &&)						__NE___ = default;
-			TIterator (RBPtr ptr, usize idx)		__NE___ : _rbPtr{ptr}, _index{idx} { ASSERT( _rbPtr != null ); }
+			TIterator ()								__NE___ {}
+			TIterator (const Iter &)					__NE___ = default;
+			TIterator (Iter &&)							__NE___ = default;
+			TIterator (RBPtr ptr, usize idx)			__NE___ : _rbPtr{ptr}, _index{idx} { NonNull( _rbPtr ); }
 
-			Iter& operator = (const Iter &)			__NE___ = default;
-			Iter& operator = (Iter &&)				__NE___ = default;
+				Iter&	operator = (const Iter &)		__NE___ = default;
+				Iter&	operator = (Iter &&)			__NE___ = default;
 
-			ND_ bool operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
-			ND_ bool operator == (const Iter &rhs)	C_NE___ { return (_rbPtr == rhs._rbPtr) and (_index == rhs._index); }
+			ND_ bool	operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
+			ND_ bool	operator == (const Iter &rhs)	C_NE___ { return (_rbPtr == rhs._rbPtr) and (_index == rhs._index); }
 
-			Iter& operator ++ ()					__NE___
-			{
-				ASSERT( _rbPtr != null );
-				_index = Min( _index + 1, _rbPtr->size() );
-				return *this;
-			}
+				Iter&	operator ++ ()					__NE___	{ NonNull( _rbPtr );	_index = Min( _index + 1, _rbPtr->size() );	return *this; }
+				Iter	operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
+				Iter&	operator += (usize x)			__NE___	{ NonNull( _rbPtr );	_index = Min( _index + x, _rbPtr->size() );	return *this; }
+			ND_ Iter	operator +  (usize x)			C_NE___	{ return (Iter{*this} += x); }
 
-			Iter  operator ++ (int)					__NE___
-			{
-				Iter	res{ *this };
-				this->operator++();
-				return res;
-			}
+			ND_ T &			operator * ()				__NE___	{ NonNull( _rbPtr );	return (*_rbPtr)[_index]; }
+			ND_ T const&	operator * ()				C_NE___	{ NonNull( _rbPtr );	return (*_rbPtr)[_index]; }
 
-			Iter&  operator += (usize x)			__NE___
-			{
-				ASSERT( _rbPtr != null );
-				_index = Min( _index + x, _rbPtr->size() );
-				return *this;
-			}
-
-			ND_ Iter  operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
-
-			ND_ T &			operator * ()			__NE___	{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
-			ND_ T const&	operator * ()			C_NE___	{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
-
-			ND_ T *			operator -> ()			__NE___	{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
-			ND_ T const*	operator -> ()			C_NE___	{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
+			ND_ T *			operator -> ()				__NE___	{ NonNull( _rbPtr );	return &(*_rbPtr)[_index]; }
+			ND_ T const*	operator -> ()				C_NE___	{ NonNull( _rbPtr );	return &(*_rbPtr)[_index]; }
 		};
 
 		static constexpr Offset_t	_EmptyBit = Offset_t{1} << (CT_SizeOfInBits<Offset_t> - 1);
@@ -126,6 +108,7 @@ namespace AE::Base
 		//  _____________ __________ _____________
 		// | used memory | reserved | used memory |
 		// 0           _end      _first         _size
+		// ^-second part-^          ^--first part-^
 
 
 	// methods
@@ -155,8 +138,8 @@ namespace AE::Base
 		ND_ T const&	back ()								C_NE___;
 
 		ND_ usize		size ()								C_NE___;
-		ND_ bool		empty ()							C_NE___		{ return _packed & _EmptyBit; }
-		ND_ usize		capacity ()							C_NE___		{ return _packed & ~_EmptyBit; }
+		ND_ bool		empty ()							C_NE___	{ return _packed & _EmptyBit; }
+		ND_ usize		capacity ()							C_NE___	{ return _packed & ~_EmptyBit; }
 
 			void		push_front (const T &value)			__Th___;
 			void		push_front (T&& value)				__Th___;
@@ -348,7 +331,7 @@ namespace AE::Base
 		if ( _first >= _end )
 		{
 			usize	off = old_size - _first;
-			CopyPolicy_t::Replace( OUT _array,       INOUT old_ptr + _first, off );
+			CopyPolicy_t::Replace( OUT _array,		 INOUT old_ptr + _first, off );
 			CopyPolicy_t::Replace( OUT _array + off, INOUT old_ptr, _end );
 		}
 		else

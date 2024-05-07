@@ -16,14 +16,14 @@ namespace InputActions
 			enum Bindings : uint {
 				Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			};
-		} Desktop;
+		} Desktop = {};
 		static constexpr struct _Mobile {
 			static constexpr uint  actionCount = 1;
 			enum Bindings : uint {
 				Camera_Sensor3f  = 0xdcd099adu,  // InputActionName{"Camera.Sensor3f"}
 			};
-		} Mobile;
-	} Camera3D;
+		} Mobile = {};
+	} Camera3D = {};
 
 	static constexpr struct _Canvas2D
 	{
@@ -34,7 +34,7 @@ namespace InputActions
 			Cursor  = 0xc2d36fb8u,  // InputActionName{"Cursor"}
 			Enter  = 0x78b1ef6au,  // InputActionName{"Enter"}
 		};
-	} Canvas2D;
+	} Canvas2D = {};
 
 	static constexpr struct _HwCamera
 	{
@@ -45,13 +45,13 @@ namespace InputActions
 			Touch_Click  = 0x5fb61d88u,  // InputActionName{"Touch.Click"}
 			Touch_Move  = 0x7a5f92b5u,  // InputActionName{"Touch.Move"}
 		};
-	} HwCamera;
+	} HwCamera = {};
 
 	static constexpr struct _SampleSelector
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xc682d438u}}; }  // 'SampleSelector'
 
-	} SampleSelector;
+	} SampleSelector = {};
 
 	static constexpr struct _imGUI
 	{
@@ -69,7 +69,7 @@ namespace InputActions
 				MousePos  = 0x4f44c5bu,  // InputActionName{"MousePos"}
 				MouseWheel  = 0xc2e16d5u,  // InputActionName{"MouseWheel"}
 			};
-		} Desktop;
-	} imGUI;
+		} Desktop = {};
+	} imGUI = {};
 
 }

@@ -45,7 +45,7 @@
 			logic.LocalSize( 1 );
 			logic.DispatchGroups( 1 );
 		}{
-			RC<Postprocess>		draw = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
+			RC<Postprocess>		draw = Postprocess( EPostprocess::Shadertoy );
 			draw.ArgIn(	"un_CBuf",	cbuf );
 			draw.Set(	camera );
 			draw.Output( rt );

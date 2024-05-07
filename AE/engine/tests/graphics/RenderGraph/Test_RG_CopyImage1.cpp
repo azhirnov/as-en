@@ -69,7 +69,7 @@ namespace
 			read.heapType		= EStagingHeapType::Static;
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img_2, read )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = (view == p->img_view);
 								})};
@@ -77,6 +77,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -90,7 +92,6 @@ namespace
 		CI1_TestData	t;
 		const uint2		src_dim			= {64, 64};
 		const uint2		dst_dim			= {128, 128};
-		const int2		img_offset		= {16, 27};
 		const Bytes		bpp				= 4_b;
 		const Bytes		src_row_pitch	= src_dim.x * bpp;
 		const auto		format			= EPixelFormat::RGBA8_UNorm;

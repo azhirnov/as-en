@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "../shared/UnitTest_Shared.h"
+#include "UnitTest_Common.h"
 #include "geometry_tools/Triangulation/CDT_Triangulator.h"
 
 namespace
@@ -28,7 +28,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( ArrayView<uint>{ 2, 0, 1 } == indices );
+		TEST( List<uint>{ 2, 0, 1 } == indices );
 	}
 
 
@@ -50,7 +50,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( ArrayView<uint>{ 2, 0, 1 } == indices );
+		TEST( List<uint>{ 2, 0, 1 } == indices );
 	}
 
 
@@ -74,7 +74,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( ArrayView<uint>{ 2, 0, 1 } == indices );
+		TEST( List<uint>{ 2, 0, 1 } == indices );
 	}
 
 
@@ -100,7 +100,7 @@ namespace
 		TEST( vertices.size() == 6 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
 		TEST( indices.size() == 18 );
-		TEST( ArrayView<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
+		TEST( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
 	}
 
 
@@ -128,10 +128,10 @@ namespace
 		TEST( ArrayView<float2>{in_vertices} == vertices );
 
 		TEST( indices.size() == 18 );
-		TEST( ArrayView<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
+		TEST( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
 
 		TEST( boundary.size() == 12 );
-		TEST( ArrayView<uint>{ 3,1,  5,0,  1,2,  4,5,  2,3,  0,4 } == boundary );
+		TEST( List<uint>{ 3,1,  5,0,  1,2,  4,5,  2,3,  0,4 } == boundary );
 	}
 
 #endif // AE_ENABLE_CDT

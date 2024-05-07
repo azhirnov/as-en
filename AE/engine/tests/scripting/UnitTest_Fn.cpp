@@ -8,15 +8,15 @@ namespace
 	{
 		if ( args.Is< int (int, float) >())
 		{
-			TEST( args.Arg<int>(0) == 2 );
-			TEST( args.Arg<float>(1) == 2.22f );
+			TEST_Eq( args.Arg<int>(0), 2 );
+			TEST_Eq( args.Arg<float>(1), 2.22f );
 			args.Return( 1 );
 		}
 		else
 		if ( args.Is< int (double, ulong) >())
 		{
-			TEST( args.Arg<double>(0) == 1.11 );
-			TEST( args.Arg<ulong>(1) == 1 );
+			TEST_Eq( args.Arg<double>(0), 1.11 );
+			TEST_Eq( args.Arg<ulong>(1), 1 );
 			args.Return( 10 );
 		}
 		else
@@ -37,7 +37,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 11 );
+		TEST_Eq( res, 11 );
 	}
 
 
@@ -71,7 +71,7 @@ namespace
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));
-		TEST( res == 12 );
+		TEST_Eq( res, 12 );
 	}
 }
 

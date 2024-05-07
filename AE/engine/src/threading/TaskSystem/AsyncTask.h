@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-		Task Dependencies
+	--- Task Dependencies ---
 
 	AsyncTask
 	ArrayView<AsyncTask>
@@ -17,7 +17,7 @@
 						  Call chain:  'task' depends on 'strong',  strong.Cancel(),  strong.OnCancel(),  task.OnCancel().
 
 
-		Coroutines
+	--- Coroutines ---
 
 	CoroTask
 	bool		co_await Coro_IsCanceled
@@ -55,7 +55,7 @@ namespace AE::Threading
 
 			_TaskDependencyArray (TaskType const* ptr, usize count)		__NE___	: ArrayView<TaskType>{ptr, count} {}
 
-			_TaskDependencyArray (std::initializer_list<TaskType> list)	__NE___	: ArrayView<TaskType>{list} {}
+			_TaskDependencyArray (std::initializer_list<TaskType> list)	__NE___	: ArrayView<TaskType>{list.begin(), list.end()} {}
 
 			template <typename AllocT>
 			_TaskDependencyArray (const Array<TaskType,AllocT> &vec)	__NE___	: ArrayView<TaskType>{vec} {}
@@ -200,7 +200,8 @@ namespace AE::Threading
 
 
 		// Call this only inside 'Run()' method.
-		// 'OnCancel()' method will be used outside of 'Run()'.
+		// 'OnCancel()' method is not called, user can override 'OnFailure()'
+		// to implement custom behaviour.
 		//
 			void  OnFailure ()							__NE___;
 
@@ -231,7 +232,7 @@ namespace AE::Threading
 		// Call this methods only after 'Run()' method.
 		void  _OnFinish (OUT bool& rerun)				__NE___;
 		void  _Cancel ()								__NE___;
-		void  _FreeOutputChunks (bool isCanceled)		__NE___;
+		void  _FreeOutputChunks (Bool isCanceled)		__NE___;
 
 		DEBUG_ONLY( ND_ static slong  _AsyncTaskTotalCount () __NE___;)
 	};
@@ -329,35 +330,37 @@ namespace AE::Threading
 
 		// methods
 		public:
-			promise_type ()									__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
+			promise_type ()														__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
 
-			ND_ AsyncTaskCoro		get_return_object ()	__NE___	{ return AsyncTaskCoro{ *this }; }
+			ND_ AsyncTaskCoro		get_return_object ()						__NE___	{ return AsyncTaskCoro{ *this }; }
+			ND_ static auto			get_return_object_on_allocation_failure ()	__NE___ { return AsyncTaskCoro{}; }
 
-			ND_ std::suspend_always	initial_suspend ()		C_NE___	{ return {}; }			// delayed start
-			ND_ std::suspend_always	final_suspend ()		C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: imediately destroy coroutine
+			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }			// delayed start
+			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: imediately destroy coroutine
 
-				void				return_void ()			C_NE___	{}
+				void				return_void ()								C_NE___	{}
 
-				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
+				void				unhandled_exception ()						C_Th___	{ throw; }				// rethrow exceptions
 
 			#ifdef AE_DEBUG
-				StringView			DbgName ()				C_NE_OV	{ return _dbgName; }
+				StringView			DbgName ()									C_NE_OV	{ return _dbgName; }
 			#else
-				StringView			DbgName ()				C_NE_OV	{ return "AsyncTaskCoro"; }
+				StringView			DbgName ()									C_NE_OV	{ return "AsyncTaskCoro"; }
 			#endif
 
+			ND_ static void*		operator new   (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
 
 		public:
-				void  Cancel ()								__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
-				void  Fail ()								__NE___	{ IAsyncTask::OnFailure(); }
-			ND_ bool  IsCanceled ()							__NE___	{ return IAsyncTask::IsCanceled(); }
+				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
+				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }
+			ND_ bool  IsCanceled ()												__NE___	{ return IAsyncTask::IsCanceled(); }
 
 			template <typename ...Deps>
-			void  Continue (const Tuple<Deps...> &deps)		__NE___	{ return IAsyncTask::Continue( deps ); }
+			void  Continue (const Tuple<Deps...> &deps)							__NE___	{ return IAsyncTask::Continue( deps ); }
 
 
 		private:
-			void  Run ()									__Th_OV
+			void  Run ()														__Th_OV
 			{
 				auto	coro_handle = Handle_t::from_promise( *this );
 				coro_handle.resume();	// throw
@@ -366,7 +369,7 @@ namespace AE::Threading
 					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
 			}
 
-			void  _ReleaseObject ()							__NE_OV
+			void  _ReleaseObject ()												__NE_OV
 			{
 				MemoryBarrier( EMemoryOrder::Acquire );
 				ASSERT( IsFinished() );

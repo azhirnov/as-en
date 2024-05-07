@@ -19,7 +19,7 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	CpuArchInfo::CpuArchInfo ()
+	CpuArchInfo::CpuArchInfo () __NE___
 	{
 		char	buf [256];
 
@@ -58,8 +58,9 @@ namespace AE::Base
 			cpu.arch = ECPUArch::X64;
 		#endif
 
-		cpu.physicalCoreCount = Max( ReadUInt("hw.physicalcpu"), ReadUInt("hw.physicalcpu_max") );
-		cpu.logicalCoreCount  = Max( ReadUInt("hw.logicalcpu"), ReadUInt("hw.logicalcpu_max") );
+		cpu.vendor				= ECPUVendor::Apple;
+		cpu.physicalCoreCount	= Max( ReadUInt("hw.physicalcpu"), ReadUInt("hw.physicalcpu_max") );
+		cpu.logicalCoreCount	= Max( ReadUInt("hw.logicalcpu"), ReadUInt("hw.logicalcpu_max") );
 		ASSERT( cpu.physicalCoreCount > 0 );
 
 		auto&	p_cpu = cpu.coreTypes.emplace_back();

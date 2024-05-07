@@ -6,13 +6,18 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
 	file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" )
-    file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
+	file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
 
-	add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} )
+	if (MSVC)
+		file( GLOB_RECURSE CONFIGS "${MAIN_BINARY_DIR}/*/res_editor_cfg.as" )
+	endif()
+
+	add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} ${CONFIGS} )
 
 	source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${LIB_SOURCES} ${DATA_FILES} )
 	source_group( "_data/shaders/shared" FILES ${SHADERS_SHARED} )
 	source_group( "_data/shaders/3party" FILES ${SHADERS_3PARTY} )
+	source_group( "_data/config" FILES ${CONFIGS} )
 	set_property( TARGET "ResourceEditor" PROPERTY FOLDER "Samples" )
 	target_include_directories( "ResourceEditor" PUBLIC ".." )
 
@@ -27,8 +32,11 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		# tools
 		"PipelineCompiler" "ResourceLoaders" "GeometryTools"
 		# engine
-		"GraphicsHL" "Profiler" "Video"
+		"GraphicsHL" "Video"
 	)
+	if (TARGET "Profiler")
+		target_link_libraries( "ResourceEditor" PUBLIC "Profiler" )
+	endif()
 
 	target_compile_definitions( "ResourceEditor" PUBLIC
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"

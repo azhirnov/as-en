@@ -110,7 +110,7 @@ namespace
 	Build
 =================================================
 */
-	bool  RayTracingShaderBinding::Build ()
+	bool  RayTracingShaderBinding::Build () __NE___
 	{
 		if ( _uid.has_value() )
 			return true;

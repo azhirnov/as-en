@@ -15,20 +15,11 @@ namespace AE::Video
 
 	class FFmpegVideoEncoder final : public IVideoEncoder
 	{
-	// types
-	private:
-		struct CodecInfo
-		{
-			const char*					format		= null;
-			FixedArray<const char*, 8>	codecs;
-			bool						remux		= true;
-			bool						hasBFrames	= false;
-		};
-
-
 	// variables
 	private:
 		mutable SharedMutex		_guard;
+
+		FFmpegFnTable			_ffmpeg;
 
 		AVOutputFormat const*	_format				= null;
 		AVFormatContext *		_formatCtx			= null;
@@ -45,7 +36,7 @@ namespace AE::Video
 		RC<WStream>				_tempStream;
 		RC<WStream>				_dstStream;
 
-		AVPacket				_videoPacket;
+		AVPacket *				_videoPacket		= null;
 
 		slong					_frameCounter		= 0;
 
@@ -55,7 +46,6 @@ namespace AE::Video
 		bool					_remuxRequired		= false;
 		bool					_encodingStarted	= false;
 		bool					_hasBFrames			= false;
-		const bool				_ffmpegLoaded		= false;
 
 		Config					_config;
 
@@ -70,38 +60,51 @@ namespace AE::Video
 		bool  Begin (const Config &cfg, RC<WStream> temp, RC<WStream> dst)	__NE_OV;
 
 		bool  AddFrame (const ImageMemView &view, Bool endOnError)			__NE_OV;
-	//	bool  AddFrame (VideoImageID id, Bool endOnError)					__NE_OV;
+		bool  AddFrame (const ImageMemViewArr &view, Bool endOnError)		__NE_OV;
 
 		bool  End ()														__NE_OV;
 
-		bool			IsEncoding ()										C_NE_OV	{ SHAREDLOCK( _guard );  return _encodingStarted; }
-		Config			GetConfig ()										C_NE_OV	{ SHAREDLOCK( _guard );  return _config; }
-		StringView		GetFileExtension (EVideoCodec codec)				C_NE_OV;
+		bool		IsEncoding ()											C_NE_OV	{ SHAREDLOCK( _guard );  return _encodingStarted; }
+		Config		GetConfig ()											C_NE_OV	{ SHAREDLOCK( _guard );  return _config; }
+		StringView	GetFileExtension (EVideoCodec codec)					C_NE_OV;
+		String		PrintCodecs (EVideoCodec codec)							C_Th_OV;
 
 
 	private:
-		ND_ bool  _CreateCodec ();
-		ND_ bool  _CreateCodecImpl ();
-			void  _Destroy ();
+		ND_ bool  _CreateCodec ()											__NE___;
+		ND_ bool  _CreateCodec2 ()											__NE___;
+			void  _Destroy ()												__NE___;
 
-			void  _ValidateResolution ();
+			void  _ValidateResolution ()									__NE___;
 
-		ND_ bool  _CreateStream (const AVCodec* codec, const char* videoFormat);
-			void  _DestroyStream ();
-			void  _ValidatePixelFormat (OUT int &) const;
-			void  _SetOptions (INOUT AVDictionary **dict) const;
+		ND_ bool  _CreateStream (const AVCodec* codec, const char* videoFormat,
+								 Bool remuxRequired, Bool hasBFrames)		__NE___;
+			void  _DestroyStream ()											__NE___;
 
-		ND_ bool  _Remux ();
-		ND_ bool  _RemuxImpl (AVFormatContext* &ifmtCtx, AVFormatContext* &ofmtCtx, int* &streamMapping);
-		ND_ bool  _Finish ();
-		ND_ bool  _End ();
+			void  _ValidatePixelFormat (OUT AVPixelFormat &)				C_NE___;
+			void  _SetOptions (INOUT AVDictionary **dict)					C_NE___;
 
-		ND_ bool  _AddFrameImpl (const ImageMemView &view);
+		ND_ bool  _Remux ()													__NE___;
+		ND_ bool  _RemuxImpl (AVFormatContext* &ifmtCtx,
+							  AVFormatContext* &ofmtCtx,
+							  int* &streamMapping)							__NE___;
+		ND_ bool  _Finish ()												__NE___;
+		ND_ bool  _End ()													__NE___;
 
-		ND_ static Bitrate_t  _CalcBitrate (const Config &cfg);
-		ND_ static CodecInfo  _GetEncoderInfo (const Config &cfg);
+		template <typename ViewType>
+		ND_ bool  _AddFrame2 (const ViewType &view, Bool endOnError)		__NE___;
+		ND_ bool  _AddFrame3 (const ImageMemView &view)						__NE___;
+		ND_ bool  _AddFrame3 (const ImageMemViewArr &view)					__NE___;
+		ND_ bool  _AddFrame4 ()												__NE___;
+		ND_	bool  _ReceivePackets (slong dur)								__NE___;
 
-		static int  _IOWritePacket (void* opaque, ubyte* buf, int buf_size);
+		ND_ ulong  _PTStoFrameIdx (slong pts)								C_NE___;
+		ND_ slong  _FrameIdxToPTS (ulong frameIdx)							C_NE___;
+		ND_ slong  _TimestampToPTS (Seconds time)							C_NE___;
+
+		ND_ static Bitrate  _CalcBitrate (const Config &cfg)				__NE___;
+
+		static int  _IOWritePacket (void* opaque, ubyte* buf, int buf_size)	__NE___;
 	};
 
 

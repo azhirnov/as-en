@@ -46,21 +46,21 @@ namespace AE::App
 
 		// methods
 		public:
-			explicit VRRenderSurface (VRDeviceEmulator &vr)																		__NE___	: _vrDev{vr} {}
+			explicit VRRenderSurface (VRDeviceEmulator &vr)										__NE___	: _vrDev{vr} {}
 
 			// IOutputSurface //
-			AsyncTask			Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
-			bool				GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
-			AsyncTask			End (ArrayView<AsyncTask> deps)																	__NE_OV;
+			AsyncTask			Begin (CommandBatchPtr, CommandBatchPtr, ArrayView<AsyncTask>)	__NE_OV;
+			bool				GetTargets (OUT RenderTargets_t &targets)						C_NE_OV;
+			AsyncTask			End (ArrayView<AsyncTask> deps)									__NE_OV;
 
-			bool				SetSurfaceMode (const SurfaceInfo &)															__NE_OV;
+			bool				SetSurfaceMode (const SurfaceInfo &)							__NE_OV;
 
-			SurfaceFormats_t	GetSurfaceFormats ()																			C_NE_OV;
-			PresentModes_t		GetPresentModes ()																				C_NE_OV;
-			SurfaceInfo			GetSurfaceInfo ()																				C_NE_OV;
+			SurfaceFormats_t	GetSurfaceFormats ()											C_NE_OV;
+			PresentModes_t		GetPresentModes ()												C_NE_OV;
+			SurfaceInfo			GetSurfaceInfo ()												C_NE_OV;
 
 		private:
-			ND_ bool			_GetDstTargets (OUT RenderTargets_t &targets)													C_NE___;
+			ND_ bool			_GetDstTargets (OUT RenderTargets_t &targets)					C_NE___;
 		};
 
 
@@ -75,24 +75,24 @@ namespace AE::App
 
 		// methods
 		public:
-			InputActions (VRDeviceEmulator &vr, TsDoubleBufferedQueue* q)															__NE___	:
+			InputActions (VRDeviceEmulator &vr, TsDoubleBufferedQueue* q)								__NE___	:
 				InputActionsBase{ q }, _vrDev{vr}
 			{}
 
 			// IInputActions //
-			ActionQueueReader  ReadInput (FrameUID frameId)																			C_NE_OV;
-			void  NextFrame (FrameUID frameId)																						__NE_OV;
-			bool  SetMode (InputModeName::Ref value)																				__NE_OV;
-			bool  LoadSerialized (MemRefRStream &)																					__NE_OV;
-			bool  GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &)							C_NE_OV;
+			ActionQueueReader  ReadInput (FrameUID frameId)												C_NE_OV;
+			void  NextFrame (FrameUID frameId)															__NE_OV;
+			bool  SetMode (InputModeName::Ref value)													__NE_OV;
+			bool  LoadSerialized (MemRefRStream &)														__NE_OV;
+			bool  GetReflection (InputModeName::Ref, InputActionName::Ref, OUT Reflection &)			C_NE_OV;
 
-			bool  BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action, EValueType type, EGestureType gesture)		__NE_OV;
-			bool  EndBindAction ()																									__NE_OV;
-			bool  IsBindActionActive ()																								C_NE_OV;
+			bool  BeginBindAction (InputModeName::Ref, InputActionName::Ref, EValueType, EGestureType)	__NE_OV;
+			bool  EndBindAction ()																		__NE_OV;
+			bool  IsBindActionActive ()																	C_NE_OV;
 
 			// ISerializable //
-			bool  Serialize (Serializing::Serializer &)																				C_NE_OV;
-			bool  Deserialize (Serializing::Deserializer &)																			__NE_OV;
+			bool  Serialize (Serializing::Serializer &)													C_NE_OV;
+			bool  Deserialize (Serializing::Deserializer &)												__NE_OV;
 		};
 
 
@@ -139,26 +139,26 @@ namespace AE::App
 
 	// methods
 	public:
-		VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions*)		__NE___;
-		~VRDeviceEmulator ()														__NE___;
+		VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions*)	__NE___;
+		~VRDeviceEmulator ()													__NE___;
 
-		ND_ bool  Create ()															__NE___;
+		ND_ bool  Create ()														__NE___;
 
 	// VRDeviceBase //
-		bool  Update (Duration_t timeSinceStart)									__NE_OV;
+		bool  Update (Duration_t timeSinceStart)								__NE_OV;
 
 	// IVRDevice //
-		bool  Setup (const Settings &)												__NE_OV;
+		bool  Setup (const Settings &)											__NE_OV;
 
-		StringView			GetApiName ()											C_NE_OV	{ return "vremulator"; }
-		IInputActions&		InputActions ()											__NE_OV	{ return _input; }
-		IOutputSurface&		GetSurface ()											__NE_OV	{ return _surface; }
+		StringView			GetApiName ()										C_NE_OV	{ return "vremulator"; }
+		IInputActions&		InputActions ()										__NE_OV	{ return _input; }
+		IOutputSurface&		GetSurface ()										__NE_OV	{ return _surface; }
 
-		bool  CreateRenderSurface (const VRImageDesc &desc)							__NE_OV;
+		bool  CreateRenderSurface (const VRImageDesc &desc)						__NE_OV;
 
 	private:
-		void  _Destroy ();
-		void  _ProcessInput ();
+		void  _Destroy ()														__NE___;
+		void  _ProcessInput ()													__NE___;
 	};
 
 

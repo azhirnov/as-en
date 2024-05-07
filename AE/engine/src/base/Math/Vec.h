@@ -88,13 +88,13 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax) __NE___
+	ND_ TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax) __NE___
+	ND_ TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
@@ -473,7 +473,9 @@ namespace _hidden_
 	template <typename T>
 	ND_ constexpr  EnableIf<IsScalar<T>, T>  Epsilon () __NE___
 	{
-		return std::numeric_limits<T>::epsilon() * T(2);
+		using NL = std::numeric_limits< T >;
+		StaticAssert( NL::is_specialized );
+		return NL::epsilon() * T(2);
 	}
 
 /*
@@ -2418,6 +2420,29 @@ namespace _hidden_
 	ND_ EnableIf<IsFloatPoint<T>, bool>  IsFinite (const T x) __NE___
 	{
 		return std::isfinite( x );
+	}
+
+/*
+=================================================
+	IsInfinity / IsNaN / IsFinite (chrono)
+=================================================
+*/
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsInfinity (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsInfinity( x.count() );
+	}
+
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsNaN (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsNaN( x.count() );
+	}
+
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsFinite (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsFinite( x.count() );
 	}
 
 /*

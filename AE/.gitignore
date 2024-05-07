@@ -4,3 +4,4 @@
 *.trigger.cpp
 .DS_Store
 imgui.ini
+build

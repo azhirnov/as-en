@@ -46,7 +46,7 @@ namespace AE::Threading::_hidden_
 */
 	void  WinSemaphore::Acquire () __NE___
 	{
-		ASSERT( _handle != null );
+		NonNull( _handle );
 
 		auto ret = ::WaitForSingleObject( HANDLE{_handle}, INFINITE );
 		Unused( ret );
@@ -60,7 +60,7 @@ namespace AE::Threading::_hidden_
 */
 	void  WinSemaphore::Release (const uint update) __NE___
 	{
-		ASSERT( _handle != null );
+		NonNull( _handle );
 		ASSERT( update >= 1 );
 		ASSERT( update <= Max() );
 
@@ -74,7 +74,7 @@ namespace AE::Threading::_hidden_
 */
 	bool  WinSemaphore::TryAcquire () __NE___
 	{
-		ASSERT( _handle != null );
+		NonNull( _handle );
 
 		return	_handle != null and
 				::WaitForSingleObject( HANDLE{_handle}, 0 ) == WAIT_OBJECT_0;

@@ -28,12 +28,17 @@
 #include "base/Containers/FixedTupleArray.h"
 #include "base/Containers/InPlace.h"
 #include "base/Containers/NtStringView.h"
-#include "base/Containers/Ptr.h"
 #include "base/Containers/RingBuffer.h"
 #include "base/Containers/StructView.h"
 #include "base/Containers/TupleArrayView.h"
 #include "base/Containers/Union.h"
 #include "base/Containers/UntypedStorage.h"
+
+// Pointers
+#include "base/Pointers/Ptr.h"
+#include "base/Pointers/PackedPtr.h"
+#include "base/Pointers/RefCounter.h"
+#include "base/Pointers/RestrictPtr.h"
 
 // DataSource
 #include "base/DataSource/DataSource.h"
@@ -41,7 +46,7 @@
 #include "base/DataSource/StdStream.h"
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/MemDataSource.h"
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/StdFileStream.h"
 #include "base/DataSource/WindowsFile.h"
 #include "base/DataSource/UnixFile.h"
 #include "base/DataSource/BrotliStream.h"
@@ -50,6 +55,7 @@
 #include "base/DataSource/DataSourceAsStream.h"
 #include "base/DataSource/DataSourceRange.h"
 #include "base/DataSource/FastStream.h"
+#include "base/DataSource/File.h"
 
 // Math
 #include "base/Math/GLM.h"
@@ -100,6 +106,7 @@
 #include "base/Memory/MemWriter.h"
 #include "base/Memory/MemChunkList.h"
 #include "base/Memory/InPlaceLinearAllocator.h"
+#include "base/Memory/SmallLinearAllocator.h"
 
 // Platforms
 #include "base/Platforms/CPUInfo.h"
@@ -111,23 +118,24 @@
 #include "base/Time/TimeProfiler.h"
 #include "base/Time/Timer.h"
 
+// FileSystem
+#include "base/FileSystem/Path.h"
+#include "base/FileSystem/FileSystem.h"
+#include "base/FileSystem/ProtectedFileSystem.h"
+
 // Utils
 #include "base/Utils/Atomic.h"
 #include "base/Utils/EnumSet.h"
 #include "base/Utils/Bitfield.h"
-#include "base/Utils/FileSystem.h"
 #include "base/Utils/HandleTmpl.h"
 #include "base/Utils/Helpers.h"
 #include "base/Utils/NamedID.h"
 #include "base/Utils/NamedID_HashCollisionCheck.h"
 #include "base/Utils/NamedID_HashCollisionCheckTS.h"
-#include "base/Utils/RefCounter.h"
-#include "base/Utils/RestrictPtr.h"
 #include "base/Utils/SourceLoc.h"
 #include "base/Utils/Threading.h"
 #include "base/Utils/TypeId.h"
 #include "base/Utils/Version.h"
 #include "base/Utils/FrameUID.h"
-#include "base/Utils/PackedPtr.h"
 
 

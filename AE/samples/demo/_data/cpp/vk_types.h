@@ -94,29 +94,6 @@
 	StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
 	StaticAssert( sizeof(SphericalCubeVertex) == 32 );
 
-#ifndef sdf_font_ublock_DEFINED
-#	define sdf_font_ublock_DEFINED
-	// size: 48, align: 16
-	struct sdf_font_ublock
-	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5a07d037u}};  // 'sdf_font_ublock'
-
-		float2  rotation0;
-		float2  rotation1;
-		float  sdfScale;
-		float  sdfBias;
-		float  pxRange;
-		float4  bgColor;
-	};
-#endif
-	StaticAssert( offsetof(sdf_font_ublock, rotation0) == 0 );
-	StaticAssert( offsetof(sdf_font_ublock, rotation1) == 8 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfScale) == 16 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfBias) == 20 );
-	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
-	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
-	StaticAssert( sizeof(sdf_font_ublock) == 48 );
-
 #ifndef imgui_ub_DEFINED
 #	define imgui_ub_DEFINED
 	// size: 16, align: 8 (16)
@@ -148,4 +125,27 @@
 	StaticAssert( offsetof(imgui_vertex, UV) == 8 );
 	StaticAssert( offsetof(imgui_vertex, Color) == 16 );
 	StaticAssert( sizeof(imgui_vertex) == 20 );
+
+#ifndef sdf_font_ublock_DEFINED
+#	define sdf_font_ublock_DEFINED
+	// size: 48, align: 16
+	struct sdf_font_ublock
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5a07d037u}};  // 'sdf_font_ublock'
+
+		float2  rotation0;
+		float2  rotation1;
+		float  sdfScale;
+		float  sdfBias;
+		float  pxRange;
+		float4  bgColor;
+	};
+#endif
+	StaticAssert( offsetof(sdf_font_ublock, rotation0) == 0 );
+	StaticAssert( offsetof(sdf_font_ublock, rotation1) == 8 );
+	StaticAssert( offsetof(sdf_font_ublock, sdfScale) == 16 );
+	StaticAssert( offsetof(sdf_font_ublock, sdfBias) == 20 );
+	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
+	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
+	StaticAssert( sizeof(sdf_font_ublock) == 48 );
 

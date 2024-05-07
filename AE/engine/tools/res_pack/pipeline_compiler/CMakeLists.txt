@@ -1,6 +1,10 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if (TARGET "GLSLang-lib")
+	if ( (TARGET "Vulkan-lib") OR (EXISTS "${AE_EXTERNAL_SHARED_PATH}/Vulkan/vulkan/vulkan.h") )
+		set( HAS_VULKAN_HEADERS ON )
+	endif()
+
 	set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics" )
 	set( GRAPHICS_HPP_SRC
 		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
@@ -18,7 +22,10 @@ if (TARGET "GLSLang-lib")
 			"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
 			"${GRAPHICS_DIR}/Private/RenderState.cpp"
 			"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-			"${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp" )
+			"${GRAPHICS_DIR}/Private/ImageDesc.cpp" )
+		if (${HAS_VULKAN_HEADERS})
+			set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp" )
+		endif()
 	endif()
 	file( GLOB_RECURSE SOURCES "*.*" )
 
@@ -30,19 +37,20 @@ if (TARGET "GLSLang-lib")
 	target_compile_definitions( "PipelineCompiler" PRIVATE "AE_BUILD_PIPELINE_COMPILER" "AE_TEST_PIPELINE_COMPILER" )
 	target_include_directories( "PipelineCompiler" PUBLIC "." )
 
-	if (WIN32)
-		set( METAL_TOOLS "${AE_EXTERNAL_REP_PATH}/external/macos/MetalTools/bin" )
-		if ( EXISTS "${METAL_TOOLS}" )
+	if ( WIN32 AND (TARGET "SPIRV-Cross-lib") )
+		target_link_libraries( "PipelineCompiler" PUBLIC "SPIRV-Cross-lib" )
+		set( METAL_TOOLS "${AE_EXTERNAL_BIN_PATH}/external/win-x64/MetalTools/bin" )
+		if ( NOT EXISTS "${METAL_TOOLS}" )
 			message( STATUS "Metal tools '${METAL_TOOLS}' is not exists" )
 		endif()
-		if ( (EXISTS "${METAL_TOOLS}") AND (TARGET "SPIRV-Cross-lib") )
+		if ( EXISTS "${METAL_TOOLS}" )
 			target_compile_definitions( "PipelineCompiler" PUBLIC "AE_METAL_TOOLS=\"${METAL_TOOLS}\"" )
-			target_link_libraries( "PipelineCompiler" PUBLIC "SPIRV-Cross-lib" )
 		endif()
 	endif()
 
-	if (TARGET "Vulkan-lib")
-		target_link_libraries( "PipelineCompiler" PUBLIC "Vulkan-lib" )
+	if (${HAS_VULKAN_HEADERS})
+		target_include_directories( "PipelineCompiler" PRIVATE "${AE_EXTERNAL_SHARED_PATH}/Vulkan" )
+		target_compile_definitions( "PipelineCompiler" PRIVATE "AE_ENABLE_VULKAN" )
 	endif()
 
 	target_link_libraries( "PipelineCompiler" PUBLIC "GLSLang-lib" )

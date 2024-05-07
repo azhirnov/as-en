@@ -21,15 +21,13 @@ namespace AE::Base
 {
 	using Graphics::EQueueType;
 	using Graphics::EPixelFormat;
-	using Graphics::EAttachmentLoadOp;
-	using Graphics::EAttachmentStoreOp;
 	using Graphics::EResourceState;
 	using Graphics::EShaderIO;
 	using Graphics::EShaderStages;
 	using Graphics::EShader;
 	using Graphics::EPrimitive;
 	using Graphics::EVertexType;
-	using Graphics::EVendorID;
+	using Graphics::EGPUVendor;
 	using Graphics::EGraphicsDeviceID;
 	using Graphics::ESubgroupOperation;
 	using Graphics::EFilter;
@@ -38,7 +36,7 @@ namespace AE::Base
 	using Graphics::ECompareOp;
 	using Graphics::EBorderColor;
 	using Graphics::EReductionMode;
-	using Graphics::ESamplerUsage;
+	using Graphics::ESamplerOpt;
 	using Graphics::EVertexInputRate;
 	using Graphics::ELogicOp;
 	using Graphics::EBlendFactor;
@@ -102,46 +100,6 @@ namespace AE::Base
 		}
 		switch_end
 		RETURN_ERR( "unknown pixel format" );
-	}
-
-/*
-=================================================
-	ToString (EAttachmentLoadOp)
-=================================================
-*/
-	ND_ inline StringView  ToString (EAttachmentLoadOp value) __NE___
-	{
-		switch_enum( value )
-		{
-			case EAttachmentLoadOp::Invalidate :	return "Invalidate";
-			case EAttachmentLoadOp::Load :			return "Load";
-			case EAttachmentLoadOp::Clear :			return "Clear";
-			case EAttachmentLoadOp::None :			return "None";
-			case EAttachmentLoadOp::_Count :
-			case EAttachmentLoadOp::Unknown :		break;
-		}
-		switch_end
-		RETURN_ERR( "unknown attachment load op" );
-	}
-
-/*
-=================================================
-	ToString (EAttachmentStoreOp)
-=================================================
-*/
-	ND_ inline StringView  ToString (EAttachmentStoreOp value) __NE___
-	{
-		switch_enum( value )
-		{
-			case EAttachmentStoreOp::Invalidate :					return "Invalidate";
-			case EAttachmentStoreOp::Store :						return "Store";
-			case EAttachmentStoreOp::None :							return "None";
-			case EAttachmentStoreOp::StoreCustomSamplePositions :	return "StoreCustomSamplePositions";
-			case EAttachmentStoreOp::_Count :
-			case EAttachmentStoreOp::Unknown :	break;
-		}
-		switch_end
-		RETURN_ERR( "unknown attachment store op" );
 	}
 
 /*
@@ -278,29 +236,30 @@ namespace AE::Base
 
 /*
 =================================================
-	ToString (EVendorID)
+	ToString (EGPUVendor)
 =================================================
 */
-	ND_ inline StringView  ToString (EVendorID value) __NE___
+	ND_ inline StringView  ToString (EGPUVendor value) __NE___
 	{
 		switch_enum( value )
 		{
-			case EVendorID::AMD :		return "AMD";
-			case EVendorID::NVidia :	return "NVidia";
-			case EVendorID::Intel :		return "Intel";
-			case EVendorID::ARM :		return "ARM";
-			case EVendorID::Qualcomm :	return "Qualcomm";
-			case EVendorID::ImgTech :	return "ImgTech";
-			case EVendorID::Microsoft :	return "Microsoft";
-			case EVendorID::Apple :		return "Apple";
-			case EVendorID::Mesa :		return "Mesa";
-			case EVendorID::Broadcom :	return "Broadcom";
-			case EVendorID::Samsung :	return "Samsung";
-			case EVendorID::VeriSilicon:return "VeriSilicon";
-			case EVendorID::_Count :	break;
+			case EGPUVendor::AMD :			return "AMD";
+			case EGPUVendor::NVidia :		return "NVidia";
+			case EGPUVendor::Intel :		return "Intel";
+			case EGPUVendor::ARM :			return "ARM";
+			case EGPUVendor::Qualcomm :		return "Qualcomm";
+			case EGPUVendor::ImgTech :		return "ImgTech";
+			case EGPUVendor::Microsoft :	return "Microsoft";
+			case EGPUVendor::Apple :		return "Apple";
+			case EGPUVendor::Mesa :			return "Mesa";
+			case EGPUVendor::Broadcom :		return "Broadcom";
+			case EGPUVendor::Samsung :		return "Samsung";
+			case EGPUVendor::VeriSilicon:	return "VeriSilicon";
+			case EGPUVendor::Huawei :		return "Huawei";
+			case EGPUVendor::_Count :		break;
 		}
 		switch_end
-		RETURN_ERR( "unknown vendor id" );
+		RETURN_ERR( "unknown GPU vendor" );
 	}
 
 /*
@@ -434,22 +393,33 @@ namespace AE::Base
 
 /*
 =================================================
-	ToString (ESamplerUsage)
+	ToString (ESamplerOpt)
 =================================================
 */
-	ND_ inline StringView  ToString (ESamplerUsage value) __NE___
+	ND_ inline String  ToString (ESamplerOpt values) __NE___
 	{
-		switch_enum( value )
+		String	str;
+		for (auto t : BitfieldIterate( values ))
 		{
-			case ESamplerUsage::Default :						return "Default";
-		//	case ESamplerUsage::Subsampled :					return "Subsampled";
-		//	case ESamplerUsage::SubsampledCoarseReconstruction:	return "SubsampledCoarseReconstruction";
-			case ESamplerUsage::NonSeamlessCubeMap :			return "NonSeamlessCubeMap";
-			case ESamplerUsage::_Count :
-			default :											break;
+			if ( not str.empty() )
+				str << " | ";
+
+			switch_enum( t )
+			{
+				case ESamplerOpt::ArgumentBuffer :					return "ArgumentBuffer";
+				case ESamplerOpt::NonSeamlessCubeMap :				return "NonSeamlessCubeMap";
+				case ESamplerOpt::UnnormalizedCoordinates :			return "UnnormalizedCoordinates";
+			//	case ESamplerOpt::Subsampled :						return "Subsampled";
+			//	case ESamplerOpt::SubsampledCoarseReconstruction:	return "SubsampledCoarseReconstruction";
+
+				case ESamplerOpt::Unknown :
+				case ESamplerOpt::_Last :
+				case ESamplerOpt::All :
+				default :											RETURN_ERR( "unknown sampler usage" );
+			}
+			switch_end
 		}
-		switch_end
-		RETURN_ERR( "unknown sampler usage" );
+		return str;
 	}
 
 /*
@@ -707,6 +677,7 @@ namespace AE::Base
 				case EDescSetUsage::UpdateTemplate :		str << "UpdateTemplate";		break;
 				case EDescSetUsage::ArgumentBuffer :		str << "ArgumentBuffer";		break;
 				case EDescSetUsage::MutableArgBuffer :		str << "MutableArgBuffer";		break;
+				case EDescSetUsage::MaybeUnsupported :		str << "MaybeUnsupported";		break;
 				case EDescSetUsage::Unknown :
 				case EDescSetUsage::_Last :
 				case EDescSetUsage::All :
@@ -1195,23 +1166,58 @@ namespace AE::Base
 			case EVideoFormat::YUV420P :		return "YUV420P";
 			case EVideoFormat::YUV422P :		return "YUV422P";
 			case EVideoFormat::YUV444P :		return "YUV444P";
-			case EVideoFormat::YUV420P10LE :	return "YUV420P10LE";
-			case EVideoFormat::YUV422P10LE :	return "YUV422P10LE";
-			case EVideoFormat::YUV444P10LE :	return "YUV444P10LE";
-			case EVideoFormat::YUV420P12LE :	return "YUV420P12LE";
-			case EVideoFormat::YUV422P12LE :	return "YUV422P12LE";
-			case EVideoFormat::YUV444P12LE :	return "YUV444P12LE";
-			case EVideoFormat::YUV420P16LE :	return "YUV420P16LE";
-			case EVideoFormat::YUV422P16LE :	return "YUV422P16LE";
-			case EVideoFormat::YUV444P16LE :	return "YUV444P16LE";
-			case EVideoFormat::YUVA444P16LE :	return "YUVA444P16LE";
+
+			case EVideoFormat::YUYV422 :		return "YUYV422";
+			case EVideoFormat::UYVY422 :		return "UYVY422";
+			case EVideoFormat::Y210 :			return "Y210";
+			case EVideoFormat::Y212 :			return "Y212";
+			case EVideoFormat::XV30 :			return "XV30";
+			case EVideoFormat::XV36 :			return "XV36";
+
+			case EVideoFormat::YUV420P10 :		return "YUV420P10";
+			case EVideoFormat::YUV422P10 :		return "YUV422P10";
+			case EVideoFormat::YUV444P10 :		return "YUV444P10";
+			case EVideoFormat::YUV420P12 :		return "YUV420P12";
+			case EVideoFormat::YUV422P12 :		return "YUV422P12";
+			case EVideoFormat::YUV444P12 :		return "YUV444P12";
+			case EVideoFormat::YUV420P16 :		return "YUV420P16";
+			case EVideoFormat::YUV422P16 :		return "YUV422P16";
+			case EVideoFormat::YUV444P16 :		return "YUV444P16";
+
+			case EVideoFormat::YUVA420P :		return "YUVA420P";
+			case EVideoFormat::YUVA422P :		return "YUVA422P";
+			case EVideoFormat::YUVA444P :		return "YUVA444P";
+			case EVideoFormat::YUVA420P10 :		return "YUVA420P10";
+			case EVideoFormat::YUVA422P10 :		return "YUVA422P10";
+			case EVideoFormat::YUVA444P10 :		return "YUVA444P10";
+			case EVideoFormat::YUVA420P16 :		return "YUVA420P16";
+			case EVideoFormat::YUVA422P16 :		return "YUVA422P16";
+			case EVideoFormat::YUVA444P16 :		return "YUVA444P16";
+
 			case EVideoFormat::NV12 :			return "NV12";
-			case EVideoFormat::NV21 :			return "NV21";
+			case EVideoFormat::P010 :			return "P010";
+			case EVideoFormat::P012 :			return "P012";
+			case EVideoFormat::P016 :			return "P016";
+
 			case EVideoFormat::NV16 :			return "NV16";
+			case EVideoFormat::P210 :			return "P210";
+			case EVideoFormat::P212 :			return "P212";
+			case EVideoFormat::P216 :			return "P216";
+
 			case EVideoFormat::NV24 :			return "NV24";
+			case EVideoFormat::P410 :			return "P410";
+			case EVideoFormat::P412 :			return "P412";
+			case EVideoFormat::P416 :			return "P416";
+
+			case EVideoFormat::NV21 :			return "NV21";
 			case EVideoFormat::NV42 :			return "NV42";
-			case EVideoFormat::NV20LE :			return "NV20LE";
-			case EVideoFormat::P010LE :			return "P010LE";
+			case EVideoFormat::NV20 :			return "NV20";
+
+			case EVideoFormat::BGR0 :			return "BGR0";
+			case EVideoFormat::BGRA :			return "BGRA";
+			case EVideoFormat::RGB0 :			return "RGB0";
+			case EVideoFormat::RGBA :			return "RGBA";
+
 			case EVideoFormat::Unknown :
 			case EVideoFormat::_Count :			break;
 		}
@@ -1228,10 +1234,10 @@ namespace AE::Base
 	{
 		switch_enum( value )
 		{
-			case EVideoCodec::GIF :		return "GIF";
 			case EVideoCodec::MPEG4 :	return "MPEG4";
 			case EVideoCodec::H264 :	return "H264";
 			case EVideoCodec::H265 :	return "H265";
+			case EVideoCodec::H266 :	return "H266";
 			case EVideoCodec::WEBP :	return "WEBP";
 			case EVideoCodec::VP8 :		return "VP8";
 			case EVideoCodec::VP9 :		return "VP9";

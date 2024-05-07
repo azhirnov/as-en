@@ -1,12 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Utils/Helpers.h"
-#include "graphics/Public/ResourceManager.h"
-#include "UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 namespace
 {
-	static void  ImageView_Test (IResourceManager &resMngr, const ImageDesc &imgDesc)
+	static void  ImageView_Test (ResourceManager &resMngr, const ImageDesc &imgDesc)
 	{
 		auto	image = resMngr.CreateImage( imgDesc );
 		TEST( image );
@@ -25,7 +23,7 @@ namespace
 	}
 
 
-	static void  Image_Test (IResourceManager &resMngr)
+	static void  Image_Test (ResourceManager &resMngr)
 	{
 		ulong	supported	= 0;
 		ulong	unsupported	= 0;
@@ -118,7 +116,7 @@ namespace
 	}
 }
 
-extern void Test_Image (IResourceManager &resMngr)
+extern void Test_Image (ResourceManager &resMngr)
 {
 	Image_Test( resMngr );
 

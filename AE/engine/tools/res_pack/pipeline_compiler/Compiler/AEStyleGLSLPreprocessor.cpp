@@ -670,6 +670,16 @@ namespace {
 		_typeMap.emplace( "gl.BaryCoord",					"gl_BaryCoordEXT" );
 		_typeMap.emplace( "gl.BaryCoordNoPersp",			"gl_BaryCoordNoPerspEXT" );
 
+		// https://raw.githubusercontent.com/KhronosGroup/GLSL/main/extensions/nv/GLSL_NV_shader_sm_builtins.txt
+		_typeMap.emplace( "gl.NV.WarpsPerSM",		"gl_WarpsPerSMNV" );
+		_typeMap.emplace( "gl.NV.SMCount",			"gl_SMCountNV" );
+		_typeMap.emplace( "gl.NV.WarpID",			"gl_WarpIDNV" );
+		_typeMap.emplace( "gl.NV.SMID",				"gl_SMIDNV" );
+
+		// https://raw.githubusercontent.com/KhronosGroup/GLSL/main/extensions/ext/GLSL_EXT_demote_to_helper_invocation.txt
+		_typeMap.emplace( "gl.Discard",				"discard" );
+		_typeMap.emplace( "gl.Demote",				"demote" );
+		_typeMap.emplace( "gl.HelperInvocation",	"helperInvocationEXT" );
 	}
 
 /*

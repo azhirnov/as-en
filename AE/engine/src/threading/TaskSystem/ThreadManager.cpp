@@ -314,14 +314,15 @@ namespace
 		{
 			CpuArchInfo::Core const*	hp_core	= cpuInfo.GetCore( ECoreType::HighPerformance );
 			CpuArchInfo::Core const*	p_core	= cpuInfo.GetCore( ECoreType::Performance );
-			CHECK_ERR( p_core != null );
+			if ( p_core != null )
+            {
+                // bind main thread to the high performance core
+                int	id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
+                cfg.mainThreadCoreId = ECpuCoreId(id);
 
-			// bind main thread to the high performance core
-			int	id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
-			cfg.mainThreadCoreId = ECpuCoreId(id);
-
-			id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
-			second_thread_id = ECpuCoreId(id);
+                id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
+                second_thread_id = ECpuCoreId(id);
+            }
 		}
 
 		auto&	scheduler = Scheduler();
@@ -411,7 +412,7 @@ namespace
 			{
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::PerFrame },
-						"pf|"s + ToString(i)
+						"pf"s << (worker_only_threads > 1 ? '|' + ToString(i) : ""s)
 					}), GetPCoreId() );
 			}
 
@@ -419,7 +420,7 @@ namespace
 			{
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::Renderer },
-						"rt|"s + ToString(i)
+						"rt"s << (render_only_threads > 1 ? '|' + ToString(i) : ""s)
 					}), GetPCoreId() );
 			}
 
@@ -427,7 +428,7 @@ namespace
 			{
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::Renderer, EThread::PerFrame },
-						"rt|pf|"s + ToString(i)
+						"rt|pf"s << (worker_render_threads > 1 ? '|' + ToString(i) : ""s)
 					}), GetPCoreId() );
 			}
 		}
@@ -452,7 +453,7 @@ namespace
 			{
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::PerFrame, EThread::Background, EThread::FileIO },
-						"pf|bg|io|"s + ToString(i)
+						"pf|bg|io"s << (worker_background_threads > 1 ? '|' + ToString(i) : ""s)
 					}), GetEECoreId() );
 			}
 
@@ -460,7 +461,7 @@ namespace
 			{
 				scheduler.AddThread( ThreadMngr::CreateThread( ThreadConfig{
 						EThreadArray{ EThread::Background, EThread::FileIO },
-						"bg|io|"s + ToString(i)
+						"bg|io"s << (background_only_threads > 1 ? '|' + ToString(i) : ""s)
 					}), GetEECoreId() );
 			}
 		}

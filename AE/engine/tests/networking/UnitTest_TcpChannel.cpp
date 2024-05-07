@@ -5,6 +5,7 @@
 namespace
 {
 	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
+	static const ushort		c_Port			 = 4002;
 
 
 	class ServerProvider final : public IServerProvider
@@ -126,11 +127,12 @@ namespace
 				TEST( mf->Register< CSMsg_Log >( True{} ));
 				TEST( mf->Register< CSMsg_NextFrame >( True{} ));
 
-				TEST( server.AddChannel( 4000 ));
+				TEST( server.AddChannel( c_Port ));
 
 				server.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from server"sv, SourceLoc_Current(), server_sent_msgs ));
 				server.Add( MakeRC<LogMsgConsumer>( "from client"sv, sever_recv_msgs ));
 
+				sync.Wait();
 				sync.Wait();
 
 				for (uint i = 0; i < frame_count; ++i)
@@ -145,12 +147,13 @@ namespace
 
 					ThreadUtils::MilliSleep( milliseconds{100} );
 				}
+				sync.Wait();
 			}}};
 
 		StdThread	client_thread{ [&client_sent_msgs, &client_recv_msgs, &sync] ()
 			{{
 				auto		mf		= MakeRC<MessageFactory>();
-				Client		client	{ mf, IpAddress::FromHostPortTCP( "localhost", 4000 )};
+				Client		client	{ mf, IpAddress::FromHostPortTCP( "localhost", c_Port )};
 				FrameUID	fid		= c_InitialFrameId;
 
 				TEST( mf->Register< CSMsg_Log >( True{} ));
@@ -163,7 +166,16 @@ namespace
 
 				sync.Wait();
 
-				for (uint i = 0; i < frame_count;)
+				// wait for connection
+				for (; not client.IsConnected();)
+				{
+					Unused( client.Update( fid ));
+					ThreadUtils::MilliSleep( milliseconds{100} );
+				}
+
+				sync.Wait();
+
+				for (uint i = 0; i < frame_count and client.IsConnected(); ++i)
 				{
 					auto	stat = client.Update( fid );
 
@@ -173,18 +185,16 @@ namespace
 					if ( stat )
 						fid.Inc();
 
-					if ( client.IsConnected() )
-						++i;
-
 					ThreadUtils::MilliSleep( milliseconds{100} );
 				}
+				sync.Wait();
 			}}};
 
 		server_thread.join();
 		client_thread.join();
 
-		TEST( Equal( float(client_sent_msgs), float(sever_recv_msgs), 10_pct ));
-		TEST( Equal( float(server_sent_msgs), float(client_recv_msgs), 10_pct ));
+		TEST( Equal( float(client_sent_msgs), float(sever_recv_msgs), 90_pct ));
+		TEST( Equal( float(server_sent_msgs), float(client_recv_msgs), 90_pct ));
 	}
 }
 

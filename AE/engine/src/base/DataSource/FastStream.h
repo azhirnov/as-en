@@ -89,7 +89,7 @@ namespace AE::Base
 			ASSERT( AllBits( _stream->GetSourceType(), RStream::ESourceType::Buffered ));
 
 			_stream->UpdateFastStream( OUT _ptr, OUT _end );
-			ASSERT( _ptr != null );
+			NonNull( _ptr );
 		}
 	}
 
@@ -127,7 +127,7 @@ namespace AE::Base
 	forceinline bool  FastRStream::Read (OUT void* buffer, Bytes size) __NE___
 	{
 		//ASSERT( size > 0 );
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 
 		for_likely(; size > 0; )
 		{
@@ -144,7 +144,7 @@ namespace AE::Base
 			if_likely( _stream )
 			{
 				_stream->UpdateFastStream( OUT _ptr, OUT _end );
-				CHECK( _ptr != null );
+				NonNull( _ptr );
 			}
 
 			if_unlikely( Empty() )
@@ -162,7 +162,7 @@ namespace AE::Base
 */
 	forceinline Bytes  FastRStream::ReadRemaining (OUT void* buffer) __NE___
 	{
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 
 		const Bytes		size = RemainingSize();
 
@@ -188,7 +188,7 @@ namespace AE::Base
 		if_likely( _stream and _stream->IsOpen() )
 		{
 			_stream->UpdateFastStream( OUT _ptr, OUT _end );
-			ASSERT( _ptr != null );
+			NonNull( _ptr );
 		}
 	}
 
@@ -226,7 +226,7 @@ namespace AE::Base
 	forceinline bool  FastWStream::Write (const void* buffer, Bytes size) __NE___
 	{
 		//ASSERT( size > 0 );
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 
 		for_likely(; size > 0; )
 		{
@@ -243,7 +243,7 @@ namespace AE::Base
 			if_likely( _stream )
 			{
 				_stream->UpdateFastStream( OUT _ptr, OUT _end );
-				CHECK( _ptr != null );
+				NonNull( _ptr );
 			}
 
 			if_unlikely( Empty() )

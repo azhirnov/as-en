@@ -79,7 +79,7 @@ namespace AE::Base
 			TIterator ()								__NE___ {}
 			TIterator (const Iter &)					__NE___ = default;
 			TIterator (Iter &&)							__NE___ = default;
-			TIterator (MapPtr map, usize idx)			__NE___ : _mapPtr{map}, _index{Index_t(idx)} { ASSERT( _mapPtr != null ); }
+			TIterator (MapPtr map, usize idx)			__NE___ : _mapPtr{map}, _index{Index_t(idx)} { NonNull( _mapPtr ); }
 
 			Iter&  operator = (const Iter &)			__NE___ = default;
 			Iter&  operator = (Iter &&)					__NE___ = default;
@@ -89,34 +89,16 @@ namespace AE::Base
 
 			ND_ explicit operator bool ()				C_NE___	{ return _mapPtr != null; }
 
-			Iter&  operator ++ ()						__NE___
-			{
-				ASSERT( _mapPtr != null );
-				_index = Index_t( Min( _index + 1, _mapPtr->size() ));
-				return *this;
-			}
+				Iter&		operator ++ ()				__NE___ { NonNull( _mapPtr );	_index = Index_t( Min( _index + 1, _mapPtr->size() ));	return *this; }
+				Iter		operator ++ (int)			__NE___	{ Iter res{ *this };	this->operator++();										return res; }
+				Iter&		operator += (usize x)		__NE___	{ NonNull( _mapPtr );	_index = Index_t( Min( _index + x, _mapPtr->size() ));	return *this; }
+			ND_ Iter		operator + (usize x)		C_NE___	{ return (Iter{*this} += x); }
 
-			Iter  operator ++ (int)						__NE___
-			{
-				Iter	res{ *this };
-				this->operator++();
-				return res;
-			}
+			ND_ PairRef		operator * ()				__NE___	{ NonNull( _mapPtr );	return (*_mapPtr)[_index]; }
+			ND_ PairCRef_t	operator * ()				C_NE___	{ NonNull( _mapPtr );	return (*_mapPtr)[_index]; }
 
-			Iter&  operator += (usize x)				__NE___
-			{
-				ASSERT( _mapPtr != null );
-				_index = Index_t( Min( _index + x, _mapPtr->size() ));
-				return *this;
-			}
-
-			ND_ Iter  operator + (usize x)				C_NE___	{ return (Iter{*this} += x); }
-
-			ND_ PairRef		operator * ()				__NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
-			ND_ PairCRef_t	operator * ()				C_NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
-
-			ND_ TPairPtr<PairRef>		operator -> ()	__NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
-			ND_ TPairPtr<PairCRef_t>	operator -> ()	C_NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
+			ND_ TPairPtr<PairRef>		operator -> ()	__NE___	{ NonNull( _mapPtr );	return (*_mapPtr)[_index]; }
+			ND_ TPairPtr<PairCRef_t>	operator -> ()	C_NE___	{ NonNull( _mapPtr );	return (*_mapPtr)[_index]; }
 		};
 
 

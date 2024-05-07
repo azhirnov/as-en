@@ -37,7 +37,7 @@
 
 			Export( volume, "exported-image-3d-.aeimg" );
 		}{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
+			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy );
 			pass.Set(	camera );
 			pass.ArgIn( "un_Volume",	volume,		Sampler_LinearClamp );
 			pass.ColorSelector( "iVolumeColor", RGBA32f(0.0, 1.0, 0.0, 1.0) );

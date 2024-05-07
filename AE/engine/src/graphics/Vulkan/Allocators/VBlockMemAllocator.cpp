@@ -81,7 +81,7 @@ namespace AE::Graphics
 	_AllocInPage
 =================================================
 */
-	inline bool  VBlockMemAllocator::_AllocInPage (PageArr &pageArr, OUT Data &outData) const
+	inline bool  VBlockMemAllocator::_AllocInPage (PageArr &pageArr, OUT Data &outData) C_NE___
 	{
 		const		uint	low_mask	= ToBitMask<uint>( _bitsPerPage );
 		constexpr	uint	hi_mask		= ToBitMask<uint>( _PageCount );
@@ -139,7 +139,7 @@ namespace AE::Graphics
 =================================================
 */
 	inline bool  VBlockMemAllocator::_Allocate (VDevice const& dev, const Bytes memSize, const Bytes memAlign, const uint memBits,
-												const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData)
+												const Bool shaderAddress, const Bool isImage, const Bool mapMem, OUT Data &outData) __NE___
 	{
 		outData = Default;
 
@@ -261,7 +261,7 @@ namespace AE::Graphics
 	_IsValidPage
 =================================================
 */
-	bool  VBlockMemAllocator::_IsValidPage (const PageArr* pagePtr) const
+	bool  VBlockMemAllocator::_IsValidPage (const PageArr* pagePtr) C_NE___
 	{
 		//SHAREDLOCK( _pageMapGuard );	// required before function call
 

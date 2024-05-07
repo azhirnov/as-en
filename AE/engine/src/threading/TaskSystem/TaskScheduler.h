@@ -30,12 +30,12 @@
 					OnCancel()
 					set 'canceled' state and return.
 				if 'canceled' or 'failed'
-					return
+					return.
 				if throw exception
 					OnCancel()
 					set 'canceled' state and return.
 				if 'continue' state
-					task added to queue
+					task added to queue.
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace AE::Threading
 			StringView		threadName;
 			StringView		coreName;
 			usize			threadId	= 0;
-			ECpuCoreId		coreId		= ECpuCoreId(0);
+			ECpuCoreId		coreId		= Default;
 			uint			curFreq		= 0;	// MHz
 			uint			minFreq		= 0;	// MHz
 			uint			maxFreq		= 0;	// MHz
@@ -355,6 +355,9 @@ namespace AE::Threading
 		ND_ bool		Wait (ArrayView<AsyncTask>	tasks,
 							  nanoseconds			timeout)						__NE___;
 		ND_ bool		Wait (ArrayView<AsyncTask>	tasks,
+							  TimePoint_t			endTime)						__NE___;
+
+		ND_ bool		Wait (ArrayView<AsyncTask>	tasks,
 							  const EThreadArray &	threads,
 							  TimePoint_t			endTime,
 							  uint					maxTasksPerTick)				__NE___;
@@ -569,7 +572,7 @@ namespace AE::Threading
 			}else
 			if constexpr( IsSameTypes< T, StrongDepArray > or IsSameTypes< T, ArrayView<AsyncTask> >)
 				for (auto& dep : args.template Get<I>()) {
-					if_unlikely( not _AddTaskDependencies( task, dep, False{"weak"}, INOUT bitIndex )) return false;
+					if_unlikely( not _AddTaskDependencies( task, dep, True{"strong"}, INOUT bitIndex )) return false;
 				}
 			else
 			// implicitly it is strong dependency

@@ -94,14 +94,14 @@ namespace AE::App
 
 
 	private:
-		void  _RecognizeTaps (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
-		void  _RecognizeDragging (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
-		void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+		void  _RecognizeTaps (uint activeCount, Duration_t timestamp, InputActionsBase &ia)			__NE___;
+		void  _RecognizeDragging (uint activeCount, Duration_t timestamp, InputActionsBase &ia)		__NE___;
+		void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia)		__NE___;
 
 		template <typename T>
 		ND_ static constexpr InputKey	_Pack (T key,
 											   EGestureType gesture,
-											   EGestureState state = EGestureState::Update)	__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
+											   EGestureState state = EGestureState::Update)			__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
 	};
 
 

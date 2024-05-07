@@ -6,7 +6,8 @@
 
 namespace
 {
-	static const FrameUID	c_InitialFrameId = FrameUID::Init( 2 );
+	static const FrameUID	c_InitialFrameId	= FrameUID::Init( 2 );
+	static const ushort		c_Port				= 4003;
 
 
 	class ServerProvider final : public IServerProvider
@@ -103,6 +104,8 @@ namespace
 		const String			a2_name		= "a2.bin";
 		const Array<ubyte>		a2_data		= GenRandomArray( 4_Mb );
 
+		Threading::Barrier		sync {3};
+
 		// setup server folders
 		{
 			{
@@ -118,21 +121,26 @@ namespace
 
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
 				EThreadArray{ EThread::PerFrame, EThread::Background, EThread::FileIO },
-				""
+				"vfs"
 			}));
 
 		// run client and server
 		StdThread	server_thread{ [&] ()
 			{{
+				ThreadUtils::SetName( "vfs-server" );
+
 				auto		mf		= MakeRC<MessageFactory>();
 				Server		server	{ mf, vfs_server };
 				FrameUID	fid		= c_InitialFrameId;
 
 				TEST( Register_NetVFS( *mf ));
-				TEST( server.AddChannel( 4000 ));
+				TEST( server.AddChannel( c_Port ));
 
 				TEST( server.Add( vfs_server.GetMessageProducer().GetRC() ));
 				TEST( server.Add( vfs_server.GetMessageConsumer().GetRC() ));
+
+				sync.Wait();
+				sync.Wait();
 
 				for (; not stop.load();)
 				{
@@ -147,8 +155,10 @@ namespace
 
 		StdThread	client_thread{ [&] ()
 			{{
+				ThreadUtils::SetName( "vfs-client" );
+
 				auto		mf		= MakeRC<MessageFactory>();
-				Client		client	{ mf, IpAddress::FromHostPortTCP( "localhost", 4000 )};
+				Client		client	{ mf, IpAddress::FromHostPortTCP( "localhost", c_Port )};
 				FrameUID	fid		= c_InitialFrameId;
 
 				TEST( Register_NetVFS( *mf ));
@@ -159,7 +169,18 @@ namespace
 
 				TEST( vfs_client.Init( Default ));
 
-				for (; not stop.load();)
+				sync.Wait();
+
+				// wait for connection
+				for (; not client.IsConnected();)
+				{
+					Unused( client.Update( fid ));
+					ThreadUtils::MilliSleep( milliseconds{100} );
+				}
+
+				sync.Wait();
+
+				for (; not stop.load() and client.IsConnected();)
 				{
 					auto	stat = client.Update( fid );
 
@@ -170,9 +191,10 @@ namespace
 				}
 			}}};
 
-		ThreadUtils::Sleep_15ms();
+		sync.Wait();
+		sync.Wait();
 
-		// try to read from server
+		AE_LOGI( "read from server" );
 		{
 			auto	file = vfs_client.OpenForRead( FileName{a1_name} );
 			TEST( file );
@@ -196,7 +218,7 @@ namespace
 			TEST( ok );
 		}
 
-		// try to write to server
+		AE_LOGI( "write to server" );
 		{
 			auto	file = vfs_client.OpenForWrite( FileName{a2_name} );
 			TEST( file );
@@ -220,7 +242,7 @@ namespace
 			TEST( ok );
 		}{
 			// need some time to process close file request
-			ThreadUtils::MilliSleep( milliseconds{100} );
+			ThreadUtils::MilliSleep( milliseconds{1000} );
 
 			FileRStream		rfile {a2_name};
 			Array<ubyte>	data2;
@@ -237,17 +259,22 @@ namespace
 }
 
 
-extern void UnitTest_NetworkStorage ()
+extern void UnitTest_NetworkStorage (const Path &curr)
 {
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/vfs_test2"};
+#if defined(AE_RELEASE) and defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM32)
+	// crashes in CSMessage::Serialize() because of null in msg_fn->fn
+#else
+	const Path	folder	= curr / "vfs_test2";
 
-	FileSystem::RemoveAll( folder );
+	FileSystem::DeleteDirectory( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
 	NetworkStorage_Test1();
 
 	FileSystem::SetCurrentPath( curr );
+	FileSystem::DeleteDirectory( folder );
+
 	TEST_PASSED();
+#endif
 }

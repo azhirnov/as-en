@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Common.h"
-#include "serializing/Basic/ObjectFactory.h"
+#include "serializing/ObjectFactory.h"
 
 namespace AE::PipelineCompiler
 {
@@ -90,20 +90,20 @@ namespace AE::PipelineCompiler
 			// windows style "\r\n"
 			if ( c == '\r' and n == '\n' )
 			{
-				info.lines.emplace_back( pos, j );
+				info.lines.emplace_back( uint(pos), uint(j) );
 				pos = (++j) + 1;
 			}
 			else
 			// linux style "\n" (or mac style "\r")
 			if ( c == '\n' or c == '\r' )
 			{
-				info.lines.emplace_back( pos, j );
+				info.lines.emplace_back( uint(pos), uint(j) );
 				pos = j + 1;
 			}
 		}
 
 		if ( pos < info.code.length() )
-			info.lines.emplace_back( pos, info.code.length() );
+			info.lines.emplace_back( uint(pos), uint(info.code.length()) );
 
 		_sources.push_back( RVRef(info) );
 	}
@@ -276,10 +276,7 @@ namespace
 			result &= Serialize_SourceInfo( ser, item );
 		}
 
-		result &= ser( _posOffset );
-		result &= ser( _dataOffset );
-		result &= ser( _initialPosition );
-
+		result &= ser( _posOffset, _dataOffset, _initialPosition );
 		return result;
 	}
 
@@ -291,42 +288,40 @@ namespace
 	bool  ShaderTrace::Deserialize (Deserializer &des) __NE___
 	{
 		try {
-			bool	result = true;
+			_exprLocations.clear();
+			_varNames.clear();
+			_sources.clear();
 
 			// _exprLocations
 			{
 				uint	count = 0;
-				CHECK_ERR( des( OUT count ));
-				CHECK_ERR( count < MaxCount );
+				if_unlikely( not (des( OUT count ) and count < MaxCount) )
+					return false;
 
 				_exprLocations.resize( count );		// throw
 				for (auto& item : _exprLocations) {
-					result &= Deserialize_ExprInfo( des, OUT item );
+					if_unlikely( not Deserialize_ExprInfo( des, OUT item ))
+						return false;
 				}
-				CHECK_ERR( result );
 			}
 
-			result &= des( OUT _varNames );
+			if_unlikely( not des( OUT _varNames ))
+				return false;
 
 			// _sources
 			{
 				uint	count = 0;
-				CHECK_ERR( des( OUT count ));
-				CHECK_ERR( count < MaxCount );
+				if_unlikely( not (des( OUT count ) and count < MaxCount) )
+					return false;
 
 				_sources.resize( count );		// throw
 				for (auto& item : _sources) {
-					result &= Deserialize_SourceInfo( des, OUT item );
+					if_unlikely( not Deserialize_SourceInfo( des, OUT item ))
+						return false;
 				}
-				CHECK_ERR( result );
 			}
 
-			result &= des( OUT _posOffset );
-			result &= des( OUT _dataOffset );
-			result &= des( OUT _initialPosition );
-
-			CHECK_ERR( result );
-			return true;
+			return des( OUT _posOffset, OUT _dataOffset, OUT _initialPosition );
 		}
 		catch (...) {
 			return false;

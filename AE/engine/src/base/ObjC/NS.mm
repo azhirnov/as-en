@@ -2,6 +2,7 @@
 
 #include "base/ObjC/NS.h"
 #include "base/Algorithms/StringUtils.h"
+#include "base/FileSystem/FileSystem.h"
 
 #undef null
 #include <CoreFoundation/CFBase.h>
@@ -73,7 +74,7 @@ namespace AE::NS
 
 	UInteger  Object::RetainCount () __NE___
 	{
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 		return CFGetRetainCount( _ptr );
 	}
 
@@ -126,7 +127,7 @@ namespace AE::NS
 
 	UInteger  ObjectRef::_RetainCount () __NE___
 	{
-		ASSERT( _ptr != null );
+		NonNull( _ptr );
 		return CFGetRetainCount( _ptr );
 	}
 //-----------------------------------------------------------------------------

@@ -27,6 +27,7 @@ namespace AE::Threading
 	Release
 ----
 	Must be externally synchronized.
+	Can not use after release!
 =================================================
 */
 	template <typename V, typename I, usize CS, usize MC, typename A>
@@ -34,7 +35,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _highLvl == null )
+		if_unlikely( _highLvl == null )
 			return;
 
 		EXLOCK( _allocGuard );
@@ -87,7 +88,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _highLvl == null )
+		if_unlikely( _highLvl == null )
 			return;
 
 		for (auto& hi_chunk : *_highLvl)
@@ -132,7 +133,7 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( _highLvl == null )
+		if_unlikely( _highLvl == null )
 			return;
 
 		for (auto& hi_chunk : *_highLvl)
@@ -242,7 +243,7 @@ namespace AE::Threading
 
 		// TODO: offset 'chunk_idx' by thread id
 
-		ASSERT( low_chunks != null );
+		NonNull( low_chunks );
 
 		for (; chunk_idx >= 0;)
 		{
@@ -370,12 +371,12 @@ namespace AE::Threading
 		DRC_SHAREDLOCK( _drCheck );
 
 		ASSERT( index < capacity() );
-		ASSERT( _highLvl != null );
+		NonNull( _highLvl );
 
 		HighLevelChunk&		high_chunk	= (*_highLvl)[ index / ChunkSize ];
 		LowLvlChunkArray_t*	low_chunks	= high_chunk.chunksPtr.load();
 
-		ASSERT( low_chunks != null );
+		NonNull( low_chunks );
 
 		const auto		index1		= index % ChunkSize;
 		const auto		chunk_idx	= index1 / LowLvlCount;

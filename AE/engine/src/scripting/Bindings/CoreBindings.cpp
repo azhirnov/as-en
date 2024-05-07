@@ -25,18 +25,6 @@ namespace AE::Scripting
 
 /*
 =================================================
-	BindString
-=================================================
-*/
-	void  CoreBindings::BindString (const ScriptEnginePtr &se) __Th___
-	{
-		CHECK_THROW( se and se->IsInitialized() );
-
-		AngelScript::RegisterStdString( se->Get() );
-	}
-
-/*
-=================================================
 	BindArray
 =================================================
 */
@@ -55,7 +43,7 @@ namespace AE::Scripting
 	struct LogFunc
 	{
 		static void  Err (const String &msg) {
-			AE_LOG_SE( msg );
+			AE_LOGW( msg );
 		}
 
 		static void  Info (const String &msg) {
@@ -68,7 +56,7 @@ namespace AE::Scripting
 		}
 
 		static void  Fatal (const String &msg) __Th___ {
-			AE_LOG_SE( msg );
+			AE_LOGW( msg );
 			throw std::runtime_error{ msg.c_str() };
 		}
 

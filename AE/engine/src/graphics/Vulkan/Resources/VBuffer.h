@@ -25,8 +25,8 @@ namespace AE::Graphics
 
 		Strong<MemoryID>			_memoryId;
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -49,7 +49,7 @@ namespace AE::Graphics
 		ND_ bool				IsExclusiveSharing ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
 		ND_ bool				HasDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _desc.usage, EBufferUsage::ShaderAddress ); }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
 		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &desc)		__NE___;
@@ -61,7 +61,7 @@ namespace AE::Graphics
 		ND_ static bool  IsSupportedForASVertex (const VResourceManager &, EVertexType type)__NE___;
 
 	private:
-		ND_ bool  _InitDeviceAddress (const VDevice &dev);
+		ND_ bool  _InitDeviceAddress (const VDevice &dev) __NE___;
 	};
 
 

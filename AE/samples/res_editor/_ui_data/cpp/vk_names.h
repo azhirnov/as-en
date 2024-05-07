@@ -20,7 +20,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  Histogram_CSPass1 {Hash_t{0x99987a14u}};  // 'Histogram.CSPass1'
 			static constexpr PipelineName_t  Histogram_CSPass2 {Hash_t{0x912baeu}};  // 'Histogram.CSPass2'
-		} Compute;
+		} Compute = {};
 
 		// graphics (1)
 		static constexpr struct _Graphics
@@ -34,7 +34,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  Histogram_draw {Hash_t{0x7765bf1du}};  // 'Histogram.draw'
-		} Graphics;
+		} Graphics = {};
 	} Histogram_RTech;
 
 	static constexpr struct _LinearDepth_RTech
@@ -53,7 +53,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  LinearDepth_draw {Hash_t{0xeeba3c82u}};  // 'LinearDepth.draw'
-		} Graphics;
+		} Graphics = {};
 	} LinearDepth_RTech;
 
 	static constexpr struct _StencilView_RTech
@@ -73,7 +73,7 @@ namespace RenderTechs
 
 			// pipelines
 			static constexpr PipelineName_t  StencilView_draw {Hash_t{0xeced633cu}};  // 'StencilView.draw'
-		} Graphics;
+		} Graphics = {};
 	} StencilView_RTech;
 
 	static constexpr struct _UI_RTech
@@ -93,7 +93,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  imgui_BGRA8 {Hash_t{0x1195dfd1u}};  // 'imgui.BGRA8'
 			static constexpr PipelineName_t  imgui_opaque_BGRA8 {Hash_t{0x74d11b1eu}};  // 'imgui.opaque.BGRA8'
-		} UI_BGRA8;
+		} UI_BGRA8 = {};
 
 		// graphics (1)
 		static constexpr struct _UI_RGBA8
@@ -108,7 +108,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  imgui_RGBA8 {Hash_t{0x6d53eb23u}};  // 'imgui.RGBA8'
 			static constexpr PipelineName_t  imgui_opaque_RGBA8 {Hash_t{0x8172fecu}};  // 'imgui.opaque.RGBA8'
-		} UI_RGBA8;
+		} UI_RGBA8 = {};
 
 		// graphics (2)
 		static constexpr struct _UI_RGB10_A2
@@ -123,7 +123,7 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  imgui_RGB10_A2 {Hash_t{0xf09185c6u}};  // 'imgui.RGB10_A2'
 			static constexpr PipelineName_t  imgui_opaque_RGB10_A2 {Hash_t{0xb445c31du}};  // 'imgui.opaque.RGB10_A2'
-		} UI_RGB10_A2;
+		} UI_RGB10_A2 = {};
 
 		// graphics (3)
 		static constexpr struct _UI_RGBA16F
@@ -138,6 +138,6 @@ namespace RenderTechs
 			// pipelines
 			static constexpr PipelineName_t  imgui_RGBA16F {Hash_t{0xd1da7d62u}};  // 'imgui.RGBA16F'
 			static constexpr PipelineName_t  imgui_opaque_RGBA16F {Hash_t{0x1b1d50eu}};  // 'imgui.opaque.RGBA16F'
-		} UI_RGBA16F;
+		} UI_RGBA16F = {};
 	} UI_RTech;
 }

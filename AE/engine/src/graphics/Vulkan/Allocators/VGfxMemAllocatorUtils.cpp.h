@@ -14,7 +14,7 @@ namespace AE::Graphics
 		CHECK_ERR( image != Default );
 		CHECK_ERR( desc.memType != Default );
 		ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
-				    "Dedicated allocation is not supported" );
+			"Dedicated allocation is not supported" );
 
 		auto&	dev = GraphicsScheduler().GetDevice();
 
@@ -57,7 +57,7 @@ namespace AE::Graphics
 		CHECK_ERR( buffer != Default );
 		CHECK_ERR( desc.memType != Default );
 		ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
-				    "Dedicated allocation is not supported" );
+			"Dedicated allocation is not supported" );
 
 		auto&	dev = GraphicsScheduler().GetDevice();
 
@@ -111,14 +111,14 @@ namespace AE::Graphics
 		uint	i;
 		bool	ok = true;
 
-		for (i = 0; ok & (i < count); ++i)
+		for (i = 0; ok and (i < count); ++i)
 		{
 			ok = (mem_reqs[i].memoryRequirements.memoryTypeBits &= membits_mask) != 0;
 			if ( not ok ) continue;
 
 			ok = _Allocate( dev, Bytes{mem_reqs[i].memoryRequirements.size}, Bytes{mem_reqs[i].memoryRequirements.alignment},
-						    mem_reqs[i].memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
-						    False{"buffer"}, False{"map mem"}, OUT _CastStorage( data[i] ));
+							mem_reqs[i].memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
+							False{"buffer"}, False{"map mem"}, OUT _CastStorage( data[i] ));
 		}
 
 		if_unlikely( not ok )
@@ -219,7 +219,7 @@ namespace AE::Graphics
 				}
 			}};
 
-			for (; ok & (plane < plane_count); ++plane)
+			for (; ok and (plane < plane_count); ++plane)
 			{
 				// get memory requirements
 				VkImagePlaneMemoryRequirementsInfo	mem_req_plane	= {};
@@ -247,8 +247,8 @@ namespace AE::Graphics
 				// allocate memory
 				auto&	mem_data = _CastStorage( data[plane] );
 				ok = _Allocate( dev, Bytes{mem_req.memoryRequirements.size}, Bytes{mem_req.memoryRequirements.alignment},
-							    mem_req.memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
-							    True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )}, OUT mem_data );
+								mem_req.memoryRequirements.memoryTypeBits, False{"no shaderAddress"},
+								True{"image"}, Bool{EMemoryType_IsHostVisible( desc.memType )}, OUT mem_data );
 
 				auto&	bind_info	= bind_infos [plane];
 				auto&	plane_info	= bind_plane_info [plane];

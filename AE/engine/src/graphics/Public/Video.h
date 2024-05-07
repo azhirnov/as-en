@@ -56,7 +56,7 @@ namespace AE::Graphics
 
 
 	// methods
-		VideoProfile () {}
+		VideoProfile ()				__NE___	{}
 
 		ND_ bool	IsDefined ()	C_NE___;
 	};
@@ -78,6 +78,9 @@ namespace AE::Graphics
 		EPixelFormat			referencePictureFormat		= Default;
 		uint					maxDpbSlots					= 0;
 		uint					maxActiveReferencePictures	= 0;
+
+
+		VideoSessionDesc ()		__NE___ {}
 	};
 
 
@@ -133,7 +136,8 @@ namespace AE::Graphics
 		// Will remove unsupported combinations
 		void  Validate ()												__NE___;
 
-		ND_ bool  IsExclusiveSharing ()									C_NE___	{ return queues == Default; }
+		ND_ bool		IsExclusiveSharing ()							C_NE___	{ return queues == Default; }
+		ND_ uint3		Dimension ()									C_NE___	{ return uint3{ dimension, 1u }; }
 
 		VideoImageDesc&  SetDimension (const uint2 &value)				__NE___	{ dimension = value;					return *this; }
 		VideoImageDesc&  SetDimension (uint w, uint h)					__NE___	{ return SetDimension( uint2{w,h} ); }

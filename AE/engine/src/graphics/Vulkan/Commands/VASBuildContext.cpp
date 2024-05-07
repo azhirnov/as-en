@@ -12,15 +12,15 @@ namespace AE::Graphics::_hidden_
 */
 	void  _VDirectASBuildCtx::_Build (const VkAccelerationStructureBuildGeometryInfoKHR &info, VkAccelerationStructureBuildRangeInfoKHR const* const& ranges) __Th___
 	{
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 		switch ( info.mode )
 		{
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :
-				ASSERT( info.srcAccelerationStructure != Default );
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.srcAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
@@ -53,7 +53,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		_Build( build_info, ranges );
 	}
@@ -80,7 +80,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= dst_geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		_Build( build_info, ranges );
 	}
@@ -94,10 +94,9 @@ namespace AE::Graphics::_hidden_
 	{
 		auto  [geom, scratch_buf] = _GetResourcesOrThrow( dst, cmd.scratch.id );
 
-		ASSERT( indirectMem != Default );
 		VALIDATE_GCTX( BuildIndirect( geom.Description(),
 									  scratch_buf.Description(), cmd.scratch.offset,
-									  indirectStride ));
+									  indirectMem, indirectStride ));
 
 		VkAccelerationStructureBuildGeometryInfoKHR		build_info;
 		IAllocatorAdaptor< VTempLinearAllocator >		allocator;
@@ -110,7 +109,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		vkCmdBuildAccelerationStructuresIndirectKHR( _cmdbuf.Get(), 1, &build_info, &indirectMem, &stride, &max_prim_count );
 	}
@@ -141,8 +140,8 @@ namespace AE::Graphics::_hidden_
 
 		geom.geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>(  inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
 		_Build( build_info, p_ranges );
 	}
@@ -175,8 +174,8 @@ namespace AE::Graphics::_hidden_
 
 		geom.geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
 		_Build( build_info, p_ranges );
 	}
@@ -190,10 +189,10 @@ namespace AE::Graphics::_hidden_
 	{
 		auto  [scene, scratch_buf, inst_buf] = _GetResourcesOrThrow( dst, cmd.scratch.id, cmd.instanceData.id );
 
-		ASSERT( indirectMem != Default );
 		VALIDATE_GCTX( BuildIndirect( scene.Description(),
 									  scratch_buf.Description(), cmd.scratch.offset,
-									  inst_buf.Description(), cmd.instanceData.offset ));
+									  inst_buf.Description(), cmd.instanceData.offset,
+									  indirectMem ));
 
 		VkAccelerationStructureBuildGeometryInfoKHR	build_info;
 		VkAccelerationStructureGeometryKHR			geom;
@@ -209,9 +208,9 @@ namespace AE::Graphics::_hidden_
 
 		geom.geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom.geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		vkCmdBuildAccelerationStructuresIndirectKHR( _cmdbuf.Get(), 1, &build_info, &indirectMem, &stride, &max_inst_count );
 	}
@@ -250,7 +249,7 @@ namespace AE::Graphics::_hidden_
 	VkCommandBuffer  _VDirectASBuildCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::ASBuild ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::ASBuild ));
 
 		return VBaseDirectContext::_EndCommandBuffer();  // throw
 	}
@@ -263,7 +262,7 @@ namespace AE::Graphics::_hidden_
 	VCommandBuffer  _VDirectASBuildCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::ASBuild ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( _cmdbuf.Get(), ECtxType::ASBuild ));
 
 		return VBaseDirectContext::_ReleaseCommandBuffer();
 	}
@@ -281,18 +280,18 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( info.sType == VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR );
 		ASSERT( info.pNext == null );
-		ASSERT( srcRanges != null );
+		NonNull( srcRanges );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 		switch ( info.mode )
 		{
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :
-				ASSERT( info.srcAccelerationStructure != Default );
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.srcAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
@@ -327,7 +326,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		_Build( build_info, ranges );
 	}
@@ -355,7 +354,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= dst_geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		_Build( build_info, ranges );
 	}
@@ -386,8 +385,8 @@ namespace AE::Graphics::_hidden_
 
 		geom->geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
 		_Build( build_info, range );
 	}
@@ -420,8 +419,8 @@ namespace AE::Graphics::_hidden_
 
 		geom->geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
 		_Build( build_info, range );
 	}
@@ -436,19 +435,19 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( info.sType == VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR );
 		ASSERT( info.pNext == null );
-		ASSERT( maxPrimCount != null );
 		ASSERT( indirectMem != Default );
+		NonNull( maxPrimCount );
 
-		DEBUG_ONLY(
+		GFX_DBG_ONLY(
 		switch ( info.mode )
 		{
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :
-				ASSERT( info.srcAccelerationStructure != Default );
-				ASSERT( info.dstAccelerationStructure != Default );
+				CHECK( info.srcAccelerationStructure != Default );
+				CHECK( info.dstAccelerationStructure != Default );
 				break;
 
 			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
@@ -475,7 +474,7 @@ namespace AE::Graphics::_hidden_
 
 		VALIDATE_GCTX( BuildIndirect( geom.Description(),
 									  scratch_buf.Description(), cmd.scratch.offset,
-									  indirectStride ));
+									  indirectMem, indirectStride ));
 
 		VkAccelerationStructureBuildGeometryInfoKHR		build_info;
 		IAllocatorAdaptor< GraphicsFrameAllocatorRef >	allocator		{_GetFrameId()};
@@ -487,7 +486,7 @@ namespace AE::Graphics::_hidden_
 		build_info.dstAccelerationStructure		= geom.Handle();
 		build_info.scratchData.deviceAddress	= BitCast<VkDeviceAddress>( scratch_buf.GetDeviceAddress() + cmd.scratch.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
 
 		_BuildIndirect( build_info, indirectMem, max_prim_count, uint(indirectStride) );
 	}
@@ -503,7 +502,8 @@ namespace AE::Graphics::_hidden_
 
 		VALIDATE_GCTX( BuildIndirect( scene.Description(),
 									  scratch_buf.Description(), cmd.scratch.offset,
-									  inst_buf.Description(), cmd.instanceData.offset ));
+									  inst_buf.Description(), cmd.instanceData.offset,
+									  indirectMem ));
 
 		IAllocatorAdaptor< GraphicsFrameAllocatorRef >	allocator		{_GetFrameId()};
 		VkAccelerationStructureBuildGeometryInfoKHR		build_info;
@@ -519,8 +519,8 @@ namespace AE::Graphics::_hidden_
 
 		geom->geometry.instances.data.deviceAddress	= BitCast<VkDeviceAddress>( inst_buf.GetDeviceAddress() + cmd.instanceData.offset );
 
-		ASSERT( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
-		ASSERT( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
+		GCTX_CHECK( IsMultipleOf( build_info.scratchData.deviceAddress, _RTProps().scratchBufferAlign ));
+		GCTX_CHECK( IsMultipleOf( geom->geometry.instances.data.deviceAddress, _RTProps().instanceDataAlign ));
 
 		_BuildIndirect( build_info, indirectMem, max_inst_count, sizeof(VkAccelerationStructureBuildRangeInfoKHR) );
 	}
@@ -569,7 +569,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  _VIndirectASBuildCtx::_WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query) __Th___
 	{
-		ASSERT( query );
+		GCTX_CHECK( query );
 
 		auto&	cmd = _cmdbuf->CreateCmd< WriteASPropertiesCmd >();	// throw
 		cmd.as		= as;
@@ -587,7 +587,7 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( info.pNext == null );
 		ASSERT( info.sType == VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR );
-		ASSERT( info.dst.deviceAddress != Default );
+		GCTX_CHECK( info.dst.deviceAddress != Default );
 
 		auto&	cmd = _cmdbuf->CreateCmd< CopyASToMemoryCmd >();	// throw
 
@@ -600,7 +600,7 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( info.pNext == null );
 		ASSERT( info.sType == VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR );
-		ASSERT( info.src.deviceAddress != Default );
+		GCTX_CHECK( info.src.deviceAddress != Default );
 
 		auto&	cmd = _cmdbuf->CreateCmd< CopyMemoryToASCmd >();	// throw
 
@@ -617,7 +617,7 @@ namespace AE::Graphics::_hidden_
 	VBakedCommands  _VIndirectASBuildCtx::EndCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::ASBuild ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::ASBuild ));
 
 		return VBaseIndirectContext::_EndCommandBuffer();  // throw
 	}
@@ -630,7 +630,7 @@ namespace AE::Graphics::_hidden_
 	VSoftwareCmdBufPtr  _VIndirectASBuildCtx::ReleaseCommandBuffer () __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::ASBuild ); )
+		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ECtxType::ASBuild ));
 
 		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}

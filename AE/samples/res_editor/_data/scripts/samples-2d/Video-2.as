@@ -14,9 +14,11 @@
 	{
 		// initialize
 		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<VideoImage>	vtex	= VideoImage( "res/video/Giannis Troumpadakis.mp4" );
+		RC<VideoImage>	vtex	= VideoImage( "res/video/h264_720p.mp4" );
+	//	RC<VideoImage>	vtex	= VideoImage( "res/video/h265_hdr_4k.mkv" );
+	//	RC<VideoImage>	vtex	= VideoImage( "res/video/h264_4k.mkv" );
+	//	RC<VideoImage>	vtex	= VideoImage( "res/video/h265_4k.mp4" );
 
-		vtex.Ycbcr_Format( EPixelFormat::G8_B8_R8_420_UNorm );
 		vtex.Ycbcr_Model( ESamplerYcbcrModelConversion::Ycbcr_709 );
 		vtex.Ycbcr_Range( ESamplerYcbcrRange::ITU_Full );
 		vtex.Ycbcr_XChromaOffset( ESamplerChromaLocation::CositedEven );

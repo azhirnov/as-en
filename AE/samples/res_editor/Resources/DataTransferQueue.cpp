@@ -139,8 +139,9 @@ namespace AE::ResEditor
 		const uint	max_uploads		= 100;
 		const uint	max_low_mem		= 4;
 		uint		low_mem			= 0;
+		uint		i				= 0;
 
-		for (uint i = 0; i < max_uploads and low_mem < max_low_mem; ++i)
+		for (; i < max_uploads and low_mem < max_low_mem; ++i)
 		{
 			RC<IResource>	res;
 
@@ -149,10 +150,8 @@ namespace AE::ResEditor
 				EXLOCK( q.guard );
 
 				if ( q.queue.empty() )
-				{
-					q.framesWithoutWork.fetch_add( 1 );
-					return;
-				}
+					break;
+
 				res = q.queue.ExtractFront();
 			}
 
@@ -191,6 +190,9 @@ namespace AE::ResEditor
 				switch_end
 			}
 		}
+
+		if ( i > 0 )
+			q.framesWithoutWork.store( 0 );
 	}
 
 /*
@@ -248,8 +250,9 @@ namespace AE::ResEditor
 		const uint	max_readbacks	= 10;
 		const uint	max_low_mem		= 4;
 		uint		low_mem			= 0;
+		uint		i				= 0;
 
-		for (uint i = 0; i < max_readbacks and low_mem < max_low_mem; ++i)
+		for (; i < max_readbacks and low_mem < max_low_mem; ++i)
 		{
 			RC<IResource>	res;
 
@@ -258,10 +261,8 @@ namespace AE::ResEditor
 				EXLOCK( q.guard );
 
 				if ( q.queue.empty() )
-				{
-					q.framesWithoutWork.fetch_add( 1 );
-					return;
-				}
+					break;
+
 				res = q.queue.ExtractFront();
 			}
 
@@ -300,6 +301,9 @@ namespace AE::ResEditor
 				switch_end
 			}
 		}
+
+		if ( i > 0 )
+			q.framesWithoutWork.store( 0 );
 	}
 
 /*

@@ -58,7 +58,7 @@ namespace AE::Scripting::_hidden_
 			void  push_back (T value)				__NE___	{ this->InsertLast( &value ); }
 
 			template <typename ...Args>
-			void  emplace_back (Args&& ...args)		__NE___	{ push_back(T{ FwdArg<Args>(args)... }); }
+			void  emplace_back (Args&& ...args)		__NE___	{ push_back( T{ FwdArg<Args>(args)... }); }
 
 			void  clear ()							__NE___	{ this->Resize( 0 ); }
 			void  resize (usize newSize)			__NE___	{ this->Resize( uint(newSize) ); }
@@ -163,7 +163,7 @@ namespace AE::Scripting::_hidden_
 			void  push_back (T value)						__NE___	{ this->InsertLast( &value ); }
 
 			template <typename ...Args>
-			void  emplace_back (Args&& ...args)				__NE___	{ push_back(T{ FwdArg<Args>(args)... }); }
+			void  emplace_back (Args&& ...args)				__NE___	{ push_back( T{ FwdArg<Args>(args)... }); }
 
 			void  clear ()									__NE___	{ this->Resize( 0 ); }
 			void  resize (usize newSize)					__NE___	{ this->Resize( uint(newSize) ); }

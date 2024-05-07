@@ -22,7 +22,7 @@
 		}
 		{
 			RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+"t" );
-			ppln.SetLayout( "model.pl" );
+			ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/include/Model.as)
 
 			if ( withUV and withNorm )	ppln.SetVertexInput( "VB{Posf3, Normf3, UVf2}" );	else
 			if ( withNorm )				ppln.SetVertexInput( "VB{Posf3, Normf3}" );			else
@@ -139,7 +139,13 @@
 		if ( HasBit( mtr.flags, MtrFlag_AlphaTest ))	// uniform control flow
 		{
 			if ( albedo.a < 0.5 )
-				discard;
+			{
+			  #ifdef AE_demote_to_helper_invocation
+				gl.Demote;
+			  #else
+				gl.Discard;
+			  #endif
+			}
 		}
 
 	  #ifdef TRANSLUCENT

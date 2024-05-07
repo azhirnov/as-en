@@ -53,11 +53,11 @@ namespace AE::Graphics::_hidden_
 		void  _BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, VkDeviceAddress indirectMem)	__Th___;
 
 		void  _Build (const VkAccelerationStructureBuildGeometryInfoKHR &info,
-					  VkAccelerationStructureBuildRangeInfoKHR const* const& ranges);
+					  VkAccelerationStructureBuildRangeInfoKHR const* const& ranges)				__Th___;
 
-		void  _WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query);
+		void  _WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query)		__Th___;
 		void  _WriteProperty (VkAccelerationStructureKHR as, VkBuffer dstBuffer, Bytes offset,
-							  const VQueryManager::Query &query);
+							  const VQueryManager::Query &query)									__Th___;
 
 		ND_ DeviceProperties::RayTracingProperties const&  _RTProps ()								C_NE___	{ return _GetBarrierMngr().GetDevice().GetDeviceProperties().rayTracing; }
 	};
@@ -119,7 +119,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VASBuildContextImpl : public CtxImpl, public IASBuildContext
+	class _VASBuildContextImpl final : public CtxImpl, public IASBuildContext
 	{
 	// types
 	public:
@@ -139,6 +139,8 @@ namespace AE::Graphics::_hidden_
 		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
 
 		using RawCtx::Copy;
+		using RawCtx::SerializeToMemory;
+		using RawCtx::DeserializeFromMemory;
 
 		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)													__Th_OV	{ RawCtx::_Build( cmd, dst ); }
 		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)								__Th_OV	{ RawCtx::_Update( cmd, src, dst ); }
@@ -148,17 +150,17 @@ namespace AE::Graphics::_hidden_
 		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)										__Th_OV	{ RawCtx::_Update( cmd, src, dst ); }
 		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)						__Th_OV;
 
-		void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)												__Th___;
-		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)									__Th___;
+		void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)												__Th_OV;
+		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)									__Th_OV;
 
-		void  SerializeToMemory (RTSceneID src, DeviceAddress dst)													__Th___;
-		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)										__Th___;
+		void  SerializeToMemory (RTSceneID src, DeviceAddress dst)													__Th_OV;
+		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)										__Th_OV;
 
-		void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)											__Th___;
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)								__Th___;
+		void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)											__Th_OV;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)								__Th_OV;
 
-		void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)												__Th___;
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)									__Th___;
+		void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)												__Th_OV;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)									__Th_OV;
 
 		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
 		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
@@ -167,14 +169,14 @@ namespace AE::Graphics::_hidden_
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)											__Th_OV	{ return _ReadProperty( property, as ); }
 
 		void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer,
-							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)									__Th___;
+							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)									__Th_OV;
 		void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
 							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b,
-							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)									__Th___;
+							 Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)									__Th_OV;
 
-		void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)					__Th___;
+		void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)					__Th_OV;
 		void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
-							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)								__Th___;
+							 BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)								__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 
@@ -214,17 +216,11 @@ namespace AE::Graphics::_hidden_
 
 	inline void  _VDirectASBuildCtx::SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info) __Th___
 	{
-		GCTX_CHECK( info.dst.deviceAddress != Default );
-		GCTX_CHECK( IsMultipleOf( info.dst.deviceAddress, 256 ));
-
 		vkCmdCopyAccelerationStructureToMemoryKHR( _cmdbuf.Get(), &info );
 	}
 
 	inline void  _VDirectASBuildCtx::DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info) __Th___
 	{
-		GCTX_CHECK( info.src.deviceAddress != Default );
-		GCTX_CHECK( IsMultipleOf( info.src.deviceAddress, 256 ));
-
 		vkCmdCopyMemoryToAccelerationStructureKHR( _cmdbuf.Get(), &info );
 	}
 //-----------------------------------------------------------------------------
@@ -307,7 +303,7 @@ namespace AE::Graphics::_hidden_
 		switch_end
 
 		auto&	qm		= this->_mngr.GetQueryManager();
-		auto	query	= qm.AllocQuery( this->_mngr.GetQueueType(), q_type );
+		auto	query	= qm.AllocQuery( GetFrameId(), this->_mngr.GetQueueType(), q_type );
 		CHECK_THROW( query );
 
 		return query;
@@ -374,7 +370,7 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, DeviceAddress dst) __Th___
 	{
 		auto&	src_as = _GetResourcesOrThrow( src );
-		VALIDATE_GCTX( SerializeToMemory( src_as.Description(), dst ));
+		VALIDATE_GCTX( SerializeToMemory( dst ));
 
 		VkCopyAccelerationStructureToMemoryInfoKHR	info;
 		info.sType				= VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR;
@@ -382,7 +378,6 @@ namespace AE::Graphics::_hidden_
 		info.src				= src_as.Handle();
 		info.dst.deviceAddress	= VkDeviceAddress(dst);
 		info.mode				= VK_COPY_ACCELERATION_STRUCTURE_MODE_SERIALIZE_KHR;
-
 		return RawCtx::SerializeToMemory( info );
 	}
 
@@ -391,15 +386,14 @@ namespace AE::Graphics::_hidden_
 	{
 		auto&	dst_buf	= _GetResourcesOrThrow( dst );
 		VALIDATE_GCTX( SerializeToMemory( dst_buf.Description(), dstOffset ));
-
-		return SerializeToMemory( src, BitCast<VkDeviceAddress>( dst_buf.GetDeviceAddress() + dstOffset ));
+		return SerializeToMemory( src, dst_buf.GetDeviceAddress() + dstOffset );
 	}
 
 	template <typename C>
 	void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, DeviceAddress dst) __Th___
 	{
 		auto&	src_as = _GetResourcesOrThrow( src );
-		VALIDATE_GCTX( SerializeToMemory( src_as.Description(), dst ));
+		VALIDATE_GCTX( SerializeToMemory( dst ));
 
 		VkCopyAccelerationStructureToMemoryInfoKHR	info;
 		info.sType				= VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR;
@@ -407,7 +401,6 @@ namespace AE::Graphics::_hidden_
 		info.src				= src_as.Handle();
 		info.dst.deviceAddress	= VkDeviceAddress(dst);
 		info.mode				= VK_COPY_ACCELERATION_STRUCTURE_MODE_SERIALIZE_KHR;
-
 		return RawCtx::SerializeToMemory( info );
 	}
 
@@ -416,8 +409,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto&	dst_buf	= _GetResourcesOrThrow( dst );
 		VALIDATE_GCTX( SerializeToMemory( dst_buf.Description(), dstOffset ));
-
-		return SerializeToMemory( src, BitCast<VkDeviceAddress>( dst_buf.GetDeviceAddress() + dstOffset ));
+		return SerializeToMemory( src, dst_buf.GetDeviceAddress() + dstOffset );
 	}
 
 /*
@@ -429,15 +421,14 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTGeometryID dst) __Th___
 	{
 		auto&	dst_as = _GetResourcesOrThrow( dst );
-		VALIDATE_GCTX( DeserializeFromMemory( src, dst_as ));
+		VALIDATE_GCTX( DeserializeFromMemory( src ));
 
 		VkCopyMemoryToAccelerationStructureInfoKHR	info;
 		info.sType				= VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR;
 		info.pNext				= null;
 		info.src.deviceAddress	= VkDeviceAddress(src);
-		info.dst				= dst_as->Handle();
+		info.dst				= dst_as.Handle();
 		info.mode				= VK_COPY_ACCELERATION_STRUCTURE_MODE_DESERIALIZE_KHR;
-
 		return RawCtx::DeserializeFromMemory( info );
 	}
 
@@ -446,15 +437,14 @@ namespace AE::Graphics::_hidden_
 	{
 		auto&	src_buf	= _GetResourcesOrThrow( src );
 		VALIDATE_GCTX( DeserializeFromMemory( src_buf.Description(), srcOffset ));
-
-		return DeserializeFromMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
+		return DeserializeFromMemory( src_buf.GetDeviceAddress() + srcOffset, dst );
 	}
 
 	template <typename C>
 	void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTSceneID dst) __Th___
 	{
 		auto&	dst_as = _GetResourcesOrThrow( dst );
-		VALIDATE_GCTX( DeserializeFromMemory( src, dst_as.Description() ));
+		VALIDATE_GCTX( DeserializeFromMemory( src ));
 
 		VkCopyMemoryToAccelerationStructureInfoKHR	info;
 		info.sType				= VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR;
@@ -462,7 +452,6 @@ namespace AE::Graphics::_hidden_
 		info.src.deviceAddress	= VkDeviceAddress(src);
 		info.dst				= dst_as.Handle();
 		info.mode				= VK_COPY_ACCELERATION_STRUCTURE_MODE_DESERIALIZE_KHR;
-
 		return RawCtx::DeserializeFromMemory( info );
 	}
 
@@ -471,8 +460,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto&	src_buf	= _GetResourcesOrThrow( src );
 		VALIDATE_GCTX( DeserializeFromMemory( src_buf.Description(), srcOffset ));
-
-		return DeserializeFromMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
+		return DeserializeFromMemory( src_buf.GetDeviceAddress() + srcOffset, dst );
 	}
 
 /*
@@ -483,7 +471,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VASBuildContextImpl<C>::BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer, Bytes indirectStride) __Th___
 	{
-		return RawCtx::_BuildIndirect( cmd, dst, indirectBuffer, indirectStride );
+		return RawCtx::_BuildIndirect( cmd, dst, BitCast<VkDeviceAddress>(indirectBuffer), indirectStride );
 	}
 
 	template <typename C>
@@ -503,7 +491,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VASBuildContextImpl<C>::BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer) __Th___
 	{
-		return RawCtx::_BuildIndirect( cmd, dst, indirectBuffer );
+		return RawCtx::_BuildIndirect( cmd, dst, BitCast<VkDeviceAddress>(indirectBuffer) );
 	}
 
 	template <typename C>

@@ -84,4 +84,19 @@ namespace AE::Graphics
 	};
 
 
+	//
+	// Ray Tracing Shader Group Type
+	//
+	enum class ERTShaderGroup : ubyte
+	{
+		General,
+		ClosestHit,
+		AnyHit,
+		Intersection,
+
+		_Count,
+		Unknown	= 0xFF
+	};
+
+
 } // AE::Graphics

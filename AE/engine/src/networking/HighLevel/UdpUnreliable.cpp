@@ -74,7 +74,7 @@ namespace {
 
 		const auto	SendData		= [this, &addr, &qs, &encoded, &pending, &isDisconnected] ()
 		{{
-			for (bool retry = true; retry & (encoded - pending > 0);)
+			for (bool retry = true; retry and (encoded - pending > 0);)
 			{
 				ASSERT( encoded > pending );
 

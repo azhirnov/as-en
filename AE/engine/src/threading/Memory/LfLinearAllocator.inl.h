@@ -75,20 +75,20 @@ namespace AE::Threading
 	{
 		DRC_EXLOCK( _drCheck );
 
-		for (auto& block : _blocks)
-		{
-			block.size.store( 0 );
-		}
-
 	#ifdef AE_DEBUG
 		MemoryBarrier( EMemoryOrder::Acquire );
 		for (auto& block : _blocks)
 		{
 			if ( auto* ptr = block.mem.load() )
-				DbgInitMem( OUT ptr, BlockSize() );
+				DbgInitMem( OUT ptr, Min( block.size.exchange(0), BlockSize() ));
 		}
 		MemoryBarrier( EMemoryOrder::Release );
 	#endif
+
+		for (auto& block : _blocks)
+		{
+			block.size.store( 0 );
+		}
 	}
 
 /*

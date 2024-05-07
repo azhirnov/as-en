@@ -31,6 +31,7 @@ namespace AE::Base
 									Conditional< (alignof(T) == alignof(ushort)), ushort, uint >>;
 
 		StaticAssert( ArraySize <= MaxValue<Count_t>() );
+		//StaticAssert( sizeof(T) * ArraySize <= (2u << 10) );
 
 
 	// variables
@@ -109,6 +110,8 @@ namespace AE::Base
 
 		constexpr void  resize (usize newSize)					__NE___;
 		constexpr void  resize (usize newSize, const T &defaultValue) __NE___;
+
+		constexpr void  reserve (usize newCapacity)				__NE___	{ ASSERT( newCapacity <= capacity() );  Unused( newCapacity ); }
 
 		constexpr void  clear ()								__NE___;
 
@@ -263,7 +266,9 @@ namespace AE::Base
 	template <typename ...Args>
 	constexpr T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) __NE___
 	{
+		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( _count < capacity() );
+
 		T* ptr = data() + _count;
 		PlacementNew<T>( OUT ptr, FwdArg<Args>( args )... );
 		++_count;
@@ -322,6 +327,8 @@ namespace AE::Base
 	template <typename ...Args>
 	constexpr bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) __NE___
 	{
+		StaticAssert( IsConstructible< T, Args... >);
+
 		if_likely( _count < capacity() )
 		{
 			PlacementNew<T>( OUT data() + _count, FwdArg<Args &&>( args )... );

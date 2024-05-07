@@ -17,15 +17,15 @@
 		UniformOffsets_t			_unOffsets		{};
 		Uniforms_t					_uniforms;		// allocated by pipeline pack linear allocator
 
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+		GFX_DBG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(		RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
 	public:
 		ND_ Uniforms_t const&			GetUniforms ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _uniforms; }
 
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 		template <EDescriptorType DescType>
 		ND_ Uniforms_t					GetUniformRange ()		C_NE___

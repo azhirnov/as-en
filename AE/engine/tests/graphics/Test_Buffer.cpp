@@ -1,12 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Utils/Helpers.h"
-#include "graphics/Public/ResourceManager.h"
-#include "UnitTest_Common.h"
+#include "TestsGraphics.pch.h"
 
 namespace
 {
-	static void  BufferView_Test (IResourceManager &resMngr, const BufferDesc &bufDesc)
+	static void  BufferView_Test (ResourceManager &resMngr, const BufferDesc &bufDesc)
 	{
 		if ( not AnyBits( bufDesc.usage, EBufferUsage::UniformTexel | EBufferUsage::StorageTexel ))
 			return;
@@ -30,7 +28,7 @@ namespace
 	}
 
 
-	static void  Buffer_Test (IResourceManager &resMngr)
+	static void  Buffer_Test (ResourceManager &resMngr)
 	{
 		ulong	supported	= 0;
 		ulong	unsupported	= 0;
@@ -63,7 +61,7 @@ namespace
 	}
 }
 
-extern void Test_Buffer (IResourceManager &resMngr)
+extern void Test_Buffer (ResourceManager &resMngr)
 {
 	Buffer_Test( resMngr );
 

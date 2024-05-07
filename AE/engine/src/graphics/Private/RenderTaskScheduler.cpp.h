@@ -178,7 +178,7 @@
 
 		// check frame UID
 		CHECK_ERR_MSG( rts._perFrameUID[ _frameId.Index() ].load() == _frameId,
-						"Invalid frame UID, task will be canceled" );
+			"Invalid frame UID, task will be canceled" );
 
 		const auto	q_mask = rts.GetDevice().GetAvailableQueues();
 
@@ -195,20 +195,25 @@
 
 			CHECK_ERR_MSG( bf.packed.pending == bf.packed.required and
 						   bf.packed.pending == bf.packed.submitted,
-						   "Some batches are not submitted, EndFrame task must depends on all tasks which submit batches" );
+				"Some batches are not submitted, EndFrame task must depends on all tasks which submit batches" );
 
 			q.pending.fill( Default );
 		}
 
-		rts._resMngr->OnEndFrame( _frameId );
+		rts._resMngr->_OnEndFrame( _frameId );
 
-		CHECK_ERR_MSG( rts._SetState( EState::RecordFrame, EState::Idle ),
-						"incorrect render task scheduler state, must be 'EState::RecordFrame'" );
+		CHECK_ERR_MSG( rts._status.Set( RTS_EStatus::RecordFrame, RTS_EStatus::Idle ),
+			"incorrect render task scheduler status, must be 'EStatus::RecordFrame'" );
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			CHECK( _frameId == rts.DbgFrameId() );
 			rts._dbgFrameId.store( Default );
 		)
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		CHECK_ERR( rts._EndFrame( _frameId ));
+	  #endif
+
 		return true;
 	}
 
@@ -240,7 +245,7 @@
 			q.pending.fill( Default );
 		}
 
-		Unused( rts._SetState( EState::Idle ));
+		Unused( rts._status.Set( RTS_EStatus::Idle ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -309,7 +314,7 @@
 */
 	bool  RenderTaskScheduler::Initialize (const GraphicsCreateInfo &info) __NE___
 	{
-		CHECK_ERR( _SetState( EState::Initial, EState::Initialization ));
+		CHECK_ERR( _status.Set( EStatus::Initial, EStatus::Initialization ));
 
 		CHECK_ERR( info.maxFrames >= GraphicsConfig::MinFrames );
 		CHECK_ERR( info.maxFrames <= GraphicsConfig::MaxFrames );
@@ -329,7 +334,7 @@
 		#elif defined(AE_ENABLE_METAL)
 			// MTLSharedEvent must be supported
 		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-			// TODO
+			CHECK_ERR( _Initialize( info ));
 		#else
 		#	error not implemented
 		#endif
@@ -338,7 +343,7 @@
 			_perFrame[i].submitted.reserve( _MaxSubmittedBatches );		// throw
 		}
 
-		_resMngr.reset( new ResourceManager_t{ _device });
+		_resMngr.reset( new ResourceManager{ _device });
 		CHECK_ERR( _resMngr->Initialize( info ));
 
 	  #ifdef AE_ENABLE_VULKAN
@@ -351,7 +356,7 @@
 		if ( info.useRenderGraph )
 			_rg.reset( new RenderGraph_t{} );
 
-		CHECK_ERR( _SetState( EState::Initialization, EState::Idle ));
+		CHECK_ERR( _status.Set( EStatus::Initialization, EStatus::Idle ));
 		return true;
 	}
 
@@ -362,20 +367,16 @@
 */
 	void  RenderTaskScheduler::Deinitialize () __NE___
 	{
-		const auto	state = _state.exchange( EState::Destroyed );
-		if ( AnyEqual( state, EState::Destroyed, EState::Initial ))
+		const auto	state = _status.Set( EStatus::Destroyed );
+		if ( AnyEqual( state, EStatus::Destroyed, EStatus::Initial ))
 			return;
 
-		CHECK( state == EState::Idle );
+		CHECK( state == EStatus::Idle );
 		CHECK( _WaitAll( seconds{1} ));
 
 		_rg.reset();
 
 		_batchPool.Release( True{"check for assigned"} );
-
-	  #ifdef AE_ENABLE_VULKAN
-		_cmdPoolMngr = null;
-	  #endif
 
 		if ( _resMngr )
 		{
@@ -385,6 +386,13 @@
 
 		Scheduler().UnregisterDependency< CmdBatchOnSubmit >();
 		Scheduler().UnregisterDependency< RC<CommandBatch_t> >();
+
+	  #ifdef AE_ENABLE_VULKAN
+		_cmdPoolMngr = null;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		_Deinitialize();
+	  #endif
 	}
 
 /*
@@ -396,27 +404,26 @@
 	{
 		ASSERT( timeout != Default );
 
-		using TimePoint2_t			= Threading::TaskScheduler::TimePoint_t;
-		const auto	end_time		= TimePoint2_t::clock::now() + timeout;
-		const uint	tasks_per_tick	= 6;
+		using TimePoint2_t		= Threading::TaskScheduler::TimePoint_t;
+		const auto	end_time	= TimePoint2_t::clock::now() + timeout;
 
 		// wait for 'EndFrameTask' and other dependencies
 		const auto	frame_id = _frameId.load().Inc();
 		{
-			auto	begin_deps2 = _beginDeps.WriteNoLock();
-			EXLOCK( begin_deps2 );
+			auto	begin_deps = _beginDeps[ frame_id.Remap( _FrameDepsHistory )].WriteLock();
 
-			auto&	begin_deps = (*begin_deps2)[ frame_id.Index() ];
-
-			if_unlikely( not Scheduler().Wait( begin_deps, threads, end_time, tasks_per_tick ))
+			if_unlikely( not Scheduler().Wait( *begin_deps, threads, end_time, _ProcessTasksPerTick ))
 				return false;  // time is out
 
-			begin_deps.clear();
+			begin_deps->clear();
 		}
 
-		ASSERT( _GetState() == EState::Idle );
+		ASSERT( _status.load() == EStatus::Idle );
 
 		// wait for GPU frame completion
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		CHECK_ERR( _WaitNextFrame( frame_id, timeout ));
+	  #else
 		for (;;)
 		{
 			if ( _IsFrameCompleted( frame_id ))
@@ -425,12 +432,13 @@
 			if_unlikely( TimePoint2_t::clock::now() > end_time )
 				return false;  // time is out
 
-			if_unlikely( not Scheduler().ProcessTasks( threads, Threading::EThreadSeed(usize(this) & 0xF), tasks_per_tick ))
+			if_unlikely( not Scheduler().ProcessTasks( threads, Threading::EThreadSeed(usize(this) & 0xF), _ProcessTasksPerTick ))
 			{
 				Scheduler().DbgDetectDeadlock();
 				ThreadUtils::Sleep_500us();
 			}
 		}
+	  #endif
 		return true;
 	}
 
@@ -441,17 +449,17 @@
 */
 	bool  RenderTaskScheduler::BeginFrame (const BeginFrameConfig &cfg) __NE___
 	{
-		CHECK_ERR_MSG( _SetState( EState::Idle, EState::BeginFrame ),
-						"incorrect render task scheduler state, must be 'Idle'." );
+		CHECK_ERR_MSG( _status.Set( EStatus::Idle, EStatus::BeginFrame ),
+			"incorrect render task scheduler state, must be 'Idle'." );
 
 		const auto	frame_id = _frameId.Inc();
 
-		ASSERT( _beginDeps->at( frame_id.Index() ).empty() );
+		ASSERT( _beginDeps[ frame_id.Remap( _FrameDepsHistory )].ConstPtr()->empty() );
 
 		// update frame time
 		{
 			_perFrameUID[ frame_id.Index() ].store( frame_id );
-			Unused( _SetState( EState::BeginFrame ));
+			Unused( _status.Set( EStatus::BeginFrame ));
 
 			auto	cur_time	= TimePoint_t::clock::now();
 			auto	last_update	= _lastUpdate.exchange( cur_time );
@@ -462,30 +470,34 @@
 		// recycle per-frame memory
 		MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
 
-		_resMngr->OnBeginFrame( frame_id, cfg );
+		_resMngr->_OnBeginFrame( frame_id, cfg );
 
 	  #ifdef AE_ENABLE_VULKAN
 		CHECK( _cmdPoolMngr->NextFrame( frame_id ));
+	  #endif
 
 		// release expired resources before next frame
-		const uint	frame_offset = frame_id.MaxFrames() + ResourceManager_t::ExpiredResFrameOffset;
+		const uint	frame_offset = frame_id.MaxFrames() + ResourceManager::ExpiredResFrameOffset;
 
 		if_likely( auto prev_id = frame_id.Sub( frame_offset );  prev_id.has_value() )
 		{
-			AsyncTask	task = MakeRC< ResourceManager_t::VReleaseExpiredResourcesTask >( *prev_id );
+			AsyncTask	task = MakeRC< ResourceManager::ReleaseExpiredResourcesTask >( *prev_id );
 			if_likely( Scheduler().Run( task ))
 				AddNextFrameDeps( RVRef(task) );
 		}
+
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		CHECK_ERR( _BeginFrame( cfg ));
 	  #endif
 
-		DBG_GRAPHICS_ONLY(
+		GFX_DBG_ONLY(
 			if ( auto prof = GetProfiler() )
 				prof->NextFrame( frame_id );
 
 			_dbgFrameId.store( frame_id );
 		)
 
-		CHECK( _SetState( EState::BeginFrame, EState::RecordFrame ));
+		CHECK( _status.Set( EStatus::BeginFrame, EStatus::RecordFrame ));
 		return true;
 	}
 
@@ -497,44 +509,39 @@
 	void  RenderTaskScheduler::AddFrameDeps (const FrameUID frameId, ArrayView<AsyncTask> deps) __NE___
 	{
 		ASSERT( frameId > GetFrameId() );
-		ASSERT( frameId <= GetFrameId().NextCycle() );
-		//ASSERT( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame, EState::Idle ));
+		ASSERT( frameId <= GetFrameId().NextCycle().Inc() );
+		//ASSERT( AnyEqual( _status.Get(), EStatus::BeginFrame, EStatus::RecordFrame, EStatus::Idle ));
 
+		return _AddFrameDeps( frameId.Remap( _FrameDepsHistory ), deps );
+	}
+
+	void  RenderTaskScheduler::_AddFrameDeps (const uint frameIdx, ArrayView<AsyncTask> deps) __NE___
+	{
 		if_unlikely( deps.empty() )
 			return;
 
-		auto		begin_deps2 = _beginDeps.WriteNoLock();
-		DeferExLock	lock		{ begin_deps2 };
+		auto	begin_deps	= _beginDeps[ frameIdx ].WriteNoLock();
+		DeferExLock	lock	{ begin_deps };
 		EXLOCK( lock );
-
-		auto&		begin_deps = (*begin_deps2)[ frameId.Index() ];
 
 		for (auto& dep : deps)
 		{
-			if_unlikely( begin_deps.size() == begin_deps.capacity() )
+			if_unlikely( begin_deps->size() == begin_deps->capacity() )
 			{
-				BeginDepsArray_t	temp {RVRef(begin_deps)};
-				begin_deps.clear();
+				FrameDepsArray_t	temp {RVRef(*begin_deps)};
+				begin_deps->clear();
 
 				lock.unlock();
 
 				AsyncTask	task = Scheduler().WaitAsync( Threading::ETaskQueue::Renderer, Tuple{ ArrayView<AsyncTask>{ temp }});
 
 				lock.lock();
-				begin_deps.push_back( RVRef(task) );
+				begin_deps->push_back( RVRef(task) );
 			}
 
 			if_likely( dep )
-				begin_deps.push_back( dep );
+				begin_deps->push_back( dep );
 		}
-	}
-
-	void  RenderTaskScheduler::AddFrameDeps (FrameUID frameId, AsyncTask dep) __NE___
-	{
-		if ( not dep )
-			return;
-
-		return AddFrameDeps( frameId, ArrayView<AsyncTask>{ dep });
 	}
 
 /*
@@ -542,7 +549,7 @@
 	_FlushQueue
 =================================================
 */
-	bool  RenderTaskScheduler::_FlushQueue (const EQueueType queueType, const FrameUID frameId, const bool forceFlush)
+	bool  RenderTaskScheduler::_FlushQueue (const EQueueType queueType, const FrameUID frameId, const bool forceFlush) __NE___
 	{
 		TempBatches_t	pending;
 
@@ -621,7 +628,8 @@
 				CHECK_ERR( _FlushQueue2( queueType, pending ));
 
 			#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-				// TODO
+				CHECK_ERR( _FlushQueue2( queueType, pending ));
+
 			#else
 			#	error not implemented
 			#endif
@@ -650,6 +658,10 @@
 		ASSERT( bits == UMax or bits < mask );
 		CHECK_ERRV( AllBits( _device.GetAvailableQueues(), EQueueMask(1u << uint(queue)) ));
 
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		_SkipCmdBatches( queue, bits );
+	  #endif
+
 		bits &= mask;
 
 		auto&	packed_bits = _queueMap[ uint(queue) ].bits;
@@ -664,7 +676,7 @@
 			desired.packed.pending	= exp.packed.pending  | (bits & ~exp.packed.required);
 
 			if_likely( packed_bits.CAS( INOUT exp.value, desired.value ))
-				return;
+				break;
 
 			ThreadUtils::Pause();
 		}
@@ -677,18 +689,18 @@
 	returns 'null' on error
 =================================================
 */
-	RC<RenderTaskScheduler::CommandBatch_t>  RenderTaskScheduler::BeginCmdBatch (EQueueType queue, const uint submitIdx, DebugLabel dbg, void* userData) __NE___
+	RC<RenderTaskScheduler::CommandBatch_t>  RenderTaskScheduler::BeginCmdBatch (const CmdBatchDesc &desc) __NE___
 	{
-		CHECK_ERR( submitIdx < _MaxPendingBatches );
-		CHECK_ERR( AnyEqual( _GetState(), EState::Idle, EState::BeginFrame, EState::RecordFrame ));
-		CHECK_ERR( AllBits( _device.GetAvailableQueues(), EQueueMask(1u << uint(queue)) ));
+		CHECK_ERR( desc.submitIdx < _MaxPendingBatches );
+		CHECK_ERR( AnyEqual( _status.load(), EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
+		CHECK_ERR( AllBits( _device.GetAvailableQueues(), EQueueMask(1u << uint(desc.queue)) ));
 
 		// validate 'submitIdx'
 		{
 			QueueData::Bitfield	bf;
-			bf.packed.required = 1ull << submitIdx;
+			bf.packed.required = 1ull << desc.submitIdx;
 
-			const auto	old_bits = BitCast<QueueData::Bitfield>( _queueMap[ uint(queue) ].bits.fetch_or( bf.value ));
+			const auto	old_bits = BitCast<QueueData::Bitfield>( _queueMap[ uint(desc.queue) ].bits.fetch_or( bf.value ));
 
 			CHECK_ERR_MSG( not AnyBits( old_bits.packed.required,  bf.packed.required ), "batch with 'submitIdx' is already created" );
 			CHECK_ERR_MSG( not AnyBits( old_bits.packed.pending,   bf.packed.required ) or
@@ -702,7 +714,7 @@
 
 		// 'GetFrameId()' may not equal to 'DbgFrameId()'
 
-		if_likely( batch._Create( queue, GetFrameId(), submitIdx, dbg, userData ))
+		if_likely( batch._Create( GetFrameId(), desc ))
 			return RC<CommandBatch_t>{ &batch };
 
 		_batchPool.Unassign( index );
@@ -718,13 +730,54 @@
 */
 	bool  RenderTaskScheduler::WaitAll (nanoseconds timeout) __NE___
 	{
-		const auto	state = _GetState();
-		if ( state == EState::Destroyed )
+		const auto	state = _status.load();
+		if ( state == EStatus::Destroyed )
 			return true;
 
-		CHECK( AnyEqual( state, EState::Idle, EState::BeginFrame, EState::RecordFrame ));
+		CHECK( AnyEqual( state, EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
 
 		return _WaitAll( timeout );
+	}
+
+	bool  RenderTaskScheduler::WaitAll (const EThreadArray &threads, nanoseconds timeout) __NE___
+	{
+		const auto	state = _status.load();
+		if ( state == EStatus::Destroyed )
+			return true;
+
+		CHECK( AnyEqual( state, EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
+
+		const auto	end_time = TimePoint_t::clock::now() + timeout;
+
+		return _WaitAllBatches( end_time ) and _WaitAllTasks( threads, end_time );
+	}
+
+/*
+=================================================
+	_WaitAllTasks
+=================================================
+*/
+	bool  RenderTaskScheduler::_WaitAllTasks (const EThreadArray &threads, const TimePoint_t endTime) __NE___
+	{
+		bool	complete = true;
+
+		for (auto& frame_deps : _beginDeps)
+		{
+			auto	deps = frame_deps.WriteLock();
+
+			if ( deps->empty() )
+				continue;
+
+			if ( not Scheduler().Wait( *deps, threads, endTime, _ProcessTasksPerTick ))
+			{
+				complete = false;
+				break;
+			}
+			else
+				deps->clear();
+		}
+
+		return complete;
 	}
 
 /*
@@ -732,12 +785,22 @@
 	_WaitAll
 =================================================
 */
-	bool  RenderTaskScheduler::_WaitAll (const nanoseconds timeout)
+	bool  RenderTaskScheduler::_WaitAll (const nanoseconds timeout) __NE___
 	{
-		using Clock_t = std::chrono::high_resolution_clock;
+		const auto	end_time = TimePoint_t::clock::now() + timeout;
 
-		const auto	end_time	= Clock_t::now() + timeout;
-		const auto	q_mask		= _device.GetAvailableQueues();
+		return _WaitAllBatches( end_time );
+	}
+
+/*
+=================================================
+	_WaitAllBatches
+=================================================
+*/
+#ifndef AE_ENABLE_REMOTE_GRAPHICS
+	bool  RenderTaskScheduler::_WaitAllBatches (const TimePoint_t endTime) __NE___
+	{
+		const auto	q_mask = _device.GetAvailableQueues();
 
 		for (;;)
 		{
@@ -762,11 +825,11 @@
 			if ( complete )
 				return true;
 
-			if ( Clock_t::now() > end_time )
+			if ( TimePoint_t::clock::now() > endTime )
 				return false;
 		}
 	}
-
+#endif
 /*
 =================================================
 	SetProfiler
@@ -774,16 +837,18 @@
 */
 	void  RenderTaskScheduler::SetProfiler (RC<IGraphicsProfiler> profiler) __NE___
 	{
-	DBG_GRAPHICS_ONLY(
-		_profiler.store( profiler );
+		GFX_DBG_ONLY(
+			_profiler.store( profiler );
 
-		if ( not profiler )
-			return;
+			if ( not profiler )
+				return;
 
-		for (auto& q : _device.GetQueues()) {
-			profiler->SetQueue( q.type, q.debugName );
-		}
-	)}
+			for (auto& q : _device.GetQueues()) {
+				profiler->SetQueue( q.type, q.debugName );
+			}
+		)
+		Unused( profiler );
+	}
 
 /*
 =================================================

@@ -25,8 +25,7 @@ namespace AE::Networking
 				MemCopy( OUT msg.Extra<char>(), extra_size, short_path.data(), StringSizeOf(short_path) );
 				extra_size -= Min( extra_size, StringSizeOf(short_path) );
 
-				MemCopy( OUT msg.Extra<char>() + StringSizeOf(short_path), extra_size,
-						 info.message.data(), StringSizeOf(info.message) );
+				MemCopy( OUT msg.Extra<char>() + StringSizeOf(short_path), info.message.data(), Min( extra_size, StringSizeOf(info.message) ));
 
 				msg->msg		= StringView{ msg.Extra<char>() + StringSizeOf(short_path), usize(extra_size) };
 				msg->loc.file	= StringView{ msg.Extra<char>(), short_path.size() };
@@ -39,7 +38,7 @@ namespace AE::Networking
 			}
 		}
 
-		const ELevel	log_level = info.level > ELevel::SilentError ? ELevel::SilentError : info.level;
+		const ELevel	log_level = info.level > ELevel::Warning ? ELevel::Warning : info.level;
 
 		// send other parts
 		for (; offset < info.message.size();)

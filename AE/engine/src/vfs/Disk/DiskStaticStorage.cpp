@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/DataSource/UnixAsyncDataSource.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 #include "vfs/Disk/DiskStaticStorage.h"
 #include "vfs/Disk/Utils.cpp.h"
@@ -26,14 +25,14 @@ namespace AE::VFS
 		DRC_EXLOCK( _drCheck );
 
 		CHECK_ERR( _folder.empty() );
-		CHECK_ERR( FileSystem::IsDirectory( folder ));
+
+		_folder = FileSystem::ToAbsolute( folder );
+		CHECK_ERR( FileSystem::IsDirectory( _folder ));
 
 		_allocator.Discard();
 
 		_map.clear();
 		_map.reserve( 128 );	// throw
-
-		_folder = FileSystem::ToAbsolute( folder );
 
 		// build file map
 		Array< Path >	stack;
@@ -54,13 +53,12 @@ namespace AE::VFS
 					auto		file = FileSystem::ToRelative( entry.Get(), _folder );
 					StringView	str;
 
-					CHECK_ERR( Convert<Path::value_type>( OUT str, file.native(), _allocator ));
+					CHECK_ERR( Convert( OUT str, file, _allocator ));
 
 					name.clear();
 					name.reserve( prefix.size() + str.size() + 1 );
 
 					name << prefix << str;
-					FindAndReplace( INOUT name, '\\', '/' );
 
 					DEBUG_ONLY( _hashCollisionCheck.Add( FileName{name} ));
 
@@ -95,16 +93,7 @@ namespace AE::VFS
 
 	bool  DiskStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
 	{
-	#if defined(AE_PLATFORM_WINDOWS)
-		return _Open< Threading::WinAsyncRDataSource >( OUT outDS, name );
-
-	#elif defined(AE_PLATFORM_UNIX_BASED)
-		return _Open< Threading::UnixAsyncRDataSource >( OUT outDS, name );
-
-	#else
-		Unused( outDS, name );
-		return false;
-	#endif
+		return _Open< Threading::FileAsyncRDataSource >( OUT outDS, name );
 	}
 
 /*
@@ -184,16 +173,7 @@ namespace AE::VFS
 
 	bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
 	{
-	#if defined(AE_PLATFORM_WINDOWS)
-		return _OpenByIter2< Threading::WinAsyncRDataSource >( OUT ds, name, ref );
-
-	#elif defined(AE_PLATFORM_UNIX_BASED)
-		return _OpenByIter2< Threading::UnixAsyncRDataSource >( OUT ds, name, ref );
-
-	#else
-		Unused( ds, name, ref );
-		return false;
-	#endif
+		return _OpenByIter2< Threading::FileAsyncRDataSource >( OUT ds, name, ref );
 	}
 
 /*

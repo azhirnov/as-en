@@ -798,6 +798,28 @@ namespace
 		return BitCast<void*>( WinDynamicLibs().fnSetProcessDpiAwareness );
 	}
 
+/*
+=================================================
+	GetDefaultStackSize / GetCurrentThreadStackSize
+=================================================
+*/
+	Bytes  WindowsUtils::GetDefaultStackSize () __NE___
+	{
+		// from https://learn.microsoft.com/en-us/windows/win32/procthread/thread-stack-size
+		return 1_Mb;
+	}
+
+	Bytes  WindowsUtils::GetCurrentThreadStackSize () __NE___
+	{
+	  #if AE_PLATFORM_TARGET_VERSION_MAJOR >= 8
+		ULONG_PTR	low, high;
+		::GetCurrentThreadStackLimits( OUT &low, OUT &high );	// win8
+		return Bytes{low};
+	  #else
+		return GetDefaultStackSize();
+	  #endif
+	}
+
 
 } // AE::Base
 

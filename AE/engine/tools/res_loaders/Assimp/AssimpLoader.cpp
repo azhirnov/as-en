@@ -768,7 +768,7 @@ namespace
 			AssimpInit();
 			Assimp::Importer	importer;
 
-			const auto		path		= scenePath.string();
+			const auto		path		= ToString( scenePath );
 			const auto		load_flags	= SetupImporterAndGetSceneLoadFlags( importer, config );
 
 			const aiScene *	scene		= importer.ReadFile( path, load_flags );

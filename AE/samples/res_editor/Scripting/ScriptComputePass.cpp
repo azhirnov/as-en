@@ -10,23 +10,15 @@ namespace AE::ResEditor
 namespace
 {
 	static ScriptComputePass*  ScriptComputePass_Ctor1 () {
-		return ScriptComputePassPtr{ new ScriptComputePass{ Default, Default, Default }}.Detach();
+		return ScriptComputePassPtr{ new ScriptComputePass{ Default, Default }}.Detach();
 	}
 
 	static ScriptComputePass*  ScriptComputePass_Ctor2 (const String &name) {
-		return ScriptComputePassPtr{ new ScriptComputePass{ name, Default, Default }}.Detach();
+		return ScriptComputePassPtr{ new ScriptComputePass{ name, Default }}.Detach();
 	}
 
 	static ScriptComputePass*  ScriptComputePass_Ctor3 (const String &name, const String &defines) {
-		return ScriptComputePassPtr{ new ScriptComputePass{ name, defines, Default }}.Detach();
-	}
-
-	static ScriptComputePass*  ScriptComputePass_Ctor4 (const String &name, ScriptBasePass::EFlags baseFlags) {
-		return ScriptComputePassPtr{ new ScriptComputePass{ name, Default, baseFlags }}.Detach();
-	}
-
-	static ScriptComputePass*  ScriptComputePass_Ctor5 (const String &name, const String &defines, ScriptBasePass::EFlags baseFlags) {
-		return ScriptComputePassPtr{ new ScriptComputePass{ name, defines, baseFlags }}.Detach();
+		return ScriptComputePassPtr{ new ScriptComputePass{ name, defines }}.Detach();
 	}
 
 } // namespace
@@ -62,8 +54,7 @@ namespace
 	constructor
 =================================================
 */
-	ScriptComputePass::ScriptComputePass (const String &name, const String &defines, EFlags baseFlags) __Th___ :
-		ScriptBasePass{ baseFlags },
+	ScriptComputePass::ScriptComputePass (const String &name, const String &defines) __Th___ :
 		_pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )}
 	{
 		_dbgName = ToString( _pplnPath.filename().replace_extension("") );
@@ -269,8 +260,6 @@ namespace
 		binder.AddFactoryCtor( &ScriptComputePass_Ctor1,	{} );
 		binder.AddFactoryCtor( &ScriptComputePass_Ctor2,	{"shaderPath"} );
 		binder.AddFactoryCtor( &ScriptComputePass_Ctor3,	{"shaderPath", "defines"} );
-		binder.AddFactoryCtor( &ScriptComputePass_Ctor4,	{"shaderPath", "passFlags"} );
-		binder.AddFactoryCtor( &ScriptComputePass_Ctor5,	{"shaderPath", "defines", "passFlags"} );
 
 		binder.Comment( "Set workgroup size - number of threads which can access shared memory." );
 		binder.AddMethod( &ScriptComputePass::LocalSize1,				"LocalSize",			{"x"} );
@@ -335,7 +324,6 @@ namespace
 
 		auto		result		= MakeRC<ComputePass>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		Renderer&	renderer	= ScriptExe::ScriptPassApi::GetRenderer();  // throw
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 		Bytes		ub_size;
 
@@ -372,9 +360,7 @@ namespace
 		result->_localSize	= this->_localSize;
 		result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
-		result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-												  "ComputePassUB", renderer.GetAllocator() );
-		CHECK_THROW( result->_ubuffer );
+		result->_ubuffer = _CreateUBuffer( ub_size, "ComputePassUB", EResourceState::UniformRead | EResourceState::ComputeShader );  // throw
 
 		// create descriptor set
 		{
@@ -398,7 +384,7 @@ namespace
 
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
 
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/Algorithms/Parser.h"
 
 #include "res_editor/Scripting/ScriptImage.h"
@@ -488,7 +474,7 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CompilePipeline3
+	_CompilePipeline2
 =================================================
 */
 	void  ScriptComputePass::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
@@ -547,13 +533,13 @@ namespace AE::ResEditor
 
 	  #ifdef AE_ENABLE_GLSL_TRACE
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTrace ))
-			_CompilePipeline3( cs, cs_line, "compute.Trace", uint(sh_opt | EShaderOpt::Trace), Default );
+			NOTHROW( _CompilePipeline3( cs, cs_line, "compute.Trace", uint(sh_opt | EShaderOpt::Trace), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderFnProf ))
-			_CompilePipeline3( cs, cs_line, "compute.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default );
+			NOTHROW( _CompilePipeline3( cs, cs_line, "compute.FnProf", uint(sh_opt | EShaderOpt::FnProfiling), Default ));
 
 		if ( AllBits( _baseFlags, EFlags::Enable_ShaderTmProf ))
-			_CompilePipeline3( cs, cs_line, "compute.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default );
+			NOTHROW( _CompilePipeline3( cs, cs_line, "compute.TmProf", uint(sh_opt | EShaderOpt::TimeHeatMap), Default ));
 	  #endif
 	}
 
@@ -573,6 +559,7 @@ namespace AE::ResEditor
 			ppln_layout->AddDebugDSLayout2( 1, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Compute) );
 
 		ComputePipelinePtr		ppln_templ{ new ComputePipelineScriptBinding{ pplnName }};
+		ppln_templ->Disable();
 		ppln_templ->SetLayout2( ppln_layout );
 
 		{
@@ -585,8 +572,12 @@ namespace AE::ResEditor
 		}
 		{
 			ComputePipelineSpecPtr	ppln_spec = ppln_templ->AddSpecialization2( pplnName );
+			ppln_spec->Disable();
 			ppln_spec->AddToRenderTech( "rtech", "Compute" );
 			ppln_spec->SetOptions( pplnOpt );
+
+			// if successfully compiled
+			ppln_spec->Enable();
 		}
 	}
 

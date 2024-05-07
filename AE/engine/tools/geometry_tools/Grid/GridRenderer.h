@@ -34,9 +34,9 @@ namespace AE::GeometryTools
 		GridRenderer ()																		__NE___	{}
 		~GridRenderer ()																	__NE___;
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, GfxMemAllocatorPtr,
+		ND_ bool  Create (ResourceManager &, ITransferContext &ctx, GfxMemAllocatorPtr,
 						  uint vertsPerEdge, uint patchSize = 3)							__NE___;
-			void  Destroy (IResourceManager &)												__NE___;
+			void  Destroy (ResourceManager &)												__NE___;
 
 		ND_ bool  IsCreated ()																C_NE___	{ return _vertexBuffer and _indexBuffer; }
 

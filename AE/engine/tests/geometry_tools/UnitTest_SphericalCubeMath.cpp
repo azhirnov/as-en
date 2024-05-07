@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "../shared/UnitTest_Shared.h"
+#include "UnitTest_Common.h"
 #include "geometry_tools/SphericalCube/SphericalCubeMath.h"
 using namespace AE::GeometryTools;
 

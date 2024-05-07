@@ -5,7 +5,7 @@
 #include "base/Containers/UntypedStorage.h"
 #include "base/DataSource/DataStream.h"
 #include "base/Containers/NtStringView.h"
-#include "base/Utils/FileSystem.h"
+#include "base/FileSystem/Path.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
@@ -19,39 +19,39 @@ namespace AE::Base
 	{
 	// types
 	public:
-		enum class EFlags : uint
+		enum class EMode : uint
 		{
 			Unknown			= 0,
 			RandomAccess	= 1 << 0,	// access is intended to be random
 			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
 			Direct			= 1 << 2,	// Try to minimize cache effects of the I/O to and from this file.
-			Large			= 1 << 3,	// 64 bit address
+
+			Unix_LargeFile	= 1 << 16,	// 64 bit address
 		};
 
 	private:
 		using Handle_t	= int;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::SequentialScan;
+		static constexpr EMode	c_DefaultMode = EMode::SequentialScan;
 
 
 	// variables
 	private:
 		Handle_t		_file		= -1;
 		const Bytes		_fileSize;
-		const EFlags	_flags;
 
 		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	private:
-		UnixFileRStream (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixFileRStream (Handle_t file DEBUG_ONLY(, Path filename))						__NE___;
 
 	public:
-		explicit UnixFileRStream (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRStream (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRStream (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRStream (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixFileRStream (const char* filename, EMode mode = c_DefaultMode)		__NE___;
+		explicit UnixFileRStream (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileRStream (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileRStream (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~UnixFileRStream ()																__NE_OV;
 
@@ -71,7 +71,7 @@ namespace AE::Base
 		ND_ Bytes  _Position ()															C_NE___;
 	};
 
-	AE_BIT_OPERATORS( UnixFileRStream::EFlags );
+	AE_BIT_OPERATORS( UnixFileRStream::EMode );
 
 
 
@@ -82,20 +82,24 @@ namespace AE::Base
 	{
 	// types
 	public:
-		enum class EFlags : uint
+		enum class EMode : uint
 		{
 			Unknown			= 0,
 			Direct			= 1 << 0,	// Try to minimize cache effects of the I/O to and from this file.
-			Large			= 1 << 2,
 
-			//OpenRewrite	= 1 << 3,	// create new or discard previous file	// default
-			OpenUpdate		= 1 << 4,	// keep previous content and update some parts in the file
+			OpenRewrite		= 0,		// create new or discard previous file	// default
+			OpenUpdate		= 1 << 3,	// keep previous content and update some parts in the file
+			OpenAppend		= 1 << 4,	// write operations will not overwrite existing data
+
+			SharedRead		= 1 << 5,	// other process can read file
+
+			Unix_LargeFile	= 1 << 16,	// 64 bit address
 		};
 
 	private:
 		using Handle_t	= int;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+		static constexpr EMode	c_DefaultMode = EMode::Unknown;
 
 
 	// variables
@@ -107,13 +111,13 @@ namespace AE::Base
 
 	// methods
 	private:
-		UnixFileWStream (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixFileWStream (Handle_t file DEBUG_ONLY(, Path filename))						__NE___;
 
 	public:
-		explicit UnixFileWStream (const char*  filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWStream (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWStream (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWStream (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixFileWStream (const char*  filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileWStream (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileWStream (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileWStream (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~UnixFileWStream ()																__NE_OV;
 
@@ -130,7 +134,7 @@ namespace AE::Base
 		void		Flush ()															__NE_OV;
 	};
 
-	AE_BIT_OPERATORS( UnixFileWStream::EFlags );
+	AE_BIT_OPERATORS( UnixFileWStream::EMode );
 //-----------------------------------------------------------------------------
 
 
@@ -138,37 +142,35 @@ namespace AE::Base
 	//
 	// Unix Read-only File Data Source
 	//
-
 	class UnixFileRDataSource final : public RDataSource
 	{
 	// types
 	public:
-		using EFlags = UnixFileRStream::EFlags;
+		using EMode = UnixFileRStream::EMode;
 
 	private:
 		using Handle_t	= int;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::RandomAccess;
+		static constexpr EMode	c_DefaultMode = EMode::RandomAccess;
 
 
 	// variables
 	private:
 		Handle_t		_file		= -1;
-		Bytes const		_fileSize;
-		const EFlags	_flags;
+		const Bytes 	_fileSize;
 
 		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	private:
-		UnixFileRDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixFileRDataSource (Handle_t file DEBUG_ONLY(, Path filename))						__NE___;
 
 	public:
-		explicit UnixFileRDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileRDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixFileRDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
+		explicit UnixFileRDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileRDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileRDataSource (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~UnixFileRDataSource ()																__NE_OV;
 
@@ -186,17 +188,16 @@ namespace AE::Base
 	//
 	// Unix Write-only File Data Source
 	//
-
 	class UnixFileWDataSource final : public WDataSource
 	{
 	// types
 	public:
-		using EFlags = UnixFileWStream::EFlags;
+		using EMode = UnixFileWStream::EMode;
 
 	private:
 		using Handle_t	= int;	// fd
 
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+		static constexpr EMode	c_DefaultMode = EMode::Unknown;
 
 
 	// variables
@@ -208,13 +209,13 @@ namespace AE::Base
 
 	// methods
 	private:
-		UnixFileWDataSource (Handle_t file, EFlags flags DEBUG_ONLY(, Path filename))		__NE___;
+		UnixFileWDataSource (Handle_t file DEBUG_ONLY(, Path filename))						__NE___;
 
 	public:
-		explicit UnixFileWDataSource (const char* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit UnixFileWDataSource (const Path &path, EFlags flags = DefaultFlags)		__NE___;
+		explicit UnixFileWDataSource (const char* filename, EMode mode = c_DefaultMode)		__NE___;
+		explicit UnixFileWDataSource (NtStringView filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileWDataSource (const String &filename, EMode mode = c_DefaultMode)	__NE___;
+		explicit UnixFileWDataSource (const Path &path, EMode mode = c_DefaultMode)			__NE___;
 
 		~UnixFileWDataSource ()																__NE_OV;
 

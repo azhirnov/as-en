@@ -16,8 +16,8 @@ namespace
 		const Path			temp_file		= TXT("temp.bin");
 		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
 
-		FileSystem::Remove( output );
-		FileSystem::Remove( temp_file );
+		FileSystem::DeleteFile( output );
+		FileSystem::DeleteFile( temp_file );
 
 		AssetInfo		info	= {};
 		info.inFiles			= files;
@@ -43,7 +43,7 @@ extern void Test_ImageAtlasPack ()
 		TEST( lib.Load( AE_ASSET_PACKER_LIBRARY ));
 		TEST( lib.GetProcAddr( "PackAssets", OUT pack_assets ));
 
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/atlas_test" ));
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "atlas_test" ));
 
 		ImageAtlasPack_Test1();
 	}

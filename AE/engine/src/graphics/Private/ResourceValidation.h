@@ -77,7 +77,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename ResMngr>
-	ND_ bool  Image_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, Bool imageFormatList) __NE___
+	ND_ bool  Image_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, Bool imageFormatListSupported) __NE___
 	{
 		const auto&		res_flags = resMngr.GetDevice().GetResourceFlags();
 
@@ -130,7 +130,7 @@ namespace AE::Graphics
 			return false;
 
 		// validate format list
-		if ( imageFormatList and desc.HasViewFormatList() )
+		if ( imageFormatListSupported and desc.HasViewFormatList() )
 		{
 			using EFmtType = PixelFormatInfo::EType;
 
@@ -151,7 +151,7 @@ namespace AE::Graphics
 
 				if ( uncompress and not fmt_info.IsCompressed() )
 				{
-					compatible &= fmt_info.channels == origin_fmt_info.channels;
+					compatible &= (fmt_info.channels == origin_fmt_info.channels);
 					compatible &= (fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm))  == (origin_fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm));
 					compatible &= (fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat)) == (origin_fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat));
 					compatible &= (fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt))   == (origin_fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt));
@@ -159,7 +159,7 @@ namespace AE::Graphics
 				else
 				{
 					compatible &= All( fmt_info.blockDim == origin_fmt_info.blockDim );
-					compatible &= fmt_info.IsCompressed() == origin_fmt_info.IsCompressed();
+					compatible &= (fmt_info.IsCompressed() == origin_fmt_info.IsCompressed());
 				}
 				if_unlikely( not compatible )
 					return false;
@@ -167,7 +167,12 @@ namespace AE::Graphics
 		}
 		else
 		if_unlikely( desc.HasViewFormatList() )
-			return false;
+		{
+			if ( AllBits( desc.options, EImageOpt::MutableFormat ))
+				return true;
+
+			return false;  // extension is not supported
+		}
 
 		if_unlikely( not resMngr.GetFeatureSet().IsSupported( desc ))
 			return false;
@@ -269,5 +274,44 @@ namespace AE::Graphics
 
 		return true;
 	}
+
+/*
+=================================================
+	RTGeometry_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  RTGeometry_IsSupported (const ResMngr &resMngr, const RTGeometryDesc &desc) __NE___
+	{
+		if_unlikely( resMngr.GetFeatureSet().accelerationStructure() != FeatureSet::EFeature::RequireTrue )
+			return false;
+
+		if_unlikely( desc.size == 0 )
+			return false;
+
+		// TODO: desc.options
+
+		return true;
+	}
+
+/*
+=================================================
+	RTScene_IsSupported
+=================================================
+*/
+	template <typename ResMngr>
+	ND_ bool  RTScene_IsSupported (const ResMngr &resMngr, const RTSceneDesc &desc) __NE___
+	{
+		if_unlikely( resMngr.GetFeatureSet().accelerationStructure() != FeatureSet::EFeature::RequireTrue )
+			return false;
+
+		if_unlikely( desc.size == 0 )
+			return false;
+
+		// TODO: desc.options
+
+		return true;
+	}
+
 
 } // AE::Graphics

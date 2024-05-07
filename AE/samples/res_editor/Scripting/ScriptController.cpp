@@ -40,7 +40,7 @@ namespace
 	ScriptBaseController::~ScriptBaseController ()
 	{
 		if ( not _controller )
-			AE_LOG_SE( "Unused controller" );
+			AE_LOGW( "Unused controller" );
 	}
 
 /*

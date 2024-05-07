@@ -155,13 +155,15 @@ namespace
 			ReadbackImageDesc	readback;
 			readback.heapType = EStagingHeapType::Dynamic;
 
-			t.result[0] = AsyncTask{ ctx.ReadbackImage( t.image[0], readback )
-							.Then( [p = &t] (const ImageMemView &view)
+			auto	read1_res = ctx.ReadbackImage( t.image[0], readback );
+			auto	read2_res = ctx.ReadbackImage( t.image[1], readback );
+			CHECK( read1_res.IsCompleted() and read2_res.IsCompleted() );
+
+			t.result[0] = AsyncTask{ read1_res.Then( [p = &t] (const ImageMemView &view)
 									{
 										p->isOK[0] = p->imgCmp->Compare( view );
 									})};
-			t.result[1] = AsyncTask{ ctx.ReadbackImage( t.image[1], readback )
-							.Then( [p = &t] (const ImageMemView &view)
+			t.result[1] = AsyncTask{ read2_res.Then( [p = &t] (const ImageMemView &view)
 									{
 										p->isOK[1] = p->imgCmp->Compare( view );
 									})};
@@ -169,6 +171,8 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
+
+			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result[0], t.result[1] });
 		}
 	};
 
@@ -302,7 +306,7 @@ namespace
 
 		CHECK_ERR( t.frameIdx.load() == 4 );
 
-		CHECK_ERR( Scheduler().Wait( {t.result[0], t.result[1]}, c_MaxTimeout ));
+		CHECK_ERR( Scheduler().Wait( List{t.result[0], t.result[1]}, c_MaxTimeout ));
 		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
 		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
 		CHECK_ERR( t.isOK[0] );
@@ -317,7 +321,10 @@ namespace
 bool RGTest::Test_AsyncCompute1 ()
 {
 	if ( not AllBits( GraphicsScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
-		return true; // skip
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;
+	}
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;

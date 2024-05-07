@@ -38,7 +38,7 @@ namespace AE::Graphics
 
 		if_unlikely( not allocator->Allocate( _layoutId, OUT _descrSet ))
 		{
-			resMngr.ImmediatelyRelease( _layoutId );
+			resMngr.ImmediatelyRelease( INOUT _layoutId );
 			RETURN_ERR( "descriptor set allocation failed" );
 		}
 
@@ -46,7 +46,7 @@ namespace AE::Graphics
 
 		_allocator = RVRef(allocator);
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -66,12 +66,11 @@ namespace AE::Graphics
 
 		resMngr.ImmediatelyRelease( INOUT _layoutId );
 
-		_allocator	= null;
-		_layoutId	= Default;
+		_allocator = null;
 
 		CHECK( _descrSet.handle == Default );
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 } // AE::Graphics

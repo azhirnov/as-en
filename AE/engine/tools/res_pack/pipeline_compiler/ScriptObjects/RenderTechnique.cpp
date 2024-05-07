@@ -498,7 +498,7 @@ namespace
 	Build
 =================================================
 */
-	bool  RenderTechnique::Build ()
+	bool  RenderTechnique::Build () __NE___
 	{
 		if ( _uid.has_value() )
 			return true;

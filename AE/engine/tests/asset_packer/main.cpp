@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Utils/FileSystem.h"
+#include "../shared/UnitTest_Shared.h"
+#include "base/FileSystem/FileSystem.h"
 using namespace AE::Base;
 
 extern void Test_FeatureSetPack ();
@@ -13,31 +14,27 @@ extern void Test_InputActions ();
 extern void Test_ImageAtlasPack ();
 
 
-int main ()
+int main (const int argc, char* argv[])
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+	BEGIN_TEST();
 
-	{
-		const Path	curr = FileSystem::CurrentPath();
+	Test_FeatureSetPack();
+	FileSystem::SetCurrentPath( curr );
 
-		Test_FeatureSetPack();
-		FileSystem::SetCurrentPath( curr );
+	Test_SamplerPack();
+	FileSystem::SetCurrentPath( curr );
 
-		Test_SamplerPack();
-		FileSystem::SetCurrentPath( curr );
+	Test_RenderPassPack();
+	FileSystem::SetCurrentPath( curr );
 
-		Test_RenderPassPack();
-		FileSystem::SetCurrentPath( curr );
+	Test_PipelinePack();
+	FileSystem::SetCurrentPath( curr );
 
-		Test_PipelinePack();
-		FileSystem::SetCurrentPath( curr );
+	Test_InputActions();
+	FileSystem::SetCurrentPath( curr );
 
-		Test_InputActions();
-		FileSystem::SetCurrentPath( curr );
-
-		Test_ImageAtlasPack();
-		FileSystem::SetCurrentPath( curr );
-	}
+	Test_ImageAtlasPack();
+	FileSystem::SetCurrentPath( curr );
 
 	AE_LOGI( "Tests.AssetPacker finished" );
 	return 0;

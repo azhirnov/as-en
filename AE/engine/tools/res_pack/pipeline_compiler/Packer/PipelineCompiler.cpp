@@ -3,12 +3,12 @@
 #include "PipelineCompiler.h"
 
 #include "base/DataSource/MemStream.h"
-#include "base/DataSource/FileStream.h"
+#include "base/DataSource/File.h"
 #include "base/CompileTime/FunctionInfo.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
 
-#include "serializing/Basic/Serializer.h"
+#include "serializing/Serializer.h"
 
 #include "scripting/Impl/EnumBinder.h"
 #include "scripting/Impl/ScriptFn.h"
@@ -59,7 +59,7 @@ namespace
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
-				AE_LOG_SE( "Can't find folder: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find folder: '"s << ToString(path) << "'" );
 				continue;
 			}
 
@@ -103,7 +103,7 @@ namespace
 
 			if ( not FileSystem::IsFile( path ))
 			{
-				AE_LOG_SE( "Can't find pipeline: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find pipeline: '"s << ToString(path) << "'" );
 				continue;
 			}
 
@@ -127,7 +127,7 @@ namespace
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
-				AE_LOG_SE( "Can't find shader include folder: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find shader include folder: '"s << ToString(path) << "'" );
 				continue;
 			}
 
@@ -140,7 +140,7 @@ namespace
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
-				AE_LOG_SE( "Can't find shader folder: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find shader folder: '"s << ToString(path) << "'" );
 				continue;
 			}
 
@@ -153,7 +153,7 @@ namespace
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
-				AE_LOG_SE( "Can't find pipeline include folder: '"s << ToString(path) << "'" );
+				AE_LOGW( "Can't find pipeline include folder: '"s << ToString(path) << "'" );
 				continue;
 			}
 

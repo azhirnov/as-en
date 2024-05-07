@@ -65,20 +65,22 @@ namespace AE::ResEditor
 	PrepareForDebugging
 =================================================
 */
-	void  SphericalCube::PrepareForDebugging (IGSMaterials &inMtr, DirectCtx::Transfer &ctx,
-											  const Debugger &dbg, OUT ShaderDebugger::Result &dbgStorage) __Th___
+	void  SphericalCube::PrepareForDebugging (INOUT DebugPrepareData &dd) __Th___
 	{
-		ASSERT( dbg.IsEnabled() );
+		ASSERT( dd.dbg.IsEnabled() );
 
-		auto&	mtr	= RefCast<Material>(inMtr);
-		auto	it	= mtr.pplnMap.find( dbg.mode );
+		auto&	mtr	= RefCast<Material>(dd.mtr);
+		auto	it	= mtr.pplnMap.find( dd.dbg.mode );
 
 		if ( it == mtr.pplnMap.end() )
 			return;
 
+		dd.outDbgStorage = dd.allocator.Allocate< ShaderDebugger::Result >();
+		CHECK_ERRV( dd.outDbgStorage != null );
+
 		Visit( it->second,
-			[&] (GraphicsPipelineID ppln)	{ CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
-			[&] (MeshPipelineID ppln)		{ CHECK( dbg.debugger->AllocForGraphics( OUT dbgStorage, ctx, ppln )); },
+			[&] (GraphicsPipelineID ppln)	{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln )); },
+			[&] (MeshPipelineID ppln)		{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln )); },
 			[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
 		);
 	}
@@ -117,7 +119,7 @@ namespace AE::ResEditor
 			);
 		}};
 
-		if ( in.IsDebuggerEnabled() )
+		if ( in.IsDebuggerEnabled( 0 ))
 		{
 			auto	it = mtr.pplnMap.find( in.dbgMode );
 			if ( it != mtr.pplnMap.end() )
@@ -150,7 +152,8 @@ namespace AE::ResEditor
 
 		if_unlikely( not _cube.IsCreated() )
 		{
-			CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{"tris"}, True{"cubeMap"}, Default, _GfxAllocator() ));
+			CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{"tris"}, True{"cubeMap"}, Default,
+									 _Renderer().GetStaticAllocator() ));
 
 			auto&	rstate = RenderGraph().GetStateTracker();
 			rstate.SetDefaultState( _cube.VertexBufferId(), EResourceState::VertexBuffer );

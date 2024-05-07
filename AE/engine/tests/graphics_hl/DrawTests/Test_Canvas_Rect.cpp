@@ -7,6 +7,7 @@ namespace
 	struct CR1_TestData
 	{
 		Canvas&						canvas;
+		RenderTechPipelinesPtr		rtech;
 
 		Mutex						guard;
 
@@ -29,6 +30,9 @@ namespace
 
 		CR1_TestData (Canvas &c) : canvas{c} {}
 	};
+
+	static constexpr auto&	RTech		= RenderTechs::CanvasDrawTest;
+	static constexpr auto&	DeskRTech	= RenderTechs::DesktopCanvasDrawTest;
 
 
 	template <typename CtxType>
@@ -57,12 +61,13 @@ namespace
 
 			// draw
 			{
-				const RenderPassDesc	rp_desc = RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
-													.AddViewport( t.viewSize )
-													.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc );
+				constexpr auto&		rtech_pass = RTech.Draw_1;
+				StaticAssert( rtech_pass.attachmentsCount == 1 );
+				StaticAssert( RenderTechPassName{rtech_pass} == DeskRTech.Draw_1 );
 
-				auto	dctx = ctx.BeginRenderPass( rp_desc );
-
+				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+										.AddViewport( t.viewSize )
+										.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc ));
 				{
 					t.canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.9f, -0.5f, -0.5f}, HtmlColor::BlueViolet });
 					t.canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.4f, -0.5f,  0.0f}, HtmlColor::Green });
@@ -82,6 +87,9 @@ namespace
 					dctx.BindPipeline( t.ppln_trilist );
 					t.canvas.Flush( dctx, EPrimitive::TriangleList );
 				}
+
+				// desktop only
+				if ( t.ppln_trilist_lines )
 				{
 					t.canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, 0.5f, 0.9f, 0.9f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
 					t.canvas.Draw( NinePatch2D{ RectF{-0.4f, 0.1f, 0.4f, 0.9f},		RectF{0.2f, 0.2f, 0.2f, 0.2f},
@@ -91,7 +99,8 @@ namespace
 					dctx.BindPipeline( t.ppln_trilist_lines );
 					t.canvas.Flush( dctx, EPrimitive::TriangleList );
 				}
-				ctx.EndRenderPass( dctx, rp_desc );
+
+				ctx.EndRenderPass( dctx );
 			}
 
 			Execute( ctx );
@@ -130,7 +139,7 @@ namespace
 
 
 	template <typename CtxType, typename CopyCtx>
-	static bool  CanvasRect (Canvas* canvas, RenderTechPipelinesPtr renderTech, ImageComparator* imageCmp)
+	static bool  CanvasRect (Canvas* canvas, RenderTechPipelinesPtr renderTech, RenderTechPipelinesPtr desktopRenderTech, ImageComparator* imageCmp)
 	{
 		auto&			rts			= GraphicsScheduler();
 		auto&			res_mngr	= rts.GetResourceManager();
@@ -149,14 +158,16 @@ namespace
 		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
 		CHECK_ERR( t.view );
 
-		t.ppln_tristrip = renderTech->GetGraphicsPipeline( PipelineName{"rect_tristrip"} );
+		t.rtech = renderTech;
+
+		t.ppln_tristrip = renderTech->GetGraphicsPipeline( RTech.Draw_1.rect_tristrip );
 		CHECK_ERR( t.ppln_tristrip );
 
-		t.ppln_trilist = renderTech->GetGraphicsPipeline( PipelineName{"rect_trilist"} );
+		t.ppln_trilist = renderTech->GetGraphicsPipeline( RTech.Draw_1.rect_trilist );
 		CHECK_ERR( t.ppln_trilist );
 
-		t.ppln_trilist_lines = renderTech->GetGraphicsPipeline( PipelineName{"rect_trilist_lines"} );
-		CHECK_ERR( t.ppln_trilist_lines );
+		if ( desktopRenderTech )
+			t.ppln_trilist_lines = desktopRenderTech->GetGraphicsPipeline( DeskRTech.Draw_1.rect_trilist_lines );  // optional
 
 
 		CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
@@ -191,11 +202,11 @@ bool DrawTestCore::Test_Canvas_Rect ()
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
 
-	RG_CHECK( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() ));
-	RG_CHECK( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() ));
+	RG_CHECK( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
 
-	RG_CHECK( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() ));
-	RG_CHECK( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() ));
+	RG_CHECK( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 

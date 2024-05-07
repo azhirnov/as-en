@@ -304,7 +304,8 @@ namespace AE::Networking
 		{																											\
 			using TMsg = CSMsg_ ## _name_;																			\
 																													\
-			constexpr Bytes  msg_size {OffsetOfNoWarn( CSMsg_ ## _name_, _data_ )};									\
+			AE_DISABLE_OFFSETOF_WARNINGS(																			\
+			  constexpr Bytes  msg_size {offsetof( CSMsg_ ## _name_, _data_ )};)									\
 																													\
 			TMsg	temp {cid};																						\
 			if_likely( temp._Deserialize( dec ))																	\
@@ -354,7 +355,8 @@ namespace AE::Networking
 		{																											\
 			using TMsg = CSMsg_ ## _name_;																			\
 																													\
-			constexpr Bytes  msg_size {OffsetOfNoWarn( CSMsg_ ## _name_, _arr_ )};									\
+			AE_DISABLE_OFFSETOF_WARNINGS(																			\
+			  constexpr Bytes  msg_size {offsetof( CSMsg_ ## _name_, _arr_ )};)										\
 																													\
 			TMsg	temp {cid};																						\
 			if_likely( temp._Deserialize( dec ))																	\
@@ -389,10 +391,12 @@ namespace AE::Networking
 			EncodeFn_t			fn;
 			CSMessage			msg;
 		};
-		auto*	msg_fn = BitCast<MsgAndFn *>( usize(this) - OffsetOfNoWarn( MsgAndFn, msg ));
+		AE_DISABLE_OFFSETOF_WARNINGS(
+		  auto* msg_fn = BitCast<MsgAndFn *>( usize(this) - offsetof( MsgAndFn, msg ));)
+
 		ASSERT( msg_fn->magic == usize(this) );
 		ASSERT( &msg_fn->msg == this );
-		ASSERT( msg_fn->fn != null );
+		NonNull( msg_fn->fn );
 		return msg_fn->fn( this, enc );
 	}
 //-----------------------------------------------------------------------------
@@ -414,6 +418,7 @@ namespace AE::Networking
 		};
 
 		auto*	msg_fn = Cast<MsgAndFn>( alloc.Allocate( SizeAndAlign{ SizeOf<MsgAndFn> + extraSize, AlignOf<MsgAndFn> }));
+
 		if_likely( msg_fn != null )
 		{
 			DEBUG_ONLY( msg_fn->magic = usize(&msg_fn->msg) );
@@ -470,7 +475,7 @@ namespace AE::Networking
 		StaticAssert( TypeList<Types...>::template ForEach_And< TTriviallyDestructible >() );
 
 		return Register( CSMessageGroupID(CSMessage::_UnpackUID( T0::UID ).template Get<0>()),
-						 ArrayView< MsgAndCtor_t >{
+						 List<MsgAndCtor_t>{
 							MsgAndCtor_t{ T0::UID,		&CSMessageCtor<T0>::CreateAndDecode },
 							MsgAndCtor_t{ Types::UID,	&CSMessageCtor<Types>::CreateAndDecode }... },
 						 lockGroup );

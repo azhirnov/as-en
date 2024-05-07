@@ -50,7 +50,7 @@ namespace
 			"StructureType with name '"s << typeName << "' is not found" );
 
 		if ( st_it->second->Layout() != EStructLayout::InternalIO )
-			AE_LOG_SE( "StructureType '"s << typeName << "' should use 'InternalIO' layout" );
+			AE_LOGW( "StructureType '"s << typeName << "' should use 'InternalIO' layout" );
 
 		_shaderIO[input].first		= st_it->second;
 		_shaderIO[output].second	= st_it->second;
@@ -245,8 +245,11 @@ namespace
 	Build
 =================================================
 */
-	bool  GraphicsPipelineScriptBinding::Build ()
+	bool  GraphicsPipelineScriptBinding::Build () __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		try {
 			_Prepare();
 		}
@@ -490,7 +493,7 @@ namespace
 	constructor
 =================================================
 */
-	GraphicsPipelineSpecScriptBinding::GraphicsPipelineSpecScriptBinding (const GraphicsPipelineScriptBinding* base, const String &name) __Th___ :
+	GraphicsPipelineSpecScriptBinding::GraphicsPipelineSpecScriptBinding (GraphicsPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
 
@@ -547,9 +550,8 @@ namespace
 	{
 		CHECK_THROW_MSG( state.inputAssembly.topology < EPrimitive::_Count );
 
-		_ValidateRenderState( desc.dynamicState, state, GetFeatures() );
-
 		renderState = state;
+		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetFeatures() );
 
 		CHECK_THROW_MSG( _CheckTopology() );
 
@@ -624,8 +626,11 @@ namespace
 	Build
 =================================================
 */
-	bool  GraphicsPipelineSpecScriptBinding::Build (PipelineTemplUID templUID)
+	bool  GraphicsPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
+		if ( not _enabled )
+			return true;
+
 		if ( IsBuilded() )
 			return true;
 

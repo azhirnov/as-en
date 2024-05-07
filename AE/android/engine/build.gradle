@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
+	namespace  'AE.engine'
 	compileSdk 34
 
 	defaultConfig {
@@ -16,8 +17,7 @@ android {
 		}
 	}
 
-	ndkVersion "24.0.8215888"
-	namespace 'AE.engine'
+    ndkVersion "27.0.11718014"
 }
 
 dependencies {

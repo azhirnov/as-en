@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "UnitTest_Common.h"
-
-using namespace AE::Graphics;
+#include "TestsGraphicsHL.pch.h"
 
 namespace
 {

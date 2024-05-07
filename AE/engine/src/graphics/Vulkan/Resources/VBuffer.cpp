@@ -82,7 +82,7 @@ namespace AE::Graphics
 
 		CHECK_ERR( _InitDeviceAddress( dev ));
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -128,7 +128,7 @@ namespace AE::Graphics
 
 		CHECK_ERR( _InitDeviceAddress( dev ));
 
-		DEBUG_ONLY( _debugName = dbgName; )
+		GFX_DBG_ONLY( _debugName = dbgName; )
 		return true;
 	}
 
@@ -137,7 +137,7 @@ namespace AE::Graphics
 	_InitDeviceAddress
 =================================================
 */
-	bool  VBuffer::_InitDeviceAddress (const VDevice &dev)
+	bool  VBuffer::_InitDeviceAddress (const VDevice &dev) __NE___
 	{
 		if ( AnyBits( _desc.usage, EBufferUsage::ShaderAddress | EBufferUsage::ASBuild_ReadOnly | EBufferUsage::ASBuild_Scratch ))
 		{
@@ -148,9 +148,9 @@ namespace AE::Graphics
 			_address = BitCast<DeviceAddress>( dev.vkGetBufferDeviceAddressKHR( dev.GetVkDevice(), &addr_info ));
 			CHECK_ERR( _address != Default );
 
-			DEBUG_ONLY(
+			GFX_DBG_ONLY(
 				Bytes	align = GetMemoryAlignment( dev, _desc );
-				ASSERT( IsMultipleOf( BitCast<ulong>(_address), align ));
+				CHECK( IsMultipleOf( BitCast<ulong>(_address), align ));
 			)
 		}
 		return true;
@@ -178,7 +178,7 @@ namespace AE::Graphics
 		_address	= Default;
 		_desc		= Default;
 
-		DEBUG_ONLY( _debugName.clear(); )
+		GFX_DBG_ONLY( _debugName.clear() );
 	}
 
 /*

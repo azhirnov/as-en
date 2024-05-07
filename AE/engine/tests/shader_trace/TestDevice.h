@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../Impl/Common.h"
+#include "../shared/UnitTest_Shared.h"
 #include "graphics/Vulkan/VDevice.h"
 
 namespace AE::PipelineCompiler
@@ -144,9 +145,6 @@ namespace AE::PipelineCompiler
 							ETraceMode				mode,
 							glslang::EShTargetLanguageVersion	spvVersion);
 	};
-
-
-#define TEST_PASSED()	AE_LOGI( Base::String{AE_FUNCTION_NAME} + " - passed" );
 
 
 } // AE::PipelineCompiler

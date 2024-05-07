@@ -5,6 +5,9 @@
 
 namespace
 {
+	static const ushort		c_Port = 4001;
+
+
 	template <typename Address>
 	static void  TCP_Test_IPv ()
 	{
@@ -19,7 +22,7 @@ namespace
 		StdThread	listener{ [&] ()
 			{{
 				TcpSocket	server;
-				TEST( server.Listen( Address::FromLocalhostTCP(4000) ));
+				TEST( server.Listen( Address::FromLocalhostTCP(c_Port) ));
 				TEST( server.IsOpen() );
 
 				sync.Wait();
@@ -60,6 +63,7 @@ namespace
 								AE_LOGI( "TCP: failed to send back" );
 							}
 						}
+						ThreadUtils::MilliSleep( milliseconds{100} );
 					}
 
 					if ( ArraySizeOf(recv_data) >= send_data_size )
@@ -71,12 +75,14 @@ namespace
 				TEST( ArraySizeOf(recv_data) >= send_data_size );
 				TEST( ArrayView<char>{send_data1} == ArrayView<char>{recv_data}.section( 0, CountOf(send_data1) ));
 				TEST( ArrayView<char>{send_data2} == ArrayView<char>{recv_data}.section( CountOf(send_data1), CountOf(send_data2) ));
+
+				server.Close();
 			}}};
 
 		sync.Wait();
 
 		TcpSocket	client;
-		TEST( client.Connect( Address::FromHostPortTCP( "localhost", 4000 ) ));
+		TEST( client.Connect( Address::FromHostPortTCP( "localhost", c_Port ) ));
 		TEST( client.IsOpen() );
 
 		sync.Wait();
@@ -95,14 +101,13 @@ namespace
 
 		char	buf[128];
 		Bytes	total_recv;
-		for (;;)
+		for (; total_recv < send_data_size;)
 		{
 			auto [err, recv] = client.Receive( OUT buf, Sizeof(buf) );
 
 			total_recv += recv;
 
-			if ( err == SocketReceiveError::Received or err > SocketReceiveError::_Error )
-				break;
+			TEST( err < SocketReceiveError::_Error );
 		}
 
 		TEST( total_recv == send_data_size );

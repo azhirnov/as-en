@@ -39,9 +39,6 @@ namespace
 		PipelineLayout::UniqueTypes_t	unique_types;
 
 		String	src = ppln_layout->ToGLSL( EShaderStages::Fragment, INOUT unique_types );
-	  #if not AE_PRIVATE_USE_TABS
-		src = Parser::TabsToSpaces( src );
-	  #endif
 
 		const String	ref = R"#(//---------------------
 // ds[0], name: 'PerDraw', type: 'PerDraw'
@@ -91,7 +88,7 @@ extern void  UnitTest_PipelineLayout_GLSL ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( EFeature::RequireTrue );
+	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
 	fs->fs.perDescrSet.maxUniformBuffers = 8;
 	fs->fs.perDescrSet.maxStorageBuffers = 8;

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<uses-permission android:name="android.permission.INTERNET"						android:required="true" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"			android:required="true" />
+	<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"		android:required="true" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"			android:required="true" />
+
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE"			android:required="true" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"	android:required="true" />
+	
+	<application
+		android:name=".CICDApplication"
+		android:label="CICD">
+
+		<activity
+			android:name=".CICDActivity"
+			android:theme="@style/Theme.AppCompat.Light"
+			android:launchMode="singleTask"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+			android:resizeableActivity="true"
+			android:windowSoftInputMode="adjustPan"
+			android:exported="true">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<service
+			android:name=".CICDService"
+			android:foregroundServiceType="dataSync"
+			android:exported="false">
+		</service>
+		
+	</application>
+</manifest>

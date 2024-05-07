@@ -15,7 +15,7 @@ void ASmain ()
 				"float2		rotation1;"		+
 				"float		sdfScale;"		+
 				"float		sdfBias;"		+
-			    "float		pxRange;"		+
+				"float		pxRange;"		+
 				"float4		bgColor;"		);
 	}{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "sdf_font.ds0" );

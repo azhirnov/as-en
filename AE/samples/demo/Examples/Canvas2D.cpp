@@ -1,4 +1,4 @@
-﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "demo/Examples/Canvas2D.h"
 
@@ -284,11 +284,9 @@ namespace AE::Samples::Demo
 			constexpr auto&	rtech_pass = RTech.Main;
 			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			const auto	rp_desc = RenderPassDesc{ *t->rtech, rtech_pass, rt.RegionSize() }
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t->rtech, rtech_pass, rt.RegionSize() }
 									.AddViewport( rt.RegionSize() )
-									.AddTarget( rtech_pass.att_Color, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState );
-
-			auto	dctx = gfx_ctx.BeginRenderPass( rp_desc );
+									.AddTarget( rtech_pass.att_Color, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState ));
 
 			//{
 			//	canvas.Draw( Circle2D{ 16, RectF{-0.9f, -0.5f, 0.2f, 0.2f}, HtmlColor::Blue });
@@ -392,7 +390,7 @@ namespace AE::Samples::Demo
 
 			t->profiler.Draw( canvas );
 
-			gfx_ctx.EndRenderPass( dctx, rp_desc );
+			gfx_ctx.EndRenderPass( dctx );
 		}
 
 		Execute( gfx_ctx );
@@ -447,7 +445,7 @@ namespace AE::Samples::Demo
 		{
 			ublock = res_mngr.CreateBuffer( BufferDesc{ AlignUp( SizeOf<ShaderTypes::sdf_font_ublock>, DeviceLimits.res.minUniformBufferOffsetAlign ) * 2,
 														EBufferUsage::Uniform | EBufferUsage::Transfer },
-										    "Canvas2D UB", gfxAlloc );
+											"Canvas2D UB", gfxAlloc );
 			CHECK_ERR( ublock );
 
 			DescriptorUpdater	updater;

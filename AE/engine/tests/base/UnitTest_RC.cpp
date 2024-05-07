@@ -24,6 +24,15 @@ namespace
 			RC_t	a0 = MakeRC<RCObj>( 1 );
 
 			a0 = a0.get();
+			TEST( a0 );
+
+          #ifdef AE_COMPILER_MSVC
+			a0 = a0;    // clang error: -Wself-assign-overloaded
+			TEST( a0 );
+          #endif
+
+			//a0 = RVRef(a0);	// error: result will be null
+			//TEST( a0 );
 		}
 		TEST( Obj_t::CheckStatistic() );
 	}

@@ -41,11 +41,12 @@ namespace AE::PipelineCompiler
 		void  SetMipLodBias (float value)										__Th___;
 		void  SetLodRange (float min, float max)								__Th___;
 		void  SetAnisotropy (float value)										__Th___;
+		bool  TrySetAnisotropy (float value)									__Th___;
 		void  SetCompareOp (ECompareOp value)									__Th___;
 		void  SetBorderColor (EBorderColor value)								__Th___;
-		void  SetNormCoordinates (bool value)									__Th___;
 		void  SetReductionMode (EReductionMode value)							__Th___;
-		void  SetUsage (ESamplerUsage value)									__Th___;
+		void  SetOptions (ESamplerOpt value)									__Th___;
+		void  SetOptions2 (uint value)											__Th___;
 
 		// samplerYcbcrConversion
 		void  Ycbcr_SetFormat (EPixelFormat value)								__Th___;

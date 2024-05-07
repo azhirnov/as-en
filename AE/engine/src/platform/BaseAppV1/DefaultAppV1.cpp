@@ -35,6 +35,10 @@ namespace AE::AppV1
 	{
 		CHECK( _config.graphics.maxFrames <= _config.graphics.swapchain.minImageCount );
 
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		ConstCast(_config).enableNetwork = true;
+	  #endif
+
 		TaskScheduler::InstanceCtor::Create();
 		VFS::VirtualFileSystem::InstanceCtor::Create();
 	  #ifdef AE_ENABLE_AUDIO
@@ -118,11 +122,19 @@ namespace AE::AppV1
 		_impl->RenderFrame();
 
 		#if ENABLE_SYNC_LOG
+		# ifdef AE_ENABLE_VULKAN
 		{
 			String	log;
 			VulkanSyncLog::GetLog( OUT log );
 			log.clear();
 		}
+		# elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		{
+			String	log;
+			_device.GetSyncLog( OUT log );
+			log.clear();
+		}
+		# endif
 		#endif
 
 		PROFILE_ONLY({
@@ -226,7 +238,7 @@ namespace AE::AppV1
 	_InitGraphics
 =================================================
 */
-	bool  AppCoreV1::_InitGraphics (IApplication &app)
+	bool  AppCoreV1::_InitGraphics (IApplication &app) __NE___
 	{
 		if_unlikely( _device.IsInitialized() )
 			return true;
@@ -248,8 +260,17 @@ namespace AE::AppV1
 		}
 		#endif
 
-	  #elif defined(AE_ENABLE_METAL) and defined(AE_ENABLE_REMOTE_GRAPHICS)
+	  #elif defined(AE_ENABLE_METAL)
+		Unused( app );
 		CHECK_ERR( _device.Init( _config.graphics ));
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		Unused( app );
+		CHECK_ERR( _device.Init( _config.graphics ));
+
+		#if ENABLE_SYNC_LOG
+			_device.EnableSyncLog( true );
+		#endif
 
 	  #else
 	  #	error not implemented
@@ -267,7 +288,7 @@ namespace AE::AppV1
 	_DestroyGraphics
 =================================================
 */
-	void  AppCoreV1::_DestroyGraphics ()
+	void  AppCoreV1::_DestroyGraphics () __NE___
 	{
 		if_unlikely( not _device.IsInitialized() )
 			return;
