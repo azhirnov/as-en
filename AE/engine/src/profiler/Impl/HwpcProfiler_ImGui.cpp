@@ -688,7 +688,7 @@ namespace
 		AddPoint(  ECounter::GPU_ClockSpeed,				INOUT prof.gpuClockSpeed,		1.0e-6f );
 		AddPoint(  ECounter::Tiler_TriangleRatio,			INOUT prof.tilerTriangleRatio,	1.0e-3f );
 		AddPoint(  ECounter::Texture_ReadStall,				INOUT prof.texReadStall,		1.f );		// %
-		AddPoint(  ECounter::Shader_ShaderProcessingLoad,	INOUT prof.shaderLoad,			1.f );
+		AddPoint(  ECounter::Shader_ShaderProcessingLoad,	INOUT prof.shaderLoad,			invFC );
 
 		AddPoint2( ECounter::GPU_MemoryRead,				ECounter::GPU_MemoryWrite,					INOUT prof.memoryTraffic,		invFC / 1024.f );
 		AddPoint2( ECounter::VertexShader_RegisterOverload,	ECounter::PixelShader_RegisterOverload,		INOUT prof.registerOverload,	invFC );

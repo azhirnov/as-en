@@ -1,6 +1,0 @@
-.cxx
-*.idea
-*.iml
-/build
-/.externalNativeBuild
-/src/main/jniLibs

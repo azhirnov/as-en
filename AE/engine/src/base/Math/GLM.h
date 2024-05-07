@@ -64,6 +64,10 @@
 #	pragma warning (disable: 4201)
 #	pragma warning (disable: 4127)
 #endif
+#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wconditional-uninitialized"
+#endif
 
 #include "glm.hpp"
 #include "detail/type_half.hpp"
@@ -109,6 +113,9 @@
 
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)
+#endif
+#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
 #endif
 
 #if GLM_CONFIG_ALIGNED_GENTYPES != GLM_ENABLE

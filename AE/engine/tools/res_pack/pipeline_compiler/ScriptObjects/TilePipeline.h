@@ -37,7 +37,7 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
-		ND_ const TilePipelineScriptBinding*	GetBase ()				const	{ return Cast<TilePipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
+		ND_ const TilePipelineScriptBinding*	GetBase ()				const;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};

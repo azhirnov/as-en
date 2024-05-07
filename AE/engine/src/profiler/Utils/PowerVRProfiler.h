@@ -12,7 +12,7 @@ namespace AE::Profiler
 
 
 	//
-	// PowerVR Profiler
+	// PowerVR GPU Profiler
 	//
 
 	class PowerVRProfiler

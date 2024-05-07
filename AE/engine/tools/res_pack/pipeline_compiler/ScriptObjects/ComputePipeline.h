@@ -22,25 +22,25 @@ namespace AE::PipelineCompiler
 		ComputePipelineSpecScriptBinding () {}
 		ComputePipelineSpecScriptBinding (ComputePipelineScriptBinding* base, const String &name) __Th___;
 
-		void  SetSpecValueU (const String &name, uint  value)	__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
-		void  SetSpecValueI (const String &name, int   value)	__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
-		void  SetSpecValueF (const String &name, float value)	__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
+		void  SetSpecValueU (const String &name, uint  value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, value ); }
+		void  SetSpecValueI (const String &name, int   value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
+		void  SetSpecValueF (const String &name, float value)			__Th___	{ return BasePipelineSpec::_SetSpecValue( INOUT desc.specialization, name, BitCast<uint>(value) ); }
 
-		void  SetOptions (EPipelineOpt value)					__Th___	{ return BasePipelineSpec::_SetOptions( value ); }
+		void  SetOptions (EPipelineOpt value)							__Th___	{ return BasePipelineSpec::_SetOptions( value ); }
 
-		void  SetLocalGroupSize1 (uint x)						__Th___	{ SetLocalGroupSize3( x, UMax, UMax ); }
-		void  SetLocalGroupSize2 (uint x, uint y)				__Th___	{ SetLocalGroupSize3( x, y, UMax ); }
-		void  SetLocalGroupSize3 (uint x, uint y, uint z)		__Th___;
+		void  SetLocalGroupSize1 (uint x)								__Th___	{ SetLocalGroupSize3( x, UMax, UMax ); }
+		void  SetLocalGroupSize2 (uint x, uint y)						__Th___	{ SetLocalGroupSize3( x, y, UMax ); }
+		void  SetLocalGroupSize3 (uint x, uint y, uint z)				__Th___;
 
 		void  SetDynamicState (/*EPipelineDynamicState*/uint states)	__Th___;
 
 		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
-		ND_ bool  Build (PipelineTemplUID uid)					__NE___;
+		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
-		ND_ const ComputePipelineScriptBinding*	GetBase ()		const	{ return Cast<ComputePipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
+		ND_ const ComputePipelineScriptBinding*	GetBase ()				const;
 
-		static void  Bind (const ScriptEnginePtr &se)			__Th___;
+		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
 	using ComputePipelineSpecPtr = ScriptRC< ComputePipelineSpecScriptBinding >;
 

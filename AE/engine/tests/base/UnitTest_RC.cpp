@@ -26,7 +26,7 @@ namespace
 			a0 = a0.get();
 			TEST( a0 );
 
-          #ifdef AE_COMPILER_MSVC
+          #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 			a0 = a0;    // clang error: -Wself-assign-overloaded
 			TEST( a0 );
           #endif

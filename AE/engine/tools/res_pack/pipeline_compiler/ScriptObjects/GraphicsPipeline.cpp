@@ -496,6 +496,16 @@ namespace
 	GraphicsPipelineSpecScriptBinding::GraphicsPipelineSpecScriptBinding (GraphicsPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
+		
+/*
+=================================================
+	GetBase
+=================================================
+*/
+	const GraphicsPipelineScriptBinding*  GraphicsPipelineSpecScriptBinding::GetBase () const
+	{
+		return Cast<GraphicsPipelineScriptBinding>( BasePipelineSpec::GetBase() );
+	}
 
 /*
 =================================================

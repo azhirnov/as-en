@@ -195,7 +195,9 @@ namespace AE::Threading
 		WriteRequestPool_t		_writeResultPool;
 
 	  #ifdef AE_ASYNCIO_USE_LINUX_AIO
+		AE_DISABLE_OFFSETOF_WARNINGS(
 		static constexpr uint	_LinuxAIO_CBOffset		= offsetof( _RequestBase, _aioCb );
+		)
 		static constexpr uint	_LinuxAIO_MinRequests	= 16;
 		LinuxAIO_CtxArray_t		_aioContextArr			= {};
 	  #endif

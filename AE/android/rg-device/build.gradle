@@ -35,7 +35,7 @@ android {
 		}
 	}
 
-    ndkVersion "27.0.11718014"
+    ndkVersion "26.3.11579264"
 
 	externalNativeBuild {
 		cmake {

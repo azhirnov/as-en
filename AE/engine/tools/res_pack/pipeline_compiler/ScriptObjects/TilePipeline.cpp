@@ -174,6 +174,16 @@ namespace
 	TilePipelineSpecScriptBinding::TilePipelineSpecScriptBinding (TilePipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
+		
+/*
+=================================================
+	GetBase
+=================================================
+*/
+	const TilePipelineScriptBinding*  TilePipelineSpecScriptBinding::GetBase () const
+	{
+		return Cast<TilePipelineScriptBinding>( BasePipelineSpec::GetBase() );
+	}
 
 /*
 =================================================

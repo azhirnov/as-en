@@ -5,7 +5,6 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 # External dependencies
 set( AE_ENABLE_FILESYSTEM  		ON  CACHE BOOL "enable alternative std::filesystem" )
 set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
-set( AE_ENABLE_HWPERCOUNTER		ON  CACHE BOOL "enable Google performance counters for Adreno/Mali" )	# TODO: remove
 set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
 
 set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )
@@ -43,10 +42,6 @@ endif()
 
 if (${AE_ENABLE_ARM_HWCPIPE})
 	add_subdirectory( "HWCPipe" )
-endif()
-
-if (${AE_ENABLE_HWPERCOUNTER})
-	add_subdirectory( "HWPerfCounter" )
 endif()
 
 if (${AE_ENABLE_PVRCOUNTER})

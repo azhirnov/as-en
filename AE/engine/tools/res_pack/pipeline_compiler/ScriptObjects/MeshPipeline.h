@@ -46,7 +46,7 @@ namespace AE::PipelineCompiler
 
 		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
-		ND_ const MeshPipelineScriptBinding*	GetBase ()				const	{ return Cast<MeshPipelineScriptBinding>( BasePipelineSpec::GetBase() ); }
+		ND_ const MeshPipelineScriptBinding*	GetBase ()				const;
 
 		ND_ bool  Build (PipelineTemplUID uid)							__NE___;
 
