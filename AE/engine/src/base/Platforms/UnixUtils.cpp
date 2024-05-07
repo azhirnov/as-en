@@ -193,7 +193,7 @@ namespace AE::Base
 */
 	Bytes  UnixUtils::GetDefaultStackSize () __NE___
 	{
-		Bytes			result {PTHREAD_STACK_MIN};
+		Bytes			result {ulong(PTHREAD_STACK_MIN)};
 		pthread_attr_t	attr;
 
 		if ( ::pthread_attr_init( OUT &attr ) == 0 )

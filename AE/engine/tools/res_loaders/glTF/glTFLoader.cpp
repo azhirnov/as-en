@@ -14,6 +14,7 @@
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wunused-variable"
+#	pragma clang diagnostic ignored "-Wshorten-64-to-32"
 # endif
 
 # define TINYGLTF_IMPLEMENTATION

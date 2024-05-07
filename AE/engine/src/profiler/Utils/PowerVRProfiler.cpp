@@ -499,7 +499,7 @@ namespace
 
 		const auto*		idx_map		= _impl->_typeToData.data();
 		const auto*		values		= _impl->_reading.pfValueBuf;
-		const uint		count		= _impl->_reading.nValueCnt;
+		const uint		count		= _impl->_reading.nValueCnt;	Unused( count );
 
 		for (ECounter c : _impl->_supportedCounters)
 		{

@@ -46,16 +46,8 @@
 	ConvertVkAccessFlags2 (VK_KHR_synchronization2)
 =================================================
 */
-	VkAccessFlags  VulkanEmulation::ConvertVkAccessFlags2 (const VkAccessFlags2 inAccess, const VkPipelineStageFlags2 inStages) C_NE___
+	VkAccessFlags  VulkanEmulation::ConvertVkAccessFlags2 (const VkAccessFlags2 inAccess, const VkPipelineStageFlags2) C_NE___
 	{
-		constexpr VkPipelineStageFlags2		unsupported_stages =
-			VK_PIPELINE_STAGE_2_TRANSFORM_FEEDBACK_BIT_EXT | VK_PIPELINE_STAGE_2_CONDITIONAL_RENDERING_BIT_EXT |
-			VK_PIPELINE_STAGE_2_COMMAND_PREPROCESS_BIT_NV | VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI |
-			VK_PIPELINE_STAGE_2_INVOCATION_MASK_BIT_HUAWEI;
-
-		ASSERT( not AnyBits( inStages, unsupported_stages ));
-		Unused( unsupported_stages );
-
 		VkAccessFlags result = VkAccessFlags(inAccess);
 
 		if ( AnyBits( inAccess, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_READ_BIT ))
