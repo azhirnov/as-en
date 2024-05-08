@@ -789,7 +789,7 @@ namespace AE::ResEditor
 		Array<ImageViewID>	views;
 		views.resize( _maxTextures );
 
-		const auto	BindImages = [this, &views, &updater] (UniformName::Ref un, ArrayView<RC<Image>> images) -> bool
+		const auto	BindImages = [&views, &updater] (UniformName::Ref un, ArrayView<RC<Image>> images) -> bool
 		{{
 			CHECK_ERR( views.size() == images.size() );
 

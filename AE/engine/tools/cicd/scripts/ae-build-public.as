@@ -10,7 +10,8 @@ const string	c_GitBranch		= "dev";
 
 const array<string>	c_Targets	= { "Tests.Base", "Tests.Serializing", "Tests.Scripting", "Tests.Threading",
 									"Tests.Networking", "Tests.ECS-st", "Tests.Graphics", "Tests.GraphicsHL", "Tests.VFS",
-									"Tests.GeometryTools", "Tests.AtlasTools" };
+									"Tests.GeometryTools", "Tests.AtlasTools", "CICD", "RemoteGraphicsDevice", "GraphicsLib" };
+const array<string>	c_Samples	= { "Sample.Demo", "ResourceEditor" };
 
 
 void  CloneRepository (const string binBranch)
@@ -72,6 +73,9 @@ void  BuildMSVC (const string path, const ECompiler compiler, const string cmake
 
 				for (uint j = 0; j < c_WindowsTargets.size(); ++j)
 					CMakeBuild( build_dir, c_ConfigList[i], c_WindowsTargets[j] );
+
+				for (uint j = 0; j < c_Samples.size(); ++j)
+					CMakeBuild( build_dir, c_ConfigList[i], c_Samples[j] );
 
 				UploadFolder( build_dir+"/bin/"+c_ConfigList[i],  path+"/"+c_ConfigList[i],  "dll|exe",  ECopyMode::FolderMerge_FileReplace );
 			}
@@ -208,6 +212,9 @@ void  BuildLinux (const string path, const ECompiler compiler, uint compilerVer,
 			for (uint j = 0; j < c_DesktopTargets.size(); ++j)
 				CMakeBuild( build_dir, c_ConfigList[i], c_DesktopTargets[j] );
 
+			for (uint j = 0; j < c_Samples.size(); ++j)
+				CMakeBuild( build_dir, c_ConfigList[i], c_Samples[j] );
+
 			UploadFolder( build_dir+"/bin",  path+"/"+c_ConfigList[i],  "so|elf",  ECopyMode::FolderMerge_FileReplace );
 		}
 
@@ -260,6 +267,9 @@ void  BuildMacOS (const string path, const ECompiler compiler, uint compilerVer,
 
 			//for (uint j = 0; j < c_DesktopTargets.size(); ++j)
 			//	CMakeBuild( build_dir, c_ConfigList[i], c_DesktopTargets[j] );
+
+			//for (uint j = 0; j < c_Samples.size(); ++j)
+			//	CMakeBuild( build_dir, c_ConfigList[i], c_Samples[j] );
 
 			UploadFolder( build_dir+"/bin",  path+"/"+c_ConfigList[i],  "so|app",  ECopyMode::FolderMerge_FileReplace );
 		}

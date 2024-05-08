@@ -100,7 +100,7 @@ namespace AE::ResEditor
 	private:
 		bool  _InitVFS ()					__NE___;
 
-		ND_ ResEditorCore&	_Core ()		__NE___	{ return RefCast<ResEditorCore>( GetBaseApp() ); }
+		ND_ ResEditorCore&	_Core ()		__NE___;
 	};
 
 

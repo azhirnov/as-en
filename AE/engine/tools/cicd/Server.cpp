@@ -842,7 +842,7 @@ namespace AE::CICD
 		static constexpr uint	err_color		= 0xFF'00'00;
 		static constexpr uint	warn_color		= 0x1E'93'00;
 
-		const auto	WrapWithColor = [] (String &s, uint textCol, uint bgCol = light_bg_color)
+		const auto	WrapWithColor = [] (String &s, uint textCol, uint bgCol = 0xFF'FF'FF)
 		{{
 			if ( not s.empty() )
 			{
@@ -972,6 +972,7 @@ namespace AE::CICD
 					<< "\n</details>";
 			}
 		}
+		Unused( warn_count );
 
 		if ( not err_str.empty() )
 		{

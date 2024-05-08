@@ -12,11 +12,30 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	Add
+=================================================
+*/
+	void  ResourceArray::Add (UniformName::Ref name, AnyResource_t res, EResourceState state)
+	{
+		_resources.emplace_back( name, RVRef(res), state );
+	}
+
+/*
+=================================================
 	SetStates
 =================================================
 */
+	void  ResourceArray::SetStates (DirectCtx::Compute &ctx, EResourceState shaderStages)		const { _SetStates( ctx, shaderStages ); }
+	void  ResourceArray::SetStates (DirectCtx::Graphics &ctx, EResourceState shaderStages)		const { _SetStates( ctx, shaderStages ); }
+	void  ResourceArray::SetStates (DirectCtx::RayTracing &ctx, EResourceState shaderStages)	const { _SetStates( ctx, shaderStages ); }
+
+/*
+=================================================
+	_SetStates
+=================================================
+*/
 	template <typename CtxType>
-	void  ResourceArray::SetStates (CtxType &ctx, EResourceState shaderStages) const
+	void  ResourceArray::_SetStates (CtxType &ctx, EResourceState shaderStages) const
 	{
 		const FrameUID	fid = ctx.GetFrameId();
 		for (auto& [un, res, in_state] : _resources)
@@ -59,7 +78,7 @@ namespace AE::ResEditor
 	Bind
 =================================================
 */
-	inline bool  ResourceArray::Bind (FrameUID fid, DescriptorUpdater &updater) const
+	bool  ResourceArray::Bind (FrameUID fid, DescriptorUpdater &updater) const
 	{
 		for (auto& [in_un, res, state] : _resources)
 		{
@@ -81,11 +100,11 @@ namespace AE::ResEditor
 					return updater.BindVideoImage( un, video->GetVideoImageId() );
 				},
 				[&] (const Array<RC<Image>> &arr) {
-					bool	res = true;
+					bool	ok = true;
 					for (usize i : IndicesOnly( arr )) {
-						res &= updater.BindImage( un, arr[i]->GetViewId(), uint(i) );
+						ok &= updater.BindImage( un, arr[i]->GetViewId(), uint(i) );
 					}
-					return res;
+					return ok;
 				},
 				[](NullUnion) {
 					return true;
@@ -100,7 +119,7 @@ namespace AE::ResEditor
 	GetResourcesToResize
 =================================================
 */
-	inline void  ResourceArray::GetResourcesToResize (INOUT Array<RC<IResource>> &result) const
+	void  ResourceArray::GetResourcesToResize (INOUT Array<RC<IResource>> &result) const
 	{
 		for (auto& [un, res, state] : _resources)
 		{

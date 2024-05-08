@@ -748,7 +748,7 @@ namespace
 			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -4, 2, SurfaceScaleName( scale )) )
 				g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
 
-			ImGui::Text( ("Surface size: "s << ToString( g_mode->dynSize->Dimension2() )).c_str() );
+			ImGui::Text( "Surface size: %s", ToString( g_mode->dynSize->Dimension2() ).c_str() );
 
 			bool	linear = g_mode->filterMode->Get() > 0;
 			if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
@@ -835,8 +835,8 @@ namespace
 		{
 			const auto	sp = s_UIInteraction.selectedPixel.Read();
 
-			ImGui::Text( ("mouse pos:   "s << ToString( sp.pos )).c_str() );
-			ImGui::Text( ("pixel color: "s << ToString( sp.color, 3 )).c_str() );
+			ImGui::Text( "mouse pos:   %s", ToString( sp.pos ).c_str() );
+			ImGui::Text( "pixel color: %s", ToString( sp.color, 3 ).c_str() );
 			ImGui::SameLine();
 
 			float	h	= ImGui::GetTextLineHeight();
@@ -1187,7 +1187,7 @@ namespace
 		ImGui::SetNextWindowPos( ImVec2{(io.DisplaySize.x-w)/2, io.DisplaySize.y/2-h}, ImGuiCond_Always );
 
 		ImGui::Begin( "CompilingPopup", null, wnd_flags );
-		ImGui::Text( text.data() );
+		ImGui::Text( "%s", text.data() );
 		ImGui::End();
 	}
 
@@ -1212,7 +1212,7 @@ namespace
 		ImGui::SetNextWindowPos( ImVec2{x,y}, ImGuiCond_Always );
 
 		ImGui::Begin( "Help", null, wnd_flags );
-		ImGui::Text( imgui->helpText.c_str() );
+		ImGui::Text( "%s", imgui->helpText.c_str() );
 		ImGui::End();
 	}
 
@@ -1239,7 +1239,7 @@ namespace
 			if ( clicked > dir.firstId and clicked < dir.lastId )
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), flags, dir.name.c_str() );
+			bool	node_open = ImGui::TreeNodeEx( BitCast<void*>(node_id), flags, "%s", dir.name.c_str() );
 			if ( not node_open )
 				return;
 		}
@@ -1259,7 +1259,7 @@ namespace
 			if ( node_id == clicked )
 				node_flags |= ImGuiTreeNodeFlags_Selected;
 
-			ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, script.c_str() );
+			ImGui::TreeNodeEx( BitCast<void*>(node_id), node_flags, "%s", script.c_str() );
 
 			if ( ImGui::IsItemClicked() and not ImGui::IsItemToggledOpen() )
 			{
@@ -1294,9 +1294,9 @@ namespace
 
 		Scheduler().Run(
 			ETaskQueue::Background,
-			[] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
+			[] (RC<ResEditorCore> core, Path inPath, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
 			{
-				Unused( core->RunRenderScriptAsync( path ));
+				Unused( core->RunRenderScriptAsync( inPath ));
 				compiling.store( false );
 				pauseRendering.store( false );
 				co_return;

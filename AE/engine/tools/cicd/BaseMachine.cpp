@@ -413,7 +413,7 @@ namespace AE::CICD
 	_GetGPUInfo
 =================================================
 */
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
+#ifndef AE_ENABLE_VULKAN
 	bool  BaseMachine::_GetGPUInfo (INOUT MachineInfo &)
 	{
 		return true;

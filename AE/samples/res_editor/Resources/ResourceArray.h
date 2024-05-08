@@ -21,7 +21,7 @@ namespace AE::ResEditor
 
 
 	// variables
-	public:
+	private:
 		Resources_t		_resources;
 
 
@@ -30,15 +30,22 @@ namespace AE::ResEditor
 		ResourceArray ();
 		~ResourceArray ();
 
-		ND_ bool				Empty ()									const	{ return _resources.empty(); }
-		ND_ Resources_t const&	Get ()										const	{ return _resources; }
+		ND_ bool				Empty ()											const	{ return _resources.empty(); }
+		ND_ Resources_t const&	Get ()												const	{ return _resources; }
 
-			template <typename CtxType>
-			void  SetStates (CtxType &ctx, EResourceState shaderStages)		const;
+			void  Add (UniformName::Ref name, AnyResource_t res, EResourceState state);
 
-			void  GetResourcesToResize (INOUT Array<RC<IResource>> &)		const;
+			void  SetStates (DirectCtx::Compute &, EResourceState shaderStages)		const;
+			void  SetStates (DirectCtx::Graphics &, EResourceState shaderStages)	const;
+			void  SetStates (DirectCtx::RayTracing &, EResourceState shaderStages)	const;
 
-		ND_ bool  Bind (FrameUID, DescriptorUpdater &updater)				const;
+			void  GetResourcesToResize (INOUT Array<RC<IResource>> &)				const;
+
+		ND_ bool  Bind (FrameUID, DescriptorUpdater &updater)						const;
+
+	private:
+		template <typename CtxType>
+		void  _SetStates (CtxType &ctx, EResourceState shaderStages)				const;
 	};
 
 

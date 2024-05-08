@@ -174,7 +174,7 @@ namespace
 	TilePipelineSpecScriptBinding::TilePipelineSpecScriptBinding (TilePipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
-		
+
 /*
 =================================================
 	GetBase

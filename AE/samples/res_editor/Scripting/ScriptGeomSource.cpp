@@ -1676,10 +1676,10 @@ namespace
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 		auto		result		= MakeRC<UnifiedGeometry>( renderer );
 
-		for (auto& src : _drawCommands)
+		for (auto& src_cmd : _drawCommands)
 		{
 			auto&	dst = result->_drawCommands.emplace_back();
-			Visit( src,
+			Visit( src_cmd,
 				[&] (const DrawCmd3 &src) {
 					UnifiedGeometry::DrawCmd2	cmd;
 					cmd.dynVertexCount		= src.dynVertexCount ? src.dynVertexCount->Get() : null;

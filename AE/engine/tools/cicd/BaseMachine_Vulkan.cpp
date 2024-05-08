@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#if defined(AE_ENABLE_VULKAN) and defined(CICD_TEST_MACHINE)
+#if defined(AE_ENABLE_VULKAN) and (defined(CICD_BUILD_MACHINE) or defined(CICD_TEST_MACHINE))
 
 # ifndef VK_NO_PROTOTYPES
 #	define VK_NO_PROTOTYPES

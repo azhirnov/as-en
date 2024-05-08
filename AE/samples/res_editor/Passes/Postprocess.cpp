@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/Postprocess.h"
-#include "res_editor/Resources/ResourceArray.cpp.h"
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/_data/cpp/types.h"
 

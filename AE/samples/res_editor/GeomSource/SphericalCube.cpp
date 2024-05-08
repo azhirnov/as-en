@@ -113,9 +113,9 @@ namespace AE::ResEditor
 		const auto		BindPipeline = [&ctx] (const auto &pplnId)
 		{{
 			Visit( pplnId,
-				[&ctx] (GraphicsPipelineID ppln)	{ ctx.BindPipeline( ppln ); },
-				[&ctx] (MeshPipelineID ppln)		{ ctx.BindPipeline( ppln ); },
-				[] (NullUnion)						{ CHECK_MSG( false, "pipeline is not defined" ); }
+				[&ctx] (GraphicsPipelineID id)	{ ctx.BindPipeline( id ); },
+				[&ctx] (MeshPipelineID id)		{ ctx.BindPipeline( id ); },
+				[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
 			);
 		}};
 

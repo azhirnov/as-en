@@ -362,7 +362,7 @@ namespace
 	MeshPipelineSpecScriptBinding::MeshPipelineSpecScriptBinding (MeshPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
-		
+
 /*
 =================================================
 	GetBase

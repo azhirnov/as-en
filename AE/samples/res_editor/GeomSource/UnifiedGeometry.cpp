@@ -109,11 +109,11 @@ namespace AE::ResEditor
 		{
 			Visit( _drawCommands[i],
 
-				[&ctx] (const DrawCmd2 &) {},
+				[] (const DrawCmd2 &) {},
 				[&ctx] (const DrawIndexedCmd2 &src) {
 					ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
 				},
-				[&ctx] (const DrawMeshTasksCmd2 &) {},
+				[] (const DrawMeshTasksCmd2 &) {},
 				[&ctx] (const DrawIndirectCmd2 &src) {
 					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
 				},

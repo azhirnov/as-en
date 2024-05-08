@@ -176,7 +176,7 @@ namespace
 	ComputePipelineSpecScriptBinding::ComputePipelineSpecScriptBinding (ComputePipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
-		
+
 /*
 =================================================
 	GetBase

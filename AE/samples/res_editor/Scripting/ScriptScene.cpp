@@ -652,7 +652,7 @@ namespace AE::ResEditor
 		{
 			auto	rt_scene_res = rt_scene->ToResource();
 			CHECK_THROW( rt_scene_res );
-			result->_resources._resources.emplace_back( UniformName{"un_RtScene"}, rt_scene_res, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders );
+			result->_resources.Add( UniformName{"un_RtScene"}, rt_scene_res, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders );
 		}
 
 		result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );

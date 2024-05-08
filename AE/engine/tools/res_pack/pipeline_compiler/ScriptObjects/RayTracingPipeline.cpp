@@ -461,7 +461,7 @@ namespace
 	RayTracingPipelineSpecScriptBinding::RayTracingPipelineSpecScriptBinding (RayTracingPipelineScriptBinding* base, const String &name) __Th___ :
 		BasePipelineSpec{ base, name }
 	{}
-		
+
 /*
 =================================================
 	GetBase

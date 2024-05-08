@@ -19,26 +19,26 @@ namespace AE::ResEditor
 				[&] (ScriptBufferPtr buf) {
 					auto	res = buf->ToResource();
 					CHECK_THROW( res );
-					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state );
 				},
 				[&] (ScriptImagePtr tex) {
 					auto	res = tex->ToResource();
 					CHECK_THROW( res );
-					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state );
 				},
 				[&] (ScriptVideoImagePtr video) {
 					auto	res = video->ToResource( packId );
 					CHECK_THROW( not IsNullUnion( res ));
 					Visit( res,
-						[&] (RC<VideoImage>  vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
-						[&] (RC<VideoImage2> vi) { resources._resources.emplace_back( UniformName{arg.name}, vi, arg.state ); },
+						[&] (RC<VideoImage>  vi) { resources.Add( UniformName{arg.name}, vi, arg.state ); },
+						[&] (RC<VideoImage2> vi) { resources.Add( UniformName{arg.name}, vi, arg.state ); },
 						[] (NullUnion) {}
 					);
 				},
 				[&] (ScriptRTScenePtr scene) {
 					auto	res = scene->ToResource();
 					CHECK_THROW( res );
-					resources._resources.emplace_back( UniformName{arg.name}, res, arg.state );
+					resources.Add( UniformName{arg.name}, res, arg.state );
 				},
 				[&] (const Array<ScriptImagePtr> &arr)
 				{
@@ -50,7 +50,7 @@ namespace AE::ResEditor
 						CHECK_THROW( res );
 						images.push_back( RVRef(res) );
 					}
-					resources._resources.emplace_back( UniformName{arg.name}, RVRef(images), arg.state );
+					resources.Add( UniformName{arg.name}, RVRef(images), arg.state );
 				},
 				[] (NullUnion) {
 					CHECK_THROW_MSG( false, "unsupported argument type" );

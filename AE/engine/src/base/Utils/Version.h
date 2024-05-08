@@ -31,7 +31,7 @@ namespace AE::Base
 		constexpr TVersion3 ()												__NE___ {}
 		constexpr TVersion3 (uint maj, uint min, uint patch = 0)			__NE___ : major{CheckCast<ushort>(maj)}, minor{CheckCast<ushort>(min)}, patch{patch} {}
 		constexpr explicit TVersion3 (const TVersion2<UID> &, uint path = 0)__NE___;
-		
+
 		constexpr TVersion3 (const Self &)									__NE___ = default;
 		constexpr TVersion3 (Self &&)										__NE___ = default;
 			constexpr Self&	operator =  (const Self &)						__NE___ = default;
@@ -77,7 +77,7 @@ namespace AE::Base
 		constexpr TVersion2 ()									__NE___ {}
 		constexpr TVersion2 (uint maj, uint min)				__NE___ : major{CheckCast<ushort>(maj)}, minor{CheckCast<ushort>(min)} {}
 		constexpr explicit TVersion2 (const TVersion3<UID> &v)	__NE___	: major{v.major}, minor{v.minor} {}
-		
+
 		constexpr TVersion2 (const Self &)						__NE___ = default;
 		constexpr TVersion2 (Self &&)							__NE___ = default;
 

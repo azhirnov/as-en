@@ -714,7 +714,7 @@ namespace {
 
 		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
 
-		const auto	Create	 = [&] (auto& intermImg) -> bool
+		const auto	Create	 = [&] () -> bool
 		{{
 			ImageDesc		desc		= GetImageDesc();
 			ImageViewDesc	view_desc	= GetViewDesc();
@@ -774,7 +774,7 @@ namespace {
 			return true;
 		}};
 
-		bool	res = Create( intermImg );
+		bool	res = Create();
 
 		if ( res )
 		{

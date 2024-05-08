@@ -697,6 +697,16 @@ void main (Config &out cfg)
 		AppCoreV1::OnStop( app );
 		_app = null;
 	}
+
+/*
+=================================================
+	_Core
+=================================================
+*/
+	ResEditorCore&  ResEditorApplication::_Core () __NE___
+	{
+		return RefCast<ResEditorCore>( GetBaseApp() );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1142,9 +1152,9 @@ void main (Config &out cfg)
 
 				Scheduler().Run(
 					ETaskQueue::Background,
-					[] (RC<ResEditorCore> core, Path path) -> CoroTask
+					[] (RC<ResEditorCore> core, Path inPath) -> CoroTask
 					{
-						if ( not core->RunRenderScriptAsync( path ))
+						if ( not core->RunRenderScriptAsync( inPath ))
 							core->_test.status.store( ETestStatus::Complete );
 						co_return;
 					}

@@ -158,7 +158,7 @@ namespace AE::ResEditor
 		}
 
 		const float	min_dt   = 1.f / 30.f;
-		const auto	cur_time = Seconds_t{_curTime.Add( Min( GraphicsScheduler().GetFrameTimeDelta().count(), min_dt ))} + _frameDuration;
+		const auto	cur_time = Seconds_t{_curTime.Add( double(Min( GraphicsScheduler().GetFrameTimeDelta().count(), min_dt )) )} + _frameDuration;
 
 		if ( cur_time < _frameTimes[mem_idx] )
 			return _uploadStatus.load();  // skip
