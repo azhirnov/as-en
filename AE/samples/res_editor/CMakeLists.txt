@@ -43,7 +43,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		AE_LOCAL_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data"
 	)
 
-	if (DEFINED AE_RESPACK_RELEASE)
+	if (DEFINED AE_RES_EDITOR_RELEASE)
 		target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=true" )
 	else()
 		target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=false" )

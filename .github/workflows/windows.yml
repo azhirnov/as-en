@@ -1,0 +1,143 @@
+name: Windows
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build-vs17-x64:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+    
+    runs-on: windows-latest
+    name: Windows x64, VS17, ${{matrix.config}}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/mQ1odyDoV29Q0A', 'external.zip' )"
+        powershell Expand-Archive external.zip -DestinationPath "."
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/_build
+      run: |
+        ctest -R "Tests.Base" -C ${{matrix.config}}
+        ctest -R "Tests.Serializing" -C ${{matrix.config}}
+        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
+        ctest -R "Tests.Scripting" -C ${{matrix.config}}
+        ctest -R "Tests.Threading" -C ${{matrix.config}}
+        ctest -R "Tests.Networking" -C ${{matrix.config}}
+        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
+        ctest -R "Tests.VFS" -C ${{matrix.config}}
+        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
+        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
+        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-windows-x64-msvc-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/CICD.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/OfflinePacker.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/ResourceEditor.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/RemoteGraphicsDevice.exe
+    
+    
+  build-vs17-x64-rg:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+    
+    runs-on: windows-latest
+    name: Windows x64, VS17, ${{matrix.config}}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/mQ1odyDoV29Q0A', 'external.zip' )"
+        powershell Expand-Archive external.zip -DestinationPath "."
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_REMOTE_GRAPHICS=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}} --target "ResourceEditor"
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-windows-x64-msvc-${{matrix.config}}-RemoteGraphics
+        path: |
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/ResourceEditor.exe
+    
+    
+  build-vs17-clang-x64:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+      
+    runs-on: windows-latest
+    name: Windows x64, VS17 Clang, ${{matrix.config}}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/jMqhMuoG5man6w', 'external.zip' )"
+        powershell Expand-Archive external.zip -DestinationPath "."
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/_build
+      run: |
+        ctest -R "Tests.Base" -C ${{matrix.config}}
+        ctest -R "Tests.Serializing" -C ${{matrix.config}}
+        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
+        ctest -R "Tests.Scripting" -C ${{matrix.config}}
+        ctest -R "Tests.Threading" -C ${{matrix.config}}
+        ctest -R "Tests.Networking" -C ${{matrix.config}}
+        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
+        ctest -R "Tests.VFS" -C ${{matrix.config}}
+        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
+        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
+        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-windows-x64-clang-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/CICD.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/OfflinePacker.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/ResourceEditor.exe
+            ${{github.workspace}}/_build/bin/${{matrix.config}}/RemoteGraphicsDevice.exe
+            
+            

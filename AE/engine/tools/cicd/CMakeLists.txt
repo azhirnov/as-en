@@ -38,7 +38,7 @@ endif()
 if (${AE_ENABLE_VULKAN})
 	target_link_libraries( "CICD" PUBLIC "Vulkan-lib" )
 
-	if (APPLE)
+	if (FALSE)
 		if (NOT EXISTS "/usr/local/lib/libMoltenVK.dylib")
 			message( FATAL_ERROR "'/usr/local/lib/libMoltenVK.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
 		endif()

@@ -1,3 +1,8 @@
+![example workflow](https://github.com/azhirnov/as-en/actions/workflows/windows.yml/badge.svg)
+![example workflow](https://github.com/azhirnov/as-en/actions/workflows/linux.yml/badge.svg)
+![example workflow](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)
+![example workflow](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)
+
 ## Async Game Engine
 
 __AsEn__ - is a totally asynchronous engine for multicore systems.

@@ -1,0 +1,128 @@
+name: Android
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        config: [debug, release]
+        
+    runs-on: ubuntu-latest
+    name: Android, ${{matrix.config}} 
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - id: config
+      uses: actions/github-script@v6
+      with:
+        script: return "${{ matrix.config == 'debug' && 'Debug' || 'Release' }}"
+        result-encoding: string
+    
+    - name: Set up Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 17
+ 
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        cd AE-Bin
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/li5pOVEwqcS2gA"
+        unzip external.zip
+        rm external.zip
+        cd ../AE/android
+        chmod +x gradlew
+    
+    - name: Build 'Tests' ARM-v8
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :test:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+        
+    - name: Build 'Tests' ARM-v7
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :test:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      
+    - name: Assemple 'Tests'
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :test:assemble${{steps.config.outputs.result}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-android-test-${{matrix.config}}
+        path: ${{github.workspace}}/AE/android/test/build/outputs/apk/${{matrix.config}}/test-${{matrix.config}}.apk
+      
+    - name: Cleanup 'Tests'
+      working-directory: ${{github.workspace}}/AE/android
+      run: |
+        rm -rf test/build
+        rm -rf test/.cxx
+      
+    - name: Build 'RemoteGraphicsDevice' ARM-v8
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :rg-device:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+        
+    - name: Build 'RemoteGraphicsDevice' ARM-v7
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :rg-device:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      
+    - name: Assemple 'RemoteGraphicsDevice'
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :rg-device:assemble${{steps.config.outputs.result}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-android-rg-device-${{matrix.config}}
+        path: ${{github.workspace}}/AE/android/rg-device/build/outputs/apk/${{matrix.config}}/rg-device-${{matrix.config}}.apk
+      
+    - name: Cleanup 'RemoteGraphicsDevice'
+      working-directory: ${{github.workspace}}/AE/android
+      run: |
+        rm -rf rg-device/build
+        rm -rf rg-device/.cxx
+        
+    - name: Build 'CICD-Client' ARM-v8
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :cicd:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+        
+    - name: Build 'CICD-Client' ARM-v7
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :cicd:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      
+    - name: Assemple 'CICD-Client'
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :cicd:assemble${{steps.config.outputs.result}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-android-cicd-${{matrix.config}}
+        path: ${{github.workspace}}/AE/android/cicd/build/outputs/apk/${{matrix.config}}/cicd-${{matrix.config}}.apk
+      
+    - name: Cleanup 'CICD-Client'
+      working-directory: ${{github.workspace}}/AE/android
+      run: |
+        rm -rf cicd/build
+        rm -rf cicd/.cxx
+        
+    - name: Build 'Demo' ARM-v8
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :demo:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+        
+    - name: Build 'Demo' ARM-v7
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :demo:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+       
+    - name: Assemple 'Demo'
+      working-directory: ${{github.workspace}}/AE/android
+      run: ./gradlew :demo:assemble${{steps.config.outputs.result}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-android-demo-${{matrix.config}}
+        path: ${{github.workspace}}/AE/android/demo/build/outputs/apk/${{matrix.config}}/demo-${{matrix.config}}.apk
+      
+    - name: Cleanup 'Demo'
+      working-directory: ${{github.workspace}}/AE/android
+      run: |
+        rm -rf demo/build
+        rm -rf demo/.cxx

@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 # External dependencies
 set( AE_ENABLE_FILESYSTEM  		ON  CACHE BOOL "enable alternative std::filesystem" )
-set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
+set( AE_ENABLE_ARM_HWCPIPE 		OFF CACHE BOOL "enable ARM (Mali) performance counters" )
 set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
 
 set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )

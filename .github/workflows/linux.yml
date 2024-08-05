@@ -1,0 +1,132 @@
+name: Linux
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build-gcc-13:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+    
+    if: false
+    runs-on: ubuntu-24.04
+    name: Linux x64, GCC 13, ${{matrix.config}}
+    
+    steps:
+    - uses: actions/checkout@v4
+       
+    - name: Configure dependencies
+      run: |
+        sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev
+ 
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/8pkMenTvHYT6-g"
+        unzip external.zip
+    
+    - name: Configure CMake
+      env:
+        CC: gcc-13
+        CXX: g++-13
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}} -j 2
+
+    - name: Test
+      working-directory: ${{github.workspace}}/_build
+      run: |
+        ctest -R "Tests.Base" -C ${{matrix.config}}
+        ctest -R "Tests.Serializing" -C ${{matrix.config}}
+        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
+        ctest -R "Tests.Scripting" -C ${{matrix.config}}
+        ctest -R "Tests.Threading" -C ${{matrix.config}}
+        ctest -R "Tests.Networking" -C ${{matrix.config}}
+        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
+        ctest -R "Tests.VFS" -C ${{matrix.config}}
+        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
+        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
+        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-linux-x64-gcc13-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/OfflinePacker.elf
+            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
+            
+      
+  build-clang-16:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+        
+    runs-on: ubuntu-24.04
+    name: Linux x64, Clang 16, ${{matrix.config}}
+    
+    steps:
+    - uses: actions/checkout@v4
+       
+    - name: Configure dependencies
+      run: |
+        sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev \
+          libc++-dev libc++abi-dev
+ 
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/W1W_M_CnbD-8Hw"
+        unzip external.zip
+    
+    - name: Configure CMake
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}} -j 2
+
+    - name: Test
+      working-directory: ${{github.workspace}}/_build
+      run: |
+        ctest -R "Tests.Base" -C ${{matrix.config}}
+        ctest -R "Tests.Serializing" -C ${{matrix.config}}
+        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
+        ctest -R "Tests.Scripting" -C ${{matrix.config}}
+        ctest -R "Tests.Threading" -C ${{matrix.config}}
+        ctest -R "Tests.Networking" -C ${{matrix.config}}
+        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
+        ctest -R "Tests.VFS" -C ${{matrix.config}}
+        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
+        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
+        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-linux-x64-clang16-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/OfflinePacker.elf
+            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
+            
